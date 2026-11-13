@@ -69,6 +69,7 @@ Processing Log.
 | F25 | review-finding:pr-2854-f25 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F26 | review-finding:pr-2854-f26 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F27 | review-finding:pr-2854-f27 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F28 | review-finding:pr-2854-f28 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -102,8 +103,8 @@ Processing Log.
 - Source review ID: 5889429427
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562180428
 - Concern: `container.yaml` passes no `CARGO_BUILD_JOBS` build argument for the self-hosted runner, `report.md` deferred the runner comparison to after merge, the issue marked AC6 `DONE` anyway, and the PR description used `Closes #2853`, which would have auto-closed the issue with that criterion unmet. `build`/`build_shipped` recompile the whole workspace on every source change (`COPY . /build/src`), so the exposure is not limited to a rare cold build.
-- Solution: set T6/AC6 back to `IN_PROGRESS`/`TODO`, added manual scenario M4 for a real self-hosted run of the PR head, and changed the PR description from `Closes #2853` to `Related to #2853` until that run's result is recorded. The runner's actual job duration at the capped default remains pending (F15 below corrects an over-claim this entry's first fix made about one such run).
-- Current-tree verification: `manual-verification-evidence.md` V4 and `ISSUE.md`'s M4 row both state the result is pending, not yet measured.
+- Solution: set T6/AC6 back to `IN_PROGRESS`/`TODO`, added manual scenario M4 for a real self-hosted run of the PR head, and changed the PR description from `Closes #2853` to `Related to #2853` until that run's result is recorded. The build step time on the runner was measured later and is recorded in `manual-verification-evidence.md` V4 (F15 below corrects an over-claim this entry's first fix made about one such run).
+- Current-tree verification: `manual-verification-evidence.md` V4 holds the six step times, `ISSUE.md`'s M4 row is DONE, and AC6 is TODO until the maintainer decides whether the measured slowdown is acceptable.
 - Resolution reference: `fix(container): [#2853] address da2ce7 review: fix report arithmetic, evidence, docs nits`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562418701
@@ -295,7 +296,7 @@ Processing Log.
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562551196
 - Concern: the runner bullet named a specific run and head while recording no actual duration, contradicting M4/T6/the progress log (which all say the run is "at this head" and pending), and its "not materially different from before this change" phrasing contradicted the next sentence about every-run recompilation.
 - Solution: rewrote the bullet to state the before/after job count (8 uncapped → 4) and memory (about 20 GiB → about 10 GiB) explicitly, dropped the specific run/head reference, and stated plainly that the actual job duration at the new default is pending, pointing to M4/V4, with a note to name any future run by its head's commit subject rather than a branch id.
-- Current-tree verification: read the rewritten bullet in `report.md`'s "Effect on the runners"; it no longer names a run or head, and states the comparison as pending.
+- Current-tree verification: read the bullet in `report.md`'s "Effect on the runners"; it now states the measured step times, which were added after this finding was resolved, and points to evidence section V4 for the run ids.
 - Resolution reference: `fix(container): [#2853] address review round 2: locale, PID anchor, stage overlap, audit accuracy`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562691197
@@ -435,6 +436,19 @@ Processing Log.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562839358
 
+### F28 - The appended correction repeats the timing problem it corrects, and one sentence does not parse
+
+- PR number: 2854
+- Source review ID: 5890524264
+- Reviewer finding ID: F25 (collides with this record's F25, so reassigned per the skill's collision rule)
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562957889
+- Concern: the correction entry stamped 11:40 UTC reports replies that were posted at 11:42:12 to 11:42:17 UTC; those replies said "in the commit addressing this round" instead of citing the commit subject; one sentence of the entry does not parse; and the F26 Concern still quoted two branch commit hashes.
+- Solution: left the 11:40 UTC entry as written and appended a correction with the reply times and the sentence restated; edited the three replies, and thirteen earlier replies with the same problem, to cite their commit subject; removed the two quoted hashes.
+- Current-tree verification: the `open-pull-request` commit-id check printed nothing after the commit below; `validate-audit-record.py --pr-number 2854` reported status ok with 30 rows before this row was added.
+- Resolution reference: `docs(pr-reviews): [#2853] correct the audit log and drop quoted commit hashes`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4563776957
+
 ## Processing Log
 
 - 2026-11-13 11:05 UTC - Started audit late (after R1, R2, F1-F11 replies/fixes were already in progress or posted); backfilled all entries from the current tree and the GitHub review/comment history.
@@ -444,6 +458,7 @@ Processing Log.
 - 2026-11-13 11:40 UTC - Correction: the two entries above timestamped 11:05 UTC were themselves wrong (da2ce7's F22 round). The first entry's commit was made at 10:52 UTC; the replies the second entry describes were posted at 10:54 UTC, after that commit, not at 11:05. Both entries' content stands; only their timestamps were inaccurate. Renumbered the automated review's PID-anchor/locale findings this record had assigned F21-F24 did not collide here, since da2ce7 independently reused F21-F23 for its own new findings in the same round that reported this correction; those are recorded below as F25-F27 per the skill's collision rule. Also fixed: ISSUE.md:124 no longer claims the 4-job measurement started at 08:50 (it started 08:31); `report.md`'s Method section no longer claims the peak RSS figure is absent from the summaries (only the process-count-at-peak-RSS figure is new); the Stage overlap section no longer claims `cargo binstall` fetches from crates.io or that the measured runs are shown not to have fallen back to a source compile; and two remaining branch-commit hashes (in F12's and F14's prose) were replaced with commit subjects or removed. Fixed, replied and resolved F21(da2ce7)/F22/F23(da2ce7), renumbered F25-F27 below, in `fix(container): [#2853] address review round 3: audit timestamps, report accuracy`.
 - 2026-11-13 13:17 UTC - Correction to the 11:40 UTC entry above, which is left as written. Its timestamp is wrong: the three replies it reports were posted at 11:42:12 to 11:42:17 UTC (GitHub `created_at`), after 11:40. Its sentence beginning "Renumbered the automated review's" does not parse; it meant: this record had already assigned F21 to F24 to the automated review's four findings, and da2ce7 then used F21 to F23 for three new findings of its own, so those three are recorded as F25 to F27.
 - 2026-11-13 13:17 UTC - Edited 16 of this PR's own review replies at 13:16:05 to 13:16:28 UTC (GitHub `updated_at`) so each cites a Conventional Commit subject: the R1 and R2 replies cited a branch commit hash, the eleven replies posted at 11:24 UTC said "the commit addressing this review round", and the three posted at 11:42 UTC said "the commit addressing this round". The eleven 11:24 UTC replies were posted before their commit existed (committed 11:29:01 UTC). Removed the two branch commit hashes quoted in the F26 Concern; the `open-pull-request` commit-id check printed both before this change.
+- 2026-11-13 13:26 UTC - Added F28 after the fact: its fix was committed at 13:17:14 UTC and pushed, the reply was posted at 13:21:54 UTC (GitHub `created_at`) and the thread was then resolved. A GraphQL read after that showed 31 of 31 review threads resolved.
 
 ## Completion Rules
 
