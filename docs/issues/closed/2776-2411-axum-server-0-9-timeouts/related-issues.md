@@ -57,11 +57,17 @@ issue 2741), a gist-based `TimeoutAcceptor` restored it for plaintext only (no `
 with TLS), and Hyper 1.4.0's header-read fix did not remove the need for it. The discussion was
 consolidated in #324.
 
-Verdict: **fixed by #2813**. Evidence: the baseline shows the REST API plaintext listener already
-closed after 5 s; the gap was TLS. After the fix a TLS connection that finishes the handshake and
-sends nothing is closed after 5 s, a handshake that never completes is closed after 10 s, and an
-idle connection after a response is closed after 5 s (HTTP/1) or about 10 s (HTTP/2). The `408` the
-issue's reproduction repository sends is deliberately not reproduced; see the ADR.
+Verdict: **fixed by #2813**. Evidence: the baseline probed the REST API in plaintext only (`:1212`,
+closed after 5 s); the gap was that its TLS branch had no timeout wrapper (see the spec's
+Background). The runtime TLS figures were measured on the HTTP tracker port: a TLS connection that
+finishes the handshake and sends nothing was open after 25 s on `develop` and is closed after 5 s
+on the final build; an idle HTTP/1 connection after a response closes after 5 s and an idle HTTP/2
+connection after about 10 s. A stalled TLS handshake was already closed after 10 s before the fix
+(upstream value). For the REST API's own TLS listener the evidence is the unit test
+`it_should_close_a_tls_connection_that_completes_the_handshake_and_sends_nothing` in
+`packages/axum-rest-api-server/src/server.rs` (red in `evidence/red-run-service-tests.txt`, green in
+`evidence/green-run.txt`). The `408` that the issue's reproduction repository sends is deliberately
+not reproduced; see the ADR.
 
 Remains open: nothing for this issue. Rate limiting and connection caps live in EPIC #2411 case A1.
 
@@ -70,7 +76,7 @@ Remains open: nothing for this issue. Rate limiting and connection caps live in 
 Original report (2024-01-16, maintainer; label Bug; child of #603): identical text to #612, applied
 to the HTTP tracker. Same comment history.
 
-Verdict: **fixed by #2813**, same evidence as #612 (the HTTP tracker listener, plaintext and TLS).
+Verdict: **fixed by #2813**, same evidence as #612; the TLS runtime figures there are the HTTP tracker's own, and its TLS test is `packages/axum-http-server/src/server.rs`.
 
 Remains open: nothing for this issue (see #612).
 
