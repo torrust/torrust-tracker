@@ -27,7 +27,7 @@ const SCENARIO_PORTS: Range<u16> = 10_000..DEFAULT_EPHEMERAL_START;
 /// so exhausting it means the machine has no usable loopback.
 const DRAWS_PER_PORT: usize = 1_000;
 
-/// Returns `N` distinct loopback TCP ports from [`SCENARIO_PORTS`] that were free when this
+/// Returns `N` distinct loopback TCP ports from the range below the default ephemeral ports (10000-32767) that were free when this
 /// function returned.
 ///
 /// Each port is probed by binding it, and every listener is held until the last port is chosen, so
@@ -41,7 +41,7 @@ const DRAWS_PER_PORT: usize = 1_000;
 ///
 /// # Panics
 ///
-/// Panics when `N` is larger than the range holds, and when [`DRAWS_PER_PORT`] consecutive
+/// Panics when `N` is larger than the range holds, and when `DRAWS_PER_PORT` consecutive
 /// candidates yield no free port.
 pub fn reserve_free_ports<const N: usize>() -> [u16; N] {
     let random = RandomState::new();
@@ -61,7 +61,7 @@ pub fn reserve_free_ports<const N: usize>() -> [u16; N] {
     ports
 }
 
-/// Returns a loopback TCP address from [`SCENARIO_PORTS`] that was free when this function returned.
+/// Returns a loopback TCP address from the range below the default ephemeral ports that was free when this function returned.
 ///
 /// It carries the same guarantees and limits as [`reserve_free_ports`].
 ///
@@ -75,7 +75,7 @@ pub fn reserve_free_tcp_address() -> SocketAddr {
     SocketAddr::from((Ipv4Addr::LOCALHOST, port))
 }
 
-/// Returns a loopback UDP address from [`SCENARIO_PORTS`] that was free when this function returned.
+/// Returns a loopback UDP address from the range below the default ephemeral ports that was free when this function returned.
 ///
 /// The port is probed with a UDP bind, and the range is the same one [`reserve_free_ports`] uses, so
 /// the kernel does not assign it by default.
