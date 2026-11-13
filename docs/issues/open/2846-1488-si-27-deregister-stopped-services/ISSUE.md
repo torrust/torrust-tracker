@@ -49,8 +49,9 @@ Checked on 2026-11-12 against `torrust/develop` at `388faf59a`.
   tracker and health-check API). None removes it when it stops.
 - `Registar::deregister` exists since `torrust-server-lib` 0.4.0 (the repository uses 0.6.0). It
   removes whichever registration holds a binding, so a caller must pass only a binding it registered.
-- The only production-code caller is the health-check API test environment (`stop()`, added by SI-24
-  so a fixed-port restart can register again). The application components do not call it.
+- The only caller anywhere in the tree is the health-check API test environment (`stop()`, added by
+  SI-24 so a fixed-port restart can register again). It sits behind the package's `testing` feature,
+  so no production code calls it and the application components do not.
 - The maintainer suggested the change during the SI-21 review: the health list should stop reporting
   services that are no longer available. SI-21 kept it out of scope and recorded it as a later idea.
 
