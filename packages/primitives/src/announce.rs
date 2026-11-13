@@ -116,3 +116,79 @@ pub enum AnnounceEvent {
     Completed,
     None,
 }
+
+#[cfg(test)]
+mod tests {
+    mod announce_policy {
+        use crate::announce::AnnouncePolicy;
+        use crate::announce_interval::AnnounceIntervalInSecs;
+
+        fn secs(value: u16) -> AnnounceIntervalInSecs {
+            AnnounceIntervalInSecs::from(value)
+        }
+
+        #[test]
+        fn it_should_default_to_the_documented_values() {
+            let policy = AnnouncePolicy::default();
+
+            assert_eq!(policy, AnnouncePolicy::new(secs(120), secs(120), 74));
+        }
+
+        #[test]
+        fn it_should_use_the_default_of_every_field_missing_from_the_json() {
+            let policy: AnnouncePolicy = serde_json::from_str("{}").expect("an empty object should deserialize");
+
+            assert_eq!(policy, AnnouncePolicy::new(secs(120), secs(120), 74));
+        }
+
+        #[test]
+        fn it_should_keep_the_given_field_and_default_the_others() {
+            let policy: AnnouncePolicy =
+                serde_json::from_str(r#"{"interval_min": 30}"#).expect("a partial object should deserialize");
+
+            assert_eq!(policy, AnnouncePolicy::new(secs(120), secs(30), 74));
+        }
+
+        #[test]
+        fn it_should_reject_an_interval_above_the_limit_of_every_delivery_protocol() {
+            let result = serde_json::from_str::<AnnouncePolicy>(r#"{"interval": 2147483648}"#);
+
+            assert!(
+                result.is_err(),
+                "an interval above i32::MAX should be rejected, got {result:?}"
+            );
+        }
+
+        #[test]
+        fn it_should_serialize_to_the_three_configuration_keys() {
+            let policy = AnnouncePolicy::new(secs(60), secs(30), 10);
+
+            let json = serde_json::to_string(&policy).expect("it should serialize");
+
+            assert_eq!(json, r#"{"interval":60,"interval_min":30,"max_peers_per_announce":10}"#);
+        }
+    }
+
+    mod announce_data {
+        use crate::announce::{AnnounceData, AnnouncePolicy};
+        use crate::announce_interval::AnnounceIntervalInSecs;
+        use crate::swarm_metadata::SwarmMetadata;
+
+        #[test]
+        fn it_should_default_to_no_peers_empty_statistics_and_the_default_policy() {
+            let data = AnnounceData::default();
+
+            let default_interval = AnnounceIntervalInSecs::from(120_u16);
+            let expected = AnnounceData::new(
+                vec![],
+                SwarmMetadata {
+                    downloaded: 0,
+                    complete: 0,
+                    incomplete: 0,
+                },
+                AnnouncePolicy::new(default_interval, default_interval, 74),
+            );
+            assert_eq!(data, expected);
+        }
+    }
+}
