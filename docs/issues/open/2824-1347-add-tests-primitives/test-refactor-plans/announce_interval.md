@@ -4,7 +4,7 @@ issue: 2824
 package: torrust-tracker-primitives
 target-file: packages/primitives/src/announce_interval.rs
 status: done
-last-updated-utc: "2026-11-13 09:44"
+last-updated-utc: "2026-11-13 22:30"
 ---
 
 # `announce_interval.rs` File Test Plan

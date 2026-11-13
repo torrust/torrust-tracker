@@ -44,10 +44,14 @@ Round 1 is Copilot's review `5888862726` (no findings; approval recommended) and
 `docs(issues): [#2824] record the S3 pull request number`. Round 2 is da2ce7's review `5889372966`
 (F9 to F11), submitted on the head whose last commit had the subject
 `docs(issues): [#2824] fix the S3 records after review round 1`, which fixed F1 to F8 without an
-audit record (this record's own gap, F9). Round 3 is Copilot's review `5889997099` (F12 to F14),
-submitted on the head whose last commit had the subject
-`docs(issues): [#2824] create the PR 2852 review audit record`; Copilot's agentic review did not
-start before its timeout, so this round is its lighter, non-agentic pass.
+audit record (this record's own gap, F9). Round 3 is two reviews submitted on the head whose last
+commit had the subject `docs(issues): [#2824] create the PR 2852 review audit record`: Copilot's
+review `5889997099` (F12 to F14; its agentic review did not start before its timeout, so this is
+its lighter, non-agentic pass) and da2ce7's review `5889756621` (dismissed, but its five threads
+stayed open and unanswered; its own F12 to F16, recorded here as F15 to F19 since F12 to F14 were
+already used for Copilot's findings — the collision F20 raises). Round 4 is da2ce7's review
+`5890207451` (its own F17 to F19, recorded here as F20 to F22), submitted on the head whose last
+commit had the subject `test(primitives): [#2824] compare serialized JSON by value, not by string`.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -65,6 +69,14 @@ start before its timeout, so this round is its lighter, non-agentic pass.
 | F12 | review-finding:pr-2852-f12 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
 | F13 | review-finding:pr-2852-f13 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
 | F14 | review-finding:pr-2852-f14 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-2852-f15 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-2852-f16 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-2852-f17 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-2852-f18 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F19 | review-finding:pr-2852-f19 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-2852-f20 | Human | Minor | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F21 | review-finding:pr-2852-f21 | Human | Nit | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F22 | review-finding:pr-2852-f22 | Human | Nit | testing | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -114,19 +126,23 @@ start before its timeout, so this round is its lighter, non-agentic pass.
 - Source review ID: 5888917289
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4561797088
-- Concern: The per-file deltas summed to +197 / +127 while the package moved +196 / +126; two steps
-  (`announce.rs`, `policy.rs`) disagreed with the package figure by one line each.
-- Solution: Re-measured coverage at each step's own commit (`announce_interval.rs`, `announce.rs`,
-  `policy.rs`) and found two causes: a clippy rewrite after the first `announce_interval.rs` measure
-  removed one covered line, and one `announce.rs`-step run read `readiness.rs` (untouched by this
-  slice) at 50 / 52 instead of 52 / 52. Corrected the three records' figures to the re-measured values
-  and added a reconciliation note to `coverage-evidence.md` that shows every step agreeing and flags
-  the `readiness.rs` variance for the S4 record.
-- Current-tree verification: Re-ran `cargo llvm-cov` at the three commits
+- Concern: The per-file deltas summed to +197 / +127 while the package moved +196 / +126; the
+  `announce_interval.rs` step was off by one line, and the `announce.rs` step's own coverage swing
+  (first measured as +52 lines, 1,488 regions) was 3 lines short of the 55 lines its file actually
+  added.
+- Solution: Re-measured coverage at each of the five steps' own commit (`announce_interval.rs`,
+  `announce.rs`, `policy.rs`, `mode.rs`, `pagination.rs`) and found two causes: a clippy rewrite
+  after the first `announce_interval.rs` measure removed one covered line, and one `announce.rs`-step
+  run read `readiness.rs` (untouched by this slice) at 50 / 52 instead of 52 / 52. Corrected the
+  records' figures to the re-measured values and added a reconciliation note to
+  `coverage-evidence.md` that lists all five steps agreeing and flags the `readiness.rs` variance for
+  the S4 record.
+- Current-tree verification: Re-ran `cargo llvm-cov` at each of the five steps' commit
   (`test(primitives): [#2824] test the announce interval conversions and bound`,
   `test(primitives): [#2824] test the announce policy defaults and serde`,
-  `test(primitives): [#2824] test the tracker policy defaults and serde`); summed the corrected
-  per-file deltas against the package total in `coverage-evidence.md`.
+  `test(primitives): [#2824] test the tracker policy defaults and serde`, and the `mode.rs` and
+  `pagination.rs` commits, which already matched); summed the corrected per-file deltas against the
+  package total in `coverage-evidence.md`.
 - Resolution reference: docs(issues): [#2824] fix the S3 records after review round 1
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4562312845
@@ -205,7 +221,7 @@ start before its timeout, so this round is its lighter, non-agentic pass.
 - Solution: Recorded a `lessons.md` follow-up candidate naming the file, the line and the consumers,
   instead of changing a file outside this slice's ledger.
 - Current-tree verification: Read the Follow-Up Candidates table of `lessons.md`.
-- Resolution reference: docs(issues): [#2824] fix the S3 records after review round 1
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4562315531
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4562315531
 
@@ -268,8 +284,9 @@ start before its timeout, so this round is its lighter, non-agentic pass.
   would fail on a non-semantic serialization change such as struct field reordering, even though the
   derived field order is deterministic today.
 - Solution: Changed the assertion to `serde_json::to_value` compared against a `serde_json::json!`
-  literal (structural equality, order-independent), keeping every key and value pinned. Re-ran the
-  key-rename mutant (`max_peers_per_announce` renamed in JSON) and confirmed it still fails the test.
+  literal (structural equality, order-independent), keeping every key and value pinned. Ran the
+  key-rename mutant (`max_peers_per_announce` renamed in JSON; new, not a repeat — `announce.md`'s
+  own mutation sample has no key-rename mutant) and confirmed it still fails the test.
 - Current-tree verification: `cargo test -p torrust-tracker-primitives --lib announce::`; re-applied
   the key-rename mutant and reverted with `cmp`.
 - Resolution reference: test(primitives): [#2824] compare serialized JSON by value, not by string
@@ -307,11 +324,143 @@ start before its timeout, so this round is its lighter, non-agentic pass.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4562655772
 
+### F15 - The Processing Log's stamp predates what the entry describes
+
+- PR number: 2852
+- Source review ID: 5889756621
+- Reviewer finding ID: F12
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4562435901
+- Concern: The Processing Log's first entry was stamped "09:50 UTC", which matches no git or forge
+  time and predates the review (10:21:40Z), the replies (10:42:22Z to 10:43:01Z) and the commit that
+  carries the entry (10:44:04Z).
+- Solution: Corrected the stamp to "10:44 UTC", the commit time of `895dc1b78`.
+- Current-tree verification: `git log --format='%cI' -1 895dc1b78` reads `2026-11-13T10:44:04Z`.
+- Resolution reference: docs(issues): [#2824] fix the PR 2852 audit record for rounds 3 and 4
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4569432463
+
+### F16 - F8's Resolution reference is a commit subject, not the durable reply URL the template asks for `FOLLOW_UP`
+
+- PR number: 2852
+- Source review ID: 5889756621
+- Reviewer finding ID: F13
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4562435907
+- Concern: F8 is `FOLLOW_UP`, but its Resolution reference cited a commit subject instead of the
+  durable reply URL the row already carries in its Reply URL field.
+- Solution: Changed F8's Resolution reference to its own Reply URL
+  (https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4562315531).
+- Current-tree verification: Read F8's row in this file.
+- Resolution reference: docs(issues): [#2824] fix the PR 2852 audit record for rounds 3 and 4
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4569432842
+
+### F17 - The F3 entry does not match the other records of the same fix
+
+- PR number: 2852
+- Source review ID: 5889756621
+- Reviewer finding ID: F14
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4562435916
+- Concern: F3's verification named three re-run commits, while `coverage-evidence.md` and the F3
+  reply say every one of the five steps was re-measured at its own commit; F3's concern also said
+  two steps disagreed "by one line each", while the actual first-run figures differed by 3 covered
+  lines on the `announce.rs` step and 1 line on the `announce_interval.rs` step.
+- Solution: Reworded F3's Concern, Solution and Current-tree verification to name all five steps and
+  the accurate per-step discrepancy sizes.
+- Current-tree verification: Read the corrected F3 entry and `coverage-evidence.md`'s reconciliation
+  paragraph.
+- Resolution reference: docs(issues): [#2824] fix the PR 2852 audit record for rounds 3 and 4
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4569433162
+
+### F18 - A citation was left in the superseded form
+
+- PR number: 2852
+- Source review ID: 5889756621
+- Reviewer finding ID: F15
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4562435925
+- Concern: `lessons.md`'s Follow-Up Candidates table still cited "(review of #2852, F8)"; F9's
+  solution said the three in-record citations were switched to the canonical
+  `review-finding:pr-2852-fN` form, but this fourth one, outside the record itself, was missed.
+- Solution: Switched the `lessons.md` citation to `` `review-finding:pr-2852-f8` ``.
+- Current-tree verification: `grep -n "review of #2852"` the issue's docs; no match remains.
+- Resolution reference: docs(issues): [#2824] fix the PR 2852 audit record for rounds 3 and 4
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4569433427
+
+### F19 - The `last-updated-utc` stamps lag the commit that edited them
+
+- PR number: 2852
+- Source review ID: 5889756621
+- Reviewer finding ID: F16
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4562435939
+- Concern: Commit `895dc1b78` (10:44:04Z) edited `ISSUE.md`'s round-1 log entry and
+  `announce_interval.md`'s two citations, but both files' `last-updated-utc` stayed at their earlier
+  stamps (09:41 and 09:44) — the F7 and F10 rule applied to this commit's own edits.
+- Solution: Advanced `ISSUE.md`'s and `announce_interval.md`'s `last-updated-utc` to this commit's
+  time.
+- Current-tree verification: `grep -n last-updated-utc` both files.
+- Resolution reference: docs(issues): [#2824] fix the PR 2852 audit record for rounds 3 and 4
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4569433695
+
+### F20 - Review `5889756621` is not in the record, and its finding IDs collide with the record's
+
+- PR number: 2852
+- Source review ID: 5890207451
+- Reviewer finding ID: F17
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4562757449
+- Concern: Review `5889756621` (10:56:22Z), dismissed but with five unresolved threads, raised its
+  own F12 to F16 on this commit's parent; none had a row or a reply. This record's own F12 to F14
+  named Copilot's later findings instead, so the forge's F12 (the log-stamp concern) and this
+  record's F12 (a JSON-serialization concern) were different findings under the same number.
+- Solution: Added rows and detail entries F15 to F19 for review `5889756621`'s five findings (the
+  next free audit IDs, since F12 to F14 were already used), named both round-3 reviews in the
+  record's framing paragraph, and replied to and resolved all five threads.
+- Current-tree verification: Read the Findings table and the round-3 paragraph above.
+- Resolution reference: docs(issues): [#2824] fix the PR 2852 audit record for rounds 3 and 4
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4569434649
+
+### F21 - The round-3 fix commit carried both the test change and the audit update
+
+- PR number: 2852
+- Source review ID: 5890207451
+- Reviewer finding ID: F18
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4562757457
+- Concern: `process-pr-review` asks for the audit to be committed separately from product fixes;
+  commit `e78e2eba2` carried both the three serialization-test changes and the F12 to F14 audit rows.
+- Solution: Acknowledged going forward: this round's fix is documentation-only (no source change),
+  so there is nothing to split here; a future round that mixes a code fix with the audit update will
+  commit them separately.
+- Current-tree verification: `git log` shows this round's commit touches only `docs/`.
+- Resolution reference: docs(issues): [#2824] fix the PR 2852 audit record for rounds 3 and 4
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4569434986
+
+### F22 - The audit says a key-rename mutant was re-run for `announce.rs`; its record lists none
+
+- PR number: 2852
+- Source review ID: 5890207451
+- Reviewer finding ID: F19
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4562757463
+- Concern: F12's Solution said the key-rename mutant was "re-run", but `announce.md`'s own seven-
+  mutant sample has no key-rename mutant (unlike `mode.md` and `policy.md`, which both have one), so
+  this run was new, not a repeat.
+- Solution: Reworded F12's Solution and Current-tree verification from "Re-ran" to "Ran", noting it
+  is new rather than a repeat; amended the already-posted reply making the same claim.
+- Current-tree verification: Read the corrected F12 entry and `announce.md`'s mutation sample table.
+- Resolution reference: docs(issues): [#2824] fix the PR 2852 audit record for rounds 3 and 4
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4569435327
+
 ## Processing Log
 
-- 2026-11-13 09:50 UTC - Started this audit, after round 1 (F1 to F8) was already fixed and pushed
+- 2026-11-13 10:44 UTC - Started this audit, after round 1 (F1 to F8) was already fixed and pushed
   without it (F9). Replying on all eleven threads and resolving them now.
-- 2026-11-13 11:20 UTC - Round 3: Copilot's review `5889997099` (F12 to F14) fixed in one commit; replying on the three threads and resolving them now.
+- 2026-11-13 11:20 UTC - Round 3 (Copilot): review `5889997099` (F12 to F14) fixed in one commit; replying on the three threads and resolving them now.
+- 2026-11-13 22:30 UTC - Round 3 (da2ce7, dismissed review `5889756621`) and round 4 (da2ce7, review
+  `5890207451`): fixed the numbering collision and the six other record-hygiene findings (F15 to
+  F22) in one documentation-only commit; replying on all eight threads and resolving them now.
 
 ## Completion Rules
 
