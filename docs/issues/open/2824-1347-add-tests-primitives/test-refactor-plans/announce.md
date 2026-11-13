@@ -15,7 +15,7 @@ Follow the shared [guidance](README.md). Ledger row 3, slice S3. Status: **done*
 ## Current State
 
 - **Unit-only coverage:** 0 / 16 lines, measured 2026-11-12 on the S3 branch after the `announce_interval.rs` file
-  (package: 883 / 1,021 lines, 87 unit tests). The file has no tests.
+  (package: 882 / 1,020 lines, 87 unit tests). The file has no tests.
 - **Review of the existing tests:** none to review.
 - **Hypothesis:** the 16 lines are the `Default` of `AnnouncePolicy`, its three default functions (also used by the
   serde attributes). The `Default` of `AnnounceData` is derived and has no lines of its own, but it composes the others. They carry operator-visible behavior: the defaults (interval 120 s, minimum
@@ -55,8 +55,8 @@ Toolchains: stable Rust 1.99.1 for tests and coverage, `cargo-llvm-cov 0.6.16`, 
 | --- | ---: | ---: |
 | Unit tests of the package | 87 | 93 (6 added, all in `announce.rs`) |
 | `announce.rs` lines | 0 / 16 | 55 / 55 (the line count includes the new test module) |
-| Package unit-only lines | 883 / 1,021 (86.48%) | 935 / 1,059 (88.29%) |
-| Package unit-only regions | 1,406 / 1,553 (90.54%) | 1,488 / 1,623 (91.68%) |
+| Package unit-only lines | 882 / 1,020 (86.47%) | 937 / 1,059 (88.48%) |
+| Package unit-only regions | 1,406 / 1,553 (90.53%) | 1,489 / 1,623 (91.74%) |
 | Package unit-only functions | 170 / 200 (85.00%) | 181 / 207 (87.44%) |
 
 Applied as planned, with one correction to the plan text: it said "five tests" while its table lists six (the empty

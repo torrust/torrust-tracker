@@ -30,9 +30,9 @@ Follow the shared [guidance](README.md). Ledger row 5, slice S3. Status: **done*
 
 | Behavior group | Lines | Classification | Decision |
 | --- | --- | --- | --- |
-| `PrivateMode::default` and its default function | 26-38 | Unit | One test: the default value has `check_keys_expiration` `true`. |
-| Serde default of `check_keys_expiration` | 22 | Unit | An empty JSON object gives `true`; an object with `false` keeps `false` (so the key lands in its field and the default is not applied over an explicit value). |
-| JSON shape of `PrivateMode` | 16-24 | Unit | One test: the value with the flag `false` serializes to the literal `{"check_keys_expiration":false}`. The name is the configuration key. |
+| `PrivateMode::default` and its default function | 27-39 | Unit | One test: the default value has `check_keys_expiration` `true`. |
+| Serde default of `check_keys_expiration` | 23 | Unit | An empty JSON object gives `true`; an object with `false` keeps `false` (so the key lands in its field and the default is not applied over an explicit value). |
+| JSON shape of `PrivateMode` | 16-25 | Unit | One test: the value with the flag `false` serializes to the literal `{"check_keys_expiration":false}`. The name is the configuration key. |
 | `Constructor` and `Display` derives | 16 | Unselected | Generated code. `Display` prints the one field; I found no formatting of a `PrivateMode` in the eight files that name it, so it carries no decision to protect. |
 
 No finding blocks tests and nothing is owned elsewhere.

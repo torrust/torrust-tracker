@@ -30,7 +30,7 @@ Follow the shared [guidance](README.md). Ledger row 2, slice S3. Status: **done*
 | `TryFrom<u32>` delegates to `new` | 67-73 | Unit | One test: a valid value converts, a value above the limit fails with the same error as `new` (pins that the conversion enforces the bound; a `Self(value)` shortcut would pass every other test). |
 | `From<AnnounceIntervalInSecs> for u32` | 82-86 | Unit | One test with a literal interval (`120`): the seconds come back unchanged. |
 | `Display` | 100-104 | Unit | One test: `120` prints as `"120"` (the text a log line or a message shows; no unit, no padding). |
-| Deserializing a negative number | 112-117 | Unit (line already covered) | One test: `-1` is rejected (a configuration with `interval = -1` must not load). The error text comes from serde and names the type it expected, so only the failure is asserted, not the text. A change of the `Deserialize` to read a signed value would be caught. |
+| Deserializing a negative number | 112-117 | Unit (line already covered) | One test: `-1` is rejected (a configuration with `interval = -1` must not load). The error text comes from serde and names the type it expected, so only the failure is asserted, not the text. A `Deserialize` that clamps a negative number to zero would be caught; one that reads a signed value and casts it still rejects `-1`, with another message, and survives by design (see the mutation table). |
 | Everything else (accept `MAX`, reject `MAX + 1`, above `u32::MAX`, `u16` conversion, wire conversions, serialize) | 34-65, 75-98, 106-110 | Unit, **tested** | Covered by the 10 existing tests. |
 
 Nothing in this file is owned by another issue and no finding applies. The ADR
@@ -63,14 +63,17 @@ Toolchains: stable Rust 1.99.1 for tests and coverage, `cargo-llvm-cov 0.6.16`, 
 | Measure | Before | After |
 | --- | ---: | ---: |
 | Unit tests of the package | 81 | 87 (6 added, all in `announce_interval.rs`) |
-| `announce_interval.rs` lines | 79 / 88 | 114 / 114 |
-| Package unit-only lines | 848 / 995 (85.23%) | 883 / 1,021 (86.48%) |
-| Package unit-only regions | 1,345 / 1,506 (89.31%) | 1,406 / 1,553 (90.54%) |
+| `announce_interval.rs` lines | 79 / 88 | 113 / 113 |
+| Package unit-only lines | 848 / 995 (85.23%) | 882 / 1,020 (86.47%) |
+| Package unit-only regions | 1,345 / 1,506 (89.31%) | 1,406 / 1,553 (90.53%) |
 | Package unit-only functions | 161 / 194 (82.99%) | 170 / 200 (85.00%) |
 
 Applied as planned: the four group tests (`TryFrom<u32>` in two tests, the `u32` conversion, `Display`, the negative
 number) and one `quickcheck` property (`interval_bound`). No deviation. `cargo clippy --all-targets` is clean (a first
-`match` in the property was rewritten as one comparison after `option_if_let_else`).
+`match` in the property was rewritten as one comparison after `option_if_let_else`). The figures were first measured
+before that rewrite (114 / 114 for the file, 883 / 1,021 for the package); the rewrite removed one covered line, and the
+table shows the re-measure at the commit `test(primitives): [#2824] test the announce interval conversions and bound`
+(review round 1 of #2852, F3).
 
 ### Property decision (the Q1 rule)
 
@@ -83,7 +86,10 @@ test one side only.
 | Bound slips for one value (`value != 1_000_000`) | **survived** | nothing: a random search does not find a single value; the edges do not either. Accepted as the limit of the technique. |
 | Bound slips for a mid-range band (`1_000_000_000..2_000_000_000` rejected) | killed | **the property only** (`it_should_deserialize_a_number_if_and_only_if_it_is_within_the_limit`, shrunk to `1000000000`); no example test fails |
 
-One mutant that only the property kills meets the rule, so the property is **kept**.
+One mutant that only the property kills meets the rule, so the property is **kept**. None of the three mutants named in
+advance (above) met the rule: the single-value slip survived everything, and the narrowing cast and the `value + 1`
+mutant are killed by example tests. The deciding mutant, the band slip, was added after them, when the property had been
+run (review round 1 of #2852, F1).
 
 ### Mutation sample (8 mutants, each applied alone and reverted exactly)
 
@@ -94,7 +100,7 @@ One mutant that only the property kills meets the rule, so the property is **kep
 | `TryFrom<u32>` skips the bound | killed | the `TryFrom` above-the-limit test |
 | `From<_> for u32` adds one | killed | the `u32` conversion test |
 | `Display` adds a unit suffix | killed | the display test |
-| Deserializer reads `i64` and casts to `u64` | **survived, equivalent** | `-1` becomes `2^64 - 1`, which the bound rejects anyway: the behavior is the same, so no test can tell |
+| Deserializer reads `i64` and casts to `u64` | **survived, by design** | `-1` becomes `2^64 - 1`, which the bound rejects anyway, so the failure is the same; the error message is not: it names `18446744073709551615` instead of serde's "invalid value: integer `-1`, expected u64". The test asserts only the failure, so it cannot tell them apart; a test of the message would. Accepted: the message is serde's, not a rule of this type |
 | Deserializer clamps a negative number to `0` | killed | the negative-number test (this is the case the test protects) |
 | Mid-range band slip | killed | the property only (above) |
 

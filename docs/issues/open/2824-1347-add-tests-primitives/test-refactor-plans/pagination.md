@@ -30,7 +30,7 @@ Follow the shared [guidance](README.md). Ledger row 6, slice S3. Status: **done*
 
 | Behavior group | Lines | Classification | Decision |
 | --- | --- | --- | --- |
-| `Default`, `default_offset`, `default_limit` | 35-52 | Unit | One test of the default value against literals: offset 0, limit 4000. |
+| `Default`, `default_offset`, `default_limit` | 35-53 | Unit | One test of the default value against literals: offset 0, limit 4000. |
 | `new_with_options` precedence | 20-34 | Unit | One table test over the four combinations of given or missing values, with distinct values (offset 5, limit 10): both missing gives 0 and 4000; each alone keeps the given one and defaults the other; both given keeps both. A fifth case (`Some(0)` for both) pins that a given zero is kept and not replaced by the default. |
 | `Deserialize` | 12 | Unit | One test: `{"offset":5,"limit":10}` gives that value. Whether both fields are required is not pinned: the REST adapter has its own optional query type, so a missing field is not a decision of this type. |
 | `Constructor` derive (`Pagination::new`) | 12 | Unselected | Generated code with no decision. |

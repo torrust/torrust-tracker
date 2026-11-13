@@ -14,7 +14,7 @@ Follow the shared [guidance](README.md). Ledger row 4, slice S3. Status: **done*
 
 ## Current State
 
-- **Unit-only coverage:** 0 / 16 lines, measured 2026-11-12 on the S3 branch after `announce.rs` (package: 935 /
+- **Unit-only coverage:** 0 / 16 lines, measured 2026-11-12 on the S3 branch after `announce.rs` (package: 937 /
   1,059 lines, 93 unit tests). The file has no tests.
 - **Review of the existing tests:** none to review.
 - **Hypothesis:** the 16 lines are `TrackerPolicy::default` and its three default functions (also used by the serde
@@ -52,8 +52,8 @@ Toolchains: stable Rust 1.99.1 for tests and coverage, `cargo-llvm-cov 0.6.16`, 
 | --- | ---: | ---: |
 | Unit tests of the package | 93 | 98 (5 added, all in `policy.rs`) |
 | `policy.rs` lines | 0 / 16 | 40 / 40 (the line count includes the new test module) |
-| Package unit-only lines | 935 / 1,059 (88.29%) | 977 / 1,083 (90.21%) |
-| Package unit-only regions | 1,488 / 1,623 (91.68%) | 1,548 / 1,669 (92.75%) |
+| Package unit-only lines | 937 / 1,059 (88.48%) | 977 / 1,083 (90.21%) |
+| Package unit-only regions | 1,489 / 1,623 (91.74%) | 1,548 / 1,669 (92.75%) |
 | Package unit-only functions | 181 / 207 (87.44%) | 190 / 212 (89.62%) |
 
 Applied as planned, no deviation. Every expected value is a literal written in the test.
