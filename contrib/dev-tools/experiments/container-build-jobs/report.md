@@ -17,8 +17,8 @@ docker build --no-cache --progress=plain --target release --build-arg CARGO_BUIL
 
 While it runs it samples `MemAvailable` and the root-owned `rustc` processes (those started by Docker/BuildKit) every 2 seconds,
 and it would cancel the build by the PID of the `docker build` client if `MemAvailable` fell below 8 GiB. It refuses to start while
-another container build runs, and traps its own INT/TERM to cancel the build if the script itself is interrupted. It refuses to
-start while another container build runs. The uncapped build was never run. Raw samples and summaries are in [`results/`](results/),
+another container build runs, and traps its own INT/TERM to cancel the build if the script itself is interrupted. The uncapped
+build was never run. Raw samples and summaries are in [`results/`](results/),
 unmodified since each run printed them. "Peak `MemAvailable` drop" and "Lowest `MemAvailable`" below are copied from those files
 as printed; "`rustc` at peak RSS" and "Peak `rustc` RSS" are recomputed from the raw samples (see the next bullet and "Per-process
 memory") and are not in the summary files, since the original `measure.sh` reported two independent column maxima instead (see
@@ -45,19 +45,21 @@ memory") and are not in the summary files, since the original `measure.sh` repor
 | 16                 | 346 s     | 17                    | 35.5 GiB         | 33.0 GiB                 | 14.1 GiB              |
 
 A separate, independent maximum of concurrent `rustc` processes (regardless of their memory at that moment) was 12, 16 and 24 for the
-three runs, against an expected worst case of twice the job count (see "Stage overlap" below): exactly met at 8 jobs (16), under it at
-16 jobs (24 < 32, bounded by the 32 cores available), but above it at 4 jobs (12 > 8). The peak *count* and the peak *memory* did not
-happen at the same sample in any of the three runs — at the peak-memory moment the count is close to the job count itself (one
-dominant stage), while the peak-count moment is a brief, lower-memory spike. The most likely explanation is a transient overlap at
-the handoff between two `RUN` steps of the *same* chain (the old step's last `rustc` processes still exiting while the new step's
-first ones have already started), caught by the 2-second sampling interval; this was not isolated further.
+three runs, against an expected worst case of twice the job count for the two workspace-compiling branches (see "Stage overlap"
+below): exactly met at 8 jobs (16), under it at 16 jobs (24 < 32, bounded by the 32 cores available), but above it at 4 jobs (12 > 8).
+The peak *count* and the peak *memory* did not happen at the same sample in any of the three runs — at the peak-memory moment the
+count is close to the job count itself (one dominant stage), while the peak-count moment is a brief, lower-memory spike. The cause of
+that count spike was not isolated; a stage handoff is one candidate, but a stage only starts after its predecessor's whole process
+tree has exited, so that alone does not explain an overlap, and no other candidate was checked either.
 
 ## Per-process memory
 
 Dividing the peak-RSS row's own memory by its own `rustc` count gives a consistent per-process figure: 2.60 GiB (4 jobs), 2.47 GiB
-(8 jobs), 2.09 GiB (16 jobs) — all within the 2.2-2.6 GiB/job used for the rule of thumb below. (An earlier version of this report
-and of `measure.sh` divided the independent peak-count maximum into the independent peak-RSS maximum and got 0.9-1.6 GiB/process; that
-arithmetic mixed two different moments and is wrong — see "Method" above. `measure.sh` now keeps the two figures from the same sample.)
+(8 jobs), 2.09 GiB (16 jobs) — all within the 2.09-2.60 GiB/job range this report's rule of thumb below rounds to 2.5. (An earlier
+version of this report divided the independent peak-count maximum into the independent peak-RSS maximum and got 0.9-1.6 GiB/process;
+that arithmetic mixed two different moments and is wrong — see "Method" above. The earlier `measure.sh` itself did not divide
+anything; it only printed the two independent maxima, each correct on its own, and the division happened in this report's prose.
+`measure.sh` now reports the rustc count from the same sample as the peak RSS, so this report's division uses one consistent sample.)
 
 Other findings:
 
@@ -80,28 +82,31 @@ Docker and anything else running. Machines with 8 GB or less should use 2 (not m
 Not changed in the `Containerfile`. For the release target the compiling stages are `dependencies_thirdparty` (third-party cook), then,
 once it finishes, two independent branches that both derive from it: `dependencies` (workspace cook) → `build` (nextest archive), and
 `dependencies_shipped_thirdparty` (shipped third-party cook) → `dependencies_shipped` (shipped cook) → `build_shipped` (binary build).
-Every branch hangs off `dependencies_thirdparty`, so **at most two** compiling stages run at once in this target, not three as an earlier
-version of this report said. Serializing them (for example coupling one branch's `FROM` to the other's output) would make the shipped
-build wait for the test cook, losing parallelism that cached CI builds rely on, and would couple stages that are independent by design.
-The rule of thumb already covers the observed worst case (see "Results" above). A machine-wide limit is BuildKit `max-parallelism`, which
-belongs to the machine configuration, not the repository.
+Every branch hangs off `dependencies_thirdparty`, so **at most two** of these workspace-compiling stages run at once, not three as an
+earlier version of this report said. That bound does not cover the whole release target, though: `tester` does not derive from
+`dependencies_thirdparty` (or from `chef` at all; see "Effect on the runners" and the `Containerfile`), so its own `cargo binstall`
+of `cargo-nextest` can fall back to a source compile independently of, and concurrently with, both workspace branches — a third,
+unbound compile path, capped individually by `tester`'s own `CARGO_BUILD_JOBS` (R1) but not by this two-stage count. Serializing the
+two workspace branches (for example coupling one branch's `FROM` to the other's output) would make the shipped build wait for the
+test cook, losing parallelism that cached CI builds rely on, and would couple stages that are independent by design. The rule of
+thumb already covers the observed worst case for the measured release target (see "Results" above), where `tester`'s install step
+runs with cached crates.io binaries and does not fall back to a source compile. A machine-wide limit is BuildKit `max-parallelism`,
+which belongs to the machine configuration, not the repository.
 
 ## Effect on the runners
 
 - GitHub-hosted runners (`ubuntu-latest`) have 4 vCPUs: Cargo already used at most 4 jobs, so the cap changes nothing there.
 - The self-hosted runner has 8 vCPU and 16 GB (`docs/self-hosted-runner.md`). It was already memory-bound: eight parallel `rustc`
-  exhausted its RAM on first use and the documented fix was a 16 GB swap file. By the table above, 8 jobs need about 20 GiB for the
-  release target (more than the machine's 16 GB RAM, though swap absorbs the rest), while 4 jobs need about 10 GiB, comfortably inside
-  it. `container.yaml` passes no `CARGO_BUILD_JOBS` build argument, so with this change that runner's `Test (Docker) (release)` job now
-  builds at the new default of 4 instead of uncapped (one `rustc` per vCPU, 8, same as the two incidents that justified the swap file,
-  not materially different from before this change). `build` and `build_shipped` both `COPY . /build/src`, so every source change on
-  that branch recompiles the whole workspace; the step is not a one-time cold build, it runs this way on every PR into `develop` and
-  every push to it.
-  - Measured directly on `torrust-runner-01`: the run of this PR's head commit after the Copilot-review fixes
-    (`run 43410572813`, head `334decbf9`) is the first real data point at the new default. Its `Test (Docker) (release)` job duration
-    and the prior unlimited-jobs baseline (the three successful `develop` runs of 2026-11-10/11, each about 12.5 minutes for the image
-    build step, with the runner's persistent Docker store keeping cached layers) are compared once that run completes; see the issue's
-    manual-verification-evidence for the recorded numbers. If the capped build regresses meaningfully, `container.yaml` can pass a
-    higher `CARGO_BUILD_JOBS` for that runner specifically.
+  exhausted its RAM on first use and the documented fix was a 16 GB swap file. `container.yaml` passes no `CARGO_BUILD_JOBS` build
+  argument, so before this change the runner compiled uncapped, one `rustc` per vCPU (8), needing about 20 GiB by the table above
+  (more than its 16 GB RAM, relying on the swap file); after this change it compiles at the new default of 4, needing about 10 GiB,
+  comfortably inside its RAM. `build` and `build_shipped` both `COPY . /build/src`, so every source change recompiles the whole
+  workspace regardless of Docker layer caching for those two stages; this is not a one-time cold-build effect, it happens on every
+  PR into `develop` and every push to it.
+  - The runner's actual `Test (Docker) (release)` job duration at the new default, compared against the prior unlimited-jobs
+    baseline (the three successful `develop` runs of 2026-11-10/11, each about 12.5 minutes for the image build step, with the
+    runner's persistent Docker store keeping cached layers from earlier runs), is pending: see manual scenario M4 and its evidence
+    section V4, named by the commit subject of the PR head they measure rather than a branch commit id (a rebase would orphan an id).
+    If the capped build regresses meaningfully, `container.yaml` can pass a higher `CARGO_BUILD_JOBS` for that runner specifically.
 - Plain `cargo build` and `cargo test` outside containers read `CARGO_BUILD_JOBS` too, so the variable also limits them. The
   `Containerfile` sets it as an image environment variable only; it does not change host builds.

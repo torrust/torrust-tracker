@@ -149,10 +149,11 @@ podman build --target release --build-arg CARGO_BUILD_JOBS=8 --tag torrust-track
 CARGO_BUILD_JOBS=8 ./contrib/dev-tools/containers/docker-build.sh
 ```
 
-Using a value other than the one already cached invalidates the build cache from the `chef` and `tester` stages' first `RUN`
-onward: both the `ARG` and the `ENV` enter the cache key of every later layer, so apt installs, tool installs and every
-third-party and workspace cook re-run. Pick one value for a given machine and keep using it to keep the cache warm; switching
-back and forth pays the full cold-build time each time.
+Both the `ARG` and the `ENV` enter the cache key of every layer from the `chef` and `tester` stages' first `RUN` onward, so a
+value other than the one the next layer was built with misses that layer's cache and re-runs it: apt installs, tool installs
+and every third-party and workspace cook. This selects a different cache key, though; it does not delete what was cached for
+other values, so switching back to a value you built with before can still hit that value's own retained cache, if Docker or
+Podman has not pruned it since. Pick one value for a given machine to avoid paying the cold-build cost on every switch.
 
 `CARGO_BUILD_JOBS` is a standard Cargo setting: outside containers, `CARGO_BUILD_JOBS=4 cargo build` and `CARGO_BUILD_JOBS=4 cargo test` apply the same limit
 to your host builds.

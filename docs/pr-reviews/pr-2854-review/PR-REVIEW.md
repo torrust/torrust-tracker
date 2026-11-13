@@ -31,9 +31,11 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-This record was started late: the first two replies (F1/F2 below, the Copilot thread replies) were
-posted before this audit existed, citing the branch commit `334decbf9` instead of its Conventional
-Commit subject (finding F12 below). Late start logged in the Processing Log.
+This record was started late: the first two replies (R1/R2 below, the Copilot thread replies) were
+posted before this audit existed, citing the branch commit by its short hash in their own GitHub
+comment text instead of the Conventional Commit subject `fix(container): [#2853] address Copilot
+review: cap tester stage, trap measure.sh signals` (finding F12 below). Late start logged in the
+Processing Log.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -53,6 +55,17 @@ Commit subject (finding F12 below). Late start logged in the Processing Log.
 | F12 | review-finding:pr-2854-f12 | Human | Minor | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F13 | review-finding:pr-2854-f13 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F14 | review-finding:pr-2854-f14 | Human | Major | correctness | ORIGINAL | FIXED | RESOLVED |
+| R3 | review-finding:pr-2854-r3 | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| R4 | review-finding:pr-2854-r4 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-2854-f15 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-2854-f16 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-2854-f17 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F19 | review-finding:pr-2854-f19 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-2854-f20 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F21 | review-finding:pr-2854-f21 | Copilot | Major | correctness | ORIGINAL | FIXED | RESOLVED |
+| F22 | review-finding:pr-2854-f22 | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F23 | review-finding:pr-2854-f23 | Copilot | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F24 | review-finding:pr-2854-f24 | Copilot | Nit | formatting | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -86,8 +99,8 @@ Commit subject (finding F12 below). Late start logged in the Processing Log.
 - Source review ID: 5889429427
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562180428
 - Concern: `container.yaml` passes no `CARGO_BUILD_JOBS` build argument for the self-hosted runner, `report.md` deferred the runner comparison to after merge, the issue marked AC6 `DONE` anyway, and the PR description used `Closes #2853`, which would have auto-closed the issue with that criterion unmet. `build`/`build_shipped` recompile the whole workspace on every source change (`COPY . /build/src`), so the exposure is not limited to a rare cold build.
-- Solution: set T6/AC6 back to `IN_PROGRESS`/`TODO`, added manual scenario M4 for the real self-hosted run at this PR's head, and changed the PR description from `Closes #2853` to `Related to #2853` until that run's result is recorded. The real run on `torrust-runner-01` for commit `334decbf9` (GitHub Actions run 43410572813) is used as the actual evidence instead of a deferred comparison.
-- Current-tree verification: `gh-bot api repos/torrust/torrust-tracker/actions/runs/43410572813/jobs` confirms the job runs on `torrust-runner-01`; its duration is recorded in `manual-verification-evidence.md` V4 once it completes.
+- Solution: set T6/AC6 back to `IN_PROGRESS`/`TODO`, added manual scenario M4 for a real self-hosted run of the PR head, and changed the PR description from `Closes #2853` to `Related to #2853` until that run's result is recorded. The runner's actual job duration at the capped default remains pending (F15 below corrects an over-claim this entry's first fix made about one such run).
+- Current-tree verification: `manual-verification-evidence.md` V4 and `ISSUE.md`'s M4 row both state the result is pending, not yet measured.
 - Resolution reference: `fix(container): [#2853] address da2ce7 review: fix report arithmetic, evidence, docs nits`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562418701
@@ -147,8 +160,8 @@ Commit subject (finding F12 below). Late start logged in the Processing Log.
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562180469
 - Concern: the risk bullet said the `ENV` "also reaches `cargo nextest run` in the `test` stages", then that those stages derive from `tester`, not `chef` — self-contradictory, since `tester` at that point had no `CARGO_BUILD_JOBS` of its own either.
 - Solution: rewrote the bullet to state that `test`/`test_debug` derive from `tester` (not `chef`), that `tester` now declares its own `CARGO_BUILD_JOBS` (added for R1), but that `cargo nextest run` itself compiles nothing — the test binaries were already compiled by the preceding build stages — so the variable has no effect on it either way. A later pass (F13) corrected a residual inconsistency between this bullet, the Goal section, and the `Containerfile` comment about which stages the cap is declared in.
-- Current-tree verification: read the current risk bullet and the `Containerfile`'s `tester` stage; the statement matches both.
-- Resolution reference: `fix(container): [#2853] fix tester/chef wording contradiction, add audit record`
+- Current-tree verification: read the current risk bullet and the `Containerfile`'s `tester` stage; the statement matches both. `git log -p -S'test/test_debug' -- docs/issues/open/2853-container-build-jobs-limit/ISSUE.md` shows the rewritten bullet's text first appears in the commit below, not in the later F13 commit (which touched only the Goal/Scope bullet and the T3 row, per F20).
+- Resolution reference: `fix(container): [#2853] address da2ce7 review: fix report arithmetic, evidence, docs nits`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562417156
 
@@ -170,9 +183,9 @@ Commit subject (finding F12 below). Late start logged in the Processing Log.
 - Source review ID: 5889429427
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562180489
 - Concern: a progress-log entry's timestamp did not match the raw sample epochs it described, a later entry's timestamp preceded the commit that added it, and `last-updated-utc` was stale.
-- Solution: rewrote the Progress Log with timestamps taken from the sample epochs (`results/*.samples.tsv`) and `git log --format=%cI` for each commit, in chronological order, and updated `last-updated-utc`.
-- Current-tree verification: `git log --format='%H %ad %s' --date=iso-strict-local` against the entries' cited commits; times match.
-- Resolution reference: `fix(container): [#2853] address da2ce7 review: fix report arithmetic, evidence, docs nits`
+- Solution: the first attempt, in `fix(container): [#2853] address da2ce7 review: fix report arithmetic, evidence, docs nits`, was itself incomplete: the 08:50 entry still claimed the 4-job run started then although the samples began at 08:31, and `F19` below caught that this disposition had been marked `FIXED` before that was true. Rewrote the Progress Log again, this time stamping every entry at or after its own commit's `git log --format=%cI` time (never claiming an event before it happened) and matching each measurement entry's stated window to its `results/*.samples.tsv` epochs, and updated `last-updated-utc` to match.
+- Current-tree verification: `git log --format='%H %ad %s' --date=iso-strict-local` against every entry's cited commit subject, and each measurement window against its `samples.tsv` first/last epoch; both match.
+- Resolution reference: `fix(container): [#2853] address review round 2: locale, PID anchor, stage overlap, audit accuracy`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562420505
 
@@ -248,11 +261,144 @@ Commit subject (finding F12 below). Late start logged in the Processing Log.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562573939
 
+### R3 - Include the independent tester compilation in the overlap bound
+
+- PR number: 2854
+- Source review ID: 5889779944
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562454192
+- Concern: `tester` does not descend from `dependencies_thirdparty`, so its independent `cargo-nextest` source-install fallback can run concurrently with both workspace branches; "at most two" is not a bound for the whole release target.
+- Solution: reworded the Stage overlap section to scope the two-stage bound to the two workspace-compiling branches explicitly, and added that `tester`'s own compile path is independent, concurrent with both, and capped on its own by `tester`'s `CARGO_BUILD_JOBS` (R1) rather than by this count. Noted that the measured release target's `tester` install did not fall back to a source compile.
+- Current-tree verification: read the `Containerfile`'s `tester` stage (no `FROM dependencies_thirdparty` or `FROM chef` relation) against the reworded section.
+- Resolution reference: `fix(container): [#2853] address review round 2: locale, PID anchor, stage overlap, audit accuracy`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562689626
+
+### R4 - Distinguish a new cache key from discarding earlier cached builds
+
+- PR number: 2854
+- Source review ID: 5889779944
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562454312
+- Concern: changing `CARGO_BUILD_JOBS` selects a different cache key; it does not delete the layers cached for a previous value, so a 4→8→4 sequence can reuse the original 4-job layers if nothing else changed and the cache was not pruned. The warning in `docs/containers.md` did not say this.
+- Solution: reworded the paragraph to say the value change misses the next layer's cache (a different key), not that it discards other values' cached layers, and that switching back to a value built before can still hit its own retained cache.
+- Current-tree verification: read the reworded paragraph in `docs/containers.md`.
+- Resolution reference: `fix(container): [#2853] address review round 2: locale, PID anchor, stage overlap, audit accuracy`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562689333
+
+### F15 - "Measured directly on `torrust-runner-01`" introduces a run with no measurement, and it is not at this head
+
+- PR number: 2854
+- Source review ID: 5889901103
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562551196
+- Concern: the runner bullet named a specific run and head while recording no actual duration, contradicting M4/T6/the progress log (which all say the run is "at this head" and pending), and its "not materially different from before this change" phrasing contradicted the next sentence about every-run recompilation.
+- Solution: rewrote the bullet to state the before/after job count (8 uncapped → 4) and memory (about 20 GiB → about 10 GiB) explicitly, dropped the specific run/head reference, and stated plainly that the actual job duration at the new default is pending, pointing to M4/V4, with a note to name any future run by its head's commit subject rather than a branch id.
+- Current-tree verification: read the rewritten bullet in `report.md`'s "Effect on the runners"; it no longer names a run or head, and states the comparison as pending.
+- Resolution reference: `fix(container): [#2853] address review round 2: locale, PID anchor, stage overlap, audit accuracy`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562691197
+
+### F16 - The skill's commit-id check prints four branch commit ids
+
+- PR number: 2854
+- Source review ID: 5889901103
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562551204
+- Concern: `ISSUE.md`'s progress log, `report.md` and this audit record's own entries cited branch commit ids instead of Conventional Commit subjects, which a rebase would orphan.
+- Solution: rewrote `ISSUE.md`'s progress log and this audit record's R1/R2 narrative and `Resolution reference` fields to cite every commit by subject, and removed the one remaining run-id reference from `report.md` (also fixed by F15).
+- Current-tree verification: searched `report.md`, `ISSUE.md` and this record for a backtick-quoted 7-10 character hex string; the only remaining hits are commit subjects (which are not hex) and one kB figure in F14's narrative, no bare branch commit id.
+- Resolution reference: `fix(container): [#2853] address review round 2: locale, PID anchor, stage overlap, audit accuracy`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562689932
+
+### F17 - Small report inaccuracies left by the rewrite
+
+- PR number: 2854
+- Source review ID: 5889901103
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562551210
+- Concern: 2.09 GiB fell outside the stated 2.2-2.6 GiB/job range; the report said the earlier `measure.sh` "divided" the two maxima when it only printed them; the stage-handoff explanation for the 12-process sample was physically implausible (a step ends only when its process tree exits); and a sentence was duplicated.
+- Solution: corrected the range to 2.09-2.60 GiB/job; reworded the `measure.sh` sentence to say it only printed the two independent maxima and that the division happened in this report's prose; replaced the stage-handoff explanation with a statement that the cause was not isolated and that a handoff alone does not explain it; removed the duplicated sentence (same fix as F23/C3).
+- Current-tree verification: read the corrected "Per-process memory" and "Results" sections and the "Method" bullet; the duplicated sentence is gone.
+- Resolution reference: `fix(container): [#2853] address review round 2: locale, PID anchor, stage overlap, audit accuracy`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562691500
+
+### F19 - Several audit entries state more than the tree and the forge show
+
+- PR number: 2854
+- Source review ID: 5889901103
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562551215
+- Concern: this record's own Processing Log entries were stamped 11:05 UTC although they sit in commits made at 10:52 and 10:59; F8's row recorded `FIXED` while `ISSUE.md`'s 08:50 entry was still wrong and the 10:55 entries sat in a 10:46 commit; line 34 called the two early replies "F1/F2" where it meant "R1/R2"; and the claim that editing the R1/R2 replies would lose their thread association is false (editing a comment keeps its thread).
+- Solution: corrected "F1/F2" to "R1/R2"; rewrote this record's own Processing Log so every entry is stamped at or after its own commit's time, never claiming an event before it happened; corrected F8's entry to state its first attempt was itself incomplete, with a corrected resolution reference; removed the false claim about losing thread association, describing the branch-commit-id text as a historical fact about what the early replies said rather than a constraint on editing them.
+- Current-tree verification: read the corrected Processing Log and F8 entries; `git log --format=%cI` against each cited commit.
+- Resolution reference: `fix(container): [#2853] address review round 2: locale, PID anchor, stage overlap, audit accuracy`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562691848
+
+### F20 - F6's resolution reference now names a commit that did not change the F6 bullet
+
+- PR number: 2854
+- Source review ID: 5889901103
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562551218
+- Concern: F6's `Resolution reference` cited the F13 commit, which only changed `ISSUE.md`'s Goal/Scope bullet and T3 row, not the risk bullet F6 is about; the two-subject form in an earlier draft of this entry had already failed the validator for an unrelated reason (a trailing `(F13)` after the closing backtick).
+- Solution: changed F6's `Resolution reference` to the commit that actually introduced the rewritten risk bullet's text.
+- Current-tree verification: `git log -p -- docs/issues/open/2853-container-build-jobs-limit/ISSUE.md` shows the risk bullet's current wording first appearing in that commit.
+- Resolution reference: `fix(container): [#2853] address review round 2: locale, PID anchor, stage overlap, audit accuracy`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562692163
+
+### F21 - `grep -v "$$"` is not anchored to the PID column
+
+- PR number: 2854
+- Source review ID: 5890001923
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562625585
+- Concern: `pgrep -af ... | grep -v "$$"` filters by substring over the whole line, so a running `docker build` whose command line happens to contain the same digits as this script's PID would be filtered out by accident, producing a false negative and allowing unsafe concurrent builds.
+- Solution: replaced the `grep -v "$$"` filter with `awk -v self="$$" '$1 != self'`, which compares only the first (PID) field of each `pgrep -a` line.
+- Current-tree verification: confirmed `pgrep -af 'docker...build'` does not match its own invocation on this machine (no self-match to exclude in the first place), and that the new `awk` filter still excludes a line by exact PID.
+- Resolution reference: `fix(container): [#2853] address review round 2: locale, PID anchor, stage overlap, audit accuracy`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562689029
+
+### F22 - The numeric formatting is locale-dependent
+
+- PR number: 2854
+- Source review ID: 5890001923
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562625682
+- Concern: `measure.sh`'s `awk`/`printf` output used this machine's locale (comma decimal separators, visible in the committed `results/*.summary.txt`), which is not machine-parseable or reproducible across environments.
+- Solution: added `export LC_ALL=C` near the top of `measure.sh`, before any numeric output. The already-committed summary files keep their comma formatting, since they are raw run output (F14) and were produced before this fix.
+- Current-tree verification: read the added `export LC_ALL=C` line.
+- Resolution reference: `fix(container): [#2853] address review round 2: locale, PID anchor, stage overlap, audit accuracy`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562690233
+
+### F23 - Duplicated sentence in `report.md`
+
+- PR number: 2854
+- Source review ID: 5890001923
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562625746
+- Concern: "It refuses to start while another container build runs." appeared twice in the "Method" section.
+- Solution: same fix as F17; removed the duplicate.
+- Current-tree verification: read the "Method" section; the sentence appears once.
+- Resolution reference: `fix(container): [#2853] address review round 2: locale, PID anchor, stage overlap, audit accuracy`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562690562
+
+### F24 - Unquoted YAML timestamp
+
+- PR number: 2854
+- Source review ID: 5890001923
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562625797
+- Concern: `manual-verification-evidence.md`'s `last-updated-utc` was an unquoted YAML timestamp-like scalar, inconsistent with the other documents in this PR, which quote it.
+- Solution: quoted the value.
+- Current-tree verification: read the frontmatter; `last-updated-utc` is now a quoted string.
+- Resolution reference: `fix(container): [#2853] address review round 2: locale, PID anchor, stage overlap, audit accuracy`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562690930
+
 ## Processing Log
 
 - 2026-11-13 11:05 UTC - Started audit late (after R1, R2, F1-F11 replies/fixes were already in progress or posted); backfilled all entries from the current tree and the GitHub review/comment history.
 - 2026-11-13 11:05 UTC - Replied on all resolvable threads (R1, R2, F1-F11, F12, F13) and resolved them via GraphQL `resolveReviewThread`.
 - 2026-11-13 11:10 UTC - Added F14 (raw-summary overwrite, wrong corrected figure), fixed it, replied, and resolved its thread.
+- 2026-11-13 11:28 UTC - Added R3, R4 (an earlier, unprocessed Copilot review), F15-F17, F19, F20 (da2ce7's next round) and F21-F24 (a newer Copilot review): fixed all eleven, replied on every thread, and resolved them via GraphQL `resolveReviewThread`.
 
 ## Completion Rules
 

@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2853-container-build-jobs-limit/ISSUE.md
-last-updated-utc: 2026-11-13 10:55
+last-updated-utc: "2026-11-13 11:20"
 ---
 
 # Manual Verification Evidence

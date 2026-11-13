@@ -9,7 +9,7 @@ github-issue: 2853
 spec-path: docs/issues/open/2853-container-build-jobs-limit/ISSUE.md
 branch: "2853-container-build-jobs-limit"
 related-pr: null
-last-updated-utc: "2026-11-13 10:55"
+last-updated-utc: "2026-11-13 11:28"
 semantic-links:
   skill-links:
     - create-issue
@@ -122,10 +122,14 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 ### Progress Log
 
 - 2026-11-13 08:50 UTC - Claude Code (Claude Sonnet 5.5) - Drafted the specification; measurement of the release image build started at 4 jobs - `contrib/dev-tools/experiments/container-build-jobs/`
-- 2026-11-13 08:31-08:59 UTC - Claude Code (Claude Sonnet 5.5) - Measured the release image build (uncached, one at a time, watchdog at 8 GiB): 4 jobs 836 s / 10.4 GiB peak `rustc` RSS; 8 jobs 499 s / 19.8 GiB; 16 jobs 346 s / 35.5 GiB. Chose default 4; stage overlap left unchanged - `contrib/dev-tools/experiments/container-build-jobs/results/`
-- 2026-11-13 09:44-09:48 UTC - Claude Code (Claude Sonnet 5.5) - Spec approved by the maintainer; issue #2853 created (`a3aaab735`); implemented Containerfile, script and docs (`29a321eb6`, `ca14aeb82`); opened implementation PR (no spec-only PR) - https://github.com/torrust/torrust-tracker/issues/2853, https://github.com/torrust/torrust-tracker/pull/2854
-- 2026-11-13 10:20-10:38 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the Copilot review's R1/R2 (tester-stage cap, measure.sh signal trap), pushed (`334decbf9`) and replied on both threads.
-- 2026-11-13 10:55 UTC - Claude Code (Claude Sonnet 5.5) - Addressed da2ce7's review (F1-F11): corrected report.md's per-process-memory arithmetic and stage-overlap claim (F4, F5), fixed the `tester`/`chef` risk statement (F6), documented the build-cache invalidation (F7), renamed `REPORT.md` to `report.md` (F10) and fixed the heading-case and script-path nits (F9, F11), added the evidence file's reproduction classification (F2) and the no-flag default verification (F3), corrected the progress-log timestamps (F8). AC6/T6 held at IN_PROGRESS pending the real self-hosted run at this head (`run 43410572813`, in progress) - `contrib/dev-tools/experiments/container-build-jobs/report.md`
+- 2026-11-13 09:00 UTC - Claude Code (Claude Sonnet 5.5) - Measured the release image build (uncached, one at a time, watchdog at 8 GiB): 4 jobs (08:31-08:45 UTC) 836 s / 10.4 GiB peak `rustc` RSS; 8 jobs (08:45-08:53 UTC) 499 s / 19.8 GiB; 16 jobs (08:53-08:59 UTC) 346 s / 35.5 GiB. Chose default 4; stage overlap left unchanged - `contrib/dev-tools/experiments/container-build-jobs/results/`
+- 2026-11-13 09:48 UTC - Claude Code (Claude Sonnet 5.5) - Spec approved by the maintainer; issue #2853 created; implemented Containerfile, script and docs (`docs(issues): [#2853] spec and measured evidence for the container build jobs limit`, `fix(container): [#2853] cap the Cargo jobs of the image build with CARGO_BUILD_JOBS`, `docs(containers): [#2853] document the memory and CPU use of the image build`); opened implementation PR (no spec-only PR) - https://github.com/torrust/torrust-tracker/issues/2853, https://github.com/torrust/torrust-tracker/pull/2854
+- 2026-11-13 10:38 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the Copilot review's R1/R2 (tester-stage cap, measure.sh signal trap), pushed (`fix(container): [#2853] address Copilot review: cap tester stage, trap measure.sh signals`) and replied on both threads.
+- 2026-11-13 10:46 UTC - Claude Code (Claude Sonnet 5.5) - Addressed da2ce7's review (F1-F11): corrected report.md's per-process-memory arithmetic and stage-overlap claim (F4, F5), fixed the `tester`/`chef` risk statement (F6), documented the build-cache invalidation (F7), renamed `REPORT.md` to `report.md` (F10) and fixed the heading-case and script-path nits (F9, F11), added the evidence file's reproduction classification (F2) and the no-flag default verification (F3) (`fix(container): [#2853] address da2ce7 review: fix report arithmetic, evidence, docs nits`). AC6/T6 held at IN_PROGRESS pending the real self-hosted run at this head.
+- 2026-11-13 10:52 UTC - Claude Code (Claude Sonnet 5.5) - Fixed the remaining `tester`/`chef` wording contradictions (F13) and added the review audit record at `docs/pr-reviews/pr-2854-review/PR-REVIEW.md` (F12) (`fix(container): [#2853] fix tester/chef wording contradiction, add audit record`).
+- 2026-11-13 10:59 UTC - Claude Code (Claude Sonnet 5.5) - Fixed the audit record's table formatting and filled in its Reply URLs so `validate-audit-record.py` passes (`docs(pr-reviews): [#2853] fix audit record table formatting and reply URLs`).
+- 2026-11-13 11:12 UTC - Claude Code (Claude Sonnet 5.5) - Restored the three raw run summaries da2ce7's F14 found had been overwritten with a wrong recomputed figure, and corrected report.md's 16-jobs delta to 33.0 (`fix(container): [#2853] restore raw run summaries, correct the 16-jobs delta to 33.0`).
+- 2026-11-13 11:28 UTC - Claude Code (Claude Sonnet 5.5) - Addressed R3/R4 (an earlier Copilot review), da2ce7's F15-F17/F19/F20, and Copilot's F21-F24 (locale, PID-anchor, stage-overlap scope, audit-record accuracy, and small doc fixes) (`fix(container): [#2853] address review round 2: locale, PID anchor, stage overlap, audit accuracy`).
 
 ## Acceptance Criteria
 

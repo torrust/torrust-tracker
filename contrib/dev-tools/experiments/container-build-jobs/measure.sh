@@ -9,6 +9,10 @@
 # (default 8 GiB). Logs go to ~/.cache (not /tmp: it is RAM and wiped on reboot).
 set -u
 
+# Force a C/POSIX numeric locale: a locale that groups decimals with a comma (as this machine's
+# did) would otherwise make awk's printf output locale-dependent and not machine-parseable.
+export LC_ALL=C
+
 jobs="${1:?usage: measure.sh <jobs> [<min-available-gib>]}"
 min_gib="${2:-8}"
 min_kb=$((min_gib * 1024 * 1024))
@@ -19,7 +23,7 @@ samples="${log_dir}/jobs-${jobs}-${stamp}.samples.tsv"
 build_log="${log_dir}/jobs-${jobs}-${stamp}.build.log"
 summary="${log_dir}/jobs-${jobs}-${stamp}.summary.txt"
 
-if pgrep -af 'docker(-buildx)?( buildx)? build' | grep -v "$$" | grep -q .; then
+if pgrep -af 'docker(-buildx)?( buildx)? build' | awk -v self="$$" '$1 != self' | grep -q .; then
     echo "another docker build is running; refusing to start" >&2
     exit 2
 fi
