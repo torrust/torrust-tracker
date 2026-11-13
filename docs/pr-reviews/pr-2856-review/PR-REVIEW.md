@@ -61,7 +61,10 @@ F19-F21 in each comment's own title, reassigned on collision with `da2ce7`'s rou
 both submitted on the head whose last commit has the subject `docs(issues): [#2855] address
 PR #2856 review findings F8-F14`. F26 and F27 are the automated reviewer's independent re-raises of
 `da2ce7`'s F21 and F23 (same concerns, found separately by both reviewers in the same round, not
-one reviewer repeating the other's finding).
+one reviewer repeating the other's finding). Round 4 is `da2ce7`'s APPROVED review `5899089435`
+(F28 to F31, reviewer labels F21-F24, reassigned on collision with round-3 usage), submitted on
+the head whose last commit has the subject `docs(issues): [#2855] address PR #2856 review
+findings F19-F27`.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -89,9 +92,13 @@ one reviewer repeating the other's finding).
 | F22 | review-finding:pr-2856-f22 | Human | Nit | testing | ORIGINAL | FIXED | RESOLVED |
 | F23 | review-finding:pr-2856-f23 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F24 | review-finding:pr-2856-f24 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
-| F25 | review-finding:pr-2856-f25 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
-| F26 | review-finding:pr-2856-f26 | Copilot | Nit (inferred) | documentation | RE_RAISE_OF:F21 | FIXED | RESOLVED |
-| F27 | review-finding:pr-2856-f27 | Copilot | Minor (inferred) | documentation | RE_RAISE_OF:F23 | FIXED | RESOLVED |
+| F25 | review-finding:pr-2856-f25 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F26 | review-finding:pr-2856-f26 | Copilot | Nit | documentation | RE_RAISE_OF:F21 | FIXED | RESOLVED |
+| F27 | review-finding:pr-2856-f27 | Copilot | Minor | documentation | RE_RAISE_OF:F23 | FIXED | RESOLVED |
+| F28 | review-finding:pr-2856-f28 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F29 | review-finding:pr-2856-f29 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F30 | review-finding:pr-2856-f30 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F31 | review-finding:pr-2856-f31 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -446,8 +453,61 @@ one reviewer repeating the other's finding).
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4569307085
 
+### F28 - V1 recipe and "line 39" describe the pre-fix script without naming it
+
+- PR number: 2856
+- Source review ID: 5899089435
+- Reviewer finding ID: F21
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4569510300
+- Concern: PR #2857's fix merged into `develop`, so the working tree's script no longer has the `test` line V1's recipe and ISSUE.md's "line 39" describe (it is now a `case` block); a `cp` of the working tree and an unqualified "line 39" no longer name any real state.
+- Solution: Named the pre-fix state by its durable `develop` commit id, `ec1f58ec9` (the last commit before the merge): V1's setup now reads `git show ec1f58ec9:...` instead of `cp` of the working tree, and both "line 39" references now say "line 39 at `ec1f58ec9`".
+- Current-tree verification: Applied the patch to `git show ec1f58ec9:contrib/dev-tools/containers/tests/test-mounted-no-persistence-configuration.sh` locally with `patch(1)`; it applies and produces the two intended edits.
+- Resolution reference: docs(issues): [#2855] address PR #2856 review findings F28-F31
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4569539309
+
+### F29 - Round-2 progress-log entry's container count and time were wrong
+
+- PR number: 2856
+- Source review ID: 5899089435
+- Reviewer finding ID: F22
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4569510320
+- Concern: The round-4 recapture shows exactly 2 containers newer than the round-2 capture's newest (13:46:16); since containers cannot be created with a past creation time, the round-2 capture held at least 34 - 2 = 32, not the 31 its progress-log entry stated (which matched its own listing's row count, 3 + 27 + 2, but not the `wc -l` it also recorded). Separately, the entry's 14:00 stamp still predates the capture it reports (no earlier than roughly 15:16, per F19/F23's prior reasoning).
+- Solution: Corrected the round-2 progress-log entry's count to 32 and its timestamp to "15:20 UTC (backfilled; no later than the 15:23:59 UTC commit that carries it)", with a note that the entry originally stated 31.
+- Current-tree verification: `ISSUE.md` progress log, the round-2 entry.
+- Resolution reference: docs(issues): [#2855] address PR #2856 review findings F28-F31
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4569540164
+
+### F30 - F14's correction reply landed on the wrong thread; F25-F27 wrongly marked "(inferred)"
+
+- PR number: 2856
+- Source review ID: 5899089435
+- Reviewer finding ID: F23
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4569510328
+- Concern: The reply correcting F14's commit-id citation was posted on F16's own thread instead of F14's; separately, F25-F27 carried "(inferred)" although their source comments open with explicit severity brackets (`[Minor][F19]`, `[Nit][F20]`, `[Minor][F21]`), not free prose.
+- Solution: Posted a new reply directly on F14's thread with the correction; removed "(inferred)" from F25, F26 and F27.
+- Current-tree verification: `docs/pr-reviews/pr-2856-review/PR-REVIEW.md` F25-F27 rows.
+- Resolution reference: docs(issues): [#2855] address PR #2856 review findings F28-F31
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4569541157
+
+### F31 - 22:18 progress-log entry cited the wrong finding IDs and omitted fixes
+
+- PR number: 2856
+- Source review ID: 5899089435
+- Reviewer finding ID: F24
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4569510342
+- Concern: The entry cited "F19-F21", the automated reviewer's own labels, while in this audit those findings are F25-F27 and F19-F21 are other, unrelated findings; it also omitted several of the same commit's fixes (the skill-link marker, the commit cited by subject, the V1 hunk header and `cp` prose, the `linter all` criterion).
+- Solution: Rewrote the entry to cite the audit IDs (F19-F27) and list all of that commit's fixes.
+- Current-tree verification: `ISSUE.md` progress log, the 22:18 entry.
+- Resolution reference: docs(issues): [#2855] address PR #2856 review findings F28-F31
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4569542129
+
 ## Processing Log
 
 - 2026-11-13 11:20 UTC - `da2ce7`'s review `5889698232` (7 findings, F1 to F7) and `copilot-pull-request-reviewer`'s review `5889723390` (3 findings, F15 to F17) processed before this record existed: fixed in commit `f2f0e4e73` (branch id cited in the nine replies instead of this subject) and replied on all ten threads, then resolved.
 - 2026-11-13 14:00 UTC - Started this record late, after round 2 arrived. Processing round 2: `da2ce7`'s review `5890192507` (7 findings, F8 to F14) and `copilot-pull-request-reviewer`'s review `5891738510` (1 finding, F18, reviewer label `F8`, reassigned on collision with `da2ce7`'s F8).
 - 2026-11-13 22:30 UTC - Processing round 3: `da2ce7`'s APPROVED review `5893913692` (6 findings, F19 to F24, reviewer labels F15-F20) and `copilot-pull-request-reviewer`'s review `5894073993` (3 findings, F25 to F27, reviewer labels F19-F21). F26 and F27 are independent re-raises of F21 and F23 (same underlying concerns, found separately by both reviewers in this round). Fixed in commit `docs(issues): [#2855] address PR #2856 review findings F19-F27`: added the skill-link marker (F19); cited the first commit by subject and corrected the Ownership note's reply-count attribution (F20); recaptured V5 on torrust-runner-01 (read-only, maintainer-approved) with a fresh, internally-consistent listing (F21, F26); corrected the V1 patch's second hunk header and the `cp` location prose (F22); recorded the real V5 capture time throughout (F23, F27); ran `linter all`, checked the criterion, and added the audit record to the PR description's Files touched list (F24); reclassified F18 as `RE_RAISE_OF:F13` (F25). Replied on all nine threads, then resolved them.
+- 2026-11-13 22:45 UTC - Processing round 4: `da2ce7`'s APPROVED review `5899089435` (4 findings, F28 to F31, reviewer labels F21-F24). Fixed in commit `docs(issues): [#2855] address PR #2856 review findings F28-F31`: named the pre-fix script by its durable `develop` commit id `ec1f58ec9` instead of a `cp` of the (now fixed) working tree or an unqualified line number (F28); corrected the round-2 progress-log entry's container count (31 to 32) and timestamp, noting the original was wrong (F29); posted the F14 correction on F14's own thread instead of F16's, and removed the incorrect "(inferred)" tag from F25-F27 (F30); rewrote the round-3 progress-log entry to cite audit IDs instead of the automated reviewer's own labels and to list all of that commit's fixes (F31). Replied on all four threads, then resolved them.

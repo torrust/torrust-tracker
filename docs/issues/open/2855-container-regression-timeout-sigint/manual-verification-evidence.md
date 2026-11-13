@@ -22,10 +22,13 @@ last-updated-utc: "2026-11-13 22:18"
 - Status: `DONE` (outcome: **Reproduced**)
 
 Setup (not committed; the instrumented copy is not retained as an issue-local artifact because the
-complete patch below reconstructs it exactly from the unmodified script):
+complete patch below reconstructs it exactly from the pre-fix script). The working tree's script
+now carries the fix (PR #2857, merged into `develop`), so the pre-fix state is named by its
+`develop` commit id, `ec1f58ec9` (the last commit before that merge), a durable reference that a
+rebase cannot move:
 
 ```bash
-cp contrib/dev-tools/containers/tests/test-mounted-no-persistence-configuration.sh ./instrumented-copy.sh
+git show ec1f58ec9:contrib/dev-tools/containers/tests/test-mounted-no-persistence-configuration.sh > ./instrumented-copy.sh
 patch ./instrumented-copy.sh <<'PATCH'
 --- a/test-mounted-no-persistence-configuration.sh
 +++ b/instrumented-copy.sh
@@ -40,10 +43,10 @@ patch ./instrumented-copy.sh <<'PATCH'
 PATCH
 ```
 
-`PROJECT_ROOT` is pinned because the `cp` on the first line runs from, and so puts the copy in, the
-repository root (the `cp` source path is relative) instead of the script's nested path under that
-root; the `run_tracker` call itself is unchanged, only instrumented to print the real exit status
-before the accept/reject `test`.
+`PROJECT_ROOT` is pinned because the `git show` redirect on the first line runs from, and so puts
+the copy in, the repository root instead of the script's nested path under that root; the
+`run_tracker` call itself is unchanged, only instrumented to print the real exit status before the
+accept/reject `test`.
 
 Command: `IMAGE_TAG=tt:repro BUILD_IMAGE=false bash -x ./instrumented-copy.sh`
 
@@ -58,7 +61,8 @@ RUN_TRACKER_STATUS=137
 
 The container log ends at `Tracker shutdown signal handlers installed.` plus health-check
 requests, with no `shutting down (SIGINT)` line, as in the failing CI logs (run 43299605132).
-CI's script exits 1 because of the `test` on line 39 of
+CI's script exits 1 because of the `test` on line 39 at `ec1f58ec9` (the last `develop` commit
+before PR #2857's fix merged) of
 `contrib/dev-tools/containers/tests/test-mounted-no-persistence-configuration.sh`, not because
 `docker run` itself returned 1.
 
