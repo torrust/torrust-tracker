@@ -29,10 +29,12 @@ NEW_DATABASE="${TEST_DIRECTORY}/lib/database/new.sqlite3"
 run_tracker() {
     local exit_status=0
 
-    # --foreground: without it, uutils' `timeout` (the default `timeout` on Ubuntu 26.04 and
-    # later, from the `rust-coreutils` package) does not forward SIGINT to `docker run`, so the
-    # container never receives the signal and is SIGKILLed by --kill-after instead (exit 137).
-    # GNU coreutils' `timeout` forwards the signal either way, so the flag is a no-op there.
+    # --foreground: without it, uutils' `timeout` 0.10.0 (the default `timeout` on Ubuntu 26.04
+    # and later, from the `rust-coreutils` package) does not forward SIGINT to `docker run`, so
+    # the tracker never receives the signal and `--kill-after` SIGKILLs the `docker run` client
+    # instead (exit 137), leaving the container running. GNU coreutils' `timeout` forwards the
+    # signal either way, so the flag has the same effect here, for this single-command
+    # invocation.
     timeout --foreground --signal=INT --kill-after=3s 10s docker run --rm \
         --env USER_ID="$(id -u)" \
         --volume "${TEST_DIRECTORY}/etc:/etc/torrust/tracker:rw" \
@@ -40,11 +42,13 @@ run_tracker() {
         --volume "${TEST_DIRECTORY}/log:/var/log/torrust/tracker:rw" \
         "${IMAGE_TAG}" || exit_status=$?
 
-    if [ "${exit_status}" -ne 0 ] && [ "${exit_status}" -ne 124 ]; then
+    case "${exit_status}" in
+    0 | 124) ;;
+    *)
         echo "run_tracker: unexpected exit status ${exit_status} (expected 0 or 124)" >&2
-    fi
-
-    test "${exit_status}" -eq 0 -o "${exit_status}" -eq 124
+        return 1
+        ;;
+    esac
 }
 
 configure_sqlite_database() {
