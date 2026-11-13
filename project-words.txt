@@ -283,6 +283,7 @@ ghac
 ghdata
 ghtoken
 githubmerge
+gnutimeout
 goaway
 gpgsign
 gzprintf
@@ -613,6 +614,7 @@ urlencode
 uroot
 usize
 utoipa
+uutils
 valgrind
 valueonly
 valuevec
