@@ -235,7 +235,7 @@ the maintainer (2026-11-10):
 | S0 | This specification, the T1 evidence, and the EPIC registration with the baseline | - | `2824-1347-add-tests-primitives-spec` | #2828 | DONE |
 | S1 | Defect fixes decided in this issue (T2a): F2 `PeerRole` JSON casing, only (F1 fixed upstream; F3, F4, F5 handed off). Merged first, so the test slices pin the fixed behavior. | - | `2824-1347-add-tests-primitives-fixes` | #2834 | DONE |
 | S2 | T2, then `peer.rs` (rank 1, the largest gap) | 1 | `2824-1347-add-tests-primitives-peer` | #2841 | DONE |
-| S3 | Configuration defaults and bounded values: `announce.rs`, `policy.rs`, `mode.rs`, `pagination.rs`, `announce_interval.rs` | 2-6 | `2824-1347-add-tests-primitives-defaults` | - | IN_PROGRESS |
+| S3 | Configuration defaults and bounded values: `announce.rs`, `policy.rs`, `mode.rs`, `pagination.rs`, `announce_interval.rs` | 2-6 | `2824-1347-add-tests-primitives-defaults` | #2852 | IN_PROGRESS |
 | S4 | `swarm_metadata.rs`, no-change decisions for the covered and wiring files, then T4-T6; the clean-up moves the spec to `docs/issues/closed/` and updates the EPIC tables | 7-16 | `2824-1347-add-tests-primitives-final` | - | TODO |
 
 Rules: S0 to S3 use `Related to #2824`; only S4 uses `Closes #2824`. Do not stack
@@ -331,6 +331,7 @@ The 16 rows are every `.rs` file under `packages/primitives/src/`, each once.
 - 2026-11-12 17:53 UTC - Claude Code (Sonnet 5.5) - Correction of the entry stamped 16:45 UTC above: the rebuilt commits were made between 16:44 and 16:47 UTC and pushed at 17:26 UTC; the rebuild was done at 16:47 UTC, not at the stamp.
 - 2026-11-12 20:25 UTC - Claude Code (Sonnet 5.5) - S2 merged (#2841). S3 started on `2824-1347-add-tests-primitives-defaults` from `develop`; the baseline matched the end of S2 (848 / 995 lines, 81 tests).
 - 2026-11-13 08:55 UTC - Claude Code (Sonnet 5.5) - S3: five files, each with an approved decision record and a completed-file review (`announce_interval.rs`, `announce.rs`, `policy.rs`, `mode.rs`, `pagination.rs`); 24 tests added (105 in the package), unit-only lines 93.13%, regions 94.66%, functions 92.69%. The `quickcheck` property for `AnnounceIntervalInSecs` was kept because it alone kills a mid-range band mutant. Two doc comments were corrected (`check_keys_expiration` said the opposite of the behavior; `offset` said "page number" but is a number of items to skip); both were non-behavior findings decided as documentation-only corrections, so no `lessons.md` row is needed beyond this entry.
+- 2026-11-13 09:03 UTC - Claude Code (Sonnet 5.5) - S3 pushed and opened as PR #2852 against `develop`; the slice table carries the number.
 
 ## Acceptance Criteria
 
