@@ -402,6 +402,10 @@ port helper, which the maintainer's scope change removed before this round was p
   with head `88908a9cb`. The PR body was changed to `Related to #2393` and the conversation comment
   of 10:45:58Z records it for F7 and F16. The 24 replies were posted between 10:46:26Z and
   10:47:16Z (GitHub `created_at`).
+- 2026-11-14 10:49 UTC - After the audit with the reply URLs was committed and the validator exited
+  `0` (24 rows, 0 failures), all 24 threads were resolved; a GraphQL refresh shows 0 unresolved
+  threads. The validator ran from a copy whose only change calls `gh-bot` instead of `gh`, because
+  the script hardcodes `gh`.
 
 ## Completion Rules
 
