@@ -55,7 +55,11 @@ Copilot's review 5890114272; Copilot gives no finding ID. They were not assigned
 by comment id, the #613 thread (F19) is second and the audit-table thread (F18) third. The IDs are
 kept because a review-finding reference never changes once assigned. F17 and F18 are re-raises of
 F7 (the same rendering-artefact claim, now on two different lines after the table moved and the
-audit record itself grew a table). All twenty-eight threads on the forge are inline.
+audit record itself grew a table). F20 to F24 are da2ce7's review 5889973387 (submitted
+2026-11-13 11:14:32, missed in the previous round), and F25 to F28 are his review 5903116153; his
+own IDs F12 to F20 all collide with existing audit IDs, so each is reassigned the next ordinal and
+the original ID is recorded as the reviewer finding ID. All twenty-eight threads on the forge are
+inline.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------- | ------------- | -------- | -------------- | ------------------ | ------------ | ------------- |
@@ -78,6 +82,15 @@ audit record itself grew a table). All twenty-eight threads on the forge are inl
 | F17 | review-finding:pr-2849-f17 | Copilot | Minor (inferred) | formatting | RE_RAISE_OF:F7 | NO_ACTION | SUPERSEDED |
 | F18 | review-finding:pr-2849-f18 | Copilot | Minor (inferred) | formatting | RE_RAISE_OF:F7 | NO_ACTION | SUPERSEDED |
 | F19 | review-finding:pr-2849-f19 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-2849-f20 | Human | Minor | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F21 | review-finding:pr-2849-f21 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F22 | review-finding:pr-2849-f22 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F23 | review-finding:pr-2849-f23 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F24 | review-finding:pr-2849-f24 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F25 | review-finding:pr-2849-f25 | Human | Minor | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F26 | review-finding:pr-2849-f26 | Human | Minor | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F27 | review-finding:pr-2849-f27 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F28 | review-finding:pr-2849-f28 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -395,7 +408,164 @@ audit record itself grew a table). All twenty-eight threads on the forge are inl
   packages/axum-http-server/src/server.rs` matches line 734.
 - Resolution reference: docs(issues): [#2776] name the HTTP tracker's own TLS test for #613
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2849#discussion_r4572421737
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2849#discussion_r4572705458
+
+### F20 - The audit cited two PR-branch commit ids
+
+- PR number: 2849
+- Source review ID: 5889973387
+- Reviewer finding ID: F12
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2849#discussion_r4562605707
+- Concern: The `open-pull-request` commit-id check printed two PR-branch commit ids cited in this
+  record, one of them no longer reachable after the history rewrite; `open-pull-request` asks a
+  rewrite to replace every old id in durable references with the commit's subject.
+- Solution: Every PR-branch commit id in this record is replaced by its Conventional Commit
+  subject, including the one in the 2026-11-12 20:28 Processing Log entry; an appended correction
+  entry records that substitution.
+- Current-tree verification: the `open-pull-request` commit-id check, run against `torrust/develop`
+  over every file the branch changes, prints nothing.
+- Resolution reference: docs(pr-reviews): [#2849] cite commit subjects instead of PR-branch commit ids
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2849#discussion_r4572706696
+
+### F21 - The description did not say that the history was rewritten
+
+- PR number: 2849
+- Source review ID: 5889973387
+- Reviewer finding ID: F13
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2849#discussion_r4562605716
+- Concern: `open-pull-request` asks a rewrite of an unmerged pull request to say so in the PR
+  body, which the merge tool copies into the merge commit; the body mentioned neither the split nor
+  the force-push, and its change list omitted this audit record.
+- Solution: The PR body now lists this audit record and says that the commit
+  `docs(issues): address review findings on the related-issues record` was split into five, one
+  per finding, with the spec files' bytes unchanged, and force-pushed (edited 2026-11-14 08:59:07).
+- Current-tree verification: `gh pr view 2849 --json body` shows the audit-record line and the
+  rewrite sentence.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2849#discussion_r4572706878
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2849#discussion_r4572706878
+
+### F22 - Processing Log stamps did not match the git and forge times of their events
+
+- PR number: 2849
+- Source review ID: 5889973387
+- Reviewer finding ID: F14
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2849#discussion_r4562605720
+- Concern: The 09:42 and 09:43 "Pushed" entries gave author times, not commit or push times, and
+  the 10:55 entry did not match the forge times of the replies, which also predated the commit
+  carrying the entry and the force-push.
+- Solution: An appended correction entry gives the times from `git log --format=%cI` and the
+  forge for those entries and, from the same sweep, the 09:41 and 10:52 entries. The original
+  entries stay as written because the Processing Log is append-only (`process-pr-review` step 5).
+- Current-tree verification: `git log --format='%h %aI %cI %s'` for the commits; the forge's
+  `created_at` of each reply, the Docs Lint run per head (`actions/runs?head_sha=`), and the
+  `HeadRefForcePushedEvent` time.
+- Resolution reference: docs(pr-reviews): [#2849] correct the round-2 and round-3 log stamps from git and forge times
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2849#discussion_r4572707054
+
+### F23 - Four statements in the audit did not match the forge or the repository
+
+- PR number: 2849
+- Source review ID: 5889973387
+- Reviewer finding ID: F15
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2849#discussion_r4562605728
+- Concern: The record counted seventeen threads where the forge had sixteen, attributed a "Not
+  changed" reply to F8's thread instead of F7's and F9's, claimed an empty diff to the new head
+  where the tree identity holds only up to the last split commit, and counted eight commits where
+  the head then had nine.
+- Solution: The Findings introduction, F15 and F16 now state the correct facts, F15 lists the split
+  subjects instead of a commit count, and an appended correction entry fixes the 10:55 entry.
+- Current-tree verification: `git rev-parse <commit>^{tree}` prints the same tree for the replaced
+  commit and the last split commit; `git log --format=%s` lists the five split subjects; the F8
+  thread's reply reads "Fixed in" followed by an id, not "Not changed".
+- Resolution reference: docs(pr-reviews): [#2849] correct the thread count, reply wording and tree claims
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2849#discussion_r4572707274
+
+### F24 - The no-change rows recorded Thread state RESOLVED instead of SUPERSEDED
+
+- PR number: 2849
+- Source review ID: 5889973387
+- Reviewer finding ID: F16
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2849#discussion_r4562605737
+- Concern: Rows F7 and F9 (and later F17 and F18) are `NO_ACTION` with `Superseded by` replies,
+  but recorded `RESOLVED`; `process-pr-review` step 7 records such a thread as `SUPERSEDED`.
+- Solution: Rows F7, F9, F17 and F18 now record `SUPERSEDED`.
+- Current-tree verification: every `NO_ACTION` row in the Findings table reads `SUPERSEDED`.
+- Resolution reference: docs(pr-reviews): [#2849] record the no-change threads as superseded
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2849#discussion_r4572707449
+
+### F25 - The previous review's five threads had no reply, no audit row and no resolution
+
+- PR number: 2849
+- Source review ID: 5903116153
+- Reviewer finding ID: F17
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2849#discussion_r4572548832
+- Concern: The five threads opened by review 5889973387 had neither a reply nor a resolution and
+  no audit row, while the 08:00 log entry said all threads had a reply and were resolved.
+- Solution: Rows F20 to F24 record those five findings; all nine threads of reviews 5889973387 and
+  5903116153 were replied to (08:59:44 to 09:00:03) and then resolved; an appended correction
+  entry fixes the 08:00 entry.
+- Current-tree verification: GraphQL `reviewThreads` for PR #2849 lists twenty-eight threads,
+  none unresolved; every discussion URL among the source comments has a row.
+- Resolution reference: docs(pr-reviews): [#2849] record the findings of reviews 5889973387 and 5903116153
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2849#discussion_r4572707606
+
+### F26 - A reply cited the PR-branch commit id of the F19 fix
+
+- PR number: 2849
+- Source review ID: 5903116153
+- Reviewer finding ID: F18
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2849#discussion_r4572548838
+- Concern: The F19 reply cited the fixing commit by its abbreviated PR-branch id; `open-pull-request`
+  counts review replies among the durable references that must cite the commit subject.
+- Solution: A follow-up reply on the F19 thread cites
+  `docs(issues): [#2776] name the HTTP tracker's own TLS test for #613`, and F19's Reply URL now
+  points to it. Review comments cannot be edited, so the earlier reply stays.
+- Current-tree verification: the follow-up reply's `in_reply_to_id` is F19's source comment; F19's
+  Reply URL field.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2849#discussion_r4572705458
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2849#discussion_r4572707780
+
+### F27 - Four statements added in round 4 did not match the forge
+
+- PR number: 2849
+- Source review ID: 5903116153
+- Reviewer finding ID: F19
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2849#discussion_r4572548845
+- Concern: The log dated review 5890114272 at 2026-11-14 07:59 (forge: 2026-11-13 11:25:28), logged
+  a push at 07:59 that came after the 08:00 replies, the introduction claimed source order for
+  F17 to F19 although F18 and F19 are swapped by comment id, and it counted twenty threads where
+  the forge had twenty-four.
+- Solution: An appended correction entry gives the review time and the push order; the
+  introduction now says F18 and F19 were not assigned in source order, keeping the IDs because a
+  review-finding reference never changes, and counts the forge's twenty-eight threads.
+- Current-tree verification: the forge's `submitted_at` for review 5890114272; the replies'
+  `created_at` and the Docs Lint run created for the pushed head at 08:05:16; comment ids
+  r4562698575, r4562698624, r4562698682 in that order.
+- Resolution reference: docs(pr-reviews): [#2849] correct the round-4 review time, push order and counts
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2849#discussion_r4572707957
+
+### F28 - Rows F17 to F19 recorded the severity Medium, which the audit scheme does not have
+
+- PR number: 2849
+- Source review ID: 5903116153
+- Reviewer finding ID: F20
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2849#discussion_r4572548851
+- Concern: The audit scheme allows `Blocker`, `Major`, `Minor`, `Nit` or `Suggestion`, marked
+  inferred when derived from prose; rows F17 to F19 recorded `Medium (inferred)`.
+- Solution: Rows F17 to F19 now record `Minor (inferred)`, like the earlier automated rows.
+- Current-tree verification: no row in the Findings table records a severity outside the five
+  allowed values.
+- Resolution reference: docs(pr-reviews): [#2849] use an allowed severity for the automated round-4 rows
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2849#discussion_r4572708142
 
 ## Processing Log
 
@@ -445,6 +615,17 @@ audit record itself grew a table). All twenty-eight threads on the forge are inl
   audit-record commit, and the forge created the Docs Lint run for the pushed head at 08:05:16.
   The 08:00 entry's "all twenty threads now have a reply and are resolved" is wrong: the forge then
   had twenty-four threads, and the five of review 5889973387 had no reply and no resolution (F25).
+- 2026-11-14 08:59 UTC - Edited the PR body to list this record and say the history was rewritten
+  (the command returned at 08:59:07), closing F21.
+- 2026-11-14 08:59 UTC - Posted a follow-up reply on the F19 thread citing the fix's commit subject
+  (forge time 08:59:28), closing F26.
+- 2026-11-14 09:00 UTC - Replied to the nine threads of reviews 5889973387 and 5903116153 (forge
+  times 08:59:44 to 09:00:03), each citing its fixing commit subject before that commit was pushed.
+- 2026-11-14 09:01 UTC - Recorded review 5889973387 (da2ce7, submitted 2026-11-13 11:14:32, missed
+  in the previous round): F20 (reviewer F12) to F24 (reviewer F16); and review 5903116153 (da2ce7,
+  submitted 2026-11-14 08:22:36): F25 (reviewer F17) to F28 (reviewer F20).
+- 2026-11-14 09:02 UTC - Resolved those nine threads (the command ran from 09:02:27 to 09:02:39),
+  closing F25; GraphQL then listed twenty-eight threads, none unresolved.
 
 ## Completion Rules
 
