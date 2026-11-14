@@ -44,8 +44,12 @@ deliver findings through GitHub and have no repository-artifact obligation.
 F1 to F5 come from the Copilot review, which has no finding IDs; their severity is inferred from the
 medium and low marks of its overview. F6 to F15 come from the da2ce7 review, whose own IDs F1 to F10
 collide with the Copilot rows and are kept as `Reviewer finding ID`. F16 to F22 come from the
-second da2ce7 review and F23 to F24 from the second Copilot review, both on the head ending in `fix(tests): [#2393] ignore racing port tests and rewrite those that need no real port`. Most findings concern the shared
-port helper, which the maintainer's scope change removed before this round was processed.
+second da2ce7 review and F23 to F24 from the second Copilot review, both on the head ending in
+`fix(tests): [#2393] ignore racing port tests and rewrite those that need no real port`. F25 to F30
+come from the third da2ce7 review, on the head ending in
+`docs(pr-reviews): [#2393] log the resolution of both review rounds`. Most findings of the first
+round concern the shared port helper, which the maintainer's scope change removed before that round
+was processed.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -73,6 +77,12 @@ port helper, which the maintainer's scope change removed before this round was p
 | F22 | review-finding:pr-2859-f22 | Human | Minor | other | ORIGINAL | FIXED | RESOLVED |
 | F23 | review-finding:pr-2859-f23 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
 | F24 | review-finding:pr-2859-f24 | Copilot | Minor (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F25 | review-finding:pr-2859-f25 | Human | Major | metadata | RE_RAISE_OF:F7 | FIXED | RESOLVED |
+| F26 | review-finding:pr-2859-f26 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F27 | review-finding:pr-2859-f27 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F28 | review-finding:pr-2859-f28 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F29 | review-finding:pr-2859-f29 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F30 | review-finding:pr-2859-f30 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -387,6 +397,84 @@ port helper, which the maintainer's scope change removed before this round was p
 - Resolution reference: refactor(tests): [#2393] name the UDP fixture constructor after its released address
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573169412>
+
+### F25 - Negated closing keyword still in the PR body
+
+- PR number: 2859
+- Source review ID: 5904035456
+- Reviewer finding ID: F2
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573266620>
+- Concern: The body opened with `Related to #2393`, but a later sentence said "this PR does not close #2393", and a negated mention closes the issue too.
+- Solution: The sentence is now "The issue stays open for T5." The body and the branch commit messages were scanned with the `open-pull-request` pattern and match nothing.
+- Current-tree verification: The `open-pull-request` scan of `gh api repos/torrust/torrust-tracker/pulls/2859 --jq .body` and of `git log --format='%B%n--COMMIT--' torrust/develop..HEAD` prints no match.
+- Resolution reference: <CONV3_URL>
+- Follow-up PR URL: N/A
+- Reply URL: <REPLY_F25>
+
+### F26 - Split findings table and stale T6 state in the audit
+
+- PR number: 2859
+- Source review ID: 5904035456
+- Reviewer finding ID: F15
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573266625>
+- Concern: A blank line split the Findings table, so F16 to F24 rendered as text, and the F6 Solution still said T6 was `IN_PROGRESS`.
+- Solution: The blank line is removed and the F6 Solution says T6 is `DONE` with the V4 recheck.
+- Current-tree verification: `grep -c "^| F" docs/pr-reviews/pr-2859-review/PR-REVIEW.md` counts one contiguous table, and `grep -c "IN_PROGRESS" docs/pr-reviews/pr-2859-review/PR-REVIEW.md` prints `0`.
+- Resolution reference: docs(pr-reviews): [#2393] join the findings table and update the T6 state in the PR 2859 audit
+- Follow-up PR URL: N/A
+- Reply URL: <REPLY_F26>
+
+### F27 - PR-branch commit ids in durable records
+
+- PR number: 2859
+- Source review ID: 5904035456
+- Reviewer finding ID: F16
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573266627>
+- Concern: The evidence file, the spec, the audit and the PR body cited five PR-branch commit ids, which a rebase orphans.
+- Solution: Every id is replaced by the head's last commit subject; the audit log entries were edited in place and a correction entry names the edit. The PR body and the F8 reply cite subjects too.
+- Current-tree verification: The `open-pull-request` commit-id check, run against `torrust/develop`, prints nothing.
+- Resolution reference: docs(issues): [#2393] cite commit subjects instead of PR-branch commit ids
+- Follow-up PR URL: N/A
+- Reply URL: <REPLY_F27>
+
+### F28 - Contract tests still probe a released port
+
+- PR number: 2859
+- Source review ID: 5904035456
+- Reviewer finding ID: F17
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573266629>
+- Concern: The three `stopped_after_registration` tests expect the port the probed service just released to be dead, but another test can bind it and answer.
+- Solution: The three tests are ignored and listed as needing a maintainer decision. The REST API and HTTP variants keep the reorder, which removes the collision inside the test.
+- Current-tree verification: `grep -rn "flaky port race, see #2393" packages src | wc -l` prints `21`.
+- Resolution reference: fix(tests): [#2393] ignore the health-check contract tests that probe a released port
+- Follow-up PR URL: N/A
+- Reply URL: <REPLY_F28>
+
+### F29 - Ignore disabled the launcher test's main contract
+
+- PR number: 2859
+- Source review ID: 5904035456
+- Reviewer finding ID: F18
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573266631>
+- Concern: Ignoring the launcher test also disabled its main assertion, that the receive loop does not return while orphaned processors run, which needs no port.
+- Solution: The test runs again without the socket-release assertion; a new ignored companion test holds that assertion.
+- Current-tree verification: `cargo nextest run -p torrust-tracker-udp-server -E 'test(/orphaned_by_the_request_ring/)' --run-ignored all` prints `2 tests run: 2 passed`.
+- Resolution reference: fix(tests): [#2393] keep the orphaned-processor contract running and ignore only its socket-release assertion
+- Follow-up PR URL: N/A
+- Reply URL: <REPLY_F29>
+
+### F30 - "Two shapes" introduces three
+
+- PR number: 2859
+- Source review ID: 5904035456
+- Reviewer finding ID: F19
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573266634>
+- Concern: The inventory said "Two shapes race:" above three bullets, T2 said "both racing shapes", and AC1 listed only two.
+- Solution: All three now count three shapes, and AC1 names the third.
+- Current-tree verification: `grep -n "Three shapes race\|three racing shapes\|handed back within one test" docs/issues/open/2393-2392-test-port-allocation-races/ISSUE.md` matches the inventory, T2 and AC1.
+- Resolution reference: docs(issues): [#2393] count three racing shapes in the inventory, the plan and AC1
+- Follow-up PR URL: N/A
+- Reply URL: <REPLY_F30>
 
 ## Processing Log
 

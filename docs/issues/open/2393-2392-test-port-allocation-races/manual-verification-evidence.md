@@ -81,6 +81,19 @@ this host includes that port. The duplicate-registration fixture chooses a port 
 `127.0.0.1:0`, reading its address, then dropping the listener before the tested `HttpServer`
 binds it. Both sequences allow a concurrent test to claim the address.
 
+#### Check 3 - after the third review, 2026-11-14 11:23 to 11:27 UTC
+
+On the head ending in `docs(pr-reviews): [#2393] join the findings table and update the T6 state in
+the PR 2859 audit`. Its test changes since recheck 2 only move tests between running and ignored:
+three health-check contract tests are ignored, and the launcher test runs again without its
+socket-release assertion, which moved to an ignored companion. No test binds a port in a new way, so
+this is a smaller check of the same command, not a new sized recheck:
+
+```text
+20 runs: 1806 tests run: 1806 passed, 21 skipped
+failed runs: 0
+```
+
 #### Conclusion
 
 Reproduced. The two narrow scopes did not fail, while the full parallel suite independently
