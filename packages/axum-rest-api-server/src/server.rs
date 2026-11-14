@@ -40,7 +40,7 @@ use tracing::instrument;
 use super::routes::router;
 use crate::API_LOG_TARGET;
 
-/// Errors that can occur when starting or stopping the API server.
+/// Errors that can occur when starting the API server.
 #[derive(Debug, Error)]
 #[non_exhaustive]
 pub enum Error {
@@ -50,19 +50,10 @@ pub enum Error {
     #[error("could not configure tracker API listener: {source}")]
     Listener { source: std::io::Error },
 
-    #[error("tracker API startup notification receiver was dropped")]
-    StartupNotificationDropped,
-
-    #[error("tracker API startup notification was not received: {source}")]
-    StartupNotification { source: tokio::sync::oneshot::error::RecvError },
-
     #[error("could not register tracker API service: {source}")]
     Registration {
         source: torrust_server_lib::registar::RegistrationError,
     },
-
-    #[error("could not stop tracker API service: {message}")]
-    Stop { message: String },
 }
 
 /// An error returned by the token-aware REST API runtime after startup.

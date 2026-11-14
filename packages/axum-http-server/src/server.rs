@@ -23,18 +23,8 @@ use torrust_tracker_primitives::RuntimeServiceMetadata;
 use super::v1::routes::router;
 use crate::HTTP_TRACKER_LOG_TARGET;
 
-/// Error that can occur when starting or stopping the HTTP server.
-///
-/// Some errors triggered while starting the server are:
-///
-/// - The spawned server cannot send its `SocketAddr` back to the main thread.
-/// - The launcher cannot receive the `SocketAddr` from the spawned server.
-///
-/// Some errors triggered while stopping the server are:
-///
-/// - The channel to send the shutdown signal to the server is closed.
-/// - The task to shutdown the server on the spawned server failed to execute to
-///   completion.
+/// Error that can occur when starting the HTTP server: the listener cannot be
+/// bound or configured, or the service cannot be registered.
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
 pub enum Error {
@@ -44,19 +34,10 @@ pub enum Error {
     #[error("could not configure HTTP tracker listener: {source}")]
     Listener { source: std::io::Error },
 
-    #[error("HTTP tracker startup notification receiver was dropped")]
-    StartupNotificationDropped,
-
-    #[error("HTTP tracker startup notification was not received: {source}")]
-    StartupNotification { source: tokio::sync::oneshot::error::RecvError },
-
     #[error("could not register HTTP tracker service: {source}")]
     Registration {
         source: torrust_server_lib::registar::RegistrationError,
     },
-
-    #[error("could not stop HTTP tracker service: {message}")]
-    Stop { message: String },
 }
 
 // `derive_more::Constructor` generates `field: field` initializers on this MSRV-compatible version.
