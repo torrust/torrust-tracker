@@ -97,6 +97,15 @@ ephemeral ports: #2581 moved them to `reserve_free_ports`, which draws from a ra
 The duplicate-registration test the spec names is now
 `it_should_release_the_listener_when_token_aware_startup_registration_fails`.
 
+Two shapes race:
+
+- **Bind, drop, reuse.** The test binds port `0`, reads the address, drops the socket and hands the
+  address to the server. Another test can claim the port in between.
+- **Release, then rebind.** The server binds port `0`, the test stops or fails it, then rebinds the
+  released port (directly or in a wait loop) to prove it was released. A concurrent port-`0` bind can
+  receive the same port in between. The V1 failure (`... should be released after registration
+  failure: Address already in use`) has this assertion.
+
 Safe, left unchanged: `tests/configuration/` (ports below the ephemeral range), `tests/metrics/fixed_ports.rs`
 (`17091`-`17094`), the `src/bootstrap/config.rs` and `packages/configuration` tests (the ports are only
 parsed, never bound), and tests that keep their listener open until the end (`src/app.rs` HTTP
@@ -115,13 +124,23 @@ listener, `src/bootstrap/jobs/http_tracker.rs`, the occupied-port tests).
 | `it_should_release_the_socket_when_the_component_is_dropped_before_it_runs` | `src/bootstrap/jobs/udp_tracker.rs` | Ignored, needs maintainer decision | Rebinds the released socket. |
 | `it_should_release_the_listener_when_the_component_is_dropped_before_it_runs` | `src/bootstrap/jobs/health_check_api.rs` | Ignored, needs maintainer decision | Rebinds the released listener. |
 | `it_should_release_udp_listener_before_returning_from_start_after_setup_when_later_http_startup_fails` | `src/app.rs` | Ignored, needs maintainer decision | Rebinds the released UDP socket. |
+| `it_should_release_the_health_check_api_binding_when_stopped` | `axum-health-check-api-server` `environment.rs` | Ignored, needs maintainer decision | Rebinds the released ephemeral port. |
+| `it_should_release_the_health_check_api_binding_when_dropped_without_being_stopped` | `axum-health-check-api-server` `environment.rs` | Ignored, needs maintainer decision | Waits until the released port can be rebound. |
+| `it_should_release_the_http_binding_when_stopped` | `axum-http-server` `testing/environment.rs` | Ignored, needs maintainer decision | Rebinds the released ephemeral port. |
+| `it_should_release_the_http_binding_when_dropped_without_being_stopped` | `axum-http-server` `testing/environment.rs` | Ignored, needs maintainer decision | Waits until the released port can be rebound. |
+| `it_should_release_the_rest_api_binding_when_stopped` | `axum-rest-api-server` `testing/environment.rs` | Ignored, needs maintainer decision | Rebinds the released ephemeral port. |
+| `it_should_release_the_rest_api_binding_when_dropped_without_being_stopped` | `axum-rest-api-server` `testing/environment.rs` | Ignored, needs maintainer decision | Waits until the released port can be rebound. |
+| `it_should_release_the_udp_socket_when_stopped` | `udp-server` `testing/environment.rs` | Ignored, needs maintainer decision | Rebinds the released ephemeral port. |
+| `it_should_release_the_udp_socket_when_dropped_without_being_stopped` | `udp-server` `testing/environment.rs` | Ignored, needs maintainer decision | Waits until the released port can be rebound. |
+| `it_should_not_return_while_processors_orphaned_by_the_request_ring_are_still_running` | `udp-server` `server/launcher.rs` | Ignored, needs maintainer decision | Its main assertion (processors joined) needs no port, but its last assertion waits until the released port can be rebound. |
 | `it_should_register_the_service_with_a_health_check_that_reaches_the_running_server` | `udp-server` `server/mod.rs` | Rewritten | Binds `127.0.0.1:0` and reads the bound address; it never needed a pre-selected port. |
 | `it_should_cancel_the_udp_tracker_component_through_the_job_manager` | `src/app.rs` | Rewritten | Uses the configured port `0`; it never needed a reserved address. |
 | `it_should_report_an_error_with_the_checked_url_when_nothing_listens_on_the_checked_address` | `axum-rest-api-server` `server.rs` | Rewritten | Checks an address nothing binds (`127.0.0.1:1`), so no test can claim it. |
 
-No test was deleted: none of them only checks the operating system. The nine ignored tests prove
-that the tracker releases its socket after a failure, which is the tracker's own cleanup contract.
-Each such test needs a real bound port, so it can only be rewritten once a decision is made.
+No test was deleted: none of them only checks the operating system. The eighteen ignored tests prove
+that the tracker releases its socket after a stop, a drop or a failure, which is the tracker's own
+cleanup contract. Each such test needs a real bound port, so it can only be rewritten once a
+decision is made.
 
 ## Architectural Decisions
 
@@ -138,10 +157,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID | Status | Task | Expected Output |
 | --- | --- | --- | --- |
 | T1 | DONE | Reproduce and inventory the observed failures | Evidence records the 200 isolated, 100 package, and 51 full-suite runs. |
-| T2 | DONE | Re-check the inventory on `develop` | The inventory above, including the stale CLI finding. |
-| T3 | DONE | Disable each racing test with `#[ignore]` | Nine tests ignored with the reason `flaky port race, see #2393`. |
+| T2 | DONE | Re-check the inventory on `develop` | The inventory above, including the stale CLI finding and both racing shapes. |
+| T3 | DONE | Disable each racing test with `#[ignore]` | Eighteen tests ignored with the reason `flaky port race, see #2393`. |
 | T4 | DONE | Rewrite the tests that never needed a real port | Three tests rewritten. |
-| T5 | BLOCKED | Decide the fate of the nine ignored tests | Waiting for the maintainer. |
+| T5 | BLOCKED | Decide the fate of the eighteen ignored tests | Waiting for the maintainer. |
 | T6 | TODO | Full-suite recheck and completion review | Repeated full runs and evidence update. |
 
 ## Progress Tracking

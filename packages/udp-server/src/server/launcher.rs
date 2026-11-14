@@ -1181,6 +1181,7 @@ mod tests {
         }
 
         #[tokio::test]
+        #[ignore = "flaky port race, see #2393"]
         async fn it_should_not_return_while_processors_orphaned_by_the_request_ring_are_still_running() {
             // Arrange
             let mut scenario = ReceiveLoopWithOrphanedProcessors::start().await;
