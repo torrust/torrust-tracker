@@ -97,7 +97,7 @@ ephemeral ports: #2581 moved them to `reserve_free_ports`, which draws from a ra
 The duplicate-registration test the spec names is now
 `it_should_release_the_listener_when_token_aware_startup_registration_fails`.
 
-Two shapes race:
+Three shapes race:
 
 - **Bind, drop, reuse.** The test binds port `0`, reads the address, drops the socket and hands the
   address to the server. Another test can claim the port in between.
@@ -186,7 +186,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID | Status | Task | Expected Output |
 | --- | --- | --- | --- |
 | T1 | DONE | Reproduce and inventory the observed failures | Evidence records the 200 isolated, 100 package, and 51 full-suite runs. |
-| T2 | DONE | Re-check the inventory on `develop` | The inventory above, including the stale CLI finding and both racing shapes. |
+| T2 | DONE | Re-check the inventory on `develop` | The inventory above, including the stale CLI finding and the three racing shapes. |
 | T3 | DONE | Disable each racing test with `#[ignore]` | Twenty-one tests ignored with the reason `flaky port race, see #2393`. |
 | T4 | DONE | Rewrite the tests that never needed a racing port | Four tests rewritten. |
 | T5 | BLOCKED | Decide the fate of the twenty-one ignored tests | Waiting for the maintainer. |
@@ -239,7 +239,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ## Acceptance Criteria
 
-- [ ] AC1: Every test with a racing shape (bind, drop, reuse; or release, then rebind) is either
+- [ ] AC1: Every test with a racing shape (bind, drop, reuse; release, then rebind; or a released
+  port handed back within one test) is either
   rewritten without a racing port or disabled with `#[ignore = "flaky port race, see #2393"]`.
 - [ ] AC2: Every ignored test has a recorded decision in the per-test table: deleted, rewritten, or
   kept disabled with a reason.
