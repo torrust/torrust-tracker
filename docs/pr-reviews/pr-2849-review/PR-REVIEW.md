@@ -51,9 +51,11 @@ reassigned the next ordinal and the original ID is recorded as the reviewer find
 F4 are re-raises of the audit's own F2 and F4. Copilot's review 5887735321 found nothing new
 (approval recommended, three prior findings resolved) and adds no row. F16 is da2ce7's review
 5889290894; his own ID F11 collides with the audit's F11, so it is reassigned. F17 to F19 are
-Copilot's review 5890114272, source order; Copilot gives no finding ID. F17 and F18 are re-raises
-of F7 (the same rendering-artefact claim, now on two different lines after the table moved and
-the audit record itself grew a table). All twenty threads are inline.
+Copilot's review 5890114272; Copilot gives no finding ID. They were not assigned in source order:
+by comment id, the #613 thread (F19) is second and the audit-table thread (F18) third. The IDs are
+kept because a review-finding reference never changes once assigned. F17 and F18 are re-raises of
+F7 (the same rendering-artefact claim, now on two different lines after the table moved and the
+audit record itself grew a table). All twenty-eight threads on the forge are inline.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------- | ------------- | -------- | -------------- | ------------------ | ------------ | ------------- |
@@ -437,6 +439,12 @@ the audit record itself grew a table). All twenty threads are inline.
   10:53:20. Those replies came before the record's commit and before the force-push that published
   it (11:01:25, the forge's force-push event); the F10 reply cites that commit's subject, and the
   F11, F15 and F16 replies point to this file, before either existed on the forge.
+- 2026-11-14 08:58 UTC - Correction (F27): the forge submitted review 5890114272 at
+  2026-11-13 11:25:28, not 2026-11-14 07:59. The commit fixing F19 was committed at 07:59:31, not
+  pushed then: the three replies of 08:00:18 to 08:00:30 were posted while the head was still the
+  audit-record commit, and the forge created the Docs Lint run for the pushed head at 08:05:16.
+  The 08:00 entry's "all twenty threads now have a reply and are resolved" is wrong: the forge then
+  had twenty-four threads, and the five of review 5889973387 had no reply and no resolution (F25).
 
 ## Completion Rules
 
