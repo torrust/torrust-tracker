@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: enhancement
-status: in-progress
+status: done
 priority: p2
 epic: 2003
 github-issue: 2822
-spec-path: docs/issues/open/2822-2003-wait-for-pr-review-gh-option/ISSUE.md
-branch: "2822-wait-for-pr-review-gh-option-spec"
-related-pr: 2826
-last-updated-utc: "2026-11-12 08:59"
+spec-path: docs/issues/closed/2822-2003-wait-for-pr-review-gh-option/ISSUE.md
+branch: "2822-wait-for-pr-review-gh-option"
+related-pr: 2835
+last-updated-utc: "2026-11-12 15:12"
 semantic-links:
   skill-links:
     - create-issue
@@ -202,13 +202,13 @@ increment, before final verification, commit and pull request.
 - [x] GitHub issue created (#2822) and issue number added to this spec (created at the coordinator's
       instruction, before spec review, because the maintainer approved the sub-issue and its order)
 - [x] Design decisions recorded
-- [ ] Spec reviewed and approved by the maintainer (PR #2826)
+- [x] Spec reviewed and approved by the maintainer (PR #2826)
 - [x] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual verification recorded
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -241,6 +241,25 @@ increment, before final verification, commit and pull request.
   entry understated the AC5 change. The criterion itself, merged with the spec in PR #2826, was narrowed to "the
   tests of a custom command", because the four scenarios that exercise the default `gh` cannot reach the fake
   only through the option; D2's test bullet now says the same.
+- 2026-11-12 13:30 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - PR #2835 merged on 2026-11-12 (merge commit
+  `388faf59a`); issue #2822 is closed by it. The spec moved from `docs/issues/open/` to `docs/issues/closed/` in the
+  close-out pull request.
+- 2026-11-12 14:07 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - Addressed the review of the close-out PR #2840: the
+  `linter all` run is recorded in the evidence and its criterion ticked. No `implementation-retrospective.md` was
+  created because the only change to the merged spec was the narrowing of AC5 and D2's test bullet (a wording
+  change to a test criterion), stated as a deviation in the Implementation Completion Review.
+- 2026-11-12 14:23 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - At the maintainer's request, added
+  `implementation-retrospective.md` and changed the Implementation Completion Review to point to it; the earlier
+  entries that give the reason for no retrospective are superseded by this one.
+- 2026-11-12 14:45 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - Addressed the second review of close-out PR #2840.
+  Clarifications of earlier entries, which stay as they are: the 14:23 entry's "at the maintainer's request" refers to a
+  request made in the session of this issue, after Copilot's review of the close-out PR noted the missing
+  retrospective (audit row R1); it is not on the PR's threads. The `linter all` run that the 14:07 entry reports
+  was made at 14:08 UTC (the commit that records it was authored at 14:08:14 and committed at 14:09:38 UTC), so the
+  14:07 stamp is a minute early.
+- 2026-11-12 15:12 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - Addressed review 5876857550 of close-out PR #2840
+  (the fourth review submitted on it). Clarification of the previous entry, which stays as it is: "the second review"
+  there means review 5876404520, the third submitted on the PR; the PR's overview review (5875883208) is the second.
 
 ## Acceptance Criteria
 
@@ -256,7 +275,7 @@ increment, before final verification, commit and pull request.
 - [x] AC5: The tests of a custom command reach the fake command only through `--gh-command`, with no `PATH` shim, and the existing
       scenarios are no less reliable.
 - [x] AC6: `--help` and the skill document the option and the reported fields.
-- [ ] `linter all` exits with code `0`
+- [x] `linter all` exits with code `0`
 - [x] Relevant tests pass
 
 ## Verification Plan
@@ -305,9 +324,27 @@ Evidence goes in issue-local `manual-verification-evidence.md`, naming the toolc
 
 ## Implementation Completion Review
 
-At close-out, record the outcome of the implementation: deviations from the plan, unexpected validation
-findings and reusable lessons. Create an issue-local `implementation-retrospective.md` when there is any of
-these; otherwise add a progress-log entry that explains why none is needed.
+Recorded at close-out. The implementation followed the decisions D1 and D2 of the merged spec (PR #2826, merged
+2026-11-11), with one deviation in the spec's own text. The maintainer asked for an issue-local retrospective
+in the session of this issue, after Copilot's review of the close-out PR noted its absence (audit row R1 of
+`docs/pr-reviews/pr-2840-review/PR-REVIEW.md`); that request has no durable link on the PR. It is `implementation-retrospective.md` in this folder, and the summary below
+repeats its main points.
+
+- Deviations: none from the decisions D1 and D2 of the design. One change to the spec as merged: review of the
+  implementation PR (#2835) narrowed AC5 and D2's test bullet from "the tests" to "the tests of a custom
+  command", because the four scenarios that exercise the default `gh` reach the fake through the sandbox `PATH`.
+  It changes the wording of a test criterion, not the design or the behaviour. The review also added a deterministic unit test for an interrupted identity lookup and made the help
+  text exact about which value skips `auth status`.
+- Validation findings: the red run of the new tests had two tests that passed before the option existed; the
+  evidence recomputes the breakdown (8 of 10 new and 6 existing scenarios failed). A CLI scenario for an
+  interrupted lookup cannot pin its regression (the poller kills the spawned child at once), so a unit test does.
+- Lessons: the fake-`gh` scenarios of `tests/cli.rs` remain flaky (a fake script that fails to start); this
+  issue neither fixed nor measurably worsened it (one failing run in seven), and that fix stays a separate
+  issue. Review rounds mostly found statements in the spec's and the audit's own records, which the
+  "Statements in Your Own Records" rules of `process-pr-review` cover.
+- Linters: `linter all` exits 0; the run is recorded in `manual-verification-evidence.md`.
+- Acceptance criteria: reviewed after implementation; every row of the Acceptance Verification table is DONE
+  with its evidence.
 
 ## References
 
