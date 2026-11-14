@@ -137,8 +137,9 @@ the audit record itself grew a table). All twenty threads are inline.
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2849#discussion_r4553770761
 - Concern: The template's progress-log entries carry a time; this one read `2026-11-12 UTC`. The
   spec's `last-updated-utc` still read the previous entry's date although the file changed.
-- Solution: The entry now reads `2026-11-12 16:24 UTC` (the commit time of `0d3331c00`), and both
-  files' `last-updated-utc` are bumped. (The remaining part, the bumped value postdating the
+- Solution: The entry now reads `2026-11-12 16:24 UTC` (the commit time of
+  `docs(issues): [#2776] record the disposition of #324, #603, #612 and #613`), and both files'
+  `last-updated-utc` are bumped. (The remaining part, the bumped value postdating the
   commit that writes it, is F13.)
 - Current-tree verification: `ISSUE.md` line 234 and its frontmatter; `related-issues.md` frontmatter.
 - Resolution reference: docs(issues): [#2776] bump last-updated-utc and add the progress-log entry's time
@@ -238,14 +239,15 @@ the audit record itself grew a table). All twenty threads are inline.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2849#discussion_r4562404739
 
-### F11 - Six thread replies cited the PR-branch commit id `0aab68fdf` instead of its commit subject
+### F11 - Six thread replies cited a PR-branch commit id instead of its commit subject
 
 - PR number: 2849
 - Source review ID: 5887683678
 - Reviewer finding ID: F8
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2849#discussion_r4560841010
-- Concern: Replies on the F1, F2, F4, F5 and F6 threads and on F8's thread read "Fixed in
-  0aab68fdf", a branch SHA that can change after a rebase (and did, during this round); the two
+- Concern: Replies on the F1, F2, F4, F5 and F6 threads and on F8's thread read "Fixed in" followed
+  by the abbreviated id of `docs(issues): address review findings on the related-issues record`, a
+  branch SHA that can change after a rebase (and did, during this round); the two
   no-change replies also used "Not changed:" instead of the exact `Superseded by <FindingId>:`
   form.
 - Solution: This audit's detail entries cite each fix by its unique Conventional Commit subject,
@@ -282,7 +284,8 @@ the audit record itself grew a table). All twenty threads are inline.
 - Reviewer finding ID: F4
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2849#discussion_r4560841013
 - Concern: The remaining part of F4: both `last-updated-utc` values were bumped to `2026-11-12
-  20:30`, but the commit that wrote them, `0aab68fdf`, had commit time `20:20:18Z`; `process-pr-review`
+  20:30`, but the commit that wrote them, `docs(issues): address review findings on the
+  related-issues record`, had commit time `20:20:18Z`; `process-pr-review`
   (Statements in Your Own Records) requires a stamp to be taken from the commit's own time.
 - Solution: Both values now read `2026-11-13 09:42`, the author time of the commit that sets them.
 - Current-tree verification: `git log --format=%cI` for the commit against the frontmatter values it writes.
@@ -310,15 +313,18 @@ the audit record itself grew a table). All twenty threads are inline.
 - Source review ID: 5887683678
 - Reviewer finding ID: F10
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2849#discussion_r4560841023
-- Concern: Commit `0aab68fdf` fixed F1, F2, F4, F5 and F6 together with no body, so no audit row
-  could cite its own commit subject, and the commit named none of the findings. `process-pr-review`
-  (step 6) asks for one independent fix per Conventional Commit.
-- Solution: `0aab68fdf` was split, before merge, into five commits, one per finding (F1, F6, F2,
-  F5, F4 in that order), and the three later fix commits were rebased on top unchanged; the
-  resulting tree is byte-identical to `0aab68fdf`'s tree (`git diff 0aab68fdf <new-head> --
-  docs/issues/closed/2776-2411-axum-server-0-9-timeouts/` is empty).
-- Current-tree verification: `git log --oneline 0d3331c00..HEAD` shows eight commits, each with a
-  Conventional subject naming one concern; the empty diff above.
+- Concern: Commit `docs(issues): address review findings on the related-issues record` fixed F1,
+  F2, F4, F5 and F6 together with no body, so no audit row could cite its own commit subject, and
+  the commit named none of the findings. `process-pr-review` (step 6) asks for one independent fix
+  per Conventional Commit.
+- Solution: `docs(issues): address review findings on the related-issues record` was split, before
+  merge, into five commits, one per finding (F1, F6, F2, F5, F4 in that order), and the three later
+  fix commits were rebased on top unchanged; the resulting tree is byte-identical to that commit's
+  tree (`git diff` from that commit to the new head over
+  `docs/issues/closed/2776-2411-axum-server-0-9-timeouts/` is empty).
+- Current-tree verification: `git log --oneline` from `docs(issues): [#2776] record the
+  disposition of #324, #603, #612 and #613` to HEAD shows eight commits, each with a Conventional
+  subject naming one concern; the empty diff above.
 - Resolution reference: docs(pr-reviews): [#2849] create the review audit record
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2849#discussion_r4562406380
@@ -394,7 +400,8 @@ the audit record itself grew a table). All twenty threads are inline.
 - 2026-11-12 17:18 UTC - Review 5878898401 (Copilot) submitted: F7, F8 (re-raise of F4), F9.
 - 2026-11-12 20:28 UTC - Replied to and resolved the F1 to F9 threads, before this record existed;
   late start logged now per the workflow's late-start rule. Two replies used "Not changed:" rather
-  than the exact `Superseded by` form (F11), and six cited the branch SHA `0aab68fdf` (F11).
+  than the exact `Superseded by` form (F11), and six cited the branch SHA of `docs(issues): address
+  review findings on the related-issues record` (F11).
 - 2026-11-13 07:38 UTC - Review 5887683678 (da2ce7) submitted: F10 (reviewer F7), F11 (reviewer
   F8), F12 (reviewer F2, re-raise of F2), F13 (reviewer F4, re-raise of F4), F14 (reviewer F9), F15
   (reviewer F10).
@@ -413,6 +420,9 @@ the audit record itself grew a table). All twenty threads are inline.
 - 2026-11-14 07:59 UTC - Pushed the commit fixing F19.
 - 2026-11-14 08:00 UTC - Replied to and resolved the F17, F18 and F19 threads; all twenty threads
   now have a reply and are resolved.
+- 2026-11-14 08:55 UTC - Correction (F20): replaced every PR-branch commit id in this record with
+  the commit's Conventional Commit subject, including the one in the 2026-11-12 20:28 entry, whose
+  event is otherwise unchanged.
 
 ## Completion Rules
 
