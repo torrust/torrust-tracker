@@ -9,7 +9,7 @@ github-issue: 2776
 spec-path: docs/issues/closed/2776-2411-axum-server-0-9-timeouts/ISSUE.md
 branch: "2776-axum-server-0-9-timeouts-spec"
 related-pr: 2813
-last-updated-utc: "2026-11-11 16:08"
+last-updated-utc: "2026-11-13 09:42"
 semantic-links:
   skill-links:
     - create-issue
@@ -231,6 +231,7 @@ with GPG.
 - 2026-11-11 10:29 UTC - Claude Code (Claude Sonnet 5.5) - Added the silent-connection test (plaintext and TLS) to the HTTP tracker and REST API packages, next to the existing health check API one. They fail when a listener bypasses the shared constructor: red run in `evidence/red-run-service-tests.txt`. Added the root `clippy.toml` `disallowed-methods` guard for the `axum-server` listener constructors, a documented `allow` in `custom_axum_server.rs`, comments at every call site, and switched the `token_aware_drain` example to the shared constructor.
 - 2026-11-11 11:03 UTC - Claude Code (Claude Sonnet 5.5) - Review round 2 (da2ce7, findings F9 to F29 of their numbering): the ADR moved to `docs/adrs/` because the placement ADR puts protocol behaviour at the root; the README states the HTTP/2 condition (a client that answers pings is not time-bounded); the `signals.rs` test listener and the `token_aware_drain` example use the shared constructor, and `clippy.toml` also forbids `axum::serve` and the unix constructors; stamps use commit times, attributions to the maintainer are dropped and AC4 reads "no worse than with the wrapper". Audit: `docs/pr-reviews/pr-2813-review/PR-REVIEW.md`.
 - 2026-11-11 12:30 UTC - Claude Code (Claude Sonnet 5.5) - PR #2813 merged (merge commit `a83f3ef29`) after two review rounds; the audit and retrospective are in `docs/pr-reviews/pr-2813-review/`. Spec moved to `docs/issues/closed/`. T8 / AC7 stay with the maintainer: #324, #612, #613 and #603 remain open until he reviews them.
+- 2026-11-12 16:24 UTC - Claude Code (Claude Sonnet 5.5) - T8 / AC7 disposition recorded in [related-issues.md](related-issues.md): #612 and #613 fixed by #2813, #603 closes with them, #324 stays open re-scoped to EPIC #2411 case A1. The maintainer closes or comments on GitHub.
 
 ## Acceptance Criteria
 
