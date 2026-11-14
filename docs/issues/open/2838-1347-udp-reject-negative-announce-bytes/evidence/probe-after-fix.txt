@@ -1,0 +1,15 @@
+16:32:52.528 start: python3 -I evidence/udp_announce_probe.py 6868 1000
+announce response: interval=120 leechers=1 seeders=0
+16:32:52.540 end
+16:32:52.543 start: python3 -I evidence/udp_announce_probe.py 6868 -5
+action=3 message='tracker announce error: Invalid announce request: `left` must not be negative, got -5'
+16:32:52.555 end
+16:32:52.557 start: python3 -I evidence/udp_announce_probe.py 6868 0
+announce response: interval=120 leechers=0 seeders=1
+16:32:52.570 end
+16:32:52.572 start: python3 -I evidence/udp_announce_probe.py 6868 0 -1 0
+action=3 message='tracker announce error: Invalid announce request: `uploaded` must not be negative, got -1'
+16:32:52.585 end
+16:32:52.588 start: python3 -I evidence/udp_announce_probe.py 6868 0 0 -1
+action=3 message='tracker announce error: Invalid announce request: `downloaded` must not be negative, got -1'
+16:32:52.600 end
