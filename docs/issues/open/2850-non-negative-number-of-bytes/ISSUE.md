@@ -9,7 +9,7 @@ github-issue: 2850
 spec-path: docs/issues/open/2850-non-negative-number-of-bytes/ISSUE.md
 branch: "2850-non-negative-number-of-bytes-spec"
 related-pr: null
-last-updated-utc: "2026-11-13 10:55"
+last-updated-utc: "2026-11-14 08:47"
 semantic-links:
   skill-links:
     - create-issue
@@ -394,7 +394,9 @@ HTTP already refuses a negative value, because it parses a `u64`.
 - **The upper limit is removed.** The check that refuses values above `i64::MAX` and its
   `NumberOfBytesOverflow` variant go away, and HTTP accepts up to `u64::MAX`. The limit has no
   reason of its own (see "Why HTTP has an upper limit"). This is the only client-visible change of
-  this issue: an announce with a counter above `i64::MAX`, refused today, is accepted.
+  this issue on HTTP: an announce with a counter above `i64::MAX`, refused today, is accepted. On
+  UDP, T2 makes the other one: an announce with a negative counter, accepted today, gets a BEP 15
+  error response (AC12).
 - **The REST API resource fields `uploaded`, `downloaded` and `left` become `u64`.** The JSON
   output does not change for any value that can exist today; the Rust type and the generated API
   description do. Rejected: keep `i64` and saturate in the adapter, which hides a value.
