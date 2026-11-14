@@ -161,7 +161,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3 | DONE | Disable each racing test with `#[ignore]` | Eighteen tests ignored with the reason `flaky port race, see #2393`. |
 | T4 | DONE | Rewrite the tests that never needed a real port | Three tests rewritten. |
 | T5 | BLOCKED | Decide the fate of the eighteen ignored tests | Waiting for the maintainer. |
-| T6 | TODO | Full-suite recheck and completion review | Repeated full runs and evidence update. |
+| T6 | IN_PROGRESS | Full-suite recheck | 150 full-suite runs recorded as V4 in `manual-verification-evidence.md`. |
 
 ## Progress Tracking
 
@@ -210,8 +210,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - `cargo nextest run --tests --all-features --no-fail-fast`, repeated, with the ignored tests
   listed in the run summary.
 - `linter all` and the pre-push checks.
-- Manual scenarios M1 and M4 in `manual-verification-evidence.md` (original reproduction and final
-  recheck).
+- `manual-verification-evidence.md`: V1 (original reproduction) and V4 (150-run recheck after the
+  change).
 
 ## Risks and Trade-offs
 

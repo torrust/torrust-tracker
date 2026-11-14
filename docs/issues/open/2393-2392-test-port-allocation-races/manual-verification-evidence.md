@@ -89,11 +89,15 @@ is the second failure above, at the same `axum-http-server` assertion.
 
 ### V2 - Duplicate-registration repair
 
-- Status: `TODO`
+- Status: `NOT_APPLICABLE`
+- The scope changed on 2026-11-14: the duplicate-registration test is ignored, not repaired, so
+  there is no repair to verify. Its fate is in the spec's per-test table.
 
 ### V3 - CLI configuration repair
 
-- Status: `TODO`
+- Status: `NOT_APPLICABLE`
+- On `develop` the CLI configuration tests already use `reserve_free_ports` (#2581), which draws
+  below the ephemeral range. This PR does not change them.
 
 ### V4 - Full recheck
 
