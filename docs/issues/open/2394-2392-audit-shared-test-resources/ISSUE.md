@@ -9,7 +9,7 @@ github-issue: 2394
 spec-path: docs/issues/open/2394-2392-audit-shared-test-resources/ISSUE.md
 branch: "2392-test-isolation-spec"
 related-pr: 2397
-last-updated-utc: "2026-10-02 13:30"
+last-updated-utc: "2026-11-14 22:47"
 semantic-links:
   skill-links:
     - create-issue
@@ -50,7 +50,7 @@ test scripts, and CI workflow steps that run tests:
 
 | Class | Examples to look for |
 | --- | --- |
-| Network ports | Fixed ports; port `0` selected and released before use; fixed ports inside the ephemeral range |
+| Network ports | Fixed ports; port `0` selected and released before use; fixed ports inside the ephemeral range; a released port rebound to prove release; a released port handed back within one test |
 | Container resources | Fixed image tags, container names, network names, volume names, Compose project names |
 | Filesystem paths | Fixed paths under `storage/`, `/tmp`, or the repository; shared database files |
 | Process-global state | `std::env::set_var`, global tracing subscribers, statics, current directory changes |
@@ -94,7 +94,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
 | T1 | TODO | Define the search method | Repeatable search commands per resource class, recorded in `inventory.md`. |
-| T2 | TODO | Inventory network ports | Findings with dispositions; cross-check with #2393 T5 to avoid duplicate work. |
+| T2 | TODO | Inventory network ports | Reuse #2393's per-test inventory for Rust tests (its rows are **Covered** by #2393) and audit only what it did not cover: E2E runners, Compose files, container test scripts, and CI workflow steps. |
 | T3 | TODO | Inventory container resources | Findings with dispositions. |
 | T4 | TODO | Inventory filesystem paths | Findings with dispositions. |
 | T5 | TODO | Inventory process-global state and external services | Findings with dispositions. |
@@ -125,6 +125,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   cover the resource classes #2386 left unaudited.
 - 2026-09-30 14:58 UTC - GitHub Copilot - Maintainer approved the draft. Created #2394 as a
   sub-issue of EPIC #2392 and moved the specification to `docs/issues/open/`.
+- 2026-11-14 22:47 UTC - Claude Code (Claude Opus 5.5), EPIC coordinator - After #2393's PR #2859
+  merged: T2 reuses #2393's port inventory for Rust tests, and the port class lists the two racing
+  shapes #2393 found besides bind-and-release.
 
 ## Acceptance Criteria
 

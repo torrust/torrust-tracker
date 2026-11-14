@@ -1,12 +1,12 @@
 ---
 schema-version: 1
 doc-type: epic
-status: planned
+status: in-progress
 epic: null
 github-issue: 2392
 spec-path: docs/issues/open/2392-test-isolation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-02 13:30"
+last-updated-utc: "2026-11-14 22:47"
 semantic-links:
   skill-links:
     - create-issue
@@ -100,7 +100,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | Order | Issue | Local Spec | Status | Notes |
 | ----- | ----- | ---------- | ------ | ----- |
-| 1 | #2393 - Eliminate parallel test port allocation races | `docs/issues/open/2393-2392-test-port-allocation-races/ISSUE.md` | TODO | Bug. Reproduced flaky `AddrInUse` in the nextest suite. First because it breaks normal local and CI runs today. |
+| 1 | #2393 - Eliminate parallel test port allocation races | `docs/issues/open/2393-2392-test-port-allocation-races/ISSUE.md` | IN_PROGRESS | Bug. PR #2859 (merged) ignored 21 racing tests and rewrote 4 that needed no real port; the full suite then passed 150 of 150 runs. Open: T5, the maintainer's decision on each ignored test. |
 | 2 | #2394 - Audit shared test resources | `docs/issues/open/2394-2392-audit-shared-test-resources/ISSUE.md` | TODO | Task. Inventories the resource classes in scope, records a disposition for each finding, and drafts subissues for confirmed problems. |
 | 3 | #2395 - Use dynamic host ports in the E2E runner | `docs/issues/open/2395-2392-e2e-runner-dynamic-host-ports/ISSUE.md` | TODO | Task. Removes fixed E2E host ports. Independent of orders 1 and 2. |
 | 4 | #2396 - Use a unique tracker image tag per CI run | `docs/issues/open/2396-2392-e2e-unique-tracker-image-tag/ISSUE.md` | TODO | Task. Prevents one run from testing another run's image. Latent today (one runner instance per server). Independent of order 3. |
@@ -125,6 +125,15 @@ Test isolation rules (apply to every subissue):
 6. When a test contract needs a fixed resource, document why in the test. Fixed ports must be
    outside the ephemeral range (`32768`-`60999` by default on Linux).
 
+Racing port shapes found by #2393 (its spec's Inventory section has the per-test list):
+
+- **Bind, drop, reuse.** The test binds port `0`, reads the address, drops the socket and hands
+  the address to the server (rule 3).
+- **Release, then rebind.** The test stops or fails a server that bound port `0`, then rebinds the
+  released port to prove it was released. A concurrent port-`0` bind can receive that port.
+- **Released port handed back within one test.** A test stops a service and starts another on port
+  `0`; the kernel can hand back the released port while the registry still holds it.
+
 For each subissue implementation in this EPIC, the default completion policy is:
 
 1. Run automatic checks (`linter all`, relevant tests, pre-push checks when applicable).
@@ -138,6 +147,8 @@ For each subissue implementation in this EPIC, the default completion policy is:
 
 - Outcome: the full nextest suite no longer fails with port-allocation `AddrInUse`.
 - Exit criteria: order 1 is done, including its repeated full-suite recheck.
+- State: the outcome is reached (PR #2859; 150 of 150 full-suite runs passed with the racing tests
+  ignored). Order 1 stays open for T5, the decision on each ignored test.
 
 ### Phase 2 - Know the remaining shared resources
 
@@ -156,6 +167,22 @@ For each subissue implementation in this EPIC, the default completion policy is:
   `docs/testing.md` and the `write-unit-test` skill), and #1419 is closed or its remaining
   non-isolation work is tracked outside this EPIC.
 - Exit criteria: all subissues are done or explicitly handed off.
+
+## Decisions
+
+Decisions taken while delivering the EPIC. They apply to every subissue.
+
+- 2026-11-14 (maintainer): a test that races on a shared resource is disabled first with
+  `#[ignore = "<reason>, see #<issue>"]`, then deleted, rewritten, or kept disabled with a recorded
+  reason. A flaky test is worse for development than a missing one, and some tests that need a
+  fixed or pre-selected resource may not be worth having.
+- 2026-11-14 (maintainer): a server that takes over an already-bound socket (listener handoff) was
+  considered for #2393 and rejected for now, because it changes the production start APIs of four
+  server crates. It stays an option if ignored tests are to be restored.
+- 2026-11-14 (maintainer): no new shared port helper. A random port drawn and released below the
+  ephemeral range still races across concurrent processes (several agents on one development
+  machine, several pipelines on one runner). The #2581 helper (`reserve_free_ports`) stays as it is
+  for scenarios that must name a bind address before a child process starts.
 
 ## Progress Tracking
 
@@ -184,6 +211,10 @@ For each subissue implementation in this EPIC, the default completion policy is:
 - 2026-09-30 14:58 UTC - GitHub Copilot - Maintainer approved the drafts. Created EPIC #2392 and
   subissues #2393-#2396, linked them and existing #1419 as GitHub sub-issues, and moved the
   specifications to `docs/issues/open/`.
+- 2026-11-14 22:47 UTC - Claude Code (Claude Opus 5.5), EPIC coordinator - Synced the EPIC after
+  #2393's PR #2859 merged: order 1 is in progress (T5 open), recorded the maintainer's decisions
+  (disable racing tests first, no listener handoff for now, no new port helper) and the three
+  racing port shapes, and pointed #2394's port inventory at #2393's.
 
 ## Acceptance Criteria
 
@@ -202,7 +233,7 @@ For each subissue implementation in this EPIC, the default completion policy is:
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
 | AC1 | DONE | GitHub sub-issues of #2392: #2393, #2394, #2395, #2396, #1419 |
-| AC2 | TODO | Order 1 `manual-verification-evidence.md` |
+| AC2 | TODO | Order 1 `manual-verification-evidence.md` (V4: 150 of 150 runs passed with 21 tests ignored; stays TODO until #2393 T5 decides them) |
 | AC3 | TODO | Orders 3 and 4 `manual-verification-evidence.md` |
 | AC4 | TODO | Order 2 inventory |
 | AC5 | TODO | Documentation PR |
@@ -218,6 +249,9 @@ For each subissue implementation in this EPIC, the default completion policy is:
   between tests or runs belong here; coverage work stays in EPIC #1347.
 - **Probabilistic evidence.** Repeated runs only lower the chance of a missed race; the isolation
   rules are the real guarantee.
+- **Lost coverage while tests are ignored.** Most of the tests #2393 ignored prove that a server
+  releases its socket after a stop, a drop or a failure. That cleanup contract is untested until
+  #2393 T5 decides how to restore or replace them.
 
 ## References
 
