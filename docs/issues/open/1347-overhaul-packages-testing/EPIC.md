@@ -6,7 +6,7 @@ epic: null
 github-issue: 1347
 spec-path: docs/issues/open/1347-overhaul-packages-testing/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-11 14:32"
+last-updated-utc: "2026-11-14 08:06"
 semantic-links:
   skill-links:
     - create-issue
@@ -97,7 +97,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | 9     | #2361 - Keep the report-only package coverage summary from failing on a discovery failure | `docs/issues/open/2361-1347-package-coverage-summary-discovery-failure/ISSUE.md` | TODO | Bug follow-up of #2347 (`review-finding:pr-2293-f1`): the #2222 summary check goes red with a JSON parse error when discovery fails. |
 | 10    | #2637 - Add tests to the axum-rest-api-server package | `docs/issues/closed/2637-1347-add-tests-axum-rest-api-server/ISSUE.md` | DONE | S0 (spec and T1 baseline) merged through #2638; S1 (authentication and shared responses) merged through #2667; S2 (routes) merged through #2687; S3 (auth-key and whitelist contexts) merged through #2702; S4 (torrent and stats contexts) merged through #2718; S5 (server lifecycle) merged through #2744; S6 (crate root, wiring and final tasks) merged through #2772; the issue is closed. Replaces the former draft that was misfiled under #1349. |
 | 11    | #2824 - Add tests to the primitives package | `docs/issues/open/2824-1347-add-tests-primitives/ISSUE.md` | IN_PROGRESS | Spec-only PR carries the specification and the T1 baseline and inventory; S0 (the spec, #2828) is merged and S1 (the `PeerRole` JSON casing fix, #2834) is merged and S2 (the `peer.rs` tests, #2841) is in review; S3-S4 follow. Findings F1 (fixed through #2811), F3 (#2804) and the `AddAssign` and `peer::Id::new` follow-ups are handed off to their own issues. |
-| 12    | #2838 - UDP tracker accepts announces with a negative left, uploaded or downloaded | `docs/issues/open/2838-1347-udp-reject-negative-announce-bytes/ISSUE.md` | BLOCKED | Bug found by the #2824 primitives tests work. Fixed by the standalone issue #2850 (`docs/issues/open/2850-non-negative-number-of-bytes/ISSUE.md`), which closes it; the patch of PR #2839 was not merged. |
+| 12    | #2838 - UDP tracker accepts announces with a negative left, uploaded or downloaded | `docs/issues/open/2838-1347-udp-reject-negative-announce-bytes/ISSUE.md` | BLOCKED | Bug found by the #2824 primitives tests work. Planned fix: the standalone issue #2850 (`docs/issues/open/2850-non-negative-number-of-bytes/ISSUE.md`), whose implementation will close it; until then the bug is present on `develop`. The patch of PR #2839 was not merged. |
 | 13    | Additional package-testing subissues              | Create a folder-style spec when a concrete package need is identified             | TODO   | Permitted but not required upfront; retain scope in this EPIC.                                                       |
 
 ## Package Coverage Tracking
