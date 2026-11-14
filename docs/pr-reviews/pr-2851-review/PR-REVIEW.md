@@ -71,6 +71,8 @@ Round 10 is the approving review `5890585973` of `da2ce7` (F48 to F52, audit-loc
 audit's own, and F48, recorded as the original) and Copilot's review `5891790581` (F53 to F57,
 audit-local IDs), both on the head that carried the round 9 audit. Copilot labels F53 to F56 "Medium severity" and F57
 "Low severity"; the severity `Minor` is inferred from those labels.
+Round 11 is the approving review `5903179555` of `da2ce7` (F58, audit-local ID; reviewer's own F50, which collides,
+recorded as the original), on the head that carried the round 10 audit.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -131,6 +133,7 @@ audit-local IDs), both on the head that carried the round 9 audit. Copilot label
 | F55 | review-finding:pr-2851-f55 | Copilot | Minor (inferred) | correctness | RE_RAISE_OF:F54 | NO_ACTION | SUPERSEDED |
 | F56 | review-finding:pr-2851-f56 | Copilot | Minor (inferred) | metadata | RE_RAISE_OF:F49 | NO_ACTION | SUPERSEDED |
 | F57 | review-finding:pr-2851-f57 | Copilot | Minor (inferred) | formatting | ORIGINAL | FIXED | RESOLVED |
+| F58 | review-finding:pr-2851-f58 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -875,6 +878,19 @@ audit-local IDs), both on the head that carried the round 9 audit. Copilot label
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4572497171
 
+### F58 - The record gives two accounts of when the round-7 audit commit reached the branch
+
+- PR number: 2851
+- Source review ID: 5903179555
+- Reviewer finding ID: F50
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4572599166
+- Concern: The F42 Solution said the round-7 audit commit was on the branch when review `5890183339` was posted, while the overview and the round-8 entry say that review came before it; the forge records no push time that orders them.
+- Solution: The F42 Solution gives the same account as the other two places: the review was made at the head of the round-7 probe fix, and when the audit commit's push landed relative to the review is not known. An appended correction records the change.
+- Current-tree verification: Read the F42 section, the round-8 overview and entry, and the appended correction in the tree; the forge `commit_id` of review `5890183339` is the round-7 probe-fix commit.
+- Resolution reference: docs(pr-reviews): give one account of the round-7 audit commit in the audit of PR #2851
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4572623767
+
 ## Processing Log
 
 - 2026-11-12 18:05 UTC - Started round 1 for review `5879517733` (submitted 18:02:39Z, forge `submitted_at`). Checked F1 to F7 against the tree.
@@ -904,6 +920,7 @@ audit-local IDs), both on the head that carried the round 9 audit. Copilot label
 - 2026-11-14 08:08 UTC - Correction for the round-9 entry (stamped 11:45): it reports the four replies and their resolution, which happened later. The replies are at 11:49:59Z to 11:50:06Z (forge `created_at`); the round-9 audit commit was authored at 11:49:22Z and committed at 11:50:46Z. No earlier entry is rewritten.
 - 2026-11-14 08:14 UTC - Round 10: the approving review `5890585973` of `da2ce7` (submitted 2026-11-13 12:00:03Z, forge `submitted_at`) with five findings, reviewer's own F43 to F46 and F48, reassigned F48 to F52; and Copilot's review `5891790581` (submitted 13:27:29Z) with five, F53 to F57; both on the head that carried the round 9 audit. The fixes were committed between 08:06:35Z and 08:09:24Z (`git log --format=%aI`) as `docs(issues): [#1347] describe issue #2850 as the planned fix in the sub-issue table`, `docs(issues): [#2838] check the length of each UDP response in the probe` and `docs(pr-reviews): correct rows and log entries of the review audit of PR #2851`, and their push had landed by 08:13 (`git ls-remote` of the fork matched the local head). Replied on the ten threads between 08:13:39Z and 08:14:01Z (forge `created_at`). The threads are resolved one by one, by their own thread id, after this entry's commit is pushed.
 - 2026-11-14 08:33 UTC - Correction for F58: the corrected F42 Solution (from the round-10 corrections) said the round-7 audit commit was already on the branch when review `5890183339` was posted. The forge records that review at the head of the round-7 probe fix, as the overview and the round-8 entry say, and no push time that orders the round-7 audit commit (committed 11:27:27Z) against the review (11:30:41Z). The F42 Solution now says so. No earlier entry is rewritten.
+- 2026-11-14 08:38 UTC - Round 11: the approving review `5903179555` of `da2ce7` (submitted 08:32:57Z, forge `submitted_at`) at the head that carried the round 10 audit, with one Nit, reviewer's own F50, reassigned F58. The fix was committed as `docs(pr-reviews): give one account of the round-7 audit commit in the audit of PR #2851` (authored and committed 08:33:41Z) and its push had landed before the reply (`git ls-remote` of the fork matched the local head). Replied on the thread at 08:38:09Z (forge `created_at`). The thread is resolved by its own thread id after this entry's commit is pushed.
 
 ## Completion Rules
 
