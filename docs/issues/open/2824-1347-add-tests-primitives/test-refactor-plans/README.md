@@ -3,7 +3,7 @@ doc-type: test-refactor-plan-guidance
 issue: 2824
 package: torrust-tracker-primitives
 status: in-progress
-last-updated-utc: "2026-11-12 16:45"
+last-updated-utc: "2026-11-14 22:49"
 ---
 
 # `primitives` File Test Plan Guidance
@@ -28,6 +28,7 @@ changes nor work on another file until the maintainer approves it. Files with no
 | 4 | [policy.md](policy.md) | DONE (S3) |
 | 5 | [mode.md](mode.md) | DONE (S3) |
 | 6 | [pagination.md](pagination.md) | DONE (S3) |
+| 7 | [swarm_metadata.md](swarm_metadata.md) | DONE (S4) |
 
 ## Shared Guardrails
 

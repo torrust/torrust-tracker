@@ -9,7 +9,7 @@ github-issue: 2824
 spec-path: docs/issues/open/2824-1347-add-tests-primitives/ISSUE.md
 branch: "2824-1347-add-tests-primitives-defaults"
 related-pr: 2852
-last-updated-utc: "2026-11-13 22:30"
+last-updated-utc: "2026-11-14 22:49"
 semantic-links:
   skill-links:
     - create-issue
@@ -288,7 +288,7 @@ States: `PENDING`, `IN_PROGRESS`, `BLOCKED`, `DONE`. Unit-only lines are the bas
 | 4 | `policy.rs` | 2 | S3 | 0 / 16 | Test candidate | DONE (S3) |
 | 5 | `mode.rs` | 2 | S3 | 0 / 8 | Test candidate | DONE (S3) |
 | 6 | `pagination.rs` | 2 | S3 | 0 / 21 | Test candidate | DONE (S3) |
-| 7 | `swarm_metadata.rs` | 3 | S4 | 3 / 18 | Test candidate; the `AddAssign` lines are not tested because #2823 deletes the impl | PENDING |
+| 7 | `swarm_metadata.rs` | 3 | S4 | 3 / 18 | Test candidate; the `AddAssign` lines are not tested because #2823 deletes the impl | DONE (S4; #2823 deleted the `AddAssign` lines, 3 / 12 at the S4 start) |
 | 8 | `scrape.rs` | 3 | S4 | 28 / 28 | No change; review test breadth | PENDING |
 | 9 | `service_role.rs` | 4 | S4 | 40 / 40 | No change | PENDING |
 | 10 | `configuration_instance_id.rs` | 4 | S4 | 42 / 42 | No change | PENDING |

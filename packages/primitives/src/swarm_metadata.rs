@@ -68,3 +68,42 @@ pub struct AggregateActiveSwarmMetadata {
     /// Total number of torrents.
     pub total_torrents: u64,
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::swarm_metadata::SwarmMetadata;
+
+    #[test]
+    fn it_should_return_the_number_of_downloads() {
+        let swarm_metadata = SwarmMetadata::new(3, 5, 7);
+
+        let downloads = swarm_metadata.downloads();
+
+        assert_eq!(downloads, 3);
+    }
+
+    #[test]
+    fn it_should_return_the_number_of_seeders() {
+        let swarm_metadata = SwarmMetadata::new(3, 5, 7);
+
+        let seeders = swarm_metadata.seeders();
+
+        assert_eq!(seeders, 5);
+    }
+
+    #[test]
+    fn it_should_return_the_number_of_leechers() {
+        let swarm_metadata = SwarmMetadata::new(3, 5, 7);
+
+        let leechers = swarm_metadata.leechers();
+
+        assert_eq!(leechers, 7);
+    }
+
+    #[test]
+    fn it_should_build_a_zeroed_value_with_every_count_at_zero() {
+        let swarm_metadata = SwarmMetadata::zeroed();
+
+        assert_eq!(swarm_metadata, SwarmMetadata::new(0, 0, 0));
+    }
+}
