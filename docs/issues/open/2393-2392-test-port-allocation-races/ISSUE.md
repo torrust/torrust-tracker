@@ -9,7 +9,7 @@ github-issue: 2393
 spec-path: docs/issues/open/2393-2392-test-port-allocation-races/ISSUE.md
 branch: "2392-test-isolation-spec"
 related-pr: 2397
-last-updated-utc: "2026-11-14 09:22"
+last-updated-utc: "2026-11-14 10:45"
 semantic-links:
   skill-links:
     - create-issue
@@ -187,7 +187,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3 | DONE | Disable each racing test with `#[ignore]` | Eighteen tests ignored with the reason `flaky port race, see #2393`. |
 | T4 | DONE | Rewrite the tests that never needed a racing port | Five tests rewritten. |
 | T5 | BLOCKED | Decide the fate of the eighteen ignored tests | Waiting for the maintainer. |
-| T6 | IN_PROGRESS | Full-suite recheck | 150 full-suite runs recorded as V4 in `manual-verification-evidence.md`. |
+| T6 | DONE | Full-suite recheck | V4 in `manual-verification-evidence.md`: the first 150 runs found a third racing shape (2 failures), and 150 runs on the fixed head all passed. |
 
 ## Commit Points
 
@@ -205,7 +205,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Draft reviewed and approved by the maintainer.
 - [x] GitHub issue created and issue number added to this specification.
 - [x] Racing tests inventoried, ignored or rewritten, and focused checks pass.
-- [ ] Full parallel recheck recorded (V4).
+- [x] Full parallel recheck recorded (V4).
 - [ ] Fate of every ignored test decided by the maintainer (T5).
 - [ ] Acceptance criteria reviewed after implementation.
 - [ ] Implementation completion review recorded.
@@ -228,6 +228,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   no owned-listener seam, no new port helper. Reverted the shared-helper change, re-checked the
   inventory on `develop`, ignored nine racing tests, rewrote three tests without a real port, and
   recorded the per-test decisions. Nine tests still await a maintainer decision.
+- 2026-11-14 10:45 UTC - Claude Code (Claude Opus 5.5) - Addressed the findings of the two review rounds on PR 2859.
+  Ignored nine more tests that rebind a released port, rewrote the dead-address test and two
+  health-check contract tests, and restated the bug-fix sections. The first 150-run recheck found
+  the health-check self-collision (2 failures); the second, on head `363c30ac2`, passed 150 of 150
+  runs. Eighteen ignored tests await the maintainer's decision (T5).
 
 ## Acceptance Criteria
 
@@ -235,7 +240,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   rewritten without a racing port or disabled with `#[ignore = "flaky port race, see #2393"]`.
 - [ ] AC2: Every ignored test has a recorded decision in the per-test table: deleted, rewritten, or
   kept disabled with a reason.
-- [ ] AC3: The full parallel suite passes repeatedly with no port-allocation failure.
+- [x] AC3: The full parallel suite passes repeatedly with no port-allocation failure (V4, 150 of
+  150 runs on head `363c30ac2`).
 - [ ] `linter all` exits with code `0`.
 - [ ] Relevant focused tests and pre-push checks pass.
 
@@ -256,7 +262,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`, `NOT_APPLICAB
 | M1 | Original failure reproduction | Run the full suite repeatedly with `--no-fail-fast`. | The race is observed. | DONE | `manual-verification-evidence.md#v1---original-parallel-suite-reproduction` |
 | M2 | Duplicate-registration repair | None: the test is ignored, not repaired. | Not applicable. | NOT_APPLICABLE | `manual-verification-evidence.md#v2---duplicate-registration-repair` |
 | M3 | CLI configuration repair | None: #2581 already moved these tests below the ephemeral range. | Not applicable. | NOT_APPLICABLE | `manual-verification-evidence.md#v3---cli-configuration-repair` |
-| M4 | Full recheck | Run the full suite 150 times with `--no-fail-fast`. | Every run passes, with the ignored tests skipped. | IN_PROGRESS | `manual-verification-evidence.md#v4---full-recheck` |
+| M4 | Full recheck | Run the full suite 150 times with `--no-fail-fast`. | Every run passes, with the ignored tests skipped. | DONE | `manual-verification-evidence.md#v4---full-recheck` |
 
 ### Acceptance Verification
 
@@ -265,6 +271,8 @@ AC3 done from a focused test or a single run.
 
 ## Risks and Trade-offs
 
+- 150 green runs give about 95% confidence that the `axum-http-server` failure rate observed in V1
+  (1 in 50) is gone; fewer runs would be weak evidence.
 - Ignored tests are lost coverage of the socket-release contract until the maintainer decides how
   to restore it.
 - Repeated parallel runs are probabilistic evidence.
