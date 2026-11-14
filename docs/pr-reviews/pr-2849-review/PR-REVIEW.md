@@ -74,9 +74,9 @@ the audit record itself grew a table). All twenty threads are inline.
 | F14 | review-finding:pr-2849-f14 | Human | Nit | formatting | ORIGINAL | FIXED | RESOLVED |
 | F15 | review-finding:pr-2849-f15 | Human | Nit | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F16 | review-finding:pr-2849-f16 | Human | Minor | maintainability | ORIGINAL | FIXED | RESOLVED |
-| F17 | review-finding:pr-2849-f17 | Copilot | Medium (inferred) | formatting | RE_RAISE_OF:F7 | NO_ACTION | RESOLVED |
-| F18 | review-finding:pr-2849-f18 | Copilot | Medium (inferred) | formatting | RE_RAISE_OF:F7 | NO_ACTION | RESOLVED |
-| F19 | review-finding:pr-2849-f19 | Copilot | Medium (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-2849-f17 | Copilot | Minor (inferred) | formatting | RE_RAISE_OF:F7 | NO_ACTION | RESOLVED |
+| F18 | review-finding:pr-2849-f18 | Copilot | Minor (inferred) | formatting | RE_RAISE_OF:F7 | NO_ACTION | RESOLVED |
+| F19 | review-finding:pr-2849-f19 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
