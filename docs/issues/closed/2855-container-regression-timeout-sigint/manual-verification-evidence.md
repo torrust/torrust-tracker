@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/closed/2855-container-regression-timeout-sigint/ISSUE.md
-last-updated-utc: "2026-11-13 23:05"
+last-updated-utc: "2026-11-14 08:40"
 ---
 
 # Manual Verification Evidence
@@ -122,6 +122,32 @@ The second run points the script's bare `timeout` at GNU `timeout` through a dir
 to `PATH` containing only a `timeout -> /usr/bin/gnutimeout` symlink, so the unmodified script
 (which calls `timeout` by bare name) resolves to the GNU implementation without editing the
 script.
+
+#### V3 rerun on the merged script
+
+The runs above predate PR #2857's review-fix commit, `fix(container): [#2855] address PR #2857
+review findings F2-F4,F7`, which replaced the exit-status `test` with a `case` that prints the
+unexpected status and returns 1. Rerun on 2026-11-14 at 08:29 UTC on the script as merged into
+`develop` at `24230dd01` (the merge of PR #2857; checked out into the working tree for the runs,
+`git diff --quiet 24230dd01 -- <script>` confirming it identical, then restored), against the same
+`tt:repro` image. The merge changed no other non-documentation file, so the image still matches.
+`timeout` was uutils 0.10.0 for the first run and GNU 9.7 for the second, through the same `PATH`
+symlink as above:
+
+```text
+$ IMAGE_TAG=tt:repro BUILD_IMAGE=false bash contrib/dev-tools/containers/tests/test-mounted-no-persistence-configuration.sh
+(exit 0)
+mounted-no-persistence-config-preserved-without-sqlite-artifacts
+unselected-sqlite-targets-remain-unchanged-across-transitions
+
+$ PATH=<dir with a timeout symlink to /usr/bin/gnutimeout>:$PATH IMAGE_TAG=tt:repro BUILD_IMAGE=false bash contrib/dev-tools/containers/tests/test-mounted-no-persistence-configuration.sh
+(exit 0)
+mounted-no-persistence-config-preserved-without-sqlite-artifacts
+unselected-sqlite-targets-remain-unchanged-across-transitions
+```
+
+Each run's log has four `shutting down (SIGINT)` lines (one per `run_tracker` call) and no
+`unexpected exit status` line, and neither run left a `tt:repro` container running.
 
 ### V4 - Runner package history
 

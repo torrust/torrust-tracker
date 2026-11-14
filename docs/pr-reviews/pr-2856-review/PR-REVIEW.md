@@ -75,7 +75,10 @@ reviewer's round 5). F34 is an independent re-raise of F32 (found separately by 
 reviewer in round 5 and by `da2ce7` here, on a head that predates round 5's fix). Round 7 is
 `da2ce7`'s review `5899469458` (F38 to F42, reviewer labels F32-F36, reassigned on collision with
 rounds 5 and 6), submitted against the head whose last commit has the subject `docs(issues):
-[#2855] address PR #2856 review round-6 findings F34-F37`.
+[#2855] address PR #2856 review round-6 findings F34-F37`. Round 8 is `da2ce7`'s APPROVED review
+`5903140732` (F43 to F44, reviewer labels F37-F38, reassigned on collision with rounds 6 and 7),
+submitted on the head whose last commit has the subject `docs(issues): [#2855] address PR #2856
+review round-7 findings F38-F42`.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -121,6 +124,8 @@ rounds 5 and 6), submitted against the head whose last commit has the subject `d
 | F40 | review-finding:pr-2856-f40 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F41 | review-finding:pr-2856-f41 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F42 | review-finding:pr-2856-f42 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F43 | review-finding:pr-2856-f43 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F44 | review-finding:pr-2856-f44 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -670,6 +675,32 @@ rounds 5 and 6), submitted against the head whose last commit has the subject `d
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4572473094
 
+### F43 - V3 and AC3 predate PR #2857's review-fix change to the script
+
+- PR number: 2856
+- Source review ID: 5903140732
+- Reviewer finding ID: F37
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4572568845
+- Concern: PR #2857's review-fix commit, `fix(container): [#2855] address PR #2857 review findings F2-F4,F7`, replaced the exit-status `test` with a `case` after the spec review began, but V3 and AC3's run link predate it, the retrospective said the fix did not change, and the round-7 acceptance re-review recorded no run on the merged script; the `fix-bug` skill asks for the final recheck to be repeated after any review-driven change, naming the commit it ran on.
+- Solution: Reran V3 on the merged script at `develop` `24230dd01` under uutils `timeout` 0.10.0 and GNU `timeout` 9.7 (both exit 0, four SIGINT shutdowns each, no container left) and recorded it as "V3 rerun on the merged script"; added PR #2857's final-head `Test (Docker) (release)` run (43456290657) to AC3; corrected the retrospective's Outcome and What Changed, adding the recheck lesson; marked the round-7 progress-log re-review as a reading of the diff.
+- Current-tree verification: `manual-verification-evidence.md` "V3 rerun on the merged script"; `ISSUE.md` Acceptance Verification and Progress Log; `implementation-retrospective.md`.
+- Resolution reference: docs(issues): [#2855] address PR #2856 review round-8 findings F43-F44
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4572596482
+
+### F44 - PR description does not say the history was rewritten
+
+- PR number: 2856
+- Source review ID: 5903140732
+- Reviewer finding ID: F38
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4572568849
+- Concern: The `open-pull-request` skill asks the PR body to say when an unmerged PR's history was rewritten, and the merge tool copies the body into the merge commit; round 7's rewrite was not mentioned.
+- Solution: Added a paragraph to the description naming the two reworded commits by subject and stating that subjects, author dates and trees are unchanged, every commit is kept, and the push used `--force-with-lease`.
+- Current-tree verification: PR #2856 description.
+- Resolution reference: docs(issues): [#2855] address PR #2856 review round-8 findings F43-F44
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4572596721
+
 ## Processing Log
 
 - 2026-11-13 11:20 UTC - `da2ce7`'s review `5889698232` (7 findings, F1 to F7) and `copilot-pull-request-reviewer`'s review `5889723390` (3 findings, F15 to F17) processed before this record existed: fixed in commit `f2f0e4e73` (branch id cited in the nine replies instead of this subject) and replied on all ten threads, then resolved.
@@ -679,3 +710,4 @@ rounds 5 and 6), submitted against the head whose last commit has the subject `d
 - 2026-11-13 22:55 UTC - Processing round 5: `copilot-pull-request-reviewer`'s review `5899193311` (2 findings, F32 to F33, reviewer label F28 for both), submitted against the round-3 head, before round 4's fix was pushed. Fixed in commit `docs(issues): [#2855] archive the completed issue specification`: moved the issue folder to `docs/issues/closed/`, set `status: done`, and updated `spec-path` and the evidence file's `issue-spec` reference (F32). F33 was already resolved by round 4's F28 fix; no further action was needed. Replied on both threads, then resolved them.
 - 2026-11-13 23:05 UTC - Processing round 6: `da2ce7`'s APPROVED review `5899245168` (4 findings, F34 to F37, reviewer labels F28-F31), submitted against the round-4 head, before round 5's archive fix was pushed. F34 was already resolved by round 5's F32 fix; no further action was needed. F35 (claimed F32/F33 had no replies or audit rows) was declined at the time, claiming both predated the review; round 7 (F41) showed only the replies did, while the rows first appeared in the archive commit 15 s after it, so F35 is now recorded as fixed by that commit. Fixed in commit `docs(issues): [#2855] address PR #2856 review round-6 findings F34-F37`: corrected F29's swapped count claim and its stray `F28-F29` cross-reference and timestamp-format break (F36); added "run from the repository root" to V1's setup prose, with the reason (F37). Replied on all four threads, then resolved them.
 - 2026-11-14 08:06 UTC - Processing round 7: `da2ce7`'s review `5899469458` (5 findings, F38 to F42, reviewer labels F32-F36). This round exceeded the five-round limit, so the maintainer was asked first and approved the history rewrite F38 needs. Reworded the archive commit's message (F38) and the round-6 commit's message (F41), both subjects unchanged, and force-pushed with lease. Fixed in commit `docs(issues): [#2855] address PR #2856 review round-7 findings F38-F42`: added `implementation-retrospective.md` and aligned the completion checkpoint and acceptance criterion (F39); corrected F35's timeline and disposition (F41); added the round-6 progress-log entry and advanced both stamps (F42). Updated the PR description's Files touched to the `closed/` paths (F40). Replied on all five threads, then resolved them.
+- 2026-11-14 08:40 UTC - Processing round 8: `da2ce7`'s APPROVED review `5903140732` (2 findings, F43 to F44, reviewer labels F37-F38). Past the five-round limit, so the maintainer approved the fixes first. Fixed in commit `docs(issues): [#2855] address PR #2856 review round-8 findings F43-F44`: reran V3 on the merged script at `develop` `24230dd01` under both `timeout` implementations, added PR #2857's final-head Docker run to AC3, and corrected the retrospective and the round-7 progress-log sentence (F43). Added the history-rewrite note to the PR description (F44). Replied on both threads, then resolved them.
