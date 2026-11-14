@@ -210,7 +210,6 @@ mod tests {
     use torrust_tracker_axum_server::signals::GracefulShutdownOutcome;
     use torrust_tracker_configuration::v3_0_0::shutdown::Shutdown;
     use torrust_tracker_primitives::{ConfigurationInstanceId, Readiness, RuntimeServiceMetadata, ServiceRole};
-    use torrust_tracker_test_helpers::ports::reserve_free_tcp_address;
 
     use crate::server::{Error, start_with_cancellation};
 
@@ -236,7 +235,9 @@ mod tests {
 
     impl ServerStartWithDuplicateRegistration {
         async fn new() -> Self {
-            let bind_to = reserve_free_tcp_address();
+            let available_listener = TcpListener::bind(any_available_port()).expect("select available health-check address");
+            let bind_to = available_listener.local_addr().expect("read available health-check address");
+            drop(available_listener);
             let registar = Registar::default();
             registar
                 .give_form()

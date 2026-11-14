@@ -333,7 +333,6 @@ mod tests {
     use torrust_tracker_configuration::v3_0_0::{Configuration, logging};
     use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
-    use torrust_tracker_test_helpers::ports::reserve_free_tcp_address;
 
     use crate::server::{ApiServer, CancellationRunning, Error, Launcher, check_fn, check_fn_with_client, health_check_url};
     use crate::test_support::{TEST_DEADLINE, TestApiContainer, api_container, within_deadline};
@@ -557,7 +556,11 @@ mod tests {
     #[tokio::test]
     async fn it_should_release_the_listener_when_token_aware_startup_registration_fails() {
         // Arrange
-        let bind_to = reserve_free_tcp_address();
+        let available_listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).expect("select available REST API listener address");
+        let bind_to = available_listener
+            .local_addr()
+            .expect("read available REST API listener address");
+        drop(available_listener);
         let mut configuration = ephemeral_public();
         configuration
             .http_api
@@ -782,7 +785,9 @@ mod tests {
     #[tokio::test]
     async fn it_should_report_an_error_with_the_checked_url_when_nothing_listens_on_the_checked_address() {
         // Arrange
-        let dead_address = reserve_free_tcp_address();
+        let free_listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).expect("select a free address");
+        let dead_address = free_listener.local_addr().expect("read the free address");
+        drop(free_listener);
         let service_binding = ServiceBinding::new(Protocol::HTTP, dead_address).expect("service binding should be valid");
 
         // Act

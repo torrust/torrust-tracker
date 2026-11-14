@@ -111,7 +111,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::net::{SocketAddr, TcpListener};
+    use std::net::{Ipv4Addr, SocketAddr, TcpListener};
     use std::time::Duration;
 
     use tokio::sync::oneshot;
@@ -121,7 +121,6 @@ mod tests {
     use torrust_tracker_configuration::v3_0_0::health_check_api::HealthCheckApi;
     use torrust_tracker_configuration::v3_0_0::shutdown::Shutdown;
     use torrust_tracker_primitives::Readiness;
-    use torrust_tracker_test_helpers::ports::reserve_free_tcp_address;
 
     use crate::bootstrap::jobs::health_check_api::{start_job, supervise_token_aware_server};
     use crate::bootstrap::jobs::manager::{ComponentCompletion, TokenAwareServerTask};
@@ -130,7 +129,8 @@ mod tests {
     const BIND_RETRY_INTERVAL: Duration = Duration::from_millis(10);
 
     fn available_health_check_address() -> SocketAddr {
-        reserve_free_tcp_address()
+        let listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).expect("select available health-check address");
+        listener.local_addr().expect("read available health-check address")
     }
 
     async fn wait_until_bindable(address: SocketAddr) -> bool {
