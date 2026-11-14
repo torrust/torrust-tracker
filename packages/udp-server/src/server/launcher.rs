@@ -1181,7 +1181,6 @@ mod tests {
         }
 
         #[tokio::test]
-        #[ignore = "flaky port race, see #2393"]
         async fn it_should_not_return_while_processors_orphaned_by_the_request_ring_are_still_running() {
             // Arrange
             let mut scenario = ReceiveLoopWithOrphanedProcessors::start().await;
@@ -1200,6 +1199,19 @@ mod tests {
                 matches!(result, Ok(Ok(()))),
                 "cancellation should stop cleanly, got {result:?}"
             );
+        }
+
+        #[tokio::test]
+        #[ignore = "flaky port race, see #2393"]
+        async fn it_should_release_the_socket_once_the_processors_orphaned_by_the_request_ring_are_joined() {
+            // Arrange
+            let mut scenario = ReceiveLoopWithOrphanedProcessors::start().await;
+
+            // Act
+            scenario.cancellation_token.cancel();
+            let _result = scenario.join_receive_loop().await;
+
+            // Assert
             assert!(
                 wait_until_bindable(scenario.address).await,
                 "the socket should be released once the aborted processors are joined"
