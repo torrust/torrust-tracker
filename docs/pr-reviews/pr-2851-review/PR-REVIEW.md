@@ -75,6 +75,8 @@ Round 11 is the approving review `5903179555` of `da2ce7` (F58, audit-local ID; 
 recorded as the original), on the head that carried the round 10 audit.
 Round 12 is Copilot's review `5903247803` (F59 and AUDIT-001, reviewer-provided IDs, which do not collide), on the head that carried the round-11 fix before the round 11 audit. Both are labelled "Low severity" in
 the body; the comments carry `[Minor]` and `[Nit]` brackets, which are used.
+Round 13 is the approving review `5903321950` of `da2ce7` (F61, audit-local ID; reviewer's own F59, which collides,
+recorded as the original), on the head that carried the round 12 audit. F60 is not used.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -138,6 +140,7 @@ the body; the comments carry `[Minor]` and `[Nit]` brackets, which are used.
 | F58 | review-finding:pr-2851-f58 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F59 | review-finding:pr-2851-f59 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | AUDIT-001 | review-finding:pr-2851-audit-001 | Copilot | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F61 | review-finding:pr-2851-f61 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -921,6 +924,19 @@ the body; the comments carry `[Minor]` and `[Nit]` brackets, which are used.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4572678771
 
+### F61 - The reviewer's AUDIT-001 is filed as F60, and row F59 records an ID that was not reassigned
+
+- PR number: 2851
+- Source review ID: 5903321950
+- Reviewer finding ID: F59
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4572709497
+- Concern: Copilot's IDs F59 and AUDIT-001 did not collide, so step 3 of `process-pr-review` keeps them; the record filed AUDIT-001 as F60 and gave F59 a `Reviewer finding ID` although it was not reassigned.
+- Solution: The row and section are AUDIT-001, both entries read `Reviewer finding ID: N/A`, and an appended correction records the change.
+- Current-tree verification: Read the round-12 overview, rows F59 and AUDIT-001 and their sections, and the appended correction in the tree; the validator accepts the ID.
+- Resolution reference: docs(pr-reviews): keep the reviewer-provided IDs of round 12 in the audit of PR #2851
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4572725832
+
 ## Processing Log
 
 - 2026-11-12 18:05 UTC - Started round 1 for review `5879517733` (submitted 18:02:39Z, forge `submitted_at`). Checked F1 to F7 against the tree.
@@ -953,6 +969,7 @@ the body; the comments carry `[Minor]` and `[Nit]` brackets, which are used.
 - 2026-11-14 08:38 UTC - Round 11: the approving review `5903179555` of `da2ce7` (submitted 08:32:57Z, forge `submitted_at`) at the head that carried the round 10 audit, with one Nit, reviewer's own F50, reassigned F58. The fix was committed as `docs(pr-reviews): give one account of the round-7 audit commit in the audit of PR #2851` (authored and committed 08:33:41Z) and its push had landed before the reply (`git ls-remote` of the fork matched the local head). Replied on the thread at 08:38:09Z (forge `created_at`). The thread is resolved by its own thread id after this entry's commit is pushed.
 - 2026-11-14 08:51 UTC - Round 12: Copilot's review `5903247803` (submitted 08:45:50Z, forge `submitted_at`) at the head that carried the round-11 fix, before the round 11 audit was pushed, with two findings, F59 and AUDIT-001. F59 was fixed as `docs(issues): [#2850] name the UDP rejection as a client-visible change` (authored and committed 08:47:17Z) and its push had landed before the replies (`git ls-remote` of the fork matched the local head). AUDIT-001 was already fixed by `docs(pr-reviews): record round 11 in the review audit of PR #2851`. Replied on both threads at 08:50:50Z and 08:50:52Z (forge `created_at`). The threads are resolved one by one, by their own thread id, after this entry's commit is pushed.
 - 2026-11-14 09:02 UTC - Correction for round 12: Copilot's IDs F59 and AUDIT-001 do not collide with this record, so both are kept, as step 3 of `process-pr-review` asks. The row and section first filed as F60 are now AUDIT-001, and both entries read `Reviewer finding ID: N/A`; the overview and the round-12 entry are updated to match, because they named the IDs only. The two round-12 replies still say "audit F59" and "audit F60"; F60 is not used for any other finding. No other entry is rewritten.
+- 2026-11-14 09:07 UTC - Round 13: the approving review `5903321950` of `da2ce7` (submitted 09:00:28Z, forge `submitted_at`) at the head that carried the round 12 audit, with one Nit, reviewer's own F59, reassigned F61. The fix was committed as `docs(pr-reviews): keep the reviewer-provided IDs of round 12 in the audit of PR #2851` (authored and committed 09:03:22Z) and its push had landed before the reply (`git ls-remote` of the fork matched the local head). Replied on the thread at 09:06:51Z (forge `created_at`). The thread is resolved by its own thread id after this entry's commit is pushed.
 
 ## Completion Rules
 
