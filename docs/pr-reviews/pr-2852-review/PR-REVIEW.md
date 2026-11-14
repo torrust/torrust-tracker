@@ -52,6 +52,9 @@ stayed open and unanswered; its own F12 to F16, recorded here as F15 to F19 sinc
 already used for Copilot's findings — the collision F20 raises). Round 4 is da2ce7's review
 `5890207451` (its own F17 to F19, recorded here as F20 to F22), submitted on the head whose last
 commit had the subject `test(primitives): [#2824] compare serialized JSON by value, not by string`.
+Round 5 is da2ce7's review `5899160108` (approved, none blocking; its own F20 to F24, recorded here
+as F23 to F27), submitted on the head whose last commit had the subject
+`docs(issues): [#2824] fix the PR 2852 audit record for rounds 3 and 4`.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -75,8 +78,13 @@ commit had the subject `test(primitives): [#2824] compare serialized JSON by val
 | F18 | review-finding:pr-2852-f18 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F19 | review-finding:pr-2852-f19 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F20 | review-finding:pr-2852-f20 | Human | Minor | maintainability | ORIGINAL | FIXED | RESOLVED |
-| F21 | review-finding:pr-2852-f21 | Human | Nit | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F21 | review-finding:pr-2852-f21 | Human | Nit | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F22 | review-finding:pr-2852-f22 | Human | Nit | testing | ORIGINAL | FIXED | RESOLVED |
+| F23 | review-finding:pr-2852-f23 | Human | Minor | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F24 | review-finding:pr-2852-f24 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F25 | review-finding:pr-2852-f25 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F26 | review-finding:pr-2852-f26 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F27 | review-finding:pr-2852-f27 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -126,10 +134,10 @@ commit had the subject `test(primitives): [#2824] compare serialized JSON by val
 - Source review ID: 5888917289
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4561797088
-- Concern: The per-file deltas summed to +197 / +127 while the package moved +196 / +126; the
-  `announce_interval.rs` step was off by one line, and the `announce.rs` step's own coverage swing
-  (first measured as +52 lines, 1,488 regions) was 3 lines short of the 55 lines its file actually
-  added.
+- Concern: The per-file deltas summed to +197 / +127 while the package moved +196 / +126. At first
+  run the `announce_interval.rs` step matched (package and file both +35 / +26), and the extra line
+  was that file's own figure, 114 / 114; the steps that did not match were `announce.rs` (package
+  +52 / +38 against file +55 / +39) and `policy.rs` (package +42 against file +40 covered lines).
 - Solution: Re-measured coverage at each of the five steps' own commit (`announce_interval.rs`,
   `announce.rs`, `policy.rs`, `mode.rs`, `pagination.rs`) and found two causes: a clippy rewrite
   after the first `announce_interval.rs` measure removed one covered line, and one `announce.rs`-step
@@ -287,8 +295,8 @@ commit had the subject `test(primitives): [#2824] compare serialized JSON by val
   literal (structural equality, order-independent), keeping every key and value pinned. Ran the
   key-rename mutant (`max_peers_per_announce` renamed in JSON; new, not a repeat — `announce.md`'s
   own mutation sample has no key-rename mutant) and confirmed it still fails the test.
-- Current-tree verification: `cargo test -p torrust-tracker-primitives --lib announce::`; re-applied
-  the key-rename mutant and reverted with `cmp`.
+- Current-tree verification: `cargo test -p torrust-tracker-primitives --lib announce::`; applied the
+  key-rename mutant and reverted with `cmp`.
 - Resolution reference: test(primitives): [#2824] compare serialized JSON by value, not by string
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4562655115
@@ -333,9 +341,12 @@ commit had the subject `test(primitives): [#2824] compare serialized JSON by val
 - Concern: The Processing Log's first entry was stamped "09:50 UTC", which matches no git or forge
   time and predates the review (10:21:40Z), the replies (10:42:22Z to 10:43:01Z) and the commit that
   carries the entry (10:44:04Z).
-- Solution: Corrected the stamp to "10:44 UTC", the commit time of `895dc1b78`.
-- Current-tree verification: `git log --format='%cI' -1 895dc1b78` reads `2026-11-13T10:44:04Z`.
-- Resolution reference: docs(issues): [#2824] fix the PR 2852 audit record for rounds 3 and 4
+- Solution: Appended a Processing Log correction giving the entry's actual time, 10:44 UTC, the
+  commit time of `docs(issues): [#2824] create the PR 2852 review audit record`. (The round-4 fix
+  re-stamped the entry in place instead; F24 restored it.)
+- Current-tree verification: `git log --fixed-strings --grep='create the PR 2852 review audit
+  record' --format='%cI'` reads `2026-11-13T10:44:04Z`.
+- Resolution reference: docs(issues): [#2824] fix the PR 2852 audit record for round 5
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4569432463
 
@@ -362,10 +373,12 @@ commit had the subject `test(primitives): [#2824] compare serialized JSON by val
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4562435916
 - Concern: F3's verification named three re-run commits, while `coverage-evidence.md` and the F3
   reply say every one of the five steps was re-measured at its own commit; F3's concern also said
-  two steps disagreed "by one line each", while the actual first-run figures differed by 3 covered
-  lines on the `announce.rs` step and 1 line on the `announce_interval.rs` step.
+  two steps disagreed "by one line each", while at first run `announce.rs` differed by 3 covered
+  lines and 1 line (package +52 / +38 against file +55 / +39) and `policy.rs` by 2 covered lines
+  (package +42 against file +40).
 - Solution: Reworded F3's Concern, Solution and Current-tree verification to name all five steps and
-  the accurate per-step discrepancy sizes.
+  the per-step figures. The round-4 wording named the wrong step and left out `policy.rs`; F25
+  corrected it.
 - Current-tree verification: Read the corrected F3 entry and `coverage-evidence.md`'s reconciliation
   paragraph.
 - Resolution reference: docs(issues): [#2824] fix the PR 2852 audit record for rounds 3 and 4
@@ -393,11 +406,12 @@ commit had the subject `test(primitives): [#2824] compare serialized JSON by val
 - Source review ID: 5889756621
 - Reviewer finding ID: F16
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4562435939
-- Concern: Commit `895dc1b78` (10:44:04Z) edited `ISSUE.md`'s round-1 log entry and
+- Concern: The commit `docs(issues): [#2824] create the PR 2852 review audit record` (10:44:04Z)
+  edited `ISSUE.md`'s round-1 log entry and
   `announce_interval.md`'s two citations, but both files' `last-updated-utc` stayed at their earlier
   stamps (09:41 and 09:44) — the F7 and F10 rule applied to this commit's own edits.
-- Solution: Advanced `ISSUE.md`'s and `announce_interval.md`'s `last-updated-utc` to this commit's
-  time.
+- Solution: Advanced `ISSUE.md`'s and `announce_interval.md`'s `last-updated-utc` to
+  "2026-11-13 22:30", the time of the edit; the commit followed at 22:35:14Z.
 - Current-tree verification: `grep -n last-updated-utc` both files.
 - Resolution reference: docs(issues): [#2824] fix the PR 2852 audit record for rounds 3 and 4
 - Follow-up PR URL: N/A
@@ -428,14 +442,16 @@ commit had the subject `test(primitives): [#2824] compare serialized JSON by val
 - Reviewer finding ID: F18
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4562757457
 - Concern: `process-pr-review` asks for the audit to be committed separately from product fixes;
-  commit `e78e2eba2` carried both the three serialization-test changes and the F12 to F14 audit rows.
-- Solution: Acknowledged going forward: this round's fix is documentation-only (no source change),
-  so there is nothing to split here; a future round that mixes a code fix with the audit update will
-  commit them separately.
-- Current-tree verification: `git log` shows this round's commit touches only `docs/`.
-- Resolution reference: docs(issues): [#2824] fix the PR 2852 audit record for rounds 3 and 4
+  the commit `test(primitives): [#2824] compare serialized JSON by value, not by string` carried
+  both the three serialization-test changes and the F12 to F14 audit rows.
+- Solution: No change. That commit is pushed and reviewed, and splitting it would rewrite published
+  history; the later rounds are documentation-only commits and need no split. Recorded as
+  `NO_ACTION` (F26; the round-4 fix had recorded it as `FIXED`).
+- Current-tree verification: `git show --stat` of the two later round commits lists only `docs/`
+  paths.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4572459439
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4569434986
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4572459439
 
 ### F22 - The audit says a key-rename mutant was re-run for `announce.rs`; its record lists none
 
@@ -446,21 +462,112 @@ commit had the subject `test(primitives): [#2824] compare serialized JSON by val
 - Concern: F12's Solution said the key-rename mutant was "re-run", but `announce.md`'s own seven-
   mutant sample has no key-rename mutant (unlike `mode.md` and `policy.md`, which both have one), so
   this run was new, not a repeat.
-- Solution: Reworded F12's Solution and Current-tree verification from "Re-ran" to "Ran", noting it
-  is new rather than a repeat; amended the already-posted reply making the same claim.
+- Solution: Reworded F12's Solution from "Re-ran" to "Ran", noting it is new rather than a repeat,
+  and amended the already-posted reply making the same claim. F12's Current-tree verification kept
+  "re-applied" until F25 corrected it.
 - Current-tree verification: Read the corrected F12 entry and `announce.md`'s mutation sample table.
 - Resolution reference: docs(issues): [#2824] fix the PR 2852 audit record for rounds 3 and 4
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4569435327
 
+### F23 - The record cites PR-branch commit ids
+
+- PR number: 2852
+- Source review ID: 5899160108
+- Reviewer finding ID: F20
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4569561786
+- Concern: F15, F19 and F21 cited the round-3 and round-4 heads by short commit id, which a rebase
+  can change; `process-pr-review` asks for the unique commit subject.
+- Solution: Replaced the three ids with the commits' subjects; F15's command now finds the commit by
+  its subject with `git log --fixed-strings --grep`.
+- Current-tree verification: `grep -nE '\b[0-9a-f]{9}\b'` this record matches no commit id.
+- Resolution reference: docs(issues): [#2824] fix the PR 2852 audit record for round 5
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4572459601
+
+### F24 - The Processing Log was rewritten in place, and the new entry's stamp predates its events
+
+- PR number: 2852
+- Source review ID: 5899160108
+- Reviewer finding ID: F21
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4569561792
+- Concern: The round-4 fix re-stamped the first entry (09:50 to 10:44) and reworded the 11:20 entry;
+  the template says "Append entries only". Its own 22:30 entry predates the replies (22:33:52Z to
+  22:34:14Z) and the commit (22:35:14Z).
+- Solution: Restored the first two entries to their earlier text and appended one correction that
+  names both rewrites, gives the first entry's actual time and the 22:30 entry's forge times. The
+  22:30 entry itself is left as written.
+- Current-tree verification: Compared the first two entries with the record at the commit
+  `test(primitives): [#2824] compare serialized JSON by value, not by string`.
+- Resolution reference: docs(issues): [#2824] fix the PR 2852 audit record for round 5
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4572459953
+
+### F25 - Three statements in the round-4 entries go beyond the bytes
+
+- PR number: 2852
+- Source review ID: 5899160108
+- Reviewer finding ID: F22
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4569561798
+- Concern: (1) F3 and F17 said the `announce_interval.rs` step was off and omitted `policy.rs`; at
+  first run that step matched, and the mismatched steps were `announce.rs` and `policy.rs`. (2) F22
+  said F12's Current-tree verification was reworded, but it still read "re-applied". (3) F19 said the
+  stamps moved to "this commit's time"; they read 22:30 and the commit is 22:35:14Z.
+- Solution: (1) Rewrote F3's and F17's concerns with the per-step figures. (2) Reworded F12's
+  verification to "applied" and F22's solution to say so. (3) Reworded F19's solution to give the
+  stamp and the commit time.
+- Current-tree verification: Recomputed the first-run deltas from the figures the round-1 fix
+  replaced (`announce.rs` 883 / 1,021 to 935 / 1,059; `policy.rs` 935 / 1,059 to 977 / 1,083); read
+  F3, F12, F17, F19 and F22.
+- Resolution reference: docs(issues): [#2824] fix the PR 2852 audit record for round 5
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4572460261
+
+### F26 - A no-change concern is recorded as `FIXED`
+
+- PR number: 2852
+- Source review ID: 5899160108
+- Reviewer finding ID: F23
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4569561801
+- Concern: F21 changed nothing, yet was recorded `FIXED` with a commit subject as its reference; the
+  status rules reserve `NO_ACTION` / `SUPERSEDED` for a no-change concern, with the reply URL as the
+  reference.
+- Solution: Recorded F21 as `NO_ACTION` / `SUPERSEDED`, posted the prescribed `Superseded by` reply on
+  its thread, and cited that reply as its Resolution reference and Reply URL.
+- Current-tree verification: Read F21's row and entry.
+- Resolution reference: docs(issues): [#2824] fix the PR 2852 audit record for round 5
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4572460484
+
+### F27 - Three edited records keep their 09:44 stamp
+
+- PR number: 2852
+- Source review ID: 5899160108
+- Reviewer finding ID: F24
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4569561806
+- Concern: `announce.md`, `mode.md` and `policy.md` still read "2026-11-13 09:44", although the commit
+  `test(primitives): [#2824] compare serialized JSON by value, not by string` (11:21:26Z) edited
+  their prose-first rows.
+- Solution: Advanced the three stamps to this round's edit time, taken right before the commit.
+- Current-tree verification: `grep -n last-updated-utc` the three records.
+- Resolution reference: docs(issues): [#2824] fix the PR 2852 audit record for round 5
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4572460709
+
 ## Processing Log
 
-- 2026-11-13 10:44 UTC - Started this audit, after round 1 (F1 to F8) was already fixed and pushed
+- 2026-11-13 09:50 UTC - Started this audit, after round 1 (F1 to F8) was already fixed and pushed
   without it (F9). Replying on all eleven threads and resolving them now.
-- 2026-11-13 11:20 UTC - Round 3 (Copilot): review `5889997099` (F12 to F14) fixed in one commit; replying on the three threads and resolving them now.
+- 2026-11-13 11:20 UTC - Round 3: Copilot's review `5889997099` (F12 to F14) fixed in one commit; replying on the three threads and resolving them now.
 - 2026-11-13 22:30 UTC - Round 3 (da2ce7, dismissed review `5889756621`) and round 4 (da2ce7, review
   `5890207451`): fixed the numbering collision and the six other record-hygiene findings (F15 to
   F22) in one documentation-only commit; replying on all eight threads and resolving them now.
+- 2026-11-14 08:08 UTC - Correction (F24): the round-4 fix rewrote two entries above in place, re-stamping
+  the 09:50 entry to 10:44 and rewording the 11:20 entry; both are restored to their earlier text.
+  The 09:50 entry's work was committed at 10:44:04Z. The 22:30 entry's replies were posted from
+  22:33:52Z to 22:34:14Z and its commit is dated 22:35:14Z. Round 5 (da2ce7, review `5899160108`,
+  approved): F23 to F27 fixed in one documentation-only commit and F21 changed to `NO_ACTION`; the six
+  replies were posted from 08:07:44Z to 08:07:55Z and all five new threads are resolved.
 
 ## Completion Rules
 

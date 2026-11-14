@@ -4,7 +4,7 @@ issue: 2824
 package: torrust-tracker-primitives
 target-file: packages/primitives/src/policy.rs
 status: done
-last-updated-utc: "2026-11-13 09:44"
+last-updated-utc: "2026-11-14 08:08"
 ---
 
 # `policy.rs` File Test Plan
