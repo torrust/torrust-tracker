@@ -62,7 +62,7 @@ severity"; the severity `Minor` is inferred from that label.
 Round 8 is the review `5890044214` of `da2ce7` (DISMISSED, F38 to F41, audit-local IDs; reviewer's own numbering F33 to
 F36 collides with the audit's own F33 to F36, recorded as the original) at the head that carried the round 6 audit,
 before round 7 landed, and the review `5890183339` of `da2ce7` (COMMENTED, F42 and F43, audit-local IDs; reviewer's own
-F37 and F38, no collision) at the head that carried the probe fix of round 7's F35, before round 7's audit commit
+F37 and F38, which collide with the audit's own F37 and F38) at the head that carried the probe fix of round 7's F35, before round 7's audit commit
 landed. Both sets of threads were resolved earlier by a blanket GraphQL call with no reply, repeating the mistake
 corrected in round 6; they were reopened before replying.
 Round 9 is the review `5890340167` of `da2ce7` (COMMENTED, F44 to F47, audit-local IDs; reviewer's own F39 to F42,
@@ -111,11 +111,11 @@ recorded as the original), on the head that carried the round-7 probe-documentat
 | F39 | review-finding:pr-2851-f39 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F40 | review-finding:pr-2851-f40 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F41 | review-finding:pr-2851-f41 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
-| F42 | review-finding:pr-2851-f42 | Human | Minor | process | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F42 | review-finding:pr-2851-f42 | Human | Minor | other | ORIGINAL | FIXED | RESOLVED |
 | F43 | review-finding:pr-2851-f43 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F44 | review-finding:pr-2851-f44 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F45 | review-finding:pr-2851-f45 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
-| F46 | review-finding:pr-2851-f46 | Human | Minor | documentation | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F46 | review-finding:pr-2851-f46 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F47 | review-finding:pr-2851-f47 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
@@ -610,7 +610,7 @@ recorded as the original), on the head that carried the round-7 probe-documentat
 - Concern: Row F33 used the category `process`, which the Conventions section's enum does not list.
 - Solution: Already fixed (same defect as this round's F36) when F33's category was changed to `other`.
 - Current-tree verification: Read row F33 in the tree.
-- Resolution reference: docs(pr-reviews): record round 8 in the review audit of PR #2851
+- Resolution reference: docs(pr-reviews): record round 7 in the review audit of PR #2851
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4562796674
 
@@ -636,7 +636,7 @@ recorded as the original), on the head that carried the round-7 probe-documentat
 - Concern: The round-6 entry said the eight replies were between 11:04:40Z and 11:07:55Z; the forge has them at 10:56:47Z to 10:57:03Z, before the two commits (10:58:56Z, 11:01:45Z) the entry is itself part of.
 - Solution: An appended correction entry gives the forge reply times and the two commits' actual times; the original entry stays as it is.
 - Current-tree verification: Read the round-6 log entry and the appended correction, and the forge `created_at` of the eight replies.
-- Resolution reference: docs(pr-reviews): record round 8 in the review audit of PR #2851
+- Resolution reference: docs(pr-reviews): correct rows and log entries of the review audit of PR #2851
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4562797287
 
@@ -646,10 +646,10 @@ recorded as the original), on the head that carried the round-7 probe-documentat
 - Source review ID: 5890044214
 - Reviewer finding ID: F33
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4562653472
-- Concern: F32's section and its correction entry cited `c237cca8b` and `9b4f2de6d` directly; `open-pull-request` allows no PR-branch commit id in a review audit.
+- Concern: F32's section and its correction entry cited two PR-branch commit ids directly; `open-pull-request` allows no PR-branch commit id in a review audit.
 - Solution: Both are now cited by Conventional Commit subject (`docs(pr-reviews): record round 5 in the review audit of PR #2851` and `docs(issues): [#2850] plan the performance baseline and the missing UDP announce benchmark`), as F13 was.
 - Current-tree verification: Read the F32 section and the round-5 correction entry in the tree; the commit-id check.
-- Resolution reference: docs(pr-reviews): record round 8 in the review audit of PR #2851
+- Resolution reference: docs(pr-reviews): correct rows and log entries of the review audit of PR #2851
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4562797657
 
@@ -660,8 +660,8 @@ recorded as the original), on the head that carried the round-7 probe-documentat
 - Reviewer finding ID: F37
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4562741696
 - Concern: At review time (11:30:41Z), the round-7 audit had not landed, four threads of review `5890044214` had no reply, and the category reply had been posted before its commit was pushed.
-- Solution: Superseded: round 7 (`docs(pr-reviews): record round 7 in the review audit of PR #2851`) landed at 11:25:xx, before this review was posted, and this round (8) now covers the four threads of `5890044214` that were still open when this review ran.
-- Current-tree verification: Read rounds 7 and 8 of this record, and that line 94 (F33's category) now reads `other`.
+- Solution: Fixed by round 8, which added rows F38 to F41 for the four threads of `5890044214` and replied on each before resolving it. The round-7 audit commit (`docs(pr-reviews): record round 7 in the review audit of PR #2851`, committed at 11:27:27Z) was already on the branch when this review was posted.
+- Current-tree verification: Read rounds 7 and 8 of this record, and row F33, whose category reads `other`.
 - Resolution reference: docs(pr-reviews): record round 8 in the review audit of PR #2851
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4562798076
@@ -712,9 +712,9 @@ recorded as the original), on the head that carried the round-7 probe-documentat
 - Reviewer finding ID: F42
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4562840977
 - Concern: At review time (11:42:28Z), round 8 had not yet landed; the four replies of 11:37:12Z to 11:37:19Z described fixes correctly, but those fixes were not pushed until round 8, after this review was posted.
-- Solution: Superseded: round 8 landed before this review was read, with rows F38 to F43 for exactly the six threads this finding names (`5890044214` and `5890183339`), all replied to and resolved.
-- Current-tree verification: Read round 8 of this record, and that the six threads it names are resolved on the forge.
-- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4562909023
+- Solution: Fixed by round 8, which added rows F38 to F43 for exactly the six threads this finding names (`5890044214` and `5890183339`) and replied on each before resolving it.
+- Current-tree verification: Read round 8 of this record, and that the six threads it names are replied to and resolved on the forge.
+- Resolution reference: docs(pr-reviews): record round 8 in the review audit of PR #2851
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4562909023
 
@@ -755,6 +755,9 @@ recorded as the original), on the head that carried the round-7 probe-documentat
 - 2026-11-13 11:40 UTC - Round 8: two reviews that had been missed, because a blanket GraphQL resolve call closed their threads again before they were read, repeating the round-5/6 mistake. `5890044214` (submitted 11:20:08Z, forge `submitted_at`, DISMISSED) with four findings at the head that carried the round-6 audit, reviewer's own F33 to F36 (collides with existing audit IDs, reassigned F38 to F41, originals recorded). `5890183339` (submitted 11:30:41Z, COMMENTED) with two findings at the head that carried the probe fix of round 7's F35, before round 7's audit commit had landed; reviewer's own F37 and F38, reassigned F42 and F43 (no collision, reassigned anyway for this record's own sequencing). All six threads were reopened (`unresolveReviewThread`) before any reply. The probe-documentation fix (F43) was committed as `docs(issues): [#2838] document the probe's new error-response exit path` and pushed first; the audit corrections (F38 to F42) as `docs(pr-reviews): record round 8 in the review audit of PR #2851`. Replied on all six threads between 11:37:09Z and 11:37:21Z (forge `created_at`), then resolved each of the six threads individually by its own thread id — never by a scan-all-unresolved call. `validate-audit-record.py --pr-number 2851` exited 0 (43 rows, 0 failures). A GraphQL refresh showed 0 unresolved threads.
 - 2026-11-13 11:45 UTC - Round 9: the review `5890340167` of `da2ce7` (submitted 11:42:28Z, forge `submitted_at`) at the head that carried the round-7 probe-documentation commit, before round 8 had landed, with four findings, reviewer's own F39 to F42, reassigned F44 to F47 (originals recorded). F44 fixed the evidence timestamp. F45 fixed the missing `(inferred)` marker on F35 to F37. F46 was already superseded by round 8, which this review predates; replied noting that. F47 fixed by an appended correction below. The timestamp fix was committed as `docs(issues): [#2838] correct the probe evidence timestamp to its commit time` and the audit changes as `docs(pr-reviews): record round 9 in the review audit of PR #2851`. Replied on all four threads, then resolved each individually by its own thread id.
 - 2026-11-13 11:45 UTC - Correction for F47: the round-7 entry says the probe fix was committed, the audit commit followed, and both were pushed, before the three replies. The replies are at 11:24:58Z, 11:25:00Z and 11:25:03Z (forge `created_at`). The round-7 audit commit was authored at 11:25:12Z and committed at 11:27:27Z, after all three. The probe-script commit (`docs(issues): [#2838] parse the connect response defensively in the UDP probe`) was authored and committed at 11:21:30Z, before the replies, so that half of the entry holds. No earlier entry is rewritten.
+- 2026-11-14 08:08 UTC - Correction for F40: the round-6 entry (stamped 11:10) gives the eight replies as 11:04:40Z to 11:07:55Z and places them after both commits. The forge has the replies at 10:56:47Z to 10:57:03Z (`created_at`). Both commits came after them: `docs(issues): [#2850] correct benchmark wording, add a Commit Points row, and record the tolerance write-back` was authored and committed at 10:58:56Z, and `docs(pr-reviews): record round 6 in the review audit of PR #2851` was authored at 10:59:31Z and committed at 11:01:45Z (`git log --format=%aI`/`%cI`). No earlier entry is rewritten.
+- 2026-11-14 08:08 UTC - Correction for the round-8 entry (stamped 11:40): it says the reviewer's own F37 and F38 of review `5890183339` do not collide. They collide with the audit's own F37 (since round 7) and F38 (assigned in the same round); they were reassigned F42 and F43 because of that. Row F42 also said the round-7 audit commit landed at "11:25:xx"; it was authored at 11:25:12Z and committed at 11:27:27Z. Rows F42 and F46 were `NO_ACTION`/`SUPERSEDED` with replies not in the `Superseded by <FindingId>: <reason>.` form; both concerns were fixed by the round-8 audit commit, so both rows are now `FIXED`/`RESOLVED` with that commit as their reference. No earlier entry is rewritten.
+- 2026-11-14 08:08 UTC - Correction for the round-9 entry (stamped 11:45): it reports the four replies and their resolution, which happened later. The replies are at 11:49:59Z to 11:50:06Z (forge `created_at`); the round-9 audit commit was authored at 11:49:22Z and committed at 11:50:46Z. No earlier entry is rewritten.
 
 ## Completion Rules
 
