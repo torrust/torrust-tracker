@@ -72,7 +72,10 @@ head that predates round 4's fix). Round 6 is `da2ce7`'s APPROVED review `589924
 F37, reviewer labels F28-F31, reassigned on collision with round-4 usage), submitted against the
 round-4 head (before round 5's archive fix was pushed, and concurrently with the automated
 reviewer's round 5). F34 is an independent re-raise of F32 (found separately by the automated
-reviewer in round 5 and by `da2ce7` here, on a head that predates round 5's fix).
+reviewer in round 5 and by `da2ce7` here, on a head that predates round 5's fix). Round 7 is
+`da2ce7`'s review `5899469458` (F38 to F42, reviewer labels F32-F36, reassigned on collision with
+rounds 5 and 6), submitted against the head whose last commit has the subject `docs(issues):
+[#2855] address PR #2856 review round-6 findings F34-F37`.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -110,9 +113,14 @@ reviewer in round 5 and by `da2ce7` here, on a head that predates round 5's fix)
 | F32 | review-finding:pr-2856-f32 | Copilot | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F33 | review-finding:pr-2856-f33 | Copilot | Minor | testing | RE_RAISE_OF:F28 | FIXED | RESOLVED |
 | F34 | review-finding:pr-2856-f34 | Human | Minor | metadata | RE_RAISE_OF:F32 | FIXED | RESOLVED |
-| F35 | review-finding:pr-2856-f35 | Human | Minor | documentation | ORIGINAL | NO_ACTION | RESOLVED |
+| F35 | review-finding:pr-2856-f35 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F36 | review-finding:pr-2856-f36 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F37 | review-finding:pr-2856-f37 | Human | Nit | testing | ORIGINAL | FIXED | RESOLVED |
+| F38 | review-finding:pr-2856-f38 | Human | Major | metadata | ORIGINAL | FIXED | RESOLVED |
+| F39 | review-finding:pr-2856-f39 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F40 | review-finding:pr-2856-f40 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F41 | review-finding:pr-2856-f41 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F42 | review-finding:pr-2856-f42 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -558,16 +566,16 @@ reviewer in round 5 and by `da2ce7` here, on a head that predates round 5's fix)
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4569647983
 
-### F35 - Claimed missing replies on F32/F33 (timing race, not a defect)
+### F35 - F32/F33 had no audit rows on the reviewed head
 
 - PR number: 2856
 - Source review ID: 5899245168
 - Reviewer finding ID: F29
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4569627114
 - Concern: Stated that the threads underlying F32 and F33 had no reply and no audit row.
-- Solution: No action: both had replies (r4569614794 at 22:57:37 UTC, r4569615703 at 22:57:45 UTC) and audit rows (F32, F33) before this review was submitted (22:59:25 UTC); the reviewer's view of the PR was evidently taken from a snapshot slightly before those replies posted.
-- Current-tree verification: `gh api .../pulls/comments/4569614794` and `.../4569615703` show `created_at` before the review's `submitted_at`.
-- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4569648868
+- Solution: The replies predated the review (r4569614794 at 22:57:37 UTC, r4569615703 at 22:57:45 UTC, against `submitted_at` 22:59:25 UTC), but the audit rows did not: rows F32 and F33 first appear in the archive commit, committed at 22:59:40 UTC, 15 s after the review, and the reviewed head (the round-4 commit) had neither. That commit resolved the finding. This entry first recorded it as `NO_ACTION`, claiming the rows also predated the review; F41 corrected that.
+- Current-tree verification: `gh api .../pulls/comments/4569614794` and `.../4569615703` show `created_at` before the review's `submitted_at`; `git log -1 --format=%ai` on the archive commit shows 22:59:40 UTC (the author date, kept by round 7's message reword), and `git show` of the round-4 commit's `PR-REVIEW.md` has no F32 or F33 row.
+- Resolution reference: docs(issues): [#2855] archive the completed issue specification
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4569648868
 
@@ -597,6 +605,71 @@ reviewer in round 5 and by `da2ce7` here, on a head that predates round 5's fix)
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4569650360
 
+### F38 - Archive commit's message carries a closing keyword before an issue reference
+
+- PR number: 2856
+- Source review ID: 5899469458
+- Reviewer finding ID: F32
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4569802907
+- Concern: The archive commit's message body said "merged and closed #2855", which matches the `open-pull-request` skill's closing-keyword pattern; a PR that must not close #2855 may not carry it, the branch's messages land on `develop`, and the skill says such a message cannot be fixed after the merge.
+- Solution: Reworded that commit's body to "has merged and issue #2855 is closed" (subject unchanged) by amending it and replaying the later commits, then force-pushed with lease, with the maintainer's approval. A scan of every message in the PR range for the skill's pattern now finds no match.
+- Current-tree verification: `git log --format=%B` over the PR range, folded to one line, has no closing keyword followed by an issue reference.
+- Resolution reference: docs(issues): [#2855] archive the completed issue specification
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4572472253
+
+### F39 - Completion review not recorded; checkpoint and criterion out of step
+
+- PR number: 2856
+- Source review ID: 5899469458
+- Reviewer finding ID: F33
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4569802918
+- Concern: The spec was archived as `done` while the completion-review checkpoint was open and the Implementation Completion Review still said `Not yet assessed`; separately, the "acceptance criteria reviewed" checkpoint was checked while the matching acceptance criterion was not.
+- Solution: Added an issue-local `implementation-retrospective.md` (the implementation PR opened before the spec-only PR merged is a meaningful plan deviation, with reusable lessons), linked it from the Implementation Completion Review, checked the completion-review checkpoint, and re-reviewed the acceptance criteria against V3 and PR #2857's merged state before checking the matching criterion.
+- Current-tree verification: `docs/issues/closed/2855-container-regression-timeout-sigint/implementation-retrospective.md`; `ISSUE.md` Workflow Checkpoints, Acceptance Criteria, and Implementation Completion Review.
+- Resolution reference: docs(issues): [#2855] address PR #2856 review round-7 findings F38-F42
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4572472480
+
+### F40 - Description's Files touched still listed the `open/` paths
+
+- PR number: 2856
+- Source review ID: 5899469458
+- Reviewer finding ID: F34
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4569802923
+- Concern: The PR description listed the spec and evidence file under `docs/issues/open/`, paths that will never exist on `develop`, and the merge tool copies the description into the merge commit.
+- Solution: Updated the description via `gh-bot pr edit` to list the `docs/issues/closed/` paths, including the new retrospective.
+- Current-tree verification: PR #2856 description.
+- Resolution reference: docs(issues): [#2855] address PR #2856 review round-7 findings F38-F42
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4572472676
+
+### F41 - F35's timeline claimed the audit rows predated the review
+
+- PR number: 2856
+- Source review ID: 5899469458
+- Reviewer finding ID: F35
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4569802928
+- Concern: F35's entry, the round-6 processing-log line, and the round-6 commit message said both replies and audit rows predated the review; only the replies did, and the rows first appeared in the archive commit 15 s after it.
+- Solution: Rewrote F35's entry with the real timeline and changed its disposition to `FIXED` by the archive commit; corrected the round-6 processing-log line; reworded the round-6 commit's message body (subject unchanged) in the same history rewrite as F38.
+- Current-tree verification: F35 entry and the round-6 Processing Log line in this record; `git log -1 --format=%B` on the round-6 commit.
+- Resolution reference: docs(issues): [#2855] address PR #2856 review round-7 findings F38-F42
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4572472877
+
+### F42 - `last-updated-utc` stamps and progress log behind the round-6 edits
+
+- PR number: 2856
+- Source review ID: 5899469458
+- Reviewer finding ID: F36
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4569802931
+- Concern: The round-6 commit edited both `ISSUE.md` and `manual-verification-evidence.md`, but both still said `last-updated-utc: "2026-11-13 22:55"` and the progress log had no entry for those edits, while this record's Processing Log had one at 23:05.
+- Solution: Added a 23:05 UTC progress-log entry for the round-6 edits; advanced the evidence file's stamp to 23:05 (its last edit) and `ISSUE.md`'s to this round's edit, with a matching round-7 entry.
+- Current-tree verification: frontmatter of both files; `ISSUE.md` Progress Log.
+- Resolution reference: docs(issues): [#2855] address PR #2856 review round-7 findings F38-F42
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4572473094
+
 ## Processing Log
 
 - 2026-11-13 11:20 UTC - `da2ce7`'s review `5889698232` (7 findings, F1 to F7) and `copilot-pull-request-reviewer`'s review `5889723390` (3 findings, F15 to F17) processed before this record existed: fixed in commit `f2f0e4e73` (branch id cited in the nine replies instead of this subject) and replied on all ten threads, then resolved.
@@ -604,4 +677,5 @@ reviewer in round 5 and by `da2ce7` here, on a head that predates round 5's fix)
 - 2026-11-13 22:30 UTC - Processing round 3: `da2ce7`'s APPROVED review `5893913692` (6 findings, F19 to F24, reviewer labels F15-F20) and `copilot-pull-request-reviewer`'s review `5894073993` (3 findings, F25 to F27, reviewer labels F19-F21). F26 and F27 are independent re-raises of F21 and F23 (same underlying concerns, found separately by both reviewers in this round). Fixed in commit `docs(issues): [#2855] address PR #2856 review findings F19-F27`: added the skill-link marker (F19); cited the first commit by subject and corrected the Ownership note's reply-count attribution (F20); recaptured V5 on torrust-runner-01 (read-only, maintainer-approved) with a fresh, internally-consistent listing (F21, F26); corrected the V1 patch's second hunk header and the `cp` location prose (F22); recorded the real V5 capture time throughout (F23, F27); ran `linter all`, checked the criterion, and added the audit record to the PR description's Files touched list (F24); reclassified F18 as `RE_RAISE_OF:F13` (F25). Replied on all nine threads, then resolved them.
 - 2026-11-13 22:45 UTC - Processing round 4: `da2ce7`'s APPROVED review `5899089435` (4 findings, F28 to F31, reviewer labels F21-F24). Fixed in commit `docs(issues): [#2855] address PR #2856 review findings F28-F31`: named the pre-fix script by its durable `develop` commit id `ec1f58ec9` instead of a `cp` of the (now fixed) working tree or an unqualified line number (F28); corrected the round-2 progress-log entry's container count (31 to 32) and timestamp, noting the original was wrong (F29); posted the F14 correction on F14's own thread instead of F16's, and removed the incorrect "(inferred)" tag from F25-F27 (F30); rewrote the round-3 progress-log entry to cite audit IDs instead of the automated reviewer's own labels and to list all of that commit's fixes (F31). Replied on all four threads, then resolved them.
 - 2026-11-13 22:55 UTC - Processing round 5: `copilot-pull-request-reviewer`'s review `5899193311` (2 findings, F32 to F33, reviewer label F28 for both), submitted against the round-3 head, before round 4's fix was pushed. Fixed in commit `docs(issues): [#2855] archive the completed issue specification`: moved the issue folder to `docs/issues/closed/`, set `status: done`, and updated `spec-path` and the evidence file's `issue-spec` reference (F32). F33 was already resolved by round 4's F28 fix; no further action was needed. Replied on both threads, then resolved them.
-- 2026-11-13 23:05 UTC - Processing round 6: `da2ce7`'s APPROVED review `5899245168` (4 findings, F34 to F37, reviewer labels F28-F31), submitted against the round-4 head, before round 5's archive fix was pushed. F34 was already resolved by round 5's F32 fix; no further action was needed. F35 (claimed F32/F33 had no replies) was declined: both had replies and audit rows before this review was submitted, evidently a snapshot-timing artifact, not a defect. Fixed in commit `docs(issues): [#2855] address PR #2856 review round-6 findings F34-F37`: corrected F29's swapped count claim and its stray `F28-F29` cross-reference and timestamp-format break (F36); added "run from the repository root" to V1's setup prose, with the reason (F37). Replied on all four threads, then resolved them.
+- 2026-11-13 23:05 UTC - Processing round 6: `da2ce7`'s APPROVED review `5899245168` (4 findings, F34 to F37, reviewer labels F28-F31), submitted against the round-4 head, before round 5's archive fix was pushed. F34 was already resolved by round 5's F32 fix; no further action was needed. F35 (claimed F32/F33 had no replies or audit rows) was declined at the time, claiming both predated the review; round 7 (F41) showed only the replies did, while the rows first appeared in the archive commit 15 s after it, so F35 is now recorded as fixed by that commit. Fixed in commit `docs(issues): [#2855] address PR #2856 review round-6 findings F34-F37`: corrected F29's swapped count claim and its stray `F28-F29` cross-reference and timestamp-format break (F36); added "run from the repository root" to V1's setup prose, with the reason (F37). Replied on all four threads, then resolved them.
+- 2026-11-14 08:06 UTC - Processing round 7: `da2ce7`'s review `5899469458` (5 findings, F38 to F42, reviewer labels F32-F36). This round exceeded the five-round limit, so the maintainer was asked first and approved the history rewrite F38 needs. Reworded the archive commit's message (F38) and the round-6 commit's message (F41), both subjects unchanged, and force-pushed with lease. Fixed in commit `docs(issues): [#2855] address PR #2856 review round-7 findings F38-F42`: added `implementation-retrospective.md` and aligned the completion checkpoint and acceptance criterion (F39); corrected F35's timeline and disposition (F41); added the round-6 progress-log entry and advanced both stamps (F42). Updated the PR description's Files touched to the `closed/` paths (F40). Replied on all five threads, then resolved them.

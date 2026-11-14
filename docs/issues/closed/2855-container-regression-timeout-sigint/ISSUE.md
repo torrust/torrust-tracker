@@ -9,7 +9,7 @@ github-issue: 2855
 spec-path: docs/issues/closed/2855-container-regression-timeout-sigint/ISSUE.md
 branch: "2855-container-regression-timeout-sigint-spec"
 related-pr: 2857
-last-updated-utc: "2026-11-13 22:55"
+last-updated-utc: "2026-11-14 08:06"
 semantic-links:
   skill-links:
     - create-issue
@@ -139,7 +139,7 @@ run after it, plus the Container workflow on the fix PR.
 - [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
@@ -155,6 +155,8 @@ run after it, plus the Container workflow on the fix PR.
 - 2026-11-13 22:18 UTC - Claude Code (Claude Sonnet 5.5) - Addressed PR #2856 round-3 review findings F19-F27 (audit IDs; `da2ce7`'s APPROVED review contributed F19-F24, the automated reviewer's F25-F27): added the audit record's skill-link marker; cited a commit by its Conventional Commit subject instead of an id and corrected the Ownership note's reply-count attribution; re-ran V5 on the runner with a fresh, internally-consistent capture (34 containers, 0 exited, same oldest leftover) and recorded its real capture time, resolving the stale-timestamp and elided-count inconsistencies; corrected the V1 patch's second hunk header and its `cp`-location prose; ran `linter all` and checked the criterion, and added the audit record to the PR description's Files touched list; reclassified F18 as `RE_RAISE_OF:F13` - `manual-verification-evidence.md` V1, V5; `docs/pr-reviews/pr-2856-review/PR-REVIEW.md`
 - 2026-11-13 22:45 UTC - Claude Code (Claude Sonnet 5.5) - Addressed PR #2856 round-4 review findings F28-F31: named the pre-fix script by its durable `develop` commit id `ec1f58ec9` instead of a `cp` of the now-fixed working tree or an unqualified line number; corrected the round-2 progress-log entry's container count (31 to 32) and timestamp; posted the F14 correction on F14's own thread instead of F16's, and removed an incorrect "(inferred)" tag from F25-F27; rewrote the round-3 progress-log entry to cite audit IDs instead of the automated reviewer's own labels - `manual-verification-evidence.md` V1; `docs/pr-reviews/pr-2856-review/PR-REVIEW.md`
 - 2026-11-13 22:55 UTC - Claude Code (Claude Sonnet 5.5) - Addressed PR #2856 round-5 Copilot review finding (archive the completed issue): PR #2857 merged and closed #2855 at 19:44 UTC, so this spec and its evidence file moved from `docs/issues/open/` to `docs/issues/closed/`, with `status: done`, `spec-path`, and the evidence file's `issue-spec` reference updated to the new location. The review's other new finding ("pin V1 to the pre-fix script") was already resolved by the round-4 F28 fix.
+- 2026-11-13 23:05 UTC - Claude Code (Claude Sonnet 5.5) - Addressed PR #2856 round-6 review findings F34-F37: corrected the round-2 entry's swapped container-count claim and its timestamp form, and added the run-from-repository-root note to V1's setup - `manual-verification-evidence.md` V1; `docs/pr-reviews/pr-2856-review/PR-REVIEW.md`
+- 2026-11-14 08:06 UTC - Claude Code (Claude Opus 5.5) - Addressed PR #2856 round-7 review findings F38-F42: reworded the archive commit's message so it no longer carries a closing keyword before an issue reference (subject unchanged); recorded the completion review in `implementation-retrospective.md` and re-reviewed the acceptance criteria against V3 and PR #2857's merged state (all still hold), checking both related boxes; listed the `closed/` paths in the PR description; corrected the round-6 audit timeline and advanced both files' `last-updated-utc` - `implementation-retrospective.md`; `docs/pr-reviews/pr-2856-review/PR-REVIEW.md`
 
 ## Acceptance Criteria
 
@@ -163,7 +165,7 @@ run after it, plus the Container workflow on the fix PR.
 - [x] AC2: It still passes with GNU `timeout` (same branch).
 - [x] AC3: The Container workflow "Test (Docker) (release)" job is green on PR #2857.
 - [x] `linter all` exits with code `0`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 
 ## Verification Plan
 
@@ -198,7 +200,9 @@ run after it, plus the Container workflow on the fix PR.
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: `implementation-retrospective.md` (plan deviation: implementation PR opened
+  before the spec-only PR merged; reusable lessons on durable pre-fix references and
+  `timeout --foreground`)
 
 ## References
 
