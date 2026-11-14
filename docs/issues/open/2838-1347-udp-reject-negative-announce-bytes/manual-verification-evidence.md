@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2838-1347-udp-reject-negative-announce-bytes/ISSUE.md
-last-updated-utc: 2026-11-13 11:33
+last-updated-utc: "2026-11-14 08:07"
 ---
 
 # Manual Verification Evidence
@@ -25,7 +25,8 @@ last-updated-utc: 2026-11-13 11:33
 - The probe was changed after the recorded runs: it now exits with status 1 when a response does
   not carry the transaction id of its request, and also when the connect response's action is not
   0 (it then prints the decoded error message instead of unpacking a connection id from a short or
-  error packet). Its output for a correct response is unchanged.
+  error packet). It also exits with status 1, printing the length, when a response is shorter
+  than the fields it must carry. Its output for a correct response is unchanged.
 
 ## Verification Processes
 

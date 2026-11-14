@@ -4,7 +4,8 @@ Usage: python3 -I udp_announce_probe.py <port> <left> [uploaded] [downloaded]
 Prints the announce response (action, seeders, leechers) or the error message.
 Exits with status 1, without printing a result, when a response does not carry the
 transaction id of its request. Also exits with status 1, printing the decoded error
-message, when the connect response's action is not 0.
+message, when the connect response's action is not 0, and, printing the length, when a
+response is shorter than the fields it must carry.
 """
 import socket
 import struct
@@ -26,12 +27,19 @@ def check_transaction_id(name, sent, received):
         sys.exit(f"{name}: transaction id mismatch: sent {sent}, received {received}")
 
 
+def check_length(name, data, minimum):
+    if len(data) < minimum:
+        sys.exit(f"{name}: response too short: {len(data)} bytes, expected at least {minimum}")
+
+
 s.sendto(struct.pack(">qii", 0x41727101980, 0, CONNECT_TID), addr)
 connect_response = s.recvfrom(64)[0]
+check_length("connect", connect_response, 8)
 action, tid = struct.unpack(">ii", connect_response[:8])
 check_transaction_id("connect", CONNECT_TID, tid)
 if action != 0:
     sys.exit(f"connect: action={action} message={connect_response[8:].decode(errors='replace')!r}")
+check_length("connect", connect_response, 16)
 (connection_id,) = struct.unpack(">q", connect_response[8:16])
 
 packet = struct.pack(
@@ -44,9 +52,11 @@ packet = struct.pack(
 )
 s.sendto(packet, addr)
 data = s.recvfrom(2048)[0]
+check_length("announce", data, 8)
 action, tid = struct.unpack(">ii", data[:8])
 check_transaction_id("announce", ANNOUNCE_TID, tid)
 if action == 1:
+    check_length("announce", data, 20)
     interval, leechers, seeders = struct.unpack(">iii", data[8:20])
     print(f"announce response: interval={interval} leechers={leechers} seeders={seeders}")
 else:
