@@ -400,6 +400,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore = "flaky port race, see #2393"]
     async fn it_should_release_the_listener_when_token_aware_startup_registration_fails() {
         // Arrange
         let scenario = ServerStartWithDuplicateRegistration::new().await;

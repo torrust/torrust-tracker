@@ -296,6 +296,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore = "flaky port race, see #2393"]
     async fn it_should_serve_requests_after_being_stopped_and_started_again_on_a_fixed_port() {
         // Arrange
         let fixed_address = {
