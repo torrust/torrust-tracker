@@ -157,7 +157,7 @@ failed runs: 0
 
 #### Conclusion
 
-All 150 runs on the final head passed, with the 18 ignored tests skipped. At the V1 rate, 150
+All 150 runs of recheck 2 passed, with the 18 tests ignored at that head skipped. At the V1 rate, 150
 green runs with the race still present would have a probability of about 0.05. The recheck covers
 this workstation only; CI runs one suite at a time and was not part of it.
 

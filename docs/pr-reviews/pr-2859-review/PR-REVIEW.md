@@ -171,7 +171,7 @@ was processed.
 - Reviewer finding ID: F2
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4572584183>
 - Concern: The PR body said `Closes #2393` while T6, the acceptance criteria and the evidence were still open.
-- Solution: The PR body now says `Related to #2393`. T5 waits for the maintainer to decide the fate of the eighteen ignored tests, so this PR does not close the issue.
+- Solution: The PR body now says `Related to #2393`. T5 waits for the maintainer to decide the fate of the ignored tests (twenty-one after F28), so this PR does not close the issue.
 - Current-tree verification: `gh api repos/torrust/torrust-tracker/pulls/2859 --jq .body` starts with `Related to #2393`.
 - Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2859#issuecomment-6876115700>
 - Follow-up PR URL: N/A
@@ -198,7 +198,7 @@ was processed.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4572584194>
 - Concern: The tests that rebind a released ephemeral port after a stop or a drop were not in the inventory, although V1 failed on that kind of assertion.
 - Solution: The inventory now names both racing shapes. The eight stop and drop tests in the four environment modules, and the orphaned-processor test in `udp-server` `launcher.rs` that waits for the same rebind, are ignored and listed as needing a maintainer decision.
-- Current-tree verification: `grep -rn "flaky port race, see #2393" packages src | wc -l` prints `18`.
+- Current-tree verification: `grep -rn "flaky port race, see #2393" packages src | wc -l` printed `18` after this fix; it prints `21` after F28 added three more.
 - Resolution reference: fix(tests): [#2393] ignore the tests that rebind a released port
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573167978>
@@ -302,7 +302,7 @@ was processed.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4572801931>
 - Concern: The four environment modules re-bind a released ephemeral port at once, and their drop-path waits do the same, but none was ignored or listed.
 - Solution: Same fix as F9: the eight tests are ignored and listed, with the second racing shape described in the inventory.
-- Current-tree verification: `grep -rn "flaky port race, see #2393" packages src | wc -l` prints `18`.
+- Current-tree verification: `grep -rn "flaky port race, see #2393" packages src | wc -l` printed `18` after this fix; it prints `21` after F28 added three more.
 - Resolution reference: fix(tests): [#2393] ignore the tests that rebind a released port
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573168780>
