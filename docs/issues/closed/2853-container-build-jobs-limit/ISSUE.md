@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: in-progress
+status: done
 priority: p2
 epic: null
 github-issue: 2853
-spec-path: docs/issues/open/2853-container-build-jobs-limit/ISSUE.md
+spec-path: docs/issues/closed/2853-container-build-jobs-limit/ISSUE.md
 branch: "2853-container-build-jobs-limit"
-related-pr: null
-last-updated-utc: "2026-11-14 08:26"
+related-pr: 2854
+last-updated-utc: "2026-11-14 09:49"
 semantic-links:
   skill-links:
     - create-issue
@@ -111,13 +111,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [x] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -134,19 +134,20 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-13 13:26 UTC - Claude Code (Claude Fable 5.2) - Appended a correction to the audit log and removed two quoted commit hashes (`docs(pr-reviews): [#2853] correct the audit log and drop quoted commit hashes`, committed 13:17 UTC); all 31 review threads are resolved. Recorded the self-hosted runner build step times (M4, evidence V4): 827 s at 4 jobs against 731 s uncapped. AC6 stays TODO until the maintainer decides whether that is acceptable. Added `implementation-retrospective.md`.
 - 2026-11-13 22:33 UTC - Claude Code (Claude Fable 5.2) - The maintainer accepted the 13% slower build step on the self-hosted runner, so AC6 is DONE. Rebased the branch onto `develop` to take the fix of the container regression script (issue #2855), which made the `Test (Docker) (release)` check fail on this pull request. Stated in `implementation-retrospective.md` the time its review counts were taken (review finding F30).
 - 2026-11-14 08:26 UTC - Claude Code (Claude Opus 5.5) - Addressed review findings F31 to F33: named where and when the maintainer accepted AC6, pointed the F30 audit row at the reply that reports its fix, and replaced the pre-rebase failing-check statement in evidence V4 with the passing run at the rebased head.
+- 2026-11-14 09:49 UTC - Claude Code (Claude Opus 5.5) - PR #2854 merged and issue #2853 closed on GitHub. Archived the spec folder to `docs/issues/closed/` and ticked the workflow checkpoints and acceptance criteria, which the status table already marked DONE.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `report.md` records peak memory and wall time of the release image build at 4, 8 and 16 jobs, and the reproducible command.
-- [ ] AC2: `docker build --target release` on a machine with many cores keeps the Cargo jobs at the chosen default without any flag; `--build-arg CARGO_BUILD_JOBS=N` overrides it for Docker and Podman.
-- [ ] AC3: `docker-build.sh` honours `CARGO_BUILD_JOBS` from the environment.
-- [ ] AC4: `docs/containers.md` documents the default, how to raise and lower it, and the memory rule of thumb.
-- [ ] AC5: The decision on BuildKit stage overlap is recorded with its reasoning.
-- [ ] AC6: The effect on the self-hosted and GitHub-hosted runners is recorded and shows no meaningful slowdown, or the workflow passes a different value.
-- [ ] `linter all` exits with code `0`
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior/workflow changes
+- [x] AC1: `report.md` records peak memory and wall time of the release image build at 4, 8 and 16 jobs, and the reproducible command.
+- [x] AC2: `docker build --target release` on a machine with many cores keeps the Cargo jobs at the chosen default without any flag; `--build-arg CARGO_BUILD_JOBS=N` overrides it for Docker and Podman.
+- [x] AC3: `docker-build.sh` honours `CARGO_BUILD_JOBS` from the environment.
+- [x] AC4: `docs/containers.md` documents the default, how to raise and lower it, and the memory rule of thumb.
+- [x] AC5: The decision on BuildKit stage overlap is recorded with its reasoning.
+- [x] AC6: The effect on the self-hosted and GitHub-hosted runners is recorded and shows no meaningful slowdown, or the workflow passes a different value.
+- [x] `linter all` exits with code `0`
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated when behavior/workflow changes
 
 ## Verification Plan
 

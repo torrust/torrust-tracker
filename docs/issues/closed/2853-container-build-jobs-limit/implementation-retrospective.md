@@ -6,7 +6,7 @@ semantic-links:
     - open-pull-request
     - create-issue
   related-artifacts:
-    - docs/issues/open/2853-container-build-jobs-limit/ISSUE.md
+    - docs/issues/closed/2853-container-build-jobs-limit/ISSUE.md
     - docs/pr-reviews/pr-2854-review/PR-REVIEW.md
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
     - .github/skills/dev/pr-reviews/wait-for-pr-review/SKILL.md
@@ -240,7 +240,7 @@ the `process-pr-review` skill.
 
 ## Evidence
 
-- Issue specification: `docs/issues/open/2853-container-build-jobs-limit/ISSUE.md`
+- Issue specification: `docs/issues/closed/2853-container-build-jobs-limit/ISSUE.md`
 - Review audit record with all 31 findings: `docs/pr-reviews/pr-2854-review/PR-REVIEW.md`
 - Pull request: <https://github.com/torrust/torrust-tracker/pull/2854>
 - Commands used for the counts:
