@@ -73,8 +73,7 @@ audit-local IDs), both on the head that carried the round 9 audit. Copilot label
 "Low severity"; the severity `Minor` is inferred from those labels.
 Round 11 is the approving review `5903179555` of `da2ce7` (F58, audit-local ID; reviewer's own F50, which collides,
 recorded as the original), on the head that carried the round 10 audit.
-Round 12 is Copilot's review `5903247803` (F59 and F60, audit-local IDs; Copilot labels them F59 and AUDIT-001, recorded as
-the original), on the head that carried the round-11 fix before the round 11 audit. Both are labelled "Low severity" in
+Round 12 is Copilot's review `5903247803` (F59 and AUDIT-001, reviewer-provided IDs, which do not collide), on the head that carried the round-11 fix before the round 11 audit. Both are labelled "Low severity" in
 the body; the comments carry `[Minor]` and `[Nit]` brackets, which are used.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
@@ -138,7 +137,7 @@ the body; the comments carry `[Minor]` and `[Nit]` brackets, which are used.
 | F57 | review-finding:pr-2851-f57 | Copilot | Minor (inferred) | formatting | ORIGINAL | FIXED | RESOLVED |
 | F58 | review-finding:pr-2851-f58 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F59 | review-finding:pr-2851-f59 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
-| F60 | review-finding:pr-2851-f60 | Copilot | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| AUDIT-001 | review-finding:pr-2851-audit-001 | Copilot | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -900,7 +899,7 @@ the body; the comments carry `[Minor]` and `[Nit]` brackets, which are used.
 
 - PR number: 2851
 - Source review ID: 5903247803
-- Reviewer finding ID: F59
+- Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4572652820
 - Concern: D4 said the HTTP range expansion is the only client-visible change of the issue, but T2 also turns a UDP announce with a negative counter into a BEP 15 error response (AC12).
 - Solution: The D4 bullet scopes that statement to HTTP and names the UDP change with AC12.
@@ -909,11 +908,11 @@ the body; the comments carry `[Minor]` and `[Nit]` brackets, which are used.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4572678561
 
-### F60 - Round 11 has no row or detail entry for F58
+### AUDIT-001 - Round 11 has no row or detail entry for F58
 
 - PR number: 2851
 - Source review ID: 5903247803
-- Reviewer finding ID: AUDIT-001
+- Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4572652840
 - Concern: At the reviewed head the only mention of F58 was a correction entry; the table and the detail sections ended at F57 and review `5903179555` was not recorded.
 - Solution: The round 11 audit commit, pushed after the reviewed head, added row F58 and its section with the source review, the original ID F50, the reply URL and the fixing commit.
@@ -952,7 +951,8 @@ the body; the comments carry `[Minor]` and `[Nit]` brackets, which are used.
 - 2026-11-14 08:14 UTC - Round 10: the approving review `5890585973` of `da2ce7` (submitted 2026-11-13 12:00:03Z, forge `submitted_at`) with five findings, reviewer's own F43 to F46 and F48, reassigned F48 to F52; and Copilot's review `5891790581` (submitted 13:27:29Z) with five, F53 to F57; both on the head that carried the round 9 audit. The fixes were committed between 08:06:35Z and 08:09:24Z (`git log --format=%aI`) as `docs(issues): [#1347] describe issue #2850 as the planned fix in the sub-issue table`, `docs(issues): [#2838] check the length of each UDP response in the probe` and `docs(pr-reviews): correct rows and log entries of the review audit of PR #2851`, and their push had landed by 08:13 (`git ls-remote` of the fork matched the local head). Replied on the ten threads between 08:13:39Z and 08:14:01Z (forge `created_at`). The threads are resolved one by one, by their own thread id, after this entry's commit is pushed.
 - 2026-11-14 08:33 UTC - Correction for F58: the corrected F42 Solution (from the round-10 corrections) said the round-7 audit commit was already on the branch when review `5890183339` was posted. The forge records that review at the head of the round-7 probe fix, as the overview and the round-8 entry say, and no push time that orders the round-7 audit commit (committed 11:27:27Z) against the review (11:30:41Z). The F42 Solution now says so. No earlier entry is rewritten.
 - 2026-11-14 08:38 UTC - Round 11: the approving review `5903179555` of `da2ce7` (submitted 08:32:57Z, forge `submitted_at`) at the head that carried the round 10 audit, with one Nit, reviewer's own F50, reassigned F58. The fix was committed as `docs(pr-reviews): give one account of the round-7 audit commit in the audit of PR #2851` (authored and committed 08:33:41Z) and its push had landed before the reply (`git ls-remote` of the fork matched the local head). Replied on the thread at 08:38:09Z (forge `created_at`). The thread is resolved by its own thread id after this entry's commit is pushed.
-- 2026-11-14 08:51 UTC - Round 12: Copilot's review `5903247803` (submitted 08:45:50Z, forge `submitted_at`) at the head that carried the round-11 fix, before the round 11 audit was pushed, with two findings, F59 and F60. F59 was fixed as `docs(issues): [#2850] name the UDP rejection as a client-visible change` (authored and committed 08:47:17Z) and its push had landed before the replies (`git ls-remote` of the fork matched the local head). F60 was already fixed by `docs(pr-reviews): record round 11 in the review audit of PR #2851`. Replied on both threads at 08:50:50Z and 08:50:52Z (forge `created_at`). The threads are resolved one by one, by their own thread id, after this entry's commit is pushed.
+- 2026-11-14 08:51 UTC - Round 12: Copilot's review `5903247803` (submitted 08:45:50Z, forge `submitted_at`) at the head that carried the round-11 fix, before the round 11 audit was pushed, with two findings, F59 and AUDIT-001. F59 was fixed as `docs(issues): [#2850] name the UDP rejection as a client-visible change` (authored and committed 08:47:17Z) and its push had landed before the replies (`git ls-remote` of the fork matched the local head). AUDIT-001 was already fixed by `docs(pr-reviews): record round 11 in the review audit of PR #2851`. Replied on both threads at 08:50:50Z and 08:50:52Z (forge `created_at`). The threads are resolved one by one, by their own thread id, after this entry's commit is pushed.
+- 2026-11-14 09:02 UTC - Correction for round 12: Copilot's IDs F59 and AUDIT-001 do not collide with this record, so both are kept, as step 3 of `process-pr-review` asks. The row and section first filed as F60 are now AUDIT-001, and both entries read `Reviewer finding ID: N/A`; the overview and the round-12 entry are updated to match, because they named the IDs only. The two round-12 replies still say "audit F59" and "audit F60"; F60 is not used for any other finding. No other entry is rewritten.
 
 ## Completion Rules
 
