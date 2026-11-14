@@ -105,6 +105,10 @@ Two shapes race:
   released port (directly or in a wait loop) to prove it was released. A concurrent port-`0` bind can
   receive the same port in between. The V1 failure (`... should be released after registration
   failure: Address already in use`) has this assertion.
+- **Released port handed back within one test.** A service binds port `0` and registers it, the test
+  stops it, then starts a second service on port `0`. The kernel can hand the second service the
+  port just released, which the registry still holds, so its registration fails with
+  `DuplicateBinding`. The first V4 recheck found this shape (2 failures in 150 runs).
 
 Safe, left unchanged: `tests/configuration/` (ports below the ephemeral range), `tests/metrics/fixed_ports.rs`
 (`17091`-`17094`), the `src/bootstrap/config.rs` and `packages/configuration` tests (the ports are only
@@ -133,6 +137,8 @@ listener, `src/bootstrap/jobs/http_tracker.rs`, the occupied-port tests).
 | `it_should_release_the_udp_socket_when_stopped` | `udp-server` `testing/environment.rs` | Ignored, needs maintainer decision | Rebinds the released ephemeral port. |
 | `it_should_release_the_udp_socket_when_dropped_without_being_stopped` | `udp-server` `testing/environment.rs` | Ignored, needs maintainer decision | Waits until the released port can be rebound. |
 | `it_should_not_return_while_processors_orphaned_by_the_request_ring_are_still_running` | `udp-server` `server/launcher.rs` | Ignored, needs maintainer decision | Its main assertion (processors joined) needs no port, but its last assertion waits until the released port can be rebound. |
+| `it_should_return_error_when_api_service_was_stopped_after_registration` | `axum-health-check-api-server` `tests/server/contract.rs` | Rewritten | Starts the health-check API before stopping the REST API, so the two never share a port. |
+| `it_should_return_error_when_http_service_was_stopped_after_registration` | `axum-health-check-api-server` `tests/server/contract.rs` | Rewritten | Same shape and fix as the REST API variant. The UDP variant cannot collide, because a UDP and an HTTP binding on one port are different registrations. |
 | `it_should_register_the_service_with_a_health_check_that_reaches_the_running_server` | `udp-server` `server/mod.rs` | Rewritten | Binds `127.0.0.1:0` and reads the bound address; it never needed a pre-selected port. |
 | `it_should_cancel_the_udp_tracker_component_through_the_job_manager` | `src/app.rs` | Rewritten | Uses the configured port `0`; it never needed a reserved address. |
 | `it_should_report_an_error_with_the_checked_url_when_nothing_listens_on_the_checked_address` | `axum-rest-api-server` `server.rs` | Rewritten | Checks the address of a socket the test binds to port `0` and never listens on, so nothing else can listen there. |
@@ -179,7 +185,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1 | DONE | Reproduce and inventory the observed failures | Evidence records the 200 isolated, 100 package, and 51 full-suite runs. |
 | T2 | DONE | Re-check the inventory on `develop` | The inventory above, including the stale CLI finding and both racing shapes. |
 | T3 | DONE | Disable each racing test with `#[ignore]` | Eighteen tests ignored with the reason `flaky port race, see #2393`. |
-| T4 | DONE | Rewrite the tests that never needed a real port | Three tests rewritten. |
+| T4 | DONE | Rewrite the tests that never needed a racing port | Five tests rewritten. |
 | T5 | BLOCKED | Decide the fate of the eighteen ignored tests | Waiting for the maintainer. |
 | T6 | IN_PROGRESS | Full-suite recheck | 150 full-suite runs recorded as V4 in `manual-verification-evidence.md`. |
 

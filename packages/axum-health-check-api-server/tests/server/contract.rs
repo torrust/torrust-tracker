@@ -118,12 +118,14 @@ mod api {
 
         let registar = service.registar.clone();
 
+        // Start the health-check API while the service still holds its port, so the kernel cannot
+        // hand that port to the health-check API after the service releases it (#2393).
+        let config = configuration.health_check_api.clone();
+        let env = Started::new(&config.into(), registar).await;
+
         let _stopped = service.stop().await;
 
         {
-            let config = configuration.health_check_api.clone();
-            let env = Started::new(&config.into(), registar).await;
-
             let response = get(&format!("http://{}/health_check", env.bind_address())).await; // DevSkim: ignore DS137138
 
             assert_eq!(response.status(), 200);
@@ -309,12 +311,14 @@ mod http {
 
         let registar = service.registar.clone();
 
+        // Start the health-check API while the service still holds its port, so the kernel cannot
+        // hand that port to the health-check API after the service releases it (#2393).
+        let config = configuration.health_check_api.clone();
+        let env = Started::new(&config.into(), registar).await;
+
         let _stopped = service.stop().await;
 
         {
-            let config = configuration.health_check_api.clone();
-            let env = Started::new(&config.into(), registar).await;
-
             let response = get(&format!("http://{}/health_check", env.bind_address())).await; // DevSkim: ignore DS137138
 
             assert_eq!(response.status(), 200);
