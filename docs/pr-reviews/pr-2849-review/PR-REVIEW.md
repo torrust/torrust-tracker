@@ -51,8 +51,10 @@ an existing audit ID (F7, F8, F2, F4, F9, and the just-assigned F10 itself), so 
 reassigned the next ordinal and the original ID is recorded as the reviewer finding ID. His F2 and
 F4 are re-raises of the audit's own F2 and F4. Copilot's review 5887735321 found nothing new
 (approval recommended, three prior findings resolved) and adds no row. F16 is da2ce7's review
-5889290894; his own ID F11 collides with the audit's F11, so it is reassigned. All seventeen
-threads are inline.
+5889290894; his own ID F11 collides with the audit's F11, so it is reassigned. F17 to F19 are
+Copilot's review 5890114272, source order; Copilot gives no finding ID. F17 and F18 are re-raises
+of F7 (the same rendering-artefact claim, now on two different lines after the table moved and
+the audit record itself grew a table). All twenty threads are inline.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------- | ------------- | -------- | -------------- | ------------------ | ------------ | ------------- |
@@ -72,6 +74,9 @@ threads are inline.
 | F14 | review-finding:pr-2849-f14 | Human | Nit | formatting | ORIGINAL | FIXED | RESOLVED |
 | F15 | review-finding:pr-2849-f15 | Human | Nit | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F16 | review-finding:pr-2849-f16 | Human | Minor | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-2849-f17 | Copilot | Medium (inferred) | formatting | RE_RAISE_OF:F7 | NO_ACTION | RESOLVED |
+| F18 | review-finding:pr-2849-f18 | Copilot | Medium (inferred) | formatting | RE_RAISE_OF:F7 | NO_ACTION | RESOLVED |
+| F19 | review-finding:pr-2849-f19 | Copilot | Medium (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -334,6 +339,55 @@ threads are inline.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2849#discussion_r4562406791
 
+### F17 - These table rows start with a double pipe (related-issues.md summary table)
+
+- PR number: 2849
+- Source review ID: 5890114272
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2849#discussion_r4562698575
+- Concern: Copilot's review again reported `||` at the start of each summary-table row in
+  `related-issues.md`, this time at line 48 (the table shifted after the earlier fixes).
+- Solution: No change, re-raise of F7: the table has one leading pipe per row at every head this
+  PR has had, and `linter markdown` passes (which flags malformed tables). This reads as a
+  rendering artefact of Copilot's own review-overview panel, not the file.
+- Current-tree verification: `related-issues.md` summary table (`| Issue | ... |`); `linter markdown` exit 0.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2849#discussion_r4572422452
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2849#discussion_r4572422452
+
+### F18 - Same markdown-table issue here: rows start with a double pipe (PR-REVIEW.md findings table)
+
+- PR number: 2849
+- Source review ID: 5890114272
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2849#discussion_r4562698682
+- Concern: Copilot's review reported the same `||` rendering claim, this time against this audit
+  record's own Findings table (line 74 at the reviewed head).
+- Solution: No change, re-raise of F7: the table has one leading pipe per row at every head this
+  file has had, and `linter markdown` passes. Same rendering artefact as F17, now against this
+  file's own table instead of `related-issues.md`'s.
+- Current-tree verification: this file's Findings table (`| Finding ID | ... |`); `linter markdown` exit 0.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2849#discussion_r4572423137
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2849#discussion_r4572423137
+
+### F19 - The #613 verdict cites a file path rather than a specific test
+
+- PR number: 2849
+- Source review ID: 5890114272
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2849#discussion_r4562698624
+- Concern: The #613 verdict said "its TLS test is `packages/axum-http-server/src/server.rs`",
+  naming a file rather than a test, unlike the #612 section which names
+  `it_should_close_a_tls_connection_that_completes_the_handshake_and_sends_nothing`.
+- Solution: Named the same test function, which also exists in `packages/axum-http-server/src/server.rs`,
+  in the #613 verdict.
+- Current-tree verification: `grep -n "fn it_should_close_a_tls_connection_that_completes_the_handshake_and_sends_nothing"
+  packages/axum-http-server/src/server.rs` matches line 734.
+- Resolution reference: docs(issues): [#2776] name the HTTP tracker's own TLS test for #613
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2849#discussion_r4572421737
+
 ## Processing Log
 
 - 2026-11-12 17:12 UTC - Review 5878819832 (da2ce7) submitted: F1 to F6.
@@ -355,6 +409,10 @@ threads are inline.
 - 2026-11-13 10:52 UTC - Created this audit record, closing F10.
 - 2026-11-13 10:55 UTC - Replied to and resolved all seventeen threads, citing each fix's commit
   subject or the exact `Superseded by` form, closing F11 and F16.
+- 2026-11-14 07:59 UTC - Review 5890114272 (Copilot) submitted: F17 and F18 (re-raises of F7), F19.
+- 2026-11-14 07:59 UTC - Pushed the commit fixing F19.
+- 2026-11-14 08:00 UTC - Replied to and resolved the F17, F18 and F19 threads; all twenty threads
+  now have a reply and are resolved.
 
 ## Completion Rules
 
