@@ -64,9 +64,9 @@ its fixed health-check port was already in use.
 
 | Issue | Relationship |
 | --- | --- |
-| #1419 (open) | Same problem class for main-application integration tests. It moved most suites to port `0` with registry-based address discovery; `tests/metrics/fixed_ports.rs` still uses fixed ports `17091`-`17094`, below Linux's default ephemeral range (`32768`-`60999`). This bug reuses #1419's pattern and audits that suite in T5; it does not change #1419's remaining #1488 shutdown work. |
+| #1419 (open) | Same problem class for main-application integration tests. It moved most suites to port `0` with registry-based address discovery; `tests/metrics/fixed_ports.rs` still uses fixed ports `17091`-`17094`, below Linux's default ephemeral range (`32768`-`60999`). The inventory classifies that suite as safe; it does not change #1419's remaining #1488 shutdown work. |
 | #2386 (open) | Documents fixed E2E host ports (`6969/udp`, `7070`, `1212`, `1313`) in `src/console/ci/e2e/runner.rs` that prevent concurrent E2E jobs on one Docker host. Different failure domain (Docker host, not nextest); sibling subissue #2395 owns it. |
-| #2132 (closed) | Its native-process fixture design explicitly rejected "find a free port, release it, then spawn" and chose port `0` plus startup-log discovery. That fixture is the precedent for T4. |
+| #2132 (closed) | Its native-process fixture design explicitly rejected "find a free port, release it, then spawn" and chose port `0` plus startup-log discovery. It is the precedent for port `0` with address read-back, which the rewritten UDP health-check test follows. |
 
 Of these, only #1419 is itself a subissue of the parent EPIC; #2386 and #2132 are references.
 
@@ -135,7 +135,7 @@ listener, `src/bootstrap/jobs/http_tracker.rs`, the occupied-port tests).
 | `it_should_not_return_while_processors_orphaned_by_the_request_ring_are_still_running` | `udp-server` `server/launcher.rs` | Ignored, needs maintainer decision | Its main assertion (processors joined) needs no port, but its last assertion waits until the released port can be rebound. |
 | `it_should_register_the_service_with_a_health_check_that_reaches_the_running_server` | `udp-server` `server/mod.rs` | Rewritten | Binds `127.0.0.1:0` and reads the bound address; it never needed a pre-selected port. |
 | `it_should_cancel_the_udp_tracker_component_through_the_job_manager` | `src/app.rs` | Rewritten | Uses the configured port `0`; it never needed a reserved address. |
-| `it_should_report_an_error_with_the_checked_url_when_nothing_listens_on_the_checked_address` | `axum-rest-api-server` `server.rs` | Rewritten | Checks an address nothing binds (`127.0.0.1:1`), so no test can claim it. |
+| `it_should_report_an_error_with_the_checked_url_when_nothing_listens_on_the_checked_address` | `axum-rest-api-server` `server.rs` | Rewritten | Checks the address of a socket the test binds to port `0` and never listens on, so nothing else can listen there. |
 
 No test was deleted: none of them only checks the operating system. The eighteen ignored tests prove
 that the tracker releases its socket after a stop, a drop or a failure, which is the tracker's own
@@ -225,8 +225,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ## Acceptance Criteria
 
-- [ ] AC1: Every test that binds port `0`, drops the socket and reuses the address is either
-  rewritten without a real port or disabled with `#[ignore = "flaky port race, see #2393"]`.
+- [ ] AC1: Every test with a racing shape (bind, drop, reuse; or release, then rebind) is either
+  rewritten without a racing port or disabled with `#[ignore = "flaky port race, see #2393"]`.
 - [ ] AC2: Every ignored test has a recorded decision in the per-test table: deleted, rewritten, or
   kept disabled with a reason.
 - [ ] AC3: The full parallel suite passes repeatedly with no port-allocation failure.
@@ -266,9 +266,8 @@ AC3 done from a focused test or a single run.
 
 ## Implementation Completion Review
 
-After implementation, compare the result with this specification. Record whether the selected
-fixture ownership model generalized safely, any tests intentionally left unchanged, and reusable
-lessons. Create `implementation-retrospective.md` only if the work changes repository-wide test
+After T5, compare the result with this specification. Record which ignored tests were deleted,
+rewritten or kept disabled, any tests intentionally left unchanged, and reusable lessons. Create `implementation-retrospective.md` only if the work changes repository-wide test
 networking policy; otherwise add a concise progress-log entry explaining why no separate
 retrospective is needed.
 
