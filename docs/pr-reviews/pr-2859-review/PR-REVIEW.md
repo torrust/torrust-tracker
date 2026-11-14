@@ -407,9 +407,9 @@ was processed.
 - Concern: The body opened with `Related to #2393`, but a later sentence said "this PR does not close #2393", and a negated mention closes the issue too.
 - Solution: The sentence is now "The issue stays open for T5." The body and the branch commit messages were scanned with the `open-pull-request` pattern and match nothing.
 - Current-tree verification: The `open-pull-request` scan of `gh api repos/torrust/torrust-tracker/pulls/2859 --jq .body` and of `git log --format='%B%n--COMMIT--' torrust/develop..HEAD` prints no match.
-- Resolution reference: <CONV3_URL>
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2859#issuecomment-6876617625>
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_F25>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573316140>
 
 ### F26 - Split findings table and stale T6 state in the audit
 
@@ -419,10 +419,10 @@ was processed.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573266625>
 - Concern: A blank line split the Findings table, so F16 to F24 rendered as text, and the F6 Solution still said T6 was `IN_PROGRESS`.
 - Solution: The blank line is removed and the F6 Solution says T6 is `DONE` with the V4 recheck.
-- Current-tree verification: `grep -c "^| F" docs/pr-reviews/pr-2859-review/PR-REVIEW.md` counts one contiguous table, and `grep -c "IN_PROGRESS" docs/pr-reviews/pr-2859-review/PR-REVIEW.md` prints `0`.
+- Current-tree verification: the Findings table runs from its header to the F30 row with no blank line, and the F6 Solution reads "T6 is `DONE` with the V4 recheck."
 - Resolution reference: docs(pr-reviews): [#2393] join the findings table and update the T6 state in the PR 2859 audit
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_F26>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573316301>
 
 ### F27 - PR-branch commit ids in durable records
 
@@ -435,7 +435,7 @@ was processed.
 - Current-tree verification: The `open-pull-request` commit-id check, run against `torrust/develop`, prints nothing.
 - Resolution reference: docs(issues): [#2393] cite commit subjects instead of PR-branch commit ids
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_F27>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573316416>
 
 ### F28 - Contract tests still probe a released port
 
@@ -448,7 +448,7 @@ was processed.
 - Current-tree verification: `grep -rn "flaky port race, see #2393" packages src | wc -l` prints `21`.
 - Resolution reference: fix(tests): [#2393] ignore the health-check contract tests that probe a released port
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_F28>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573316520>
 
 ### F29 - Ignore disabled the launcher test's main contract
 
@@ -461,7 +461,7 @@ was processed.
 - Current-tree verification: `cargo nextest run -p torrust-tracker-udp-server -E 'test(/orphaned_by_the_request_ring/)' --run-ignored all` prints `2 tests run: 2 passed`.
 - Resolution reference: fix(tests): [#2393] keep the orphaned-processor contract running and ignore only its socket-release assertion
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_F29>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573316652>
 
 ### F30 - "Two shapes" introduces three
 
@@ -474,7 +474,7 @@ was processed.
 - Current-tree verification: `grep -n "Three shapes race\|three racing shapes\|handed back within one test" docs/issues/open/2393-2392-test-port-allocation-races/ISSUE.md` matches the inventory, T2 and AC1.
 - Resolution reference: docs(issues): [#2393] count three racing shapes in the inventory, the plan and AC1
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_F30>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573316753>
 
 ## Processing Log
 
@@ -497,6 +497,14 @@ was processed.
   above, the Findings introduction and the F8 and F16 detail entries cited PR-branch commit ids. They
   were edited in place to name the head by its last commit subject; no other text of those entries
   changed.
+- 2026-11-14 11:31 UTC - Round 3. da2ce7 reviewed the head ending in
+  `docs(pr-reviews): [#2393] log the resolution of both review rounds` at 11:16:50Z
+  (CHANGES_REQUESTED, six inline threads, F25 to F30). The fixes were committed one per finding,
+  except that `docs(issues): [#2393] record the 20-run check after the third review` also carries
+  the round-3 rows of this audit, which were uncommitted when it was made. The push ended at the
+  head ending in that commit. The PR body was edited and the conversation comment of 11:30:34Z
+  records it for F25; the six replies were posted between 11:30:45Z and 11:30:56Z, and the F8 reply
+  was edited at 11:23:37Z to replace its commit ids.
 
 ## Completion Rules
 
