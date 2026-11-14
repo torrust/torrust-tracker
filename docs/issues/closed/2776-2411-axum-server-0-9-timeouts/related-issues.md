@@ -1,7 +1,7 @@
 ---
 doc-type: related-issues-disposition
 issue-spec: docs/issues/closed/2776-2411-axum-server-0-9-timeouts/ISSUE.md
-last-updated-utc: "2026-11-13 09:42"
+last-updated-utc: "2026-11-14 07:59"
 semantic-links:
   related-artifacts:
     - docs/issues/closed/2776-2411-axum-server-0-9-timeouts/ISSUE.md
@@ -78,7 +78,9 @@ Remains open: nothing for this issue. Rate limiting and connection caps live in 
 Original report (2024-01-16, maintainer; label Bug; child of #603): identical text to #612, applied
 to the HTTP tracker. Same comment history.
 
-Verdict: **fixed by #2813**, same evidence as #612; the TLS runtime figures there are the HTTP tracker's own, and its TLS test is `packages/axum-http-server/src/server.rs`.
+Verdict: **fixed by #2813**, same evidence as #612; the TLS runtime figures there are the HTTP tracker's own, and its TLS test is
+`it_should_close_a_tls_connection_that_completes_the_handshake_and_sends_nothing` in
+`packages/axum-http-server/src/server.rs`.
 
 Remains open: nothing for this issue (see #612).
 
