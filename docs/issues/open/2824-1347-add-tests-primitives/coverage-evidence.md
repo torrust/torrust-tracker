@@ -61,6 +61,33 @@ the line totals include the in-file test modules, so part of the rise is the add
 uncovered `peer.rs` lines are the `Id::new` group (F5), the dead `Display` `None` branch and
 `peer::fixture` (the F5 follow-up). Details and the mutation table: `test-refactor-plans/peer.md`.
 
+### S3 (configuration defaults and bounded values), 2026-11-13
+
+Measured on branch `2824-1347-add-tests-primitives-defaults` after the S2 merge (#2841), with `cargo-llvm-cov 0.6.16`
+and stable Rust 1.99.1, same command as the baseline (separate `CARGO_LLVM_COV_TARGET_DIR`):
+
+| Scope | Tests | Lines | Regions | Functions |
+| --- | ---: | ---: | ---: | ---: |
+| Unit-only (`--lib`) = aggregate | 105 unit | 1,044 / 1,121 (93.13%) | 1,649 / 1,742 (94.66%) | 203 / 219 (92.69%) |
+
+Change from S2: lines +7.90 pp, regions +5.35 pp, functions +9.70 pp (from the baseline: +32.57, +26.72, +35.46 pp).
+The slice adds 24 tests (`announce_interval.rs` 6, `announce.rs` 6, `policy.rs` 5, `mode.rs` 4, `pagination.rs` 3), and
+changes two doc comments (`mode.rs`, `pagination.rs`). The line totals include the in-file test modules, so part of the
+rise is the added test code itself. Per file, unit-only lines after the slice: `announce_interval.rs` 113 / 113,
+`announce.rs` 55 / 55, `policy.rs` 40 / 40, `mode.rs` 25 / 25, `pagination.rs` 42 / 42 (before: 79 / 88, 0 / 16, 0 / 16,
+0 / 8, 0 / 21). Details, mutation tables and the property decision: `test-refactor-plans/announce_interval.md`,
+`announce.md`, `policy.md`, `mode.md` and `pagination.md`.
+
+Reconciliation of the per-file and package figures (`review-finding:pr-2852-f3`): the per-file lines sum to +196 covered
+and +126 lines (34 + 55 + 40 + 25 + 42 and 25 + 39 + 24 + 17 + 21), the package moved from 848 / 995 to 1,044 / 1,121
+(+196 and +126), and each step agrees when re-measured at its own commit: `announce_interval.rs` 882 / 1,020,
+`announce.rs` 937 / 1,059, `policy.rs` 977 / 1,083, `mode.rs` 1,002 / 1,100, `pagination.rs` 1,044 / 1,121. Two
+first-run figures were off. The first `announce_interval.rs` measure (114 / 114, package 883 / 1,021) predates a
+clippy rewrite of its property that removed one covered line. The first `announce.rs` step measure (935 / 1,059, 1,488
+regions) caught `readiness.rs` at 50 / 52 lines instead of 52 / 52, a file this slice does not touch: its unit-only
+coverage varied between runs (every other run read 52 / 52). Observation for the S4 `readiness.rs` record: find what
+makes that coverage vary.
+
 ## Module Inventory
 
 Every `.rs` file under `packages/primitives/src/` (16 files), once. "Initial hypothesis" is a

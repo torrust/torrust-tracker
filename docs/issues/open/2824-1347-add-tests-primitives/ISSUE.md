@@ -7,9 +7,9 @@ priority: p2
 epic: 1347
 github-issue: 2824
 spec-path: docs/issues/open/2824-1347-add-tests-primitives/ISSUE.md
-branch: "2824-1347-add-tests-primitives-fixes"
-related-pr: 2834
-last-updated-utc: "2026-11-12 18:24"
+branch: "2824-1347-add-tests-primitives-defaults"
+related-pr: 2852
+last-updated-utc: "2026-11-13 22:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -234,8 +234,8 @@ the maintainer (2026-11-10):
 | --- | --- | --- | --- | --- | --- |
 | S0 | This specification, the T1 evidence, and the EPIC registration with the baseline | - | `2824-1347-add-tests-primitives-spec` | #2828 | DONE |
 | S1 | Defect fixes decided in this issue (T2a): F2 `PeerRole` JSON casing, only (F1 fixed upstream; F3, F4, F5 handed off). Merged first, so the test slices pin the fixed behavior. | - | `2824-1347-add-tests-primitives-fixes` | #2834 | DONE |
-| S2 | T2, then `peer.rs` (rank 1, the largest gap) | 1 | `2824-1347-add-tests-primitives-peer` | #2841 | IN_PROGRESS |
-| S3 | Configuration defaults and bounded values: `announce.rs`, `policy.rs`, `mode.rs`, `pagination.rs`, `announce_interval.rs` | 2-6 | `2824-1347-add-tests-primitives-defaults` | - | TODO |
+| S2 | T2, then `peer.rs` (rank 1, the largest gap) | 1 | `2824-1347-add-tests-primitives-peer` | #2841 | DONE |
+| S3 | Configuration defaults and bounded values: `announce.rs`, `policy.rs`, `mode.rs`, `pagination.rs`, `announce_interval.rs` | 2-6 | `2824-1347-add-tests-primitives-defaults` | #2852 | IN_PROGRESS |
 | S4 | `swarm_metadata.rs`, no-change decisions for the covered and wiring files, then T4-T6; the clean-up moves the spec to `docs/issues/closed/` and updates the EPIC tables | 7-16 | `2824-1347-add-tests-primitives-final` | - | TODO |
 
 Rules: S0 to S3 use `Related to #2824`; only S4 uses `Closes #2824`. Do not stack
@@ -283,11 +283,11 @@ States: `PENDING`, `IN_PROGRESS`, `BLOCKED`, `DONE`. Unit-only lines are the bas
 | Order | Source module | Rank | Slice | Unit-only lines | Initial hypothesis | State |
 | ---: | --- | ---: | --- | ---: | --- | --- |
 | 1 | `peer.rs` | 1 | S2 | 115 / 325 | Test candidate; property candidate (`Id`) | DONE (S2; the `Id::new` and `peer::fixture` groups wait on the F5 follow-up) |
-| 2 | `announce_interval.rs` | 2 | S3 | 79 / 88 | Test candidate (3 gaps); property candidate | PENDING |
-| 3 | `announce.rs` | 2 | S3 | 0 / 16 | Test candidate | PENDING |
-| 4 | `policy.rs` | 2 | S3 | 0 / 16 | Test candidate | PENDING |
-| 5 | `mode.rs` | 2 | S3 | 0 / 8 | Test candidate | PENDING |
-| 6 | `pagination.rs` | 2 | S3 | 0 / 21 | Test candidate | PENDING |
+| 2 | `announce_interval.rs` | 2 | S3 | 79 / 88 | Test candidate (3 gaps); property candidate | DONE (S3) |
+| 3 | `announce.rs` | 2 | S3 | 0 / 16 | Test candidate | DONE (S3) |
+| 4 | `policy.rs` | 2 | S3 | 0 / 16 | Test candidate | DONE (S3) |
+| 5 | `mode.rs` | 2 | S3 | 0 / 8 | Test candidate | DONE (S3) |
+| 6 | `pagination.rs` | 2 | S3 | 0 / 21 | Test candidate | DONE (S3) |
 | 7 | `swarm_metadata.rs` | 3 | S4 | 3 / 18 | Test candidate; the `AddAssign` lines are not tested because #2823 deletes the impl | PENDING |
 | 8 | `scrape.rs` | 3 | S4 | 28 / 28 | No change; review test breadth | PENDING |
 | 9 | `service_role.rs` | 4 | S4 | 40 / 40 | No change | PENDING |
@@ -329,6 +329,10 @@ The 16 rows are every `.rs` file under `packages/primitives/src/`, each once.
 - 2026-11-12 14:10 UTC - Claude Code (Sonnet 5.5) - S2: `peer.rs` tests (32 added, 81 unit tests), decision record `test-refactor-plans/peer.md`, 14 of 14 sampled mutants killed; unit-only lines 85.20%, regions 89.28%, functions 82.99%. F6 (negative `left`) handed to #2838 (fix PR #2839). PR #2841, round 1 fixes (Copilot's `ReadInfo` cases; the reviewer's record and commit-split findings).
 - 2026-11-12 16:45 UTC - Claude Code (Sonnet 5.5) - S2 review round 1 timing (for the 14:10 entry above): the reviews arrived at 14:09 (Copilot) and 14:11 and 14:28 (da2ce7); the fixes were pushed at 16:16 after a history rewrite approved by the maintainer; round 2 (da2ce7, 16:41) asked to rebuild the history from the pre-split commits (done, keeping the case table and records as their own commits) and to correct records and the audit.
 - 2026-11-12 17:53 UTC - Claude Code (Sonnet 5.5) - Correction of the entry stamped 16:45 UTC above: the rebuilt commits were made between 16:44 and 16:47 UTC and pushed at 17:26 UTC; the rebuild was done at 16:47 UTC, not at the stamp.
+- 2026-11-12 20:25 UTC - Claude Code (Sonnet 5.5) - S2 merged (#2841). S3 started on `2824-1347-add-tests-primitives-defaults` from `develop`; the baseline matched the end of S2 (848 / 995 lines, 81 tests).
+- 2026-11-13 08:55 UTC - Claude Code (Sonnet 5.5) - S3: five files, each with an approved decision record and a completed-file review (`announce_interval.rs`, `announce.rs`, `policy.rs`, `mode.rs`, `pagination.rs`); 24 tests added (105 in the package), unit-only lines 93.13%, regions 94.66%, functions 92.69%. The `quickcheck` property for `AnnounceIntervalInSecs` was kept because it alone kills a mid-range band mutant. Two doc comments were corrected (`check_keys_expiration` said the opposite of the behavior; `offset` said "page number" but is a number of items to skip); both were non-behavior findings decided as documentation-only corrections, so no `lessons.md` row is needed beyond this entry.
+- 2026-11-13 09:03 UTC - Claude Code (Sonnet 5.5) - S3 pushed and opened as PR #2852 against `develop`; the slice table carries the number.
+- 2026-11-13 09:41 UTC - Claude Code (Sonnet 5.5) - S3 review round 1 of #2852 (Copilot at 09:34 UTC: no open issues; da2ce7 at 09:39 UTC: 8 findings): the description was corrected (the survivor count and the property rule) and the records were corrected (the `i64` mutant, the step coverage figures re-measured at their commits, 90.53%, line references, this frontmatter) and `lessons.md` was created for the REST `offset` wording. Correction of the 2026-11-13 08:55 UTC entry above: it says no `lessons.md` row was needed; one is, for the F8 finding of that review.
 
 ## Acceptance Criteria
 
