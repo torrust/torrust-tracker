@@ -64,9 +64,9 @@ the audit record itself grew a table). All twenty threads are inline.
 | F4 | review-finding:pr-2849-f4 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F5 | review-finding:pr-2849-f5 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-2849-f6 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
-| F7 | review-finding:pr-2849-f7 | Copilot | Minor (inferred) | formatting | ORIGINAL | NO_ACTION | RESOLVED |
+| F7 | review-finding:pr-2849-f7 | Copilot | Minor (inferred) | formatting | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F8 | review-finding:pr-2849-f8 | Copilot | Minor (inferred) | metadata | RE_RAISE_OF:F4 | FIXED | RESOLVED |
-| F9 | review-finding:pr-2849-f9 | Copilot | Minor (inferred) | metadata | ORIGINAL | NO_ACTION | RESOLVED |
+| F9 | review-finding:pr-2849-f9 | Copilot | Minor (inferred) | metadata | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F10 | review-finding:pr-2849-f10 | Human | Minor | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F11 | review-finding:pr-2849-f11 | Human | Minor | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-2849-f12 | Human | Minor | documentation | RE_RAISE_OF:F2 | FIXED | RESOLVED |
@@ -74,8 +74,8 @@ the audit record itself grew a table). All twenty threads are inline.
 | F14 | review-finding:pr-2849-f14 | Human | Nit | formatting | ORIGINAL | FIXED | RESOLVED |
 | F15 | review-finding:pr-2849-f15 | Human | Nit | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F16 | review-finding:pr-2849-f16 | Human | Minor | maintainability | ORIGINAL | FIXED | RESOLVED |
-| F17 | review-finding:pr-2849-f17 | Copilot | Minor (inferred) | formatting | RE_RAISE_OF:F7 | NO_ACTION | RESOLVED |
-| F18 | review-finding:pr-2849-f18 | Copilot | Minor (inferred) | formatting | RE_RAISE_OF:F7 | NO_ACTION | RESOLVED |
+| F17 | review-finding:pr-2849-f17 | Copilot | Minor (inferred) | formatting | RE_RAISE_OF:F7 | NO_ACTION | SUPERSEDED |
+| F18 | review-finding:pr-2849-f18 | Copilot | Minor (inferred) | formatting | RE_RAISE_OF:F7 | NO_ACTION | SUPERSEDED |
 | F19 | review-finding:pr-2849-f19 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
