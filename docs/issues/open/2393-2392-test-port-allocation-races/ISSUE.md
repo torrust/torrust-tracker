@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: in-progress
 priority: p2
 epic: 2392
 github-issue: 2393
 spec-path: docs/issues/open/2393-2392-test-port-allocation-races/ISSUE.md
 branch: "2392-test-isolation-spec"
 related-pr: 2397
-last-updated-utc: "2026-10-02 13:30"
+last-updated-utc: "2026-11-14 09:22"
 semantic-links:
   skill-links:
     - create-issue
@@ -190,7 +190,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   EPIC subissues and stated the port-inventory boundary with the shared-resource audit subissue.
 - 2026-09-30 14:58 UTC - GitHub Copilot - Maintainer approved the draft. Created #2393 as a
   sub-issue of EPIC #2392 and moved the specification to `docs/issues/open/`.
-- 2026-11-14 - Claude - Maintainer narrowed the scope through the EPIC coordinator: a quick patch,
+- 2026-11-14 09:14 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer narrowed the scope through the EPIC coordinator: a quick patch,
   no owned-listener seam, no new port helper. Reverted the shared-helper change, re-checked the
   inventory on `develop`, ignored nine racing tests, rewrote three tests without a real port, and
   recorded the per-test decisions. Nine tests still await a maintainer decision.
