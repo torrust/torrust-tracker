@@ -42,9 +42,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 ## Findings
 
 This record was created late: review 5878819832 (da2ce7) and review 5878898401 (Copilot) were
-both replied to and resolved before this file existed (F8's thread and the `related-issues.md`
-pipe/timezone threads were answered with "Not changed" rather than the exact `Superseded by`
-form). F1 to F6 are da2ce7's own finding IDs from review 5878819832, with no collision, so no
+both replied to and resolved before this file existed (the `related-issues.md` pipe and timezone
+threads, F7 and F9, were answered with "Not changed" rather than the exact `Superseded by` form). F1 to F6 are da2ce7's own finding IDs from review 5878819832, with no collision, so no
 reassignment. F7 to F9 are Copilot's review 5878898401, source order; Copilot gives no finding ID.
 F10 to F15 are da2ce7's review 5887683678; his own IDs F7, F8, F2, F4, F9 and F10 all collide with
 an existing audit ID (F7, F8, F2, F4, F9, and the just-assigned F10 itself), so each is
@@ -319,12 +318,14 @@ the audit record itself grew a table). All twenty threads are inline.
   per Conventional Commit.
 - Solution: `docs(issues): address review findings on the related-issues record` was split, before
   merge, into five commits, one per finding (F1, F6, F2, F5, F4 in that order), and the three later
-  fix commits were rebased on top unchanged; the resulting tree is byte-identical to that commit's
-  tree (`git diff` from that commit to the new head over
-  `docs/issues/closed/2776-2411-axum-server-0-9-timeouts/` is empty).
-- Current-tree verification: `git log --oneline` from `docs(issues): [#2776] record the
-  disposition of #324, #603, #612 and #613` to HEAD shows eight commits, each with a Conventional
-  subject naming one concern; the empty diff above.
+  fix commits were rebased on top unchanged. The last of the five split commits,
+  `docs(issues): [#2776] bump last-updated-utc and add the progress-log entry's time`, has the same
+  tree as the commit it replaced (`git rev-parse <commit>^{tree}` prints the same tree for both, and
+  `git diff` between them over `docs/issues/closed/2776-2411-axum-server-0-9-timeouts/` is empty).
+  The new head differs from it only by the three later fixes.
+- Current-tree verification: `git log --format=%s` from `docs(issues): [#2776] record the
+  disposition of #324, #603, #612 and #613` to the last split commit prints the five split
+  subjects, each naming one concern; the tree comparison above.
 - Resolution reference: docs(pr-reviews): [#2849] create the review audit record
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2849#discussion_r4562406380
@@ -339,7 +340,7 @@ the audit record itself grew a table). All twenty threads are inline.
   thread reply, and the six threads opened by review 5887683678 (F2, F4, F7, F8, F9, F10) stayed
   unanswered and unresolved.
 - Solution: This audit and the new replies on every open and corrected thread close this; all
-  seventeen threads now have a reply and are resolved.
+  sixteen threads then on the forge had a reply and were resolved.
 - Current-tree verification: GraphQL `reviewThreads` for PR #2849, zero unresolved actionable threads.
 - Resolution reference: docs(pr-reviews): [#2849] create the review audit record
 - Follow-up PR URL: N/A
@@ -423,6 +424,11 @@ the audit record itself grew a table). All twenty threads are inline.
 - 2026-11-14 08:55 UTC - Correction (F20): replaced every PR-branch commit id in this record with
   the commit's Conventional Commit subject, including the one in the 2026-11-12 20:28 entry, whose
   event is otherwise unchanged.
+- 2026-11-14 08:56 UTC - Correction (F23): the 2026-11-13 10:55 entry counts seventeen threads;
+  the forge had sixteen (six, three, six and one from the first four reviews). F7's and F9's
+  threads, not F8's, were the ones answered "Not changed". F15's tree identity holds between the
+  replaced commit and the last split commit, not the new head, and its commit count is replaced by
+  the list of split subjects.
 
 ## Completion Rules
 
