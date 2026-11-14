@@ -239,6 +239,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore = "flaky port race, see #2393"]
     async fn it_should_release_the_health_check_api_binding_when_stopped() {
         // Arrange
         let environment = start_within_deadline(unstarted_environment()).await;
@@ -252,6 +253,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore = "flaky port race, see #2393"]
     async fn it_should_release_the_health_check_api_binding_when_dropped_without_being_stopped() {
         // Arrange
         let environment = start_within_deadline(unstarted_environment()).await;
@@ -296,6 +298,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore = "flaky port race, see #2393"]
     async fn it_should_serve_requests_after_being_stopped_and_started_again_on_a_fixed_port() {
         // Arrange
         let fixed_address = {

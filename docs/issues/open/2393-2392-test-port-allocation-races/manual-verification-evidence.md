@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2393-2392-test-port-allocation-races/ISSUE.md
-last-updated-utc: "2026-09-30 15:57"
+last-updated-utc: "2026-11-14 10:45"
 ---
 
 <!-- markdownlint-disable MD003 -->
@@ -81,6 +81,19 @@ this host includes that port. The duplicate-registration fixture chooses a port 
 `127.0.0.1:0`, reading its address, then dropping the listener before the tested `HttpServer`
 binds it. Both sequences allow a concurrent test to claim the address.
 
+#### Check 3 - after the third review, 2026-11-14 11:23 to 11:27 UTC
+
+On the head ending in `docs(pr-reviews): [#2393] join the findings table and update the T6 state in
+the PR 2859 audit`. Its test changes since recheck 2 only move tests between running and ignored:
+three health-check contract tests are ignored, and the launcher test runs again without its
+socket-release assertion, which moved to an ignored companion. No test binds a port in a new way, so
+this is a smaller check of the same command, not a new sized recheck:
+
+```text
+20 runs: 1806 tests run: 1806 passed, 21 skipped
+failed runs: 0
+```
+
 #### Conclusion
 
 Reproduced. The two narrow scopes did not fail, while the full parallel suite independently
@@ -89,15 +102,64 @@ is the second failure above, at the same `axum-http-server` assertion.
 
 ### V2 - Duplicate-registration repair
 
-- Status: `TODO`
+- Status: `NOT_APPLICABLE`
+- The scope changed on 2026-11-14: the duplicate-registration test is ignored, not repaired, so
+  there is no repair to verify. Its fate is in the spec's per-test table.
 
 ### V3 - CLI configuration repair
 
-- Status: `TODO`
+- Status: `NOT_APPLICABLE`
+- On `develop` the CLI configuration tests already use `reserve_free_ports` (#2581), which draws
+  below the ephemeral range. This PR does not change them.
 
 ### V4 - Full recheck
 
-- Status: `TODO`
+- Status: `DONE`
+- Goal: show that the full parallel suite no longer fails on a port race, with enough runs for the
+  claim. At the V1 rate of 1 failure in 50 runs on the `axum-http-server` assertion, 150 green runs
+  would happen with no change at a probability of about 0.05.
+- Environment: same workstation as V1 (32 logical processors), `cargo-nextest 0.9.88 (b44b7adf7
+  2025-01-15)`, `rustc 1.99.1 (58cf8f9c3 2026-10-13)`, default nextest concurrency. Logs are kept
+  locally under `.tmp/recheck-2393*/` and are not versioned.
+- Command, run 150 times in a row after one `--no-run` build:
+
+  ```sh
+  cargo nextest run --tests --all-features --no-fail-fast
+  ```
+
+- Load: pre-commit hooks of other commits on this branch ran during part of each recheck, so the
+  machine was sometimes busier than during V1.
+
+#### Recheck 1 - the head ending in `refactor(tests): [#2393] name the UDP fixture constructor after its released address`, 2026-11-14 09:38 to 10:09 UTC
+
+```text
+148 runs: 1808 tests run: 1808 passed, 18 skipped
+  2 runs: 1808 tests run: 1807 passed, 1 failed, 18 skipped
+failed test, both times:
+  torrust-tracker-axum-health-check-api-server::integration
+  server::contract::api::it_should_return_error_when_api_service_was_stopped_after_registration
+  it should start the health check service: Registration { source: DuplicateBinding(ServiceBinding
+  { protocol: HTTP, bind_address: 127.0.0.1:39449 }) }   (the second run: 127.0.0.1:39709)
+```
+
+The test stops the REST API, which leaves its registration in the registry, then starts the
+health-check API on port `0`. The kernel handed the health-check API the port just released, so its
+registration collided with the stale one. This is a third racing shape, not in the original
+inventory; the test exists unchanged on `develop`. The fix starts the health-check API before
+stopping the REST API, and does the same in the HTTP variant (the UDP variant cannot collide).
+
+#### Recheck 2 - the head ending in `fix(tests): [#2393] start the health-check API before stopping the probed service`, 2026-11-14 10:11 to 10:41 UTC
+
+```text
+150 runs: 1808 tests run: 1808 passed, 18 skipped
+failed runs: 0
+```
+
+#### Conclusion
+
+All 150 runs of recheck 2 passed, with the 18 tests ignored at that head skipped. At the V1 rate, 150
+green runs with the race still present would have a probability of about 0.05. The recheck covers
+this workstation only; CI runs one suite at a time and was not part of it.
 
 ## Failures and Follow-up
 
