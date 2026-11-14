@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2844-1488-si-25-remove-unused-error-variants/ISSUE.md
-last-updated-utc: "2026-11-13 23:06"
+issue-spec: docs/issues/closed/2844-1488-si-25-remove-unused-error-variants/ISSUE.md
+last-updated-utc: "2026-11-14 09:15"
 ---
 
 <!-- cspell:ignore lntu -->
