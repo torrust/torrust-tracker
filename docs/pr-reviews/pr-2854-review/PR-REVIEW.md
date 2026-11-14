@@ -491,7 +491,7 @@ Processing Log.
 - Current-tree verification: `grep -c "agent session chat" docs/issues/open/2853-container-build-jobs-limit/ISSUE.md docs/issues/open/2853-container-build-jobs-limit/manual-verification-evidence.md` prints 1 for each file.
 - Resolution reference: `docs(issues): [#2853] name the AC6 acceptance and update the failing-check evidence`
 - Follow-up PR URL: N/A
-- Reply URL: pending, recorded in the next commit after the reply is posted
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4572584844
 
 ### F32 - The F30 row links the deferral reply, not the fix reply
 
@@ -504,7 +504,7 @@ Processing Log.
 - Current-tree verification: the F30 detail entry's Reply URL ends in `r4569466904`.
 - Resolution reference: `docs(issues): [#2853] name the AC6 acceptance and update the failing-check evidence`
 - Follow-up PR URL: N/A
-- Reply URL: pending, recorded in the next commit after the reply is posted
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4572585104
 
 ### F33 - The failing-check statements predate the rebase
 
@@ -517,7 +517,7 @@ Processing Log.
 - Current-tree verification: `grep -c "this branch's merge base" docs/issues/open/2853-container-build-jobs-limit/manual-verification-evidence.md` prints 0, and the description has no "Known failing check" heading.
 - Resolution reference: `docs(issues): [#2853] name the AC6 acceptance and update the failing-check evidence`
 - Follow-up PR URL: N/A
-- Reply URL: pending, recorded in the next commit after the reply is posted
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4572585349
 
 ## Processing Log
 
@@ -532,6 +532,7 @@ Processing Log.
 - 2026-11-13 13:32 UTC - Added F29: a review posted at 13:26:00 UTC on the previous head asked for the F28 row, which was pushed two minutes later. Replied at 13:32:09 UTC (GitHub `created_at`) and resolved the thread.
 - 2026-11-13 22:33 UTC - Added F30. The first reply, posted at 15:13:04 UTC (GitHub `created_at`), deferred it to the close-out with the maintainer's agreement. The branch was then rebased onto `develop` for an unrelated CI fix, so the correction is made in the commit that adds this entry. A second reply citing that commit, and the resolution of the thread, come after the push of that commit.
 - 2026-11-14 08:26 UTC - Added F31 to F33 from the approving review at the rebased head, and fixed them in one commit after that head's checks passed. Replies and thread resolutions follow the push of that commit; each row's Reply URL is filled in a later commit.
+- 2026-11-14 08:30 UTC - Pushed the F31 to F33 fix, replied on the three threads and recorded their reply URLs. The threads are resolved after this commit is pushed.
 
 ## Completion Rules
 
