@@ -138,16 +138,18 @@ listener, `src/bootstrap/jobs/http_tracker.rs`, the occupied-port tests).
 | `it_should_release_the_udp_socket_when_dropped_without_being_stopped` | `udp-server` `testing/environment.rs` | Ignored, needs maintainer decision | Waits until the released port can be rebound. |
 | `it_should_not_return_while_processors_orphaned_by_the_request_ring_are_still_running` | `udp-server` `server/launcher.rs` | Rewritten | Its main assertion (processors joined before the loop returns) needs no port, so it runs again; its socket-release assertion moved to the companion below. |
 | `it_should_release_the_socket_once_the_processors_orphaned_by_the_request_ring_are_joined` | `udp-server` `server/launcher.rs` | Ignored, needs maintainer decision | New companion holding the socket-release assertion, which waits until the released port can be rebound. |
-| `it_should_return_error_when_api_service_was_stopped_after_registration` | `axum-health-check-api-server` `tests/server/contract.rs` | Rewritten | Starts the health-check API before stopping the REST API, so the two never share a port. |
-| `it_should_return_error_when_http_service_was_stopped_after_registration` | `axum-health-check-api-server` `tests/server/contract.rs` | Rewritten | Same shape and fix as the REST API variant. The UDP variant cannot collide, because a UDP and an HTTP binding on one port are different registrations. |
+| `it_should_return_error_when_api_service_was_stopped_after_registration` | `axum-health-check-api-server` `tests/server/contract.rs` | Ignored, needs maintainer decision | It now starts the health-check API before stopping the REST API, so the two never share a port, but it still expects the released REST API port to be dead, and another test can bind that port and answer. |
+| `it_should_return_error_when_http_service_was_stopped_after_registration` | `axum-health-check-api-server` `tests/server/contract.rs` | Ignored, needs maintainer decision | Same shape and reorder as the REST API variant; it still expects the released HTTP port to be dead. |
+| `it_should_return_error_when_udp_service_was_stopped_after_registration` | `axum-health-check-api-server` `tests/server/contract.rs` | Ignored, needs maintainer decision | It cannot collide with the health-check API (a UDP and an HTTP binding on one port are different registrations), but it expects the released UDP port to be dead. |
 | `it_should_register_the_service_with_a_health_check_that_reaches_the_running_server` | `udp-server` `server/mod.rs` | Rewritten | Binds `127.0.0.1:0` and reads the bound address; it never needed a pre-selected port. |
 | `it_should_cancel_the_udp_tracker_component_through_the_job_manager` | `src/app.rs` | Rewritten | Uses the configured port `0`; it never needed a reserved address. |
 | `it_should_report_an_error_with_the_checked_url_when_nothing_listens_on_the_checked_address` | `axum-rest-api-server` `server.rs` | Rewritten | Checks the address of a socket the test binds to port `0` and never listens on, so nothing else can listen there. |
 
-No test was deleted: none of them only checks the operating system. The eighteen ignored tests prove
-that the tracker releases its socket after a stop, a drop or a failure, which is the tracker's own
-cleanup contract. Each such test needs a real bound port, so it can only be rewritten once a
-decision is made.
+No test was deleted: none of them only checks the operating system. Eighteen of the twenty-one ignored
+tests prove that the tracker releases its socket after a stop, a drop or a failure, which is the
+tracker's own cleanup contract. The other three prove that the health-check report shows a stopped
+service as failing, which needs a port nothing can listen on. Each needs a real bound port, so it
+can only be rewritten once a decision is made.
 
 ## Architectural Decisions
 
@@ -185,9 +187,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | --- | --- | --- |
 | T1 | DONE | Reproduce and inventory the observed failures | Evidence records the 200 isolated, 100 package, and 51 full-suite runs. |
 | T2 | DONE | Re-check the inventory on `develop` | The inventory above, including the stale CLI finding and both racing shapes. |
-| T3 | DONE | Disable each racing test with `#[ignore]` | Eighteen tests ignored with the reason `flaky port race, see #2393`. |
-| T4 | DONE | Rewrite the tests that never needed a racing port | Five tests rewritten. |
-| T5 | BLOCKED | Decide the fate of the eighteen ignored tests | Waiting for the maintainer. |
+| T3 | DONE | Disable each racing test with `#[ignore]` | Twenty-one tests ignored with the reason `flaky port race, see #2393`. |
+| T4 | DONE | Rewrite the tests that never needed a racing port | Four tests rewritten. |
+| T5 | BLOCKED | Decide the fate of the twenty-one ignored tests | Waiting for the maintainer. |
 | T6 | DONE | Full-suite recheck | V4 in `manual-verification-evidence.md`: the first 150 runs found a third racing shape (2 failures), and 150 runs on the fixed head all passed. |
 
 ## Commit Points

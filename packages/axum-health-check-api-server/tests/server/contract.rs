@@ -107,6 +107,7 @@ mod api {
     }
 
     #[tokio::test]
+    #[ignore = "flaky port race, see #2393"]
     async fn it_should_return_error_when_api_service_was_stopped_after_registration() {
         logging::setup();
 
@@ -297,6 +298,7 @@ mod http {
     }
 
     #[tokio::test]
+    #[ignore = "flaky port race, see #2393"]
     async fn it_should_return_error_when_http_service_was_stopped_after_registration() {
         logging::setup();
 
@@ -413,6 +415,7 @@ mod udp {
     }
 
     #[tokio::test]
+    #[ignore = "flaky port race, see #2393"]
     async fn it_should_return_error_when_udp_service_was_stopped_after_registration() {
         logging::setup();
 
