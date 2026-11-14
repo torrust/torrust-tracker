@@ -64,7 +64,6 @@ port helper, which the maintainer's scope change removed before this round was p
 | F13 | review-finding:pr-2859-f13 | Human | Suggestion | maintainability | RE_RAISE_OF:F2 | NO_ACTION | SUPERSEDED |
 | F14 | review-finding:pr-2859-f14 | Human | Nit | documentation | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F15 | review-finding:pr-2859-f15 | Human | Nit | documentation | ORIGINAL | NO_ACTION | SUPERSEDED |
-
 | F16 | review-finding:pr-2859-f16 | Human | Major | metadata | RE_RAISE_OF:F7 | FIXED | RESOLVED |
 | F17 | review-finding:pr-2859-f17 | Human | Minor | testing | RE_RAISE_OF:F9 | FIXED | RESOLVED |
 | F18 | review-finding:pr-2859-f18 | Human | Minor | metadata | RE_RAISE_OF:F11 | FIXED | RESOLVED |
@@ -149,7 +148,7 @@ port helper, which the maintainer's scope change removed before this round was p
 - Reviewer finding ID: F1
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4572584176>
 - Concern: T2 to T5 were `DONE` although the seam, the red and green evidence and the design review they named were never produced, and V2 to V4 stayed `TODO`.
-- Solution: After the scope change the plan has new rows. Each `DONE` row now names an output that is in the tree: T2 the inventory, T3 the ignored tests, T4 the rewritten tests. T5 is `BLOCKED` on the maintainer and T6 is `IN_PROGRESS` with the 150-run recheck. V2 and V3 are `NOT_APPLICABLE` with the reason; V4 is filled by F8.
+- Solution: After the scope change the plan has new rows. Each `DONE` row now names an output that is in the tree: T2 the inventory, T3 the ignored tests, T4 the rewritten tests. T5 is `BLOCKED` on the maintainer and T6 is `DONE` with the V4 recheck. V2 and V3 are `NOT_APPLICABLE` with the reason; V4 is filled by F8.
 - Current-tree verification: `grep -n "^| T[1-6] |" docs/issues/open/2393-2392-test-port-allocation-races/ISSUE.md` and `grep -n "Status" docs/issues/open/2393-2392-test-port-allocation-races/manual-verification-evidence.md` show the rows and states above.
 - Resolution reference: docs(issues): [#2393] mark the plan rows by what ran and the evidence entries by the new scope
 - Follow-up PR URL: N/A
