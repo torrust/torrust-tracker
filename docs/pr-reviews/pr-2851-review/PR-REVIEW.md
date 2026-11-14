@@ -67,6 +67,10 @@ landed. Both sets of threads were resolved earlier by a blanket GraphQL call wit
 corrected in round 6; they were reopened before replying.
 Round 9 is the review `5890340167` of `da2ce7` (COMMENTED, F44 to F47, audit-local IDs; reviewer's own F39 to F42,
 recorded as the original), on the head that carried the round-7 probe-documentation commit, before round 8 landed.
+Round 10 is the approving review `5890585973` of `da2ce7` (F48 to F52, audit-local IDs; reviewer's own F43 to F46, which collide with the
+audit's own, and F48, recorded as the original) and Copilot's review `5891790581` (F53 to F57,
+audit-local IDs), both on the head that carried the round 9 audit. Copilot labels F53 to F56 "Medium severity" and F57
+"Low severity"; the severity `Minor` is inferred from those labels.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -117,6 +121,16 @@ recorded as the original), on the head that carried the round-7 probe-documentat
 | F45 | review-finding:pr-2851-f45 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F46 | review-finding:pr-2851-f46 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F47 | review-finding:pr-2851-f47 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F48 | review-finding:pr-2851-f48 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F49 | review-finding:pr-2851-f49 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F50 | review-finding:pr-2851-f50 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F51 | review-finding:pr-2851-f51 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F52 | review-finding:pr-2851-f52 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F53 | review-finding:pr-2851-f53 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F54 | review-finding:pr-2851-f54 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F55 | review-finding:pr-2851-f55 | Copilot | Minor (inferred) | correctness | RE_RAISE_OF:F54 | NO_ACTION | SUPERSEDED |
+| F56 | review-finding:pr-2851-f56 | Copilot | Minor (inferred) | metadata | RE_RAISE_OF:F49 | NO_ACTION | SUPERSEDED |
+| F57 | review-finding:pr-2851-f57 | Copilot | Minor (inferred) | formatting | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -731,6 +745,136 @@ recorded as the original), on the head that carried the round-7 probe-documentat
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4562909413
 
+### F48 - Two rows were marked fixed by changes the head did not carry
+
+- PR number: 2851
+- Source review ID: 5890585973
+- Reviewer finding ID: F43
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4562994961
+- Concern: Row F41's Concern still cited the two PR-branch commit ids it says were removed, and row F40 claimed an appended correction for the round-6 entry that the log did not have.
+- Solution: Row F41's Concern describes the ids in words; a correction entry for the round-6 entry is appended; rows F40 and F41 cite the commit that carries their fixes.
+- Current-tree verification: Scanned the audit for every PR-branch commit id (no match) and read the appended correction and rows F40 and F41 in the tree.
+- Resolution reference: docs(pr-reviews): correct rows and log entries of the review audit of PR #2851
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4572494580
+
+### F49 - Row F42 uses the category `process`
+
+- PR number: 2851
+- Source review ID: 5890585973
+- Reviewer finding ID: F44
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4562994943
+- Concern: Row F42 used `process`, which is not one of the nine categories.
+- Solution: Row F42's category is `other`.
+- Current-tree verification: Read row F42 in the tree.
+- Resolution reference: docs(pr-reviews): correct rows and log entries of the review audit of PR #2851
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4572494876
+
+### F50 - Row F38 cites a commit that does not contain its fix
+
+- PR number: 2851
+- Source review ID: 5890585973
+- Reviewer finding ID: F45
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4562994949
+- Concern: Row F38's fix is row F33's category change, made by the round-7 audit commit, but the row cited the round-8 audit commit.
+- Solution: Row F38 cites `docs(pr-reviews): record round 7 in the review audit of PR #2851`.
+- Current-tree verification: Read the F38 section in the tree.
+- Resolution reference: docs(pr-reviews): correct rows and log entries of the review audit of PR #2851
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4572495191
+
+### F51 - The round-8 text states things the record contradicts
+
+- PR number: 2851
+- Source review ID: 5890585973
+- Reviewer finding ID: F46
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4562994965
+- Concern: Row F42 gave a placeholder time "11:25:xx" and a wrong line number; the overview and the round-8 entry said the reviewer's F37 and F38 do not collide; rows F42 and F46 were superseded without the skill's reply form.
+- Solution: Row F42's Solution and verification are corrected, the overview states the collision, a correction for the round-8 entry is appended, and rows F42 and F46 are `FIXED`/`RESOLVED` with the round-8 audit commit, which fixed both concerns.
+- Current-tree verification: Read the round-8 overview, rows and sections F42 and F46, and the appended correction in the tree.
+- Resolution reference: docs(pr-reviews): correct rows and log entries of the review audit of PR #2851
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4572495561
+
+### F52 - The round-9 entry is stamped before the replies it reports
+
+- PR number: 2851
+- Source review ID: 5890585973
+- Reviewer finding ID: F48
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4562994973
+- Concern: The round-9 entry, stamped 11:45, reports replies made at 11:49:59Z to 11:50:06Z and their resolution.
+- Solution: An appended correction gives the reply and commit times; the original entry stays as it is.
+- Current-tree verification: Read the appended correction and the forge `created_at` of the four replies.
+- Resolution reference: docs(pr-reviews): correct rows and log entries of the review audit of PR #2851
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4572495815
+
+### F53 - The EPIC row says issue #2850 fixes the bug
+
+- PR number: 2851
+- Source review ID: 5891790581
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4563834211
+- Concern: The sub-issue row of #2838 in EPIC #1347 said the bug is "Fixed by" issue #2850, which is a planned specification.
+- Solution: The row says #2850 is the planned fix and that the bug is present on `develop` until its implementation merges.
+- Current-tree verification: Read the row and the frontmatter stamp of the EPIC in the tree.
+- Resolution reference: docs(issues): [#1347] describe issue #2850 as the planned fix in the sub-issue table
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4572496107
+
+### F54 - The probe unpacks responses without checking their length
+
+- PR number: 2851
+- Source review ID: 5891790581
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4563834296
+- Concern: A response shorter than 8 bytes (or 16 for the connection id, 20 for the announce fields) made `struct.unpack` raise `struct.error`.
+- Solution: The probe checks each length before unpacking and exits with status 1 printing the length.
+- Current-tree verification: Ran the probe against a local fake UDP server: a correct exchange printed as before; 2-byte and 8-byte connect responses and a 9-byte announce response each exited 1 with the message.
+- Resolution reference: docs(issues): [#2838] check the length of each UDP response in the probe
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4572496414
+
+### F55 - Duplicate of F54
+
+- PR number: 2851
+- Source review ID: 5891790581
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4563834340
+- Concern: Identical body to F54's comment, on a second thread.
+- Solution: Superseded by F54; no separate change.
+- Current-tree verification: Read F54 above.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4572496646
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4572496646
+
+### F56 - Row F42 uses the category `process`
+
+- PR number: 2851
+- Source review ID: 5891790581
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4563834396
+- Concern: The same change as F49.
+- Solution: Superseded by F49; no separate change.
+- Current-tree verification: Read row F42 in the tree.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4572496876
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4572496876
+
+### F57 - The evidence stamp is not quoted like the others in the pull request
+
+- PR number: 2851
+- Source review ID: 5891790581
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4563834460
+- Concern: The evidence file's `last-updated-utc` was unquoted while the other files of the pull request quote it.
+- Solution: The stamp is quoted and carries the time of its last content commit.
+- Current-tree verification: Read the frontmatter of the evidence file and `git log -1 --format=%aI` of the probe commit.
+- Resolution reference: docs(issues): [#2838] check the length of each UDP response in the probe
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4572497171
+
 ## Processing Log
 
 - 2026-11-12 18:05 UTC - Started round 1 for review `5879517733` (submitted 18:02:39Z, forge `submitted_at`). Checked F1 to F7 against the tree.
@@ -758,6 +902,7 @@ recorded as the original), on the head that carried the round-7 probe-documentat
 - 2026-11-14 08:08 UTC - Correction for F40: the round-6 entry (stamped 11:10) gives the eight replies as 11:04:40Z to 11:07:55Z and places them after both commits. The forge has the replies at 10:56:47Z to 10:57:03Z (`created_at`). Both commits came after them: `docs(issues): [#2850] correct benchmark wording, add a Commit Points row, and record the tolerance write-back` was authored and committed at 10:58:56Z, and `docs(pr-reviews): record round 6 in the review audit of PR #2851` was authored at 10:59:31Z and committed at 11:01:45Z (`git log --format=%aI`/`%cI`). No earlier entry is rewritten.
 - 2026-11-14 08:08 UTC - Correction for the round-8 entry (stamped 11:40): it says the reviewer's own F37 and F38 of review `5890183339` do not collide. They collide with the audit's own F37 (since round 7) and F38 (assigned in the same round); they were reassigned F42 and F43 because of that. Row F42 also said the round-7 audit commit landed at "11:25:xx"; it was authored at 11:25:12Z and committed at 11:27:27Z. Rows F42 and F46 were `NO_ACTION`/`SUPERSEDED` with replies not in the `Superseded by <FindingId>: <reason>.` form; both concerns were fixed by the round-8 audit commit, so both rows are now `FIXED`/`RESOLVED` with that commit as their reference. No earlier entry is rewritten.
 - 2026-11-14 08:08 UTC - Correction for the round-9 entry (stamped 11:45): it reports the four replies and their resolution, which happened later. The replies are at 11:49:59Z to 11:50:06Z (forge `created_at`); the round-9 audit commit was authored at 11:49:22Z and committed at 11:50:46Z. No earlier entry is rewritten.
+- 2026-11-14 08:14 UTC - Round 10: the approving review `5890585973` of `da2ce7` (submitted 2026-11-13 12:00:03Z, forge `submitted_at`) with five findings, reviewer's own F43 to F46 and F48, reassigned F48 to F52; and Copilot's review `5891790581` (submitted 13:27:29Z) with five, F53 to F57; both on the head that carried the round 9 audit. The fixes were committed between 08:06:35Z and 08:09:24Z (`git log --format=%aI`) as `docs(issues): [#1347] describe issue #2850 as the planned fix in the sub-issue table`, `docs(issues): [#2838] check the length of each UDP response in the probe` and `docs(pr-reviews): correct rows and log entries of the review audit of PR #2851`, and their push had landed by 08:13 (`git ls-remote` of the fork matched the local head). Replied on the ten threads between 08:13:39Z and 08:14:01Z (forge `created_at`). The threads are resolved one by one, by their own thread id, after this entry's commit is pushed.
 
 ## Completion Rules
 
