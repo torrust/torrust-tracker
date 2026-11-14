@@ -56,6 +56,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F10 | review-finding:pr-2858-f10 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F11 | review-finding:pr-2858-f11 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-2858-f12 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F13 | review-finding:pr-2858-f13 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -215,11 +216,24 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: NA
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2858#discussion_r4569841845
 
+### F13 - Two stamps disagree with the commits that wrote them
+
+- PR number: 2858
+- Source review ID: 5899606441
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2858#discussion_r4569911894
+- Concern: The round-1 progress-log entry said 22:55 (commit at 22:52) and the evidence file's `last-updated-utc` said 23:06 (rewritten at 23:27).
+- Solution: Corrected in the close-out PR, which edits both files anyway; the reply said so to avoid another push on an approved head.
+- Current-tree verification: Read the Progress Log and the evidence frontmatter in `docs/issues/closed/2844-1488-si-25-remove-unused-error-variants/`.
+- Resolution reference: chore(issues): [#2844] archive the closed issue spec to docs/issues/closed
+- Follow-up PR URL: NA
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2858#discussion_r4569921061
+
 ## Processing Log
 
 - 2026-11-13 22:49 UTC - First review (da2ce7) arrived; replies to F1 to F6 posted from 22:55 UTC without this record.
 - 2026-11-13 23:06 UTC - Late start: record created after the round-2 review (F7); all threads answered and resolved.
 - 2026-11-13 23:30 UTC - Round 3 review (F10 to F12) answered and resolved; rows added.
+- 2026-11-14 09:15 UTC - F13 (round 4, approval) answered with a deferral and resolved; its row added with the fix in the close-out PR. PR #2858 merged.
 
 ## Completion Rules
 
