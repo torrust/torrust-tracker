@@ -283,6 +283,7 @@ ghac
 ghdata
 ghtoken
 githubmerge
+gnutimeout
 goaway
 gpgsign
 gzprintf
@@ -456,6 +457,7 @@ qbittorrent
 quickcheck
 randomised
 readelf
+readlink
 realpath
 reannounce
 recaches
