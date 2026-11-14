@@ -117,7 +117,7 @@ is the second failure above, at the same `axum-http-server` assertion.
 - Load: pre-commit hooks of other commits on this branch ran during part of each recheck, so the
   machine was sometimes busier than during V1.
 
-#### Recheck 1 - head `14cf46913`, 2026-11-14 09:38 to 10:09 UTC
+#### Recheck 1 - the head ending in `refactor(tests): [#2393] name the UDP fixture constructor after its released address`, 2026-11-14 09:38 to 10:09 UTC
 
 ```text
 148 runs: 1808 tests run: 1808 passed, 18 skipped
@@ -135,7 +135,7 @@ registration collided with the stale one. This is a third racing shape, not in t
 inventory; the test exists unchanged on `develop`. The fix starts the health-check API before
 stopping the REST API, and does the same in the HTTP variant (the UDP variant cannot collide).
 
-#### Recheck 2 - head `363c30ac2`, 2026-11-14 10:11 to 10:41 UTC
+#### Recheck 2 - the head ending in `fix(tests): [#2393] start the health-check API before stopping the probed service`, 2026-11-14 10:11 to 10:41 UTC
 
 ```text
 150 runs: 1808 tests run: 1808 passed, 18 skipped

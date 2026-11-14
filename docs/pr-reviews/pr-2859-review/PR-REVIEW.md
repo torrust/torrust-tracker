@@ -44,7 +44,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 F1 to F5 come from the Copilot review, which has no finding IDs; their severity is inferred from the
 medium and low marks of its overview. F6 to F15 come from the da2ce7 review, whose own IDs F1 to F10
 collide with the Copilot rows and are kept as `Reviewer finding ID`. F16 to F22 come from the
-second da2ce7 review and F23 to F24 from the second Copilot review, both on head `7f8eef0dc`. Most findings concern the shared
+second da2ce7 review and F23 to F24 from the second Copilot review, both on the head ending in `fix(tests): [#2393] ignore racing port tests and rewrite those that need no real port`. Most findings concern the shared
 port helper, which the maintainer's scope change removed before this round was processed.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
@@ -176,7 +176,7 @@ port helper, which the maintainer's scope change removed before this round was p
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4572584189>
 - Concern: The entry claimed no red run was possible although V1 had observed the failure, and nine green runs would also pass with no fix at a probability of 0.70.
 - Solution: The claim was removed with the scope change. The recheck was sized for the claim: 150 full-suite runs, which give about 95% confidence that the 1-in-50 `axum-http-server` rate of V1 is gone. The runs and their result are recorded as V4.
-- Current-tree verification: `manual-verification-evidence.md` V4 records two rechecks of 150 runs of `cargo nextest run --tests --all-features --no-fail-fast`: 2 failures on head `14cf46913` from a third racing shape, fixed in `fix(tests): [#2393] start the health-check API before stopping the probed service`, then 150 of 150 passed on head `363c30ac2`.
+- Current-tree verification: `manual-verification-evidence.md` V4 records two rechecks of 150 runs of `cargo nextest run --tests --all-features --no-fail-fast`: 2 failures on the head ending in `refactor(tests): [#2393] name the UDP fixture constructor after its released address` from a third racing shape, fixed in `fix(tests): [#2393] start the health-check API before stopping the probed service`, then 150 of 150 passed on the head ending in `fix(tests): [#2393] start the health-check API before stopping the probed service`.
 - Resolution reference: docs(issues): [#2393] record the 150-run recheck
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573167889>
@@ -278,7 +278,7 @@ port helper, which the maintainer's scope change removed before this round was p
 - Source review ID: 5903429720
 - Reviewer finding ID: F2
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4572801929>
-- Concern: At head `7f8eef0dc` the body still opened with `Closes #2393` while T5 was blocked and the ignore attributes point at #2393 for the pending decision.
+- Concern: At the head ending in `fix(tests): [#2393] ignore racing port tests and rewrite those that need no real port` the body still opened with `Closes #2393` while T5 was blocked and the ignore attributes point at #2393 for the pending decision.
 - Solution: Same fix as F7: the PR body now says `Related to #2393`.
 - Current-tree verification: `gh api repos/torrust/torrust-tracker/pulls/2859 --jq .body` starts with `Related to #2393`.
 - Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2859#issuecomment-6876115700>
@@ -391,21 +391,25 @@ port helper, which the maintainer's scope change removed before this round was p
 
 ## Processing Log
 
-- 2026-11-14 09:24 UTC - Started audit. Copilot reviewed head `0e43f34a9` at 08:23:56Z (COMMENTED,
+- 2026-11-14 09:24 UTC - Started audit. Copilot reviewed the head ending in `docs(tests): [#2393] avoid links to private items in the port helper docs` at 08:23:56Z (COMMENTED,
   five inline threads, with the "didn't start before the timeout" warning) and da2ce7 reviewed the
   same head at 08:30:39Z (CHANGES_REQUESTED, ten inline threads). Between the reviews and this
   processing, the maintainer narrowed #2393 and the branch reverted the shared helper, so nine
   findings no longer apply to the current tree.
-- 2026-11-14 10:47 UTC - Round 1 and round 2 processed together. da2ce7 reviewed head `7f8eef0dc`
+- 2026-11-14 10:47 UTC - Round 1 and round 2 processed together. da2ce7 reviewed the head ending in `fix(tests): [#2393] ignore racing port tests and rewrite those that need no real port`
   at 09:28:55Z (CHANGES_REQUESTED, seven inline threads, F16 to F22) and Copilot at 09:35:07Z
   (COMMENTED, two inline threads, F23 and F24). The fixes were committed one per finding and pushed
-  with head `88908a9cb`. The PR body was changed to `Related to #2393` and the conversation comment
+  with the head ending in `docs(pr-reviews): [#2393] create the PR 2859 review audit record`. The PR body was changed to `Related to #2393` and the conversation comment
   of 10:45:58Z records it for F7 and F16. The 24 replies were posted between 10:46:26Z and
   10:47:16Z (GitHub `created_at`).
 - 2026-11-14 10:49 UTC - After the audit with the reply URLs was committed and the validator exited
   `0` (24 rows, 0 failures), all 24 threads were resolved; a GraphQL refresh shows 0 unresolved
   threads. The validator ran from a copy whose only change calls `gh-bot` instead of `gh`, because
   the script hardcodes `gh`.
+- 2026-11-14 11:21 UTC - Correction for F16 of the third review: the 09:24 UTC and 10:47 UTC entries
+  above, the Findings introduction and the F8 and F16 detail entries cited PR-branch commit ids. They
+  were edited in place to name the head by its last commit subject; no other text of those entries
+  changed.
 
 ## Completion Rules
 

@@ -234,7 +234,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-14 10:45 UTC - Claude Code (Claude Opus 5.5) - Addressed the findings of the two review rounds on PR 2859.
   Ignored nine more tests that rebind a released port, rewrote the dead-address test and two
   health-check contract tests, and restated the bug-fix sections. The first 150-run recheck found
-  the health-check self-collision (2 failures); the second, on head `363c30ac2`, passed 150 of 150
+  the health-check self-collision (2 failures); the second, on the head ending in `fix(tests): [#2393] start the health-check API before stopping the probed service`, passed 150 of 150
   runs. Eighteen ignored tests await the maintainer's decision (T5).
 
 ## Acceptance Criteria
@@ -245,7 +245,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [ ] AC2: Every ignored test has a recorded decision in the per-test table: deleted, rewritten, or
   kept disabled with a reason.
 - [x] AC3: The full parallel suite passes repeatedly with no port-allocation failure (V4, 150 of
-  150 runs on head `363c30ac2`).
+  150 runs on the head ending in `fix(tests): [#2393] start the health-check API before stopping the probed service`).
 - [ ] `linter all` exits with code `0`.
 - [ ] Relevant focused tests and pre-push checks pass.
 
