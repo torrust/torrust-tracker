@@ -505,6 +505,9 @@ was processed.
   head ending in that commit. The PR body was edited and the conversation comment of 11:30:34Z
   records it for F25; the six replies were posted between 11:30:45Z and 11:30:56Z, and the F8 reply
   was edited at 11:23:37Z to replace its commit ids.
+- 2026-11-14 11:34 UTC - After the audit with the round-3 reply URLs was committed and the validator
+  exited `0` (30 rows, 0 failures), the six round-3 threads were resolved; a GraphQL refresh shows 0
+  unresolved threads out of 30.
 
 ## Completion Rules
 
