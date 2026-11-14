@@ -150,6 +150,26 @@ decision is made.
 - The listener-handoff design (the server takes over an already-bound socket) was considered and
   rejected for now. It stays available if the maintainer later wants the ignored tests restored.
 
+## Bug-Fix Process
+
+The defect is in the tests, not in tracker behavior. This patch disables the racing tests instead of
+repairing them, so the red-then-green steps of `.github/skills/dev/debugging/fix-bug/SKILL.md` do
+not apply to it: a disabled test has no regression boundary to prove red. The steps that still
+apply:
+
+1. Reproduce against a real artifact and record it (V1).
+2. Inventory every test with a racing shape and record its decision (this spec).
+3. Recheck the full parallel suite after the change, sized for the claim it supports (V4).
+
+If the maintainer restores an ignored test in T5, that test follows the full `fix-bug` process.
+
+## Regression Test Strategy
+
+No regression test is added. The ignored tests are the racing code; disabling them removes the
+race rather than fixing it. The guard against recurrence is the 150-run full-suite recheck (V4):
+at the V1 rate of 1 failure in 50 runs on the `axum-http-server` assertion, 150 green runs would
+happen with no change at a probability of about 0.05.
+
 ## Implementation Plan
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
@@ -163,6 +183,14 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T5 | BLOCKED | Decide the fate of the eighteen ignored tests | Waiting for the maintainer. |
 | T6 | IN_PROGRESS | Full-suite recheck | 150 full-suite runs recorded as V4 in `manual-verification-evidence.md`. |
 
+## Commit Points
+
+| Task | Coherent change set | Commit policy |
+| --- | --- | --- |
+| T2 to T4 | Ignored and rewritten tests, with their rows in this spec | One commit per racing shape or rewrite. |
+| T5 | Each decided test | One commit per decided test or small cohesive family. |
+| T6 | Recheck evidence | Documentation-only commit. |
+
 ## Progress Tracking
 
 ### Workflow Checkpoints
@@ -170,9 +198,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Initial real-artifact reproduction recorded.
 - [x] Draft reviewed and approved by the maintainer.
 - [x] GitHub issue created and issue number added to this specification.
-- [ ] Regression tests proven red before each fix.
-- [ ] Fixes implemented and focused checks pass.
-- [ ] Like-for-like parallel recheck recorded.
+- [x] Racing tests inventoried, ignored or rewritten, and focused checks pass.
+- [ ] Full parallel recheck recorded (V4).
+- [ ] Fate of every ignored test decided by the maintainer (T5).
 - [ ] Acceptance criteria reviewed after implementation.
 - [ ] Implementation completion review recorded.
 
@@ -212,6 +240,22 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - `linter all` and the pre-push checks.
 - `manual-verification-evidence.md`: V1 (original reproduction) and V4 (150-run recheck after the
   change).
+
+### Manual Verification Scenarios
+
+Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`, `NOT_APPLICABLE`.
+
+| ID | Scenario | Command | Expected Result | Status | Evidence |
+| --- | --- | --- | --- | --- | --- |
+| M1 | Original failure reproduction | Run the full suite repeatedly with `--no-fail-fast`. | The race is observed. | DONE | `manual-verification-evidence.md#v1---original-parallel-suite-reproduction` |
+| M2 | Duplicate-registration repair | None: the test is ignored, not repaired. | Not applicable. | NOT_APPLICABLE | `manual-verification-evidence.md#v2---duplicate-registration-repair` |
+| M3 | CLI configuration repair | None: #2581 already moved these tests below the ephemeral range. | Not applicable. | NOT_APPLICABLE | `manual-verification-evidence.md#v3---cli-configuration-repair` |
+| M4 | Full recheck | Run the full suite 150 times with `--no-fail-fast`. | Every run passes, with the ignored tests skipped. | IN_PROGRESS | `manual-verification-evidence.md#v4---full-recheck` |
+
+### Acceptance Verification
+
+Re-review every acceptance criterion against the recorded evidence after the recheck. Do not mark
+AC3 done from a focused test or a single run.
 
 ## Risks and Trade-offs
 
