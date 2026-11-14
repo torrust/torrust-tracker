@@ -72,6 +72,9 @@ Processing Log.
 | F28 | review-finding:pr-2854-f28 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F29 | review-finding:pr-2854-f29 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F30 | review-finding:pr-2854-f30 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F31 | review-finding:pr-2854-f31 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F32 | review-finding:pr-2854-f32 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F33 | review-finding:pr-2854-f33 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -475,7 +478,46 @@ Processing Log.
 - Current-tree verification: `grep -c "were taken at 13:21 UTC" docs/issues/open/2853-container-build-jobs-limit/implementation-retrospective.md` prints 1.
 - Resolution reference: `docs(issues): [#2853] accept the runner slowdown for AC6 and date the retrospective counts`
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4565034991
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4569466904
+
+### F31 - The AC6 acceptance names no record
+
+- PR number: 2854
+- Source review ID: 5899177587
+- Reviewer finding ID: F31
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4569573820
+- Concern: the spec, evidence V4 and the description said the maintainer accepted the 13% slowdown on 2026-11-13 but named no record a reader can check.
+- Solution: the AC6 row in `ISSUE.md` and the result line of evidence V4 now say the acceptance was given in the agent session chat, not on GitHub, before 15:17 UTC, the time the edit history of the pull request description shows it changed to `Closes #2853`. The description points to evidence V4.
+- Current-tree verification: `grep -c "agent session chat" docs/issues/open/2853-container-build-jobs-limit/ISSUE.md docs/issues/open/2853-container-build-jobs-limit/manual-verification-evidence.md` prints 1 for each file.
+- Resolution reference: `docs(issues): [#2853] name the AC6 acceptance and update the failing-check evidence`
+- Follow-up PR URL: N/A
+- Reply URL: pending, recorded in the next commit after the reply is posted
+
+### F32 - The F30 row links the deferral reply, not the fix reply
+
+- PR number: 2854
+- Source review ID: 5899177587
+- Reviewer finding ID: F32
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4569573827
+- Concern: the F30 Reply URL was the reply that deferred the fix, while the row records FIXED and RESOLVED.
+- Solution: the F30 Reply URL now links the reply that cites the fixing commit.
+- Current-tree verification: the F30 detail entry's Reply URL ends in `r4569466904`.
+- Resolution reference: `docs(issues): [#2853] name the AC6 acceptance and update the failing-check evidence`
+- Follow-up PR URL: N/A
+- Reply URL: pending, recorded in the next commit after the reply is posted
+
+### F33 - The failing-check statements predate the rebase
+
+- PR number: 2854
+- Source review ID: 5899177587
+- Reviewer finding ID: F33
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4569573841
+- Concern: evidence V4 and the description's "Known failing check" section said `Test (Docker) (release)` fails here and fails on `develop` at the merge base, which was true only before the rebase.
+- Solution: after the checks ran at the rebased head (all 20 pass), V4's paragraph now says the step failed before the rebase and that the whole job passed at the rebased head (run 43520878226), and the "Known failing check" section was removed from the description.
+- Current-tree verification: `grep -c "this branch's merge base" docs/issues/open/2853-container-build-jobs-limit/manual-verification-evidence.md` prints 0, and the description has no "Known failing check" heading.
+- Resolution reference: `docs(issues): [#2853] name the AC6 acceptance and update the failing-check evidence`
+- Follow-up PR URL: N/A
+- Reply URL: pending, recorded in the next commit after the reply is posted
 
 ## Processing Log
 
@@ -489,6 +531,7 @@ Processing Log.
 - 2026-11-13 13:26 UTC - Added F28 after the fact: its fix was committed at 13:17:14 UTC and pushed, the reply was posted at 13:21:54 UTC (GitHub `created_at`) and the thread was then resolved. A GraphQL read after that showed 31 of 31 review threads resolved.
 - 2026-11-13 13:32 UTC - Added F29: a review posted at 13:26:00 UTC on the previous head asked for the F28 row, which was pushed two minutes later. Replied at 13:32:09 UTC (GitHub `created_at`) and resolved the thread.
 - 2026-11-13 22:33 UTC - Added F30. The first reply, posted at 15:13:04 UTC (GitHub `created_at`), deferred it to the close-out with the maintainer's agreement. The branch was then rebased onto `develop` for an unrelated CI fix, so the correction is made in the commit that adds this entry. A second reply citing that commit, and the resolution of the thread, come after the push of that commit.
+- 2026-11-14 08:26 UTC - Added F31 to F33 from the approving review at the rebased head, and fixed them in one commit after that head's checks passed. Replies and thread resolutions follow the push of that commit; each row's Reply URL is filled in a later commit.
 
 ## Completion Rules
 

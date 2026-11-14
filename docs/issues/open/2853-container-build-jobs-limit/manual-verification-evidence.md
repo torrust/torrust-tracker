@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2853-container-build-jobs-limit/ISSUE.md
-last-updated-utc: "2026-11-13 22:33"
+last-updated-utc: "2026-11-14 08:26"
 ---
 
 # Manual Verification Evidence
@@ -83,8 +83,10 @@ Step times of `Build Tracker Image` in the `Test (Docker) (release)` job, all on
 Means: 731 s uncapped, 827 s at 4 jobs, a difference of 96 s (13%). Limits of this comparison: the runs built different commits, and
 the state of the runner's Docker layer cache at each run was not checked.
 
-In the three runs of this PR the build step passed and the next step, `Run Persistence Transition Regression`, failed. The same
-step fails on `develop` at this branch's merge base (run 43299605132, 2026-11-12), so that failure is not caused by this change.
-It makes the `Test (Docker) (release)` check red on this PR until it is fixed on `develop`.
+In those three runs of this PR the build step passed and the next step, `Run Persistence Transition Regression`, failed. The
+same step failed on `develop` at the branch's merge base of that time (run 43299605132, 2026-11-12). Issue #2855 fixed it on
+`develop`, and after this branch was rebased onto that fix the whole `Test (Docker) (release)` job passed (run 43520878226,
+2026-11-14: build step 837 s, at 4 jobs, not included in the means above).
 
-Result: measured. The maintainer accepted the 13% slower build step for AC6 on 2026-11-13.
+Result: measured. The maintainer accepted the 13% slower build step for AC6 on 2026-11-13. The acceptance was
+given in the agent session chat, not on GitHub, before 15:17 UTC (the time GitHub's edit history of the pull request description shows it changed to `Closes #2853`).
