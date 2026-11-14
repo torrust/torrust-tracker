@@ -86,9 +86,9 @@ port helper, which the maintainer's scope change removed before this round was p
 - Concern: The module docs of `packages/test-helpers/src/ports.rs` still spoke of the tracker child after the move into a general-purpose crate.
 - Solution: No change. The maintainer narrowed #2393 to a quick patch without a new port helper, and the commit `revert: [#2393] undo the shared port helper move and fixture changes` removed the file.
 - Current-tree verification: `git ls-tree --name-only HEAD packages/test-helpers/src/` lists `configuration.rs`, `lib.rs`, `logging.rs` and `random.rs`; `ports.rs` is gone.
-- Resolution reference: <REPLY_F1>
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573167349>
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_F1>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573167349>
 
 ### F2 - Duplicated candidate-port generator in the TCP and UDP helpers
 
@@ -99,9 +99,9 @@ port helper, which the maintainer's scope change removed before this round was p
 - Concern: The candidate-port iterator was repeated in `reserve_free_ports` and `reserve_free_udp_address`.
 - Solution: No change. The commit `revert: [#2393] undo the shared port helper move and fixture changes` removed `reserve_free_udp_address` with the rest of the shared helper.
 - Current-tree verification: `git ls-tree --name-only HEAD packages/test-helpers/src/` lists `configuration.rs`, `lib.rs`, `logging.rs` and `random.rs`; `ports.rs` is gone.
-- Resolution reference: <REPLY_F2>
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573167442>
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_F2>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573167442>
 
 ### F3 - Duplicated candidate-port generator, second location
 
@@ -112,9 +112,9 @@ port helper, which the maintainer's scope change removed before this round was p
 - Concern: The same duplication as F2, reported at the second copy.
 - Solution: No change, for the same reason as F2: the commit `revert: [#2393] undo the shared port helper move and fixture changes` removed the helper.
 - Current-tree verification: `git ls-tree --name-only HEAD packages/test-helpers/src/` lists `configuration.rs`, `lib.rs`, `logging.rs` and `random.rs`; `ports.rs` is gone.
-- Resolution reference: <REPLY_F3>
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573167510>
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_F3>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573167510>
 
 ### F4 - Progress-log entry without a time and time zone
 
@@ -127,7 +127,7 @@ port helper, which the maintainer's scope change removed before this round was p
 - Current-tree verification: `grep -n "^- 2026-11-14" docs/issues/open/2393-2392-test-port-allocation-races/ISSUE.md` prints the entry starting `2026-11-14 09:14 UTC - Claude Code (Claude Sonnet 5.5)`.
 - Resolution reference: docs(issues): [#2393] stamp the progress log entry with its time and model
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_F4>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573167577>
 
 ### F5 - Indexing `held[0]` relies on an implicit invariant
 
@@ -138,9 +138,9 @@ port helper, which the maintainer's scope change removed before this round was p
 - Concern: `reserve_free_udp_address` read `held[0]` from `reserve_from(1, ...)` without stating the one-element invariant.
 - Solution: No change. The commit `revert: [#2393] undo the shared port helper move and fixture changes` removed the function.
 - Current-tree verification: `git ls-tree --name-only HEAD packages/test-helpers/src/` lists `configuration.rs`, `lib.rs`, `logging.rs` and `random.rs`; `ports.rs` is gone.
-- Resolution reference: <REPLY_F5>
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573167663>
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_F5>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573167663>
 
 ### F6 - Plan rows marked DONE without their outputs
 
@@ -153,7 +153,7 @@ port helper, which the maintainer's scope change removed before this round was p
 - Current-tree verification: `grep -n "^| T[1-6] |" docs/issues/open/2393-2392-test-port-allocation-races/ISSUE.md` and `grep -n "Status" docs/issues/open/2393-2392-test-port-allocation-races/manual-verification-evidence.md` show the rows and states above.
 - Resolution reference: docs(issues): [#2393] mark the plan rows by what ran and the evidence entries by the new scope
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_F6>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573167733>
 
 ### F7 - Closing keyword while the issue has open work
 
@@ -164,9 +164,9 @@ port helper, which the maintainer's scope change removed before this round was p
 - Concern: The PR body said `Closes #2393` while T6, the acceptance criteria and the evidence were still open.
 - Solution: The PR body now says `Related to #2393`. T5 waits for the maintainer to decide the fate of the eighteen ignored tests, so this PR does not close the issue.
 - Current-tree verification: `gh api repos/torrust/torrust-tracker/pulls/2859 --jq .body` starts with `Related to #2393`.
-- Resolution reference: <CONV_URL>
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2859#issuecomment-6876115700>
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_F7>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573167811>
 
 ### F8 - No red run claim and too few green runs
 
@@ -179,7 +179,7 @@ port helper, which the maintainer's scope change removed before this round was p
 - Current-tree verification: `manual-verification-evidence.md` V4 records two rechecks of 150 runs of `cargo nextest run --tests --all-features --no-fail-fast`: 2 failures on head `14cf46913` from a third racing shape, fixed in `fix(tests): [#2393] start the health-check API before stopping the probed service`, then 150 of 150 passed on head `363c30ac2`.
 - Resolution reference: docs(issues): [#2393] record the 150-run recheck
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_F8>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573167889>
 
 ### F9 - Release-then-rebind assertions left out of the audit
 
@@ -192,7 +192,7 @@ port helper, which the maintainer's scope change removed before this round was p
 - Current-tree verification: `grep -rn "flaky port race, see #2393" packages src | wc -l` prints `18`.
 - Resolution reference: fix(tests): [#2393] ignore the tests that rebind a released port
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_F9>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573167978>
 
 ### F10 - Helper range overlaps the fixed metrics ports
 
@@ -203,9 +203,9 @@ port helper, which the maintainer's scope change removed before this round was p
 - Concern: The draw range of the shared helper contained `17091`-`17094`, which `tests/metrics/fixed_ports.rs` binds.
 - Solution: No change. The commit `revert: [#2393] undo the shared port helper move and fixture changes` removed the shared helper and its eleven call sites. The #2581 helper keeps its CLI callers only.
 - Current-tree verification: `git ls-tree --name-only HEAD packages/test-helpers/src/` lists `configuration.rs`, `lib.rs`, `logging.rs` and `random.rs`; `ports.rs` is gone.
-- Resolution reference: <REPLY_F10>
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573168064>
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_F10>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573168064>
 
 ### F11 - Progress-log entry without model and time, stale frontmatter
 
@@ -218,7 +218,7 @@ port helper, which the maintainer's scope change removed before this round was p
 - Current-tree verification: `sed -n 5,12p docs/issues/open/2393-2392-test-port-allocation-races/ISSUE.md` shows `status: in-progress` and a `2026-11-14` value for `last-updated-utc`.
 - Resolution reference: docs(issues): [#2393] stamp the progress log entry with its time and model
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_F11>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573168178>
 
 ### F12 - Overlong doc lines and tracker context in the shared helper
 
@@ -229,9 +229,9 @@ port helper, which the maintainer's scope change removed before this round was p
 - Concern: A text replacement left a 130-column line and the module docs referred to `43152` and the tracker child.
 - Solution: No change. The commit `revert: [#2393] undo the shared port helper move and fixture changes` removed the file.
 - Current-tree verification: `git ls-tree --name-only HEAD packages/test-helpers/src/` lists `configuration.rs`, `lib.rs`, `logging.rs` and `random.rs`; `ports.rs` is gone.
-- Resolution reference: <REPLY_F12>
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573168333>
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_F12>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573168333>
 
 ### F13 - Repeated candidate generator
 
@@ -242,9 +242,9 @@ port helper, which the maintainer's scope change removed before this round was p
 - Concern: The same duplication as F2.
 - Solution: No change, for the same reason as F2: the commit `revert: [#2393] undo the shared port helper move and fixture changes` removed the helper.
 - Current-tree verification: `git ls-tree --name-only HEAD packages/test-helpers/src/` lists `configuration.rs`, `lib.rs`, `logging.rs` and `random.rs`; `ports.rs` is gone.
-- Resolution reference: <REPLY_F13>
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573168416>
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_F13>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573168416>
 
 ### F14 - Crate API descriptions omit the new `ports` module
 
@@ -255,9 +255,9 @@ port helper, which the maintainer's scope change removed before this round was p
 - Concern: `packages/test-helpers/README.md` and `docs/packages.md` listed only `configuration`, `logging` and `random`.
 - Solution: No change. The commit `revert: [#2393] undo the shared port helper move and fixture changes` removed the `ports` module, so those lists are accurate again.
 - Current-tree verification: `grep -n "pub mod" packages/test-helpers/src/lib.rs` lists `configuration`, `logging` and `random`.
-- Resolution reference: <REPLY_F14>
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573168502>
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_F14>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573168502>
 
 ### F15 - Comment drops the "by default" qualifier
 
@@ -268,9 +268,9 @@ port helper, which the maintainer's scope change removed before this round was p
 - Concern: The fixture comment in `axum-http-server` said the kernel never assigns the range, without "by default".
 - Solution: No change. The commit `revert: [#2393] undo the shared port helper move and fixture changes` restored the original fixture and removed the comment.
 - Current-tree verification: `grep -c "kernel never assigns" packages/axum-http-server/src/server.rs` prints `0`.
-- Resolution reference: <REPLY_F15>
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573168604>
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_F15>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573168604>
 
 ### F16 - Closing keyword still in the PR body
 
@@ -281,9 +281,9 @@ port helper, which the maintainer's scope change removed before this round was p
 - Concern: At head `7f8eef0dc` the body still opened with `Closes #2393` while T5 was blocked and the ignore attributes point at #2393 for the pending decision.
 - Solution: Same fix as F7: the PR body now says `Related to #2393`.
 - Current-tree verification: `gh api repos/torrust/torrust-tracker/pulls/2859 --jq .body` starts with `Related to #2393`.
-- Resolution reference: <CONV_URL>
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2859#issuecomment-6876115700>
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_F16>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573168688>
 
 ### F17 - Release-then-rebind tests still unclassified
 
@@ -296,7 +296,7 @@ port helper, which the maintainer's scope change removed before this round was p
 - Current-tree verification: `grep -rn "flaky port race, see #2393" packages src | wc -l` prints `18`.
 - Resolution reference: fix(tests): [#2393] ignore the tests that rebind a released port
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_F17>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573168780>
 
 ### F18 - Progress-log entry still without time and model
 
@@ -309,7 +309,7 @@ port helper, which the maintainer's scope change removed before this round was p
 - Current-tree verification: `grep -n "^- 2026-11-14" docs/issues/open/2393-2392-test-port-allocation-races/ISSUE.md` prints the entry starting `2026-11-14 09:14 UTC - Claude Code (Claude Sonnet 5.5)`.
 - Resolution reference: docs(issues): [#2393] stamp the progress log entry with its time and model
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_F18>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573168854>
 
 ### F19 - Required bug-spec sections deleted by the rewrite
 
@@ -322,7 +322,7 @@ port helper, which the maintainer's scope change removed before this round was p
 - Current-tree verification: `grep -n "^## \|^### " docs/issues/open/2393-2392-test-port-allocation-races/ISSUE.md` lists `Bug-Fix Process`, `Regression Test Strategy`, `Commit Points`, `Manual Verification Scenarios` and `Acceptance Verification`.
 - Resolution reference: docs(issues): [#2393] restate the bug-fix sections for the narrowed scope
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_F19>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573168957>
 
 ### F20 - Verification plan points at scenarios that do not exist
 
@@ -335,7 +335,7 @@ port helper, which the maintainer's scope change removed before this round was p
 - Current-tree verification: `grep -n "^### V\|Status" docs/issues/open/2393-2392-test-port-allocation-races/manual-verification-evidence.md` shows V2 and V3 as `NOT_APPLICABLE`.
 - Resolution reference: docs(issues): [#2393] mark the plan rows by what ran and the evidence entries by the new scope
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_F20>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573169042>
 
 ### F21 - Text still following the old plan
 
@@ -348,7 +348,7 @@ port helper, which the maintainer's scope change removed before this round was p
 - Current-tree verification: `grep -c "in T5;\|precedent for T4\|selected fixture" docs/issues/open/2393-2392-test-port-allocation-races/ISSUE.md` prints `0`.
 - Resolution reference: docs(issues): [#2393] align the remaining spec text with the narrowed plan
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_F21>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573169120>
 
 ### F22 - No replies, resolutions or audit record
 
@@ -358,10 +358,10 @@ port helper, which the maintainer's scope change removed before this round was p
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4572801943>
 - Concern: None of the 15 threads had a reply and the PR had no audit record.
 - Solution: This audit record was created before the first reply, and every thread of both rounds was replied to and then resolved.
-- Current-tree verification: PENDING_F22
+- Current-tree verification: A GraphQL review-thread query for PR 2859 after the replies shows a `josecelano-bot` reply on all 24 threads; their resolution is in the Processing Log.
 - Resolution reference: docs(pr-reviews): [#2393] create the PR 2859 review audit record
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_F22>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573169202>
 
 ### F23 - Dead-address test assumes port 1 is closed
 
@@ -374,7 +374,7 @@ port helper, which the maintainer's scope change removed before this round was p
 - Current-tree verification: `cargo nextest run -p torrust-tracker-axum-rest-api-server -E 'test(nothing_listens_on_the_checked_address)'` prints `1 test run: 1 passed`.
 - Resolution reference: fix(tests): [#2393] check the dead address on a bound socket that never listens
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_F23>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573169275>
 
 ### F24 - Racy default constructor of the UDP fixture
 
@@ -387,7 +387,7 @@ port helper, which the maintainer's scope change removed before this round was p
 - Current-tree verification: `grep -n "on_a_released_free_address" packages/udp-server/src/server/mod.rs` prints the definition and the two ignored callers.
 - Resolution reference: refactor(tests): [#2393] name the UDP fixture constructor after its released address
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_F24>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2859#discussion_r4573169412>
 
 ## Processing Log
 
@@ -396,6 +396,12 @@ port helper, which the maintainer's scope change removed before this round was p
   same head at 08:30:39Z (CHANGES_REQUESTED, ten inline threads). Between the reviews and this
   processing, the maintainer narrowed #2393 and the branch reverted the shared helper, so nine
   findings no longer apply to the current tree.
+- 2026-11-14 10:47 UTC - Round 1 and round 2 processed together. da2ce7 reviewed head `7f8eef0dc`
+  at 09:28:55Z (CHANGES_REQUESTED, seven inline threads, F16 to F22) and Copilot at 09:35:07Z
+  (COMMENTED, two inline threads, F23 and F24). The fixes were committed one per finding and pushed
+  with head `88908a9cb`. The PR body was changed to `Related to #2393` and the conversation comment
+  of 10:45:58Z records it for F7 and F16. The 24 replies were posted between 10:46:26Z and
+  10:47:16Z (GitHub `created_at`).
 
 ## Completion Rules
 
