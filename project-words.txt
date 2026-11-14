@@ -106,6 +106,7 @@ SUBSESSIONS
 Seedable
 Shareaza
 Signedness
+Spek
 Subissues
 Swatinem
 Swiftbit
@@ -351,6 +352,7 @@ libraw
 libsqlite
 libstdc
 libtorrent
+libtransmission
 libz
 llist
 loadavg
@@ -494,6 +496,7 @@ rqbit
 rsplit
 rstest
 rstrip
+rtorrent
 rusqlite
 rustc
 rustdoc
@@ -600,6 +603,7 @@ unpushed
 unrecognised
 unrepresentable
 unreproduced
+unresolve
 unreviewed
 unseparated
 unspawned
