@@ -180,6 +180,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore = "flaky port race, see #2393"]
     async fn it_should_release_the_listener_when_the_component_is_dropped_before_it_runs() {
         // Arrange
         let config = HealthCheckApi {

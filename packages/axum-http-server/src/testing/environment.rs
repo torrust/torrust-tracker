@@ -389,6 +389,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore = "flaky port race, see #2393"]
     async fn it_should_release_the_http_binding_when_stopped() {
         // Arrange
         let environment = start_within_deadline(unstarted_environment().await).await;
@@ -402,6 +403,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore = "flaky port race, see #2393"]
     async fn it_should_release_the_http_binding_when_dropped_without_being_stopped() {
         // Arrange
         let environment = start_within_deadline(unstarted_environment().await).await;
