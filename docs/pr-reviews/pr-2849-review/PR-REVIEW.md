@@ -429,6 +429,14 @@ the audit record itself grew a table). All twenty threads are inline.
   threads, not F8's, were the ones answered "Not changed". F15's tree identity holds between the
   replaced commit and the last split commit, not the new head, and its commit count is replaced by
   the list of split subjects.
+- 2026-11-14 08:57 UTC - Correction (F22): the 2026-11-13 09:41, 09:42 and 09:43 "Pushed" entries
+  give the three commits' author times. Their first commit times were 09:41:51, 09:46:19 and
+  09:46:19 (`git log --format=%cI`), and they were pushed together: the forge created the Docs Lint
+  run for that head at 09:49:23. The 10:52 entry is not the record's commit time, which is 10:54:14.
+  The 10:55 entry is not the reply time: the forge dates the fifteen new replies 10:52:48 to
+  10:53:20. Those replies came before the record's commit and before the force-push that published
+  it (11:01:25, the forge's force-push event); the F10 reply cites that commit's subject, and the
+  F11, F15 and F16 replies point to this file, before either existed on the forge.
 
 ## Completion Rules
 
