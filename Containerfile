@@ -13,6 +13,13 @@
 ## Builder Image
 FROM docker.io/library/rust:slim-trixie AS chef
 WORKDIR /tmp
+# Cap the number of parallel `rustc` jobs of every compiling stage that derives from this one.
+# `tester` below declares the same default separately, since it is its own base image, not derived
+# from `chef`. Cargo starts one job per CPU core by default, and BuildKit runs independent stages at
+# the same time, so an uncapped build on a many-core machine exhausts the RAM. Raise it on a bigger
+# machine with `--build-arg CARGO_BUILD_JOBS=N`. See "Memory and CPU Use" in docs/containers.md.
+ARG CARGO_BUILD_JOBS=4
+ENV CARGO_BUILD_JOBS=${CARGO_BUILD_JOBS}
 RUN apt-get update \
  && apt-get install -y --no-install-recommends curl libssl-dev pkg-config \
  && apt-get clean \
@@ -29,6 +36,10 @@ RUN cargo binstall --no-confirm --locked torrust-cargo-chef@0.1.79 cargo-nextest
 ## Tester Image
 FROM docker.io/library/rust:slim-trixie AS tester
 WORKDIR /tmp
+# `tester` does not derive from `chef`, but `cargo binstall` below can fall back to compiling
+# `cargo-nextest` from source when no prebuilt binary matches, so it needs the same cap.
+ARG CARGO_BUILD_JOBS=4
+ENV CARGO_BUILD_JOBS=${CARGO_BUILD_JOBS}
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends curl sqlite3 time \

@@ -119,6 +119,45 @@ podman build --target release --tag torrust-tracker:release --file Containerfile
 podman build --target debug --tag torrust-tracker:debug --file Containerfile .
 ```
 
+### Memory and CPU Use
+
+Cargo starts one `rustc` per CPU core by default, and BuildKit runs independent build stages at the same time. On a machine with many
+cores an unlimited image build can use tens of GB of RAM (31 `rustc` processes holding 33-38 GB on a 32-thread machine made the kernel OOM
+killer fire). The `Containerfile` therefore caps the Cargo jobs of every Rust build step with the build argument `CARGO_BUILD_JOBS`,
+which defaults to `4`.
+
+Measured on a 32-thread machine for the release image (uncached build):
+
+| `CARGO_BUILD_JOBS` | Build time | Peak memory of the compilers |
+| ------------------ | ---------- | ---------------------------- |
+| 4 (default)        | 836 s      | 10.4 GiB                     |
+| 8                  | 499 s      | 19.8 GiB                     |
+| 16                 | 346 s      | 35.5 GiB                     |
+
+Rule of thumb: peak RAM is about 2.5 GiB times the value, plus the system and whatever else is running. Raise it on a big machine to build
+faster; lower it (for example `2`) on a machine with 8 GB or less. See the
+[experiment report](../contrib/dev-tools/experiments/container-build-jobs/report.md) for the method and the raw data.
+
+```sh
+# Docker
+docker build --target release --build-arg CARGO_BUILD_JOBS=8 --tag torrust-tracker:release --file Containerfile .
+
+# Podman
+podman build --target release --build-arg CARGO_BUILD_JOBS=8 --tag torrust-tracker:release --file Containerfile .
+
+# The build script passes the environment variable on
+CARGO_BUILD_JOBS=8 ./contrib/dev-tools/containers/docker-build.sh
+```
+
+Both the `ARG` and the `ENV` enter the cache key of every layer from the `chef` and `tester` stages' first `RUN` onward, so a
+value other than the one the next layer was built with misses that layer's cache and re-runs it: apt installs, tool installs
+and every third-party and workspace cook. This selects a different cache key, though; it does not delete what was cached for
+other values, so switching back to a value you built with before can still hit that value's own retained cache, if Docker or
+Podman has not pruned it since. Pick one value for a given machine to avoid paying the cold-build cost on every switch.
+
+`CARGO_BUILD_JOBS` is a standard Cargo setting: outside containers, `CARGO_BUILD_JOBS=4 cargo build` and `CARGO_BUILD_JOBS=4 cargo test` apply the same limit
+to your host builds.
+
 ### How the Image Is Built
 
 The `Containerfile` builds the tracker twice, and the two builds have different jobs:

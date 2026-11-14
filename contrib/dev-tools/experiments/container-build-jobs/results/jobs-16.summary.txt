@@ -1,0 +1,3 @@
+build pid 415489, baseline MemAvailable 49323728 kB
+jobs=16 exit=0 aborted=0 wall_seconds=346
+baseline_available_gib=47,0 min_available_gib=14,1 peak_used_delta_gib=33,0 peak_rustc_count=24 peak_rustc_rss_gib=35,5
