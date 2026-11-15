@@ -8,7 +8,7 @@ epic: null
 github-issue: 2867
 spec-path: docs/issues/open/2867-udp-health-check-panics-on-invalid-response/ISSUE.md
 branch: "2867-udp-health-check-panics-on-invalid-response-spec"
-related-pr: null
+related-pr: 2868
 last-updated-utc: "2026-11-15 20:18"
 semantic-links:
   skill-links:
