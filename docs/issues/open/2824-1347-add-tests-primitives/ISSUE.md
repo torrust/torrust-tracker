@@ -336,6 +336,7 @@ The 16 rows are every `.rs` file under `packages/primitives/src/`, each once.
 - 2026-11-14 12:09 UTC - Claude Code (Opus 5.5) - S3 merged (#2852, 2026-11-14 09:56 UTC) after six review rounds (audit record `docs/pr-reviews/pr-2852-review/PR-REVIEW.md`). S4 started on `2824-1347-add-tests-primitives-final` from `develop`; the baseline is 1,049 / 1,126 lines, 105 tests (5 lines above the S3 close, from the S3 review test fix).
 - 2026-11-15 07:49 UTC - Claude Code (Opus 5.5) - S4 test rows: `swarm_metadata.rs` (4 tests, record `swarm_metadata.md`) and the no-change rows 8-16 (record `no-change-files.md`, the `ConfigurationInstanceId` JSON test compares values), both through the two gates; 109 unit tests, 94.07% lines.
 - 2026-11-15 08:36 UTC - Claude Code (Opus 5.5) - T4-T6: the package mutation run (147 mutants) found one real survivor, `instance_index` replaced by `1`, killed after the maintainer approved index `2` in its test; M1 and M2 passed against a built tracker; the T5 reconciliation updated the tasks, slices, checkpoints, acceptance rows, coverage evidence and both EPIC tables. `implementation-retrospective.md` records the deviations. F5 still has no GitHub issue (`lessons.md`). The spec moves to `docs/issues/closed/` in a separate PR after the issue closes.
+- 2026-11-15 12:35 UTC - Claude Code (Opus 5.5) - Correction to the 2026-11-14 12:09 entry: the audit record of #2852 (`docs/pr-reviews/pr-2852-review/PR-REVIEW.md`) records five review rounds, not six; `implementation-retrospective.md` now says five.
 
 ## Acceptance Criteria
 

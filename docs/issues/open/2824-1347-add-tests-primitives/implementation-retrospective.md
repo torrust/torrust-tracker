@@ -40,7 +40,7 @@ got a one-value test fix. M1 and M2 passed against a built tracker
 
 ## What Changed During Implementation
 
-1. **Review rounds of S3.** PR #2852 took six review rounds, most of them about the records, not the tests: a
+1. **Review rounds of S3.** PR #2852 took five review rounds, most of them about the records, not the tests: a
    mislabeled round, Processing Log entries rewritten in place, stamps before the events, branch SHAs as references.
    The audit-record rules were known; they were not checked before each push.
 2. **Stale coverage data.** The first S4 baseline read old profile data in the shared target directory (lines of a
@@ -73,4 +73,4 @@ The two-gate workflow is the reason the slices stayed small; the improvements ab
 - [ISSUE.md](ISSUE.md): progress log, ledger, slice table and acceptance verification.
 - [coverage-evidence.md](coverage-evidence.md), [mutation-evidence.md](mutation-evidence.md),
   [manual-verification-evidence.md](manual-verification-evidence.md), [lessons.md](lessons.md).
-- `docs/pr-reviews/pr-2852-review/PR-REVIEW.md`: the six review rounds of S3.
+- `docs/pr-reviews/pr-2852-review/PR-REVIEW.md`: the five review rounds of S3.
