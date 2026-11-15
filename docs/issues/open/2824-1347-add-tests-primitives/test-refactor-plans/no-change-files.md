@@ -4,7 +4,7 @@ issue: 2824
 package: torrust-tracker-primitives
 target-file: packages/primitives/src/ (ledger rows 8-16)
 status: done
-last-updated-utc: "2026-11-15 07:48"
+last-updated-utc: "2026-11-15 08:34"
 ---
 
 # No-Change Files Test Plan
@@ -82,7 +82,19 @@ Temporary prose was written and compared with the code; the code expresses it.
 | --- | --- | --- | --- | --- |
 | `it_should_serialize_the_role_and_instance_index` | an id for `HttpTracker`, index `0` | `to_value` | the literal document, as a `serde_json::Value` | clean |
 
-Test smells found and fixed while writing: none beyond Q1. The other rows keep their tests unchanged.
+### Update after the T4 mutation run (2026-11-15)
+
+The package-wide run (`mutation-evidence.md`) found that `instance_index()` replaced by `1` survived: the only test that
+calls the accessor used index `1`. The maintainer approved using `2` (2026-11-15), a value no default mutant returns.
+`it_should_expose_its_role_and_zero_based_index` now builds the id with index `2` and expects `2`. A re-run of
+`cargo mutants` on this file gives 2 caught and 1 unviable; the replacements by `0` and `1` both fail the test. The
+coverage figures above do not change (same lines).
+
+| Test | Arrange (the one causal state) | Act | Assert (literal, independent) | Outcome |
+| --- | --- | --- | --- | --- |
+| `it_should_expose_its_role_and_zero_based_index` | an id for `UdpTracker`, index `2` | `service_role()` and `instance_index()` | `UdpTracker` and `2` | clean; one state read through its two accessors |
+
+Test smells found and fixed while writing: none beyond Q1 and the index value above. The other rows keep their tests unchanged.
 
 ## Validation
 

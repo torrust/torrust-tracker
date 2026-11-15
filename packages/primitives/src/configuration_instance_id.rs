@@ -84,7 +84,7 @@ mod tests {
     #[test]
     fn it_should_expose_its_role_and_zero_based_index() {
         // Arrange
-        let instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 1);
+        let instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 2);
 
         // Act
         let service_role = instance_id.service_role();
@@ -92,7 +92,7 @@ mod tests {
 
         // Assert
         assert_eq!(service_role, ServiceRole::UdpTracker);
-        assert_eq!(instance_index, 1);
+        assert_eq!(instance_index, 2);
     }
 
     #[test]

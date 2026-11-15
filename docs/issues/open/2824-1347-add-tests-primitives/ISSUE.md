@@ -291,7 +291,7 @@ States: `PENDING`, `IN_PROGRESS`, `BLOCKED`, `DONE`. Unit-only lines are the bas
 | 7 | `swarm_metadata.rs` | 3 | S4 | 3 / 18 | Test candidate; the `AddAssign` lines are not tested because #2823 deletes the impl | DONE (S4; #2823 deleted the `AddAssign` lines, 3 / 12 at the S4 start) |
 | 8 | `scrape.rs` | 3 | S4 | 28 / 28 | No change; review test breadth | DONE (S4; no change, breadth reviewed) |
 | 9 | `service_role.rs` | 4 | S4 | 40 / 40 | No change | DONE (S4; no change) |
-| 10 | `configuration_instance_id.rs` | 4 | S4 | 42 / 42 | No change | DONE (S4; JSON test changed to compare values) |
+| 10 | `configuration_instance_id.rs` | 4 | S4 | 42 / 42 | No change | DONE (S4; JSON test changed to compare values; accessor test uses index 2 after T4) |
 | 11 | `runtime_service_metadata.rs` | 4 | S4 | 32 / 32 | No change | DONE (S4; no change) |
 | 12 | `readiness.rs` | 4 | S4 | 52 / 52 | No change | DONE (S4; no change; coverage variance explained) |
 | 13 | `driver.rs` | 4 | S4 | 59 / 59 | No change; style review | DONE (S4; no change; style reviewed) |
