@@ -1,8 +1,8 @@
 ---
 doc-type: test-design-review
-issue-spec: docs/issues/open/2824-1347-add-tests-primitives/ISSUE.md
+issue-spec: docs/issues/closed/2824-1347-add-tests-primitives/ISSUE.md
 scope: slice S1, the two `PeerRole` serialization tests in `packages/primitives/src/peer.rs`
-last-updated-utc: "2026-11-11 14:37"
+last-updated-utc: "2026-11-15 21:07"
 ---
 
 # S1 test design review: `peer_role_serialization`

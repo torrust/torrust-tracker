@@ -4,8 +4,8 @@ semantic-links:
     - write-markdown-docs
   related-artifacts:
     - docs/templates/IMPLEMENTATION-RETROSPECTIVE.md
-    - docs/issues/open/2824-1347-add-tests-primitives/ISSUE.md
-    - docs/issues/open/2824-1347-add-tests-primitives/lessons.md
+    - docs/issues/closed/2824-1347-add-tests-primitives/ISSUE.md
+    - docs/issues/closed/2824-1347-add-tests-primitives/lessons.md
     - docs/issues/closed/2637-1347-add-tests-axum-rest-api-server/implementation-retrospective.md
 ---
 

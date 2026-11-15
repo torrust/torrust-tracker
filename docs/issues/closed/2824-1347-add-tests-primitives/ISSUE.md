@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p2
 epic: 1347
 github-issue: 2824
-spec-path: docs/issues/open/2824-1347-add-tests-primitives/ISSUE.md
+spec-path: docs/issues/closed/2824-1347-add-tests-primitives/ISSUE.md
 branch: "2824-1347-add-tests-primitives-final"
 related-pr: 2864
-last-updated-utc: "2026-11-15 08:36"
+last-updated-utc: "2026-11-15 21:07"
 semantic-links:
   skill-links:
     - create-issue
@@ -24,7 +24,7 @@ semantic-links:
     - docs/issues/closed/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
     - docs/issues/closed/1349-1347-add-tests-http-core/ISSUE.md
     - docs/issues/closed/1348-1347-add-tests-udp-core/ISSUE.md
-    - docs/issues/open/2824-1347-add-tests-primitives/coverage-evidence.md
+    - docs/issues/closed/2824-1347-add-tests-primitives/coverage-evidence.md
     - packages/primitives
 ---
 
@@ -236,7 +236,7 @@ the maintainer (2026-11-10):
 | S1 | Defect fixes decided in this issue (T2a): F2 `PeerRole` JSON casing, only (F1 fixed upstream; F3, F4, F5 handed off). Merged first, so the test slices pin the fixed behavior. | - | `2824-1347-add-tests-primitives-fixes` | #2834 | DONE |
 | S2 | T2, then `peer.rs` (rank 1, the largest gap) | 1 | `2824-1347-add-tests-primitives-peer` | #2841 | DONE |
 | S3 | Configuration defaults and bounded values: `announce.rs`, `policy.rs`, `mode.rs`, `pagination.rs`, `announce_interval.rs` | 2-6 | `2824-1347-add-tests-primitives-defaults` | #2852 | DONE |
-| S4 | `swarm_metadata.rs`, no-change decisions for the covered and wiring files, then T4-T6; updates the EPIC tables; the spec moves to `docs/issues/closed/` in a separate `cleanup-completed-issues` PR after the issue closes (as for #2637) | 7-16 | `2824-1347-add-tests-primitives-final` | #2864 | IN_PROGRESS |
+| S4 | `swarm_metadata.rs`, no-change decisions for the covered and wiring files, then T4-T6; updates the EPIC tables; the spec moves to `docs/issues/closed/` in a separate `cleanup-completed-issues` PR after the issue closes (as for #2637) | 7-16 | `2824-1347-add-tests-primitives-final` | #2864 | DONE |
 
 Rules: S0 to S3 use `Related to #2824`; only S4 uses `Closes #2824`. Do not stack
 branches; keep at most one implementation PR open. Titles follow the repository convention, for
@@ -318,7 +318,7 @@ The 16 rows are every `.rs` file under `packages/primitives/src/`, each once.
 - [x] Bounded mutation assessment in `mutation-evidence.md`.
 - [x] Independent reviewer reports in `agent-review-reports.md` (if used): not used; the PR reviews are audited in `docs/pr-reviews/`.
 - [x] Acceptance criteria and implementation retrospective.
-- [ ] Issue closed (by the S4 PR); spec moved to `docs/issues/closed/` (separate PR after the close).
+- [x] Issue closed (by the S4 PR); spec moved to `docs/issues/closed/` (separate PR after the close).
 
 ### Progress Log
 
@@ -338,6 +338,7 @@ The 16 rows are every `.rs` file under `packages/primitives/src/`, each once.
 - 2026-11-15 08:36 UTC - Claude Code (Opus 5.5) - T4-T6: the package mutation run (147 mutants) found one real survivor, `instance_index` replaced by `1`, killed after the maintainer approved index `2` in its test; M1 and M2 passed against a built tracker; the T5 reconciliation updated the tasks, slices, checkpoints, acceptance rows, coverage evidence and both EPIC tables. `implementation-retrospective.md` records the deviations. F5 still has no GitHub issue (`lessons.md`). The spec moves to `docs/issues/closed/` in a separate PR after the issue closes.
 - 2026-11-15 12:35 UTC - Claude Code (Opus 5.5) - Correction to the 2026-11-14 12:09 entry: the audit record of #2852 (`docs/pr-reviews/pr-2852-review/PR-REVIEW.md`) records five review rounds, not six; `implementation-retrospective.md` now says five.
 - 2026-11-15 12:47 UTC - Claude Code (Opus 5.5) - F5 draft spec: after review finding F1 of #2864 (AC9 checked without an F5 draft), the maintainer had a separate session write `docs/issues/drafts/peer-id-test-helper/ISSUE.md`; its PR #2865 was opened at 12:47 UTC. The Findings Register, the AC9 row, the `peer::fixture` risk and the `lessons.md` row now cite it. It has no GitHub issue yet.
+- 2026-11-15 21:07 UTC - Claude Code (Opus 5.5) - S4 merged through #2864 (2026-11-15 21:05 UTC, `Closes #2824`) and issue #2824 is `CLOSED` on GitHub. Archived the spec to `docs/issues/closed/` (this clean-up pull request): `status: done`, `spec-path` and the artifact paths updated, AC10 and the close checkpoint ticked, the EPIC row set to `DONE`, and the live references to the old path repaired.
 
 ## Acceptance Criteria
 
@@ -352,7 +353,7 @@ The 16 rows are every `.rs` file under `packages/primitives/src/`, each once.
 - [x] AC8: Reconciliation confirms plans, evidence, slice table and both EPIC tables agree.
 - [x] AC9: Every finding needing a production change has a draft spec, a log entry and a `lessons.md`
       row, and no test pins its reported behavior without a recorded maintainer decision.
-- [ ] AC10: Merged through the planned slices; only the last PR closes the issue.
+- [x] AC10: Merged through the planned slices; only the last PR closes the issue.
 - [x] AC11: `cargo +nightly fmt --all -- --check`, `linter all` and
       `cargo test -p torrust-tracker-primitives` pass.
 - [x] AC12: Manual verification executed and recorded.
@@ -398,7 +399,7 @@ Reviewed against observed behavior after the last slice, before the issue is clo
 | AC7 | DONE | `mutation-evidence.md` (no score target, no CI gate). |
 | AC8 | DONE | The T5 reconciliation (S4): ledger, plan index, slice table, acceptance rows, coverage evidence and both EPIC "Latest" tables carry the final figures; no record says `status: proposed` or `in-progress`. |
 | AC9 | DONE | F1 #2798, F2 fixed in S1 (#2834), F3 #2804, F4 #2823, F6 #2838 and #2850, each with its owner in the Findings Register and a `lessons.md` row. F5 is handed off by decision (2026-11-11); its draft spec is PR #2865 (`docs/issues/drafts/peer-id-test-helper/ISSUE.md`), with no GitHub issue yet; its `lessons.md` row says so. |
-| AC10 | IN_PROGRESS | S0-S3 merged (#2828, #2834, #2841, #2852) with `Related to #2824`; S4 is the only PR that uses `Closes #2824`. |
+| AC10 | DONE | S0-S3 merged (#2828, #2834, #2841, #2852) with `Related to #2824`; S4 merged through #2864 (2026-11-15 21:05 UTC), the only PR that uses `Closes #2824`, and the issue closed with it. |
 | AC11 | DONE | `cargo +nightly fmt --all -- --check` (nightly Rust), `linter all` (the pre-commit gate of every S4 commit), `cargo test -p torrust-tracker-primitives` (stable Rust 1.99.1: 109 unit tests and 3 doctests pass). |
 | AC12 | DONE | `manual-verification-evidence.md`: M1 and M2 passed on 2026-11-15. |
 
