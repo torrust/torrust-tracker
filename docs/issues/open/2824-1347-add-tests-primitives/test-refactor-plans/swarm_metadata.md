@@ -90,6 +90,10 @@ Temporary prose per test was written and compared with the code; the code expres
 
 Test smells found and fixed while writing: none.
 
+After review of #2864 (finding F5 of its audit record): the four tests separated the sections with blank lines only;
+they now carry the `// Arrange`, `// Act` and `// Assert` comments the `write-unit-test` checklist asks for
+(`zeroed` has no arrange step, so it has `// Act` and `// Assert`).
+
 ## Validation
 
 `cargo test -p torrust-tracker-primitives` (109 + 2 + 1 passed); `cargo +nightly fmt --all -- --check`;
