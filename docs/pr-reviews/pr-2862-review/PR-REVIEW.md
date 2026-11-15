@@ -165,7 +165,7 @@ time in the PR 2862 processing log`. Its body has no other actionable assertion.
 - Reviewer finding ID: F5
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2862#discussion_r4578374159>
 - Concern: PR 2863 merged the T5 decisions into the #2393 spec on `develop` (T5 DONE, T7 to T11 to do), but the EPIC's order-1 row, Phase 1 state, AC2 and lost-coverage risk still said T5 was open; the listener-handoff decision still offered itself as the way to restore the ignored tests, and the Decisions section did not mention the approved loopback-address helper.
-- Solution: rebased the branch on `develop`, then restated the order-1 row (T5 decided, T7 to T11 open), the Phase 1 state (open for T7 to T11), AC2 (TODO until #2393 T10) and the risk (until #2393 T9 restores the release tests); the handoff decision now points at the next decisions, and two 2026-11-15 decisions record the T5 fates and the loopback helper.
+- Solution: merged `develop` into the branch, then restated the order-1 row (T5 decided, T7 to T11 open), the Phase 1 state (open for T7 to T11), AC2 (TODO until #2393 T10) and the risk (until #2393 T9 restores the release tests); the handoff decision now points at the next decisions, and two 2026-11-15 decisions record the T5 fates and the loopback helper.
 - Current-tree verification: `grep -n "T5" docs/issues/open/2392-test-isolation/EPIC.md` finds no line saying T5 is open outside the 2026-11-14 progress-log entry, which is history; the #2393 spec on `develop` records `| T5 | DONE |` and the loopback-helper decision in its Architectural Decisions.
 - Resolution reference: docs(issues): [#2392] record the #2393 T5 decisions and the loopback helper in the EPIC
 - Follow-up PR URL: N/A
@@ -178,7 +178,7 @@ time in the PR 2862 processing log`. Its body has no other actionable assertion.
 - Reviewer finding ID: F6
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2862#discussion_r4578374163>
 - Concern: the description, which the merge tool copies into the merge commit, still said three shapes, two extra shapes and a T2 that audits only non-Rust artifacts, left out the audit record, and said T5 was open.
-- Solution: rewrote the description to match the branch: four shapes, three extra shapes in the #2394 row, T2 auditing Rust tests for collisions between runs, the T5 decisions with T7 to T11 open, the loopback-helper decision, the round-2 rebase, and the audit record in the file list. The fix is outside the tree, so its resolution reference is the PR conversation comment that states it.
+- Solution: rewrote the description to match the branch: four shapes, three extra shapes in the #2394 row, T2 auditing Rust tests for collisions between runs, the T5 decisions with T7 to T11 open, the loopback-helper decision, the round-2 merge of `develop`, and the audit record in the file list. The fix is outside the tree, so its resolution reference is the PR conversation comment that states it.
 - Current-tree verification: `gh-bot pr view 2862 --json body` returns the new description; the closing-keyword scan prints nothing for it.
 - Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2862#issuecomment-6894376857>
 - Follow-up PR URL: N/A
@@ -195,6 +195,8 @@ time in the PR 2862 processing log`. Its body has no other actionable assertion.
 - 2026-11-15 12:32 UTC - Rebased the branch on `develop` `abd7a10ff` (no conflict), then committed the F8 fix.
 - 2026-11-15 12:33 UTC - Updated the PR description for F9 and posted the conversation comment that states it (12:33:30 UTC), then replied on the F8 and F9 threads (12:33:37 and 12:33:39 UTC).
 - 2026-11-15 12:34 UTC - Added F8 and F9 to this record.
+- 2026-11-15 12:37 UTC - The force-with-lease push of the rebased branch was denied, so the rebase was never pushed. On the maintainer's choice, rebuilt the branch from the pushed head: merged `develop` `abd7a10ff` into it and re-applied the F8 fix and this record's round-2 commit; the tree equals the rebased one.
+- 2026-11-15 12:37 UTC - Replaced "rebase" with the merge of `develop` in the F8 and F9 replies (12:37:35 and 12:37:37 UTC), the F9 conversation comment (12:37:38 UTC), the PR description (12:37:49 UTC), the F8 and F9 Solutions above and the EPIC progress-log entry.
 
 ## Completion Rules
 
