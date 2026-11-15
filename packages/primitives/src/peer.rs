@@ -184,13 +184,13 @@ pub fn ser_announce_event<S: serde::Serializer>(announce_event: &AnnounceEvent, 
     ser.serialize_some(&event_ser)
 }
 
-/// Serializes a `Announce Event` as a i64.
+/// Serializes a `NumberOfBytes` as a u64.
 ///
 /// # Errors
 ///
 /// If will return an error if the internal serializer was to fail.
 pub fn ser_number_of_bytes<S: serde::Serializer>(number_of_bytes: &NumberOfBytes, ser: S) -> Result<S::Ok, S::Error> {
-    ser.serialize_i64(number_of_bytes.0)
+    ser.serialize_u64(number_of_bytes.get())
 }
 
 /// Serializes a `PeerId` as a `peer::Id`.
@@ -214,7 +214,7 @@ pub trait ReadInfo {
 
 impl ReadInfo for Peer {
     fn is_seeder(&self) -> bool {
-        self.left.0 <= 0 && self.event != AnnounceEvent::Stopped
+        self.left.get() == 0 && self.event != AnnounceEvent::Stopped
     }
 
     fn is_leecher(&self) -> bool {
@@ -240,7 +240,7 @@ impl ReadInfo for Peer {
 
 impl ReadInfo for Arc<Peer> {
     fn is_seeder(&self) -> bool {
-        self.left.0 <= 0 && self.event != AnnounceEvent::Stopped
+        self.left.get() == 0 && self.event != AnnounceEvent::Stopped
     }
 
     fn is_leecher(&self) -> bool {
@@ -267,7 +267,7 @@ impl ReadInfo for Arc<Peer> {
 impl Peer {
     #[must_use]
     pub fn is_seeder(&self) -> bool {
-        self.left.0 <= 0 && self.event != AnnounceEvent::Stopped
+        self.left.get() == 0 && self.event != AnnounceEvent::Stopped
     }
 
     #[must_use]
@@ -569,7 +569,7 @@ pub mod fixture {
         }
 
         #[must_use]
-        pub const fn with_bytes_left_to_download(mut self, left: i64) -> Self {
+        pub const fn with_bytes_left_to_download(mut self, left: u64) -> Self {
             self.peer.left = NumberOfBytes::new(left);
             self
         }
@@ -698,7 +698,7 @@ pub mod test {
         use crate::peer::{Peer, PeerRole};
         use crate::{AnnounceEvent, NumberOfBytes, PeerId};
 
-        fn a_peer_with(left: i64, event: AnnounceEvent) -> Peer {
+        fn a_peer_with(left: u64, event: AnnounceEvent) -> Peer {
             Peer {
                 peer_id: PeerId(*b"-qB4650-abcdefghijkl"),
                 peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
@@ -739,16 +739,6 @@ pub mod test {
         #[test]
         fn it_should_be_a_seeder_when_it_has_completed_the_download() {
             let peer = a_peer_with(0, AnnounceEvent::Completed);
-
-            assert!(peer.is_seeder());
-            assert_eq!(peer.role(), PeerRole::Seeder);
-        }
-
-        // A negative number of bytes left is not meaningful: issue #2850 makes it unrepresentable.
-        // This test pins how the signed domain value is classified until then; that change removes it.
-        #[test]
-        fn it_should_treat_a_negative_number_of_bytes_left_as_a_seeder() {
-            let peer = a_peer_with(-1, AnnounceEvent::Started);
 
             assert!(peer.is_seeder());
             assert_eq!(peer.role(), PeerRole::Seeder);
@@ -832,9 +822,7 @@ pub mod test {
                 let cases = [
                     (1, AnnounceEvent::Started, false),
                     (0, AnnounceEvent::Started, true),
-                    (-1, AnnounceEvent::Started, true),
                     (0, AnnounceEvent::Stopped, false),
-                    (-1, AnnounceEvent::Stopped, false),
                 ];
 
                 for (left, event, is_seeder) in cases {

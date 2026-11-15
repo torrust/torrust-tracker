@@ -30,11 +30,11 @@ pub struct Peer {
     /// be removed in API v2.
     pub updated_at_ms: u128,
     /// The peer's uploaded bytes.
-    pub uploaded: i64,
+    pub uploaded: u64,
     /// The peer's downloaded bytes.
-    pub downloaded: i64,
+    pub downloaded: u64,
     /// The peer's left bytes (pending to download).
-    pub left: i64,
+    pub left: u64,
     /// The peer's event: `Started`, `Stopped`, `Completed`, `None` (`PascalCase`).
     pub event: String,
 }

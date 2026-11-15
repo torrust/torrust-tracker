@@ -53,10 +53,9 @@ fn number_of_bytes(
 ) -> Result<NumberOfBytes, FromRequestError> {
     let value = wire_number_of_bytes.0.get();
 
-    match u64::try_from(value) {
-        Ok(_) => Ok(NumberOfBytes::new(value)),
-        Err(_) => Err(FromRequestError::NegativeNumberOfBytes { field, value }),
-    }
+    u64::try_from(value)
+        .map(NumberOfBytes::new)
+        .map_err(|_| FromRequestError::NegativeNumberOfBytes { field, value })
 }
 
 /// Errors of the conversion from a wire announce request into a domain peer.
@@ -227,10 +226,10 @@ mod tests {
     }
 
     #[rstest]
-    #[case::zero(0)]
-    #[case::unknown_size_of_libtorrent(16 * 1024)]
-    #[case::unknown_size_of_transmission(i64::MAX)]
-    fn it_should_accept_a_non_negative_number_of_bytes_left(#[case] left: i64) {
+    #[case::zero(0, 0)]
+    #[case::unknown_size_of_libtorrent(16 * 1024, 16 * 1024)]
+    #[case::unknown_size_of_transmission(i64::MAX, 9_223_372_036_854_775_807)]
+    fn it_should_accept_a_non_negative_number_of_bytes_left(#[case] left: i64, #[case] expected_left: u64) {
         // Arrange
         let mut request = announce_request();
         request.bytes_left = torrust_tracker_udp_protocol::NumberOfBytes(left.into());
@@ -239,6 +238,6 @@ mod tests {
         let peer = from_request(&request, &peer_ip()).unwrap();
 
         // Assert
-        assert_eq!(peer.left, NumberOfBytes::new(left));
+        assert_eq!(peer.left, NumberOfBytes::new(expected_left));
     }
 }

@@ -36,13 +36,22 @@ const IP: &str = "ip";
 // HTTP wire semantics can evolve independently without forcing cross-protocol
 // or domain-wide refactors.
 // adr: docs/adrs/20260527175600_keep_protocol_and_domain_types_decoupled.md
+//
+// BEP 3 gives the byte counts no width and no sign, so a `u64` holds every
+// value the parser accepts and a negative count cannot be represented.
+// adr: docs/adrs/20261111170611_reject_malformed_inbound_protocol_values_unless_clients_need_tolerance.md
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
-pub struct NumberOfBytes(pub i64);
+pub struct NumberOfBytes(u64);
 
 impl NumberOfBytes {
     #[must_use]
-    pub const fn new(v: i64) -> Self {
+    pub const fn new(v: u64) -> Self {
         Self(v)
+    }
+
+    #[must_use]
+    pub const fn get(&self) -> u64 {
+        self.0
     }
 }
 
@@ -189,13 +198,6 @@ pub enum ParseAnnounceQueryError {
     /// The param cannot be parsed into the domain type.
     #[error("invalid param value {param_value} for {param_name} in {location}")]
     InvalidParam {
-        param_name: String,
-        param_value: String,
-        location: &'static Location<'static>,
-    },
-    /// The param value is out of range.
-    #[error("param value overflow {param_value} for {param_name} in {location}")]
-    NumberOfBytesOverflow {
         param_name: String,
         param_value: String,
         location: &'static Location<'static>,
@@ -364,13 +366,13 @@ impl fmt::Display for Announce {
             PeerIp::Literal(ip) => params.push((IP, ip.to_string())),
         }
         if let Some(downloaded) = self.downloaded {
-            params.push(("downloaded", downloaded.0.to_string()));
+            params.push(("downloaded", downloaded.get().to_string()));
         }
         if let Some(uploaded) = self.uploaded {
-            params.push(("uploaded", uploaded.0.to_string()));
+            params.push(("uploaded", uploaded.get().to_string()));
         }
         if let Some(left) = self.left {
-            params.push(("left", left.0.to_string()));
+            params.push(("left", left.get().to_string()));
         }
         if let Some(event) = &self.event {
             params.push(("event", event.to_string()));
@@ -475,34 +477,21 @@ impl AnnounceBuilder {
         self
     }
 
-    /// # Panics
-    ///
-    /// Panics if `downloaded` exceeds `i64::MAX`.
     #[must_use]
-    pub fn with_downloaded(mut self, downloaded: u64) -> Self {
-        self.announce.downloaded = Some(NumberOfBytes::new(
-            i64::try_from(downloaded).expect("downloaded value fits in i64"),
-        ));
+    pub const fn with_downloaded(mut self, downloaded: u64) -> Self {
+        self.announce.downloaded = Some(NumberOfBytes::new(downloaded));
         self
     }
 
-    /// # Panics
-    ///
-    /// Panics if `uploaded` exceeds `i64::MAX`.
     #[must_use]
-    pub fn with_uploaded(mut self, uploaded: u64) -> Self {
-        self.announce.uploaded = Some(NumberOfBytes::new(
-            i64::try_from(uploaded).expect("uploaded value fits in i64"),
-        ));
+    pub const fn with_uploaded(mut self, uploaded: u64) -> Self {
+        self.announce.uploaded = Some(NumberOfBytes::new(uploaded));
         self
     }
 
-    /// # Panics
-    ///
-    /// Panics if `left` exceeds `i64::MAX`.
     #[must_use]
-    pub fn with_left(mut self, left: u64) -> Self {
-        self.announce.left = Some(NumberOfBytes::new(i64::try_from(left).expect("left value fits in i64")));
+    pub const fn with_left(mut self, left: u64) -> Self {
+        self.announce.left = Some(NumberOfBytes::new(left));
         self
     }
 
@@ -604,16 +593,7 @@ fn extract_number_of_bytes_from_param(param_name: &str, query: &Query) -> Result
                 location: Location::caller(),
             })?;
 
-            let number_of_bytes =
-                i64::try_from(number_of_bytes).map_err(|_e| ParseAnnounceQueryError::NumberOfBytesOverflow {
-                    param_name: param_name.to_owned(),
-                    param_value: raw_param.clone(),
-                    location: Location::caller(),
-                })?;
-
-            let number_of_bytes = NumberOfBytes::new(number_of_bytes);
-
-            Ok(Some(number_of_bytes))
+            Ok(Some(NumberOfBytes::new(number_of_bytes)))
         }
         None => Ok(None),
     }

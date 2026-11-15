@@ -249,9 +249,9 @@ impl AnnounceService {
             peer_id: announce_request.peer_id,
             peer_addr: std::net::SocketAddr::new(*peer_ip, announce_request.port),
             updated: <crate::CurrentClock as torrust_clock::clock::Time>::now(),
-            uploaded: NumberOfBytes::new(uploaded.0),
-            downloaded: NumberOfBytes::new(downloaded.0),
-            left: NumberOfBytes::new(left.0),
+            uploaded: NumberOfBytes::new(uploaded.get()),
+            downloaded: NumberOfBytes::new(downloaded.get()),
+            left: NumberOfBytes::new(left.get()),
             event: announce_request
                 .event
                 .as_ref()
