@@ -116,7 +116,7 @@ kept, and the descriptions of the least-invoked skills are dropped first; each e
 | Skills category, no project skills                   | 4.6k tokens             |
 | Skills category, with the 53 project skills          | 9.9k tokens (1.0%, cap) |
 | The 53 project skill entries alone (sum of rows)     | ~6,980 tokens           |
-| Built-in skills whose descriptions were dropped      | 9                       |
+| Other skills whose descriptions were dropped (`claude.ai sync` source, under 20 tokens each) | 7 of 26 |
 | Description length: total / mean / max (characters)  | 19,489 / 368 / 724      |
 | Descriptions of 300 characters or more               | 42 of 53                |
 
