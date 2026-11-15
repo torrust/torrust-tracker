@@ -970,5 +970,81 @@ mod tests {
                 ));
             }
         }
+
+        mod when_a_number_of_bytes_param_is_parsed {
+
+            use rstest::rstest;
+
+            use crate::v1::query::Query;
+            use crate::v1::requests::announce::{
+                Announce, DOWNLOADED, INFO_HASH, LEFT, NumberOfBytes, PEER_ID, PORT, ParseAnnounceQueryError, UPLOADED,
+            };
+
+            /// Parses a valid announce query plus one byte-count param.
+            fn announce_with(param_name: &str, param_value: &str) -> Result<Announce, ParseAnnounceQueryError> {
+                let raw_query = Query::from(vec![
+                    (INFO_HASH, "%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0"),
+                    (PEER_ID, "-RC3000-000000000001"),
+                    (PORT, "17548"),
+                    (param_name, param_value),
+                ])
+                .to_string();
+
+                Announce::try_from(raw_query.parse::<Query>().unwrap())
+            }
+
+            fn number_of_bytes_in(announce: &Announce, param_name: &str) -> Option<NumberOfBytes> {
+                match param_name {
+                    DOWNLOADED => announce.downloaded,
+                    UPLOADED => announce.uploaded,
+                    LEFT => announce.left,
+                    other => panic!("`{other}` is not a byte-count param"),
+                }
+            }
+
+            #[rstest]
+            #[case::downloaded(DOWNLOADED)]
+            #[case::uploaded(UPLOADED)]
+            #[case::left(LEFT)]
+            fn it_should_reject_a_negative_value(#[case] param_name: &str) {
+                let result = announce_with(param_name, "-1");
+
+                assert!(matches!(
+                    result,
+                    Err(ParseAnnounceQueryError::InvalidParam {
+                        param_name: rejected_param,
+                        param_value,
+                        ..
+                    }) if rejected_param == param_name && param_value == "-1"
+                ));
+            }
+
+            #[rstest]
+            #[case::downloaded(DOWNLOADED)]
+            #[case::uploaded(UPLOADED)]
+            #[case::left(LEFT)]
+            fn it_should_accept_zero(#[case] param_name: &str) {
+                let announce = announce_with(param_name, "0").unwrap();
+
+                assert_eq!(number_of_bytes_in(&announce, param_name), Some(NumberOfBytes::new(0)));
+            }
+
+            #[rstest]
+            #[case::downloaded(DOWNLOADED)]
+            #[case::uploaded(UPLOADED)]
+            #[case::left(LEFT)]
+            fn it_should_reject_a_non_numeric_value(#[case] param_name: &str) {
+                let result = announce_with(param_name, "ten");
+
+                assert!(matches!(
+                    result,
+                    Err(ParseAnnounceQueryError::InvalidParam {
+                        param_name: rejected_param,
+                        param_value,
+                        ..
+                    }) if rejected_param == param_name && param_value == "ten"
+                ));
+            }
+        }
     }
 }
