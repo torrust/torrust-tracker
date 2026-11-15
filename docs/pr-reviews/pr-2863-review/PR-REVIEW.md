@@ -46,7 +46,9 @@ F1 to F5 come from the first da2ce7 review (APPROVED, findings not blocking), on
 `docs(issues): [#2393] record the T5 decisions for the ignored port-race tests`. The reviewer's own
 IDs F1 to F5 are kept unchanged. F6 comes from the first Copilot review (COMMENTED), on the same head;
 its own ID R1 is kept as `Reviewer finding ID`. The push of the F1 to F5 fixes dismissed the da2ce7
-approval.
+approval. F8 to F10 come from the second da2ce7 review (APPROVED, findings not blocking), on the
+head ending in `docs(pr-reviews): [#2393] log the resolution of the first PR 2863 review round`;
+the reviewer's own IDs F8 to F10 are kept unchanged.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -56,6 +58,9 @@ approval.
 | F4 | review-finding:pr-2863-f4 | Human | Nit | testing | ORIGINAL | FIXED | RESOLVED |
 | F5 | review-finding:pr-2863-f5 | Human | Nit | formatting | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-2863-f6 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-2863-f8 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F9 | review-finding:pr-2863-f9 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-2863-f10 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -137,6 +142,45 @@ approval.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2863#discussion_r4577639763>
 
+### F8 - Resolution references given as reply URLs
+
+- PR number: 2863
+- Source review ID: 5909860556
+- Reviewer finding ID: F8
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2863#discussion_r4577675549>
+- Concern: The six `FIXED` rows gave the reply URL as their resolution reference. The skill asks for the fix's unique Conventional Commit subject when the fix is in the tree, and the validator skips references that start with `http`, so its commit-subject check never ran.
+- Solution: F1 to F6 now cite their fix commit subjects, and F8 and F10 do the same. F9's fix is a PR-body edit, so it keeps the reply URL. Commit `docs(pr-reviews): [#2393] cite fix commit subjects as PR 2863 resolution references`.
+- Current-tree verification: the validator reports 0 failures with every in-tree `FIXED` reference checked against the branch's commit subjects.
+- Resolution reference: docs(pr-reviews): [#2393] cite fix commit subjects as PR 2863 resolution references
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2863#discussion_r4577695586>
+
+### F9 - PR description out of date with the branch
+
+- PR number: 2863
+- Source review ID: 5909860556
+- Reviewer finding ID: F9
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2863#discussion_r4577675544>
+- Concern: The description stopped at AC4 to AC6 and M5 to M6, summed up the Bug-Fix Process as red-then-green only, and did not name the audit record, while the merge tool copies the body into the merge commit.
+- Solution: Edited the PR description: a "Files touched" section lists both files and summarizes the test-design loop, AC4 to AC7, M5 to M7, V5 and V7. The fix is outside the tree, so the reference is the reply that states it.
+- Current-tree verification: `gh pr view 2863 --json body` shows the "Files touched" section naming `docs/pr-reviews/pr-2863-review/PR-REVIEW.md`.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2863#discussion_r4577695672>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2863#discussion_r4577695672>
+
+### F10 - Verification Plan leaves out V7
+
+- PR number: 2863
+- Source review ID: 5909860556
+- Reviewer finding ID: F10
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2863#discussion_r4577675546>
+- Concern: The Verification Plan listed V5 and V6 for T5 but not V7, which the Bug-Fix Process, T8, T9, AC7 and M7 require.
+- Solution: The Verification Plan now lists V5, V6 and V7 (test-design review per increment). Commit `docs(issues): [#2393] list V7 in the verification plan`.
+- Current-tree verification: `rg -n 'V7 \(test-design review per increment\)' docs/issues/open/2393-2392-test-port-allocation-races/ISSUE.md` prints the Verification Plan line.
+- Resolution reference: docs(issues): [#2393] list V7 in the verification plan
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2863#discussion_r4577695761>
+
 ## Processing Log
 
 - 2026-11-15 08:17 UTC - Started audit. da2ce7 reviewed the head ending in
@@ -148,3 +192,9 @@ approval.
   at 08:20:34Z to 08:20:44Z. Resolving the threads by a loop over every unresolved thread also
   resolved the F6 thread before it was read; it was reopened at once, read, fixed in its own
   commit, replied to at 08:22 and resolved again. All six threads are resolved.
+- 2026-11-15 08:41 UTC - da2ce7 reviewed the head ending in
+  `docs(pr-reviews): [#2393] log the resolution of the first PR 2863 review round` at 08:32:30Z
+  (APPROVED, three inline threads, F8 to F10, none blocking). The maintainer asked for all three to
+  be fixed before merging. F8 and F10 were fixed in their own commits, F9 by editing the PR
+  description; the replies were posted at 08:40 and the three threads resolved after them. All nine
+  threads are resolved.
