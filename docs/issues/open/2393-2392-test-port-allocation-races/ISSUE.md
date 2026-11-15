@@ -45,8 +45,9 @@ patch. A flaky test is worse for development than no test, so each racing test i
 `#[ignore]`, then deleted, rewritten without a real port, or kept disabled with a recorded reason.
 
 The first phase (PR 2859, merged) disabled twenty-one racing tests and rewrote four. The second
-phase (T5) applies the maintainer's decision for the twenty-one: delete nine, and restore twelve
-with rewrites that cannot race. When it is done, no test is left ignored for #2393.
+phase (T5) applies the maintainer's decision for the twenty-one: delete nine, rewrite three to
+probe an address the test holds, and restore nine on a unique loopback address so they no longer
+race on `127.0.0.1`. When it is done, no test is left ignored for #2393 on Linux.
 
 ## Background
 
