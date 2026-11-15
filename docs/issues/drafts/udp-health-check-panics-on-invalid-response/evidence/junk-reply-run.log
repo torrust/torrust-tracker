@@ -1,0 +1,27 @@
+    Finished `test` profile [optimized + debuginfo] target(s) in 1.35s
+     Running tests/integration.rs (target/debug/deps/integration-03e9de8f47257705)
+
+running 1 test
+
+thread 'server::contract::udp::it_should_return_error_when_the_registered_udp_service_answers_the_check_with_junk' (155086) panicked at packages/tracker-client/src/udp/client.rs:275:40:
+called `Result::unwrap()` on an `Err` value: UnableToParseResponse { err: Custom { kind: InvalidData, error: "invalid data" }, response: [106, 117, 110, 107] }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'server::contract::udp::it_should_return_error_when_the_registered_udp_service_answers_the_check_with_junk' (155086) panicked at packages/axum-health-check-api-server/src/handlers.rs:71:26:
+it should be able to join into the checking function: JoinError::Panic(Id(5), "called `Result::unwrap()` on an `Err` value: UnableToParseResponse { err: Custom { kind: InvalidData, error: \"invalid data\" }, response: [106, 117, 110, 107] }", ...)
+
+thread 'server::contract::udp::it_should_return_error_when_the_registered_udp_service_answers_the_check_with_junk' (155086) panicked at packages/axum-health-check-api-server/src/handlers.rs:79:20:
+it should be able to connect to the job: JoinError::Panic(Id(6), "it should be able to join into the checking function: JoinError::Panic(Id(5), \"called `Result::unwrap()` on an `Err` value: UnableToParseResponse { err: Custom { kind: InvalidData, error: \\\"invalid data\\\" }, response: [106, 117, 110, 107] }\", ...)", ...)
+
+thread 'server::contract::udp::it_should_return_error_when_the_registered_udp_service_answers_the_check_with_junk' (155086) panicked at packages/axum-health-check-api-server/tests/server/client.rs:18:72:
+called `Result::unwrap()` on an `Err` value: reqwest::Error { kind: Request, url: "http://127.0.0.1:46559/health_check", source: hyper_util::client::legacy::Error(SendRequest, hyper::Error(IncompleteMessage)) }
+test server::contract::udp::it_should_return_error_when_the_registered_udp_service_answers_the_check_with_junk ... FAILED
+
+failures:
+
+failures:
+    server::contract::udp::it_should_return_error_when_the_registered_udp_service_answers_the_check_with_junk
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 11 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p torrust-tracker-axum-health-check-api-server --test integration`
