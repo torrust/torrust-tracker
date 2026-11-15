@@ -134,7 +134,10 @@ Tooling with the path built in: the `Cargo.toml` workspace member
 `frontmatter-validator` (`SKILLS_DIRECTORY`, tests, README), `agent-review-report-contract`
 (about 40 literal paths), the `include_str!` of `fetch-review-threads/SKILL.md` in
 `github-review-threads`, and `docs/packages.md`. 32 skill files hold 96 relative-link lines whose
-depth changes (five levels deep today, three after).
+depth changes (five levels deep today, three after). One moved script also finds the repository
+root by depth: `run-tracker-locally/scripts/validate-skill-links.sh` walks six folders up, and its
+`scripts/` folder will be four levels below the root. No other moved script, test, or manifest
+resolves a path by depth (searched for `..` path walks, `dirname`, `__file__` and manifest paths).
 
 `skill-links` frontmatter holds skill names, not paths, so it does not change; only the
 validator's lookup folder does.
@@ -248,7 +251,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task                                     | Notes / Expected Output                                                                                                                                                                                                              |
 | --- | ------ | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | T1  | TODO   | Create the description follow-up issue   | A new EPIC #2003 sub-issue to shorten and retune the 53 descriptions, with the measurements above. Created before the implementation PR opens, so the PR links it.                                                                     |
-| T2  | TODO   | Move the skills and fix every live path  | `git mv` of all 71 files; relative links inside moved skills; tooling paths; every live reference by the classification rule. The commit passes `linter all` and the tests on its own. Git shows 71 renames.                           |
+| T2  | TODO   | Move the skills and fix every live path  | `git mv` of all 71 files; relative links inside moved skills; depth-dependent paths in moved scripts (`validate-skill-links.sh`); tooling paths; every live reference by the classification rule. The commit passes `linter all` and the tests on its own. Git shows 71 renames.                           |
 | T3  | TODO   | Add the redirect stubs                   | 53 stubs plus `.github/skills/README.md`, which says the folder only holds redirects and inventories the 53 original paths.                                                                                                                                                       |
 | T4  | TODO   | Add the index                            | `.claude/skills/README.md` lists each skill by area (today's area folders), with a one-line purpose, and notes the old location. `AGENTS.md` and `docs/agents/` point to it.                                                          |
 | T5  | TODO   | Validator rules                          | The rules in [Validator rules](#validator-rules-after-the-move), with unit tests and a negative case for each; wired into the pre-commit hook and CI.                                                                                  |
@@ -260,7 +263,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | Task | Coherent change set                                         | Commit policy                                                                                       |
 | ---- | ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| T2   | The move plus every path fix the gate needs                 | One commit. Its message records the sweep commands. Moved files change only in their links.          |
+| T2   | The move plus every path fix the gate needs                 | One commit. Its message records the sweep commands. Moved files change only in their links and in depth-dependent paths such as the root walk of `validate-skill-links.sh`. |
 | T3   | Stubs                                                       | One commit, after T2, so the renames stay detectable.                                               |
 | T4   | Index and its links                                         | One commit.                                                                                         |
 | T5   | Validator rules and tests                                   | One commit per rule group when that keeps each reviewable.                                          |
@@ -335,7 +338,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | --- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ------ | -------------------------------------------- |
 | M1  | Claude Code discovers the skills  | In a fresh checkout of the branch, run `claude -p "/context"` and count the `Project` rows                                       | 53 project skills; no stub listed                                              | TODO   | `manual-verification-evidence.md` section V1 |
 | M2  | A skill runs by name              | In the same checkout, run `/create-issue` without naming a path                                                                    | Claude Code loads `.claude/skills/create-issue/SKILL.md`                      | TODO   | `manual-verification-evidence.md` section V2 |
-| M3  | Moved scripts and tool run        | Run `validate-audit-record.py` on a merged audit record and `cargo run -p wait-for-pr-review -- --help` from the new paths         | Both succeed                                                                  | TODO   | `manual-verification-evidence.md` section V3 |
+| M3  | Moved scripts and tool run        | Run `validate-audit-record.py` on a merged audit record, `bash .claude/skills/run-tracker-locally/scripts/validate-skill-links.sh`, and `cargo run -p wait-for-pr-review -- --help` from the new paths | All three succeed; the skill-links script prints `Skill links validation passed` | TODO   | `manual-verification-evidence.md` section V3 |
 | M4  | An old link still leads somewhere | Open a closed spec that links an old `SKILL.md` path and follow the link on the branch                                             | The stub opens and its link reaches the moved skill                           | TODO   | `manual-verification-evidence.md` section V4 |
 | M5  | The validator catches drift       | In scratch commits, delete one skill folder, then (separately) delete only one stub, and run the new rules each time               | Each run fails: the first names the orphan stub and index row, the second the missing inventoried stub | TODO   | `manual-verification-evidence.md` section V5 |
 
@@ -356,7 +359,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 ## Risks and Trade-offs
 
 - **A large first commit.** T2 must pass the commit gate on its own, so it carries the move and
-  every path fix. Mitigation: the moved files change only in their links, the sweep commands are
+  every path fix. Mitigation: the moved files change only in their links and depth-dependent paths, the sweep commands are
   recorded, and `git show -M --stat` shows the renames.
 - **53 stubs with no planned end.** They keep about 520 historical records navigable without
   rewriting them. The T5 rules keep them from going stale.
