@@ -9,7 +9,7 @@ github-issue: 2394
 spec-path: docs/issues/open/2394-2392-audit-shared-test-resources/ISSUE.md
 branch: "2392-test-isolation-spec"
 related-pr: 2397
-last-updated-utc: "2026-11-14 22:47"
+last-updated-utc: "2026-11-15 12:11"
 semantic-links:
   skill-links:
     - create-issue
@@ -128,6 +128,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-14 22:47 UTC - Claude Code (Claude Opus 5.5), EPIC coordinator - After #2393's PR #2859
   merged: T2 reuses #2393's port inventory for Rust tests, and the port class lists the two racing
   shapes #2393 found besides bind-and-release.
+- 2026-11-15 12:11 UTC - Claude Code (Claude Opus 5.5), EPIC coordinator - After the first review
+  round on PR #2862: T2 marks Covered only the rows #2393 owns and still audits Rust tests for
+  collisions between concurrent runs; the port class adds the released-port-probed-dead shape.
 
 ## Acceptance Criteria
 

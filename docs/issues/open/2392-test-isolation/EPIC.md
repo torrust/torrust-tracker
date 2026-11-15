@@ -6,7 +6,7 @@ epic: null
 github-issue: 2392
 spec-path: docs/issues/open/2392-test-isolation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-14 22:47"
+last-updated-utc: "2026-11-15 12:11"
 semantic-links:
   skill-links:
     - create-issue
@@ -219,6 +219,10 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
   #2393's PR #2859 merged: order 1 is in progress (T5 open), recorded the maintainer's decisions
   (disable racing tests first, no listener handoff for now, no new port helper) and the three
   racing port shapes, and pointed #2394's port inventory at #2393's.
+- 2026-11-15 12:11 UTC - Claude Code (Claude Opus 5.5), EPIC coordinator - Addressed the first
+  review round on PR #2862: named the 18 and 21 ignored tests behind the 150-run and 20-run #2393
+  rechecks, added a fourth racing shape (released port probed and expected dead), and corrected the
+  wording of the four rewritten tests.
 
 ## Acceptance Criteria
 
