@@ -24,9 +24,9 @@ All 16 source files of `packages/primitives/src/` were processed through the per
 unit-only equals aggregate ([coverage-evidence.md](coverage-evidence.md)). It has 109 unit tests (47 at the baseline).
 The only uncovered lines are the `peer::fixture` test support and `peer::Id::new`, owned by the F5 follow-up. One
 production defect was fixed here (F2, the `PeerRole` JSON casing, S1); two doc comments were corrected (S3); the others
-were handed off (F1 #2798, F3 #2804, F4 #2823, F5, F6 #2838 and #2850). A whole-package mutation run gave 94 caught, 3
-missed (2 equivalent), 2 timeouts and 48 unviable ([mutation-evidence.md](mutation-evidence.md)); the real survivor
-got a one-value test fix. M1 and M2 passed against a built tracker
+were handed off (F1 #2798, F3 #2804, F4 #2823, F5 draft spec PR #2865, F6 #2838 and #2850). A whole-package mutation
+run gave 94 caught, 3 missed (2 equivalent), 2 timeouts and 48 unviable ([mutation-evidence.md](mutation-evidence.md));
+the real survivor got a one-value test fix. M1 and M2 passed against a built tracker
 ([manual-verification-evidence.md](manual-verification-evidence.md)).
 
 ## What Went Well
