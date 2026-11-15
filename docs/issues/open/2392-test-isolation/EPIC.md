@@ -231,7 +231,7 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
   rechecks, added a fourth racing shape (released port probed and expected dead), and corrected the
   wording of the four rewritten tests.
 - 2026-11-15 12:32 UTC - Claude Code (Claude Opus 5.5), EPIC coordinator - Second review round on
-  PR #2862: rebased on `develop`, which carries the #2393 T5 decisions (PR #2863); order 1 now has
+  PR #2862: merged `develop`, which carries the #2393 T5 decisions (PR #2863); order 1 now has
   T5 decided and T7 to T11 open, the Decisions section records the T5 decisions and the loopback
   helper, and AC2 and the lost-coverage risk point at #2393 T10 and T9.
 
