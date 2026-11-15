@@ -24,10 +24,8 @@
 
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::future::Future;
-use std::pin::Pin;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
-use std::task::{Context, Poll};
 use std::time::Duration;
 
 use tokio::task::{Id, JoinError, JoinHandle, JoinSet};
@@ -198,20 +196,6 @@ impl<T> Drop for OwnedTask<T> {
     fn drop(&mut self) {
         self.task.abort();
     }
-}
-
-// issue: #1488
-// Transitional compatibility boundary. Do not register new components here.
-// SI-5 must migrate peers inactivity update to `JobManager::spawn`; UDP IP-ban
-// cleanup has its own periodic-job migration.
-/// A pre-spawned job retained for a narrow legacy compatibility boundary.
-///
-/// `JoinSet` cannot adopt this handle without a wrapper task, so this type is
-/// deliberately not part of the direct-component task set.
-#[derive(Debug)]
-struct LegacyJob {
-    name: String,
-    handle: JoinHandle<()>,
 }
 
 /// Identifies a top-level component reserved in one [`JobManager`].
@@ -564,9 +548,7 @@ struct JobIdentity {
 pub struct JobManager {
     jobs: JoinSet<ComponentResult>,
     job_names: HashMap<Id, JobIdentity>,
-    legacy_jobs: Vec<LegacyJob>,
     registry: Arc<Mutex<ComponentRegistry>>,
-    cancellation_token: CancellationToken,
     /// The component that stops after every other component, once reserved.
     stop_last: Option<ComponentId>,
 }
@@ -577,9 +559,7 @@ impl JobManager {
         Self {
             jobs: JoinSet::new(),
             job_names: HashMap::new(),
-            legacy_jobs: Vec::new(),
             registry: Arc::new(Mutex::new(ComponentRegistry::default())),
-            cancellation_token: CancellationToken::new(),
             stop_last: None,
         }
     }
@@ -592,7 +572,7 @@ impl JobManager {
     /// other spawned component has completed, in any state. Reserve it before
     /// every other component (an edge needs a target reserved earlier), then
     /// spawn it whenever it can start. A component that is not under the
-    /// manager's ordering, such as a legacy job, is not covered.
+    ///
     ///
     /// A reservation dropped without being spawned is released, together with
     /// the edges that other components declared towards it.
@@ -619,8 +599,7 @@ impl JobManager {
 
     /// Reserves a top-level component and issues its own cancellation token.
     ///
-    /// The token is not derived from the legacy root token or from any other
-    /// component's token. If the manager has already been cancelled, the token
+    /// The token is not derived from any other component's token. If the manager has already been cancelled, the token
     /// is issued cancelled.
     pub fn reserve<N>(&mut self, name: N) -> Reservation
     where
@@ -708,42 +687,15 @@ impl JobManager {
         Ok(())
     }
 
-    // issue: #1488
-    /// Registers an existing periodic job without transferring it to `JoinSet`.
-    ///
-    /// This narrow compatibility API preserves pre-existing launch and
-    /// cancellation semantics for periodic jobs that own a `JoinHandle` before
-    /// registration. The manager still joins and escalates these jobs; callers
-    /// must not drop the handle. New components must use [`Self::spawn`].
-    pub fn register_legacy<N>(&mut self, name: N, handle: JoinHandle<()>)
-    where
-        N: Into<String>,
-    {
-        self.legacy_jobs.push(LegacyJob {
-            name: name.into(),
-            handle,
-        });
-    }
-
-    /// Returns a clone of the legacy root token.
-    ///
-    /// Only jobs registered with [`Self::register_legacy`] use it. Components
-    /// spawned with [`Self::spawn`] use the token of their [`Reservation`].
-    #[must_use]
-    pub fn legacy_cancellation_token(&self) -> CancellationToken {
-        self.cancellation_token.clone()
-    }
-
     /// Requests the ordered shutdown.
     ///
-    /// It cancels the legacy root token and the token of every reserved or
-    /// spawned component that does not wait for another component. A
+    /// It cancels the token of every reserved or spawned component that does not
+    /// wait for another component. A
     /// component that must wait for others (see [`StopBefore`]) is cancelled by
     /// [`Self::wait_for_all`] once the last of them has completed; the logs name
     /// what each one waits for. A reservation issued afterwards gets a
     /// cancelled token. Calling it again has no further effect.
     pub fn cancel(&self) {
-        self.cancellation_token.cancel();
         let plan = lock(&self.registry).request_shutdown();
         if let Some(plan) = plan {
             log_shutdown_plan(&plan);
@@ -766,8 +718,7 @@ impl JobManager {
     /// requested, it cancels the components that were waiting only for it.
     /// Completion alone never cancels anything before [`Self::cancel`].
     ///
-    /// The deadline also applies to the narrowly scoped legacy compatibility
-    /// jobs. When it expires, every remaining task is aborted and joined before
+    /// When the deadline expires, every remaining task is aborted and joined before
     /// this method returns, including components that were never asked to stop
     /// because the components they wait for had not completed. Components own
     /// the cleanup of their own children before completing.
@@ -794,23 +745,13 @@ impl JobManager {
 
     async fn collect_jobs_before_deadline(&mut self, deadline: Instant, outcomes: &mut Vec<JobOutcome>) -> bool {
         timeout_at(deadline, async {
-            while !self.jobs.is_empty() || !self.legacy_jobs.is_empty() {
-                tokio::select! {
-                    result = self.jobs.join_next_with_id(), if !self.jobs.is_empty() => {
-                        if let Some(result) = result {
-                            let (outcome, finished) = outcome(result, &mut self.job_names, false);
-                            if let Some(finished) = finished {
-                                let released = lock(&self.registry).mark_finished(finished);
-                                log_released_components(&outcome.name, &released);
-                            }
-                            outcomes.push(outcome);
-                        }
-                    }
-                    (index, result) = wait_for_legacy_completion(&mut self.legacy_jobs), if !self.legacy_jobs.is_empty() => {
-                        let job = self.legacy_jobs.swap_remove(index);
-                        outcomes.push(legacy_outcome(job, result, false));
-                    }
+            while let Some(result) = self.jobs.join_next_with_id().await {
+                let (outcome, finished) = outcome(result, &mut self.job_names, false);
+                if let Some(finished) = finished {
+                    let released = lock(&self.registry).mark_finished(finished);
+                    log_released_components(&outcome.name, &released);
                 }
+                outcomes.push(outcome);
             }
         })
         .await
@@ -819,17 +760,9 @@ impl JobManager {
 
     async fn abort_and_drain_remaining_jobs(&mut self, outcomes: &mut Vec<JobOutcome>) {
         self.jobs.abort_all();
-        for job in &self.legacy_jobs {
-            job.handle.abort();
-        }
 
         while let Some(result) = self.jobs.join_next_with_id().await {
             outcomes.push(outcome(result, &mut self.job_names, true).0);
-        }
-
-        while let Some(mut job) = self.legacy_jobs.pop() {
-            let result = (&mut job.handle).await;
-            outcomes.push(legacy_outcome(job, result, true));
         }
     }
 }
@@ -855,28 +788,6 @@ fn outcome(
     );
     log_outcome(&name, &status);
     (JobOutcome { name, status }, component_id)
-}
-
-async fn wait_for_legacy_completion(legacy_jobs: &mut [LegacyJob]) -> (usize, Result<(), JoinError>) {
-    std::future::poll_fn(|context: &mut Context<'_>| {
-        for (index, job) in legacy_jobs.iter_mut().enumerate() {
-            if let Poll::Ready(result) = Pin::new(&mut job.handle).poll(context) {
-                return Poll::Ready((index, result));
-            }
-        }
-
-        Poll::Pending
-    })
-    .await
-}
-
-fn legacy_outcome(job: LegacyJob, result: Result<(), JoinError>, aborted_after_deadline: bool) -> JobOutcome {
-    let status = result.map_or_else(
-        |error| join_error_status(error, aborted_after_deadline),
-        |()| JobStatus::Completed,
-    );
-    log_outcome(&job.name, &status);
-    JobOutcome { name: job.name, status }
 }
 
 fn join_error_status(error: JoinError, aborted_after_deadline: bool) -> JobStatus {
@@ -1079,32 +990,6 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn it_should_abort_and_join_a_legacy_pre_spawned_job_after_the_deadline() {
-        // Arrange
-        let mut manager = JobManager::new();
-        let (completion_sender, completion_receiver) = oneshot::channel::<()>();
-        manager.register_legacy(
-            "legacy-job",
-            tokio::spawn(async move {
-                let _ = completion_receiver.await;
-            }),
-        );
-
-        // Act
-        let outcomes = manager.wait_for_all(Duration::ZERO).await;
-
-        // Assert
-        assert_eq!(
-            outcomes,
-            vec![JobOutcome {
-                name: "legacy-job".to_owned(),
-                status: JobStatus::Aborted,
-            }]
-        );
-        assert!(completion_sender.send(()).is_err());
-    }
-
-    #[tokio::test]
     async fn it_should_abort_a_token_aware_server_task_and_its_shutdown_controller_when_the_component_is_aborted_after_the_deadline()
      {
         // Arrange
@@ -1150,29 +1035,15 @@ mod tests {
     }
 
     #[tokio::test(start_paused = true)]
-    async fn it_should_apply_the_same_deadline_to_direct_and_legacy_jobs() {
+    async fn it_should_apply_the_shared_deadline_to_a_direct_job() {
         // Arrange
         let mut manager = JobManager::new();
         let grace_period = Duration::from_secs(1);
         let (direct_completion_sender, direct_completion_receiver) = oneshot::channel::<()>();
-        let (first_legacy_completion_sender, first_legacy_completion_receiver) = oneshot::channel::<()>();
-        let (second_legacy_completion_sender, second_legacy_completion_receiver) = oneshot::channel::<()>();
         reserve_and_spawn(&mut manager, "direct-job", async move {
             let _ = direct_completion_receiver.await;
             Ok(ComponentCompletion::Completed)
         });
-        manager.register_legacy(
-            "first-legacy-job",
-            tokio::spawn(async move {
-                let _ = first_legacy_completion_receiver.await;
-            }),
-        );
-        manager.register_legacy(
-            "second-legacy-job",
-            tokio::spawn(async move {
-                let _ = second_legacy_completion_receiver.await;
-            }),
-        );
 
         // Act
         let started_at = tokio::time::Instant::now();
@@ -1181,25 +1052,13 @@ mod tests {
         // Assert
         assert_eq!(
             outcomes,
-            vec![
-                JobOutcome {
-                    name: "direct-job".to_owned(),
-                    status: JobStatus::Aborted,
-                },
-                JobOutcome {
-                    name: "second-legacy-job".to_owned(),
-                    status: JobStatus::Aborted,
-                },
-                JobOutcome {
-                    name: "first-legacy-job".to_owned(),
-                    status: JobStatus::Aborted,
-                },
-            ]
+            vec![JobOutcome {
+                name: "direct-job".to_owned(),
+                status: JobStatus::Aborted,
+            }]
         );
         assert_eq!(tokio::time::Instant::now() - started_at, grace_period);
         assert!(direct_completion_sender.send(()).is_err());
-        assert!(first_legacy_completion_sender.send(()).is_err());
-        assert!(second_legacy_completion_sender.send(()).is_err());
     }
 
     #[tokio::test]
@@ -1258,22 +1117,6 @@ mod tests {
     }
 
     #[test]
-    fn it_should_not_cancel_a_reserved_component_when_only_the_legacy_root_token_is_cancelled() {
-        // Arrange
-        let mut manager = JobManager::new();
-        let reservation = manager.reserve("component");
-
-        // Act
-        manager.legacy_cancellation_token().cancel();
-
-        // Assert
-        assert!(
-            !reservation.cancellation_token().is_cancelled(),
-            "a component token must not be a child of the legacy root token"
-        );
-    }
-
-    #[test]
     fn it_should_issue_a_cancelled_token_when_a_component_is_reserved_after_the_manager_is_cancelled() {
         // Arrange
         let mut manager = JobManager::new();
@@ -1316,18 +1159,11 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn it_should_stop_components_and_legacy_jobs_once_when_the_manager_is_cancelled_twice() {
+    async fn it_should_stop_components_once_when_the_manager_is_cancelled_twice() {
         // Arrange
         let mut manager = JobManager::new();
         let reservation = manager.reserve("component");
         spawn_component_stopping_on_its_own_token(&mut manager, reservation);
-        let legacy_token = manager.legacy_cancellation_token();
-        manager.register_legacy(
-            "legacy-job",
-            tokio::spawn(async move {
-                legacy_token.cancelled().await;
-            }),
-        );
 
         // Act
         manager.cancel();
@@ -1338,16 +1174,10 @@ mod tests {
         outcomes.sort_by(|left, right| left.name.cmp(&right.name));
         assert_eq!(
             outcomes,
-            vec![
-                JobOutcome {
-                    name: "component".to_owned(),
-                    status: JobStatus::Cancelled,
-                },
-                JobOutcome {
-                    name: "legacy-job".to_owned(),
-                    status: JobStatus::Completed,
-                },
-            ]
+            vec![JobOutcome {
+                name: "component".to_owned(),
+                status: JobStatus::Cancelled,
+            },]
         );
     }
 
