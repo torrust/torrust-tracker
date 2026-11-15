@@ -112,31 +112,43 @@ mod tests {
         Result<ComponentCompletion, &'static str>,
     );
 
-    /// A drain controller that reports `outcome` once released; `joined` is signalled when it finishes.
+    /// A drain controller that reports `outcome` once the component is cancelled.
     fn drain_controller(
         cancellation_token: CancellationToken,
         outcome: GracefulShutdownOutcome,
-    ) -> (JoinHandle<GracefulShutdownOutcome>, oneshot::Receiver<()>) {
-        let (joined_sender, joined) = oneshot::channel();
-        let handle = tokio::spawn(async move {
+    ) -> JoinHandle<GracefulShutdownOutcome> {
+        tokio::spawn(async move {
             cancellation_token.cancelled().await;
-            let _ = joined_sender.send(());
             outcome
-        });
-        (handle, joined)
+        })
     }
 
-    async fn run(
-        server_task: JoinHandle<ServerResult>,
-        cancel_first: bool,
-        outcome: GracefulShutdownOutcome,
-    ) -> (ComponentResult, oneshot::Receiver<()>) {
+    /// A drain controller that, once the component is cancelled, signals `observed` and then waits for `release`.
+    fn gated_drain_controller(
+        cancellation_token: CancellationToken,
+    ) -> (
+        JoinHandle<GracefulShutdownOutcome>,
+        oneshot::Receiver<()>,
+        oneshot::Sender<()>,
+    ) {
+        let (observed_sender, observed) = oneshot::channel();
+        let (release, release_receiver) = oneshot::channel::<()>();
+        let handle = tokio::spawn(async move {
+            cancellation_token.cancelled().await;
+            let _ = observed_sender.send(());
+            let _ = release_receiver.await;
+            GracefulShutdownOutcome::Drained
+        });
+        (handle, observed, release)
+    }
+
+    async fn run(server_task: JoinHandle<ServerResult>, cancel_first: bool, outcome: GracefulShutdownOutcome) -> ComponentResult {
         let cancellation_token = CancellationToken::new();
-        let (controller, joined) = drain_controller(cancellation_token.clone(), outcome);
+        let controller = drain_controller(cancellation_token.clone(), outcome);
         if cancel_first {
             cancellation_token.cancel();
         }
-        let result = tokio::time::timeout(
+        tokio::time::timeout(
             TEST_DEADLINE,
             supervise_token_aware_server(
                 "test component",
@@ -146,12 +158,11 @@ mod tests {
             ),
         )
         .await
-        .expect("the component should report within the test deadline");
-        (result, joined)
+        .expect("the component should report within the test deadline")
     }
 
     #[tokio::test]
-    async fn it_should_map_the_join_and_error_cases_after_joining_both_children() {
+    async fn it_should_map_the_join_and_error_cases_to_the_component_result() {
         // Arrange
         let drained = || GracefulShutdownOutcome::Drained;
         let timed_out = || GracefulShutdownOutcome::TimedOut;
@@ -209,7 +220,7 @@ mod tests {
 
         for (name, server_task, cancel_first, outcome, expected) in cases {
             // Act
-            let (result, joined) = run(server_task, cancel_first, outcome).await;
+            let result = run(server_task, cancel_first, outcome).await;
 
             // Assert
             match expected {
@@ -219,10 +230,48 @@ mod tests {
                     assert!(error.to_string().contains(message), "{name}: {error}");
                 }
             }
-            // The controller finished (was joined, not aborted) in every case, including the server-join errors.
+        }
+    }
+
+    // Regression test for the HTTP and REST supervisors, which returned on a server-join error before
+    // joining the drain controller, so the controller was aborted and its outcome lost.
+    #[tokio::test(start_paused = true)]
+    async fn it_should_wait_for_the_drain_controller_when_the_server_join_fails() {
+        for cancel_first in [true, false] {
+            // Arrange
+            let cancellation_token = CancellationToken::new();
+            let (controller, observed, release) = gated_drain_controller(cancellation_token.clone());
+            let server_task: JoinHandle<ServerResult> = tokio::spawn(async { panic!("server panic") });
+            if cancel_first {
+                cancellation_token.cancel();
+            }
+
+            // Act
+            let mut supervisor = tokio::spawn(supervise_token_aware_server(
+                "test component",
+                TokenAwareServerTask::new(server_task, controller),
+                cancellation_token,
+                |result: ServerResult| result,
+            ));
+            observed.await.expect("the drain controller should observe the cancellation");
+
+            // Assert
+            // The paused clock advances only when every task is idle, so a supervisor that returned on
+            // the server-join error would have finished before this timeout expires.
             assert!(
-                joined.await.is_ok(),
-                "{name}: the drain controller must be joined, not dropped"
+                tokio::time::timeout(Duration::from_secs(1), &mut supervisor).await.is_err(),
+                "cancel_first={cancel_first}: the component must wait for its drain controller after a server-join error"
+            );
+            release
+                .send(())
+                .expect("the drain controller should still be waiting for its release");
+            let error = supervisor
+                .await
+                .expect("the supervisor should not panic")
+                .expect_err("a server-join error should fail the component");
+            assert!(
+                error.to_string().contains("test component server task join failed"),
+                "cancel_first={cancel_first}: {error}"
             );
         }
     }
