@@ -156,7 +156,8 @@ assertion; da2ce7's "Checked, no finding" list and Copilot's overview are contex
 - 2026-11-15 12:08 UTC - Committed the F1 fix, then the F4, F2 and F3 fixes and the spec progress-log entries (last commit 12:11 UTC), one commit each.
 - 2026-11-15 12:12 UTC - Replied on all seven threads (12:12:39 to 12:12:52 UTC). The audit record was not created before the first reply, as the skill requires; this is the late start.
 - 2026-11-15 12:13 UTC - Started audit: created this record from the template with the reply URLs.
-- 2026-11-15 12:17 UTC - Before the push, the PR-branch commit-id check flagged the round-1 head id in the Findings introduction; replaced it with that commit's subject.
+- 2026-11-15 12:14 UTC - Before the push, the PR-branch commit-id check flagged the round-1 head id in the Findings introduction; replaced it with that commit's subject.
+- 2026-11-15 12:15 UTC - Correction: the entry above was first committed with the time 12:17 UTC, which was ahead of the clock; its time is now 12:14 UTC, when the check ran.
 
 ## Completion Rules
 
