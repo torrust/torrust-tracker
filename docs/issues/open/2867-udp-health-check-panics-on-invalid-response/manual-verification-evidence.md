@@ -1,6 +1,6 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/drafts/udp-health-check-panics-on-invalid-response/ISSUE.md
+issue-spec: docs/issues/open/2867-udp-health-check-panics-on-invalid-response/ISSUE.md
 last-updated-utc: 2026-11-15 12:45
 ---
 

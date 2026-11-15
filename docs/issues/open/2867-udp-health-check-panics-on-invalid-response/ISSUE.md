@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: draft
+status: planned
 priority: p2
 epic: null
-github-issue: null
-spec-path: docs/issues/drafts/udp-health-check-panics-on-invalid-response/ISSUE.md
-branch: "{issue-number}-udp-health-check-panics-on-invalid-response"
+github-issue: 2867
+spec-path: docs/issues/open/2867-udp-health-check-panics-on-invalid-response/ISSUE.md
+branch: "2867-udp-health-check-panics-on-invalid-response-spec"
 related-pr: null
-last-updated-utc: "2026-11-15 12:45"
+last-updated-utc: "2026-11-15 20:18"
 semantic-links:
   skill-links:
     - create-issue
@@ -24,7 +24,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - UDP health check panics when the tracker answers with an invalid response
+# Issue #2867 - UDP health check panics when the tracker answers with an invalid response
 
 ## Goal
 
@@ -190,8 +190,8 @@ before maintainer review and commit. Use Conventional Commit messages with the n
 ### Workflow Checkpoints
 
 - [x] Folder-style spec drafted in `docs/issues/drafts/udp-health-check-panics-on-invalid-response/ISSUE.md`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
 - [ ] Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
@@ -208,6 +208,8 @@ before maintainer review and commit. Use Conventional Commit messages with the n
 - 2026-11-15 12:45 UTC - Claude Code (Claude Opus 5.5) - Drafted the spec and reproduced the
   defect (V1 reproduced, V2 closed-port scope check passes) - `manual-verification-evidence.md`,
   `evidence/`
+- 2026-11-15 20:18 UTC - Claude Code (Claude Opus 5.5) - Maintainer approved the draft; created
+  issue #2867 and moved the spec to `docs/issues/open/` for a spec-only PR
 
 ## Acceptance Criteria
 
