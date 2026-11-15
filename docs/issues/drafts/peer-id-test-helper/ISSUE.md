@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/peer-id-test-helper/ISSUE.md
 branch: "{issue-number}-peer-id-test-helper"
 related-pr: null
-last-updated-utc: "2026-11-15 20:32"
+last-updated-utc: "2026-11-15 21:27"
 semantic-links:
   skill-links:
     - create-issue
@@ -66,7 +66,9 @@ The Findings Register of #2824 (row F5) records the finding. What it says, re-ch
   (plural), which is a likely reason the singular `peer::fixture` was missed.
 - #2824 measured that the `Id::new` lines (12) and the `peer::fixture` lines (55) are the only
   uncovered lines left in `peer.rs` (plus one dead `Display` branch), and left their tests to this
-  issue. The package has 9 more uncovered lines, in `swarm_metadata.rs`, which F5 does not own.
+  issue. When this spec was drafted (`develop` at `abd7a10ff`) the package also had 9 uncovered
+  lines in `swarm_metadata.rs`; the S4 slice of #2824 (#2864) covered them (31 / 31), and #2824's
+  final measurement puts all 68 uncovered lines of the package (1,077 / 1,145) in `peer.rs`.
 - #2824 also found that the fixture's own ids (`-qB00000000000000000`, `...01`, `...02`) are not valid
   Azureus-style ids (the character after the four version characters must be `-`), so the client
   registry reports no client for them. Its new tests use `-qB4650-abcdefghijkl`, which the registry
@@ -224,8 +226,10 @@ decimal (readable in test failures) or as hex. A `u64` does not fit in either fo
   No call site changes its argument.
 - (b) Take a `u32` (10 decimal digits, fits). The wrappers take a `u32` too, and the call sites
   change: `-1` becomes a named constant outside the made range (for example
-  `const OTHER_PEER: u32 = 1000;`), and the two `0..408` loops pass `u32::try_from(i)`, because `i`
-  also feeds `InfoHash::from(&i)` and `hash.write_i32(i)`.
+  `const OTHER_PEER: u32 = 1000;`). The two `0..408` loops need a `u32` for the wrapper while `i` also
+  feeds `InfoHash::from(&i)` and `hash.write_i32(i)`: either keep `i` an `i32` and pass
+  `u32::try_from(i).expect(...)` (a `Result`, so it must be unwrapped), or iterate over `0..408_u32`
+  and convert only for those two uses.
 
 Recommendation: (b). The sentinel means "a peer not among the made ones", and a name says that
 better than `-1`; the ids also stay a plain number after the prefix. Unit tests check that
@@ -387,6 +391,10 @@ with the narrow affected scope, and sign every commit with GPG.
   Q4 weighs `i32` against `u32` with a named sentinel; M2 and the regression strategy use
   `shipped-features-check`, which exited 0 for `torrust-tracker` on `abd7a10ff`; a Coverage
   Evidence section and commit points for T0, T1 and T9 were added; smaller wording fixes.
+- 2026-11-15 21:27 UTC - Claude Code (Opus 5.5) - Review round 2 of PR #2865 (da2ce7, approved with
+  two Nit findings on this spec): Q4 (b) now names both ways to pass the loop variable as a `u32`
+  (`u32::try_from(i)` returns a `Result`), and the `swarm_metadata.rs` coverage note is dated and
+  updated with #2824's final measurement.
 
 ## Acceptance Criteria
 
