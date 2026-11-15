@@ -99,8 +99,8 @@ From the specification:
 - the after mean of the load test is not below the lowest baseline run (135,528.53);
 - the after HTTP `announce_once` median is not above the highest baseline median (342.05 ns);
 - the after UDP `announce_once` median is not above the highest baseline median (303.52 ns) plus a
-  tolerance for the three sign checks T2 adds. The tolerance is agreed with the maintainer before
-  the after measurement and recorded here.
+  tolerance for the three sign checks T2 adds. Agreed with the maintainer on 2026-11-15, after the
+  baseline and before the after measurement: 5%, so the after median must be at most 318.70 ns.
 
 ## After
 

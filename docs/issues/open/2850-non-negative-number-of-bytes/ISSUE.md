@@ -769,6 +769,9 @@ of `http-core`, and the end-to-end UDP load test.
   tolerance. The tolerance is not set here: the maintainer agrees on it after the baseline shows
   the noise, and before the after measurement, and is then added to this section. The HTTP path
   adds no work, so its rule has no tolerance.
+- Agreed tolerance (maintainer, 2026-11-15, after the baseline and before the after measurement):
+  the after UDP `announce_once` median may be up to 5% above the highest baseline median, that is
+  at most 318.70 ns (highest baseline median 303.52 ns; baseline spread 6.5%).
 
 ### Manual Verification Scenarios
 
