@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2393-2392-test-port-allocation-races/ISSUE.md
-last-updated-utc: "2026-11-15 12:19"
+last-updated-utc: "2026-11-15 12:27"
 ---
 
 <!-- markdownlint-disable MD003 -->
@@ -182,6 +182,19 @@ A first UDP mutation answered with junk bytes. The test failed, but by a panic i
 handler, not by its assertion, so it was replaced by the valid connect response above. That panic is
 noted under [Failures and Follow-up](#failures-and-follow-up).
 
+#### T9 - the loopback helper, 2026-11-15 12:27 UTC
+
+Command:
+`cargo nextest run -p torrust-tracker-test-helpers --all-features --no-fail-fast -E 'test(/loopback|127_0_0_1/)'`
+
+| Mutation of `random::loopback_ipv4` | Failed tests (`random::tests::…`) |
+| --- | --- |
+| A: always returns `127.0.0.1` | `it_should_return_a_loopback_address_other_than_127_0_0_1` ("127.0.0.1 should have its last three octets in 1..=254"); `it_should_return_an_address_that_can_bind_a_port_another_socket_holds_on_127_0_0_1` (`AddrInUse`) |
+| B: octets drawn from `0..=255` | `it_should_return_a_loopback_address_other_than_127_0_0_1` ("127.226.175.255 should have its last three octets in 1..=254") |
+
+Green: both tests pass on the committed code. Mutation B leaves the port-sharing test passing, as
+expected: a random address in the wider range still shares the port.
+
 ### V7 - Test-design review per increment
 
 Each review follows the prose-first Arrange-Act-Assert step of the `write-unit-test` skill: the
@@ -215,6 +228,28 @@ Comparison and changes:
   for the state they set up: "refuses the check" (TCP) and "never answers the check" (UDP).
 - Prose kept: one comment in the UDP test, because a held socket that never answers is not evident
   from `UdpSocket::bind`.
+
+#### T9 - the loopback helper
+
+Prose:
+
+- `it_should_return_a_loopback_address_other_than_127_0_0_1`. Arrange: nothing; the helper takes no
+  input. Act: draw many addresses. Assert: each is a loopback address whose last three octets are in
+  `1..=254`, which is what rules out `127.0.0.1`.
+- `it_should_return_an_address_that_can_bind_a_port_another_socket_holds_on_127_0_0_1`. Arrange:
+  sockets on `127.0.0.1` hold a TCP port and a UDP port, as another test could after the code under
+  test releases them. Act: bind the helper's address on those same ports. Assert: both binds succeed.
+
+Comparison and changes:
+
+- The first test has no Arrange section; the loop is the Act, repeated so that an out-of-range
+  octet would show up. Its message names the sampled address and the range, so a failure needs no
+  file lookup.
+- The second test states the property the restored tests rely on, and the reason the helper exists.
+  The two sockets on `127.0.0.1` are the causal state and stay in the test body. TCP and UDP stay in
+  one test, because the rule is the same for both; each assertion message names its protocol. It is
+  ignored off Linux, like the restored tests.
+- No prose was kept; the test names and messages say it.
 
 ## Failures and Follow-up
 
