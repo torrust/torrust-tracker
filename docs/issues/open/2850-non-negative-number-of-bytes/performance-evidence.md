@@ -1,7 +1,7 @@
 ---
 doc-type: performance-evidence
 issue-spec: docs/issues/open/2850-non-negative-number-of-bytes/ISSUE.md
-last-updated-utc: "2026-11-15 20:50"
+last-updated-utc: "2026-11-15 21:20"
 ---
 
 # Performance Evidence - Non-Negative Number of Bytes
@@ -67,8 +67,7 @@ used below.
 
 ## Baseline
 
-Commit `7b5dd310f` ("test(udp-core): [#2850] add a UDP announce benchmark"), on `develop` at
-`abd7a10ff`. Measured on 2026-11-15.
+The commit "test(udp-core): [#2850] add a UDP announce benchmark", on `develop` at `abd7a10ff`. Measured on 2026-11-15.
 
 ### Criterion Medians
 
@@ -104,4 +103,57 @@ From the specification:
 
 ## After
 
-Not measured yet.
+The commit "docs(issues): [#2850] record the agreed UDP benchmark tolerance", the branch after T2 to T5 (every production change) plus documentation commits, built in its own clean
+worktree like the baseline. Same machine, toolchain, profile, commands, configuration and load-test
+settings. Measured on 2026-11-15. The load average was higher than during the baseline (5.7 to
+9.3 against 4.8 to 7.1).
+
+### Criterion Medians
+
+| Run | Start (UTC) | Load average (1 min) | UDP `announce_once` | HTTP `announce_once` |
+| --- | --- | --- | --- | --- |
+| 1 | 21:10:36 | 9.33 | 295.03 ns | 349.01 ns |
+| 2 | 21:12:25 | 7.07 | 302.31 ns | 342.95 ns |
+| 3 | 21:12:31 | 6.99 | 291.94 ns | 338.87 ns |
+
+### Load Test
+
+| Run | Start (UTC) | Load average (1 min) | Average responses per second | Error responses |
+| --- | --- | --- | --- | --- |
+| 1 | 21:12:38 | 6.83 | 140,954.65 | 0.00 |
+| 2 | 21:13:13 | 7.07 | 142,965.47 | 0.00 |
+| 3 | 21:13:47 | 7.06 | 142,760.97 | 0.00 |
+| 4 | 21:14:21 | 7.13 | 144,295.54 | 0.00 |
+| 5 | 21:14:55 | 7.39 | 146,743.32 | 0.00 |
+
+Mean 143,543.99.
+
+## Comparison With the Pass Rule
+
+| Instrument | Rule | After | Result |
+| --- | --- | --- | --- |
+| Load test | mean not below the lowest baseline run (135,528.53) | 143,543.99 (baseline mean 141,104.16) | Pass |
+| UDP `announce_once` | each median at most 318.70 ns (highest baseline median 303.52 ns plus the agreed 5%) | 291.94 to 302.31 ns, median of the three 295.03 ns | Pass, also without the tolerance |
+| HTTP `announce_once` | each median at most the highest baseline median (342.05 ns) | 338.87 to 349.01 ns, median of the three 342.95 ns | **Fail** by 0.90 ns (0.3%) on the median of the three; runs 1 and 2 are above the limit |
+
+### Investigation of the HTTP Result
+
+T3 adds no work to the HTTP announce path: the HTTP-to-domain conversion reads `get()` instead of
+the public field, and the parser no longer runs the `i64::try_from` overflow check (one comparison
+less). The benchmark times `AnnounceService::handle_announce`, which starts after parsing, so that
+removed check is not even on its timed path.
+
+To separate the code from the noise of the shared machine, the HTTP benchmark was run again from
+the two clean worktree builds, alternating baseline and after, three pairs in a row (21:15:42 to 21:15:59
+UTC, load average 5.7 to 6.0):
+
+| Pair | Baseline | After |
+| --- | --- | --- |
+| 1 | 364.02 ns | 351.12 ns |
+| 2 | 342.19 ns | 340.83 ns |
+| 3 | 328.78 ns | 351.09 ns |
+
+The after build is faster in two pairs and slower in one; the baseline alone spans 328.78 to 364.02
+ns (10.7%) within a minute. The difference of the original after run is inside this noise, so no
+regression is attributed to the change. The one-sided rule is formally failed and the verdict is
+the maintainer's: this record is listed in the pull request for that decision.
