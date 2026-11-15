@@ -37,7 +37,7 @@ and third-party framework internals whose exact task topology is not exposed.
 work under one shared ten-second deadline. Since issue #2415, every direct
 component gets its own cancellation token from `JobManager::reserve`, not a
 child of a shared root token. Since issue #2416 the shutdown is ordered:
-`cancel()` cancels the legacy root token and the components that wait for no
+`cancel()` cancels the components that wait for no
 other component, and `wait_for_all` cancels each event listener once every
 component that publishes on its buses has completed (see
 [Application Jobs](../../architecture/application-jobs.md) and the
@@ -73,14 +73,13 @@ torrust-tracker process (Tokio runtime; main)
       │  └─ health-check API [always; own component token]
       │     ├─ server task [component-owned TokenAwareServerTask]
       │     └─ drain controller [component-owned and joined]
-      ├─ Legacy registry (pre-spawned periodic jobs, not JoinSet members)
-      │  └─ UDP IP-ban cleanup [conditional; legacy root token]
+      ├─ UDP IP-ban cleanup [conditional; own component token; stops before the health check]
       └─ Axum/Hyper connection and request work [framework-owned]
 ```
 
 ```mermaid
 flowchart TD
-    main["main(): SIGINT / Unix SIGTERM"] --> cancel["JobManager.cancel(): the legacy root token and the components that wait for nobody; event listeners wait for their producers"]
+    main["main(): SIGINT / Unix SIGTERM"] --> cancel["JobManager.cancel(): the components that wait for nobody; event listeners wait for their producers"]
     cancel --> direct["Direct top-level JoinSet components"]
     direct --> listeners["Token-aware event listeners"]
     direct --> cleanup["Torrent cleanup (conditional)"]
@@ -96,8 +95,7 @@ flowchart TD
     health --> healthController["Owned, joined drain controller"]
     direct --> framework["Axum/Hyper framework-owned work"]
     manager["JobManager shared 10-second deadline"] --> direct
-    manager --> legacy["Legacy registry: UDP IP-ban cleanup"]
-    legacy --> ban["UDP IP-ban cleanup: token-aware"]
+    direct --> ban["UDP IP-ban cleanup (conditional)"]
 ```
 
 ## Current Inventory
@@ -123,7 +121,7 @@ each row.
 | Health-check request work     | Per request | Framework-owned  | Request lifetime            | —                      |
 | Torrent cleanup               | 0–1         | Direct `JoinSet` | Own token, before listeners | SI-4, SI-22 complete   |
 | Peers inactivity update       | 0–1         | Direct `JoinSet` | Own token                   | SI-5 complete          |
-| UDP IP-ban cleanup            | 0–1         | Legacy registry  | Root token                  | Periodic-job migration |
+| UDP IP-ban cleanup            | 0–1         | Direct `JoinSet` | Own token, before health    | SI-26                  |
 
 ## Detailed Inventory
 
@@ -191,21 +189,15 @@ each row.
   `join_all`; protocol probes are spawned inside service checks. Axum/Hyper
   own connection and request topology, so none of this work is manager-owned.
 
-### Legacy Registry
-
-- **UDP IP-ban cleanup** — starts with UDP services. Its pre-spawned legacy
-  handle observes the manager's legacy root token; the manager waits for it or aborts and joins
-  it at the deadline.
-
 The direct-component count is configuration dependent:
 
 $$
-3 + I_{cleanup} + 2I_{usage} + I_{persistent} + I_{udp}(2 + N_{udp}) + N_{http} + I_{api}
+3 + I_{cleanup} + 2I_{usage} + I_{persistent} + I_{udp}(3 + N_{udp}) + N_{http} + I_{api}
 $$
 
 The constant three represents the HTTP-core listener, UDP-core listener, and
 health-check API. Torrent cleanup is conditional on its cleanup interval. The
-sole legacy job is separately conditional as shown above.
+UDP group (`I_{udp}`) counts the two UDP-server listeners and the UDP IP-ban cleanup, plus one component per instance.
 
 ## Event Producer-Consumer Inventory
 
@@ -336,8 +328,8 @@ calls. There is one production `Receiver` implementation plus six test
 `it_should_prioritize_*` tests exist across the six listener files.
 
 Since issue #2415 those 13 sites reserve a component with `JobManager::reserve`
-and spawn it with its own token, no `child_token` call remains, and the only
-use of the root token is the legacy `udp_ban_cleanup` job.
+and spawn it with its own token, no `child_token` call remains, and since SI-26
+(#2845) the manager has no root token at all.
 
 ## Findings and Roadmap Mapping
 

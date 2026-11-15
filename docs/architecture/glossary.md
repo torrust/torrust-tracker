@@ -86,14 +86,8 @@ lists every producer and consumer.
 - **Job**: the name the code uses for a top-level component registered in
   `JobManager` (`JobManager::spawn`, `JobOutcome`). Prefer "component" in new
   documents.
-- **Legacy job**: a pre-spawned periodic job registered with
-  `JobManager::register_legacy`. `JobManager` keeps its `JoinHandle` outside
-  the `JoinSet` and gives it no token of its own: it uses the manager's legacy
-  root token. Today only `udp_ban_cleanup`
-  is one, until it gets its own periodic-job migration.
 - **Owner**: the component or container that is responsible for stopping and
-  joining a task. `JobManager` owns the top-level component tasks and the
-  retained legacy handles. A top-level component owns any nested server task it
+  joining a task. `JobManager` owns the top-level component tasks. A top-level component owns any nested server task it
   starts.
 - **Instance**: a configured UDP or HTTP listener, such as one element of
   `[[udp_trackers]]`.

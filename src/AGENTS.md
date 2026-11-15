@@ -15,7 +15,7 @@ the bootstrap sequence, and the dependency-injection container. All domain logic
 | `bootstrap/app.rs`          | `setup()` — receives optional explicit path, loads config, validates it, initializes services, builds `AppContainer`.                                                                              |
 | `bootstrap/config.rs`       | `initialize_configuration()` — loads config from an optional explicit path or existing environment/default sources.                                                                                |
 | `bootstrap/jobs/`           | One module per service: each module exposes a starter function called from `app::start_jobs`.                                                                                                      |
-| `bootstrap/jobs/manager.rs` | `JobManager` — directly owns named component futures in a `JoinSet`, retains legacy periodic handles through a compatibility registry, owns the `CancellationToken`, and drives graceful shutdown. |
+| `bootstrap/jobs/manager.rs` | `JobManager` — directly owns named component futures in a `JoinSet`, issues each component its own `CancellationToken` through `reserve`, and drives graceful shutdown. |
 | `bin/e2e_tests_runner.rs`   | Binary that runs E2E tests by delegating to `src/console/ci/`.                                                                                                                                     |
 | `bin/http_health_check.rs`  | Minimal HTTP health-check binary used inside containers (avoids curl/wget dependency).                                                                                                             |
 | `bin/profiling.rs`          | Binary for Valgrind / kcachegrind profiling sessions.                                                                                                                                              |
@@ -73,26 +73,22 @@ needs — no globals, no lazy statics for domain objects.
 ## `JobManager`
 
 `JobManager` (`bootstrap/jobs/manager.rs`) directly owns named `ComponentResult` futures in a
-`JoinSet` and shares a `CancellationToken` with them:
+`JoinSet`; each component gets its own `CancellationToken` from `reserve`:
 
 - `spawn(name, future)` — directly registers a component runner; do not pass an already-spawned
   `JoinHandle` through a wrapper.
-- `cancel()` — fires the token; all jobs that own a clone of it will observe cancellation.
+- `cancel()` — cancels the token of every component that waits for no other component; the rest are
+  cancelled as their predecessors complete.
 - `wait_for_all(timeout)` — applies one concurrent deadline. It aborts and joins every remaining
   direct component, preventing detached startup jobs.
 
-Torrent cleanup and activity metrics are direct `JoinSet` components that receive the manager's
-cancellation token. UDP ban cleanup retains its pre-existing starter and cancellation semantics.
-Because `JoinSet` cannot adopt a pre-spawned `JoinHandle` without a forbidden wrapper task,
-`register_legacy(name, handle)` retains that handle in a narrow compatibility registry. It shares
-the same process-wide deadline as direct components and is then aborted and joined; it does not
-claim `JoinSet` ownership. This transitional exception is expected to be removed when the UDP
-ban-cleanup periodic-job migration is complete. New components must use `spawn`.
+Every job, including torrent cleanup, activity metrics and UDP ban cleanup, is a direct `JoinSet`
+component that receives its reservation's token. There is no legacy registration path (removed by
+SI-26, #2845). New components must use `reserve` and `spawn`.
 
 Direct components own nested server handles. If the manager aborts an outer component at the
 shared deadline, its drop-safe server-task owner signals normal halt, aborts the nested task, and
-prevents it from detaching. This is distinct from retained legacy handles: those are manager-owned
-but intentionally remain outside the `JoinSet` until their starter APIs are migrated.
+prevents it from detaching.
 
 ## Adding a New Service
 
