@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/peer-id-test-helper/ISSUE.md
 branch: "{issue-number}-peer-id-test-helper"
 related-pr: null
-last-updated-utc: "2026-11-15 12:45"
+last-updated-utc: "2026-11-15 20:32"
 semantic-links:
   skill-links:
     - create-issue
@@ -55,7 +55,7 @@ The Findings Register of #2824 (row F5) records the finding. What it says, re-ch
 - `peer::fixture` (lines 498-638) is compiled unconditionally. It holds `PeerBuilder` and the
   `Default` impls of `Peer` and `Id`.
 - Both are already public in the published crate: `torrust-tracker-primitives` 3.0.0 on crates.io
-  (tag `v3.0.0`) has `pub fn new<T>` and `pub mod fixture`. The workspace version is 3.1.0.
+  (tag `v3.0.0`) has `pub fn new<T>` and `pub mod fixture`. Its version in the workspace is 3.1.0.
 - The ADR
   [`20261021190318_share_workspace_test_support_through_testing_features.md`](../../../adrs/20261021190318_share_workspace_test_support_through_testing_features.md)
   says that test support other packages use sits behind a `testing` feature that is off by default
@@ -65,8 +65,8 @@ The Findings Register of #2824 (row F5) records the finding. What it says, re-ch
   searched for module names such as `testing`, `test_helpers`, `environment` and `fixtures`
   (plural), which is a likely reason the singular `peer::fixture` was missed.
 - #2824 measured that the `Id::new` lines (12) and the `peer::fixture` lines (55) are the only
-  uncovered lines left in the package (plus one dead `Display` branch), and left their tests to
-  this issue.
+  uncovered lines left in `peer.rs` (plus one dead `Display` branch), and left their tests to this
+  issue. The package has 9 more uncovered lines, in `swarm_metadata.rs`, which F5 does not own.
 - #2824 also found that the fixture's own ids (`-qB00000000000000000`, `...01`, `...02`) are not valid
   Azureus-style ids (the character after the four version characters must be `-`), so the client
   registry reports no client for them. Its new tests use `-qB4650-abcdefghijkl`, which the registry
@@ -89,8 +89,21 @@ compiling (below).
 | `packages/torrent-repository-benchmarking/tests/common/torrent_peer_builder.rs` | 20 | `a_started_peer(id: i32)` |
 | `packages/torrent-repository-benchmarking/tests/entry/mod.rs` | 402 | 75 distinct peers (`1..=75`) to pass the scrape limit |
 
-The callers need only distinct ids for small positive numbers. None depends on the byte layout, on
-negative numbers or on the `i128` range.
+The two wrappers take an `i32` and pass it on, so their call sites are callers too. Every call site
+in the package, with its arguments:
+
+| File | Lines | Call and arguments |
+| --- | --- | --- |
+| `tests/entry/mod.rs` | 75, 80, 85, 93, 96, 99, 401 | `a_started_peer` / `a_completed_peer` with `1`, `2` or `3` |
+| `tests/entry/mod.rs` | 192, 233 | `a_started_peer(-1)` |
+| `tests/entry/mod.rs` | 427 | `a_completed_peer(-1)`; the test asserts `peers.len() + 1` after the upsert, so `-1` must give an id distinct from the made peers `1` to `3` |
+| `tests/repository/mod.rs` | 84, 91, 98, 110, 115, 120 | `a_started_peer` / `a_completed_peer` with `1`, `2` or `3` |
+| `tests/repository/mod.rs` | 140, 155 | `a_started_peer(i)`, with the `i32` loop variable over `0..408` (zero included); `i` also feeds `InfoHash::from(&i)` and `hash.write_i32(i)` |
+| `tests/repository/mod.rs` | 548 | `a_completed_peer(-1)` |
+
+(Paths are under `packages/torrent-repository-benchmarking/`.) So the callers pass zero and the
+negative sentinel `-1`, which stands for "a peer not among the made ones". They depend on distinct ids
+for distinct numbers, but not on the byte layout or on the `i128` range.
 
 **`peer::fixture`** (`PeerBuilder`): imported by six packages besides `primitives`. Every import in
 `src/` sits after the file's first `#[cfg(test)]`.
@@ -104,9 +117,10 @@ negative numbers or on the `i128` range.
 | `udp-core` | `src/` unit tests (1 file) |
 | `udp-server` | `src/` unit tests (2 files), `benches/` (1 file) |
 
-**`Peer::default()`** (its `impl Default` lives in `peer::fixture`): used, outside the packages above,
-by `#[cfg(test)]` code in `http-core` (`src/event.rs`), `swarm-coordination-registry`
-(`src/event.rs`) and the root crate (`src/app.rs`).
+**`Peer::default()`** (its `impl Default` lives in `peer::fixture`): also used, outside the files
+above, by `#[cfg(test)]` code in `http-core` (`src/event.rs`), `swarm-coordination-registry`
+(`src/event.rs`) and the root crate (`src/app.rs`). Of these, only `http-core` and the root crate
+are packages not listed above.
 
 **Compile proof.** A throwaway change put `#[cfg(test)]` on the `impl Id` block that holds `new` and
 on `pub mod fixture`, then ran `cargo check --workspace --lib --bins` (stable, cargo 1.99.1). It
@@ -136,7 +150,8 @@ published 3.0.0 is not covered by this proof.
 - Other behavior of `peer::Id` (`From`, `TryFrom`, `Display`, `Serialize`, `get_client_name`): #2824
   tested it.
 - Peer id literals written by hand in other packages' tests and benches (for example
-  `-qB00000000000000001` in `tracker-core`, `http-core` benches and root `tests/`). They are not in
+  `-qB00000000000000001` in `tracker-core` and root `tests/`, and `-qB00000000000000000` in the
+  `http-core` bench helper). They are not in
   `primitives`. If Q6 shows they should change, a separate issue does it.
 - Publishing a new version of `primitives` (#2583 owns version bumps).
 - The `testing` feature of other packages.
@@ -148,8 +163,10 @@ published 3.0.0 is not covered by this proof.
   (rules A, D and E; the ownership map has no row for `peer::fixture`) and
   [`20260629000000_adopt_independent_package_versioning.md`](../../../adrs/20260629000000_adopt_independent_package_versioning.md)
   (removing a public item is a breaking change for the published crate).
-- ADRs to create: none expected. An amendment of the test-support ADR is expected (Q7): a row for
-  `peer::fixture` in the ownership map, as the amendments of #2681 and #2699 did for their packages.
+- ADRs to create: none expected. An amendment of the test-support ADR is expected (Q7), adding a
+  row for `peer::fixture` to the ownership map. That would be the first amendment to add a row: the
+  amendments of #2681 and #2699 only added a dated note at the top of the ADR (the first qualifies
+  an existing row in prose, the second settles the examples question).
 
 During implementation, stop and create an ADR when a decision affects project
 architecture or design patterns, selects an approach among meaningful
@@ -196,14 +213,24 @@ Recommendation: (a). A `compile_fail` doctest can guard the removal, as F1's fix
 
 **Q4. What does the helper's API and id format look like?**
 
-The callers need distinct ids from small positive numbers. Options for the format: a known client
-prefix (for example qBittorrent `-qB4650-`, used by #2824's tests) followed by the number written in
-the 12 remaining bytes, either as zero-padded decimal (readable in test failures) or as hex. Options
-for the input type: `u32` (10 decimal digits, fits) or `u64` (needs hex, or loses values).
+The callers need distinct ids for distinct numbers, including zero and the negative sentinel `-1`
+(see the caller inventory). The format: a known client prefix (for example qBittorrent `-qB4650-`,
+used by #2824's tests) followed by the number written in the 12 remaining bytes, as zero-padded
+decimal (readable in test failures) or as hex. A `u64` does not fit in either form (`u64::MAX` needs
+20 decimal or 16 hex digits), so the choice is between two 32-bit inputs:
 
-Recommendation: `fn` taking a `u32`, giving `-qB4650-` plus the number as 12 zero-padded decimal
-digits. Unit tests check that `get_client_name()` is `Some("qBittorrent")`, that different numbers
-give different ids, and the exact bytes of one example.
+- (a) Keep `i32`, the type the wrappers take today. The sign goes in the first of the 12 bytes (for
+  example `-` or `0`) and the absolute value in the other 11 as decimal digits (`i32::MIN` needs 10).
+  No call site changes its argument.
+- (b) Take a `u32` (10 decimal digits, fits). The wrappers take a `u32` too, and the call sites
+  change: `-1` becomes a named constant outside the made range (for example
+  `const OTHER_PEER: u32 = 1000;`), and the two `0..408` loops pass `u32::try_from(i)`, because `i`
+  also feeds `InfoHash::from(&i)` and `hash.write_i32(i)`.
+
+Recommendation: (b). The sentinel means "a peer not among the made ones", and a name says that
+better than `-1`; the ids also stay a plain number after the prefix. Unit tests check that
+`get_client_name()` is `Some("qBittorrent")`, that different numbers give different ids, and the
+exact bytes of one example.
 
 **Q5. What happens to `impl Default for Peer` and `impl Default for Id`?**
 
@@ -266,14 +293,20 @@ input. So the `fix-bug` sequence
 Two things must not regress: the behavior the callers depend on, and the boundary between test
 support and production code.
 
-- **Caller behavior.** The `torrent-repository-benchmarking` tests that use the helper, in
-  particular the scrape-limit test that adds 75 peers and needs 75 distinct ids, must pass unchanged
-  apart from the helper call.
-- **Helper behavior.** Unit tests in `primitives`, at the helper itself: recognised client name,
+- **Caller behavior.** The `torrent-repository-benchmarking` tests that use the helper must pass,
+  in particular the scrape-limit test that adds 75 peers and needs 75 distinct ids, and the test at
+  `tests/entry/mod.rs:427` that needs the sentinel peer to differ from the made peers. With Q4 (a)
+  only the helper call changes. With Q4 (b) the call sites that pass `-1` or the loop variable also
+  change their arguments (see the caller inventory), and each change must keep the ids distinct where
+  the test relies on it.
+- **Helper behavior.** Unit tests in `primitives`, at the helper itself: recognized client name,
   distinct ids for distinct inputs, exact bytes of one example. Follow the `write-unit-test` skill.
 - **Test-support boundary.** If Q2 is yes: `cargo check -p torrust-tracker-primitives` (no
-  features) must compile without the fixture, and `cargo tree -e features` for the release tracker
-  binary must not show the `testing` feature of `primitives`. If Q3 is (a): a `compile_fail` doctest
+  features) must compile without the fixture, and the repository's own check of shipped features,
+  `cargo run -p shipped-features-check -- --package torrust-tracker` (the `shipped-features` job in
+  `.github/workflows/testing.yaml`), must exit 0. It reads only normal and build edges. A plain
+  `cargo tree -e features` would not do: it keeps dev-dependency edges, so it would list the
+  `testing` feature that the self dev-dependency and the consumers' `[dev-dependencies]` enable. If Q3 is (a): a `compile_fail` doctest
   shows that `Id::new` is gone.
 
 Red and green output and the final recheck go in issue-local `manual-verification-evidence.md`.
@@ -291,7 +324,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T4  | TODO   | Remove or deprecate `Id::new` (Q3) | `compile_fail` doctest if removed. |
 | T5  | TODO   | Gate `peer::fixture` (and the `Default` impls, Q5) behind `testing` (Q2) | Feature in `primitives/Cargo.toml` with the semver comment of ADR rule A.6, self dev-dependency, consumer `[dev-dependencies]`; `cargo machete --with-metadata` clean. |
 | T6  | TODO   | Make the fixture's ids realistic (Q6) | Assertions on the old bytes listed first, then updated. |
-| T7  | TODO   | Tests or a no-test decision for every remaining fixture line | Coverage evidence for `primitives` updated; no line owned by F5 left uncovered. |
+| T7  | TODO   | Tests or a no-test decision for every remaining fixture line | Issue-local `coverage-evidence.md` (see Coverage Evidence) shows no line owned by F5 left uncovered. |
 | T8  | TODO   | Record the decision (Q7) | ADR amendment, or a note in this spec. |
 | T9  | TODO   | Final verification and acceptance review | `linter all`, tests, manual scenarios, AC table filled in. |
 
@@ -299,6 +332,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | Task | Coherent change set | Commit policy |
 | ---- | ------------------- | ------------- |
+| T0   | The maintainer's answers to Q1-Q7, recorded in this spec | Commit before T1 (`docs(issues):`). |
+| T1   | Updated inventory tables, `manual-verification-evidence.md` (V1 baseline) and the coverage baseline | Commit after the inventory and the compile proof run. |
 | T2   | The helper and its unit tests | Commit after focused validation and the design review. |
 | T3   | Caller migration in `torrent-repository-benchmarking` | Commit after its tests pass. |
 | T4   | `Id::new` removal or deprecation (+ `compile_fail` doctest) | Commit after `cargo test -p torrust-tracker-primitives`. |
@@ -306,6 +341,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T6   | Fixture ids and the assertions on them | Commit after the affected packages' tests pass. |
 | T7   | Fixture tests and coverage evidence | Commit after focused validation and the design review. |
 | T8   | ADR amendment | Commit separately (`docs(adrs):`). |
+| T9   | Final evidence, AC table and progress log | Commit after the final verification. |
 
 Record a justified no-change decision in the task's evidence without creating an empty commit. For
 test-producing work, use the `write-unit-test` skill and complete an explicit design review after
@@ -340,11 +376,17 @@ with the narrow affected scope, and sign every commit with GPG.
 
 ### Progress Log
 
-- 2026-11-15 12:45 UTC - Claude Code (Opus 5.5) - Drafted from finding F5 of #2824 (maintainer
+- 2026-11-15 12:42 UTC - Claude Code (Opus 5.5) - Drafted from finding F5 of #2824 (maintainer
   hand-off of 2026-11-11). Caller inventory re-run on `develop` at `abd7a10ff`; compile proof
   (`cargo check --workspace --lib --bins` with `Id::new` and `peer::fixture` under `#[cfg(test)]`)
   passed and was reverted. Found that both items are public in the published 3.0.0, and that the
-  `Default` impls of `Peer` and `Id` live in the fixture module (Q5).
+  `Default` impls of `Peer` and `Id` live in the fixture module (Q5). (Stamp corrected in review
+  round 1: it first said 12:45, after the commit.)
+- 2026-11-15 20:32 UTC - Claude Code (Opus 5.5) - Review round 1 of PR #2865 (da2ce7 F1-F11,
+  Copilot two comments). The inventory now lists the wrapper call sites, which pass `0` and `-1`;
+  Q4 weighs `i32` against `u32` with a named sentinel; M2 and the regression strategy use
+  `shipped-features-check`, which exited 0 for `torrust-tracker` on `abd7a10ff`; a Coverage
+  Evidence section and commit points for T0, T1 and T9 were added; smaller wording fixes.
 
 ## Acceptance Criteria
 
@@ -359,8 +401,8 @@ with the narrow affected scope, and sign every commit with GPG.
   without features compiles no fixture code and every consumer enables `testing` only from
   `[dev-dependencies]`, or the spec records why the fixture stays unconditional.
 - [ ] AC6: Every line of the helper and of the fixture that remains is covered by a unit test or has
-  a recorded no-test decision; the coverage evidence of `primitives` shows no uncovered line owned
-  by F5.
+  a recorded no-test decision; issue-local `coverage-evidence.md` shows no uncovered line owned by
+  F5.
 - [ ] AC7: The decision is recorded as Q7 says.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
@@ -388,7 +430,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | ID  | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | -------- | ---------------------------- | --------------- | ------ | -------- |
 | M1  | Production builds need no test support | Before the change: the throwaway gate and `cargo check --workspace --lib --bins`. After: the same command on the final code, no throwaway change. | Exit code 0 both times | TODO | `manual-verification-evidence.md` section V1 |
-| M2  | The release tracker carries no `testing` feature of `primitives` (if Q2 is yes) | `cargo build --release` and `cargo tree -e features -i torrust-tracker-primitives` | No `testing` feature in the tree | TODO | `manual-verification-evidence.md` section V2 |
+| M2  | The release tracker carries no `testing` feature of `primitives` (if Q2 is yes) | `cargo run -p shipped-features-check -- --package torrust-tracker`, and as the readable view `cargo tree -p torrust-tracker -e normal,build,features -i torrust-tracker-primitives` | The check exits 0; the tree shows no `testing` feature of `primitives` | TODO | `manual-verification-evidence.md` section V2 |
 | M3  | Realistic ids | Print a few helper ids and their `get_client_name()` in a scratch test; compare with the old fixture ids | New ids name a client; old ones give `None` | TODO | `manual-verification-evidence.md` section V3 |
 
 Notes:
@@ -397,6 +439,22 @@ Notes:
 - Record the toolchain for every command result (for example `stable Rust toolchain`, cargo 1.99.1).
 - Create `manual-verification-evidence.md` from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`.
 - If a scenario fails, record the failure and diagnosis in the progress log before proceeding.
+
+### Coverage Evidence
+
+Coverage is measured for AC6, so the issue keeps an issue-local `coverage-evidence.md`:
+
+- The command, the same as #2824 uses (stable Rust toolchain, `cargo-llvm-cov`):
+  `cargo llvm-cov clean --workspace`, then
+  `cargo llvm-cov -p torrust-tracker-primitives --all-features --lib --json --output-path <report>.json`.
+  It covers the `src/` code of `primitives`, run by the package's own unit tests only (`--lib`).
+  `--all-features` turns on `testing` if Q2 adds it, so the fixture is measured.
+- Separate unit-only and aggregate tables (aggregate adds `cargo llvm-cov -p
+  torrust-tracker-primitives --all-features` without `--lib`), each with a baseline at T1 and a
+  final measurement at T9.
+- Per-file rows for `peer.rs` (and the helper's file, if it is new), with the uncovered lines or
+  functions listed and an owner for each.
+- Concise Markdown only; no raw JSON, LCOV or HTML reports are committed.
 
 ### Disposable Verification Scripts
 
