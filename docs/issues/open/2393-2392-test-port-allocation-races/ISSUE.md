@@ -240,8 +240,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T5 | DONE | Decide the fate of the twenty-one ignored tests | The maintainer's decisions in the per-test table, recorded by this spec-only change. |
 | T6 | DONE | Full-suite recheck | V4 in `manual-verification-evidence.md`: the first 150 runs found a third racing shape (2 failures), and 150 runs on the fixed head all passed. |
 | T7 | TODO | Delete the nine test-support release tests | The nine tests are gone, with any helper left unused removed too. |
-| T8 | TODO | Rewrite the three health-check contract tests | They run unignored and probe an address the test holds; V5 red-then-green recorded. |
-| T9 | TODO | Add the loopback helper and restore the nine release tests | The helper with its own unit test; the nine tests run unignored on Linux; V5 red-then-green recorded. |
+| T8 | TODO | Rewrite the three health-check contract tests | They run without `#[ignore]` and probe an address the test holds; V5 red-then-green recorded. |
+| T9 | TODO | Add the loopback helper and restore the nine release tests | The helper with its own unit test; the nine tests run without `#[ignore]` on Linux; V5 red-then-green recorded. |
 | T10 | TODO | Full-suite recheck with no #2393 test ignored | V6: 150 full-suite runs pass, and `rg 'see #2393'` finds no `#[ignore]` outside the non-Linux `cfg_attr`. |
 | T11 | TODO | Close-out | After the implementation PR merges: archive this spec; once PR 2862 has merged, set this issue's row in the EPIC to DONE. |
 
