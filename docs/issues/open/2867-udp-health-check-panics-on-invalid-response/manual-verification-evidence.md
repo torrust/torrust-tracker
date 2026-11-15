@@ -46,8 +46,10 @@ runs; `git status --short` showed no change under `packages/` afterwards.
 #### Steps Performed
 
 1. Applied the temporary test
-   `it_should_return_error_when_the_registered_udp_service_answers_the_check_with_junk`
-   (see `evidence/reproduction-tests.diff`). It sends `GET /health_check` and expects a `200`
+   `it_should_return_error_when_the_registered_udp_service_answers_the_check_with_junk`. V1 ran
+   with only this test added: the closed-port test of V2 did not exist yet, so the log reports
+   `11 filtered out` (12 tests). The stored `evidence/reproduction-tests.diff` adds both tests and is
+   what V2 ran; its first test is the V1 test byte for byte. It sends `GET /health_check` and expects a `200`
    report whose status is `Error` and whose UDP detail has an `Err` result.
 2. Ran:
 
@@ -94,7 +96,10 @@ request handler. The handler panic drops the HTTP connection, so the client sees
 
 1. Applied the temporary test
    `it_should_return_error_when_the_registered_udp_service_is_a_closed_udp_port`
-   (see `evidence/reproduction-tests.diff`).
+   (see `evidence/reproduction-tests.diff`, which also contains the V1 test, so the log reports
+   `12 filtered out`). The test was made by copying the V1 test, and its comment line still says
+   the peer "answers the health check with junk bytes", which is wrong for this test. The diff is
+   kept as it ran; V3 reruns this test with the comment corrected.
 2. Ran:
 
    ```bash
