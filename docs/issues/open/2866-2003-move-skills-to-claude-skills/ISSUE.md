@@ -9,7 +9,7 @@ github-issue: 2866
 spec-path: docs/issues/open/2866-2003-move-skills-to-claude-skills/ISSUE.md
 branch: "2866-move-skills-to-claude-skills-spec"
 related-pr: null
-last-updated-utc: "2026-11-15 20:14"
+last-updated-utc: "2026-11-15 20:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -48,6 +48,19 @@ Claude Code is the repository's only AI harness. It discovers project skills onl
 (plus `.github/skills/add-new-skill/` and `.github/skills/usage/`), a layout chosen for GitHub
 Copilot (ADR `20260420200013`). Claude Code never sees them, so an agent follows a skill only when
 its brief names the file, and steps get skipped.
+
+The bug in plain terms:
+
+1. A session starts at the repository root. Claude Code looks for project skills in
+   `.claude/skills/` and finds none, so no repository skill is listed to the model.
+2. A contributor types `/create-issue`, or asks for work a skill covers. The command is unknown,
+   and the model does not know the skill exists unless `AGENTS.md`, a brief, or a search points it
+   at the file.
+3. The model then works from memory or a partial read, and steps the skill requires are skipped.
+
+This breaks the expectation `AGENTS.md` sets, that skills activate when their workflows are needed.
+It is observable today: the reproduction in `manual-verification-evidence.md` (V0) shows no project
+skill in a fresh clone of `develop`.
 
 The custom-agents migration (a later EPIC #2003 sub-issue, order 22) waits for this issue: its
 agent definitions name skills, and they must name them at their final place.
@@ -202,6 +215,8 @@ This skill moved to [`.claude/skills/<name>/SKILL.md`](<relative path>) in issue
 
 ### Validator rules after the move
 
+- Every `SKILL.md` that is not an inventoried stub is at `.claude/skills/<name>/SKILL.md`; one
+  elsewhere, for example a new skill added under `.github/skills/`, is an error.
 - `frontmatter-validator` resolves `skill-links` names against `.claude/skills/<name>/SKILL.md`
   only. A `SKILL.md` deeper than one folder under `.claude/skills/` is an error, because Claude
   Code would not discover it.
@@ -217,7 +232,7 @@ This skill moved to [`.claude/skills/<name>/SKILL.md`](<relative path>) in issue
 - These repository-wide rules run on every commit and in CI, not only on staged files, so
   deleting or renaming a skill without its stub or index row fails. They live in the
   `frontmatter-validator` crate, which already snapshots the skill folders; the exact entry point
-  is settled in T5 and recorded here.
+  is settled in T6 and recorded here.
 - `agent-review-report-contract` and `github-review-threads` read the new paths.
 - The link checker needs no new exclusion: live links are rewritten and old links reach a stub.
 
@@ -238,11 +253,35 @@ Not applicable: no child processes, asynchronous I/O, readiness, or fixtures.
 
 ## Bug-Fix Process
 
-Not applicable: the work is a relocation, not a defect fix.
+The work fixes broken behavior: Claude Code does not discover the repository's skills, so agents
+skip their steps. It follows the `fix-bug` skill
+(`.github/skills/dev/debugging/fix-bug/SKILL.md`, at `.claude/skills/fix-bug/SKILL.md` after the
+move):
+
+- **Analysis and hypothesis.** Claude Code reads project skills only from
+  `.claude/skills/<name>/SKILL.md`; the skills sit under `.github/skills/`, and one folder deeper
+  is not read either ([Pre-spec checks](#pre-spec-checks)).
+- **Real-artifact reproduction.** Done while drafting this spec (M0, outcome **Reproduced**): in a
+  fresh clone of `develop` at `abd7a10ff`, `claude -p "/context"` listed no `Project` skill and
+  `claude -p "/create-issue"` did not run as a command. The scratch probes in the pre-spec checks
+  are design evidence, not this reproduction.
+- **Regression-test boundary.** See [Regression Test Strategy](#regression-test-strategy).
+- **Red evidence (T2).** The placement rule, run against the tree before the move, fails and names
+  the 53 skills outside `.claude/skills/`.
+- **Fix.** T3 to T8.
+- **Green evidence and final recheck (T9).** The placement rule passes on the moved tree, and M1
+  and M2 repeat M0's commands, like for like, on the branch.
+
+All results go to issue-local `manual-verification-evidence.md`.
 
 ## Regression Test Strategy
 
-Not applicable. The new validator rules get unit tests (T5).
+Whether Claude Code discovers a skill depends on the Claude Code program and a model, so it cannot
+be a maintained deterministic test; M0, M1 and M2 cover it by hand. The smallest deterministic
+boundary that fails for the defect is the repository layout itself: a placement rule (T2) that every
+`SKILL.md` that is not an inventoried stub is at `.claude/skills/<name>/SKILL.md`, flat. Its unit
+tests cover a skill under `.github/skills/` and a skill one folder too deep under
+`.claude/skills/`; it runs on every commit and in CI, so the defect cannot come back unnoticed.
 
 ## Implementation Plan
 
@@ -251,29 +290,31 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task                                     | Notes / Expected Output                                                                                                                                                                                                              |
 | --- | ------ | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | T1  | TODO   | Create the description follow-up issue   | A new EPIC #2003 sub-issue to shorten and retune the 53 descriptions, with the measurements above. Created before the implementation PR opens, so the PR links it.                                                                     |
-| T2  | TODO   | Move the skills and fix every live path  | `git mv` of all 71 files; relative links inside moved skills; depth-dependent paths in moved scripts (`validate-skill-links.sh`); tooling paths; every live reference by the classification rule. The commit passes `linter all` and the tests on its own. Git shows 71 renames.                           |
-| T3  | TODO   | Add the redirect stubs                   | 53 stubs plus `.github/skills/README.md`, which says the folder only holds redirects and inventories the 53 original paths.                                                                                                                                                       |
-| T4  | TODO   | Add the index                            | `.claude/skills/README.md` lists each skill by area (today's area folders), with a one-line purpose, and notes the old location. `AGENTS.md` and `docs/agents/` point to it.                                                          |
-| T5  | TODO   | Validator rules                          | The rules in [Validator rules](#validator-rules-after-the-move), with unit tests and a negative case for each; wired into the pre-commit hook and CI. Tests follow the `write-unit-test` skill and the test-design review in [Commit Points](#commit-points).                                                                                  |
-| T6  | TODO   | Update `add-new-skill`                   | New skills go to `.claude/skills/<name>/`, add an index row, and need no stub.                                                                                                                                                         |
-| T7  | TODO   | ADRs                                     | New ADR; dated row in the governance ADR's inventory and review log.                                                                                                                                                                   |
-| T8  | TODO   | Final sweep and verification             | Search again for `.github/skills` and `skills/dev/` after the last edit; every remaining hit is a stub, out-of-scope agent profile, or historical record. Run every validator, `linter all`, and the manual scenarios.                  |
+| T2  | TODO   | Placement rule, proven red               | The regression test: the placement rule of [Validator rules](#validator-rules-after-the-move) with its unit tests, not yet wired into the hook. Its run against the tree before the move is recorded red in `manual-verification-evidence.md`. |
+| T3  | TODO   | Move the skills and fix every live path  | `git mv` of all 71 files; relative links inside moved skills; depth-dependent paths in moved scripts (`validate-skill-links.sh`); tooling paths; every live reference by the classification rule. The commit passes `linter all` and the tests on its own. Git shows 71 renames.                           |
+| T4  | TODO   | Add the redirect stubs                   | 53 stubs plus `.github/skills/README.md`, which says the folder only holds redirects and inventories the 53 original paths.                                                                                                                                                       |
+| T5  | TODO   | Add the index                            | `.claude/skills/README.md` lists each skill by area (today's area folders), with a one-line purpose, and notes the old location. `AGENTS.md` and `docs/agents/` point to it.                                                          |
+| T6  | TODO   | Remaining validator rules                | The other rules in [Validator rules](#validator-rules-after-the-move), with unit tests and a negative case for each; the placement rule and these rules are wired into the pre-commit hook and CI, and the placement rule's green run is recorded. Tests follow the `write-unit-test` skill and the test-design review in [Commit Points](#commit-points).                                                                                  |
+| T7  | TODO   | Update `add-new-skill`                   | New skills go to `.claude/skills/<name>/`, add an index row, and need no stub.                                                                                                                                                         |
+| T8  | TODO   | ADRs                                     | New ADR; dated row in the governance ADR's inventory and review log.                                                                                                                                                                   |
+| T9  | TODO   | Final sweep and verification             | Search again for `.github/skills` and `skills/dev/` after the last edit; every remaining hit is a stub, out-of-scope agent profile, or historical record. Run every validator, `linter all`, and the manual scenarios.                  |
 
 ## Commit Points
 
 | Task | Coherent change set                                         | Commit policy                                                                                       |
 | ---- | ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| T2   | The move plus every path fix the gate needs                 | One commit. Its message records the sweep commands. Moved files change only in their links and in depth-dependent paths such as the root walk of `validate-skill-links.sh`. |
-| T3   | Stubs                                                       | One commit, after T2, so the renames stay detectable.                                               |
-| T4   | Index and its links                                         | One commit.                                                                                         |
-| T5   | Validator rules and tests                                   | One commit per reviewed test increment (one rule group each). After each increment passes, record the prose-first Arrange-Act-Assert review in the task evidence before starting the next. Stop for maintainer review after the last increment, before T8. |
-| T6   | `add-new-skill`                                             | One commit.                                                                                         |
-| T7   | ADRs                                                        | One commit.                                                                                         |
-| T8   | Evidence, acceptance verification, and progress log         | One commit.                                                                                         |
+| T2   | Placement rule and its unit tests                           | One commit per reviewed test increment, as for T6; the red run is recorded in the evidence, not committed as a failing check. |
+| T3   | The move plus every path fix the gate needs                 | One commit. Its message records the sweep commands. Moved files change only in their links and in depth-dependent paths such as the root walk of `validate-skill-links.sh`. |
+| T4   | Stubs                                                       | One commit, after T3, so the renames stay detectable.                                               |
+| T5   | Index and its links                                         | One commit.                                                                                         |
+| T6   | Remaining validator rules and tests                         | One commit per reviewed test increment (one rule group each). After each increment passes, record the prose-first Arrange-Act-Assert review in the task evidence before starting the next. Stop for maintainer review after the last increment, before T9. |
+| T7   | `add-new-skill`                                             | One commit.                                                                                         |
+| T8   | ADRs                                                        | One commit.                                                                                         |
+| T9   | Evidence, acceptance verification, and progress log         | One commit.                                                                                         |
 
 T1 creates a GitHub issue and its spec PR; it is not part of this implementation PR's commits.
 
-T5 is the only test-producing task. Its tests use the `write-unit-test` skill and add one behavior at
+T2 and T6 produce tests. Their tests use the `write-unit-test` skill and add one behavior at
 a time. After each increment passes focused validation, and before the next one starts, review its
 design and record the review in the task evidence: write temporary prose for the Arrange, Act and
 Assert sections, refactor until the code says it, and remove the redundant prose. The review
@@ -281,7 +322,7 @@ confirms that the test exposes the one causal initial-state difference, that its
 incidental mechanics, and that the production Act and the independently specified expected result
 stay visible. Helper boundaries are judged by meaningful named actions and abstraction level, not
 by caller count. Commit each reviewed increment before the next, and stop for maintainer review
-after the last increment, before the final verification (T8), the commit of the evidence, and the
+after the last increment, before the final verification (T9), the commit of the evidence, and the
 pull request.
 
 ## Progress Tracking
@@ -306,6 +347,7 @@ pull request.
 
 - 2026-11-15 12:50 UTC - Claude Code (Claude Opus 5.5) - Drafted the spec after the nested-folder and context-cost checks and the maintainer's design decisions - this spec, [Pre-spec checks](#pre-spec-checks)
 - 2026-11-15 20:14 UTC - Claude Code (Claude Opus 5.5) - Maintainer approved the draft; created issue #2866, moved the spec to `docs/issues/open/`, and added the EPIC #2003 row at order 21. Linking #2866 as a GitHub sub-issue of #2003 returned HTTP 404 for the contributor account, so the maintainer links it - https://github.com/torrust/torrust-tracker/issues/2866
+- 2026-11-15 20:48 UTC - Claude Code (Claude Opus 5.5) - Reproduced the defect in a fresh clone of `develop` at `abd7a10ff` (M0): no project skill listed, `/create-issue` not run as a command - `manual-verification-evidence.md` V0
 
 ## Acceptance Criteria
 
@@ -323,6 +365,9 @@ pull request.
 - [ ] AC7: The moved scripts and the `wait-for-pr-review` tool run from their new paths.
 - [ ] AC8: The new ADR exists and the governance ADR's inventory records the move.
 - [ ] AC9: The description follow-up sub-issue exists and is linked from the EPIC.
+- [ ] AC10: The placement rule fails on the tree before the move (recorded red, T2) and passes on
+  the moved tree, with unit tests for a skill under `.github/skills/` and a skill one folder too
+  deep under `.claude/skills/`.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -347,8 +392,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario                          | Human-oriented command/steps                                                                                                       | Expected Result                                                               | Status | Evidence                                     |
 | --- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | Claude Code discovers the skills  | In a fresh checkout of the branch, run `claude -p "/context"` and count the `Project` rows                                       | 53 project skills; no stub listed                                              | TODO   | `manual-verification-evidence.md` section V1 |
-| M2  | A skill runs by name              | In the same checkout, run `/create-issue` without naming a path                                                                    | Claude Code loads `.claude/skills/create-issue/SKILL.md`                      | TODO   | `manual-verification-evidence.md` section V2 |
+| M0  | Reproduce the defect before T3    | In a fresh clone of `develop` (done at `abd7a10ff`), run `claude -p "/context"` and `claude -p "/create-issue"` at the root         | No `Project` skill row; `/create-issue` is an unknown command                  | DONE   | `manual-verification-evidence.md` section V0 |
+| M1  | Claude Code discovers the skills  | In a fresh clone of the branch, run M0's `claude -p "/context"` and count the `Project` rows                                       | 53 project skills; no stub listed                                              | TODO   | `manual-verification-evidence.md` section V1 |
+| M2  | A skill runs by name              | In the same clone, run M0's `claude -p "/create-issue"`                                                                          | Claude Code loads `.claude/skills/create-issue/SKILL.md`                      | TODO   | `manual-verification-evidence.md` section V2 |
 | M3  | Moved scripts and tool run        | Run `validate-audit-record.py` on a merged audit record, `bash .claude/skills/run-tracker-locally/scripts/validate-skill-links.sh`, and `cargo run -p wait-for-pr-review -- --help` from the new paths | All three succeed; the skill-links script prints `Skill links validation passed` | TODO   | `manual-verification-evidence.md` section V3 |
 | M4  | An old link still leads somewhere | Open a closed spec that links an old `SKILL.md` path and follow the link on the branch                                             | The stub opens and its link reaches the moved skill                           | TODO   | `manual-verification-evidence.md` section V4 |
 | M5  | The validator catches drift       | In scratch commits, delete one skill folder, then (separately) delete only one stub, and run the new rules each time               | Each run fails: the first names the orphan stub and index row, the second the missing inventoried stub | TODO   | `manual-verification-evidence.md` section V5 |
@@ -366,14 +412,15 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | AC7   | TODO                   |          |
 | AC8   | TODO                   |          |
 | AC9   | TODO                   |          |
+| AC10  | TODO                   |          |
 
 ## Risks and Trade-offs
 
-- **A large first commit.** T2 must pass the commit gate on its own, so it carries the move and
+- **A large first commit.** T3 must pass the commit gate on its own, so it carries the move and
   every path fix. Mitigation: the moved files change only in their links and depth-dependent paths, the sweep commands are
   recorded, and `git show -M --stat` shows the renames.
 - **53 stubs with no planned end.** They keep about 520 historical records navigable without
-  rewriting them. The T5 rules keep them from going stale.
+  rewriting them. The T6 rules keep them from going stale.
 - **Descriptions stay long until the follow-up.** Claude Code drops the least-used descriptions
   until then; the names stay listed.
 - **Out-of-scope agent profiles keep old paths** until the custom-agents migration removes them;
