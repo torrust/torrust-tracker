@@ -141,7 +141,7 @@ Follow [fix-bug](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md):
 
 ## Regression Test Strategy
 
-Two maintained tests, one per causal seam:
+Three maintained tests: one per causal seam, and one for the whole path that AC2 describes.
 
 1. **Unit test in `tracker-client`** (causal seam of the panic): start a UDP socket on
    `127.0.0.1:0` that answers every datagram with junk bytes, call `check` with its
@@ -154,10 +154,17 @@ Two maintained tests, one per causal seam:
    for the other. Today the request fails with `IncompleteMessage` (red). This keeps the handler
    robust against any probe that panics, not only the UDP one.
 
-An end-to-end test with the junk-answering socket and `Launcher::check` (the V1 test) is the
-like-for-like recheck. It may also be kept as a UDP contract test next to
-`it_should_return_error_when_udp_service_was_stopped_after_registration` if the reviewer wants the
-whole path covered; the two tests above are the smallest deterministic boundaries.
+3. **UDP contract test in `axum-health-check-api-server`** (the AC2 case): keep the V1 test,
+   `it_should_return_error_when_the_registered_udp_service_answers_the_check_with_junk`, next to
+   `it_should_return_error_when_udp_service_was_stopped_after_registration`. It registers a
+   junk-answering UDP socket with the production `Launcher::check` and asserts `GET /health_check`
+   returns `200`, status `Error`, message `health check failed`, and an `Err(..)` UDP detail. It is
+   deterministic: the junk reply arrives long before the 2 s sleep. It must be added before the
+   `check` fix, because the `check` fix alone turns it green; its red run is the V1 output
+   (`IncompleteMessage`).
+
+Tests 1 and 2 are the smallest deterministic boundaries. Test 3 covers the whole path a client
+sees, and the V1 reproduction, rerun on the fixed build, is the like-for-like recheck.
 
 ## Implementation Plan
 
@@ -165,22 +172,24 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                              | Notes / Expected Output                                                                                         |
 | --- | ------ | ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| T1  | DONE   | Reproduce against the real health-check server    | V1 in `manual-verification-evidence.md`: three panics and `IncompleteMessage`.                                  |
-| T2  | TODO   | Add the `tracker-client` unit regression test     | Recorded red run: the test panics at `client.rs` on `UnableToParseResponse`.                                    |
-| T3  | TODO   | Return an error from `check` on a receive failure | T2 green; `check` doc comment fixed.                                                                            |
-| T4  | TODO   | Add the handler contract regression test          | Recorded red run: `GET /health_check` fails with `IncompleteMessage` when a probe panics.                       |
-| T5  | TODO   | Report a failed check job instead of panicking    | T4 green; report has status `Error`, the panicking service's detail is `Err(..)`, the other service is `Ok(..)`. |
-| T6  | TODO   | Final verification and like-for-like recheck      | Health-check and tracker-client tests pass; V1 rerun gives a `200` report with an `Err(..)` UDP detail.         |
+| T1  | DONE   | Reproduce against the real health-check server     | V1 in `manual-verification-evidence.md`: three panics and `IncompleteMessage`.                                   |
+| T2  | TODO   | Add the `tracker-client` unit regression test      | Recorded red run: the test panics at `client.rs` on `UnableToParseResponse`.                                     |
+| T3  | TODO   | Add the UDP junk-reply contract test (AC2)         | Recorded red run: `GET /health_check` fails with `IncompleteMessage`, as in V1.                                  |
+| T4  | TODO   | Return an error from `check` on a receive failure  | T2 and T3 green; `check` doc comment fixed.                                                                      |
+| T5  | TODO   | Add the handler panicking-probe contract test      | Recorded red run: `GET /health_check` fails with `IncompleteMessage` when a probe panics.                        |
+| T6  | TODO   | Report a failed check job instead of panicking     | T5 green; report has status `Error`, the panicking service's detail is `Err(..)`, the other service is `Ok(..)`. |
+| T7  | TODO   | Final verification and like-for-like recheck       | Health-check and tracker-client tests pass; V1 rerun gives a `200` report with an `Err(..)` UDP detail.          |
 
 ## Commit Points
 
 | Task | Coherent change set                                         | Commit policy                                        |
 | ---- | ----------------------------------------------------------- | ---------------------------------------------------- |
-| T2   | Unit regression test (may land with T3 if it must be green) | Commit after focused validation and required review. |
-| T3   | `check` returns an error on a receive failure               | Commit after focused validation and required review. |
-| T4   | Handler contract regression test (may land with T5)         | Commit after focused validation and required review. |
-| T5   | Handler reports a failed job as a failed check              | Commit after focused validation and required review. |
-| T6   | Evidence and spec progress update                           | Commit after the final recheck.                      |
+| T2   | Unit regression test (may land with T4 if it must be green) | Commit after focused validation and required review. |
+| T3   | UDP contract test (may land with T4 if it must be green)    | Commit after focused validation and required review. |
+| T4   | `check` returns an error on a receive failure               | Commit after focused validation and required review. |
+| T5   | Handler contract regression test (may land with T6)         | Commit after focused validation and required review. |
+| T6   | Handler reports a failed job as a failed check              | Commit after focused validation and required review. |
+| T7   | Evidence and spec progress update                           | Commit after the final recheck.                      |
 
 Record red runs in `manual-verification-evidence.md` before the fix commits. Use the
 `write-unit-test` skill, with the prose-first Arrange-Act-Assert review after each test increment,
@@ -216,12 +225,13 @@ before maintainer review and commit. Use Conventional Commit messages with the n
 ## Acceptance Criteria
 
 - [ ] AC1: `check` returns `Err(..)`, and does not panic, when the UDP peer answers the connect
-      request with bytes that are not a valid tracker response; the error text names the cause.
+      request with bytes that are not a valid tracker response; the error text names the cause
+      (test T2).
 - [ ] AC2: `GET /health_check` returns `200` with status `Error`, message `health check failed`,
-      and an `Err(..)` detail for a UDP service that answers with junk bytes.
+      and an `Err(..)` detail for a UDP service that answers with junk bytes (test T3).
 - [ ] AC3: when a registered probe job panics, `GET /health_check` returns `200` with status
       `Error`, an `Err(..)` detail for that service, and the other services' details intact; the
-      handler does not panic.
+      handler does not panic (test T5).
 - [ ] AC4: the existing health-check contract tests still pass, including the stopped-UDP case's
       `Timed Out` result.
 - [ ] `linter all` exits with code `0`
