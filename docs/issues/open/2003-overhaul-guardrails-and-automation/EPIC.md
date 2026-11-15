@@ -6,7 +6,7 @@ epic: null
 github-issue: 2003
 spec-path: docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-15 20:14"
+last-updated-utc: "2026-11-15 21:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -446,6 +446,7 @@ For each completed subissue in this EPIC, the default completion policy is:
 - 2026-11-11 09:34 UTC - AI assistant (Claude Code, Claude Sonnet 5.5, issue #2714 session) - Row 19 (#2714) is DONE: PR #2815 merged on 2026-11-11; the head in a `wait-for-pr-review` result is now fetched after the feedback. The spec moved to `docs/issues/closed/` in the close-out pull request.
 - 2026-11-11 11:00 UTC - AI assistant (Claude Code, Claude Sonnet 5.5, issue #2822 session) - Added row 20 (#2822, `--gh-command` option for `wait-for-pr-review`); the spec is in PR #2826.
 - 2026-11-12 13:30 UTC - AI assistant (Claude Code, Claude Sonnet 5.5, issue #2822 session) - Row 20 (#2822) is DONE: PR #2835 merged on 2026-11-12 and the poller takes `--gh-command` and reports `gh_command` and `gh_login`; the spec moved to `docs/issues/closed/` in the close-out pull request.
+- 2026-11-15 21:30 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2866 session) - Added row 21 (#2866, move the agent skills to `.claude/skills/` so Claude Code discovers them) on 2026-11-15 at 20:14 UTC; the spec is in PR #2869.
 
 ## Acceptance Criteria
 
