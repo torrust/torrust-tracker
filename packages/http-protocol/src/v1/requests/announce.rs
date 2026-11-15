@@ -1013,6 +1013,33 @@ mod tests {
             #[case::downloaded(DOWNLOADED)]
             #[case::uploaded(UPLOADED)]
             #[case::left(LEFT)]
+            fn it_should_accept_the_largest_unsigned_64_bit_value(#[case] param_name: &str) {
+                let announce = announce_with(param_name, "18446744073709551615").unwrap();
+
+                assert_eq!(number_of_bytes_in(&announce, param_name), Some(NumberOfBytes::new(u64::MAX)));
+            }
+
+            #[rstest]
+            #[case::downloaded(DOWNLOADED)]
+            #[case::uploaded(UPLOADED)]
+            #[case::left(LEFT)]
+            fn it_should_reject_a_value_above_the_largest_unsigned_64_bit_value(#[case] param_name: &str) {
+                let result = announce_with(param_name, "18446744073709551616");
+
+                assert!(matches!(
+                    result,
+                    Err(ParseAnnounceQueryError::InvalidParam {
+                        param_name: rejected_param,
+                        param_value,
+                        ..
+                    }) if rejected_param == param_name && param_value == "18446744073709551616"
+                ));
+            }
+
+            #[rstest]
+            #[case::downloaded(DOWNLOADED)]
+            #[case::uploaded(UPLOADED)]
+            #[case::left(LEFT)]
             fn it_should_reject_a_non_numeric_value(#[case] param_name: &str) {
                 let result = announce_with(param_name, "ten");
 

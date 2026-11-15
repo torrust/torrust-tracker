@@ -823,6 +823,7 @@ pub mod test {
                     (1, AnnounceEvent::Started, false),
                     (0, AnnounceEvent::Started, true),
                     (0, AnnounceEvent::Stopped, false),
+                    (1, AnnounceEvent::Stopped, false),
                 ];
 
                 for (left, event, is_seeder) in cases {
