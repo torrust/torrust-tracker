@@ -134,7 +134,7 @@ follow-up sub-issue, so this move stays a reviewable rename.
 
 On `torrust/develop` at `abd7a10ff`: 53 `SKILL.md` files and 71 files in total under
 `.github/skills/` (scripts, references, and the `wait-for-pr-review` tool crate move too). All 53
-names are unique. 663 files outside the folder contain `.github/skills`:
+names are unique. 663 files outside the folder contain the literal `.github/skills`:
 
 | Area                                         | Files | Kind                                    |
 | -------------------------------------------- | ----- | --------------------------------------- |
@@ -145,8 +145,13 @@ names are unique. 663 files outside the folder contain `.github/skills`:
 | `docs/issues/drafts/`                        | 18    | Live                                    |
 | `docs/templates/`                            | 13    | Live                                    |
 | `contrib/`                                   | 6     | Tooling with the path built in          |
-| `.github/` (agents, workflows `AGENTS.md`)   | 6     | Agents: out of scope; workflows: live   |
+| `.github/agents/` (five profiles, `README.md`) | 6   | Profiles: out of scope; `README.md`: live |
 | Other `docs/`, `packages/`, root files       | 27    | Mixed; classified during implementation |
+
+Two more files link skills by a relative path without the `.github/skills` literal, so the count
+leaves them out: `.github/workflows/AGENTS.md` (live) and the profile
+`.github/agents/copilot-suggestions-handler.agent.md` (out of scope), both through
+`../skills/dev/...`. The T9 search for `skills/dev/` covers them.
 
 Tooling with the path built in: the `Cargo.toml` workspace member
 (`.github/skills/dev/pr-reviews/wait-for-pr-review/tool`), `.dockerignore`, the
@@ -169,7 +174,7 @@ validator's lookup folder does.
   skill's `scripts/`, `references/` and `tool/` folders.
 - Every live reference to the old paths: `AGENTS.md`, `docs/AGENTS.md`, `docs/agents/`, open and
   draft specs, ADR links and `related-artifacts`, templates, folder READMEs, package docs, the
-  skills themselves, and `.github/workflows/AGENTS.md`.
+  skills themselves, `.github/agents/README.md`, and `.github/workflows/AGENTS.md`.
 - Tooling with the path built in (listed above).
 - Redirect stubs at the 53 old `SKILL.md` paths, and a check that keeps them correct.
 - The index `.claude/skills/README.md`, listing every skill by area, and a check that it lists
