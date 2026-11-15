@@ -42,7 +42,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Findings from da2ce7's review 5912769583 (F1-F11, reviewer IDs kept) and Copilot's review 5912779850 (F12-F13, re-raises of F1 and F2), both on the first commit, `docs(issues): draft the peer-id-test-helper spec (finding F5 of #2824)`.
+Findings from da2ce7's review 5912769583 (F1-F11, reviewer IDs kept) and Copilot's review 5912779850 (F12-F13, re-raises of F1 and F2), both on the first commit, `docs(issues): draft the peer-id-test-helper spec (finding F5 of #2824)`. Round 2: da2ce7's review 5913005734 (APPROVED) on the audit commit, `docs(pr-reviews): add the review audit of PR #2865, round 1`; its F12-F15 collide with existing audit IDs and are recorded as F14-F17.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -59,6 +59,10 @@ Findings from da2ce7's review 5912769583 (F1-F11, reviewer IDs kept) and Copilot
 | F11 | review-finding:pr-2865-f11 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-2865-f12 | Copilot | Minor (inferred) | correctness | RE_RAISE_OF:F1 | NO_ACTION | SUPERSEDED |
 | F13 | review-finding:pr-2865-f13 | Copilot | Minor (inferred) | correctness | RE_RAISE_OF:F2 | NO_ACTION | SUPERSEDED |
+| F14 | review-finding:pr-2865-f14 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-2865-f15 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-2865-f16 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-2865-f17 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -231,12 +235,68 @@ Findings from da2ce7's review 5912769583 (F1-F11, reviewer IDs kept) and Copilot
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2865#discussion_r4580165965>
 
+### F14 - Audit cited PR-branch commit ids
+
+- PR number: 2865
+- Source review ID: 5913005734
+- Reviewer finding ID: F12
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2865#discussion_r4580304812>
+- Concern: The audit cited PR-branch commits by id in the findings introduction and two processing-log entries; `open-pull-request` keeps such ids out of review audits because a rebase changes them.
+- Solution: Replaced the ids with commit subjects (the first commit's subject in the introduction and the round-1 log entry; the push entry already named the fix commit by subject).
+- Current-tree verification: The `open-pull-request` commit-id check, run from the repository root with `UPSTREAM_REMOTE=torrust`, prints nothing.
+- Resolution reference: docs(pr-reviews): cite PR #2865 branch commits by subject in its audit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2865#discussion_r4580316429>
+
+### F15 - PR description did not list the audit
+
+- PR number: 2865
+- Source review ID: 5913005734
+- Reviewer finding ID: F13
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2865#discussion_r4580304817>
+- Concern: The PR description still said the PR only adds the spec and listed one file, while the branch also adds this audit; the merge tool copies the description into the merge commit.
+- Solution: Edited the PR description: it now says the PR adds the spec and its review audit, lists the audit under Files, describes the `Id::new` callers through the `i32` wrappers, and adds the audit validator under Validation.
+- Current-tree verification: `gh pr view 2865 --json body` shows the audit under Files and no "only adds the spec" sentence.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2865#issuecomment-6901649290>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2865#discussion_r4580316554>
+
+### F16 - u32::try_from returns a Result
+
+- PR number: 2865
+- Source review ID: 5913005734
+- Reviewer finding ID: F14
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2865#discussion_r4580304822>
+- Concern: Q4 (b) said the loops pass `u32::try_from(i)`, which is a `Result` and cannot be passed to a `u32` parameter as it is.
+- Solution: Q4 (b) now names both routes: `u32::try_from(i).expect(...)`, or iterating over `0..408_u32` and converting only for `InfoHash::from` and `write_i32`.
+- Current-tree verification: `grep -n 'try_from' docs/issues/drafts/peer-id-test-helper/ISSUE.md` shows the `.expect(...)` form and the second route.
+- Resolution reference: docs(issues): clarify the loop conversion and coverage note of the peer-id-test-helper spec
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2865#discussion_r4580316684>
+
+### F17 - swarm_metadata.rs coverage note is stale
+
+- PR number: 2865
+- Source review ID: 5913005734
+- Reviewer finding ID: F15
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2865#discussion_r4580304825>
+- Concern: The note about 9 uncovered `swarm_metadata.rs` lines is stale on current `develop`: #2864 covered them, and #2824's final measurement puts all 68 uncovered lines in `peer.rs`.
+- Solution: Dated the note to `develop` at `abd7a10ff` and added #2824's final measurement (31 / 31 for `swarm_metadata.rs`; 1,077 / 1,145 lines, all 68 uncovered in `peer.rs`).
+- Current-tree verification: On `develop` at `4c8c88c0b`, #2824's `coverage-evidence.md` gives `swarm_metadata.rs` 31 / 31 and 1,077 / 1,145 lines for the package.
+- Resolution reference: docs(issues): clarify the loop conversion and coverage note of the peer-id-test-helper spec
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2865#discussion_r4580316808>
+
 ## Processing Log
 
 - 2026-11-15 20:31 UTC - Review round 1: da2ce7 review 5912769583 (CHANGES_REQUESTED, F1-F11) and Copilot review 5912779850 (two comments) received on the first commit, `docs(issues): draft the peer-id-test-helper spec (finding F5 of #2824)`; every finding checked against the tree.
 - 2026-11-15 20:32 UTC - Committed the fixes as `docs(issues): correct the peer-id-test-helper inventory and checks after review` and pushed it.
 - 2026-11-15 20:44 UTC - Replied on all 13 threads (20:43:55 to 20:44:22 UTC). Late start: this audit record was created after the replies, not before the first reply as the workflow requires.
 - 2026-11-15 20:45 UTC - Validator `validate-audit-record.py --pr-number 2865` exited 0 (13 rows, 0 failures); audit committed separately from the spec fix.
+- 2026-11-15 21:26 UTC - Review round 2: da2ce7 review 5913005734 (APPROVED, four findings, recorded as F14-F17) received on the audit commit; every finding checked against the tree.
+- 2026-11-15 21:28 UTC - Correction for F14: the findings introduction and the two round-1 entries above (20:31 and 20:32 UTC) were edited in place to replace PR-branch commit ids with commit subjects; they first named the reviewed head and the pushed head by id. Committed as `docs(pr-reviews): cite PR #2865 branch commits by subject in its audit`, with the spec fixes in `docs(issues): clarify the loop conversion and coverage note of the peer-id-test-helper spec`.
+- 2026-11-15 21:29 UTC - Edited the PR description (F15) and recorded it in a PR comment; added rows F14-F17 before replying, then replied on the four threads (21:29 UTC).
+- 2026-11-15 21:29 UTC - Validator `validate-audit-record.py --pr-number 2865` exited 0 for round 2.
 
 ## Completion Rules
 
