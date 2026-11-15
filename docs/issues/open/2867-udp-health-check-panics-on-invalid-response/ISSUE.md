@@ -9,7 +9,7 @@ github-issue: 2867
 spec-path: docs/issues/open/2867-udp-health-check-panics-on-invalid-response/ISSUE.md
 branch: "2867-udp-health-check-panics-on-invalid-response-spec"
 related-pr: 2868
-last-updated-utc: "2026-11-15 21:40"
+last-updated-utc: "2026-11-15 21:31"
 semantic-links:
   skill-links:
     - create-issue
@@ -222,7 +222,7 @@ before maintainer review and commit. Use Conventional Commit messages with the n
   `evidence/`
 - 2026-11-15 20:18 UTC - Claude Code (Claude Opus 5.5) - Maintainer approved the draft; created
   issue #2867 and moved the spec to `docs/issues/open/` for a spec-only PR
-- 2026-11-15 21:40 UTC - Claude Code (Claude Opus 5.5) - Reran the closed-port check asserting
+- 2026-11-15 21:31 UTC - Claude Code (Claude Opus 5.5) - Reran the closed-port check asserting
   `Err("Timed Out")` (V3) for the first da2ce7 review of PR 2868 - `manual-verification-evidence.md`
 
 ## Acceptance Criteria
