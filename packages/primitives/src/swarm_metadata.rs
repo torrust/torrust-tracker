@@ -75,35 +75,46 @@ mod tests {
 
     #[test]
     fn it_should_return_the_number_of_downloads() {
+        // Arrange
         let swarm_metadata = SwarmMetadata::new(3, 5, 7);
 
+        // Act
         let downloads = swarm_metadata.downloads();
 
+        // Assert
         assert_eq!(downloads, 3);
     }
 
     #[test]
     fn it_should_return_the_number_of_seeders() {
+        // Arrange
         let swarm_metadata = SwarmMetadata::new(3, 5, 7);
 
+        // Act
         let seeders = swarm_metadata.seeders();
 
+        // Assert
         assert_eq!(seeders, 5);
     }
 
     #[test]
     fn it_should_return_the_number_of_leechers() {
+        // Arrange
         let swarm_metadata = SwarmMetadata::new(3, 5, 7);
 
+        // Act
         let leechers = swarm_metadata.leechers();
 
+        // Assert
         assert_eq!(leechers, 7);
     }
 
     #[test]
     fn it_should_build_a_zeroed_value_with_every_count_at_zero() {
+        // Act
         let swarm_metadata = SwarmMetadata::zeroed();
 
+        // Assert
         assert_eq!(swarm_metadata, SwarmMetadata::new(0, 0, 0));
     }
 }
