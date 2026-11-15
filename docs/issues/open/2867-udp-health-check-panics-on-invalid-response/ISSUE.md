@@ -19,6 +19,7 @@ semantic-links:
     - .github/skills/dev/planning/create-issue/SKILL.md
     - packages/tracker-client/src/udp/client.rs
     - packages/axum-health-check-api-server/src/handlers.rs
+    - packages/udp-server/src/server/launcher.rs
     - packages/axum-health-check-api-server/tests/server/contract.rs
 ---
 
