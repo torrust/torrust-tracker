@@ -9,7 +9,7 @@ github-issue: 2393
 spec-path: docs/issues/open/2393-2392-test-port-allocation-races/ISSUE.md
 branch: "2392-test-isolation-spec"
 related-pr: 2397
-last-updated-utc: "2026-11-14 11:45"
+last-updated-utc: "2026-11-15 07:50"
 semantic-links:
   skill-links:
     - create-issue
@@ -43,6 +43,10 @@ Parent EPIC: #2392 - Test Isolation (`docs/issues/open/2392-test-isolation/EPIC.
 Remove the intermittent `Address already in use` failures from the tracker test suite with a quick
 patch. A flaky test is worse for development than no test, so each racing test is disabled with
 `#[ignore]`, then deleted, rewritten without a real port, or kept disabled with a recorded reason.
+
+The first phase (PR 2859, merged) disabled twenty-one racing tests and rewrote four. The second
+phase (T5) applies the maintainer's decision for the twenty-one: delete nine, and restore twelve
+with rewrites that cannot race. When it is done, no test is left ignored for #2393.
 
 ## Background
 
@@ -79,12 +83,21 @@ Of these, only #1419 is itself a subissue of the parent EPIC; #2386 and #2132 ar
 - Disable each racing test with `#[ignore = "flaky port race, see #2393"]`.
 - Record a decision for every disabled test in this issue, so nothing stays ignored without one.
 - Rewrite a test without a real port when it checks the tracker's own logic.
+- T5: delete the nine ignored tests that only check test-support code, rewrite the three
+  health-check contract tests to probe an address the test holds, and restore the nine tests of
+  the tracker's socket-release contract on a unique loopback address.
+- T5: add one shared test helper that returns a random loopback address in `127.0.0.0/8` (see
+  Architectural Decisions).
 
 ### Out of Scope
 
 - A server that takes over an already-bound socket (listener handoff). It was considered and
   rejected for now: it needs a production API change on four server crates.
 - Any new or extended shared port helper. The #2581 helper (`reserve_free_ports`) stays as it is.
+  The T5 loopback helper chooses an IP address, not a port, and the maintainer approved it on
+  2026-11-15.
+- Moving the other tests in the suite to unique loopback addresses. Only the nine restored tests
+  use the helper.
 - Serializing the entire test suite or lowering nextest concurrency.
 - Changing tracker protocol behavior, default service ports, or deployment configuration.
 - Fixed E2E container host ports in `src/console/ci/e2e/runner.rs` (sibling subissue #2395).
@@ -119,45 +132,71 @@ listener, `src/bootstrap/jobs/http_tracker.rs`, the occupied-port tests).
 
 | Test | Package or file | Decision | Reason |
 | --- | --- | --- | --- |
-| `it_should_release_the_listener_when_token_aware_startup_registration_fails` | `axum-http-server` `server.rs` | Ignored, needs maintainer decision | Needs a pre-known address for the registry and a rebind to prove release. |
-| `it_should_release_the_listener_when_token_aware_startup_registration_fails` | `axum-rest-api-server` `server.rs` | Ignored, needs maintainer decision | Same shape. |
-| `it_should_release_the_listener_when_token_aware_startup_registration_fails` | `axum-health-check-api-server` `server.rs` | Ignored, needs maintainer decision | Same shape. |
-| `it_should_serve_requests_after_being_stopped_and_started_again_on_a_fixed_port` | `axum-health-check-api-server` `environment.rs` | Ignored, needs maintainer decision | Restart on one address needs a known port. |
-| `it_should_stop_the_receive_loop_and_release_the_socket_when_its_cancellation_token_is_cancelled` | `udp-server` `server/mod.rs` | Ignored, needs maintainer decision | Rebinds the released socket. |
-| `it_should_release_the_socket_when_registration_fails` | `udp-server` `server/mod.rs` | Ignored, needs maintainer decision | Needs a pre-known address and a rebind. |
-| `it_should_release_the_socket_when_the_component_is_dropped_before_it_runs` | `src/bootstrap/jobs/udp_tracker.rs` | Ignored, needs maintainer decision | Rebinds the released socket. |
-| `it_should_release_the_listener_when_the_component_is_dropped_before_it_runs` | `src/bootstrap/jobs/health_check_api.rs` | Ignored, needs maintainer decision | Rebinds the released listener. |
-| `it_should_release_udp_listener_before_returning_from_start_after_setup_when_later_http_startup_fails` | `src/app.rs` | Ignored, needs maintainer decision | Rebinds the released UDP socket. |
-| `it_should_release_the_health_check_api_binding_when_stopped` | `axum-health-check-api-server` `environment.rs` | Ignored, needs maintainer decision | Rebinds the released ephemeral port. |
-| `it_should_release_the_health_check_api_binding_when_dropped_without_being_stopped` | `axum-health-check-api-server` `environment.rs` | Ignored, needs maintainer decision | Waits until the released port can be rebound. |
-| `it_should_release_the_http_binding_when_stopped` | `axum-http-server` `testing/environment.rs` | Ignored, needs maintainer decision | Rebinds the released ephemeral port. |
-| `it_should_release_the_http_binding_when_dropped_without_being_stopped` | `axum-http-server` `testing/environment.rs` | Ignored, needs maintainer decision | Waits until the released port can be rebound. |
-| `it_should_release_the_rest_api_binding_when_stopped` | `axum-rest-api-server` `testing/environment.rs` | Ignored, needs maintainer decision | Rebinds the released ephemeral port. |
-| `it_should_release_the_rest_api_binding_when_dropped_without_being_stopped` | `axum-rest-api-server` `testing/environment.rs` | Ignored, needs maintainer decision | Waits until the released port can be rebound. |
-| `it_should_release_the_udp_socket_when_stopped` | `udp-server` `testing/environment.rs` | Ignored, needs maintainer decision | Rebinds the released ephemeral port. |
-| `it_should_release_the_udp_socket_when_dropped_without_being_stopped` | `udp-server` `testing/environment.rs` | Ignored, needs maintainer decision | Waits until the released port can be rebound. |
-| `it_should_not_return_while_processors_orphaned_by_the_request_ring_are_still_running` | `udp-server` `server/launcher.rs` | Rewritten | Its main assertion (processors joined before the loop returns) needs no port, so it runs again; its socket-release assertion moved to the companion below. |
-| `it_should_release_the_socket_once_the_processors_orphaned_by_the_request_ring_are_joined` | `udp-server` `server/launcher.rs` | Ignored, needs maintainer decision | New companion holding the socket-release assertion, which waits until the released port can be rebound. |
-| `it_should_return_error_when_api_service_was_stopped_after_registration` | `axum-health-check-api-server` `tests/server/contract.rs` | Ignored, needs maintainer decision | It now starts the health-check API before stopping the REST API, so the two never share a port, but it still expects the released REST API port to be dead, and another test can bind that port and answer. |
-| `it_should_return_error_when_http_service_was_stopped_after_registration` | `axum-health-check-api-server` `tests/server/contract.rs` | Ignored, needs maintainer decision | Same shape and reorder as the REST API variant; it still expects the released HTTP port to be dead. |
-| `it_should_return_error_when_udp_service_was_stopped_after_registration` | `axum-health-check-api-server` `tests/server/contract.rs` | Ignored, needs maintainer decision | It cannot collide with the health-check API (a UDP and an HTTP binding on one port are different registrations), but it expects the released UDP port to be dead. |
+| `it_should_release_the_listener_when_token_aware_startup_registration_fails` | `axum-http-server` `server.rs` | T5: restore on a unique loopback address | The server is already serving when registration fails, so the error path must cancel and join the spawned task. Needs a pre-known address for the registry and a rebind to prove release. |
+| `it_should_release_the_listener_when_token_aware_startup_registration_fails` | `axum-rest-api-server` `server.rs` | T5: restore on a unique loopback address | Same contract and shape. |
+| `it_should_release_the_listener_when_token_aware_startup_registration_fails` | `axum-health-check-api-server` `server.rs` | T5: restore on a unique loopback address | Same contract and shape. |
+| `it_should_stop_the_receive_loop_and_release_the_socket_when_its_cancellation_token_is_cancelled` | `udp-server` `server/mod.rs` | T5: restore on a unique loopback address | The cancellation path must stop the receive loop and drop its socket. Rebinds the released socket. |
+| `it_should_release_the_socket_when_registration_fails` | `udp-server` `server/mod.rs` | T5: restore on a unique loopback address | Same contract as the server registration-failure tests. Needs a pre-known address and a rebind. |
+| `it_should_release_the_socket_when_the_component_is_dropped_before_it_runs` | `src/bootstrap/jobs/udp_tracker.rs` | T5: restore on a unique loopback address | `start_job` spawns tasks before it returns the component future; dropping a `JoinHandle` detaches a task, so the release depends on the tracker's abort-on-drop code. Rebinds the released socket. |
+| `it_should_release_the_listener_when_the_component_is_dropped_before_it_runs` | `src/bootstrap/jobs/health_check_api.rs` | T5: restore on a unique loopback address | Same contract as the UDP job test. Rebinds the released listener. |
+| `it_should_release_udp_listener_before_returning_from_start_after_setup_when_later_http_startup_fails` | `src/app.rs` | T5: restore on a unique loopback address | Application startup must release the already-started UDP tracker before it returns a later HTTP failure. Rebinds the released UDP socket. |
+| `it_should_release_the_socket_once_the_processors_orphaned_by_the_request_ring_are_joined` | `udp-server` `server/launcher.rs` | T5: restore on a unique loopback address | The socket must not be released while orphaned request processors still run. Waits until the released port can be rebound. |
+| `it_should_release_the_health_check_api_binding_when_stopped` | `axum-health-check-api-server` `environment.rs` | T5: delete | Checks the `testing` feature's environment, not the tracker. Every other test binds port `0`, so nothing depends on the environment releasing its port; the tracker's own release contract is covered by the restored tests above. |
+| `it_should_release_the_health_check_api_binding_when_dropped_without_being_stopped` | `axum-health-check-api-server` `environment.rs` | T5: delete | Same reason. |
+| `it_should_serve_requests_after_being_stopped_and_started_again_on_a_fixed_port` | `axum-health-check-api-server` `environment.rs` | T5: delete | Checks that the test environment restarts on its configured address. No test relies on that, and `it_should_serve_requests_after_being_stopped_and_started_again` still covers restart on port `0`. |
+| `it_should_release_the_http_binding_when_stopped` | `axum-http-server` `testing/environment.rs` | T5: delete | Checks test-support code, as above. |
+| `it_should_release_the_http_binding_when_dropped_without_being_stopped` | `axum-http-server` `testing/environment.rs` | T5: delete | Same reason. |
+| `it_should_release_the_rest_api_binding_when_stopped` | `axum-rest-api-server` `testing/environment.rs` | T5: delete | Same reason. |
+| `it_should_release_the_rest_api_binding_when_dropped_without_being_stopped` | `axum-rest-api-server` `testing/environment.rs` | T5: delete | Same reason. |
+| `it_should_release_the_udp_socket_when_stopped` | `udp-server` `testing/environment.rs` | T5: delete | Same reason. |
+| `it_should_release_the_udp_socket_when_dropped_without_being_stopped` | `udp-server` `testing/environment.rs` | T5: delete | Same reason. |
+| `it_should_return_error_when_api_service_was_stopped_after_registration` | `axum-health-check-api-server` `tests/server/contract.rs` | T5: rewrite with an address the test holds | Checks that the health-check API reports an unreachable REST API as failing. The rewrite registers the REST API's public `check_fn` against a TCP socket the test binds to port `0` and never listens on, so the check is refused and no other test can take the port. |
+| `it_should_return_error_when_http_service_was_stopped_after_registration` | `axum-health-check-api-server` `tests/server/contract.rs` | T5: rewrite with an address the test holds | Same rewrite with the HTTP tracker's public `check_fn`. |
+| `it_should_return_error_when_udp_service_was_stopped_after_registration` | `axum-health-check-api-server` `tests/server/contract.rs` | T5: rewrite with an address the test holds | Same rewrite with the UDP tracker's `Launcher::check` against a UDP socket the test binds and never answers on, which gives the `Timed Out` result the test already expects. |
+| `it_should_not_return_while_processors_orphaned_by_the_request_ring_are_still_running` | `udp-server` `server/launcher.rs` | Rewritten | Its main assertion (processors joined before the loop returns) needs no port, so it runs again; its socket-release assertion moved to the companion above. |
 | `it_should_register_the_service_with_a_health_check_that_reaches_the_running_server` | `udp-server` `server/mod.rs` | Rewritten | Binds `127.0.0.1:0` and reads the bound address; it never needed a pre-selected port. |
 | `it_should_cancel_the_udp_tracker_component_through_the_job_manager` | `src/app.rs` | Rewritten | Uses the configured port `0`; it never needed a reserved address. |
 | `it_should_report_an_error_with_the_checked_url_when_nothing_listens_on_the_checked_address` | `axum-rest-api-server` `server.rs` | Rewritten | Checks the address of a socket the test binds to port `0` and never listens on, so nothing else can listen there. |
 
-No test was deleted: none of them only checks the operating system. Eighteen of the twenty-one ignored
-tests prove that the tracker releases its socket after a stop, a drop or a failure, which is the
-tracker's own cleanup contract. The other three prove that the health-check report shows a stopped
-service as failing, which needs a port nothing can listen on. Each needs a real bound port, so it
-can only be rewritten once a decision is made.
+The maintainer decided the twenty-one ignored tests on 2026-11-15 (T5):
+
+- **Delete nine.** They check the `testing` feature's environments, which is test-support code.
+- **Rewrite three** health-check contract tests to probe an address the test holds open, without
+  a helper and without a production change.
+- **Restore nine** tests of the tracker's socket-release contract on a unique loopback address.
+  Each covers a path where the socket belongs to a spawned task. Rust's ownership does not free a
+  socket held like that, because dropping a `JoinHandle` detaches the task, so the release depends
+  on the tracker's own cancel, join or abort code. A leak here would mostly hurt code that embeds
+  the tracker and retries startup in one process, and the test suite itself; the binary usually
+  exits on a startup failure.
 
 ## Architectural Decisions
 
-- Related ADRs: none. This patch adds no shared abstraction and changes no production API.
+- Related ADRs: none. Neither phase changes a production API. T5 adds one test helper, used only
+  by the nine restored tests, so it sets no repository-wide test networking policy.
 - A test that races on a port is disabled first. A flaky test is worse for development than a missing
   one, and some tests that need a fixed or pre-selected port may never have been worth having.
 - The listener-handoff design (the server takes over an already-bound socket) was considered and
-  rejected for now. It stays available if the maintainer later wants the ignored tests restored.
+  rejected for now.
+- **T5 unique loopback address (approved by the maintainer on 2026-11-15).** On Linux every address
+  in `127.0.0.0/8` is loopback, and two sockets on different specific addresses can share a port
+  (checked for TCP and UDP). A restored test binds port `0` on a random loopback address instead of
+  `127.0.0.1`, reads the port back, and later rebinds that address to prove the release. Another
+  test, in this run or in another agent's run, that binds `127.0.0.1:0` and happens to receive the
+  released port no longer blocks the rebind.
+  - The helper lives in `torrust-tracker-test-helpers` (it already depends on `rand`, and every
+    affected crate already depends on it). It returns an `Ipv4Addr` of the form `127.a.b.c` with
+    `a`, `b` and `c` in `1..=254`, so it never returns `127.0.0.1`. It chooses an address, not a
+    port; the tests still bind port `0`.
+  - Linux only. Other systems route only `127.0.0.1` by default, so each restored test carries
+    `#[cfg_attr(not(target_os = "linux"), ignore = "needs the Linux 127.0.0.0/8 loopback range, see #2393")]`.
+    CI runs the tests on Linux only; the macOS and Windows jobs only build.
+  - It does not stop a socket bound to the wildcard address `0.0.0.0` on the same port. Some
+    integration-test configurations bind `0.0.0.0:0`, so a small chance of collision remains; V6
+    measures it.
+- T5 rewrites the health-check contract tests without the helper: a TCP socket bound to port `0`
+  and never listening refuses the check, and a UDP socket the test holds and never answers makes
+  the check time out. The test owns the address for the whole test, so nothing else can take it.
 
 ## Bug-Fix Process
 
@@ -170,14 +209,21 @@ apply:
 2. Inventory every test with a racing shape and record its decision (this spec).
 3. Recheck the full parallel suite after the change, sized for the claim it supports (V4).
 
-If the maintainer restores an ignored test in T5, that test follows the full `fix-bug` process.
+Each test restored or rewritten in T5 follows the full `fix-bug` process: it must still detect the
+defect it guards. Before the change is committed, temporarily remove the cleanup the test guards
+(or, for a contract test, make the probed address answer), confirm the test fails, restore the
+code, and confirm it passes. Record each red-then-green pair in V5.
 
 ## Regression Test Strategy
 
-No regression test is added. The ignored tests are the racing code; disabling them removes the
-race rather than fixing it. The guard against recurrence is the 150-run full-suite recheck (V4):
-at the V1 rate of 1 failure in 50 runs on the `axum-http-server` assertion, 150 green runs would
-happen with no change at a probability of about 0.05.
+The first phase adds no regression test: disabling the racing tests removes the race rather than
+fixing it. The guard against recurrence is the 150-run full-suite recheck (V4): at the V1 rate of 1
+failure in 50 runs on the `axum-http-server` assertion, 150 green runs would happen with no change
+at a probability of about 0.05.
+
+T5 restores twelve tests as the regression guards for the tracker's socket-release and
+health-check contracts. V5 proves each still detects its defect; V6 repeats the 150-run full-suite
+recheck with none of the #2393 tests ignored.
 
 ## Implementation Plan
 
@@ -189,16 +235,25 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2 | DONE | Re-check the inventory on `develop` | The inventory above, including the stale CLI finding and the three racing shapes. |
 | T3 | DONE | Disable each racing test with `#[ignore]` | Twenty-one tests ignored with the reason `flaky port race, see #2393`. |
 | T4 | DONE | Rewrite the tests that never needed a racing port | Four tests rewritten. |
-| T5 | BLOCKED | Decide the fate of the twenty-one ignored tests | Waiting for the maintainer. |
+| T5 | DONE | Decide the fate of the twenty-one ignored tests | The maintainer's decisions in the per-test table, recorded by this spec-only change. |
 | T6 | DONE | Full-suite recheck | V4 in `manual-verification-evidence.md`: the first 150 runs found a third racing shape (2 failures), and 150 runs on the fixed head all passed. |
+| T7 | TODO | Delete the nine test-support release tests | The nine tests are gone, with any helper left unused removed too. |
+| T8 | TODO | Rewrite the three health-check contract tests | They run unignored and probe an address the test holds; V5 red-then-green recorded. |
+| T9 | TODO | Add the loopback helper and restore the nine release tests | The helper with its own unit test; the nine tests run unignored on Linux; V5 red-then-green recorded. |
+| T10 | TODO | Full-suite recheck with no #2393 test ignored | V6: 150 full-suite runs pass, and `rg 'see #2393'` finds no `#[ignore]` outside the non-Linux `cfg_attr`. |
+| T11 | TODO | Close-out | After the implementation PR merges: archive this spec; once PR 2862 has merged, set this issue's row in the EPIC to DONE. |
 
 ## Commit Points
 
 | Task | Coherent change set | Commit policy |
 | --- | --- | --- |
 | T2 to T4 | Ignored and rewritten tests, with their rows in this spec | One commit per racing shape or rewrite. |
-| T5 | Each decided test | One commit per decided test or small cohesive family. |
+| T5 | The per-test decisions | Spec-only PR, merged before T7 starts. |
 | T6 | Recheck evidence | Documentation-only commit. |
+| T7 | Deleted tests | One commit. |
+| T8 | Contract-test rewrites | One commit. |
+| T9 | Helper, then restored tests | One commit for the helper, then one per crate or small cohesive family. |
+| T10 | Recheck evidence | Documentation-only commit. |
 
 ## Progress Tracking
 
@@ -209,7 +264,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] GitHub issue created and issue number added to this specification.
 - [x] Racing tests inventoried, ignored or rewritten, and focused checks pass.
 - [x] Full parallel recheck recorded (V4).
-- [ ] Fate of every ignored test decided by the maintainer (T5).
+- [x] Fate of every ignored test decided by the maintainer (T5).
+- [ ] T5 decisions applied: tests deleted, rewritten or restored (T7 to T9), red-then-green recorded (V5).
+- [ ] Full parallel recheck with no #2393 test ignored (V6).
 - [ ] Acceptance criteria reviewed after implementation.
 - [ ] Implementation completion review recorded.
 
@@ -242,6 +299,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   racing shapes, and replaced PR-branch commit ids with commit subjects. Twenty-one ignored tests
   await the maintainer's decision (T5); four tests are rewritten. Check 3 in V4: 20 full-suite runs
   passed.
+- 2026-11-15 07:50 UTC - Claude Code (Claude Opus 5.5) - PR 2859 merged. The maintainer decided T5:
+  delete the nine test-support release tests, rewrite the three health-check contract tests on an
+  address the test holds, and restore the nine tracker release tests on a unique loopback address,
+  through a new loopback helper he approved. The EPIC coordinator agreed T5 stays under #2393.
+  Recorded the decisions and the T7 to T11 plan in this spec-only change; the implementation starts
+  after it merges.
 
 ## Acceptance Criteria
 
@@ -252,6 +315,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   kept disabled with a reason.
 - [x] AC3: The full parallel suite passes repeatedly with no port-allocation failure (V4, 150 of
   150 runs on the head ending in `fix(tests): [#2393] start the health-check API before stopping the probed service`).
+- [ ] AC4: No test is ignored for #2393 on Linux: the nine test-support tests are deleted, and the
+  other twelve run (the nine restored ones are ignored only on other systems).
+- [ ] AC5: Each restored or rewritten T5 test fails when the cleanup or contract it guards is
+  removed, and passes when it is restored (V5).
+- [ ] AC6: The full parallel suite passes 150 of 150 runs with the restored tests running (V6).
 - [ ] `linter all` exits with code `0`.
 - [ ] Relevant focused tests and pre-push checks pass.
 
@@ -261,7 +329,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   listed in the run summary.
 - `linter all` and the pre-push checks.
 - `manual-verification-evidence.md`: V1 (original reproduction) and V4 (150-run recheck after the
-  change).
+  change); for T5, V5 (red-then-green per restored or rewritten test) and V6 (150-run recheck with
+  the restored tests running).
 
 ### Manual Verification Scenarios
 
@@ -273,6 +342,8 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`, `NOT_APPLICAB
 | M2 | Duplicate-registration repair | None: the test is ignored, not repaired. | Not applicable. | NOT_APPLICABLE | `manual-verification-evidence.md#v2---duplicate-registration-repair` |
 | M3 | CLI configuration repair | None: #2581 already moved these tests below the ephemeral range. | Not applicable. | NOT_APPLICABLE | `manual-verification-evidence.md#v3---cli-configuration-repair` |
 | M4 | Full recheck | Run the full suite 150 times with `--no-fail-fast`. | Every run passes, with the ignored tests skipped. | DONE | `manual-verification-evidence.md#v4---full-recheck` |
+| M5 | T5 red-then-green | For each restored or rewritten test: remove the guarded cleanup (or make the probed address answer), run it, restore, run it again. | Fails without the cleanup, passes with it. | TODO | `manual-verification-evidence.md` (V5, added by the implementation PR) |
+| M6 | T5 full recheck | Run the full suite 150 times with `--no-fail-fast`. | Every run passes, and no #2393 test is skipped. | TODO | `manual-verification-evidence.md` (V6, added by the implementation PR) |
 
 ### Acceptance Verification
 
@@ -283,14 +354,20 @@ AC3 done from a focused test or a single run.
 
 - 150 green runs give about 95% confidence that the `axum-http-server` failure rate observed in V1
   (1 in 50) is gone; fewer runs would be weak evidence.
-- Ignored tests are lost coverage of the socket-release contract until the maintainer decides how
-  to restore it.
+- Ignored tests are lost coverage of the socket-release contract until T9 restores it.
+- The unique loopback address does not protect against a socket bound to `0.0.0.0` on the same
+  port. V6 measures the remaining failure rate; if it is not zero, the affected test goes back to
+  ignored with that reason, and the maintainer decides again.
+- The nine restored tests do not run on macOS or Windows. CI only builds there, so CI coverage is
+  unchanged; a developer on those systems does not run them locally.
+- Deleting the nine environment tests removes the check that the `testing` environments free their
+  ports. That matters only if a test starts depending on a fixed port again.
 - Repeated parallel runs are probabilistic evidence.
 - The local machine has 32 logical processors, so its nextest scheduling may differ from CI.
 
 ## Implementation Completion Review
 
-After T5, compare the result with this specification. Record which ignored tests were deleted,
+After T10, compare the result with this specification. Record which ignored tests were deleted,
 rewritten or kept disabled, any tests intentionally left unchanged, and reusable lessons. Create `implementation-retrospective.md` only if the work changes repository-wide test
 networking policy; otherwise add a concise progress-log entry explaining why no separate
 retrospective is needed.
