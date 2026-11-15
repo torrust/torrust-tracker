@@ -203,9 +203,13 @@ This skill moved to [`.claude/skills/<name>/SKILL.md`](<relative path>) in issue
   only. A `SKILL.md` deeper than one folder under `.claude/skills/` is an error, because Claude
   Code would not discover it.
 - A skill's `name` equals its folder name.
-- Every stub under `.github/skills/` has no frontmatter and exactly one link, which resolves to an
-  existing `.claude/skills/<name>/SKILL.md` with the stub's folder name. No other file exists
-  under `.github/skills/` apart from the stubs and their README.
+- `.github/skills/README.md` keeps the inventory of the 53 original `SKILL.md` paths, each with
+  its skill name. The stub files and the inventory match exactly: every inventoried path has a
+  stub, and no stub is missing from the inventory. Deleting only a stub therefore fails. A skill
+  added after the move is not in the inventory and needs no stub.
+- Every stub has no frontmatter and exactly one link, which resolves to an existing
+  `.claude/skills/<name>/SKILL.md` with the stub's folder name. No other file exists under
+  `.github/skills/` apart from the stubs and their README.
 - `.claude/skills/README.md` lists every skill folder exactly once and names no missing skill.
 - These repository-wide rules run on every commit and in CI, not only on staged files, so
   deleting or renaming a skill without its stub or index row fails. They live in the
@@ -245,7 +249,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | ------ | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | T1  | TODO   | Create the description follow-up issue   | A new EPIC #2003 sub-issue to shorten and retune the 53 descriptions, with the measurements above. Created before the implementation PR opens, so the PR links it.                                                                     |
 | T2  | TODO   | Move the skills and fix every live path  | `git mv` of all 71 files; relative links inside moved skills; tooling paths; every live reference by the classification rule. The commit passes `linter all` and the tests on its own. Git shows 71 renames.                           |
-| T3  | TODO   | Add the redirect stubs                   | 53 stubs plus `.github/skills/README.md` saying the folder only holds redirects.                                                                                                                                                       |
+| T3  | TODO   | Add the redirect stubs                   | 53 stubs plus `.github/skills/README.md`, which says the folder only holds redirects and inventories the 53 original paths.                                                                                                                                                       |
 | T4  | TODO   | Add the index                            | `.claude/skills/README.md` lists each skill by area (today's area folders), with a one-line purpose, and notes the old location. `AGENTS.md` and `docs/agents/` point to it.                                                          |
 | T5  | TODO   | Validator rules                          | The rules in [Validator rules](#validator-rules-after-the-move), with unit tests and a negative case for each; wired into the pre-commit hook and CI.                                                                                  |
 | T6  | TODO   | Update `add-new-skill`                   | New skills go to `.claude/skills/<name>/`, add an index row, and need no stub.                                                                                                                                                         |
@@ -299,7 +303,8 @@ T1 creates a GitHub issue and its spec PR; it is not part of this implementation
 - [ ] AC4: Every live reference names the new path; every remaining `.github/skills` hit is a
   stub, an out-of-scope agent profile, or a historical record.
 - [ ] AC5: Every old `SKILL.md` path resolves to a stub that links to the moved skill, and the
-  validator fails when a stub, the index, or a skill folder disagree.
+  validator fails when a stub, the stub inventory, the index, or a skill folder disagree,
+  including when only a stub is deleted.
 - [ ] AC6: `.claude/skills/README.md` lists every skill by area.
 - [ ] AC7: The moved scripts and the `wait-for-pr-review` tool run from their new paths.
 - [ ] AC8: The new ADR exists and the governance ADR's inventory records the move.
@@ -332,7 +337,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | M2  | A skill runs by name              | In the same checkout, run `/create-issue` without naming a path                                                                    | Claude Code loads `.claude/skills/create-issue/SKILL.md`                      | TODO   | `manual-verification-evidence.md` section V2 |
 | M3  | Moved scripts and tool run        | Run `validate-audit-record.py` on a merged audit record and `cargo run -p wait-for-pr-review -- --help` from the new paths         | Both succeed                                                                  | TODO   | `manual-verification-evidence.md` section V3 |
 | M4  | An old link still leads somewhere | Open a closed spec that links an old `SKILL.md` path and follow the link on the branch                                             | The stub opens and its link reaches the moved skill                           | TODO   | `manual-verification-evidence.md` section V4 |
-| M5  | The validator catches drift       | In a scratch commit, delete one skill folder, then run the new rules                                                               | The rules fail and name the orphan stub and index row                         | TODO   | `manual-verification-evidence.md` section V5 |
+| M5  | The validator catches drift       | In scratch commits, delete one skill folder, then (separately) delete only one stub, and run the new rules each time               | Each run fails: the first names the orphan stub and index row, the second the missing inventoried stub | TODO   | `manual-verification-evidence.md` section V5 |
 
 ### Acceptance Verification
 
