@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2393-2392-test-port-allocation-races/ISSUE.md
-last-updated-utc: "2026-11-15 12:27"
+last-updated-utc: "2026-11-15 12:40"
 ---
 
 <!-- markdownlint-disable MD003 -->
@@ -229,6 +229,25 @@ with the three test names.
 
 Green: 20 of 20 runs of the three tests passed on the committed code.
 
+#### T9 - application bootstrap tests, 2026-11-15 12:39 UTC
+
+Tests in the `torrust-tracker` crate:
+
+- U: `bootstrap::jobs::udp_tracker::tests::it_should_release_the_socket_when_the_component_is_dropped_before_it_runs`
+- H: `bootstrap::jobs::health_check_api::tests::it_should_release_the_listener_when_the_component_is_dropped_before_it_runs`
+- A: `app::tests::it_should_release_udp_listener_before_returning_from_start_after_setup_when_later_http_startup_fails`
+
+Command: `cargo nextest run --all-features --no-fail-fast -p torrust-tracker -E 'test(/component_is_dropped_before_it_runs|it_should_release_udp_listener_before_returning/)'`
+
+| Mutation | Failed | Passed |
+| --- | --- | --- |
+| J1: `OwnedTask::drop` no longer aborts its task | U ("dropping the unpolled UDP tracker component must release its socket at 127.253.175.146:35418 within 5s") | H, A |
+| J2: `TokenAwareServerTask::drop` no longer aborts the server task and drain controller | H ("dropping the unpolled health check API component must release its listener at 127.134.231.197:34239 within 5s") | U, A |
+| J3: `start_jobs` returns a startup error without cancelling the job manager and waiting for its components | A ("UDP listener should be released before startup returns: … AddrInUse") | U, H |
+
+The failure messages show the random loopback addresses the tests bound. Green: 20 of 20 runs of
+the three tests passed on the committed code.
+
 ### V7 - Test-design review per increment
 
 Each review follows the prose-first Arrange-Act-Assert step of the `write-unit-test` skill: the
@@ -339,6 +358,30 @@ Comparison and changes:
   system. The client sockets stay on `127.0.0.1`.
 - The Acts and the assertions are unchanged.
 - Prose kept: in C and O, the comment on the address choice.
+
+#### T9 - application bootstrap tests
+
+Prose:
+
+- U and H. Arrange: a component (UDP tracker, health-check API) is started on an address chosen
+  before the start, on a loopback address no other test uses; its tasks are already spawned but the
+  component future is not polled. Act: drop the component. Assert: the address becomes bindable
+  within the test deadline.
+- A. Arrange: the UDP tracker is configured on such an address, and the HTTP tracker on a port the
+  test keeps occupied, so the HTTP start fails after the UDP tracker started. Act: run the
+  application startup. Assert: it fails, and the UDP address can be bound as soon as it returns.
+
+Comparison and changes:
+
+- In each test the address helper (`available_udp_address`, `available_health_check_address`,
+  `reserve_udp_address`) now binds `random::loopback_ipv4()`. Its documentation says why; the test
+  bodies, Acts and assertions are unchanged.
+- U and H must know the address before the start, because the unpolled component does not expose
+  it, so they keep choosing and releasing it first; the random loopback address removes that handoff
+  race too.
+- A keeps its occupied HTTP port on `127.0.0.1`: the test holds it for the whole run, so it cannot
+  race.
+- Prose kept: the helpers' documentation.
 
 ## Failures and Follow-up
 
