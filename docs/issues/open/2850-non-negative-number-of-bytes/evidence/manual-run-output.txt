@@ -1,0 +1,88 @@
+== M1 UDP left=-5
+21:01:41.525 (epoch 1794776501,525655) start: python3 -I docs/issues/open/2838-1347-udp-reject-negative-announce-bytes/evidence/udp_announce_probe.py 6868 -5
+action=3 message='tracker announce error: Invalid announce request: `left` must not be negative, got -5'
+
+21:01:41.538 (epoch 1794776501,538609) end
+21:01:41.540 (epoch 1794776501,540700) start: rest 1111111111111111111111111111111111111111
+"torrent not known"
+21:01:41.549 (epoch 1794776501,549269) end
+== M1 UDP uploaded=-1, downloaded=-1
+21:01:41.551 (epoch 1794776501,552011) start: python3 -I docs/issues/open/2838-1347-udp-reject-negative-announce-bytes/evidence/udp_announce_probe.py 6868 0 -1 0
+action=3 message='tracker announce error: Invalid announce request: `uploaded` must not be negative, got -1'
+
+21:01:41.564 (epoch 1794776501,565137) end
+21:01:41.567 (epoch 1794776501,567623) start: python3 -I docs/issues/open/2838-1347-udp-reject-negative-announce-bytes/evidence/udp_announce_probe.py 6868 0 0 -1
+action=3 message='tracker announce error: Invalid announce request: `downloaded` must not be negative, got -1'
+
+21:01:41.580 (epoch 1794776501,581053) end
+== M2 UDP left=0
+21:01:41.583 (epoch 1794776501,583373) start: python3 -I docs/issues/open/2838-1347-udp-reject-negative-announce-bytes/evidence/udp_announce_probe.py 6868 0 7 9
+announce response: interval=120 leechers=0 seeders=1
+
+21:01:41.596 (epoch 1794776501,597033) end
+21:01:41.599 (epoch 1794776501,599533) start: rest 1111111111111111111111111111111111111111
+{"info_hash":"1111111111111111111111111111111111111111","seeders":1,"completed":0,"leechers":0,"peers":[{"peer_id":{"id":"0x2d5858303030312d303030303030303030303030","client":"XTorrent"},"peer_addr":"127.0.0.1:6881","updated":1794776501592,"updated_milliseconds_ago":1794776501592,"updated_at_ms":1794776501592,"uploaded":7,"downloaded":9,"left":0,"event":"Started"}]}
+21:01:41.606 (epoch 1794776501,606355) end
+== M3 UDP left=1000
+21:01:41.608 (epoch 1794776501,608669) start: python3 -I docs/issues/open/2838-1347-udp-reject-negative-announce-bytes/evidence/udp_announce_probe.py 6868 1000 7 9
+announce response: interval=120 leechers=1 seeders=0
+
+21:01:41.621 (epoch 1794776501,621562) end
+21:01:41.623 (epoch 1794776501,623841) start: rest 1111111111111111111111111111111111111111
+{"info_hash":"1111111111111111111111111111111111111111","seeders":0,"completed":0,"leechers":1,"peers":[{"peer_id":{"id":"0x2d5858303030312d303030303030303030303030","client":"XTorrent"},"peer_addr":"127.0.0.1:6881","updated":1794776501617,"updated_milliseconds_ago":1794776501617,"updated_at_ms":1794776501617,"uploaded":7,"downloaded":9,"left":1000,"event":"Started"}]}
+21:01:41.630 (epoch 1794776501,630610) end
+== M3 UDP left=i64::MAX
+21:01:41.632 (epoch 1794776501,633201) start: python3 -I docs/issues/open/2838-1347-udp-reject-negative-announce-bytes/evidence/udp_announce_probe.py 6868 9223372036854775807 7 9
+announce response: interval=120 leechers=1 seeders=0
+
+21:01:41.645 (epoch 1794776501,646100) end
+21:01:41.648 (epoch 1794776501,648257) start: rest 1111111111111111111111111111111111111111
+{"info_hash":"1111111111111111111111111111111111111111","seeders":0,"completed":0,"leechers":1,"peers":[{"peer_id":{"id":"0x2d5858303030312d303030303030303030303030","client":"XTorrent"},"peer_addr":"127.0.0.1:6881","updated":1794776501642,"updated_milliseconds_ago":1794776501642,"updated_at_ms":1794776501642,"uploaded":7,"downloaded":9,"left":9223372036854775807,"event":"Started"}]}
+21:01:41.654 (epoch 1794776501,655093) end
+== M4 HTTP left=-5
+21:01:41.657 (epoch 1794776501,657321) start: http -5 7 9
+d14:failure reason153:Bad request. Cannot parse query params for announce request: invalid param value -5 for left in packages/http-protocol/src/v1/requests/announce.rs:593:27e
+21:01:41.663 (epoch 1794776501,664911) end
+== M4 HTTP left=0
+21:01:41.667 (epoch 1794776501,667495) start: http 0 7 9
+d8:completei1e10:incompletei0e8:intervali120e12:min intervali120e5:peerslee
+21:01:41.673 (epoch 1794776501,673643) end
+21:01:41.675 (epoch 1794776501,675665) start: rest 2222222222222222222222222222222222222222
+{"info_hash":"2222222222222222222222222222222222222222","seeders":1,"completed":0,"leechers":0,"peers":[{"peer_id":{"id":"0x2d5858303030322d303030303030303030303030","client":"XTorrent"},"peer_addr":"127.0.0.1:6882","updated":1794776501670,"updated_milliseconds_ago":1794776501670,"updated_at_ms":1794776501670,"uploaded":7,"downloaded":9,"left":0,"event":"Started"}]}
+21:01:41.681 (epoch 1794776501,681275) end
+== M4 HTTP left=1000
+21:01:41.683 (epoch 1794776501,683476) start: http 1000 7 9
+d8:completei0e10:incompletei1e8:intervali120e12:min intervali120e5:peerslee
+21:01:41.688 (epoch 1794776501,688995) end
+21:01:41.691 (epoch 1794776501,691470) start: rest 2222222222222222222222222222222222222222
+{"info_hash":"2222222222222222222222222222222222222222","seeders":0,"completed":0,"leechers":1,"peers":[{"peer_id":{"id":"0x2d5858303030322d303030303030303030303030","client":"XTorrent"},"peer_addr":"127.0.0.1:6882","updated":1794776501686,"updated_milliseconds_ago":1794776501686,"updated_at_ms":1794776501686,"uploaded":7,"downloaded":9,"left":1000,"event":"Started"}]}
+21:01:41.697 (epoch 1794776501,697457) end
+== M4 HTTP left=i64::MAX
+21:01:41.699 (epoch 1794776501,699962) start: http 9223372036854775807 7 9
+d8:completei0e10:incompletei1e8:intervali120e12:min intervali120e5:peerslee
+21:01:41.705 (epoch 1794776501,705486) end
+21:01:41.707 (epoch 1794776501,707993) start: rest 2222222222222222222222222222222222222222
+{"info_hash":"2222222222222222222222222222222222222222","seeders":0,"completed":0,"leechers":1,"peers":[{"peer_id":{"id":"0x2d5858303030322d303030303030303030303030","client":"XTorrent"},"peer_addr":"127.0.0.1:6882","updated":1794776501703,"updated_milliseconds_ago":1794776501703,"updated_at_ms":1794776501703,"uploaded":7,"downloaded":9,"left":9223372036854775807,"event":"Started"}]}
+21:01:41.713 (epoch 1794776501,713770) end
+== M5 HTTP left=i64::MAX+1
+21:01:41.715 (epoch 1794776501,715984) start: http 9223372036854775808 7 9
+d8:completei0e10:incompletei1e8:intervali120e12:min intervali120e5:peerslee
+21:01:41.721 (epoch 1794776501,721490) end
+21:01:41.723 (epoch 1794776501,723504) start: rest 2222222222222222222222222222222222222222
+{"info_hash":"2222222222222222222222222222222222222222","seeders":0,"completed":0,"leechers":1,"peers":[{"peer_id":{"id":"0x2d5858303030322d303030303030303030303030","client":"XTorrent"},"peer_addr":"127.0.0.1:6882","updated":1794776501718,"updated_milliseconds_ago":1794776501718,"updated_at_ms":1794776501718,"uploaded":7,"downloaded":9,"left":9223372036854775808,"event":"Started"}]}
+21:01:41.730 (epoch 1794776501,730337) end
+== M6 HTTP left=u64::MAX+1
+21:01:41.732 (epoch 1794776501,732432) start: http 18446744073709551616 7 9
+d14:failure reason171:Bad request. Cannot parse query params for announce request: invalid param value 18446744073709551616 for left in packages/http-protocol/src/v1/requests/announce.rs:593:27e
+21:01:41.738 (epoch 1794776501,738250) end
+21:01:41.740 (epoch 1794776501,740337) start: rest 2222222222222222222222222222222222222222
+{"info_hash":"2222222222222222222222222222222222222222","seeders":0,"completed":0,"leechers":1,"peers":[{"peer_id":{"id":"0x2d5858303030322d303030303030303030303030","client":"XTorrent"},"peer_addr":"127.0.0.1:6882","updated":1794776501718,"updated_milliseconds_ago":1794776501718,"updated_at_ms":1794776501718,"uploaded":7,"downloaded":9,"left":9223372036854775808,"event":"Started"}]}
+21:01:41.745 (epoch 1794776501,746126) end
+== M6b HTTP uploaded=u64::MAX, downloaded=u64::MAX
+21:01:41.748 (epoch 1794776501,748423) start: http 1000 18446744073709551615 18446744073709551615
+d8:completei0e10:incompletei1e8:intervali120e12:min intervali120e5:peerslee
+21:01:41.753 (epoch 1794776501,754087) end
+21:01:41.756 (epoch 1794776501,756260) start: rest 2222222222222222222222222222222222222222
+{"info_hash":"2222222222222222222222222222222222222222","seeders":0,"completed":0,"leechers":1,"peers":[{"peer_id":{"id":"0x2d5858303030322d303030303030303030303030","client":"XTorrent"},"peer_addr":"127.0.0.1:6882","updated":1794776501751,"updated_milliseconds_ago":1794776501751,"updated_at_ms":1794776501751,"uploaded":18446744073709551615,"downloaded":18446744073709551615,"left":1000,"event":"Started"}]}
+21:01:41.762 (epoch 1794776501,763147) end
+tracker exit=0
