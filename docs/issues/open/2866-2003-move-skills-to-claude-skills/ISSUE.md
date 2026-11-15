@@ -9,7 +9,7 @@ github-issue: 2866
 spec-path: docs/issues/open/2866-2003-move-skills-to-claude-skills/ISSUE.md
 branch: "2866-move-skills-to-claude-skills-spec"
 related-pr: null
-last-updated-utc: "2026-11-15 20:55"
+last-updated-utc: "2026-11-15 21:32"
 semantic-links:
   skill-links:
     - create-issue
@@ -62,7 +62,7 @@ This breaks the expectation `AGENTS.md` sets, that skills activate when their wo
 It is observable today: the reproduction in `manual-verification-evidence.md` (V0) shows no project
 skill in a fresh clone of `develop`.
 
-The custom-agents migration (a later EPIC #2003 sub-issue, order 22) waits for this issue: its
+The custom-agents migration (a planned EPIC #2003 sub-issue, not created yet) waits for this issue: its
 agent definitions name skills, and they must name them at their final place.
 
 ### Decisions already made
