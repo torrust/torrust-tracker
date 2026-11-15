@@ -9,7 +9,7 @@ github-issue: 2824
 spec-path: docs/issues/open/2824-1347-add-tests-primitives/ISSUE.md
 branch: "2824-1347-add-tests-primitives-defaults"
 related-pr: 2852
-last-updated-utc: "2026-11-14 22:49"
+last-updated-utc: "2026-11-15 07:48"
 semantic-links:
   skill-links:
     - create-issue
@@ -289,15 +289,15 @@ States: `PENDING`, `IN_PROGRESS`, `BLOCKED`, `DONE`. Unit-only lines are the bas
 | 5 | `mode.rs` | 2 | S3 | 0 / 8 | Test candidate | DONE (S3) |
 | 6 | `pagination.rs` | 2 | S3 | 0 / 21 | Test candidate | DONE (S3) |
 | 7 | `swarm_metadata.rs` | 3 | S4 | 3 / 18 | Test candidate; the `AddAssign` lines are not tested because #2823 deletes the impl | DONE (S4; #2823 deleted the `AddAssign` lines, 3 / 12 at the S4 start) |
-| 8 | `scrape.rs` | 3 | S4 | 28 / 28 | No change; review test breadth | PENDING |
-| 9 | `service_role.rs` | 4 | S4 | 40 / 40 | No change | PENDING |
-| 10 | `configuration_instance_id.rs` | 4 | S4 | 42 / 42 | No change | PENDING |
-| 11 | `runtime_service_metadata.rs` | 4 | S4 | 32 / 32 | No change | PENDING |
-| 12 | `readiness.rs` | 4 | S4 | 52 / 52 | No change | PENDING |
-| 13 | `driver.rs` | 4 | S4 | 59 / 59 | No change; style review | PENDING |
-| 14 | `number_of_bytes.rs` | 5 | S4 | 3 / 3 | No change | PENDING |
-| 15 | `peer_id.rs` | 5 | S4 | no executable entries | Wiring only (deprecated) | PENDING |
-| 16 | `lib.rs` | 5 | S4 | no executable entries | Wiring only | PENDING |
+| 8 | `scrape.rs` | 3 | S4 | 28 / 28 | No change; review test breadth | DONE (S4; no change, breadth reviewed) |
+| 9 | `service_role.rs` | 4 | S4 | 40 / 40 | No change | DONE (S4; no change) |
+| 10 | `configuration_instance_id.rs` | 4 | S4 | 42 / 42 | No change | DONE (S4; JSON test changed to compare values) |
+| 11 | `runtime_service_metadata.rs` | 4 | S4 | 32 / 32 | No change | DONE (S4; no change) |
+| 12 | `readiness.rs` | 4 | S4 | 52 / 52 | No change | DONE (S4; no change; coverage variance explained) |
+| 13 | `driver.rs` | 4 | S4 | 59 / 59 | No change; style review | DONE (S4; no change; style reviewed) |
+| 14 | `number_of_bytes.rs` | 5 | S4 | 3 / 3 | No change | DONE (S4; no change) |
+| 15 | `peer_id.rs` | 5 | S4 | no executable entries | Wiring only (deprecated) | DONE (S4; wiring) |
+| 16 | `lib.rs` | 5 | S4 | no executable entries | Wiring only | DONE (S4; wiring) |
 
 The 16 rows are every `.rs` file under `packages/primitives/src/`, each once.
 
