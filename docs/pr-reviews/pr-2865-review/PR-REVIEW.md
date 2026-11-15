@@ -42,7 +42,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Findings from da2ce7's review 5912769583 (F1-F11, reviewer IDs kept) and Copilot's review 5912779850 (F12-F13, re-raises of F1 and F2), both on head `48858839e`.
+Findings from da2ce7's review 5912769583 (F1-F11, reviewer IDs kept) and Copilot's review 5912779850 (F12-F13, re-raises of F1 and F2), both on the first commit, `docs(issues): draft the peer-id-test-helper spec (finding F5 of #2824)`.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -233,8 +233,8 @@ Findings from da2ce7's review 5912769583 (F1-F11, reviewer IDs kept) and Copilot
 
 ## Processing Log
 
-- 2026-11-15 20:31 UTC - Review round 1: da2ce7 review 5912769583 (CHANGES_REQUESTED, F1-F11) and Copilot review 5912779850 (two comments) received on `48858839e`; every finding checked against the tree.
-- 2026-11-15 20:32 UTC - Committed the fixes as `docs(issues): correct the peer-id-test-helper inventory and checks after review` and pushed it (head `b23f589ca`).
+- 2026-11-15 20:31 UTC - Review round 1: da2ce7 review 5912769583 (CHANGES_REQUESTED, F1-F11) and Copilot review 5912779850 (two comments) received on the first commit, `docs(issues): draft the peer-id-test-helper spec (finding F5 of #2824)`; every finding checked against the tree.
+- 2026-11-15 20:32 UTC - Committed the fixes as `docs(issues): correct the peer-id-test-helper inventory and checks after review` and pushed it.
 - 2026-11-15 20:44 UTC - Replied on all 13 threads (20:43:55 to 20:44:22 UTC). Late start: this audit record was created after the replies, not before the first reply as the workflow requires.
 - 2026-11-15 20:45 UTC - Validator `validate-audit-record.py --pr-number 2865` exited 0 (13 rows, 0 failures); audit committed separately from the spec fix.
 
