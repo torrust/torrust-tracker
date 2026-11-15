@@ -9,7 +9,7 @@ github-issue: 2393
 spec-path: docs/issues/open/2393-2392-test-port-allocation-races/ISSUE.md
 branch: "2392-test-isolation-spec"
 related-pr: 2397
-last-updated-utc: "2026-11-15 07:50"
+last-updated-utc: "2026-11-15 08:22"
 semantic-links:
   skill-links:
     - create-issue
@@ -216,6 +216,22 @@ defect it guards. Before the change is committed, temporarily remove the cleanup
 (or, for a contract test, make the probed address answer), confirm the test fails, restore the
 code, and confirm it passes. Record each red-then-green pair in V5.
 
+T8 and T9 produce tests, so they follow the progressive test-development loop of the
+`write-unit-test` skill:
+
+- Work in the smallest behavior-focused increments: the helper's unit test, the three contract
+  tests, then the restored tests one crate or small family at a time.
+- After each increment passes focused validation, and before the next one starts, review its
+  design with the mandatory prose-first Arrange-Act-Assert comparison. Write temporary prose for
+  each section, refactor until the code expresses it, and remove the redundant prose. The review
+  confirms that the test exposes the one causal initial-state difference, that its fixture owns
+  only incidental mechanics (judged by named actions and abstraction level, not caller count), and
+  that the production Act and the independently specified expected result stay visible. Use the
+  test refactoring-pattern catalog where it applies.
+- Record each review in `manual-verification-evidence.md` (V7, one entry per increment).
+- Stop for maintainer review after the final increment, before T10, the final commit or the pull
+  request.
+
 ## Regression Test Strategy
 
 The first phase adds no regression test: disabling the racing tests removes the race rather than
@@ -240,8 +256,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T5 | DONE | Decide the fate of the twenty-one ignored tests | The maintainer's decisions in the per-test table, recorded by this spec-only change. |
 | T6 | DONE | Full-suite recheck | V4 in `manual-verification-evidence.md`: the first 150 runs found a third racing shape (2 failures), and 150 runs on the fixed head all passed. |
 | T7 | TODO | Delete the nine test-support release tests | The nine tests are gone, with any helper left unused removed too. |
-| T8 | TODO | Rewrite the three health-check contract tests | They run without `#[ignore]` and probe an address the test holds; V5 red-then-green recorded. |
-| T9 | TODO | Add the loopback helper and restore the nine release tests | The helper with its own unit test; the nine tests run without `#[ignore]` on Linux; V5 red-then-green recorded. |
+| T8 | TODO | Rewrite the three health-check contract tests | They run without `#[ignore]` and probe an address the test holds; V5 red-then-green and V7 design review recorded. |
+| T9 | TODO | Add the loopback helper and restore the nine release tests | The helper with its own unit test; the nine tests run without `#[ignore]` on Linux; V5 red-then-green and V7 design review recorded per increment; maintainer review after the final increment. |
 | T10 | TODO | Full-suite recheck with no #2393 test ignored | V6: 150 full-suite runs pass, and `rg -t rust 'see #2393'` finds no `#[ignore]` outside the non-Linux `cfg_attr`. |
 | T11 | TODO | Close-out | After the implementation PR merges: archive this spec; once PR 2862 has merged, set this issue's row in the EPIC to DONE. |
 
@@ -267,7 +283,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Racing tests inventoried, ignored or rewritten, and focused checks pass.
 - [x] Full parallel recheck recorded (V4).
 - [x] Fate of every ignored test decided by the maintainer (T5).
-- [ ] T5 decisions applied: tests deleted, rewritten or restored (T7 to T9), red-then-green recorded (V5).
+- [ ] T5 decisions applied: tests deleted, rewritten or restored (T7 to T9), red-then-green recorded (V5), test-design review recorded per increment (V7).
 - [ ] Full parallel recheck with no #2393 test ignored (V6).
 - [ ] Acceptance criteria reviewed after implementation.
 - [ ] Implementation completion review recorded.
@@ -307,6 +323,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   through a new loopback helper he approved. The EPIC coordinator agreed T5 stays under #2393.
   Recorded the decisions and the T7 to T11 plan in this spec-only change; the implementation starts
   after it merges.
+- 2026-11-15 08:22 UTC - Claude Code (Claude Opus 5.5) - Addressed the first review round on PR
+  2863 (five da2ce7 findings, one Copilot finding): qualified the Goal, narrowed the deletion
+  premise, corrected the non-Linux reason, scoped the T10 check to Rust sources, and added the
+  `write-unit-test` design review per test increment (V7, M7, AC7) with a maintainer stop after the
+  final increment.
 
 ## Acceptance Criteria
 
@@ -322,6 +343,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [ ] AC5: Each restored or rewritten T5 test fails when the cleanup or contract it guards is
   removed, and passes when it is restored (V5).
 - [ ] AC6: The full parallel suite passes 150 of 150 runs with the restored tests running (V6).
+- [ ] AC7: Every test-producing increment of T8 and T9 has a recorded prose-first
+  Arrange-Act-Assert design review, and the maintainer reviewed the final increment (V7).
 - [ ] `linter all` exits with code `0`.
 - [ ] Relevant focused tests and pre-push checks pass.
 
@@ -346,6 +369,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`, `NOT_APPLICAB
 | M4 | Full recheck | Run the full suite 150 times with `--no-fail-fast`. | Every run passes, with the ignored tests skipped. | DONE | `manual-verification-evidence.md#v4---full-recheck` |
 | M5 | T5 red-then-green | For each restored or rewritten test: remove the guarded cleanup (or make the probed address answer), run it, restore, run it again. | Fails without the cleanup, passes with it. | TODO | `manual-verification-evidence.md` (V5, added by the implementation PR) |
 | M6 | T5 full recheck | Run the full suite 150 times with `--no-fail-fast`. | Every run passes, and no #2393 test is skipped. | TODO | `manual-verification-evidence.md` (V6, added by the implementation PR) |
+| M7 | T5 test-design reviews | After each passing test-producing increment of T8 and T9, compare the test with its prose-first Arrange-Act-Assert description. | Each increment has a recorded review before the next starts, and the maintainer reviews the final increment. | TODO | `manual-verification-evidence.md` (V7, added by the implementation PR) |
 
 ### Acceptance Verification
 
