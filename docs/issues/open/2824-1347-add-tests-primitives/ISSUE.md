@@ -7,9 +7,9 @@ priority: p2
 epic: 1347
 github-issue: 2824
 spec-path: docs/issues/open/2824-1347-add-tests-primitives/ISSUE.md
-branch: "2824-1347-add-tests-primitives-defaults"
-related-pr: 2852
-last-updated-utc: "2026-11-13 22:30"
+branch: "2824-1347-add-tests-primitives-final"
+related-pr: 2864
+last-updated-utc: "2026-11-15 08:36"
 semantic-links:
   skill-links:
     - create-issue
@@ -199,8 +199,8 @@ maintainer decides to fix in this issue are not handed off: they go to the T2a s
 | --- | --- | --- | --- | --- |
 | F1 | `peer::Peer` derives `Eq`/`Hash` over all fields but implements `Ord` by `peer_id` only, so two unequal peers compare `Ordering::Equal` (violates the `Ord`/`Eq` contract). No production collection orders peers today (the swarm keys by `PeerId`), so the impact is latent. | Throwaway test, 2026-11-10: a seeder and a copy with `left = 5` give `a == b` false and `a.cmp(&b) == Equal`. | Handled by a separate bug issue and session, not fixed here (maintainer decision, 2026-11-10). Bug issue: #2798, spec PR #2800. Fixed by PR #2811 (merged 2026-11-11): `Ord` and `PartialOrd` removed from `Peer` (option A, maintainer's choice), guarded by a `compile_fail` doctest in `peer.rs`. | FIXED (upstream) |
 | F3 | `ParsePeerRoleError::InvalidPeerRole` records `Location::caller()` inside `PeerRole::from_str`, which has no `#[track_caller]`, so every error reports the same line inside `peer.rs` (`peer.rs:73:27`) instead of the caller's. Adding `#[track_caller]` fixes only a direct `from_str` call: through `str::parse` the location is a line in Rust's standard library. The pattern is wider than this type: `Location::caller()` appears 65 times across the packages and `#[track_caller]` 3 times, and the located error may reach production output. | Throwaway test, 2026-11-10: `"x".parse::<PeerRole>()` reports `peer.rs:73:27`; with `#[track_caller]`, `parse` reports `core/src/str/mod.rs:2783:9` and a direct `from_str` call reports the caller's line. | Handed off to a follow-up issue that audits every use of `Location::caller()` (maintainer decision, 2026-11-10). Follow-up issue: #2804 (spec PR #2805). Nothing is fixed in this issue. | HANDED OFF |
-| F4 | `AggregateActiveSwarmMetadata::add_assign` uses plain `+=` on four `u64` fields (panic in debug, wrap in release on overflow; practically unreachable). The registry and `torrent-repository-benchmarking` sum the fields by hand, so the impl may be dead code. | Code reading, 2026-11-11. | Handed off to a follow-up issue/session `aggregate-addassign` (maintainer decision, 2026-11-11): check whether the impl is used (remove it and run all tests, check git history); delete it if unused, otherwise make overflow explicit (`checked_add` + panic, test, comment). Follow-up issue: #2823. Outcome (maintainer approved, 2026-11-11): the unused `AddAssign` impl is being deleted, so the `AddAssign` lines of `swarm_metadata.rs` are not tested here. Nothing is fixed in this issue. | HANDED OFF |
-| F5 | `peer::Id::new` (public, in a production crate) builds a 20-byte id from a little-endian `i128` (4 zero bytes + 16 bytes). Behavior is correct and lossless, including negatives (two's complement). But it is a test-only helper: the only callers found are `torrent-repository-benchmarking` tests, and its ids look like no real client (`get_client_name()` is `None`). It has no doc comment and no tests. | Code reading and caller search, 2026-11-11 (not a behavior defect; a design problem). | Handed off to a follow-up issue/session `peer-id-test-helper` (maintainer decision, 2026-11-11): prove it is unused in production, move it to a testing helper that generates realistic ids, decide with it whether `peer::fixture` (and `Id::new`) move behind a `testing` feature, as the ADR on shared test support asks (EPIC #2482 is closed and did not reorganize `peer::fixture`). Follow-up issue: not yet created when S2 was written (proposal `peer-id-test-helper`); fill in its number. The `Id::new` tests in `peer.rs` wait on its outcome. | HANDED OFF |
+| F4 | `AggregateActiveSwarmMetadata::add_assign` uses plain `+=` on four `u64` fields (panic in debug, wrap in release on overflow; practically unreachable). The registry and `torrent-repository-benchmarking` sum the fields by hand, so the impl may be dead code. | Code reading, 2026-11-11. | Handed off to a follow-up issue/session `aggregate-addassign` (maintainer decision, 2026-11-11): check whether the impl is used (remove it and run all tests, check git history); delete it if unused, otherwise make overflow explicit (`checked_add` + panic, test, comment). Follow-up issue: #2823. Outcome (maintainer approved, 2026-11-11): the unused `AddAssign` impl was deleted by PR #2827 (merged 2026-11-11), so `swarm_metadata.rs` has no `AddAssign` lines to test. Nothing is fixed in this issue. | HANDED OFF |
+| F5 | `peer::Id::new` (public, in a production crate) builds a 20-byte id from a little-endian `i128` (4 zero bytes + 16 bytes). Behavior is correct and lossless, including negatives (two's complement). But it is a test-only helper: the only callers found are `torrent-repository-benchmarking` tests, and its ids look like no real client (`get_client_name()` is `None`). It has no doc comment and no tests. | Code reading and caller search, 2026-11-11 (not a behavior defect; a design problem). | Handed off to a follow-up issue/session `peer-id-test-helper` (maintainer decision, 2026-11-11): prove it is unused in production, move it to a testing helper that generates realistic ids, decide with it whether `peer::fixture` (and `Id::new`) move behind a `testing` feature, as the ADR on shared test support asks (EPIC #2482 is closed and did not reorganize `peer::fixture`). Draft spec: `docs/issues/drafts/peer-id-test-helper/ISSUE.md`, PR #2865 (opened 2026-11-15, after review finding F1 of #2864); no GitHub issue yet, because the maintainer first answers its open design questions. The `Id::new` tests in `peer.rs` wait on its outcome. | HANDED OFF |
 | F2 | `PeerRole` derives `Serialize` with `#[serde(rename_all_fields = "lowercase")]`, which does not apply to unit variants, so it serializes as `"Seeder"` and `"Leecher"` while `Display` and the `peer_role` metric label use `seeder` and `leecher`. No production code serializes `PeerRole` today. | Throwaway test, 2026-11-10: `serde_json::to_string(&PeerRole::Seeder)` gives `"Seeder"`. | Fixed in this issue, in slice S1 (maintainer decision, 2026-11-10): `rename_all = "lowercase"` plus a regression test, in its own `fix` commit. | FIXED through #2834 |
 | F6 | `Peer::is_seeder` classifies a negative `left` as a seeder because `NumberOfBytes` is signed; the UDP announce accepts a negative `left` while HTTP rejects it. | Found writing the `peer.rs` tests (S2), 2026-11-12. | Handed off to issue #2838; its fix PR #2839 was closed unmerged, and #2850 (non-negative number of bytes by construction, spec PR #2851) will remove the case. The S2 test pins the classification of the signed domain value and is removed by the #2850 implementation. | HANDED OFF |
 
@@ -218,10 +218,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 | T1 | DONE | Coverage evidence and complete module inventory | [coverage-evidence.md](coverage-evidence.md): baseline, per-file uncovered groups, property candidacy, initial hypothesis for the 16 files. Delivered with this spec (S0). |
 | T2a | DONE | Fix the small defects decided in this issue (slice S1) | F2 only: F1 is fixed upstream and F3, F4, F5 are handed off to their own issues. Each fix: failing regression test first, then a separate `fix` commit, per the `fix-bug` skill. Merged before the test slices. Done: the commits `test(primitives): [#2824] pin the lowercase JSON form of PeerRole` (fails before the fix) and `fix(primitives): [#2824] serialize PeerRole in lowercase`. |
 | T2 | DONE | Shared plan guidance | `test-refactor-plans/README.md`: two-phase sequence, guardrails, toolchain-pinned commands. First test slice (S2). |
-| T3 | TODO | Process every ledger row through the per-file workflow | Each row ends in exactly one of: test added, no-change with reason, deferred with owner. |
-| T4 | TODO | Bounded mutation assessment | `mutation-evidence.md`: configuration, survivors, reason for each unviable mutant. |
-| T5 | TODO | Reconcile evidence and progress state | Ledger, plans, slice table, acceptance rows and both EPIC coverage tables agree; grep for `status: proposed` and stray `TODO` labels in finished records. |
-| T6 | TODO | Final verification, acceptance review, retrospective | Automatic checks, manual verification, acceptance review, `implementation-retrospective.md` (or a log entry saying none was needed). |
+| T3 | DONE | Process every ledger row through the per-file workflow | Each row ends in exactly one of: test added, no-change with reason, deferred with owner. |
+| T4 | DONE | Bounded mutation assessment | `mutation-evidence.md`: configuration, survivors, reason for each unviable mutant. Done (S4): 147 mutants, 94 caught, 2 equivalent survivors, 2 timeouts, 48 unviable; the one real survivor (`instance_index`) is killed after a test fix. |
+| T5 | DONE | Reconcile evidence and progress state | Ledger, plans, slice table, acceptance rows and both EPIC coverage tables agree; grep for `status: proposed` and stray `TODO` labels in finished records. |
+| T6 | DONE | Final verification, acceptance review, retrospective | Automatic checks, manual verification, acceptance review, `implementation-retrospective.md` (or a log entry saying none was needed). |
 
 After the last test-producing increment, stop for maintainer review before T4-T6 and the final PR.
 
@@ -235,8 +235,8 @@ the maintainer (2026-11-10):
 | S0 | This specification, the T1 evidence, and the EPIC registration with the baseline | - | `2824-1347-add-tests-primitives-spec` | #2828 | DONE |
 | S1 | Defect fixes decided in this issue (T2a): F2 `PeerRole` JSON casing, only (F1 fixed upstream; F3, F4, F5 handed off). Merged first, so the test slices pin the fixed behavior. | - | `2824-1347-add-tests-primitives-fixes` | #2834 | DONE |
 | S2 | T2, then `peer.rs` (rank 1, the largest gap) | 1 | `2824-1347-add-tests-primitives-peer` | #2841 | DONE |
-| S3 | Configuration defaults and bounded values: `announce.rs`, `policy.rs`, `mode.rs`, `pagination.rs`, `announce_interval.rs` | 2-6 | `2824-1347-add-tests-primitives-defaults` | #2852 | IN_PROGRESS |
-| S4 | `swarm_metadata.rs`, no-change decisions for the covered and wiring files, then T4-T6; the clean-up moves the spec to `docs/issues/closed/` and updates the EPIC tables | 7-16 | `2824-1347-add-tests-primitives-final` | - | TODO |
+| S3 | Configuration defaults and bounded values: `announce.rs`, `policy.rs`, `mode.rs`, `pagination.rs`, `announce_interval.rs` | 2-6 | `2824-1347-add-tests-primitives-defaults` | #2852 | DONE |
+| S4 | `swarm_metadata.rs`, no-change decisions for the covered and wiring files, then T4-T6; updates the EPIC tables; the spec moves to `docs/issues/closed/` in a separate `cleanup-completed-issues` PR after the issue closes (as for #2637) | 7-16 | `2824-1347-add-tests-primitives-final` | #2864 | IN_PROGRESS |
 
 Rules: S0 to S3 use `Related to #2824`; only S4 uses `Closes #2824`. Do not stack
 branches; keep at most one implementation PR open. Titles follow the repository convention, for
@@ -288,16 +288,16 @@ States: `PENDING`, `IN_PROGRESS`, `BLOCKED`, `DONE`. Unit-only lines are the bas
 | 4 | `policy.rs` | 2 | S3 | 0 / 16 | Test candidate | DONE (S3) |
 | 5 | `mode.rs` | 2 | S3 | 0 / 8 | Test candidate | DONE (S3) |
 | 6 | `pagination.rs` | 2 | S3 | 0 / 21 | Test candidate | DONE (S3) |
-| 7 | `swarm_metadata.rs` | 3 | S4 | 3 / 18 | Test candidate; the `AddAssign` lines are not tested because #2823 deletes the impl | PENDING |
-| 8 | `scrape.rs` | 3 | S4 | 28 / 28 | No change; review test breadth | PENDING |
-| 9 | `service_role.rs` | 4 | S4 | 40 / 40 | No change | PENDING |
-| 10 | `configuration_instance_id.rs` | 4 | S4 | 42 / 42 | No change | PENDING |
-| 11 | `runtime_service_metadata.rs` | 4 | S4 | 32 / 32 | No change | PENDING |
-| 12 | `readiness.rs` | 4 | S4 | 52 / 52 | No change | PENDING |
-| 13 | `driver.rs` | 4 | S4 | 59 / 59 | No change; style review | PENDING |
-| 14 | `number_of_bytes.rs` | 5 | S4 | 3 / 3 | No change | PENDING |
-| 15 | `peer_id.rs` | 5 | S4 | no executable entries | Wiring only (deprecated) | PENDING |
-| 16 | `lib.rs` | 5 | S4 | no executable entries | Wiring only | PENDING |
+| 7 | `swarm_metadata.rs` | 3 | S4 | 3 / 18 | Test candidate; the `AddAssign` lines are not tested because #2823 deletes the impl | DONE (S4; #2823 deleted the `AddAssign` lines, 3 / 12 at the S4 start) |
+| 8 | `scrape.rs` | 3 | S4 | 28 / 28 | No change; review test breadth | DONE (S4; no change, breadth reviewed) |
+| 9 | `service_role.rs` | 4 | S4 | 40 / 40 | No change | DONE (S4; no change) |
+| 10 | `configuration_instance_id.rs` | 4 | S4 | 42 / 42 | No change | DONE (S4; JSON test changed to compare values; accessor test uses index 2 after T4) |
+| 11 | `runtime_service_metadata.rs` | 4 | S4 | 32 / 32 | No change | DONE (S4; no change) |
+| 12 | `readiness.rs` | 4 | S4 | 52 / 52 | No change | DONE (S4; no change; coverage variance explained) |
+| 13 | `driver.rs` | 4 | S4 | 59 / 59 | No change; style review | DONE (S4; no change; style reviewed) |
+| 14 | `number_of_bytes.rs` | 5 | S4 | 3 / 3 | No change | DONE (S4; no change) |
+| 15 | `peer_id.rs` | 5 | S4 | no executable entries | Wiring only (deprecated) | DONE (S4; wiring) |
+| 16 | `lib.rs` | 5 | S4 | no executable entries | Wiring only | DONE (S4; wiring) |
 
 The 16 rows are every `.rs` file under `packages/primitives/src/`, each once.
 
@@ -311,14 +311,14 @@ The 16 rows are every `.rs` file under `packages/primitives/src/`, each once.
 - [x] Specification and slicing reviewed and approved by the maintainer.
 - [x] GitHub issue #2824 created. Linking it as a subissue of #1347 needs the maintainer (the bot account gets 404 from the sub-issues API).
 - [x] Spec-only PR (S0) merged before implementation (#2828).
-- [ ] Every ledger row `DONE` with a decision record, merged through its slice.
-- [ ] Maintainer review after the final test-producing increment.
-- [ ] Automatic verification with toolchain-qualified evidence.
-- [ ] Manual verification in `manual-verification-evidence.md`.
-- [ ] Bounded mutation assessment in `mutation-evidence.md`.
-- [ ] Independent reviewer reports in `agent-review-reports.md` (if used).
-- [ ] Acceptance criteria and implementation retrospective.
-- [ ] Issue closed; spec moved to `docs/issues/closed/`.
+- [x] Every ledger row `DONE` with a decision record, merged through its slice.
+- [x] Maintainer review after the final test-producing increment.
+- [x] Automatic verification with toolchain-qualified evidence.
+- [x] Manual verification in `manual-verification-evidence.md`.
+- [x] Bounded mutation assessment in `mutation-evidence.md`.
+- [x] Independent reviewer reports in `agent-review-reports.md` (if used): not used; the PR reviews are audited in `docs/pr-reviews/`.
+- [x] Acceptance criteria and implementation retrospective.
+- [ ] Issue closed (by the S4 PR); spec moved to `docs/issues/closed/` (separate PR after the close).
 
 ### Progress Log
 
@@ -333,24 +333,29 @@ The 16 rows are every `.rs` file under `packages/primitives/src/`, each once.
 - 2026-11-13 08:55 UTC - Claude Code (Sonnet 5.5) - S3: five files, each with an approved decision record and a completed-file review (`announce_interval.rs`, `announce.rs`, `policy.rs`, `mode.rs`, `pagination.rs`); 24 tests added (105 in the package), unit-only lines 93.13%, regions 94.66%, functions 92.69%. The `quickcheck` property for `AnnounceIntervalInSecs` was kept because it alone kills a mid-range band mutant. Two doc comments were corrected (`check_keys_expiration` said the opposite of the behavior; `offset` said "page number" but is a number of items to skip); both were non-behavior findings decided as documentation-only corrections, so no `lessons.md` row is needed beyond this entry.
 - 2026-11-13 09:03 UTC - Claude Code (Sonnet 5.5) - S3 pushed and opened as PR #2852 against `develop`; the slice table carries the number.
 - 2026-11-13 09:41 UTC - Claude Code (Sonnet 5.5) - S3 review round 1 of #2852 (Copilot at 09:34 UTC: no open issues; da2ce7 at 09:39 UTC: 8 findings): the description was corrected (the survivor count and the property rule) and the records were corrected (the `i64` mutant, the step coverage figures re-measured at their commits, 90.53%, line references, this frontmatter) and `lessons.md` was created for the REST `offset` wording. Correction of the 2026-11-13 08:55 UTC entry above: it says no `lessons.md` row was needed; one is, for the F8 finding of that review.
+- 2026-11-14 12:09 UTC - Claude Code (Opus 5.5) - S3 merged (#2852, 2026-11-14 09:56 UTC) after six review rounds (audit record `docs/pr-reviews/pr-2852-review/PR-REVIEW.md`). S4 started on `2824-1347-add-tests-primitives-final` from `develop`; the baseline is 1,049 / 1,126 lines, 105 tests (5 lines above the S3 close, from the S3 review test fix).
+- 2026-11-15 07:49 UTC - Claude Code (Opus 5.5) - S4 test rows: `swarm_metadata.rs` (4 tests, record `swarm_metadata.md`) and the no-change rows 8-16 (record `no-change-files.md`, the `ConfigurationInstanceId` JSON test compares values), both through the two gates; 109 unit tests, 94.07% lines.
+- 2026-11-15 08:36 UTC - Claude Code (Opus 5.5) - T4-T6: the package mutation run (147 mutants) found one real survivor, `instance_index` replaced by `1`, killed after the maintainer approved index `2` in its test; M1 and M2 passed against a built tracker; the T5 reconciliation updated the tasks, slices, checkpoints, acceptance rows, coverage evidence and both EPIC tables. `implementation-retrospective.md` records the deviations. F5 still has no GitHub issue (`lessons.md`). The spec moves to `docs/issues/closed/` in a separate PR after the issue closes.
+- 2026-11-15 12:35 UTC - Claude Code (Opus 5.5) - Correction to the 2026-11-14 12:09 entry: the audit record of #2852 (`docs/pr-reviews/pr-2852-review/PR-REVIEW.md`) records five review rounds, not six; `implementation-retrospective.md` now says five.
+- 2026-11-15 12:47 UTC - Claude Code (Opus 5.5) - F5 draft spec: after review finding F1 of #2864 (AC9 checked without an F5 draft), the maintainer had a separate session write `docs/issues/drafts/peer-id-test-helper/ISSUE.md`; its PR #2865 was opened at 12:47 UTC. The Findings Register, the AC9 row, the `peer::fixture` risk and the `lessons.md` row now cite it. It has no GitHub issue yet.
 
 ## Acceptance Criteria
 
-- [ ] AC1: Complete per-file inventory with unit-only coverage, property candidacy and hypothesis.
-- [ ] AC2: Every row ends in test-added, no-change-with-reason, or deferred-with-owner, with its
+- [x] AC1: Complete per-file inventory with unit-only coverage, property candidacy and hypothesis.
+- [x] AC2: Every row ends in test-added, no-change-with-reason, or deferred-with-owner, with its
       decision record and recorded coverage.
-- [ ] AC3: Clean, reproducible unit-only coverage evidence with toolchain-qualified results.
-- [ ] AC4: Every highest-risk and high objective is protected by a unit test or has a recorded owner.
-- [ ] AC5: No-change and deferral decisions enumerate their uncovered lines with per-group reasons.
-- [ ] AC6: Each added or changed test has a recorded prose-first AAA review.
-- [ ] AC7: Bounded mutation assessment completed, with no score target or CI gate.
-- [ ] AC8: Reconciliation confirms plans, evidence, slice table and both EPIC tables agree.
-- [ ] AC9: Every finding needing a production change has a draft spec, a log entry and a `lessons.md`
+- [x] AC3: Clean, reproducible unit-only coverage evidence with toolchain-qualified results.
+- [x] AC4: Every highest-risk and high objective is protected by a unit test or has a recorded owner.
+- [x] AC5: No-change and deferral decisions enumerate their uncovered lines with per-group reasons.
+- [x] AC6: Each added or changed test has a recorded prose-first AAA review.
+- [x] AC7: Bounded mutation assessment completed, with no score target or CI gate.
+- [x] AC8: Reconciliation confirms plans, evidence, slice table and both EPIC tables agree.
+- [x] AC9: Every finding needing a production change has a draft spec, a log entry and a `lessons.md`
       row, and no test pins its reported behavior without a recorded maintainer decision.
 - [ ] AC10: Merged through the planned slices; only the last PR closes the issue.
-- [ ] AC11: `cargo +nightly fmt --all -- --check`, `linter all` and
+- [x] AC11: `cargo +nightly fmt --all -- --check`, `linter all` and
       `cargo test -p torrust-tracker-primitives` pass.
-- [ ] AC12: Manual verification executed and recorded.
+- [x] AC12: Manual verification executed and recorded.
 
 ## Verification Plan
 
@@ -375,8 +380,8 @@ Human-oriented interaction with the built tracker, run once in S4 with an isolat
 
 | ID | Scenario | Steps | Expected | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | Default announce interval | Start the tracker with a minimal configuration (no announce policy section); announce once and read the interval from the announce response. | The announce response carries the documented default interval (120 s). The peer cap (74) is not a response field and is protected by the unit test of the default in S3. | TODO | `manual-verification-evidence.md` (S4) |
-| M2 | Seeder and leecher counts | Announce one seeder and one leecher with `tracker_client`, then scrape and call the REST API torrent endpoint. | Complete/incomplete counts and the peer JSON match the announces. | TODO | `manual-verification-evidence.md` (S4) |
+| M1 | Default announce interval | Start the tracker with a minimal configuration (no announce policy section); announce once and read the interval from the announce response. | The announce response carries the documented default interval (120 s). The peer cap (74) is not a response field and is protected by the unit test of the default in S3. | DONE | `manual-verification-evidence.md` (S4): 120 s over HTTP and UDP. |
+| M2 | Seeder and leecher counts | Announce one seeder and one leecher with `tracker_client`, then scrape and call the REST API torrent endpoint. | Complete/incomplete counts and the peer JSON match the announces. | DONE | `manual-verification-evidence.md` (S4): 1 seeder and 1 leecher in both scrapes and the REST API. |
 
 ### Acceptance Verification
 
@@ -384,18 +389,18 @@ Reviewed against observed behavior after the last slice, before the issue is clo
 
 | AC ID | Status | Evidence |
 | ----- | ------ | -------- |
-| AC1 | TODO | Inventory and T1 hypotheses in `coverage-evidence.md`. |
-| AC2 | TODO | All ledger rows `DONE`; plans in `test-refactor-plans/`; per-file results in `coverage-evidence.md`. |
-| AC3 | TODO | Commands, toolchains and figures in the final measurement section of `coverage-evidence.md`. |
-| AC4 | TODO | Decision records of the highest and high objectives. |
-| AC5 | TODO | No-change and deferral records with per-group reasons. |
-| AC6 | TODO | Prose-first AAA review in each decision record. |
-| AC7 | TODO | `mutation-evidence.md`. |
-| AC8 | TODO | The T5 reconciliation and both EPIC tables. |
-| AC9 | TODO | Draft specs, progress-log entries and `lessons.md` rows, or a recorded absence of findings. |
-| AC10 | TODO | The slice table and the merged pull requests. |
-| AC11 | TODO | `cargo +nightly fmt --all -- --check` (nightly Rust), `linter all`, `cargo test -p torrust-tracker-primitives` (stable Rust) output. |
-| AC12 | TODO | `manual-verification-evidence.md`. |
+| AC1 | DONE | Inventory and T1 hypotheses in `coverage-evidence.md` (16 files, each once). |
+| AC2 | DONE | All 16 ledger rows `DONE`; records in `test-refactor-plans/` (`peer.md` to `swarm_metadata.md`, and `no-change-files.md` for rows 8-16); per-slice results in `coverage-evidence.md`. |
+| AC3 | DONE | `coverage-evidence.md`, "Final Measurement (AC3)": stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, 94.07% lines, 95.30% regions, 94.17% functions. |
+| AC4 | DONE | Highest and high objectives (peer classification, configuration defaults, the announce interval bound) are tested in `peer.md`, `announce.md`, `policy.md`, `mode.md`, `pagination.md` and `announce_interval.md`; the `peer::fixture` and `Id::new` lines are owned by F5. |
+| AC5 | DONE | `no-change-files.md` (per-file reasons) and the uncovered groups of `peer.md`; the only uncovered lines left are in `peer.rs` (F5). |
+| AC6 | DONE | A Prose-First AAA table in every record with an added or changed test. |
+| AC7 | DONE | `mutation-evidence.md` (no score target, no CI gate). |
+| AC8 | DONE | The T5 reconciliation (S4): ledger, plan index, slice table, acceptance rows, coverage evidence and both EPIC "Latest" tables carry the final figures; no record says `status: proposed` or `in-progress`. |
+| AC9 | DONE | F1 #2798, F2 fixed in S1 (#2834), F3 #2804, F4 #2823, F6 #2838 and #2850, each with its owner in the Findings Register and a `lessons.md` row. F5 is handed off by decision (2026-11-11); its draft spec is PR #2865 (`docs/issues/drafts/peer-id-test-helper/ISSUE.md`), with no GitHub issue yet; its `lessons.md` row says so. |
+| AC10 | IN_PROGRESS | S0-S3 merged (#2828, #2834, #2841, #2852) with `Related to #2824`; S4 is the only PR that uses `Closes #2824`. |
+| AC11 | DONE | `cargo +nightly fmt --all -- --check` (nightly Rust), `linter all` (the pre-commit gate of every S4 commit), `cargo test -p torrust-tracker-primitives` (stable Rust 1.99.1: 109 unit tests and 3 doctests pass). |
+| AC12 | DONE | `manual-verification-evidence.md`: M1 and M2 passed on 2026-11-15. |
 
 ## Risks and Trade-offs
 
@@ -407,7 +412,7 @@ Reviewed against observed behavior after the last slice, before the issue is clo
   `20261021190318_share_workspace_test_support_through_testing_features.md` puts shared test support
   behind a `testing` feature. EPIC #2482 (closed, `status: done`) did not reorganize it. Its lines are
   planned to be classified as test support in the `peer.rs` record (S2): no package-owned behavior, so
-  no unit test by decision; the live owner of any move is the F5 follow-up (issue number to be filled in).
+  no unit test by decision; the live owner of any move is the F5 follow-up (draft spec PR #2865).
 - `develop` moves under the work; mitigate by re-measuring at every slice start.
 
 ## Implementation Completion Review
