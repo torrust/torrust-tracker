@@ -122,8 +122,9 @@ and the test code are in [`manual-verification-evidence.md`](manual-verification
 Not applicable as a new design: the change replaces panics with error values on an existing
 asynchronous path and adds no new resource, process or fixture ownership. The regression test's
 junk-answering UDP socket is owned by the test and lives for the test only; its answering thread
-ends when the socket is dropped or the test process exits, and every await in the check is already
-bounded by the 2 s `select!` sleep.
+ends when the socket is dropped or the test process exits. Every await in the check is already
+bounded: the receive races the 2 s `select!` sleep, and the awaits before it (bind and connect in
+`UdpTrackerClient::new`, and `client.send`) are bounded by the 5 s `DEFAULT_UDP_TIMEOUT`.
 
 ## Bug-Fix Process
 
