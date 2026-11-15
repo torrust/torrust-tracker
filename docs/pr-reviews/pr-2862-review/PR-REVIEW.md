@@ -41,7 +41,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1 had two reviews on head `d893c8a168eb5bafac0f190ed40ccbcd95b02b8e`: da2ce7's review
+Round 1 had two reviews on the head ending in `docs(issues): [#2392] sync the test isolation EPIC
+after the #2393 patch`: da2ce7's review
 5909721063 (findings F1 to F4, reviewer-provided IDs) and Copilot's review 5909726857 (three inline
 comments, assigned F5 to F7). Each Copilot comment asks for the same current-tree change as one of
 da2ce7's findings, so it is recorded as a re-raise. Neither review body has a separate actionable
@@ -155,6 +156,7 @@ assertion; da2ce7's "Checked, no finding" list and Copilot's overview are contex
 - 2026-11-15 12:08 UTC - Committed the F1 fix, then the F4, F2 and F3 fixes and the spec progress-log entries (last commit 12:11 UTC), one commit each.
 - 2026-11-15 12:12 UTC - Replied on all seven threads (12:12:39 to 12:12:52 UTC). The audit record was not created before the first reply, as the skill requires; this is the late start.
 - 2026-11-15 12:13 UTC - Started audit: created this record from the template with the reply URLs.
+- 2026-11-15 12:17 UTC - Before the push, the PR-branch commit-id check flagged the round-1 head id in the Findings introduction; replaced it with that commit's subject.
 
 ## Completion Rules
 
