@@ -80,7 +80,11 @@ When an issue changes performance-critical code, measure it before and after:
    the after measurement. In issue #2505 the plan had neither, so the after measurement failed the
    rule and the cost was accepted only afterwards.
 2. **Record the baseline before any production change**, on the code the branch starts from plus
-   only documentation and benchmark-only commits.
+   only documentation and benchmark-only commits. Build each measurement from a committed state in its
+   own detached worktree (`git worktree add --detach .tmp/<dir> <commit>`), with its own `target`
+   directory, so that edits you keep making in the working branch cannot leak into the build. In
+   issue #2850 the first baseline was built from the working tree while the next task's edits were
+   already in it, and had to be discarded.
 3. **Repeat the measurement after the change** on the same machine, with the same build profile,
    configuration, and load-test settings. Change benchmark code only as far as new signatures
    require: even code outside the timed loop can move a nanosecond-scale result. In issue #2479,
