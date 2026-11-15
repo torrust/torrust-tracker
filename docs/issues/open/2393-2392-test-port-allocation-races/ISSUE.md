@@ -189,7 +189,8 @@ The maintainer decided the twenty-one ignored tests on 2026-11-15 (T5):
     affected crate already depends on it). It returns an `Ipv4Addr` of the form `127.a.b.c` with
     `a`, `b` and `c` in `1..=254`, so it never returns `127.0.0.1`. It chooses an address, not a
     port; the tests still bind port `0`.
-  - Linux only. Other systems route only `127.0.0.1` by default, so each restored test carries
+  - Linux only. macOS and the BSDs configure only `127.0.0.1` on `lo0` (Windows answers on the
+    whole range, but CI runs no tests off Linux), so each restored test conservatively carries
     `#[cfg_attr(not(target_os = "linux"), ignore = "needs the Linux 127.0.0.0/8 loopback range, see #2393")]`.
     CI runs the tests on Linux only; the macOS and Windows jobs only build.
   - It does not stop a socket bound to the wildcard address `0.0.0.0` on the same port. Some
