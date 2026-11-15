@@ -42,11 +42,16 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-F1 comes from the first Copilot review (COMMENTED, Lite effort; Copilot noted its full agentic review did not start before its timeout), on the head ending in `docs(issues): [#2867] move the UDP health check panic spec to open`.
+F1 comes from the first Copilot review (COMMENTED, Lite effort; Copilot noted its full agentic review did not start before its timeout), on the head ending in `docs(issues): [#2867] move the UDP health check panic spec to open`. F2 to F6 come from the first da2ce7 review (APPROVED, findings not blocking), on the head ending in `docs(pr-reviews): [#2867] log the resolution of the first PR 2868 review round`. The reviewer's own IDs F1 to F5 collide with the audit's F1, so they are kept as `Reviewer finding ID`.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2868-f1 | Copilot | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F2 | review-finding:pr-2868-f2 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F3 | review-finding:pr-2868-f3 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F4 | review-finding:pr-2868-f4 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F5 | review-finding:pr-2868-f5 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F6 | review-finding:pr-2868-f6 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -63,9 +68,75 @@ F1 comes from the first Copilot review (COMMENTED, Lite effort; Copilot noted it
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2868#discussion_r4580176772>
 
+### F2 - AC2 has no planned maintained test
+
+- PR number: 2868
+- Source review ID: 5913009678
+- Reviewer finding ID: F1
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2868#discussion_r4580308600>
+- Concern: `fix-bug` asks that the acceptance criteria match the planned tests. AC2 (a junk-answering UDP service through `GET /health_check`) was covered only by the manual M3 recheck, and the spec kept the V1 test only "if the reviewer wants". The reviewer asked to keep it.
+- Solution: The Regression Test Strategy now has a third maintained test, the V1 test kept as a UDP contract test, as plan row T3. It comes before the `check` fix (now T4), because that fix alone turns it green; its red run is the V1 output. AC1, AC2 and AC3 name their tests (T2, T3, T5), and the plan and commit points are renumbered.
+- Current-tree verification: `grep -n "test T3" docs/issues/open/2867-udp-health-check-panics-on-invalid-response/ISSUE.md` prints the AC2 line; the plan table has rows T1 to T7.
+- Resolution reference: docs(issues): [#2867] plan the junk-reply UDP contract test that covers AC2
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2868#discussion_r4580332848>
+
+### F3 - PR description no longer matches the branch
+
+- PR number: 2868
+- Source review ID: 5913009678
+- Reviewer finding ID: F2
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2868#discussion_r4580308604>
+- Concern: The PR description said the pre-commit hook passes "on both commits", but the branch has more, and its Files list did not name this audit record. The merge tool copies the description into the merge commit.
+- Solution: Edited the PR description. Its Files list names this audit record and the V3 evidence files. Its Validation section says the hook passes on every commit of the branch and adds the V3 rerun. Its Summary plans three regression tests.
+- Current-tree verification: `gh-bot pr view 2868 --repo torrust/torrust-tracker --json body` shows the `PR-REVIEW.md` line and "on every commit of the branch".
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2868#issuecomment-6901716295>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2868#discussion_r4580332743>
+
+### F4 - Not every await in `check` is bounded by the 2 s sleep
+
+- PR number: 2868
+- Source review ID: 5913009678
+- Reviewer finding ID: F3
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2868#discussion_r4580308611>
+- Concern: Only the receive races the 2 s `select!` sleep; bind, connect and send are bounded by the 5 s `DEFAULT_UDP_TIMEOUT`. The conclusion holds, but the spec named only one deadline.
+- Solution: The Design and Ownership Review now names both deadlines.
+- Current-tree verification: `grep -n "DEFAULT_UDP_TIMEOUT" docs/issues/open/2867-udp-health-check-panics-on-invalid-response/ISSUE.md` prints the new sentence.
+- Resolution reference: docs(issues): [#2867] name both deadlines that bound the awaits in check
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2868#discussion_r4580332951>
+
+### F5 - V1 ran with only the junk test applied
+
+- PR number: 2868
+- Source review ID: 5913009678
+- Reviewer finding ID: F4
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2868#discussion_r4580308614>
+- Concern: The V1 log reports `11 filtered out` and the V2 log `12 filtered out`, so V1 ran before the closed-port test existed, while the stored diff adds both. The closed-port test's copied comment says the peer answers with junk bytes.
+- Solution: V1 now says it ran with only the junk test added, and that the stored diff is what V2 ran, with the V1 test byte for byte as its first test. The copied comment is not edited inside `evidence/reproduction-tests.diff`, which records what V2 ran (an edit would also break its index line); V2 names the wrong comment, and the V3 diff has it corrected. The reply states this deviation.
+- Current-tree verification: `grep -n "11 filtered out" docs/issues/open/2867-udp-health-check-panics-on-invalid-response/manual-verification-evidence.md` prints the V1 step; `grep -n "nothing listens" docs/issues/open/2867-udp-health-check-panics-on-invalid-response/evidence/closed-port-value-check.diff` prints the corrected comment.
+- Resolution reference: docs(issues): [#2867] state which temporary tests V1 and V2 ran with
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2868#discussion_r4580333067>
+
+### F6 - V2 shows an error result, not the `Timed Out` text
+
+- PR number: 2868
+- Source review ID: 5913009678
+- Reviewer finding ID: F5
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2868#discussion_r4580308617>
+- Concern: The V2 test asserted only `is_err()`, so the `Timed Out` value in V2, in ISSUE.md and in the M2 row was inferred.
+- Solution: Reran the closed-port test asserting `Err("Timed Out")` on the same base and toolchain (new V3, passed in 3.01 s, test binary rebuilt). V2 says it only asserted `is_err()`; the ISSUE.md Reproduction paragraph and the M2 row cite V3, and V3 cites the maintained stopped-UDP contract test. The planned M3 evidence section moved from V3 to V4.
+- Current-tree verification: `grep -n "Timed Out" docs/issues/open/2867-udp-health-check-panics-on-invalid-response/evidence/closed-port-value-check.diff` prints the `assert_eq!`; `evidence/closed-port-value-check-run.log` shows `1 passed`.
+- Resolution reference: docs(issues): [#2867] assert the Timed Out value of the closed-port check
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2868#discussion_r4580333203>
+
 ## Processing Log
 
 - 2026-11-15 20:47 UTC - Started audit. Copilot reviewed the head ending in `docs(issues): [#2867] move the UDP health check panic spec to open` at 20:43:53Z (COMMENTED, one inline thread, F1). Fixed F1 in its own commit, replied on the thread, and recorded spec-only PR 2868 in the spec frontmatter in a separate commit.
+- 2026-11-15 21:34 UTC - da2ce7 reviewed the head ending in `docs(pr-reviews): [#2867] log the resolution of the first PR 2868 review round` at 21:27:05Z (APPROVED, five inline threads, none blocking), recorded as F2 to F6. Each in-tree finding was fixed in its own commit; F3 was fixed by editing the PR description. Replied on all five threads before the push.
 
 ## Completion Rules
 
