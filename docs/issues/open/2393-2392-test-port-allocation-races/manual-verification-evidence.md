@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2393-2392-test-port-allocation-races/ISSUE.md
-last-updated-utc: "2026-11-14 11:45"
+last-updated-utc: "2026-11-15 12:19"
 ---
 
 <!-- markdownlint-disable MD003 -->
@@ -161,6 +161,61 @@ All 150 runs of recheck 2 passed, with the 18 tests ignored at that head skipped
 green runs with the race still present would have a probability of about 0.05. The recheck covers
 this workstation only; CI runs one suite at a time and was not part of it.
 
+### V5 - T5 red-then-green
+
+Each restored or rewritten test is run against a mutation that removes what it guards, then against
+the committed code. Mutations are applied to the working tree only and restored before any commit.
+A mutation is read only after its output shows it compiled.
+
+#### T8 - health-check contract tests, 2026-11-15 12:19 UTC
+
+Command:
+`cargo nextest run -p torrust-tracker-axum-health-check-api-server --all-features --no-fail-fast -E 'test(/refuses_the_check|never_answers_the_check/)'`
+
+| Test (`server::contract::…`) | Mutation: the probed address answers | Red | Green |
+| --- | --- | --- | --- |
+| `api::it_should_return_error_when_the_registered_api_service_refuses_the_check` | A listening socket answers every request with `200 OK`. | `report.status`: left `Ok`, right `Error` | pass |
+| `http::it_should_return_error_when_the_registered_http_service_refuses_the_check` | Same. | `report.status`: left `Ok`, right `Error` | pass |
+| `udp::it_should_return_error_when_the_registered_udp_service_never_answers_the_check` | The held socket answers every connect request with a valid connect response. | `report.status`: left `Ok`, right `Error` | pass |
+
+A first UDP mutation answered with junk bytes. The test failed, but by a panic in the health-check
+handler, not by its assertion, so it was replaced by the valid connect response above. That panic is
+noted under [Failures and Follow-up](#failures-and-follow-up).
+
+### V7 - Test-design review per increment
+
+Each review follows the prose-first Arrange-Act-Assert step of the `write-unit-test` skill: the
+prose is written first, compared with the code, and removed once the code says it.
+
+#### T8 - health-check contract tests
+
+Prose, shared by the three tests:
+
+- Arrange: a service of one role is registered with its own production health check at an address
+  the test holds for the whole test, where nothing answers: a TCP socket bound but not listening
+  refuses the connection, and a UDP socket never replies.
+- Act: a client asks the health-check API for its report.
+- Assert: the report is an error, "health check failed", and its one detail names the probed
+  binding, the service type, the probe description, and the check's failure.
+
+Comparison and changes:
+
+- The causal state (an address that does not answer) was hidden in the old tests behind starting and
+  stopping a real service, which is also what released the port to other tests. It is now named by
+  `hold_a_tcp_address_that_refuses_connections()` and by the `silent_socket` binding, and the probed
+  `binding` is read from the held socket and used again in the assertions.
+- Registering the service and starting the health-check API are incidental mechanics, so they moved
+  to two named helpers, `registar_with_one_service` and `start_health_check_api`. The production
+  health check passed to the registration (`check_fn`, `Launcher::check`) stays visible, because it
+  selects the behavior.
+- The Act, the request to `/health_check`, stays in the test body.
+- The expected values are literals in the test, not derived from production code. The assertions
+  describe one observable report, so they stay in one test.
+- The old names said "was stopped after registration", which no longer happens. The tests are renamed
+  for the state they set up: "refuses the check" (TCP) and "never answers the check" (UDP).
+- Prose kept: one comment in the UDP test, because a held socket that never answers is not evident
+  from `UdpSocket::bind`.
+
 ## Failures and Follow-up
 
 - No production listener failed. The affected behavior is test address ownership and test-only
@@ -168,3 +223,7 @@ this workstation only; CI runs one suite at a time and was not part of it.
 - The source inventory found other port-selection fixtures in `axum-rest-api-server`,
   `axum-health-check-api-server`, `udp-server`, and bootstrap tests. Their disposition belongs to
   T5; do not assume they are unsafe merely because they bind port `0`.
+- Found during V5 (out of scope for #2393): when a UDP service answers the health check with a
+  datagram that is not a valid tracker response, `check` in `tracker-client/src/udp/client.rs`
+  unwraps the parse error and panics, and the health-check handler's `expect` on the joined job
+  panics in turn, so the client gets no report at all instead of an error detail.
