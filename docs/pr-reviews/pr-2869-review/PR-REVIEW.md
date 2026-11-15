@@ -43,12 +43,20 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 F2, R1, F1 and R2 are in Copilot's review 5912836984, in that source order. The IDs are Copilot's own and collide with nothing earlier in this record. The task numbers in the replies and solutions are those of the current spec: the fix for R1 added a task T2 and renumbered the later tasks, so the fixes for F1 and R2 were written as T2 and T5 and are now T3 and T6.
 
+F7, F8, F3, F4, F5 and F6 are in da2ce7's review 5913004050 (`APPROVED`), in that source order. His F1 and F2 collide with Copilot's F1 and F2 above, so they are numbered F7 and F8, the next free audit-local IDs, and his IDs are kept as the reviewer finding IDs; his F3 to F6 collide with nothing and keep their IDs.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F2 | review-finding:pr-2869-f2 | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | R1 | review-finding:pr-2869-r1 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F1 | review-finding:pr-2869-f1 | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | R2 | review-finding:pr-2869-r2 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-2869-f7 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-2869-f8 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F3 | review-finding:pr-2869-f3 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F4 | review-finding:pr-2869-f4 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F5 | review-finding:pr-2869-f5 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F6 | review-finding:pr-2869-f6 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -104,12 +112,93 @@ F2, R1, F1 and R2 are in Copilot's review 5912836984, in that source order. The 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2869#discussion_r4580201266
 
+### F7 - The V0 excerpt does not hold what its lead-in says
+
+- PR number: 2869
+- Source review ID: 5913004050
+- Reviewer finding ID: F1
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2869#discussion_r4580303237
+- Concern: The V0 lead-in promised the category table and the whole Skills table, but the block held two category rows, and the 26-row breakdown and the only-`Project`-row claim rested on a scratch file outside the issue folder.
+- Solution: The block holds the category, Memory Files and Skills tables verbatim, with the clone's scratch path shortened; the lead-in says so and that the MCP Tools table is left out; the text names `grep -c 'Project' m0-context.md`, which printed `1`. Two words of the verbatim output are ignored for the spell checker in that file only.
+- Current-tree verification: V0 "Observed Result" in `manual-verification-evidence.md`; `linter cspell` and `linter markdown` pass.
+- Resolution reference: docs(issues): [#2866] keep the whole V0 /context excerpt in the evidence
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2869#discussion_r4580342071
+
+### F8 - The description-length row does not recompute at `abd7a10ff`
+
+- PR number: 2869
+- Source review ID: 5913004050
+- Reviewer finding ID: F2
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2869#discussion_r4580303242
+- Concern: The reviewer's recomputation at `abd7a10ff` gave 19,944 characters, mean 376 and 43 of 53 descriptions of 300 or more, against the row's 19,489, 368 and 37.
+- Solution: Recomputed on the YAML-parsed `description` values, the total, mean and maximum hold (19,489 / 368 / 724), but the count is 42, not 37: a miscount. The raw frontmatter text, with quotes and escapes, gives about 19,950 / 376 and 43, the reviewer's figures. The spec states the method and both results. Sweeping the table's other measurements found the dropped-descriptions row wrong as well: 7 skills, not 9, all with source `claude.ai sync`, not built-in; fixed in `docs(issues): [#2866] correct the count of skills that lost their descriptions`.
+- Current-tree verification: A Python recomputation over `git show abd7a10ff:<path>` for the 53 `SKILL.md` files printed `chars 53 19489 368 724 42`; a raw-text variant printed `raw 19950 376 724 43`; `grep '< 20'` on the saved scratch `/context` output printed seven `claude.ai sync` rows. The context-cost table and the paragraph below it in the spec.
+- Resolution reference: docs(issues): [#2866] correct the description count and state how it was measured
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2869#discussion_r4580342183
+
+### F3 - Row 21 has no EPIC Progress Log line
+
+- PR number: 2869
+- Source review ID: 5913004050
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2869#discussion_r4580303245
+- Concern: The spec commit added row 21 and moved the EPIC's `last-updated-utc`, but the EPIC Progress Log gained no line, unlike row 20.
+- Solution: The Progress Log has a line naming #2866, when its row was added and this PR; `last-updated-utc` moved with it.
+- Current-tree verification: The last Progress Log line and the frontmatter of the EPIC.
+- Resolution reference: docs(issues): [#2866] log row 21 in the EPIC #2003 progress log
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2869#discussion_r4580342305
+
+### F4 - The PR description no longer matches the branch
+
+- PR number: 2869
+- Source review ID: 5913004050
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2869#discussion_r4580303250
+- Concern: The description named two of the four files, spoke of "both files" and "the commit", and predated the bug workflow.
+- Solution: The description is rewritten: all four files, a validation list that matches the branch, and a summary that covers the M0 reproduction, the T2 placement rule, the stub inventory and the renumbered plan.
+- Current-tree verification: `gh pr view 2869 --json body` after the edit at 21:36 UTC.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2869#issuecomment-6901750326
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2869#discussion_r4580342476
+
+### F5 - The `.github/` inventory row names the wrong files
+
+- PR number: 2869
+- Source review ID: 5913004050
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2869#discussion_r4580303253
+- Concern: At `abd7a10ff` the six files are the five agent profiles and `.github/agents/README.md`, which is live; `.github/workflows/AGENTS.md` and one profile link through `../skills/dev/` and are outside the count.
+- Solution: The row names the profiles and `README.md`; the count is said to be of the `.github/skills` literal; In Scope names `.github/agents/README.md`; the two relative-link files are listed with the T9 search that covers them.
+- Current-tree verification: `git grep -l '\.github/skills' abd7a10ff -- .github ':!.github/skills'` listed the six files; `git grep -n '\.\./skills/' abd7a10ff -- .github ':!.github/skills'` listed the two relative-link files.
+- Resolution reference: docs(issues): [#2866] name the right .github files in the reference inventory
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2869#discussion_r4580342601
+
+### F6 - "order 22" names a sub-issue the EPIC does not record
+
+- PR number: 2869
+- Source review ID: 5913004050
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2869#discussion_r4580303257
+- Concern: No row, draft or recorded decision in the EPIC names the custom-agents migration, and the EPIC orders a sub-issue when its issue is created.
+- Solution: The Background calls it a planned EPIC #2003 sub-issue that is not created yet.
+- Current-tree verification: `git grep -n 'order 22' -- docs/issues/open/2866-2003-move-skills-to-claude-skills docs/issues/open/2003-overhaul-guardrails-and-automation` prints nothing; this record quotes the finding's title.
+- Resolution reference: docs(issues): [#2866] drop the order number of the custom-agents migration
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2869#discussion_r4580342750
+
 ## Processing Log
 
 - 2026-11-15 20:41 UTC - Review 5912836984 (Copilot, `COMMENTED`) submitted on the first head of the PR: F2, R1, F1, R2.
 - 2026-11-15 20:52 UTC - Started this audit after the five fix commits (committed 20:45 to 20:51 UTC).
 - 2026-11-15 20:54 UTC - Pushed the five fix commits (push log time 20:54:18 UTC), then replied to the four threads (reply times 20:54:36 to 20:54:43 UTC); the reply URLs are in the entries.
 - 2026-11-15 20:55 UTC - Resolved the four threads after the replies; a GraphQL refresh shows no unresolved thread.
+- 2026-11-15 21:25 UTC - Review 5913004050 (da2ce7, `APPROVED`) submitted on head `4f3e9aa93`: six findings, none blocking, recorded here as F7, F8, F3, F4, F5 and F6.
+- 2026-11-15 21:36 UTC - Pushed the six fix commits (committed 21:29 to 21:33 UTC; push log time 21:36:21 UTC), rewrote the PR description (F4), posted the F4 statement (21:36:45 UTC) and replied to the six threads (21:36:47 to 21:36:58 UTC).
+- 2026-11-15 21:38 UTC - Resolved the six threads after the replies; a GraphQL refresh shows no unresolved thread.
 
 ## Completion Rules
 
