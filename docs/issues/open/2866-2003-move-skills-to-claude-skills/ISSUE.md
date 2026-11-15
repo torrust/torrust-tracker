@@ -118,7 +118,13 @@ kept, and the descriptions of the least-invoked skills are dropped first; each e
 | The 53 project skill entries alone (sum of rows)     | ~6,980 tokens           |
 | Built-in skills whose descriptions were dropped      | 9                       |
 | Description length: total / mean / max (characters)  | 19,489 / 368 / 724      |
-| Descriptions of 300 characters or more               | 37 of 53                |
+| Descriptions of 300 characters or more               | 42 of 53                |
+
+The two description rows measure the YAML-parsed `description` value of each `SKILL.md` at
+`abd7a10ff`, the text Claude Code reads, in Unicode characters (Python `yaml.safe_load` of the
+frontmatter, then `len`). Counting the raw frontmatter text instead, with its quotes and escape
+characters, gives about 19,950 characters, a mean of 376 and 43 of 53 at 300 or more. The first
+draft of this spec said 37 of 53; that count was wrong.
 
 The listing already exceeds the budget on a 1M window. On a 200k window the budget is about 2k
 tokens, and most descriptions would be dropped. Descriptions need shortening; that is the
