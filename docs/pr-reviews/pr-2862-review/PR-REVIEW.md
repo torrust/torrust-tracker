@@ -216,6 +216,7 @@ taken. Its body has no other actionable assertion.
 - 2026-11-15 12:37 UTC - Replaced "rebase" with the merge of `develop` in the F8 and F9 replies (12:37:35 and 12:37:37 UTC), the F9 conversation comment (12:37:38 UTC), the PR description (12:37:49 UTC), the F8 and F9 Solutions above and the EPIC progress-log entry.
 - 2026-11-15 12:49 UTC - Round 3: da2ce7's review 5910804092 (APPROVED) arrived with one Nit, F7, assigned F10 because F7 is taken.
 - 2026-11-15 12:50 UTC - Committed the F10 fix, then replied on its thread (12:51:18 UTC) and added F10 to this record.
+- 2026-11-15 12:54 UTC - Restoring, for F12, the entry the 12:15 UTC correction rewrote. It was committed in `docs(pr-reviews): [#2392] cite the round-1 head of PR 2862 by its commit subject` as: "2026-11-15 12:17 UTC - Before the push, the PR-branch commit-id check flagged the round-1 head id in the Findings introduction; replaced it with that commit's subject." It is quoted here instead of restored in place, because a 12:17 entry before the 12:15 correction would break the log's chronological order.
 
 ## Completion Rules
 
