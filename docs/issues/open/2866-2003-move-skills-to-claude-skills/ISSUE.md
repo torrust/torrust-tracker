@@ -254,7 +254,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2  | TODO   | Move the skills and fix every live path  | `git mv` of all 71 files; relative links inside moved skills; depth-dependent paths in moved scripts (`validate-skill-links.sh`); tooling paths; every live reference by the classification rule. The commit passes `linter all` and the tests on its own. Git shows 71 renames.                           |
 | T3  | TODO   | Add the redirect stubs                   | 53 stubs plus `.github/skills/README.md`, which says the folder only holds redirects and inventories the 53 original paths.                                                                                                                                                       |
 | T4  | TODO   | Add the index                            | `.claude/skills/README.md` lists each skill by area (today's area folders), with a one-line purpose, and notes the old location. `AGENTS.md` and `docs/agents/` point to it.                                                          |
-| T5  | TODO   | Validator rules                          | The rules in [Validator rules](#validator-rules-after-the-move), with unit tests and a negative case for each; wired into the pre-commit hook and CI.                                                                                  |
+| T5  | TODO   | Validator rules                          | The rules in [Validator rules](#validator-rules-after-the-move), with unit tests and a negative case for each; wired into the pre-commit hook and CI. Tests follow the `write-unit-test` skill and the test-design review in [Commit Points](#commit-points).                                                                                  |
 | T6  | TODO   | Update `add-new-skill`                   | New skills go to `.claude/skills/<name>/`, add an index row, and need no stub.                                                                                                                                                         |
 | T7  | TODO   | ADRs                                     | New ADR; dated row in the governance ADR's inventory and review log.                                                                                                                                                                   |
 | T8  | TODO   | Final sweep and verification             | Search again for `.github/skills` and `skills/dev/` after the last edit; every remaining hit is a stub, out-of-scope agent profile, or historical record. Run every validator, `linter all`, and the manual scenarios.                  |
@@ -266,12 +266,23 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2   | The move plus every path fix the gate needs                 | One commit. Its message records the sweep commands. Moved files change only in their links and in depth-dependent paths such as the root walk of `validate-skill-links.sh`. |
 | T3   | Stubs                                                       | One commit, after T2, so the renames stay detectable.                                               |
 | T4   | Index and its links                                         | One commit.                                                                                         |
-| T5   | Validator rules and tests                                   | One commit per rule group when that keeps each reviewable.                                          |
+| T5   | Validator rules and tests                                   | One commit per reviewed test increment (one rule group each). After each increment passes, record the prose-first Arrange-Act-Assert review in the task evidence before starting the next. Stop for maintainer review after the last increment, before T8. |
 | T6   | `add-new-skill`                                             | One commit.                                                                                         |
 | T7   | ADRs                                                        | One commit.                                                                                         |
 | T8   | Evidence, acceptance verification, and progress log         | One commit.                                                                                         |
 
 T1 creates a GitHub issue and its spec PR; it is not part of this implementation PR's commits.
+
+T5 is the only test-producing task. Its tests use the `write-unit-test` skill and add one behavior at
+a time. After each increment passes focused validation, and before the next one starts, review its
+design and record the review in the task evidence: write temporary prose for the Arrange, Act and
+Assert sections, refactor until the code says it, and remove the redundant prose. The review
+confirms that the test exposes the one causal initial-state difference, that its fixture owns only
+incidental mechanics, and that the production Act and the independently specified expected result
+stay visible. Helper boundaries are judged by meaningful named actions and abstraction level, not
+by caller count. Commit each reviewed increment before the next, and stop for maintainer review
+after the last increment, before the final verification (T8), the commit of the evidence, and the
+pull request.
 
 ## Progress Tracking
 
