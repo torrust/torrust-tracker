@@ -6,7 +6,7 @@ epic: null
 github-issue: 2392
 spec-path: docs/issues/open/2392-test-isolation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-15 12:11"
+last-updated-utc: "2026-11-15 12:32"
 semantic-links:
   skill-links:
     - create-issue
@@ -100,7 +100,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | Order | Issue | Local Spec | Status | Notes |
 | ----- | ----- | ---------- | ------ | ----- |
-| 1 | #2393 - Eliminate parallel test port allocation races | `docs/issues/open/2393-2392-test-port-allocation-races/ISSUE.md` | IN_PROGRESS | Bug. PR #2859 (merged) ignored 21 racing tests and rewrote 4 that never needed a racing port. The full suite passed 150 of 150 runs with the 18 tests ignored at that head, and 20 of 20 runs with the final 21. Open: T5, the maintainer's decision on each ignored test. |
+| 1 | #2393 - Eliminate parallel test port allocation races | `docs/issues/open/2393-2392-test-port-allocation-races/ISSUE.md` | IN_PROGRESS | Bug. PR #2859 (merged) ignored 21 racing tests and rewrote 4 that never needed a racing port. The full suite passed 150 of 150 runs with the 18 tests ignored at that head, and 20 of 20 runs with the final 21. T5 is decided (2026-11-15): delete 9 tests of test-support code, rewrite the 3 health-check contract tests to probe an address the test holds, and restore 9 socket-release tests on a unique loopback address. Open: T7 to T11, which apply those decisions, recheck the suite and close out. |
 | 2 | #2394 - Audit shared test resources | `docs/issues/open/2394-2392-audit-shared-test-resources/ISSUE.md` | TODO | Task. Inventories the resource classes in scope, records a disposition for each finding, and drafts subissues for confirmed problems. |
 | 3 | #2395 - Use dynamic host ports in the E2E runner | `docs/issues/open/2395-2392-e2e-runner-dynamic-host-ports/ISSUE.md` | TODO | Task. Removes fixed E2E host ports. Independent of orders 1 and 2. |
 | 4 | #2396 - Use a unique tracker image tag per CI run | `docs/issues/open/2396-2392-e2e-unique-tracker-image-tag/ISSUE.md` | TODO | Task. Prevents one run from testing another run's image. Latent today (one runner instance per server). Independent of order 3. |
@@ -151,8 +151,8 @@ For each subissue implementation in this EPIC, the default completion policy is:
 - Outcome: the full nextest suite no longer fails with port-allocation `AddrInUse`.
 - Exit criteria: order 1 is done, including its repeated full-suite recheck.
 - State: the outcome is reached (PR #2859; 150 of 150 full-suite runs passed with the 18 tests
-  ignored at that head, and 20 of 20 with the final 21). Order 1 stays open for T5, the decision on
-  each ignored test.
+  ignored at that head, and 20 of 20 with the final 21). Order 1 stays open for T7 to T11, which
+  apply the T5 decisions on the ignored tests.
 
 ### Phase 2 - Know the remaining shared resources
 
@@ -182,11 +182,18 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
   fixed or pre-selected resource may not be worth having.
 - 2026-11-14 (maintainer): a server that takes over an already-bound socket (listener handoff) was
   considered for #2393 and rejected for now, because it changes the production start APIs of four
-  server crates. It stays an option if ignored tests are to be restored.
+  server crates. #2393 T5 restores its ignored release tests without it (next decisions).
 - 2026-11-14 (maintainer): no new shared port helper. A random port drawn and released below the
   ephemeral range still races across concurrent processes (several agents on one development
   machine, several pipelines on one runner). The #2581 helper (`reserve_free_ports`) stays as it is
   for scenarios that must name a bind address before a child process starts.
+- 2026-11-15 (maintainer, #2393 T5): of the 21 tests #2393 ignored, delete the 9 that only check
+  test-support code, rewrite the 3 health-check contract tests to probe an address the test holds,
+  and restore the 9 tests of the tracker's socket-release contract on a unique loopback address.
+- 2026-11-15 (maintainer, #2393 T5): one shared test helper in `torrust-tracker-test-helpers`
+  returns a random loopback address in `127.0.0.0/8`. It chooses an IP address, not a port, so it
+  does not contradict the "no new port helper" decision; only the 9 restored tests use it, and they
+  are ignored off Linux. The #2393 spec's Architectural Decisions section has the details.
 
 ## Progress Tracking
 
@@ -223,6 +230,10 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
   review round on PR #2862: named the 18 and 21 ignored tests behind the 150-run and 20-run #2393
   rechecks, added a fourth racing shape (released port probed and expected dead), and corrected the
   wording of the four rewritten tests.
+- 2026-11-15 12:32 UTC - Claude Code (Claude Opus 5.5), EPIC coordinator - Second review round on
+  PR #2862: rebased on `develop`, which carries the #2393 T5 decisions (PR #2863); order 1 now has
+  T5 decided and T7 to T11 open, the Decisions section records the T5 decisions and the loopback
+  helper, and AC2 and the lost-coverage risk point at #2393 T10 and T9.
 
 ## Acceptance Criteria
 
@@ -241,7 +252,7 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
 | AC1 | DONE | GitHub sub-issues of #2392: #2393, #2394, #2395, #2396, #1419 |
-| AC2 | TODO | Order 1 `manual-verification-evidence.md` (V4: 150 of 150 runs passed with the 18 tests ignored at that head; check 3: 20 of 20 with the final 21; stays TODO until #2393 T5 decides them) |
+| AC2 | TODO | Order 1 `manual-verification-evidence.md` (V4: 150 of 150 runs passed with the 18 tests ignored at that head; check 3: 20 of 20 with the final 21; stays TODO until #2393 T10 rechecks the suite with no #2393 test ignored) |
 | AC3 | TODO | Orders 3 and 4 `manual-verification-evidence.md` |
 | AC4 | TODO | Order 2 inventory |
 | AC5 | TODO | Documentation PR |
@@ -259,7 +270,7 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
   rules are the real guarantee.
 - **Lost coverage while tests are ignored.** Most of the tests #2393 ignored prove that a server
   releases its socket after a stop, a drop or a failure. That cleanup contract is untested until
-  #2393 T5 decides how to restore or replace them.
+  #2393 T9 restores the 9 tracker release tests on a unique loopback address.
 
 ## References
 
