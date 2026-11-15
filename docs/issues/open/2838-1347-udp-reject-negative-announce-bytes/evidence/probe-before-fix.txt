@@ -1,0 +1,9 @@
+17:28:55.118
+left=1000
+announce response: interval=120 leechers=1 seeders=0
+17:28:55.132
+left=-5
+announce response: interval=120 leechers=0 seeders=1
+17:28:55.145
+left=0
+announce response: interval=120 leechers=0 seeders=1
