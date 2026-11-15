@@ -53,6 +53,9 @@ collide with the round-1 Copilot rows, so they are assigned F8 and F9, with the 
 the detail entries. The review is on the head ending in `docs(pr-reviews): [#2392] correct a future
 time in the PR 2862 processing log`. Its body has no other actionable assertion.
 
+Round 3 had da2ce7's review 5910804092 (APPROVED) with one Nit, F7, assigned F10 because F7 is
+taken. Its body has no other actionable assertion.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2862-f1 | Human | Major | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -64,6 +67,7 @@ time in the PR 2862 processing log`. Its body has no other actionable assertion.
 | F7 | review-finding:pr-2862-f7 | Copilot | Minor (inferred) | correctness | RE_RAISE_OF:F3 | NO_ACTION | SUPERSEDED |
 | F8 | review-finding:pr-2862-f8 | Human | Major | correctness | ORIGINAL | FIXED | RESOLVED |
 | F9 | review-finding:pr-2862-f9 | Human | Major | documentation | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-2862-f10 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -184,6 +188,19 @@ time in the PR 2862 processing log`. Its body has no other actionable assertion.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2862#discussion_r4578395028>
 
+### F10 - The second-round EPIC log entry is stamped before the merge it describes
+
+- PR number: 2862
+- Source review ID: 5910804092
+- Reviewer finding ID: F7
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2862#discussion_r4578452743>
+- Concern: the EPIC's second-round progress-log entry was stamped 12:32 UTC, the time of the unpushed rebase, but says the round merged `develop`, which was committed at 12:37:06 UTC.
+- Solution: restamped the entry 12:37 UTC and set the EPIC's `last-updated-utc` to 12:50.
+- Current-tree verification: `grep -n "Second review round" docs/issues/open/2392-test-isolation/EPIC.md` shows the 12:37 UTC stamp; `git log --format=%cI` gives 2026-11-15T12:37:06Z for the merge of `develop`.
+- Resolution reference: docs(issues): [#2392] stamp the second-round EPIC log entry with the merge time
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2862#discussion_r4578458524>
+
 ## Processing Log
 
 - 2026-11-15 12:08 UTC - Committed the F1 fix, then the F4, F2 and F3 fixes and the spec progress-log entries (last commit 12:11 UTC), one commit each.
@@ -197,6 +214,8 @@ time in the PR 2862 processing log`. Its body has no other actionable assertion.
 - 2026-11-15 12:34 UTC - Added F8 and F9 to this record.
 - 2026-11-15 12:37 UTC - The force-with-lease push of the rebased branch was denied, so the rebase was never pushed. On the maintainer's choice, rebuilt the branch from the pushed head: merged `develop` `abd7a10ff` into it and re-applied the F8 fix and this record's round-2 commit; the tree equals the rebased one.
 - 2026-11-15 12:37 UTC - Replaced "rebase" with the merge of `develop` in the F8 and F9 replies (12:37:35 and 12:37:37 UTC), the F9 conversation comment (12:37:38 UTC), the PR description (12:37:49 UTC), the F8 and F9 Solutions above and the EPIC progress-log entry.
+- 2026-11-15 12:49 UTC - Round 3: da2ce7's review 5910804092 (APPROVED) arrived with one Nit, F7, assigned F10 because F7 is taken.
+- 2026-11-15 12:50 UTC - Committed the F10 fix, then replied on its thread (12:51:18 UTC) and added F10 to this record.
 
 ## Completion Rules
 
