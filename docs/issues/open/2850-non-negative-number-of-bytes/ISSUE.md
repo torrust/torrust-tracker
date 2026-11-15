@@ -8,8 +8,8 @@ epic: null
 github-issue: 2850
 spec-path: docs/issues/open/2850-non-negative-number-of-bytes/ISSUE.md
 branch: "2850-non-negative-number-of-bytes"
-related-pr: null
-last-updated-utc: "2026-11-15 21:25"
+related-pr: 2872
+last-updated-utc: "2026-11-15 21:40"
 semantic-links:
   skill-links:
     - create-issue
@@ -716,6 +716,7 @@ the model that produced them.
 - 2026-11-12 17:40 UTC - Claude Code (Fable 5.2) - The maintainer approved the plan: this issue is the fix for #2838 and replaces the patch of PR #2839, and the ADR of #2842 is delivered by this issue's spec-only pull request instead of PR #2843. Created issue #2850, moved the specification to `docs/issues/open/`, carried over the four ADR commits and the specification and evidence of #2838, and rewrote D3, D5, D6, the bug-fix process and the coordination for that plan. The two other sessions were told and close their pull requests.
 - 2026-11-12 20:29 UTC - Claude Code (Fable 5.2) - Rebased the spec-only branch onto `develop` after PR #2841 (the primitives tests of #2824) merged and conflicted in the EPIC #1347 table. Updated the coordination note: those tests are on `develop` and name this issue.
 - 2026-11-15 21:25 UTC - Claude Code (Opus 5.5) - Implemented T0 to T6 on branch `2850-non-negative-number-of-bytes`. T0 added `udp_tracker/announce_once`; the first baseline was discarded because uncommitted T1/T2 edits leaked into its build, and each measurement is now built in a clean worktree (`performance-evidence.md`, lesson added to `docs/benchmarking.md`). T2 named the field with the `ByteCountField` enum (one variant, one message, the field as a matchable value) and moved the peer conversion before the whitelist check, as the order tests of PR #2839 require. The maintainer agreed a 5% tolerance for the UDP benchmark before the after measurement. Load test and UDP pass; HTTP `announce_once` failed the one-sided rule by 0.3% on a path T3 does not add work to, and an interleaved A/B run put it inside the noise: the verdict is the maintainer's. Manual run 1 was discarded for non-monotonic timestamps. No design assumption was invalidated, so no retrospective file.
+- 2026-11-15 21:40 UTC - Claude Code (Opus 5.5) - Rebased onto `develop` and opened the implementation PR #2872 (closes #2850 and #2838). Updated the #2838 specification and row 12 of the EPIC #1347 table to point to it.
 
 ## Acceptance Criteria
 
