@@ -514,7 +514,6 @@ mod tests {
         udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
         udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
         cookie_lifetime: Duration,
-        bind_address: SocketAddr,
         max_connection_id_errors_per_ip: u32,
     }
 
@@ -548,7 +547,6 @@ mod tests {
                 udp_tracker_core_container,
                 udp_tracker_server_container,
                 cookie_lifetime: udp_tracker_config.cookie_lifetime,
-                bind_address: udp_tracker_config.bind_address,
                 max_connection_id_errors_per_ip: configuration.udp_tracker_server.max_connection_id_errors_per_ip,
             }
         }
@@ -957,7 +955,7 @@ mod tests {
     }
 
     mod receive_loop_shutdown {
-        use std::net::SocketAddr;
+        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
         use std::sync::Arc;
         use std::sync::atomic::{AtomicUsize, Ordering};
         use std::time::Duration;
@@ -970,6 +968,7 @@ mod tests {
         use torrust_server_lib::registar::Registar;
         use torrust_tracker_events::sender::{SendError, Sender};
         use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
+        use torrust_tracker_test_helpers::random;
         use torrust_tracker_udp_core::ConnectionIdValidationPolicy;
         use torrust_tracker_udp_protocol::{ConnectRequest, Request, TransactionId};
 
@@ -1031,7 +1030,7 @@ mod tests {
         }
 
         impl ReceiveLoopHoldingRequests {
-            async fn start(released_client: SocketAddr, request_drain_deadline: Duration) -> Self {
+            async fn start(bind_to: SocketAddr, released_client: SocketAddr, request_drain_deadline: Duration) -> Self {
                 let context = UdpLauncherTestContext::new().await;
                 let running_held_processors = Arc::new(AtomicUsize::new(0));
                 let (held_sender, held) = mpsc::unbounded_channel();
@@ -1052,7 +1051,7 @@ mod tests {
                 let CancellationRunning {
                     local_addr: address,
                     task,
-                } = Server::new(Spawner::new(context.bind_address))
+                } = Server::new(Spawner::new(bind_to))
                     .start_with_cancellation(
                         context.udp_tracker_core_container,
                         server_container,
@@ -1108,9 +1107,15 @@ mod tests {
 
         impl ReceiveLoopWithOrphanedProcessors {
             async fn start() -> ReceiveLoopHoldingRequests {
+                Self::start_on(IpAddr::V4(Ipv4Addr::LOCALHOST)).await
+            }
+
+            /// Binds the receive loop to port `0` on `server_ip`.
+            async fn start_on(server_ip: IpAddr) -> ReceiveLoopHoldingRequests {
                 let released_client = bind_loopback_client().await;
                 let held_client = bind_loopback_client().await;
                 let mut scenario = ReceiveLoopHoldingRequests::start(
+                    SocketAddr::new(server_ip, 0),
                     released_client
                         .local_addr()
                         .expect("the released client should have an address"),
@@ -1142,7 +1147,12 @@ mod tests {
         impl ReceiveLoopWithOneHeldRequest {
             async fn start(held_client: &UdpSocket) -> ReceiveLoopHoldingRequests {
                 let unused_client = SocketAddr::from(([127, 0, 0, 1], 0));
-                let mut scenario = ReceiveLoopHoldingRequests::start(unused_client, LIFECYCLE_TIMEOUT * 2).await;
+                let mut scenario = ReceiveLoopHoldingRequests::start(
+                    SocketAddr::from(([127, 0, 0, 1], 0)),
+                    unused_client,
+                    LIFECYCLE_TIMEOUT * 2,
+                )
+                .await;
 
                 send_connect_request(held_client, scenario.address).await;
                 scenario.wait_until_held(1).await;
@@ -1202,10 +1212,12 @@ mod tests {
         }
 
         #[tokio::test]
-        #[ignore = "flaky port race, see #2393"]
+        #[cfg_attr(not(target_os = "linux"), ignore = "needs the Linux 127.0.0.0/8 loopback range, see #2393")]
         async fn it_should_release_the_socket_once_the_processors_orphaned_by_the_request_ring_are_joined() {
             // Arrange
-            let mut scenario = ReceiveLoopWithOrphanedProcessors::start().await;
+            // A random loopback address, not 127.0.0.1, keeps tests that bind `127.0.0.1:0` from
+            // taking the port between its release and the rebind that proves it (#2393).
+            let mut scenario = ReceiveLoopWithOrphanedProcessors::start_on(IpAddr::V4(random::loopback_ipv4())).await;
 
             // Act
             scenario.cancellation_token.cancel();

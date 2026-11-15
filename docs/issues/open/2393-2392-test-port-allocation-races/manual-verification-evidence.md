@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2393-2392-test-port-allocation-races/ISSUE.md
-last-updated-utc: "2026-11-15 12:24"
+last-updated-utc: "2026-11-15 12:27"
 ---
 
 <!-- markdownlint-disable MD003 -->
@@ -210,6 +210,25 @@ Command:
   "REST API listener should be released after token-aware registration failure: … AddrInUse".
 - Green: 20 of 20 runs passed on the committed code.
 
+#### T9 - UDP server tests, 2026-11-15 12:26 UTC
+
+Tests in `udp-server`:
+
+- C: `server::tests::token_aware_start::it_should_stop_the_receive_loop_and_release_the_socket_when_its_cancellation_token_is_cancelled`
+- R: `server::tests::token_aware_start::it_should_release_the_socket_when_registration_fails`
+- O: `server::launcher::tests::receive_loop_shutdown::it_should_release_the_socket_once_the_processors_orphaned_by_the_request_ring_are_joined`
+
+Command: `cargo nextest run --all-features --no-fail-fast -p torrust-tracker-udp-server -E 'test(/…/)'`
+with the three test names.
+
+| Mutation | Failed | Passed |
+| --- | --- | --- |
+| U1: the receive loop's cancellation branch leaks a clone of its socket (`std::mem::forget`) | C ("the UDP socket should be released after the receive loop stops: … AddrInUse"); O ("the socket should be released once the aborted processors are joined") | R, whose failure path aborts the loop instead of cancelling it |
+| U2: the registration-failure branch in `states.rs` drops the receive loop (detaching it) instead of aborting and joining it | R ("the UDP socket should be released after registration failure: … AddrInUse") | C, O |
+| U3: the drain detaches the processors left at the deadline instead of aborting and joining them | O (after its 5 s wait) | C, R |
+
+Green: 20 of 20 runs of the three tests passed on the committed code.
+
 ### V7 - Test-design review per increment
 
 Each review follows the prose-first Arrange-Act-Assert step of the `write-unit-test` skill: the
@@ -289,6 +308,37 @@ Comparison and changes:
   registration), a Complex Arrange compared with the other two. Extracting a fixture is a refactor
   outside this change, so it is left for the maintainer's review rather than done here.
 - Prose kept: the comment on the address choice, because the reason is not evident from the call.
+
+#### T9 - UDP server tests
+
+Prose:
+
+- C. Arrange: a token-aware UDP server runs on port `0` of a loopback address no other test uses.
+  Act: cancel its token and join the receive loop. Assert: the loop stops without an error, and its
+  address can be bound again.
+- R. Arrange: an address that no server holds, on a loopback address no other test uses, is already
+  claimed in the registry. Act: start the server on it. Assert: the start fails with the
+  duplicate-binding error for that address, and the address can be bound again.
+- O. Arrange: a receive loop on a loopback address no other test uses, whose full request ring has
+  dropped the only handles of processors that are still running, with a drain deadline shorter than
+  their hold. Act: cancel and join the receive loop. Assert: the address becomes bindable within the
+  lifecycle deadline.
+
+Comparison and changes:
+
+- C no longer needs to know its address before the start, so it now starts on port `0` and reads
+  the bound address back (`bound_to`). This removes the handoff between choosing the port and the
+  server binding it, which the old released-address fixture had.
+- R needs the address before the start, to claim it in the registry, so it keeps
+  `on_a_released_free_address`. That fixture's documentation said only ignored tests used it; it
+  now says why the address is safe and when to prefer `bound_to`.
+- O: the shared `ReceiveLoopHoldingRequests` fixture now takes the server address instead of reading
+  it from `UdpLauncherTestContext`, whose `bind_address` field had no other use and is removed. The
+  orphaned-processor scenario gains `start_on(server_ip)`, used by O. Its companion test keeps
+  `start()`, which binds `127.0.0.1`, because it does not rebind and must keep running on every
+  system. The client sockets stay on `127.0.0.1`.
+- The Acts and the assertions are unchanged.
+- Prose kept: in C and O, the comment on the address choice.
 
 ## Failures and Follow-up
 
