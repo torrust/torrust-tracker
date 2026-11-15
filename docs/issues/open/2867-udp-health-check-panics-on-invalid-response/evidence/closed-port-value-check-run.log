@@ -1,0 +1,8 @@
+    Finished `test` profile [optimized + debuginfo] target(s) in 1.80s
+     Running tests/integration.rs (target/debug/deps/integration-03e9de8f47257705)
+
+running 1 test
+test server::contract::udp::it_should_return_error_when_the_registered_udp_service_is_a_closed_udp_port ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; finished in 3.01s
+

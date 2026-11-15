@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2867-udp-health-check-panics-on-invalid-response/ISSUE.md
-last-updated-utc: 2026-11-15 12:45
+last-updated-utc: 2026-11-15 21:40
 ---
 
 # Manual Verification Evidence
@@ -15,13 +15,15 @@ actually run; nothing is invented.
 
 The temporary reproduction tests are stored verbatim as a diff in
 [`evidence/reproduction-tests.diff`](evidence/reproduction-tests.diff). The full test output of
-each run is in [`evidence/junk-reply-run.log`](evidence/junk-reply-run.log) and
-[`evidence/closed-port-run.log`](evidence/closed-port-run.log). The tests were reverted after the
+each run is in [`evidence/junk-reply-run.log`](evidence/junk-reply-run.log),
+[`evidence/closed-port-run.log`](evidence/closed-port-run.log) and
+[`evidence/closed-port-value-check-run.log`](evidence/closed-port-value-check-run.log); the V3 test
+change is in [`evidence/closed-port-value-check.diff`](evidence/closed-port-value-check.diff). The tests were reverted after the
 runs; `git status --short` showed no change under `packages/` afterwards.
 
 ## Environment and Prerequisites
 
-- Date and time (UTC): 2026-11-15 12:30 to 12:45
+- Date and time (UTC): 2026-11-15 12:30 to 12:45 (V1, V2) and 21:28 to 21:29 (V3)
 - Artifact under test: `develop` at commit `abd7a10ff` (Merge torrust/torrust-tracker#2863), with
   the temporary tests from `evidence/reproduction-tests.diff` applied to
   `packages/axum-health-check-api-server/tests/server/contract.rs`
@@ -116,10 +118,50 @@ test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; fin
 
 #### Conclusion
 
-On this machine a closed port does not panic: the check reports an error (the 2 s `select!` sleep
-wins and the result is `Timed Out`). The defect is triggered by a reply that arrives but does not
+On this machine a closed port does not panic: the check reports an error. This test asserts only
+`details.result.is_err()`; the `Timed Out` value is inferred from the 3.01 s run time (the 2 s
+`select!` sleep). V3 asserts the value. The defect is triggered by a reply that arrives but does not
 parse. A receive error (`UnableToReceivingData`) would reach the same `unwrap`, but it was not
 observed here.
+
+### V3 - Closed UDP port reports exactly `Timed Out` (rerun of V2 with a value assertion)
+
+- Goal: observe the `Timed Out` value that V2 only inferred.
+- Initial state: same as V2, with two changes to the closed-port test: it asserts
+  `assert_eq!(details.result, Err("Timed Out".to_string()))` instead of `is_err()`, and its comment
+  says nothing listens on the registered port.
+- Status: `DONE`
+
+#### Steps Performed
+
+1. Applied `evidence/closed-port-value-check.diff` (the V2 diff with the two changes above) at
+   2026-11-15 21:28 UTC, on `develop` at `abd7a10ff`, stable Rust toolchain `rustc 1.99.1`. The
+   integration test binary was rebuilt (the build log shows
+   `Compiling torrust-tracker-axum-health-check-api-server`).
+2. Ran:
+
+   ```bash
+   cargo test -p torrust-tracker-axum-health-check-api-server --test integration is_a_closed_udp_port -- --nocapture
+   ```
+
+3. Reverted the test file (`git checkout packages/`); `git status --short` then listed only the
+   new evidence files.
+
+#### Observed Result
+
+Full output: `evidence/closed-port-value-check-run.log`.
+
+```text
+test server::contract::udp::it_should_return_error_when_the_registered_udp_service_is_a_closed_udp_port ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; finished in 3.01s
+```
+
+#### Conclusion
+
+A closed UDP port gives exactly `Err("Timed Out")`, with no panic. The maintained contract test
+`it_should_return_error_when_udp_service_was_stopped_after_registration` asserts the same value for
+a stopped service.
 
 ## Failures and Follow-up
 

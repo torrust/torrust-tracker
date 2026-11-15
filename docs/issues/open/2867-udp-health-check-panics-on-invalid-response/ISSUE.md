@@ -9,7 +9,7 @@ github-issue: 2867
 spec-path: docs/issues/open/2867-udp-health-check-panics-on-invalid-response/ISSUE.md
 branch: "2867-udp-health-check-panics-on-invalid-response-spec"
 related-pr: 2868
-last-updated-utc: "2026-11-15 20:18"
+last-updated-utc: "2026-11-15 21:40"
 semantic-links:
   skill-links:
     - create-issue
@@ -85,7 +85,8 @@ implementation only touches tests.
 **Reproduced** on 2026-11-15 against `develop` at `abd7a10ff`, with a temporary integration test
 that registers a junk-answering UDP socket with the production `Launcher::check`. Commands, output
 and the test code are in [`manual-verification-evidence.md`](manual-verification-evidence.md)
-(V1) and [`evidence/`](evidence/). A closed UDP port (V2) does not panic: it reports `Timed Out`.
+(V1) and [`evidence/`](evidence/). A closed UDP port does not panic: it reports exactly `Err("Timed Out")` (V2, with the value
+asserted in V3).
 
 ## Scope
 
@@ -221,6 +222,8 @@ before maintainer review and commit. Use Conventional Commit messages with the n
   `evidence/`
 - 2026-11-15 20:18 UTC - Claude Code (Claude Opus 5.5) - Maintainer approved the draft; created
   issue #2867 and moved the spec to `docs/issues/open/` for a spec-only PR
+- 2026-11-15 21:40 UTC - Claude Code (Claude Opus 5.5) - Reran the closed-port check asserting
+  `Err("Timed Out")` (V3) for the first da2ce7 review of PR 2868 - `manual-verification-evidence.md`
 
 ## Acceptance Criteria
 
@@ -255,8 +258,8 @@ before maintainer review and commit. Use Conventional Commit messages with the n
 | ID  | Scenario                                       | Human-oriented command/steps                                                                                                           | Expected Result                                                       | Status | Evidence                                     |
 | --- | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- | ------ | -------------------------------------------- |
 | M1  | Initial reproduction with a junk-answering UDP | Temporary test from `evidence/reproduction-tests.diff`; `cargo test -p torrust-tracker-axum-health-check-api-server --test integration answers_the_check_with_junk` | Before the fix: panics and `IncompleteMessage` (bug observed)         | DONE   | `manual-verification-evidence.md` section V1 |
-| M2  | Closed-port scope check                        | Temporary test from `evidence/reproduction-tests.diff`; `cargo test ... is_a_closed_udp_port`                                          | `Timed Out` error result, no panic                                    | DONE   | `manual-verification-evidence.md` section V2 |
-| M3  | Like-for-like recheck after the fix            | Rerun M1 on the fixed build                                                                                                            | `200` report, status `Error`, UDP detail `Err(..)` naming the cause   | TODO   | `manual-verification-evidence.md` section V3 |
+| M2  | Closed-port scope check                        | Temporary test from `evidence/closed-port-value-check.diff` (asserts the value); `cargo test ... is_a_closed_udp_port`                 | `Err("Timed Out")` result, no panic                                   | DONE   | `manual-verification-evidence.md` sections V2 and V3 |
+| M3  | Like-for-like recheck after the fix            | Rerun M1 on the fixed build                                                                                                            | `200` report, status `Error`, UDP detail `Err(..)` naming the cause   | TODO   | `manual-verification-evidence.md` section V4 |
 
 Notes:
 
