@@ -146,15 +146,42 @@ follows each passing test-producing increment: T2 (the shared supervisor with th
 migrated), T3 (the owner-type change) and T4 (the `udp_ban_cleanup` migration), plus the final
 maintainer-review pause.
 
+## T1 Design Note (decided 2026-11-15)
+
+Diff of the three `supervise_token_aware_server` copies (checked against `torrust/develop`):
+
+- Join order, cancelled branch: health check joins server, joins controller, then maps. REST maps the
+  server-join error with `?` before joining the controller. HTTP does the same and also maps the controller
+  join first. The unexpected-stop branch already joins the controller first in all three.
+- Server task type: HTTP returns `T` (no inner `Result`); REST and health check return `Result<T, E>`.
+- Wording: HTTP uses `HTTP tracker failed while stopping` and `HTTP tracker runtime task failed`; REST and
+  health check use `<name> server task join failed [while stopping]` and
+  `<name> server runtime ... error`.
+
+Decisions (maintainer, 2026-11-15):
+
+1. **Shared supervisor**: one generic function with the health-check join order, parameterized by a
+   component name only. The REST and health-check wording is the template, so only the two HTTP messages
+   change wording (the HTTP test that asserts `HTTP tracker runtime task failed` is updated). The HTTP
+   server task is adapted to an infallible inner result.
+2. **Owner types**: keep `OwnedTask` and `TokenAwareServerTask` in the root. Keep `OwnedReceiveLoop` as the
+   `pub(crate)` package-local type. Reasons: the package cannot depend on the root crate;
+   `torrust-server-lib` is an external crate (0.6.0), so unifying needs a new shared workspace crate (or an
+   external release) just before the first publish; and `OwnedReceiveLoop` has a two-phase handoff
+   (`into_task`) that `OwnedTask` does not offer. T3 is therefore a recorded decision with no code change.
+3. **`udp_ban_cleanup` events**: `reset_bans` writes the banned-IPs gauge directly to the stats repository
+   under `PublicationOrder`; it publishes no event. So the job has no event-flow edge, only the stop-last
+   edge.
+
 ## Implementation Plan
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
-| T1 | TODO | Design note: diff the three supervisors, decide the owner types, re-check that `udp_ban_cleanup` publishes nothing. Present it to the maintainer before coding. | A short section in this spec; the maintainer's decision is recorded. |
+| T1 | DONE | Design note: diff the three supervisors, decide the owner types, re-check that `udp_ban_cleanup` publishes nothing. Present it to the maintainer before coding. | A short section in this spec; the maintainer's decision is recorded. |
 | T2 | TODO | Add the shared supervisor with tests (a table of the join and error cases, including a server-join error that must still join the controller), migrate the health check first, then HTTP and REST. | Existing component tests keep passing unchanged; the controller-join case is new. Design-review checkpoint. |
-| T3 | TODO | Apply the owner-type decision. | Code and tests per T1. Design-review checkpoint. |
+| T3 | DONE | Apply the owner-type decision. | Code and tests per T1. Design-review checkpoint. |
 | T4 | TODO | Migrate `udp_ban_cleanup` to `reserve` and `spawn`; remove the legacy registration path from `JobManager`. | The stop-order test in `src/app.rs` asserts the job stops before `health_check_api`; no `register_legacy` or `legacy_cancellation_token` remains. Design-review checkpoint. |
 | T5 | TODO | Update the ADRs, architecture and shutdown-process docs. | `git grep` finds no live mention of the legacy job. |
 | T6 | TODO | Verify and record evidence. | `manual-verification-evidence.md`. |
@@ -180,7 +207,7 @@ Sign every commit with GPG.
 - [x] Spec reviewed and approved by the maintainer (decisions of 2026-11-12, in chat)
 - [x] GitHub issue created and issue number added to this spec (#2845)
 - [ ] Spec-only PR merged into `develop` before implementation
-- [ ] Owner-type design decision recorded (T1)
+- [x] Owner-type design decision recorded (T1)
 - [ ] Implementation completed
 - [ ] Design review after the first passing vertical slice recorded
 - [ ] Automatic verification completed (`linter all`, relevant tests, pre-push checks)
@@ -193,6 +220,7 @@ Sign every commit with GPG.
 
 - 2026-11-11 09:40 UTC - AI agent (Claude Sonnet 5.5) - Draft created as a follow-up of SI-19; registered as SI-26 of EPIC 1488 at 16:30 UTC.
 - 2026-11-12 14:30 UTC - AI agent (Claude Sonnet 5.5) - Refreshed against `torrust/develop` at `388faf59a`: replaced the vague scope with the four findings above, folded in the SI-21 follow-up (the legacy `udp_ban_cleanup` job is not ordered by the stop-last edge), and recorded the maintainer's decisions of 2026-11-12 (SI-26 absorbs the migration; lands before #2583).
+- 2026-11-15 UTC - AI agent (Claude Sonnet 5.5) - T1 design note recorded with the maintainer's decisions (shared supervisor with one wording template; `OwnedReceiveLoop` stays package-local; `udp_ban_cleanup` publishes no events). T3 closed as a decision-only task.
 
 ## Acceptance Criteria
 
