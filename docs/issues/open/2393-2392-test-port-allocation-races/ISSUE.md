@@ -354,8 +354,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   listed in the run summary.
 - `linter all` and the pre-push checks.
 - `manual-verification-evidence.md`: V1 (original reproduction) and V4 (150-run recheck after the
-  change); for T5, V5 (red-then-green per restored or rewritten test) and V6 (150-run recheck with
-  the restored tests running).
+  change); for T5, V5 (red-then-green per restored or rewritten test), V6 (150-run recheck with
+  the restored tests running) and V7 (test-design review per increment).
 
 ### Manual Verification Scenarios
 
