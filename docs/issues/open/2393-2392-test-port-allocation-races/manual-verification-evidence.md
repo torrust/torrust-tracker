@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2393-2392-test-port-allocation-races/ISSUE.md
-last-updated-utc: "2026-11-15 12:27"
+last-updated-utc: "2026-11-15 12:24"
 ---
 
 <!-- markdownlint-disable MD003 -->
@@ -182,7 +182,7 @@ A first UDP mutation answered with junk bytes. The test failed, but by a panic i
 handler, not by its assertion, so it was replaced by the valid connect response above. That panic is
 noted under [Failures and Follow-up](#failures-and-follow-up).
 
-#### T9 - the loopback helper, 2026-11-15 12:27 UTC
+#### T9 - the loopback helper, 2026-11-15 12:20 UTC
 
 Command:
 `cargo nextest run -p torrust-tracker-test-helpers --all-features --no-fail-fast -E 'test(/loopback|127_0_0_1/)'`
@@ -194,6 +194,21 @@ Command:
 
 Green: both tests pass on the committed code. Mutation B leaves the port-sharing test passing, as
 expected: a random address in the wider range still shares the port.
+
+#### T9 - server registration-failure tests, 2026-11-15 12:22 UTC
+
+Tests: `server::tests::it_should_release_the_listener_when_token_aware_startup_registration_fails`
+in `axum-http-server`, `axum-rest-api-server` and `axum-health-check-api-server`.
+
+Command:
+`cargo nextest run --all-features --no-fail-fast -p torrust-tracker-axum-rest-api-server -p torrust-tracker-axum-http-server -p torrust-tracker-axum-health-check-api-server -E 'test(/it_should_release_the_listener_when_token_aware_startup_registration_fails/)'`
+
+- Mutation, in each server's registration-failure branch: drop the server task and the drain
+  controller (detaching them) instead of aborting and joining them. The REST API branch still
+  cancels the caller's token, so only the release clause is broken.
+- Red: 5 of 5 runs, 3 of 3 tests failed each time, each on its release assertion, for example
+  "REST API listener should be released after token-aware registration failure: … AddrInUse".
+- Green: 20 of 20 runs passed on the committed code.
 
 ### V7 - Test-design review per increment
 
@@ -250,6 +265,30 @@ Comparison and changes:
   one test, because the rule is the same for both; each assertion message names its protocol. It is
   ignored off Linux, like the restored tests.
 - No prose was kept; the test names and messages say it.
+
+#### T9 - server registration-failure tests
+
+Prose, shared by the three tests:
+
+- Arrange: an address that no server holds, on a loopback address no other test uses, is already
+  claimed in the registry by another registration.
+- Act: start the server on that address with a cancellation token.
+- Assert: the start fails with the duplicate-binding registration error for that address (the REST
+  API test also checks that the caller's token is cancelled), and the address can be bound again as
+  soon as the start returns.
+
+Comparison and changes:
+
+- The only change is where the address comes from: `random::loopback_ipv4()` instead of
+  `127.0.0.1`. It is test isolation, not part of the causal state, so in the HTTP and health-check
+  tests it stays inside the `ServerStartWithDuplicateRegistration` fixture. A comment there now says
+  why the address is not `127.0.0.1`, next to the existing note that the listener is released before
+  the start.
+- The Act and the assertions are unchanged and visible.
+- Not changed: the REST API test builds the same scenario inline (address, configuration,
+  registration), a Complex Arrange compared with the other two. Extracting a fixture is a refactor
+  outside this change, so it is left for the maintainer's review rather than done here.
+- Prose kept: the comment on the address choice, because the reason is not evident from the call.
 
 ## Failures and Follow-up
 

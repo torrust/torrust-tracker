@@ -210,6 +210,7 @@ mod tests {
     use torrust_tracker_axum_server::signals::GracefulShutdownOutcome;
     use torrust_tracker_configuration::v3_0_0::shutdown::Shutdown;
     use torrust_tracker_primitives::{ConfigurationInstanceId, Readiness, RuntimeServiceMetadata, ServiceRole};
+    use torrust_tracker_test_helpers::random;
 
     use crate::server::{Error, start_with_cancellation};
 
@@ -235,7 +236,10 @@ mod tests {
 
     impl ServerStartWithDuplicateRegistration {
         async fn new() -> Self {
-            let available_listener = TcpListener::bind(any_available_port()).expect("select available health-check address");
+            // A random loopback address, not 127.0.0.1, keeps tests that bind `127.0.0.1:0` from
+            // taking the released port before the server binds it or before the test rebinds it (#2393).
+            let available_listener =
+                TcpListener::bind((random::loopback_ipv4(), 0)).expect("select available health-check address");
             let bind_to = available_listener.local_addr().expect("read available health-check address");
             drop(available_listener);
             let registar = Registar::default();
@@ -400,7 +404,7 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "flaky port race, see #2393"]
+    #[cfg_attr(not(target_os = "linux"), ignore = "needs the Linux 127.0.0.0/8 loopback range, see #2393")]
     async fn it_should_release_the_listener_when_token_aware_startup_registration_fails() {
         // Arrange
         let scenario = ServerStartWithDuplicateRegistration::new().await;
