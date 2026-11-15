@@ -88,6 +88,43 @@ regions) caught `readiness.rs` at 50 / 52 lines instead of 52 / 52, a file this 
 coverage varied between runs (every other run read 52 / 52). Observation for the S4 `readiness.rs` record: find what
 makes that coverage vary.
 
+### S4 (`swarm_metadata.rs`, no-change files, final measurement), 2026-11-15
+
+Measured on branch `2824-1347-add-tests-primitives-final` after the S3 merge (#2852), with `cargo-llvm-cov 0.6.16` and
+stable Rust 1.99.1, same command as the baseline, in a separate `CARGO_LLVM_COV_TARGET_DIR` after
+`cargo llvm-cov clean --workspace`. The first S4 baseline run, in the shared target directory, read stale profile data
+(it reported lines 75-80 of the 70-line `swarm_metadata.rs`, the deleted `AddAssign`, and 33 lines in `mode.rs`); it
+was discarded and repeated in the separate directory.
+
+| Point | Tests | Lines | Regions | Functions |
+| --- | ---: | ---: | ---: | ---: |
+| S4 start (`develop` after #2852) | 105 unit | 1,049 / 1,126 (93.16%) | 1,659 / 1,752 (94.69%) | 203 / 219 (92.69%) |
+| After `swarm_metadata.rs` | 109 unit | 1,077 / 1,145 (94.06%) | 1,698 / 1,782 (95.29%) | 210 / 223 (94.17%) |
+| Final (after the no-change rows and the T4 index fix) | 109 unit | 1,078 / 1,146 (94.07%) | 1,702 / 1,786 (95.30%) | 210 / 223 (94.17%) |
+
+The S4 start is 5 lines above the S3 close (1,044 / 1,121) with no source change in between: the S3 review commit
+`test(primitives): [#2824] compare serialized JSON by value, not by string` changed tests in `announce.rs`, `mode.rs`
+and `policy.rs` after the S3 figures were taken. `swarm_metadata.rs` moved from 3 / 12 to 31 / 31 (+28 covered, +19
+lines, the whole step); `configuration_instance_id.rs` from 42 / 42 to 43 / 43 (one longer assertion). The T4 index fix
+changes a literal only, so the final figures equal the no-change step.
+
+### Final Measurement (AC3)
+
+| Scope | Tests | Lines | Regions | Functions |
+| --- | ---: | ---: | ---: | ---: |
+| Baseline (`eaae0e487`) | 47 unit | 453 / 748 (60.56%) | 712 / 1,048 (67.94%) | 91 / 159 (57.23%) |
+| Final (S4 branch) | 109 unit | 1,078 / 1,146 (94.07%) | 1,702 / 1,786 (95.30%) | 210 / 223 (94.17%) |
+| Change | +62 | +33.51 pp | +27.36 pp | +36.94 pp |
+
+Per file, final unit-only lines: `announce.rs` 56 / 56, `announce_interval.rs` 113 / 113, `configuration_instance_id.rs`
+43 / 43, `driver.rs` 59 / 59, `mode.rs` 25 / 25, `number_of_bytes.rs` 3 / 3, `pagination.rs` 42 / 42, `peer.rs`
+510 / 578, `policy.rs` 44 / 44, `readiness.rs` 52 / 52, `runtime_service_metadata.rs` 32 / 32, `scrape.rs` 28 / 28,
+`service_role.rs` 40 / 40, `swarm_metadata.rs` 31 / 31 (`peer_id.rs` and `lib.rs` have no executable entries). The 68
+uncovered lines are all in `peer.rs`: the `peer::fixture` test support and `peer::Id::new`, classified in
+`test-refactor-plans/peer.md` (owned by the F5 follow-up). The baseline includes code removed by other issues since
+(`Peer` `Ord`, `AddAssign`), and the totals include the in-file test modules, so the change is not only tests of
+existing code.
+
 ## Module Inventory
 
 Every `.rs` file under `packages/primitives/src/` (16 files), once. "Initial hypothesis" is a
