@@ -94,7 +94,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
 | T1 | TODO | Define the search method | Repeatable search commands per resource class, recorded in `inventory.md`. |
-| T2 | TODO | Inventory network ports | Reuse #2393's per-test inventory for Rust tests (its rows are **Covered** by #2393) and audit only what it did not cover: E2E runners, Compose files, container test scripts, and CI workflow steps. |
+| T2 | TODO | Inventory network ports | Reuse #2393's per-test inventory for Rust tests: mark **Covered** only the rows #2393 owns (its ignored and rewritten tests). #2393 covers races within one suite run, so still audit Rust tests for collisions between concurrent runs on one host (for example the fixed ports `17091`-`17094` in `tests/metrics/fixed_ports.rs`, and the `reserve_free_ports` users in `tests/configuration/`, which #2393 left unchanged), and audit E2E runners, Compose files, container test scripts, and CI workflow steps. |
 | T3 | TODO | Inventory container resources | Findings with dispositions. |
 | T4 | TODO | Inventory filesystem paths | Findings with dispositions. |
 | T5 | TODO | Inventory process-global state and external services | Findings with dispositions. |
