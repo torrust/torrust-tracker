@@ -100,7 +100,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | Order | Issue | Local Spec | Status | Notes |
 | ----- | ----- | ---------- | ------ | ----- |
-| 1 | #2393 - Eliminate parallel test port allocation races | `docs/issues/open/2393-2392-test-port-allocation-races/ISSUE.md` | IN_PROGRESS | Bug. PR #2859 (merged) ignored 21 racing tests and rewrote 4 that needed no real port; the full suite then passed 150 of 150 runs. Open: T5, the maintainer's decision on each ignored test. |
+| 1 | #2393 - Eliminate parallel test port allocation races | `docs/issues/open/2393-2392-test-port-allocation-races/ISSUE.md` | IN_PROGRESS | Bug. PR #2859 (merged) ignored 21 racing tests and rewrote 4 that needed no real port. The full suite passed 150 of 150 runs with the 18 tests ignored at that head, and 20 of 20 runs with the final 21. Open: T5, the maintainer's decision on each ignored test. |
 | 2 | #2394 - Audit shared test resources | `docs/issues/open/2394-2392-audit-shared-test-resources/ISSUE.md` | TODO | Task. Inventories the resource classes in scope, records a disposition for each finding, and drafts subissues for confirmed problems. |
 | 3 | #2395 - Use dynamic host ports in the E2E runner | `docs/issues/open/2395-2392-e2e-runner-dynamic-host-ports/ISSUE.md` | TODO | Task. Removes fixed E2E host ports. Independent of orders 1 and 2. |
 | 4 | #2396 - Use a unique tracker image tag per CI run | `docs/issues/open/2396-2392-e2e-unique-tracker-image-tag/ISSUE.md` | TODO | Task. Prevents one run from testing another run's image. Latent today (one runner instance per server). Independent of order 3. |
@@ -147,8 +147,9 @@ For each subissue implementation in this EPIC, the default completion policy is:
 
 - Outcome: the full nextest suite no longer fails with port-allocation `AddrInUse`.
 - Exit criteria: order 1 is done, including its repeated full-suite recheck.
-- State: the outcome is reached (PR #2859; 150 of 150 full-suite runs passed with the racing tests
-  ignored). Order 1 stays open for T5, the decision on each ignored test.
+- State: the outcome is reached (PR #2859; 150 of 150 full-suite runs passed with the 18 tests
+  ignored at that head, and 20 of 20 with the final 21). Order 1 stays open for T5, the decision on
+  each ignored test.
 
 ### Phase 2 - Know the remaining shared resources
 
@@ -233,7 +234,7 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
 | AC1 | DONE | GitHub sub-issues of #2392: #2393, #2394, #2395, #2396, #1419 |
-| AC2 | TODO | Order 1 `manual-verification-evidence.md` (V4: 150 of 150 runs passed with 21 tests ignored; stays TODO until #2393 T5 decides them) |
+| AC2 | TODO | Order 1 `manual-verification-evidence.md` (V4: 150 of 150 runs passed with the 18 tests ignored at that head; check 3: 20 of 20 with the final 21; stays TODO until #2393 T5 decides them) |
 | AC3 | TODO | Orders 3 and 4 `manual-verification-evidence.md` |
 | AC4 | TODO | Order 2 inventory |
 | AC5 | TODO | Documentation PR |
