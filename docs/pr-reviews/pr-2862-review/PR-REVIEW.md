@@ -54,7 +54,9 @@ the detail entries. The review is on the head ending in `docs(pr-reviews): [#239
 time in the PR 2862 processing log`. Its body has no other actionable assertion.
 
 Round 3 had da2ce7's review 5910804092 (APPROVED) with one Nit, F7, assigned F10 because F7 is
-taken. Its body has no other actionable assertion.
+taken. Its body has no other actionable assertion. Copilot's review 5910816983 on the same head
+had two Nits with reviewer IDs F7 and F10, both taken, so they are assigned F11 (a re-raise of
+F10) and F12.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -68,6 +70,8 @@ taken. Its body has no other actionable assertion.
 | F8 | review-finding:pr-2862-f8 | Human | Major | correctness | ORIGINAL | FIXED | RESOLVED |
 | F9 | review-finding:pr-2862-f9 | Human | Major | documentation | ORIGINAL | FIXED | RESOLVED |
 | F10 | review-finding:pr-2862-f10 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-2862-f11 | Copilot | Nit | metadata | RE_RAISE_OF:F10 | NO_ACTION | SUPERSEDED |
+| F12 | review-finding:pr-2862-f12 | Copilot | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -201,6 +205,32 @@ taken. Its body has no other actionable assertion.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2862#discussion_r4578458524>
 
+### F11 - The EPIC log entry still dates the merge of develop at 12:32
+
+- PR number: 2862
+- Source review ID: 5910816983
+- Reviewer finding ID: F7
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2862#discussion_r4578464234>
+- Concern: the same as F10, raised on the head before the F10 fix.
+- Solution: no separate change; F10's fix covers it.
+- Current-tree verification: as for F10.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2862#discussion_r4578474607>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2862#discussion_r4578474607>
+
+### F12 - The rewritten 12:17 processing-log entry was not preserved
+
+- PR number: 2862
+- Source review ID: 5910816983
+- Reviewer finding ID: F10
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2862#discussion_r4578464260>
+- Concern: the 12:15 UTC correction rewrote the 12:17 entry's time to 12:14 in place instead of restoring the original entry, which the skill asks for so the record keeps the mistake's history.
+- Solution: appended a 12:54 UTC entry that quotes the original 12:17 entry verbatim and names the commit that carried it. Quoting instead of restoring it in place keeps the chronological order the validator enforces.
+- Current-tree verification: `git show` of the commit `docs(pr-reviews): [#2392] cite the round-1 head of PR 2862 by its commit subject` has the 12:17 entry text, which the 12:54 entry quotes unchanged; the validator reports 0 failures.
+- Resolution reference: docs(pr-reviews): [#2392] quote the rewritten 12:17 entry in the PR 2862 processing log
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2862#discussion_r4578474713>
+
 ## Processing Log
 
 - 2026-11-15 12:08 UTC - Committed the F1 fix, then the F4, F2 and F3 fixes and the spec progress-log entries (last commit 12:11 UTC), one commit each.
@@ -217,6 +247,7 @@ taken. Its body has no other actionable assertion.
 - 2026-11-15 12:49 UTC - Round 3: da2ce7's review 5910804092 (APPROVED) arrived with one Nit, F7, assigned F10 because F7 is taken.
 - 2026-11-15 12:50 UTC - Committed the F10 fix, then replied on its thread (12:51:18 UTC) and added F10 to this record.
 - 2026-11-15 12:54 UTC - Restoring, for F12, the entry the 12:15 UTC correction rewrote. It was committed in `docs(pr-reviews): [#2392] cite the round-1 head of PR 2862 by its commit subject` as: "2026-11-15 12:17 UTC - Before the push, the PR-branch commit-id check flagged the round-1 head id in the Findings introduction; replaced it with that commit's subject." It is quoted here instead of restored in place, because a 12:17 entry before the 12:15 correction would break the log's chronological order.
+- 2026-11-15 12:56 UTC - After pushing the F10 fix (which dismissed da2ce7's approval), found Copilot's review 5910816983 (12:52:47 UTC, on the previous head) with two Nits, assigned F11 and F12; committed the F12 fix (the entry above), replied on both threads (12:55:45 and 12:55:47 UTC) and added F11 and F12 to this record.
 
 ## Completion Rules
 
