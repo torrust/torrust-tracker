@@ -211,7 +211,7 @@ Sign every commit with GPG.
 - [x] Implementation completed
 - [ ] Design review after the first passing vertical slice recorded
 - [x] Automatic verification completed (`linter all`, relevant tests, pre-push checks)
-- [x] Manual verification scenarios executed and recorded in `manual-verification-evidence.md`
+- [ ] Manual verification scenarios executed and recorded in `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
@@ -222,6 +222,7 @@ Sign every commit with GPG.
 - 2026-11-12 14:30 UTC - AI agent (Claude Sonnet 5.5) - Refreshed against `torrust/develop` at `388faf59a`: replaced the vague scope with the four findings above, folded in the SI-21 follow-up (the legacy `udp_ban_cleanup` job is not ordered by the stop-last edge), and recorded the maintainer's decisions of 2026-11-12 (SI-26 absorbs the migration; lands before #2583).
 - 2026-11-15 UTC - AI agent (Claude Sonnet 5.5) - T1 design note recorded with the maintainer's decisions (shared supervisor with one wording template; `OwnedReceiveLoop` stays package-local; `udp_ban_cleanup` publishes no events). T3 closed as a decision-only task.
 - 2026-11-15 UTC - AI agent (Claude Sonnet 5.5) - Implemented T2 (shared supervisor in `token_aware_server.rs`, health-check join order, table test), T4 (`udp_ban_cleanup` reserved; legacy path and root token removed) and T5 (docs). Manual scenarios M1-M4 still to be run and recorded.
+- 2026-11-15 21:13 UTC - AI agent (Claude Opus 5.5) - Copilot review of PR #2870: re-ran M2 on dedicated ports with the script and output recorded in the evidence file; set M3 and M4 back to TODO (not run against the binary; M4 needs a reset interval of at least 3600 s) and unticked the manual-verification checkpoint.
 
 ## Acceptance Criteria
 
@@ -255,8 +256,8 @@ exit status and shutdown output, then prove the bindings are released).
 | -- | -------- | ---------------------------- | --------------- | ------ | -------- |
 | M1 | Legacy path gone | `git grep` for `register_legacy`, `legacy_cancellation_token`, `LegacyJob`. | No match outside archived specs and history. | DONE | `manual-verification-evidence.md` |
 | M2 | Orderly shutdown, all services | Start the tracker with HTTP, REST, UDP, health check and a UDP ban reset interval; send `SIGTERM`, then `SIGINT` in a second run. | Exit code 0; the log shows `udp_ban_cleanup` stopped before `health_check_api` was released; the stop order of the other components is unchanged; ports released. | DONE | `manual-verification-evidence.md` |
-| M3 | Failure path | Hold a REST request open past its drain so a component fails (the SI-21 V6 recipe). | Exit code 1 within `P`; the failed outcome is reported as before; the health server does not delay the exit past `P`. | BLOCKED | `manual-verification-evidence.md` |
-| M4 | Ban cleanup still resets bans | Run with a short `ip_bans_reset_interval_in_secs`, ban an IP, wait one interval. | The ban is reset and the metric updates, as before the migration. | DONE | `manual-verification-evidence.md` |
+| M3 | Failure path | Hold a REST request open past its drain so a component fails (the SI-21 V6 recipe). | Exit code 1 within `P`; the failed outcome is reported as before; the health server does not delay the exit past `P`. | TODO | `manual-verification-evidence.md` |
+| M4 | Ban cleanup still resets bans | Run with a short `ip_bans_reset_interval_in_secs`, ban an IP, wait one interval. | The ban is reset and the metric updates, as before the migration. | TODO | `manual-verification-evidence.md` |
 
 ### Disposable Verification Scripts
 
