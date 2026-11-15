@@ -225,8 +225,13 @@ This skill moved to [`.claude/skills/<name>/SKILL.md`](<relative path>) in issue
   its skill name. The stub files and the inventory match exactly: every inventoried path has a
   stub, and no stub is missing from the inventory. Deleting only a stub therefore fails. A skill
   added after the move is not in the inventory and needs no stub.
-- Every stub has no frontmatter and exactly one link, which resolves to an existing
-  `.claude/skills/<name>/SKILL.md` with the stub's folder name. No other file exists under
+- Inventory rows and stubs are never deleted. When an inventoried skill is later renamed, its stub
+  links to the new name; when it is removed, its stub says so and links to the skill's last
+  version on `develop` or to its replacement, and its inventory row records the removal. The
+  validator accepts a stub marked removed without a link to an existing skill.
+- Every stub that is not marked removed has no frontmatter and exactly one link, which resolves to
+  an existing `.claude/skills/<name>/SKILL.md` with the stub's folder name, or with the new name
+  its inventory row records. No other file exists under
   `.github/skills/` apart from the stubs and their README.
 - `.claude/skills/README.md` lists every skill folder exactly once and names no missing skill.
 - These repository-wide rules run on every commit and in CI, not only on staged files, so
