@@ -125,7 +125,7 @@ Test isolation rules (apply to every subissue):
 6. When a test contract needs a fixed resource, document why in the test. Fixed ports must be
    outside the ephemeral range (`32768`-`60999` by default on Linux).
 
-Racing port shapes found by #2393 (its spec's Inventory section has the per-test list):
+Racing port shapes found by #2393 (its spec's Inventory section has the per-test table):
 
 - **Bind, drop, reuse.** The test binds port `0`, reads the address, drops the socket and hands
   the address to the server (rule 3).
@@ -133,6 +133,9 @@ Racing port shapes found by #2393 (its spec's Inventory section has the per-test
   released port to prove it was released. A concurrent port-`0` bind can receive that port.
 - **Released port handed back within one test.** A test stops a service and starts another on port
   `0`; the kernel can hand back the released port while the registry still holds it.
+- **Released port probed and expected dead.** A test stops a service and expects nothing to answer
+  on its released port; another test can bind that port and answer. Three of the 21 ignored tests
+  (the health-check contract tests) have this shape.
 
 For each subissue implementation in this EPIC, the default completion policy is:
 

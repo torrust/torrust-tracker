@@ -50,7 +50,7 @@ test scripts, and CI workflow steps that run tests:
 
 | Class | Examples to look for |
 | --- | --- |
-| Network ports | Fixed ports; port `0` selected and released before use; fixed ports inside the ephemeral range; a released port rebound to prove release; a released port handed back within one test |
+| Network ports | Fixed ports; port `0` selected and released before use; fixed ports inside the ephemeral range; a released port rebound to prove release; a released port handed back within one test; a released port probed and expected dead |
 | Container resources | Fixed image tags, container names, network names, volume names, Compose project names |
 | Filesystem paths | Fixed paths under `storage/`, `/tmp`, or the repository; shared database files |
 | Process-global state | `std::env::set_var`, global tracing subscribers, statics, current directory changes |
