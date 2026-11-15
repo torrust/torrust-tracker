@@ -8,7 +8,7 @@ epic: 1347
 github-issue: 2824
 spec-path: docs/issues/open/2824-1347-add-tests-primitives/ISSUE.md
 branch: "2824-1347-add-tests-primitives-final"
-related-pr: 2852
+related-pr: 2864
 last-updated-utc: "2026-11-15 08:36"
 semantic-links:
   skill-links:
@@ -236,7 +236,7 @@ the maintainer (2026-11-10):
 | S1 | Defect fixes decided in this issue (T2a): F2 `PeerRole` JSON casing, only (F1 fixed upstream; F3, F4, F5 handed off). Merged first, so the test slices pin the fixed behavior. | - | `2824-1347-add-tests-primitives-fixes` | #2834 | DONE |
 | S2 | T2, then `peer.rs` (rank 1, the largest gap) | 1 | `2824-1347-add-tests-primitives-peer` | #2841 | DONE |
 | S3 | Configuration defaults and bounded values: `announce.rs`, `policy.rs`, `mode.rs`, `pagination.rs`, `announce_interval.rs` | 2-6 | `2824-1347-add-tests-primitives-defaults` | #2852 | DONE |
-| S4 | `swarm_metadata.rs`, no-change decisions for the covered and wiring files, then T4-T6; updates the EPIC tables; the spec moves to `docs/issues/closed/` in a separate `cleanup-completed-issues` PR after the issue closes (as for #2637) | 7-16 | `2824-1347-add-tests-primitives-final` | - | IN_PROGRESS |
+| S4 | `swarm_metadata.rs`, no-change decisions for the covered and wiring files, then T4-T6; updates the EPIC tables; the spec moves to `docs/issues/closed/` in a separate `cleanup-completed-issues` PR after the issue closes (as for #2637) | 7-16 | `2824-1347-add-tests-primitives-final` | #2864 | IN_PROGRESS |
 
 Rules: S0 to S3 use `Related to #2824`; only S4 uses `Closes #2824`. Do not stack
 branches; keep at most one implementation PR open. Titles follow the repository convention, for
