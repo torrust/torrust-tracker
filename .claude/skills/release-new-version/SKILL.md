@@ -1,6 +1,6 @@
 ---
 name: release-new-version
-description: Guide for releasing a new version of the Torrust Tracker using the standard staging branch, tag, and crate publication workflow. Covers version bump, release commit, staging branch promotion, PR to main, release branch/tag creation, crate publication, and merge-back to develop. Use when asked to "release", "cut a version", "publish a new version", or "create release vX.Y.Z".
+description: "Release a new tracker version: version bump, staging branch, PR to main, tag, crate publication, merge-back. Use when asked to release or cut version vX.Y.Z."
 metadata:
   author: torrust
   version: "1.0"

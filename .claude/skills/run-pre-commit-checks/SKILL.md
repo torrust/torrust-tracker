@@ -1,6 +1,6 @@
 ---
 name: run-pre-commit-checks
-description: Run all mandatory pre-commit verification steps for the torrust-tracker project. Covers the pre-commit script (automated checks), manual review steps, and individual linter commands for debugging. Use before any commit or PR to ensure all quality gates pass. Triggers on "pre-commit checks", "run all checks", "verify before commit", or "check everything".
+description: Run every check of the pre-commit hook, or one step alone to debug it. Use before committing, or when the pre-commit hook fails.
 metadata:
   author: torrust
   version: "1.0"

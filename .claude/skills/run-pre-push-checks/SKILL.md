@@ -1,6 +1,6 @@
 ---
 name: run-pre-push-checks
-description: Run all mandatory pre-push verification steps for the torrust-tracker project. Covers the pre-push script (automated checks), output modes, and log-directory configuration. Use before pushing or when running the nightly toolchain checks and the full stable test suite. Triggers on "pre-push checks", "run pre-push", "verify before push", or "push checks".
+description: "Run the pre-push checks: the nightly toolchain checks and the full stable test suite. Use before pushing, or when the pre-push hook fails."
 metadata:
   author: torrust
   version: "1.0"

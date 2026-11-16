@@ -37,16 +37,16 @@ at a comment (see `manual-verification-evidence.md`, V0).
 | CI | `watch-pull-request-checks` | 352 | 130 | 155 |  |
 | Debugging | `fix-bug` | 337 | 120 | 170 |  |
 | Environment setup | `run-tracker-locally` | 334 | 120 | 161 |  |
-| Git workflow | `commit-changes` | 399 | 140 |  |  |
-| Git workflow | `create-feature-branch` | 359 | 130 |  |  |
-| Git workflow | `merge-pull-request` | 222 | 80 |  |  |
-| Git workflow | `open-pull-request` | 306 | 110 |  |  |
-| Git workflow | `push-changes` | 329 | 120 |  |  |
-| Git workflow | `release-new-version` | 377 | 130 |  |  |
-| Git workflow | `release-workspace-package` | 358 | 130 |  |  |
-| Git workflow | `run-linters` | 397 | 140 |  |  |
-| Git workflow | `run-pre-commit-checks` | 356 | 130 |  |  |
-| Git workflow | `run-pre-push-checks` | 355 | 130 |  |  |
+| Git workflow | `commit-changes` | 399 | 140 | 123 |  |
+| Git workflow | `create-feature-branch` | 359 | 130 | 127 |  |
+| Git workflow | `merge-pull-request` | 222 | 80 | 147 |  |
+| Git workflow | `open-pull-request` | 306 | 110 | 183 |  |
+| Git workflow | `push-changes` | 329 | 120 | 178 |  |
+| Git workflow | `release-new-version` | 377 | 130 | 157 |  |
+| Git workflow | `release-workspace-package` | 358 | 130 | 146 |  |
+| Git workflow | `run-linters` | 397 | 140 | 176 |  |
+| Git workflow | `run-pre-commit-checks` | 356 | 130 | 128 |  |
+| Git workflow | `run-pre-push-checks` | 355 | 130 | 138 |  |
 | GitHub | `link-subissue-to-parent-issue` | 483 | 170 |  |  |
 | Logging | `structured-runtime-logging` | 204 | 80 |  |  |
 | Maintenance | `add-rust-dependency` | 352 | 130 |  |  |
@@ -133,52 +133,52 @@ at a comment (see `manual-verification-evidence.md`, V0).
 #### `commit-changes`
 
 - Before (399): Guide for committing changes in the torrust-tracker project. Covers conventional commit format, pre-commit verification checklist, GPG signing, and commit quality guidelines. Use when committing code, running pre-commit checks, or following project commit standards. Triggers on "commit", "commit changes", "how to commit", "pre-commit", "commit message", "commit format", or "conventional commits".
-- After: not yet rewritten
+- After (123): Commit changes as signed Conventional Commits after the pre-commit checks. Use when committing or writing a commit message.
 
 #### `create-feature-branch`
 
 - Before (359): Guide for creating feature branches following the torrust-tracker branching conventions. Covers branch naming format, lifecycle, and common patterns. Use when creating branches for issues, starting work on tasks, or setting up development branches. Triggers on "create branch", "new branch", "checkout branch", "branch for issue", or "start working on issue".
-- After: not yet rewritten
+- After (127): Create a feature branch named by the project's branch conventions. Use when starting work on an issue or creating a new branch.
 
 #### `merge-pull-request`
 
 - Before (222): Safely construct, inspect, validate, sign, and optionally push a maintainer GitHub pull-request merge using the repository-local vendored tool. Use when asked to merge a pull request or perform a maintainer merge workflow.
-- After: not yet rewritten
+- After (147): Build, inspect, sign and optionally push a maintainer merge of a pull request with the vendored merge tool. Use when asked to merge a pull request.
 
 #### `open-pull-request`
 
 - Before (306): Open a pull request from a feature branch using GitHub CLI (preferred) or GitHub MCP tools. Covers pre-flight checks, correct base/head configuration for fork workflows, title/body conventions, and post-creation validation. Use when asked to "open PR", "create pull request", or "submit branch for review".
-- After: not yet rewritten
+- After (183): Open a pull request from a feature branch with the GitHub CLI: fork base and head, title and body conventions, checks after. Use when asked to open a PR or submit a branch for review.
 
 #### `push-changes`
 
 - Before (329): Guide for pushing commits in the torrust-tracker project. Covers the push workflow, pre-push hook setup, and the SSH idle-timeout problem that can interrupt pushes when the pre-push hook runs long. Triggers on "push changes", "git push", "how to push", "push branch", "SSH timeout on push", or "Connection closed by remote host".
-- After: not yet rewritten
+- After (178): Push commits through the pre-push hook, and avoid the SSH idle timeout when the hook runs long. Use when pushing a branch or a push fails with "Connection closed by remote host".
 
 #### `release-new-version`
 
 - Before (377): Guide for releasing a new version of the Torrust Tracker using the standard staging branch, tag, and crate publication workflow. Covers version bump, release commit, staging branch promotion, PR to main, release branch/tag creation, crate publication, and merge-back to develop. Use when asked to "release", "cut a version", "publish a new version", or "create release vX.Y.Z".
-- After: not yet rewritten
+- After (157): Release a new tracker version: version bump, staging branch, PR to main, tag, crate publication, merge-back. Use when asked to release or cut version vX.Y.Z.
 
 #### `release-workspace-package`
 
 - Before (358): Guide for releasing a single workspace package, or a crate that lives in its own standalone Torrust repository, to crates.io. Drives the process documented in docs/release-process/workspace-packages.md. Use when asked to "release a package", "publish a crate", "publish torrust-<crate> to crates.io", "tag a package release", or "release torrust-server-lib".
-- After: not yet rewritten
+- After (146): Release one workspace package, or a crate in its own Torrust repository, to crates.io. Use when asked to publish a crate or tag a package release.
 
 #### `run-linters`
 
 - Before (397): Run code quality checks and linters for the torrust-tracker project. Includes Rust clippy, rustfmt, Markdown, local link checking, YAML, TOML, spell checking, and shellcheck. Use when asked to lint code, check formatting, fix code quality issues, or prepare for commit. Triggers on "lint", "run linters", "check code quality", "fix formatting", "run clippy", "run rustfmt", or "pre-commit checks".
-- After: not yet rewritten
+- After (176): Run the linters (clippy, rustfmt, Markdown, links, YAML, TOML, cspell, shellcheck) with the linter binary. Use when linting, fixing formatting, or checking one tool's findings.
 
 #### `run-pre-commit-checks`
 
 - Before (356): Run all mandatory pre-commit verification steps for the torrust-tracker project. Covers the pre-commit script (automated checks), manual review steps, and individual linter commands for debugging. Use before any commit or PR to ensure all quality gates pass. Triggers on "pre-commit checks", "run all checks", "verify before commit", or "check everything".
-- After: not yet rewritten
+- After (128): Run every check of the pre-commit hook, or one step alone to debug it. Use before committing, or when the pre-commit hook fails.
 
 #### `run-pre-push-checks`
 
 - Before (355): Run all mandatory pre-push verification steps for the torrust-tracker project. Covers the pre-push script (automated checks), output modes, and log-directory configuration. Use before pushing or when running the nightly toolchain checks and the full stable test suite. Triggers on "pre-push checks", "run pre-push", "verify before push", or "push checks".
-- After: not yet rewritten
+- After (138): Run the pre-push checks: the nightly toolchain checks and the full stable test suite. Use before pushing, or when the pre-push hook fails.
 
 ### GitHub
 
