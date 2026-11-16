@@ -1,0 +1,10 @@
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Finished `test` profile [optimized + debuginfo] target(s) in 1.09s
+     Running tests/integration.rs (target/debug/deps/integration-03e9de8f47257705)
+
+running 1 test
+test server::contract::udp::it_should_return_error_when_udp_service_was_stopped_after_registration ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; finished in 3.03s
+

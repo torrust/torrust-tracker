@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2867-udp-health-check-panics-on-invalid-response/ISSUE.md
-last-updated-utc: 2026-11-15 21:31
+last-updated-utc: 2026-11-16 09:50
 ---
 
 # Manual Verification Evidence
@@ -14,19 +14,31 @@ actually run; nothing is invented.
 ## Preserving Verification Artifacts
 
 The temporary reproduction tests are stored verbatim as a diff in
-[`evidence/reproduction-tests.diff`](evidence/reproduction-tests.diff). The full test output of
-each run is in [`evidence/junk-reply-run.log`](evidence/junk-reply-run.log),
+[`evidence/reproduction-tests.diff`](evidence/reproduction-tests.diff). The test output of each
+run is in [`evidence/junk-reply-run.log`](evidence/junk-reply-run.log),
 [`evidence/closed-port-run.log`](evidence/closed-port-run.log) and
 [`evidence/closed-port-value-check-run.log`](evidence/closed-port-value-check-run.log); the V3 test
 change is in [`evidence/closed-port-value-check.diff`](evidence/closed-port-value-check.diff). The tests were reverted after the
 runs; `git status --short` showed no change under `packages/` afterwards.
 
+These three logs are not the full output: each starts at the `Finished` line, so the build lines
+of those runs (`Compiling ..`) were not kept. The logs of the regression-test runs and of V4
+(`evidence/t*-run.log`, `evidence/stopped-udp-run.log`) keep the whole output, build lines
+included, with the local checkout path replaced by `<repo>`. Every `t*-run.log` followed a change
+or a `touch` of a source file of the package it tests, so each shows that package being rebuilt
+(`Compiling ..`). `stopped-udp-run.log` ran right after the T3 green run with no change in
+between, so it reuses that build and has no `Compiling` line.
+
 ## Environment and Prerequisites
 
-- Date and time (UTC): 2026-11-15 12:30 to 12:45 (V1, V2) and 21:28 to 21:29 (V3)
+- Date and time (UTC): 2026-11-15 12:30 to 12:45 (V1, V2), 21:28 to 21:29 (V3), and
+  2026-11-16 09:20 to 09:45 (regression tests and V4)
 - Artifact under test: `develop` at commit `abd7a10ff` (Merge torrust/torrust-tracker#2863), with
-  the temporary tests from `evidence/reproduction-tests.diff` applied to
-  `packages/axum-health-check-api-server/tests/server/contract.rs`
+  the temporary tests from `evidence/reproduction-tests.diff` (V1, V2) or
+  `evidence/closed-port-value-check.diff` (V3) applied to
+  `packages/axum-health-check-api-server/tests/server/contract.rs`. The regression tests and V4 ran
+  on the implementation branch, based on `develop` at commit `a25a27e23` (Merge
+  torrust/torrust-tracker#2865), at the states named in their sections.
 - Operating system / environment: Linux 7.0.0-43-generic
 - Toolchain: stable Rust toolchain, `rustc 1.99.1 (58cf8f9c3 2026-10-13)`, `cargo 1.99.1`
 - Prerequisites and setup performed: none beyond a normal workspace build
@@ -136,8 +148,10 @@ observed here.
 
 1. Applied `evidence/closed-port-value-check.diff` (the V2 diff with the two changes above) at
    2026-11-15 21:28 UTC, on `develop` at `abd7a10ff`, stable Rust toolchain `rustc 1.99.1`. The
-   integration test binary was rebuilt (the build log shows
-   `Compiling torrust-tracker-axum-health-check-api-server`).
+   stored log starts at `Finished`, so no kept file shows that the integration test binary was
+   rebuilt with the value assertion; the `Compiling` line was only seen in the terminal and was not
+   kept. The `Timed Out` value does not rest on this run alone: V4 runs the maintained stopped-UDP
+   contract test, which asserts the same value, with its full log kept.
 2. Ran:
 
    ```bash
@@ -162,6 +176,67 @@ test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; fin
 A closed UDP port gives exactly `Err("Timed Out")`, with no panic. The maintained contract test
 `it_should_return_error_when_udp_service_was_stopped_after_registration` asserts the same value for
 a stopped service.
+
+## Regression Tests: Red and Green
+
+Toolchain for every run: stable Rust, `rustc 1.99.1 (58cf8f9c3 2026-10-13)`. Each log keeps the
+full output, build lines included.
+
+| Test | Red run (against the bug) | Green run (after the fix) |
+| ---- | ------------------------- | ------------------------- |
+| T2 `check_should_return_an_error_naming_the_cause_when_the_peer_answers_with_an_invalid_response` (`tracker-client` unit test) | [`evidence/t2-red-run.log`](evidence/t2-red-run.log): panics at `client.rs:275` on `UnableToParseResponse`. Ran with the test added and no fix. | [`evidence/t2-green-run.log`](evidence/t2-green-run.log): `1 passed`, after `fix(tracker-client): [#2867] return an error from the UDP health check on an invalid response`. |
+| T3 `it_should_return_error_when_the_registered_udp_service_answers_the_check_with_junk` (UDP contract test, AC2) | [`evidence/t3-red-run.log`](evidence/t3-red-run.log): mutate-then-restore. The `check` fix was reverted in the working tree (not staged) while the handler fix was present; the detail is `Err("the health check job failed: task .. panicked ..")`, which does not name the cause, so the assertion fails. The file was then restored. | [`evidence/t3-green-run.log`](evidence/t3-green-run.log): `1 passed`, with both fixes. |
+| T5 `it_should_report_a_probe_job_that_panicked_as_a_failed_check_and_keep_the_other_results` (handler contract test, AC3) | [`evidence/t5-red-run.log`](evidence/t5-red-run.log): the probe panic cascades through `handlers.rs:71` and `handlers.rs:79`, and the client gets `hyper::Error(IncompleteMessage)`. Ran with the `check` fix and no handler fix. | [`evidence/t5-green-run.log`](evidence/t5-green-run.log): `1 passed`; the handler logs the failed job at `error` level. |
+
+An earlier T3 red run, before any fix and with a weaker assertion (`is_err()` only), failed with
+the same three panics and `IncompleteMessage` as V1. Its log was overwritten by the
+mutate-then-restore run above after the assertion was tightened to require the cause, so it is not
+kept; V1 records that outcome.
+
+### V4 - Like-for-like recheck after the fix (M3)
+
+- Goal: rerun the V1 scenario on the fixed build.
+- Initial state: the V1 test is now the maintained T3 test, with the same junk-answering UDP socket
+  and the production `Launcher::check`, and assertions that also require a `200` report, the
+  message `health check failed`, and an error detail naming the unparsable response.
+- Artifact under test: the implementation branch with both fixes
+  (`fix(tracker-client): [#2867] return an error from the UDP health check on an invalid response`
+  and `fix(axum-health-check-api-server): [#2867] report a failed check job instead of panicking`).
+- Status: `DONE`
+
+#### Steps Performed
+
+1. Ran the V1 command (without `--nocapture`):
+
+   ```bash
+   cargo test -p torrust-tracker-axum-health-check-api-server --test integration answers_the_check_with_junk
+   ```
+
+2. Ran the maintained stopped-UDP contract test, which is ignored by default (#2393), to check
+   that the closed-port case still reports exactly `Timed Out` (AC4):
+
+   ```bash
+   cargo test -p torrust-tracker-axum-health-check-api-server --test integration udp_service_was_stopped_after_registration -- --ignored
+   ```
+
+#### Observed Result
+
+Full output: [`evidence/t3-green-run.log`](evidence/t3-green-run.log) and
+[`evidence/stopped-udp-run.log`](evidence/stopped-udp-run.log).
+
+```text
+test server::contract::udp::it_should_return_error_when_the_registered_udp_service_answers_the_check_with_junk ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; finished in 1.01s
+
+test server::contract::udp::it_should_return_error_when_udp_service_was_stopped_after_registration ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; finished in 3.03s
+```
+
+#### Conclusion
+
+The symptom of V1 is gone: no panic, and the client gets a `200` report with status `Error` and a
+UDP detail whose `Err(..)` names the unrecognized response. A closed port still reports exactly
+`Err("Timed Out")`.
 
 ## Failures and Follow-up
 
