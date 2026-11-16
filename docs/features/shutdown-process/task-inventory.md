@@ -70,10 +70,10 @@ torrust-tracker process (Tokio runtime; main)
       │  ├─ REST API [conditional; own component token]
       │  │  ├─ server task [component-owned TokenAwareServerTask]
       │  │  └─ drain controller [component-owned and joined]
+      │  ├─ UDP IP-ban cleanup [conditional; own component token; stops before the health check]
       │  └─ health-check API [always; own component token]
       │     ├─ server task [component-owned TokenAwareServerTask]
       │     └─ drain controller [component-owned and joined]
-      ├─ UDP IP-ban cleanup [conditional; own component token; stops before the health check]
       └─ Axum/Hyper connection and request work [framework-owned]
 ```
 
@@ -164,6 +164,12 @@ each row.
   token-aware drain controller through `TokenAwareServerTask`; it joins both
   after cancellation or independent server completion and aborts them if
   dropped. The drain has a 5-second budget (SI-13).
+- **UDP IP-ban cleanup** — starts with the UDP tracker services. It is
+  reserved like every other component (SI-26, #2845): its runner observes its
+  own component token, resets the bans every `ip_bans_reset_interval_in_secs`,
+  and reports cooperative cancellation. The manager adds its stop-last edge,
+  so it completes before the health-check API is cancelled. It publishes no
+  event, so it has no other edge.
 
 ### Component-Owned, Detached, and Framework-Owned Work
 
@@ -192,12 +198,14 @@ each row.
 The direct-component count is configuration dependent:
 
 $$
-3 + I_{cleanup} + 2I_{usage} + I_{persistent} + I_{udp}(3 + N_{udp}) + N_{http} + I_{api}
+3 + I_{cleanup} + 3I_{usage} + I_{persistent} + I_{udp}(3 + N_{udp}) + N_{http} + I_{api}
 $$
 
 The constant three represents the HTTP-core listener, UDP-core listener, and
 health-check API. Torrent cleanup is conditional on its cleanup interval. The
-UDP group (`I_{udp}`) counts the two UDP-server listeners and the UDP IP-ban cleanup, plus one component per instance.
+usage term (`I_{usage}`) counts the three components that
+`tracker_usage_statistics` gates: the swarm-registry listener, the in-memory
+tracker-core listener, and the peers inactivity update. The UDP group (`I_{udp}`) counts the two UDP-server listeners and the UDP IP-ban cleanup, plus one component per instance.
 
 ## Event Producer-Consumer Inventory
 
@@ -334,9 +342,9 @@ and spawn it with its own token, no `child_token` call remains, and since SI-26
 ## Findings and Roadmap Mapping
 
 1. The #1586 supervisor boundary is present: direct top-level component
-  futures enter `JoinSet`; component child handles do not. The pre-spawned UDP
-  IP-ban cleanup job remains the sole deliberately narrow compatibility
-  registry entry under the same process-wide deadline.
+  futures enter `JoinSet`; component child handles do not. Since SI-26
+  (#2845) the UDP IP-ban cleanup is a direct component too, and no
+  compatibility registry remains.
 2. `main.rs` now handles Unix `SIGTERM` at the executable boundary. SI-1 is
    complete, so this is not an open gap.
 3. `peers_inactivity_update` is a direct token-aware component after SI-5. It

@@ -223,6 +223,7 @@ Sign every commit with GPG.
 - 2026-11-15 UTC - AI agent (Claude Sonnet 5.5) - T1 design note recorded with the maintainer's decisions (shared supervisor with one wording template; `OwnedReceiveLoop` stays package-local; `udp_ban_cleanup` publishes no events). T3 closed as a decision-only task.
 - 2026-11-15 UTC - AI agent (Claude Sonnet 5.5) - Implemented T2 (shared supervisor in `token_aware_server.rs`, health-check join order, table test), T4 (`udp_ban_cleanup` reserved; legacy path and root token removed) and T5 (docs). Manual scenarios M1-M4 still to be run and recorded.
 - 2026-11-15 21:13 UTC - AI agent (Claude Opus 5.5) - Copilot review of PR #2870: re-ran M2 on dedicated ports with the script and output recorded in the evidence file; set M3 and M4 back to TODO (not run against the binary; M4 needs a reset interval of at least 3600 s) and unticked the manual-verification checkpoint.
+- 2026-11-16 07:39 UTC - AI agent (Claude Opus 5.5) - da2ce7 review of PR #2870: re-ran M2 with every job-manager stop line kept, so the evidence now shows the other components' stop order too; aligned the evidence frontmatter with its template; fixed the remaining docs findings.
 
 ## Acceptance Criteria
 
