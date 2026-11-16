@@ -227,7 +227,7 @@ F12 and F13 are da2ce7's review 5926183635 (`COMMENTED`), submitted at 19:30:45 
 - Current-tree verification: the `Resolution reference` of F9 and the `Reply URL` of F10 and F11 in this record.
 - Resolution reference: docs(issues): [#2873] address da2ce7's fourth review of PR #2893
 - Follow-up PR URL: N/A
-- Reply URL: pending: posted after the push of this record
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2893#discussion_r4590544327
 
 ### F13 - The before run's total is unexplained
 
@@ -240,7 +240,7 @@ F12 and F13 are da2ce7's review 5926183635 (`COMMENTED`), submitted at 19:30:45 
 - Current-tree verification: the paragraph after the after-rewording numbers in the evidence's V1.
 - Resolution reference: docs(issues): [#2873] address da2ce7's fourth review of PR #2893
 - Follow-up PR URL: N/A
-- Reply URL: pending: posted after the push of this record
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2893#discussion_r4590544893
 
 ## Processing Log
 
@@ -260,6 +260,8 @@ F12 and F13 are da2ce7's review 5926183635 (`COMMENTED`), submitted at 19:30:45 
 - 2026-11-16 19:25 UTC - Pushed them (push finished 19:25:12 UTC), replied to the two threads and resolved them by ID; no thread was unresolved.
 - 2026-11-16 19:30 UTC - Review 5926183635 (da2ce7, `COMMENTED`) submitted on the head commit `docs(issues): [#2873] address da2ce7's third review of PR #2893`: F12 (Minor) and F13 (Nit), neither blocking; the audit validator, run offline by him, failed on F9's resolution reference and the pending F10 and F11 Reply URLs.
 - 2026-11-16 19:32 UTC - Committed the F12 and F13 fixes, with the F10 and F11 Reply URLs.
+- 2026-11-16 19:37 UTC - Pushed them (push finished 19:37:04 UTC), replied to the two threads and resolved them by ID.
+- 2026-11-16 19:37 UTC - Filled in the F12 and F13 Reply URLs in a separate commit, so no row is left pending.
 
 ## Completion Rules
 
