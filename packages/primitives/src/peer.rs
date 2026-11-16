@@ -1104,6 +1104,208 @@ pub mod test {
         }
     }
 
+    mod peer_fixture_defaults {
+        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+
+        use torrust_clock::DurationSinceUnixEpoch;
+
+        use crate::peer::{Id, Peer};
+        use crate::{AnnounceEvent, NumberOfBytes, PeerId};
+
+        #[test]
+        fn it_should_make_a_default_peer_that_has_started_with_nothing_left_to_download_from_localhost() {
+            assert_eq!(
+                Peer::default(),
+                Peer {
+                    peer_id: PeerId(*b"-qB4650-000000000000"),
+                    peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080),
+                    updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
+                    uploaded: NumberOfBytes::new(0),
+                    downloaded: NumberOfBytes::new(0),
+                    left: NumberOfBytes::new(0),
+                    event: AnnounceEvent::Started,
+                }
+            );
+        }
+
+        #[test]
+        fn it_should_make_a_default_peer_id_that_names_qbittorrent() {
+            let id = Id::default();
+
+            assert_eq!(id.0, *b"-qB4650-000000000000");
+            assert_eq!(id.get_client_name().as_deref(), Some("qBittorrent"));
+        }
+    }
+
+    /// Each builder method changes its own field and leaves every other field as it was.
+    mod peer_builder {
+        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+
+        use torrust_clock::DurationSinceUnixEpoch;
+
+        use crate::peer::Peer;
+        use crate::peer::fixture::PeerBuilder;
+        use crate::{AnnounceEvent, NumberOfBytes, PeerId};
+
+        fn another_address() -> SocketAddr {
+            SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 6969)
+        }
+
+        fn another_time() -> DurationSinceUnixEpoch {
+            DurationSinceUnixEpoch::new(1_700_000_000, 0)
+        }
+
+        #[test]
+        fn it_should_start_from_the_default_peer() {
+            assert_eq!(PeerBuilder::default().build(), Peer::default());
+        }
+
+        #[test]
+        fn it_should_set_the_peer_id() {
+            let peer_id = PeerId(*b"-qB4650-000000000042");
+
+            let peer = PeerBuilder::default().with_peer_id(&peer_id).build();
+
+            assert_eq!(
+                peer,
+                Peer {
+                    peer_id,
+                    ..Peer::default()
+                }
+            );
+        }
+
+        #[test]
+        fn it_should_set_the_peer_address_from_a_reference() {
+            let peer = PeerBuilder::default().with_peer_addr(&another_address()).build();
+
+            assert_eq!(
+                peer,
+                Peer {
+                    peer_addr: another_address(),
+                    ..Peer::default()
+                }
+            );
+        }
+
+        #[test]
+        fn it_should_set_the_peer_address_from_a_value() {
+            let peer = PeerBuilder::default().with_peer_address(another_address()).build();
+
+            assert_eq!(
+                peer,
+                Peer {
+                    peer_addr: another_address(),
+                    ..Peer::default()
+                }
+            );
+        }
+
+        #[test]
+        fn it_should_set_the_last_update_time_with_updated_on() {
+            let peer = PeerBuilder::default().updated_on(another_time()).build();
+
+            assert_eq!(
+                peer,
+                Peer {
+                    updated: another_time(),
+                    ..Peer::default()
+                }
+            );
+        }
+
+        #[test]
+        fn it_should_set_the_last_update_time_with_last_updated_on() {
+            let peer = PeerBuilder::default().last_updated_on(another_time()).build();
+
+            assert_eq!(
+                peer,
+                Peer {
+                    updated: another_time(),
+                    ..Peer::default()
+                }
+            );
+        }
+
+        #[test]
+        fn it_should_set_the_bytes_left_to_download() {
+            let peer = PeerBuilder::default().with_bytes_left_to_download(5).build();
+
+            assert_eq!(
+                peer,
+                Peer {
+                    left: NumberOfBytes::new(5),
+                    ..Peer::default()
+                }
+            );
+        }
+
+        #[test]
+        fn it_should_set_no_bytes_left_to_download_for_a_peer_that_had_bytes_left() {
+            let leecher = PeerBuilder::leecher().build();
+            assert_ne!(leecher.left, NumberOfBytes::new(0), "the leecher must start with bytes left");
+
+            let peer = PeerBuilder::leecher().with_no_bytes_left_to_download().build();
+
+            assert_eq!(
+                peer,
+                Peer {
+                    left: NumberOfBytes::new(0),
+                    ..leecher
+                }
+            );
+        }
+
+        #[test]
+        fn it_should_set_any_announce_event() {
+            let peer = PeerBuilder::default().with_event(AnnounceEvent::Stopped).build();
+
+            assert_eq!(
+                peer,
+                Peer {
+                    event: AnnounceEvent::Stopped,
+                    ..Peer::default()
+                }
+            );
+        }
+
+        #[test]
+        fn it_should_set_the_started_event_for_a_peer_that_had_completed() {
+            let seeder = PeerBuilder::seeder().build();
+            assert_eq!(seeder.event, AnnounceEvent::Completed, "the seeder must start as completed");
+
+            let peer = PeerBuilder::seeder().with_event_started().build();
+
+            assert_eq!(
+                peer,
+                Peer {
+                    event: AnnounceEvent::Started,
+                    ..seeder
+                }
+            );
+        }
+
+        #[test]
+        fn it_should_set_the_completed_event_for_a_peer_that_had_started() {
+            let peer = PeerBuilder::default().with_event_completed().build();
+
+            assert_eq!(
+                peer,
+                Peer {
+                    event: AnnounceEvent::Completed,
+                    ..Peer::default()
+                }
+            );
+        }
+
+        #[test]
+        fn it_should_give_the_same_peer_with_into_as_with_build() {
+            let peer: Peer = PeerBuilder::leecher().into();
+
+            assert_eq!(peer, PeerBuilder::leecher().build());
+        }
+    }
+
     mod peer_collection {
         use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 

@@ -46,6 +46,27 @@ Line numbers are those of `develop` at `c8b1477ad`.
 
 `PeerBuilder::seeder`, `leecher`, `build` and `into` are already covered by #2824's tests.
 
+## After T7 (fixture tests), 2026-11-16
+
+Measured on branch `2876-peer-id-test-helper` with the T7 tests in the working tree (after the
+commit with subject `test(primitives): [#2876] build the fixture's peer ids with qbittorrent_peer_id`),
+same command and toolchain as the baseline (separate `CARGO_LLVM_COV_TARGET_DIR`), unit-only:
+
+| Scope | Tests | Lines | Regions | Functions |
+| --- | ---: | ---: | ---: | ---: |
+| Unit-only (`--lib`) | 125 unit | 1,270 / 1,273 (99.76%) | 1,920 / 1,925 (99.74%) | 242 / 242 (100.00%) |
+
+`peer.rs` is 699 / 702 lines (baseline 504 / 572). `Id::new` is gone (T4); the new lines are
+`qbittorrent_peer_id`, its tests and the fixture tests. The 3 uncovered lines:
+
+| Line | Code | Owner / decision |
+| --- | --- | --- |
+| 417 | `Display for Id`, the `None` branch | #2824 (dead branch); not F5 |
+| 1087 | The failure message of the `qbittorrent_peer_id` format test | No test: test code that runs only when the assertion fails |
+| 1100 | `TestResult::discard()` in the distinctness property | No test: test code that runs only when quickcheck draws two equal numbers |
+
+No line owned by F5 is left uncovered in production or fixture code.
+
 ## Final Measurement (T9)
 
 Pending.

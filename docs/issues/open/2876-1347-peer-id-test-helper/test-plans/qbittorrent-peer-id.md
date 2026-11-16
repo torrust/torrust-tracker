@@ -4,7 +4,7 @@ issue: 2876
 package: torrust-tracker-primitives
 target-file: packages/primitives/src/peer.rs
 status: done
-last-updated-utc: "2026-11-16 16:22"
+last-updated-utc: "2026-11-16 16:24"
 ---
 
 # `peer::fixture::qbittorrent_peer_id` Test Plan (T2)
@@ -177,3 +177,53 @@ assertion depends on the fixture's id bytes; the tests that read them compare ag
 from the same fixture. Nothing else needed to change.
 
 M3 (`manual-verification-evidence.md`, V3): every fixture id now names qBittorrent.
+
+## Fixture Tests (T7)
+
+14 unit tests in `peer.rs`, for the fixture lines the baseline left uncovered (the `PeerBuilder`
+setters and the two `Default` impls):
+
+- `peer_fixture_defaults` (2): the exact default `Peer` (every field written out by hand) and the
+  default `Id` (`-qB4650-000000000000`, named qBittorrent).
+- `peer_builder` (12): `PeerBuilder::default()` gives `Peer::default()`; each of the ten setters
+  (`with_peer_id`, `with_peer_addr`, `with_peer_address`, `updated_on`, `last_updated_on`,
+  `with_bytes_left_to_download`, `with_no_bytes_left_to_download`, `with_event`,
+  `with_event_started`, `with_event_completed`) changes its own field and nothing else; `into`
+  gives the same peer as `build`.
+
+`cargo test -q -p torrust-tracker-primitives --lib` (stable Rust toolchain, cargo 1.99.1): 125
+passed (111 before). Clippy (`--all-targets --all-features -- -D warnings`) is clean. Coverage:
+`coverage-evidence.md`, "After T7".
+
+Mutations (applied, checked to compile, restored with `cmp`; `cargo test -q -p
+torrust-tracker-primitives --lib peer_builder`):
+
+| Mutation | Failed test |
+| --- | --- |
+| MB1: `with_event_started` sets `Completed` | `it_should_set_the_started_event_for_a_peer_that_had_completed` |
+| MB2: `with_no_bytes_left_to_download` sets 1 | `it_should_set_no_bytes_left_to_download_for_a_peer_that_had_bytes_left` |
+| MB3: `with_peer_addr` ignores its argument and sets the default address | `it_should_set_the_peer_address_from_a_reference` |
+| MB4: `last_updated_on` also sets the event to `None` (the "nothing else" clause) | `it_should_set_the_last_update_time_with_last_updated_on` |
+
+A first form of MB3 (dropping the assignment) did not compile, because `mut self` became unused
+under `-D warnings`; it was rewritten as above and re-run.
+
+Prose-first AAA review of the setter tests:
+
+- Arrange: a peer whose field differs from the value the setter writes: the default peer, or the
+  seeder (event `Completed`) for `with_event_started` and the leecher (10 bytes left) for
+  `with_no_bytes_left_to_download`, where the default peer already has the target value.
+- Act: one builder call, then `build`.
+- Assert: the built peer equals the starting peer with only that field changed
+  (`Peer { field, ..start }`).
+
+The code says this without comments. Two tests start from a fixture whose relevant field is not
+obvious, so they first assert the starting value, with a message, so that a change to the seeder or
+the leecher fails there and not as a false pass. The struct-update expectation takes the other fields
+from the fixture used by the Act (the skill's rule against duplicated fixture-derived expectations);
+the default `Peer` itself is pinned by a test with every field written out. The duplicated setters
+(`with_peer_addr` / `with_peer_address`, `updated_on` / `last_updated_on`, `build` / `into`) are
+tested as they are; whether to merge them is not in this issue's scope.
+
+Smells checked: no complex Arrange, no hidden Act, no production-derived expectation. Like the other
+short tests in `peer.rs`, the sections are separated by blank lines, not `// Arrange` comments.
