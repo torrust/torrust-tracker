@@ -6,7 +6,7 @@ epic: null
 github-issue: 2392
 spec-path: docs/issues/open/2392-test-isolation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-16 15:37"
+last-updated-utc: "2026-11-16 15:54"
 semantic-links:
   skill-links:
     - create-issue
@@ -275,8 +275,8 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
   rules are the real guarantee.
 - **Lost coverage while tests are ignored.** Resolved: #2393 T9 restored the 9 tracker release
   tests, which prove that a server releases its socket after a stop, a drop or a failure, on a
-  unique loopback address picked at random. They run on Linux and are ignored on other systems, which configure only
-  `127.0.0.1`.
+  unique loopback address picked at random. They run on Linux and are conservatively ignored on
+  other systems: macOS and the BSDs configure only `127.0.0.1`, and CI runs no tests off Linux.
 
 ## References
 
