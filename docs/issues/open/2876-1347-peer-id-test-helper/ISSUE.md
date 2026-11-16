@@ -28,6 +28,8 @@ semantic-links:
 
 # Issue #2876 - Move `peer::Id::new` to a realistic test helper and decide whether `peer::fixture` goes behind a `testing` feature
 
+Parent EPIC: #1347 - Overhaul: Packages Testing
+
 ## Goal
 
 Take `peer::Id::new`, a test-only helper, out of the production API of `torrust-tracker-primitives`,
