@@ -110,7 +110,7 @@ F4 to F9 are the six inline comments of da2ce7's review 5924278183, submitted at
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2887#discussion_r4588988577
 - Concern: "The body now holds only stable content" read as if the issue body were already replaced, but issue #2003 still had its long body and the PR description leaves that edit to the maintainer.
-- Solution: The decision entry, the Issue Body Pointer section, the risk line and this change's progress-log entry now state the rule ("must hold only") and say that replacing the stale body is a separate edit by the maintainer, which the change does not make. The four statements were found by searching the specification for "stable content". The PR description already says the body is not in the PR.
+- Solution: The decision entry, the Issue Body Pointer section, the risk line and this change's progress-log entry now state the rule ("must hold only") and say that replacing the stale body is a separate edit by the maintainer, which the change does not make. The four statements were found with `grep -n "stable content\|does not mirror"` on the specification, which printed lines 300, 455, 510 and 537; "stable content" alone matches three of them and not line 510. The PR description already says the body is not in the PR.
 - Current-tree verification: `grep -n "now holds\|body holds only\|It holds only"` on the EPIC specification prints one line, 444, an unrelated progress-log entry of 2026-10-13; none of the four statements matches.
 - Resolution reference: docs(issues): [#2003] state the issue body rule as a rule, not as done
 - Follow-up PR URL: N/A
