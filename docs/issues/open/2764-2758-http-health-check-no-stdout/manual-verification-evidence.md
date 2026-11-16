@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2764-2758-http-health-check-no-stdout/ISSUE.md
-last-updated-utc: 2026-11-16 18:54
+last-updated-utc: 2026-11-16 19:09
 ---
 
 # Manual Verification Evidence
@@ -15,7 +15,7 @@ last-updated-utc: 2026-11-16 18:54
 
 ## Verification Processes
 
-The sections are in the order they ran. R0 reproduces the defect, R1 and R2 are the red tests and the mutation checks, and G1, V1 to V3 checked the first implementation. Review rounds 1 to 3 of PR 2889 changed the binary, so the sections "Round 1 of PR 2889" to "Round 3 of PR 2889" at the end hold the results for the final binary.
+The sections are in the order they were first written, not the order they ran: R1's re-run and every R2 row ran after G1, V1 to V3, as their own timing sentences say. R0 reproduces the defect, R1 and R2 are the red tests and the mutation checks, and G1, V1 to V3 checked the first implementation. Review rounds 1 to 3 of PR 2889 changed the binary, so the sections "Round 1 of PR 2889" to "Round 3 of PR 2889" at the end hold the results for the final binary.
 
 ### R0 - Reproduction of the deviation before the change (http_health_check)
 
@@ -309,4 +309,33 @@ Observed: stdout is empty in every case, each stderr line is one JSON object wit
 - Goal: the test server must not hide an `accept` error as `WouldBlock` (review finding `review-finding:pr-2889-f22`).
 - Status: `DONE`
 
-The accept loop now sleeps only on `WouldBlock`, retries on `Interrupted`, and panics on any other error; the server's `Drop` re-raises that panic in the test. Green: `cargo test --test http_health_check` and `cargo nextest run --test http_health_check` report 11 passed; clippy gives no warning. Failure path, run on 2026-11-16 at about 18:53 UTC: with the `WouldBlock` guard temporarily changed to `ErrorKind::Unsupported`, so that the listener's `WouldBlock` reaches the panic arm, `cargo test --test http_health_check` gave `7 passed; 4 failed`. The four tests that start a server failed with `the test server could not accept a connection: Resource temporarily unavailable (os error 11)`. The file was restored from a saved copy, and `diff -q` printed `identical`. This change touches only the tests; the binary and its rechecks are unchanged.
+The accept loop now sleeps only on `WouldBlock`, retries on `Interrupted`, and panics on any other error; the server's `Drop` re-raises that panic in the test. Green: `cargo test --test http_health_check` and `cargo nextest run --test http_health_check` report 11 passed; clippy gives no warning. Failure path, run on 2026-11-16 at about 18:53 UTC: with the `WouldBlock` guard temporarily changed to `ErrorKind::Unsupported`, so that the listener's `WouldBlock` reaches the panic arm, `cargo test --test http_health_check` gave `7 passed; 4 failed`. The four tests that start a server failed. This run covered the panic arm only, not the `Drop` re-raise; see "Round 5 of PR 2889" for the assertion that fired and for a run that covers the re-raise. The file was restored from a saved copy, and `diff -q` printed `identical`. This change touches only the tests; the binary and its rechecks are unchanged.
+
+### Round 5 of PR 2889 - which path the accept-error check covered
+
+- Goal: record which assertion fired in the round-4 failure-path check, and cover the `Drop` re-raise (review finding `review-finding:pr-2889-f23`).
+- Status: `DONE`
+
+Run on 2026-11-16 at about 19:09 UTC, with `cargo test --test http_health_check -- --test-threads=1 it_should_exit_0_and_report_healthy_when_the_endpoint_answers_2xx`, and the test file restored from a saved copy after each run (`diff -q` printed `identical`).
+
+A, the round-4 mutation (the `WouldBlock` guard changed to `ErrorKind::Unsupported`): the server thread panics on its first `accept`, before the child connects, and drops its listener. The probe is refused, and the assertion that failed the test is the exit-code check, not the `Drop` re-raise:
+
+```text
+thread '<unnamed>' panicked at tests/http_health_check.rs:51:35:
+the test server could not accept a connection: Resource temporarily unavailable (os error 11)
+thread 'it_should_exit_0_and_report_healthy_when_the_endpoint_answers_2xx' panicked at tests/http_health_check.rs:165:5:
+assertion `left == right` failed: unexpected exit code; stderr was: {"kind":"unreachable","message":"could not probe the health endpoint: error sending request: client error (Connect): tcp connect error: Connection refused (os error 111)","exit_code":1}
+  left: Some(1)
+ right: Some(0)
+```
+
+So the round-4 run covered the panic arm; `TestServer::drop` ran while the test was already panicking and skipped `resume_unwind`, as designed.
+
+B, the server panics after it has answered (a `panic!` added after the response is written): the probe gets `200 OK`, every assertion passes, and the test still fails. The only panic printed is the server thread's, so the failure comes from `TestServer::drop` re-raising it with `resume_unwind`, which does not run the panic hook again:
+
+```text
+test it_should_exit_0_and_report_healthy_when_the_endpoint_answers_2xx ... FAILED
+thread '<unnamed>' panicked at tests/http_health_check.rs:47:25:
+mutation: the server failed after answering
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 10 filtered out
+```
