@@ -36,7 +36,7 @@ at a comment (see `manual-verification-evidence.md`, V0).
 | CI | `implement-workflow` | 151 | 60 | 155 |  |
 | CI | `watch-pull-request-checks` | 352 | 130 | 155 |  |
 | Debugging | `fix-bug` | 337 | 120 | 170 |  |
-| Environment setup | `run-tracker-locally` | 334 | 120 |  |  |
+| Environment setup | `run-tracker-locally` | 334 | 120 | 161 |  |
 | Git workflow | `commit-changes` | 399 | 140 |  |  |
 | Git workflow | `create-feature-branch` | 359 | 130 |  |  |
 | Git workflow | `merge-pull-request` | 222 | 80 |  |  |
@@ -126,7 +126,7 @@ at a comment (see `manual-verification-evidence.md`, V0).
 #### `run-tracker-locally`
 
 - Before (334): Run the Torrust Tracker locally for development and testing. Use this skill to start the tracker with default configuration, understand configuration loading, and interact with tracker services (UDP and HTTP). Triggers on "run tracker", "start tracker locally", "develop tracker", "test tracker locally", or "run tracker for testing".
-- After: not yet rewritten
+- After (161): Run the tracker locally with the default configuration and reach its UDP, HTTP and API services. Use when starting the tracker for development or manual testing.
 
 ### Git workflow
 
