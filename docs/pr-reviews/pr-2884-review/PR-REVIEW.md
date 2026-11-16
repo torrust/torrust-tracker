@@ -46,13 +46,24 @@ summarizes the verification.
 Round 2 is Copilot's review `5922943922` (commented) at the same head. Its one inline finding has
 no reviewer ID, so it gets F5.
 
+Round 3 is da2ce7's review `5923302003` (changes requested) at the rewritten head whose only
+commit is the reworded archive commit. Its four inline findings F5 to F8 collide with existing
+audit IDs, so they get F6 to F9 in source order, with the reviewer's ID kept.
+
+The review bodies cite heads by commit id. Head `aedfe4e59` (rounds 1 and 2) is the first version
+of `chore(issues): archive closed issue #2850 and #2838 specs to docs/issues/closed`; head `b217ee7e4` (round 3) is its reworded, squashed and rebased version.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | F1 | review-finding:pr-2884-f1 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F2 | review-finding:pr-2884-f2 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-2884-f3 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F4 | review-finding:pr-2884-f4 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
-| F5 | review-finding:pr-2884-f5 | Copilot | Suggestion (inferred) | link-integrity | ORIGINAL | NO_ACTION | RESOLVED |
+| F5 | review-finding:pr-2884-f5 | Copilot | Suggestion (inferred) | link-integrity | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F6 | review-finding:pr-2884-f6 | Human | Major | documentation | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-2884-f7 | Human | Minor | other | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-2884-f8 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F9 | review-finding:pr-2884-f9 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -77,7 +88,7 @@ no reviewer ID, so it gets F5.
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2884#discussion_r4587934611
 - Concern: the archive entries of the two specs and the EPIC, and six `last-updated-utc` values, read 14:10 UTC, after the commit's time of 14:07:38 UTC.
 - Solution: the stamps of the archive work are 14:07 UTC; the two files changed again for F3 and F4 carry the time of that change.
-- Current-tree verification: `grep -rn "2026-11-16 14:10"` finds none of the changed files.
+- Current-tree verification: `grep -rn` of the 14:10 stamp over the six documents that carried it prints nothing.
 - Resolution reference: chore(issues): archive closed issue #2850 and #2838 specs to docs/issues/closed
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2884#discussion_r4588095135
@@ -117,7 +128,7 @@ no reviewer ID, so it gets F5.
 - Concern: the #2838 progress-log entry of 2026-11-12 17:41 UTC names
   `docs/issues/open/2850-non-negative-number-of-bytes/ISSUE.md`, which this PR archives; Copilot
   suggests pointing it to `closed/`.
-- Solution: no change. The entry records where the spec was at that time, and step 4 of
+- Solution: no change; the first reply (https://github.com/torrust/torrust-tracker/pull/2884#discussion_r4588096540) was not in the prescribed form, so a second reply gives it (see F8). The entry records where the spec was at that time, and step 4 of
   `cleanup-completed-issues` keeps such historical records as they are, as F3 asked for the run
   script. The live references to #2850 in the same spec (the `related-artifacts` frontmatter and
   the note at the top, which links `../2850-non-negative-number-of-bytes/ISSUE.md`) point to the
@@ -125,9 +136,61 @@ no reviewer ID, so it gets F5.
 - Current-tree verification: the frontmatter of the #2838 spec lists
   `docs/issues/closed/2850-non-negative-number-of-bytes/ISSUE.md`, and its top note's relative link
   resolves inside `docs/issues/closed/`.
-- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2884#discussion_r4588096540
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2884#discussion_r4588303994
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2884#discussion_r4588096540
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2884#discussion_r4588303994
+
+### F6 - The description still claims the run-script change that F3 reverted
+
+- PR number: 2884
+- Source review ID: 5923302003
+- Reviewer finding ID: F5
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2884#discussion_r4588270939
+- Concern: the description said the commands of the #2850 manual-verification evidence were repointed, which F3 reverted; it did not say that the history was rewritten, nor that the PR adds this audit and ticks four #2838 checkpoints. The merge tool copies the description into the merge commit.
+- Solution: the description was edited: the run script is listed with the historical records that keep their paths, the audit and the #2838 checkpoints are listed, and a "History rewritten" section says what the rewrite did.
+- Current-tree verification: the description no longer claims the run-script change and has the "History rewritten" section.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2884#discussion_r4588304632
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2884#discussion_r4588304632
+
+### F7 - The round-1 fixes and this audit were folded into the archive commit
+
+- PR number: 2884
+- Source review ID: 5923302003
+- Reviewer finding ID: F6
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2884#discussion_r4588270958
+- Concern: the fixes of F2 to F4 and this audit were squashed into the archive commit, while the skills keep each fix in its own commit and the audit apart; the amend kept the 14:07:38 author date, older than the 15:48 to 16:00 stamps it carries.
+- Solution: the maintainer's approval covered the squash; the correction entry of 16:17 UTC below quotes the question and the answer, and the PR description states the rewrite. The commit's committer date is 16:01:42 UTC, after its stamps; its author date is that of the original commit. Round 3 and later are separate commits.
+- Current-tree verification: `git log -1 --format='%ad %cd'` on the archive commit shows the two dates.
+- Resolution reference: docs(pr-reviews): [#2850] audit review round 3 of PR #2884
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2884#discussion_r4588305190
+
+### F8 - A no-change thread is recorded as `RESOLVED`, and its reply is not in the prescribed form
+
+- PR number: 2884
+- Source review ID: 5923302003
+- Reviewer finding ID: F7
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2884#discussion_r4588270976
+- Concern: row F5 declined the suggestion but recorded `RESOLVED`, and its reply opened "No change:" instead of `Superseded by <FindingId>: <reason>.`
+- Solution: row F5 now records `Thread state=SUPERSEDED`, and a reply in the prescribed form, citing F3, was added to its thread.
+- Current-tree verification: row F5 reads `NO_ACTION | SUPERSEDED`; the F5 thread has a reply that starts `Superseded by F3:`.
+- Resolution reference: docs(pr-reviews): [#2850] audit review round 3 of PR #2884
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2884#discussion_r4588305709
+
+### F9 - This verification's grep finds this line
+
+- PR number: 2884
+- Source review ID: 5923302003
+- Reviewer finding ID: F8
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2884#discussion_r4588270983
+- Concern: the F2 verification said a grep for the 14:10 stamp finds none of the changed files, but the sentence itself contained the string.
+- Solution: the verification is scoped to the six documents that carried the stamp, and no longer quotes it.
+- Current-tree verification: the F2 verification no longer contains the stamp, and a grep for it over the six documents prints nothing.
+- Resolution reference: docs(pr-reviews): [#2850] audit review round 3 of PR #2884
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2884#discussion_r4588306286
 
 ## Processing Log
 
@@ -143,6 +206,16 @@ no reviewer ID, so it gets F5.
   (2026-11-16T15:59 UTC), then the reworded, squashed and rebased commit was force-pushed by
   `git-bot-push --force-with-lease`; the threads are resolved after the push and the validator
   run on the pushed head.
+- 2026-11-16 16:17 UTC - Started round 3 for da2ce7's review `5923302003` (submitted
+  2026-11-16T16:14:46Z, changes requested, four findings), before any reply. Correction to the
+  entry of 15:48 UTC: the maintainer's approval covered the squash as well as the force-push. The
+  question was "May I squash the fixes into the reworded commit and force-push the bot's branch?"
+  and the answer "Yes, force-push". The description was edited for F6 before this commit. Row F5
+  changed from `RESOLVED` to `SUPERSEDED`, its reply and resolution reference now point to the
+  second reply, and the F2 verification was reworded (F8 and F9).
+- 2026-11-16 16:17 UTC - Round 3 replies posted (2026-11-16T16:16 to 16:17 UTC), including the
+  second reply on the F5 thread. The threads are resolved after the push of this commit and a
+  validator run on the pushed head.
 
 ## Completion Rules
 
