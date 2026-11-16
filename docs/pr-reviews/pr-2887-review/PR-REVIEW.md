@@ -49,6 +49,8 @@ DOC-001 is the one inline comment of Copilot's review 5924220422 (`COMMENTED`), 
 
 F4 to F9 are the six inline comments of da2ce7's review 5924278183, submitted at 17:18:12 UTC on 2026-11-16 on the head commit `docs(pr-reviews): [#2003] record the PR #2887 review round 1`, in that source order. It was submitted as `APPROVED` and its state is now `DISMISSED`. His IDs F1 to F6 collide with F1 to F3 above, so they are numbered F4 to F9, the next free audit-local IDs, and his IDs are kept as the reviewer finding IDs; the severities are his own. F4 asks for the change DOC-001 had already made on a newer head. The fix commit bodies cite this record's IDs and name the reviewer's.
 
+F10 is the one inline comment of da2ce7's review 5924779597, submitted at 17:53:23 UTC on 2026-11-16 on the head commit `docs(pr-reviews): [#2003] record the PR #2887 review round 3`. It was submitted as `APPROVED` and its state is now `DISMISSED`. His ID F8 collides with F8 above, so it is numbered F10 and his ID is kept as the reviewer finding ID; the severity is his own.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2887-f1 | Copilot | Minor (inferred) | formatting | ORIGINAL | NO_ACTION | SUPERSEDED |
@@ -61,6 +63,7 @@ F4 to F9 are the six inline comments of da2ce7's review 5924278183, submitted at
 | F7 | review-finding:pr-2887-f7 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F8 | review-finding:pr-2887-f8 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F9 | review-finding:pr-2887-f9 | Human | Nit | formatting | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-2887-f10 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -194,11 +197,25 @@ F4 to F9 are the six inline comments of da2ce7's review 5924278183, submitted at
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2887#discussion_r4589148492
 
+### F10 - The search named in the DOC-001 Solution finds three of the four statements
+
+- PR number: 2887
+- Source review ID: 5924779597
+- Reviewer finding ID: F8
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2887#discussion_r4589408809
+- Concern: The DOC-001 Solution said the four statements were found by searching for "stable content", but that search does not match line 510 of the specification.
+- Solution: The DOC-001 Solution now names the command that ran, `grep -n "stable content\|does not mirror"`, and says that "stable content" alone matches three of the four.
+- Current-tree verification: That command on `git show` of the specification at the round 1 audit commit printed lines 300, 455, 510 and 537.
+- Resolution reference: docs(pr-reviews): [#2003] name the search that found the four statements
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2887#discussion_r4589463350
+
 ## Processing Log
 
 - 2026-11-16 16:51 UTC - Started audit, after the replies: review 5923805482 arrived at 16:46:34 UTC; the two fix commits were made at 16:47:43 and 16:48:18 UTC and pushed; the three replies were posted at 16:51:09, 16:51:14 and 16:51:20 UTC and the three threads were then resolved (each `resolveReviewThread` call returned `isResolved: true`). The record was created after the replies, not before the first one as the workflow asks.
 - 2026-11-16 17:20 UTC - Round 2: review 5924220422 arrived at 17:14:15 UTC with DOC-001. The fix commit was made at 17:17:03 UTC and pushed. The reply was posted at 17:19:43 UTC and the thread was then resolved (`isResolved: true`). The reply first said the verification command prints 0; it prints one unrelated line, so the reply was edited at 17:19:57 UTC to say so and to name the edit.
 - 2026-11-16 17:29 UTC - Round 3: da2ce7's review 5924278183 (submitted 17:18:12 UTC) was found after the round 2 push. Four fix commits were made between 17:23:59 and 17:25:54 UTC and pushed; the PR description was then edited. The six replies were posted between 17:28:43 and 17:28:56 UTC and the six threads were then resolved (each call returned `isResolved: true`).
+- 2026-11-16 17:58 UTC - Round 4: da2ce7's review 5924779597 arrived at 17:53:23 UTC with one finding. The fix commit was made at 17:55:20 UTC and pushed. The reply was posted at 17:58:31 UTC and the thread was then resolved (`isResolved: true`). His PR comment 6923646177 of 17:18:17 UTC acknowledges an earlier head and asks for nothing, so it has no row.
 
 ## Completion Rules
 
