@@ -468,12 +468,16 @@ mod udp {
     /// Registers a UDP peer that answers every datagram with bytes that are not a tracker
     /// response, checked by the production UDP tracker probe.
     async fn registar_with_a_junk_answering_udp_service() -> (Registar<RuntimeServiceMetadata>, SocketAddr) {
-        let socket = std::net::UdpSocket::bind("127.0.0.1:0").expect("the junk peer should bind");
+        // A task of the test's runtime, not a detached thread: the runtime's shutdown at the end of
+        // the test drops it, and with it the socket.
+        let socket = tokio::net::UdpSocket::bind("127.0.0.1:0")
+            .await
+            .expect("the junk peer should bind");
         let binding = socket.local_addr().expect("the junk peer should have an address");
-        std::thread::spawn(move || {
+        tokio::spawn(async move {
             let mut buffer = [0u8; 2048];
-            while let Ok((_, from)) = socket.recv_from(&mut buffer) {
-                drop(socket.send_to(b"junk", from));
+            while let Ok((_, from)) = socket.recv_from(&mut buffer).await {
+                drop(socket.send_to(b"junk", from).await);
             }
         });
 
