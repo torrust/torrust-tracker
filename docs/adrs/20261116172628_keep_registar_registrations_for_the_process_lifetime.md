@@ -47,7 +47,8 @@ The investigation (on `torrust/develop` at `b009b6425`) found:
   after every other component, so this answer holds for the whole drain, however long one service
   takes (SI-21 ADR).
 - **A stale entry cannot be reported as healthy.** Outside shutdown, the health check opens a real
-  connection to each registered service. A service that stopped has closed its listener, so its probe
+  connection to each registered service that has a health check (all but the health check API
+  itself, which registers without one). A service that stopped has closed its listener, so its probe
   fails and the service is reported as failing.
 - **The case where the process keeps running must keep the entry.** A server that returns on its own,
   without being cancelled, leaves the process running without it. Its entry must stay, so the health
@@ -67,7 +68,7 @@ The investigation (on `torrust/develop` at `b009b6425`) found:
   "not ready" (`503`) from the readiness state, as the SI-21 ADR decided; the registry contents are not
   part of that answer.
 - **Liveness comes from the probe, not from the registry.** Outside shutdown, a registered service
-  that no longer runs is reported as failing by its health probe. The registry says what to probe,
+  with a health check that no longer runs is reported as failing by its health probe. The registry says what to probe,
   not what is healthy.
 - **Test environments are the one exception.** The health check API test environment removes its own
   registration in `stop()` (SI-24), because a test restarts it on a fixed port in the same process,
