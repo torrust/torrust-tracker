@@ -9,15 +9,15 @@ github-issue: null
 spec-path: docs/issues/drafts/2392-remove-leaked-test-temporary-files/ISSUE.md
 branch: "{issue-number}-2392-remove-leaked-test-temporary-files"
 related-pr: null
-last-updated-utc: "2026-11-16 17:30"
+last-updated-utc: "2026-11-16 22:06"
 semantic-links:
   skill-links:
     - create-issue
     - fix-bug
     - write-unit-test
   related-artifacts:
-    - .github/skills/dev/debugging/fix-bug/SKILL.md
-    - .github/skills/dev/planning/create-issue/SKILL.md
+    - .claude/skills/fix-bug/SKILL.md
+    - .claude/skills/create-issue/SKILL.md
     - docs/issues/open/2392-test-isolation/EPIC.md
     - docs/issues/open/2394-2392-audit-shared-test-resources/inventory.md
     - packages/test-helpers/src/configuration.rs
@@ -40,7 +40,8 @@ A test run leaves the system temporary directory as it found it.
 ## Background
 
 The shared-resource audit (#2394, finding F2 in its `inventory.md`) found three test helpers that
-write files to `std::env::temp_dir()` with unique names and never remove them:
+write files to `std::env::temp_dir()` with unique names and never remove them, or only when the
+test passes:
 
 | Helper | File | Removed |
 | --- | --- | --- |
@@ -48,8 +49,10 @@ write files to `std::env::temp_dir()` with unique names and never remove them:
 | The configuration-file tests in `packages/configuration/src/{v2_0_0,v3_0_0}/mod.rs` | `test_config_<uuid>.toml` | Never |
 | `make_temp_file` in `packages/axum-server/src/tls.rs` | `<prefix>-<nanoseconds>.pem` | Only when the test passes |
 
-The names are unique, so no two tests or runs collide; the problem is accumulation. On the
-maintainer's development machine on 2026-11-16, `/tmp` held 232,229 `data_*.db` files (about
+The names are unique, so no two tests or runs collide; the problem is accumulation. One full
+`cargo +stable test --workspace` run with a fresh `TMPDIR` leaves the files counted in this
+folder's `manual-verification-evidence.md` (V1). On the maintainer's development machine on
+2026-11-16, `/tmp` held 232,229 `data_*.db` files (about
 10.6 GiB, all created since 2026-11-13) and 1,590 `test_config_*.toml` files. Several agents run
 the full suite many times a day, so the directory grows until the disk or the inode table fills,
 and then unrelated tests fail.
@@ -84,14 +87,34 @@ callers (51 files) keep the configuration, not a guard. Decide before implementa
 - who owns the guard: the configuration factory's caller, a wrapper type returned with the
   configuration, or the test environment that starts the tracker;
 - that the guard is dropped only after the tracker and its database handles are dropped;
-- the failure path: a test that panics still drops the guard.
+- the failure path: a test that panics still drops the guard;
+- deadline: not applicable, the change awaits no readiness operation;
+- design-review checkpoint: after the first passing vertical slice (T3, the SQLite helper and one
+  caller family), stop for a design review of the guard's shape before converting the remaining
+  callers and starting T4.
+
+### Test Development Loop
+
+T3 to T5 add tests, so it follows the progressive test-development loop of the `write-unit-test`
+skill (`.claude/skills/write-unit-test/SKILL.md`):
+
+- Work in the smallest behavior-focused increment that passes focused validation.
+- After each passing increment, and before the next one starts, review its design with the
+  mandatory prose-first Arrange-Act-Assert comparison: write temporary prose for each section,
+  refactor until the code expresses it, and remove the redundant prose. Confirm that the test
+  exposes the one causal initial-state difference, that its fixture owns only incidental mechanics
+  (judged by named actions and abstraction level, not caller count), and that the production Act
+  and the independently specified expected result stay visible.
+- Record each review in `manual-verification-evidence.md` and commit the reviewed increment before
+  starting the next one.
 
 ## Bug-Fix Process
 
-The defect is in test-support code. Follow `.github/skills/dev/debugging/fix-bug/SKILL.md`:
+The defect is in test-support code. Follow `.claude/skills/fix-bug/SKILL.md`:
 
-1. Real-artifact reproduction: count `data_*.db` and `test_config_*.toml` in an empty temporary
-   directory (`TMPDIR`) before and after one `cargo test --workspace`.
+1. Real-artifact reproduction: done while drafting with a fresh `TMPDIR` and recorded in this
+   folder's `manual-verification-evidence.md` (V1); T1 repeats it on the `develop` the work starts
+   from.
 2. Regression boundary: unit tests of each helper that assert the file is gone after the guard is
    dropped.
 3. Red before the change, green after; final like-for-like recheck of step 1.
@@ -109,9 +132,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | --- | --- | --- |
 | T1 | TODO | Reproduce with a fresh `TMPDIR` | Before-counts recorded (V1). |
 | T2 | TODO | Decide the guard ownership | Design recorded in this spec, approved by the maintainer. |
-| T3 | TODO | SQLite helper and its callers | Unit test red then green. |
-| T4 | TODO | Configuration-file tests | Files removed on drop. |
-| T5 | TODO | TLS test files | Files removed on failure too. |
+| T3 | TODO | SQLite helper and its callers | Unit test red then green; design review of the first slice before the rest. |
+| T4 | TODO | Configuration-file tests | Files removed on drop; test-design review recorded before T5. |
+| T5 | TODO | TLS test files | Files removed on failure too; test-design review recorded before T6. |
 | T6 | TODO | Recheck | Fresh `TMPDIR` is empty after the suite (V2); `linter all` passes. |
 
 ## Commit Points
@@ -164,8 +187,12 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| V1 | Reproduce | `TMPDIR=$(mktemp -d) cargo test --workspace`, then count the files | Leaked files counted | TODO | `manual-verification-evidence.md` |
+| V1 | Reproduce | `TMPDIR=$(mktemp -d) cargo +stable test --tests --benches --examples --workspace --all-targets --all-features`, then count the files | Leaked files counted | DONE | `manual-verification-evidence.md` |
 | V2 | Recheck | Same command after the change | No leaked files | TODO | `manual-verification-evidence.md` |
+
+Evidence policy: every recorded command result names the toolchain that produced it (for example
+`cargo +stable test`), and the evidence file is created from
+`docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`.
 
 ### Acceptance Verification
 
@@ -186,6 +213,12 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 ## Implementation Completion Review
 
 - Retrospective: `Not yet assessed`
+- If the work invalidates an assumption of this spec, changes its design materially, or finds
+  something reusable, create `implementation-retrospective.md` from
+  `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this folder; otherwise add a progress-log
+  entry that says why none was needed.
+- An independent reviewer that receives this folder-style specification records its result in
+  `agent-review-reports.md` (`docs/templates/AGENT-REVIEW-REPORTS.md`).
 
 ## References
 

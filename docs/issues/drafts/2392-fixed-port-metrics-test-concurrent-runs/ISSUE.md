@@ -9,15 +9,15 @@ github-issue: null
 spec-path: docs/issues/drafts/2392-fixed-port-metrics-test-concurrent-runs/ISSUE.md
 branch: "{issue-number}-2392-fixed-port-metrics-test-concurrent-runs"
 related-pr: null
-last-updated-utc: "2026-11-16 17:30"
+last-updated-utc: "2026-11-16 22:06"
 semantic-links:
   skill-links:
     - create-issue
     - fix-bug
     - write-unit-test
   related-artifacts:
-    - .github/skills/dev/debugging/fix-bug/SKILL.md
-    - .github/skills/dev/planning/create-issue/SKILL.md
+    - .claude/skills/fix-bug/SKILL.md
+    - .claude/skills/create-issue/SKILL.md
     - docs/issues/open/2392-test-isolation/EPIC.md
     - docs/issues/open/2394-2392-audit-shared-test-resources/inventory.md
     - docs/issues/closed/2393-2392-test-port-allocation-races/ISSUE.md
@@ -54,9 +54,19 @@ Reproduced on 2026-11-16 at `b009b6425` (Linux 7.0.0): with `0.0.0.0:17091` held
 process the test fails at once, and running the built test binary twice at the same time, 20
 times, failed one of the two runs in all 20 pairs (20 failures in 40 runs).
 
-CI runs the Rust tests only on GitHub-hosted runners (one job per virtual machine), so today this
-hits development machines: several AI agents on one machine. It would also hit a self-hosted
-runner that runs the Rust suite with more than one runner instance.
+Where it can happen:
+
+- **Development machines.** Several AI agents run the suite on one machine, directly on the host
+  network. This is where the collision happens today.
+- **The self-hosted runner.** The `Containerfile` `test` stage runs the whole suite with
+  `cargo nextest run` (line 231), and the `release` stage copies from it, so `container.yaml` job
+  `test` and `testing.yaml` job `docker-e2e` run this test on the self-hosted runner. They run it
+  inside `docker build`, and each `RUN` step of a BuildKit build gets its own network namespace
+  unless the build asks for `--network=host`; neither the `Containerfile` nor the workflows do.
+  Two concurrent image builds on one runner therefore bind `0.0.0.0:17091` in two different
+  namespaces and do not collide. A future job that runs `cargo test` on the runner's host network
+  would.
+- **GitHub-hosted runners.** One job per virtual machine; no collision.
 
 ## Scope
 
@@ -88,15 +98,36 @@ runner that runs the Rust suite with more than one runner instance.
 
 The test binary owns one tracker application instance (`tests/AGENTS.md`). The loopback address
 is chosen once per run, substituted into the configuration before the tracker starts, and the
-listeners are released by the existing fixture shutdown. No new fixture type is expected.
+listeners are released by the existing fixture shutdown on success, failure and drop paths. No new
+fixture type is expected.
+
+- Deadline: the change adds no awaited readiness operation; the fixture's existing startup
+  deadline still bounds the tracker start.
+- Design-review checkpoint: after T2's first passing run, review the test design (see Test
+  Development Loop) before the T3 recheck.
+
+### Test Development Loop
+
+T2 changes a test, so it follows the progressive test-development loop of the `write-unit-test`
+skill (`.claude/skills/write-unit-test/SKILL.md`):
+
+- Work in the smallest behavior-focused increment that passes focused validation.
+- After each passing increment, and before the next one starts, review its design with the
+  mandatory prose-first Arrange-Act-Assert comparison: write temporary prose for each section,
+  refactor until the code expresses it, and remove the redundant prose. Confirm that the test
+  exposes the one causal initial-state difference, that its fixture owns only incidental mechanics
+  (judged by named actions and abstraction level, not caller count), and that the production Act
+  and the independently specified expected result stay visible.
+- Record each review in `manual-verification-evidence.md` and commit the reviewed increment before
+  starting the next one.
 
 ## Bug-Fix Process
 
 The defect is in the test, not in tracker behavior. Follow
-`.github/skills/dev/debugging/fix-bug/SKILL.md`:
+`.claude/skills/fix-bug/SKILL.md`:
 
-1. Real-artifact reproduction: hold `0.0.0.0:17091` (or run the test binary twice at once) and
-   record the `AddrInUse` failure in `manual-verification-evidence.md`.
+1. Real-artifact reproduction: done while drafting and recorded in this folder's
+   `manual-verification-evidence.md` (V1); T1 repeats it on the `develop` the work starts from.
 2. Regression boundary: the existing test binary run twice concurrently; a unit test cannot show
    a cross-process collision.
 3. Red: the paired-run reproduction before the change. Green: the same paired runs after it.
@@ -165,8 +196,12 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| V1 | Reproduce | Hold `0.0.0.0:17091`, run the test; run the built binary twice at once, 20 times | Fails with `AddrInUse` | TODO | `manual-verification-evidence.md` |
+| V1 | Reproduce | Hold `0.0.0.0:17091`, run the test; run the built binary twice at once, 20 times | Fails with `AddrInUse` | DONE | `manual-verification-evidence.md` |
 | V2 | Recheck | Run the built binary twice at once, 20 times | 40 of 40 pass | TODO | `manual-verification-evidence.md` |
+
+Evidence policy: every recorded command result names the toolchain that produced it (for example
+`cargo +stable test`), and the evidence file is created from
+`docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`.
 
 ### Acceptance Verification
 
@@ -186,6 +221,12 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 ## Implementation Completion Review
 
 - Retrospective: `Not yet assessed`
+- If the work invalidates an assumption of this spec, changes its design materially, or finds
+  something reusable, create `implementation-retrospective.md` from
+  `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this folder; otherwise add a progress-log
+  entry that says why none was needed.
+- An independent reviewer that receives this folder-style specification records its result in
+  `agent-review-reports.md` (`docs/templates/AGENT-REVIEW-REPORTS.md`).
 
 ## References
 
