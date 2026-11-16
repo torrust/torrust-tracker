@@ -6,7 +6,7 @@ epic: null
 github-issue: 2392
 spec-path: docs/issues/open/2392-test-isolation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-16 13:56"
+last-updated-utc: "2026-11-16 13:54"
 semantic-links:
   skill-links:
     - create-issue
@@ -234,7 +234,7 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
   PR #2862: merged `develop`, which carries the #2393 T5 decisions (PR #2863); order 1 now has
   T5 decided and T7 to T11 open, the Decisions section records the T5 decisions and the loopback
   helper, and AC2 and the lost-coverage risk point at #2393 T10 and T9.
-- 2026-11-16 13:56 UTC - Claude Code (Claude Opus 5.5), #2393 session - #2393 closed after PR
+- 2026-11-16 13:54 UTC - Claude Code (Claude Opus 5.5), #2393 session - #2393 closed after PR
   #2874 merged: order 1 is DONE and its spec moved to `docs/issues/closed/`.
 
 ## Acceptance Criteria

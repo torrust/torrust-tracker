@@ -9,7 +9,7 @@ github-issue: 2393
 spec-path: docs/issues/closed/2393-2392-test-port-allocation-races/ISSUE.md
 branch: "2392-test-isolation-spec"
 related-pr: 2397
-last-updated-utc: "2026-11-16 13:56"
+last-updated-utc: "2026-11-16 13:54"
 semantic-links:
   skill-links:
     - create-issue
@@ -343,7 +343,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   maintainer's review of the final increment in V7, ticked the last acceptance criterion with its
   evidence, restored the no-retries warning in the HTTP tracker test, and gave the contract tests
   one registration path.
-- 2026-11-16 13:56 UTC - Claude Code (Claude Opus 5.5) - PR 2874 merged and #2393 is closed. T11:
+- 2026-11-16 13:54 UTC - Claude Code (Claude Opus 5.5) - PR 2874 merged and #2393 is closed. T11:
   archived this spec to `docs/issues/closed/` and set order 1 to DONE in the EPIC.
 
 ## Acceptance Criteria

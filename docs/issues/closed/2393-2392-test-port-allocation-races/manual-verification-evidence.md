@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/closed/2393-2392-test-port-allocation-races/ISSUE.md
-last-updated-utc: "2026-11-16 13:56"
+last-updated-utc: "2026-11-16 13:54"
 ---
 
 <!-- markdownlint-disable MD003 -->
