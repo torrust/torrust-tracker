@@ -69,8 +69,7 @@ budget of 1% of the context window (issue #2873). Each finding is an error:
 - `skill-description-too-long`: the description, as YAML reads it, is longer than 200
   characters.
 
-Issue #2873 adds this mode while the descriptions are still being shortened, so no hook or
-workflow runs it yet.
+The pre-commit hook and the Docs Lint workflow run it after `--skill-layout`.
 
 An explicit file path is reported as given, even when it is a symlink, and its content is read
 through the link. A symlinked directory is expanded under its target's path. A dangling symlink

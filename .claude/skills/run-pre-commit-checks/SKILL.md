@@ -75,12 +75,15 @@ The script runs these steps in order:
    `.claude/skills/<name>/SKILL.md`, the redirect stubs under `.github/skills/` and their
    inventory, each skill's `name`, and the index `.claude/skills/README.md`. See the validator
    README for each finding.
-5. `cargo machete --with-metadata` - unused dependency check
-6. `cargo deny check bans` - workspace layer-boundary dependency check
-7. `cargo +nightly fmt --all -- --check` - nightly Rust formatting check
-8. `linter all` - all linters (markdown, lychee local links, YAML, TOML, clippy, rustfmt, shellcheck, cspell)
-9. `./contrib/dev-tools/checks/lint-containerfile.sh` - hadolint check of the `Containerfile`
-10. `cargo test --doc --workspace` - documentation tests
+5. `cargo run --quiet --package frontmatter-validator --bin frontmatter-validator -- --skill-descriptions` -
+   check of each skill's `description` in the index: whole as YAML reads it (not cut by a `#`
+   comment) and 200 characters or less. See the `add-new-skill` skill's description rules.
+6. `cargo machete --with-metadata` - unused dependency check
+7. `cargo deny check bans` - workspace layer-boundary dependency check
+8. `cargo +nightly fmt --all -- --check` - nightly Rust formatting check
+9. `linter all` - all linters (markdown, lychee local links, YAML, TOML, clippy, rustfmt, shellcheck, cspell)
+10. `./contrib/dev-tools/checks/lint-containerfile.sh` - hadolint check of the `Containerfile`
+11. `cargo test --doc --workspace` - documentation tests
 
 If the formatter changes the dictionary, the hook exits non-zero before the verification steps.
 Stage `project-words.txt` and retry the commit. Run the formatter independently with:
