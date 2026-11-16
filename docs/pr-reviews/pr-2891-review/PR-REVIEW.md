@@ -1,7 +1,7 @@
 ---
 pr-number: 2891
 pr-url: https://github.com/torrust/torrust-tracker/pull/2891
-last-updated-utc: "2026-11-16 22:26"
+last-updated-utc: "2026-11-16 22:28"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -236,6 +236,9 @@ Round 1: da2ce7 review 5925551139 (APPROVED, F1 to F6) and Copilot review 592559
 
 - 2026-11-16 22:13 UTC - Replied to F1 to F10 (replies created from 22:12:35Z to 22:13:16Z) and resolved their threads after pushing the round-1 fixes, before this record existed: a late start of the audit. The replies cite branch commit ids; they map to these commit subjects: `abc52e336` = `docs(issues): [#2394] address the first review round in the inventory`, `c27bd08f6` = `docs(issues): [#2394] complete the D1 and D2 drafts and record their reproductions`, `2938b08db` = `docs(issues): [#2394] draft the subissue for Compose cleanup after a failed start`, and `da4d1a3cb` = the merge of `develop` at `0373f05f8` into the branch.
 - 2026-11-16 22:26 UTC - Started audit: created this record from `docs/templates/PR-REVIEW-TEMPLATE.md` after da2ce7's round-2 review 5928830303 (F8 asked for it). Normalized round 1 (F1 to F10) and round 2 (F11 to F13), and committed the F11 and F13 fixes.
+- 2026-11-16 22:26 UTC - Round 2: replied to F11 to F13 after committing their fixes (replies created from 22:26:29Z to 22:26:35Z). `validate-audit-record.py --pr-number 2891 --base torrust/develop`, run from a scratchpad copy whose `gh` calls go through `gh-bot`, reported 13 rows, 0 failures after this record was committed.
+- 2026-11-16 22:28 UTC - Resolved the three round-2 threads (`isResolved: true` for each, at about 22:28:35Z). A GraphQL refresh found no unresolved thread and no thread whose last comment is not a reply from `josecelano-bot`.
+- 2026-11-16 22:28 UTC - Committed these log entries.
 
 <!-- Copied verbatim into each audit record. -->
 
