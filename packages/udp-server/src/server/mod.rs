@@ -76,6 +76,7 @@ mod tests {
         use torrust_tracker_configuration::v3_0_0::shutdown::Shutdown;
         use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
         use torrust_tracker_test_helpers::configuration::ephemeral_public;
+        use torrust_tracker_test_helpers::random;
         use torrust_tracker_udp_core::ConnectionIdValidationPolicy;
         use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
 
@@ -88,7 +89,7 @@ mod tests {
         const TEST_COMPLETION_TIMEOUT: Duration = Duration::from_secs(5);
 
         fn available_udp_address() -> SocketAddr {
-            let socket = UdpSocket::bind((Ipv4Addr::LOCALHOST, 0)).expect("select available UDP address");
+            let socket = UdpSocket::bind((random::loopback_ipv4(), 0)).expect("select available UDP address");
             socket.local_addr().expect("read available UDP address")
         }
 
@@ -105,9 +106,10 @@ mod tests {
         }
 
         impl StoppedUdpServerOnFreeAddress {
-            /// Starts on an address that was free when it was chosen and has since been released, so
-            /// a parallel test can claim it first. Only the ignored tests of #2393 use it; prefer
-            /// [`Self::bound_to`] with port `0` and read the bound address back.
+            /// Starts on an address that was free when it was chosen and has since been released. It
+            /// is on a random loopback address, so a test that binds `127.0.0.1:0` cannot claim it
+            /// first (#2393). Use it only when the test needs the address before the start; otherwise
+            /// prefer [`Self::bound_to`] with port `0` and read the bound address back.
             async fn on_a_released_free_address() -> Self {
                 Self::bound_to(available_udp_address()).await
             }
@@ -156,16 +158,18 @@ mod tests {
         }
 
         #[tokio::test]
-        #[ignore = "flaky port race, see #2393"]
+        #[cfg_attr(not(target_os = "linux"), ignore = "needs the Linux 127.0.0.0/8 loopback range, see #2393")]
         async fn it_should_stop_the_receive_loop_and_release_the_socket_when_its_cancellation_token_is_cancelled() {
             // Arrange
-            let server = StoppedUdpServerOnFreeAddress::on_a_released_free_address().await;
-            let bind_to = server.bind_to;
+            // A random loopback address, not 127.0.0.1, keeps tests that bind `127.0.0.1:0` from
+            // taking the port between its release and the rebind that proves it (#2393).
+            let server = StoppedUdpServerOnFreeAddress::bound_to(SocketAddr::from((random::loopback_ipv4(), 0))).await;
             let cancellation_token = CancellationToken::new();
             let running = server
                 .start(&Registar::default(), cancellation_token.clone())
                 .await
                 .expect("the token-aware UDP server should start");
+            let bound_to = running.local_addr;
 
             // Act
             cancellation_token.cancel();
@@ -179,7 +183,7 @@ mod tests {
                 loop_result.is_ok(),
                 "a cancelled receive loop should stop without an error: {loop_result:?}"
             );
-            UdpSocket::bind(bind_to).expect("the UDP socket should be released after the receive loop stops");
+            UdpSocket::bind(bound_to).expect("the UDP socket should be released after the receive loop stops");
         }
 
         #[tokio::test]
@@ -216,7 +220,7 @@ mod tests {
         }
 
         #[tokio::test]
-        #[ignore = "flaky port race, see #2393"]
+        #[cfg_attr(not(target_os = "linux"), ignore = "needs the Linux 127.0.0.0/8 loopback range, see #2393")]
         async fn it_should_release_the_socket_when_registration_fails() {
             // Arrange
             let server = StoppedUdpServerOnFreeAddress::on_a_released_free_address().await;

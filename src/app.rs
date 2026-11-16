@@ -707,6 +707,7 @@ mod tests {
     use torrust_tracker_primitives::peer::Peer;
     use torrust_tracker_swarm_coordination_registry::event::Event;
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
+    use torrust_tracker_test_helpers::random;
 
     use super::{
         Error, EventFlows, begin_shutdown, component_runner, connection_id_validation_policy, load_data_from_database,
@@ -1095,7 +1096,7 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "flaky port race, see #2393"]
+    #[cfg_attr(not(target_os = "linux"), ignore = "needs the Linux 127.0.0.0/8 loopback range, see #2393")]
     async fn it_should_release_udp_listener_before_returning_from_start_after_setup_when_later_http_startup_fails() {
         // Arrange
         let mut configuration = torrust_tracker_test_helpers::configuration::ephemeral_public();
@@ -1407,8 +1408,11 @@ mod tests {
         }
     }
 
+    /// Selects a free address on a random loopback address, not 127.0.0.1, so a test that binds
+    /// `127.0.0.1:0` cannot take the port before the component binds it or before the test rebinds
+    /// it to prove the release (#2393).
     fn reserve_udp_address() -> SocketAddr {
-        let socket = UdpSocket::bind("127.0.0.1:0").expect("reserve UDP listener address");
+        let socket = UdpSocket::bind((random::loopback_ipv4(), 0)).expect("reserve UDP listener address");
         socket.local_addr().expect("read UDP listener address")
     }
 }

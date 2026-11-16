@@ -371,6 +371,7 @@ mod tests {
     use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
     use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
+    use torrust_tracker_test_helpers::random;
 
     use crate::server::{Error, HttpServer, Launcher, check_fn_with_client, health_check_url};
 
@@ -516,9 +517,13 @@ mod tests {
 
         fn available_http_bind_address() -> SocketAddr {
             // Registration must fail after the server has bound this address, so this listener is
-            // released before start. Do not add retries or waits: they would hide this OS-level handoff
-            // risk instead of preserving the cleanup contract under test.
-            let available_listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).expect("select available HTTP listener address");
+            // released before start. A random loopback address, not 127.0.0.1, keeps tests that bind
+            // `127.0.0.1:0` from taking the port before the server binds it or before the test
+            // rebinds it to prove the release (#2393). Do not add retries or waits: they would hide
+            // the handoff risk that remains (a socket bound to `0.0.0.0` on the same port) instead of
+            // preserving the cleanup contract under test.
+            let available_listener =
+                TcpListener::bind((random::loopback_ipv4(), 0)).expect("select available HTTP listener address");
             let bind_to = available_listener.local_addr().expect("read available listener address");
             drop(available_listener);
 
@@ -856,7 +861,7 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "flaky port race, see #2393"]
+    #[cfg_attr(not(target_os = "linux"), ignore = "needs the Linux 127.0.0.0/8 loopback range, see #2393")]
     async fn it_should_release_the_listener_when_token_aware_startup_registration_fails() {
         // Arrange
         let scenario = ServerStartWithDuplicateRegistration::new().await;

@@ -42,7 +42,7 @@ async fn announce_event(
     peer_id: &[u8; 20],
     port: u16,
     event: Event,
-    bytes_left: Option<i64>,
+    bytes_left: Option<u64>,
 ) {
     let client = Client::new(tracker_url.clone(), Duration::from_secs(5)).expect("failed to create HTTP client");
 

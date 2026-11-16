@@ -172,9 +172,9 @@ pub fn sample_announce_request_for_peer(peer: Peer) -> (Announce, ClientIpSource
         peer_id: peer.peer_id,
         port: peer.peer_addr.port(),
         ip: PeerIp::Absent,
-        uploaded: Some(ProtocolNumberOfBytes::new(peer.uploaded.0)),
-        downloaded: Some(ProtocolNumberOfBytes::new(peer.downloaded.0)),
-        left: Some(ProtocolNumberOfBytes::new(peer.left.0)),
+        uploaded: Some(ProtocolNumberOfBytes::new(peer.uploaded.get())),
+        downloaded: Some(ProtocolNumberOfBytes::new(peer.downloaded.get())),
+        left: Some(ProtocolNumberOfBytes::new(peer.left.get())),
         event: Some(match peer.event {
             AnnounceEvent::Started => ProtocolAnnounceEvent::Started,
             AnnounceEvent::Stopped => ProtocolAnnounceEvent::Stopped,

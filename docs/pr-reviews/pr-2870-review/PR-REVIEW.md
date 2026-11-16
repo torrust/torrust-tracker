@@ -17,7 +17,7 @@ Source: pull-request reviews and inline review threads for https://github.com/to
 The PR author owns this tracked audit record. Reviewers, including repository review agents,
 deliver findings through GitHub and have no repository-artifact obligation.
 
-- Post-merge workflow approval: N/A
+- Post-merge workflow approval: https://github.com/torrust/torrust-tracker/pull/2870#issuecomment-6914058589 (comment created 2026-11-16 10:37 UTC by `josecelano-bot` on behalf of the maintainer, who approved in chat at about 08:17 UTC to merge as is and fix the late finding F13 (C13) in the close-out PR; review 5916759580 was submitted at 08:08 UTC and the PR merged at 08:27 UTC)
 
 ## Status Values
 
@@ -44,7 +44,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 Copilot used the reviewer finding ID `R1` for two different findings. The second keeps `R1` as its
 reviewer finding ID and gets the audit-local ID `F3`. The da2ce7 review numbers its findings `F1` to
 `F9`, which collide with `F3`, so they get the audit-local IDs `C1` to `C9` and keep their own IDs as
-reviewer finding IDs. Its second review continues with `F10` to `F12`, recorded as `C10` to `C12`.
+reviewer finding IDs. Its second review continues with `F10` to `F12`, recorded as `C10` to `C12`, and its approving review
+with `F13`, recorded as `C13`.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -63,6 +64,7 @@ reviewer finding IDs. Its second review continues with `F10` to `F12`, recorded 
 | C10 | review-finding:pr-2870-c10 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | C11 | review-finding:pr-2870-c11 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | C12 | review-finding:pr-2870-c12 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| C13 | review-finding:pr-2870-c13 | Human | Minor | metadata | ORIGINAL | FOLLOW_UP | OPEN |
 
 ## Finding Details
 
@@ -241,7 +243,7 @@ reviewer finding IDs. Its second review continues with `F10` to `F12`, recorded 
 - Source review ID: 5916635531
 - Reviewer finding ID: F11
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2870#discussion_r4583200328
-- Concern: C9's verification cited the PR-branch commit `bc966c032`, which a rebase would change.
+- Concern: C9's verification cited a PR-branch commit by its id (the commit `docs(pr-reviews): audit the first Copilot review of PR 2870 (#2845)`), which a rebase would change.
 - Solution: Cited the merge base `abd7a10ff` on `develop` instead.
 - Current-tree verification: `git diff --check abd7a10ff HEAD` prints nothing, and no PR-branch commit id in `abd7a10ff..HEAD` appears in `docs/` or `src/`.
 - Resolution reference: docs(pr-reviews): audit the second da2ce7 review of PR 2870 (#2845)
@@ -261,6 +263,19 @@ reviewer finding IDs. Its second review continues with `F10` to `F12`, recorded 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2870#discussion_r4583218733
 
+### C13 - Remove the PR-branch commit id from C11
+
+- PR number: 2870
+- Source review ID: 5916759580
+- Reviewer finding ID: F13
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2870#discussion_r4583289425
+- Concern: C11's Concern named the PR-branch commit id it set out to remove, so the commit-id check still printed it, and C11's verification and the F11 reply were wrong at that head.
+- Solution: The maintainer merged PR #2870 as is; the close-out PR describes that commit by its subject in C11. `FOLLOW_UP` and `OPEN` until the close-out PR merges.
+- Current-tree verification: the `open-pull-request` skill's commit-id check prints no PR-branch commit id for this record.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2870#discussion_r4584192339
+- Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2880
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2870#discussion_r4583363366
+
 ## Processing Log
 
 - 2026-11-15 21:06 UTC - Copilot review 5912933402 submitted with three inline findings.
@@ -275,6 +290,12 @@ reviewer finding IDs. Its second review continues with `F10` to `F12`, recorded 
 - 2026-11-16 07:55 UTC - da2ce7 review 5916635531 (commented) submitted with three inline findings.
 - 2026-11-16 07:57 UTC - Committed the C12 fix (`test(app): drop the stale summary line ...`).
 - 2026-11-16 07:58 UTC - Replied on the three threads.
+- 2026-11-16 08:08 UTC - da2ce7 review 5916759580 (approved) submitted with one inline finding (F13, non-blocking).
+- 2026-11-16 08:17 UTC - Replied on the F13 thread: fix deferred to the close-out PR at the maintainer's choice.
+- 2026-11-16 08:27 UTC - PR #2870 merged by the maintainer.
+- 2026-11-16 09:51 UTC - Replied on the F13 thread with the close-out PR fix (C13's resolution reference) and resolved it.
+- 2026-11-16 10:24 UTC - Reopened the F13 thread and replied: C13 stays `FOLLOW_UP` / `OPEN` until the close-out PR merges.
+- 2026-11-16 10:37 UTC - Posted the durable post-merge workflow approval comment.
 
 ## Completion Rules
 
