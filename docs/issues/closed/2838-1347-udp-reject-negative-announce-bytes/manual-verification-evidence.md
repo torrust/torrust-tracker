@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2838-1347-udp-reject-negative-announce-bytes/ISSUE.md
-last-updated-utc: "2026-11-14 08:07"
+issue-spec: docs/issues/closed/2838-1347-udp-reject-negative-announce-bytes/ISSUE.md
+last-updated-utc: "2026-11-16 14:07"
 ---
 
 # Manual Verification Evidence

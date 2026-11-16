@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: in-progress
+status: done
 priority: p2
 epic: 1347
 github-issue: 2838
-spec-path: docs/issues/open/2838-1347-udp-reject-negative-announce-bytes/ISSUE.md
+spec-path: docs/issues/closed/2838-1347-udp-reject-negative-announce-bytes/ISSUE.md
 branch: "2838-udp-reject-negative-announce-bytes"
 related-pr: 2872
-last-updated-utc: "2026-11-15 21:22"
+last-updated-utc: "2026-11-16 15:50"
 semantic-links:
   skill-links:
     - create-issue
@@ -17,7 +17,7 @@ semantic-links:
   related-artifacts:
     - .claude/skills/fix-bug/SKILL.md
     - .claude/skills/create-issue/SKILL.md
-    - docs/issues/open/2850-non-negative-number-of-bytes/ISSUE.md
+    - docs/issues/closed/2850-non-negative-number-of-bytes/ISSUE.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -199,12 +199,12 @@ Follows [fix-bug](../../../../.claude/skills/fix-bug/SKILL.md):
 - [x] Folder-style spec drafted in `docs/issues/open/2838-1347-udp-reject-negative-announce-bytes/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Implementation completed (superseded: done on the branch of PR #2839, which was not merged; the implementation is now issue #2850)
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks) (superseded: ran on the branch of PR #2839, not merged)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md` (superseded: V1 and V1b describe `develop`; V2 ran on the branch of PR #2839, not merged)
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence (superseded: reviewed against the branch of PR #2839, not merged)
-- [ ] Implementation completion review recorded
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Implementation completed (by issue #2850, PR #2872; the earlier patch on the branch of PR #2839 was not merged)
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks) (by the checks and CI of PR #2872; the earlier run on the branch of PR #2839 was not merged)
+- [x] Manual verification scenarios executed and recorded (this folder's V1 and V1b describe `develop` before the fix and V2 the unmerged branch of PR #2839; the recheck of the merged fix is section V1 of the manual verification evidence of #2850)
+- [x] Acceptance criteria reviewed after implementation and updated with evidence (against `develop` after PR #2872; see the preface of "Acceptance Criteria")
+- [x] Implementation completion review recorded
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -213,20 +213,23 @@ Follows [fix-bug](../../../../.claude/skills/fix-bug/SKILL.md):
 - 2026-11-12 16:40 UTC - Claude Code (Claude Fable 5.2) - Review round 1 on PR #2839 addressed: typed field enum, `BadRequest` event classification, placement tests, exact-variant handler test, V2 repeated on the committed tree. The maintainer accepted the service-level check as a tactical patch; a follow-up EPIC (draft, no issue yet) will make the domain byte count non-negative by construction.
 - 2026-11-12 17:41 UTC - Claude Code (Fable 5.2) - The maintainer decided not to merge the tactical patch of PR #2839. The bug is fixed at its root by issue #2850 (`docs/issues/open/2850-non-negative-number-of-bytes/ISSUE.md`), whose implementation closes this issue. This specification and its evidence were carried over from the branch of PR #2839 as the record of the analysis, the reproduction and the client evidence. Its implementation plan and commit points describe the patch and are superseded; the tests of that branch are taken over by #2850.
 - 2026-11-15 21:22 UTC - Claude Code (Opus 5.5) - The implementation of #2850 is PR #2872, which closes this issue on merge. It took over the red handler test, the `peer_builder` rejection and acceptance cases, the order tests and the `BadRequest` classification test of PR #2839, adapted to the conversion error `FromRequestError`. The UDP recheck with the probe of this folder is section V1 of the #2850 manual verification evidence: `left = -5` now gets ``tracker announce error: Invalid announce request: `left` must not be negative, got -5`` with its transaction id, and no peer is stored.
+- 2026-11-16 14:07 UTC - Claude Code (Opus 5.5) - PR #2872 merged on 2026-11-16 14:05 UTC and closed this issue. The criteria are met on `develop` by the implementation of #2850; ticked them and archived this specification to `docs/issues/closed/`.
+- 2026-11-16 15:50 UTC - Claude Code (Opus 5.5) - Review of PR #2884: ticked the four implementation checkpoints, which #2850 met, and named where the recheck of the fix is recorded, so the checkpoints and the criteria agree.
 
 ## Acceptance Criteria
 
-Superseded (PR #2839, not merged): these criteria were met on the branch of PR #2839 only. None is
-met on `develop`. Issue #2850 carries the criteria for the fix.
+These criteria were first met on the branch of PR #2839, which was not merged. They are met on
+`develop` by the implementation of issue #2850 (PR #2872, merged 2026-11-16), whose own criteria
+and evidence cover them.
 
-- [ ] AC1: a UDP announce with `left < 0` gets an error response (action 3) with the request's
+- [x] AC1: a UDP announce with `left < 0` gets an error response (action 3) with the request's
       transaction id, and no peer is registered.
-- [ ] AC2: same for `uploaded < 0` and `downloaded < 0` (if approved).
-- [ ] AC3: `left = 0`, `left = i64::MAX`, and `num_want = -1` are still accepted.
-- [ ] AC4: the rejection emits the existing UDP error event and log.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] AC2: same for `uploaded < 0` and `downloaded < 0` (if approved).
+- [x] AC3: `left = 0`, `left = i64::MAX`, and `num_want = -1` are still accepted.
+- [x] AC4: the rejection emits the existing UDP error event and log.
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md` (for the fix: section V1 of the manual verification evidence of #2850)
 
 ## Verification Plan
 
@@ -270,7 +273,7 @@ not in the tree.
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: not needed. The fix is the implementation of issue #2850, whose completion review covers it.
 
 ## References
 

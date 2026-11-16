@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: in-progress
+status: done
 priority: p2
 epic: null
 github-issue: 2850
-spec-path: docs/issues/open/2850-non-negative-number-of-bytes/ISSUE.md
+spec-path: docs/issues/closed/2850-non-negative-number-of-bytes/ISSUE.md
 branch: "2850-non-negative-number-of-bytes"
 related-pr: 2872
-last-updated-utc: "2026-11-16 10:16"
+last-updated-utc: "2026-11-16 16:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -45,8 +45,8 @@ semantic-links:
     - .claude/skills/handle-errors-in-code/SKILL.md
     - docs/benchmarking.md
     - docs/issues/closed/2824-1347-add-tests-primitives/ISSUE.md
-    - docs/issues/open/2838-1347-udp-reject-negative-announce-bytes/ISSUE.md
-    - docs/issues/open/2838-1347-udp-reject-negative-announce-bytes/manual-verification-evidence.md
+    - docs/issues/closed/2838-1347-udp-reject-negative-announce-bytes/ISSUE.md
+    - docs/issues/closed/2838-1347-udp-reject-negative-announce-bytes/manual-verification-evidence.md
     - docs/issues/open/2842-inbound-tolerance-adr/ISSUE.md
     - docs/adrs/20261111170611_reject_malformed_inbound_protocol_values_unless_clients_need_tolerance.md
     - docs/issues/open/1347-overhaul-packages-testing/EPIC.md
@@ -152,7 +152,7 @@ later readers start from the recorded decisions.
 | Are wrapped inner errors public? When is an error enum `#[non_exhaustive]`? | Public and typed per package. `#[non_exhaustive]` when consumers only report or convert; exhaustive when variants select a recovery action. A generic `Box<dyn Error>` is rejected | [Return `Result` only for concretely fallible public APIs](../../../adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md) with its amendment of 2026-10-19; [issue #2454 specification](../../closed/2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md); the [`handle-errors-in-code` skill](../../../../.claude/skills/handle-errors-in-code/SKILL.md) |
 | Why are packages treated as separate public APIs? | Each package is versioned and published on its own | [Adopt independent package versioning](../../../adrs/20260629000000_adopt_independent_package_versioning.md); [issue #2583 specification](../../open/2583-1669-first-publish-of-workspace-crates/ISSUE.md) |
 | May an event carry an internal error type? | No. Events are objective facts with a stable payload | [Events are objective facts](../../../adrs/20260727000000_events_are_objective_facts.md); [general error-events EPIC draft](../../drafts/generalize-error-events/EPIC.md) |
-| Is a questionable inbound value refused or tolerated? | Strict by default; a tolerance needs recorded evidence | [Reject malformed inbound protocol values unless real clients need the tolerance](../../../adrs/20261111170611_reject_malformed_inbound_protocol_values_unless_clients_need_tolerance.md), delivered by the spec-only pull request of this issue; [issue #2842 specification](../2842-inbound-tolerance-adr/ISSUE.md) |
+| Is a questionable inbound value refused or tolerated? | Strict by default; a tolerance needs recorded evidence | [Reject malformed inbound protocol values unless real clients need the tolerance](../../../adrs/20261111170611_reject_malformed_inbound_protocol_values_unless_clients_need_tolerance.md), delivered by the spec-only pull request of this issue; [issue #2842 specification](../../open/2842-inbound-tolerance-adr/ISSUE.md) |
 | Which layer refuses a value the wire allows and the domain does not? What has priority over failing fast? | The first conversion into a type the project owns; a strict protocol specification has priority | The same ADR, points 6, 8 and 9 (decided in this review, D2) |
 | Does any real client send a negative byte count? | None of the clients checked does: libtorrent sends `16384` and Transmission `i64::MAX` when the size is unknown | [Specification of #2838](../2838-1347-udp-reject-negative-announce-bytes/ISSUE.md), "Evidence on real clients and other trackers" |
 | What do the specifications say about the sign of the byte counts? | BEP 15 and BEP 3 do not say; the libtorrent document uses `int64_t` | [BEP 15](https://www.bittorrent.org/beps/bep_0015.html), [BEP 3](https://www.bittorrent.org/beps/bep_0003.html), [XBT Tracker](https://xbtt.sourceforge.net/udp_tracker_protocol.html), [libtorrent](https://www.libtorrent.org/udp_tracker_protocol.html); see "Research Findings" |
@@ -484,7 +484,7 @@ What is taken over, so nothing is lost:
 | From | What | Where it is now |
 | --- | --- | --- |
 | PR #2843, branch `2842-inbound-tolerance-adr` | The ADR, its index entry and the specification of #2842 | Carried over as commits of the spec-only pull request |
-| PR #2839, branch `2838-udp-reject-negative-announce-bytes` | The specification of #2838 with the field audit and the client and tracker evidence; the reproduction evidence; the UDP probe script | [`docs/issues/open/2838-1347-udp-reject-negative-announce-bytes/`](../2838-1347-udp-reject-negative-announce-bytes/ISSUE.md), carried over by the spec-only pull request |
+| PR #2839, branch `2838-udp-reject-negative-announce-bytes` | The specification of #2838 with the field audit and the client and tracker evidence; the reproduction evidence; the UDP probe script | [`docs/issues/closed/2838-1347-udp-reject-negative-announce-bytes/ISSUE.md`](../2838-1347-udp-reject-negative-announce-bytes/ISSUE.md), carried over by the spec-only pull request |
 | PR #2839, the same branch | The tests, in the commits "test(udp-server): reject a negative left in an announce (red)", "test(udp-core): [#2838] cover rejected and accepted byte counts in announce" and "fix(udp-server): [#2838] classify a negative byte count as a bad request" | Not carried over yet. The implementation takes them from that branch and adapts them to the new error |
 
 The frontmatter keeps `epic: null`.
@@ -696,7 +696,7 @@ with the narrow affected scope, and sign every commit with GPG.
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [x] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -718,29 +718,30 @@ the model that produced them.
 - 2026-11-15 21:17 UTC - Claude Code (Opus 5.5) - Implemented T0 to T6 on branch `2850-non-negative-number-of-bytes`. T0 added `udp_tracker/announce_once`; the first baseline was discarded because uncommitted T1/T2 edits leaked into its build, and each measurement is now built in a clean worktree (`performance-evidence.md`, lesson added to `docs/benchmarking.md`). T2 named the field with the `ByteCountField` enum (one variant, one message, the field as a matchable value) and moved the peer conversion before the whitelist check, as the order tests of PR #2839 require. The maintainer agreed a 5% tolerance for the UDP benchmark before the after measurement. Load test and UDP pass; HTTP `announce_once` failed the one-sided rule by 0.3% on a path T3 does not add work to, and an interleaved A/B run put it inside the noise: the verdict is the maintainer's. Manual run 1 was discarded for non-monotonic timestamps. No design assumption was invalidated, so no retrospective file.
 - 2026-11-15 21:22 UTC - Claude Code (Opus 5.5) - Rebased onto `develop` and opened the implementation PR #2872 (closes #2850 and #2838). Updated the #2838 specification and row 12 of the EPIC #1347 table to point to it.
 - 2026-11-16 10:16 UTC - Claude Code (Opus 5.5) - Recorded two maintainer decisions of 2026-11-16, both given to this session in its conversation with the maintainer: the client-visible changes listed in PR #2872 are approved, and the HTTP `announce_once` result is accepted ("Performance Evidence" and `performance-evidence.md`).
+- 2026-11-16 14:07 UTC - Claude Code (Opus 5.5) - PR #2872 merged on 2026-11-16 14:05 UTC and closed #2850 and #2838. Ticked AC1 to AC15 and the general criteria, checked again on `develop` at the merge (no public field and no signed constructor, `left.get() == 0` in the three `is_seeder`, no `validate_number_of_bytes` and no `NumberOfBytesOverflow`, no diff in `packages/udp-protocol`, `u64` REST fields, the ADR in `docs/adrs/index.md`, the `InvalidAnnounceRequest` classification) and by the tests, CI and manual evidence of the PR. Archived this specification and the one of #2838 to `docs/issues/closed/`.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `torrust_tracker_primitives::NumberOfBytes` and the HTTP protocol `NumberOfBytes` have no public field and no constructor that takes a signed integer.
-- [ ] AC2: the three `is_seeder` implementations compare `left` with zero, and tests cover `left == 0` and `left > 0`, each with `Stopped` and with another event.
-- [ ] AC3: `peer_builder::from_request` returns an error that names the field and the value when `bytes_left`, `bytes_uploaded` or `bytes_downloaded` is negative; unit tests cover the three fields and `i64::MIN`.
-- [ ] AC4: `peer_builder::from_request` accepts `left` of `0`, `16384` and `i64::MAX`.
-- [ ] AC5: `validate_number_of_bytes` does not exist, and no other standalone function validates a byte count.
-- [ ] AC6: `peer_builder` does not import the error of the announce service; `UdpAnnounceError` wraps the conversion error as a `source`.
-- [ ] AC7: `torrust_tracker_udp_protocol::NumberOfBytes` and `Request::parse_bytes` are unchanged (no diff in `packages/udp-protocol`).
-- [ ] AC8: `ParseAnnounceQueryError::NumberOfBytesOverflow` does not exist; for each of `uploaded`, `downloaded` and `left` the HTTP parser refuses a negative value and a value above `u64::MAX` with `InvalidParam`, and accepts `0` and `u64::MAX`.
-- [ ] AC9: `AnnounceBuilder::with_downloaded`, `with_uploaded` and `with_left` cannot panic and have no `# Panics` section.
-- [ ] AC10: the conversion from the HTTP protocol type to the domain type is infallible, and an HTTP announce with a counter above `i64::MAX` is accepted.
-- [ ] AC11: the REST resource fields `uploaded`, `downloaded` and `left` are `u64`, and the JSON of a peer is the same as before for the same peer.
-- [ ] AC12: a UDP announce with a negative counter gets a BEP 15 error response with the request's transaction id, the peer is not stored, and the swarm statistics do not change.
-- [ ] AC13: an announce with a negative, zero or positive `left` gets the same verdict over UDP and HTTP on a running tracker.
-- [ ] AC14: the ADR of issue #2842 is merged, holds the rules listed in D5, and is listed in `docs/adrs/index.md`.
-- [ ] AC15: the new UDP error is classified as `ErrorKind::BadRequest`, and the implementation pull request closes issue #2838.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior/workflow changes
+- [x] AC1: `torrust_tracker_primitives::NumberOfBytes` and the HTTP protocol `NumberOfBytes` have no public field and no constructor that takes a signed integer.
+- [x] AC2: the three `is_seeder` implementations compare `left` with zero, and tests cover `left == 0` and `left > 0`, each with `Stopped` and with another event.
+- [x] AC3: `peer_builder::from_request` returns an error that names the field and the value when `bytes_left`, `bytes_uploaded` or `bytes_downloaded` is negative; unit tests cover the three fields and `i64::MIN`.
+- [x] AC4: `peer_builder::from_request` accepts `left` of `0`, `16384` and `i64::MAX`.
+- [x] AC5: `validate_number_of_bytes` does not exist, and no other standalone function validates a byte count.
+- [x] AC6: `peer_builder` does not import the error of the announce service; `UdpAnnounceError` wraps the conversion error as a `source`.
+- [x] AC7: `torrust_tracker_udp_protocol::NumberOfBytes` and `Request::parse_bytes` are unchanged (no diff in `packages/udp-protocol`).
+- [x] AC8: `ParseAnnounceQueryError::NumberOfBytesOverflow` does not exist; for each of `uploaded`, `downloaded` and `left` the HTTP parser refuses a negative value and a value above `u64::MAX` with `InvalidParam`, and accepts `0` and `u64::MAX`.
+- [x] AC9: `AnnounceBuilder::with_downloaded`, `with_uploaded` and `with_left` cannot panic and have no `# Panics` section.
+- [x] AC10: the conversion from the HTTP protocol type to the domain type is infallible, and an HTTP announce with a counter above `i64::MAX` is accepted.
+- [x] AC11: the REST resource fields `uploaded`, `downloaded` and `left` are `u64`, and the JSON of a peer is the same as before for the same peer.
+- [x] AC12: a UDP announce with a negative counter gets a BEP 15 error response with the request's transaction id, the peer is not stored, and the swarm statistics do not change.
+- [x] AC13: an announce with a negative, zero or positive `left` gets the same verdict over UDP and HTTP on a running tracker.
+- [x] AC14: the ADR of issue #2842 is merged, holds the rules listed in D5, and is listed in `docs/adrs/index.md`.
+- [x] AC15: the new UDP error is classified as `ErrorKind::BadRequest`, and the implementation pull request closes issue #2838.
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated when behavior/workflow changes
 
 ## Verification Plan
 
