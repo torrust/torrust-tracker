@@ -8,7 +8,7 @@ epic: 2003
 github-issue: 2866
 spec-path: docs/issues/open/2866-2003-move-skills-to-claude-skills/ISSUE.md
 branch: "2866-move-skills-to-claude-skills"
-related-pr: null
+related-pr: 2886
 last-updated-utc: "2026-11-16 15:43"
 semantic-links:
   skill-links:
