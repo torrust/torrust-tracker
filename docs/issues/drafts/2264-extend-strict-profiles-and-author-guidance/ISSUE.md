@@ -150,7 +150,7 @@ The command already runs short synchronous `git` processes and needs no new chil
 
 ## Bug-Fix Process
 
-The issue is a feature, but T7a-T7c correct stale guidance: the field lists in `docs/skills/semantic-skill-link-convention.md` disagree with the v1 model, and a spec written from them fails validation. It follows [fix-bug](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md):
+The issue is a feature, but T7a-T7c correct stale guidance: the field lists in `docs/skills/semantic-skill-link-convention.md` disagree with the v1 model, and a spec written from them fails validation. It follows [fix-bug](../../../../.claude/skills/fix-bug/SKILL.md):
 
 1. the hypothesis: the duplicated lists predate the v1 contract and were never updated with it;
 2. the reproduction, attempted while drafting and before maintainer review: two disposable specs written from the convention's issue field list, one exactly as listed and one with `schema-version: 1` added. The outcome is **Reproduced**: the attempt in the drafting environment was infeasible for lack of a Rust toolchain, but its field-by-field comparison with `profile.rs` predicted a `legacy-shape` error for the first spec and a `missing-required-field` error for `epic` for the second, and the recorded commands then produced exactly those records, each with exit `1`, in a Linux container with the workspace nightly toolchain. `manual-verification-evidence.md` section B1 records the specs, the commands, the comparison, the toolchain, and the observed records;

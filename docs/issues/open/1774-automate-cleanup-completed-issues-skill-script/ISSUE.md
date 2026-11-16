@@ -1,18 +1,20 @@
 ---
+schema-version: 1
 doc-type: issue
 issue-type: enhancement
 status: planned
 priority: p2
+epic: null
 github-issue: 1774
 spec-path: docs/issues/open/1774-automate-cleanup-completed-issues-skill-script/ISSUE.md
 branch: "1774-automate-cleanup-completed-issues-skill-script"
 related-pr: null
-last-updated-utc: 2026-09-11
+last-updated-utc: "2026-09-11 00:00"
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - .github/skills/dev/planning/cleanup-completed-issues/SKILL.md
+    - .claude/skills/cleanup-completed-issues/SKILL.md
     - docs/issues/open/README.md
     - docs/issues/closed/README.md
 ---
@@ -25,7 +27,7 @@ Automate the cleanup workflow for completed issue specs so moving closed issue s
 
 ## Background
 
-The workflow in .github/skills/dev/planning/cleanup-completed-issues/SKILL.md is clear but currently manual. Batch cleanup is repetitive and increases the chance of mistakes, especially when validating issue state and selecting the correct files.
+The workflow in .claude/skills/cleanup-completed-issues/SKILL.md is clear but currently manual. Batch cleanup is repetitive and increases the chance of mistakes, especially when validating issue state and selecting the correct files.
 
 The documented lifecycle already defines a safe two-stage process:
 
@@ -146,5 +148,5 @@ Notes:
 ## References
 
 - GitHub issue: https://github.com/torrust/torrust-tracker/issues/1774
-- Cleanup skill: .github/skills/dev/planning/cleanup-completed-issues/SKILL.md
+- Cleanup skill: .claude/skills/cleanup-completed-issues/SKILL.md
 - Script guidance: https://agentskills.io/skill-creation/using-scripts

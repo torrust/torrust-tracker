@@ -7,7 +7,7 @@ semantic-links:
     - docs/adrs/README.md
     - docs/adrs/index.md
     - docs/templates/ADR.md
-    - .github/skills/dev/planning/create-adr/SKILL.md
+    - .claude/skills/create-adr/SKILL.md
     - console/tracker-client/docs/adrs/20260512080000_define_tracker_cli_io_contract_and_error_handling.md
     - docs/adrs/20260519000000_define_global_cli_output_contract.md
 ---

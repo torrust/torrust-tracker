@@ -14,7 +14,7 @@ semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - .github/skills/dev/planning/create-issue/SKILL.md
+    - .claude/skills/create-issue/SKILL.md
     - packages/udp-protocol/src/lib.rs
     - docs/issues/closed/2158-2003-inventory-existing-clippy-allows/clippy-exception-decision-framework.md
     - docs/issues/closed/2158-2003-inventory-existing-clippy-allows/clippy-allow-inventory.md

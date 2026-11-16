@@ -173,7 +173,7 @@ workspace slices cannot change it.
 
 ## T3 - Guidance and enforceability
 
-- **Skill** `.github/skills/dev/rust-code-quality/handle-errors-in-code/SKILL.md` recommends the
+- **Skill** `.claude/skills/handle-errors-in-code/SKILL.md` recommends the
   `located-error` package ("Consider `located-error` for diagnostics-rich errors") and says nothing
   about `#[track_caller]`, about keeping locations out of user-facing `Display`, or about the
   chain-breaking shapes E2 to E12. Its own advice (clarity, context, actionability) argues against

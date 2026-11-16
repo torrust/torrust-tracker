@@ -3,7 +3,7 @@ semantic-links:
   skill-links:
     - write-unit-test
   related-artifacts:
-    - .github/skills/dev/testing/write-unit-test/SKILL.md
+    - .claude/skills/write-unit-test/SKILL.md
     - docs/testing/refactoring-patterns/README.md
     - tests/AGENTS.md
 ---
@@ -19,7 +19,7 @@ originating issue is closed.
 | Resource                                                                     | Purpose                                                                                                         |
 | ---------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
 | [Test refactoring-pattern catalog](refactoring-patterns/README.md)           | Reviewed examples for improving generated or existing test code without changing the behavior under test.       |
-| [Unit-test skill](../../.github/skills/dev/testing/write-unit-test/SKILL.md) | Required workflow and baseline conventions for writing package-local unit tests.                                |
+| [Unit-test skill](../../.claude/skills/write-unit-test/SKILL.md) | Required workflow and baseline conventions for writing package-local unit tests.                                |
 | [Application integration-test guidance](../../tests/AGENTS.md)               | Boundary selection, process isolation, lifecycle, and scenario guidance for main-application integration tests. |
 
 ## Adding Catalog Entries

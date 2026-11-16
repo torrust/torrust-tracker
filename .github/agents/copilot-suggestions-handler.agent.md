@@ -10,7 +10,7 @@ disable-model-invocation: false
 You are the repository's Copilot review entry point.
 
 Process the requested Copilot-authored pull-request review findings through the canonical
-[process-pr-review skill](../skills/dev/pr-reviews/process-pr-review/SKILL.md). Create or update
+[process-pr-review skill](../../.claude/skills/process-pr-review/SKILL.md). Create or update
 `docs/pr-reviews/pr-<PR_NUMBER>-review/PR-REVIEW.md` as that skill requires.
 
 The unified skill exclusively defines finding normalization, dispositions, current-tree

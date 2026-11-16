@@ -5,8 +5,8 @@ semantic-links:
     - catalog-security-vulnerabilities
   related-artifacts:
     - docs/security/analysis/README.md
-    - .github/skills/dev/maintenance/catalog-security-vulnerabilities/SKILL.md
-    - .github/skills/dev/maintenance/run-manual-docker-security-scan/SKILL.md
+    - .claude/skills/catalog-security-vulnerabilities/SKILL.md
+    - .claude/skills/run-manual-docker-security-scan/SKILL.md
 ---
 
 # {Finding Identifier} — {Affected Component}

@@ -6,7 +6,7 @@ semantic-links:
     - docs/index.md
     - docs/refactor-plans/open/README.md
     - docs/refactor-plans/drafts/README.md
-    - .github/skills/dev/planning/create-refactor-plan/SKILL.md
+    - .claude/skills/create-refactor-plan/SKILL.md
 ---
 
 # Closed Refactor Plans
@@ -24,4 +24,4 @@ adjacent work is still in progress.
 ## Related Skills
 
 - Create a refactor plan:
-  [`.github/skills/dev/planning/create-refactor-plan/SKILL.md`](../../../.github/skills/dev/planning/create-refactor-plan/SKILL.md)
+  [`.claude/skills/create-refactor-plan/SKILL.md`](../../../.claude/skills/create-refactor-plan/SKILL.md)

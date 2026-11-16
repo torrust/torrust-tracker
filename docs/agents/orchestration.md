@@ -4,7 +4,7 @@ semantic-links:
     - AGENTS.md
     - .github/agents/
     - .github/agents/README.md
-    - .github/skills/
+    - .claude/skills/
     - docs/agents/README.md
     - issue #2155
     - issue #2160

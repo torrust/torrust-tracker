@@ -1,18 +1,19 @@
 ---
+schema-version: 1
 doc-type: issue
 issue-type: enhancement
 status: draft
 priority: p3
+epic: null
 github-issue: null
 spec-path: docs/issues/drafts/increase-main-app-integration-test-coverage/ISSUE.md
-branch: null
+branch: "{issue-number}-increase-main-app-integration-test-coverage"
 related-pr: null
-last-updated-utc: 2026-07-27 12:00
+last-updated-utc: "2026-07-27 12:00"
 semantic-links:
   skill-links:
     - write-unit-test
   related-artifacts:
-    - tests/stats.rs
     - tests/AGENTS.md
     - docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
     - "issue #1347"
@@ -215,7 +216,7 @@ Suggested approach:
 
 ### Testing Strategy Documentation
 
-- [.github/skills/dev/testing/write-unit-test/SKILL.md](../../../../.github/skills/dev/testing/write-unit-test/SKILL.md)
+- [.claude/skills/write-unit-test/SKILL.md](../../../../.claude/skills/write-unit-test/SKILL.md)
   \- Unit testing conventions and Test Desiderata principles
 - [docs/adrs/20260603000000_keep_unit_tests_inside_container_build.md](../../../adrs/20260603000000_keep_unit_tests_inside_container_build.md)
   \- ADR documenting the three-layer testing strategy (GHA unit tests, in-container unit tests,

@@ -15,8 +15,8 @@ semantic-links:
     - create-issue
     - release-new-version
   related-artifacts:
-    - .github/skills/dev/planning/create-issue/SKILL.md
-    - .github/skills/dev/git-workflow/release-new-version/SKILL.md
+    - .claude/skills/create-issue/SKILL.md
+    - .claude/skills/release-new-version/SKILL.md
     - .github/workflows/deployment-packages.yaml
     - .github/workflows/deployment.yaml
     - "issue #1669"

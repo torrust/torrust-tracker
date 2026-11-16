@@ -5,7 +5,7 @@ semantic-links:
   related-artifacts:
     - docs/index.md
     - docs/templates/PR-REVIEW-TEMPLATE.md
-    - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
+    - .claude/skills/process-pr-review/SKILL.md
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -18,7 +18,7 @@ regardless of whether their author is Copilot, a maintainer, or another reviewer
 Create new records from [PR-REVIEW-TEMPLATE.md](../templates/PR-REVIEW-TEMPLATE.md), stored at
 `pr-<PR_NUMBER>-review/PR-REVIEW.md`. Keep audit-specific evidence and reports in the same record
 directory. Process all findings through the
-[`process-pr-review` skill](../../.github/skills/dev/pr-reviews/process-pr-review/SKILL.md).
+[`process-pr-review` skill](../../.claude/skills/process-pr-review/SKILL.md).
 
 When the review process itself produced reusable lessons (many rounds, many re-raises, or findings
 about the audit record rather than the change), add a `review-retrospective.md` beside the audit

@@ -5,9 +5,9 @@ semantic-links:
     - open-pull-request
     - merge-pull-request
   related-artifacts:
-    - .github/skills/dev/planning/create-adr/SKILL.md
-    - .github/skills/dev/git-workflow/open-pull-request/SKILL.md
-    - .github/skills/dev/git-workflow/merge-pull-request/SKILL.md
+    - .claude/skills/create-adr/SKILL.md
+    - .claude/skills/open-pull-request/SKILL.md
+    - .claude/skills/merge-pull-request/SKILL.md
     - contrib/dev-tools/git/github-merge.py
     - "issue #2507"
 ---

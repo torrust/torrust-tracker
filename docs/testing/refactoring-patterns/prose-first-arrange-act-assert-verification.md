@@ -3,7 +3,7 @@ semantic-links:
   skill-links:
     - write-unit-test
   related-artifacts:
-    - .github/skills/dev/testing/write-unit-test/SKILL.md
+    - .claude/skills/write-unit-test/SKILL.md
     - packages/udp-server/src/handlers/mod.rs
     - docs/testing/refactoring-patterns/README.md
 ---

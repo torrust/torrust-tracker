@@ -3,7 +3,7 @@ semantic-links:
   skill-links:
     - process-pr-review
   related-artifacts:
-    - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
+    - .claude/skills/process-pr-review/SKILL.md
     - docs/templates/PR-REVIEW-TEMPLATE.md
 ---
 

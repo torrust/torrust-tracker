@@ -3,7 +3,7 @@ semantic-links:
   skill-links:
     - process-pr-review
   related-artifacts:
-    - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
+    - .claude/skills/process-pr-review/SKILL.md
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -74,7 +74,7 @@ need review-finding references.
 
 Record each finding in two coordinated places: one compact tracking row below, and one matching
 entry in `## Finding Details` for the narrative fields. The pair shares the finding ID and
-together records every field in the [canonical roster](../../.github/skills/dev/pr-reviews/process-pr-review/SKILL.md#required-audit-fields).
+together records every field in the [canonical roster](../../.claude/skills/process-pr-review/SKILL.md#required-audit-fields).
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |

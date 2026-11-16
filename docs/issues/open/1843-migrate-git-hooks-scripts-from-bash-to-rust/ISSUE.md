@@ -1,13 +1,15 @@
 ---
+schema-version: 1
 doc-type: issue
 issue-type: task
-status: open
+status: planned
 priority: p2
+epic: null
 github-issue: 1843
 spec-path: docs/issues/open/1843-migrate-git-hooks-scripts-from-bash-to-rust/ISSUE.md
 branch: "1843-migrate-git-hooks-scripts-from-bash-to-rust"
 related-pr: null
-last-updated-utc: 2026-09-11
+last-updated-utc: "2026-09-11 00:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -20,7 +22,7 @@ semantic-links:
     - .github/workflows/copilot-setup-steps.yml
     - docs/adrs/20260519000000_define_global_cli_output_contract.md
     - docs/issues/open/1774-automate-cleanup-completed-issues-skill-script/ISSUE.md
-    - .github/skills/dev/git-workflow/create-feature-branch/SKILL.md
+    - .claude/skills/create-feature-branch/SKILL.md
     - .github/agents/committer.agent.md
 ---
 

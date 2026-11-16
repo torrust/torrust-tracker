@@ -8,9 +8,8 @@ use std::collections::BTreeSet;
 use serde_yaml::{Mapping, Value};
 
 use crate::profile::{self, Profile, SkillName, StrictSemanticLinks};
+use crate::skills::{SKILLS_DIRECTORY, skill_name};
 use crate::{Diagnostic, DiagnosticCategory, DocumentOwnership, Severity, extract_with_ownership};
-
-const SKILLS_DIRECTORY: &str = ".github/skills/";
 
 /// Where a document lives, as far as the issue lifecycle is concerned.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -57,11 +56,7 @@ impl RepositoryFiles {
     /// Builds the snapshot from repository-relative file paths with `/` separators.
     pub fn new(files: impl IntoIterator<Item = String>) -> Self {
         let files: BTreeSet<String> = files.into_iter().collect();
-        let skills = files
-            .iter()
-            .filter_map(|file| file.strip_prefix(SKILLS_DIRECTORY)?.strip_suffix("/SKILL.md"))
-            .map(|directory| file_name(directory).to_owned())
-            .collect();
+        let skills = files.iter().filter_map(|file| skill_name(file)).map(str::to_owned).collect();
         Self { files, skills }
     }
 
@@ -316,7 +311,7 @@ mod tests {
     }
 
     #[rstest]
-    #[case::agent_skill(".github/skills/dev/example/SKILL.md", DocumentOwnership::External)]
+    #[case::agent_skill(".claude/skills/example/SKILL.md", DocumentOwnership::External)]
     #[case::agent_profile(".github/agents/implementer.agent.md", DocumentOwnership::External)]
     #[case::root_agent_skill("SKILL.md", DocumentOwnership::External)]
     #[case::repository_document("docs/issues/open/1-example/ISSUE.md", DocumentOwnership::Repository)]
@@ -353,7 +348,7 @@ mod tests {
             "planned",
             "\n  skill-links:\n    - create-issue\n  related-artifacts:\n    - docs/AGENTS.md\n    - \"issue #1\"",
         );
-        let repository = repository(&["docs/AGENTS.md", ".github/skills/dev/planning/create-issue/SKILL.md"]);
+        let repository = repository(&["docs/AGENTS.md", ".claude/skills/create-issue/SKILL.md"]);
 
         // Act
         let actual = findings_in(OPEN_SPEC, &markdown, &repository);
@@ -431,10 +426,11 @@ mod tests {
     }
 
     #[rstest]
-    #[case::nested_skill(".github/skills/dev/planning/create-issue/SKILL.md", false)]
-    #[case::top_level_skill(".github/skills/create-issue/SKILL.md", false)]
+    #[case::discoverable_skill(".claude/skills/create-issue/SKILL.md", false)]
+    #[case::skill_one_folder_too_deep(".claude/skills/planning/create-issue/SKILL.md", true)]
+    #[case::skill_under_the_old_folder(".github/skills/dev/planning/create-issue/SKILL.md", true)]
     #[case::skill_outside_the_skills_directory("docs/skills/create-issue/SKILL.md", true)]
-    #[case::skill_folder_without_skill_file(".github/skills/dev/create-issue/README.md", true)]
+    #[case::skill_folder_without_skill_file(".claude/skills/create-issue/README.md", true)]
     fn it_should_report_a_skill_link_that_names_no_repository_skill(#[case] tracked_file: &str, #[case] expected_unknown: bool) {
         // Arrange
         let markdown = strict_issue(OPEN_SPEC, "planned", "\n  skill-links:\n    - create-issue");

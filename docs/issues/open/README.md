@@ -5,8 +5,8 @@ semantic-links:
     - cleanup-completed-issues
   related-artifacts:
     - docs/issues/README.md
-    - .github/skills/dev/planning/create-issue/SKILL.md
-    - .github/skills/dev/planning/cleanup-completed-issues/SKILL.md
+    - .claude/skills/create-issue/SKILL.md
+    - .claude/skills/cleanup-completed-issues/SKILL.md
 ---
 
 # Open Issues
@@ -29,5 +29,5 @@ Notes:
 ## References
 
 - Issues index: [../README.md](../README.md)
-- Create and update specs: [`.github/skills/dev/planning/create-issue/SKILL.md`](../../../.github/skills/dev/planning/create-issue/SKILL.md)
-- Move completed specs to closed: [`.github/skills/dev/planning/cleanup-completed-issues/SKILL.md`](../../../.github/skills/dev/planning/cleanup-completed-issues/SKILL.md)
+- Create and update specs: [`.claude/skills/create-issue/SKILL.md`](../../../.claude/skills/create-issue/SKILL.md)
+- Move completed specs to closed: [`.claude/skills/cleanup-completed-issues/SKILL.md`](../../../.claude/skills/cleanup-completed-issues/SKILL.md)

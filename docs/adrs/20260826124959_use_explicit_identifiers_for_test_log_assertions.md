@@ -3,7 +3,7 @@ semantic-links:
   skill-links:
     - create-adr
   related-artifacts:
-    - .github/skills/dev/planning/create-adr/SKILL.md
+    - .claude/skills/create-adr/SKILL.md
     - packages/test-helpers/src/logging.rs
     - docs/issues/closed/1430-fix-tracing-span-log-assertions/ISSUE.md
     - https://github.com/dbrgn/tracing-test/issues/23

@@ -3,7 +3,7 @@ semantic-links:
   skill-links:
     - create-adr
   related-artifacts:
-    - .github/skills/dev/planning/create-adr/SKILL.md
+    - .claude/skills/create-adr/SKILL.md
     - docs/adrs/20260519000000_define_global_cli_output_contract.md
     - docs/issues/closed/2715-cli-output-contract-scope-and-exit-code-policy/ISSUE.md
 ---

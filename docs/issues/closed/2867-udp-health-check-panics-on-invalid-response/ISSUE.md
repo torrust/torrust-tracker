@@ -15,8 +15,8 @@ semantic-links:
     - create-issue
     - fix-bug
   related-artifacts:
-    - .github/skills/dev/debugging/fix-bug/SKILL.md
-    - .github/skills/dev/planning/create-issue/SKILL.md
+    - .claude/skills/fix-bug/SKILL.md
+    - .claude/skills/create-issue/SKILL.md
     - packages/tracker-client/src/udp/client.rs
     - packages/axum-health-check-api-server/src/handlers.rs
     - packages/udp-server/src/server/launcher.rs
@@ -129,7 +129,7 @@ bounded: the receive races the 2 s `select!` sleep, and the awaits before it (bi
 
 ## Bug-Fix Process
 
-Follow [fix-bug](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md):
+Follow [fix-bug](../../../../.claude/skills/fix-bug/SKILL.md):
 
 1. **Analysis** (done): the deciding code is the `process(response.unwrap())` arm in `check`, and
    the two `.expect(..)` calls in `probe_services`. Hypothesis confirmed by V1.

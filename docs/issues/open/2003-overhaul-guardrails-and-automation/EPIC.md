@@ -12,7 +12,7 @@ semantic-links:
     - create-issue
     - process-pr-review
   related-artifacts:
-    - .github/skills
+    - .claude/skills
     - .github/agents
     - .github/workflows
     - .github/workflows/testing.yaml

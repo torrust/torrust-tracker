@@ -16,9 +16,9 @@ semantic-links:
     - add-workspace-member
     - use-tracker-client
   related-artifacts:
-    - .github/skills/dev/planning/create-issue/SKILL.md
-    - .github/skills/dev/maintenance/add-workspace-member/SKILL.md
-    - .github/skills/usage/use-tracker-client/SKILL.md
+    - .claude/skills/create-issue/SKILL.md
+    - .claude/skills/add-workspace-member/SKILL.md
+    - .claude/skills/use-tracker-client/SKILL.md
     - "issue #1669"
     - "issue #2583"
     - "issue #2576"
