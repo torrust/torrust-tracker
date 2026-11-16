@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2866-2003-move-skills-to-claude-skills/ISSUE.md
-last-updated-utc: 2026-11-16 09:20
+last-updated-utc: 2026-11-16 09:40
 ---
 
 <!-- cspell:ignore Autocompact dataviz endswith findall isfile normpath relpath startswith -->
@@ -423,6 +423,36 @@ mutated, reviewed and committed before the next started.
   findings to their path and category. The command-boundary test owns only where the inventory
   is read from; its one causal difference is the working-tree inventory that differs from the
   staged one.
+
+#### Increment 2 - The stub contents
+
+- Rules: a stub whose inventory row does not say `removed` has no frontmatter and exactly one
+  link, which resolves to `.claude/skills/<current name>/SKILL.md`, and that file exists;
+  otherwise `invalid-redirect-stub`. A stub of a removed skill is not checked. The binary reads
+  the stubs from the index too.
+- After the increment, `frontmatter-validator --skill-layout` on the branch exited `0` with no
+  record.
+- Mutations, each restored afterwards:
+
+  | Mutation                                   | Failing tests                                                  |
+  | ------------------------------------------ | -------------------------------------------------------------- |
+  | Accept frontmatter                         | `..._does_not_lead_to_its_skill::case_1_frontmatter`           |
+  | Accept any number of links                 | `::case_2_no_link`, `::case_3_two_links`                       |
+  | Do not check that the skill exists         | `..._whose_skill_was_deleted`                                  |
+  | Do not check where the link points         | `::case_4_link_to_another_skill`                               |
+  | Check a stub of a removed skill            | `..._of_a_removed_skill_without_a_link`                        |
+
+  Three first attempts left a variable or function unused, which the workspace lints reject;
+  they ran no test and were replaced by mutations that compile.
+- Test-design review: the increment-1 tests used two helpers that rebuilt the whole snapshot in
+  each test. Once stub texts mattered, that hid the one difference under repeated setup, so the
+  fixture became `Snapshot::accepted()` (one moved skill, its stub, its inventory row), and each
+  test changes it once with `with` or `without`: the causal difference is the only line of the
+  test's Arrange. The renamed and removed cases change three things because the rename or
+  removal is those three edits together (the skill folder, the stub, the inventory row); the
+  test names say so. The expected findings are written in each test with `only(path,
+  category)`. The fixture owns only incidental mechanics: the stub's wording and the inventory
+  table's layout.
 
 ## Failures and Follow-up
 

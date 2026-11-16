@@ -22,6 +22,9 @@ pub const STUB_INVENTORY: &str = ".github/skills/README.md";
 
 const SKILL_FILE: &str = "SKILL.md";
 
+/// The current name an inventory row gives a skill that was removed.
+const REMOVED: &str = "removed";
+
 /// A finding of the repository-wide skill rules and the path it concerns.
 #[derive(Debug, Eq, PartialEq)]
 pub struct LayoutFinding {
@@ -34,7 +37,7 @@ pub struct LayoutFinding {
 /// Whether the layout rules read the text of this path; the caller supplies only those texts.
 #[must_use]
 pub fn reads_text(path: &str) -> bool {
-    path == STUB_INVENTORY
+    path == STUB_INVENTORY || (path.starts_with(REDIRECT_DIRECTORY) && is_skill_file(path))
 }
 
 /// Checks the skill layout of a whole repository snapshot: `files` are every tracked path, and
@@ -62,6 +65,15 @@ pub fn layout_findings<'a>(
             .keys()
             .filter(|path| !files.contains(path.as_str()))
             .map(|path| finding(path, missing_redirect_stub())),
+    );
+    findings.extend(
+        inventory
+            .iter()
+            .filter(|(path, current)| current.as_str() != REMOVED && files.contains(path.as_str()))
+            .filter_map(|(path, current)| {
+                invalid_redirect_stub(path, &text(path).unwrap_or_default(), current, &files)
+                    .map(|diagnostic| finding(path, diagnostic))
+            }),
     );
     findings.sort_by(|left, right| left.path.cmp(&right.path));
     findings
@@ -104,6 +116,64 @@ fn stray_redirect_file(path: &str) -> Option<Diagnostic> {
     })
 }
 
+/// A stub of a skill that was not removed has no frontmatter and one link, to the skill's current
+/// `SKILL.md`, which exists.
+fn invalid_redirect_stub(path: &str, text: &str, current: &str, files: &BTreeSet<&str>) -> Option<Diagnostic> {
+    let expected = format!("{SKILLS_DIRECTORY}{current}/{SKILL_FILE}");
+    let problem = if text.starts_with("---") {
+        Some("has frontmatter, so a tool could read it as a skill".to_owned())
+    } else {
+        match link_targets(text).as_slice() {
+            [target]
+                if resolve(parent(path), target).as_deref() == Some(expected.as_str()) && files.contains(expected.as_str()) =>
+            {
+                None
+            }
+            [_] => Some(format!("must link to `{expected}`, an existing skill")),
+            links => Some(format!("must hold exactly one link, not {}", links.len())),
+        }
+    };
+    problem.map(|problem| {
+        Diagnostic::new(
+            DiagnosticCategory::InvalidRedirectStub,
+            format!("This redirect stub {problem}."),
+        )
+    })
+}
+
+/// The targets of the inline Markdown links in `text`, without a title.
+fn link_targets(text: &str) -> Vec<&str> {
+    text.match_indices("](")
+        .filter_map(|(start, _)| {
+            let rest = &text[start + 2..];
+            rest[..rest.find(')')?].split_whitespace().next()
+        })
+        .collect()
+}
+
+/// The repository path a relative link target names from `directory`, without its fragment.
+fn resolve(directory: &str, target: &str) -> Option<String> {
+    let mut parts: Vec<&str> = directory.split('/').filter(|part| !part.is_empty()).collect();
+    for part in target.split('#').next()?.split('/') {
+        match part {
+            "" | "." => {}
+            ".." => {
+                parts.pop()?;
+            }
+            part => parts.push(part),
+        }
+    }
+    Some(parts.join("/"))
+}
+
+fn parent(path: &str) -> &str {
+    path.rsplit_once('/').map_or("", |(directory, _)| directory)
+}
+
+fn is_skill_file(path: &str) -> bool {
+    path == SKILL_FILE || path.ends_with(&format!("/{SKILL_FILE}"))
+}
+
 fn missing_redirect_stub() -> Diagnostic {
     Diagnostic::new(
         DiagnosticCategory::MissingRedirectStub,
@@ -114,8 +184,7 @@ fn missing_redirect_stub() -> Diagnostic {
 /// Reports a `SKILL.md` that Claude Code would not discover; any other path has no finding.
 #[must_use]
 pub fn misplaced_skill(path: &str) -> Option<Diagnostic> {
-    let is_skill_file = path == SKILL_FILE || path.ends_with(&format!("/{SKILL_FILE}"));
-    (is_skill_file && skill_name(path).is_none()).then(|| {
+    (is_skill_file(path) && skill_name(path).is_none()).then(|| {
         Diagnostic::new(
             DiagnosticCategory::MisplacedSkill,
             format!("A skill must be at `{SKILLS_DIRECTORY}<name>/{SKILL_FILE}`, where Claude Code discovers it."),
@@ -136,35 +205,71 @@ mod tests {
     // Owns the placement rule: which `SKILL.md` paths Claude Code discovers. Which files the rule
     // runs over (the index) is owned by the binary and tested in `tests/cli.rs`.
 
+    use std::collections::BTreeMap;
+
     use rstest::rstest;
 
     use super::{STUB_INVENTORY, layout_findings, misplaced_skill};
     use crate::DiagnosticCategory;
 
+    const SKILL: &str = ".claude/skills/create-issue/SKILL.md";
     const STUB: &str = ".github/skills/dev/planning/create-issue/SKILL.md";
 
-    /// A stub inventory with one row per old `SKILL.md` path, whose skill keeps its folder name.
-    fn inventory(old_paths: &[&str]) -> String {
-        let rows = old_paths
+    /// The text of a stub at `STUB` that links to the skill `name`.
+    fn stub(name: &str) -> String {
+        format!("# Moved: `create-issue`\n\nThis skill moved to [`{name}`](../../../../../.claude/skills/{name}/SKILL.md).\n")
+    }
+
+    /// A stub inventory with one row per `(old path, current name)`.
+    fn inventory(rows: &[(&str, &str)]) -> String {
+        let rows = rows
             .iter()
-            .map(|path| {
-                let name = path.trim_end_matches("/SKILL.md").rsplit('/').next().unwrap();
-                format!("| `{path}` | `{name}` | `{name}` |\n")
-            })
+            .map(|(path, current)| format!("| `{path}` | `create-issue` | `{current}` |\n"))
             .collect::<Vec<_>>()
             .concat();
         format!("# Moved\n\n| Old path | Original name | Current name |\n| --- | --- | --- |\n{rows}")
     }
 
-    /// The layout findings of `files`, whose stub inventory is `inventory`, as (path, category).
-    fn layout(files: &[&str], inventory: &str) -> Vec<(String, DiagnosticCategory)> {
-        let inventory = inventory.to_owned();
-        layout_findings(files.iter().copied(), |path| {
-            (path == STUB_INVENTORY).then(|| inventory.clone())
-        })
-        .into_iter()
-        .map(|finding| (finding.path, finding.diagnostic.category))
-        .collect()
+    /// The tracked files and the texts the layout rules read.
+    struct Snapshot {
+        texts: BTreeMap<String, String>,
+        files: Vec<String>,
+    }
+
+    impl Snapshot {
+        /// One moved skill, its stub, and the inventory that lists the stub.
+        fn accepted() -> Self {
+            Self {
+                texts: BTreeMap::new(),
+                files: Vec::new(),
+            }
+            .with(SKILL, "")
+            .with(STUB, &stub("create-issue"))
+            .with(STUB_INVENTORY, &inventory(&[(STUB, "create-issue")]))
+        }
+
+        fn with(mut self, path: &str, text: &str) -> Self {
+            self.files.push(path.to_owned());
+            self.texts.insert(path.to_owned(), text.to_owned());
+            self
+        }
+
+        fn without(mut self, path: &str) -> Self {
+            self.files.retain(|file| file != path);
+            self
+        }
+
+        /// The findings as `(path, category)` pairs.
+        fn findings(&self) -> Vec<(String, DiagnosticCategory)> {
+            layout_findings(self.files.iter().map(String::as_str), |path| self.texts.get(path).cloned())
+                .into_iter()
+                .map(|finding| (finding.path, finding.diagnostic.category))
+                .collect()
+        }
+    }
+
+    fn only(path: &str, category: DiagnosticCategory) -> Vec<(String, DiagnosticCategory)> {
+        vec![(path.to_owned(), category)]
     }
 
     #[rstest]
@@ -189,33 +294,72 @@ mod tests {
 
     #[test]
     fn it_should_accept_an_inventoried_redirect_stub_at_an_old_skill_path() {
-        let findings = layout(&[STUB, STUB_INVENTORY], &inventory(&[STUB]));
-
-        assert_eq!(findings, []);
+        assert_eq!(Snapshot::accepted().findings(), []);
     }
 
     #[test]
     fn it_should_report_an_inventoried_path_whose_redirect_stub_was_deleted() {
-        let findings = layout(&[STUB_INVENTORY], &inventory(&[STUB]));
+        let snapshot = Snapshot::accepted().without(STUB);
 
-        assert_eq!(findings, [(STUB.to_owned(), DiagnosticCategory::MissingRedirectStub)]);
+        assert_eq!(snapshot.findings(), only(STUB, DiagnosticCategory::MissingRedirectStub));
     }
 
     #[test]
     fn it_should_report_a_skill_under_the_old_folder_that_the_inventory_does_not_list() {
         let new_skill = ".github/skills/dev/planning/new-skill/SKILL.md";
 
-        let findings = layout(&[new_skill, STUB, STUB_INVENTORY], &inventory(&[STUB]));
+        let snapshot = Snapshot::accepted().with(new_skill, "");
 
-        assert_eq!(findings, [(new_skill.to_owned(), DiagnosticCategory::MisplacedSkill)]);
+        assert_eq!(snapshot.findings(), only(new_skill, DiagnosticCategory::MisplacedSkill));
     }
 
     #[test]
     fn it_should_report_a_file_under_the_old_folder_that_is_no_redirect_stub() {
         let script = ".github/skills/dev/planning/create-issue/scripts/check.sh";
 
-        let findings = layout(&[STUB, script, STUB_INVENTORY], &inventory(&[STUB]));
+        let snapshot = Snapshot::accepted().with(script, "");
 
-        assert_eq!(findings, [(script.to_owned(), DiagnosticCategory::StrayRedirectFile)]);
+        assert_eq!(snapshot.findings(), only(script, DiagnosticCategory::StrayRedirectFile));
+    }
+
+    #[rstest]
+    #[case::frontmatter(&format!("---\nname: create-issue\n---\n{}", stub("create-issue")))]
+    #[case::no_link("# Moved: `create-issue`\n")]
+    #[case::two_links(&format!("{}See [the index](../../../../../.claude/skills/README.md).\n", stub("create-issue")))]
+    #[case::link_to_another_skill(&stub("create-pr"))]
+    fn it_should_report_a_redirect_stub_that_does_not_lead_to_its_skill(#[case] text: &str) {
+        let snapshot = Snapshot::accepted().with(STUB, text);
+
+        assert_eq!(snapshot.findings(), only(STUB, DiagnosticCategory::InvalidRedirectStub));
+    }
+
+    #[test]
+    fn it_should_report_a_redirect_stub_whose_skill_was_deleted() {
+        let snapshot = Snapshot::accepted().without(SKILL);
+
+        assert_eq!(snapshot.findings(), only(STUB, DiagnosticCategory::InvalidRedirectStub));
+    }
+
+    #[test]
+    fn it_should_accept_a_redirect_stub_that_links_to_the_new_name_of_a_renamed_skill() {
+        let renamed = ".claude/skills/open-issue/SKILL.md";
+
+        let snapshot = Snapshot::accepted()
+            .without(SKILL)
+            .with(renamed, "")
+            .with(STUB, &stub("open-issue"))
+            .with(STUB_INVENTORY, &inventory(&[(STUB, "open-issue")]));
+
+        assert_eq!(snapshot.findings(), []);
+    }
+
+    #[test]
+    fn it_should_accept_a_redirect_stub_of_a_removed_skill_without_a_link() {
+        let snapshot = Snapshot::accepted()
+            .without(SKILL)
+            .with(STUB, "# Removed: `create-issue`\n\nThis skill was removed.\n")
+            .with(STUB_INVENTORY, &inventory(&[(STUB, "removed")]));
+
+        assert_eq!(snapshot.findings(), []);
     }
 }
