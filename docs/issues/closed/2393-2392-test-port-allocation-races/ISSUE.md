@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: in-progress
+status: done
 priority: p2
 epic: 2392
 github-issue: 2393
-spec-path: docs/issues/open/2393-2392-test-port-allocation-races/ISSUE.md
+spec-path: docs/issues/closed/2393-2392-test-port-allocation-races/ISSUE.md
 branch: "2392-test-isolation-spec"
 related-pr: 2397
-last-updated-utc: "2026-11-16 08:55"
+last-updated-utc: "2026-11-16 15:37"
 semantic-links:
   skill-links:
     - create-issue
@@ -259,7 +259,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T8 | DONE | Rewrite the three health-check contract tests | They run without `#[ignore]` and probe an address the test holds; V5 red-then-green and V7 design review recorded. |
 | T9 | DONE | Add the loopback helper and restore the nine release tests | The helper with its own unit test; the nine tests run without `#[ignore]` on Linux; V5 red-then-green and V7 design review recorded per increment; maintainer review after the final increment. |
 | T10 | DONE | Full-suite recheck with no #2393 test ignored | V6: 150 full-suite runs pass, and `rg -t rust 'see #2393'` finds no `#[ignore]` outside the non-Linux `cfg_attr`. |
-| T11 | TODO | Close-out | After the implementation PR merges: archive this spec; once PR 2862 has merged, set this issue's row in the EPIC to DONE. |
+| T11 | DONE | Close-out | This spec archived to `docs/issues/closed/` and this issue's row in the EPIC set to DONE, after the implementation PR 2874 and the EPIC sync PR 2862 merged. |
 
 ## Commit Points
 
@@ -343,6 +343,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   maintainer's review of the final increment in V7, ticked the last acceptance criterion with its
   evidence, restored the no-retries warning in the HTTP tracker test, and gave the contract tests
   one registration path.
+- 2026-11-16 13:54 UTC - Claude Code (Claude Opus 5.5) - PR 2874 merged and #2393 is closed. T11:
+  archived this spec to `docs/issues/closed/` and set order 1 to DONE in the EPIC.
 
 ## Acceptance Criteria
 

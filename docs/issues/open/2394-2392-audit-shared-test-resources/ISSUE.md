@@ -9,14 +9,14 @@ github-issue: 2394
 spec-path: docs/issues/open/2394-2392-audit-shared-test-resources/ISSUE.md
 branch: "2392-test-isolation-spec"
 related-pr: 2397
-last-updated-utc: "2026-11-15 12:11"
+last-updated-utc: "2026-11-16 13:54"
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
     - .claude/skills/create-issue/SKILL.md
     - docs/issues/open/2392-test-isolation/EPIC.md
-    - docs/issues/open/2393-2392-test-port-allocation-races/ISSUE.md
+    - docs/issues/closed/2393-2392-test-port-allocation-races/ISSUE.md
     - docs/issues/closed/2386-1840-self-hosted-runner-minimum-capacity/ISSUE.md
     - docs/analysis/20260909-cli-config-path-test-isolation/README.md
 ---
