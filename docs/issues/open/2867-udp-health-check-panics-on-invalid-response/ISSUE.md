@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: in-progress
 priority: p2
 epic: null
 github-issue: 2867
 spec-path: docs/issues/open/2867-udp-health-check-panics-on-invalid-response/ISSUE.md
-branch: "2867-udp-health-check-panics-on-invalid-response-spec"
+branch: "2867-udp-health-check-panics-on-invalid-response"
 related-pr: 2868
-last-updated-utc: "2026-11-15 21:31"
+last-updated-utc: "2026-11-16 14:48"
 semantic-links:
   skill-links:
     - create-issue
@@ -174,12 +174,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task                                              | Notes / Expected Output                                                                                         |
 | --- | ------ | ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
 | T1  | DONE   | Reproduce against the real health-check server     | V1 in `manual-verification-evidence.md`: three panics and `IncompleteMessage`.                                   |
-| T2  | TODO   | Add the `tracker-client` unit regression test      | Recorded red run: the test panics at `client.rs` on `UnableToParseResponse`.                                     |
-| T3  | TODO   | Add the UDP junk-reply contract test (AC2)         | Recorded red run: `GET /health_check` fails with `IncompleteMessage`, as in V1.                                  |
-| T4  | TODO   | Return an error from `check` on a receive failure  | T2 and T3 green; `check` doc comment fixed.                                                                      |
-| T5  | TODO   | Add the handler panicking-probe contract test      | Recorded red run: `GET /health_check` fails with `IncompleteMessage` when a probe panics.                        |
-| T6  | TODO   | Report a failed check job instead of panicking     | T5 green; report has status `Error`, the panicking service's detail is `Err(..)`, the other service is `Ok(..)`. |
-| T7  | TODO   | Final verification and like-for-like recheck       | Health-check and tracker-client tests pass; V1 rerun gives a `200` report with an `Err(..)` UDP detail.          |
+| T2  | DONE   | Add the `tracker-client` unit regression test      | Recorded red run: the test panics at `client.rs` on `UnableToParseResponse`.                                     |
+| T3  | DONE   | Add the UDP junk-reply contract test (AC2)         | Recorded red run: `GET /health_check` fails with `IncompleteMessage`, as in V1.                                  |
+| T4  | DONE   | Return an error from `check` on a receive failure  | T2 and T3 green; `check` doc comment fixed.                                                                      |
+| T5  | DONE   | Add the handler panicking-probe contract test      | Recorded red run: `GET /health_check` fails with `IncompleteMessage` when a probe panics.                        |
+| T6  | DONE   | Report a failed check job instead of panicking     | T5 green; report has status `Error`, the panicking service's detail is `Err(..)`, the other service is `Ok(..)`. |
+| T7  | DONE   | Final verification and like-for-like recheck       | Health-check and tracker-client tests pass; V1 rerun gives a `200` report with an `Err(..)` UDP detail.          |
 
 ## Commit Points
 
@@ -204,12 +204,12 @@ before maintainer review and commit. Use Conventional Commit messages with the n
 - [x] Folder-style spec drafted in `docs/issues/drafts/udp-health-check-panics-on-invalid-response/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Spec-only PR merged into `develop` before implementation
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
@@ -224,24 +224,41 @@ before maintainer review and commit. Use Conventional Commit messages with the n
   issue #2867 and moved the spec to `docs/issues/open/` for a spec-only PR
 - 2026-11-15 21:31 UTC - Claude Code (Claude Opus 5.5) - Reran the closed-port check asserting
   `Err("Timed Out")` (V3) for the first da2ce7 review of PR 2868 - `manual-verification-evidence.md`
+- 2026-11-16 08:11 UTC - Maintainer - Merged spec-only PR 2868. Two findings of the second da2ce7
+  review (F6, F7 of that review) were deferred to this implementation, as recorded on PR 2868
+- 2026-11-16 09:44 UTC - Claude Code (Claude Opus 5.5) - Implemented T2 to T7: three regression
+  tests proven red, the `check` and handler fixes, and the V4 recheck. Tightened T3 to require the
+  cause in the error detail and re-proved it red by mutate-then-restore. Addressed the deferred
+  findings in `manual-verification-evidence.md`: the stored V1 to V3 logs start at `Finished` (F6)
+  and the artifact line names the V3 diff (F7). No retrospective: nothing material was discovered
+  beyond the plan; the one lesson (keep build lines in stored logs) is applied in the evidence
+  file - `manual-verification-evidence.md`, `evidence/`
+- 2026-11-16 10:19 UTC - Claude Code (Claude Opus 5.5) - Corrected four stamps that were written ahead of the
+  commits that record them (PR 2879 review, F1): the entry above and the evidence file's
+  `last-updated-utc` to 09:44, and the PR 2868 audit's last processing-log entry to 09:48
+- 2026-11-16 14:48 UTC - Claude Code (Claude Opus 5.5) - Merged `develop` into the branch (one
+  import conflict in the health-check contract tests). The #2393 rewrite it brings replaced the
+  ignored stopped-UDP test; recorded the replacement as AC4's coverage with a new run, tied the
+  evidence's line numbers to their commits, and moved T3 and T5 onto the shared test helpers
+  (PR 2879 review, da2ce7 F12 to F14)
 
 ## Acceptance Criteria
 
-- [ ] AC1: `check` returns `Err(..)`, and does not panic, when the UDP peer answers the connect
+- [x] AC1: `check` returns `Err(..)`, and does not panic, when the UDP peer answers the connect
       request with bytes that are not a valid tracker response; the error text names the cause
       (test T2).
-- [ ] AC2: `GET /health_check` returns `200` with status `Error`, message `health check failed`,
+- [x] AC2: `GET /health_check` returns `200` with status `Error`, message `health check failed`,
       and an `Err(..)` detail for a UDP service that answers with junk bytes (test T3).
-- [ ] AC3: when a registered probe job panics, `GET /health_check` returns `200` with status
+- [x] AC3: when a registered probe job panics, `GET /health_check` returns `200` with status
       `Error`, an `Err(..)` detail for that service, and the other services' details intact; the
       handler does not panic (test T5).
-- [ ] AC4: the existing health-check contract tests still pass, including the stopped-UDP case's
+- [x] AC4: the existing health-check contract tests still pass, including the stopped-UDP case's
       `Timed Out` result.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior/workflow changes
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated when behavior/workflow changes (the `check` doc comment; no user documentation describes the panic)
 
 ## Verification Plan
 
@@ -259,7 +276,7 @@ before maintainer review and commit. Use Conventional Commit messages with the n
 | --- | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- | ------ | -------------------------------------------- |
 | M1  | Initial reproduction with a junk-answering UDP | Temporary test from `evidence/reproduction-tests.diff`; `cargo test -p torrust-tracker-axum-health-check-api-server --test integration answers_the_check_with_junk` | Before the fix: panics and `IncompleteMessage` (bug observed)         | DONE   | `manual-verification-evidence.md` section V1 |
 | M2  | Closed-port scope check                        | Temporary test from `evidence/closed-port-value-check.diff` (asserts the value); `cargo test ... is_a_closed_udp_port`                 | `Err("Timed Out")` result, no panic                                   | DONE   | `manual-verification-evidence.md` sections V2 and V3 |
-| M3  | Like-for-like recheck after the fix            | Rerun M1 on the fixed build                                                                                                            | `200` report, status `Error`, UDP detail `Err(..)` naming the cause   | TODO   | `manual-verification-evidence.md` section V4 |
+| M3  | Like-for-like recheck after the fix            | Rerun M1 on the fixed build                                                                                                            | `200` report, status `Error`, UDP detail `Err(..)` naming the cause   | DONE   | `manual-verification-evidence.md` section V4 |
 
 Notes:
 
@@ -276,10 +293,10 @@ None planned. The reproduction is a temporary Rust test, kept verbatim in
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
-| AC4   | TODO                   |          |
+| AC1   | DONE                   | T2 red and green logs (`evidence/t2-red-run.log`, `evidence/t2-green-run.log`) |
+| AC2   | DONE                   | T3 red and green logs; V4 |
+| AC3   | DONE                   | T5 red and green logs (`evidence/t5-red-run.log`, `evidence/t5-green-run.log`) |
+| AC4   | DONE                   | Full health-check suite passes; the ignored stopped-UDP test passed with `Timed Out` (`evidence/stopped-udp-run.log`); since the `develop` merge, its replacement `it_should_return_error_when_the_registered_udp_service_never_answers_the_check` runs by default and passes (`evidence/never-answering-udp-run.log`) |
 
 ## Risks and Trade-offs
 
@@ -290,7 +307,7 @@ None planned. The reproduction is a temporary Rust test, kept verbatim in
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: not needed; see the 2026-11-16 09:44 progress-log entry
 - If needed, create `implementation-retrospective.md` from
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this folder; otherwise add a progress-log
   entry explaining why none was needed.

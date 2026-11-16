@@ -55,29 +55,28 @@ async fn probe_services(registar: &Registar<RuntimeServiceMetadata>) -> Json<Rep
         return responses::none();
     }
 
+    // issue: #2867
+    // The report futures are awaited in place, not spawned, so building the report cannot fail; a
+    // probe job that panicked or was cancelled is reported as a failed check for its service.
     let jobs = checks
         .into_iter()
-        .map(|(service_binding, service_type, public_url, health_check)| {
-            tokio::spawn(async move {
-                CheckReport {
-                    service_binding: service_binding.url(),
-                    binding: service_binding.bind_address(),
-                    info: health_check.info,
-                    service_type,
-                    public_url,
-                    result: health_check
-                        .job
-                        .await
-                        .expect("it should be able to join into the checking function"),
-                }
-            })
+        .map(|(service_binding, service_type, public_url, health_check)| async move {
+            let result = health_check.job.await.unwrap_or_else(|join_error| {
+                tracing::error!(%service_binding, %join_error, "the health check job failed");
+                Err(format!("the health check job failed: {join_error}"))
+            });
+
+            CheckReport {
+                service_binding: service_binding.url(),
+                binding: service_binding.bind_address(),
+                info: health_check.info,
+                service_type,
+                public_url,
+                result,
+            }
         });
 
-    let results: Vec<CheckReport> = futures::future::join_all(jobs)
-        .await
-        .into_iter()
-        .map(|r| r.expect("it should be able to connect to the job"))
-        .collect();
+    let results: Vec<CheckReport> = futures::future::join_all(jobs).await;
 
     if results.iter().any(CheckReport::fail) {
         responses::error("health check failed".to_string(), results)

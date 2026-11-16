@@ -385,7 +385,7 @@ mod http {
 }
 
 mod udp {
-    use std::net::UdpSocket;
+    use std::net::{SocketAddr, UdpSocket};
     use std::sync::Arc;
 
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
@@ -488,6 +488,64 @@ mod udp {
         assert_eq!(details.service_type, "udp_tracker");
         assert_eq!(details.result, Err("Timed Out".to_string()));
         assert_eq!(details.info, format!("checking the udp tracker health check at: {binding}"));
+
+        env.stop().await.expect("it should stop the service");
+    }
+
+    /// Binds a UDP peer that answers every datagram with bytes that are not a tracker response.
+    async fn bind_a_junk_answering_udp_peer() -> SocketAddr {
+        // A task of the test's runtime, not a detached thread: the runtime's shutdown at the end of
+        // the test drops it, and with it the socket.
+        let socket = tokio::net::UdpSocket::bind("127.0.0.1:0")
+            .await
+            .expect("the junk peer should bind");
+        let binding = socket.local_addr().expect("the junk peer should have an address");
+        tokio::spawn(async move {
+            let mut buffer = [0u8; 2048];
+            while let Ok((_, from)) = socket.recv_from(&mut buffer).await {
+                drop(socket.send_to(b"junk", from).await);
+            }
+        });
+        binding
+    }
+
+    // issue: #2867
+    #[tokio::test]
+    async fn it_should_return_error_when_the_registered_udp_service_answers_the_check_with_junk() {
+        // Arrange
+        logging::setup();
+        let binding = bind_a_junk_answering_udp_peer().await;
+        let env = super::start_health_check_api(
+            super::registar_with_one_service(
+                ServiceBinding::new(Protocol::UDP, binding).expect("the junk peer address should be a valid UDP binding"),
+                ServiceRole::UdpTracker,
+                Launcher::check,
+            )
+            .await,
+        )
+        .await;
+
+        // Act
+        let response = get(&format!("http://{}/health_check", env.bind_address())).await; // DevSkim: ignore DS137138
+
+        // Assert
+        assert_eq!(response.status(), 200);
+        let report: Report = response
+            .json()
+            .await
+            .expect("it should be able to get the report from the json");
+        assert_eq!(report.status, Status::Error);
+        assert_eq!(report.message, "health check failed".to_string());
+        let details = report.details.first().expect("it should have some details");
+        assert_eq!(details.binding, binding);
+        assert!(
+            details
+                .result
+                .as_ref()
+                .is_err_and(|error| error.contains("Unrecognized UDP tracker response")),
+            "the junk-answering udp service should be a failed check naming the cause, got: {:?}",
+            details.result
+        );
 
         env.stop().await.expect("it should stop the service");
     }
@@ -606,6 +664,81 @@ mod readiness {
 
         // Assert
         assert_eq!((first.as_u16(), second.as_u16()), (503, 503));
+
+        env.stop().await.expect("it should stop the service");
+    }
+}
+
+// issue: #2867
+mod failed_probe_job {
+    use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
+    use torrust_server_lib::registar::{FnSpawnServiceHeathCheck, Registar, ServiceHealthCheckJob, ServiceRegistration};
+    use torrust_tracker_axum_health_check_api_server::resources::{Report, Status};
+    use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
+    use torrust_tracker_test_helpers::logging;
+
+    use crate::server::client::get;
+
+    fn panicking_probe(_binding: &ServiceBinding) -> ServiceHealthCheckJob {
+        ServiceHealthCheckJob::new(
+            "panicking probe".to_string(),
+            tokio::spawn(async { panic!("the probe job panicked on purpose") }),
+        )
+    }
+
+    fn passing_probe(_binding: &ServiceBinding) -> ServiceHealthCheckJob {
+        ServiceHealthCheckJob::new("passing probe".to_string(), tokio::spawn(async { Ok("200 OK".to_string()) }))
+    }
+
+    async fn register(
+        registar: &Registar<RuntimeServiceMetadata>,
+        address: &str,
+        role: ServiceRole,
+        probe: FnSpawnServiceHeathCheck,
+    ) {
+        registar
+            .give_form()
+            .register(ServiceRegistration::new(
+                ServiceBinding::new(Protocol::HTTP, address.parse().unwrap()).unwrap(),
+                RuntimeServiceMetadata::new(ConfigurationInstanceId::new(role, 0)),
+                Some(probe),
+            ))
+            .await
+            .expect("the probed service should register");
+    }
+
+    #[tokio::test]
+    async fn it_should_report_a_probe_job_that_panicked_as_a_failed_check_and_keep_the_other_results() {
+        // Arrange: one service whose probe job panics, next to one whose probe passes.
+        logging::setup();
+        let registar = Registar::default();
+        register(&registar, "127.0.0.1:7070", ServiceRole::HttpTracker, panicking_probe).await; // DevSkim: ignore DS137138
+        register(&registar, "127.0.0.1:1212", ServiceRole::RestApi, passing_probe).await; // DevSkim: ignore DS137138
+        let env = super::start_health_check_api(registar).await;
+
+        // Act
+        let response = get(&format!("http://{}/health_check", env.bind_address())).await; // DevSkim: ignore DS137138
+
+        // Assert
+        assert_eq!(response.status(), 200);
+        let report: Report = response.json().await.expect("the body should be a report");
+        assert_eq!(report.status, Status::Error);
+        assert_eq!(report.message, "health check failed");
+        let result_of = |info: &str| {
+            report
+                .details
+                .iter()
+                .find(|detail| detail.info == info)
+                .unwrap_or_else(|| panic!("the report should have a detail for the {info}"))
+                .result
+                .clone()
+        };
+        let panicked = result_of("panicking probe");
+        assert!(
+            panicked.is_err(),
+            "the panicking probe should be a failed check, got: {panicked:?}"
+        );
+        assert_eq!(result_of("passing probe"), Ok("200 OK".to_string()));
 
         env.stop().await.expect("it should stop the service");
     }

@@ -18,7 +18,7 @@ Source: pull-request reviews and inline review threads for <https://github.com/t
 The PR author owns this tracked audit record. Reviewers, including repository review agents,
 deliver findings through GitHub and have no repository-artifact obligation.
 
-- Post-merge workflow approval: N/A
+- Post-merge workflow approval: <https://github.com/torrust/torrust-tracker/pull/2868#issuecomment-6912858266> (the durable approval, posted 2026-11-16 09:41:45 UTC, before the audit edits for F7 and F8). It records the maintainer's chat decision to merge PR 2868 as is and defer F7 and F8 to the implementation PR. The decision was made between 07:35:29 UTC (the maintainer's `ACK` on PR 2868) and 08:03:34 UTC (the first deferral reply, posted right after it), before the merge at 08:11:29 UTC.
 
 ## Status Values
 
@@ -52,6 +52,8 @@ F1 comes from the first Copilot review (COMMENTED, Lite effort; Copilot noted it
 | F4 | review-finding:pr-2868-f4 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 | F5 | review-finding:pr-2868-f5 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-2868-f6 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-2868-f7 | Human | Minor | documentation | ORIGINAL | FOLLOW_UP | OPEN |
+| F8 | review-finding:pr-2868-f8 | Human | Nit | documentation | ORIGINAL | FOLLOW_UP | OPEN |
 
 ## Finding Details
 
@@ -127,16 +129,43 @@ F1 comes from the first Copilot review (COMMENTED, Lite effort; Copilot noted it
 - Reviewer finding ID: F5
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2868#discussion_r4580308617>
 - Concern: The V2 test asserted only `is_err()`, so the `Timed Out` value in V2, in ISSUE.md and in the M2 row was inferred.
-- Solution: Reran the closed-port test asserting `Err("Timed Out")` on the same base and toolchain (new V3, passed in 3.01 s, test binary rebuilt). V2 says it only asserted `is_err()`; the ISSUE.md Reproduction paragraph and the M2 row cite V3, and V3 cites the maintained stopped-UDP contract test. The planned M3 evidence section moved from V3 to V4.
+- Solution: Reran the closed-port test asserting `Err("Timed Out")` on the same base and toolchain (new V3, passed in 3.01 s). V2 says it only asserted `is_err()`; the ISSUE.md Reproduction paragraph and the M2 row cite V3, and V3 cites the maintained stopped-UDP contract test. The planned M3 evidence section moved from V3 to V4.
 - Current-tree verification: `grep -n "Timed Out" docs/issues/open/2867-udp-health-check-panics-on-invalid-response/evidence/closed-port-value-check.diff` prints the `assert_eq!`; `evidence/closed-port-value-check-run.log` shows `1 passed`.
 - Resolution reference: docs(issues): [#2867] assert the Timed Out value of the closed-port check
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2868#discussion_r4580333203>
 
+### F7 - The V3 rebuild rests on a build line that no stored file carries
+
+- PR number: 2868
+- Source review ID: 5915664909
+- Reviewer finding ID: F6
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2868#discussion_r4582464465>
+- Concern: The stored V1 to V3 logs start at `Finished`, so no kept file shows the `Compiling` line that V3 and the F6 Solution cite as proof that the value assertion was rebuilt.
+- Solution: Deferred by the maintainer to the implementation PR. There, `manual-verification-evidence.md` says that the stored V1 to V3 logs start at `Finished` and that the V3 rebuild was not kept, and points to the maintained stopped-UDP test run whose full log is kept; every new log keeps its build lines. The F6 Solution above no longer claims the rebuild.
+- Current-tree verification: on the follow-up branch, `grep -n "Finished" docs/issues/open/2867-udp-health-check-panics-on-invalid-response/manual-verification-evidence.md` prints the statements about the V1 to V3 logs and the V3 rebuild.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2868#discussion_r4583253808>
+- Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2879>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2868#discussion_r4583253808>
+
+### F8 - The artifact under test still names only the V1/V2 diff
+
+- PR number: 2868
+- Source review ID: 5915664909
+- Reviewer finding ID: F7
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2868#discussion_r4582464475>
+- Concern: V3 applied `evidence/closed-port-value-check.diff`, but the artifact-under-test line names only `evidence/reproduction-tests.diff`.
+- Solution: Deferred by the maintainer to the implementation PR, where the line names `evidence/reproduction-tests.diff` (V1, V2) and `evidence/closed-port-value-check.diff` (V3).
+- Current-tree verification: on the follow-up branch, `grep -n "(V3) applied" docs/issues/open/2867-udp-health-check-panics-on-invalid-response/manual-verification-evidence.md` prints the artifact-under-test line.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2868#discussion_r4583254064>
+- Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2879>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2868#discussion_r4583254064>
+
 ## Processing Log
 
 - 2026-11-15 20:47 UTC - Started audit. Copilot reviewed the head ending in `docs(issues): [#2867] move the UDP health check panic spec to open` at 20:43:53Z (COMMENTED, one inline thread, F1). Fixed F1 in its own commit, replied on the thread, and recorded spec-only PR 2868 in the spec frontmatter in a separate commit.
 - 2026-11-15 21:34 UTC - da2ce7 reviewed the head ending in `docs(pr-reviews): [#2867] log the resolution of the first PR 2868 review round` at 21:27:05Z (APPROVED, five inline threads, none blocking), recorded as F2 to F6. Each in-tree finding was fixed in its own commit; F3 was fixed by editing the PR description. Replied on all five threads before the push.
+- 2026-11-16 09:48 UTC - da2ce7 reviewed the head ending in `docs(pr-reviews): [#2867] log the resolution of the first da2ce7 review of PR 2868` at 06:01:56Z (APPROVED, two inline threads, none blocking), recorded as F7 and F8 because the reviewer's F6 collides with the audit's F6. The maintainer chose to merge as is (merged 08:11:29Z) and defer both to the implementation PR 2879. Replied on both threads, recorded the approval on PR 2868, and reopened both threads, which stay `OPEN` until PR 2879 merges.
 
 ## Completion Rules
 

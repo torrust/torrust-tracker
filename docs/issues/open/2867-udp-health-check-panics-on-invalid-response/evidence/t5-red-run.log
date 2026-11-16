@@ -1,0 +1,31 @@
+   Compiling torrust-tracker-axum-health-check-api-server v0.2.0 (<repo>/packages/axum-health-check-api-server)
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.94s
+     Running tests/integration.rs (target/debug/deps/integration-03e9de8f47257705)
+
+running 1 test
+test server::contract::failed_probe_job::it_should_report_a_probe_job_that_panicked_as_a_failed_check_and_keep_the_other_results ... FAILED
+
+failures:
+
+---- server::contract::failed_probe_job::it_should_report_a_probe_job_that_panicked_as_a_failed_check_and_keep_the_other_results stdout ----
+
+thread 'server::contract::failed_probe_job::it_should_report_a_probe_job_that_panicked_as_a_failed_check_and_keep_the_other_results' (1940082) panicked at packages/axum-health-check-api-server/tests/server/contract.rs:663:34:
+the probe job panicked on purpose
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'server::contract::failed_probe_job::it_should_report_a_probe_job_that_panicked_as_a_failed_check_and_keep_the_other_results' (1940082) panicked at packages/axum-health-check-api-server/src/handlers.rs:71:26:
+it should be able to join into the checking function: JoinError::Panic(Id(6), "the probe job panicked on purpose", ...)
+
+thread 'server::contract::failed_probe_job::it_should_report_a_probe_job_that_panicked_as_a_failed_check_and_keep_the_other_results' (1940082) panicked at packages/axum-health-check-api-server/src/handlers.rs:79:20:
+it should be able to connect to the job: JoinError::Panic(Id(8), "it should be able to join into the checking function: JoinError::Panic(Id(6), \"the probe job panicked on purpose\", ...)", ...)
+
+thread 'server::contract::failed_probe_job::it_should_report_a_probe_job_that_panicked_as_a_failed_check_and_keep_the_other_results' (1940082) panicked at packages/axum-health-check-api-server/tests/server/client.rs:18:72:
+called `Result::unwrap()` on an `Err` value: reqwest::Error { kind: Request, url: "http://127.0.0.1:42953/health_check", source: hyper_util::client::legacy::Error(SendRequest, hyper::Error(IncompleteMessage)) }
+
+
+failures:
+    server::contract::failed_probe_job::it_should_report_a_probe_job_that_panicked_as_a_failed_check_and_keep_the_other_results
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p torrust-tracker-axum-health-check-api-server --test integration`
