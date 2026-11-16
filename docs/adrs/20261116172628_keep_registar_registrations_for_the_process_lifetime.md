@@ -10,6 +10,7 @@ semantic-links:
     - src/container.rs
     - src/bootstrap/jobs/manager.rs
     - packages/axum-health-check-api-server/src/handlers.rs
+    - packages/axum-health-check-api-server/src/server.rs
     - packages/axum-health-check-api-server/src/environment.rs
 ---
 
