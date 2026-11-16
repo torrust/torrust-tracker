@@ -52,6 +52,9 @@ pub enum DiagnosticCategory {
     SkillNameMismatch,
     /// The skills index does not list every skill folder exactly once, or lists a missing skill.
     SkillIndexMismatch,
+    /// A skill's plain `description` holds white space followed by `#`, which YAML reads as the
+    /// start of a comment, so the description is cut there.
+    SkillDescriptionCutByComment,
 }
 
 /// Whether a diagnostic fails validation or is advisory.
@@ -133,6 +136,7 @@ mod tests {
             DiagnosticCategory::InvalidRedirectStub => "invalid-redirect-stub",
             DiagnosticCategory::SkillNameMismatch => "skill-name-mismatch",
             DiagnosticCategory::SkillIndexMismatch => "skill-index-mismatch",
+            DiagnosticCategory::SkillDescriptionCutByComment => "skill-description-cut-by-comment",
         }
     }
 
@@ -159,6 +163,7 @@ mod tests {
     #[case::invalid_redirect_stub(DiagnosticCategory::InvalidRedirectStub)]
     #[case::skill_name_mismatch(DiagnosticCategory::SkillNameMismatch)]
     #[case::skill_index_mismatch(DiagnosticCategory::SkillIndexMismatch)]
+    #[case::skill_description_cut_by_comment(DiagnosticCategory::SkillDescriptionCutByComment)]
     fn it_should_serialize_each_category_as_its_stable_kebab_case_name(#[case] category: DiagnosticCategory) {
         // Act: serialize the category as the command will.
         let actual = serde_json::to_value(category).unwrap();

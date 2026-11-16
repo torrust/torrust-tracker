@@ -278,6 +278,45 @@ pub fn skill_name(path: &str) -> Option<&str> {
         .filter(|name| !name.is_empty() && !name.contains('/'))
 }
 
+/// Checks the `description` of one skill file's text, the list of skills Claude Code loads into
+/// every session (issue #2873).
+#[must_use]
+pub fn description_findings(markdown: &str) -> Vec<Diagnostic> {
+    description_cut_by_comment(markdown).into_iter().collect()
+}
+
+/// Reports a plain (unquoted, not block) `description` that holds white space followed by `#`.
+///
+/// YAML reads such a `#` as the start of a comment, so a parser, and Claude Code, see only the
+/// text before it. A parsed value no longer holds the comment, so the rule reads the raw
+/// frontmatter lines: the `description:` line and its indented continuation lines.
+fn description_cut_by_comment(markdown: &str) -> Option<Diagnostic> {
+    let lines = raw_description(markdown)?;
+    let style = lines.iter().flat_map(|line| line.chars()).find(|c| !c.is_whitespace());
+    let is_plain = !matches!(style, Some('"' | '\'' | '|' | '>'));
+    let has_comment = lines.iter().any(|line| line.contains(" #") || line.contains("\t#"));
+    (is_plain && has_comment).then(|| {
+        Diagnostic::for_field(
+            DiagnosticCategory::SkillDescriptionCutByComment,
+            "description",
+            "YAML cuts this plain `description` at white space followed by `#`, a comment; quote the value.",
+        )
+    })
+}
+
+/// The raw text of a top-level `description` in the frontmatter: what follows `description:` on
+/// its line, then each continuation line (blank or indented) up to the next top-level line.
+fn raw_description(markdown: &str) -> Option<Vec<&str>> {
+    let mut lines = markdown.lines();
+    if lines.next()? != "---" {
+        return None;
+    }
+    let mut frontmatter = lines.take_while(|line| *line != "---");
+    let first = frontmatter.find_map(|line| line.strip_prefix("description:"))?;
+    let continuation = frontmatter.take_while(|line| line.is_empty() || line.starts_with([' ', '\t']));
+    Some(std::iter::once(first).chain(continuation).collect())
+}
+
 #[cfg(test)]
 mod tests {
     // Owns the placement rule: which `SKILL.md` paths Claude Code discovers. Which files the rule
@@ -519,5 +558,64 @@ mod tests {
         let snapshot = Snapshot::accepted().with(SKILLS_INDEX, &prose);
 
         assert_eq!(snapshot.findings(), []);
+    }
+}
+
+#[cfg(test)]
+mod description_tests {
+    // Owns the description rule over one skill file's text (issue #2873). Which files it runs over
+    // is owned by the binary and tested in `tests/cli.rs`.
+
+    use rstest::rstest;
+
+    use super::description_findings;
+    use crate::DiagnosticCategory;
+
+    /// A skill file whose frontmatter `description` is written exactly as `description`, which
+    /// starts after `description:` and may span lines.
+    fn skill_with_description(description: &str) -> String {
+        format!("---\nname: write-markdown-docs\ndescription:{description}\nmetadata:\n  owner: docs\n---\n# Skill\n")
+    }
+
+    fn categories(markdown: &str) -> Vec<DiagnosticCategory> {
+        description_findings(markdown)
+            .into_iter()
+            .map(|diagnostic| diagnostic.category)
+            .collect()
+    }
+
+    #[rstest]
+    #[case::space_before_hash(" Writes Markdown, avoiding the #NUMBER pattern. Use when writing docs.")]
+    #[case::tab_before_hash(" Writes Markdown, avoiding the\t#NUMBER pattern. Use when writing docs.")]
+    #[case::on_a_continuation_line(" Writes Markdown,\n  avoiding the #NUMBER pattern.")]
+    #[case::continuation_line_starting_with_hash(" Writes Markdown, avoiding the\n  #NUMBER pattern.")]
+    fn it_should_report_a_plain_description_that_yaml_cuts_at_a_comment(#[case] description: &str) {
+        let skill = skill_with_description(description);
+
+        assert_eq!(
+            categories(&skill),
+            [DiagnosticCategory::SkillDescriptionCutByComment],
+            "description: {description:?}"
+        );
+    }
+
+    #[rstest]
+    #[case::plain_without_hash(" Writes Markdown docs. Use when writing docs.")]
+    #[case::plain_hash_inside_a_word(" Writes C# and F#NUMBER examples. Use when writing docs.")]
+    #[case::double_quoted(" \"Writes Markdown, avoiding the #NUMBER pattern. Use when writing docs.\"")]
+    #[case::single_quoted(" 'Writes Markdown, avoiding the #NUMBER pattern. Use when writing docs.'")]
+    #[case::folded_block(" >-\n  Writes Markdown, avoiding the #NUMBER pattern.\n  Use when writing docs.")]
+    #[case::literal_block(" |\n  Writes Markdown, avoiding the #NUMBER pattern.")]
+    fn it_should_accept_a_description_that_yaml_reads_whole(#[case] description: &str) {
+        let skill = skill_with_description(description);
+
+        assert_eq!(categories(&skill), [], "description: {description:?}");
+    }
+
+    #[test]
+    fn it_should_not_read_a_comment_in_the_following_field_as_part_of_the_description() {
+        let skill = "---\nname: example\ndescription: Writes Markdown.\nmetadata: # owner\n  owner: docs\n---\n";
+
+        assert_eq!(categories(skill), []);
     }
 }
