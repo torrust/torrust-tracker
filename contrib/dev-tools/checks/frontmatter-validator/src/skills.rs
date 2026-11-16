@@ -9,7 +9,9 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use crate::{Diagnostic, DiagnosticCategory};
+use serde_yaml::Value;
+
+use crate::{Diagnostic, DiagnosticCategory, DocumentOwnership, extract_with_ownership};
 
 /// The only folder Claude Code discovers project skills in.
 pub const SKILLS_DIRECTORY: &str = ".claude/skills/";
@@ -37,7 +39,7 @@ pub struct LayoutFinding {
 /// Whether the layout rules read the text of this path; the caller supplies only those texts.
 #[must_use]
 pub fn reads_text(path: &str) -> bool {
-    path == STUB_INVENTORY || (path.starts_with(REDIRECT_DIRECTORY) && is_skill_file(path))
+    path == STUB_INVENTORY || (path.starts_with(REDIRECT_DIRECTORY) && is_skill_file(path)) || skill_name(path).is_some()
 }
 
 /// Checks the skill layout of a whole repository snapshot: `files` are every tracked path, and
@@ -75,6 +77,10 @@ pub fn layout_findings<'a>(
                     .map(|diagnostic| finding(path, diagnostic))
             }),
     );
+    findings.extend(files.iter().filter_map(|path| {
+        let folder = skill_name(path)?;
+        skill_name_mismatch(folder, &text(path).unwrap_or_default()).map(|diagnostic| finding(path, diagnostic))
+    }));
     findings.sort_by(|left, right| left.path.cmp(&right.path));
     findings
 }
@@ -112,6 +118,21 @@ fn stray_redirect_file(path: &str) -> Option<Diagnostic> {
         Diagnostic::new(
             DiagnosticCategory::StrayRedirectFile,
             format!("`{REDIRECT_DIRECTORY}` holds only the inventoried redirect stubs and `{STUB_INVENTORY}`."),
+        )
+    })
+}
+
+/// A skill's `name` must equal its folder name, which is how Claude Code lists it.
+fn skill_name_mismatch(folder: &str, markdown: &str) -> Option<Diagnostic> {
+    let name = extract_with_ownership(markdown, DocumentOwnership::External)
+        .ok()
+        .flatten()
+        .and_then(|frontmatter| frontmatter.values.get("name").and_then(Value::as_str).map(str::to_owned));
+    (name.as_deref() != Some(folder)).then(|| {
+        Diagnostic::for_field(
+            DiagnosticCategory::SkillNameMismatch,
+            "name",
+            format!("The skill's `name` must be its folder name, `{folder}`."),
         )
     })
 }
@@ -215,6 +236,11 @@ mod tests {
     const SKILL: &str = ".claude/skills/create-issue/SKILL.md";
     const STUB: &str = ".github/skills/dev/planning/create-issue/SKILL.md";
 
+    /// The text of a skill whose frontmatter `name` is `name`.
+    fn skill(name: &str) -> String {
+        format!("---\nname: {name}\ndescription: Example.\n---\n# Example\n")
+    }
+
     /// The text of a stub at `STUB` that links to the skill `name`.
     fn stub(name: &str) -> String {
         format!("# Moved: `create-issue`\n\nThis skill moved to [`{name}`](../../../../../.claude/skills/{name}/SKILL.md).\n")
@@ -243,7 +269,7 @@ mod tests {
                 texts: BTreeMap::new(),
                 files: Vec::new(),
             }
-            .with(SKILL, "")
+            .with(SKILL, &skill("create-issue"))
             .with(STUB, &stub("create-issue"))
             .with(STUB_INVENTORY, &inventory(&[(STUB, "create-issue")]))
         }
@@ -346,7 +372,7 @@ mod tests {
 
         let snapshot = Snapshot::accepted()
             .without(SKILL)
-            .with(renamed, "")
+            .with(renamed, &skill("open-issue"))
             .with(STUB, &stub("open-issue"))
             .with(STUB_INVENTORY, &inventory(&[(STUB, "open-issue")]));
 
@@ -361,5 +387,15 @@ mod tests {
             .with(STUB_INVENTORY, &inventory(&[(STUB, "removed")]));
 
         assert_eq!(snapshot.findings(), []);
+    }
+
+    #[rstest]
+    #[case::another_name(&skill("open-issue"))]
+    #[case::no_name("---\ndescription: Example.\n---\n")]
+    #[case::no_frontmatter("# Example\n")]
+    fn it_should_report_a_skill_whose_name_is_not_its_folder_name(#[case] text: &str) {
+        let snapshot = Snapshot::accepted().with(SKILL, text);
+
+        assert_eq!(snapshot.findings(), only(SKILL, DiagnosticCategory::SkillNameMismatch));
     }
 }

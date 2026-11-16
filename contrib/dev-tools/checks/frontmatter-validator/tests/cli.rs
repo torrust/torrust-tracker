@@ -482,7 +482,7 @@ fn it_should_read_the_stub_inventory_from_the_index_with_skill_layout() {
     // Arrange: the staged inventory lists the staged stub; the working-tree inventory no longer does.
     let repository = Repository::new();
     let stub = ".github/skills/dev/old/SKILL.md";
-    repository.write(".claude/skills/old/SKILL.md", PLAIN_DOCUMENT);
+    repository.write(".claude/skills/old/SKILL.md", "---\nname: old\ndescription: Example.\n---\n");
     repository.write(stub, "[`old`](../../../../.claude/skills/old/SKILL.md)\n");
     repository.stage(".claude/skills/old/SKILL.md");
     repository.write(

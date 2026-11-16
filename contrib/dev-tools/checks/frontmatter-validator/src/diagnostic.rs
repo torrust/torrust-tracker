@@ -48,6 +48,8 @@ pub enum DiagnosticCategory {
     StrayRedirectFile,
     /// A redirect stub has frontmatter, or does not hold exactly one link to its skill.
     InvalidRedirectStub,
+    /// A skill's `name` is not its folder name.
+    SkillNameMismatch,
 }
 
 /// Whether a diagnostic fails validation or is advisory.
@@ -127,6 +129,7 @@ mod tests {
             DiagnosticCategory::MissingRedirectStub => "missing-redirect-stub",
             DiagnosticCategory::StrayRedirectFile => "stray-redirect-file",
             DiagnosticCategory::InvalidRedirectStub => "invalid-redirect-stub",
+            DiagnosticCategory::SkillNameMismatch => "skill-name-mismatch",
         }
     }
 
@@ -151,6 +154,7 @@ mod tests {
     #[case::missing_redirect_stub(DiagnosticCategory::MissingRedirectStub)]
     #[case::stray_redirect_file(DiagnosticCategory::StrayRedirectFile)]
     #[case::invalid_redirect_stub(DiagnosticCategory::InvalidRedirectStub)]
+    #[case::skill_name_mismatch(DiagnosticCategory::SkillNameMismatch)]
     fn it_should_serialize_each_category_as_its_stable_kebab_case_name(#[case] category: DiagnosticCategory) {
         // Act: serialize the category as the command will.
         let actual = serde_json::to_value(category).unwrap();

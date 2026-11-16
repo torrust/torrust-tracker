@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2866-2003-move-skills-to-claude-skills/ISSUE.md
-last-updated-utc: 2026-11-16 09:40
+last-updated-utc: 2026-11-16 09:55
 ---
 
 <!-- cspell:ignore Autocompact dataviz endswith findall isfile normpath relpath startswith -->
@@ -453,6 +453,20 @@ mutated, reviewed and committed before the next started.
   test names say so. The expected findings are written in each test with `only(path,
   category)`. The fixture owns only incidental mechanics: the stub's wording and the inventory
   table's layout.
+
+#### Increment 3 - The skill name
+
+- Rule: the frontmatter `name` of `.claude/skills/<folder>/SKILL.md` equals `<folder>`; a
+  different, missing, or unreadable `name` is `skill-name-mismatch`. Claude Code lists a skill by
+  this name, and a stub's link and the index rows rely on it matching the folder.
+- After the increment, `frontmatter-validator --skill-layout` on the branch exited `0`: all 53
+  names match their folders.
+- Mutations, each restored afterwards: accepting a missing `name` failed `::case_2_no_name` and
+  `::case_3_no_frontmatter`; accepting a different `name` failed `::case_1_another_name`.
+- Test-design review: the accepted snapshot's skill now has a real frontmatter, written by the
+  `skill(name)` helper, so the earlier tests stay accepted for the reason they claim. The new
+  test replaces only the skill's text; its three cases name the one difference each. The
+  command-boundary fixture gained a `name` for the same reason; what it observes did not change.
 
 ## Failures and Follow-up
 
