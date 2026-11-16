@@ -19,13 +19,13 @@ use tokio_util::sync::CancellationToken;
 use torrust_server_lib::registar::ServiceRegistrationForm;
 use torrust_tracker_axum_http_server::Version;
 use torrust_tracker_axum_http_server::server::{HttpServer, Launcher};
-use torrust_tracker_axum_server::signals::GracefulShutdownOutcome;
 use torrust_tracker_axum_server::tls::make_rust_tls;
 use torrust_tracker_http_core::container::HttpTrackerCoreContainer;
 use torrust_tracker_primitives::RuntimeServiceMetadata;
 use tracing::instrument;
 
-use crate::bootstrap::jobs::manager::{ComponentCompletion, ComponentError, ComponentResult, TokenAwareServerTask};
+use crate::bootstrap::jobs::manager::{ComponentResult, TokenAwareServerTask};
+use crate::bootstrap::jobs::token_aware_server::supervise_token_aware_server;
 
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
@@ -126,44 +126,11 @@ async fn start_v1(
     .map_err(|source| Error::Listener { source })?;
 
     Ok(supervise_token_aware_server(
+        "HTTP tracker",
         TokenAwareServerTask::new(server.task, server.shutdown_controller),
         cancellation_token,
+        |_launcher| Ok::<(), std::convert::Infallible>(()),
     ))
-}
-
-async fn supervise_token_aware_server<T>(
-    mut server_task: TokenAwareServerTask<T, GracefulShutdownOutcome>,
-    cancellation_token: CancellationToken,
-) -> ComponentResult {
-    tokio::select! {
-        biased;
-        () = cancellation_token.cancelled() => {
-            server_task
-                .join()
-                .await
-                .map_err(|error| ComponentError::new(format!("HTTP tracker failed while stopping: {error}")))?;
-            match server_task
-                .join_shutdown_controller()
-                .await
-                .map_err(|error| ComponentError::new(format!("HTTP tracker drain controller failed: {error}")))?
-            {
-                GracefulShutdownOutcome::Drained => Ok(ComponentCompletion::Cancelled),
-                GracefulShutdownOutcome::TimedOut => Err(ComponentError::new("HTTP tracker graceful drain timed out")),
-            }
-        }
-        result = server_task.join() => {
-            cancellation_token.cancel();
-            let drain_outcome = server_task
-                .join_shutdown_controller()
-                .await
-                .map_err(|error| ComponentError::new(format!("HTTP tracker drain controller failed: {error}")))?;
-            result.map_err(|error| ComponentError::new(format!("HTTP tracker runtime task failed: {error}")))?;
-            match drain_outcome {
-                GracefulShutdownOutcome::Drained => Ok(ComponentCompletion::Completed),
-                GracefulShutdownOutcome::TimedOut => Err(ComponentError::new("HTTP tracker graceful drain timed out")),
-            }
-        }
-    }
 }
 
 #[cfg(test)]
@@ -183,8 +150,9 @@ mod tests {
     use torrust_tracker_test_helpers::configuration::{ephemeral_public, ephemeral_with_no_services};
 
     use crate::bootstrap::app::initialize_global_services;
-    use crate::bootstrap::jobs::http_tracker::{Error, start_job, supervise_token_aware_server};
+    use crate::bootstrap::jobs::http_tracker::{Error, start_job};
     use crate::bootstrap::jobs::manager::{ComponentCompletion, TokenAwareServerTask};
+    use crate::bootstrap::jobs::token_aware_server::supervise_token_aware_server;
     use crate::container::AppContainer;
 
     async fn started_drain_controller(
@@ -281,8 +249,10 @@ mod tests {
 
         // Act
         let supervisor = tokio::spawn(supervise_token_aware_server(
+            "HTTP tracker",
             TokenAwareServerTask::new(server_task, shutdown_controller),
             cancellation_token,
+            |_launcher| Ok::<(), std::convert::Infallible>(()),
         ));
         cancellation_observed
             .await
@@ -312,8 +282,10 @@ mod tests {
 
         // Act
         let supervisor = tokio::spawn(supervise_token_aware_server(
+            "HTTP tracker",
             TokenAwareServerTask::new(server_task, shutdown_controller),
             cancellation_token,
+            |_launcher| Ok::<(), std::convert::Infallible>(()),
         ));
         cancellation_observed
             .await
@@ -329,7 +301,7 @@ mod tests {
             .expect("the drain controller should still be waiting for test release");
         let result = supervisor.await.expect("the component supervisor should not panic");
         let error = result.expect_err("a panicking server task should fail the HTTP component");
-        assert!(error.to_string().contains("HTTP tracker runtime task failed"));
+        assert!(error.to_string().contains("HTTP tracker server task join failed"));
     }
 
     #[tokio::test]

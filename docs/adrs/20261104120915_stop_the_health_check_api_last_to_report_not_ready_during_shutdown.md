@@ -49,8 +49,9 @@ no signal that the instance is draining.
   keeps it serving 503 until the process deadline P aborts everything, which exits with code 1.
 - Its own drain starts only after the others finish and is not budgeted inside `max(H, U) + L < P`. It
   is short when no probe connection is open, which the evidence of issue #2697 measures.
-- The legacy `udp_ban_cleanup` job has no component id, so the ordering does not cover it. It holds no
-  listener and serves no traffic; it is still stopped through the legacy root token.
+- The `udp_ban_cleanup` job was the one component the ordering did not cover, because it was a legacy
+  job with no component id. SI-26 (#2845) migrated it to a reserved component, so the health check now
+  also stops after it.
 
 ### Alternatives Considered
 

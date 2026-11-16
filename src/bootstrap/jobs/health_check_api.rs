@@ -13,12 +13,12 @@ use std::time::Duration;
 use tokio_util::sync::CancellationToken;
 use torrust_server_lib::registar::Registar;
 use torrust_tracker_axum_health_check_api_server::{HEALTH_CHECK_API_LOG_TARGET, server};
-use torrust_tracker_axum_server::signals::GracefulShutdownOutcome;
 use torrust_tracker_configuration::v3_0_0::health_check_api::HealthCheckApi;
 use torrust_tracker_primitives::{ConfigurationInstanceId, Readiness, RuntimeServiceMetadata, ServiceRole};
 use tracing::instrument;
 
-use crate::bootstrap::jobs::manager::{ComponentCompletion, ComponentError, ComponentResult, TokenAwareServerTask};
+use crate::bootstrap::jobs::manager::{ComponentResult, TokenAwareServerTask};
+use crate::bootstrap::jobs::token_aware_server::supervise_token_aware_server;
 
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
@@ -63,50 +63,10 @@ pub async fn start_job(
     let server_task = TokenAwareServerTask::new(server.task, server.shutdown_controller);
 
     Ok(async move {
-        let completion = supervise_token_aware_server(server_task, cancellation_token).await;
+        let completion = supervise_token_aware_server("health check API", server_task, cancellation_token, |result| result).await;
         tracing::info!(target: HEALTH_CHECK_API_LOG_TARGET, "Stopped server running on: http://{}", local_addr);
         completion
     })
-}
-
-async fn supervise_token_aware_server<T, E>(
-    mut server_task: TokenAwareServerTask<Result<T, E>, GracefulShutdownOutcome>,
-    cancellation_token: CancellationToken,
-) -> ComponentResult
-where
-    E: std::fmt::Display,
-{
-    tokio::select! {
-        biased;
-        () = cancellation_token.cancelled() => {
-            let server_result = server_task.join().await;
-            let drain_outcome = server_task
-                .join_shutdown_controller()
-                .await
-                .map_err(|error| ComponentError::new(format!("health check API drain controller failed: {error}")))?;
-            let server_result = server_result
-                .map_err(|error| ComponentError::new(format!("health check API server task join failed while stopping: {error}")))?;
-            server_result.map_err(|error| ComponentError::new(format!("health check API server runtime failed while stopping: {error}")))?;
-            match drain_outcome {
-                GracefulShutdownOutcome::Drained => Ok(ComponentCompletion::Cancelled),
-                GracefulShutdownOutcome::TimedOut => Err(ComponentError::new("health check API graceful drain timed out")),
-            }
-        }
-        result = server_task.join() => {
-            cancellation_token.cancel();
-            let drain_outcome = server_task
-                .join_shutdown_controller()
-                .await
-                .map_err(|error| ComponentError::new(format!("health check API drain controller failed: {error}")))?;
-            let server_result =
-                result.map_err(|error| ComponentError::new(format!("health check API server task join failed: {error}")))?;
-            server_result.map_err(|error| ComponentError::new(format!("health check API server runtime returned an error: {error}")))?;
-            match drain_outcome {
-                GracefulShutdownOutcome::Drained => Ok(ComponentCompletion::Completed),
-                GracefulShutdownOutcome::TimedOut => Err(ComponentError::new("health check API graceful drain timed out")),
-            }
-        }
-    }
 }
 
 #[cfg(test)]
@@ -122,8 +82,9 @@ mod tests {
     use torrust_tracker_configuration::v3_0_0::shutdown::Shutdown;
     use torrust_tracker_primitives::Readiness;
 
-    use crate::bootstrap::jobs::health_check_api::{start_job, supervise_token_aware_server};
+    use crate::bootstrap::jobs::health_check_api::start_job;
     use crate::bootstrap::jobs::manager::{ComponentCompletion, TokenAwareServerTask};
+    use crate::bootstrap::jobs::token_aware_server::supervise_token_aware_server;
 
     const TEST_COMPLETION_TIMEOUT: Duration = Duration::from_secs(5);
     const BIND_RETRY_INTERVAL: Duration = Duration::from_millis(10);
@@ -217,8 +178,10 @@ mod tests {
 
         // Act
         let supervisor = tokio::spawn(supervise_token_aware_server(
+            "health check API",
             TokenAwareServerTask::new(server_task, shutdown_controller),
             cancellation_token,
+            |result| result,
         ));
         tokio::time::timeout(TEST_COMPLETION_TIMEOUT, cancellation_observed)
             .await
@@ -250,8 +213,10 @@ mod tests {
 
         // Act
         let supervisor = tokio::spawn(supervise_token_aware_server(
+            "health check API",
             TokenAwareServerTask::new(server_task, shutdown_controller),
             cancellation_token,
+            |result| result,
         ));
         tokio::time::timeout(TEST_COMPLETION_TIMEOUT, cancellation_observed)
             .await
@@ -284,8 +249,10 @@ mod tests {
 
         // Act
         let supervisor = tokio::spawn(supervise_token_aware_server(
+            "health check API",
             TokenAwareServerTask::new(server_task, shutdown_controller),
             cancellation_token,
+            |result| result,
         ));
         tokio::time::timeout(TEST_COMPLETION_TIMEOUT, cancellation_observed)
             .await

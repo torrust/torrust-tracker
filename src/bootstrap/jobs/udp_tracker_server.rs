@@ -2,7 +2,6 @@ use std::collections::BTreeMap;
 use std::sync::Arc;
 use std::time::Duration;
 
-use tokio::task::JoinHandle;
 use tokio::time::interval;
 use tokio_util::sync::CancellationToken;
 use torrust_clock::clock::Time as _;
@@ -59,13 +58,17 @@ pub fn run_banning_event_listener(
     )
 }
 
-#[must_use]
+/// Returns an unspawned runner for the UDP IP-ban cleanup job.
+///
+/// The caller spawns it as a reserved component with the reservation's token. The job publishes no
+/// event: it writes the banned-IPs gauge directly, so it declares no event-flow edge.
 // issue: #1453
-pub fn start_ban_cleanup_job(
+// issue: #1488
+pub fn run_ban_cleanup_job(
     reset_interval_in_secs: u64,
     app_container: &Arc<AppContainer>,
     cancellation_token: CancellationToken,
-) -> JoinHandle<()> {
+) -> impl Future<Output = Completion> + Send + 'static {
     let ban_service = app_container.udp_tracker_core_services.ban_service.clone();
     let publication_order = app_container
         .udp_tracker_server_container
@@ -73,22 +76,22 @@ pub fn start_ban_cleanup_job(
         .clone();
     let stats_repository = app_container.udp_tracker_server_container.stats_repository.clone();
 
-    tokio::spawn(run_ban_cleanup_job(
+    ban_cleanup_loop(
         ban_service,
         publication_order,
         stats_repository,
         reset_interval_in_secs,
         cancellation_token,
-    ))
+    )
 }
 
-async fn run_ban_cleanup_job(
+async fn ban_cleanup_loop(
     ban_service: Arc<tokio::sync::RwLock<BanService>>,
     publication_order: Arc<PublicationOrder>,
     stats_repository: Arc<Repository>,
     reset_interval_in_secs: u64,
     cancellation_token: CancellationToken,
-) {
+) -> Completion {
     tracing::info!(
         target: UDP_TRACKER_LOG_TARGET,
         reset_interval_in_secs,
@@ -102,7 +105,7 @@ async fn run_ban_cleanup_job(
         tokio::select! {
             () = cancellation_token.cancelled() => {
                 tracing::info!(target: UDP_TRACKER_LOG_TARGET, "Stopping UDP IP-ban cleanup job ...");
-                break;
+                return Completion::Cancelled;
             }
             _ = cleaner_interval.tick() => {
                 reset_bans(&ban_service, &publication_order, &stats_repository, CurrentClock::now()).await;
@@ -131,7 +134,7 @@ mod tests {
     use torrust_tracker_udp_server::statistics::metrics::Metrics;
     use torrust_tracker_udp_server::statistics::repository::Repository;
 
-    use super::run_ban_cleanup_job;
+    use super::ban_cleanup_loop;
 
     const EVENT_TIME: DurationSinceUnixEpoch = DurationSinceUnixEpoch::new(1_700_000_000, 0);
 
@@ -155,7 +158,7 @@ mod tests {
     async fn it_should_stop_the_ban_cleanup_job_when_cancelled() {
         let cancellation_token = CancellationToken::new();
         let ban_service = Arc::new(RwLock::new(BanService::new(10)));
-        let job = tokio::spawn(run_ban_cleanup_job(
+        let job = tokio::spawn(ban_cleanup_loop(
             ban_service,
             Arc::new(PublicationOrder::default()),
             Arc::new(Repository::new()),
@@ -191,7 +194,7 @@ mod tests {
             .await;
         }
         let cancellation_token = CancellationToken::new();
-        let job = tokio::spawn(run_ban_cleanup_job(
+        let job = tokio::spawn(ban_cleanup_loop(
             ban_service,
             publication_order,
             stats_repository.clone(),

@@ -142,8 +142,8 @@ the superseded ADR: the root token stops being the only source of tokens.
   ordered by reservation), so every edge points backwards and the graph has no
   cycle. A reservation dropped without being spawned (for example after a bind
   failure) is released, and no component waits for it.
-- `cancel()` cancels every component with no unfinished predecessor, plus the
-  legacy root token. It is idempotent.
+- `cancel()` cancels every component with no unfinished predecessor. It is
+  idempotent.
 - `wait_for_all(deadline)` keeps one shared deadline, then aborts and joins what
   remains, with named outcomes. A component is finished when its task has been
   joined there. After shutdown is requested, each completion cancels the
@@ -156,9 +156,9 @@ the superseded ADR: the root token stops being the only source of tokens.
   each was still waiting for. `cancel()` logs, per component, that it was asked
   to stop or what it waits for; each release logs which completion released it.
   `waiting_components()` returns the same waiting relation for inspection.
-- `register_legacy` keeps today's behavior (the root token, no edges) until
-  `udp_ban_cleanup` migrates. The root token is reached only through
-  `legacy_cancellation_token()`, so a component cannot pick it up by accident.
+- `register_legacy`, `LegacyJob` and the manager's root token were removed by
+  SI-26 (#2845), when `udp_ban_cleanup` migrated to a reserved component. Every
+  job is now a reserved component under the manager's ordering.
 - A reservation is spawned at most once, because `spawn` consumes it, and only
   by the manager that issued it: `spawn` returns `SpawnError::ForeignReservation`
   otherwise, and bootstrap propagates that error as a startup failure.
@@ -364,7 +364,7 @@ history:
 8. Shared lifecycle APIs follow add, migrate consumers, deprecate, remove. The
    `JobManager` changes of section 3 apply this: `reserve` and `spawn_with` arrive
    beside the previous `spawn`, components migrate one by one, and
-   `register_legacy` stays until `udp_ban_cleanup` migrates.
+   `register_legacy` was removed once `udp_ban_cleanup` migrated (SI-26, #2845).
 9. Each migration includes deterministic token and lifecycle tests. OS-signal
    and container behavior remain executable-level integration evidence.
 10. The task inventory is revisited whenever lifecycle topology changes. The old
