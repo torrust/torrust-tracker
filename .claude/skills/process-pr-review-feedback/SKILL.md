@@ -1,6 +1,6 @@
 ---
 name: process-pr-review-feedback
-description: Deprecated compatibility redirect for pull-request review feedback. Use the unified process-pr-review skill instead.
+description: Deprecated redirect for pull-request review feedback. Use process-pr-review instead.
 metadata:
   author: torrust
   version: "1.0"

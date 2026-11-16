@@ -1,6 +1,6 @@
 ---
 name: fetch-review-threads
-description: Fetch every GitHub pull request review thread, including resolved and outdated ones, for the torrust-tracker project. Use when asked to find open PR review threads, list review comments, collect thread IDs before resolving suggestions, audit earlier resolutions, or inspect Copilot review feedback. Triggers on "fetch review threads", "list unresolved PR comments", "get review thread IDs", or "find open review suggestions".
+description: Fetch every review thread of a pull request, resolved and outdated ones too, with their IDs. Use when listing PR review comments or collecting thread IDs to resolve.
 metadata:
   author: torrust
   version: "1.1"

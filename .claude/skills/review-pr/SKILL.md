@@ -1,6 +1,6 @@
 ---
 name: review-pr
-description: Review an existing pull request for the torrust-tracker project. Covers checklist-based PR quality verification, code style standards, test requirements, documentation, and review feedback. Use only when a PR already exists.
+description: "Review an existing pull request against the project checklist: code style, tests, docs. Use only when the PR exists; review-task checks a branch without one."
 metadata:
   author: torrust
   version: "1.1"

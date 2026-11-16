@@ -1,6 +1,6 @@
 ---
 name: process-copilot-suggestions
-description: Deprecated compatibility redirect for Copilot pull-request review suggestions. Use the unified process-pr-review skill instead.
+description: Deprecated redirect for Copilot pull-request review suggestions. Use process-pr-review instead.
 metadata:
   author: torrust
   version: "1.0"

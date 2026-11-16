@@ -66,13 +66,13 @@ at a comment (see `manual-verification-evidence.md`, V0).
 | Planning | `create-refactor-plan` | 479 | 170 | 161 |  |
 | Planning | `reopen-issue` | 555 | 190 | 172 |  |
 | Planning | `write-markdown-docs` | 123 | 50 | 179 |  |
-| Pull request reviews | `fetch-review-threads` | 425 | 150 |  |  |
-| Pull request reviews | `process-copilot-suggestions` | 127 | 50 |  |  |
-| Pull request reviews | `process-pr-review` | 392 | 140 |  |  |
-| Pull request reviews | `process-pr-review-feedback` | 116 | 50 |  |  |
-| Pull request reviews | `resolve-review-threads` | 380 | 140 |  |  |
-| Pull request reviews | `review-pr` | 224 | 80 |  |  |
-| Pull request reviews | `wait-for-pr-review` | 418 | 150 |  |  |
+| Pull request reviews | `fetch-review-threads` | 425 | 150 | 165 |  |
+| Pull request reviews | `process-copilot-suggestions` | 127 | 50 | 95 |  |
+| Pull request reviews | `process-pr-review` | 392 | 140 | 173 |  |
+| Pull request reviews | `process-pr-review-feedback` | 116 | 50 | 84 |  |
+| Pull request reviews | `resolve-review-threads` | 380 | 140 | 132 |  |
+| Pull request reviews | `review-pr` | 224 | 80 | 157 |  |
+| Pull request reviews | `wait-for-pr-review` | 418 | 150 | 166 |  |
 | Rust code quality | `fix-clippy-warnings` | 348 | 120 |  |  |
 | Rust code quality | `handle-errors-in-code` | 613 | 210 |  |  |
 | Rust code quality | `handle-secrets` | 541 | 190 |  |  |
@@ -289,37 +289,37 @@ at a comment (see `manual-verification-evidence.md`, V0).
 #### `fetch-review-threads`
 
 - Before (425): Fetch every GitHub pull request review thread, including resolved and outdated ones, for the torrust-tracker project. Use when asked to find open PR review threads, list review comments, collect thread IDs before resolving suggestions, audit earlier resolutions, or inspect Copilot review feedback. Triggers on "fetch review threads", "list unresolved PR comments", "get review thread IDs", or "find open review suggestions".
-- After: not yet rewritten
+- After (165): Fetch every review thread of a pull request, resolved and outdated ones too, with their IDs. Use when listing PR review comments or collecting thread IDs to resolve.
 
 #### `process-copilot-suggestions`
 
 - Before (127): Deprecated compatibility redirect for Copilot pull-request review suggestions. Use the unified process-pr-review skill instead.
-- After: not yet rewritten
+- After (95): Deprecated redirect for Copilot pull-request review suggestions. Use process-pr-review instead.
 
 #### `process-pr-review`
 
 - Before (392): Process every pull-request review finding, regardless of whether it was authored by Copilot, a person, or another bot. Use when asked to process PR review feedback, resolve review threads, audit review comments, address Copilot and maintainer findings together, triage review feedback submitted after merge, or handle a review left on a closed pull request that another pull request replaced.
-- After: not yet rewritten
+- After (173): Process every pull-request review finding, from Copilot, a person or a bot: fix, reply, record. Use when addressing PR review feedback, even after merge or on a replaced PR.
 
 #### `process-pr-review-feedback`
 
 - Before (116): Deprecated compatibility redirect for pull-request review feedback. Use the unified process-pr-review skill instead.
-- After: not yet rewritten
+- After (84): Deprecated redirect for pull-request review feedback. Use process-pr-review instead.
 
 #### `resolve-review-threads`
 
 - Before (380): Resolve addressed GitHub pull request review threads for the torrust-tracker project. Use when asked to mark PR suggestions as resolved, resolve review comments, close addressed review threads, or clear Copilot review feedback after fixes are pushed. Triggers on "resolve PR threads", "mark suggestions as resolved", "resolve review comments", or "close addressed review threads".
-- After: not yet rewritten
+- After (132): Resolve a pull request's review threads once their fixes are pushed. Use when marking PR suggestions or review comments as resolved.
 
 #### `review-pr`
 
 - Before (224): Review an existing pull request for the torrust-tracker project. Covers checklist-based PR quality verification, code style standards, test requirements, documentation, and review feedback. Use only when a PR already exists.
-- After: not yet rewritten
+- After (157): Review an existing pull request against the project checklist: code style, tests, docs. Use only when the PR exists; review-task checks a branch without one.
 
 #### `wait-for-pr-review`
 
 - Before (418): Wait for pull-request reviewers without spending tokens, using a deterministic Rust poller, then run the review loop on each event. Use after opening or updating a pull request when you must wait for Copilot or a maintainer review, instead of being told to wait. Triggers on "wait for review", "wait for da2ce7", "wait for Copilot review", "poll the PR", "block until reviewed", "review loop", or "wait-for-pr-review".
-- After: not yet rewritten
+- After (166): Wait for Copilot or maintainer reviews with a deterministic Rust poller that spends no tokens, then run the review loop. Use after opening or updating a pull request.
 
 ### Rust code quality
 
