@@ -9,7 +9,7 @@ github-issue: 2876
 spec-path: docs/issues/open/2876-1347-peer-id-test-helper/ISSUE.md
 branch: "2876-peer-id-test-helper"
 related-pr: null
-last-updated-utc: "2026-11-16 17:30"
+last-updated-utc: "2026-11-16 17:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -472,6 +472,9 @@ with the narrow affected scope, and sign every commit with GPG.
   amendment notes when machete flags the self dev-dependency (`docs/pr-reviews/pr-2888-review/`).
 - 2026-11-16 17:30 UTC - Claude Code (Opus 5.5) - Review round 2 of PR #2888 (da2ce7, approved, F3
   and F4 Nits): the test plan's statement count is corrected (one to four), and the audit's reply time.
+- 2026-11-16 17:55 UTC - Claude Code (Opus 5.5) - Review round 3 of PR #2888 (da2ce7, approved, F5
+  Minor): the audit's round-1 log entry is restored and the F4 time correction is appended as a new
+  entry, because the log is append-only.
 
 ## Acceptance Criteria
 

@@ -47,6 +47,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F2 | review-finding:pr-2888-f2 | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-2888-f3 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F4 | review-finding:pr-2888-f4 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F5 | review-finding:pr-2888-f5 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -115,22 +116,48 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2888#discussion_r4589031100
 - Concern: The round-1 entry said the two thread replies were posted at 16:53 UTC; GitHub records
   16:54:26 and 16:54:29 UTC. Their order before the push is right.
-- Solution: The round-1 entry now says 16:54 UTC and notes the correction.
+- Solution: A Processing Log correction entry (17:55 UTC) states the correct time, 16:54 UTC. The round-1 entry
+  keeps its original text, because the log is append-only (finding F5; round 2 had first rewritten
+  that entry in place).
 - Current-tree verification: `grep -n "16:54 UTC" docs/pr-reviews/pr-2888-review/PR-REVIEW.md`
-  finds the round-1 entry.
-- Resolution reference: docs(pr-reviews): [#2876] record review round 2 of PR 2888
+  finds the correction entry; the round-1 entry still says 16:53 UTC.
+- Resolution reference: docs(pr-reviews): [#2876] restore the round-1 log entry and append its correction
+  (first fixed in place by `docs(pr-reviews): [#2876] record review round 2 of PR 2888`; see F5)
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2888#discussion_r4589180507
+
+### F5 - The F4 fix rewrote the round-1 Processing Log entry in place
+
+- PR number: 2888
+- Source review ID: 5924785765
+- Reviewer finding ID: F5
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2888#discussion_r4589413418
+- Concern: `process-pr-review` step 5 and the template say the Processing Log is append-only; an
+  entry rewritten in place is restored and corrected by a new entry naming the rewritten content.
+  The F4 fix had rewritten the round-1 entry.
+- Solution: The round-1 entry is restored (`16:53 UTC,`), and a new correction entry states the
+  right time and names the in-place rewrite. The F4 row now describes that fix.
+- Current-tree verification: `grep -n "16:53 UTC\|16:54 UTC" docs/pr-reviews/pr-2888-review/PR-REVIEW.md`
+  shows the restored round-1 entry, the F4 row and the correction entry.
+- Resolution reference: docs(pr-reviews): [#2876] restore the round-1 log entry and append its correction
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2888#discussion_r4589431881
 
 ## Processing Log
 
 - 2026-11-16 16:52 UTC - Started audit for review round 1: review 5923877279 (da2ce7, APPROVED, with
   ACK, one Nit F1 and one Suggestion F2, neither blocking). The maintainer had posted his ACK on the
-  same head before the review. Both fixed by commit; the two thread replies posted at 16:54 UTC (corrected in round 2, F4),
+  same head before the review. Both fixed by commit; the two thread replies posted at 16:53 UTC,
   before the push of the fix commits.
 - 2026-11-16 17:32 UTC - Review round 2: review 5924274073 (da2ce7, APPROVED, two Nits F3 and F4,
   neither blocking) on the head with the round-1 fixes, which the maintainer ACKed. F3 fixed by
   commit, F4 in this audit; the two thread replies posted at 17:31 UTC, before the push.
+- 2026-11-16 17:55 UTC - Correction (F4, applied as F5 asks): the round-1 entry above says the two
+  thread replies were posted at 16:53 UTC; GitHub records 16:54:26 and 16:54:29 UTC, still before
+  the push. Round 2 first fixed this by rewriting the round-1 entry in place (to "16:54 UTC
+  (corrected in round 2, F4)"), which broke the append-only rule; review round 3 (review 5924785765,
+  da2ce7, APPROVED, one Minor finding F5) found it, and the round-1 entry is restored to its original
+  text. F5 fixed by commit; its thread reply posted before the push.
 
 ## Completion Rules
 
