@@ -50,11 +50,17 @@ Round 3 is da2ce7's review `5923302003` (changes requested) at the rewritten hea
 commit is the reworded archive commit. Its four inline findings F5 to F8 collide with existing
 audit IDs, so they get F6 to F9 in source order, with the reviewer's ID kept.
 
-The review bodies cite heads by commit id. Head `aedfe4e59` (rounds 1 and 2) is the first version
-of `chore(issues): archive closed issue #2850 and #2838 specs to docs/issues/closed`; head `b217ee7e4` (round 3) is its reworded, squashed and rebased version.
+The branch history was rewritten after round 2 (see F1 and F7), so the round 1 and round 2 review
+bodies cite a commit id that no longer exists on the branch. That id named the first version of the
+commit with the subject `chore(issues): archive closed issue #2850 and #2838 specs to docs/issues/closed`. The id cited by the round 3 and round 4 review bodies names its
+reworded, squashed and rebased version, which has the same subject.
 
-Round 4 is Copilot's review `5923416979` (commented) at head `b217ee7e4`. Its one inline finding
+Round 4 is Copilot's review `5923416979` (commented) at the rewritten head. Its one inline finding
 has no reviewer ID, so it gets F10.
+
+Round 5 is da2ce7's review `5923522198` (now `DISMISSED`) at the head whose last commit is
+`docs(pr-reviews): [#2850] audit review round 3 of PR #2884`. Its three inline findings F9 to F11
+collide with existing audit IDs, so they get F11 to F13 in source order, with the reviewer's ID kept.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -68,6 +74,9 @@ has no reviewer ID, so it gets F10.
 | F8 | review-finding:pr-2884-f8 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F9 | review-finding:pr-2884-f9 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F10 | review-finding:pr-2884-f10 | Copilot | Nit (inferred) | link-integrity | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-2884-f11 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-2884-f12 | Human | Minor | other | RE_RAISE_OF:F10 | NO_ACTION | SUPERSEDED |
+| F13 | review-finding:pr-2884-f13 | Human | Nit | metadata | ORIGINAL | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -210,6 +219,45 @@ has no reviewer ID, so it gets F10.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2884#discussion_r4588409983
 
+### F11 - The audit cites branch heads by commit id
+
+- PR number: 2884
+- Source review ID: 5923522198
+- Reviewer finding ID: F9
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2884#discussion_r4588443247
+- Concern: the mapping of the review bodies' commit ids named the round-1 head and the rewritten head by id, so the commit-id check of `open-pull-request` printed both.
+- Solution: the mapping now names the commits by subject only, in the wording of the PR #2630 audit, and the round 4 paragraph says "the rewritten head".
+- Current-tree verification: the commit-id check of `open-pull-request` prints nothing for this record.
+- Resolution reference: docs(pr-reviews): [#2850] audit review round 5 of PR #2884
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2884#discussion_r4588465977
+
+### F12 - The bot thread on the link line had no reply or audit row
+
+- PR number: 2884
+- Source review ID: 5923522198
+- Reviewer finding ID: F10
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2884#discussion_r4588443261
+- Concern: Copilot's thread of review `5923416979` had no reply and no row when the round 3 audit was pushed.
+- Solution: no further change: the thread is F10 of this record, fixed in its own commit, replied to and resolved before this review arrived. Reply: `Superseded by F10: ...`.
+- Current-tree verification: row F10 and its thread are `FIXED`/`RESOLVED`.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2884#discussion_r4588466618
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2884#discussion_r4588466618
+
+### F13 - The commit body calls review 5923302003 the reviewer's third
+
+- PR number: 2884
+- Source review ID: 5923522198
+- Reviewer finding ID: F11
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2884#discussion_r4588443274
+- Concern: the body of `docs(pr-reviews): [#2850] audit review round 3 of PR #2884` says it records da2ce7's "third review"; it is da2ce7's second review and the PR's third round.
+- Solution: no change: the commit is pushed, and rewording it needs another force-push, which the maintainer approved only for the round-1 rewrite (F7). The reviewer marked it a slip, not a wrong fact about the tree; this row records the exact count. Reply: `Superseded by F7: ...`.
+- Current-tree verification: N/A; the commit message is unchanged.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2884#discussion_r4588467270
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2884#discussion_r4588467270
+
 ## Processing Log
 
 - 2026-11-16 15:48 UTC - Started this audit for da2ce7's review `5922865820` (submitted
@@ -238,6 +286,11 @@ has no reviewer ID, so it gets F10.
   one finding). The fix was committed as its own commit and the thread was replied to
   (2026-11-16T16:25:55Z). Late start: this entry and row F10 were added after the reply, not before
   it. The thread is resolved after the push and a validator run on the pushed head.
+- 2026-11-16 16:29 UTC - Started round 5 for da2ce7's review `5923522198` (submitted
+  2026-11-16T16:28:46Z, now `DISMISSED`, three findings), before any reply. The mapping of review
+  commit ids was reworded to cite subjects only (F11).
+- 2026-11-16 16:30 UTC - Round 5 replies posted (2026-11-16T16:30 UTC). The threads
+  are resolved after the push of this commit and a validator run on the pushed head.
 
 ## Completion Rules
 
