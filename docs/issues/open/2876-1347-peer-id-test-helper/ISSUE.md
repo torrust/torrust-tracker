@@ -9,7 +9,7 @@ github-issue: 2876
 spec-path: docs/issues/open/2876-1347-peer-id-test-helper/ISSUE.md
 branch: "2876-peer-id-test-helper"
 related-pr: null
-last-updated-utc: "2026-11-16 16:24"
+last-updated-utc: "2026-11-16 16:26"
 semantic-links:
   skill-links:
     - create-issue
@@ -345,7 +345,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T5  | DONE   | Gate `peer::fixture` (and the `Default` impls, Q5) behind `testing` (Q2) | Feature in `primitives/Cargo.toml` with the semver comment of ADR rule A.6, self dev-dependency, consumer `[dev-dependencies]`; `cargo machete --with-metadata` clean. |
 | T6  | DONE   | Make the fixture's ids realistic (Q6) | Assertions on the old bytes listed first, then updated. |
 | T7  | DONE   | Tests or a no-test decision for every remaining fixture line | Issue-local `coverage-evidence.md` (see Coverage Evidence) shows no line owned by F5 left uncovered. |
-| T8  | TODO   | Record the decision (Q7) | ADR amendment, or a note in this spec. |
+| T8  | DONE   | Record the decision (Q7) | ADR amendment, or a note in this spec. |
 | T9  | TODO   | Final verification and acceptance review | `linter all`, tests, manual scenarios, AC table filled in. |
 
 ## Commit Points
@@ -460,6 +460,9 @@ with the narrow affected scope, and sign every commit with GPG.
   every `PeerBuilder` setter), each setter guarded by a mutation. `primitives` is at 1,270 / 1,273
   lines; the 3 uncovered lines are #2824's dead `Display` branch and two test-only lines
   (`coverage-evidence.md`).
+- 2026-11-16 16:26 UTC - Claude Code (Opus 5.5) - T8: the test-support ADR is amended (Q7): rule
+  D's reasoning covers shared fixtures, and the ownership map has a row for `peer::fixture`, owned by
+  `primitives` and reached through its `testing` feature.
 
 ## Acceptance Criteria
 
