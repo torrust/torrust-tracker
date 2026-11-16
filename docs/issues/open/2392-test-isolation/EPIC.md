@@ -6,7 +6,7 @@ epic: null
 github-issue: 2392
 spec-path: docs/issues/open/2392-test-isolation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-16 14:23"
+last-updated-utc: "2026-11-16 15:37"
 semantic-links:
   skill-links:
     - create-issue
@@ -100,7 +100,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | Order | Issue | Local Spec | Status | Notes |
 | ----- | ----- | ---------- | ------ | ----- |
-| 1 | #2393 - Eliminate parallel test port allocation races | `docs/issues/closed/2393-2392-test-port-allocation-races/ISSUE.md` | DONE | Bug. PR #2859 ignored 21 racing tests and rewrote 4 that never needed a racing port. PR #2874 applied the T5 decisions: deleted 9 tests of test-support code, rewrote the 3 health-check contract tests to probe an address the test holds, and restored 9 socket-release tests on a random loopback address (ignored off Linux). The full suite then passed 150 of 150 runs with no #2393 test ignored (V6). Found during the work: #2867 (UDP health check panics on a malformed reply). |
+| 1 | #2393 - Eliminate parallel test port allocation races | `docs/issues/closed/2393-2392-test-port-allocation-races/ISSUE.md` | DONE | Bug. PR #2859 ignored 21 racing tests and rewrote 4 that never needed a racing port. PR #2874 applied the T5 decisions: deleted 9 tests of test-support code, rewrote the 3 health-check contract tests to probe an address the test holds, and restored 9 socket-release tests on a unique loopback address, picked at random from `127.0.0.0/8` (ignored off Linux). The full suite then passed 150 of 150 runs with no #2393 test ignored (V6). Found during the work: #2867 (UDP health check panics on a malformed reply). |
 | 2 | #2394 - Audit shared test resources | `docs/issues/open/2394-2392-audit-shared-test-resources/ISSUE.md` | TODO | Task. Inventories the resource classes in scope, records a disposition for each finding, and drafts subissues for confirmed problems. |
 | 3 | #2395 - Use dynamic host ports in the E2E runner | `docs/issues/open/2395-2392-e2e-runner-dynamic-host-ports/ISSUE.md` | TODO | Task. Removes fixed E2E host ports. Independent of orders 1 and 2. |
 | 4 | #2396 - Use a unique tracker image tag per CI run | `docs/issues/open/2396-2392-e2e-unique-tracker-image-tag/ISSUE.md` | TODO | Task. Prevents one run from testing another run's image. Latent today (one runner instance per server). Independent of order 3. |
@@ -275,7 +275,7 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
   rules are the real guarantee.
 - **Lost coverage while tests are ignored.** Resolved: #2393 T9 restored the 9 tracker release
   tests, which prove that a server releases its socket after a stop, a drop or a failure, on a
-  random loopback address. They run on Linux and are ignored on other systems, which configure only
+  unique loopback address picked at random. They run on Linux and are ignored on other systems, which configure only
   `127.0.0.1`.
 
 ## References
