@@ -1,6 +1,6 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2866-2003-move-skills-to-claude-skills/ISSUE.md
+issue-spec: docs/issues/closed/2866-2003-move-skills-to-claude-skills/ISSUE.md
 last-updated-utc: 2026-11-16 15:43
 ---
 

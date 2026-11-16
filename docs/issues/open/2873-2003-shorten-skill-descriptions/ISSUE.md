@@ -9,7 +9,7 @@ github-issue: 2873
 spec-path: docs/issues/open/2873-2003-shorten-skill-descriptions/ISSUE.md
 branch: "2873-shorten-skill-descriptions-spec"
 related-pr: null
-last-updated-utc: "2026-11-16 10:03"
+last-updated-utc: "2026-11-16 17:35"
 semantic-links:
   skill-links:
     - create-issue
@@ -19,7 +19,7 @@ semantic-links:
   related-artifacts:
     - .github/skills
     - contrib/dev-tools/checks/frontmatter-validator
-    - docs/issues/open/2866-2003-move-skills-to-claude-skills/ISSUE.md
+    - docs/issues/closed/2866-2003-move-skills-to-claude-skills/ISSUE.md
     - docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
     - docs/issues/open/2873-2003-shorten-skill-descriptions/manual-verification-evidence.md
     - docs/adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md

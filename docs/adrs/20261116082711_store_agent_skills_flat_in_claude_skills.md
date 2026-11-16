@@ -10,7 +10,7 @@ semantic-links:
     - contrib/dev-tools/checks/frontmatter-validator/src/skills.rs
     - docs/adrs/20260420200013_adopt_custom_github_copilot_aligned_agent_framework.md
     - docs/adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md
-    - docs/issues/open/2866-2003-move-skills-to-claude-skills/ISSUE.md
+    - docs/issues/closed/2866-2003-move-skills-to-claude-skills/ISSUE.md
 ---
 
 <!-- skill-link: create-adr -->
@@ -92,7 +92,7 @@ This supersedes the skills location of ADR `20260420200013`; its other decisions
 
 ## References
 
-- Issue: #2866 (`docs/issues/open/2866-2003-move-skills-to-claude-skills/ISSUE.md`), EPIC #2003
+- Issue: #2866 (`docs/issues/closed/2866-2003-move-skills-to-claude-skills/ISSUE.md`), EPIC #2003
 - Partly superseded ADR:
   [`20260420200013`](20260420200013_adopt_custom_github_copilot_aligned_agent_framework.md)
 - Capability inventory:
