@@ -1,6 +1,6 @@
 ---
 name: review-pr
-description: "Review an existing pull request against the project checklist: code style, tests, docs. Use only when the PR exists; review-task checks a branch without one."
+description: "Review an existing pull request against the review checklist: code style, tests, docs. Use when the PR exists; review-task checks a branch without one."
 metadata:
   author: torrust
   version: "1.1"

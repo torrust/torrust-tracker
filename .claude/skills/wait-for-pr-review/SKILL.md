@@ -1,6 +1,6 @@
 ---
 name: wait-for-pr-review
-description: Wait for Copilot or maintainer reviews with a deterministic Rust poller that spends no tokens, then run the review loop. Use after opening or updating a pull request.
+description: Wait for Copilot or maintainer reviews with a deterministic Rust poller that spends no tokens, then run the review loop. Use when waiting for a review of an opened or updated PR.
 metadata:
   author: torrust
   version: "1.2"

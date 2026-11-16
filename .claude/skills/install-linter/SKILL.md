@@ -1,6 +1,6 @@
 ---
 name: install-linter
-description: Install the torrust-linting linter binary and the tools it calls. Use after a fresh clone or when the linter command is missing.
+description: Install the torrust-linting linter binary and the tools it calls. Use when the linter command is missing, for example after a fresh clone.
 metadata:
   author: torrust
   version: "1.0"

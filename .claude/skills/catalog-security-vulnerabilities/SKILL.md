@@ -1,6 +1,6 @@
 ---
 name: catalog-security-vulnerabilities
-description: Record the CVE analysis of container and dependency warnings (Trivy, cargo audit, RustSec), and escalate any that affect the project. Use when checking a CVE or advisory.
+description: Record the CVE analysis of container and dependency warnings (Trivy, cargo audit, RustSec), and escalate any that affect the tracker. Use when checking a CVE or advisory.
 metadata:
   author: torrust
   version: "1.0"

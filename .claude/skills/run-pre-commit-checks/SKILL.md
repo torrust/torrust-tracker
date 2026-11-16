@@ -1,6 +1,6 @@
 ---
 name: run-pre-commit-checks
-description: Run every check of the pre-commit hook, or one step alone to debug it. Use before committing, or when the pre-commit hook fails.
+description: Run every check of the pre-commit hook, or one step alone to debug it. Use when about to commit, or when the pre-commit hook fails.
 metadata:
   author: torrust
   version: "1.0"

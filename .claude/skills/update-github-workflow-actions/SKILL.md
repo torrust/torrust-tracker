@@ -1,6 +1,6 @@
 ---
 name: update-github-workflow-actions
-description: Update the GitHub Actions that workflows use and keep the Torrust organization allowlist in sync. Use for action version bumps or Dependabot GitHub Actions updates.
+description: Update the GitHub Actions that workflows use and keep the Torrust organization allowlist in sync. Use when bumping action versions or handling Dependabot GitHub Actions updates.
 metadata:
   author: torrust
   version: "1.1"

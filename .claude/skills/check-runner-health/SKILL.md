@@ -1,6 +1,6 @@
 ---
 name: check-runner-health
-description: Check the self-hosted CI runner (load, memory, disk, Docker cleanup) and record a dated report in a PR. Use for periodic runner checks, a full disk or queued jobs.
+description: Check the self-hosted CI runner (load, memory, disk, Docker cleanup) and record a dated report in a PR. Use when doing a periodic runner check, or when its disk fills or jobs queue.
 metadata:
   author: torrust
   version: "1.0"

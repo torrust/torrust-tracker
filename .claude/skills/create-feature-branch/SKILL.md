@@ -1,6 +1,6 @@
 ---
 name: create-feature-branch
-description: Create a feature branch named by the project's branch conventions. Use when starting work on an issue or creating a new branch.
+description: Create a feature branch named by the branch conventions. Use when starting work on an issue or creating a new branch.
 metadata:
   author: torrust
   version: "1.0"

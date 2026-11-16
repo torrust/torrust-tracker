@@ -1,6 +1,6 @@
 ---
 name: review-task
-description: "Review a finished task on a local branch before its PR: acceptance criteria, scope, tests, docs, lint. Use to verify an issue is complete when no PR exists yet."
+description: "Review a finished task on a local branch before its PR: acceptance criteria, scope, tests, docs, lint. Use when verifying an issue is complete and no PR exists yet."
 metadata:
   author: torrust
   version: "1.0"

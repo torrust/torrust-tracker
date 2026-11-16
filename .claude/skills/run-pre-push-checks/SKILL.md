@@ -1,6 +1,6 @@
 ---
 name: run-pre-push-checks
-description: "Run the pre-push checks: the nightly toolchain checks and the full stable test suite. Use before pushing, or when the pre-push hook fails."
+description: "Run the pre-push checks: the nightly toolchain checks and the full stable test suite. Use when about to push, or when the pre-push hook fails."
 metadata:
   author: torrust
   version: "1.0"

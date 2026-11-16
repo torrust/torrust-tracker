@@ -1,6 +1,6 @@
 ---
 name: write-unit-test
-description: "Write unit tests the project's way: it_should_ names, Arrange-Act-Assert, rstest cases, a stopped clock for time. Use when adding or reviewing unit tests."
+description: Write unit tests with it_should_ names, Arrange-Act-Assert, rstest cases and a stopped clock for time. Use when adding or reviewing unit tests.
 semantic-links:
   skill-links:
     - fix-bug

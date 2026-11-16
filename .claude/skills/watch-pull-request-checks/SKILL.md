@@ -1,6 +1,6 @@
 ---
 name: watch-pull-request-checks
-description: Wait for a pull request's CI checks to finish with gh pr checks, then read which failed. Use after pushing to a PR when you need to know whether CI passed.
+description: Wait for a pull request's CI checks to finish with gh pr checks, then read which failed. Use when you need to know whether CI passed after pushing to a PR.
 metadata:
   author: torrust
   version: "1.0"

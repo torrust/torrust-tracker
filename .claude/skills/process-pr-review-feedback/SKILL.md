@@ -1,6 +1,6 @@
 ---
 name: process-pr-review-feedback
-description: Deprecated redirect for pull-request review feedback. Use process-pr-review instead.
+description: Deprecated redirect for pull-request review feedback. Use when an old link names this skill; process-pr-review replaces it.
 metadata:
   author: torrust
   version: "1.0"

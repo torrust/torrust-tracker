@@ -1,6 +1,6 @@
 ---
 name: manual-udp-download-completion-e2e
-description: Simulate a peer going from started to completed over UDP with tracker_client and the stats API. Use to check that downloads increment, without the qBittorrent E2E.
+description: Simulate a peer going from started to completed over UDP with tracker_client and the stats API. Use when checking that downloads increment, without the qBittorrent E2E.
 metadata:
   author: torrust
   version: "1.0"

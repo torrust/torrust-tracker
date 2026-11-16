@@ -1,6 +1,6 @@
 ---
 name: manual-http-download-completion-e2e
-description: Simulate a peer going from started to completed through the HTTP announce and scrape endpoints with curl. Use to check the completed counter by hand over HTTP.
+description: Simulate a peer going from started to completed through the HTTP announce and scrape endpoints with curl. Use when checking the completed counter by hand over HTTP.
 metadata:
   author: torrust
   version: "1.0"
