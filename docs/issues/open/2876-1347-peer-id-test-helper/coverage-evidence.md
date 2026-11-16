@@ -69,4 +69,17 @@ No line owned by F5 is left uncovered in production or fixture code.
 
 ## Final Measurement (T9)
 
-Pending.
+Measured on the finished branch (head commit with subject `docs(adrs): [#2876] amend the
+test-support ADR for shared fixtures such as peer::fixture`), same commands and toolchain as the
+baseline, from a clean `CARGO_LLVM_COV_TARGET_DIR`. Both runs ran the same 125 unit tests (the
+package still has no `tests/` folder):
+
+| Scope | Tests | Lines | Regions | Functions |
+| --- | ---: | ---: | ---: | ---: |
+| Unit-only (`--lib`) | 125 unit | 1,274 / 1,277 (99.77%) | 1,920 / 1,925 (99.74%) | 242 / 242 (100.00%) |
+| Aggregate | 125 unit | 1,274 / 1,277 (99.77%) | 1,920 / 1,925 (99.74%) | 242 / 242 (100.00%) |
+
+From the baseline: lines +5.72 pp, regions +4.46 pp, functions +5.83 pp. The line count differs from
+"After T7" by 4 because the nightly formatter re-wrapped the new tests. `peer.rs` is 703 / 706; the 3
+uncovered lines are the same as after T7 (417, 1087, 1100) with the same owners and decisions. No
+uncovered line is owned by F5.

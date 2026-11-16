@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2876-1347-peer-id-test-helper/ISSUE.md
-last-updated-utc: 2026-11-16 16:22
+last-updated-utc: 2026-11-16 16:29
 ---
 
 # Manual Verification Evidence
@@ -15,8 +15,8 @@ do not invent commands, output, logs, or results.
 ## Environment and Prerequisites
 
 - Date and time (UTC): 2026-11-16 15:59
-- Artifact under test: `develop` at `c8b1477ad` (the merge of #2878), before any change of this
-  issue (T1 baseline).
+- Artifact under test: `develop` at `c8b1477ad` (the merge of #2878) for the baselines (V0, V1), and
+  branch `2876-peer-id-test-helper` for V1's final run, V2 and V3, as each section says.
 - Operating system / environment: Linux 7.0.0-43-generic; stable Rust toolchain, rustc 1.99.1,
   cargo 1.99.1.
 - Prerequisites and setup performed: none beyond a checkout of `develop`.
@@ -28,7 +28,7 @@ do not invent commands, output, logs, or results.
 - Goal: show that no library or binary target of the workspace uses `Id::new`, `peer::fixture`
   (`PeerBuilder`) or the `Default` impls of `Peer` and `Id`.
 - Initial state: clean checkout of `develop` at `c8b1477ad`.
-- Status: `IN_PROGRESS` (the baseline is done; the final run on the finished code is pending, T9)
+- Status: `DONE` (baseline above; final run on the finished code below)
 
 #### Steps Performed
 
@@ -57,6 +57,21 @@ exit=0 warnings=0
 Met (baseline). With `Id::new` and the fixture module (which holds the `Default` impls) compiled
 only under `cfg(test)`, every library and binary target of the workspace still compiles, with no
 warnings. Code outside this workspace that depends on the published 3.0.0 is not covered.
+
+#### Final Run (T9)
+
+On the finished branch (head commit with subject `docs(adrs): [#2876] amend the test-support ADR
+for shared fixtures such as peer::fixture`), with no throwaway change: `Id::new` no longer exists
+and `peer::fixture` is behind `testing`, so a plain check is the proof. Run at 16:27 UTC, in one
+shell, after `linter all`:
+
+```text
+M1 cargo check --workspace --lib --bins exit=0 warnings=0
+primitives no-features check exit=0
+```
+
+(`cargo check -p torrust-tracker-primitives`, no features, is the second line.) Met: no library or
+binary target of the workspace needs `Id::new`, the fixture or its `Default` impls.
 
 ### V0 - Reproduction: today's test ids name no client (M3, baseline)
 
@@ -98,7 +113,7 @@ The finding is reproduced: the three fixture ids (`-qB000...`) and the `Id::new`
   `torrust-tracker` binary's dependency tree does not enable it.
 - Initial state: branch `2876-peer-id-test-helper` with the T5 change (feature, self
   dev-dependency, eight consumer `[dev-dependencies]` entries), uncommitted at the time of the run.
-- Status: `DONE` (repeated on the final code in T9)
+- Status: `DONE`
 
 #### Steps Performed
 
@@ -127,6 +142,9 @@ torrust-tracker-primitives v3.1.0 (.../packages/primitives)
 #### Conclusion
 
 Met. The check exits 0 and the tree has no `testing` feature of `primitives`.
+
+Repeated on the finished branch in T9 (16:27 UTC): `M2 exit=0` with the same `checked` message, and
+`grep -c 'feature "testing"'` on the tree gave `0`.
 
 ### V3 - Realistic ids (M3)
 
