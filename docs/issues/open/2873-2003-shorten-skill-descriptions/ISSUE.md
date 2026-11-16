@@ -9,7 +9,7 @@ github-issue: 2873
 spec-path: docs/issues/open/2873-2003-shorten-skill-descriptions/ISSUE.md
 branch: "2873-shorten-skill-descriptions-spec"
 related-pr: null
-last-updated-utc: "2026-11-16 09:38"
+last-updated-utc: "2026-11-16 09:45"
 semantic-links:
   skill-links:
     - create-issue
@@ -185,9 +185,12 @@ defect is the skill file's frontmatter: the `frontmatter-validator` rule (T2) fa
 `write-markdown-docs` description as it is today as the failing case. It runs on every commit and
 in CI with #2866's skill rules.
 
-The rule needs the raw frontmatter text, because a YAML parser drops comments: for example, it
-fails when the `description:` line is a plain scalar whose value contains a space followed by `#`, or when the parsed
-value is shorter than the raw value. The exact detection is settled in T2 and recorded here.
+The rule needs the raw frontmatter text, because a YAML parser drops comments. It fails when the
+`description:` value is a plain (unquoted) scalar that contains a space followed by `#`. It does
+not compare raw and parsed lengths: quoting, escape decoding and block-scalar folding change the
+length of a valid description, so that comparison would reject T3's quoting fix. Its unit tests
+include passing cases for a double-quoted description containing `#` and for a block-scalar
+description. The exact detection is settled in T2 and recorded here.
 
 ## Implementation Plan
 
@@ -248,6 +251,7 @@ the last increment, before T6. Commits use Conventional Commit messages and are 
 - 2026-11-16 08:47 UTC - AI assistant (Claude Code, Claude Opus 5.5) - Addressed da2ce7's review 5917183183 on PR #2875: the regression test (now T2) comes before the fix (now T3); the reproduction is recorded and classified in `manual-verification-evidence.md` V0; T6 adds the governance ADR's review-record row
 - 2026-11-16 08:53 UTC - AI assistant (Claude Code, Claude Opus 5.5) - Addressed Copilot's review 5917272531 on PR #2875: T2's rule stays opt-in until T4's last commit turns it on in the existing staged and whole-tree gates, since the hook already runs `frontmatter-validator --staged`. Correction: the entry stamped 08:47 UTC is later than its commit, made at 08:46:59 UTC; it is kept unchanged
 - 2026-11-16 09:38 UTC - AI assistant (Claude Code, Claude Opus 5.5) - Addressed the second round on PR #2875: the evidence file keeps its template's headings (da2ce7's review 5917548188, F5), and the `/context` row is described as corroborating inference, not an observation of the cut text, in the Background, Bug-Fix Process, T3, AC3, M2 and V0 (Copilot's review 5917643855, F7)
+- 2026-11-16 09:45 UTC - AI assistant (Claude Code, Claude Opus 5.5) - Addressed F8 from Copilot's review 5917643855 body: the rule detects a comment in a plain scalar only and no longer compares raw and parsed lengths, which valid quoted and block-scalar descriptions change; AC4 asks for passing tests for those
 
 ## Acceptance Criteria
 
@@ -259,7 +263,8 @@ the last increment, before T6. Commits use Conventional Commit messages and are 
       row costs what that length predicts (corroborating evidence: `/context` does not show the
       text).
 - [ ] AC4: A `frontmatter-validator` rule fails on a skill description cut at a YAML comment or
-      longer than 200 characters, with unit tests for both and for a passing description, and runs
+      longer than 200 characters, with unit tests for both and for passing plain, quoted and
+      block-scalar descriptions, and runs
       on every commit and in CI.
 - [ ] AC5: The 53 project entries cost at most about half of today's ~6,980 tokens in `/context`,
       and the Skills category is below its 1% cap on the same model.
