@@ -36,7 +36,7 @@ async fn start_health_check_api(registar: Registar<RuntimeServiceMetadata>) -> S
 fn hold_a_tcp_address_that_refuses_connections() -> tokio::net::TcpSocket {
     let socket = tokio::net::TcpSocket::new_v4().expect("a TCP socket should be created");
     socket
-        .bind("127.0.0.1:0".parse().unwrap())
+        .bind(std::net::SocketAddr::from((std::net::Ipv4Addr::LOCALHOST, 0)))
         .expect("the TCP socket should bind to an ephemeral port");
     socket
 }
