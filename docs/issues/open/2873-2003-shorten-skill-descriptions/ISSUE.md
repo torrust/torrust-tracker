@@ -9,7 +9,7 @@ github-issue: 2873
 spec-path: docs/issues/open/2873-2003-shorten-skill-descriptions/ISSUE.md
 branch: "2873-shorten-skill-descriptions-spec"
 related-pr: null
-last-updated-utc: "2026-11-16 08:30"
+last-updated-utc: "2026-11-16 08:47"
 semantic-links:
   skill-links:
     - create-issue
@@ -21,6 +21,8 @@ semantic-links:
     - contrib/dev-tools/checks/frontmatter-validator
     - docs/issues/open/2866-2003-move-skills-to-claude-skills/ISSUE.md
     - docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
+    - docs/issues/open/2873-2003-shorten-skill-descriptions/manual-verification-evidence.md
+    - docs/adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md
     - "issue #2866"
 ---
 
@@ -147,8 +149,10 @@ from its name and description, so the words a task uses must be in it.
 - Related ADRs: `docs/adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md`
   (context capability governance), and the ADR #2866 creates for the `.claude/skills/` location.
 - ADRs to create: none known. A description length limit is a convention, recorded in
-  `add-new-skill` and enforced by the validator. If the review decides it is a governance
-  decision, it becomes a dated row in the governance ADR's review log.
+  `add-new-skill` and enforced by the validator.
+- ADR review record: the governance ADR's Review cadence asks for a review when a tracked skill is
+  materially changed. Rewriting all 53 descriptions changes when each skill loads, so T6 adds a
+  dated row to that ADR's `Review records` table.
 
 ## Design and Ownership Review
 
@@ -160,12 +164,13 @@ The cut `write-markdown-docs` description is a defect, so its fix follows the `f
 (`.claude/skills/fix-bug/SKILL.md` after #2866):
 
 - Analysis: a plain YAML scalar that contains a space followed by `#` ends at the `#`; the rest is a comment.
-- Reproduction: parse the frontmatter with a YAML parser and compare the description's length with
-  the text in the file; `/context` shows the row at about 50 tokens. Recorded in
-  `manual-verification-evidence.md`.
-- Regression-test boundary: the validator rule's unit test (T3).
-- Red evidence: the rule's run against the tree before the fix fails on `write-markdown-docs`.
-- Fix: quote the value (and shorten it with the rest, T4).
+- Reproduction: done while drafting and classified **Reproduced** in
+  `manual-verification-evidence.md` section V0: PyYAML keeps 123 of 578 characters, and `/context`
+  shows the row at about 50 tokens.
+- Regression-test boundary: the validator rule's unit test (T2).
+- Red evidence: T2's rule, run against the tree before the fix, fails on `write-markdown-docs` as
+  cut at a comment.
+- Fix: quote the value (T3), then shorten it with the rest (T4).
 - Green evidence and like-for-like recheck: the rule passes, and the parser and `/context` show the
   whole description.
 
@@ -173,14 +178,14 @@ The cut `write-markdown-docs` description is a defect, so its fix follows the `f
 
 Whether a skill loads for a task depends on Claude Code and a model, so it cannot be a maintained
 deterministic test; manual scenario M3 samples it. The deterministic boundary that fails for the
-defect is the skill file's frontmatter: the `frontmatter-validator` rule (T3) fails when a skill's
+defect is the skill file's frontmatter: the `frontmatter-validator` rule (T2) fails when a skill's
 `description` is cut at a YAML comment or is longer than 200 characters. Its unit tests use the
 `write-markdown-docs` description as it is today as the failing case. It runs on every commit and
 in CI with #2866's skill rules.
 
 The rule needs the raw frontmatter text, because a YAML parser drops comments: for example, it
 fails when the `description:` line is a plain scalar whose value contains a space followed by `#`, or when the parsed
-value is shorter than the raw value. The exact detection is settled in T3 and recorded here.
+value is shorter than the raw value. The exact detection is settled in T2 and recorded here.
 
 ## Implementation Plan
 
@@ -189,24 +194,24 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status  | Task                              | Notes / Expected Output                                                                                                                                                                                                                                   |
 | --- | ------- | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T1  | BLOCKED | Baseline after #2866              | Waits for #2866 to merge. On that `develop` commit, record per skill the parsed description length and its `/context` row, and the category totals, in issue-local `description-measurements.md`. Run the M3 trigger prompts and record which skill loads. |
-| T2  | TODO    | Fix `write-markdown-docs` quoting | Quote the value. The parser and `/context` show the whole description. Recorded red, then green, in `manual-verification-evidence.md`.                                                                                                                  |
-| T3  | TODO    | Description rule, proven red      | The `frontmatter-validator` rule for skill descriptions (cut at a comment; over 200 characters) with unit tests, next to #2866's skill rules. Its run on the tree before T4 is recorded red (it lists every over-long description).                       |
-| T4  | TODO    | Rewrite the descriptions          | All 53 descriptions to the [Description rules](#description-rules), one commit per area of the `.claude/skills/README.md` index. Each description's old and new text and length go in `description-measurements.md`. The rule from T3 passes.            |
+| T2  | TODO    | Description rule, proven red      | The regression test: the `frontmatter-validator` rule for skill descriptions (cut at a comment; over 200 characters) with unit tests, next to #2866's skill rules, not yet wired into the hook. Its run on the tree before T3 is recorded red in `manual-verification-evidence.md`: it fails on `write-markdown-docs` as cut at a comment and lists every over-long description. |
+| T3  | TODO    | Fix `write-markdown-docs` quoting | Quote the value. The rule no longer reports it as cut, and the parser and `/context` show the whole description: the green run and like-for-like recheck of V0, recorded in `manual-verification-evidence.md`. |
+| T4  | TODO    | Rewrite the descriptions          | All 53 descriptions to the [Description rules](#description-rules), one commit per area of the `.claude/skills/README.md` index. Each description's old and new text and length go in `description-measurements.md`. The rule from T2 passes, and T4's last commit wires it into the pre-commit hook and CI.            |
 | T5  | TODO    | Update `add-new-skill`            | The description rules and the 200-character limit replace "max 1024 chars".                                                                                                                                                                             |
-| T6  | TODO    | Measure again and verify          | `claude -p "/context"` after the change, same Claude Code version and model as T1 where possible; M3 trigger prompts again; `linter all`; acceptance review.                                                                                               |
+| T6  | TODO    | Measure again and verify          | `claude -p "/context"` after the change, same Claude Code version and model as T1 where possible; M3 trigger prompts again; the governance ADR's review-record row; `linter all`; acceptance review.                                                                                               |
 
 ## Commit Points
 
 | Task | Coherent change set                         | Commit policy                                                                                                          |
 | ---- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | T1   | Baseline evidence                           | One commit with `description-measurements.md` and the baseline sections of `manual-verification-evidence.md`.           |
-| T2   | `write-markdown-docs` quoting               | One commit; the bug fix stays reviewable on its own.                                                                   |
-| T3   | Validator rule and its unit tests           | One commit per reviewed test increment; the red run is recorded in the evidence, not committed as a failing check. The rule is wired into the hook in the same commit that makes it pass (T4's last commit) or after. |
+| T2   | Validator rule and its unit tests           | One commit per reviewed test increment; the red run is recorded in the evidence, not committed as a failing check. The rule is wired into the hook in T4's last commit, the first one it passes on. |
+| T3   | `write-markdown-docs` quoting               | One commit; the bug fix stays reviewable on its own.                                                                   |
 | T4   | Rewritten descriptions                      | One commit per index area, each with its rows in `description-measurements.md`.                                        |
 | T5   | `add-new-skill`                             | One commit.                                                                                                            |
 | T6   | Evidence, acceptance verification, log      | One commit.                                                                                                            |
 
-T3 produces tests. They use the `write-unit-test` skill and add one behavior at a time. After each
+T2 produces tests. They use the `write-unit-test` skill and add one behavior at a time. After each
 increment passes focused validation, and before the next one starts, review its design and record
 the review in the task evidence: write temporary prose for the Arrange, Act and Assert sections,
 refactor until the code says it, and remove the redundant prose. The review confirms that the test
@@ -238,6 +243,7 @@ the last increment, before T6. Commits use Conventional Commit messages and are 
 
 - 2026-11-16 08:22 UTC - AI assistant (Claude Code, Claude Opus 5.5) - Drafted this spec as #2866's task T1; repeated #2866's `/context` measurement at `develop` `a35960402` with Claude Code 2.1.318 and got the same numbers
 - 2026-11-16 08:26 UTC - AI assistant (Claude Code, Claude Opus 5.5) - The maintainer approved the draft; created issue #2873 as josecelano-bot. Linking it as a sub-issue of #2003 returned HTTP 404 for the bot, so the maintainer links it
+- 2026-11-16 08:47 UTC - AI assistant (Claude Code, Claude Opus 5.5) - Addressed da2ce7's review 5917183183 on PR #2875: the regression test (now T2) comes before the fix (now T3); the reproduction is recorded and classified in `manual-verification-evidence.md` V0; T6 adds the governance ADR's review-record row
 
 ## Acceptance Criteria
 
@@ -287,7 +293,8 @@ Notes:
 - Record the Claude Code version and model with every `/context` and trigger result; both can
   change the numbers. Repeat M3's prompts once if a result differs, since model choice is not
   deterministic, and record both runs.
-- Create `manual-verification-evidence.md` from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`.
+- `manual-verification-evidence.md` already holds V0, the reproduction made while drafting; add V1
+  to V4 during implementation.
 
 ### Acceptance Verification
 
