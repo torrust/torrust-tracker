@@ -4,7 +4,7 @@ issue: 2876
 package: torrust-tracker-primitives
 target-file: packages/primitives/src/peer.rs
 status: done
-last-updated-utc: "2026-11-16 16:24"
+last-updated-utc: "2026-11-16 16:52"
 ---
 
 # `peer::fixture::qbittorrent_peer_id` Test Plan (T2)
@@ -77,7 +77,9 @@ The table did not say why these three numbers; a short comment on each case now 
 from the helper.
 
 Property tests: each is one expression with the Act and the expected result in view (`Some("qBittorrent")`;
-`!=` on the bytes, with equal inputs discarded). Prose added nothing, so none was kept.
+`!=` on the bytes, with equal inputs discarded). Prose added nothing, so none was kept, and the
+`// Arrange`, `// Act`, `// Assert` markers were left out as redundant: a one-expression property has
+no separate sections to mark. Only the format test, whose loop has three sections, carries them.
 
 Smells checked: no complex Arrange, no hidden Act, no production-derived expectation. The format
 test asserts in a loop, but every assertion checks the same behavior and its message names the case.
@@ -226,4 +228,6 @@ the default `Peer` itself is pinned by a test with every field written out. The 
 tested as they are; whether to merge them is not in this issue's scope.
 
 Smells checked: no complex Arrange, no hidden Act, no production-derived expectation. Like the other
-short tests in `peer.rs`, the sections are separated by blank lines, not `// Arrange` comments.
+short tests in `peer.rs`, the sections are separated by blank lines; the `// Arrange`, `// Act`,
+`// Assert` markers were left out as redundant prose for these one- to three-statement bodies (the
+skill's prose-first step 4), a decision recorded here after review finding F1 of PR #2888.

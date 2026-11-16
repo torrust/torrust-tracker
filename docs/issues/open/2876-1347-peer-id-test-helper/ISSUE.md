@@ -9,7 +9,7 @@ github-issue: 2876
 spec-path: docs/issues/open/2876-1347-peer-id-test-helper/ISSUE.md
 branch: "2876-peer-id-test-helper"
 related-pr: null
-last-updated-utc: "2026-11-16 16:29"
+last-updated-utc: "2026-11-16 16:52"
 semantic-links:
   skill-links:
     - create-issue
@@ -467,6 +467,9 @@ with the narrow affected scope, and sign every commit with GPG.
   `cargo machete --with-metadata`, `cargo package --workspace --no-verify` and
   `cargo test --workspace` (4,101 passed) are green; final coverage 1,274 / 1,277 lines. Acceptance
   criteria filled in; retrospective recorded. Ready for the pull request.
+- 2026-11-16 16:52 UTC - Claude Code (Opus 5.5) - Review round 1 of PR #2888 (da2ce7, approved, F1
+  Nit and F2 Suggestion): the test plan records why the short tests have no AAA markers, and the ADR
+  amendment notes when machete flags the self dev-dependency (`docs/pr-reviews/pr-2888-review/`).
 
 ## Acceptance Criteria
 
