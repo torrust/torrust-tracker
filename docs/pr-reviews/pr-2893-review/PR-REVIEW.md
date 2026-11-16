@@ -47,6 +47,8 @@ F1 and F2 are the two inline comments of Copilot's review 5925597715 (`COMMENTED
 
 F3, F4 and F5 are da2ce7's review 5925607208, submitted at 18:52:17 UTC on the same head, in that source order. It was submitted as `APPROVED` ("None blocks"); the push of 19:00 UTC dismissed it, so its state is now `DISMISSED`. His IDs F1, F2 and F3 collide with Copilot's F1 and F2, so they are numbered F3, F4 and F5, and his IDs are kept as the reviewer finding IDs. The fix commit for F3 cites `review-finding:pr-2893-f1` "in his numbering"; it means this record's F3.
 
+F6 to F9 are da2ce7's review 5925869377 (`CHANGES_REQUESTED`), submitted at 19:10:37 UTC on the head commit `docs(pr-reviews): [#2873] record Copilot's first review of PR #2893`, in that source order. His IDs F4 to F7 collide with F4 and F5 above, so they are numbered F6 to F9, and his IDs are kept as the reviewer finding IDs. The fix commit for F6 cites "his F4"; it means this record's F6.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2893-f1 | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -54,6 +56,10 @@ F3, F4 and F5 are da2ce7's review 5925607208, submitted at 18:52:17 UTC on the s
 | F3 | review-finding:pr-2893-f3 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F4 | review-finding:pr-2893-f4 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F5 | review-finding:pr-2893-f5 | Human | Nit | formatting | ORIGINAL | FIXED | RESOLVED |
+| F6 | review-finding:pr-2893-f6 | Human | Major | correctness | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-2893-f7 | Human | Nit | testing | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-2893-f8 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F9 | review-finding:pr-2893-f9 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -94,7 +100,7 @@ F3, F4 and F5 are da2ce7's review 5925607208, submitted at 18:52:17 UTC on the s
 - Current-tree verification: every parsed description contains `Use when` and none has the word `project`; `description-measurements.md`, evidence V1 step 4 and V3 step 4.
 - Resolution reference: docs(skills): [#2873] word every skill description to the Use when shape
 - Follow-up PR URL: N/A
-- Reply URL: pending: posted after the push of this record
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2893#discussion_r4590259101
 
 ### F4 - The completion review leaves out the skipped review stop
 
@@ -107,7 +113,7 @@ F3, F4 and F5 are da2ce7's review 5925607208, submitted at 18:52:17 UTC on the s
 - Current-tree verification: the 2026-11-16 18:14 UTC progress-log entry of the spec.
 - Resolution reference: docs(issues): [#2873] address da2ce7's first review of PR #2893
 - Follow-up PR URL: N/A
-- Reply URL: pending: posted after the push of this record
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2893#discussion_r4590259656
 
 ### F5 - Quoted texts render altered
 
@@ -120,6 +126,58 @@ F3, F4 and F5 are da2ce7's review 5925607208, submitted at 18:52:17 UTC on the s
 - Current-tree verification: each `Before` and `After` item in `description-measurements.md` is a code span.
 - Resolution reference: docs(issues): [#2873] address da2ce7's first review of PR #2893
 - Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2893#discussion_r4590260155
+
+### F6 - A description that is only a comment is no longer reported
+
+- PR number: 2893
+- Source review ID: 5925869377
+- Reviewer finding ID: F4
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2893#discussion_r4590246278
+- Concern: After the F1 and F2 fix the reader skips a comment on the key's line, finds no value and returns nothing, so `description: #NUMBER ...` (or that text on the next indented line, or after a tag), which YAML reads as null, passes both rules, the hook and Docs Lint.
+- Solution: The reader tells a value that is only a comment from an empty or non-plain one, and the rule reports it. Three reporting cases; mutation O1 in the evidence.
+- Current-tree verification: `RawDescription::OnlyAComment` in `src/skills.rs`; `it_should_report_a_cut_plain_description_however_its_key_and_properties_are_written` cases 7 to 9; `plain_after_a_comment` stays accepted.
+- Resolution reference: fix(frontmatter-validator): [#2873] report a skill description that is only a comment
+- Follow-up PR URL: N/A
+- Reply URL: pending: posted after the push of this record
+
+### F7 - The N5 row records tests its mutation cannot fail
+
+- PR number: 2893
+- Source review ID: 5925869377
+- Reviewer finding ID: F5
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2893#discussion_r4590246291
+- Concern: The N5 row says all 11 reporting tests failed, but a mutation that matches the key without its `:` cannot fail them; the recorded run was of a mutation that stopped every key from matching.
+- Solution: N5 was run again as its row states; only `another_key_with_the_same_start` fails, and the row says so, with a note on the first, mislabeled run.
+- Current-tree verification: the N5 and O1 rows of the evidence's T2 section.
+- Resolution reference: docs(issues): [#2873] address da2ce7's second review of PR #2893
+- Follow-up PR URL: N/A
+- Reply URL: pending: posted after the push of this record
+
+### F8 - The audit record covers only the bot review
+
+- PR number: 2893
+- Source review ID: 5925869377
+- Reviewer finding ID: F6
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2893#discussion_r4590246301
+- Concern: At the reviewed head the record's two Reply URLs said `pending`, and review 5925607208's three findings had no row and no reply.
+- Solution: The push of 19:11 UTC added F3 to F5 with replies; this round fills in every Reply URL. Each finding of every review has a row and a reply.
+- Current-tree verification: the Findings table and every `Reply URL` field of this record.
+- Resolution reference: docs(issues): [#2873] address da2ce7's second review of PR #2893
+- Follow-up PR URL: N/A
+- Reply URL: pending: posted after the push of this record
+
+### F9 - The PR description gives a stale test count
+
+- PR number: 2893
+- Source review ID: 5925869377
+- Reviewer finding ID: F7
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2893#discussion_r4590246317
+- Concern: The PR description says 243 tests pass and does not mention the reader fix; the merge tool copies the description into the merge commit.
+- Solution: The PR description gives the test count from this head (257) and lists the reader fixes and the rewording.
+- Current-tree verification: the PR description, edited at 19:15 UTC.
+- Resolution reference: PR description edit, 2026-11-16 19:15 UTC
+- Follow-up PR URL: N/A
 - Reply URL: pending: posted after the push of this record
 
 ## Processing Log
@@ -129,6 +187,9 @@ F3, F4 and F5 are da2ce7's review 5925607208, submitted at 18:52:17 UTC on the s
 - 2026-11-16 19:00 UTC - Pushed both commits (push finished 19:00:39 UTC); the push dismissed da2ce7's review 5925607208, which had arrived at 18:52 UTC and had not been read yet. Replied to F1 and F2 (19:00:50 and 19:00:53 UTC).
 - 2026-11-16 19:01 UTC - Resolved the review threads in a loop over every unresolved thread, which also resolved da2ce7's three threads before they were read or addressed. Read them and unresolved all three at 19:01:31 UTC. F1 and F2 stay resolved.
 - 2026-11-16 19:10 UTC - Committed the F3 fix (rewording 16 descriptions) and the F4 and F5 fixes, after re-measuring the listing and the M3 prompts on the reworded commit (19:02 to 19:05 UTC).
+- 2026-11-16 19:10 UTC - Review 5925869377 (da2ce7, `CHANGES_REQUESTED`) submitted on the head commit `docs(pr-reviews): [#2873] record Copilot's first review of PR #2893`: F6 (Major) to F9.
+- 2026-11-16 19:11 UTC - Pushed the F3 to F5 fixes (push finished 19:11:36 UTC), replied to their threads and resolved those three by ID. A refresh then showed review 5925869377's four threads.
+- 2026-11-16 19:15 UTC - Committed the F6 fix and the F7 to F9 fixes; edited the PR description for F9.
 
 ## Completion Rules
 

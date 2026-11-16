@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2873-2003-shorten-skill-descriptions/ISSUE.md
-last-updated-utc: 2026-11-16 19:08
+last-updated-utc: 2026-11-16 19:15
 ---
 
 # Manual Verification Evidence
@@ -321,10 +321,16 @@ clauses mutated the same way:
 | N2  | White space before the `:` is allowed                    | `..._however_its_key_and_properties_are_written::case_1_white_space_before_the_colon`                     |
 | N3  | Tags and anchors are skipped before the style is read    | `it_should_accept_a_whole_description_...::case_1_double_quoted_after_a_tag`, `case_2_folded_after_an_anchor` |
 | N4  | A comment ending the key's line is not the value         | `it_should_accept_a_whole_description_...::case_3_folded_after_a_comment`                                 |
-| N5  | The key needs its `:` (any line starting `description`) | all 11 tests that report a cut description                                                                |
+| N5  | The key needs its `:` (any line starting `description`) | `it_should_accept_a_whole_description_...::case_5_another_key_with_the_same_start`                        |
+| O1  | A value that is only a comment is reported               | `..._however_its_key_and_properties_are_written` cases 7 to 9 (comment on the key line, on the next line, after a tag) |
 
 A first N5 mutation, of a guard that required white space after the `:`, made no test fail: no
-line the key match accepts reaches it. The guard was removed instead of tested.
+line the key match accepts reaches it. The guard was removed instead of tested. The N5 row first
+recorded a second mutation as N5 that stopped every key from matching, a different clause; da2ce7's
+second review of PR #2893 (his F5) found it. N5 was run again as written in its row. O1 guards the
+fix for his F4: after the reader learned to skip a comment on the key's line, a description that
+is only a comment, which YAML reads as null, was no longer reported. PyYAML reads the three O1
+fixtures as `None`, `None` and an empty string.
 
 #### Test-Design Review
 
