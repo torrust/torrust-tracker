@@ -43,14 +43,15 @@ deliver findings through GitHub and have no repository-artifact obligation.
 ## Findings
 
 The da2ce7 review numbers its findings `F1` to `F3`, which are also their audit-local IDs. The
-Copilot finding has no reviewer ID and gets the audit-local ID `F4`.
+Copilot finding has no reviewer ID and gets the audit-local ID `F4`; its "Medium severity" mark is
+recorded as `Minor (inferred)`, as in earlier audits.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2882-f1 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F2 | review-finding:pr-2882-f2 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-2882-f3 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
-| F4 | review-finding:pr-2882-f4 | Copilot | Suggestion (inferred) | link-integrity | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F4 | review-finding:pr-2882-f4 | Copilot | Minor (inferred) | link-integrity | ORIGINAL | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -100,7 +101,7 @@ Copilot finding has no reviewer ID and gets the audit-local ID `F4`.
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2882#discussion_r4586922421
 - Concern: Copilot suggested adding a commit or merge URL next to C13's commit-subject resolution reference.
-- Solution: No change. The `process-pr-review` skill requires a `FIXED` resolution reference to be a unique Conventional Commit subject and forbids a SHA, and the validator checks that subject against the follow-up PR's commits. C13's Follow-up PR URL already links PR #2880.
+- Solution: No change. The `process-pr-review` skill requires a `FIXED` resolution reference to be a unique Conventional Commit subject and forbids a branch SHA, and the validator checks that subject against the follow-up PR's commits. C13's Follow-up PR URL already links PR #2880.
 - Current-tree verification: The subject is the only commit with it, in PR #2880, and the validator finds it.
 - Resolution reference: https://github.com/torrust/torrust-tracker/pull/2882#discussion_r4586951391
 - Follow-up PR URL: N/A
