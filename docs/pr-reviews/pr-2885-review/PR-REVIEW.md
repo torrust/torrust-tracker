@@ -43,7 +43,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-F1 to F4 come from the first da2ce7 review (COMMENTED, two Minors and two Nits, none Major), on the head ending in `docs(pr-reviews): [#2867] close the PR 2868 follow-up findings after PR 2879 merged`. The F2 fix reworded a commit and replayed the branch on the same base, so the review's commit ids map to subjects: `5bb40f69c` is `chore(issues): archive closed issue #2867 spec to docs/issues/closed` and `cb8ceec73` is `docs(pr-reviews): [#2867] close the PR 2868 follow-up findings after PR 2879 merged`.
+F1 to F4 come from the first da2ce7 review (COMMENTED, two Minors and two Nits, none Major), on the head ending in `docs(pr-reviews): [#2867] close the PR 2868 follow-up findings after PR 2879 merged`. The F2 fix reworded a commit and replayed the branch on the same base, so the review's commit ids map to subjects: `5bb40f69c` is `chore(issues): archive closed issue #2867 spec to docs/issues/closed` and `cb8ceec73` is `docs(pr-reviews): [#2867] close the PR 2868 follow-up findings after PR 2879 merged`. F5 comes from the first Copilot review (COMMENTED), on the same head; it asks for the change F1 already made.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -51,6 +51,7 @@ F1 to F4 come from the first da2ce7 review (COMMENTED, two Minors and two Nits, 
 | F2 | review-finding:pr-2885-f2 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-2885-f3 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F4 | review-finding:pr-2885-f4 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F5 | review-finding:pr-2885-f5 | Copilot | Minor (inferred) | documentation | RE_RAISE_OF:F1 | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -106,9 +107,23 @@ F1 to F4 come from the first da2ce7 review (COMMENTED, two Minors and two Nits, 
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2885#discussion_r4588305514>
 
+### F5 - The Reply URL still points to the earlier thread reply
+
+- PR number: 2885
+- Source review ID: 5923323989
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2885#discussion_r4588289374>
+- Concern: In the PR 2868 audit, F7's and F8's Resolution reference cited the closing reply while their Reply URL named the earlier deferral reply.
+- Solution: None needed; F1's fix already made the closing replies the Reply URLs, cites the fix commit as the Resolution reference, and names the deferral replies in Solution.
+- Current-tree verification: `grep -n "Reply URL" docs/pr-reviews/pr-2868-review/PR-REVIEW.md` prints `discussion_r4587758733` and `discussion_r4587759257` for F7 and F8.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2885#discussion_r4588479333>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2885#discussion_r4588479333>
+
 ## Processing Log
 
 - 2026-11-16 16:17 UTC - Started audit. da2ce7 reviewed the head ending in `docs(pr-reviews): [#2867] close the PR 2868 follow-up findings after PR 2879 merged` at 16:11:50Z (COMMENTED, four inline threads), recorded as F1 to F4. F1 and F4 were fixed in one commit, F3 in another, and F2 by rewording the archive commit and replaying the branch. Replied on all four threads before the push.
+- 2026-11-16 16:31 UTC - Copilot reviewed the same head at 16:15:52Z (COMMENTED, one inline thread), recorded as F5, a re-raise of F1 that F1's fix already covers. After the force-push, all five threads were resolved in one pass, the Copilot one before its reply; it was unresolved again, given its `Superseded by F1` reply, and resolved.
 
 ## Completion Rules
 
