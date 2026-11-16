@@ -9,7 +9,7 @@ github-issue: 2873
 spec-path: docs/issues/open/2873-2003-shorten-skill-descriptions/ISSUE.md
 branch: "2873-shorten-skill-descriptions-spec"
 related-pr: null
-last-updated-utc: "2026-11-16 08:47"
+last-updated-utc: "2026-11-16 08:53"
 semantic-links:
   skill-links:
     - create-issue
@@ -194,9 +194,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status  | Task                              | Notes / Expected Output                                                                                                                                                                                                                                   |
 | --- | ------- | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T1  | BLOCKED | Baseline after #2866              | Waits for #2866 to merge. On that `develop` commit, record per skill the parsed description length and its `/context` row, and the category totals, in issue-local `description-measurements.md`. Run the M3 trigger prompts and record which skill loads. |
-| T2  | TODO    | Description rule, proven red      | The regression test: the `frontmatter-validator` rule for skill descriptions (cut at a comment; over 200 characters) with unit tests, next to #2866's skill rules, not yet wired into the hook. Its run on the tree before T3 is recorded red in `manual-verification-evidence.md`: it fails on `write-markdown-docs` as cut at a comment and lists every over-long description. |
+| T2  | TODO    | Description rule, proven red      | The regression test: the `frontmatter-validator` rule for skill descriptions (cut at a comment; over 200 characters) with unit tests, next to #2866's skill rules. The rule is opt-in (off unless explicitly selected) until T4 ends: the pre-commit hook already runs `frontmatter-validator --staged`, so a rule on by default would reject the commits that still carry long descriptions. Its opt-in run on the tree before T3 is recorded red in `manual-verification-evidence.md`: it fails on `write-markdown-docs` as cut at a comment and lists every over-long description. |
 | T3  | TODO    | Fix `write-markdown-docs` quoting | Quote the value. The rule no longer reports it as cut, and the parser and `/context` show the whole description: the green run and like-for-like recheck of V0, recorded in `manual-verification-evidence.md`. |
-| T4  | TODO    | Rewrite the descriptions          | All 53 descriptions to the [Description rules](#description-rules), one commit per area of the `.claude/skills/README.md` index. Each description's old and new text and length go in `description-measurements.md`. The rule from T2 passes, and T4's last commit wires it into the pre-commit hook and CI.            |
+| T4  | TODO    | Rewrite the descriptions          | All 53 descriptions to the [Description rules](#description-rules), one commit per area of the `.claude/skills/README.md` index. Each description's old and new text and length go in `description-measurements.md`. The rule from T2 passes, and T4's last commit turns it on in the existing staged and whole-tree gates (pre-commit hook and CI).            |
 | T5  | TODO    | Update `add-new-skill`            | The description rules and the 200-character limit replace "max 1024 chars".                                                                                                                                                                             |
 | T6  | TODO    | Measure again and verify          | `claude -p "/context"` after the change, same Claude Code version and model as T1 where possible; M3 trigger prompts again; the governance ADR's review-record row; `linter all`; acceptance review.                                                                                               |
 
@@ -205,7 +205,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | Task | Coherent change set                         | Commit policy                                                                                                          |
 | ---- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | T1   | Baseline evidence                           | One commit with `description-measurements.md` and the baseline sections of `manual-verification-evidence.md`.           |
-| T2   | Validator rule and its unit tests           | One commit per reviewed test increment; the red run is recorded in the evidence, not committed as a failing check. The rule is wired into the hook in T4's last commit, the first one it passes on. |
+| T2   | Validator rule and its unit tests           | One commit per reviewed test increment; the red run is recorded in the evidence, not committed as a failing check. The rule stays opt-in, so no commit fails on it, until T4's last commit turns it on, the first one it passes on. |
 | T3   | `write-markdown-docs` quoting               | One commit; the bug fix stays reviewable on its own.                                                                   |
 | T4   | Rewritten descriptions                      | One commit per index area, each with its rows in `description-measurements.md`.                                        |
 | T5   | `add-new-skill`                             | One commit.                                                                                                            |
@@ -244,6 +244,7 @@ the last increment, before T6. Commits use Conventional Commit messages and are 
 - 2026-11-16 08:22 UTC - AI assistant (Claude Code, Claude Opus 5.5) - Drafted this spec as #2866's task T1; repeated #2866's `/context` measurement at `develop` `a35960402` with Claude Code 2.1.318 and got the same numbers
 - 2026-11-16 08:26 UTC - AI assistant (Claude Code, Claude Opus 5.5) - The maintainer approved the draft; created issue #2873 as josecelano-bot. Linking it as a sub-issue of #2003 returned HTTP 404 for the bot, so the maintainer links it
 - 2026-11-16 08:47 UTC - AI assistant (Claude Code, Claude Opus 5.5) - Addressed da2ce7's review 5917183183 on PR #2875: the regression test (now T2) comes before the fix (now T3); the reproduction is recorded and classified in `manual-verification-evidence.md` V0; T6 adds the governance ADR's review-record row
+- 2026-11-16 08:53 UTC - AI assistant (Claude Code, Claude Opus 5.5) - Addressed Copilot's review 5917272531 on PR #2875: T2's rule stays opt-in until T4's last commit turns it on in the existing staged and whole-tree gates, since the hook already runs `frontmatter-validator --staged`. Correction: the entry stamped 08:47 UTC is later than its commit, made at 08:46:59 UTC; it is kept unchanged
 
 ## Acceptance Criteria
 
