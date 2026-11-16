@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/peer-id-test-helper/ISSUE.md
 branch: "{issue-number}-peer-id-test-helper"
 related-pr: null
-last-updated-utc: "2026-11-15 21:27"
+last-updated-utc: "2026-11-16 06:08"
 semantic-links:
   skill-links:
     - create-issue
@@ -395,6 +395,11 @@ with the narrow affected scope, and sign every commit with GPG.
   two Nit findings on this spec): Q4 (b) now names both ways to pass the loop variable as a `u32`
   (`u32::try_from(i)` returns a `Result`), and the `swarm_metadata.rs` coverage note is dated and
   updated with #2824's final measurement.
+- 2026-11-16 05:57 UTC - Claude Code (Opus 5.5) - Review round 3 of PR #2865 (da2ce7, approved with
+  one Nit): the coverage note now cites #2824's final rows, 1,078 / 1,146, instead of the "After
+  `swarm_metadata.rs`" row. (Entry added in review round 4: round 3 changed the spec without one.)
+- 2026-11-16 06:08 UTC - Claude Code (Opus 5.5) - Review round 4 of PR #2865 (da2ce7, approved with
+  one Nit on this spec): `last-updated-utc` bumped and the round-3 entry above added.
 
 ## Acceptance Criteria
 
