@@ -2,7 +2,7 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: closed
+status: done
 priority: p3
 epic: 1488
 github-issue: 2846
