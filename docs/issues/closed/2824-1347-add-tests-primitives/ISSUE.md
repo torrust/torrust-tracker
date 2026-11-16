@@ -9,7 +9,7 @@ github-issue: 2824
 spec-path: docs/issues/closed/2824-1347-add-tests-primitives/ISSUE.md
 branch: "2824-1347-add-tests-primitives-final"
 related-pr: 2864
-last-updated-utc: "2026-11-16 09:38"
+last-updated-utc: "2026-11-16 09:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -398,7 +398,7 @@ Reviewed against observed behavior after the last slice, before the issue is clo
 | AC6 | DONE | A Prose-First AAA table in every record with an added or changed test. |
 | AC7 | DONE | `mutation-evidence.md` (no score target, no CI gate). |
 | AC8 | DONE | The T5 reconciliation (S4): ledger, plan index, slice table, acceptance rows, coverage evidence and both EPIC "Latest" tables carry the final figures; no record says `status: proposed` or `in-progress`. |
-| AC9 | DONE | F1 #2798, F2 fixed in S1 (#2834), F3 #2804, F4 #2823, F6 #2838 and #2850, each with its owner in the Findings Register and a `lessons.md` row. F5 is handed off by decision (2026-11-11); its draft spec is PR #2865 (`docs/issues/drafts/peer-id-test-helper/ISSUE.md`), with no GitHub issue yet; its `lessons.md` row says so. |
+| AC9 | DONE | F1 #2798, F2 fixed in S1 (#2834), F3 #2804, F4 #2823, F6 #2838 and #2850, each with its owner in the Findings Register and a `lessons.md` row. F5 is handed off by decision (2026-11-11); its draft spec is PR #2865 (`docs/issues/drafts/peer-id-test-helper/ISSUE.md`), with no GitHub issue yet at closure (filed later as #2876; see the Findings Register). |
 | AC10 | DONE | S0-S3 merged (#2828, #2834, #2841, #2852) with `Related to #2824`; S4 merged through #2864 (2026-11-15 21:05 UTC), the only PR that uses `Closes #2824`, and the issue closed with it. |
 | AC11 | DONE | `cargo +nightly fmt --all -- --check` (nightly Rust), `linter all` (the pre-commit gate of every S4 commit), `cargo test -p torrust-tracker-primitives` (stable Rust 1.99.1: 109 unit tests and 3 doctests pass). |
 | AC12 | DONE | `manual-verification-evidence.md`: M1 and M2 passed on 2026-11-15. |
