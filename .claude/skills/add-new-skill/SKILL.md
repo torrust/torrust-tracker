@@ -1,6 +1,6 @@
 ---
 name: add-new-skill
-description: Guide for creating effective Agent Skills for the torrust-tracker project. Use when you need to create a new skill (or update an existing skill) that extends AI agent capabilities with specialized knowledge, workflows, or tool integrations. Triggers on "create skill", "add new skill", "how to add skill", or "skill creation".
+description: "Create or update an Agent Skill in .claude/skills: its folder, frontmatter, a short description and its index row. Use when adding a new skill or changing an existing one."
 metadata:
   author: torrust
   version: "1.0"

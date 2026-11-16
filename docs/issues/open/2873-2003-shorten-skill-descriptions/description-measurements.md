@@ -31,7 +31,7 @@ at a comment (see `manual-verification-evidence.md`, V0).
 
 | Area | Skill | Before (chars) | Before (tokens) | After (chars) | After (tokens) |
 | ---- | ----- | -------------: | --------------: | ------------: | -------------: |
-| Skill authoring | `add-new-skill` | 326 | 110 |  |  |
+| Skill authoring | `add-new-skill` | 326 | 110 | 171 |  |
 | Benchmarking | `run-benchmarks` | 724 | 250 |  |  |
 | CI | `implement-workflow` | 151 | 60 |  |  |
 | CI | `watch-pull-request-checks` | 352 | 130 |  |  |
@@ -65,7 +65,7 @@ at a comment (see `manual-verification-evidence.md`, V0).
 | Planning | `create-markdown-template` | 417 | 150 |  |  |
 | Planning | `create-refactor-plan` | 479 | 170 |  |  |
 | Planning | `reopen-issue` | 555 | 190 |  |  |
-| Planning | `write-markdown-docs` | 123 | 50 |  |  |
+| Planning | `write-markdown-docs` | 123 | 50 | 578 |  |
 | Pull request reviews | `fetch-review-threads` | 425 | 150 |  |  |
 | Pull request reviews | `process-copilot-suggestions` | 127 | 50 |  |  |
 | Pull request reviews | `process-pr-review` | 392 | 140 |  |  |
@@ -93,7 +93,7 @@ at a comment (see `manual-verification-evidence.md`, V0).
 #### `add-new-skill`
 
 - Before (326): Guide for creating effective Agent Skills for the torrust-tracker project. Use when you need to create a new skill (or update an existing skill) that extends AI agent capabilities with specialized knowledge, workflows, or tool integrations. Triggers on "create skill", "add new skill", "how to add skill", or "skill creation".
-- After: not yet rewritten
+- After (171): Create or update an Agent Skill in .claude/skills: its folder, frontmatter, a short description and its index row. Use when adding a new skill or changing an existing one.
 
 ### Benchmarking
 
@@ -282,7 +282,7 @@ at a comment (see `manual-verification-evidence.md`, V0).
 
 - Before (123): Guide for writing Markdown documentation in this project. Covers GitHub Flavored Markdown pitfalls, especially the critical
 - Before, as written in the file (578), which YAML cuts at the space before `#NUMBER`: Guide for writing Markdown documentation in this project. Covers GitHub Flavored Markdown pitfalls, especially the critical #NUMBER pattern that auto-links to GitHub issues and PRs (NEVER use #1, #2, #3 as step/list numbers). Use ordered lists or plain numbers instead. Covers intentional vs accidental autolinks for issues, @mentions, and commit SHAs. Use when writing .md files, documentation, issue descriptions, PR descriptions, or README updates. Triggers on "markdown", "write docs", "documentation", "#number", "github markdown", "autolink", "markdown pitfall", or "GFM".
-- After: not yet rewritten
+- After (578): Guide for writing Markdown documentation in this project. Covers GitHub Flavored Markdown pitfalls, especially the critical #NUMBER pattern that auto-links to GitHub issues and PRs (NEVER use #1, #2, #3 as step/list numbers). Use ordered lists or plain numbers instead. Covers intentional vs accidental autolinks for issues, @mentions, and commit SHAs. Use when writing .md files, documentation, issue descriptions, PR descriptions, or README updates. Triggers on "markdown", "write docs", "documentation", "#number", "github markdown", "autolink", "markdown pitfall", or "GFM".
 
 ### Pull request reviews
 
