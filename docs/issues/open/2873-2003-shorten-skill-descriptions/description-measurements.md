@@ -76,7 +76,7 @@ at a comment (see `manual-verification-evidence.md`, V0).
 | Rust code quality | `fix-clippy-warnings` | 348 | 120 | 129 |  |
 | Rust code quality | `handle-errors-in-code` | 613 | 210 | 176 |  |
 | Rust code quality | `handle-secrets` | 541 | 190 | 175 |  |
-| Task reviews | `review-task` | 216 | 80 |  |  |
+| Task reviews | `review-task` | 216 | 80 | 160 |  |
 | Testing | `manual-http-download-completion-e2e` | 396 | 150 |  |  |
 | Testing | `manual-torrent-cleanup-e2e` | 309 | 110 |  |  |
 | Testing | `manual-udp-download-completion-e2e` | 364 | 140 |  |  |
@@ -343,7 +343,7 @@ at a comment (see `manual-verification-evidence.md`, V0).
 #### `review-task`
 
 - Before (216): Review a completed implementation task before push/PR. Validates issue-spec acceptance criteria, scope, tests, docs, and lint readiness on a local branch. Use when asked to verify issue completion without an open PR.
-- After: not yet rewritten
+- After (160): Review a finished task on a local branch before its PR: acceptance criteria, scope, tests, docs, lint. Use to verify an issue is complete when no PR exists yet.
 
 ### Testing
 
