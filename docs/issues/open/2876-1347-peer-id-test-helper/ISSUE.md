@@ -367,7 +367,8 @@ with the narrow affected scope, and sign every commit with GPG.
 ### Workflow Checkpoints
 
 - [x] Folder-style spec drafted in `docs/issues/drafts/peer-id-test-helper/ISSUE.md`
-- [ ] Spec reviewed and approved by user/maintainer (Q1-Q7 answered)
+- [x] Draft spec reviewed and merged through #2865 (filing approved by the maintainer in chat, 2026-11-16)
+- [ ] Open design questions Q1-Q7 answered by the maintainer (before T0)
 - [x] GitHub issue created (#2876) and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
