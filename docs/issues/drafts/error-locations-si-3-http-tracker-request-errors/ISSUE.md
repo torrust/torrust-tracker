@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/error-locations-si-3-http-tracker-request-errors/ISSUE.md
 branch: "{issue-number}-error-locations-si-3-http-tracker-request-errors"
 related-pr: null
-last-updated-utc: "2026-11-11 17:39"
+last-updated-utc: "2026-11-16 08:14"
 semantic-links:
   skill-links:
     - create-issue
@@ -51,7 +51,7 @@ Variants that print `{location}` (11, `options.md` fact 1):
 | File | Variants |
 | --- | --- |
 | `http-protocol/src/v1/query.rs:103` | `ParseQueryError::InvalidParam` |
-| `http-protocol/src/v1/requests/announce.rs:182`, `:184`, `:190`, `:197` | `ParseAnnounceQueryError::{MissingParams, MissingParam, InvalidParam, NumberOfBytesOverflow}` |
+| `http-protocol/src/v1/requests/announce.rs:219`, `:221`, `:227` | `ParseAnnounceQueryError::{MissingParams, MissingParam, InvalidParam}` |
 | `http-protocol/src/v1/requests/scrape.rs:41`, `:43` | `ParseScrapeQueryError::{MissingParams, MissingParam}` |
 | `http-protocol/src/v1/services/peer_ip_resolver.rs:117-120`, `:125` | `PeerIpResolutionError::{MissingRightMostXForwardedForIp, MissingClientIp}` (three-line attribute at `:117`) |
 | `http-protocol/src/v1/auth.rs:13`, `:16` | `auth::Error::{InvalidKeyFormat, CannotExtractKeyParam}` |
