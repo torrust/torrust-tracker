@@ -52,8 +52,12 @@ The investigation (on `torrust/develop` at `b009b6425`) found:
 - **The case where the process keeps running must keep the entry.** A server that returns on its own,
   without being cancelled, leaves the process running without it. Its entry must stay, so the health
   check reports the fault.
-- **Servers cannot remove their own entry.** A server receives a single-use `ServiceRegistrationForm`,
-  which `register()` consumes. After that it holds no handle to the `Registar`.
+- **Three of the four servers cannot remove their own entry.** The HTTP tracker, REST API and UDP
+  tracker each receive a single-use `ServiceRegistrationForm`, which `register()` consumes; after that
+  they hold no handle to the `Registar`. The health check API server is different: it receives the
+  whole `Registar`, because it reads the registry to answer `/health_check`, registers itself through
+  `give_form()` (with no health check of its own) and already returns its `service_binding` for a
+  caller that wants to deregister it. It stops last, just before the process exits.
 
 ## Agreement
 
@@ -81,11 +85,12 @@ Reasons:
   are harmless.
 - Keeping every entry never hides a fault. Removing entries risks removing the one of a failed service,
   which is the case the health check exists to report.
-- It keeps the registration capability narrow: a server can add only itself and can never remove
-  anything, so one service cannot remove another's entry (`deregister` removes whatever holds the
-  binding).
-- It avoids changing the public start functions of four server packages just before their first
-  publish (#2583).
+- It keeps the registration capability narrow: the HTTP tracker, REST API and UDP tracker can add
+  only themselves and can never remove anything, so none of them can remove another service's entry
+  (`deregister` removes whatever holds the binding). Only the health check API server, the registry's
+  reader, holds the whole `Registar`.
+- It avoids changing the public start functions of the three form-holding server packages just before
+  their first publish (#2583).
 
 ### Reopening Trigger
 
@@ -97,12 +102,15 @@ that can remove only its own entry, so the capability stays narrow.
 
 ### Alternatives Considered
 
-- **Give each server package the `Registar` instead of a form**, so it deregisters in its own stop
-  path after an orderly drain. Rejected: it changes the public start functions of four packages, and a
-  server could remove any other service's entry.
+- **Give the HTTP tracker, REST API and UDP tracker packages the `Registar` instead of a form**, so
+  each deregisters in its own stop path after an orderly drain, as the health check API test
+  environment already does. Rejected: it changes the public start functions of three packages, and
+  each of those servers could then remove any other service's entry. The health check API server
+  needs no change for this: it already holds the `Registar` and returns its binding.
 - **Deregister in the root supervisors** (`src/bootstrap/jobs`), after a cancelled and drained stop.
-  Rejected: each `start_job` would return the binding and the supervisors would need the registry,
-  for no observable benefit today.
+  Rejected: the HTTP tracker, REST API and UDP tracker `start_job` functions would return the binding,
+  and their supervisors would need the registry (the health check API job already has both), for no
+  observable benefit today.
 - **Add a registration handle to `torrust-server-lib`** (`register()` returns a handle with
   `deregister`). Not done now: it is the right design if the reopening trigger happens, but it needs a
   release of an external crate for a change with no current use.
