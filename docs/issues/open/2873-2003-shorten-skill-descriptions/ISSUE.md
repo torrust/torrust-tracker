@@ -9,7 +9,7 @@ github-issue: 2873
 spec-path: docs/issues/open/2873-2003-shorten-skill-descriptions/ISSUE.md
 branch: "2873-shorten-skill-descriptions-spec"
 related-pr: null
-last-updated-utc: "2026-11-16 10:02"
+last-updated-utc: "2026-11-16 10:03"
 semantic-links:
   skill-links:
     - create-issue
@@ -84,7 +84,7 @@ does not fit a 200k window by itself; see Out of Scope.
 ### A description that YAML cuts short
 
 The `write-markdown-docs` description is a plain (unquoted) YAML scalar. It contains `#NUMBER`
-after a space, and YAML reads a `#` after a space as the start of a comment. A YAML parser keeps
+after a space, and YAML reads a `#` after white space (a space or a tab) as the start of a comment. A YAML parser keeps
 only its first 123 of 578 characters, which end mid-sentence (`... especially the critical`),
 before the `Use when` clause and the trigger list (`write docs`, `#number`, `autolink`, `GFM`).
 `/context` corroborates it: the skill's row costs about 50 tokens, where a 578-character
@@ -165,7 +165,8 @@ Not applicable: no child processes, asynchronous I/O, network readiness or reusa
 The cut `write-markdown-docs` description is a defect, so its fix follows the `fix-bug` skill
 (`.claude/skills/fix-bug/SKILL.md` after #2866):
 
-- Analysis: a plain YAML scalar that contains a space followed by `#` ends at the `#`; the rest is a comment.
+- Analysis: a plain YAML scalar that contains white space (a space or a tab) followed by `#` ends
+  there; the rest is a comment.
 - Reproduction: done while drafting and classified **Reproduced** in
   `manual-verification-evidence.md` section V0 for the parser: PyYAML keeps 123 of 578 characters.
   The `/context` row of about 50 tokens corroborates it by inference; it does not show the text.
@@ -187,11 +188,13 @@ defect is the skill file's frontmatter: the `frontmatter-validator` rule (T2) fa
 in CI with #2866's skill rules.
 
 The rule needs the raw frontmatter text, because a YAML parser drops comments. It fails when the
-`description:` value is a plain (unquoted) scalar that contains a space followed by `#`. It does
+`description:` value is a plain (unquoted) scalar that contains white space (a space or a tab)
+followed by `#`, anywhere in the value, including continuation lines of a multi-line plain value.
+It does
 not compare raw and parsed lengths: quoting, escape decoding and block-scalar folding change the
 length of a valid description, so that comparison would reject T3's quoting fix. Its unit tests
-include passing cases for a double-quoted description containing `#` and for a block-scalar
-description. The exact detection is settled in T2 and recorded here.
+include failing cases for a space and for a tab before `#`, and passing cases for a double-quoted
+description containing `#` and for a block-scalar description. The exact detection is settled in T2 and recorded here.
 
 ## Implementation Plan
 
@@ -254,6 +257,7 @@ the last increment, before T6. Commits use Conventional Commit messages and are 
 - 2026-11-16 09:38 UTC - AI assistant (Claude Code, Claude Opus 5.5) - Addressed the second round on PR #2875: the evidence file keeps its template's headings (da2ce7's review 5917548188, F5), and the `/context` row is described as corroborating inference, not an observation of the cut text, in the Background, Bug-Fix Process, T3, AC3, M2 and V0 (Copilot's review 5917643855, F7)
 - 2026-11-16 09:45 UTC - AI assistant (Claude Code, Claude Opus 5.5) - Addressed F8 from Copilot's review 5917643855 body: the rule detects a comment in a plain scalar only and no longer compares raw and parsed lengths, which valid quoted and block-scalar descriptions change; AC4 asks for passing tests for those
 - 2026-11-16 10:02 UTC - AI assistant (Claude Code, Claude Opus 5.5) - Addressed da2ce7's review 5918129806 (his F8): the measurement note no longer states as fact that Claude Code reads the parsed text, and the evidence says the 08:45:16 UTC parse repeated the drafting-time one
+- 2026-11-16 10:03 UTC - AI assistant (Claude Code, Claude Opus 5.5) - Addressed da2ce7's review 5918129806 (his F9): the comment rule covers white space (a space or a tab) before `#`, and T2's unit tests include a tab case
 
 ## Acceptance Criteria
 
@@ -297,7 +301,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | M1  | Listing cost before and after      | In a fresh checkout of the commit, run `claude -p "/context"` before (T1) and after (T6); record the Claude Code version, model and window, the Skills category and every Project row | After: Skills below the cap, project rows sum to about half of before, no project description dropped   | TODO   | `manual-verification-evidence.md` section V1 |
 | M2  | `write-markdown-docs` read whole   | Parse its frontmatter with a YAML parser and compare with the file; check its `/context` row                                                                                        | Before: 123 of 578 characters, ~50 tokens. After: the parser reads the whole (new) description, and the row's cost matches its length (an inference: `/context` shows no text) | TODO   | `manual-verification-evidence.md` section V2 |
 | M3  | Skills still load for their tasks  | For about eight skills (including `write-markdown-docs`, `create-issue`, `process-pr-review`, `run-pre-push-checks`), run a task-like prompt with `claude -p --output-format stream-json --verbose` and record which skill the `Skill` tool loads, before and after | The same skill loads after as before; `write-markdown-docs` loads for a Markdown task after the fix | TODO   | `manual-verification-evidence.md` section V3 |
-| M4  | The rule catches a cut description | In a scratch commit, put a space followed by `#` into one unquoted description, and separately make one longer than 200 characters; run the validator                                              | Each run fails and names the file and the problem                                                        | TODO   | `manual-verification-evidence.md` section V4 |
+| M4  | The rule catches a cut description | In a scratch commit, put white space followed by `#` into one unquoted description, and separately make one longer than 200 characters; run the validator                                              | Each run fails and names the file and the problem                                                        | TODO   | `manual-verification-evidence.md` section V4 |
 
 Notes:
 
