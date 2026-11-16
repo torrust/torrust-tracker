@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2867-udp-health-check-panics-on-invalid-response/ISSUE.md
-last-updated-utc: 2026-11-16 10:26
+last-updated-utc: 2026-11-16 10:39
 ---
 
 # Manual Verification Evidence
@@ -26,8 +26,9 @@ of those runs (`Compiling ..`) were not kept. The logs of the regression-test ru
 (`evidence/t*-run.log`, `evidence/stopped-udp-run.log`) keep the whole output, build lines
 included, with the local checkout path replaced by `<repo>`. Every `t*-run.log` followed a change
 or a `touch` of a source file of the package it tests, so each shows that package being rebuilt
-(`Compiling ..`). `stopped-udp-run.log` ran right after the T3 green run with no change in
-between, so it reuses that build and has no `Compiling` line.
+(`Compiling ..`). `stopped-udp-run.log` ran right after the first T3 green run (with the thread-based peer, whose
+log was later overwritten) with no change in between, so it reuses that build and has no
+`Compiling` line.
 
 ## Environment and Prerequisites
 
@@ -186,7 +187,7 @@ full output, build lines included.
 | ---- | ------------------------- | ------------------------- |
 | T2 `check_should_return_an_error_naming_the_cause_when_the_peer_answers_with_an_invalid_response` (`tracker-client` unit test) | [`evidence/t2-red-run.log`](evidence/t2-red-run.log): panics at `client.rs:275` on `UnableToParseResponse`. Ran with the test added and no fix. | [`evidence/t2-green-run.log`](evidence/t2-green-run.log): `1 passed`, after `fix(tracker-client): [#2867] return an error from the UDP health check on an invalid response`. |
 | T3 `it_should_return_error_when_the_registered_udp_service_answers_the_check_with_junk` (UDP contract test, AC2) | [`evidence/t3-red-run.log`](evidence/t3-red-run.log): mutate-then-restore. The `check` fix was reverted in the working tree (not staged) while the handler fix was present; the detail is `Err("the health check job failed: task .. panicked ..")`, which does not name the cause, so the assertion fails. The file was then restored. | [`evidence/t3-green-run.log`](evidence/t3-green-run.log): `1 passed`, with both fixes. |
-| T5 `it_should_report_a_probe_job_that_panicked_as_a_failed_check_and_keep_the_other_results` (handler contract test, AC3) | [`evidence/t5-red-run.log`](evidence/t5-red-run.log): the probe panic cascades through `handlers.rs:71` and `handlers.rs:79`, and the client gets `hyper::Error(IncompleteMessage)`. Ran with the `check` fix and no handler fix, and before T3's assertion was tightened from five lines to eight, so the test-file lines in this log are three lower than in the committed test: the probe's `panic!` is at `contract.rs:663` in the log and on line 666 at the commit that adds T5. | [`evidence/t5-green-run.log`](evidence/t5-green-run.log): `1 passed`; the handler logs the failed job at `error` level. |
+| T5 `it_should_report_a_probe_job_that_panicked_as_a_failed_check_and_keep_the_other_results` (handler contract test, AC3) | [`evidence/t5-red-run.log`](evidence/t5-red-run.log): the probe panic cascades through `handlers.rs:71` and `handlers.rs:79`, and the client gets `hyper::Error(IncompleteMessage)`. Ran with the `check` fix and no handler fix, and before T3's assertion was tightened from five lines to eight, so the test-file lines in this log are three lower than in the committed test: the probe's `panic!` is at `contract.rs:663` in the log and on line 666 at the commit that adds T5 (line 670 since the T3 fixture change of the PR 2879 Copilot review). | [`evidence/t5-green-run.log`](evidence/t5-green-run.log): `1 passed`; the handler logs the failed job at `error` level. |
 
 The stored T3 logs are from a second pair of runs on 2026-11-16 at about 10:26 UTC, after the
 junk-answering peer of T3 became a task of the test's Tokio runtime instead of a detached thread
@@ -203,7 +204,8 @@ kept; V1 records that outcome.
 ### V4 - Like-for-like recheck after the fix (M3)
 
 - Goal: rerun the V1 scenario on the fixed build.
-- Initial state: the V1 test is now the maintained T3 test, with the same junk-answering UDP socket
+- Initial state: the V1 test is now the maintained T3 test, with a junk-answering UDP peer (since
+  the PR 2879 Copilot review, a task of the test's Tokio runtime instead of V1's detached thread)
   and the production `Launcher::check`, and assertions that also require a `200` report, the
   message `health check failed`, and an error detail naming the unparsable response.
 - Artifact under test: the implementation branch with both fixes
@@ -229,11 +231,14 @@ kept; V1 records that outcome.
 #### Observed Result
 
 Full output: [`evidence/t3-green-run.log`](evidence/t3-green-run.log) and
-[`evidence/stopped-udp-run.log`](evidence/stopped-udp-run.log).
+[`evidence/stopped-udp-run.log`](evidence/stopped-udp-run.log). The T3 lines below are from the
+redone green run (the stored `evidence/t3-green-run.log`, with the runtime-owned peer); the first
+V4 run, with the thread-based peer, also passed (in 1.01 s). The stopped-UDP run belongs to that
+first run.
 
 ```text
 test server::contract::udp::it_should_return_error_when_the_registered_udp_service_answers_the_check_with_junk ... ok
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; finished in 1.01s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; finished in 1.00s
 
 test server::contract::udp::it_should_return_error_when_udp_service_was_stopped_after_registration ... ok
 test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; finished in 3.03s
