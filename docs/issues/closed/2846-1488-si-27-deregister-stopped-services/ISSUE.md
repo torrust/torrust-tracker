@@ -165,12 +165,12 @@ Sign every commit with GPG.
 - [x] GitHub issue created and issue number added to this spec (#2846)
 - [x] Spec-only PR merged into `develop` before implementation
 - [x] Go/no-go and location decision recorded (T1): no-go
-- [ ] Implementation completed (not planned: no-go)
-- [ ] Design review after the first passing vertical slice recorded
-- [ ] Automatic verification completed (`linter all`, relevant tests, pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
+- [ ] ~~Implementation completed~~ Not planned (no-go): nothing to implement
+- [ ] ~~Design review after the first passing vertical slice recorded~~ Not planned (no-go): no slice
+- [x] Automatic verification completed for the documentation change (`linter all`, pre-commit and pre-push checks); no package tests, because no code changed
+- [ ] ~~Manual verification scenarios executed and recorded in `manual-verification-evidence.md`~~ Not planned (no-go): no behavior to verify
+- [x] Acceptance criteria reviewed after the decision: the implementation criteria are marked not planned
+- [x] Evidence-based implementation completion review recorded (progress log of 2026-11-16: no retrospective needed)
 - [x] Spec moved from `docs/issues/open/` to `docs/issues/closed/` (the maintainer marks the GitHub issue as not planned)
 
 ### Progress Log
