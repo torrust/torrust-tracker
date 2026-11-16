@@ -8,8 +8,8 @@ epic: 2003
 github-issue: 2873
 spec-path: docs/issues/open/2873-2003-shorten-skill-descriptions/ISSUE.md
 branch: "2873-shorten-skill-descriptions"
-related-pr: null
-last-updated-utc: "2026-11-16 18:14"
+related-pr: 2893
+last-updated-utc: "2026-11-16 18:58"
 semantic-links:
   skill-links:
     - create-issue
@@ -197,10 +197,13 @@ length of a valid description, so that comparison would reject T3's quoting fix.
 include failing cases for a space and for a tab before `#`, and passing cases for a double-quoted
 description containing `#` and for a block-scalar description.
 
-Settled in T2: the rule reads the `description:` line and its continuation lines (blank or
-indented) up to the next top-level line. The first non-white-space character gives the style
-(`"` or `'` quoted, `|` or `>` block, anything else plain), and a plain value is reported when any
-of those lines holds a space or a tab followed by `#`. The length counts the characters of the
+Settled in T2, and extended after Copilot's review of PR #2893: the rule finds the top-level
+`description` key, plain or quoted (`"description"`, `'description'`), with or without white space
+before the `:`, and reads that line and its continuation lines (blank or indented) up to the next
+top-level line. The value starts after any `!` tag or `&` anchor and after a comment that ends the
+key's line. Its first character gives the style (`"` or `'` quoted, `|` or `>` block, `*` an
+alias, anything else plain), and a plain value is reported when any of its lines holds a space or a
+tab followed by `#`. The length counts the characters of the
 parsed value. The rule runs in a separate, opt-in mode, `--skill-descriptions`, over the git
 index, as `--skill-layout` does; T4's last commit adds it to the pre-commit hook and the Docs Lint
 workflow.
@@ -270,6 +273,7 @@ the last increment, before T6. Commits use Conventional Commit messages and are 
 
 - 2026-11-16 17:58 UTC - AI assistant (Claude Code, Claude Opus 5.5) - #2866's PR #2886 merged as `9e463cb0c`. T1: recorded the baseline at that commit in `description-measurements.md` and the evidence's V1 and V3 (it equals the spec's numbers; all eight M3 prompts load their skill, `write-markdown-docs` included, so AC6 is judged as "same as before"). T2: added the description rule in three commits, the third an opt-in `--skill-descriptions` mode; its run on the tree fails on `write-markdown-docs` (cut at a comment) and on 49 over-long descriptions
 - 2026-11-16 18:14 UTC - AI assistant (Claude Code, Claude Opus 5.5) - T3 to T6 done. T3 quoted the `write-markdown-docs` description (`fix(skills): [#2873] quote the write-markdown-docs description so YAML reads all of it`); T4 rewrote all 53 descriptions in 15 commits, one per index area, and `ci(skills): [#2873] check the skill descriptions in the pre-commit hook and Docs Lint` turned the rule on in the pre-commit hook and Docs Lint; T5 put the description rules in `add-new-skill` (`docs(skills): [#2873] state the skill description rules in add-new-skill`). T6: the 53 entries cost 3,220 tokens, 46% of 6,980, Skills is 7.8k (0.8%) and no description is dropped; the eight M3 prompts load the same skills; M4 fails on both broken descriptions; the governance ADR has its review-record row; `linter all` exits `0`. No retrospective: the two discoveries are small and recorded where they apply, PyYAML rejecting a tab before `#` that `serde_yaml` cuts at (evidence T2) and `write-markdown-docs` loading even with its cut description (evidence V3)
+- 2026-11-16 18:58 UTC - AI assistant (Claude Code, Claude Opus 5.5) - Opened PR #2893. Addressed Copilot's review 5925597715 (F1, F2): the rule now reads a quoted or spaced `description` key, and finds the value's style after tags, anchors and a comment on the key's line; five more mutations recorded in the evidence's T2 section
 
 ## Acceptance Criteria
 

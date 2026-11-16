@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2873-2003-shorten-skill-descriptions/ISSUE.md
-last-updated-utc: 2026-11-16 18:12
+last-updated-utc: 2026-11-16 18:58
 ---
 
 # Manual Verification Evidence
@@ -300,6 +300,22 @@ and were rewritten until they did).
 | L4  | Over-long is reported at all                        | `it_should_report_a_description_longer_than_the_limit`, `..._cut_at_a_comment_and_still_too_long`                                     |
 | C1  | Only skill files are checked (every Markdown file)  | `it_should_check_the_description_of_each_skill_in_the_index_only_with_skill_descriptions`                                              |
 | C2  | The index is read, not the working tree             | `it_should_read_the_skill_description_from_the_index_with_skill_descriptions`                                                          |
+
+After Copilot's review of PR #2893 (F1, F2), the rule also reads a quoted or spaced key and finds
+the value's style after tags, anchors and a comment on the key's line. Its new fixtures were checked
+with PyYAML (each reported one is cut to `Avoids the`, each accepted one is read whole) and its new
+clauses mutated the same way:
+
+| ID  | Clause broken                                           | Tests that failed                                                                                         |
+| --- | ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| N1  | A quoted key is read (only `description` matched)        | `..._however_its_key_and_properties_are_written::case_2_double_quoted_key`, `case_3_single_quoted_key`    |
+| N2  | White space before the `:` is allowed                    | `..._however_its_key_and_properties_are_written::case_1_white_space_before_the_colon`                     |
+| N3  | Tags and anchors are skipped before the style is read    | `it_should_accept_a_whole_description_...::case_1_double_quoted_after_a_tag`, `case_2_folded_after_an_anchor` |
+| N4  | A comment ending the key's line is not the value         | `it_should_accept_a_whole_description_...::case_3_folded_after_a_comment`                                 |
+| N5  | The key needs its `:` (any line starting `description`) | all 11 tests that report a cut description                                                                |
+
+A first N5 mutation, of a guard that required white space after the `:`, made no test fail: no
+line the key match accepts reaches it. The guard was removed instead of tested.
 
 #### Test-Design Review
 
