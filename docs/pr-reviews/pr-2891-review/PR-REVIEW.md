@@ -1,7 +1,7 @@
 ---
 pr-number: 2891
 pr-url: https://github.com/torrust/torrust-tracker/pull/2891
-last-updated-utc: "2026-11-16 22:28"
+last-updated-utc: "2026-11-16 22:42"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -43,7 +43,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1: da2ce7 review 5925551139 (APPROVED, F1 to F6) and Copilot review 5925597419 (four findings, all with reviewer IDs `R1` or `R2`; they are audit findings F7 to F10, and F9 re-raises F3). Round 2: da2ce7 review 5928830303 (COMMENTED) with findings F7 to F9, whose IDs collide with this audit's, so they are audit findings F11 to F13.
+Round 1: da2ce7 review 5925551139 (APPROVED, F1 to F6) and Copilot review 5925597419 (four findings, all with reviewer IDs `R1` or `R2`; they are audit findings F7 to F10, and F9 re-raises F3). Round 2: da2ce7 review 5928830303 (COMMENTED) with findings F7 to F9, whose IDs collide with this audit's, so they are audit findings F11 to F13. Round 3: da2ce7 review 5929156734 (APPROVED) with findings F10 and F11, both statements in this record; their IDs collide too, so they are audit findings F14 and F15.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -60,6 +60,8 @@ Round 1: da2ce7 review 5925551139 (APPROVED, F1 to F6) and Copilot review 592559
 | F11 | review-finding:pr-2891-f11 | Human | Minor | link-integrity | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-2891-f12 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F13 | review-finding:pr-2891-f13 | Human | Nit | formatting | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-2891-f14 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-2891-f15 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -201,7 +203,7 @@ Round 1: da2ce7 review 5925551139 (APPROVED, F1 to F6) and Copilot review 592559
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2891#discussion_r4592417321
 - Concern: The inventory cited the branch's merge commit `da4d1a3cb`, which a rebase would rewrite.
 - Solution: The inventory now cites the merged `develop` commit `0373f05f8`.
-- Current-tree verification: The `open-pull-request` commit-id check prints nothing at this head.
+- Current-tree verification: `grep -c da4d1a3cb docs/issues/open/2394-2392-audit-shared-test-resources/inventory.md` prints `0`. At the head that carries this record the `open-pull-request` commit-id check prints four lines (`2938b08db`, `abc52e336`, `c27bd08f6`, `da4d1a3cb`), all from the id map in this record's 22:13 Processing Log entry; it printed nothing when the F11 reply went out, before this record existed. Corrected after F14.
 - Resolution reference: `docs(issues): [#2394] cite the merged develop commit instead of the branch merge in the inventory`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2891#discussion_r4592488048
@@ -232,6 +234,32 @@ Round 1: da2ce7 review 5925551139 (APPROVED, F1 to F6) and Copilot review 592559
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2891#discussion_r4592489092
 
+### F14 - F11's verification line misstates the commit-id check
+
+- PR number: 2891
+- Source review ID: 5929156734
+- Reviewer finding ID: F10
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2891#discussion_r4592658911
+- Concern: F11's verification line said the commit-id check prints nothing at this head, but at the head carrying the record it prints the four ids the 22:13 log entry maps.
+- Solution: F11's verification line now says what the check prints at the head that carries the record, and when it printed nothing.
+- Current-tree verification: Running the `open-pull-request` commit-id check at the head with this commit prints exactly the four mapped ids, as F11's line now says.
+- Resolution reference: `docs(pr-reviews): [#2394] correct two statements in the PR 2891 audit record`
+- Follow-up PR URL: N/A
+- Reply URL: REPLY_F14
+
+### F15 - The round-2 log entry misstates the order of replies, commit and validation
+
+- PR number: 2891
+- Source review ID: 5929156734
+- Reviewer finding ID: F11
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2891#discussion_r4592658919
+- Concern: The 22:26 entry says the F11 to F13 replies came after their fixes were committed and that the validator ran after the record was committed; the F12 reply (22:26:32Z) cited the audit commit and "13 rows, 0 failures" before that commit (22:27:30Z) and before any passing validation existed.
+- Solution: Appended a correction entry to the Processing Log that gives the real order; the 22:26 entry is not rewritten.
+- Current-tree verification: The correction entry's stamps match `git log --format='%h %cI %s' -- docs/pr-reviews/pr-2891-review/PR-REVIEW.md` and the reply `created_at` values from `gh-bot api repos/torrust/torrust-tracker/pulls/2891/comments`.
+- Resolution reference: `docs(pr-reviews): [#2394] correct two statements in the PR 2891 audit record`
+- Follow-up PR URL: N/A
+- Reply URL: REPLY_F15
+
 ## Processing Log
 
 - 2026-11-16 22:13 UTC - Replied to F1 to F10 (replies created from 22:12:35Z to 22:13:16Z) and resolved their threads after pushing the round-1 fixes, before this record existed: a late start of the audit. The replies cite branch commit ids; they map to these commit subjects: `abc52e336` = `docs(issues): [#2394] address the first review round in the inventory`, `c27bd08f6` = `docs(issues): [#2394] complete the D1 and D2 drafts and record their reproductions`, `2938b08db` = `docs(issues): [#2394] draft the subissue for Compose cleanup after a failed start`, and `da4d1a3cb` = the merge of `develop` at `0373f05f8` into the branch.
@@ -239,6 +267,8 @@ Round 1: da2ce7 review 5925551139 (APPROVED, F1 to F6) and Copilot review 592559
 - 2026-11-16 22:26 UTC - Round 2: replied to F11 to F13 after committing their fixes (replies created from 22:26:29Z to 22:26:35Z). `validate-audit-record.py --pr-number 2891 --base torrust/develop`, run from a scratchpad copy whose `gh` calls go through `gh-bot`, reported 13 rows, 0 failures after this record was committed.
 - 2026-11-16 22:28 UTC - Resolved the three round-2 threads (`isResolved: true` for each, at about 22:28:35Z). A GraphQL refresh found no unresolved thread and no thread whose last comment is not a reply from `josecelano-bot`.
 - 2026-11-16 22:28 UTC - Committed these log entries.
+- 2026-11-16 22:42 UTC - Correction (F15) of the 2026-11-16 22:26 entry, which stays as written. The real order of round 2 was: the F11 and F13 fixes were committed (22:24:06Z and 22:24:38Z); the F11 to F13 replies were posted (22:26:29Z to 22:26:35Z) while this record existed only in the worktree, so the F12 reply cited the commit `docs(pr-reviews): [#2394] record the review audit of PR 2891` and "13 rows, 0 failures" before either existed; a validator run right after the replies reported 13 rows and 1 failure (F12's resolution reference, not yet a commit); the record was committed at 22:27:30Z; the next validator run reported 13 rows, 0 failures. The F11 reply's statement that the commit-id check prints nothing was true when it was posted; once this record's id map was committed, the check prints the four mapped ids (F14).
+- 2026-11-16 22:42 UTC - Round 3: normalized da2ce7 review 5929156734 (APPROVED) with findings F10 and F11 as audit findings F14 and F15, and committed their fixes before replying.
 
 <!-- Copied verbatim into each audit record. -->
 
