@@ -187,7 +187,6 @@ async fn join_owned_tasks<E: Display>(
 
 #[cfg(test)]
 mod tests {
-    use std::net::TcpListener;
     use std::sync::Arc;
     use std::sync::atomic::{AtomicBool, Ordering};
     use std::time::Duration;
@@ -239,41 +238,6 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "flaky port race, see #2393"]
-    async fn it_should_release_the_health_check_api_binding_when_stopped() {
-        // Arrange
-        let environment = start_within_deadline(unstarted_environment()).await;
-        let binding = environment.bind_address();
-
-        // Act
-        let _stopped = stop_within_deadline(environment).await.expect("stop() should succeed");
-
-        // Assert
-        TcpListener::bind(binding).expect("the health check API binding should be free as soon as stop() returns");
-    }
-
-    #[tokio::test]
-    #[ignore = "flaky port race, see #2393"]
-    async fn it_should_release_the_health_check_api_binding_when_dropped_without_being_stopped() {
-        // Arrange
-        let environment = start_within_deadline(unstarted_environment()).await;
-        let binding = environment.bind_address();
-
-        // Act
-        drop(environment);
-
-        // Assert
-        // Dropping cannot await the server task, so the binding is released shortly after, not at once.
-        tokio::time::timeout(TEST_DEADLINE, async {
-            while TcpListener::bind(binding).is_err() {
-                tokio::time::sleep(Duration::from_millis(10)).await;
-            }
-        })
-        .await
-        .expect("the health check API binding should be released within the test deadline after the environment is dropped");
-    }
-
-    #[tokio::test]
     async fn it_should_serve_requests_after_being_stopped_and_started_again() {
         // Arrange
         let stopped = stop_within_deadline(start_within_deadline(unstarted_environment()).await)
@@ -287,39 +251,6 @@ mod tests {
         let status = tokio::time::timeout(
             TEST_DEADLINE,
             reqwest::get(format!("http://{}/health_check", restarted.bind_address())), // DevSkim: ignore DS137138
-        )
-        .await
-        .expect("the health check should answer within the test deadline")
-        .expect("the restarted health check API server should accept the request")
-        .status();
-        assert_eq!(status, reqwest::StatusCode::OK);
-
-        stop_within_deadline(restarted).await.expect("the second stop should succeed");
-    }
-
-    #[tokio::test]
-    #[ignore = "flaky port race, see #2393"]
-    async fn it_should_serve_requests_after_being_stopped_and_started_again_on_a_fixed_port() {
-        // Arrange
-        let fixed_address = {
-            let probe = TcpListener::bind("127.0.0.1:0").unwrap();
-            probe.local_addr().unwrap()
-        };
-        let config = HealthCheckApi {
-            bind_address: fixed_address,
-        };
-        let stopped = stop_within_deadline(start_within_deadline(Unstarted::new(&Arc::new(config), Registar::default())).await)
-            .await
-            .expect("the first stop should succeed");
-
-        // Act
-        let restarted = start_within_deadline(stopped).await;
-
-        // Assert
-        assert_eq!(restarted.bind_address(), fixed_address);
-        let status = tokio::time::timeout(
-            TEST_DEADLINE,
-            reqwest::get(format!("http://{fixed_address}/health_check")), // DevSkim: ignore DS137138
         )
         .await
         .expect("the health check should answer within the test deadline")

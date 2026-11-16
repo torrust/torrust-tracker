@@ -324,6 +324,7 @@ mod tests {
     use torrust_tracker_configuration::v3_0_0::{Configuration, logging};
     use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
+    use torrust_tracker_test_helpers::random;
 
     use crate::server::{ApiServer, CancellationRunning, Error, Launcher, check_fn, check_fn_with_client, health_check_url};
     use crate::test_support::{TEST_DEADLINE, TestApiContainer, api_container, within_deadline};
@@ -545,10 +546,13 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "flaky port race, see #2393"]
+    #[cfg_attr(not(target_os = "linux"), ignore = "needs the Linux 127.0.0.0/8 loopback range, see #2393")]
     async fn it_should_release_the_listener_when_token_aware_startup_registration_fails() {
         // Arrange
-        let available_listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).expect("select available REST API listener address");
+        // A random loopback address, not 127.0.0.1, keeps tests that bind `127.0.0.1:0` from taking
+        // the released port before the server binds it or before the test rebinds it (#2393).
+        let available_listener =
+            TcpListener::bind((random::loopback_ipv4(), 0)).expect("select available REST API listener address");
         let bind_to = available_listener
             .local_addr()
             .expect("read available REST API listener address");

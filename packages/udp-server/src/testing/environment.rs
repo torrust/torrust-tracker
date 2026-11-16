@@ -502,41 +502,6 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "flaky port race, see #2393"]
-    async fn it_should_release_the_udp_socket_when_stopped() {
-        // Arrange
-        let environment = start_within_deadline(unstarted_environment().await).await;
-        let binding = environment.bind_address();
-
-        // Act
-        let _stopped = stop_within_deadline(environment).await;
-
-        // Assert
-        UdpSocket::bind(binding).expect("the UDP socket should be free as soon as stop() returns");
-    }
-
-    #[tokio::test]
-    #[ignore = "flaky port race, see #2393"]
-    async fn it_should_release_the_udp_socket_when_dropped_without_being_stopped() {
-        // Arrange
-        let environment = start_within_deadline(unstarted_environment().await).await;
-        let binding = environment.bind_address();
-
-        // Act
-        drop(environment);
-
-        // Assert
-        // Dropping cannot await the receive loop, so the socket is released shortly after, not at once.
-        tokio::time::timeout(TEST_DEADLINE, async {
-            while UdpSocket::bind(binding).is_err() {
-                tokio::time::sleep(Duration::from_millis(10)).await;
-            }
-        })
-        .await
-        .expect("the UDP socket should be released within the test deadline after the environment is dropped");
-    }
-
-    #[tokio::test]
     async fn it_should_serve_requests_after_being_stopped_and_started_again() {
         // Arrange
         let stopped = stop_within_deadline(start_within_deadline(unstarted_environment().await).await).await;

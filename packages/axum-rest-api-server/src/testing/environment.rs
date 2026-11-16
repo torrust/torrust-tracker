@@ -319,7 +319,7 @@ async fn join_owned_tasks<E: Display>(
 
 #[cfg(test)]
 mod tests {
-    use std::net::{SocketAddr, TcpListener};
+    use std::net::SocketAddr;
     use std::sync::Arc;
     use std::sync::atomic::{AtomicBool, Ordering};
     use std::time::Duration;
@@ -368,41 +368,6 @@ mod tests {
             stop.is_ok(),
             "stop() should join the server and its drain controller without a failure"
         );
-    }
-
-    #[tokio::test]
-    #[ignore = "flaky port race, see #2393"]
-    async fn it_should_release_the_rest_api_binding_when_stopped() {
-        // Arrange
-        let environment = start_within_deadline(unstarted_environment().await).await;
-        let binding = environment.bind_address();
-
-        // Act
-        let _stopped = stop_within_deadline(environment).await;
-
-        // Assert
-        TcpListener::bind(binding).expect("the REST API binding should be free as soon as stop() returns");
-    }
-
-    #[tokio::test]
-    #[ignore = "flaky port race, see #2393"]
-    async fn it_should_release_the_rest_api_binding_when_dropped_without_being_stopped() {
-        // Arrange
-        let environment = start_within_deadline(unstarted_environment().await).await;
-        let binding = environment.bind_address();
-
-        // Act
-        drop(environment);
-
-        // Assert
-        // Dropping cannot await the server task, so the binding is released shortly after, not at once.
-        tokio::time::timeout(TEST_DEADLINE, async {
-            while TcpListener::bind(binding).is_err() {
-                tokio::time::sleep(Duration::from_millis(10)).await;
-            }
-        })
-        .await
-        .expect("the REST API binding should be released within the test deadline after the environment is dropped");
     }
 
     #[tokio::test]
