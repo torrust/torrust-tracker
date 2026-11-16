@@ -7,7 +7,7 @@ priority: p2
 epic: 1347
 github-issue: 2876
 spec-path: docs/issues/open/2876-1347-peer-id-test-helper/ISSUE.md
-branch: "2876-peer-id-test-helper"
+branch: "2876-peer-id-test-helper-spec"
 related-pr: null
 last-updated-utc: "2026-11-16 08:45"
 semantic-links:
