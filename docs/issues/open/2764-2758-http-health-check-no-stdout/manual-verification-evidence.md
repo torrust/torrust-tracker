@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2764-2758-http-health-check-no-stdout/ISSUE.md
-last-updated-utc: 2026-11-16 18:29
+last-updated-utc: 2026-11-16 18:54
 ---
 
 # Manual Verification Evidence
@@ -14,6 +14,8 @@ last-updated-utc: 2026-11-16 18:29
 - Prerequisites and setup performed: none beyond the build
 
 ## Verification Processes
+
+The sections are in the order they ran. R0 reproduces the defect, R1 and R2 are the red tests and the mutation checks, and G1, V1 to V3 checked the first implementation. Review rounds 1 to 3 of PR 2889 changed the binary, so the sections "Round 1 of PR 2889" to "Round 3 of PR 2889" at the end hold the results for the final binary.
 
 ### R0 - Reproduction of the deviation before the change (http_health_check)
 
@@ -96,6 +98,8 @@ After the last mutation of round 1, `diff -q` of the saved copy and `src/bin/htt
 
 ### G1 - Green tests, linters and image test stage
 
+> Historical: this section ran on the first implementation, before review round 1 of PR 2889. Its records still carried a `url` field and the probed URL in `message`, and the test file had 5 tests. The final binary writes no URL, the test file has 11 tests, and the current results are in the sections "Round 1 of PR 2889" to "Round 3 of PR 2889" below. The output is kept as it was recorded.
+
 - Status: `DONE`
 
 On the fixed tree (rebased onto `torrust/develop` at the merge of PR 2878, plus the three commits of this issue): `cargo test --test http_health_check` and `cargo nextest run --test http_health_check` both gave `5 passed`; `cargo clippy --bin http_health_check --tests` gave no warnings; `linter all` exited `0` (2026-11-16 16:57 UTC). The release image build (see V2) ran the whole workspace suite in its test stage: `1883 tests run: 1883 passed, 0 skipped`.
@@ -103,6 +107,8 @@ On the fixed tree (rebased onto `torrust/develop` at the merge of PR 2878, plus 
 The first image build failed in that test stage: the five new tests could not find the binary (`No such file or directory`), because nextest runs from an archive built in another stage and the path compiled into `CARGO_BIN_EXE_http_health_check` does not exist there. The test now reads `NEXTEST_BIN_EXE_http_health_check` first (commit `test(health-check): [#2764] find the binary through the nextest variable in the image test stages`), and the second build passed.
 
 ### V1, V3 - Healthy, unhealthy, unreachable and usage error with a real tracker
+
+> Historical: this section ran on the first implementation, before review round 1 of PR 2889. Its records still carried a `url` field and the probed URL in `message`, and the test file had 5 tests. The final binary writes no URL, the test file has 11 tests, and the current results are in the sections "Round 1 of PR 2889" to "Round 3 of PR 2889" below. The output is kept as it was recorded.
 
 - Goal: M1 and M3 on the fixed binary, like-for-like with R0.
 - Status: `DONE`
@@ -144,6 +150,8 @@ stderr:
 Observed: stdout is empty in every case, each stderr line is one JSON object with a `kind`, and the exit codes are `0`, `1`, `1`, `2`, `1`. The pseudo-terminal probe of R0 (`script -qec ...`) was not repeated: this tool has no TTY refusal (it is `no-stdout-result`), and stdout stays empty regardless.
 
 ### V2 - Container HEALTHCHECK
+
+> Historical: this section ran on the first implementation, before review round 1 of PR 2889. Its records still carried a `url` field and the probed URL in `message`, and the test file had 5 tests. The final binary writes no URL, the test file has 11 tests, and the current results are in the sections "Round 1 of PR 2889" to "Round 3 of PR 2889" below. The output is kept as it was recorded.
 
 - Goal: M2, the image still reports `unhealthy` when the endpoint fails.
 - Status: `DONE`
@@ -295,3 +303,10 @@ stderr:
 ```
 
 Observed: stdout is empty in every case, each stderr line is one JSON object with a `kind`, no credential of the second URL appears, and the exit codes are `0`, `0`, `1`, `1`, `2`, `2`, `2`, `1`. The new `ftp://` case is a `usage_error` with exit `2`. The image (V2) was not rebuilt: the scheme check runs before any probe and accepts the `http` URL the `HEALTHCHECK` passes.
+
+### Round 4 of PR 2889 - test server accept errors
+
+- Goal: the test server must not hide an `accept` error as `WouldBlock` (review finding `review-finding:pr-2889-f22`).
+- Status: `DONE`
+
+The accept loop now sleeps only on `WouldBlock`, retries on `Interrupted`, and panics on any other error; the server's `Drop` re-raises that panic in the test. Green: `cargo test --test http_health_check` and `cargo nextest run --test http_health_check` report 11 passed; clippy gives no warning. Failure path, run on 2026-11-16 at about 18:53 UTC: with the `WouldBlock` guard temporarily changed to `ErrorKind::Unsupported`, so that the listener's `WouldBlock` reaches the panic arm, `cargo test --test http_health_check` gave `7 passed; 4 failed`. The four tests that start a server failed with `the test server could not accept a connection: Resource temporarily unavailable (os error 11)`. The file was restored from a saved copy, and `diff -q` printed `identical`. This change touches only the tests; the binary and its rechecks are unchanged.
