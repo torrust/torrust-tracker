@@ -47,7 +47,7 @@ at a comment (see `manual-verification-evidence.md`, V0).
 | Git workflow | `run-linters` | 397 | 140 | 176 |  |
 | Git workflow | `run-pre-commit-checks` | 356 | 130 | 128 |  |
 | Git workflow | `run-pre-push-checks` | 355 | 130 | 138 |  |
-| GitHub | `link-subissue-to-parent-issue` | 483 | 170 |  |  |
+| GitHub | `link-subissue-to-parent-issue` | 483 | 170 | 158 |  |
 | Logging | `structured-runtime-logging` | 204 | 80 |  |  |
 | Maintenance | `add-rust-dependency` | 352 | 130 |  |  |
 | Maintenance | `add-workspace-member` | 265 | 100 |  |  |
@@ -185,7 +185,7 @@ at a comment (see `manual-verification-evidence.md`, V0).
 #### `link-subissue-to-parent-issue`
 
 - Before (483): Guide for linking an existing GitHub issue as a sub-issue of a parent issue in the torrust-tracker project. Covers the GitHub REST API flow, the required internal issue ID for the child issue, verification, and common failure modes. Use when setting a parent issue for a sub-issue, attaching a child issue to an epic, or linking an existing issue under another issue. Triggers on "set parent issue", "link subissue", "add sub-issue", "attach child issue", or "make issue a subissue".
-- After: not yet rewritten
+- After (158): Link an existing GitHub issue as a sub-issue of a parent issue or EPIC through the REST API. Use when setting a parent issue or adding a sub-issue to an EPIC.
 
 ### Logging
 
