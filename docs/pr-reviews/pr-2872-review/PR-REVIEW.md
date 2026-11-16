@@ -232,7 +232,7 @@ with an existing audit ID, so it gets F11, with the reviewer's ID kept.
   the replies share the minute 08:39.
 - Resolution reference: docs(pr-reviews): [#2850] audit review round 4 of PR #2872
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2872#discussion_r4584227007
 
 ## Processing Log
 
@@ -267,6 +267,11 @@ with an existing audit ID, so it gets F11, with the reviewer's ID kept.
   2026-11-16T08:48:26Z, approved, one Nit finding), before any reply. Copilot's review `5917198610`
   (submitted 2026-11-16T08:45:58Z) reports no open issues and only restates the HTTP benchmark
   decision, which the maintainer accepted; no row.
+- 2026-11-16 09:56 UTC - Round 4 processed. The fix was pushed by `git-bot-push` (head
+  `docs(pr-reviews): [#2850] audit review round 4 of PR #2872`) and the thread was replied to
+  (2026-11-16T09:55:09Z). `validate-audit-record.py --pr-number 2872` returned `status: ok`, 11
+  rows, 8 log entries, 0 failures; then the thread was resolved and a fresh GraphQL fetch shows 0
+  unresolved threads.
 
 ## Completion Rules
 
