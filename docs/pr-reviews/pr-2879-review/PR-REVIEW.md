@@ -42,13 +42,14 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-F1 to F3 come from the first da2ce7 review (APPROVED, three Nits, none blocking), on the head ending in `docs(pr-reviews): [#2867] record the deferred second da2ce7 review of PR 2868 as follow-ups`.
+F1 to F3 come from the first da2ce7 review (APPROVED, three Nits, none blocking), on the head ending in `docs(pr-reviews): [#2867] record the deferred second da2ce7 review of PR 2868 as follow-ups`. F4 comes from the first Copilot review (COMMENTED), on the head ending in `docs(pr-reviews): [#2867] log the resolution of the first da2ce7 review of PR 2879`; Copilot called it F1, which collides with the audit's F1.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2879-f1 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F2 | review-finding:pr-2879-f2 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-2879-f3 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F4 | review-finding:pr-2879-f4 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -91,9 +92,23 @@ F1 to F3 come from the first da2ce7 review (APPROVED, three Nits, none blocking)
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2879#discussion_r4584501060>
 
+### F4 - Release the junk-answering peer when the test ends
+
+- PR number: 2879
+- Source review ID: 5918382473
+- Reviewer finding ID: F1
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2879#discussion_r4584495261>
+- Concern: T3's junk-answering peer ran on a detached native thread blocked in `recv_from`, so the thread and its UDP port lived until the test process exited; neither `env.stop()` nor the runtime's shutdown stopped it.
+- Solution: The peer is a `tokio::net::UdpSocket` served by a `tokio::spawn` task of the test's runtime, which its shutdown drops. T3's red (mutate-then-restore) and green runs were repeated, and the evidence says the stored logs are those runs.
+- Current-tree verification: `grep -n "std::thread::spawn" packages/axum-health-check-api-server/tests/server/contract.rs` prints nothing; `cargo test -p torrust-tracker-axum-health-check-api-server --test integration` passes.
+- Resolution reference: test(axum-health-check-api-server): [#2867] run the T3 junk-answering peer as a task of the test runtime
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2879#discussion_r4584563973>
+
 ## Processing Log
 
 - 2026-11-16 10:21 UTC - Started audit. da2ce7 reviewed the head ending in `docs(pr-reviews): [#2867] record the deferred second da2ce7 review of PR 2868 as follow-ups` at 10:18:14Z (APPROVED, three inline threads, all Nits, none blocking), recorded as F1 to F3. Fixed each in its own commit and replied on all three threads before the push.
+- 2026-11-16 10:28 UTC - Copilot reviewed the head ending in `docs(pr-reviews): [#2867] log the resolution of the first da2ce7 review of PR 2879` at 10:20:40Z (COMMENTED, one inline thread), recorded as F4. Fixed the fixture in its own commit, repeated T3's red and green runs in a docs commit, and replied before the push.
 
 ## Completion Rules
 
