@@ -3,7 +3,7 @@ semantic-links:
   skill-links:
     - process-pr-review
   related-artifacts:
-    - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
+    - .claude/skills/process-pr-review/SKILL.md
     - docs/issues/closed/2867-udp-health-check-panics-on-invalid-response/ISSUE.md
     - docs/pr-reviews/pr-2868-review/PR-REVIEW.md
 ---
