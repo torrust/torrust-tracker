@@ -1,6 +1,6 @@
 ---
 name: manual-http-download-completion-e2e
-description: Manual end-to-end verification of started -> completed peer lifecycle using the HTTP tracker announce/scrape endpoints with curl (or browser for stats). Use when contributors want a fast, transparent simulation of download completion without containerized clients. Triggers on "manual http e2e", "http announce completed test", "simulate completion with curl", or "verify completed counter http".
+description: Simulate a peer going from started to completed through the HTTP announce and scrape endpoints with curl. Use to check the completed counter by hand over HTTP.
 metadata:
   author: torrust
   version: "1.0"

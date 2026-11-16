@@ -1,6 +1,6 @@
 ---
 name: manual-torrent-cleanup-e2e
-description: Manually verify that the tracker removes inactive peers while retaining a peerless torrent when configured to do so. Use when testing torrent cleanup, inactive peer expiration, or shutdown behavior of the cleanup runner. Triggers on "torrent cleanup test", "inactive peer expiration", or "manual cleanup e2e".
+description: Check by hand that the tracker removes inactive peers and keeps peerless torrents when configured to. Use when testing torrent cleanup or peer expiration.
 compatibility: Requires cargo, curl, jq, rg, and ss on Linux.
 metadata:
   author: torrust

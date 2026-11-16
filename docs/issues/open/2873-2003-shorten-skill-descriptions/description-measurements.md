@@ -77,11 +77,11 @@ at a comment (see `manual-verification-evidence.md`, V0).
 | Rust code quality | `handle-errors-in-code` | 613 | 210 | 176 |  |
 | Rust code quality | `handle-secrets` | 541 | 190 | 175 |  |
 | Task reviews | `review-task` | 216 | 80 | 160 |  |
-| Testing | `manual-http-download-completion-e2e` | 396 | 150 |  |  |
-| Testing | `manual-torrent-cleanup-e2e` | 309 | 110 |  |  |
-| Testing | `manual-udp-download-completion-e2e` | 364 | 140 |  |  |
-| Testing | `public-trackers-for-testing` | 328 | 120 |  |  |
-| Testing | `write-unit-test` | 383 | 130 |  |  |
+| Testing | `manual-http-download-completion-e2e` | 396 | 150 | 159 |  |
+| Testing | `manual-torrent-cleanup-e2e` | 309 | 110 | 154 |  |
+| Testing | `manual-udp-download-completion-e2e` | 364 | 140 | 163 |  |
+| Testing | `public-trackers-for-testing` | 328 | 120 | 170 |  |
+| Testing | `write-unit-test` | 383 | 130 | 154 |  |
 | Using the tracker | `use-rest-api` | 333 | 120 |  |  |
 | Using the tracker | `use-tracker-client` | 381 | 130 |  |  |
 | **Total** | 53 skills | **19489** | **6980** |  |  |
@@ -350,27 +350,27 @@ at a comment (see `manual-verification-evidence.md`, V0).
 #### `manual-http-download-completion-e2e`
 
 - Before (396): Manual end-to-end verification of started -> completed peer lifecycle using the HTTP tracker announce/scrape endpoints with curl (or browser for stats). Use when contributors want a fast, transparent simulation of download completion without containerized clients. Triggers on "manual http e2e", "http announce completed test", "simulate completion with curl", or "verify completed counter http".
-- After: not yet rewritten
+- After (159): Simulate a peer going from started to completed through the HTTP announce and scrape endpoints with curl. Use to check the completed counter by hand over HTTP.
 
 #### `manual-torrent-cleanup-e2e`
 
 - Before (309): Manually verify that the tracker removes inactive peers while retaining a peerless torrent when configured to do so. Use when testing torrent cleanup, inactive peer expiration, or shutdown behavior of the cleanup runner. Triggers on "torrent cleanup test", "inactive peer expiration", or "manual cleanup e2e".
-- After: not yet rewritten
+- After (154): Check by hand that the tracker removes inactive peers and keeps peerless torrents when configured to. Use when testing torrent cleanup or peer expiration.
 
 #### `manual-udp-download-completion-e2e`
 
 - Before (364): Manual end-to-end verification of started -> completed peer lifecycle using tracker_client (unified) and tracker stats API. Use when contributors need to simulate a peer completing a download without running containerized qBittorrent E2E. Triggers on "manual e2e", "simulate peer completion", "udp started completed test", or "verify downloads increment manually".
-- After: not yet rewritten
+- After (163): Simulate a peer going from started to completed over UDP with tracker_client and the stats API. Use to check that downloads increment, without the qBittorrent E2E.
 
 #### `public-trackers-for-testing`
 
 - Before (328): Public tracker targets for manual testing and debugging of tracker clients. Use when validating announce/scrape behavior against live services, comparing local vs public behavior, or diagnosing network timeouts. Triggers on "public tracker", "test against demo tracker", "debug tracker timeout", or "which tracker should I use".
-- After: not yet rewritten
+- After (170): Public trackers to test tracker clients against. Use when checking announce or scrape against a live tracker, comparing local and public behavior, or debugging a timeout.
 
 #### `write-unit-test`
 
 - Before (383): Guide for writing unit tests following project conventions including behavior-driven naming (it*should*\*), AAA pattern, MockClock for deterministic time testing, and parameterized tests with rstest. Use when adding tests for domain entities, value objects, utilities, or tracker logic. Triggers on "write unit test", "add test", "test coverage", "unit testing", or "add unit tests".
-- After: not yet rewritten
+- After (154): Write unit tests the project's way: it_should_ names, Arrange-Act-Assert, rstest cases, a stopped clock for time. Use when adding or reviewing unit tests.
 
 ### Using the tracker
 
