@@ -3,7 +3,7 @@ semantic-links:
   skill-links:
     - write-markdown-docs
   related-artifacts:
-    - docs/issues/open/2876-1347-peer-id-test-helper/ISSUE.md
+    - docs/issues/closed/2876-1347-peer-id-test-helper/ISSUE.md
     - docs/adrs/20261021190318_share_workspace_test_support_through_testing_features.md
 ---
 

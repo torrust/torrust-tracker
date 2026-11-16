@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p2
 epic: 1347
 github-issue: 2876
-spec-path: docs/issues/open/2876-1347-peer-id-test-helper/ISSUE.md
+spec-path: docs/issues/closed/2876-1347-peer-id-test-helper/ISSUE.md
 branch: "2876-peer-id-test-helper"
-related-pr: null
-last-updated-utc: "2026-11-16 17:55"
+related-pr: 2888
+last-updated-utc: "2026-11-16 21:52"
 semantic-links:
   skill-links:
     - create-issue
@@ -393,7 +393,7 @@ with the narrow affected scope, and sign every commit with GPG.
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [x] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -475,6 +475,9 @@ with the narrow affected scope, and sign every commit with GPG.
 - 2026-11-16 17:55 UTC - Claude Code (Opus 5.5) - Review round 3 of PR #2888 (da2ce7, approved, F5
   Minor): the audit's round-1 log entry is restored and the F4 time correction is appended as a new
   entry, because the log is append-only.
+- 2026-11-16 21:52 UTC - Claude Code (Opus 5.5) - PR #2888 merged (2026-11-16 21:49 UTC, after
+  the maintainer's and da2ce7's ACK of `c4def2469`); #2876 closed. Spec archived to
+  `docs/issues/closed/`; the parent EPIC row and the ADR links point to the new path.
 
 ## Acceptance Criteria
 

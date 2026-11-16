@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2876-1347-peer-id-test-helper/ISSUE.md
-last-updated-utc: 2026-11-16 16:29
+issue-spec: docs/issues/closed/2876-1347-peer-id-test-helper/ISSUE.md
+last-updated-utc: 2026-11-16 21:52
 ---
 
 # Manual Verification Evidence
