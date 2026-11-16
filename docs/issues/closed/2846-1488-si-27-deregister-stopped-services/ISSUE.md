@@ -184,11 +184,11 @@ Sign every commit with GPG.
 ## Acceptance Criteria
 
 - [x] The go/no-go and location decision is recorded (no-go; the remaining criteria are not planned).
-- [ ] After an orderly stop the registry no longer lists the service's binding, for each of the four services.
-- [ ] After a failed, timed-out or aborted stop the registration remains.
-- [ ] Other services' registrations are unaffected, including two instances of one service type.
-- [ ] Shutdown order, exit codes and the 503 behavior are unchanged.
-- [ ] `linter all` passes.
+- [ ] ~~After an orderly stop the registry no longer lists the service's binding, for each of the four services.~~ Not planned (no-go).
+- [ ] ~~After a failed, timed-out or aborted stop the registration remains.~~ Not planned (no-go); registrations always remain, as before.
+- [ ] ~~Other services' registrations are unaffected, including two instances of one service type.~~ Not planned (no-go).
+- [x] Shutdown order, exit codes and the 503 behavior are unchanged: no code changed (only a comment in `src/container.rs`).
+- [x] `linter all` passes.
 
 ## Verification Plan
 
@@ -200,7 +200,7 @@ Sign every commit with GPG.
 
 ### Manual Verification Scenarios
 
-Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
+Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`, `NOT PLANNED` (dropped by the T1 no-go).
 
 Executable-boundary verification follows the EPIC protocol (signal the actual binary PID, bounded wait,
 exit status and shutdown output, then prove the bindings are released). The registry is not visible
@@ -208,9 +208,9 @@ after the process exits, so the observable part is the health list while the pro
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | -- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Orderly stop of the whole tracker | Start with all four services, `SIGTERM` the binary PID. | Exit code 0 within the deadline; the shutdown output is unchanged from before the change. | TODO | `manual-verification-evidence.md` |
-| M2 | Health list while one service is down | Use the application-level harness of T4 (or a build with one listener stopped) and request `/health_check` while the process runs. | The stopped service is absent after an orderly stop; the running ones are listed healthy. | TODO | `manual-verification-evidence.md` |
-| M3 | Failed stop keeps the entry | Hold a REST request open past its drain (the SI-21 V6 recipe) and read the registry in the harness. | The REST registration remains; exit code 1 within `P`. | TODO | `manual-verification-evidence.md` |
+| M1 | Orderly stop of the whole tracker | Start with all four services, `SIGTERM` the binary PID. | Exit code 0 within the deadline; the shutdown output is unchanged from before the change. | NOT PLANNED | None: no behavior change |
+| M2 | Health list while one service is down | Use the application-level harness of T4 (or a build with one listener stopped) and request `/health_check` while the process runs. | The stopped service is absent after an orderly stop; the running ones are listed healthy. | NOT PLANNED | None: no behavior change |
+| M3 | Failed stop keeps the entry | Hold a REST request open past its drain (the SI-21 V6 recipe) and read the registry in the harness. | The REST registration remains; exit code 1 within `P`. | NOT PLANNED | None: no behavior change |
 
 ### Disposable Verification Scripts
 
@@ -221,11 +221,11 @@ None.
 | AC | Status | Evidence |
 | -- | ------ | -------- |
 | Decision recorded | DONE | T1, progress log, registration lifetime ADR |
-| Orderly stop deregisters, four services | TODO | Automatic checks, M2 |
-| Failure keeps the registration | TODO | Automatic checks, M3 |
-| Other registrations unaffected | TODO | Automatic checks |
-| Shutdown behavior unchanged | TODO | M1 |
-| `linter all` passes | TODO | Automatic checks |
+| Orderly stop deregisters, four services | NOT PLANNED | No-go |
+| Failure keeps the registration | NOT PLANNED | No-go; registrations always remain |
+| Other registrations unaffected | NOT PLANNED | No-go |
+| Shutdown behavior unchanged | DONE | No code change (only a comment in `src/container.rs`) |
+| `linter all` passes | DONE | `linter all`, pre-commit and pre-push checks on the PR branch |
 
 ## Risks and Trade-offs
 
