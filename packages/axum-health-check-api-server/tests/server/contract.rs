@@ -389,10 +389,9 @@ mod udp {
     use std::sync::Arc;
 
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
-    use torrust_server_lib::registar::{Registar, ServiceRegistration};
     use torrust_tracker_axum_health_check_api_server::environment::Started;
     use torrust_tracker_axum_health_check_api_server::resources::{Report, Status};
-    use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
+    use torrust_tracker_primitives::ServiceRole;
     use torrust_tracker_test_helpers::{configuration, logging};
     use torrust_tracker_udp_server::server::launcher::Launcher;
     use url::Url;
@@ -493,9 +492,8 @@ mod udp {
         env.stop().await.expect("it should stop the service");
     }
 
-    /// Registers a UDP peer that answers every datagram with bytes that are not a tracker
-    /// response, checked by the production UDP tracker probe.
-    async fn registar_with_a_junk_answering_udp_service() -> (Registar<RuntimeServiceMetadata>, SocketAddr) {
+    /// Binds a UDP peer that answers every datagram with bytes that are not a tracker response.
+    async fn bind_a_junk_answering_udp_peer() -> SocketAddr {
         // A task of the test's runtime, not a detached thread: the runtime's shutdown at the end of
         // the test drops it, and with it the socket.
         let socket = tokio::net::UdpSocket::bind("127.0.0.1:0")
@@ -508,19 +506,7 @@ mod udp {
                 drop(socket.send_to(b"junk", from).await);
             }
         });
-
-        let registar = Registar::default();
-        registar
-            .give_form()
-            .register(ServiceRegistration::new(
-                ServiceBinding::new(Protocol::UDP, binding).expect("the junk peer address should be a valid UDP binding"),
-                RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0)),
-                Some(Launcher::check),
-            ))
-            .await
-            .expect("the junk-answering udp service should register");
-
-        (registar, binding)
+        binding
     }
 
     // issue: #2867
@@ -528,9 +514,16 @@ mod udp {
     async fn it_should_return_error_when_the_registered_udp_service_answers_the_check_with_junk() {
         // Arrange
         logging::setup();
-        let configuration = configuration::ephemeral_with_no_services();
-        let (registar, binding) = registar_with_a_junk_answering_udp_service().await;
-        let env = Started::new(&configuration.health_check_api.into(), registar).await;
+        let binding = bind_a_junk_answering_udp_peer().await;
+        let env = super::start_health_check_api(
+            super::registar_with_one_service(
+                ServiceBinding::new(Protocol::UDP, binding).expect("the junk peer address should be a valid UDP binding"),
+                ServiceRole::UdpTracker,
+                Launcher::check,
+            )
+            .await,
+        )
+        .await;
 
         // Act
         let response = get(&format!("http://{}/health_check", env.bind_address())).await; // DevSkim: ignore DS137138
@@ -680,10 +673,9 @@ mod readiness {
 mod failed_probe_job {
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
     use torrust_server_lib::registar::{FnSpawnServiceHeathCheck, Registar, ServiceHealthCheckJob, ServiceRegistration};
-    use torrust_tracker_axum_health_check_api_server::environment::Started;
     use torrust_tracker_axum_health_check_api_server::resources::{Report, Status};
     use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
-    use torrust_tracker_test_helpers::{configuration, logging};
+    use torrust_tracker_test_helpers::logging;
 
     use crate::server::client::get;
 
@@ -719,11 +711,10 @@ mod failed_probe_job {
     async fn it_should_report_a_probe_job_that_panicked_as_a_failed_check_and_keep_the_other_results() {
         // Arrange: one service whose probe job panics, next to one whose probe passes.
         logging::setup();
-        let configuration = configuration::ephemeral_with_no_services();
         let registar = Registar::default();
         register(&registar, "127.0.0.1:7070", ServiceRole::HttpTracker, panicking_probe).await; // DevSkim: ignore DS137138
         register(&registar, "127.0.0.1:1212", ServiceRole::RestApi, passing_probe).await; // DevSkim: ignore DS137138
-        let env = Started::new(&configuration.health_check_api.into(), registar).await;
+        let env = super::start_health_check_api(registar).await;
 
         // Act
         let response = get(&format!("http://{}/health_check", env.bind_address())).await; // DevSkim: ignore DS137138
