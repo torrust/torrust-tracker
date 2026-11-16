@@ -9,7 +9,7 @@ github-issue: 2876
 spec-path: docs/issues/open/2876-1347-peer-id-test-helper/ISSUE.md
 branch: "2876-peer-id-test-helper"
 related-pr: null
-last-updated-utc: "2026-11-16 15:57"
+last-updated-utc: "2026-11-16 15:59"
 semantic-links:
   skill-links:
     - create-issue
@@ -82,7 +82,9 @@ test data in a production API, with ids no tracker ever receives.
 ### Caller inventory (`develop` at `abd7a10ff`, 2026-11-15)
 
 Searched with `grep -rn --include=*.rs` over `packages/`, `src/` and `tests/`, then checked by
-compiling (below).
+compiling (below). Re-run at implementation start (T1) on `develop` at `c8b1477ad` (2026-11-16):
+every table below is unchanged, and the compile proof again exited 0 with no warnings
+(`manual-verification-evidence.md`, V1).
 
 **`peer::Id::new`**: three calls, all in the integration tests of one package, which has
 `publish = false`.
@@ -336,7 +338,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
 | T0  | DONE   | Get the maintainer's answers to Q1-Q7 | Answers recorded in this spec; later tasks adjusted. |
-| T1  | TODO   | Re-run the caller inventory and the compile proof | Tables above updated if `develop` moved; evidence in `manual-verification-evidence.md`. |
+| T1  | DONE   | Re-run the caller inventory and the compile proof | Tables above updated if `develop` moved; evidence in `manual-verification-evidence.md`. |
 | T2  | TODO   | Add the realistic-id helper with unit tests | In the Q1 location, with the Q4 format; design-review checkpoint after the first passing test. |
 | T3  | TODO   | Move the `torrent-repository-benchmarking` callers to the helper | Its tests pass; ids are distinct. |
 | T4  | TODO   | Remove or deprecate `Id::new` (Q3) | `compile_fail` doctest if removed. |
@@ -429,6 +431,11 @@ with the narrow affected scope, and sign every commit with GPG.
   answered Q1-Q7 in chat, accepting every recommendation (Q4 (b): `u32` with a named sentinel).
   Answers recorded under Open Design Decisions; status `in-progress` on branch
   `2876-peer-id-test-helper`. T0 done.
+- 2026-11-16 15:59 UTC - Claude Code (Opus 5.5) - T1 on `develop` at `c8b1477ad`: the caller
+  inventory is unchanged and the compile proof exited 0 with no warnings (V1); a scratch test
+  reproduced the finding, every fixture and `Id::new` id gives `get_client_name() == None` (V0); the
+  coverage baseline is 1,075 / 1,143 lines, with the 68 uncovered lines all in `peer.rs`
+  (`coverage-evidence.md`).
 
 ## Acceptance Criteria
 
