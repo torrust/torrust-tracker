@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: done
 priority: p3
 epic: 1488
 github-issue: 2845
-spec-path: docs/issues/open/2845-1488-si-26-consolidate-shutdown-supervisor/ISSUE.md
+spec-path: docs/issues/closed/2845-1488-si-26-consolidate-shutdown-supervisor/ISSUE.md
 branch: "2845-consolidate-shutdown-supervisor"
-related-pr: null
-last-updated-utc: "2026-11-12 14:30"
+related-pr: 2870
+last-updated-utc: "2026-11-16 09:50"
 semantic-links:
   skill-links:
     - create-issue
@@ -184,7 +184,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3 | DONE | Apply the owner-type decision. | Code and tests per T1. Design-review checkpoint. |
 | T4 | DONE | Migrate `udp_ban_cleanup` to `reserve` and `spawn`; remove the legacy registration path from `JobManager`. | The stop-order test in `src/app.rs` asserts the job stops before `health_check_api`; no `register_legacy` or `legacy_cancellation_token` remains. Design-review checkpoint. |
 | T5 | DONE | Update the ADRs, architecture and shutdown-process docs. | `git grep` finds no live mention of the legacy job. |
-| T6 | TODO | Verify and record evidence. | `manual-verification-evidence.md`. |
+| T6 | DONE | Verify and record evidence. | `manual-verification-evidence.md`. |
 
 ## Commit Points
 
@@ -206,15 +206,15 @@ Sign every commit with GPG.
 - [x] Folder-style spec drafted in `docs/issues/drafts/`, moved to `docs/issues/open/`
 - [x] Spec reviewed and approved by the maintainer (decisions of 2026-11-12, in chat)
 - [x] GitHub issue created and issue number added to this spec (#2845)
-- [ ] Spec-only PR merged into `develop` before implementation
+- [x] Spec-only PR merged into `develop` before implementation (PR #2848)
 - [x] Owner-type design decision recorded (T1)
 - [x] Implementation completed
-- [ ] Design review after the first passing vertical slice recorded
+- [x] Design review after the first passing vertical slice recorded (the maintainer reviewed the implementation before PR #2870 was opened; reviews in `docs/pr-reviews/pr-2870-review/PR-REVIEW.md`)
 - [x] Automatic verification completed (`linter all`, relevant tests, pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Manual verification scenarios executed and recorded in `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded (`implementation-retrospective.md`)
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/` (the close-out PR closes #2845)
 
 ### Progress Log
 
@@ -224,18 +224,20 @@ Sign every commit with GPG.
 - 2026-11-15 UTC - AI agent (Claude Sonnet 5.5) - Implemented T2 (shared supervisor in `token_aware_server.rs`, health-check join order, table test), T4 (`udp_ban_cleanup` reserved; legacy path and root token removed) and T5 (docs). Manual scenarios M1-M4 still to be run and recorded.
 - 2026-11-15 21:13 UTC - AI agent (Claude Opus 5.5) - Copilot review of PR #2870: re-ran M2 on dedicated ports with the script and output recorded in the evidence file; set M3 and M4 back to TODO (not run against the binary; M4 needs a reset interval of at least 3600 s) and unticked the manual-verification checkpoint.
 - 2026-11-16 07:39 UTC - AI agent (Claude Opus 5.5) - da2ce7 review of PR #2870: re-ran M2 with every job-manager stop line kept, so the evidence now shows the other components' stop order too; aligned the evidence frontmatter with its template; fixed the remaining docs findings.
+- 2026-11-16 08:27 UTC - Maintainer - PR #2870 merged into `develop` (`1c3daab4b`).
+- 2026-11-16 09:50 UTC - AI agent (Claude Opus 5.5) - Close-out: ran M3 (exit 1 at 2.04 s, inside P = 4 s; `http_api` reported failed with the same wording as SI-21 V6) and M4 (ban reset seen 3603 s after start with a 3600 s interval) on a binary built from `develop`; ticked the acceptance criteria and checkpoints; recorded `implementation-retrospective.md` (the M4 interval constraint, a weak first regression test, and docs drift found in review); archived the spec.
 
 ## Acceptance Criteria
 
-- [ ] One shared supervisor serves the HTTP tracker, REST API and health-check API components, with the
+- [x] One shared supervisor serves the HTTP tracker, REST API and health-check API components, with the
       health-check join order, and a test proves the drain controller is joined when the server join fails.
-- [ ] The owner-type decision is recorded and applied.
-- [ ] `udp_ban_cleanup` is a reserved component, stops before the health check, and a test proves it.
-- [ ] No `register_legacy`, `LegacyJob` or `legacy_cancellation_token` remains, and no live document
+- [x] The owner-type decision is recorded and applied.
+- [x] `udp_ban_cleanup` is a reserved component, stops before the health check, and a test proves it.
+- [x] No `register_legacy`, `LegacyJob` or `legacy_cancellation_token` remains, and no live document
       describes the legacy path.
-- [ ] Shutdown behavior is otherwise unchanged: same stop order, same exit codes, same log wording for
+- [x] Shutdown behavior is otherwise unchanged: same stop order, same exit codes, same log wording for
       the existing components.
-- [ ] `linter all` passes.
+- [x] `linter all` passes.
 
 ## Verification Plan
 
@@ -257,8 +259,8 @@ exit status and shutdown output, then prove the bindings are released).
 | -- | -------- | ---------------------------- | --------------- | ------ | -------- |
 | M1 | Legacy path gone | `git grep` for `register_legacy`, `legacy_cancellation_token`, `LegacyJob`. | No match outside archived specs and history. | DONE | `manual-verification-evidence.md` |
 | M2 | Orderly shutdown, all services | Start the tracker with HTTP, REST, UDP, health check and a UDP ban reset interval; send `SIGTERM`, then `SIGINT` in a second run. | Exit code 0; the log shows `udp_ban_cleanup` stopped before `health_check_api` was released; the stop order of the other components is unchanged; ports released. | DONE | `manual-verification-evidence.md` |
-| M3 | Failure path | Hold a REST request open past its drain so a component fails (the SI-21 V6 recipe). | Exit code 1 within `P`; the failed outcome is reported as before; the health server does not delay the exit past `P`. | TODO | `manual-verification-evidence.md` |
-| M4 | Ban cleanup still resets bans | Run with a short `ip_bans_reset_interval_in_secs`, ban an IP, wait one interval. | The ban is reset and the metric updates, as before the migration. | TODO | `manual-verification-evidence.md` |
+| M3 | Failure path | Hold a REST request open past its drain so a component fails (the SI-21 V6 recipe). | Exit code 1 within `P`; the failed outcome is reported as before; the health server does not delay the exit past `P`. | DONE | `manual-verification-evidence.md` |
+| M4 | Ban cleanup still resets bans | Run with a short `ip_bans_reset_interval_in_secs`, ban an IP, wait one interval. | The ban is reset and the metric updates, as before the migration. | DONE | `manual-verification-evidence.md` |
 
 ### Disposable Verification Scripts
 
@@ -268,12 +270,12 @@ None. Reuse the signalling script of SI-21 if it is still in its evidence folder
 
 | AC | Status | Evidence |
 | -- | ------ | -------- |
-| Shared supervisor, join order, controller-join test | TODO | Automatic checks, M2 |
-| Owner-type decision recorded and applied | TODO | T1, T3 |
-| `udp_ban_cleanup` is a component that stops before the health check | TODO | M2 |
-| Legacy path removed | TODO | M1 |
-| Behavior otherwise unchanged | TODO | M2, M3 |
-| `linter all` passes | TODO | Automatic checks |
+| Shared supervisor, join order, controller-join test | DONE | Automatic checks (`it_should_wait_for_the_drain_controller_when_the_server_join_fails`), M2, M3 |
+| Owner-type decision recorded and applied | DONE | T1, T3 |
+| `udp_ban_cleanup` is a component that stops before the health check | DONE | M2, M4, stop-order test in `src/app.rs` |
+| Legacy path removed | DONE | M1, T5 |
+| Behavior otherwise unchanged | DONE | M2, M3, M4 |
+| `linter all` passes | DONE | Automatic checks; CI of PR #2870 |
 
 ## Risks and Trade-offs
 
