@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2850-non-negative-number-of-bytes/ISSUE.md
-last-updated-utc: "2026-11-15 21:05"
+last-updated-utc: "2026-11-15 21:04"
 ---
 
 # Manual Verification Evidence

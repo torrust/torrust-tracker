@@ -6,7 +6,7 @@ epic: null
 github-issue: 1347
 spec-path: docs/issues/open/1347-overhaul-packages-testing/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-15 21:40"
+last-updated-utc: "2026-11-15 21:22"
 semantic-links:
   skill-links:
     - create-issue
@@ -351,7 +351,7 @@ For each subissue implementation, the completion policy is:
 - 2026-11-13 08:58 UTC - Claude Code - #2824 S3 (configuration defaults and bounded values, 24 tests added) re-measured `primitives` unit-only (= aggregate) at lines 93.13% (1,044 / 1,121), regions 94.66%, functions 92.69%, 105 unit tests. Both "Latest" tables carry the new values.
 - 2026-11-15 08:37 UTC - Claude Code - #2824 S4 (`swarm_metadata.rs` tests, the no-change rows, T4-T6) re-measured `primitives` unit-only (= aggregate) at lines 94.07% (1,078 / 1,146), regions 95.30%, functions 94.17%, 109 unit tests. The package mutation run (147 mutants) left no non-equivalent survivor after one test fix. Both "Latest" tables carry the final values; the row stays `IN_PROGRESS` until the S4 PR merges and the issue closes.
 - 2026-11-15 21:07 UTC - Claude Code - #2824 closed by #2864 (merged 2026-11-15 21:05 UTC); row 11 set to `DONE` and the spec archived to `docs/issues/closed/2824-1347-add-tests-primitives/`.
-- 2026-11-15 21:40 UTC - Claude Code (Opus 5.5) - Row 12 (#2838): the fix is the implementation of the standalone issue #2850, PR #2872 (open), which closes #2838 on merge. It removes the `primitives` test that pinned a negative `left` as a seeder (finding F6 of #2824) and the `-1` rows of the role table.
+- 2026-11-15 21:22 UTC - Claude Code (Opus 5.5) - Row 12 (#2838): the fix is the implementation of the standalone issue #2850, PR #2872 (open), which closes #2838 on merge. It removes the `primitives` test that pinned a negative `left` as a seeder (finding F6 of #2824) and the `-1` rows of the role table.
 
 ## Acceptance Criteria
 
