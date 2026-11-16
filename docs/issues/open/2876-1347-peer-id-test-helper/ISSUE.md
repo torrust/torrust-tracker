@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: draft
+status: planned
 priority: p2
-epic: null
-github-issue: null
-spec-path: docs/issues/drafts/peer-id-test-helper/ISSUE.md
-branch: "{issue-number}-peer-id-test-helper"
+epic: 1347
+github-issue: 2876
+spec-path: docs/issues/open/2876-1347-peer-id-test-helper/ISSUE.md
+branch: "2876-peer-id-test-helper"
 related-pr: null
-last-updated-utc: "2026-11-16 07:54"
+last-updated-utc: "2026-11-16 08:45"
 semantic-links:
   skill-links:
     - create-issue
@@ -26,7 +26,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Move `peer::Id::new` to a realistic test helper and decide whether `peer::fixture` goes behind a `testing` feature
+# Issue #2876 - Move `peer::Id::new` to a realistic test helper and decide whether `peer::fixture` goes behind a `testing` feature
 
 ## Goal
 
@@ -366,7 +366,7 @@ with the narrow affected scope, and sign every commit with GPG.
 
 - [x] Folder-style spec drafted in `docs/issues/drafts/peer-id-test-helper/ISSUE.md`
 - [ ] Spec reviewed and approved by user/maintainer (Q1-Q7 answered)
-- [ ] GitHub issue created and issue number added to this spec
+- [x] GitHub issue created (#2876) and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
@@ -402,6 +402,10 @@ with the narrow affected scope, and sign every commit with GPG.
   one Nit on this spec): `last-updated-utc` bumped and the round-3 entry above added.
 - 2026-11-16 07:54 UTC - Claude Code (Opus 5.5) - Rebased onto `develop` after #2871 moved the #2824
   spec to `docs/issues/closed/`; the `related-artifacts` entry and the References path now point there.
+- 2026-11-16 08:45 UTC - Claude Code (Sonnet 5.5) - Filed as #2876 under EPIC #1347 after #2865 merged
+  (`a25a27e23`). Moved from `docs/issues/drafts/peer-id-test-helper/` to
+  `docs/issues/open/2876-1347-peer-id-test-helper/`; `epic`, `github-issue`, `spec-path` and `branch`
+  set; status `planned`. Q1-Q7 are still unanswered; nothing is implemented.
 
 ## Acceptance Criteria
 
