@@ -53,7 +53,7 @@ F10 and F11 are da2ce7's review 5925989673 (`CHANGES_REQUESTED`), submitted at 1
 
 F12 and F13 are da2ce7's review 5926183635 (`COMMENTED`), submitted at 19:30:45 UTC on the head commit `docs(issues): [#2873] address da2ce7's third review of PR #2893`, in that source order. His IDs F10 and F11 collide with F10 and F11 above, so they are numbered F12 and F13, and his IDs are kept as the reviewer finding IDs. F13 follows up F11: its fix explained one gap in the totals and left another.
 
-F12 and F13 are da2ce7's review 5926183635 (`COMMENTED`), submitted at 19:30:45 UTC on the head commit `docs(issues): [#2873] address da2ce7's third review of PR #2893`, in that source order. His IDs F10 and F11 collide with F10 and F11 above, so they are numbered F12 and F13, and his IDs are kept as the reviewer finding IDs. F13 follows up F11: its fix explained one gap and left another.
+F14 is the one finding of da2ce7's review 5926341211 (`COMMENTED`), submitted at 19:41:31 UTC on the head commit `docs(issues): [#2873] address da2ce7's fourth review of PR #2893`. His ID F12 collides with F12 above, so it is numbered F14, and his ID is kept as the reviewer finding ID.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -70,6 +70,7 @@ F12 and F13 are da2ce7's review 5926183635 (`COMMENTED`), submitted at 19:30:45 
 | F11 | review-finding:pr-2893-f11 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-2893-f12 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F13 | review-finding:pr-2893-f13 | Human | Nit | documentation | RE_RAISE_OF:F11 | FIXED | RESOLVED |
+| F14 | review-finding:pr-2893-f14 | Human | Nit | formatting | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -242,6 +243,19 @@ F12 and F13 are da2ce7's review 5926183635 (`COMMENTED`), submitted at 19:30:45 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2893#discussion_r4590544893
 
+### F14 - The paragraph introducing F12 and F13 appears twice
+
+- PR number: 2893
+- Source review ID: 5926341211
+- Reviewer finding ID: F12
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2893#discussion_r4590593053
+- Concern: The commit for review 5926183635 added the paragraph that introduces F12 and F13 twice, almost word for word.
+- Solution: The shorter copy is removed; one paragraph remains.
+- Current-tree verification: the Findings section of this record has one paragraph starting `F12 and F13 are`.
+- Resolution reference: docs(pr-reviews): [#2873] address da2ce7's fifth review of PR #2893
+- Follow-up PR URL: N/A
+- Reply URL: pending: posted after the push of this record
+
 ## Processing Log
 
 - 2026-11-16 18:51 UTC - Review 5925597715 (Copilot, `COMMENTED`) submitted on the head commit `docs(issues): [#2873] cite the branch commits by subject, not by id`: F1 and F2, both Minor.
@@ -262,6 +276,8 @@ F12 and F13 are da2ce7's review 5926183635 (`COMMENTED`), submitted at 19:30:45 
 - 2026-11-16 19:32 UTC - Committed the F12 and F13 fixes, with the F10 and F11 Reply URLs.
 - 2026-11-16 19:37 UTC - Pushed them (push finished 19:37:04 UTC), replied to the two threads and resolved them by ID.
 - 2026-11-16 19:37 UTC - Filled in the F12 and F13 Reply URLs in a separate commit, so no row is left pending.
+- 2026-11-16 19:41 UTC - Review 5926341211 (da2ce7, `COMMENTED`) submitted on the head commit `docs(issues): [#2873] address da2ce7's fourth review of PR #2893`: F14, a Nit; the two pending Reply URLs it notes were filled in by the commit pushed at 19:41:32 UTC.
+- 2026-11-16 19:42 UTC - Committed the F14 fix.
 
 ## Completion Rules
 
