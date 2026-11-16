@@ -9,7 +9,7 @@ github-issue: 2394
 spec-path: docs/issues/open/2394-2392-audit-shared-test-resources/ISSUE.md
 branch: "2392-test-isolation-spec"
 related-pr: 2397
-last-updated-utc: "2026-11-16 13:54"
+last-updated-utc: "2026-11-16 17:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -93,12 +93,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | TODO | Define the search method | Repeatable search commands per resource class, recorded in `inventory.md`. |
-| T2 | TODO | Inventory network ports | Reuse #2393's per-test inventory for Rust tests: mark **Covered** only the rows #2393 owns (its ignored and rewritten tests). #2393 covers races within one suite run, so still audit Rust tests for collisions between concurrent runs on one host (for example the fixed ports `17091`-`17094` in `tests/metrics/fixed_ports.rs`, and the `reserve_free_ports` users in `tests/configuration/`, which #2393 left unchanged), and audit E2E runners, Compose files, container test scripts, and CI workflow steps. |
-| T3 | TODO | Inventory container resources | Findings with dispositions. |
-| T4 | TODO | Inventory filesystem paths | Findings with dispositions. |
-| T5 | TODO | Inventory process-global state and external services | Findings with dispositions. |
-| T6 | TODO | Draft subissues for new problems | One draft per confirmed problem (or cohesive group), linked from the EPIC after maintainer review. |
+| T1 | DONE | Define the search method | Repeatable search commands per resource class, recorded in `inventory.md`. |
+| T2 | DONE | Inventory network ports | Reuse #2393's per-test inventory for Rust tests: mark **Covered** only the rows #2393 owns (its ignored and rewritten tests). #2393 covers races within one suite run, so still audit Rust tests for collisions between concurrent runs on one host (for example the fixed ports `17091`-`17094` in `tests/metrics/fixed_ports.rs`, and the `reserve_free_ports` users in `tests/configuration/`, which #2393 left unchanged), and audit E2E runners, Compose files, container test scripts, and CI workflow steps. |
+| T3 | DONE | Inventory container resources | Findings with dispositions. |
+| T4 | DONE | Inventory filesystem paths | Findings with dispositions. |
+| T5 | DONE | Inventory process-global state and external services | Findings with dispositions. |
+| T6 | IN_PROGRESS | Draft subissues for new problems | One draft per confirmed problem (or cohesive group), linked from the EPIC after maintainer review. |
 
 ## Commit Points
 
@@ -131,6 +131,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-15 12:11 UTC - Claude Code (Claude Opus 5.5), EPIC coordinator - After the first review
   round on PR #2862: T2 marks Covered only the rows #2393 owns and still audits Rust tests for
   collisions between concurrent runs; the port class adds the released-port-probed-dead shape.
+- 2026-11-16 17:30 UTC - Claude Code (Claude Opus 5.5), #2394 session - T1 to T5 done at
+  `b009b6425`: `inventory.md` records 37 findings (29 isolated, 1 deliberate exception, 5 covered,
+  2 new problems). The maintainer decided the three judgement calls: P2 (fixed-port metrics test)
+  and F2 (leaked temporary files) are new problems, drafted for T6; C3 (local default image tags)
+  extends #2396's scope.
 
 ## Acceptance Criteria
 
