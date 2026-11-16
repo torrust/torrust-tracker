@@ -24,7 +24,7 @@ semantic-links:
 
 Benchmarks measure performance under a defined workload. They complement the correctness tests
 described in [Testing Strategy](testing.md); use [profiling](profiling.md) to find where a workload
-spends its time. The [`run-benchmarks` skill](../.github/skills/dev/benchmarking/run-benchmarks/SKILL.md)
+spends its time. The [`run-benchmarks` skill](../.claude/skills/run-benchmarks/SKILL.md)
 is the agent workflow for this guide.
 
 ## Benchmark Levels and Tools

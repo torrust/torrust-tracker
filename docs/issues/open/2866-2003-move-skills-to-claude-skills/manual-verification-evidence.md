@@ -1,10 +1,10 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2866-2003-move-skills-to-claude-skills/ISSUE.md
-last-updated-utc: 2026-11-16 08:10
+last-updated-utc: 2026-11-16 08:40
 ---
 
-<!-- cspell:ignore Autocompact dataviz -->
+<!-- cspell:ignore Autocompact dataviz endswith findall isfile normpath relpath startswith -->
 
 # Manual Verification Evidence
 
@@ -172,6 +172,225 @@ After the restore, the 9 `skills` tests passed.
 - Unit-test level: the placement decision is pure and observable from `misplaced_skill`, so it is
   a unit test; the index selection needs a real git index, so it is a command-boundary test.
 
+### T3 - The move and the reference sweep
+
+- Goal: record the commands that moved the skills and classified and rewrote the references, so a
+  reviewer can reproduce the sweep (spec, Classification rule for references).
+- Initial state: branch `2866-move-skills-to-claude-skills` after the T2 commit.
+- Status: `DONE`
+
+#### Steps Performed
+
+1. Built the name and area map from the 53 `SKILL.md` paths, then moved each skill folder:
+
+   ```bash
+   git ls-files .github/skills | grep 'SKILL.md$' | while read f; do d=$(dirname $f); n=$(basename $d); rel=${d#.github/skills/}; echo -e "$n\t$(dirname $rel)\t$d"; done | sort > .tmp/skill-map.tsv
+   mkdir -p .claude/skills
+   while IFS=$'\t' read n area d; do git mv "$d" ".claude/skills/$n"; done < .tmp/skill-map.tsv
+   ```
+
+   `git ls-files .github/skills | wc -l` printed `0`, `git ls-files .claude/skills | wc -l`
+   printed `71`, and every staged change was a rename.
+2. Ran the rewrite script below from the repository root (`python3 -I rewrite_skill_paths.py`).
+   It printed 121 link rewrites and 227 literal rewrites in 171 files, and two links it could not
+   map because they named an area folder, not a skill.
+3. Reviewed the result and corrected it by hand:
+   - restored the files the literal rewrite must not change: this issue's own spec and evidence
+     (they describe the old layout), the dated report
+     `docs/issues/open/2264-2003-refactor-semantic-link-conventions/external-link-check-residual-failures-2026-09-18.md`,
+     the verbatim `docs/issues/drafts/2003-mine-ai-agent-memories/github-copilot-memory-snapshot.md`,
+     and the placement test case in `src/skills.rs`, which must keep an old path;
+   - the two folder links: `AGENTS.md` now links `.claude/skills/`, and `docs/testing.md` links
+     `../.claude/skills/` until the T5 index exists;
+   - prose that names the folder in general: `AGENTS.md` (four places),
+     `.github/agents/README.md`, `setup-dev-environment`, `docs/agents/orchestration.md`, the
+     #1347 sub-issue guidelines, the #2758 EPIC, #2767, the #2003 EPIC `related-artifacts`, and
+     the validator README;
+   - `frontmatter-validator`: `skill-links` now resolve against `.claude/skills/<name>/SKILL.md`
+     only, through the placement rule's `skill_name`, with test cases for a skill one folder too
+     deep and one under the old folder;
+   - `validate-skill-links.sh` walks four folders up to the root instead of six.
+   - five legacy specs whose paths changed failed the commit gate with `legacy-shape`, so they
+     were migrated to v1 in the same commit, as the validator README requires:
+     `docs/issues/drafts/increase-main-app-integration-test-coverage/ISSUE.md`,
+     `docs/issues/drafts/optimize-event-publication-without-consumers/ISSUE.md`, and the open
+     specs of #1768, #1774 and #1843. The migration added `schema-version: 1` and `epic: null`,
+     quoted `last-updated-utc` (`00:00` where no time was recorded), replaced `status: open` with
+     `planned` (#1843), gave the first draft a `{issue-number}-...` branch instead of `null`, and
+     dropped its `related-artifacts` entry `tests/stats.rs`, deleted in `8151e920c` (2026-07-29).
+4. Checked the result (stable Rust toolchain): `frontmatter-validator --skill-layout` exited `0`
+   with no record; `linter lychee` exited `0`; `--all` reported only the 15 legacy-shape errors it
+   reported before; the tests of `frontmatter-validator`, `agent-review-report-contract`,
+   `github-review-threads` and `wait-for-pr-review`, and
+   `python3 -m unittest discover -s .claude/skills/process-pr-review/scripts`, passed;
+   `bash .claude/skills/run-tracker-locally/scripts/validate-skill-links.sh` printed
+   `Skill links validation passed`.
+
+#### Observed Result
+
+`linter lychee` (`torrust-linting` 0.2.0) passes `lychee` the globs `**/*.md` and
+`.github/**/*.md`; the first skips hidden folders. So the skills were link-checked under
+`.github/skills/`, and after the move they are not: a broken link appended to
+`.claude/skills/fix-bug/SKILL.md` was not reported, while one appended to
+`.github/workflows/AGENTS.md` was. Closing that gap needs a change in `torrust-linting`; it is
+recorded under Failures and Follow-up. Meanwhile a separate check resolved every relative
+Markdown link outside code fences in the tracked Markdown under `.claude/skills/` and `.github/`:
+115 links, none broken.
+
+Historical records keep their plain-text paths and frontmatter; their Markdown links were
+rewritten, because `lychee` checks them (only `docs/issues/closed/` is excluded). The literal
+rewrite skipped `docs/issues/closed/`, `docs/pr-reviews/pr-*`, `docs/copilot-pr-reviews/pr-*`,
+the closed refactor plans, `docs/discussions/`, the runner reports, and the
+`.github/agents/*.agent.md` profiles (out of scope).
+
+#### The Rewrite Script
+
+<details>
+<summary><code>rewrite_skill_paths.py</code> (one-off, not kept in the tree)</summary>
+
+```python
+"""Rewrite references to the moved skills (issue #2866, T3).
+
+Run from the repository root after `git mv` of every skill folder is staged.
+
+1. Markdown link targets: in every tracked Markdown file the link checker checks (all but
+   docs/issues/closed/ and docs/external-snapshots/), each relative link is resolved against the
+   file's OLD location, the target is mapped to its NEW location, and the link is recomputed from
+   the file's NEW location. This fixes depth changes inside moved skills and links into skills.
+2. Literal paths: in live files only, `.github/skills/<old skill dir>` becomes
+   `.claude/skills/<name>`.
+
+Prints every change as `file<TAB>kind<TAB>old<TAB>new` on stdout; unresolved targets under the old
+folder go to stderr.
+"""
+
+import os
+import re
+import subprocess
+import sys
+
+OLD_ROOT = ".github/skills"
+LINK_EXCLUDED = ("docs/issues/closed/", "docs/external-snapshots/")
+HISTORICAL = (
+    "docs/issues/closed/",
+    "docs/pr-reviews/pr-",
+    "docs/copilot-pr-reviews/pr-",
+    "docs/refactor-plans/closed/2",
+    "docs/refactor-plans/closed/agent-docs-refactor-plan/",
+    "docs/discussions/",
+    "docs/self-hosted-runner-reports/2",
+    "docs/external-snapshots/",
+)
+OUT_OF_SCOPE = re.compile(r"^\.github/agents/.*\.agent\.md$")
+
+
+def git(*args):
+    return subprocess.run(["git", *args], check=True, capture_output=True, text=True).stdout
+
+
+def renames():
+    files = {}
+    for line in git("diff", "--cached", "-M", "--name-status").splitlines():
+        parts = line.split("\t")
+        if parts[0].startswith("R") and parts[1].startswith(OLD_ROOT + "/"):
+            files[parts[1]] = parts[2]
+    return files
+
+
+FILES = renames()
+DIRS = {}
+for old, new in FILES.items():
+    if old.endswith("/SKILL.md"):
+        DIRS[os.path.dirname(old)] = os.path.dirname(new)
+NEW_TO_OLD = {new: old for old, new in FILES.items()}
+
+
+def new_of(old_path):
+    """The new repository path of an old path, or the path itself when it did not move."""
+    if old_path in FILES:
+        return FILES[old_path]
+    for old_dir, new_dir in DIRS.items():
+        if old_path == old_dir:
+            return new_dir
+        if old_path.startswith(old_dir + "/"):
+            return new_dir + old_path[len(old_dir):]
+    if old_path == OLD_ROOT or old_path.startswith(OLD_ROOT + "/"):
+        return None
+    return old_path
+
+
+LINK = re.compile(r"(\]\()(<?)([^)\s>]+)(>?)((?:\s+\"[^\"]*\")?\))|^(\[[^\]]+\]:\s+)(\S+)", re.M)
+
+
+def rewrite_target(target, old_file, new_file, report):
+    if re.match(r"^[a-z][a-z0-9+.-]*:", target, re.I) or target.startswith(("#", "/")):
+        return target
+    path, sep, fragment = target.partition("#")
+    if not path:
+        return target
+    old_target = os.path.normpath(os.path.join(os.path.dirname(old_file), path))
+    new_target = new_of(old_target)
+    if new_target is None:
+        report.append((new_file, target))
+        return target
+    if new_target == old_target and old_file == new_file:
+        return target
+    relative = os.path.relpath(new_target, os.path.dirname(new_file) or ".")
+    if path.endswith("/") and not relative.endswith("/"):
+        relative += "/"
+    if os.path.normpath(os.path.join(os.path.dirname(new_file), path)) == new_target:
+        return target  # still correct, keep the author's spelling
+    return relative + sep + fragment
+
+
+def main():
+    tracked = git("ls-files").splitlines()
+    literal = sorted(DIRS.items(), key=lambda item: -len(item[0]))
+    unresolved = []
+    for new_file in tracked:
+        if not os.path.isfile(new_file):
+            continue
+        old_file = NEW_TO_OLD.get(new_file, new_file)
+        try:
+            text = open(new_file, encoding="utf-8").read()
+        except UnicodeDecodeError:
+            continue
+        original = text
+        if new_file.endswith(".md") and not new_file.startswith(LINK_EXCLUDED):
+            def replace(match):
+                if match.group(1):
+                    target = match.group(3)
+                    new = rewrite_target(target, old_file, new_file, unresolved)
+                    if new != target:
+                        print(f"{new_file}\tlink\t{target}\t{new}")
+                    return match.group(1) + match.group(2) + new + match.group(4) + match.group(5)
+                target = match.group(7)
+                new = rewrite_target(target, old_file, new_file, unresolved)
+                if new != target:
+                    print(f"{new_file}\tlink\t{target}\t{new}")
+                return match.group(6) + new
+            text = LINK.sub(replace, text)
+        live = not new_file.startswith(HISTORICAL) and not OUT_OF_SCOPE.match(new_file)
+        if live:
+            for old_dir, new_dir in literal:
+                if old_dir in text:
+                    count = len(re.findall(re.escape(old_dir) + r"(?![\w-])", text))
+                    text = re.sub(re.escape(old_dir) + r"(?![\w-])", new_dir, text)
+                    if count:
+                        print(f"{new_file}\tliteral\t{old_dir}\t{new_dir}\t{count}")
+        if text != original:
+            open(new_file, "w", encoding="utf-8").write(text)
+    for file, target in unresolved:
+        print(f"UNRESOLVED\t{file}\t{target}", file=sys.stderr)
+
+
+main()
+```
+
+</details>
+
 ## Failures and Follow-up
 
-None.
+- `linter lychee` does not check `.claude/**/*.md` (T3): `torrust-linting` passes only
+  `**/*.md` and `.github/**/*.md`. Follow-up: add `.claude/**/*.md` there, then confirm a broken
+  link in a skill fails `linter lychee`.

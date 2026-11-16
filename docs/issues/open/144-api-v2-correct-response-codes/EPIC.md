@@ -11,7 +11,7 @@ semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - .github/skills/dev/planning/create-issue/SKILL.md
+    - .claude/skills/create-issue/SKILL.md
     - docs/issues/drafts/144-make-rest-api-persistence-aware/ISSUE.md
     - docs/adrs/20260623200526_adopt_contract-first_architecture_for_rest_api.md
     - docs/adrs/20260901113500_define_completed_download_metric_retention_names.md

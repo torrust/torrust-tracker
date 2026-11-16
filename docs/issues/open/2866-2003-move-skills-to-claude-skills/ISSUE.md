@@ -9,14 +9,14 @@ github-issue: 2866
 spec-path: docs/issues/open/2866-2003-move-skills-to-claude-skills/ISSUE.md
 branch: "2866-move-skills-to-claude-skills"
 related-pr: null
-last-updated-utc: "2026-11-16 08:10"
+last-updated-utc: "2026-11-16 08:40"
 semantic-links:
   skill-links:
     - create-issue
     - add-new-skill
     - cleanup-completed-issues
   related-artifacts:
-    - .github/skills
+    - .claude/skills
     - AGENTS.md
     - docs/agents/README.md
     - docs/skills/semantic-skill-link-convention.md
@@ -315,7 +315,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | ------ | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | T1  | TODO   | Create the description follow-up issue   | A new EPIC #2003 sub-issue to shorten and retune the 53 descriptions, with the measurements above, and to fix the cut `write-markdown-docs` description. Created before the implementation PR opens, so the PR links it.                                                                     |
 | T2  | DONE   | Placement rule, proven red               | The regression test: the placement rule of [Validator rules](#validator-rules-after-the-move) with its unit tests, not yet wired into the hook. Its run against the tree before the move is recorded red in `manual-verification-evidence.md`. |
-| T3  | TODO   | Move the skills and fix every live path  | `git mv` of all 71 files; relative links inside moved skills; depth-dependent paths in moved scripts (`validate-skill-links.sh`); tooling paths; every live reference by the classification rule. The commit passes `linter all` and the tests on its own. Git shows 71 renames.                           |
+| T3  | DONE   | Move the skills and fix every live path  | `git mv` of all 71 files; relative links inside moved skills; depth-dependent paths in moved scripts (`validate-skill-links.sh`); tooling paths; every live reference by the classification rule. The commit passes `linter all` and the tests on its own. Git shows 71 renames.                           |
 | T4  | TODO   | Add the redirect stubs                   | 53 stubs plus `.github/skills/README.md`, which says the folder only holds redirects and inventories the 53 original paths.                                                                                                                                                       |
 | T5  | TODO   | Add the index                            | `.claude/skills/README.md` lists each skill by area (today's area folders), with a one-line purpose, and notes the old location. `AGENTS.md` and `docs/agents/` point to it.                                                          |
 | T6  | TODO   | Remaining validator rules                | The other rules in [Validator rules](#validator-rules-after-the-move), with unit tests and a negative case for each; the placement rule and these rules are wired into the pre-commit hook and CI, and the placement rule's green run is recorded. Tests follow the `write-unit-test` skill and the test-design review in [Commit Points](#commit-points).                                                                                  |
@@ -374,6 +374,7 @@ pull request.
 - 2026-11-15 20:48 UTC - Claude Code (Claude Opus 5.5) - Reproduced the defect in a fresh clone of `develop` at `abd7a10ff` (M0): no project skill listed, `/create-issue` not run as a command - `manual-verification-evidence.md` V0
 - 2026-11-16 08:00 UTC - Claude Code (Claude Opus 5.5) - Spec PR #2869 merged; implementation started on `2866-move-skills-to-claude-skills` - https://github.com/torrust/torrust-tracker/pull/2869
 - 2026-11-16 08:10 UTC - Claude Code (Claude Opus 5.5) - T2: placement rule `frontmatter-validator --skill-layout` with unit and command tests; red on the tree before the move (53 `misplaced-skill` errors, exit 1); two mutations caught - `manual-verification-evidence.md` T2
+- 2026-11-16 08:40 UTC - Claude Code (Claude Opus 5.5) - T3: moved the 71 files with `git mv`, rewrote 121 Markdown links and 227 literal paths with the recorded script, fixed the rest by hand; the placement rule passes, `linter lychee` passes, and an own check found no broken relative link in `.claude/skills/` or `.github/`, which `lychee` skips as hidden folders - `manual-verification-evidence.md` T3
 
 ## Acceptance Criteria
 

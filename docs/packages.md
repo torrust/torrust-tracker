@@ -309,7 +309,7 @@ A crate inside the skill folder that uses it, _(unpublished)_.
 
 | Tool                                                      | Crate Name           | Description                                                      |
 | --------------------------------------------------------- | -------------------- | ---------------------------------------------------------------- |
-| `.github/skills/dev/pr-reviews/wait-for-pr-review/tool`   | `wait-for-pr-review` | Blocks until a PR reviewer event happens, through the GitHub CLI |
+| `.claude/skills/wait-for-pr-review/tool`   | `wait-for-pr-review` | Blocks until a PR reviewer event happens, through the GitHub CLI |
 
 ### Community contributions
 

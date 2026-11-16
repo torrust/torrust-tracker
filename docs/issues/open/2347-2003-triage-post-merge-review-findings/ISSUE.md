@@ -17,7 +17,7 @@ semantic-links:
     - fetch-review-threads
   related-artifacts:
     - "issue #2003"
-    - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
+    - .claude/skills/process-pr-review/SKILL.md
     - docs/templates/PR-REVIEW-TEMPLATE.md
     - docs/pr-reviews/pr-2300-review/PR-REVIEW.md
     - docs/pr-reviews/pr-2313-review/PR-REVIEW.md
@@ -286,7 +286,7 @@ T1-T3 change no repository file; their evidence is the GitHub replies and commen
 ### Automatic Checks
 
 - `linter all`
-- `python3 .github/skills/dev/pr-reviews/process-pr-review/scripts/validate-audit-record.py --pr-number <PR>` for each of the five PRs
+- `python3 .claude/skills/process-pr-review/scripts/validate-audit-record.py --pr-number <PR>` for each of the five PRs
 - `TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-commit.sh --format=text`
 - Pre-push checks before opening the implementation pull request
 

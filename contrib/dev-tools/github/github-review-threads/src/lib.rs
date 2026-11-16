@@ -408,8 +408,7 @@ mod tests {
 
     const FETCHED_BEFORE_RESOLVER_AND_LINE: &[u8] = include_bytes!("../tests/fixtures/review-threads.json");
 
-    const FETCH_REVIEW_THREADS_SKILL: &str =
-        include_str!("../../../../../.github/skills/dev/pr-reviews/fetch-review-threads/SKILL.md");
+    const FETCH_REVIEW_THREADS_SKILL: &str = include_str!("../../../../../.claude/skills/fetch-review-threads/SKILL.md");
 
     struct FixtureSource;
 

@@ -15,7 +15,7 @@ semantic-links:
     - .github/workflows/testing.yaml
     - docs/issues/README.md
     - docs/issues/drafts/README.md
-    - .github/skills/dev/planning/create-issue/SKILL.md
+    - .claude/skills/create-issue/SKILL.md
 ---
 
 # EPIC #1840 - Improve PR Workflow Performance

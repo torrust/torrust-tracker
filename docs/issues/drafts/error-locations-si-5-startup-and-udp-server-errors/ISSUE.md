@@ -14,8 +14,8 @@ semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - .github/skills/dev/debugging/fix-bug/SKILL.md
-    - .github/skills/dev/planning/create-issue/SKILL.md
+    - .claude/skills/fix-bug/SKILL.md
+    - .claude/skills/create-issue/SKILL.md
     - docs/issues/drafts/remove-source-locations-from-errors/EPIC.md
     - docs/issues/open/2804-location-caller-track-caller-audit/inventory.md
     - packages/configuration/src/lib.rs
@@ -96,7 +96,7 @@ asynchronous I/O, network readiness, resource cleanup or reusable test fixture.
 ## Bug-Fix Process
 
 Removing a location that a client can read is substantively a bug fix (misleading output), so this
-issue follows `.github/skills/dev/debugging/fix-bug/SKILL.md`:
+issue follows `.claude/skills/fix-bug/SKILL.md`:
 
 - analysis: the call paths and audiences are in the audit inventory
   (`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`, T2 table); re-check them against the tree before the first change;

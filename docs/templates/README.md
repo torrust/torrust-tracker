@@ -4,7 +4,7 @@ semantic-links:
     - create-markdown-template
   related-artifacts:
     - docs/index.md
-    - .github/skills/dev/planning/create-markdown-template/SKILL.md
+    - .claude/skills/create-markdown-template/SKILL.md
 ---
 
 <!-- skill-link: create-markdown-template -->

@@ -8,7 +8,7 @@ semantic-links:
   skill-links:
     - create-refactor-plan
   related-artifacts:
-    - .github/skills/dev/planning/create-refactor-plan/SKILL.md
+    - .claude/skills/create-refactor-plan/SKILL.md
 ---
 
 <!-- skill-link: create-refactor-plan -->

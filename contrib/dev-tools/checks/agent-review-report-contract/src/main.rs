@@ -26,7 +26,7 @@ const REQUIRED_TEXT: &[(&str, &str)] = &[
     ),
     ("docs/agents/orchestration.md", "pr_review_audit[Pull-request review audit]"),
     (
-        ".github/skills/dev/pr-reviews/process-pr-review/SKILL.md",
+        ".claude/skills/process-pr-review/SKILL.md",
         "docs/pr-reviews/pr-<PR_NUMBER>-review/PR-REVIEW.md",
     ),
     ("docs/templates/PR-REVIEW-TEMPLATE.md", "| Author class |"),
@@ -55,11 +55,11 @@ const REQUIRED_TEXT: &[(&str, &str)] = &[
     ),
     ("docs/skills/semantic-skill-link-convention.md", "`review-finding:pr-2230-f1`"),
     (
-        ".github/skills/dev/pr-reviews/fetch-review-threads/SKILL.md",
+        ".claude/skills/fetch-review-threads/SKILL.md",
         "component skill within the **process-pr-review** workflow",
     ),
     (
-        ".github/skills/dev/pr-reviews/resolve-review-threads/SKILL.md",
+        ".claude/skills/resolve-review-threads/SKILL.md",
         "See **process-pr-review** for the full end-to-end process.",
     ),
     (
@@ -67,15 +67,15 @@ const REQUIRED_TEXT: &[(&str, &str)] = &[
         "process-pr-review skill",
     ),
     (
-        ".github/skills/dev/pr-reviews/process-copilot-suggestions/SKILL.md",
+        ".claude/skills/process-copilot-suggestions/SKILL.md",
         "This compatibility entry point is retained for one release.",
     ),
     (
-        ".github/skills/dev/pr-reviews/process-pr-review-feedback/SKILL.md",
+        ".claude/skills/process-pr-review-feedback/SKILL.md",
         "This compatibility entry point is retained for one release.",
     ),
     (
-        ".github/skills/dev/pr-reviews/process-pr-review/SKILL.md",
+        ".claude/skills/process-pr-review/SKILL.md",
         "docs/templates/REVIEW-FINDINGS.md",
     ),
     ("docs/templates/PR-REVIEW-TEMPLATE.md", "| Review finding reference |"),
@@ -85,44 +85,35 @@ const REQUIRED_TEXT: &[(&str, &str)] = &[
         "Never change a reference after assigning it.",
     ),
     (
-        ".github/skills/dev/pr-reviews/process-pr-review/SKILL.md",
+        ".claude/skills/process-pr-review/SKILL.md",
         "Classify `github-copilot[bot]` and",
     ),
     (
-        ".github/skills/dev/pr-reviews/process-pr-review/SKILL.md",
+        ".claude/skills/process-pr-review/SKILL.md",
         "`copilot-pull-request-reviewer` as `Copilot`, human accounts as `Human`, and",
     ),
     (
-        ".github/skills/dev/pr-reviews/process-pr-review/SKILL.md",
+        ".claude/skills/process-pr-review/SKILL.md",
         "every other bot or unavailable author as `Unknown`.",
     ),
     (
-        ".github/skills/dev/pr-reviews/process-pr-review/SKILL.md",
+        ".claude/skills/process-pr-review/SKILL.md",
         "**Categorize for future analysis.** For every new audit row, assign exactly one",
     ),
     (
-        ".github/skills/dev/pr-reviews/process-pr-review/SKILL.md",
+        ".claude/skills/process-pr-review/SKILL.md",
         "primary category: `link-integrity`, `formatting`, `metadata`, `testing`,",
     ),
     (
-        ".github/skills/dev/pr-reviews/process-pr-review/SKILL.md",
+        ".claude/skills/process-pr-review/SKILL.md",
         "`correctness`, `documentation`, `maintainability`, `security`, or `other`.",
     ),
-    (
-        ".github/skills/dev/pr-reviews/process-pr-review/SKILL.md",
-        "### Tracking Row Fields",
-    ),
-    (".github/skills/dev/pr-reviews/process-pr-review/SKILL.md", "- Finding ID"),
-    (
-        ".github/skills/dev/pr-reviews/process-pr-review/SKILL.md",
-        "### Detail-Entry Heading Field",
-    ),
-    (".github/skills/dev/pr-reviews/process-pr-review/SKILL.md", "- Summary"),
-    (
-        ".github/skills/dev/pr-reviews/process-pr-review/SKILL.md",
-        "### Detail-Entry Fields",
-    ),
-    (".github/skills/dev/pr-reviews/process-pr-review/SKILL.md", "- PR number"),
+    (".claude/skills/process-pr-review/SKILL.md", "### Tracking Row Fields"),
+    (".claude/skills/process-pr-review/SKILL.md", "- Finding ID"),
+    (".claude/skills/process-pr-review/SKILL.md", "### Detail-Entry Heading Field"),
+    (".claude/skills/process-pr-review/SKILL.md", "- Summary"),
+    (".claude/skills/process-pr-review/SKILL.md", "### Detail-Entry Fields"),
+    (".claude/skills/process-pr-review/SKILL.md", "- PR number"),
     (
         "docs/templates/PR-REVIEW-TEMPLATE.md",
         "- Author class: `Copilot`, `Human`, `Unknown`",
@@ -164,7 +155,7 @@ const WRAPPED_TEXT: &[(&str, &str)] = &[
         "For every new audit row, record the source author's derived `Author class` and exactly one primary `Category`.",
     ),
     (
-        ".github/skills/dev/pr-reviews/process-pr-review/SKILL.md",
+        ".claude/skills/process-pr-review/SKILL.md",
         "Record each finding as one compact tracking row plus one matching detail entry carrying the remaining narrative and source-metadata fields, as laid out in the audit template.",
     ),
     (
@@ -212,11 +203,11 @@ const WRAPPED_TEXT: &[(&str, &str)] = &[
         "Do not invoke Committer or self-commit a report. When the report changes a branch or pull-request worktree, the caller requests Committer to include it in the coherent reviewed change set or create a focused documentation commit.",
     ),
     (
-        ".github/skills/dev/pr-reviews/process-pr-review/SKILL.md",
+        ".claude/skills/process-pr-review/SKILL.md",
         "Categorize the concern rather than its proposed fix;",
     ),
     (
-        ".github/skills/dev/pr-reviews/process-pr-review/SKILL.md",
+        ".claude/skills/process-pr-review/SKILL.md",
         "Historical records remain valid without the analysis fields.",
     ),
     (
@@ -236,7 +227,7 @@ const WRAPPED_TEXT: &[(&str, &str)] = &[
         "This convention applies to new audits only. Historical audit records remain unchanged",
     ),
     (
-        ".github/skills/dev/pr-reviews/process-pr-review/SKILL.md",
+        ".claude/skills/process-pr-review/SKILL.md",
         "Never change the reference after assigning it. Historical audit records remain unchanged",
     ),
     (
@@ -248,7 +239,7 @@ const WRAPPED_TEXT: &[(&str, &str)] = &[
         "commit-subject citation",
     ),
     (
-        ".github/skills/dev/pr-reviews/process-pr-review/SKILL.md",
+        ".claude/skills/process-pr-review/SKILL.md",
         "Record each finding as one compact tracking row plus one matching detail entry carrying the remaining narrative and source-metadata fields, as laid out in the audit template.",
     ),
 ];
@@ -261,17 +252,17 @@ const EDIT_CAPABLE_REVIEWERS: &[&str] = &[
 
 const FRONTMATTER_FILES: &[&str] = &[
     "docs/templates/AGENT-REVIEW-REPORTS.md",
-    ".github/skills/dev/pr-reviews/process-copilot-suggestions/SKILL.md",
-    ".github/skills/dev/pr-reviews/process-pr-review-feedback/SKILL.md",
-    ".github/skills/dev/pr-reviews/process-pr-review/SKILL.md",
+    ".claude/skills/process-copilot-suggestions/SKILL.md",
+    ".claude/skills/process-pr-review-feedback/SKILL.md",
+    ".claude/skills/process-pr-review/SKILL.md",
 ];
 
 const PROCESS_PR_REVIEW_ARTIFACTS: &[&str] = &[
     "docs/issues/closed/2219-2003-unify-pr-review-processing/ISSUE.md",
     "docs/templates/PR-REVIEW-TEMPLATE.md",
     "docs/templates/REVIEW-FINDINGS.md",
-    ".github/skills/dev/pr-reviews/fetch-review-threads/SKILL.md",
-    ".github/skills/dev/pr-reviews/resolve-review-threads/SKILL.md",
+    ".claude/skills/fetch-review-threads/SKILL.md",
+    ".claude/skills/resolve-review-threads/SKILL.md",
 ];
 
 const FORBIDDEN_TEXT: &[(&str, &str)] = &[
@@ -283,19 +274,19 @@ const FORBIDDEN_TEXT: &[(&str, &str)] = &[
     (".github/agents/copilot-suggestions-handler.agent.md", "branch SHA"),
     ("docs/agents/orchestration.md", "Copilot suggestions tracker"),
     (
-        ".github/skills/dev/pr-reviews/process-copilot-suggestions/SKILL.md",
+        ".claude/skills/process-copilot-suggestions/SKILL.md",
         "docs/copilot-pr-reviews/",
     ),
     (
-        ".github/skills/dev/pr-reviews/process-copilot-suggestions/SKILL.md",
+        ".claude/skills/process-copilot-suggestions/SKILL.md",
         "docs/pr-review-feedback/",
     ),
     (
-        ".github/skills/dev/pr-reviews/process-pr-review-feedback/SKILL.md",
+        ".claude/skills/process-pr-review-feedback/SKILL.md",
         "docs/copilot-pr-reviews/",
     ),
     (
-        ".github/skills/dev/pr-reviews/process-pr-review-feedback/SKILL.md",
+        ".claude/skills/process-pr-review-feedback/SKILL.md",
         "docs/pr-review-feedback/",
     ),
     (".github/agents/complexity-auditor.agent.md", "git commit"),
@@ -336,7 +327,7 @@ fn main() -> ExitCode {
     for artifact in PROCESS_PR_REVIEW_ARTIFACTS {
         if !has_related_artifact(
             workspace_root,
-            ".github/skills/dev/pr-reviews/process-pr-review/SKILL.md",
+            ".claude/skills/process-pr-review/SKILL.md",
             artifact,
             &mut failures,
         ) {
@@ -463,8 +454,8 @@ fn verify_review_routing(workspace_root: &Path, failures: &mut Vec<String>) {
     );
 
     for helper in [
-        ".github/skills/dev/pr-reviews/fetch-review-threads/SKILL.md",
-        ".github/skills/dev/pr-reviews/resolve-review-threads/SKILL.md",
+        ".claude/skills/fetch-review-threads/SKILL.md",
+        ".claude/skills/resolve-review-threads/SKILL.md",
     ] {
         require(
             workspace_root,
@@ -481,8 +472,8 @@ fn verify_review_routing(workspace_root: &Path, failures: &mut Vec<String>) {
     }
 
     for redirect in [
-        ".github/skills/dev/pr-reviews/process-copilot-suggestions/SKILL.md",
-        ".github/skills/dev/pr-reviews/process-pr-review-feedback/SKILL.md",
+        ".claude/skills/process-copilot-suggestions/SKILL.md",
+        ".claude/skills/process-pr-review-feedback/SKILL.md",
     ] {
         require_frontmatter(workspace_root, redirect, failures);
         require(
@@ -500,7 +491,7 @@ fn verify_review_routing(workspace_root: &Path, failures: &mut Vec<String>) {
 
 fn verify_audit_schema(workspace_root: &Path, failures: &mut Vec<String>) {
     let template = "docs/templates/PR-REVIEW-TEMPLATE.md";
-    let workflow = ".github/skills/dev/pr-reviews/process-pr-review/SKILL.md";
+    let workflow = ".claude/skills/process-pr-review/SKILL.md";
 
     for text in [
         "| Author class |",
@@ -581,7 +572,7 @@ fn verify_finding_details(workspace_root: &Path, failures: &mut Vec<String>) {
     );
     require_wrapped(
         workspace_root,
-        ".github/skills/dev/pr-reviews/process-pr-review/SKILL.md",
+        ".claude/skills/process-pr-review/SKILL.md",
         "Record each finding as one compact tracking row plus one matching detail entry carrying the remaining narrative and source-metadata fields, as laid out in the audit template.",
         failures,
     );
@@ -590,7 +581,7 @@ fn verify_finding_details(workspace_root: &Path, failures: &mut Vec<String>) {
 fn verify_portable_references(workspace_root: &Path, failures: &mut Vec<String>) {
     let convention = "docs/skills/semantic-skill-link-convention.md";
     let template = "docs/templates/PR-REVIEW-TEMPLATE.md";
-    let workflow = ".github/skills/dev/pr-reviews/process-pr-review/SKILL.md";
+    let workflow = ".claude/skills/process-pr-review/SKILL.md";
     for text in [
         "| `review-finding`    | `pr-<number>-<id>`",
         "`review-finding:pr-<PR_NUMBER>-<FINDING_ID>`",

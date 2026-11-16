@@ -14,8 +14,8 @@ semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - .github/skills/dev/debugging/fix-bug/SKILL.md
-    - .github/skills/dev/planning/create-issue/SKILL.md
+    - .claude/skills/fix-bug/SKILL.md
+    - .claude/skills/create-issue/SKILL.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -73,7 +73,7 @@ ownership boundaries, not speculative abstraction.
 ## Bug-Fix Process
 
 For bug work, including work whose metadata or labels do not say `bug`, use
-`.github/skills/dev/debugging/fix-bug/SKILL.md` and summarize the planned or
+`.claude/skills/fix-bug/SKILL.md` and summarize the planned or
 completed sequence:
 
 - analysis of the defect and local hypothesis;

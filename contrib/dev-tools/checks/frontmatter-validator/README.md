@@ -86,7 +86,7 @@ A staged edit to a draft or open `ISSUE.md` or `EPIC.md` without v1 frontmatter 
 
    Only `skill-links` and `related-artifacts` are allowed under `semantic-links`.
 6. Repair stale references. Every repository path in `related-artifacts` must name a tracked file
-   or directory, and every `skill-links` name must match a `.github/skills/**/<name>/SKILL.md`.
+   or directory, and every `skill-links` name must match a `.claude/skills/<name>/SKILL.md`.
    Specs moved to `docs/issues/closed/` are the usual cause.
 7. Set `spec-path` to the file's own repository path.
 

@@ -1,0 +1,394 @@
+---
+name: create-issue
+description: Guide for creating GitHub issues in the torrust-tracker project. Covers the full workflow from specification drafting, user review, to GitHub issue creation with proper documentation and file naming. Supports task, bug, feature, and epic issue types. Use when creating issues, opening tickets, filing bugs, proposing tasks, or adding features. Triggers on "create issue", "open issue", "new issue", "file bug", "add task", "create epic", or "open ticket".
+semantic-links:
+  skill-links:
+    - fix-bug
+  related-artifacts:
+    - .claude/skills/fix-bug/SKILL.md
+    - docs/templates/ISSUE.md
+    - docs/templates/EPIC.md
+    - docs/templates/IMPLEMENTATION-RETROSPECTIVE.md
+    - docs/templates/MANUAL-VERIFICATION-EVIDENCE.md
+metadata:
+  author: torrust
+  version: "1.1"
+---
+
+# Creating Issues
+
+## Issue Types
+
+| Type        | Label     | When to Use                                  |
+| ----------- | --------- | -------------------------------------------- |
+| **Task**    | `task`    | Single implementable unit of work            |
+| **Bug**     | `bug`     | Something broken that needs fixing           |
+| **Feature** | `feature` | New capability or enhancement                |
+| **Epic**    | `epic`    | Major feature area containing multiple tasks |
+
+Bug handling is semantic, not metadata-only. If the requested work describes broken, incorrect,
+stale, misleading, unexpectedly failing, or regressed behavior, treat it as a bug even when the
+issue type or GitHub labels say something else. Load
+[fix-bug](../fix-bug/SKILL.md) and include the bug-only specification sections it
+requires.
+
+## Workflow Overview
+
+The process is **spec-first**: write and review a specification before creating the GitHub issue.
+
+Lifecycle docs:
+
+- Open issue specs: [`docs/issues/open/README.md`](../../../docs/issues/open/README.md)
+- Closed issue buffer: [`docs/issues/closed/README.md`](../../../docs/issues/closed/README.md)
+
+1. **Draft a folder-style specification** in `docs/issues/drafts/` using the repository templates
+   appropriate to the issue type (`docs/templates/ISSUE.md` for Task/Bug/Feature,
+   `docs/templates/EPIC.md` for Epic). Concrete folder-style primary
+   specifications use the allowed uppercase filenames `ISSUE.md` or `EPIC.md`.
+2. **User reviews** the draft specification
+3. **Create GitHub issue**, then decide whether to open a spec-only PR and name the branch to match
+4. **Move the spec directory to `docs/issues/open/`** and include the issue number
+5. **Pre-commit checks** and commit the spec
+
+For complex or high-impact issues, a **spec-first PR** is recommended:
+
+- Open a branch containing only issue-spec/EPIC documentation changes
+- Submit and merge that PR into `develop` first
+- Start implementation only after the specification PR has been reviewed and merged
+- Use `Related to #<number>` (not `Closes #<number>`) in the spec-only PR body to avoid
+  auto-closing the issue on merge (see the `open-pull-request` skill)
+
+This improves visibility and allows maintainers/contributors to review scope and acceptance
+criteria before code changes begin.
+
+**Never create the GitHub issue before the user reviews and approves the specification.**
+
+## Step-by-Step Process
+
+### Step 1: Draft Issue Specification
+
+Create a specification with a **temporary name** (no subissue number yet). When the proposed
+subissue has a known parent EPIC, prefix the draft name with that EPIC's GitHub issue number:
+
+```text
+docs/issues/drafts/{epic-issue-number}-{short-description}/ISSUE.md
+```
+
+This prefix identifies the known parent EPIC; it is not a placeholder for the future subissue's
+own GitHub issue number. Do not infer a parent EPIC from related issues, ADRs, or topic overlap.
+If the parent is not explicitly established, use an unnumbered descriptive draft folder:
+
+```bash
+mkdir -p docs/issues/drafts/{short-description}
+touch docs/issues/drafts/{short-description}/ISSUE.md
+```
+
+All new specifications use a folder-style layout. It keeps issue-local artifacts, such as an
+immutable source snapshot, evidence, design input, or an implementation retrospective with the
+main specification. Place the main specification in uppercase `ISSUE.md`, or `EPIC.md` for an
+EPIC; issue-local supporting artifacts use lowercase kebab-case names:
+
+```bash
+mkdir -p docs/issues/drafts/{short-description}
+touch docs/issues/drafts/{short-description}/ISSUE.md
+```
+
+For an EPIC, use:
+
+```bash
+mkdir -p docs/issues/drafts/{short-description}
+touch docs/issues/drafts/{short-description}/EPIC.md
+```
+
+For a known parent EPIC, apply the same prefix to a folder-style draft:
+
+```bash
+mkdir -p docs/issues/drafts/{epic-issue-number}-{short-description}
+touch docs/issues/drafts/{epic-issue-number}-{short-description}/ISSUE.md
+```
+
+Select the template by issue type:
+
+- Task/Bug/Feature: [docs/templates/ISSUE.md](../../../docs/templates/ISSUE.md)
+- Epic: [docs/templates/EPIC.md](../../../docs/templates/EPIC.md)
+
+Before presenting the draft for review, initialize these sections so progress can be tracked
+explicitly during implementation:
+
+- YAML frontmatter metadata (including `status`, `epic`, `github-issue`, `spec-path`, and `last-updated-utc`)
+- `Implementation Plan` (or `Subissues` for epics) with explicit status values
+- For Task, Bug, and Feature specifications, `Commit Points` that map each code-, test-,
+  configuration-, or documentation-changing implementation task to a small, coherent,
+  independently reviewable commit opportunity. EPICs track delivery through `Subissues`; their
+  implementation commit points belong in the linked subissue specifications. Record justified
+  no-change decisions in task evidence without creating an empty commit.
+- `Architectural Decisions`, linking relevant ADRs and listing any ADRs expected from the work
+- `Progress Tracking` (`Workflow Checkpoints` and first `Progress Log` entry; an AI agent names
+  its model after the agent in each log entry it writes)
+- `Acceptance Criteria` and `Acceptance Verification`
+- `Implementation Completion Review`, with the conditions for creating an
+  issue-local `implementation-retrospective.md` or recording why one is
+  unnecessary
+
+The draft must also include a verification policy that is explicit and enforceable:
+
+- Automatic checks to run after implementation (`linter all`, relevant tests, pre-push checks when applicable)
+- Mandatory manual verification scenarios that describe real human-oriented feature use or bug reproduction, with status tracked in the spec and actual commands, output, and relevant logs recorded in issue-local `manual-verification-evidence.md`
+- Toolchain-qualified validation evidence for every recorded command result when a toolchain or runtime can affect behavior; for example, name the `nightly Rust toolchain` for `cargo +nightly fmt --all -- --check`
+- When a disposable verification script is proposed, its issue-local path, concrete automatic-test rationale, removal/retention owner, and, for Python, why Rust is unsuitable for that script
+- A post-implementation acceptance criteria review step
+- An evidence-based implementation completion review that records reusable
+  lessons, material design changes, or deviations from the plan. Use
+  `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` when a separate
+  retrospective is warranted; otherwise require a concise progress-log entry
+  explaining why it is not.
+
+For work involving child processes, asynchronous I/O, network readiness,
+resource cleanup, or reusable test fixtures, the draft must additionally define:
+
+- a responsibility and ownership map;
+- normal and failure/drop-path resource lifetime invariants;
+- absolute deadline coverage for every awaited readiness operation; and
+- a design-review checkpoint after the first passing vertical slice.
+
+For testing or coverage-focused issue specs, also require:
+
+- an issue-local, human-readable coverage-evidence document when coverage is measured;
+- the exact reproducible coverage command and a statement of what paths and code types it includes;
+- separate aggregate/global and unit-only baseline/current tables, plus per-file coverage and
+  prioritized uncovered functions, regions, or behavior gaps. Aggregate/global coverage tracks all
+  selected test levels; unit-only coverage tracks the primary package-local objective. Do not infer
+  sufficient unit coverage from aggregate, integration, example, or end-to-end results. Record
+  integration-only results separately when they inform an ownership decision; and
+- a policy to retain concise Markdown evidence rather than raw generated JSON, LCOV, or HTML
+  artifacts unless the artifact itself has a documented human-review purpose.
+
+For package-testing work, require a feasible focused unit test to be assessed before accepting
+higher-level coverage as sufficient. Integration, example, root, or end-to-end coverage may retain
+a distinct contract, but must not be used to decline a package-owned unit test that is deterministic
+and readable at the unit boundary. A documented no-unit-test decision must state why the behavior
+cannot be protected appropriately by a unit test or why the higher-level boundary is demonstrably
+clearer and more maintainable.
+
+For bug work, even when the metadata is wrong or missing, the draft must include `Bug-Fix Process`
+and `Regression Test Strategy` sections that link to
+[fix-bug](../fix-bug/SKILL.md). The verification plan must require issue-local
+`manual-verification-evidence.md` for the initial real-artifact reproduction and final like-for-like
+recheck. If reproduction is infeasible, the evidence file must record the attempted commands,
+blocking constraint, and strongest substitute evidence.
+
+When the plan adds or changes tests, include a progressive test-development loop: use the
+`write-unit-test` skill; make the smallest behavior-focused increment; and, after it passes focused
+validation, perform and record an explicit design review before maintainer review and commit. The
+review must confirm the test exposes the one causal initial-state difference, its fixture owns only
+incidental mechanics, and the production Act plus independently specified expected result remain
+visible. Make the review enforceable with the mandatory prose-first Arrange-Act-Assert comparison:
+write temporary prose for each section, refactor until the code expresses it, remove redundant prose,
+and record the result in task evidence or a file-local plan. Complete this review for every
+test-producing subtask before starting the next one. Stop for maintainer review after the final
+increment before final verification, commit, or pull request. Direct test authors to the test
+refactoring-pattern catalog when applicable. Require the test-design review to judge helper
+boundaries by meaningful named actions and abstraction-level alignment, not caller count; a
+single-use helper is valid when it hides only incidental mechanics. Use the independent Task
+Reviewer for the final pre-PR review of the completed issue, not as a mandatory reviewer for every
+subtask.
+
+During implementation, create an ADR when an important architectural decision
+emerges, even if the issue draft did not anticipate it. Link the ADR from the
+issue specification and update the architectural-decisions section. For each
+planned ADR, identify its expected root or package-local collection by decision
+scope: use `docs/adrs/` for repository-wide, multi-package, and inter-package
+decisions, and `packages/<package>/docs/adrs/` only for decisions owned solely
+by an extractable package. Do not choose placement only from the implementation
+paths expected to change.
+
+Use **placeholders** for the issue number until after creation (for example `github-issue: null`
+or `[To be assigned]` in the heading/body content).
+
+Set `epic: {epic-issue-number}` only when the draft is an explicitly established subissue; otherwise
+set `epic: null`. An EPIC subissue draft must also identify the parent directly below its title.
+
+After drafting, run linters:
+
+```bash
+linter markdown
+linter cspell
+```
+
+### Step 2: User Reviews the Draft
+
+**STOP HERE** — present the draft to the user. Iterate until approved.
+
+### Step 3: Create the GitHub Issue
+
+After user approval, format the issue body and create the issue.
+
+#### Format Body Text for GitHub
+
+Before calling the GitHub API or CLI, review and reformat the issue body following the
+`write-markdown-docs` checklist for GitHub surfaces:
+
+- Write each paragraph as a **single continuous line** — do not hard-wrap at any fixed column width
+- Use GitHub Flavored Markdown (GFM) conventions
+- Check for accidental `#NUMBER` autolinks (only use `#NUMBER` for intentional issue/PR references)
+
+#### Create the Issue
+
+**GitHub CLI:**
+
+```bash
+gh issue create \
+  --repo torrust/torrust-tracker \
+  --title "{title}" \
+  --body "{body}" \
+  --label "{label}"
+```
+
+#### Decide the Spec-Only PR and Name the Branch
+
+Right after the issue is created, and before you move, commit, or push anything, decide with the
+maintainer whether to open a spec-only PR first (see Optional Step 6). The answer sets the branch
+name:
+
+- Spec-only PR: `{issue-number}-{short-description}-spec`. The base name stays free for the
+  implementation branch.
+- No spec-only PR: `{issue-number}-{short-description}`.
+
+If you started on a temporary branch (for example, a draft name chosen before the issue number
+existed), rename it now to the name chosen above. Set the specification frontmatter `branch:` to
+the same name. Renaming a branch after its PR is open does not move the PR on GitHub. You have to
+open a new PR and close the old one.
+
+### Step 4: Move the Specification to Open Issues
+
+Move the folder-style specification from `drafts/` to `open/` using its assigned issue number:
+
+```bash
+git mv docs/issues/drafts/{short-description} \
+  docs/issues/open/{number}-{short-description}
+```
+
+For a subissue of a known EPIC, replace the draft's parent-only prefix with both GitHub issue
+numbers:
+
+```bash
+git mv docs/issues/drafts/{epic-issue-number}-{short-description} \
+  docs/issues/open/{number}-{epic-issue-number}-{short-description}
+```
+
+For folder-style specifications, the main document is
+`docs/issues/open/{number}-{short-description}/ISSUE.md`, or `EPIC.md` for an EPIC. Keep all
+issue-local artifacts in the same directory. Update the `spec-path` and all internal artifact
+references after the move.
+
+Update any issue number placeholders inside the file.
+
+### Step 5: Commit and Push
+
+```bash
+linter all    # Must pass
+
+git add docs/issues/
+git commit -S -m "docs(issues): add issue specification for #{number}"
+git push {your-fork-remote} {branch}
+```
+
+### Optional Step 6 (Recommended for Complex Issues): Spec-Only PR
+
+When the issue is complex, cross-cutting, or likely to need scope negotiation, open a PR that
+contains only the issue specification changes:
+
+1. Use the `{issue-number}-{short-description}-spec` branch chosen in Step 3 ("Decide the
+   Spec-Only PR and Name the Branch"), cut from `develop`. Do not branch again. The base
+   `{issue-number}-{short-description}` name stays reserved for the later implementation branch,
+   and the issue specification frontmatter `branch:` value is the same `-spec` branch name.
+2. Commit only spec changes (`docs/issues/`, and if needed templates/skills)
+3. Push branch to your fork remote (for example `josecelano`)
+4. Open PR in the **upstream repository** (`torrust/torrust-tracker`) targeting `develop`
+5. If using fork-based workflow, set head as `{fork-owner}:{branch}` (for example
+   `josecelano:1771-spec-first-pr-workflow-spec`)
+6. Do not open the PR in the fork repository unless explicitly requested
+7. Merge PR after review
+8. Start implementation work in the reserved base branch and open a separate implementation PR
+
+> **Important — do NOT auto-close the issue from a spec-only PR.**
+> Use `Related to #<number>` in the PR body, never `Closes #<number>` / `Fixes #<number>` /
+> `Resolves #<number>`. Those keywords trigger GitHub auto-close on merge.
+> The issue must remain open until the implementation is merged.
+> See the `open-pull-request` skill for the full issue-linking rules.
+
+Policy notes:
+
+- Never push directly to `develop` or `main`.
+- To merge into `develop` or `main`, open a PR in `torrust/torrust-tracker` from a fork branch (`<fork-owner>:<branch>`).
+- Remote names are contributor-specific (`josecelano`, `origin`, `torrust`, etc.); use your configured fork remote.
+
+Recommended GitHub CLI command for fork-based PRs:
+
+```bash
+gh pr create \
+  --repo torrust/torrust-tracker \
+  --base develop \
+  --head {fork-owner}:{branch} \
+  --title "{title}" \
+  --body-file {body-file}
+```
+
+## Verification Requirements for Issue Specs
+
+When creating or updating issue/epic specs, ensure these requirements are present in the spec
+before implementation starts:
+
+1. **Automatic verification**: list required automated checks.
+2. **Manual verification**: define concrete manual scenarios with commands/steps and expected results.
+3. **Evidence tracking**: include status/evidence fields for manual scenarios.
+4. **Post-implementation AC review**: explicitly require acceptance criteria to be re-reviewed
+   against observed behavior before closing the issue.
+5. **Implementation completion review**: require an evidence-based review after
+   implementation. Create an issue-local retrospective for reusable lessons,
+   material design changes, or meaningful deviations from the plan; otherwise
+   record why none was needed in the issue progress log.
+
+Do not treat an issue as complete only because automated tests pass; manual validation is required.
+
+## Naming Convention
+
+Use one of these layouts:
+
+| Layout      | Status                                                                                  | Main specification path                 |
+| ----------- | --------------------------------------------------------------------------------------- | --------------------------------------- |
+| Folder      | Required for all new specifications                                                     | `{number}-{short-description}/ISSUE.md` |
+| Single file | Legacy only; migrate when materially updating it or when adding an issue-local artifact | `{number}-{short-description}.md`       |
+
+### Migrating Legacy Specifications
+
+All legacy single-file issue and EPIC specifications are being migrated in the
+planned archive batches tracked by issue #2159. Do not create new single-file
+specifications or migrate an actively edited record without coordinating its
+move.
+
+1. Move the existing primary document into a folder with its current issue
+   prefix and the allowed uppercase primary filename: `ISSUE.md` or `EPIC.md`.
+2. Update the moved document's `spec-path`, `semantic-links.related-artifacts`,
+   and relative links to issue-local documents.
+3. Search for live references to the former path and repair them. Retain paths
+   in immutable historical records only when they accurately describe the path
+   at that time.
+4. Add any new issue-local artifact after the move, then validate Markdown
+   links and frontmatter.
+
+For example, migrate an issue specification with:
+
+```bash
+mkdir docs/issues/open/42-short-description
+git mv docs/issues/open/42-short-description.md \
+  docs/issues/open/42-short-description/ISSUE.md
+```
+
+Examples:
+
+- `1697-ai-agent-configuration/ISSUE.md`
+- `42-add-peer-expiry-grace-period/ISSUE.md`
+- `523-internal-linting-tool/ISSUE.md`
+- `2022-vendor-and-document-maintainer-merge-workflow/ISSUE.md`
+- `1669-overhaul-packages/EPIC.md`

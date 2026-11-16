@@ -4,14 +4,14 @@ semantic-links:
     - write-unit-test
   related-artifacts:
     - docs/testing/README.md
-    - .github/skills/dev/testing/write-unit-test/SKILL.md
+    - .claude/skills/write-unit-test/SKILL.md
 ---
 
 # Test Refactoring-Pattern Catalog
 
 Use this catalog when generated or existing test code is correct but does not clearly communicate
 the behavior it protects. Entries describe reviewed, repository-native patterns; they complement
-the mandatory conventions in the [unit-test skill](../../../.github/skills/dev/testing/write-unit-test/SKILL.md).
+the mandatory conventions in the [unit-test skill](../../../.claude/skills/write-unit-test/SKILL.md).
 
 ## Entries
 

@@ -5,7 +5,7 @@ semantic-links:
   related-artifacts:
     - docs/self-hosted-runner.md
     - docs/templates/RUNNER-HEALTH-REPORT.md
-    - .github/skills/dev/maintenance/check-runner-health/SKILL.md
+    - .claude/skills/check-runner-health/SKILL.md
 ---
 
 <!-- skill-link: check-runner-health -->
@@ -18,7 +18,7 @@ cleanup works. Each report is one immutable file named `<YYYYMMDD-HHMMSS>-runner
 Do not edit an old report; add a new one and compare it with the previous one.
 
 To produce a report, follow the `check-runner-health` skill
-([SKILL.md](../../.github/skills/dev/maintenance/check-runner-health/SKILL.md)). The report structure is
+([SKILL.md](../../.claude/skills/check-runner-health/SKILL.md)). The report structure is
 [RUNNER-HEALTH-REPORT.md](../templates/RUNNER-HEALTH-REPORT.md).
 
 ## Reports

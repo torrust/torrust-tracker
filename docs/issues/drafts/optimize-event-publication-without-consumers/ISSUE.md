@@ -1,18 +1,20 @@
 ---
+schema-version: 1
 doc-type: issue
 issue-type: enhancement
 status: draft
 priority: p2
+epic: null
 github-issue: null
 spec-path: docs/issues/drafts/optimize-event-publication-without-consumers/ISSUE.md
 branch: "{issue-number}-optimize-event-publication-without-consumers"
 related-pr: null
-last-updated-utc: 2026-08-18
+last-updated-utc: "2026-08-18 00:00"
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - .github/skills/dev/planning/create-issue/SKILL.md
+    - .claude/skills/create-issue/SKILL.md
     - packages/events/src/bus.rs
     - packages/http-core/src/container.rs
     - packages/udp-core/src/container.rs

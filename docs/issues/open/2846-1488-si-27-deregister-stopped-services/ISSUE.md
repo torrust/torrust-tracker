@@ -114,7 +114,7 @@ while the service can serve; it is removed after the drain finished (so a probe 
 sees the service), and never for a failed stop; removing it must not block the stop beyond the process
 deadline `P`, because `deregister` awaits the registry lock (the lock is held only for map operations).
 A design-review checkpoint (a recorded prose-first Arrange-Act-Assert review,
-.github/skills/dev/planning/create-issue/SKILL.md:180-192) follows each passing test-producing
+.claude/skills/create-issue/SKILL.md:180-192) follows each passing test-producing
 increment: T2 (the HTTP tracker slice), T3 (REST API, UDP tracker, health-check API) and T4 (the
 application-level test), plus the final maintainer-review pause.
 

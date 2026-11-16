@@ -5,7 +5,7 @@ semantic-links:
   related-artifacts:
     - docs/templates/PR-REVIEW-TEMPLATE.md
     - docs/templates/IMPLEMENTATION-RETROSPECTIVE.md
-    - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
+    - .claude/skills/process-pr-review/SKILL.md
 ---
 
 <!-- skill-link: process-pr-review -->

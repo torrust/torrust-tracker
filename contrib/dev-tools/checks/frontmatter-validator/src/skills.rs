@@ -15,7 +15,7 @@ const SKILL_FILE: &str = "SKILL.md";
 #[must_use]
 pub fn misplaced_skill(path: &str) -> Option<Diagnostic> {
     let is_skill_file = path == SKILL_FILE || path.ends_with(&format!("/{SKILL_FILE}"));
-    (is_skill_file && skill_folder(path).is_none()).then(|| {
+    (is_skill_file && skill_name(path).is_none()).then(|| {
         Diagnostic::new(
             DiagnosticCategory::MisplacedSkill,
             format!("A skill must be at `{SKILLS_DIRECTORY}<name>/{SKILL_FILE}`, where Claude Code discovers it."),
@@ -23,8 +23,9 @@ pub fn misplaced_skill(path: &str) -> Option<Diagnostic> {
     })
 }
 
-/// The skill folder name of a discoverable `SKILL.md` path.
-fn skill_folder(path: &str) -> Option<&str> {
+/// The name of the skill a discoverable `SKILL.md` path belongs to: its folder name.
+#[must_use]
+pub fn skill_name(path: &str) -> Option<&str> {
     path.strip_prefix(SKILLS_DIRECTORY)?
         .strip_suffix(&format!("/{SKILL_FILE}"))
         .filter(|name| !name.is_empty() && !name.contains('/'))

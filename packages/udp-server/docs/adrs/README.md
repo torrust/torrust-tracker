@@ -4,7 +4,7 @@ semantic-links:
     - create-adr
   related-artifacts:
     - packages/udp-server/docs/adrs/index.md
-    - .github/skills/dev/planning/create-adr/SKILL.md
+    - .claude/skills/create-adr/SKILL.md
 ---
 
 # UDP Server Architectural Decision Records

@@ -141,7 +141,7 @@ Responsibility and ownership map (unchanged by this task, listed so the review c
 Invariants to keep, in the normal and the failure and drop paths: a component never reports an outcome
 before its owned children finished or were deliberately aborted; a dropped owner aborts its children;
 every awaited operation is bounded by the process deadline `P`. A design-review checkpoint (a recorded
-prose-first Arrange-Act-Assert review, `.github/skills/dev/planning/create-issue/SKILL.md:180-192`)
+prose-first Arrange-Act-Assert review, `.claude/skills/create-issue/SKILL.md:180-192`)
 follows each passing test-producing increment: T2 (the shared supervisor with the health check
 migrated), T3 (the owner-type change) and T4 (the `udp_ban_cleanup` migration), plus the final
 maintainer-review pause.

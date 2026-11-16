@@ -22,7 +22,8 @@ external consumers need.
 - `share/default/` — Default configuration files and fixtures
 - `storage/` — Runtime data (git-ignored)
 - `.tmp/` — Workspace-local temp dir (git-ignored): hook logs and benchmark isolation dirs
-- `.github/workflows/`, `.github/skills/`, `.github/agents/` — CI workflows, Agent Skills, custom agents
+- `.github/workflows/`, `.github/agents/` — CI workflows, custom agents
+- `.claude/skills/` — Agent Skills, one flat folder per skill
 
 ## 📦 Package Catalog
 
@@ -51,7 +52,7 @@ Both git hooks write per-step logs to `TORRUST_GIT_HOOKS_LOG_DIR` (default: `/tm
 AI-agent sandboxes set `TORRUST_GIT_HOOKS_LOG_DIR=.tmp` so the logs stay inside the workspace
 (`.tmp/` is git-ignored).
 
-Skills for these workflows (each is `.github/skills/dev/<area>/<name>/SKILL.md`): `run-linters`,
+Skills for these workflows (each is `.claude/skills/<name>/SKILL.md`): `run-linters`,
 `run-pre-commit-checks`, `run-pre-push-checks`, `setup-dev-environment`.
 
 ## 🎨 Code Style
@@ -107,7 +108,7 @@ These policies are repository-wide and apply to all agents and workflows.
 5. **Rust documentation quality**: document public APIs and important module/type invariants; prefer
    high-signal docs over boilerplate.
 6. **Documentation single source of truth**: do not duplicate procedural guidance; keep folder
-   READMEs lightweight; `.github/skills/` and canonical docs (for example `docs/index.md`) are the
+   READMEs lightweight; `.claude/skills/` and canonical docs (for example `docs/index.md`) are the
    authoritative workflow sources; replace duplicates with links.
 7. **AI-agent implementation independence**: keep repository knowledge, decisions, workflows, and
    validation reproducible from Git-tracked documentation, scripts, tests, and documented standard
@@ -144,7 +145,7 @@ Implementation workflow skills (same location): `update-dependencies`, `add-rust
 6. **Security**: Do not report security vulnerabilities through public GitHub issues. Send an
    email to `info@nautilus-cyberneering.de` instead. See [SECURITY.md](SECURITY.md).
 7. **Skill-link synchronization**: When modifying any artifact containing a `skill-link:` marker,
-   also review and update the linked skill instructions in `.github/skills/` so behavior,
+   also review and update the linked skill instructions in `.claude/skills/` so behavior,
    commands, and references remain aligned. If the linked skill has a validation script, run it
    before finishing.
 
@@ -180,7 +181,7 @@ documentation improvements may ride along in the PR that produced them, each in 
 not propose splitting them out by default.
 
 PR titles, bodies, issue-linking keywords, rebasing and history-rewrite rules are in the
-`open-pull-request` skill (`.github/skills/dev/git-workflow/open-pull-request/SKILL.md`); merging
+`open-pull-request` skill (`.claude/skills/open-pull-request/SKILL.md`); merging
 is in the `merge-pull-request` skill.
 
 **After opening a PR**, an agent does not stop. It runs the review loop in the `wait-for-pr-review`
@@ -229,7 +230,7 @@ Running the image, volume mappings, ports and Docker Compose usage are in
 
 ## 🎯 Auto-Invoke Skills
 
-Agent Skills live under [`.github/skills/`](.github/skills/); custom agents are described in
+Agent Skills live under [`.claude/skills/`](.claude/skills/); custom agents are described in
 [`.github/agents/README.md`](.github/agents/README.md). Skills supplement (not replace) the rules in
 this file: rules apply always, skills activate when their workflows are needed.
 

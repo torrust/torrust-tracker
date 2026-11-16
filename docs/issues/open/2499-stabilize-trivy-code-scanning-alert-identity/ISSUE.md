@@ -99,7 +99,7 @@ duplicating every finding.
 
 ## Bug-Fix Process
 
-Follow [`fix-bug`](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md):
+Follow [`fix-bug`](../../../../.claude/skills/fix-bug/SKILL.md):
 
 1. Analysis: the location path follows the image name, and the image name depends on the trigger.
 2. Reproduction: reproduced from GitHub Code Scanning state; see V1 in

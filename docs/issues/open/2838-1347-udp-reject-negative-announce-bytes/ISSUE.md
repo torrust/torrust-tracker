@@ -15,8 +15,8 @@ semantic-links:
     - create-issue
     - fix-bug
   related-artifacts:
-    - .github/skills/dev/debugging/fix-bug/SKILL.md
-    - .github/skills/dev/planning/create-issue/SKILL.md
+    - .claude/skills/fix-bug/SKILL.md
+    - .claude/skills/create-issue/SKILL.md
     - docs/issues/open/2850-non-negative-number-of-bytes/ISSUE.md
 ---
 
@@ -150,7 +150,7 @@ Not applicable.
 
 ## Bug-Fix Process
 
-Follows [fix-bug](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md):
+Follows [fix-bug](../../../../.claude/skills/fix-bug/SKILL.md):
 
 1. Analysis: hypothesis above (no validation between wire decode and `Peer`).
 2. Reproduction against the real tracker over a UDP socket, then at the handler boundary

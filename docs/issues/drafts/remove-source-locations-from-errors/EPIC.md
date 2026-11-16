@@ -11,8 +11,8 @@ semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - .github/skills/dev/planning/create-issue/SKILL.md
-    - .github/skills/dev/rust-code-quality/handle-errors-in-code/SKILL.md
+    - .claude/skills/create-issue/SKILL.md
+    - .claude/skills/handle-errors-in-code/SKILL.md
     - docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md
     - docs/issues/open/2804-location-caller-track-caller-audit/inventory.md
     - docs/issues/open/2804-location-caller-track-caller-audit/options.md

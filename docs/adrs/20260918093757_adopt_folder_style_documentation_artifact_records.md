@@ -13,9 +13,9 @@ semantic-links:
     - docs/templates/EPIC.md
     - docs/templates/REFACTOR-PLAN.md
     - docs/templates/PR-REVIEW-TEMPLATE.md
-    - .github/skills/dev/planning/create-issue/SKILL.md
-    - .github/skills/dev/planning/create-refactor-plan/SKILL.md
-    - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
+    - .claude/skills/create-issue/SKILL.md
+    - .claude/skills/create-refactor-plan/SKILL.md
+    - .claude/skills/process-pr-review/SKILL.md
 ---
 
 # Adopt Folder-Style Documentation Artifact Records

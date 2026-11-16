@@ -15,8 +15,8 @@ semantic-links:
     - create-issue
     - fix-bug
   related-artifacts:
-    - .github/skills/dev/debugging/fix-bug/SKILL.md
-    - .github/skills/dev/planning/create-issue/SKILL.md
+    - .claude/skills/fix-bug/SKILL.md
+    - .claude/skills/create-issue/SKILL.md
     - packages/primitives/src/number_of_bytes.rs
     - packages/primitives/src/peer.rs
     - packages/udp-protocol/src/request.rs
@@ -42,7 +42,7 @@ semantic-links:
     - docs/adrs/20260723184019_separate_configuration_value_invariants_from_consistency_validation.md
     - docs/adrs/20260629000000_adopt_independent_package_versioning.md
     - docs/adrs/20260727000000_events_are_objective_facts.md
-    - .github/skills/dev/rust-code-quality/handle-errors-in-code/SKILL.md
+    - .claude/skills/handle-errors-in-code/SKILL.md
     - docs/benchmarking.md
     - docs/issues/closed/2824-1347-add-tests-primitives/ISSUE.md
     - docs/issues/open/2838-1347-udp-reject-negative-announce-bytes/ISSUE.md
@@ -149,7 +149,7 @@ later readers start from the recorded decisions.
 | Must UDP and HTTP accept the same range for a value a client sends? | No. Each protocol has its own limit for its own reason, and the domain has none | [Cap scrape info hashes per protocol](../../../adrs/20261005124222_cap_scrape_info_hashes_per_protocol.md) (2026-10-05); [issue #2417 specification](../../closed/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md) |
 | When is a value bounded by the tightest protocol? | Only a value the operator configures and every protocol sends, such as the announce interval | [Bound protocol-agnostic values by the tightest delivery protocol](../../../adrs/20261007082938_bound_protocol_agnostic_values_by_the_tightest_delivery_protocol.md) (2026-10-07) |
 | How is a single-value invariant protected? | By a newtype that rejects the value at construction (decided for configuration values) | [Use newtypes for constrained configuration field types](../../../adrs/20260721100000_use_newtypes_for_constrained_configuration_field_types.md); [Separate configuration value invariants from consistency validation](../../../adrs/20260723184019_separate_configuration_value_invariants_from_consistency_validation.md) |
-| Are wrapped inner errors public? When is an error enum `#[non_exhaustive]`? | Public and typed per package. `#[non_exhaustive]` when consumers only report or convert; exhaustive when variants select a recovery action. A generic `Box<dyn Error>` is rejected | [Return `Result` only for concretely fallible public APIs](../../../adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md) with its amendment of 2026-10-19; [issue #2454 specification](../../closed/2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md); the [`handle-errors-in-code` skill](../../../../.github/skills/dev/rust-code-quality/handle-errors-in-code/SKILL.md) |
+| Are wrapped inner errors public? When is an error enum `#[non_exhaustive]`? | Public and typed per package. `#[non_exhaustive]` when consumers only report or convert; exhaustive when variants select a recovery action. A generic `Box<dyn Error>` is rejected | [Return `Result` only for concretely fallible public APIs](../../../adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md) with its amendment of 2026-10-19; [issue #2454 specification](../../closed/2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md); the [`handle-errors-in-code` skill](../../../../.claude/skills/handle-errors-in-code/SKILL.md) |
 | Why are packages treated as separate public APIs? | Each package is versioned and published on its own | [Adopt independent package versioning](../../../adrs/20260629000000_adopt_independent_package_versioning.md); [issue #2583 specification](../../open/2583-1669-first-publish-of-workspace-crates/ISSUE.md) |
 | May an event carry an internal error type? | No. Events are objective facts with a stable payload | [Events are objective facts](../../../adrs/20260727000000_events_are_objective_facts.md); [general error-events EPIC draft](../../drafts/generalize-error-events/EPIC.md) |
 | Is a questionable inbound value refused or tolerated? | Strict by default; a tolerance needs recorded evidence | [Reject malformed inbound protocol values unless real clients need the tolerance](../../../adrs/20261111170611_reject_malformed_inbound_protocol_values_unless_clients_need_tolerance.md), delivered by the spec-only pull request of this issue; [issue #2842 specification](../2842-inbound-tolerance-adr/ISSUE.md) |
@@ -579,7 +579,7 @@ fixture.
 
 ## Bug-Fix Process
 
-This is the fix for the bug of #2838, following `.github/skills/dev/debugging/fix-bug/SKILL.md`.
+This is the fix for the bug of #2838, following `.claude/skills/fix-bug/SKILL.md`.
 The first steps were done for PR #2839 and are recorded in the folder of #2838:
 
 - Analysis and hypothesis: done. [Specification of #2838](../2838-1347-udp-reject-negative-announce-bytes/ISSUE.md), "Background" and "Field audit".

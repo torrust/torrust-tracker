@@ -20,7 +20,7 @@ semantic-links:
     - contrib/dev-tools/checks/frontmatter-validator
     - docs/templates/ISSUE.md
     - docs/skills/semantic-skill-link-convention.md
-    - .github/skills/dev/planning/cleanup-completed-issues/SKILL.md
+    - .claude/skills/cleanup-completed-issues/SKILL.md
     - docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md
     - docs/issues/open/2375-2003-unambiguous-issue-spec-names/ISSUE.md
     - docs/issues/closed/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md

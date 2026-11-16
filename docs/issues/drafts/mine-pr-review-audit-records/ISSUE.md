@@ -15,9 +15,9 @@ semantic-links:
     - create-issue
     - process-pr-review
   related-artifacts:
-    - .github/skills/dev/planning/create-issue/SKILL.md
-    - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
-    - .github/skills/dev/pr-reviews/process-pr-review/scripts/validate-audit-record.py
+    - .claude/skills/create-issue/SKILL.md
+    - .claude/skills/process-pr-review/SKILL.md
+    - .claude/skills/process-pr-review/scripts/validate-audit-record.py
     - contrib/dev-tools/checks/frontmatter-validator
     - docs/adrs/20260519000000_define_global_cli_output_contract.md
     - docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md

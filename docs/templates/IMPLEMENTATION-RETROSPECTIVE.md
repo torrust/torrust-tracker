@@ -4,7 +4,7 @@ semantic-links:
     - write-markdown-docs
   related-artifacts:
     - docs/templates/ISSUE.md
-    - .github/skills/dev/planning/create-issue/SKILL.md
+    - .claude/skills/create-issue/SKILL.md
 ---
 
 # Implementation Retrospective — {Issue or Work Title}

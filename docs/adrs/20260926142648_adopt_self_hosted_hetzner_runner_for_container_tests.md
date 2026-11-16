@@ -3,7 +3,7 @@ semantic-links:
   skill-links:
     - create-adr
   related-artifacts:
-    - .github/skills/dev/planning/create-adr/SKILL.md
+    - .claude/skills/create-adr/SKILL.md
     - .github/workflows/container.yaml
     - .github/workflows/testing.yaml
     - docs/issues/closed/2323-1840-hetzner-self-hosted-ci-runner/ISSUE.md

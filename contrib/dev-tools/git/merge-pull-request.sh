@@ -4,7 +4,7 @@
 # The wrapped tool intentionally remains interactive for merge inspection, signing, and pushing.
 # This wrapper only validates Torrust Tracker's non-destructive preconditions and fixes the
 # upstream repository, the target branch, and the tree path of this repository's symbolic-link
-# declaration. See .github/skills/dev/git-workflow/merge-pull-request/SKILL.md.
+# declaration. See .claude/skills/merge-pull-request/SKILL.md.
 
 set -euo pipefail
 

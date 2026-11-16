@@ -166,4 +166,4 @@ Reconsider a skill only when such a workflow is evidenced.
 - Skills: `.github/skills/`
 - Cloud setup: `.github/workflows/copilot-setup-steps.yml`
 - IDE settings: `.vscode/`
-- Secret handling: `.github/skills/dev/rust-code-quality/handle-secrets/SKILL.md`
+- Secret handling: `.claude/skills/handle-secrets/SKILL.md`
