@@ -86,7 +86,7 @@ fn validate_skill_layout(working_directory: &Path) -> (Vec<Record>, u8) {
         Err(message) => return (vec![Record::runtime_error(None, message)], EXIT_FAILURE),
     };
     let text = |path: &str| {
-        (reads_text(path) && files.iter().any(|file| file == path))
+        reads_text(path)
             .then(|| git.index_content(path).ok())
             .flatten()
             .and_then(|bytes| String::from_utf8(bytes).ok())

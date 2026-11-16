@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2866-2003-move-skills-to-claude-skills/ISSUE.md
-last-updated-utc: 2026-11-16 09:55
+last-updated-utc: 2026-11-16 10:15
 ---
 
 <!-- cspell:ignore Autocompact dataviz endswith findall isfile normpath relpath startswith -->
@@ -467,6 +467,35 @@ mutated, reviewed and committed before the next started.
   `skill(name)` helper, so the earlier tests stay accepted for the reason they claim. The new
   test replaces only the skill's text; its three cases name the one difference each. The
   command-boundary fixture gained a `name` for the same reason; what it observes did not change.
+
+#### Increment 4 - The index
+
+- Rule: the table rows of `.claude/skills/README.md` link every skill folder exactly once, as
+  `<name>/SKILL.md`, and link no missing skill; otherwise `skill-index-mismatch`, reported on
+  the index. A missing index is a finding only when a skill exists. Links outside table rows do
+  not count: the first run on the branch reported `add-new-skill` twice, because the index's
+  introduction links it too.
+- The rules now read a file's text only when the file is in the snapshot, so the binary no longer
+  guards that itself.
+- After the increment, `frontmatter-validator --skill-layout` on the branch exited `0` with no
+  record.
+- Mutations, each restored afterwards:
+
+  | Mutation                               | Failing tests                                                                         |
+  | -------------------------------------- | ------------------------------------------------------------------------------------- |
+  | Never report an unlisted skill         | `..._exactly_once::case_1_unlisted_skill`                                             |
+  | Never report a repeated row            | `..._exactly_once::case_2_listed_twice`                                               |
+  | Never report a listed missing skill    | `::case_3_listed_but_missing`, `..._index_row_of_a_deleted_skill`                     |
+  | Count links outside table rows         | `it_should_count_only_the_index_table_rows`                                           |
+  | Read the text of a file not in the snapshot | `it_should_report_a_missing_index`                                               |
+
+- Test-design review: the accepted snapshot gained the index that lists its skill, so every
+  earlier test stays accepted for its own reason. Deleting a skill now yields two findings, its
+  stub and its index row; the test was renamed to say so, and it is the behavior scenario M5
+  expects. The rename and removal tests update the index too, because a rename or removal
+  includes that edit. The index test's cases each change one thing: an extra skill, a repeated
+  row, or a row for a missing skill. The no-skill test calls `layout_findings` directly with no
+  fixture, because the accepted snapshot has a skill by design.
 
 ## Failures and Follow-up
 

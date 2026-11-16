@@ -484,7 +484,9 @@ fn it_should_read_the_stub_inventory_from_the_index_with_skill_layout() {
     let stub = ".github/skills/dev/old/SKILL.md";
     repository.write(".claude/skills/old/SKILL.md", "---\nname: old\ndescription: Example.\n---\n");
     repository.write(stub, "[`old`](../../../../.claude/skills/old/SKILL.md)\n");
+    repository.write(".claude/skills/README.md", "| [`old`](old/SKILL.md) | Example. |\n");
     repository.stage(".claude/skills/old/SKILL.md");
+    repository.stage(".claude/skills/README.md");
     repository.write(
         ".github/skills/README.md",
         &format!("| Old path | Original name | Current name |\n| --- | --- | --- |\n| `{stub}` | `old` | `old` |\n"),

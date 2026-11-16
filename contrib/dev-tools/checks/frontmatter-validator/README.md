@@ -41,10 +41,20 @@ Output follows the `no-stdout-result` class of the
 `--all` currently exits `1`, because legacy draft and open specs are migrated one at a time as
 they are edited.
 
-`--skill-layout` checks the index, so it sees a commit as it will be made. It reports, as an
-error of category `misplaced-skill`, every `SKILL.md` that is not at
-`.claude/skills/<name>/SKILL.md`, the only place Claude Code discovers a project skill: a skill
-anywhere else, or one folder deeper, is never listed to the model (issue #2866).
+`--skill-layout` checks the whole git index, so it sees a commit as it will be made, including
+deletions. Claude Code discovers a project skill only at `.claude/skills/<name>/SKILL.md`; the
+skills moved there from `.github/skills/` in issue #2866. Each finding is an error:
+
+- `misplaced-skill`: a `SKILL.md` anywhere else, or one folder deeper, which Claude Code would
+  never list, unless it is an inventoried redirect stub;
+- `missing-redirect-stub`: a path that `.github/skills/README.md` inventories has no stub;
+- `stray-redirect-file`: any other file under `.github/skills/`;
+- `invalid-redirect-stub`: a stub has frontmatter, or does not hold exactly one link to
+  `.claude/skills/<current name>/SKILL.md`, an existing skill (a stub whose inventory row says
+  `removed` is not checked);
+- `skill-name-mismatch`: a skill's frontmatter `name` is not its folder name;
+- `skill-index-mismatch`: the table rows of `.claude/skills/README.md` do not list every skill
+  folder exactly once, or list a skill that does not exist.
 
 An explicit file path is reported as given, even when it is a symlink, and its content is read
 through the link. A symlinked directory is expanded under its target's path. A dangling symlink

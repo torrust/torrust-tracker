@@ -22,6 +22,9 @@ pub const REDIRECT_DIRECTORY: &str = ".github/skills/";
 /// The inventory of the redirect stubs.
 pub const STUB_INVENTORY: &str = ".github/skills/README.md";
 
+/// The index that lists every skill by area.
+pub const SKILLS_INDEX: &str = ".claude/skills/README.md";
+
 const SKILL_FILE: &str = "SKILL.md";
 
 /// The current name an inventory row gives a skill that was removed.
@@ -39,7 +42,10 @@ pub struct LayoutFinding {
 /// Whether the layout rules read the text of this path; the caller supplies only those texts.
 #[must_use]
 pub fn reads_text(path: &str) -> bool {
-    path == STUB_INVENTORY || (path.starts_with(REDIRECT_DIRECTORY) && is_skill_file(path)) || skill_name(path).is_some()
+    path == STUB_INVENTORY
+        || path == SKILLS_INDEX
+        || (path.starts_with(REDIRECT_DIRECTORY) && is_skill_file(path))
+        || skill_name(path).is_some()
 }
 
 /// Checks the skill layout of a whole repository snapshot: `files` are every tracked path, and
@@ -49,6 +55,7 @@ pub fn layout_findings<'a>(
     text: impl Fn(&str) -> Option<String>,
 ) -> Vec<LayoutFinding> {
     let files: BTreeSet<&str> = files.into_iter().collect();
+    let text = |path: &str| files.contains(path).then(|| text(path)).flatten();
     let inventory = text(STUB_INVENTORY)
         .map(|inventory| stub_inventory(&inventory))
         .unwrap_or_default();
@@ -81,6 +88,12 @@ pub fn layout_findings<'a>(
         let folder = skill_name(path)?;
         skill_name_mismatch(folder, &text(path).unwrap_or_default()).map(|diagnostic| finding(path, diagnostic))
     }));
+    let skills: BTreeSet<&str> = files.iter().filter_map(|path| skill_name(path)).collect();
+    findings.extend(
+        index_mismatches(&skills, text(SKILLS_INDEX).as_deref())
+            .into_iter()
+            .map(|diagnostic| finding(SKILLS_INDEX, diagnostic)),
+    );
     findings.sort_by(|left, right| left.path.cmp(&right.path));
     findings
 }
@@ -120,6 +133,48 @@ fn stray_redirect_file(path: &str) -> Option<Diagnostic> {
             format!("`{REDIRECT_DIRECTORY}` holds only the inventoried redirect stubs and `{STUB_INVENTORY}`."),
         )
     })
+}
+
+/// The index lists every skill folder exactly once, as a `<name>/SKILL.md` link in a table row,
+/// and no other.
+fn index_mismatches(skills: &BTreeSet<&str>, index: Option<&str>) -> Vec<Diagnostic> {
+    let Some(index) = index else {
+        return (!skills.is_empty())
+            .then(|| index_mismatch(format!("`{SKILLS_INDEX}` is missing; it must list every skill.")))
+            .into_iter()
+            .collect();
+    };
+    let mut listed: BTreeMap<&str, usize> = BTreeMap::new();
+    let rows: String = index
+        .lines()
+        .filter(|line| line.starts_with('|'))
+        .collect::<Vec<_>>()
+        .join("\n");
+    for name in link_targets(&rows).into_iter().filter_map(|target| {
+        target
+            .strip_suffix(&format!("/{SKILL_FILE}"))
+            .filter(|name| !name.contains('/'))
+    }) {
+        *listed.entry(name).or_default() += 1;
+    }
+
+    let unlisted = skills
+        .iter()
+        .filter(|skill| !listed.contains_key(**skill))
+        .map(|skill| format!("The index does not list the skill `{skill}`."));
+    let repeated = listed
+        .iter()
+        .filter(|(_, count)| **count > 1)
+        .map(|(name, _)| format!("The index lists `{name}` more than once."));
+    let missing = listed
+        .keys()
+        .filter(|name| !skills.contains(**name))
+        .map(|name| format!("The index lists `{name}`, which is no skill under `{SKILLS_DIRECTORY}`."));
+    unlisted.chain(repeated).chain(missing).map(index_mismatch).collect()
+}
+
+fn index_mismatch(message: String) -> Diagnostic {
+    Diagnostic::new(DiagnosticCategory::SkillIndexMismatch, message)
 }
 
 /// A skill's `name` must equal its folder name, which is how Claude Code lists it.
@@ -230,7 +285,7 @@ mod tests {
 
     use rstest::rstest;
 
-    use super::{STUB_INVENTORY, layout_findings, misplaced_skill};
+    use super::{SKILLS_INDEX, STUB_INVENTORY, layout_findings, misplaced_skill};
     use crate::DiagnosticCategory;
 
     const SKILL: &str = ".claude/skills/create-issue/SKILL.md";
@@ -244,6 +299,16 @@ mod tests {
     /// The text of a stub at `STUB` that links to the skill `name`.
     fn stub(name: &str) -> String {
         format!("# Moved: `create-issue`\n\nThis skill moved to [`{name}`](../../../../../.claude/skills/{name}/SKILL.md).\n")
+    }
+
+    /// A skills index with one row per listed name.
+    fn index(names: &[&str]) -> String {
+        let rows = names
+            .iter()
+            .map(|name| format!("| [`{name}`]({name}/SKILL.md) | Example. |\n"))
+            .collect::<Vec<_>>()
+            .concat();
+        format!("# Agent Skills\n\n| Skill | Purpose |\n| --- | --- |\n{rows}")
     }
 
     /// A stub inventory with one row per `(old path, current name)`.
@@ -263,7 +328,8 @@ mod tests {
     }
 
     impl Snapshot {
-        /// One moved skill, its stub, and the inventory that lists the stub.
+        /// One moved skill, its stub, the inventory that lists the stub, and the index that lists
+        /// the skill.
         fn accepted() -> Self {
             Self {
                 texts: BTreeMap::new(),
@@ -272,6 +338,7 @@ mod tests {
             .with(SKILL, &skill("create-issue"))
             .with(STUB, &stub("create-issue"))
             .with(STUB_INVENTORY, &inventory(&[(STUB, "create-issue")]))
+            .with(SKILLS_INDEX, &index(&["create-issue"]))
         }
 
         fn with(mut self, path: &str, text: &str) -> Self {
@@ -360,10 +427,16 @@ mod tests {
     }
 
     #[test]
-    fn it_should_report_a_redirect_stub_whose_skill_was_deleted() {
+    fn it_should_report_the_redirect_stub_and_the_index_row_of_a_deleted_skill() {
         let snapshot = Snapshot::accepted().without(SKILL);
 
-        assert_eq!(snapshot.findings(), only(STUB, DiagnosticCategory::InvalidRedirectStub));
+        assert_eq!(
+            snapshot.findings(),
+            [
+                (SKILLS_INDEX.to_owned(), DiagnosticCategory::SkillIndexMismatch),
+                (STUB.to_owned(), DiagnosticCategory::InvalidRedirectStub),
+            ]
+        );
     }
 
     #[test]
@@ -374,7 +447,8 @@ mod tests {
             .without(SKILL)
             .with(renamed, &skill("open-issue"))
             .with(STUB, &stub("open-issue"))
-            .with(STUB_INVENTORY, &inventory(&[(STUB, "open-issue")]));
+            .with(STUB_INVENTORY, &inventory(&[(STUB, "open-issue")]))
+            .with(SKILLS_INDEX, &index(&["open-issue"]));
 
         assert_eq!(snapshot.findings(), []);
     }
@@ -384,7 +458,8 @@ mod tests {
         let snapshot = Snapshot::accepted()
             .without(SKILL)
             .with(STUB, "# Removed: `create-issue`\n\nThis skill was removed.\n")
-            .with(STUB_INVENTORY, &inventory(&[(STUB, "removed")]));
+            .with(STUB_INVENTORY, &inventory(&[(STUB, "removed")]))
+            .with(SKILLS_INDEX, &index(&[]));
 
         assert_eq!(snapshot.findings(), []);
     }
@@ -397,5 +472,50 @@ mod tests {
         let snapshot = Snapshot::accepted().with(SKILL, text);
 
         assert_eq!(snapshot.findings(), only(SKILL, DiagnosticCategory::SkillNameMismatch));
+    }
+
+    #[rstest]
+    #[case::unlisted_skill(&[".claude/skills/open-pr/SKILL.md"], &["create-issue"])]
+    #[case::listed_twice(&[], &["create-issue", "create-issue"])]
+    #[case::listed_but_missing(&[], &["create-issue", "open-pr"])]
+    fn it_should_report_an_index_that_does_not_list_every_skill_exactly_once(
+        #[case] new_skills: &[&str],
+        #[case] listed: &[&str],
+    ) {
+        let snapshot = new_skills
+            .iter()
+            .fold(Snapshot::accepted(), |snapshot, path| snapshot.with(path, &skill("open-pr")))
+            .with(SKILLS_INDEX, &index(listed));
+
+        assert_eq!(
+            snapshot.findings(),
+            only(SKILLS_INDEX, DiagnosticCategory::SkillIndexMismatch)
+        );
+    }
+
+    #[test]
+    fn it_should_report_a_missing_index() {
+        let snapshot = Snapshot::accepted().without(SKILLS_INDEX);
+
+        assert_eq!(
+            snapshot.findings(),
+            only(SKILLS_INDEX, DiagnosticCategory::SkillIndexMismatch)
+        );
+    }
+
+    #[test]
+    fn it_should_not_require_an_index_when_there_is_no_skill() {
+        let findings = layout_findings([".github/skills/README.md"], |_| Some(String::new()));
+
+        assert_eq!(findings, []);
+    }
+
+    #[test]
+    fn it_should_count_only_the_index_table_rows() {
+        let prose = format!("See [`create-issue`](create-issue/SKILL.md).\n\n{}", index(&["create-issue"]));
+
+        let snapshot = Snapshot::accepted().with(SKILLS_INDEX, &prose);
+
+        assert_eq!(snapshot.findings(), []);
     }
 }
