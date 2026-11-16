@@ -64,7 +64,7 @@ DOC-001 is the one inline comment of Copilot's review 5924220422 (`COMMENTED`), 
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2887#discussion_r4588659136
 - Concern: Line 300 of the EPIC specification starts at column 0 while lines 297 to 299 above it are indented, so the reviewer expected it to break the list.
 - Solution: No change. Line 300 records a separate decision, so it is a top-level item like the other decisions of "Decisions Recorded on This EPIC"; lines 297 to 299 are sub-items of the previous decision.
-- Current-tree verification: `awk '/^## Decisions Recorded/,/^## Friction Register/' docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md | grep -c '^- \*\*'` counts the top-level items of the section, the new one among them; `linter markdown` passed in the pre-commit checks of the two fix commits.
+- Current-tree verification: `awk '/^## Decisions Recorded/,/^## Friction Register/' docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md | grep -c '^- \*\*'` counts the top-level items of the section: it printed 14 on the branch and 13 on the merge base `c8b1477ad`, so the new item is counted as a top-level one; `linter markdown` passed in the pre-commit checks of the two fix commits.
 - Resolution reference: https://github.com/torrust/torrust-tracker/pull/2887#discussion_r4588716956
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2887#discussion_r4588716956
