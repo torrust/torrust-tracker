@@ -254,7 +254,7 @@ F14 is the one finding of da2ce7's review 5926341211 (`COMMENTED`), submitted at
 - Current-tree verification: the Findings section of this record has one paragraph starting `F12 and F13 are`.
 - Resolution reference: docs(pr-reviews): [#2873] address da2ce7's fifth review of PR #2893
 - Follow-up PR URL: N/A
-- Reply URL: pending: posted after the push of this record
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2893#discussion_r4590649499
 
 ## Processing Log
 
@@ -278,6 +278,8 @@ F14 is the one finding of da2ce7's review 5926341211 (`COMMENTED`), submitted at
 - 2026-11-16 19:37 UTC - Filled in the F12 and F13 Reply URLs in a separate commit, so no row is left pending.
 - 2026-11-16 19:41 UTC - Review 5926341211 (da2ce7, `COMMENTED`) submitted on the head commit `docs(issues): [#2873] address da2ce7's fourth review of PR #2893`: F14, a Nit; the two pending Reply URLs it notes were filled in by the commit pushed at 19:41:32 UTC.
 - 2026-11-16 19:42 UTC - Committed the F14 fix.
+- 2026-11-16 19:46 UTC - Pushed it (push finished 19:46:38 UTC), replied to the thread and resolved it.
+- 2026-11-16 19:46 UTC - Filled in the F14 Reply URL in a separate commit.
 
 ## Completion Rules
 
