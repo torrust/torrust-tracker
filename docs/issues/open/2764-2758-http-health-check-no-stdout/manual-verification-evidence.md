@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2764-2758-http-health-check-no-stdout/ISSUE.md
-last-updated-utc: 2026-11-16 17:49
+last-updated-utc: 2026-11-16 18:15
 ---
 
 # Manual Verification Evidence
@@ -86,9 +86,13 @@ Run on 2026-11-16 against the round-1 binary: the first and third rows at about 
 | ------ | -------- | ----------------------------------------------- |
 | Exit `1` on a non-2xx answer | the `unhealthy` branch returns `EXIT_HEALTHY` | `8 passed; 2 failed`: the two 503 tests, `left: Some(0)`, `right: Some(1)` |
 | Exit `2` on a usage error | `EXIT_USAGE_ERROR` set to `1` | `6 passed; 4 failed`: the four usage-error tests |
+| Exit `0` on a 2xx answer | `EXIT_HEALTHY` set to `1` (review round 2) | `9 passed; 2 failed`: the two healthy tests, `left: Some(1)`, `right: Some(0)` |
+| Exit `1` on a failed request | the `unreachable` record returns `EXIT_HEALTHY` (review round 2) | `9 passed; 2 failed`: the two unreachable tests, `left: Some(0)`, `right: Some(1)` |
 | One JSON object per stderr line | `main` writes `kind=<kind>` as plain text | `0 passed; 10 failed`: `stderr line is not JSON (expected value at line 1 column 1): kind="..."` |
 
-After the last mutation, `diff -q` of the saved copy and `src/bin/http_health_check.rs` printed nothing (`identical`), and `git status --short` listed no change under `src/` (only the spec and the new audit folder of this round).
+The two rows marked "review round 2" ran on 2026-11-16 at about 18:14 UTC on the round-2 binary (with the scheme check), with no image build running. A first attempt at the exit-0 row, changing the `healthy` branch to return `EXIT_FAILURE`, did not compile, because `EXIT_HEALTHY` was then unused and warnings are errors; that attempt is not counted. After those two rows, `diff -q` of the saved copy printed `identical`.
+
+After the last mutation of round 1, `diff -q` of the saved copy and `src/bin/http_health_check.rs` printed nothing (`identical`), and `git status --short` listed no change under `src/` (only the spec and the new audit folder of this round).
 
 ### G1 - Green tests, linters and image test stage
 
@@ -166,7 +170,7 @@ Not used as evidence: `docker pause` of the healthy container. Docker marked it 
 
 Tests: `cargo test --test http_health_check` and `cargo nextest run --test http_health_check` report 10 passed; clippy gives no warning.
 
-Image: `docker build -f Containerfile --target release -t torrust-tracker-2764:round1 .` exited `0`, and its test stage reported `1888 tests run: 1888 passed, 0 skipped`. While the build ran, `src/bin/http_health_check.rs` was briefly mutated for R2, so the image's own binary was checked: `docker run --rm --entrypoint /usr/bin/http_health_check torrust-tracker-2764:round1` printed the `usage_error` record with `"exit_code":2` and exited `2`, so the image was not built from the mutated file (that mutation set the usage exit code to 1).
+Image: `docker build -f Containerfile --target release -t torrust-tracker-2764:round1 .` exited `0`, and its test stage reported `1888 tests run: 1888 passed, 0 skipped`. While the build ran, `src/bin/http_health_check.rs` was briefly mutated for R2, so the image's own binary was checked: `docker run --rm --entrypoint /usr/bin/http_health_check torrust-tracker-2764:round1` printed the `usage_error` record with `"exit_code":2` and exited `2`, so the image was not built from the mutated file (that mutation set the usage exit code to 1). That check rules out only the usage-code mutation in the shipped binary. The stage result covers all three round-1 mutations: the test stage builds its tests from the same copied source, and each R2 mutation makes at least two of the `http_health_check` tests fail, while the stage ran 1888 tests with none failing. The evidence template asks to discard a run whose dependent steps ran concurrently; this run is kept on that argument, as review finding `review-finding:pr-2889-f13` suggested, and is not repeated.
 
 Real tracker (2026-11-16, about 17:36 UTC, debug build, same config as V1):
 
@@ -225,3 +229,10 @@ ExitCode 1 Output: {"kind":"unreachable","message":"could not probe the health e
 ```
 
 All four containers were removed afterwards (`docker ps -a --filter name=tt-r1 -q` printed nothing).
+
+### Round 2 of PR 2889 - URL scheme
+
+- Goal: a URL whose scheme is not `http` or `https` is a usage error (review finding `review-finding:pr-2889-f15`).
+- Status: `DONE`
+
+Red, on 2026-11-16 at about 18:13 UTC: the new test `it_should_exit_2_with_a_usage_error_record_when_the_url_scheme_is_not_http_or_https` (it probes `ftp://127.0.0.1/health_check` and `mailto:probe@example.com`) against the round-1 binary gave `10 passed; 1 failed`, with `unexpected exit code; stderr was: {"kind":"unreachable","message":"could not probe the health endpoint: builder error: URL scheme is not allowed","exit_code":1}`, `left: Some(1)`, `right: Some(2)`. Green after the fix: `cargo test --test http_health_check` and `cargo nextest run --test http_health_check` report 11 passed; clippy gives no warning. The image was not rebuilt for this change: it touches only argument parsing, and the container `HEALTHCHECK` (V2) passes an `http` URL, which the scheme check accepts.

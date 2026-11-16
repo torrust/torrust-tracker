@@ -9,7 +9,7 @@ github-issue: 2764
 spec-path: docs/issues/open/2764-2758-http-health-check-no-stdout/ISSUE.md
 branch: "2764-http-health-check-no-stdout"
 related-pr: 2889
-last-updated-utc: "2026-11-16 17:49"
+last-updated-utc: "2026-11-16 18:15"
 semantic-links:
   skill-links:
     - create-issue
@@ -132,6 +132,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-16 16:59 UTC - Claude Code (Claude Sonnet 5.5) - Implemented T1 to T3 on a branch rebased onto `torrust/develop` after the image-build job cap (PR 2854) merged. The tests ran red against the old binary, the binary now follows the contract, and the evidence (R1, R2, G1, V1 to V3) is recorded. The first image build failed because the image test stages could not find the binary through `CARGO_BIN_EXE_http_health_check`; the test now reads `NEXTEST_BIN_EXE_http_health_check` first, and the second build passed with 1883 tests. No `Containerfile` change was needed. `healthy` emits one stderr record (see Risks).
 - 2026-11-16 17:49 UTC - Claude Code (Claude Opus 5.5) - Correction to the entry stamped 2026-11-16 16:59 UTC (review finding `review-finding:pr-2889-f7`): that entry and `last-updated-utc` were written before the commit that carries them, which was made at 16:58:26Z; the stamp is later than its commit. The entry is kept as written.
 - 2026-11-16 17:49 UTC - Claude Code (Claude Opus 5.5) - Opened PR 2889 (`related-pr`). Addressed review round 1 (da2ce7 review 5924341133, Copilot review 5924435062; audit in `docs/pr-reviews/pr-2889-review/PR-REVIEW.md`): the unreachable test holds a bound, non-listening port; the binary reads `args_os`, reports a non-UTF-8 or malformed argument as a usage error, keeps the URL out of every record (contract redaction policy) and keeps the outcome exit code when the record cannot be written; the tests show stderr in exit-code assertions and clear the proxy variables; M2 and T3 describe the run that happened; R1 and R2 are completed. Rechecked G1, V1 to V3 on the changed binary (evidence section "Round 1 of PR 2889"). `tests/AGENTS.md` mentions the tests of root `src/bin` tools.
+- 2026-11-16 18:15 UTC - Claude Code (Claude Opus 5.5) - Addressed review round 2 of PR 2889 (da2ce7 review 5925054031, APPROVED, audit findings F13 to F15): a URL scheme other than `http` or `https` is a usage error (new test, red then green); R2 gains mutation rows for exit 0 on a 2xx answer and exit 1 on a failed request, and AC3 names the five clauses R2 covers; the round-1 image run is kept with the stage-result argument written out.
 
 ## Acceptance Criteria
 
@@ -171,7 +172,7 @@ Manual verification is mandatory even when automated tests pass. Record actual c
 | ----- | ---------------------- | -------- |
 | AC1 | DONE | Evidence V1, V3 and the tests: stdout is 0 bytes in every case |
 | AC2 | DONE | Evidence V1, V3, V2; the test helper parses every stderr line as one JSON object with a `kind` |
-| AC3 | DONE | Evidence V1, V3 (`0`, `1`, `1`, `2`); the tests; mutation checks R2 (one per exit-code and JSON clause) |
+| AC3 | DONE | Evidence V1, V3 (`0`, `1`, `1`, `2`); the tests; mutation checks R2: exit `0` on a 2xx answer, exit `1` on a non-2xx answer, exit `1` on a failed request, exit `2` on a usage error, and JSON on stderr |
 | AC4 | DONE | Evidence V2: `unhealthy` after the probe exited `1` (`unreachable`) |
 
 ## Risks and Trade-offs
