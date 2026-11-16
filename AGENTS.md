@@ -230,7 +230,8 @@ Running the image, volume mappings, ports and Docker Compose usage are in
 
 ## 🎯 Auto-Invoke Skills
 
-Agent Skills live under [`.claude/skills/`](.claude/skills/); custom agents are described in
+Agent Skills live under [`.claude/skills/`](.claude/skills/), listed by area in
+[`.claude/skills/README.md`](.claude/skills/README.md); custom agents are described in
 [`.github/agents/README.md`](.github/agents/README.md). Skills supplement (not replace) the rules in
 this file: rules apply always, skills activate when their workflows are needed.
 

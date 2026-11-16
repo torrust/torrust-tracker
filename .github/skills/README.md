@@ -1,6 +1,6 @@
 # Moved: Agent Skills
 
-The agent skills moved to [`.claude/skills/`](../../.claude/skills/) in issue #2866, one
+The agent skills moved to [`.claude/skills/`](../../.claude/skills/README.md) in issue #2866, one
 flat folder per skill, because Claude Code discovers project skills only at
 `.claude/skills/<name>/SKILL.md`. Add new skills there, not here.
 
