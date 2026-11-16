@@ -21,8 +21,8 @@ run, its mutations and its test-design review.
 - Artifact under test: V0: the skill files on `develop` `a35960402`, before #2866 moved them. V1
   and V3 before: `develop` `9e463cb0c`, the merge of #2866's PR #2886, the first commit with the
   skills at `.claude/skills/<name>/SKILL.md`. T2: branch `2873-shorten-skill-descriptions` at
-  `6e4d7e4e3`, whose skill files are still those of `9e463cb0c`. V2 after T3: `1787ec813`. V1, V3
-  and V4 after: `c8f7fcee8`, the branch after task T5
+  `feat(frontmatter-validator): [#2873] add the opt-in --skill-descriptions mode`, whose skill files are still those of `9e463cb0c`. V2 after T3: `fix(skills): [#2873] quote the write-markdown-docs description so YAML reads all of it`. V1, V3
+  and V4 after: `docs(skills): [#2873] state the skill description rules in add-new-skill`, the branch after task T5
 - Operating system / environment: Linux; Python 3.14.4 with PyYAML 6.0.3; Claude Code 2.1.318
   with its default model `claude-sonnet-5-5` and a 1M-token window; stable Rust
 - Prerequisites and setup performed: V1 and V3 run in a detached `git worktree` of the commit in a
@@ -89,7 +89,7 @@ show the text.
 - Goal: measure what the 53 project skill entries cost in every session, before and after the
   descriptions are shortened.
 - Initial state: before: a fresh checkout of `develop` `9e463cb0c`, clean tree. After: a fresh
-  checkout of `c8f7fcee8`.
+  checkout of `docs(skills): [#2873] state the skill description rules in add-new-skill`.
 - Status: `DONE`
 
 #### Steps Performed
@@ -97,7 +97,7 @@ show the text.
 1. 17:35:47 UTC. In the checkout, ran `claude -p "/context"` with Claude Code 2.1.318.
 2. Read the Skills category and every Project row; tabulated the rows against each skill's parsed
    description length in `description-measurements.md`.
-3. 18:04:51 UTC. Repeated step 1 in the checkout of `c8f7fcee8`, same version and model.
+3. 18:04:51 UTC. Repeated step 1 in the checkout of `docs(skills): [#2873] state the skill description rules in add-new-skill`, same version and model.
 
 #### Observed Result
 
@@ -134,25 +134,25 @@ description is dropped: M1's expected result holds.
 
 - Goal: show that the T3 fix makes a YAML parser read the whole description; the like-for-like
   recheck of V0.
-- Initial state: the branch at `1787ec813` (T3, the value quoted) and at `c8f7fcee8` (after T4).
+- Initial state: the branch at `fix(skills): [#2873] quote the write-markdown-docs description so YAML reads all of it` (T3, the value quoted) and at `docs(skills): [#2873] state the skill description rules in add-new-skill` (after T4).
 - Status: `DONE` (outcome: **Green**)
 
 #### Steps Performed
 
 1. 17:51:45 UTC. At T3, parsed the frontmatter with PyYAML as in V0 step 2, and ran the opt-in
    `--skill-descriptions` mode before and after staging the file.
-2. 17:52:27 UTC. In a fresh checkout of `1787ec813`, ran `claude -p "/context"`.
-3. At `c8f7fcee8`, read the parsed length and the `/context` row from V1's after run.
+2. 17:52:27 UTC. In a fresh checkout of `fix(skills): [#2873] quote the write-markdown-docs description so YAML reads all of it`, ran `claude -p "/context"`.
+3. At `docs(skills): [#2873] state the skill description rules in add-new-skill`, read the parsed length and the `/context` row from V1's after run.
 
 #### Observed Result
 
 | Commit      | Parsed by PyYAML        | Rule finding for the file            | `/context` row |
 | ----------- | ----------------------- | ------------------------------------ | -------------- |
 | `9e463cb0c` | 123 of 578 characters   | `skill-description-cut-by-comment`   | `~50`          |
-| `1787ec813` | 578 of 578 characters   | `skill-description-too-long` only    | `~200`         |
-| `c8f7fcee8` | 179 of 179 characters   | none                                 | `~70`          |
+| `fix(skills): [#2873] quote the write-markdown-docs description so YAML reads all of it` | 578 of 578 characters   | `skill-description-too-long` only    | `~200`         |
+| `docs(skills): [#2873] state the skill description rules in add-new-skill` | 179 of 179 characters   | none                                 | `~70`          |
 
-At `1787ec813` the parsed text ends `... "markdown pitfall", or "GFM".`, the end of the file's text.
+At `fix(skills): [#2873] quote the write-markdown-docs description so YAML reads all of it` the parsed text ends `... "markdown pitfall", or "GFM".`, the end of the file's text.
 
 #### Conclusion
 
@@ -165,7 +165,7 @@ fell to about 70 for 179 characters. `/context` does not show the text.
 
 - Goal: check that a task-like prompt loads the same skill after the descriptions are shortened.
 - Initial state: before: the same checkout of `9e463cb0c` as V1. After: the same checkout of
-  `c8f7fcee8` as V1.
+  `docs(skills): [#2873] state the skill description rules in add-new-skill` as V1.
 - Status: `DONE`
 
 #### Steps Performed
@@ -176,7 +176,7 @@ fell to about 70 for 179 characters. `/context` does not show the text.
    it soon after the skill is chosen. The default model was used.
 2. Read the `Skill` tool calls from each stream.
 3. 18:05 to 18:07 UTC. Repeated steps 1 and 2 with the same prompts in the checkout of
-   `c8f7fcee8`.
+   `docs(skills): [#2873] state the skill description rules in add-new-skill`.
 
 The prompts:
 
@@ -219,7 +219,7 @@ eight. Eight prompts on one model are a sample, not a guarantee for every task.
 
 - Goal: show that the check fails, naming the file and the problem, when a description breaks a
   rule.
-- Initial state: a scratch `git worktree` of `c8f7fcee8`.
+- Initial state: a scratch `git worktree` of `docs(skills): [#2873] state the skill description rules in add-new-skill`.
 - Status: `DONE`
 
 #### Steps Performed
@@ -242,13 +242,13 @@ exit=1
 #### Conclusion
 
 Each run fails and names the file and the problem. The pre-commit hook and the Docs Lint workflow
-run this same command since `ce2d5fe03`.
+run this same command since `ci(skills): [#2873] check the skill descriptions in the pre-commit hook and Docs Lint`.
 
 ### T2 - The description rule fails on the tree before the fix (red)
 
 - Goal: show that the regression test of the spec's Regression Test Strategy fails for the defect.
-- Initial state: branch `2873-shorten-skill-descriptions` at `6e4d7e4e3`, with the rule (commits
-  `e3f7264ac` and `7cd722272`) and the opt-in `--skill-descriptions` mode (`6e4d7e4e3`); the skill
+- Initial state: branch `2873-shorten-skill-descriptions` at `feat(frontmatter-validator): [#2873] add the opt-in --skill-descriptions mode`, with the rule (commits
+  `feat(frontmatter-validator): [#2873] report a skill description that YAML cuts at a comment` and `feat(frontmatter-validator): [#2873] report a skill description longer than 200 characters`) and the opt-in `--skill-descriptions` mode (`feat(frontmatter-validator): [#2873] add the opt-in --skill-descriptions mode`); the skill
   files are those of `9e463cb0c`.
 - Status: `DONE` (outcome: **Red**, as expected)
 

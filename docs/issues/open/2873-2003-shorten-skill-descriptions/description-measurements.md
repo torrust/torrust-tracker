@@ -22,7 +22,7 @@ trigger phrase can be restored and the saving checked.
   `claude-sonnet-5-5`, 1M-token window. `/context` rounds each row to the nearest 10 tokens.
 - **Before:** `develop` `9e463cb0c`, the merge of #2866's PR #2886, on 2026-11-16 at 17:35 UTC.
   The Skills category was 9.9k tokens (1.0%, its cap), with 53 Project rows.
-- **After:** branch `2873-shorten-skill-descriptions` at `c8f7fcee8`, after task T5, on
+- **After:** branch `2873-shorten-skill-descriptions` at `docs(skills): [#2873] state the skill description rules in add-new-skill`, after task T5, on
   2026-11-16 at 18:04 UTC, same Claude Code version and model. The Skills category was 7.8k tokens
   (0.8%), with 53 Project rows and no description dropped.
 
