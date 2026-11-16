@@ -3,23 +3,23 @@
    Compiling torrust-tracker-rest-api-runtime-adapter v0.1.0 (<repo>/packages/rest-api-runtime-adapter)
    Compiling torrust-tracker-axum-rest-api-server v0.1.0 (<repo>/packages/axum-rest-api-server)
    Compiling torrust-tracker-axum-health-check-api-server v0.2.0 (<repo>/packages/axum-health-check-api-server)
-    Finished `test` profile [optimized + debuginfo] target(s) in 1.84s
+    Finished `test` profile [optimized + debuginfo] target(s) in 1.83s
      Running tests/integration.rs (target/debug/deps/integration-03e9de8f47257705)
 
 running 1 test
-[2m2026-11-16T09:40:59.151420Z[0m [31mERROR[0m [2mtorrust_tracker_axum_health_check_api_server::handlers[0m[2m:[0m the health check job failed [3mservice_binding[0m[2m=[0mudp://127.0.0.1:45385 [3mjoin_error[0m[2m=[0mtask 5 panicked with message "called `Result::unwrap()` on an `Err` value: UnableToParseResponse { err: Custom { kind: InvalidData, error: \"invalid data\" }, response: [106, 117, 110, 107] }"
+[2m2026-11-16T10:26:12.846525Z[0m [31mERROR[0m [2mtorrust_tracker_axum_health_check_api_server::handlers[0m[2m:[0m the health check job failed [3mservice_binding[0m[2m=[0mudp://127.0.0.1:56130 [3mjoin_error[0m[2m=[0mtask 6 panicked with message "called `Result::unwrap()` on an `Err` value: UnableToParseResponse { err: Custom { kind: InvalidData, error: \"invalid data\" }, response: [106, 117, 110, 107] }"
 test server::contract::udp::it_should_return_error_when_the_registered_udp_service_answers_the_check_with_junk ... FAILED
 
 failures:
 
 ---- server::contract::udp::it_should_return_error_when_the_registered_udp_service_answers_the_check_with_junk stdout ----
 
-thread 'server::contract::udp::it_should_return_error_when_the_registered_udp_service_answers_the_check_with_junk' (1954628) panicked at packages/tracker-client/src/udp/client.rs:279:40:
+thread 'server::contract::udp::it_should_return_error_when_the_registered_udp_service_answers_the_check_with_junk' (2374860) panicked at packages/tracker-client/src/udp/client.rs:279:40:
 called `Result::unwrap()` on an `Err` value: UnableToParseResponse { err: Custom { kind: InvalidData, error: "invalid data" }, response: [106, 117, 110, 107] }
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
 
-thread 'server::contract::udp::it_should_return_error_when_the_registered_udp_service_answers_the_check_with_junk' (1954628) panicked at packages/axum-health-check-api-server/tests/server/contract.rs:516:9:
-the junk-answering udp service should be a failed check naming the cause, got: Err("the health check job failed: task 5 panicked with message \"called `Result::unwrap()` on an `Err` value: UnableToParseResponse { err: Custom { kind: InvalidData, error: \\\"invalid data\\\" }, response: [106, 117, 110, 107] }\"")
+thread 'server::contract::udp::it_should_return_error_when_the_registered_udp_service_answers_the_check_with_junk' (2374860) panicked at packages/axum-health-check-api-server/tests/server/contract.rs:520:9:
+the junk-answering udp service should be a failed check naming the cause, got: Err("the health check job failed: task 6 panicked with message \"called `Result::unwrap()` on an `Err` value: UnableToParseResponse { err: Custom { kind: InvalidData, error: \\\"invalid data\\\" }, response: [106, 117, 110, 107] }\"")
 
 
 failures:
