@@ -294,8 +294,9 @@ Notes:
 - Record the Claude Code version and model with every `/context` and trigger result; both can
   change the numbers. Repeat M3's prompts once if a result differs, since model choice is not
   deterministic, and record both runs.
-- `manual-verification-evidence.md` already holds V0, the reproduction made while drafting; add V1
-  to V4 during implementation.
+- `manual-verification-evidence.md` was created from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`
+  and keeps its headings. It already holds V0, the reproduction made while drafting; add V1 to V4
+  during implementation.
 
 ### Acceptance Verification
 

@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2873-2003-shorten-skill-descriptions/ISSUE.md
-last-updated-utc: 2026-11-16 08:47
+last-updated-utc: 2026-11-16 09:36
 ---
 
 # Manual Verification Evidence
@@ -49,7 +49,7 @@ review. Sections V1 to V4 are added during implementation, one per manual scenar
    print('raw', len(raw)); print('parsed', len(d)); print('parsed text:', d)
    ```
 
-#### Observed Output
+#### Observed Result
 
 Step 1, the lines of the `/context` output that bear on this issue (model `claude-sonnet-5-5`,
 `27.8k / 1m (3%)` in total):
@@ -67,9 +67,13 @@ parsed 123
 parsed text: Guide for writing Markdown documentation in this project. Covers GitHub Flavored Markdown pitfalls, especially the critical
 ```
 
-#### Result
+#### Conclusion
 
 The parser keeps 123 of the 578 characters and stops before `#NUMBER pattern`: a space
 followed by `#` starts a YAML comment. The `/context` row of about 50 tokens matches 123 characters plus the name at the measured
 rate of about 3 characters per token; the whole 578 characters would cost about 200. The text
 Claude Code lists has no `Use when` clause and none of the trigger phrases after it.
+
+## Failures and Follow-up
+
+None at the spec stage: V0 ran once and reproduced the defect.
