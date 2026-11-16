@@ -4,7 +4,7 @@ issue: 2876
 package: torrust-tracker-primitives
 target-file: packages/primitives/src/peer.rs
 status: done
-last-updated-utc: "2026-11-16 16:18"
+last-updated-utc: "2026-11-16 16:22"
 ---
 
 # `peer::fixture::qbittorrent_peer_id` Test Plan (T2)
@@ -159,3 +159,21 @@ Q2 and Q5: `peer::fixture` (with `PeerBuilder`, `qbittorrent_peer_id` and the `D
   `Cargo.toml` has `testing = []` and no self dev-dependency (ADR criterion 5).
 - `cargo test -q --workspace` (stable Rust toolchain, cargo 1.99.1): 4,087 passed, 0 failed.
 - M2 (`manual-verification-evidence.md`, V2): the shipped-features check exits 0.
+
+## Realistic Fixture Ids (T6)
+
+Q6: the fixture's three ids are built with the helper: `Peer::default()` and `Id::default()` use
+`qbittorrent_peer_id(0)`, `PeerBuilder::seeder()` uses 1 and `PeerBuilder::leecher()` uses 2 (the
+same numbering as the old `-qB0000000000000000N` ids). The `const fn` builders take the bytes with
+`qbittorrent_peer_id(n).data`.
+
+Assertions on the old bytes, listed before the change: the spec expected some in the
+`axum-http-server` and `axum-rest-api-server` tests. A search for the old literals and their hex
+(`grep -rn -E 'qB0000000000000000[012]|2d7142303030...'`) finds 30 files outside `peer.rs`, but those
+are ids written by hand, which Q6 leaves out of scope. To find the assertions that read bytes the
+fixture makes, the three ids were changed first and `cargo test -q --workspace --no-fail-fast` was
+run (stable Rust toolchain, cargo 1.99.1): 4,087 passed, 0 failed, the same count as after T5. So no
+assertion depends on the fixture's id bytes; the tests that read them compare against values taken
+from the same fixture. Nothing else needed to change.
+
+M3 (`manual-verification-evidence.md`, V3): every fixture id now names qBittorrent.

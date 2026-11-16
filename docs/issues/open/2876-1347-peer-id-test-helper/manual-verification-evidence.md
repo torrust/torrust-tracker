@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2876-1347-peer-id-test-helper/ISSUE.md
-last-updated-utc: 2026-11-16 16:18
+last-updated-utc: 2026-11-16 16:22
 ---
 
 # Manual Verification Evidence
@@ -127,6 +127,41 @@ torrust-tracker-primitives v3.1.0 (.../packages/primitives)
 #### Conclusion
 
 Met. The check exits 0 and the tree has no `testing` feature of `primitives`.
+
+### V3 - Realistic ids (M3)
+
+- Goal: show that the fixture's ids and the helper's ids name a client, unlike the ids of V0.
+- Initial state: branch `2876-peer-id-test-helper` with the T6 change (the fixture ids built with
+  `qbittorrent_peer_id`), uncommitted at the time of the run.
+- Status: `DONE`
+
+#### Steps Performed
+
+1. Created a temporary, untracked integration test `packages/primitives/tests/scratch_2876.rs` that
+   prints the bytes and `get_client_name()` of `Id::default()`, `Peer::default()`, the ids of
+   `PeerBuilder::seeder()` and `PeerBuilder::leecher()`, and `qbittorrent_peer_id` for 1, 1000 and
+   `u32::MAX`.
+2. `cargo test -q -p torrust-tracker-primitives --test scratch_2876 -- --nocapture` (stable Rust
+   toolchain, cargo 1.99.1), exit 0. The self dev-dependency turns `testing` on.
+3. `rm -r packages/primitives/tests`; `git status -s` then listed only the T6 change to
+   `packages/primitives/src/peer.rs`.
+
+#### Observed Result
+
+```text
+Id::default()                  bytes=-qB4650-000000000000 client=Some("qBittorrent")
+Peer::default()                bytes=-qB4650-000000000000 client=Some("qBittorrent")
+PeerBuilder::seeder()          bytes=-qB4650-000000000001 client=Some("qBittorrent")
+PeerBuilder::leecher()         bytes=-qB4650-000000000002 client=Some("qBittorrent")
+qbittorrent_peer_id(1)         bytes=-qB4650-000000000001 client=Some("qBittorrent")
+qbittorrent_peer_id(1000)      bytes=-qB4650-000000001000 client=Some("qBittorrent")
+qbittorrent_peer_id(u32::MAX)  bytes=-qB4650-004294967295 client=Some("qBittorrent")
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+```
+
+#### Conclusion
+
+Met. Every id names qBittorrent; in V0 the old fixture ids and the `Id::new` ids gave `None`.
 
 ## Failures and Follow-up
 

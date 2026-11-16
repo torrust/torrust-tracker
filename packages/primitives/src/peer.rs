@@ -524,7 +524,7 @@ pub mod fixture {
         #[must_use]
         pub const fn seeder() -> Self {
             let peer = Peer {
-                peer_id: PeerId(*b"-qB00000000000000001"),
+                peer_id: qbittorrent_peer_id(1).data,
                 peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080),
                 updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
                 uploaded: NumberOfBytes::new(0),
@@ -540,7 +540,7 @@ pub mod fixture {
         #[must_use]
         pub const fn leecher() -> Self {
             let peer = Peer {
-                peer_id: PeerId(*b"-qB00000000000000002"),
+                peer_id: qbittorrent_peer_id(2).data,
                 peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)), 8080),
                 updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
                 uploaded: NumberOfBytes::new(0),
@@ -651,7 +651,7 @@ pub mod fixture {
     impl Default for Peer {
         fn default() -> Self {
             Self {
-                peer_id: PeerId(*b"-qB00000000000000000"),
+                peer_id: qbittorrent_peer_id(0).data,
                 peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080),
                 updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
                 uploaded: NumberOfBytes::new(0),
@@ -664,8 +664,7 @@ pub mod fixture {
 
     impl Default for Id {
         fn default() -> Self {
-            let data = PeerId(*b"-qB00000000000000000");
-            Self { data }
+            qbittorrent_peer_id(0)
         }
     }
 }
