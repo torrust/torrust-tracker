@@ -9,7 +9,7 @@ github-issue: 2873
 spec-path: docs/issues/open/2873-2003-shorten-skill-descriptions/ISSUE.md
 branch: "2873-shorten-skill-descriptions-spec"
 related-pr: null
-last-updated-utc: "2026-11-16 09:45"
+last-updated-utc: "2026-11-16 10:02"
 semantic-links:
   skill-links:
     - create-issue
@@ -68,7 +68,8 @@ Claude Code 2.1.318 (`claude -p "/context"`, default model Sonnet 5.5), and got 
 | Descriptions of 200 characters or less                                                       | 4 of 53                 |
 
 The description lengths are the YAML-parsed `description` values (Python `yaml.safe_load` of the
-frontmatter, then `len`), the text Claude Code reads.
+frontmatter, then `len`): the text a YAML parser reads. That Claude Code reads the same text
+is an inference, as for the cut description below.
 
 The listing is already at the cap on a 1M window, and the project skills push other skills'
 descriptions out. On a 200k window the budget is about 2k tokens, less than a third of what the
@@ -252,6 +253,7 @@ the last increment, before T6. Commits use Conventional Commit messages and are 
 - 2026-11-16 08:53 UTC - AI assistant (Claude Code, Claude Opus 5.5) - Addressed Copilot's review 5917272531 on PR #2875: T2's rule stays opt-in until T4's last commit turns it on in the existing staged and whole-tree gates, since the hook already runs `frontmatter-validator --staged`. Correction: the entry stamped 08:47 UTC is later than its commit, made at 08:46:59 UTC; it is kept unchanged
 - 2026-11-16 09:38 UTC - AI assistant (Claude Code, Claude Opus 5.5) - Addressed the second round on PR #2875: the evidence file keeps its template's headings (da2ce7's review 5917548188, F5), and the `/context` row is described as corroborating inference, not an observation of the cut text, in the Background, Bug-Fix Process, T3, AC3, M2 and V0 (Copilot's review 5917643855, F7)
 - 2026-11-16 09:45 UTC - AI assistant (Claude Code, Claude Opus 5.5) - Addressed F8 from Copilot's review 5917643855 body: the rule detects a comment in a plain scalar only and no longer compares raw and parsed lengths, which valid quoted and block-scalar descriptions change; AC4 asks for passing tests for those
+- 2026-11-16 10:02 UTC - AI assistant (Claude Code, Claude Opus 5.5) - Addressed da2ce7's review 5918129806 (his F8): the measurement note no longer states as fact that Claude Code reads the parsed text, and the evidence says the 08:45:16 UTC parse repeated the drafting-time one
 
 ## Acceptance Criteria
 

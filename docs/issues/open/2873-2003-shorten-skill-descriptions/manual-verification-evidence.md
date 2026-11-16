@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2873-2003-shorten-skill-descriptions/ISSUE.md
-last-updated-utc: 2026-11-16 09:38
+last-updated-utc: 2026-11-16 10:02
 ---
 
 # Manual Verification Evidence
@@ -79,4 +79,6 @@ show the text.
 
 ## Failures and Follow-up
 
-None at the spec stage: V0 ran once and reproduced the defect.
+None at the spec stage. V0's parse first ran while drafting, in the script that measured all 53
+descriptions, which gave 123 parsed against 578 raw characters for this file; the 08:45:16 UTC run
+in step 2 repeated it for this record with the same result. Neither run failed.
