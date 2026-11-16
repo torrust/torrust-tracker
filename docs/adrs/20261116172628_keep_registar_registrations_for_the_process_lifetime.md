@@ -124,6 +124,23 @@ that can remove only its own entry, so the capability stays narrow.
   as failing.
 - Issue #2846 (SI-27) is closed as not planned; the server packages and the supervisors do not change.
 
+## Affected Code
+
+No code changes with this decision. These are the places that implement or rely on it:
+
+- [`src/container.rs`](../../src/container.rs): the `registar` field of `AppContainer`, whose comment
+  points back to this ADR.
+- [`src/app.rs`](../../src/app.rs): `begin_shutdown` marks the tracker not ready before it cancels
+  any component.
+- [`src/bootstrap/jobs/manager.rs`](../../src/bootstrap/jobs/manager.rs): `request_shutdown` and
+  `mark_finished`, the only places that cancel component tokens.
+- [`packages/axum-health-check-api-server/src/handlers.rs`](../../packages/axum-health-check-api-server/src/handlers.rs):
+  the `503` answer while not ready, and the probe of each registration that has a health check.
+- [`packages/axum-health-check-api-server/src/server.rs`](../../packages/axum-health-check-api-server/src/server.rs):
+  the server that holds the whole `Registar` and returns its `service_binding`.
+- [`packages/axum-health-check-api-server/src/environment.rs`](../../packages/axum-health-check-api-server/src/environment.rs):
+  the test environment, the one caller of `Registar::deregister`.
+
 ## Date
 
 2026-11-16
