@@ -42,7 +42,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Findings from da2ce7's review 5912769583 (F1-F11, reviewer IDs kept) and Copilot's review 5912779850 (F12-F13, re-raises of F1 and F2), both on the first commit, `docs(issues): draft the peer-id-test-helper spec (finding F5 of #2824)`. Round 2: da2ce7's review 5913005734 (APPROVED) on the audit commit, `docs(pr-reviews): add the review audit of PR #2865, round 1`; its F12-F15 collide with existing audit IDs and are recorded as F14-F17. Round 3: da2ce7's review 5915609693 (APPROVED) on the round-2 audit commit, `docs(pr-reviews): record round 2 of the PR #2865 review audit`; its F16 collides and is recorded as F18. Round 4: da2ce7's review 5915707496 (APPROVED) on the round-3 audit commit, `docs(pr-reviews): record round 3 of the PR #2865 review audit`; its F18-F19 collide and are recorded as F19-F20.
+Findings from da2ce7's review 5912769583 (F1-F11, reviewer IDs kept) and Copilot's review 5912779850 (F12-F13, re-raises of F1 and F2), both on the first commit, `docs(issues): draft the peer-id-test-helper spec (finding F5 of #2824)`. Round 2: da2ce7's review 5913005734 (APPROVED) on the audit commit, `docs(pr-reviews): add the review audit of PR #2865, round 1`; its F12-F15 collide with existing audit IDs and are recorded as F14-F17. Round 3: da2ce7's review 5915609693 (APPROVED) on the round-2 audit commit, `docs(pr-reviews): record round 2 of the PR #2865 review audit`; its F16 collides and is recorded as F18. Round 4: da2ce7's review 5915707496 (APPROVED) on the round-3 audit commit, `docs(pr-reviews): record round 3 of the PR #2865 review audit`; its F18-F19 collide and are recorded as F19-F20. Round 6: da2ce7's review 5916743500 (APPROVED) on the rebased branch, after #2871 archived the #2824 spec; its F21 is kept (no collision). An approval without findings in between (review 5915854868) needed no row.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -66,6 +66,7 @@ Findings from da2ce7's review 5912769583 (F1-F11, reviewer IDs kept) and Copilot
 | F18 | review-finding:pr-2865-f18 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 | F19 | review-finding:pr-2865-f19 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F20 | review-finding:pr-2865-f20 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F21 | review-finding:pr-2865-f21 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -329,6 +330,19 @@ Findings from da2ce7's review 5912769583 (F1-F11, reviewer IDs kept) and Copilot
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2865#discussion_r4582506057>
 
+### F21 - New commit subject matches the closing-keyword scan
+
+- PR number: 2865
+- Source review ID: 5916743500
+- Reviewer finding ID: F21
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2865#discussion_r4583278634>
+- Concern: The subject of the commit that moved the #2824 references said "the closed" followed by the issue number, which the `open-pull-request` closing-keyword scan matches, while this PR is only related to #2824.
+- Solution: Reworded the subject before the merge to say "archived" instead; the diff of the commit is unchanged.
+- Current-tree verification: The skill's closing-keyword scan over the commit messages of the branch prints nothing.
+- Resolution reference: docs(issues): point the peer-id-test-helper spec at the archived #2824 spec
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2865#discussion_r4583287970>
+
 ## Processing Log
 
 - 2026-11-15 20:31 UTC - Review round 1: da2ce7 review 5912769583 (CHANGES_REQUESTED, F1-F11) and Copilot review 5912779850 (two comments) received on the first commit, `docs(issues): draft the peer-id-test-helper spec (finding F5 of #2824)`; every finding checked against the tree.
@@ -345,6 +359,10 @@ Findings from da2ce7's review 5912769583 (F1-F11, reviewer IDs kept) and Copilot
 - 2026-11-16 06:08 UTC - Review round 4: da2ce7 review 5915707496 (APPROVED, two findings, recorded as F19-F20) received on the round-3 audit commit at 06:07:50 UTC; both checked against the forge record and the commits. Added rows F19-F20 before replying.
 - 2026-11-16 06:08 UTC - Correction for F19: the round-3 entries above carry wrong times. The review was submitted at 05:55:42 UTC, the spec fix committed at 05:57:19, the reply posted at 05:57:50, and the audit committed (with its validator run) at 05:59:12 UTC.
 - 2026-11-16 06:09 UTC - Replied on the two round-4 threads (06:09 UTC); validator `validate-audit-record.py --pr-number 2865` exited 0 for round 4 (20 rows, 0 failures).
+- 2026-11-16 06:27 UTC - da2ce7 review 5915854868 (APPROVED, no findings) and an ACK comment on the round-4 head; nothing to record as a row.
+- 2026-11-16 07:54 UTC - Rebased onto `develop` after #2871 archived the #2824 spec, and moved the spec's two references to `docs/issues/closed/`. The two older `docs/issues/open/` paths in this audit are dated current-tree verifications and stay as written.
+- 2026-11-16 08:08 UTC - Review round 6: da2ce7 review 5916743500 (APPROVED, one finding, F21) received at 08:06:57 UTC on the rebased head. Reworded the commit subject at 08:07 UTC and added row F21 before replying.
+- 2026-11-16 08:08 UTC - Replied on the F21 thread (08:08 UTC); validator `validate-audit-record.py --pr-number 2865` exited 0 for round 6 (21 rows, 0 failures).
 
 ## Completion Rules
 
