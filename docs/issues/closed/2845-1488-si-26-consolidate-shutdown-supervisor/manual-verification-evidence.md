@@ -557,4 +557,5 @@ Result:
   `udp_banned_ips_total 0`, and a connect is answered again.
 - `udp_ban_cleanup` started with `reset_interval_in_secs=3600`, stopped on `SIGTERM` ("Stopping UDP IP-ban
   cleanup job"), and the binary exited with status 0.
-- The reset itself writes no log line; the metric and the answered connect are the evidence.
+- The script's filter does not keep the reset's own log line (`connection id errors filter cleared`, written
+  at INFO by `BanService::reset_bans`); the metric and the answered connect are the evidence.

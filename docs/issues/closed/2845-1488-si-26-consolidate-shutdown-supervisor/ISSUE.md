@@ -35,7 +35,7 @@ semantic-links:
 
 # Issue #2845 - Consolidate the Shutdown Supervisors and Migrate the Last Legacy Job (SI-26)
 
-> **EPIC position**: Roadmap row 23, sub-issue SI-26 of [EPIC #1488](../1488-overhaul-tracker-shutdown/ISSUE.md).
+> **EPIC position**: Roadmap row 23, sub-issue SI-26 of [EPIC #1488](../../open/1488-overhaul-tracker-shutdown/ISSUE.md).
 > A follow-up of [SI-19](../../closed/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md) and
 > [SI-21](../../closed/2697-1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md).
 > Implementation order 2 of 4. Priority p3; must land before the first publish (#2583, see Dependencies).
@@ -209,7 +209,7 @@ Sign every commit with GPG.
 - [x] Spec-only PR merged into `develop` before implementation (PR #2848)
 - [x] Owner-type design decision recorded (T1)
 - [x] Implementation completed
-- [x] Design review after the first passing vertical slice recorded (the maintainer reviewed the implementation before PR #2870 was opened; reviews in `docs/pr-reviews/pr-2870-review/PR-REVIEW.md`)
+- [ ] Design review after the first passing vertical slice recorded (not done: no prose-first Arrange-Act-Assert review was recorded after T2, T3 or T4; the maintainer reviewed the implementation before PR #2870 was opened, and the pull-request reviews are in `docs/pr-reviews/pr-2870-review/PR-REVIEW.md`; see `implementation-retrospective.md`)
 - [x] Automatic verification completed (`linter all`, relevant tests, pre-push checks)
 - [x] Manual verification scenarios executed and recorded in `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
@@ -225,7 +225,7 @@ Sign every commit with GPG.
 - 2026-11-15 21:13 UTC - AI agent (Claude Opus 5.5) - Copilot review of PR #2870: re-ran M2 on dedicated ports with the script and output recorded in the evidence file; set M3 and M4 back to TODO (not run against the binary; M4 needs a reset interval of at least 3600 s) and unticked the manual-verification checkpoint.
 - 2026-11-16 07:39 UTC - AI agent (Claude Opus 5.5) - da2ce7 review of PR #2870: re-ran M2 with every job-manager stop line kept, so the evidence now shows the other components' stop order too; aligned the evidence frontmatter with its template; fixed the remaining docs findings.
 - 2026-11-16 08:27 UTC - Maintainer - PR #2870 merged into `develop` (`1c3daab4b`).
-- 2026-11-16 09:50 UTC - AI agent (Claude Opus 5.5) - Close-out: ran M3 (exit 1 at 2.04 s, inside P = 4 s; `http_api` reported failed with the same wording as SI-21 V6) and M4 (ban reset seen 3603 s after start with a 3600 s interval) on a binary built from `develop`; ticked the acceptance criteria and checkpoints; recorded `implementation-retrospective.md` (the M4 interval constraint, a weak first regression test, and docs drift found in review); archived the spec.
+- 2026-11-16 09:50 UTC - AI agent (Claude Opus 5.5) - Close-out: ran M3 (exit 1 at 2.04 s, inside P = 4 s; `http_api` reported failed with the same wording as SI-21 V6) and M4 (ban reset seen 3603 s after start with a 3600 s interval) on a binary built from `develop`; ticked the acceptance criteria and checkpoints except the design review, which was not recorded; recorded `implementation-retrospective.md` (the M4 interval constraint, a weak first regression test, and docs drift found in review); archived the spec.
 
 ## Acceptance Criteria
 
@@ -236,7 +236,8 @@ Sign every commit with GPG.
 - [x] No `register_legacy`, `LegacyJob` or `legacy_cancellation_token` remains, and no live document
       describes the legacy path.
 - [x] Shutdown behavior is otherwise unchanged: same stop order, same exit codes, same log wording for
-      the existing components.
+      the existing components, apart from the two HTTP tracker error messages that T1 decision 1 moved to
+      the shared template wording.
 - [x] `linter all` passes.
 
 ## Verification Plan

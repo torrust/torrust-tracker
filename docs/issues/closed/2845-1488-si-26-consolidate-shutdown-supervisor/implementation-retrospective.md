@@ -20,8 +20,8 @@ EPIC #1488). This is a blameless review of the implementation approach.
 PR #2870 merged on 2026-11-16. One shared supervisor (`src/bootstrap/jobs/token_aware_server.rs`)
 serves the HTTP tracker, REST API and health-check API with the health-check join order;
 `udp_ban_cleanup` is a reserved component that stops before the health check; the legacy
-registration path and the manager's root token are gone. Manual scenarios M1 to M4 ran against the
-binary (`manual-verification-evidence.md`).
+registration path and the manager's root token are gone. Manual scenarios M1 to M4 are recorded in
+`manual-verification-evidence.md`: M1 is a search of the tree, and M2 to M4 ran on the binary.
 
 ## What Went Well
 
@@ -35,7 +35,9 @@ binary (`manual-verification-evidence.md`).
 - The first regression test for "the controller is joined after a server-join error" only proved the
   controller reached its send, so it passed with the old early return. The replacement gates the
   controller on a paused clock and asserts the supervisor stays pending
-  (`it_should_wait_for_the_drain_controller_when_the_server_join_fails`).
+  (`it_should_wait_for_the_drain_controller_when_the_server_join_fails`). The spec's design review
+  after each of T2, T3 and T4 (a recorded prose-first Arrange-Act-Assert review of the tests) was not
+  done; it is the step that would most likely have caught the weak test before review.
 - M4 assumed a "short" ban reset interval, but the configuration rejects anything below 3600 s, so
   one run takes over an hour. It was first left TODO and run before the close-out.
 - Two scenarios were first marked DONE or BLOCKED without a binary run, and the first M2 evidence was

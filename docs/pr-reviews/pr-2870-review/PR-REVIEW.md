@@ -64,7 +64,7 @@ with `F13`, recorded as `C13`.
 | C10 | review-finding:pr-2870-c10 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | C11 | review-finding:pr-2870-c11 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | C12 | review-finding:pr-2870-c12 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
-| C13 | review-finding:pr-2870-c13 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| C13 | review-finding:pr-2870-c13 | Human | Minor | metadata | ORIGINAL | FOLLOW_UP | OPEN |
 
 ## Finding Details
 
@@ -270,9 +270,9 @@ with `F13`, recorded as `C13`.
 - Reviewer finding ID: F13
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2870#discussion_r4583289425
 - Concern: C11's Concern named the PR-branch commit id it set out to remove, so the commit-id check still printed it, and C11's verification and the F11 reply were wrong at that head.
-- Solution: The maintainer merged PR #2870 as is; the close-out PR describes that commit by its subject in C11.
+- Solution: The maintainer merged PR #2870 as is; the close-out PR describes that commit by its subject in C11. `FOLLOW_UP` and `OPEN` until the close-out PR merges.
 - Current-tree verification: the `open-pull-request` skill's commit-id check prints no PR-branch commit id for this record.
-- Resolution reference: docs(issues): close out #2845 with the M3 and M4 evidence
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2870#discussion_r4584192339
 - Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2880
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2870#discussion_r4583363366
 
