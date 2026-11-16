@@ -91,18 +91,15 @@ Answer:
 
 ### Step 2: Choose the Location
 
-Follow the directory layout:
+Create the skill at `.claude/skills/<skill-name>/SKILL.md`, flat: Claude Code discovers a project
+skill only there, and a skill one folder deeper is never listed. The folder name must equal the
+skill's `name`.
 
-```text
-.github/skills/
-  add-new-skill/
-  dev/
-    git-workflow/
-    maintenance/
-    planning/
-    rust-code-quality/
-    testing/
-```
+Group the skill by area in the index instead: add one row for it to the fitting area table of
+[`.claude/skills/README.md`](../README.md), with a one-line purpose, or add an area if none fits.
+
+Do not add anything under `.github/skills/`: that folder holds only the redirect stubs of the skills
+that moved in issue #2866. A new skill needs no stub.
 
 ### Step 3: Write the SKILL.md
 
@@ -132,15 +129,19 @@ linter markdown
 # Run all linters
 linter all
 
+# Check the skill layout: placement, name, and the index row
+cargo run --quiet --package frontmatter-validator --bin frontmatter-validator -- --skill-layout
+
 # Commit
-git add .github/skills/
+git add .claude/skills/
 git commit -S -m "docs(skills): add {skill-name} skill"
 ```
 
 ## Directory Layout
 
 ```text
-.github/skills/
+.claude/skills/
+  README.md             ← The index: one row per skill, by area
   <skill-name>/
     SKILL.md            ← Required
     references/         ← Optional: detailed docs
