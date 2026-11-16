@@ -111,8 +111,13 @@ unhealthy in the health list. Only an orderly stop (cancellation requested, drai
   `docs/adrs/20261104120915_stop_the_health_check_api_last_to_report_not_ready_during_shutdown.md`.
 - ADRs to create: none expected. If T1 chooses the root supervisors, record the rule "an orderly stop
   removes the registration, a failure keeps it" in the SI-21 ADR instead of a new one.
+- ADRs created (2026-11-16, after the T1 no-go):
+  `docs/adrs/20261116172628_keep_registar_registrations_for_the_process_lifetime.md` records the
+  decision, the alternatives and the reopening trigger, and the SI-21 ADR's consequence that pointed
+  to a deregistration follow-up was amended to link it.
 - Versioning: the change adds no public item but changes behavior of the server packages; record in the
-  progress log whether it needs a version bump (independent-versioning ADR).
+  progress log whether it needs a version bump (independent-versioning ADR). After the no-go no
+  package changes, so no version bump.
 
 ## Design and Ownership Review
 
