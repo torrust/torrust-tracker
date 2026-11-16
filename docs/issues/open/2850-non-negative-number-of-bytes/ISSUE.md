@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: in-progress
 priority: p2
 epic: null
 github-issue: 2850
 spec-path: docs/issues/open/2850-non-negative-number-of-bytes/ISSUE.md
-branch: "2850-non-negative-number-of-bytes-spec"
-related-pr: null
-last-updated-utc: "2026-11-15 21:07"
+branch: "2850-non-negative-number-of-bytes"
+related-pr: 2872
+last-updated-utc: "2026-11-16 10:16"
 semantic-links:
   skill-links:
     - create-issue
@@ -625,13 +625,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T0 | TODO | Add the missing benchmark and record the baseline | [`docs/benchmarking.md`](../../../benchmarking.md) requires it before any production change. The `udp-core` benchmarks time only the connect, the connection cookie and the ban service, and `udp-server` only a scrape; no Criterion benchmark times a UDP announce, so add one (announce through the `udp-core` service, so the conversion is on the timed path). The HTTP announce is covered by `bench_announce_once` in `http-core`. Record the baseline of both, plus the end-to-end UDP load test (`aquatic_udp_load_test`), in `performance-evidence.md`, on the code the branch starts from plus documentation and benchmark-only commits: three Criterion runs (medians) and five 30-second load-test runs, with the checks of the machine that the guide lists. |
-| T1 | TODO | Pin today's HTTP range with tests | Unit tests in `http-protocol` for each param: negative refused, `0` accepted, non-numeric refused. They pass before any production change |
-| T2 | TODO | Make the UDP conversion fallible | Red first: the handler test of PR #2839 fails. Then `peer_builder::from_request` returns `Result` with its own error; the service uses `?`; `UdpAnnounceError` wraps it; `udp-server` classifies it as a bad request; tests taken from the branch of PR #2839. The domain type is still `i64`. This step alone fixes the bug of #2838 |
-| T3 | TODO | Change the two types and their callers | `primitives` and `http-protocol` types hold a private `u64`; `is_seeder`, serializer, parser, builder, `http-core`, REST resource and adapter, benches and any test code that does not compile. `NumberOfBytesOverflow` removed. The workspace builds and all tests pass |
-| T4 | TODO | Add the tests for the new range | `u64::MAX` and above in `http-protocol`; the contract test in `axum-http-server`; seeder and leecher tests in `primitives` |
-| T5 | TODO | Check client-visible output and documentation | UDP error message for a negative counter; REST peer JSON; API description; "non-negative integer" in the `axum-http-server` documentation. Old and new listed in the pull request |
-| T6 | TODO | Verification and evidence | Automatic checks, manual scenarios, the performance measurement again after T3 (same machine, build profile, configuration and settings as the baseline; every run in `performance-evidence.md`), acceptance review, completion review |
+| T0 | DONE | Add the missing benchmark and record the baseline | [`docs/benchmarking.md`](../../../benchmarking.md) requires it before any production change. The `udp-core` benchmarks time only the connect, the connection cookie and the ban service, and `udp-server` only a scrape; no Criterion benchmark times a UDP announce, so add one (announce through the `udp-core` service, so the conversion is on the timed path). The HTTP announce is covered by `bench_announce_once` in `http-core`. Record the baseline of both, plus the end-to-end UDP load test (`aquatic_udp_load_test`), in `performance-evidence.md`, on the code the branch starts from plus documentation and benchmark-only commits: three Criterion runs (medians) and five 30-second load-test runs, with the checks of the machine that the guide lists. |
+| T1 | DONE | Pin today's HTTP range with tests | Unit tests in `http-protocol` for each param: negative refused, `0` accepted, non-numeric refused. They pass before any production change |
+| T2 | DONE | Make the UDP conversion fallible | Red first: the handler test of PR #2839 fails. Then `peer_builder::from_request` returns `Result` with its own error; the service uses `?`; `UdpAnnounceError` wraps it; `udp-server` classifies it as a bad request; tests taken from the branch of PR #2839. The domain type is still `i64`. This step alone fixes the bug of #2838 |
+| T3 | DONE | Change the two types and their callers | `primitives` and `http-protocol` types hold a private `u64`; `is_seeder`, serializer, parser, builder, `http-core`, REST resource and adapter, benches and any test code that does not compile. `NumberOfBytesOverflow` removed. The workspace builds and all tests pass |
+| T4 | DONE | Add the tests for the new range | `u64::MAX` and above in `http-protocol`; the contract test in `axum-http-server`; seeder and leecher tests in `primitives` |
+| T5 | DONE | Check client-visible output and documentation | UDP error message for a negative counter; REST peer JSON; API description; "non-negative integer" in the `axum-http-server` documentation. Old and new listed in the pull request |
+| T6 | DONE | Verification and evidence | Automatic checks, manual scenarios, the performance measurement again after T3 (same machine, build profile, configuration and settings as the baseline; every run in `performance-evidence.md`), acceptance review, completion review |
 
 T2 goes before T3 on purpose: it fixes the bug in the conversion while the domain type is
 unchanged, so it can be reviewed and tested alone. T3 is one commit, because the workspace does not
@@ -687,15 +687,15 @@ with the narrow affected scope, and sign every commit with GPG.
 - [x] Folder-style spec drafted in `docs/issues/drafts/non-negative-number-of-bytes/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -715,6 +715,9 @@ the model that produced them.
 - 2026-11-12 17:32 UTC - Claude Code (Fable 5.2) - The maintainer decided that one issue is enough (D6). Merged the EPIC draft and the two sub-issue drafts into this single issue specification; nothing was dropped from the research, the decisions or the source map. Not approved; no GitHub issue created.
 - 2026-11-12 17:40 UTC - Claude Code (Fable 5.2) - The maintainer approved the plan: this issue is the fix for #2838 and replaces the patch of PR #2839, and the ADR of #2842 is delivered by this issue's spec-only pull request instead of PR #2843. Created issue #2850, moved the specification to `docs/issues/open/`, carried over the four ADR commits and the specification and evidence of #2838, and rewrote D3, D5, D6, the bug-fix process and the coordination for that plan. The two other sessions were told and close their pull requests.
 - 2026-11-12 20:29 UTC - Claude Code (Fable 5.2) - Rebased the spec-only branch onto `develop` after PR #2841 (the primitives tests of #2824) merged and conflicted in the EPIC #1347 table. Updated the coordination note: those tests are on `develop` and name this issue.
+- 2026-11-15 21:17 UTC - Claude Code (Opus 5.5) - Implemented T0 to T6 on branch `2850-non-negative-number-of-bytes`. T0 added `udp_tracker/announce_once`; the first baseline was discarded because uncommitted T1/T2 edits leaked into its build, and each measurement is now built in a clean worktree (`performance-evidence.md`, lesson added to `docs/benchmarking.md`). T2 named the field with the `ByteCountField` enum (one variant, one message, the field as a matchable value) and moved the peer conversion before the whitelist check, as the order tests of PR #2839 require. The maintainer agreed a 5% tolerance for the UDP benchmark before the after measurement. Load test and UDP pass; HTTP `announce_once` failed the one-sided rule by 0.3% on a path T3 does not add work to, and an interleaved A/B run put it inside the noise: the verdict is the maintainer's. Manual run 1 was discarded for non-monotonic timestamps. No design assumption was invalidated, so no retrospective file.
+- 2026-11-15 21:22 UTC - Claude Code (Opus 5.5) - Rebased onto `develop` and opened the implementation PR #2872 (closes #2850 and #2838). Updated the #2838 specification and row 12 of the EPIC #1347 table to point to it.
+- 2026-11-16 10:16 UTC - Claude Code (Opus 5.5) - Recorded two maintainer decisions of 2026-11-16, both given to this session in its conversation with the maintainer: the client-visible changes listed in PR #2872 are approved, and the HTTP `announce_once` result is accepted ("Performance Evidence" and `performance-evidence.md`).
 
 ## Acceptance Criteria
 
@@ -769,6 +772,12 @@ of `http-core`, and the end-to-end UDP load test.
   tolerance. The tolerance is not set here: the maintainer agrees on it after the baseline shows
   the noise, and before the after measurement, and is then added to this section. The HTTP path
   adds no work, so its rule has no tolerance.
+- Agreed tolerance (maintainer, 2026-11-15, after the baseline and before the after measurement):
+  the after UDP `announce_once` median may be up to 5% above the highest baseline median, that is
+  at most 318.70 ns (highest baseline median 303.52 ns; baseline spread 6.5%).
+- HTTP verdict (maintainer, 2026-11-16, after the after measurement): the HTTP `announce_once`
+  result, 0.3% above the highest baseline median and inside the noise of the interleaved A/B
+  run, is accepted. The decision was given to the implementing agent session (Claude Code) in its conversation with the maintainer; there is no separate statement on the pull request.
 
 ### Manual Verification Scenarios
 
@@ -783,13 +792,13 @@ announce is sent, and use the single-torrent detail: the torrent list does not i
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | UDP, negative `left` | Probe of #2838 with `left = -5` | Error response with the transaction id; `complete` does not grow | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | UDP, `left = 0` | Probe with `left = 0` | Normal response; the peer is a seeder | TODO | `manual-verification-evidence.md` section V2 |
-| M3 | UDP, positive `left` | Probe with `left = 1000` and with `left = 9223372036854775807` | Normal responses; the peers are leechers | TODO | `manual-verification-evidence.md` section V3 |
-| M4 | HTTP, the same values | `curl` announces with `left=-5`, `left=0`, `left=1000` and `left=9223372036854775807` | Refused with a `failure reason`, seeder, leecher, leecher: the same verdicts as M1 to M3 | TODO | `manual-verification-evidence.md` section V4 |
-| M5 | HTTP, above `i64::MAX` | `curl` announce with `left=9223372036854775808` | Normal response; the peer is a leecher | TODO | `manual-verification-evidence.md` section V5 |
-| M6 | HTTP, above `u64::MAX` | `curl` announce with `left=18446744073709551616` | Bencoded `failure reason` | TODO | `manual-verification-evidence.md` section V6 |
-| M7 | REST output | Right after each accepted announce of M2, M3, M4 and M5, and before the next announce, `GET` the single-torrent detail from the REST API | For each announce, `left`, `uploaded` and `downloaded` of the peer are JSON numbers with the values just sent, including the one above `i64::MAX` | TODO | `manual-verification-evidence.md` section V7 |
+| M1 | UDP, negative `left` | Probe of #2838 with `left = -5` | Error response with the transaction id; `complete` does not grow | DONE | `manual-verification-evidence.md` section V1 |
+| M2 | UDP, `left = 0` | Probe with `left = 0` | Normal response; the peer is a seeder | DONE | `manual-verification-evidence.md` section V2 |
+| M3 | UDP, positive `left` | Probe with `left = 1000` and with `left = 9223372036854775807` | Normal responses; the peers are leechers | DONE | `manual-verification-evidence.md` section V3 |
+| M4 | HTTP, the same values | `curl` announces with `left=-5`, `left=0`, `left=1000` and `left=9223372036854775807` | Refused with a `failure reason`, seeder, leecher, leecher: the same verdicts as M1 to M3 | DONE | `manual-verification-evidence.md` section V4 |
+| M5 | HTTP, above `i64::MAX` | `curl` announce with `left=9223372036854775808` | Normal response; the peer is a leecher | DONE | `manual-verification-evidence.md` section V5 |
+| M6 | HTTP, above `u64::MAX` | `curl` announce with `left=18446744073709551616` | Bencoded `failure reason` | DONE | `manual-verification-evidence.md` section V6 |
+| M7 | REST output | Right after each accepted announce of M2, M3, M4 and M5, and before the next announce, `GET` the single-torrent detail from the REST API | For each announce, `left`, `uploaded` and `downloaded` of the peer are JSON numbers with the values just sent, including the one above `i64::MAX` | DONE | `manual-verification-evidence.md` section V7 |
 
 Notes:
 
@@ -819,21 +828,21 @@ from.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | --- | --- | --- |
-| AC1 | TODO | {test/log/PR link} |
-| AC2 | TODO | {test/log/PR link} |
-| AC3 | TODO | {test/log/PR link} |
-| AC4 | TODO | {test/log/PR link} |
-| AC5 | TODO | {test/log/PR link} |
-| AC6 | TODO | {test/log/PR link} |
-| AC7 | TODO | {test/log/PR link} |
-| AC8 | TODO | {test/log/PR link} |
-| AC9 | TODO | {test/log/PR link} |
-| AC10 | TODO | {test/log/PR link} |
-| AC11 | TODO | {test/log/PR link} |
-| AC12 | TODO | {test/log/PR link} |
-| AC13 | TODO | {test/log/PR link} |
-| AC14 | TODO | {test/log/PR link} |
-| AC15 | TODO | {test/log/PR link} |
+| AC1 | DONE | `packages/primitives/src/number_of_bytes.rs` and `packages/http-protocol/src/v1/requests/announce.rs`: private `u64`, `new(u64)`, `get()`; commit "refactor(primitives)!: [#2850] hold the number of bytes in a u64" |
+| AC2 | DONE | `packages/primitives/src/peer.rs`: the three copies read `self.left.get() == 0`; `peer_state` tests cover `left` 0 and 1 with `Started` and `Stopped`, for the peer and through `ReadInfo` on a shared peer |
+| AC3 | DONE | `peer_builder::tests::it_should_reject_a_negative_number_of_bytes` (`left` -1 and `i64::MIN`, `uploaded` -1, `downloaded` -1) asserts `FromRequestError::NegativeNumberOfBytes { field, value }` |
+| AC4 | DONE | `peer_builder::tests::it_should_accept_a_non_negative_number_of_bytes_left` (0, 16384, `i64::MAX`) |
+| AC5 | DONE | `grep -rn validate_number_of_bytes packages` prints nothing; the check is the conversion `u64::try_from` in `peer_builder::number_of_bytes` |
+| AC6 | DONE | `peer_builder.rs` imports nothing from `services`; `UdpAnnounceError::InvalidAnnounceRequest { source: FromRequestError }` |
+| AC7 | DONE | `git diff --stat torrust/develop -- packages/udp-protocol` prints nothing |
+| AC8 | DONE | The variant is removed; `when_a_number_of_bytes_param_is_parsed` tests in `http-protocol` (negative, non-numeric, above `u64::MAX` refused with `InvalidParam`; 0 and `u64::MAX` accepted); manual V4 and V6 |
+| AC9 | DONE | The three builder methods are `const fn` that wrap the `u64`; no `# Panics` section |
+| AC10 | DONE | `http-core` `peer_from_request` uses `NumberOfBytes::new(x.get())`; contract test `should_accept_a_number_of_bytes_left_above_the_largest_signed_64_bit_value`; manual V5 |
+| AC11 | DONE | `rest-api-protocol` peer resource fields are `u64`; manual V7 shows the same JSON field names and numbers, including values above `i64::MAX`. No generated API description exists in the repository to update |
+| AC12 | DONE | Handler test `it_should_reject_an_announce_with_a_negative_number_of_bytes_left` (exact error and transaction id, no peer stored); manual V1 (action 3, transaction id 4321, `torrent not known`) |
+| AC13 | DONE | Manual V1 to V4: refused, seeder, leecher over both protocols |
+| AC14 | DONE | Merged with the spec-only PR #2851; listed in `docs/adrs/index.md` |
+| AC15 | DONE (classification); the closing keywords are in the pull request body | `udp-server` `event::tests::it_should_classify_a_negative_number_of_bytes_in_an_announce_as_a_bad_request` |
 
 ## Risks and Trade-offs
 
@@ -874,7 +883,7 @@ After implementation, compare the result with this specification. Record
 invalidated assumptions, material design changes, unexpected validation
 findings, and reusable lessons.
 
-- Retrospective: `Not yet assessed`
+- Retrospective: not needed; see the progress log entry of 2026-11-15 21:17 UTC. The design held as specified; the discoveries were about measurement, recorded in `performance-evidence.md` and in `docs/benchmarking.md`.
 - If needed, create `implementation-retrospective.md` from the repository
   template at `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this issue
   specification's directory.

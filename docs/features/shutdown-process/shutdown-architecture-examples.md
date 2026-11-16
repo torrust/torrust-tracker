@@ -171,8 +171,7 @@ root token, so that it can cancel components at different times: event listeners
 are cancelled only after the components that publish to them have completed (the
 [shutdown-order ADR](../../adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md);
 the current supervision tree and sequences are in
-[Application Jobs](../../architecture/application-jobs.md)). Only the legacy
-jobs still use a root token. Cancellation requests that a
+[Application Jobs](../../architecture/application-jobs.md)). Cancellation requests that a
 component stop; it does not itself prove the component stopped. Every component
 is responsible for propagating cancellation to its children, applying its own
 graceful-stop policy, and joining or deliberately aborting every child it
@@ -222,7 +221,7 @@ sequenceDiagram
     Operator->>Main: SIGTERM
     Main->>Supervisor: shutdown()
     Supervisor->>UdpServer: cancel the component's own token
-    Supervisor->>BanCleanup: cancel the legacy root token
+    Supervisor->>BanCleanup: cancel the component's own token
     UdpServer->>Receive: stop accepting new UDP packets
     UdpServer->>Requests: apply documented in-flight-request policy
     Receive-->>UdpServer: receive loop joined
@@ -237,7 +236,7 @@ sequenceDiagram
 
 ```text
 main() [only OS-signal boundary]
-└─ JobManager supervisor [legacy root token; named top-level task handles]
+└─ JobManager supervisor [named top-level task handles]
    ├─ HTTP component token (issued by JobManager)
    │  └─ HTTP managed job [joined by JobManager]
    │     └─ HTTP server task [joined by HTTP job]

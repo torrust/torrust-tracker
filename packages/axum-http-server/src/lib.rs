@@ -45,11 +45,11 @@
 //! ---|---|---|---|---|---
 //! [`info_hash`](torrust_tracker_http_protocol::v1::requests::announce::Announce::info_hash) | percent encoded of 20-byte array | The `Info Hash` of the torrent. | Yes | No | `%81%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00`
 //! [`ip`](torrust_tracker_http_protocol::v1::requests::announce::Announce::ip) | string |The IP address of the peer (BEP 3). | No | No | `2.137.87.41`
-//! [`downloaded`](torrust_tracker_http_protocol::v1::requests::announce::Announce::downloaded) | positive integer |The number of bytes downloaded by the peer. | No | `0` | `0`
-//! [`uploaded`](torrust_tracker_http_protocol::v1::requests::announce::Announce::uploaded) | positive integer | The number of bytes uploaded by the peer. | No | `0` | `0`
+//! [`downloaded`](torrust_tracker_http_protocol::v1::requests::announce::Announce::downloaded) | non-negative integer |The number of bytes downloaded by the peer. | No | `0` | `0`
+//! [`uploaded`](torrust_tracker_http_protocol::v1::requests::announce::Announce::uploaded) | non-negative integer | The number of bytes uploaded by the peer. | No | `0` | `0`
 //! [`peer_id`](torrust_tracker_http_protocol::v1::requests::announce::Announce::peer_id) | percent encoded of 20-byte array  | The ID of the peer. | Yes | No | `-qB00000000000000001`
 //! [`port`](torrust_tracker_http_protocol::v1::requests::announce::Announce::port) | positive integer | The port used by the peer. | Yes | No | `17548`
-//! [`left`](torrust_tracker_http_protocol::v1::requests::announce::Announce::left) | positive integer | The number of bytes pending to download. | No | `0` | `0`
+//! [`left`](torrust_tracker_http_protocol::v1::requests::announce::Announce::left) | non-negative integer | The number of bytes pending to download. | No | `0` | `0`
 //! [`event`](torrust_tracker_http_protocol::v1::requests::announce::Announce::event) | positive integer | The event that triggered the `Announce` request: `started`, `completed`, `stopped` | No | `None` | `completed`
 //! [`compact`](torrust_tracker_http_protocol::v1::requests::announce::Announce::compact) | `0` or `1` | Whether the tracker should return a compact peer list. Compact by default per [BEP 23](https://www.bittorrent.org/beps/bep_0023.html). | No | `1` (compact) | `0`
 //! `numwant` | positive integer | **Not implemented**. The maximum number of peers you want in the reply. | No | `50` | `50`

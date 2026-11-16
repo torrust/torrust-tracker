@@ -358,7 +358,7 @@ async fn start_udp_tracker_services(
     start_udp_server_stats_event_listener(app_container, job_manager, flows)?;
     start_udp_server_banning_event_listener(app_container, job_manager, flows)?;
     // issue: #1453
-    start_udp_ban_cleanup_job(config, app_container, job_manager);
+    start_udp_ban_cleanup_job(config, app_container, job_manager)?;
     start_the_udp_instances(config, app_container, job_manager, flows).await
 }
 
@@ -404,17 +404,20 @@ fn start_udp_server_banning_event_listener(
 }
 
 // issue: #1488
-// A legacy job: it keeps the manager's root token until UDP IP-ban cleanup
-// migrates to a reserved component.
-fn start_udp_ban_cleanup_job(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
-    job_manager.register_legacy(
-        "udp_ban_cleanup",
-        jobs::udp_tracker_server::start_ban_cleanup_job(
-            config.udp_tracker_server.ip_bans_reset_interval_in_secs.get(),
-            app_container,
-            job_manager.legacy_cancellation_token(),
-        ),
+// A reserved component: the manager adds the stop-last edge, so it stops before the health check. It
+// publishes no event, so it declares no event-flow edge.
+fn start_udp_ban_cleanup_job(
+    config: &Configuration,
+    app_container: &Arc<AppContainer>,
+    job_manager: &mut JobManager,
+) -> Result<(), Error> {
+    let reservation = job_manager.reserve("udp_ban_cleanup");
+    let runner = jobs::udp_tracker_server::run_ban_cleanup_job(
+        config.udp_tracker_server.ip_bans_reset_interval_in_secs.get(),
+        app_container,
+        reservation.cancellation_token(),
     );
+    spawn_component(job_manager, reservation, component_runner(runner))
 }
 
 /// Spawns a reserved component, reporting a registration defect as a startup error.
@@ -704,6 +707,7 @@ mod tests {
     use torrust_tracker_primitives::peer::Peer;
     use torrust_tracker_swarm_coordination_registry::event::Event;
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
+    use torrust_tracker_test_helpers::random;
 
     use super::{
         Error, EventFlows, begin_shutdown, component_runner, connection_id_validation_policy, load_data_from_database,
@@ -1092,7 +1096,7 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "flaky port race, see #2393"]
+    #[cfg_attr(not(target_os = "linux"), ignore = "needs the Linux 127.0.0.0/8 loopback range, see #2393")]
     async fn it_should_release_udp_listener_before_returning_from_start_after_setup_when_later_http_startup_fails() {
         // Arrange
         let mut configuration = torrust_tracker_test_helpers::configuration::ephemeral_public();
@@ -1146,8 +1150,8 @@ mod tests {
         let udp_instance = format!("udp_instance_0_{udp_bind_address}");
         let http_instance = format!("http_instance_0_{http_bind_address}");
         let swarm_producers = [udp_instance.as_str(), http_instance.as_str(), "torrent_cleanup"];
-        // The health check API stops after every other component under the manager's ordering. The
-        // legacy `udp_ban_cleanup` job has no component id, so the ordering does not cover it.
+        // The health check API stops after every other component under the manager's ordering,
+        // `udp_ban_cleanup` included.
         let every_other_component = [
             "swarm_coordination_registry_event_listener",
             "tracker_core_in_memory_event_listener",
@@ -1161,6 +1165,7 @@ mod tests {
             "torrent_cleanup",
             "peers_inactivity_update",
             "http_api",
+            "udp_ban_cleanup",
         ];
         assert_eq!(
             declared_stop_order,
@@ -1195,6 +1200,7 @@ mod tests {
         assert_completes_before_every(&completion_order, &udp_instance, &udp_server_listeners);
         assert_completes_before_every(&completion_order, &udp_instance, &swarm_listeners);
         assert_completes_before_every(&completion_order, "torrent_cleanup", &swarm_listeners);
+        assert_completes_before_every(&completion_order, "udp_ban_cleanup", &["health_check_api"]);
 
         outcomes.sort_by(|left, right| left.name.cmp(&right.name));
         let cancelled = |name: String| JobOutcome {
@@ -1209,10 +1215,7 @@ mod tests {
             cancelled("udp_core_event_listener".to_owned()),
             cancelled("udp_server_stats_event_listener".to_owned()),
             cancelled("udp_server_banning_event_listener".to_owned()),
-            JobOutcome {
-                name: "udp_ban_cleanup".to_owned(),
-                status: JobStatus::Completed,
-            },
+            cancelled("udp_ban_cleanup".to_owned()),
             cancelled(format!("udp_instance_0_{udp_bind_address}")),
             cancelled(format!("http_instance_0_{http_bind_address}")),
             cancelled("torrent_cleanup".to_owned()),
@@ -1389,24 +1392,27 @@ mod tests {
         }
     }
 
-    /// Asserts that `producer` completed before each of `consumers` in `completion_order`.
-    fn assert_completes_before_every(completion_order: &[&str], producer: &str, consumers: &[&str]) {
+    /// Asserts that `first` completes before each of `later`, whatever edge orders them: a bus or the stop-last edge.
+    fn assert_completes_before_every(completion_order: &[&str], first: &str, later: &[&str]) {
         let position = |name: &str| {
             completion_order
                 .iter()
                 .position(|completed| *completed == name)
                 .unwrap_or_else(|| panic!("component '{name}' must be in the shutdown outcomes: {completion_order:?}"))
         };
-        for consumer in consumers {
+        for component in later {
             assert!(
-                position(producer) < position(consumer),
-                "'{producer}' publishes on a bus that '{consumer}' consumes, so it must complete first: {completion_order:?}"
+                position(first) < position(component),
+                "'{first}' must complete before '{component}' is cancelled: {completion_order:?}"
             );
         }
     }
 
+    /// Selects a free address on a random loopback address, not 127.0.0.1, so a test that binds
+    /// `127.0.0.1:0` cannot take the port before the component binds it or before the test rebinds
+    /// it to prove the release (#2393).
     fn reserve_udp_address() -> SocketAddr {
-        let socket = UdpSocket::bind("127.0.0.1:0").expect("reserve UDP listener address");
+        let socket = UdpSocket::bind((random::loopback_ipv4(), 0)).expect("reserve UDP listener address");
         socket.local_addr().expect("read UDP listener address")
     }
 }

@@ -6,7 +6,7 @@ epic: null
 github-issue: 1347
 spec-path: docs/issues/open/1347-overhaul-packages-testing/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-15 21:07"
+last-updated-utc: "2026-11-15 21:22"
 semantic-links:
   skill-links:
     - create-issue
@@ -97,7 +97,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | 9     | #2361 - Keep the report-only package coverage summary from failing on a discovery failure | `docs/issues/open/2361-1347-package-coverage-summary-discovery-failure/ISSUE.md` | TODO | Bug follow-up of #2347 (`review-finding:pr-2293-f1`): the #2222 summary check goes red with a JSON parse error when discovery fails. |
 | 10    | #2637 - Add tests to the axum-rest-api-server package | `docs/issues/closed/2637-1347-add-tests-axum-rest-api-server/ISSUE.md` | DONE | S0 (spec and T1 baseline) merged through #2638; S1 (authentication and shared responses) merged through #2667; S2 (routes) merged through #2687; S3 (auth-key and whitelist contexts) merged through #2702; S4 (torrent and stats contexts) merged through #2718; S5 (server lifecycle) merged through #2744; S6 (crate root, wiring and final tasks) merged through #2772; the issue is closed. Replaces the former draft that was misfiled under #1349. |
 | 11    | #2824 - Add tests to the primitives package | `docs/issues/closed/2824-1347-add-tests-primitives/ISSUE.md` | DONE | S0 (the spec, #2828), S1 (the `PeerRole` JSON casing fix, #2834), S2 (the `peer.rs` tests, #2841), S3 (the configuration defaults and bounded values, #2852) and S4 (`swarm_metadata.rs`, the no-change files, the mutation run, the manual checks, #2864) are merged; the issue is closed. Unit-only lines 60.56% → 94.07%. Findings F1 (fixed through #2811), F2 (fixed in S1), F3 (#2804), F4 (#2823), F6 (#2838, #2850) and F5 (draft spec PR #2865) have owners. |
-| 12    | #2838 - UDP tracker accepts announces with a negative left, uploaded or downloaded | `docs/issues/open/2838-1347-udp-reject-negative-announce-bytes/ISSUE.md` | BLOCKED | Bug found by the #2824 primitives tests work. Planned fix: the standalone issue #2850 (`docs/issues/open/2850-non-negative-number-of-bytes/ISSUE.md`), whose implementation will close it; until then the bug is present on `develop`. The patch of PR #2839 was not merged. |
+| 12    | #2838 - UDP tracker accepts announces with a negative left, uploaded or downloaded | `docs/issues/open/2838-1347-udp-reject-negative-announce-bytes/ISSUE.md` | IN_PROGRESS | Bug found by the #2824 primitives tests work. Fixed by the standalone issue #2850 (`docs/issues/open/2850-non-negative-number-of-bytes/ISSUE.md`): its implementation PR #2872 (open) closes this issue on merge; until then the bug is present on `develop`. The patch of PR #2839 was not merged. |
 | 13    | Additional package-testing subissues              | Create a folder-style spec when a concrete package need is identified             | TODO   | Permitted but not required upfront; retain scope in this EPIC.                                                       |
 
 ## Package Coverage Tracking
@@ -351,6 +351,7 @@ For each subissue implementation, the completion policy is:
 - 2026-11-13 08:58 UTC - Claude Code - #2824 S3 (configuration defaults and bounded values, 24 tests added) re-measured `primitives` unit-only (= aggregate) at lines 93.13% (1,044 / 1,121), regions 94.66%, functions 92.69%, 105 unit tests. Both "Latest" tables carry the new values.
 - 2026-11-15 08:37 UTC - Claude Code - #2824 S4 (`swarm_metadata.rs` tests, the no-change rows, T4-T6) re-measured `primitives` unit-only (= aggregate) at lines 94.07% (1,078 / 1,146), regions 95.30%, functions 94.17%, 109 unit tests. The package mutation run (147 mutants) left no non-equivalent survivor after one test fix. Both "Latest" tables carry the final values; the row stays `IN_PROGRESS` until the S4 PR merges and the issue closes.
 - 2026-11-15 21:07 UTC - Claude Code - #2824 closed by #2864 (merged 2026-11-15 21:05 UTC); row 11 set to `DONE` and the spec archived to `docs/issues/closed/2824-1347-add-tests-primitives/`.
+- 2026-11-15 21:22 UTC - Claude Code (Opus 5.5) - Row 12 (#2838): the fix is the implementation of the standalone issue #2850, PR #2872 (open), which closes #2838 on merge. It removes the `primitives` test that pinned a negative `left` as a seeder (finding F6 of #2824) and the `-1` rows of the role table.
 
 ## Acceptance Criteria
 

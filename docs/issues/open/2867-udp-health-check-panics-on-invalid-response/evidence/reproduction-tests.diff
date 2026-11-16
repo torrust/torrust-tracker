@@ -1,0 +1,100 @@
+diff --git a/packages/axum-health-check-api-server/tests/server/contract.rs b/packages/axum-health-check-api-server/tests/server/contract.rs
+index 0b3cce4c9..5355161ab 100644
+--- a/packages/axum-health-check-api-server/tests/server/contract.rs
++++ b/packages/axum-health-check-api-server/tests/server/contract.rs
+@@ -459,6 +459,95 @@ mod udp {
+             env.stop().await.expect("it should stop the service");
+         }
+     }
++
++    // REPRODUCTION (temporary): a UDP peer that answers the health check with junk bytes.
++    #[tokio::test]
++    async fn it_should_return_error_when_the_registered_udp_service_answers_the_check_with_junk() {
++        use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
++        use torrust_server_lib::registar::{Registar, ServiceRegistration};
++        use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
++
++        logging::setup();
++
++        let configuration = configuration::ephemeral_with_no_services();
++
++        let socket = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
++        let binding = socket.local_addr().unwrap();
++        std::thread::spawn(move || {
++            let mut buf = [0u8; 2048];
++            while let Ok((_, from)) = socket.recv_from(&mut buf) {
++                drop(socket.send_to(b"junk", from));
++            }
++        });
++
++        let registar = Registar::default();
++        registar
++            .give_form()
++            .register(ServiceRegistration::new(
++                ServiceBinding::new(Protocol::UDP, binding).unwrap(),
++                RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0)),
++                Some(torrust_tracker_udp_server::server::launcher::Launcher::check),
++            ))
++            .await
++            .expect("the udp service should register");
++
++        let env = Started::new(&configuration.health_check_api.into(), registar).await;
++
++        let response = get(&format!("http://{}/health_check", env.bind_address())).await; // DevSkim: ignore DS137138
++
++        assert_eq!(response.status(), 200);
++
++        let report: Report = response.json().await.expect("it should be able to get the report from the json");
++
++        assert_eq!(report.status, Status::Error);
++
++        let details = report.details.first().expect("it should have some details");
++        assert!(details.result.is_err());
++
++        env.stop().await.expect("it should stop the service");
++    }
++
++    // REPRODUCTION (temporary): a UDP peer that answers the health check with junk bytes.
++    #[tokio::test]
++    async fn it_should_return_error_when_the_registered_udp_service_is_a_closed_udp_port() {
++        use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
++        use torrust_server_lib::registar::{Registar, ServiceRegistration};
++        use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
++
++        logging::setup();
++
++        let configuration = configuration::ephemeral_with_no_services();
++
++        let socket = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
++        let binding = socket.local_addr().unwrap();
++        drop(socket);
++
++        let registar = Registar::default();
++        registar
++            .give_form()
++            .register(ServiceRegistration::new(
++                ServiceBinding::new(Protocol::UDP, binding).unwrap(),
++                RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0)),
++                Some(torrust_tracker_udp_server::server::launcher::Launcher::check),
++            ))
++            .await
++            .expect("the udp service should register");
++
++        let env = Started::new(&configuration.health_check_api.into(), registar).await;
++
++        let response = get(&format!("http://{}/health_check", env.bind_address())).await; // DevSkim: ignore DS137138
++
++        assert_eq!(response.status(), 200);
++
++        let report: Report = response.json().await.expect("it should be able to get the report from the json");
++
++        assert_eq!(report.status, Status::Error);
++
++        let details = report.details.first().expect("it should have some details");
++        assert!(details.result.is_err());
++
++        env.stop().await.expect("it should stop the service");
++    }
+ }
+ 
+ // issue: #2697

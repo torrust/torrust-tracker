@@ -168,8 +168,8 @@ outcome. Only shutdown signaling migrates from `Halted` oneshot channels to
 
 ### Readiness Before Drain
 
-For a normal shutdown, the application marks itself not ready before it cancels
-the root token. While components drain, `/health_check` returns HTTP 503 without
+For a normal shutdown, the application marks itself not ready before it calls
+`JobManager::cancel()`. While components drain, `/health_check` returns HTTP 503 without
 probing downstream services, allowing readiness-aware infrastructure to stop
 routing new traffic. This does not stop direct TCP or UDP clients; server
 components retain admission and graceful-stop responsibility. The readiness

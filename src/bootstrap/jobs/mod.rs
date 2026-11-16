@@ -11,6 +11,7 @@ pub mod health_check_api;
 pub mod http_tracker;
 pub mod http_tracker_core;
 pub mod manager;
+pub mod token_aware_server;
 pub mod torrent_cleanup;
 pub mod torrent_repository;
 pub mod tracker_apis;

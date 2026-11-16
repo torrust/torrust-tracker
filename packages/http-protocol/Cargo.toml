@@ -34,3 +34,6 @@ torrust-located-error = "3.0.0"
 
 [package.metadata.cargo-machete]
 ignored = [ "serde_bytes" ]
+
+[dev-dependencies]
+rstest = "0.28.0"

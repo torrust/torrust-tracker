@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: blocked
+status: in-progress
 priority: p2
 epic: 1347
 github-issue: 2838
 spec-path: docs/issues/open/2838-1347-udp-reject-negative-announce-bytes/ISSUE.md
 branch: "2838-udp-reject-negative-announce-bytes"
-related-pr: null
-last-updated-utc: "2026-11-12 19:55"
+related-pr: 2872
+last-updated-utc: "2026-11-15 21:22"
 semantic-links:
   skill-links:
     - create-issue
@@ -28,7 +28,9 @@ semantic-links:
 > The bug is fixed at its root by
 > [issue #2850](../2850-non-negative-number-of-bytes/ISSUE.md), whose implementation closes this
 > issue. The analysis, the field audit, the client evidence and the reproduction evidence below
-> stay valid and are used by that issue.
+> stay valid and are used by that issue. Its implementation is PR #2872 (2026-11-15), and its
+> like-for-like recheck is in the
+> [manual verification evidence of #2850](../2850-non-negative-number-of-bytes/manual-verification-evidence.md).
 
 ## Goal
 
@@ -210,6 +212,7 @@ Follows [fix-bug](../../../../.claude/skills/fix-bug/SKILL.md):
 - 2026-11-12 09:15 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved all three fields; issue #2838 created; fix, tests and recheck done.
 - 2026-11-12 16:40 UTC - Claude Code (Claude Fable 5.2) - Review round 1 on PR #2839 addressed: typed field enum, `BadRequest` event classification, placement tests, exact-variant handler test, V2 repeated on the committed tree. The maintainer accepted the service-level check as a tactical patch; a follow-up EPIC (draft, no issue yet) will make the domain byte count non-negative by construction.
 - 2026-11-12 17:41 UTC - Claude Code (Fable 5.2) - The maintainer decided not to merge the tactical patch of PR #2839. The bug is fixed at its root by issue #2850 (`docs/issues/open/2850-non-negative-number-of-bytes/ISSUE.md`), whose implementation closes this issue. This specification and its evidence were carried over from the branch of PR #2839 as the record of the analysis, the reproduction and the client evidence. Its implementation plan and commit points describe the patch and are superseded; the tests of that branch are taken over by #2850.
+- 2026-11-15 21:22 UTC - Claude Code (Opus 5.5) - The implementation of #2850 is PR #2872, which closes this issue on merge. It took over the red handler test, the `peer_builder` rejection and acceptance cases, the order tests and the `BadRequest` classification test of PR #2839, adapted to the conversion error `FromRequestError`. The UDP recheck with the probe of this folder is section V1 of the #2850 manual verification evidence: `left = -5` now gets ``tracker announce error: Invalid announce request: `left` must not be negative, got -5`` with its transaction id, and no peer is stored.
 
 ## Acceptance Criteria
 

@@ -6,7 +6,7 @@ epic: null
 github-issue: 1488
 spec-path: docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-14 12:38"
+last-updated-utc: "2026-11-16 09:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -214,7 +214,7 @@ deterministic tests, and manual evidence.
 | 20       | #2668 | [Configure shutdown policy and deployment contract](../../closed/2668-1488-si-20-configure-shutdown-policy/ISSUE.md)     | Done       | Apply approved Q3/Q4 outcomes, budgets, configuration, and deployment guidance.                      |
 | 21       | #2697 | [Mark health check unhealthy during shutdown](../../closed/2697-1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md)         | Done       | Set readiness to not ready before root cancellation and component drain.                             |
 | 22       | #2844 | [Remove the unused public error variants](../../closed/2844-1488-si-25-remove-unused-error-variants/ISSUE.md) | Done | Follow-up of SI-19. Removed the shutdown error variants nothing constructs (`Error::Stop`, `StartupNotification`, `StartupNotificationDropped` of the HTTP and REST servers; three `UdpError` variants). Breaking change to public enums of unpublished crates, landed before the first publish (#2583); merged in PR #2858, no version bump. |
-| 23       | #2845 | [Consolidate the shutdown supervisors and migrate the last legacy job](../2845-1488-si-26-consolidate-shutdown-supervisor/ISSUE.md) | Planned | Follow-up of SI-19 and SI-21. One shared token-aware supervisor with the health-check join order, review of the owner types (`OwnedTask`, `TokenAwareServerTask`, `OwnedReceiveLoop`), and `udp_ban_cleanup` (the only `register_legacy` job, not ordered by the stop-last edge) becomes a reserved component. Lands before #2583. |
+| 23       | #2845 | [Consolidate the shutdown supervisors and migrate the last legacy job](../../closed/2845-1488-si-26-consolidate-shutdown-supervisor/ISSUE.md) | Done | Follow-up of SI-19 and SI-21. One shared token-aware supervisor (`token_aware_server.rs`) with the health-check join order serves the HTTP tracker, REST API and health check; `OwnedReceiveLoop` stays package-local; `udp_ban_cleanup` is a reserved component ordered before the health check; `register_legacy`, `LegacyJob` and the manager's root token are removed. Merged in PR #2870 on 2026-11-16; M1 to M4 are recorded, and M2 to M4 ran on the binary. |
 | 24       | #2846 | [Deregister stopped services from the Registar](../2846-1488-si-27-deregister-stopped-services/ISSUE.md) | Planned | Follow-up of SI-21. An orderly stop removes the service's registration (`Registar::deregister`); a failed stop keeps it. Starts with a go/no-go decision. Lands before #2583. |
 | 25       | #2847 | [Verify the hung-component abort on the real binary](../2847-1488-si-28-verify-hung-component-abort/ISSUE.md) | Planned | Follow-up of SI-21 and SI-20. Executable-boundary evidence that a never-finishing component is aborted at the process deadline with exit code 1. Evidence only; after SI-26. |
 | —        | SI-3  | [Combined standalone environment migration](discarded-drafts/si-3-fix-environment-stop/discarded-draft.md) | Superseded | Replaced by SI-16 and SI-17. Do not implement. Discarded draft, kept as evidence in `discarded-drafts/`. |

@@ -27,14 +27,14 @@ use tokio_util::sync::CancellationToken;
 use torrust_server_lib::registar::ServiceRegistrationForm;
 use torrust_tracker_axum_rest_api_server::Version;
 use torrust_tracker_axum_rest_api_server::server::{ApiServer, Launcher};
-use torrust_tracker_axum_server::signals::GracefulShutdownOutcome;
 use torrust_tracker_axum_server::tls::make_rust_tls;
 use torrust_tracker_configuration::v3_0_0::tracker_api::AccessTokens;
 use torrust_tracker_primitives::RuntimeServiceMetadata;
 use torrust_tracker_rest_api_runtime_adapter::v1::container::TrackerHttpApiCoreContainer;
 use tracing::instrument;
 
-use crate::bootstrap::jobs::manager::{ComponentCompletion, ComponentError, ComponentResult, TokenAwareServerTask};
+use crate::bootstrap::jobs::manager::{ComponentResult, TokenAwareServerTask};
+use crate::bootstrap::jobs::token_aware_server::supervise_token_aware_server;
 
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
@@ -134,50 +134,11 @@ async fn start_v1(
         .map_err(|source| Error::Listener { source })?;
 
     Ok(supervise_token_aware_server(
+        "tracker API",
         TokenAwareServerTask::new(server.task, server.shutdown_controller),
         cancellation_token,
+        |result| result.map(|_launcher| ()),
     ))
-}
-
-async fn supervise_token_aware_server<T, E>(
-    mut server_task: TokenAwareServerTask<Result<T, E>, GracefulShutdownOutcome>,
-    cancellation_token: CancellationToken,
-) -> ComponentResult
-where
-    E: std::fmt::Display,
-{
-    tokio::select! {
-        biased;
-        () = cancellation_token.cancelled() => {
-            let server_result = server_task
-                .join()
-                .await
-                .map_err(|error| ComponentError::new(format!("tracker API server task join failed while stopping: {error}")))?;
-            let drain_outcome = server_task
-                .join_shutdown_controller()
-                .await
-                .map_err(|error| ComponentError::new(format!("tracker API drain controller failed: {error}")))?;
-            server_result.map_err(|error| ComponentError::new(format!("tracker API server runtime failed while stopping: {error}")))?;
-            match drain_outcome {
-                GracefulShutdownOutcome::Drained => Ok(ComponentCompletion::Cancelled),
-                GracefulShutdownOutcome::TimedOut => Err(ComponentError::new("tracker API graceful drain timed out")),
-            }
-        }
-        result = server_task.join() => {
-            cancellation_token.cancel();
-            let drain_outcome = server_task
-                .join_shutdown_controller()
-                .await
-                .map_err(|error| ComponentError::new(format!("tracker API drain controller failed: {error}")))?;
-            let server_result =
-                result.map_err(|error| ComponentError::new(format!("tracker API server task join failed: {error}")))?;
-            server_result.map_err(|error| ComponentError::new(format!("tracker API server runtime returned an error: {error}")))?;
-            match drain_outcome {
-                GracefulShutdownOutcome::Drained => Ok(ComponentCompletion::Completed),
-                GracefulShutdownOutcome::TimedOut => Err(ComponentError::new("tracker API graceful drain timed out")),
-            }
-        }
-    }
 }
 
 #[cfg(test)]
@@ -196,7 +157,8 @@ mod tests {
 
     use crate::bootstrap::app::initialize_global_services;
     use crate::bootstrap::jobs::manager::{ComponentCompletion, TokenAwareServerTask};
-    use crate::bootstrap::jobs::tracker_apis::{start_job, supervise_token_aware_server};
+    use crate::bootstrap::jobs::token_aware_server::supervise_token_aware_server;
+    use crate::bootstrap::jobs::tracker_apis::start_job;
 
     const TEST_COMPLETION_TIMEOUT: Duration = Duration::from_secs(5);
 
@@ -293,8 +255,10 @@ mod tests {
 
         // Act
         let supervisor = tokio::spawn(supervise_token_aware_server(
+            "tracker API",
             TokenAwareServerTask::new(server_task, shutdown_controller),
             cancellation_token,
+            |result| result,
         ));
         tokio::time::timeout(TEST_COMPLETION_TIMEOUT, cancellation_observed)
             .await
@@ -326,8 +290,10 @@ mod tests {
 
         // Act
         let supervisor = tokio::spawn(supervise_token_aware_server(
+            "tracker API",
             TokenAwareServerTask::new(server_task, shutdown_controller),
             cancellation_token,
+            |result| result,
         ));
         tokio::time::timeout(TEST_COMPLETION_TIMEOUT, cancellation_observed)
             .await
@@ -360,8 +326,10 @@ mod tests {
 
         // Act
         let supervisor = tokio::spawn(supervise_token_aware_server(
+            "tracker API",
             TokenAwareServerTask::new(server_task, shutdown_controller),
             cancellation_token,
+            |result| result,
         ));
         tokio::time::timeout(TEST_COMPLETION_TIMEOUT, cancellation_observed)
             .await

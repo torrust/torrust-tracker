@@ -114,6 +114,7 @@ mod tests {
     use tokio_util::sync::CancellationToken;
     use torrust_tracker_primitives::RuntimeServiceMetadata;
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
+    use torrust_tracker_test_helpers::random;
     use torrust_tracker_udp_core::ConnectionIdValidationPolicy;
 
     use crate::bootstrap::app::initialize_global_services;
@@ -124,8 +125,11 @@ mod tests {
     const TEST_COMPLETION_TIMEOUT: Duration = Duration::from_secs(5);
     const BIND_RETRY_INTERVAL: Duration = Duration::from_millis(10);
 
+    /// Selects a free address on a random loopback address, not 127.0.0.1, so a test that binds
+    /// `127.0.0.1:0` cannot take the port before the component binds it or before the test rebinds
+    /// it to prove the release (#2393).
     fn available_udp_address() -> SocketAddr {
-        let socket = UdpSocket::bind("127.0.0.1:0").expect("select available UDP address");
+        let socket = UdpSocket::bind((random::loopback_ipv4(), 0)).expect("select available UDP address");
         socket.local_addr().expect("read available UDP address")
     }
 
@@ -210,7 +214,7 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "flaky port race, see #2393"]
+    #[cfg_attr(not(target_os = "linux"), ignore = "needs the Linux 127.0.0.0/8 loopback range, see #2393")]
     async fn it_should_release_the_socket_when_the_component_is_dropped_before_it_runs() {
         // Arrange
         let udp_address = available_udp_address();

@@ -1,0 +1,22 @@
+   Compiling torrust-tracker-client-lib v0.1.0 (<repo>/packages/tracker-client)
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.31s
+     Running unittests src/lib.rs (target/debug/deps/torrust_tracker_client-53dc31118e9ac7df)
+
+running 1 test
+test udp::client::tests::check_should_return_an_error_naming_the_cause_when_the_peer_answers_with_an_invalid_response ... FAILED
+
+failures:
+
+---- udp::client::tests::check_should_return_an_error_naming_the_cause_when_the_peer_answers_with_an_invalid_response stdout ----
+
+thread 'udp::client::tests::check_should_return_an_error_naming_the_cause_when_the_peer_answers_with_an_invalid_response' (1930445) panicked at packages/tracker-client/src/udp/client.rs:275:40:
+called `Result::unwrap()` on an `Err` value: UnableToParseResponse { err: Custom { kind: InvalidData, error: "invalid data" }, response: [106, 117, 110, 107] }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    udp::client::tests::check_should_return_an_error_naming_the_cause_when_the_peer_answers_with_an_invalid_response
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 11 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p torrust-tracker-client-lib --lib`

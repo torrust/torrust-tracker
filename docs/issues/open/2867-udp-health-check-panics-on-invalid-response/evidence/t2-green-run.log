@@ -1,0 +1,9 @@
+   Compiling torrust-tracker-client-lib v0.1.0 (<repo>/packages/tracker-client)
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.27s
+     Running unittests src/lib.rs (target/debug/deps/torrust_tracker_client-53dc31118e9ac7df)
+
+running 1 test
+test udp::client::tests::check_should_return_an_error_naming_the_cause_when_the_peer_answers_with_an_invalid_response ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 11 filtered out; finished in 0.00s
+

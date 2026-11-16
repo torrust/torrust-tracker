@@ -23,7 +23,7 @@ use torrust_tracker_udp_protocol::AnnounceRequest;
 use crate::connection_cookie::{ConnectionCookieError, check, gen_remote_fingerprint};
 use crate::crypto::cookie_cipher::CookieCipher;
 use crate::event::{ConnectionContext, Event};
-use crate::peer_builder;
+use crate::peer_builder::{self, FromRequestError};
 
 /// The `AnnounceService` is responsible for handling the `announce` requests.
 ///
@@ -86,6 +86,7 @@ impl AnnounceService {
     /// It will return an error if:
     ///
     /// - Cookie validation fails and `validate_cookie` is `true`.
+    /// - `left`, `uploaded` or `downloaded` is negative.
     /// - The tracker is running in listed mode and the torrent is not in the
     ///   whitelist.
     ///
@@ -104,13 +105,13 @@ impl AnnounceService {
             self.authenticate(client_socket_addr, request, cookie_valid_range)?;
         }
 
+        let remote_client_ip = client_socket_addr.ip();
+
+        let mut peer = peer_builder::from_request(request, &remote_client_ip)?;
+
         let info_hash = InfoHash::from(request.info_hash.0);
 
         self.authorize(&info_hash).await?;
-
-        let remote_client_ip = client_socket_addr.ip();
-
-        let mut peer = peer_builder::from_request(request, &remote_client_ip);
 
         let peers_wanted = PeersWanted::from_client_request(i32::from(request.peers_wanted.0));
 
@@ -189,6 +190,11 @@ pub enum UdpAnnounceError {
     #[error("Connection cookie error: {source}")]
     ConnectionCookieError { source: ConnectionCookieError },
 
+    /// Error returned when the request cannot be converted into a domain
+    /// peer, for example because a byte count is negative.
+    #[error("Invalid announce request: {source}")]
+    InvalidAnnounceRequest { source: FromRequestError },
+
     /// Error returned when there was an error with the tracker core announce handler.
     #[error("Tracker core announce error: {source}")]
     TrackerCoreAnnounceError { source: AnnounceError },
@@ -202,6 +208,14 @@ impl From<ConnectionCookieError> for UdpAnnounceError {
     fn from(connection_cookie_error: ConnectionCookieError) -> Self {
         Self::ConnectionCookieError {
             source: connection_cookie_error,
+        }
+    }
+}
+
+impl From<FromRequestError> for UdpAnnounceError {
+    fn from(from_request_error: FromRequestError) -> Self {
+        Self::InvalidAnnounceRequest {
+            source: from_request_error,
         }
     }
 }
@@ -250,6 +264,7 @@ mod tests {
     use crate::connection_cookie::{ConnectionCookieError, gen_remote_fingerprint, make};
     use crate::crypto::cookie_cipher::CookieCipher;
     use crate::event::{ConnectionContext, Event};
+    use crate::peer_builder::{ByteCountField, FromRequestError};
     use crate::services::tests::MockUdpCoreStatsEventSender;
 
     const INSTANCE_ID: ConfigurationInstanceId = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
@@ -525,6 +540,60 @@ mod tests {
 
         // Assert
         assert!(matches!(result, Err(UdpAnnounceError::ConnectionCookieError { .. })));
+    }
+
+    #[tokio::test]
+    async fn it_should_validate_the_connection_id_before_the_number_of_bytes() {
+        // Arrange
+        let fixture = AnnounceServiceFixture::public_tracker();
+        let mut request = announce_request(expired_connection_id_for(client_socket_addr()));
+        request.bytes_left = torrust_tracker_udp_protocol::NumberOfBytes((-1i64).into());
+
+        // Act
+        let result = fixture
+            .service
+            .handle_announce(
+                client_socket_addr(),
+                server_service_binding(),
+                &request,
+                cookie_valid_range(),
+                VALIDATE_COOKIE,
+            )
+            .await;
+
+        // Assert
+        assert!(matches!(result, Err(UdpAnnounceError::ConnectionCookieError { .. })));
+    }
+
+    #[tokio::test]
+    async fn it_should_reject_a_negative_number_of_bytes_before_revealing_whether_the_torrent_is_whitelisted() {
+        // Arrange
+        let fixture = AnnounceServiceFixture::listed_tracker_without_whitelisted_torrents();
+        let mut request = announce_request(valid_connection_id_for(client_socket_addr()));
+        request.bytes_left = torrust_tracker_udp_protocol::NumberOfBytes((-1i64).into());
+
+        // Act
+        let result = fixture
+            .service
+            .handle_announce(
+                client_socket_addr(),
+                server_service_binding(),
+                &request,
+                cookie_valid_range(),
+                VALIDATE_COOKIE,
+            )
+            .await;
+
+        // Assert
+        assert!(matches!(
+            result,
+            Err(UdpAnnounceError::InvalidAnnounceRequest {
+                source: FromRequestError::NegativeNumberOfBytes {
+                    field: ByteCountField::Left,
+                    value: -1
+                }
+            })
+        ));
     }
 
     #[tokio::test]

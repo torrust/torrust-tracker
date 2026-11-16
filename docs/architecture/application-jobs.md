@@ -34,7 +34,7 @@ the event buses are described in [Events Architecture](events.md).
 
 ## Terms
 
-The terms used here (direct component, legacy job, owner, service, instance,
+The terms used here (direct component, owner, service, instance,
 unmanaged task) are defined once in the [glossary](glossary.md).
 
 ## Current Bootstrap Flow
@@ -47,7 +47,7 @@ unmanaged task) are defined once in the [glossary](glossary.md).
    service instances: first every event listener, then the components that
    publish events (see [Startup sequence](#startup-sequence)).
 4. On `Ctrl+C` or `SIGTERM`, `main` calls `JobManager::cancel`, then waits for
-   registered direct components and transitional legacy jobs through
+   registered direct components through
    `JobManager::wait_for_all` under one process-wide deadline
    (`application.shutdown.deadline_in_secs`, 25 seconds by default)
    (see [Shutdown sequence](#shutdown-sequence)).
@@ -74,7 +74,7 @@ flowchart TD
         REST["REST API"]
         HEALTH["Health-check API"]
         METRICS["Activity metrics updater"]
-        BAN["udp_ban_cleanup (legacy, root token)"]
+        BAN["udp_ban_cleanup"]
     end
     JM --> HTTP & UDP & CLEAN & LH & LSW & LUC & LUS & REST & HEALTH & METRICS & BAN
     HTTP --> httpTasks["server task + drain controller"]
@@ -212,9 +212,11 @@ component in two steps: `JobManager::reserve` issues the component its own
 it never receives a `JoinHandle` from the component. A reservation dropped
 without being spawned, for example after a bind failure, is released. Components
 retain ownership of their nested server handles and must signal, join, or
-deliberately abort them before completion. The narrow legacy registry retains
-only the pre-spawned periodic handles that cannot be adopted by a `JoinSet`
-without a wrapper task.
+deliberately abort them before completion. Every job is a reserved component;
+there is no legacy registration path. The HTTP tracker, REST API and health-check API components
+share one supervisor (`bootstrap/jobs/token_aware_server.rs`): it joins the server task, always joins
+the drain controller, and only then maps the errors, so a failed server join never loses the drain
+outcome. The UDP receive loop has its own supervisor, because it owns one task and no drain controller.
 
 `JobManager::spawn_with` additionally takes `StopBefore` edges naming the
 components the spawned component must complete before they are asked to stop;
@@ -226,13 +228,12 @@ for nobody can still be spawned after `cancel()`, with a cancelled token; a stop
 target reserved before `cancel()` keeps its uncancelled token until the components
 that stop before it have completed.
 
-`JobManager::cancel` requests cooperative shutdown: it cancels the legacy root
-token that only legacy jobs use, and the token of every component that does not
-wait for another. No component token is derived from another (issue #2415), which
+`JobManager::cancel` requests cooperative shutdown: it cancels the token of every
+component that does not wait for another. No component token is derived from another (issue #2415), which
 is what lets the manager cancel components at different times. `wait_for_all`
 cancels each remaining component once the last component it waits for has
 completed in any state, and applies one common deadline concurrently to direct
-components and retained legacy handles. On expiry it aborts and joins all
+components. On expiry it aborts and joins all
 remaining work, including components that were never asked to stop, and logs
 what each was still waiting for; direct components use drop-safe cleanup to
 prevent a nested server from becoming detached when the outer component is
@@ -262,10 +263,11 @@ application-owned `udp_ban_cleanup` job:
 
 - `app::start_jobs` starts the group only when UDP listeners are requested and
   allowed: at least one is configured and the tracker is not in private mode.
-- It registers the cleanup job with `JobManager` before starting UDP listener
+- It reserves the job with `JobManager::reserve` and spawns it before starting UDP listener
   instances.
-- It receives the manager's legacy root token (`JobManager::legacy_cancellation_token`) and exits cooperatively
-  when cancellation is requested.
+- It runs with the reservation's token and exits cooperatively when cancellation is requested. The
+  manager's stop-last edge makes it stop before the health check; it publishes no event, so it has no
+  event-flow edge.
 - The listener launcher no longer spawns cleanup tasks.
 
 This is a concrete improvement in lifecycle control, but it does not imply that
@@ -273,11 +275,8 @@ all jobs already follow the desired ownership model.
 
 ## Current Limitations and Future Work
 
-The current `JobManager` directly owns named component futures in a `JoinSet`
-and keeps a narrow compatibility registry only for the pre-spawned UDP
-ban-cleanup periodic job. All of those tasks share one shutdown deadline, but
-the legacy job is not a direct `JoinSet` component. It is transitional until
-the UDP ban-cleanup periodic-job migration is complete.
+The current `JobManager` directly owns named component futures in a `JoinSet`,
+and all of them share one shutdown deadline.
 
 It is not yet a complete task-supervision system.
 

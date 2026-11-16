@@ -9,7 +9,7 @@ github-issue: 2393
 spec-path: docs/issues/open/2393-2392-test-port-allocation-races/ISSUE.md
 branch: "2392-test-isolation-spec"
 related-pr: 2397
-last-updated-utc: "2026-11-15 08:22"
+last-updated-utc: "2026-11-16 08:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -255,10 +255,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T4 | DONE | Rewrite the tests that never needed a racing port | Four tests rewritten. |
 | T5 | DONE | Decide the fate of the twenty-one ignored tests | The maintainer's decisions in the per-test table, recorded by this spec-only change. |
 | T6 | DONE | Full-suite recheck | V4 in `manual-verification-evidence.md`: the first 150 runs found a third racing shape (2 failures), and 150 runs on the fixed head all passed. |
-| T7 | TODO | Delete the nine test-support release tests | The nine tests are gone, with any helper left unused removed too. |
-| T8 | TODO | Rewrite the three health-check contract tests | They run without `#[ignore]` and probe an address the test holds; V5 red-then-green and V7 design review recorded. |
-| T9 | TODO | Add the loopback helper and restore the nine release tests | The helper with its own unit test; the nine tests run without `#[ignore]` on Linux; V5 red-then-green and V7 design review recorded per increment; maintainer review after the final increment. |
-| T10 | TODO | Full-suite recheck with no #2393 test ignored | V6: 150 full-suite runs pass, and `rg -t rust 'see #2393'` finds no `#[ignore]` outside the non-Linux `cfg_attr`. |
+| T7 | DONE | Delete the nine test-support release tests | The nine tests are gone, with any helper left unused removed too. |
+| T8 | DONE | Rewrite the three health-check contract tests | They run without `#[ignore]` and probe an address the test holds; V5 red-then-green and V7 design review recorded. |
+| T9 | DONE | Add the loopback helper and restore the nine release tests | The helper with its own unit test; the nine tests run without `#[ignore]` on Linux; V5 red-then-green and V7 design review recorded per increment; maintainer review after the final increment. |
+| T10 | DONE | Full-suite recheck with no #2393 test ignored | V6: 150 full-suite runs pass, and `rg -t rust 'see #2393'` finds no `#[ignore]` outside the non-Linux `cfg_attr`. |
 | T11 | TODO | Close-out | After the implementation PR merges: archive this spec; once PR 2862 has merged, set this issue's row in the EPIC to DONE. |
 
 ## Commit Points
@@ -283,10 +283,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Racing tests inventoried, ignored or rewritten, and focused checks pass.
 - [x] Full parallel recheck recorded (V4).
 - [x] Fate of every ignored test decided by the maintainer (T5).
-- [ ] T5 decisions applied: tests deleted, rewritten or restored (T7 to T9), red-then-green recorded (V5), test-design review recorded per increment (V7).
-- [ ] Full parallel recheck with no #2393 test ignored (V6).
-- [ ] Acceptance criteria reviewed after implementation.
-- [ ] Implementation completion review recorded.
+- [x] T5 decisions applied: tests deleted, rewritten or restored (T7 to T9), red-then-green recorded (V5), test-design review recorded per increment (V7).
+- [x] Full parallel recheck with no #2393 test ignored (V6).
+- [x] Acceptance criteria reviewed after implementation.
+- [x] Implementation completion review recorded.
 
 ### Progress Log
 
@@ -328,25 +328,43 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   premise, corrected the non-Linux reason, scoped the T10 check to Rust sources, and added the
   `write-unit-test` design review per test increment (V7, M7, AC7) with a maintainer stop after the
   final increment.
+- 2026-11-15 12:40 UTC - Claude Code (Claude Opus 5.5) - Implemented T7 to T9 after PR 2863 merged:
+  deleted the nine test-support release tests, rewrote the three health-check contract tests on an
+  address the test holds, added `random::loopback_ipv4`, and restored the nine release tests on a
+  random loopback address (ignored off Linux). V5 and V7 recorded per increment. The first UDP
+  mutation found an unrelated panic in the UDP health check, now #2867.
+- 2026-11-16 08:18 UTC - Claude Code (Claude Opus 5.5) - The maintainer reviewed the T8 and T9
+  tests. T10: 150 of 150 full-suite runs passed with no #2393 test skipped (V6), and the source
+  check finds `see #2393` only in the non-Linux `cfg_attr`. Recorded the completion review; T11
+  waits for the implementation PR to merge.
+- 2026-11-16 08:55 UTC - Claude Code (Claude Opus 5.5) - Addressed da2ce7's first review of PR 2874
+  (approved, six non-blocking findings): corrected the guessed times of the post-rebase run and of
+  this file's previous log entry, recorded repeated green runs for T8 and the helper, recorded the
+  maintainer's review of the final increment in V7, ticked the last acceptance criterion with its
+  evidence, restored the no-retries warning in the HTTP tracker test, and gave the contract tests
+  one registration path.
 
 ## Acceptance Criteria
 
-- [ ] AC1: Every test with a racing shape (bind, drop, reuse; release, then rebind; or a released
+- [x] AC1: Every test with a racing shape (bind, drop, reuse; release, then rebind; or a released
   port handed back within one test) is either
   rewritten without a racing port or disabled with `#[ignore = "flaky port race, see #2393"]`.
-- [ ] AC2: Every ignored test has a recorded decision in the per-test table: deleted, rewritten, or
+- [x] AC2: Every ignored test has a recorded decision in the per-test table: deleted, rewritten, or
   kept disabled with a reason.
 - [x] AC3: The full parallel suite passes repeatedly with no port-allocation failure (V4, 150 of
   150 runs on the head ending in `fix(tests): [#2393] start the health-check API before stopping the probed service`).
-- [ ] AC4: No test is ignored for #2393 on Linux: the nine test-support tests are deleted, and the
+- [x] AC4: No test is ignored for #2393 on Linux: the nine test-support tests are deleted, and the
   other twelve run (the nine restored ones are ignored only on other systems).
-- [ ] AC5: Each restored or rewritten T5 test fails when the cleanup or contract it guards is
+- [x] AC5: Each restored or rewritten T5 test fails when the cleanup or contract it guards is
   removed, and passes when it is restored (V5).
-- [ ] AC6: The full parallel suite passes 150 of 150 runs with the restored tests running (V6).
-- [ ] AC7: Every test-producing increment of T8 and T9 has a recorded prose-first
-  Arrange-Act-Assert design review, and the maintainer reviewed the final increment (V7).
-- [ ] `linter all` exits with code `0`.
-- [ ] Relevant focused tests and pre-push checks pass.
+- [x] AC6: The full parallel suite passes 150 of 150 runs with the restored tests running (V6).
+- [x] AC7: Every test-producing increment of T8 and T9 has a recorded prose-first
+  Arrange-Act-Assert design review, and the maintainer reviewed the final increment (V7, "Maintainer
+  review of the final increment").
+- [x] `linter all` exits with code `0`.
+- [x] Relevant focused tests and pre-push checks pass: the focused runs of V5, the pre-commit hook on
+  every commit, and the repository's pre-push hook on each push of the branch on 2026-11-16, which
+  `git-bot-push` runs and which blocks the push when it fails.
 
 ## Verification Plan
 
@@ -367,9 +385,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`, `NOT_APPLICAB
 | M2 | Duplicate-registration repair | None: the test is ignored, not repaired. | Not applicable. | NOT_APPLICABLE | `manual-verification-evidence.md#v2---duplicate-registration-repair` |
 | M3 | CLI configuration repair | None: #2581 already moved these tests below the ephemeral range. | Not applicable. | NOT_APPLICABLE | `manual-verification-evidence.md#v3---cli-configuration-repair` |
 | M4 | Full recheck | Run the full suite 150 times with `--no-fail-fast`. | Every run passes, with the ignored tests skipped. | DONE | `manual-verification-evidence.md#v4---full-recheck` |
-| M5 | T5 red-then-green | For each restored or rewritten test: remove the guarded cleanup (or make the probed address answer), run it, restore, run it again. | Fails without the cleanup, passes with it. | TODO | `manual-verification-evidence.md` (V5, added by the implementation PR) |
-| M6 | T5 full recheck | Run the full suite 150 times with `--no-fail-fast`. | Every run passes, and no #2393 test is skipped. | TODO | `manual-verification-evidence.md` (V6, added by the implementation PR) |
-| M7 | T5 test-design reviews | After each passing test-producing increment of T8 and T9, compare the test with its prose-first Arrange-Act-Assert description. | Each increment has a recorded review before the next starts, and the maintainer reviews the final increment. | TODO | `manual-verification-evidence.md` (V7, added by the implementation PR) |
+| M5 | T5 red-then-green | For each restored or rewritten test: remove the guarded cleanup (or make the probed address answer), run it, restore, run it again. | Fails without the cleanup, passes with it. | DONE | `manual-verification-evidence.md#v5---t5-red-then-green` |
+| M6 | T5 full recheck | Run the full suite 150 times with `--no-fail-fast`. | Every run passes, and no #2393 test is skipped. | DONE | `manual-verification-evidence.md#v6---t5-full-recheck` |
+| M7 | T5 test-design reviews | After each passing test-producing increment of T8 and T9, compare the test with its prose-first Arrange-Act-Assert description. | Each increment has a recorded review before the next starts, and the maintainer reviews the final increment. | DONE | `manual-verification-evidence.md#v7---test-design-review-per-increment` |
 
 ### Acceptance Verification
 
@@ -397,6 +415,24 @@ After T10, compare the result with this specification. Record which ignored test
 rewritten or kept disabled, any tests intentionally left unchanged, and reusable lessons. Create `implementation-retrospective.md` only if the work changes repository-wide test
 networking policy; otherwise add a concise progress-log entry explaining why no separate
 retrospective is needed.
+
+### Result
+
+- Matches the specification: the nine test-support release tests are deleted (T7), the three
+  health-check contract tests are rewritten on an address the test holds (T8), and the nine
+  tracker release tests are restored on a random loopback address (T9). No test stays disabled for
+  #2393 on Linux; the nine restored tests and the helper's own test are ignored on other systems.
+- Deviations: the three contract tests are renamed for the state they set up, since they no longer
+  stop a service; and the UDP launcher's shared fixture now takes its bind address per scenario,
+  so only the restored test uses the random loopback address.
+- Left unchanged on purpose: the long inline Arrange of the REST API registration-failure test,
+  which T9 only moved to the new address.
+- Lessons: a test that proves a release by rebinding cannot hold its address, but it can choose one
+  no other test picks; a test that only needs a failing address should hold it for the whole test.
+  A mutation that sends junk bytes found a real panic (#2867), so red-then-green also tests the code
+  under test, not only the test.
+- No separate `implementation-retrospective.md`: the random loopback address is a test helper for
+  this family of tests, not a repository-wide networking policy.
 
 ## References
 
