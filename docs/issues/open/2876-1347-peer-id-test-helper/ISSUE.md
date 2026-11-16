@@ -9,7 +9,7 @@ github-issue: 2876
 spec-path: docs/issues/open/2876-1347-peer-id-test-helper/ISSUE.md
 branch: "2876-peer-id-test-helper"
 related-pr: null
-last-updated-utc: "2026-11-16 16:52"
+last-updated-utc: "2026-11-16 17:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -470,6 +470,8 @@ with the narrow affected scope, and sign every commit with GPG.
 - 2026-11-16 16:52 UTC - Claude Code (Opus 5.5) - Review round 1 of PR #2888 (da2ce7, approved, F1
   Nit and F2 Suggestion): the test plan records why the short tests have no AAA markers, and the ADR
   amendment notes when machete flags the self dev-dependency (`docs/pr-reviews/pr-2888-review/`).
+- 2026-11-16 17:30 UTC - Claude Code (Opus 5.5) - Review round 2 of PR #2888 (da2ce7, approved, F3
+  and F4 Nits): the test plan's statement count is corrected (one to four), and the audit's reply time.
 
 ## Acceptance Criteria
 

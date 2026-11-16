@@ -4,7 +4,7 @@ issue: 2876
 package: torrust-tracker-primitives
 target-file: packages/primitives/src/peer.rs
 status: done
-last-updated-utc: "2026-11-16 16:52"
+last-updated-utc: "2026-11-16 17:30"
 ---
 
 # `peer::fixture::qbittorrent_peer_id` Test Plan (T2)
@@ -229,5 +229,6 @@ tested as they are; whether to merge them is not in this issue's scope.
 
 Smells checked: no complex Arrange, no hidden Act, no production-derived expectation. Like the other
 short tests in `peer.rs`, the sections are separated by blank lines; the `// Arrange`, `// Act`,
-`// Assert` markers were left out as redundant prose for these one- to three-statement bodies (the
-skill's prose-first step 4), a decision recorded here after review finding F1 of PR #2888.
+`// Assert` markers were left out as redundant prose for these one- to four-statement bodies (four in the
+two tests that first assert their starting fixture; the skill's prose-first step 4), a decision
+recorded here after review finding F1 of PR #2888 (count corrected after F3).
