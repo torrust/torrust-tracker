@@ -507,7 +507,7 @@ For each completed subissue in this EPIC, the default completion policy is:
 
 ### Issue Body Pointer
 
-The GitHub issue body does not mirror this file. It holds only content that does not change as the EPIC progresses: the goal, a link to this file on `develop`, a pointer to GitHub's sub-issue list, and one line on the friction register. It carries no subissue table, status, progress log or decision. A change to this file therefore needs no change to the body; only a change to the goal, to this file's path or to where the register is kept does.
+The GitHub issue body does not mirror this file. It holds only content that does not change as the EPIC progresses: the goal, a link to this file on `develop`, a pointer to GitHub's sub-issue list, and one line on the friction register. It carries no subissue table, status, progress log or decision. A change to this file therefore needs no change to the body. The body changes only when the goal, this file's path or the place where the register is kept changes.
 
 ### Manual Verification Scenarios
 
