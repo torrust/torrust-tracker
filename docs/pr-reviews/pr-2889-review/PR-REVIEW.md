@@ -1,7 +1,7 @@
 ---
 pr-number: 2889
 pr-url: https://github.com/torrust/torrust-tracker/pull/2889
-last-updated-utc: "2026-11-16 18:57"
+last-updated-utc: "2026-11-16 19:11"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -47,6 +47,8 @@ Round 3, on the head that carries the commit `docs(pr-reviews): [#2764] audit re
 
 Round 4, on the head that carries the commit `docs(pr-reviews): [#2764] audit review round 3 of PR 2889`: Copilot review 5925595121 (COMMENTED, a "Lite" review) with five threads and no severity tags, so each severity is inferred. Four threads carry the same text, each anchored to a different evidence section (F18 to F21); each section got its own note. The fifth is F22.
 
+Round 5, on the head that carries the commit `docs(pr-reviews): [#2764] audit review round 4 of PR 2889`: da2ce7 review 5925836500 (APPROVED) with findings F18 and F19 (two Nit). Their IDs collide with this audit's F18 and F19, so they are audit findings F23 and F24. F23 shows that the round-4 reply and the F22 row overstated a check; both are corrected (see F22 and the log).
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2889-f1 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
@@ -71,6 +73,8 @@ Round 4, on the head that carries the commit `docs(pr-reviews): [#2764] audit re
 | F20 | review-finding:pr-2889-f20 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F21 | review-finding:pr-2889-f21 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F22 | review-finding:pr-2889-f22 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F23 | review-finding:pr-2889-f23 | Human | Nit | testing | ORIGINAL | FIXED | RESOLVED |
+| F24 | review-finding:pr-2889-f24 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -355,10 +359,36 @@ Round 4, on the head that carries the commit `docs(pr-reviews): [#2764] audit re
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2889#discussion_r4590038112
 - Concern: The test server's accept loop slept and continued on any error, so a real failure (for example no file descriptors left) would make it a silent non-responder.
 - Solution: The loop sleeps only on `WouldBlock`, retries on `Interrupted` and panics on any other error; `TestServer::drop` re-raises the panic with `resume_unwind` unless the test is already panicking.
-- Current-tree verification: 11 tests pass under `cargo test` and nextest; with the `WouldBlock` guard temporarily changed, the four server tests failed with `the test server could not accept a connection: ...` (evidence "Round 4 of PR 2889").
+- Current-tree verification: 11 tests pass under `cargo test` and nextest; with the `WouldBlock` guard temporarily changed, the four server tests failed (evidence "Round 4 of PR 2889"). Correction from round 5 (F23): that run covered the panic arm only, because the exit-code assertion fired first; the `Drop` re-raise is covered by a separate run in evidence "Round 5 of PR 2889". The round-4 reply on this thread overstated the check; the F23 reply says so.
 - Resolution reference: `test(health-check): [#2764] fail the test when the test server cannot accept a connection`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2889#discussion_r4590086454
+
+### F23 - Accept-error check covered the panic arm, not the Drop re-raise
+
+- PR number: 2889
+- Source review ID: 5925836500
+- Reviewer finding ID: F18
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2889#discussion_r4590221890
+- Concern: With the `WouldBlock` guard changed, the server panics before the child connects, so the exit-code assertion fails first and `Drop` skips `resume_unwind`; the record quoted only the server thread's message.
+- Solution: Evidence "Round 5 of PR 2889" records the assertion that fired in that run (the exit-code check) and adds a run where the server panics after answering: every assertion passes and the test fails through the `Drop` re-raise. The round-4 section and the F22 row now say what the round-4 run covered.
+- Current-tree verification: evidence sections "Round 4 of PR 2889" and "Round 5 of PR 2889", and the note under "Verification Processes".
+- Resolution reference: `docs(issues): [#2764] address review round 5 of PR 2889 in the evidence`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2889#discussion_r4590245183
+
+### F24 - Ordering note claims run order
+
+- PR number: 2889
+- Source review ID: 5925836500
+- Reviewer finding ID: F19
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2889#discussion_r4590221902
+- Concern: The evidence note said the sections are in the order they ran, which does not hold for R1's re-run and the R2 rows.
+- Solution: The note says the sections are in the order they were first written, and that R1's re-run and every R2 row ran after G1, V1 to V3.
+- Current-tree verification: evidence sections "Round 4 of PR 2889" and "Round 5 of PR 2889", and the note under "Verification Processes".
+- Resolution reference: `docs(issues): [#2764] address review round 5 of PR 2889 in the evidence`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2889#discussion_r4590245615
 
 ## Processing Log
 
@@ -376,6 +406,9 @@ Round 4, on the head that carries the commit `docs(pr-reviews): [#2764] audit re
 - 2026-11-16 18:56 UTC - Round 4: normalized Copilot review 5925595121 (F18 to F22), committed the fixes, then replied (replies created from 18:55:54Z to 18:56:03Z). `validate-audit-record.py --pr-number 2889 --base torrust/develop` reported 22 rows, 0 failures.
 - 2026-11-16 18:56 UTC - Resolved the five round-4 threads (`isResolved: true` for each, the last at about 18:56:55Z). A GraphQL refresh found no unresolved thread and no thread whose last comment is not a reply from `josecelano-bot`.
 - 2026-11-16 18:57 UTC - Committed this record.
+- 2026-11-16 19:10 UTC - Round 5: normalized da2ce7 review 5925836500 (F23, F24), committed the evidence fix, then replied (replies created at 19:10:30Z and 19:10:33Z). Correction: the round-4 reply on the F22 thread (created 18:56:03Z) and the F22 row's verification said the guard mutation checked the failure path, but that run covered the panic arm only; the F22 row now says so, and the F23 reply states it on GitHub. The round-4 reply itself is not edited.
+- 2026-11-16 19:11 UTC - Resolved the two round-5 threads (`isResolved: true` for each, the last at about 19:11:15Z). A GraphQL refresh found no unresolved thread and no thread whose last comment is not a reply from `josecelano-bot`. `validate-audit-record.py --pr-number 2889 --base torrust/develop` reported 24 rows, 0 failures.
+- 2026-11-16 19:11 UTC - Committed this record.
 
 ## Completion Rules
 
