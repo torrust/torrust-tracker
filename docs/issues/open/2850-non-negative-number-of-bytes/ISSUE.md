@@ -9,7 +9,7 @@ github-issue: 2850
 spec-path: docs/issues/open/2850-non-negative-number-of-bytes/ISSUE.md
 branch: "2850-non-negative-number-of-bytes-spec"
 related-pr: null
-last-updated-utc: "2026-11-14 08:47"
+last-updated-utc: "2026-11-15 21:07"
 semantic-links:
   skill-links:
     - create-issue
@@ -44,7 +44,7 @@ semantic-links:
     - docs/adrs/20260727000000_events_are_objective_facts.md
     - .github/skills/dev/rust-code-quality/handle-errors-in-code/SKILL.md
     - docs/benchmarking.md
-    - docs/issues/open/2824-1347-add-tests-primitives/ISSUE.md
+    - docs/issues/closed/2824-1347-add-tests-primitives/ISSUE.md
     - docs/issues/open/2838-1347-udp-reject-negative-announce-bytes/ISSUE.md
     - docs/issues/open/2838-1347-udp-reject-negative-announce-bytes/manual-verification-evidence.md
     - docs/issues/open/2842-inbound-tolerance-adr/ISSUE.md

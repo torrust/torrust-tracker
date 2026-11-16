@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/error-locations-si-2-primitives/ISSUE.md
 branch: "{issue-number}-error-locations-si-2-primitives"
 related-pr: null
-last-updated-utc: "2026-11-11 17:39"
+last-updated-utc: "2026-11-15 21:07"
 semantic-links:
   skill-links:
     - create-issue
@@ -278,4 +278,4 @@ findings, and reusable lessons.
 - Parent EPIC draft: `docs/issues/drafts/remove-source-locations-from-errors/EPIC.md`
 - Audit: `docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md`, `inventory.md`, `options.md`, `experiments.md` (issue #2804)
 - Related issues: #2804 (audit), #384 (external report), #2583 (first publish of the workspace crates)
-- Reporting work: `docs/issues/open/2824-1347-add-tests-primitives/` (EPIC #1347)
+- Reporting work: `docs/issues/closed/2824-1347-add-tests-primitives/` (EPIC #1347)
