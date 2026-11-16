@@ -531,6 +531,13 @@ stable Rust toolchain: `cargo run -q -p frontmatter-validator --bin frontmatter-
 
 No live reference to an old path remains.
 
+After this sweep, `develop` at `3134dea62` was merged into the branch. The same search on the
+merged tree found two new live files that named old paths: the #2867 spec and the
+`peer-id-test-helper` draft. Both now name `.claude/skills/<name>/`. The new #2873 spec names
+`.github/skills` as the stub folder, and its evidence records the old paths it measured; both
+stay. New PR review audits on `develop` are records and keep their old paths. The merge and the
+fix commit passed the pre-commit gate, which runs `linter all` and `--skill-layout`.
+
 #### Automatic Checks
 
 All ran in the worktree at `0acae3ab9`, stable Rust toolchain, each exiting `0`:
