@@ -1391,7 +1391,6 @@ mod tests {
         }
     }
 
-    /// Asserts that `producer` completed before each of `consumers` in `completion_order`.
     /// Asserts that `first` completes before each of `later`, whatever edge orders them: a bus or the stop-last edge.
     fn assert_completes_before_every(completion_order: &[&str], first: &str, later: &[&str]) {
         let position = |name: &str| {
