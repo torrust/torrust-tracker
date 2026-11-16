@@ -9,7 +9,7 @@ github-issue: 2876
 spec-path: docs/issues/open/2876-1347-peer-id-test-helper/ISSUE.md
 branch: "2876-peer-id-test-helper-spec"
 related-pr: null
-last-updated-utc: "2026-11-16 08:45"
+last-updated-utc: "2026-11-16 09:41"
 semantic-links:
   skill-links:
     - create-issue
@@ -409,6 +409,10 @@ with the narrow affected scope, and sign every commit with GPG.
   (`a25a27e23`). Moved from `docs/issues/drafts/peer-id-test-helper/` to
   `docs/issues/open/2876-1347-peer-id-test-helper/`; `epic`, `github-issue`, `spec-path` and `branch`
   set; status `planned`. Q1-Q7 are still unanswered; nothing is implemented.
+- 2026-11-16 09:41 UTC - Claude Code (Opus 5.5) - Review round 1 of PR #2878 (da2ce7 F1-F5, Copilot
+  two re-raises): `branch` is now the `-spec` branch, the parent EPIC line is under the title, the
+  approval checkpoint is split from the Q1-Q7 answers, and the F5 owner cells of EPIC row 11 and the
+  closed #2824 spec point at #2876.
 
 ## Acceptance Criteria
 
