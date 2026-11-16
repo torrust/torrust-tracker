@@ -33,8 +33,8 @@ at a comment (see `manual-verification-evidence.md`, V0).
 | ---- | ----- | -------------: | --------------: | ------------: | -------------: |
 | Skill authoring | `add-new-skill` | 326 | 110 | 171 |  |
 | Benchmarking | `run-benchmarks` | 724 | 250 | 187 |  |
-| CI | `implement-workflow` | 151 | 60 |  |  |
-| CI | `watch-pull-request-checks` | 352 | 130 |  |  |
+| CI | `implement-workflow` | 151 | 60 | 155 |  |
+| CI | `watch-pull-request-checks` | 352 | 130 | 155 |  |
 | Debugging | `fix-bug` | 337 | 120 |  |  |
 | Environment setup | `run-tracker-locally` | 334 | 120 |  |  |
 | Git workflow | `commit-changes` | 399 | 140 |  |  |
@@ -107,12 +107,12 @@ at a comment (see `manual-verification-evidence.md`, V0).
 #### `implement-workflow`
 
 - Before (151): Use when: adding or materially changing GitHub Actions workflows, CI jobs, workflow scripts, artifacts, matrices, permissions, or provider integration.
-- After: not yet rewritten
+- After (155): Add or change GitHub Actions workflows, CI jobs, workflow scripts and their permissions. Use when editing .github/workflows or changing what a CI job does.
 
 #### `watch-pull-request-checks`
 
 - Before (352): Wait for the CI checks of a pull request to finish with the GitHub CLI, then read which ones failed. Use after pushing to a pull request when you need to know whether CI passed, instead of asking the contributor or polling by hand. Triggers on "watch CI", "wait for checks", "wait for CI", "did CI pass", "gh pr checks", or "watch pull request checks".
-- After: not yet rewritten
+- After (155): Wait for a pull request's CI checks to finish with gh pr checks, then read which failed. Use after pushing to a PR when you need to know whether CI passed.
 
 ### Debugging
 
