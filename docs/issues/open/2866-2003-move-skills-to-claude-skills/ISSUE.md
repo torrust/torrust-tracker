@@ -9,7 +9,7 @@ github-issue: 2866
 spec-path: docs/issues/open/2866-2003-move-skills-to-claude-skills/ISSUE.md
 branch: "2866-move-skills-to-claude-skills"
 related-pr: null
-last-updated-utc: "2026-11-16 10:40"
+last-updated-utc: "2026-11-16 08:29"
 semantic-links:
   skill-links:
     - create-issue
@@ -322,7 +322,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T5  | DONE   | Add the index                            | `.claude/skills/README.md` lists each skill by area (today's area folders), with a one-line purpose, and notes the old location. `AGENTS.md` and `docs/agents/` point to it.                                                          |
 | T6  | DONE   | Remaining validator rules                | The other rules in [Validator rules](#validator-rules-after-the-move), with unit tests and a negative case for each; the placement rule and these rules are wired into the pre-commit hook and CI, and the placement rule's green run is recorded. Tests follow the `write-unit-test` skill and the test-design review in [Commit Points](#commit-points).                                                                                  |
 | T7  | DONE   | Update `add-new-skill`                   | New skills go to `.claude/skills/<name>/`, add an index row, and need no stub.                                                                                                                                                         |
-| T8  | TODO   | ADRs                                     | New ADR; dated row in the governance ADR's inventory and review log.                                                                                                                                                                   |
+| T8  | DONE   | ADRs                                     | New ADR; dated row in the governance ADR's inventory and review log.                                                                                                                                                                   |
 | T9  | TODO   | Final sweep and verification             | Search again for `.github/skills` and `skills/dev/` after the last edit; every remaining hit is a stub, out-of-scope agent profile, or historical record. Run every validator, `linter all`, and the manual scenarios.                  |
 
 ## Commit Points
@@ -375,12 +375,13 @@ pull request.
 - 2026-11-15 20:14 UTC - Claude Code (Claude Opus 5.5) - Maintainer approved the draft; created issue #2866, moved the spec to `docs/issues/open/`, and added the EPIC #2003 row at order 21. Linking #2866 as a GitHub sub-issue of #2003 returned HTTP 404 for the contributor account, so the maintainer links it - https://github.com/torrust/torrust-tracker/issues/2866
 - 2026-11-15 20:48 UTC - Claude Code (Claude Opus 5.5) - Reproduced the defect in a fresh clone of `develop` at `abd7a10ff` (M0): no project skill listed, `/create-issue` not run as a command - `manual-verification-evidence.md` V0
 - 2026-11-16 08:00 UTC - Claude Code (Claude Opus 5.5) - Spec PR #2869 merged; implementation started on `2866-move-skills-to-claude-skills` - https://github.com/torrust/torrust-tracker/pull/2869
-- 2026-11-16 08:10 UTC - Claude Code (Claude Opus 5.5) - T2: placement rule `frontmatter-validator --skill-layout` with unit and command tests; red on the tree before the move (53 `misplaced-skill` errors, exit 1); two mutations caught - `manual-verification-evidence.md` T2
-- 2026-11-16 08:40 UTC - Claude Code (Claude Opus 5.5) - T3: moved the 71 files with `git mv`, rewrote 121 Markdown links and 227 literal paths with the recorded script, fixed the rest by hand; the placement rule passes, `linter lychee` passes, and an own check found no broken relative link in `.claude/skills/` or `.github/`; `linter lychee` does not check `.claude/` (follow-up for `torrust-linting`) - `manual-verification-evidence.md` T3
-- 2026-11-16 08:50 UTC - Claude Code (Claude Opus 5.5) - T4: 53 redirect stubs at the old `SKILL.md` paths and the stub inventory in `.github/skills/README.md`; the placement rule reports the stubs until T6 exempts inventoried stubs - `.github/skills/README.md`
-- 2026-11-16 09:00 UTC - Claude Code (Claude Opus 5.5) - T5: index `.claude/skills/README.md`, the 53 skills under the 15 former area folders, each with a one-line purpose; `AGENTS.md`, `docs/agents/README.md`, `docs/testing.md` and the stub inventory link it - `.claude/skills/README.md`
-- 2026-11-16 10:30 UTC - Claude Code (Claude Opus 5.5) - T6: four reviewed increments (stub inventory, stub contents, skill name, index), each mutation-tested and committed; `--skill-layout` wired into the pre-commit hook and the Docs Lint workflow; green on the branch - `manual-verification-evidence.md` T6
-- 2026-11-16 10:40 UTC - Claude Code (Claude Opus 5.5) - T7: `add-new-skill` puts a new skill at `.claude/skills/<name>/`, adds its index row, needs no stub, and runs `--skill-layout` before committing - `.claude/skills/add-new-skill/SKILL.md`
+- 2026-11-16 08:03 UTC - Claude Code (Claude Opus 5.5) - T2: placement rule `frontmatter-validator --skill-layout` with unit and command tests; red on the tree before the move (53 `misplaced-skill` errors, exit 1); two mutations caught - `manual-verification-evidence.md` T2
+- 2026-11-16 08:11 UTC - Claude Code (Claude Opus 5.5) - T3: moved the 71 files with `git mv`, rewrote 121 Markdown links and 227 literal paths with the recorded script, fixed the rest by hand; the placement rule passes, `linter lychee` passes, and an own check found no broken relative link in `.claude/skills/` or `.github/`; `linter lychee` does not check `.claude/` (follow-up for `torrust-linting`) - `manual-verification-evidence.md` T3
+- 2026-11-16 08:13 UTC - Claude Code (Claude Opus 5.5) - T4: 53 redirect stubs at the old `SKILL.md` paths and the stub inventory in `.github/skills/README.md`; the placement rule reports the stubs until T6 exempts inventoried stubs - `.github/skills/README.md`
+- 2026-11-16 08:14 UTC - Claude Code (Claude Opus 5.5) - T5: index `.claude/skills/README.md`, the 53 skills under the 15 former area folders, each with a one-line purpose; `AGENTS.md`, `docs/agents/README.md`, `docs/testing.md` and the stub inventory link it - `.claude/skills/README.md`
+- 2026-11-16 08:24 UTC - Claude Code (Claude Opus 5.5) - T6: four reviewed increments (stub inventory, stub contents, skill name, index), each mutation-tested and committed; `--skill-layout` wired into the pre-commit hook and the Docs Lint workflow; green on the branch - `manual-verification-evidence.md` T6
+- 2026-11-16 08:26 UTC - Claude Code (Claude Opus 5.5) - T7: `add-new-skill` puts a new skill at `.claude/skills/<name>/`, adds its index row, needs no stub, and runs `--skill-layout` before committing - `.claude/skills/add-new-skill/SKILL.md`
+- 2026-11-16 08:29 UTC - Claude Code (Claude Opus 5.5) - T8: ADR `20261116082711` (store agent skills flat in `.claude/skills/`), its index row, a partial-supersession status on ADR `20260420200013`, and the governance ADR's Skills row and a 2026-11-16 review record. The T2 to T7 entries above were first written with estimated times; they now carry their commit times - `docs/adrs/20261116082711_store_agent_skills_flat_in_claude_skills.md`
 
 ## Acceptance Criteria
 

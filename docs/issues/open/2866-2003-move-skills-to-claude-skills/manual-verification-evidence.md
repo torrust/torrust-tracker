@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2866-2003-move-skills-to-claude-skills/ISSUE.md
-last-updated-utc: 2026-11-16 10:30
+last-updated-utc: 2026-11-16 08:29
 ---
 
 <!-- cspell:ignore Autocompact dataviz endswith findall isfile normpath relpath startswith -->
@@ -502,7 +502,7 @@ mutated, reviewed and committed before the next started.
 `--skill-layout` runs as step 4 of `contrib/dev-tools/git/hooks/pre-commit.sh`, after the staged
 frontmatter check, and as the step `Check Agent Skill Layout` of the Docs Lint workflow, which
 runs on every push and pull request, documentation-only ones included. The
-`run-pre-commit-checks` skill lists the new step. Green run on the branch, 2026-11-16 10:30 UTC,
+`run-pre-commit-checks` skill lists the new step. Green run on the branch, 2026-11-16 08:24 UTC, as the hook step of the wiring commit,
 stable Rust toolchain: `cargo run -q -p frontmatter-validator --bin frontmatter-validator --
 --skill-layout` exited `0` and wrote no record (the red run is under T2).
 

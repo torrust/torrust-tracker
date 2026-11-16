@@ -11,6 +11,11 @@ semantic-links:
 
 # Adopt a Custom, GitHub-Copilot-Aligned Agent Framework
 
+- Status: Partly superseded by
+  [Store Agent Skills Flat in `.claude/skills/`](20261116082711_store_agent_skills_flat_in_claude_skills.md):
+  the skills moved from `.github/skills/` to `.claude/skills/` (issue #2866). The other decisions
+  stand.
+
 ## Description
 
 As AI coding agents become a more common part of the development workflow, the project needs a
