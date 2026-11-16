@@ -66,3 +66,10 @@ jobs:
       - id: lint-spelling
         name: Check Spelling
         run: linter cspell
+
+      # issue: #2866
+      # Claude Code discovers a project skill only at `.claude/skills/<name>/SKILL.md`. The check also
+      # keeps the redirect stubs under `.github/skills/`, their inventory, and the skills index in step.
+      - id: skill-layout
+        name: Check Agent Skill Layout
+        run: cargo run --quiet --package frontmatter-validator --bin frontmatter-validator -- --skill-layout

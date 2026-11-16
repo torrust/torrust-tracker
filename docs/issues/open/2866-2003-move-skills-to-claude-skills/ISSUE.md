@@ -9,7 +9,7 @@ github-issue: 2866
 spec-path: docs/issues/open/2866-2003-move-skills-to-claude-skills/ISSUE.md
 branch: "2866-move-skills-to-claude-skills"
 related-pr: null
-last-updated-utc: "2026-11-16 09:00"
+last-updated-utc: "2026-11-16 10:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -256,7 +256,9 @@ This skill moved to [`.claude/skills/<name>/SKILL.md`](<relative path>) in issue
   deleting or renaming a skill without its stub or index row fails. They live in the
   `frontmatter-validator` crate, which already snapshots the skill folders. Entry point (settled
   in T2): `frontmatter-validator --skill-layout`, a mode of its own that checks the index. `--all`
-  is not used, because it already fails on legacy specs; `--staged` checks only staged files.
+  is not used, because it already fails on legacy specs; `--staged` checks only staged files. It
+  runs as a step of the pre-commit hook and of the Docs Lint workflow, which runs on every push and
+  pull request.
 - `agent-review-report-contract` and `github-review-threads` read the new paths.
 - The link checker needs no new exclusion: live links are rewritten and old links reach a stub.
 
@@ -318,7 +320,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3  | DONE   | Move the skills and fix every live path  | `git mv` of all 71 files; relative links inside moved skills; depth-dependent paths in moved scripts (`validate-skill-links.sh`); tooling paths; every live reference by the classification rule. The commit passes `linter all` and the tests on its own. Git shows 71 renames.                           |
 | T4  | DONE   | Add the redirect stubs                   | 53 stubs plus `.github/skills/README.md`, which says the folder only holds redirects and inventories the 53 original paths.                                                                                                                                                       |
 | T5  | DONE   | Add the index                            | `.claude/skills/README.md` lists each skill by area (today's area folders), with a one-line purpose, and notes the old location. `AGENTS.md` and `docs/agents/` point to it.                                                          |
-| T6  | TODO   | Remaining validator rules                | The other rules in [Validator rules](#validator-rules-after-the-move), with unit tests and a negative case for each; the placement rule and these rules are wired into the pre-commit hook and CI, and the placement rule's green run is recorded. Tests follow the `write-unit-test` skill and the test-design review in [Commit Points](#commit-points).                                                                                  |
+| T6  | DONE   | Remaining validator rules                | The other rules in [Validator rules](#validator-rules-after-the-move), with unit tests and a negative case for each; the placement rule and these rules are wired into the pre-commit hook and CI, and the placement rule's green run is recorded. Tests follow the `write-unit-test` skill and the test-design review in [Commit Points](#commit-points).                                                                                  |
 | T7  | TODO   | Update `add-new-skill`                   | New skills go to `.claude/skills/<name>/`, add an index row, and need no stub.                                                                                                                                                         |
 | T8  | TODO   | ADRs                                     | New ADR; dated row in the governance ADR's inventory and review log.                                                                                                                                                                   |
 | T9  | TODO   | Final sweep and verification             | Search again for `.github/skills` and `skills/dev/` after the last edit; every remaining hit is a stub, out-of-scope agent profile, or historical record. Run every validator, `linter all`, and the manual scenarios.                  |
@@ -377,6 +379,7 @@ pull request.
 - 2026-11-16 08:40 UTC - Claude Code (Claude Opus 5.5) - T3: moved the 71 files with `git mv`, rewrote 121 Markdown links and 227 literal paths with the recorded script, fixed the rest by hand; the placement rule passes, `linter lychee` passes, and an own check found no broken relative link in `.claude/skills/` or `.github/`; `linter lychee` does not check `.claude/` (follow-up for `torrust-linting`) - `manual-verification-evidence.md` T3
 - 2026-11-16 08:50 UTC - Claude Code (Claude Opus 5.5) - T4: 53 redirect stubs at the old `SKILL.md` paths and the stub inventory in `.github/skills/README.md`; the placement rule reports the stubs until T6 exempts inventoried stubs - `.github/skills/README.md`
 - 2026-11-16 09:00 UTC - Claude Code (Claude Opus 5.5) - T5: index `.claude/skills/README.md`, the 53 skills under the 15 former area folders, each with a one-line purpose; `AGENTS.md`, `docs/agents/README.md`, `docs/testing.md` and the stub inventory link it - `.claude/skills/README.md`
+- 2026-11-16 10:30 UTC - Claude Code (Claude Opus 5.5) - T6: four reviewed increments (stub inventory, stub contents, skill name, index), each mutation-tested and committed; `--skill-layout` wired into the pre-commit hook and the Docs Lint workflow; green on the branch - `manual-verification-evidence.md` T6
 
 ## Acceptance Criteria
 
