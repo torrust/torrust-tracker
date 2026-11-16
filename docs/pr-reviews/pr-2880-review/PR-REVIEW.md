@@ -42,7 +42,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 ## Findings
 
 The da2ce7 review numbers its findings `F1` to `F5`; Copilot's review uses `R1` and `R2`, and uses `R2`
-twice. All get audit-local IDs `C1` to `C8` and keep their own IDs as reviewer finding IDs.
+twice. They get the audit-local IDs `C1` to `C8`, the second da2ce7 review's `F6` gets `C9`, and
+all keep their own IDs as reviewer finding IDs.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -54,6 +55,7 @@ twice. All get audit-local IDs `C1` to `C8` and keep their own IDs as reviewer f
 | C6 | review-finding:pr-2880-c6 | Copilot | Minor | link-integrity | ORIGINAL | FIXED | RESOLVED |
 | C7 | review-finding:pr-2880-c7 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | C8 | review-finding:pr-2880-c8 | Copilot | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| C9 | review-finding:pr-2880-c9 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -161,12 +163,28 @@ twice. All get audit-local IDs `C1` to `C8` and keep their own IDs as reviewer f
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2880#discussion_r4584533904
 
+### C9 - Record the post-merge approval for C13
+
+- PR number: 2880
+- Source review ID: 5918589470
+- Reviewer finding ID: F6
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2880#discussion_r4584652000
+- Concern: C13 follows the late-finding workflow, but the PR 2870 audit still said `Post-merge workflow approval: N/A`, and its Processing Log missed the reply cited as C13's resolution reference and the reopening of the thread.
+- Solution: Posted a durable approval comment on PR 2870 on the maintainer's behalf and cited it in the Ownership section with the approval, review and merge times; added the three missing log entries.
+- Current-tree verification: `docs/pr-reviews/pr-2870-review/PR-REVIEW.md` Ownership cites `https://github.com/torrust/torrust-tracker/pull/2870#issuecomment-6914058589`, and its log has the 09:51, 10:24 and 10:37 UTC entries.
+- Resolution reference: docs(pr-reviews): record the post-merge approval for C13 in the PR 2870 audit (#2845)
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2880#discussion_r4584666009
+
 ## Processing Log
 
 - 2026-11-16 10:21 UTC - da2ce7 review 5918391180 (approved) submitted with five inline findings, none blocking.
 - 2026-11-16 10:21 UTC - Copilot review 5918391597 submitted with three inline findings.
 - 2026-11-16 10:23 UTC - Committed the fix for all eight findings (`docs(issues): address the review of the #2845 close-out`).
 - 2026-11-16 10:24 UTC - Replied on the eight threads and reopened the F13 thread on PR 2870 (C8).
+- 2026-11-16 10:36 UTC - da2ce7 review 5918589470 (approved) submitted with one inline finding (F6, non-blocking).
+- 2026-11-16 10:37 UTC - Posted the durable approval comment on PR 2870 and committed the C9 fix.
+- 2026-11-16 10:38 UTC - Replied on the F6 thread.
 
 ## Completion Rules
 
