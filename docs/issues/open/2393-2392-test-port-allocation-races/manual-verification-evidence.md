@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2393-2392-test-port-allocation-races/ISSUE.md
-last-updated-utc: "2026-11-15 12:40"
+last-updated-utc: "2026-11-16 08:25"
 ---
 
 <!-- markdownlint-disable MD003 -->
@@ -248,6 +248,41 @@ Command: `cargo nextest run --all-features --no-fail-fast -p torrust-tracker -E 
 The failure messages show the random loopback addresses the tests bound. Green: 20 of 20 runs of
 the three tests passed on the committed code.
 
+### V6 - T5 full recheck
+
+- Status: `DONE`
+- Goal: show that the full parallel suite passes with none of the #2393 tests ignored, sized like
+  V4.
+- Environment: same as V4 (32 logical processors, `cargo-nextest 0.9.88 (b44b7adf7 2025-01-15)`,
+  `rustc 1.99.1 (58cf8f9c3 2026-10-13)`, default nextest concurrency). Logs are kept locally under
+  `.tmp/recheck-2393-v6/` and are not versioned.
+- Head: the commit `test(bootstrap): [#2393] restore the component and startup release tests`, the
+  last test change of T9.
+- Command, run 150 times in a row after one `--no-run` build:
+
+  ```sh
+  cargo nextest run --tests --all-features --no-fail-fast
+  ```
+
+#### Recheck - 2026-11-16 07:45 to 08:16 UTC
+
+```text
+150 runs: 1844 tests run: 1844 passed, 0 skipped
+failed runs: 0
+```
+
+#### Source check
+
+`git grep -n 'see #2393' -- '*.rs'` finds ten lines, all of them
+`#[cfg_attr(not(target_os = "linux"), ignore = "needs the Linux 127.0.0.0/8 loopback range, see #2393")]`:
+the nine restored tests and the loopback helper's port-sharing test. No `#[ignore]` names #2393.
+
+#### Conclusion
+
+All 150 runs passed with every #2393 test running, so no test is skipped on Linux. The tests that
+still bind `0.0.0.0:0` caused no collision with the random loopback addresses in these runs. As in
+V4, the recheck covers this workstation only.
+
 ### V7 - Test-design review per increment
 
 Each review follows the prose-first Arrange-Act-Assert step of the `write-unit-test` skill: the
@@ -394,3 +429,4 @@ Comparison and changes:
   datagram that is not a valid tracker response, `check` in `tracker-client/src/udp/client.rs`
   unwraps the parse error and panics, and the health-check handler's `expect` on the joined job
   panics in turn, so the client gets no report at all instead of an error detail.
+  It is tracked as #2867, whose specification was merged in PR 2868.
