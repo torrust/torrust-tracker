@@ -1,7 +1,7 @@
 ---
 doc-type: issue-inventory
 issue-spec: docs/issues/open/2394-2392-audit-shared-test-resources/ISSUE.md
-last-updated-utc: "2026-11-16 22:06"
+last-updated-utc: "2026-11-16 22:23"
 ---
 
 # Inventory of Shared Test Resources (tasks T1 to T5)
@@ -11,7 +11,7 @@ tests, test fixtures and test helpers of every workspace member, the two E2E run
 `src/console/ci/`, the three `compose.qbittorrent-e2e.*.yaml` files, the container test script in
 `contrib/dev-tools/containers/tests/`, the git hooks that run the test suite, and the CI workflow
 steps that run tests. Line numbers are those of this snapshot. After the first review round the
-searches were rerun on the merge of `develop` at `da4d1a3cb`; the only new test resource is
+searches were rerun after merging `develop` at `0373f05f8` into the branch; the only new test resource is
 `tests/http_health_check.rs` (P5).
 
 ## Where Tests Run
