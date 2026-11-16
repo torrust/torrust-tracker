@@ -1,7 +1,7 @@
 ---
 doc-type: performance-evidence
-issue-spec: docs/issues/open/2850-non-negative-number-of-bytes/ISSUE.md
-last-updated-utc: "2026-11-16 10:16"
+issue-spec: docs/issues/closed/2850-non-negative-number-of-bytes/ISSUE.md
+last-updated-utc: "2026-11-16 14:07"
 ---
 
 # Performance Evidence - Non-Negative Number of Bytes

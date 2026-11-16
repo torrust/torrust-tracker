@@ -15,8 +15,8 @@ semantic-links:
     - packages/http-protocol/src/v1/requests/announce.rs
     - packages/udp-protocol/src/request.rs
     - packages/primitives/src/peer.rs
-    - docs/issues/open/2850-non-negative-number-of-bytes/ISSUE.md
-    - docs/issues/open/2838-1347-udp-reject-negative-announce-bytes/ISSUE.md
+    - docs/issues/closed/2850-non-negative-number-of-bytes/ISSUE.md
+    - docs/issues/closed/2838-1347-udp-reject-negative-announce-bytes/ISSUE.md
     - docs/packages.md
 ---
 
@@ -118,7 +118,7 @@ reject a bad configuration value. None of them says what to do with a value a cl
 
 Announce `left`, `downloaded` and `uploaded` apply the rules above. This records the intended
 design; the code change is tracked in issue #2850
-([specification](../issues/open/2850-non-negative-number-of-bytes/ISSUE.md)).
+([specification](../issues/closed/2850-non-negative-number-of-bytes/ISSUE.md)).
 
 - Domain `NumberOfBytes` (in `primitives`) is a private `u64` with no upper bound.
 - UDP wire type `NumberOfBytes(I64)` and `Request::parse_bytes` stay unchanged. A negative value
@@ -137,7 +137,7 @@ an existing implementation) uses `int64_t` for the byte counts, but `uint32_t` f
 and `uint16_t` for `port`, so unsigned types exist in the format. BEP 3 says only "encoded in
 base ten ascii". No document says why the counts are signed or what a tracker must do with a
 negative value. The "Evidence on real clients and other trackers" section of the
-[#2838 specification](../issues/open/2838-1347-udp-reject-negative-announce-bytes/ISSUE.md) shows that, before the metadata is known, libtorrent sends `left = 16384`
+[#2838 specification](../issues/closed/2838-1347-udp-reject-negative-announce-bytes/ISSUE.md) shows that, before the metadata is known, libtorrent sends `left = 16384`
 and Transmission sends `left = i64::MAX`; neither sends a negative value.
 
 ### Register of tolerances
