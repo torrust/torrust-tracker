@@ -1,6 +1,6 @@
 ---
 name: check-runner-health
-description: Check the self-hosted CI runner (torrust-runner-01) for CPU load, memory, disk space, and whether the automatic Docker cleanup works, then write a dated report under docs/self-hosted-runner-reports/ and open a pull request. Use for periodic runner health checks, disk-full or queued-job suspicions, or when asked to report on the self-hosted runner. Triggers on "runner health", "runner status report", "check self-hosted runner", "runner disk space", or "runner cleanup check".
+description: Check the self-hosted CI runner (load, memory, disk, Docker cleanup) and record a dated report in a PR. Use for periodic runner checks, a full disk or queued jobs.
 metadata:
   author: torrust
   version: "1.0"

@@ -1,6 +1,6 @@
 ---
 name: install-linter
-description: Install the torrust-linting `linter` binary and its external tool dependencies. Use when setting up a new development environment, after a fresh clone, or when the `linter` binary is missing. Triggers on "install linter", "setup linter", "linter not found", "install torrust-linting", "missing linter binary", or "set up development environment".
+description: Install the torrust-linting linter binary and the tools it calls. Use after a fresh clone or when the linter command is missing.
 metadata:
   author: torrust
   version: "1.0"

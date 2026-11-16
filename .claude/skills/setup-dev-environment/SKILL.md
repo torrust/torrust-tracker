@@ -1,6 +1,6 @@
 ---
 name: setup-dev-environment
-description: Set up a local development environment for torrust-tracker from scratch. Covers system dependencies, Rust toolchain, storage directories, linter binary, git hooks, and smoke tests. Use when onboarding to the project, setting up a new machine, or after a fresh clone. Triggers on "setup dev environment", "fresh clone", "onboarding", "install dependencies", "set up environment", or "getting started".
+description: "Set up a development environment from scratch: system packages, Rust toolchain, storage folders, linter, git hooks, smoke tests. Use when onboarding or on a fresh machine or clone."
 metadata:
   author: torrust
   version: "1.1"

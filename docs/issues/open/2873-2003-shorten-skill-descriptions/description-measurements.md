@@ -49,16 +49,16 @@ at a comment (see `manual-verification-evidence.md`, V0).
 | Git workflow | `run-pre-push-checks` | 355 | 130 | 138 |  |
 | GitHub | `link-subissue-to-parent-issue` | 483 | 170 | 158 |  |
 | Logging | `structured-runtime-logging` | 204 | 80 | 178 |  |
-| Maintenance | `add-rust-dependency` | 352 | 130 |  |  |
-| Maintenance | `add-workspace-member` | 265 | 100 |  |  |
-| Maintenance | `catalog-security-vulnerabilities` | 457 | 160 |  |  |
-| Maintenance | `check-runner-health` | 478 | 170 |  |  |
-| Maintenance | `install-linter` | 346 | 120 |  |  |
-| Maintenance | `run-manual-docker-security-scan` | 289 | 110 |  |  |
-| Maintenance | `setup-dev-environment` | 400 | 140 |  |  |
-| Maintenance | `triage-github-security-findings` | 370 | 140 |  |  |
-| Maintenance | `update-dependencies` | 439 | 150 |  |  |
-| Maintenance | `update-github-workflow-actions` | 238 | 90 |  |  |
+| Maintenance | `add-rust-dependency` | 352 | 130 | 169 |  |
+| Maintenance | `add-workspace-member` | 265 | 100 | 155 |  |
+| Maintenance | `catalog-security-vulnerabilities` | 457 | 160 | 170 |  |
+| Maintenance | `check-runner-health` | 478 | 170 | 163 |  |
+| Maintenance | `install-linter` | 346 | 120 | 128 |  |
+| Maintenance | `run-manual-docker-security-scan` | 289 | 110 | 144 |  |
+| Maintenance | `setup-dev-environment` | 400 | 140 | 180 |  |
+| Maintenance | `triage-github-security-findings` | 370 | 140 | 173 |  |
+| Maintenance | `update-dependencies` | 439 | 150 | 168 |  |
+| Maintenance | `update-github-workflow-actions` | 238 | 90 | 164 |  |
 | Planning | `cleanup-completed-issues` | 711 | 250 |  |  |
 | Planning | `create-adr` | 452 | 160 |  |  |
 | Planning | `create-issue` | 455 | 160 |  |  |
@@ -199,52 +199,52 @@ at a comment (see `manual-verification-evidence.md`, V0).
 #### `add-rust-dependency`
 
 - Before (352): Guide for safely adding a new Rust crate dependency in torrust-tracker, starting from the latest stable crates.io version, minimizing features, documenting version rationale, and validating with cargo machete and repository quality gates. Use when introducing a new dependency, selecting a crate version, or justifying why an older version is required.
-- After: not yet rewritten
+- After (169): Add a Rust crate dependency: latest stable version, minimal features, a recorded version reason, cargo machete. Use when adding a dependency or choosing a crate version.
 
 #### `add-workspace-member`
 
 - Before (265): Add or remove an explicit Cargo workspace member in Torrust Tracker. Use when editing the root workspace members list, adding a developer-tool crate, registering a new standalone workspace package, or deciding whether a package is tested inside the container image.
-- After: not yet rewritten
+- After (155): Add or remove a Cargo workspace member in the root members list. Use when adding a tool or package crate, or deciding whether the container image tests it.
 
 #### `catalog-security-vulnerabilities`
 
 - Before (457): Guide for cataloging public container, dependency, and CVE warnings that do not affect the project, with escalation for affecting vulnerabilities. Use for Docker DX, Trivy, cargo audit, RustSec, dependency advisories, CVE analysis, non-affecting CVEs, or container CVEs. GitHub Code Scanning and Code Quality findings, including Trivy alerts, are inventoried and clustered by triage-github-security-findings; this skill records the CVE analysis behind them.
-- After: not yet rewritten
+- After (170): Record the CVE analysis of container and dependency warnings (Trivy, cargo audit, RustSec), and escalate any that affect the project. Use when checking a CVE or advisory.
 
 #### `check-runner-health`
 
 - Before (478): Check the self-hosted CI runner (torrust-runner-01) for CPU load, memory, disk space, and whether the automatic Docker cleanup works, then write a dated report under docs/self-hosted-runner-reports/ and open a pull request. Use for periodic runner health checks, disk-full or queued-job suspicions, or when asked to report on the self-hosted runner. Triggers on "runner health", "runner status report", "check self-hosted runner", "runner disk space", or "runner cleanup check".
-- After: not yet rewritten
+- After (163): Check the self-hosted CI runner (load, memory, disk, Docker cleanup) and record a dated report in a PR. Use for periodic runner checks, a full disk or queued jobs.
 
 #### `install-linter`
 
 - Before (346): Install the torrust-linting `linter` binary and its external tool dependencies. Use when setting up a new development environment, after a fresh clone, or when the `linter` binary is missing. Triggers on "install linter", "setup linter", "linter not found", "install torrust-linting", "missing linter binary", or "set up development environment".
-- After: not yet rewritten
+- After (128): Install the torrust-linting linter binary and the tools it calls. Use after a fresh clone or when the linter command is missing.
 
 #### `run-manual-docker-security-scan`
 
 - Before (289): Guide for running a manual Docker security scan for the tracker runtime image and documenting results. Covers build, Trivy scan, CVE triage, per-CVE catalog updates, and scan history updates. Use when asked to run a manual container scan, triage Docker CVEs, or refresh security scan docs.
-- After: not yet rewritten
+- After (144): Build the tracker container image, scan it with Trivy, triage its CVEs and record the results. Use when asked for a manual Docker security scan.
 
 #### `setup-dev-environment`
 
 - Before (400): Set up a local development environment for torrust-tracker from scratch. Covers system dependencies, Rust toolchain, storage directories, linter binary, git hooks, and smoke tests. Use when onboarding to the project, setting up a new machine, or after a fresh clone. Triggers on "setup dev environment", "fresh clone", "onboarding", "install dependencies", "set up environment", or "getting started".
-- After: not yet rewritten
+- After (180): Set up a development environment from scratch: system packages, Rust toolchain, storage folders, linter, git hooks, smoke tests. Use when onboarding or on a fresh machine or clone.
 
 #### `triage-github-security-findings`
 
 - Before (370): Review and cluster public GitHub Security tab findings from Code Scanning and Code Quality, classify affecting and non-affecting results, maintain the finding inventory, and create focused issue specs by root cause. Use when reviewing security alerts, CodeQL alerts, GitHub code scanning, code quality findings, workflow permission findings, or recurring scanner triage.
-- After: not yet rewritten
+- After (173): Triage GitHub Security tab findings (code scanning, CodeQL, code quality), keep the finding inventory and file issue specs by root cause. Use when reviewing security alerts.
 
 #### `update-dependencies`
 
 - Before (439): Guide for updating project dependencies in the torrust-tracker project. Covers the manual cargo update workflow including branch creation, running checks, committing, and pushing. Distinguishes trivial updates (Cargo.lock only) from breaking-change updates (code rework needed). Use when updating dependencies, running cargo update, or bumping deps. Triggers on "update dependencies", "cargo update", "update deps", or "bump dependencies".
-- After: not yet rewritten
+- After (168): Update Cargo dependencies with cargo update, telling Cargo.lock-only updates from breaking ones, then check, commit and push. Use when updating or bumping dependencies.
 
 #### `update-github-workflow-actions`
 
 - Before (238): Update GitHub Actions workflow dependencies safely in Torrust Tracker, including synchronizing the Torrust organization allowlist. Use when updating workflow action versions, Dependabot GitHub Actions updates, or allowed-actions settings.
-- After: not yet rewritten
+- After (164): Update the GitHub Actions that workflows use and keep the Torrust organization allowlist in sync. Use for action version bumps or Dependabot GitHub Actions updates.
 
 ### Planning
 

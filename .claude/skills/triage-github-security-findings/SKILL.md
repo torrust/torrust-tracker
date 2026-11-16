@@ -1,6 +1,6 @@
 ---
 name: triage-github-security-findings
-description: "Review and cluster public GitHub Security tab findings from Code Scanning and Code Quality, classify affecting and non-affecting results, maintain the finding inventory, and create focused issue specs by root cause. Use when reviewing security alerts, CodeQL alerts, GitHub code scanning, code quality findings, workflow permission findings, or recurring scanner triage."
+description: Triage GitHub Security tab findings (code scanning, CodeQL, code quality), keep the finding inventory and file issue specs by root cause. Use when reviewing security alerts.
 metadata:
   author: torrust
   version: "1.0"
