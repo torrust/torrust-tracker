@@ -18,7 +18,7 @@ Source: pull-request reviews and inline review threads for <https://github.com/t
 The PR author owns this tracked audit record. Reviewers, including repository review agents,
 deliver findings through GitHub and have no repository-artifact obligation.
 
-- Post-merge workflow approval: <https://github.com/torrust/torrust-tracker/pull/2868#issuecomment-6912858266> (retrospective record, created 2026-11-16 09:41 UTC, of the maintainer's chat decision before the merge at 08:11 UTC to defer F7 and F8 to the implementation PR)
+- Post-merge workflow approval: <https://github.com/torrust/torrust-tracker/pull/2868#issuecomment-6912858266> (the durable approval, posted 2026-11-16 09:41:45 UTC, before the audit edits for F7 and F8). It records the maintainer's chat decision to merge PR 2868 as is and defer F7 and F8 to the implementation PR. The decision was made between 07:35:29 UTC (the maintainer's `ACK` on PR 2868) and 08:03:34 UTC (the first deferral reply, posted right after it), before the merge at 08:11:29 UTC.
 
 ## Status Values
 
