@@ -1392,17 +1392,18 @@ mod tests {
     }
 
     /// Asserts that `producer` completed before each of `consumers` in `completion_order`.
-    fn assert_completes_before_every(completion_order: &[&str], producer: &str, consumers: &[&str]) {
+    /// Asserts that `first` completes before each of `later`, whatever edge orders them: a bus or the stop-last edge.
+    fn assert_completes_before_every(completion_order: &[&str], first: &str, later: &[&str]) {
         let position = |name: &str| {
             completion_order
                 .iter()
                 .position(|completed| *completed == name)
                 .unwrap_or_else(|| panic!("component '{name}' must be in the shutdown outcomes: {completion_order:?}"))
         };
-        for consumer in consumers {
+        for component in later {
             assert!(
-                position(producer) < position(consumer),
-                "'{producer}' publishes on a bus that '{consumer}' consumes, so it must complete first: {completion_order:?}"
+                position(first) < position(component),
+                "'{first}' must complete before '{component}' is cancelled: {completion_order:?}"
             );
         }
     }

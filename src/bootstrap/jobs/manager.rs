@@ -571,8 +571,7 @@ impl JobManager {
     /// component added later cannot forget it. It is cancelled only once every
     /// other spawned component has completed, in any state. Reserve it before
     /// every other component (an edge needs a target reserved earlier), then
-    /// spawn it whenever it can start. A component that is not under the
-    ///
+    /// spawn it whenever it can start.
     ///
     /// A reservation dropped without being spawned is released, together with
     /// the edges that other components declared towards it.
@@ -599,8 +598,8 @@ impl JobManager {
 
     /// Reserves a top-level component and issues its own cancellation token.
     ///
-    /// The token is not derived from any other component's token. If the manager has already been cancelled, the token
-    /// is issued cancelled.
+    /// The token is not derived from any other component's token. If the
+    /// manager has already been cancelled, the token is issued cancelled.
     pub fn reserve<N>(&mut self, name: N) -> Reservation
     where
         N: Into<String>,
@@ -690,11 +689,11 @@ impl JobManager {
     /// Requests the ordered shutdown.
     ///
     /// It cancels the token of every reserved or spawned component that does not
-    /// wait for another component. A
-    /// component that must wait for others (see [`StopBefore`]) is cancelled by
-    /// [`Self::wait_for_all`] once the last of them has completed; the logs name
-    /// what each one waits for. A reservation issued afterwards gets a
-    /// cancelled token. Calling it again has no further effect.
+    /// wait for another component. A component that must wait for others (see
+    /// [`StopBefore`]) is cancelled by [`Self::wait_for_all`] once the last of
+    /// them has completed; the logs name what each one waits for. A reservation
+    /// issued afterwards gets a cancelled token. Calling it again has no
+    /// further effect.
     pub fn cancel(&self) {
         let plan = lock(&self.registry).request_shutdown();
         if let Some(plan) = plan {
