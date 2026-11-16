@@ -54,6 +54,10 @@ Round 3 is da2ce7's second review `5917052481` (approved) at the head whose last
 `docs(pr-reviews): [#2850] audit review round 2 of PR #2872`. Its three inline findings F6 to F8
 collide with existing audit IDs, so they get F8 to F10 in source order, with the reviewer's ID kept.
 
+Round 4 is da2ce7's third review `5917226013` (approved) at the head whose last commit is
+`docs(pr-reviews): [#2850] audit review round 3 of PR #2872`. Its one inline finding F9 collides
+with an existing audit ID, so it gets F11, with the reviewer's ID kept.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2872-f1 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
@@ -66,6 +70,7 @@ collide with existing audit IDs, so they get F8 to F10 in source order, with the
 | F8 | review-finding:pr-2872-f8 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F9 | review-finding:pr-2872-f9 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F10 | review-finding:pr-2872-f10 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-2872-f11 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -214,6 +219,21 @@ collide with existing audit IDs, so they get F8 to F10 in source order, with the
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2872#discussion_r4583544693
 
+### F11 - The round-3 log entry is stamped before the replies it reports
+
+- PR number: 2872
+- Source review ID: 5917226013
+- Reviewer finding ID: F9
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2872#discussion_r4583618217
+- Concern: the round-3 log entry was stamped 08:38 UTC, but the replies it reports were posted at
+  08:39:19 to 08:39:27 UTC, so the entry recorded events after its own stamp.
+- Solution: the round-3 entry is now stamped 08:39 UTC, the minute of the replies.
+- Current-tree verification: the processing log has no `08:38 UTC` stamp; the round-3 entry and
+  the replies share the minute 08:39.
+- Resolution reference: docs(pr-reviews): [#2850] audit review round 4 of PR #2872
+- Follow-up PR URL: N/A
+- Reply URL: pending
+
 ## Processing Log
 
 - 2026-11-16 07:51 UTC - Started this audit for Copilot's review `5916561572` (submitted
@@ -236,13 +256,17 @@ collide with existing audit IDs, so they get F8 to F10 in source order, with the
   (`isResolved: true`) and a fresh GraphQL fetch shows 0 unresolved threads.
 - 2026-11-16 08:35 UTC - Copilot's review `5916992112` (submitted 2026-11-16T08:27:42Z) reports
   no open issues; it only restates the HTTP benchmark decision of the description; no row.
-- 2026-11-16 08:38 UTC - Round 3: da2ce7's review `5917052481` (submitted 2026-11-16T08:32:27Z,
+- 2026-11-16 08:39 UTC - Round 3: da2ce7's review `5917052481` (submitted 2026-11-16T08:32:27Z,
   approved, three Nit findings). The fixes of F8 to F10 were pushed by `git-bot-push` (head
   `docs(pr-reviews): [#2850] count 72 tests in the green regression run`) and the three threads
   were replied to, plus a correcting reply on F3's thread; the rows were added after the replies.
 - 2026-11-16 08:39 UTC - Round 3 processed. `validate-audit-record.py --pr-number 2872` returned
   `status: ok`, 10 rows, 6 log entries, 0 failures; then the three threads were resolved and a
   fresh GraphQL fetch shows 0 unresolved threads.
+- 2026-11-16 09:51 UTC - Started round 4 for da2ce7's review `5917226013` (submitted
+  2026-11-16T08:48:26Z, approved, one Nit finding), before any reply. Copilot's review `5917198610`
+  (submitted 2026-11-16T08:45:58Z) reports no open issues and only restates the HTTP benchmark
+  decision, which the maintainer accepted; no row.
 
 ## Completion Rules
 
