@@ -1,6 +1,6 @@
 ---
 name: create-issue
-description: Guide for creating GitHub issues in the torrust-tracker project. Covers the full workflow from specification drafting, user review, to GitHub issue creation with proper documentation and file naming. Supports task, bug, feature, and epic issue types. Use when creating issues, opening tickets, filing bugs, proposing tasks, or adding features. Triggers on "create issue", "open issue", "new issue", "file bug", "add task", "create epic", or "open ticket".
+description: Draft an issue spec, get it approved, then create the GitHub issue (task, bug, feature or EPIC). Use when creating an issue, filing a bug or opening an EPIC.
 semantic-links:
   skill-links:
     - fix-bug

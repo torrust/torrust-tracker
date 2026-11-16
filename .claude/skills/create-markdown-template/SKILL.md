@@ -1,6 +1,6 @@
 ---
 name: create-markdown-template
-description: Create or maintain reusable Markdown document templates in the torrust-tracker repository. Use when creating a Markdown template, extracting a reusable template from documentation, adding a document skeleton, or deciding whether template-like Markdown belongs in docs/templates. Triggers on "create markdown template", "add markdown template", "document template", "extract template", or "reusable Markdown template".
+description: Create or maintain reusable Markdown templates in docs/templates. Use when adding a document template or extracting one from existing docs.
 metadata:
   author: torrust
   version: "1.0"

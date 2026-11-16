@@ -59,13 +59,13 @@ at a comment (see `manual-verification-evidence.md`, V0).
 | Maintenance | `triage-github-security-findings` | 370 | 140 | 173 |  |
 | Maintenance | `update-dependencies` | 439 | 150 | 168 |  |
 | Maintenance | `update-github-workflow-actions` | 238 | 90 | 164 |  |
-| Planning | `cleanup-completed-issues` | 711 | 250 |  |  |
-| Planning | `create-adr` | 452 | 160 |  |  |
-| Planning | `create-issue` | 455 | 160 |  |  |
-| Planning | `create-markdown-template` | 417 | 150 |  |  |
-| Planning | `create-refactor-plan` | 479 | 170 |  |  |
-| Planning | `reopen-issue` | 555 | 190 |  |  |
-| Planning | `write-markdown-docs` | 123 | 50 | 578 |  |
+| Planning | `cleanup-completed-issues` | 711 | 250 | 170 |  |
+| Planning | `create-adr` | 452 | 160 | 151 |  |
+| Planning | `create-issue` | 455 | 160 | 157 |  |
+| Planning | `create-markdown-template` | 417 | 150 | 139 |  |
+| Planning | `create-refactor-plan` | 479 | 170 | 161 |  |
+| Planning | `reopen-issue` | 555 | 190 | 172 |  |
+| Planning | `write-markdown-docs` | 123 | 50 | 179 |  |
 | Pull request reviews | `fetch-review-threads` | 425 | 150 |  |  |
 | Pull request reviews | `process-copilot-suggestions` | 127 | 50 |  |  |
 | Pull request reviews | `process-pr-review` | 392 | 140 |  |  |
@@ -251,38 +251,38 @@ at a comment (see `manual-verification-evidence.md`, V0).
 #### `cleanup-completed-issues`
 
 - Before (711): Guide for archiving closed issue specification files from docs/issues/open/ to docs/issues/closed/. Covers verifying closure on GitHub, moving files, updating frontmatter, auditing and repairing affected documentation links, creating a branch, and opening a PR. Permanent deletion of closed specs is not automated — the user must explicitly request it. Also covers a read-only periodic audit that checks docs/issues/open/ holds only open issues. Use when cleaning up closed issue specs, archiving issue docs, auditing docs/issues/, or maintaining the docs/issues/ folder. Triggers on "cleanup issue", "archive issue", "move closed issue", "clean completed issues", "audit issue specs", or "maintain issue docs".
-- After: not yet rewritten
+- After (170): Move closed issue specs from docs/issues/open/ to docs/issues/closed/ and repair links, or audit that open/ holds only open issues. Use when archiving closed issue specs.
 
 #### `create-adr`
 
 - Before (452): Guide for creating Architectural Decision Records (ADRs) in the torrust-tracker project. Covers decision-scope placement, timestamp-based names, free-form structure, collection-specific index registration, and commit workflow. Use when documenting architectural decisions, recording design choices, or adding decision records. Triggers on "create ADR", "add ADR", "new decision record", "architectural decision", "document decision", or "add decision".
-- After: not yet rewritten
+- After (151): Create an Architectural Decision Record: where it goes, its timestamp name and its index entry. Use when recording an architectural or design decision.
 
 #### `create-issue`
 
 - Before (455): Guide for creating GitHub issues in the torrust-tracker project. Covers the full workflow from specification drafting, user review, to GitHub issue creation with proper documentation and file naming. Supports task, bug, feature, and epic issue types. Use when creating issues, opening tickets, filing bugs, proposing tasks, or adding features. Triggers on "create issue", "open issue", "new issue", "file bug", "add task", "create epic", or "open ticket".
-- After: not yet rewritten
+- After (157): Draft an issue spec, get it approved, then create the GitHub issue (task, bug, feature or EPIC). Use when creating an issue, filing a bug or opening an EPIC.
 
 #### `create-markdown-template`
 
 - Before (417): Create or maintain reusable Markdown document templates in the torrust-tracker repository. Use when creating a Markdown template, extracting a reusable template from documentation, adding a document skeleton, or deciding whether template-like Markdown belongs in docs/templates. Triggers on "create markdown template", "add markdown template", "document template", "extract template", or "reusable Markdown template".
-- After: not yet rewritten
+- After (139): Create or maintain reusable Markdown templates in docs/templates. Use when adding a document template or extracting one from existing docs.
 
 #### `create-refactor-plan`
 
 - Before (479): Guide for creating refactor plans in the torrust-tracker project. Covers identifying quality gaps, decomposing them into trackable items ordered by impact vs effort, writing the plan document, and committing it. Use when planning improvements to readability, testability, maintainability, modularity, or documentation quality. Triggers on "create refactor plan", "refactor plan", "plan refactor", "post-implementation improvements", "code quality plan", or "technical debt plan".
-- After: not yet rewritten
+- After (161): Write a refactor plan: quality gaps as items ordered by impact and effort. Use when planning readability, testability or maintainability work, or technical debt.
 
 #### `reopen-issue`
 
 - Before (555): Guide for reopening a closed GitHub issue or EPIC whose specification was archived in docs/issues/closed/. Covers deciding whether to reopen or file new work, reopening on GitHub, linking a new subissue, moving the spec back to docs/issues/open/, migrating legacy frontmatter, resetting closure checkpoints, and repairing live references. Use when new work belongs to a closed EPIC or a closed issue regressed or was incomplete. Triggers on "reopen issue", "reopen EPIC", "add subissue to closed EPIC", "unarchive issue spec", or "move spec back to open".
-- After: not yet rewritten
+- After (172): Reopen a closed issue or EPIC whose spec is in docs/issues/closed/, and move the spec back to open/. Use when new work belongs to a closed EPIC or a closed issue regressed.
 
 #### `write-markdown-docs`
 
 - Before (123): Guide for writing Markdown documentation in this project. Covers GitHub Flavored Markdown pitfalls, especially the critical
 - Before, as written in the file (578), which YAML cuts at the space before `#NUMBER`: Guide for writing Markdown documentation in this project. Covers GitHub Flavored Markdown pitfalls, especially the critical #NUMBER pattern that auto-links to GitHub issues and PRs (NEVER use #1, #2, #3 as step/list numbers). Use ordered lists or plain numbers instead. Covers intentional vs accidental autolinks for issues, @mentions, and commit SHAs. Use when writing .md files, documentation, issue descriptions, PR descriptions, or README updates. Triggers on "markdown", "write docs", "documentation", "#number", "github markdown", "autolink", "markdown pitfall", or "GFM".
-- After (578): Guide for writing Markdown documentation in this project. Covers GitHub Flavored Markdown pitfalls, especially the critical #NUMBER pattern that auto-links to GitHub issues and PRs (NEVER use #1, #2, #3 as step/list numbers). Use ordered lists or plain numbers instead. Covers intentional vs accidental autolinks for issues, @mentions, and commit SHAs. Use when writing .md files, documentation, issue descriptions, PR descriptions, or README updates. Triggers on "markdown", "write docs", "documentation", "#number", "github markdown", "autolink", "markdown pitfall", or "GFM".
+- After (179): Write Markdown that avoids GitHub autolink pitfalls: never #NUMBER as a step number; intended links to issues, @mentions and SHAs. Use when writing .md files, issues or PR bodies.
 
 ### Pull request reviews
 
