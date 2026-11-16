@@ -53,6 +53,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F8 | review-finding:pr-2878-f8 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F9 | review-finding:pr-2878-f9 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F10 | review-finding:pr-2878-f10 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-2878-f11 | Human | Minor | link-integrity | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -215,6 +216,22 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2878#discussion_r4584243807
 
+### F11 - The round-2 log entry cites the PR-branch commit `40bf1cb12`
+
+- PR number: 2878
+- Source review ID: 5918322774
+- Reviewer finding ID: F9
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2878#discussion_r4584449299
+- Concern: The open-pull-request skill forbids citing a PR-branch commit by id in a durable
+  record, because a rebase rewrites it; the round-2 Processing Log entry named the reviewed head
+  by its id.
+- Solution: The entry now names the review only by its ID: "review 5918010504 (da2ce7, APPROVED)".
+- Current-tree verification: the open-pull-request skill's commit-id check, run with
+  `UPSTREAM_REMOTE=torrust` at the fix commit, printed nothing.
+- Resolution reference: docs(pr-reviews): [#2876] drop the PR-branch commit id from the round-2 audit entry
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2878#discussion_r4584463105
+
 ## Processing Log
 
 - 2026-11-16 09:41 UTC - Started audit for review round 1: review 5917568324 (da2ce7, APPROVED,
@@ -226,6 +243,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
   reviewer findings F6, F7 and F8, recorded as F8, F9 and F10 because F6 and F7 were already taken.
   F9 and F10 committed; description edited for F8; the PR conversation response and the three
   thread replies posted at 09:56-09:57 UTC, before the push of the fix commits.
+- 2026-11-16 10:18 UTC - Review round 3: review 5918322774 (da2ce7, APPROVED) with reviewer finding
+  F9, recorded as F11 because F9 was already taken. Fixed by commit; the thread reply posted at
+  10:17 UTC, before the push of the fix commit.
 
 ## Completion Rules
 
