@@ -207,6 +207,8 @@ The reviewer numbers the findings `F1` to `F11` across two reviews; the audit ke
 - 2026-11-16 14:14 UTC - Replied to and resolved the seven threads of review 5921158708 (F1 to F7) without an audit record.
 - 2026-11-16 14:24 UTC - Edited the PR description (F9), edited the seven round-1 replies to cite the commit subject only (F10), and replied to the F8 to F11 threads of review 5921530312.
 - 2026-11-16 14:25 UTC - Started audit late, after the replies above, as finding F8 asks; rows F1 to F11 recorded.
+- 2026-11-16 14:26 UTC - Committed `docs(pr-reviews): add the review audit for the WebTorrent discussion` (commit time 14:26:22Z). In the same shell command, right after the commit and before the push, `validate-audit-record.py --pr-number 2881 --base torrust/develop` (run from a scratchpad copy that calls `gh-bot` instead of `gh`; the logic is unchanged) exited 0 with 11 rows and 0 failures. The F8 reply and the F8 verification line stated this result at 14:25, before the run (finding F12).
+- 2026-11-16 14:42 UTC - Received review 5921823069 with finding F12. Re-ran `validate-audit-record.py --pr-number 2881 --base torrust/develop` against the pushed head: exit 0, 11 rows, 0 failures.
 
 ## Completion Rules
 
