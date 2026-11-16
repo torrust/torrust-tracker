@@ -216,7 +216,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2878#discussion_r4584243807
 
-### F11 - The round-2 log entry cites the PR-branch commit `40bf1cb12`
+### F11 - The round-2 log entry cites a PR-branch commit id
 
 - PR number: 2878
 - Source review ID: 5918322774
@@ -246,6 +246,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-16 10:18 UTC - Review round 3: review 5918322774 (da2ce7, APPROVED) with reviewer finding
   F9, recorded as F11 because F9 was already taken. Fixed by commit; the thread reply posted at
   10:17 UTC, before the push of the fix commit.
+- 2026-11-16 10:19 UTC - Correction: the F11 detail heading, as pushed with the round-3 record, quoted
+  the very commit id it is about; the commit-id check run before that push was not read until after
+  it. The heading now reads "cites a PR-branch commit id", and the check was rerun before this push.
 
 ## Completion Rules
 
