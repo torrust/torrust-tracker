@@ -9,7 +9,7 @@ github-issue: 2873
 spec-path: docs/issues/open/2873-2003-shorten-skill-descriptions/ISSUE.md
 branch: "2873-shorten-skill-descriptions-spec"
 related-pr: null
-last-updated-utc: "2026-11-16 08:53"
+last-updated-utc: "2026-11-16 09:38"
 semantic-links:
   skill-links:
     - create-issue
@@ -86,9 +86,10 @@ The `write-markdown-docs` description is a plain (unquoted) YAML scalar. It cont
 after a space, and YAML reads a `#` after a space as the start of a comment. A YAML parser keeps
 only its first 123 of 578 characters, which end mid-sentence (`... especially the critical`),
 before the `Use when` clause and the trigger list (`write docs`, `#number`, `autolink`, `GFM`).
-`/context` confirms it: the skill's row costs about 50 tokens, where a 578-character description
-would cost about 200. Claude Code sees nothing that says when to load the skill. No other
-description is cut.
+`/context` corroborates it: the skill's row costs about 50 tokens, where a 578-character
+description would cost about 200. `/context` shows token counts, not the description text, so
+that Claude Code reads the same cut value is an inference from the cost, not an observation. No
+other description is cut.
 
 The `add-new-skill` skill says a description may be up to 1,024 characters, and nothing checks
 the length or the quoting.
@@ -165,14 +166,15 @@ The cut `write-markdown-docs` description is a defect, so its fix follows the `f
 
 - Analysis: a plain YAML scalar that contains a space followed by `#` ends at the `#`; the rest is a comment.
 - Reproduction: done while drafting and classified **Reproduced** in
-  `manual-verification-evidence.md` section V0: PyYAML keeps 123 of 578 characters, and `/context`
-  shows the row at about 50 tokens.
+  `manual-verification-evidence.md` section V0 for the parser: PyYAML keeps 123 of 578 characters.
+  The `/context` row of about 50 tokens corroborates it by inference; it does not show the text.
 - Regression-test boundary: the validator rule's unit test (T2).
 - Red evidence: T2's rule, run against the tree before the fix, fails on `write-markdown-docs` as
   cut at a comment.
 - Fix: quote the value (T3), then shorten it with the rest (T4).
-- Green evidence and like-for-like recheck: the rule passes, and the parser and `/context` show the
-  whole description.
+- Green evidence and like-for-like recheck: the rule passes and the parser shows the whole
+  description; the `/context` row's cost matching the new length corroborates it, an inference
+  recorded as such.
 
 ## Regression Test Strategy
 
@@ -195,7 +197,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | ------- | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T1  | BLOCKED | Baseline after #2866              | Waits for #2866 to merge. On that `develop` commit, record per skill the parsed description length and its `/context` row, and the category totals, in issue-local `description-measurements.md`. Run the M3 trigger prompts and record which skill loads. |
 | T2  | TODO    | Description rule, proven red      | The regression test: the `frontmatter-validator` rule for skill descriptions (cut at a comment; over 200 characters) with unit tests, next to #2866's skill rules. The rule is opt-in (off unless explicitly selected) until T4 ends: the pre-commit hook already runs `frontmatter-validator --staged`, so a rule on by default would reject the commits that still carry long descriptions. Its opt-in run on the tree before T3 is recorded red in `manual-verification-evidence.md`: it fails on `write-markdown-docs` as cut at a comment and lists every over-long description. |
-| T3  | TODO    | Fix `write-markdown-docs` quoting | Quote the value. The rule no longer reports it as cut, and the parser and `/context` show the whole description: the green run and like-for-like recheck of V0, recorded in `manual-verification-evidence.md`. |
+| T3  | TODO    | Fix `write-markdown-docs` quoting | Quote the value. The rule no longer reports it as cut and the parser shows the whole description; the `/context` row's cost matching its length corroborates it, recorded as an inference: the green run and like-for-like recheck of V0, recorded in `manual-verification-evidence.md`. |
 | T4  | TODO    | Rewrite the descriptions          | All 53 descriptions to the [Description rules](#description-rules), one commit per area of the `.claude/skills/README.md` index. Each description's old and new text and length go in `description-measurements.md`. The rule from T2 passes, and T4's last commit turns it on in the existing staged and whole-tree gates (pre-commit hook and CI).            |
 | T5  | TODO    | Update `add-new-skill`            | The description rules and the 200-character limit replace "max 1024 chars".                                                                                                                                                                             |
 | T6  | TODO    | Measure again and verify          | `claude -p "/context"` after the change, same Claude Code version and model as T1 where possible; M3 trigger prompts again; the governance ADR's review-record row; `linter all`; acceptance review.                                                                                               |
@@ -245,6 +247,7 @@ the last increment, before T6. Commits use Conventional Commit messages and are 
 - 2026-11-16 08:26 UTC - AI assistant (Claude Code, Claude Opus 5.5) - The maintainer approved the draft; created issue #2873 as josecelano-bot. Linking it as a sub-issue of #2003 returned HTTP 404 for the bot, so the maintainer links it
 - 2026-11-16 08:47 UTC - AI assistant (Claude Code, Claude Opus 5.5) - Addressed da2ce7's review 5917183183 on PR #2875: the regression test (now T2) comes before the fix (now T3); the reproduction is recorded and classified in `manual-verification-evidence.md` V0; T6 adds the governance ADR's review-record row
 - 2026-11-16 08:53 UTC - AI assistant (Claude Code, Claude Opus 5.5) - Addressed Copilot's review 5917272531 on PR #2875: T2's rule stays opt-in until T4's last commit turns it on in the existing staged and whole-tree gates, since the hook already runs `frontmatter-validator --staged`. Correction: the entry stamped 08:47 UTC is later than its commit, made at 08:46:59 UTC; it is kept unchanged
+- 2026-11-16 09:38 UTC - AI assistant (Claude Code, Claude Opus 5.5) - Addressed the second round on PR #2875: the evidence file keeps its template's headings (da2ce7's review 5917548188, F5), and the `/context` row is described as corroborating inference, not an observation of the cut text, in the Background, Bug-Fix Process, T3, AC3, M2 and V0 (Copilot's review 5917643855, F7)
 
 ## Acceptance Criteria
 
@@ -252,8 +255,9 @@ the last increment, before T6. Commits use Conventional Commit messages and are 
 - [ ] AC2: Every description says what the skill does and when to use it, and keeps its
       distinguishing trigger words, as the [Description rules](#description-rules) say;
       `description-measurements.md` shows each old and new text.
-- [ ] AC3: The `write-markdown-docs` description is read whole by a YAML parser and by Claude
-      Code.
+- [ ] AC3: A YAML parser reads the whole `write-markdown-docs` description, and its `/context`
+      row costs what that length predicts (corroborating evidence: `/context` does not show the
+      text).
 - [ ] AC4: A `frontmatter-validator` rule fails on a skill description cut at a YAML comment or
       longer than 200 characters, with unit tests for both and for a passing description, and runs
       on every commit and in CI.
@@ -284,7 +288,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | ID  | Scenario                           | Human-oriented command/steps                                                                                                                                                       | Expected Result                                                                                         | Status | Evidence                                     |
 | --- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ------ | -------------------------------------------- |
 | M1  | Listing cost before and after      | In a fresh checkout of the commit, run `claude -p "/context"` before (T1) and after (T6); record the Claude Code version, model and window, the Skills category and every Project row | After: Skills below the cap, project rows sum to about half of before, no project description dropped   | TODO   | `manual-verification-evidence.md` section V1 |
-| M2  | `write-markdown-docs` read whole   | Parse its frontmatter with a YAML parser and compare with the file; check its `/context` row                                                                                        | Before: 123 of 578 characters, ~50 tokens. After: the whole (new) description                           | TODO   | `manual-verification-evidence.md` section V2 |
+| M2  | `write-markdown-docs` read whole   | Parse its frontmatter with a YAML parser and compare with the file; check its `/context` row                                                                                        | Before: 123 of 578 characters, ~50 tokens. After: the parser reads the whole (new) description, and the row's cost matches its length (an inference: `/context` shows no text) | TODO   | `manual-verification-evidence.md` section V2 |
 | M3  | Skills still load for their tasks  | For about eight skills (including `write-markdown-docs`, `create-issue`, `process-pr-review`, `run-pre-push-checks`), run a task-like prompt with `claude -p --output-format stream-json --verbose` and record which skill the `Skill` tool loads, before and after | The same skill loads after as before; `write-markdown-docs` loads for a Markdown task after the fix | TODO   | `manual-verification-evidence.md` section V3 |
 | M4  | The rule catches a cut description | In a scratch commit, put a space followed by `#` into one unquoted description, and separately make one longer than 200 characters; run the validator                                              | Each run fails and names the file and the problem                                                        | TODO   | `manual-verification-evidence.md` section V4 |
 

@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2873-2003-shorten-skill-descriptions/ISSUE.md
-last-updated-utc: 2026-11-16 09:36
+last-updated-utc: 2026-11-16 09:38
 ---
 
 # Manual Verification Evidence
@@ -29,8 +29,9 @@ review. Sections V1 to V4 are added during implementation, one per manual scenar
 - Initial state: `.github/skills/dev/planning/write-markdown-docs/SKILL.md` as on `develop`
   `a35960402`; its `description` is a plain YAML scalar containing a space followed by `#NUMBER`.
 - Status: `DONE`
-- Classification: **Reproduced** (the wrong outcome, the cut value, was observed in the parser and
-  in Claude Code's `/context`).
+- Classification: **Reproduced** for the parser: the wrong outcome, the cut value, was observed in
+  its output. Claude Code's `/context` corroborates it by inference only: it shows a token count,
+  not the description text.
 
 #### Steps Performed
 
@@ -70,9 +71,11 @@ parsed text: Guide for writing Markdown documentation in this project. Covers Gi
 #### Conclusion
 
 The parser keeps 123 of the 578 characters and stops before `#NUMBER pattern`: a space
-followed by `#` starts a YAML comment. The `/context` row of about 50 tokens matches 123 characters plus the name at the measured
-rate of about 3 characters per token; the whole 578 characters would cost about 200. The text
-Claude Code lists has no `Use when` clause and none of the trigger phrases after it.
+followed by `#` starts a YAML comment; this is observed. The `/context` row of about 50 tokens
+matches 123 characters plus the name at the measured rate of about 3 characters per token, where
+the whole 578 characters would cost about 200. That Claude Code lists the same cut text, without
+the `Use when` clause and the trigger phrases, is inferred from that cost: `/context` does not
+show the text.
 
 ## Failures and Follow-up
 
