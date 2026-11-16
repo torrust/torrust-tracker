@@ -44,7 +44,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 The da2ce7 review numbers its findings `F1` to `F3`, which are also their audit-local IDs. The
 Copilot finding has no reviewer ID and gets the audit-local ID `F4`; its "Medium severity" mark is
-recorded as `Minor (inferred)`, as in earlier audits.
+recorded as `Minor (inferred)`, as in earlier audits. The second da2ce7 review numbers its findings
+`F4` to `F6`; `F4` collides with the Copilot finding, so they get the audit-local IDs `F7`, `F5`
+and `F6`, and keep their own IDs as reviewer finding IDs.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -52,6 +54,9 @@ recorded as `Minor (inferred)`, as in earlier audits.
 | F2 | review-finding:pr-2882-f2 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-2882-f3 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F4 | review-finding:pr-2882-f4 | Copilot | Minor (inferred) | link-integrity | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F5 | review-finding:pr-2882-f5 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F6 | review-finding:pr-2882-f6 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-2882-f7 | Human | Nit | other | ORIGINAL | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -107,6 +112,45 @@ recorded as `Minor (inferred)`, as in earlier audits.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2882#discussion_r4586951391
 
+### F5 - Record the bot's severity mark
+
+- PR number: 2882
+- Source review ID: 5921825736
+- Reviewer finding ID: F5
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2882#discussion_r4587136434
+- Concern: F4 recorded `Suggestion (inferred)` where the bot's own mark is "Medium severity", which earlier audits record as `Minor (inferred)`.
+- Solution: F4 is `Minor (inferred)`, and the Findings introduction states how the mark is read.
+- Current-tree verification: The F4 row's Severity is `Minor (inferred)`.
+- Resolution reference: docs(pr-reviews): record F4's severity mark and narrow its SHA rule in the PR 2882 audit (#2845)
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2882#discussion_r4587156925
+
+### F6 - Say the skill forbids a branch SHA
+
+- PR number: 2882
+- Source review ID: 5921825736
+- Reviewer finding ID: F6
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2882#discussion_r4587136446
+- Concern: F4's Solution said the skill forbids a SHA; it forbids a branch SHA, and a `develop` commit id is durable.
+- Solution: F4's Solution says "forbids a branch SHA".
+- Current-tree verification: F4's Solution reads "forbids a branch SHA".
+- Resolution reference: docs(pr-reviews): record F4's severity mark and narrow its SHA rule in the PR 2882 audit (#2845)
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2882#discussion_r4587157426
+
+### F7 - Keep fix commits and audit commits apart
+
+- PR number: 2882
+- Source review ID: 5921825736
+- Reviewer finding ID: F4
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2882#discussion_r4587136454
+- Concern: The F3 fix and this audit shared one commit, and the F3 reply named that commit 22 seconds before it existed.
+- Solution: No change, as the reviewer asked; the claim holds at this head. This round commits the fix, then replies, then commits the audit.
+- Current-tree verification: The F5 and F6 fix commit precedes their replies, and this record is in a later commit.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2882#discussion_r4587157864
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2882#discussion_r4587157864
+
 ## Processing Log
 
 - 2026-11-16 14:20 UTC - da2ce7 review 5921518992 (approved) submitted with three inline findings, none blocking, and an ACK of the head.
@@ -114,6 +158,10 @@ recorded as `Minor (inferred)`, as in earlier audits.
 - 2026-11-16 14:23 UTC - Retitled the PR (F1) and added a Validation section to the description (F2).
 - 2026-11-16 14:24 UTC - Replied on the four threads.
 - 2026-11-16 14:25 UTC - Committed the F3 fix and this record (`docs(pr-reviews): address the review of PR 2882 (#2845)`).
+- 2026-11-16 14:40 UTC - da2ce7 review 5921825736 (approved) submitted with three inline findings, none blocking, and an ACK of the head.
+- 2026-11-16 14:41 UTC - Committed the F5 and F6 fix (`docs(pr-reviews): record F4's severity mark and narrow its SHA rule in the PR 2882 audit (#2845)`).
+- 2026-11-16 14:42 UTC - Replied on the three threads.
+- 2026-11-16 14:43 UTC - Committed this record update.
 
 ## Completion Rules
 
