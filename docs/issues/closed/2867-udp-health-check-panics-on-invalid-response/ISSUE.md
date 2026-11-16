@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: in-progress
+status: done
 priority: p2
 epic: null
 github-issue: 2867
-spec-path: docs/issues/open/2867-udp-health-check-panics-on-invalid-response/ISSUE.md
+spec-path: docs/issues/closed/2867-udp-health-check-panics-on-invalid-response/ISSUE.md
 branch: "2867-udp-health-check-panics-on-invalid-response"
-related-pr: 2868
-last-updated-utc: "2026-11-16 14:48"
+related-pr: 2879
+last-updated-utc: "2026-11-16 15:32"
 semantic-links:
   skill-links:
     - create-issue
@@ -210,10 +210,10 @@ before maintainer review and commit. Use Conventional Commit messages with the n
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Reviewer validated acceptance criteria and updated checkboxes (da2ce7's approving reviews of PR 2879, the last at the merged head)
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification: not applicable; reviewers delivered their findings through GitHub, recorded in `docs/pr-reviews/pr-2868-review/PR-REVIEW.md` and `docs/pr-reviews/pr-2879-review/PR-REVIEW.md`
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -241,6 +241,10 @@ before maintainer review and commit. Use Conventional Commit messages with the n
   ignored stopped-UDP test; recorded the replacement as AC4's coverage with a new run, tied the
   evidence's line numbers to their commits, and moved T3 and T5 onto the shared test helpers
   (PR 2879 review, da2ce7 F12 to F14)
+- 2026-11-16 15:31 UTC - Maintainer - Merged PR 2879, which closed issue #2867
+- 2026-11-16 15:32 UTC - Claude Code (Claude Opus 5.5) - Closed out: moved the spec to
+  `docs/issues/closed/`, ticked the remaining checkpoints, and marked the deferred PR 2868
+  findings F7 and F8 fixed in their audit
 
 ## Acceptance Criteria
 
