@@ -6,7 +6,7 @@ epic: null
 github-issue: 2392
 spec-path: docs/issues/open/2392-test-isolation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-16 13:54"
+last-updated-utc: "2026-11-16 14:23"
 semantic-links:
   skill-links:
     - create-issue
@@ -150,9 +150,9 @@ For each subissue implementation in this EPIC, the default completion policy is:
 
 - Outcome: the full nextest suite no longer fails with port-allocation `AddrInUse`.
 - Exit criteria: order 1 is done, including its repeated full-suite recheck.
-- State: the outcome is reached (PR #2859; 150 of 150 full-suite runs passed with the 18 tests
-  ignored at that head, and 20 of 20 with the final 21). Order 1 stays open for T7 to T11, which
-  apply the T5 decisions on the ignored tests.
+- State: done. PR #2859 stopped the races by ignoring 21 tests, and PR #2874 applied the T5
+  decisions on them; the full suite then passed 150 of 150 runs with no #2393 test ignored (#2393
+  V6).
 
 ### Phase 2 - Know the remaining shared resources
 
@@ -236,6 +236,9 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
   helper, and AC2 and the lost-coverage risk point at #2393 T10 and T9.
 - 2026-11-16 13:54 UTC - Claude Code (Claude Opus 5.5), #2393 session - #2393 closed after PR
   #2874 merged: order 1 is DONE and its spec moved to `docs/issues/closed/`.
+- 2026-11-16 14:23 UTC - Claude Code (Claude Opus 5.5), #2393 session - Review of PR #2883: set
+  Phase 1's state to done, gave AC2 the V6 evidence (it stays TODO until the order 2 audit), and
+  marked the lost-coverage risk resolved.
 
 ## Acceptance Criteria
 
@@ -254,7 +257,7 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
 | AC1 | DONE | GitHub sub-issues of #2392: #2393, #2394, #2395, #2396, #1419 |
-| AC2 | TODO | Order 1 `manual-verification-evidence.md` (V4: 150 of 150 runs passed with the 18 tests ignored at that head; check 3: 20 of 20 with the final 21; stays TODO until #2393 T10 rechecks the suite with no #2393 test ignored) |
+| AC2 | TODO | Order 1 `manual-verification-evidence.md` (V6: 150 of 150 full-suite runs passed with no #2393 test ignored, after PR #2874). Stays TODO until the order 2 audit (AC4) confirms that no other shared resource makes the suite fail. |
 | AC3 | TODO | Orders 3 and 4 `manual-verification-evidence.md` |
 | AC4 | TODO | Order 2 inventory |
 | AC5 | TODO | Documentation PR |
@@ -270,9 +273,10 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
   between tests or runs belong here; coverage work stays in EPIC #1347.
 - **Probabilistic evidence.** Repeated runs only lower the chance of a missed race; the isolation
   rules are the real guarantee.
-- **Lost coverage while tests are ignored.** Most of the tests #2393 ignored prove that a server
-  releases its socket after a stop, a drop or a failure. That cleanup contract is untested until
-  #2393 T9 restores the 9 tracker release tests on a unique loopback address.
+- **Lost coverage while tests are ignored.** Resolved: #2393 T9 restored the 9 tracker release
+  tests, which prove that a server releases its socket after a stop, a drop or a failure, on a
+  random loopback address. They run on Linux and are ignored on other systems, which configure only
+  `127.0.0.1`.
 
 ## References
 
