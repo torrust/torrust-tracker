@@ -9,7 +9,7 @@ github-issue: 2393
 spec-path: docs/issues/open/2393-2392-test-port-allocation-races/ISSUE.md
 branch: "2392-test-isolation-spec"
 related-pr: 2397
-last-updated-utc: "2026-11-16 08:57"
+last-updated-utc: "2026-11-16 08:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -337,7 +337,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   tests. T10: 150 of 150 full-suite runs passed with no #2393 test skipped (V6), and the source
   check finds `see #2393` only in the non-Linux `cfg_attr`. Recorded the completion review; T11
   waits for the implementation PR to merge.
-- 2026-11-16 08:57 UTC - Claude Code (Claude Opus 5.5) - Addressed da2ce7's first review of PR 2874
+- 2026-11-16 08:55 UTC - Claude Code (Claude Opus 5.5) - Addressed da2ce7's first review of PR 2874
   (approved, six non-blocking findings): corrected the guessed times of the post-rebase run and of
   this file's previous log entry, recorded repeated green runs for T8 and the helper, recorded the
   maintainer's review of the final increment in V7, ticked the last acceptance criterion with its
