@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/peer-id-test-helper/ISSUE.md
 branch: "{issue-number}-peer-id-test-helper"
 related-pr: null
-last-updated-utc: "2026-11-16 06:08"
+last-updated-utc: "2026-11-16 07:54"
 semantic-links:
   skill-links:
     - create-issue
@@ -18,7 +18,7 @@ semantic-links:
     - .github/skills/dev/planning/create-issue/SKILL.md
     - docs/adrs/20261021190318_share_workspace_test_support_through_testing_features.md
     - docs/issues/closed/2482-1669-reorganize-shared-test-support/test-support-inventory.md
-    - docs/issues/open/2824-1347-add-tests-primitives/ISSUE.md
+    - docs/issues/closed/2824-1347-add-tests-primitives/ISSUE.md
     - packages/primitives/src/peer.rs
     - packages/torrent-repository-benchmarking/tests/common/torrent_peer_builder.rs
     - packages/torrent-repository-benchmarking/tests/entry/mod.rs
@@ -400,6 +400,8 @@ with the narrow affected scope, and sign every commit with GPG.
   `swarm_metadata.rs`" row. (Entry added in review round 4: round 3 changed the spec without one.)
 - 2026-11-16 06:08 UTC - Claude Code (Opus 5.5) - Review round 4 of PR #2865 (da2ce7, approved with
   one Nit on this spec): `last-updated-utc` bumped and the round-3 entry above added.
+- 2026-11-16 07:54 UTC - Claude Code (Opus 5.5) - Rebased onto `develop` after #2871 moved the #2824
+  spec to `docs/issues/closed/`; the `related-artifacts` entry and the References path now point there.
 
 ## Acceptance Criteria
 
@@ -514,7 +516,7 @@ findings, and reusable lessons.
 ## References
 
 - Origin: finding F5 of #2824 (Findings Register in
-  `docs/issues/open/2824-1347-add-tests-primitives/ISSUE.md`), EPIC #1347
+  `docs/issues/closed/2824-1347-add-tests-primitives/ISSUE.md`), EPIC #1347
 - Test-support reorganization: EPIC #2482 (closed) and its
   [inventory](../../closed/2482-1669-reorganize-shared-test-support/test-support-inventory.md)
 - Version bumps: #2583
