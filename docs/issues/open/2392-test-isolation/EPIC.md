@@ -6,14 +6,14 @@ epic: null
 github-issue: 2392
 spec-path: docs/issues/open/2392-test-isolation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-15 12:50"
+last-updated-utc: "2026-11-16 15:54"
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
     - .github/skills/dev/planning/create-issue/SKILL.md
     - docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
-    - docs/issues/open/2393-2392-test-port-allocation-races/ISSUE.md
+    - docs/issues/closed/2393-2392-test-port-allocation-races/ISSUE.md
     - docs/issues/open/2394-2392-audit-shared-test-resources/ISSUE.md
     - docs/issues/open/2395-2392-e2e-runner-dynamic-host-ports/ISSUE.md
     - docs/issues/open/2396-2392-e2e-unique-tracker-image-tag/ISSUE.md
@@ -100,7 +100,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | Order | Issue | Local Spec | Status | Notes |
 | ----- | ----- | ---------- | ------ | ----- |
-| 1 | #2393 - Eliminate parallel test port allocation races | `docs/issues/open/2393-2392-test-port-allocation-races/ISSUE.md` | IN_PROGRESS | Bug. PR #2859 (merged) ignored 21 racing tests and rewrote 4 that never needed a racing port. The full suite passed 150 of 150 runs with the 18 tests ignored at that head, and 20 of 20 runs with the final 21. T5 is decided (2026-11-15): delete 9 tests of test-support code, rewrite the 3 health-check contract tests to probe an address the test holds, and restore 9 socket-release tests on a unique loopback address. Open: T7 to T11, which apply those decisions, recheck the suite and close out. |
+| 1 | #2393 - Eliminate parallel test port allocation races | `docs/issues/closed/2393-2392-test-port-allocation-races/ISSUE.md` | DONE | Bug. PR #2859 ignored 21 racing tests and rewrote 4 that never needed a racing port. PR #2874 applied the T5 decisions: deleted 9 tests of test-support code, rewrote the 3 health-check contract tests to probe an address the test holds, and restored 9 socket-release tests on a unique loopback address, picked at random from `127.0.0.0/8` (ignored off Linux). The full suite then passed 150 of 150 runs with no #2393 test ignored (V6). Found during the work: #2867 (UDP health check panics on a malformed reply). |
 | 2 | #2394 - Audit shared test resources | `docs/issues/open/2394-2392-audit-shared-test-resources/ISSUE.md` | TODO | Task. Inventories the resource classes in scope, records a disposition for each finding, and drafts subissues for confirmed problems. |
 | 3 | #2395 - Use dynamic host ports in the E2E runner | `docs/issues/open/2395-2392-e2e-runner-dynamic-host-ports/ISSUE.md` | TODO | Task. Removes fixed E2E host ports. Independent of orders 1 and 2. |
 | 4 | #2396 - Use a unique tracker image tag per CI run | `docs/issues/open/2396-2392-e2e-unique-tracker-image-tag/ISSUE.md` | TODO | Task. Prevents one run from testing another run's image. Latent today (one runner instance per server). Independent of order 3. |
@@ -150,9 +150,9 @@ For each subissue implementation in this EPIC, the default completion policy is:
 
 - Outcome: the full nextest suite no longer fails with port-allocation `AddrInUse`.
 - Exit criteria: order 1 is done, including its repeated full-suite recheck.
-- State: the outcome is reached (PR #2859; 150 of 150 full-suite runs passed with the 18 tests
-  ignored at that head, and 20 of 20 with the final 21). Order 1 stays open for T7 to T11, which
-  apply the T5 decisions on the ignored tests.
+- State: done. PR #2859 stopped the races by ignoring 21 tests, and PR #2874 applied the T5
+  decisions on them; the full suite then passed 150 of 150 runs with no #2393 test ignored (#2393
+  V6).
 
 ### Phase 2 - Know the remaining shared resources
 
@@ -234,6 +234,11 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
   PR #2862: merged `develop`, which carries the #2393 T5 decisions (PR #2863); order 1 now has
   T5 decided and T7 to T11 open, the Decisions section records the T5 decisions and the loopback
   helper, and AC2 and the lost-coverage risk point at #2393 T10 and T9.
+- 2026-11-16 13:54 UTC - Claude Code (Claude Opus 5.5), #2393 session - #2393 closed after PR
+  #2874 merged: order 1 is DONE and its spec moved to `docs/issues/closed/`.
+- 2026-11-16 14:23 UTC - Claude Code (Claude Opus 5.5), #2393 session - Review of PR #2883: set
+  Phase 1's state to done, gave AC2 the V6 evidence (it stays TODO until the order 2 audit), and
+  marked the lost-coverage risk resolved.
 
 ## Acceptance Criteria
 
@@ -252,7 +257,7 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
 | AC1 | DONE | GitHub sub-issues of #2392: #2393, #2394, #2395, #2396, #1419 |
-| AC2 | TODO | Order 1 `manual-verification-evidence.md` (V4: 150 of 150 runs passed with the 18 tests ignored at that head; check 3: 20 of 20 with the final 21; stays TODO until #2393 T10 rechecks the suite with no #2393 test ignored) |
+| AC2 | TODO | Order 1 `manual-verification-evidence.md` (V6: 150 of 150 full-suite runs passed with no #2393 test ignored, after PR #2874). Stays TODO until the order 2 audit (AC4) confirms that no other shared resource makes the suite fail. |
 | AC3 | TODO | Orders 3 and 4 `manual-verification-evidence.md` |
 | AC4 | TODO | Order 2 inventory |
 | AC5 | TODO | Documentation PR |
@@ -268,9 +273,10 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
   between tests or runs belong here; coverage work stays in EPIC #1347.
 - **Probabilistic evidence.** Repeated runs only lower the chance of a missed race; the isolation
   rules are the real guarantee.
-- **Lost coverage while tests are ignored.** Most of the tests #2393 ignored prove that a server
-  releases its socket after a stop, a drop or a failure. That cleanup contract is untested until
-  #2393 T9 restores the 9 tracker release tests on a unique loopback address.
+- **Lost coverage while tests are ignored.** Resolved: #2393 T9 restored the 9 tracker release
+  tests, which prove that a server releases its socket after a stop, a drop or a failure, on a
+  unique loopback address picked at random. They run on Linux and are conservatively ignored on
+  other systems: macOS and the BSDs configure only `127.0.0.1`, and CI runs no tests off Linux.
 
 ## References
 
