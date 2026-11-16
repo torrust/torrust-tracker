@@ -45,6 +45,8 @@ F1 to F7 are in da2ce7's review 5924864275 (`CHANGES_REQUESTED`, on the head `do
 
 Copilot's review 5924775596 has no finding: its overview reports no open issues.
 
+F8 is in da2ce7's review 5925179048 (`APPROVED`, on the head `docs(pr-reviews): [#2846] audit the first review of PR #2890`) and keeps his ID; the F8 fix push dismissed that approval.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2890-f1 | Human | Major | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -54,6 +56,7 @@ Copilot's review 5924775596 has no finding: its overview reports no open issues.
 | F5 | review-finding:pr-2890-f5 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-2890-f6 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F7 | review-finding:pr-2890-f7 | Human | Nit | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F8 | review-finding:pr-2890-f8 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -148,6 +151,19 @@ Copilot's review 5924775596 has no finding: its overview reports no open issues.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2890#discussion_r4589594292
 
+### F8 - Narrow where the job manager cancels running components
+
+- PR number: 2890
+- Source review ID: 5925179048
+- Reviewer finding ID: F8
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2890#discussion_r4589716344
+- Concern: The Affected Code section called `request_shutdown` and `mark_finished` "the only places that cancel component tokens"; `reserve` also issues an already-cancelled token after shutdown, and each server cancels its own token when its registration fails at startup.
+- Solution: The Affected Code entry says these are where the job manager cancels the running components once shutdown is requested. The same over-broad claim in the ADR Description was narrowed in the same commit, the spec progress log has an appended correction, and the PR description says "a running component".
+- Current-tree verification: `src/bootstrap/jobs/manager.rs` `reserve` cancels a new token when `self.cancelled`; the ADR Description and Affected Code use the narrowed wording.
+- Resolution reference: docs(adrs): [#2846] narrow where the job manager cancels running components
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2890#discussion_r4589765055
+
 ## Processing Log
 
 - 2026-11-16 17:53 UTC - Review 5924775596 (Copilot, `COMMENTED`) submitted on the pre-rebase head: no finding; no reply needed.
@@ -155,6 +171,8 @@ Copilot's review 5924775596 has no finding: its overview reports no open issues.
 - 2026-11-16 18:07 UTC - Started audit. F1 to F6 fixed in six signed commits (committed 18:02 to 18:06 UTC); F7 declined.
 - 2026-11-16 18:10 UTC - Pushed the six fix commits (push 18:10:07 UTC) and corrected the PR description for F1 and F6. Replied to the seven threads (18:10:24 to 18:10:40 UTC).
 - 2026-11-16 18:11 UTC - Resolved the seven threads (18:11 UTC); a GraphQL refresh shows no unresolved thread.
+- 2026-11-16 18:22 UTC - Review 5925179048 (da2ce7, `APPROVED`) submitted on the audit head: one Nit, recorded here as F8.
+- 2026-11-16 18:26 UTC - Pushed the F8 fix (committed 18:24 UTC, push 18:26:43 UTC), which dismissed review 5925179048, and corrected the PR description. Replied to the F8 thread (18:26:44 UTC) and resolved it (18:26:53 UTC); a GraphQL refresh shows no unresolved thread.
 
 ## Completion Rules
 
