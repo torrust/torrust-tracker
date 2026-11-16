@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2873-2003-shorten-skill-descriptions/ISSUE.md
-last-updated-utc: 2026-11-16 18:58
+last-updated-utc: 2026-11-16 19:08
 ---
 
 # Manual Verification Evidence
@@ -98,6 +98,9 @@ show the text.
 2. Read the Skills category and every Project row; tabulated the rows against each skill's parsed
    description length in `description-measurements.md`.
 3. 18:04:51 UTC. Repeated step 1 in the checkout of `docs(skills): [#2873] state the skill description rules in add-new-skill`, same version and model.
+4. 19:02:47 UTC. After da2ce7's review of PR #2893 reworded 16 descriptions, repeated step 1 in a
+   fresh checkout of the commit `docs(skills): [#2873] word every skill description to the Use when shape`,
+   same version and model.
 
 #### Observed Result
 
@@ -123,11 +126,15 @@ The 53 Project rows sum to 3,220 tokens; the descriptions total 8,306 characters
 187, all 53 at 200 or less). No skill in the table shows `< 20` tokens: the seven `claude.ai sync`
 descriptions dropped before are listed again. `write-markdown-docs` costs `~70`.
 
+After the rewording (step 4), `32.9k / 1m (3%)` in total, Skills `7.9k`, `0.8%`. The 53 Project
+rows sum to 3,270 tokens; the descriptions total 8,431 characters (mean 159, max 187). No skill
+shows `< 20` tokens. `description-measurements.md` holds this run.
+
 #### Conclusion
 
 The baseline after #2866 equals the one the spec measured at `a35960402` in a flat scratch copy:
 the move changed no description, and the listing is at its 1% cap. After the rewrite the project
-entries cost 46% of before (3,220 of 6,980 tokens), the Skills category is below its cap, and no
+entries cost 47% of before (3,270 of 6,980 tokens, final wording; 46% at the first after run), the Skills category is below its cap, and no
 description is dropped: M1's expected result holds.
 
 ### V2 - `write-markdown-docs` read whole (M2)
@@ -177,6 +184,8 @@ fell to about 70 for 179 characters. `/context` does not show the text.
 2. Read the `Skill` tool calls from each stream.
 3. 18:05 to 18:07 UTC. Repeated steps 1 and 2 with the same prompts in the checkout of
    `docs(skills): [#2873] state the skill description rules in add-new-skill`.
+4. 19:03 to 19:05 UTC. Repeated steps 1 and 2 in the checkout of V1's step 4, after the
+   rewording.
 
 The prompts:
 
@@ -204,8 +213,8 @@ The prompts:
 | `add-rust-dependency` | `add-rust-dependency` | `add-rust-dependency` | `claude-sonnet-5-5` |
 | `write-unit-test`     | `write-unit-test`     | `write-unit-test`     | `claude-sonnet-5-5` |
 
-Each run loaded exactly one skill, its first tool call. No result differed, so no prompt was
-repeated.
+Each run loaded exactly one skill, its first tool call. Step 4, after the rewording, loaded the
+same eight skills. No result differed, so no prompt was repeated.
 
 #### Conclusion
 

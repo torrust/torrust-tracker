@@ -9,7 +9,7 @@ github-issue: 2873
 spec-path: docs/issues/open/2873-2003-shorten-skill-descriptions/ISSUE.md
 branch: "2873-shorten-skill-descriptions"
 related-pr: 2893
-last-updated-utc: "2026-11-16 18:58"
+last-updated-utc: "2026-11-16 19:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -272,8 +272,9 @@ the last increment, before T6. Commits use Conventional Commit messages and are 
 - 2026-11-16 10:03 UTC - AI assistant (Claude Code, Claude Opus 5.5) - Addressed da2ce7's review 5918129806 (his F9): the comment rule covers white space (a space or a tab) before `#`, and T2's unit tests include a tab case
 
 - 2026-11-16 17:58 UTC - AI assistant (Claude Code, Claude Opus 5.5) - #2866's PR #2886 merged as `9e463cb0c`. T1: recorded the baseline at that commit in `description-measurements.md` and the evidence's V1 and V3 (it equals the spec's numbers; all eight M3 prompts load their skill, `write-markdown-docs` included, so AC6 is judged as "same as before"). T2: added the description rule in three commits, the third an opt-in `--skill-descriptions` mode; its run on the tree fails on `write-markdown-docs` (cut at a comment) and on 49 over-long descriptions
-- 2026-11-16 18:14 UTC - AI assistant (Claude Code, Claude Opus 5.5) - T3 to T6 done. T3 quoted the `write-markdown-docs` description (`fix(skills): [#2873] quote the write-markdown-docs description so YAML reads all of it`); T4 rewrote all 53 descriptions in 15 commits, one per index area, and `ci(skills): [#2873] check the skill descriptions in the pre-commit hook and Docs Lint` turned the rule on in the pre-commit hook and Docs Lint; T5 put the description rules in `add-new-skill` (`docs(skills): [#2873] state the skill description rules in add-new-skill`). T6: the 53 entries cost 3,220 tokens, 46% of 6,980, Skills is 7.8k (0.8%) and no description is dropped; the eight M3 prompts load the same skills; M4 fails on both broken descriptions; the governance ADR has its review-record row; `linter all` exits `0`. No retrospective: the two discoveries are small and recorded where they apply, PyYAML rejecting a tab before `#` that `serde_yaml` cuts at (evidence T2) and `write-markdown-docs` loading even with its cut description (evidence V3)
+- 2026-11-16 18:14 UTC - AI assistant (Claude Code, Claude Opus 5.5) - T3 to T6 done. T3 quoted the `write-markdown-docs` description (`fix(skills): [#2873] quote the write-markdown-docs description so YAML reads all of it`); T4 rewrote all 53 descriptions in 15 commits, one per index area, and `ci(skills): [#2873] check the skill descriptions in the pre-commit hook and Docs Lint` turned the rule on in the pre-commit hook and Docs Lint; T5 put the description rules in `add-new-skill` (`docs(skills): [#2873] state the skill description rules in add-new-skill`). T6: the 53 entries cost 3,220 tokens, 46% of 6,980, Skills is 7.8k (0.8%) and no description is dropped; the eight M3 prompts load the same skills; M4 fails on both broken descriptions; the governance ADR has its review-record row; `linter all` exits `0`. Deviation from the plan: the Commit Points ask for a stop for maintainer review after the last test increment, before T6; it was skipped, and T3 to T6 went on in the same session, as the PR description says; the three test increments stay separate commits, so they can be reviewed on their own. No retrospective: that deviation is recorded here, and the two discoveries are small and recorded where they apply, PyYAML rejecting a tab before `#` that `serde_yaml` cuts at (evidence T2) and `write-markdown-docs` loading even with its cut description (evidence V3)
 - 2026-11-16 18:58 UTC - AI assistant (Claude Code, Claude Opus 5.5) - Opened PR #2893. Addressed Copilot's review 5925597715 (F1, F2): the rule now reads a quoted or spaced `description` key, and finds the value's style after tags, anchors and a comment on the key's line; five more mutations recorded in the evidence's T2 section
+- 2026-11-16 19:10 UTC - AI assistant (Claude Code, Claude Opus 5.5) - Addressed da2ce7's review 5925607208 on PR #2893: reworded 16 descriptions to the `Use when` shape without `project` (his F1), recorded the skipped review stop in the 18:14 entry (his F2), and put the quoted texts of `description-measurements.md` in code spans (his F3). Re-measured: 3,270 tokens (47%), Skills 7.9k (0.8%); the eight M3 prompts load the same skills
 
 ## Acceptance Criteria
 
@@ -333,11 +334,11 @@ Notes:
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | DONE                   | `--skill-descriptions` exits `0` on the tree; all 53 at 200 or less (max 187), `description-measurements.md` |
+| AC1   | DONE                   | `--skill-descriptions` exits `0` on the tree; all 53 at 200 or less (max 187) and each says `Use when`, `description-measurements.md` |
 | AC2   | DONE                   | Each old and new text in `description-measurements.md`; every new one is a "what" sentence then `Use when` |
 | AC3   | DONE                   | V2: 179 of 179 parsed after T4 (578 of 578 after T3); row `~50` to `~200` to `~70` (inference) |
 | AC4   | DONE                   | T2 section: unit and CLI tests, 11 mutations each caught; `ci(skills): [#2873] check the skill descriptions in the pre-commit hook and Docs Lint` runs it in the hook and Docs Lint; V4 |
-| AC5   | DONE                   | V1: 3,220 of 6,980 tokens (46%); Skills 7.8k, 0.8%, below the 1% cap |
+| AC5   | DONE                   | V1: 3,270 of 6,980 tokens (47%) at the final wording; Skills 7.9k, 0.8%, below the 1% cap |
 | AC6   | DONE                   | V3: all eight prompts load the same skill before and after; `write-markdown-docs` already loaded before |
 | AC7   | DONE                   | `docs(skills): [#2873] state the skill description rules in add-new-skill`: Description Rules section and the 200-character limit |
 
