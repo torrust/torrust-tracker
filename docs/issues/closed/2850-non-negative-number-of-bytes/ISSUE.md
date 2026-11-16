@@ -9,7 +9,7 @@ github-issue: 2850
 spec-path: docs/issues/closed/2850-non-negative-number-of-bytes/ISSUE.md
 branch: "2850-non-negative-number-of-bytes"
 related-pr: 2872
-last-updated-utc: "2026-11-16 14:07"
+last-updated-utc: "2026-11-16 16:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -484,7 +484,7 @@ What is taken over, so nothing is lost:
 | From | What | Where it is now |
 | --- | --- | --- |
 | PR #2843, branch `2842-inbound-tolerance-adr` | The ADR, its index entry and the specification of #2842 | Carried over as commits of the spec-only pull request |
-| PR #2839, branch `2838-udp-reject-negative-announce-bytes` | The specification of #2838 with the field audit and the client and tracker evidence; the reproduction evidence; the UDP probe script | [`docs/issues/closed/2838-1347-udp-reject-negative-announce-bytes/`](../2838-1347-udp-reject-negative-announce-bytes/ISSUE.md), carried over by the spec-only pull request |
+| PR #2839, branch `2838-udp-reject-negative-announce-bytes` | The specification of #2838 with the field audit and the client and tracker evidence; the reproduction evidence; the UDP probe script | [`docs/issues/closed/2838-1347-udp-reject-negative-announce-bytes/ISSUE.md`](../2838-1347-udp-reject-negative-announce-bytes/ISSUE.md), carried over by the spec-only pull request |
 | PR #2839, the same branch | The tests, in the commits "test(udp-server): reject a negative left in an announce (red)", "test(udp-core): [#2838] cover rejected and accepted byte counts in announce" and "fix(udp-server): [#2838] classify a negative byte count as a bad request" | Not carried over yet. The implementation takes them from that branch and adapts them to the new error |
 
 The frontmatter keeps `epic: null`.
