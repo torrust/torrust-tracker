@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2867-udp-health-check-panics-on-invalid-response/ISSUE.md
-last-updated-utc: 2026-11-16 10:39
+last-updated-utc: 2026-11-16 14:48
 ---
 
 # Manual Verification Evidence
@@ -151,8 +151,9 @@ observed here.
    2026-11-15 21:28 UTC, on `develop` at `abd7a10ff`, stable Rust toolchain `rustc 1.99.1`. The
    stored log starts at `Finished`, so no kept file shows that the integration test binary was
    rebuilt with the value assertion; the `Compiling` line was only seen in the terminal and was not
-   kept. The `Timed Out` value does not rest on this run alone: V4 runs the maintained stopped-UDP
-   contract test, which asserts the same value, with its full log kept.
+   kept. The `Timed Out` value does not rest on this run alone: V4 runs the stopped-UDP contract
+   test, which asserts the same value, with its full log kept (and, since `develop` was merged
+   into the branch, its replacement; see V4).
 2. Ran:
 
    ```bash
@@ -174,9 +175,10 @@ test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; fin
 
 #### Conclusion
 
-A closed UDP port gives exactly `Err("Timed Out")`, with no panic. The maintained contract test
-`it_should_return_error_when_udp_service_was_stopped_after_registration` asserts the same value for
-a stopped service.
+A closed UDP port gives exactly `Err("Timed Out")`, with no panic. The contract test of that
+time, `it_should_return_error_when_udp_service_was_stopped_after_registration`, asserted the same
+value for a stopped service. The #2393 rewrite, merged into the branch with `develop`, replaced it
+with `it_should_return_error_when_the_registered_udp_service_never_answers_the_check` (see V4).
 
 ## Regression Tests: Red and Green
 
@@ -187,13 +189,13 @@ full output, build lines included.
 | ---- | ------------------------- | ------------------------- |
 | T2 `check_should_return_an_error_naming_the_cause_when_the_peer_answers_with_an_invalid_response` (`tracker-client` unit test) | [`evidence/t2-red-run.log`](evidence/t2-red-run.log): panics at `client.rs:275` on `UnableToParseResponse`. Ran with the test added and no fix. | [`evidence/t2-green-run.log`](evidence/t2-green-run.log): `1 passed`, after `fix(tracker-client): [#2867] return an error from the UDP health check on an invalid response`. |
 | T3 `it_should_return_error_when_the_registered_udp_service_answers_the_check_with_junk` (UDP contract test, AC2) | [`evidence/t3-red-run.log`](evidence/t3-red-run.log): mutate-then-restore. The `check` fix was reverted in the working tree (not staged) while the handler fix was present; the detail is `Err("the health check job failed: task .. panicked ..")`, which does not name the cause, so the assertion fails. The file was then restored. | [`evidence/t3-green-run.log`](evidence/t3-green-run.log): `1 passed`, with both fixes. |
-| T5 `it_should_report_a_probe_job_that_panicked_as_a_failed_check_and_keep_the_other_results` (handler contract test, AC3) | [`evidence/t5-red-run.log`](evidence/t5-red-run.log): the probe panic cascades through `handlers.rs:71` and `handlers.rs:79`, and the client gets `hyper::Error(IncompleteMessage)`. Ran with the `check` fix and no handler fix, and before T3's assertion was tightened from five lines to eight, so the test-file lines in this log are three lower than in the committed test: the probe's `panic!` is at `contract.rs:663` in the log and on line 666 at the commit that adds T5 (line 670 since the T3 fixture change of the PR 2879 Copilot review). | [`evidence/t5-green-run.log`](evidence/t5-green-run.log): `1 passed`; the handler logs the failed job at `error` level. |
+| T5 `it_should_report_a_probe_job_that_panicked_as_a_failed_check_and_keep_the_other_results` (handler contract test, AC3) | [`evidence/t5-red-run.log`](evidence/t5-red-run.log): the probe panic cascades through `handlers.rs:71` and `handlers.rs:79`, and the client gets `hyper::Error(IncompleteMessage)`. Ran with the `check` fix and no handler fix, and before T3's assertion was tightened from five lines to eight, so the test-file lines in this log are three lower than in the committed test: the probe's `panic!` is at `contract.rs:663` in the log and on line 666 at the commit that adds T5 (line 670 at `test(axum-health-check-api-server): [#2867] run the T3 junk-answering peer as a task of the test runtime`). | [`evidence/t5-green-run.log`](evidence/t5-green-run.log): `1 passed`; the handler logs the failed job at `error` level. |
 
 The stored T3 logs are from a second pair of runs on 2026-11-16 at about 10:26 UTC, after the
 junk-answering peer of T3 became a task of the test's Tokio runtime instead of a detached thread
 (PR 2879 review, Copilot F1; commit `test(axum-health-check-api-server): [#2867] run the T3 junk-answering peer as a task of the test runtime`).
-The red run is again mutate-then-restore with the `check` fix reverted and fails the same way, now at
-`contract.rs:520`; the green run passes. The first pair of T3 runs, with the thread-based peer, gave
+The red run is again mutate-then-restore with the `check` fix reverted and fails the same way, at
+`contract.rs:520` in that commit's test file; the green run passes. The first pair of T3 runs, with the thread-based peer, gave
 the same outcomes; their logs were overwritten.
 
 An earlier T3 red run, before any fix and with a weaker assertion (`is_err()` only), failed with
@@ -221,7 +223,7 @@ kept; V1 records that outcome.
    cargo test -p torrust-tracker-axum-health-check-api-server --test integration answers_the_check_with_junk
    ```
 
-2. Ran the maintained stopped-UDP contract test, which is ignored by default (#2393), to check
+2. Ran the stopped-UDP contract test of that time, which was ignored by default (#2393), to check
    that the closed-port case still reports exactly `Timed Out` (AC4):
 
    ```bash
@@ -249,6 +251,30 @@ test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; fin
 The symptom of V1 is gone: no panic, and the client gets a `200` report with status `Error` and a
 UDP detail whose `Err(..)` names the unrecognized response. A closed port still reports exactly
 `Err("Timed Out")`.
+
+#### AC4 at the Branch That Merges `develop`
+
+The #2393 rewrite (merged into `develop` as PR 2874, and into this branch by
+`Merge torrust/torrust-tracker develop into 2867-udp-health-check-panics-on-invalid-response`)
+removed `it_should_return_error_when_udp_service_was_stopped_after_registration`, so the step 2
+filter now matches no test. Its replacement,
+`it_should_return_error_when_the_registered_udp_service_never_answers_the_check`, is not ignored:
+it registers `Launcher::check` against a silent UDP socket the test holds and asserts exactly
+`Err("Timed Out")`. It covers AC4 from that merge on.
+
+Ran the replacement on 2026-11-16 at 14:48 UTC, on the branch at
+`test(axum-health-check-api-server): [#2867] register T3 and start T5's API through the shared helpers`:
+
+```bash
+cargo test -p torrust-tracker-axum-health-check-api-server --test integration udp_service_never_answers_the_check
+```
+
+Full output: [`evidence/never-answering-udp-run.log`](evidence/never-answering-udp-run.log).
+
+```text
+test server::contract::udp::it_should_return_error_when_the_registered_udp_service_never_answers_the_check ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; finished in 3.01s
+```
 
 ## Failures and Follow-up
 

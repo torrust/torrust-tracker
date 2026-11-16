@@ -9,7 +9,7 @@ github-issue: 2867
 spec-path: docs/issues/open/2867-udp-health-check-panics-on-invalid-response/ISSUE.md
 branch: "2867-udp-health-check-panics-on-invalid-response"
 related-pr: 2868
-last-updated-utc: "2026-11-16 10:18"
+last-updated-utc: "2026-11-16 14:48"
 semantic-links:
   skill-links:
     - create-issue
@@ -236,6 +236,11 @@ before maintainer review and commit. Use Conventional Commit messages with the n
 - 2026-11-16 10:19 UTC - Claude Code (Claude Opus 5.5) - Corrected four stamps that were written ahead of the
   commits that record them (PR 2879 review, F1): the entry above and the evidence file's
   `last-updated-utc` to 09:44, and the PR 2868 audit's last processing-log entry to 09:48
+- 2026-11-16 14:48 UTC - Claude Code (Claude Opus 5.5) - Merged `develop` into the branch (one
+  import conflict in the health-check contract tests). The #2393 rewrite it brings replaced the
+  ignored stopped-UDP test; recorded the replacement as AC4's coverage with a new run, tied the
+  evidence's line numbers to their commits, and moved T3 and T5 onto the shared test helpers
+  (PR 2879 review, da2ce7 F12 to F14)
 
 ## Acceptance Criteria
 
@@ -291,7 +296,7 @@ None planned. The reproduction is a temporary Rust test, kept verbatim in
 | AC1   | DONE                   | T2 red and green logs (`evidence/t2-red-run.log`, `evidence/t2-green-run.log`) |
 | AC2   | DONE                   | T3 red and green logs; V4 |
 | AC3   | DONE                   | T5 red and green logs (`evidence/t5-red-run.log`, `evidence/t5-green-run.log`) |
-| AC4   | DONE                   | Full health-check suite passes; the ignored stopped-UDP test passes with `Timed Out` (`evidence/stopped-udp-run.log`) |
+| AC4   | DONE                   | Full health-check suite passes; the ignored stopped-UDP test passed with `Timed Out` (`evidence/stopped-udp-run.log`); since the `develop` merge, its replacement `it_should_return_error_when_the_registered_udp_service_never_answers_the_check` runs by default and passes (`evidence/never-answering-udp-run.log`) |
 
 ## Risks and Trade-offs
 
