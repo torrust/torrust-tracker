@@ -42,7 +42,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-F1 to F3 come from the first da2ce7 review (APPROVED, three Nits, none blocking), on the head ending in `docs(pr-reviews): [#2867] record the deferred second da2ce7 review of PR 2868 as follow-ups`. F4 comes from the first Copilot review (COMMENTED), on the head ending in `docs(pr-reviews): [#2867] log the resolution of the first da2ce7 review of PR 2879`; Copilot called it F1, which collides with the audit's F1.
+F1 to F3 come from the first da2ce7 review (APPROVED, three Nits, none blocking), on the head ending in `docs(pr-reviews): [#2867] record the deferred second da2ce7 review of PR 2868 as follow-ups`. F4 comes from the first Copilot review (COMMENTED), on the same head; Copilot called it F1, which collides with the audit's F1. F5 and F6 come from the second da2ce7 review (APPROVED, two Nits, none blocking), on the head ending in `docs(pr-reviews): [#2867] log the resolution of the first Copilot review of PR 2879`; da2ce7 called them F10 and F11.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -50,6 +50,8 @@ F1 to F3 come from the first da2ce7 review (APPROVED, three Nits, none blocking)
 | F2 | review-finding:pr-2879-f2 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-2879-f3 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F4 | review-finding:pr-2879-f4 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F5 | review-finding:pr-2879-f5 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F6 | review-finding:pr-2879-f6 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -105,10 +107,37 @@ F1 to F3 come from the first da2ce7 review (APPROVED, three Nits, none blocking)
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2879#discussion_r4584563973>
 
+### F5 - The evidence still describes T3's overwritten runs in three places
+
+- PR number: 2879
+- Source review ID: 5918615659
+- Reviewer finding ID: F10
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2879#discussion_r4584671897>
+- Concern: After T3's runs were redone, the V4 excerpt still quoted the old green time, the build-line note dated the stopped-UDP run to "the T3 green run", and V4 called T3's peer the same socket as V1's; the T5 row gave only the line at the T5 commit.
+- Solution: The V4 excerpt quotes the redone green run and names the first run; the build-line note dates the stopped-UDP run to the first T3 green run; V4's initial state says the peer is a runtime task; the T5 row also gives line 670.
+- Current-tree verification: `grep -n "finished in 1.01s" docs/issues/open/2867-udp-health-check-panics-on-invalid-response/manual-verification-evidence.md` prints nothing; `grep -n "line 670" docs/issues/open/2867-udp-health-check-panics-on-invalid-response/manual-verification-evidence.md` prints the T5 row.
+- Resolution reference: docs(issues): [#2867] align the evidence with the redone T3 runs
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2879#discussion_r4584685534>
+
+### F6 - F4's reviewed head is misattributed
+
+- PR number: 2879
+- Source review ID: 5918615659
+- Reviewer finding ID: F11
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2879#discussion_r4584671907>
+- Concern: The findings paragraph and the processing-log entry named a later head for the Copilot review (taken from the comment's current `commit_id`) and gave the comment's time, not the review's.
+- Solution: Both now name the review's `commit_id` head, the one ending in `docs(pr-reviews): [#2867] record the deferred second da2ce7 review of PR 2868 as follow-ups`, and the review time 10:20:41Z.
+- Current-tree verification: `grep -n "at 10:20:41Z" docs/pr-reviews/pr-2879-review/PR-REVIEW.md` prints the Copilot processing-log entry, which names the review's head.
+- Resolution reference: docs(pr-reviews): [#2867] log the resolution of the second da2ce7 review of PR 2879
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2879#discussion_r4584685917>
+
 ## Processing Log
 
 - 2026-11-16 10:21 UTC - Started audit. da2ce7 reviewed the head ending in `docs(pr-reviews): [#2867] record the deferred second da2ce7 review of PR 2868 as follow-ups` at 10:18:14Z (APPROVED, three inline threads, all Nits, none blocking), recorded as F1 to F3. Fixed each in its own commit and replied on all three threads before the push.
-- 2026-11-16 10:28 UTC - Copilot reviewed the head ending in `docs(pr-reviews): [#2867] log the resolution of the first da2ce7 review of PR 2879` at 10:20:40Z (COMMENTED, one inline thread), recorded as F4. Fixed the fixture in its own commit, repeated T3's red and green runs in a docs commit, and replied before the push.
+- 2026-11-16 10:28 UTC - Copilot reviewed the head ending in `docs(pr-reviews): [#2867] record the deferred second da2ce7 review of PR 2868 as follow-ups` at 10:20:41Z (COMMENTED, one inline thread), recorded as F4. Fixed the fixture in its own commit, repeated T3's red and green runs in a docs commit, and replied before the push.
+- 2026-11-16 10:40 UTC - da2ce7 reviewed the head ending in `docs(pr-reviews): [#2867] log the resolution of the first Copilot review of PR 2879` at 10:39:03Z (APPROVED, two inline threads, both Nits), recorded as F5 and F6. F5 was fixed in its own commit; F6 is fixed by this audit commit. Replied on both threads before the push.
 
 ## Completion Rules
 
