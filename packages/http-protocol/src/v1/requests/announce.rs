@@ -40,6 +40,33 @@ const IP: &str = "ip";
 // BEP 3 gives the byte counts no width and no sign, so a `u64` holds every
 // value the parser accepts and a negative count cannot be represented.
 // adr: docs/adrs/20261111170611_reject_malformed_inbound_protocol_values_unless_clients_need_tolerance.md
+/// A byte count of an announce request: `uploaded`, `downloaded` or `left`.
+///
+/// ```rust
+/// use torrust_tracker_http_protocol::v1::requests::announce::NumberOfBytes;
+///
+/// let left = NumberOfBytes::new(16_384);
+///
+/// assert_eq!(left.get(), 16_384);
+/// ```
+///
+/// The constructor takes no signed integer:
+///
+/// ```rust,compile_fail,E0308
+/// use torrust_tracker_http_protocol::v1::requests::announce::NumberOfBytes;
+///
+/// let signed: i64 = -1;
+/// let _left = NumberOfBytes::new(signed);
+/// ```
+///
+/// and the field is private, so code outside this crate cannot build the
+/// value with the tuple constructor:
+///
+/// ```rust,compile_fail,E0423
+/// use torrust_tracker_http_protocol::v1::requests::announce::NumberOfBytes;
+///
+/// let _left = NumberOfBytes(16_384);
+/// ```
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
 pub struct NumberOfBytes(u64);
 
