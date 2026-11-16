@@ -60,7 +60,10 @@ semantic-links:
 > **Amendment of 2026-11-16 (issue #2876).** The decision stands. Rule D speaks of `mockall` mocks, but its
 > reasoning covers any test fixture that other packages' tests use: such a fixture belongs to the crate whose
 > types it builds and sits behind that crate's `testing` feature, with the self dev-dependency of rule A.3 for
-> the crate's own tests and a `[dev-dependencies]` entry in each consumer (rule A.4). The first fixture moved
+> the crate's own tests and a `[dev-dependencies]` entry in each consumer (rule A.4). The O1c note that
+> `cargo machete --with-metadata` does not flag the self dev-dependency holds only when the package's `tests/`
+> or examples name the crate by its package name; a package without them, such as `primitives`, lists the self
+> dev-dependency in its `[package.metadata.cargo-machete]` `ignored` list, with the reason. The first fixture moved
 > this way is `peer::fixture` of `torrust-tracker-primitives` (`PeerBuilder`, `qbittorrent_peer_id` and the
 > `Default` impls of `Peer` and `peer::Id`), which #2482 did not find because its inventory searched for
 > plural module names such as `fixtures`. Trait impls inside such a module (here `Default`) are gated with it,

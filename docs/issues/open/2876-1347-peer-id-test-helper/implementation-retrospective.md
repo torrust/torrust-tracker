@@ -56,8 +56,8 @@ hand-written literals from bytes the fixture produces.
 
 1. When a `testing` feature gets a self dev-dependency, run `cargo machete --with-metadata` and,
    for a package without `tests/` or examples, expect to add the self dev-dependency to its machete
-   `ignored` list. A note in the ADR's O1c row (or rule A.3) would save the next package the
-   surprise; proposed to the maintainer, not changed here.
+   `ignored` list. The ADR amendment of 2026-11-16 now says so (added after review finding F2 of
+   PR #2888).
 2. To find the consumers of a newly gated module, build each member on its own
    (`cargo test -p <member> --no-run`), not the workspace.
 
