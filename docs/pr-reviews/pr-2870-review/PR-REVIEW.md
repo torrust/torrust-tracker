@@ -273,7 +273,7 @@ with `F13`, recorded as `C13`.
 - Solution: The maintainer merged PR #2870 as is; the close-out PR describes that commit by its subject in C11.
 - Current-tree verification: the `open-pull-request` skill's commit-id check prints no PR-branch commit id for this record.
 - Resolution reference: docs(issues): close out #2845 with the M3 and M4 evidence
-- Follow-up PR URL: CLOSE_OUT_PR_URL
+- Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2880
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2870#discussion_r4583363366
 
 ## Processing Log
