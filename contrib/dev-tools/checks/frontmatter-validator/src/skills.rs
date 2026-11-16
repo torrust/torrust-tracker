@@ -311,13 +311,11 @@ fn description_too_long(markdown: &str) -> Option<Diagnostic> {
 ///
 /// YAML reads such a `#` as the start of a comment, so a parser, and Claude Code, see only the
 /// text before it. A parsed value no longer holds the comment, so the rule reads the raw
-/// frontmatter lines: the `description:` line and its indented continuation lines.
+/// frontmatter lines.
 fn description_cut_by_comment(markdown: &str) -> Option<Diagnostic> {
-    let lines = raw_description(markdown)?;
-    let style = lines.iter().flat_map(|line| line.chars()).find(|c| !c.is_whitespace());
-    let is_plain = !matches!(style, Some('"' | '\'' | '|' | '>'));
-    let has_comment = lines.iter().any(|line| line.contains(" #") || line.contains("\t#"));
-    (is_plain && has_comment).then(|| {
+    let value = plain_description(markdown)?;
+    let has_comment = value.iter().any(|line| line.contains(" #") || line.contains("\t#"));
+    has_comment.then(|| {
         Diagnostic::for_field(
             DiagnosticCategory::SkillDescriptionCutByComment,
             "description",
@@ -326,17 +324,55 @@ fn description_cut_by_comment(markdown: &str) -> Option<Diagnostic> {
     })
 }
 
-/// The raw text of a top-level `description` in the frontmatter: what follows `description:` on
-/// its line, then each continuation line (blank or indented) up to the next top-level line.
-fn raw_description(markdown: &str) -> Option<Vec<&str>> {
+/// The raw lines of a top-level `description` whose value is a plain scalar, from where the value
+/// starts to its last continuation line (blank or indented) before the next top-level line.
+///
+/// The value starts after any node properties (a `!` tag or an `&` anchor) and after a comment
+/// that ends the key's line. `None` when there is no such field, or its value is quoted, a block
+/// scalar, an alias, or empty.
+fn plain_description(markdown: &str) -> Option<Vec<&str>> {
     let mut lines = markdown.lines();
     if lines.next()? != "---" {
         return None;
     }
     let mut frontmatter = lines.take_while(|line| *line != "---");
-    let first = frontmatter.find_map(|line| line.strip_prefix("description:"))?;
+    let first = frontmatter.find_map(description_field_value)?;
     let continuation = frontmatter.take_while(|line| line.is_empty() || line.starts_with([' ', '\t']));
-    Some(std::iter::once(first).chain(continuation).collect())
+
+    let mut value: Vec<&str> = Vec::new();
+    for line in std::iter::once(first).chain(continuation) {
+        if !value.is_empty() {
+            value.push(line);
+            continue;
+        }
+        let start = without_node_properties(line);
+        if start.is_empty() || start.starts_with('#') {
+            continue;
+        }
+        if start.starts_with(['"', '\'', '|', '>', '*']) {
+            return None;
+        }
+        value.push(start);
+    }
+    (!value.is_empty()).then_some(value)
+}
+
+/// What follows the `:` of a top-level `description` key, plain or quoted, with or without white
+/// space before the `:`.
+fn description_field_value(line: &str) -> Option<&str> {
+    let after_key = ["description", "\"description\"", "'description'"]
+        .into_iter()
+        .find_map(|key| line.strip_prefix(key))?;
+    after_key.trim_start_matches([' ', '\t']).strip_prefix(':')
+}
+
+/// `text` without its leading white space and node properties: `!` tags and `&` anchors.
+fn without_node_properties(text: &str) -> &str {
+    let mut rest = text.trim_start();
+    while rest.starts_with(['!', '&']) {
+        rest = rest.find(char::is_whitespace).map_or("", |end| rest[end..].trim_start());
+    }
+    rest
 }
 
 #[cfg(test)]
@@ -632,6 +668,35 @@ mod description_tests {
         let skill = skill_with_description(description);
 
         assert_eq!(categories(&skill), [], "description: {description:?}");
+    }
+
+    #[rstest]
+    #[case::white_space_before_the_colon("description : Avoids the #NUMBER pattern.")]
+    #[case::double_quoted_key("\"description\": Avoids the #NUMBER pattern.")]
+    #[case::single_quoted_key("'description': Avoids the #NUMBER pattern.")]
+    #[case::after_a_tag("description: !!str Avoids the #NUMBER pattern.")]
+    #[case::after_an_anchor("description: &text Avoids the #NUMBER pattern.")]
+    #[case::after_a_comment_on_the_key_line("description: # note\n  Avoids the #NUMBER pattern.")]
+    fn it_should_report_a_cut_plain_description_however_its_key_and_properties_are_written(#[case] field: &str) {
+        let skill = format!("---\nname: example\n{field}\nmetadata:\n  owner: docs\n---\n");
+
+        assert_eq!(
+            categories(&skill),
+            [DiagnosticCategory::SkillDescriptionCutByComment],
+            "field: {field:?}"
+        );
+    }
+
+    #[rstest]
+    #[case::double_quoted_after_a_tag("description: !!str \"Avoids the #NUMBER pattern.\"")]
+    #[case::folded_after_an_anchor("description: &text >-\n  Avoids the #NUMBER pattern.")]
+    #[case::folded_after_a_comment("description: # note\n  >-\n  Avoids the #NUMBER pattern.")]
+    #[case::plain_after_a_comment("description: # note\n  Avoids the NUMBER pattern.")]
+    #[case::another_key_with_the_same_start("descriptions: Avoids the #NUMBER pattern.\ndescription: Example.")]
+    fn it_should_accept_a_whole_description_however_its_key_and_properties_are_written(#[case] field: &str) {
+        let skill = format!("---\nname: example\n{field}\nmetadata:\n  owner: docs\n---\n");
+
+        assert_eq!(categories(&skill), [], "field: {field:?}");
     }
 
     #[test]
