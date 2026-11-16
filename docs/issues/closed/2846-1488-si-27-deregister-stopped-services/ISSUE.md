@@ -39,7 +39,8 @@ semantic-links:
 >
 > **EPIC position**: Roadmap row 24, sub-issue SI-27 of [EPIC #1488](../../open/1488-overhaul-tracker-shutdown/ISSUE.md).
 > A follow-up of [SI-21](../2697-1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md).
-> Implementation order 3 of 4. Priority p3; must land before the first publish (#2583, see Dependencies).
+> Implementation order 3 of 4. Priority p3; was to land before the first publish (#2583, see Dependencies),
+> superseded by the no-go decision above: SI-27 no longer gates #2583.
 
 ## Goal
 
@@ -101,7 +102,8 @@ unhealthy in the health list. Only an orderly stop (cancellation requested, drai
 - Independent of SI-25 and SI-26; SI-26 may change the supervisors this task could use (T1 decides the
   location, so ordering SI-26 first avoids touching the supervisors twice if the root location wins).
 - Maintainer decision of 2026-11-12: SI-25, SI-26 and SI-27 land before the first publish of the
-  workspace crates (#2583), which is blocked on EPIC #1488.
+  workspace crates (#2583), which is blocked on EPIC #1488. For SI-27 this is superseded by the no-go
+  of 2026-11-16: it no longer gates #2583.
 
 ## Architectural Decisions
 
