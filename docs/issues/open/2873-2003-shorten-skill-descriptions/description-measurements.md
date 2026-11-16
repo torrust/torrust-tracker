@@ -35,7 +35,7 @@ at a comment (see `manual-verification-evidence.md`, V0).
 | Benchmarking | `run-benchmarks` | 724 | 250 | 187 |  |
 | CI | `implement-workflow` | 151 | 60 | 155 |  |
 | CI | `watch-pull-request-checks` | 352 | 130 | 155 |  |
-| Debugging | `fix-bug` | 337 | 120 |  |  |
+| Debugging | `fix-bug` | 337 | 120 | 170 |  |
 | Environment setup | `run-tracker-locally` | 334 | 120 |  |  |
 | Git workflow | `commit-changes` | 399 | 140 |  |  |
 | Git workflow | `create-feature-branch` | 359 | 130 |  |  |
@@ -119,7 +119,7 @@ at a comment (see `manual-verification-evidence.md`, V0).
 #### `fix-bug`
 
 - Before (337): Canonical workflow for investigating and fixing bugs in torrust-tracker. Use when work is substantively a bug, even if issue metadata or labels are missing or wrong. Requires source analysis, real-artifact reproduction or infeasibility evidence, regression-test selection, red/green validation, code fix, and like-for-like final recheck.
-- After: not yet rewritten
+- After (170): Investigate and fix a bug: analysis, reproduction, a regression test seen red, the fix, then a like-for-like recheck. Use when the work is a bug, whatever its labels say.
 
 ### Environment setup
 

@@ -1,6 +1,6 @@
 ---
 name: fix-bug
-description: Canonical workflow for investigating and fixing bugs in torrust-tracker. Use when work is substantively a bug, even if issue metadata or labels are missing or wrong. Requires source analysis, real-artifact reproduction or infeasibility evidence, regression-test selection, red/green validation, code fix, and like-for-like final recheck.
+description: "Investigate and fix a bug: analysis, reproduction, a regression test seen red, the fix, then a like-for-like recheck. Use when the work is a bug, whatever its labels say."
 metadata:
   author: torrust
   version: "1.1"
