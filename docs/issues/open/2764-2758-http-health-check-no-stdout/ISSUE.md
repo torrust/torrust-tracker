@@ -68,7 +68,7 @@ During implementation, stop and create an ADR when a decision affects project ar
 The test plan spawns the binary as a child process against a local test server, so this section applies to that fixture.
 
 - Responsibilities: `http_health_check` makes one probe and maps it to an exit code and JSON records; the test fixture owns the test server (an ephemeral port it binds and serves) and the child process it spawns; the test body owns the assertions.
-- Lifetime invariants: the fixture binds the server before the child starts and stops it, and waits for or kills the child, on the normal path and on assertion failure or panic (a guard that cleans up on drop). A closed-port case binds a port, learns its number and closes it before the probe.
+- Lifetime invariants: the fixture binds the server before the child starts and stops it, and waits for or kills the child, on the normal path and on assertion failure or panic (a guard that cleans up on drop). The unreachable case holds a socket bound to port 0 that never listens for the whole probe, so no concurrent test can take the port and answer, and the connection is refused (the form of `packages/axum-rest-api-server/src/server.rs`; changed from bind-and-close after review finding `review-finding:pr-2889-f1`).
 - Deadline: the binary's own request timeout (5 seconds) bounds each probe; the fixture adds an absolute deadline to the child wait, and every readiness wait for the server has an absolute deadline.
 - Design-review checkpoint: after the first passing vertical slice (healthy and unhealthy cases), review the fixture ownership before adding the remaining cases.
 
@@ -84,7 +84,7 @@ This issue fixes a deviation from the CLI output contract, so it is bug work in 
 
 ## Regression Test Strategy
 
-A test that runs the binary against a local test server and a closed port and asserts stdout empty, JSON records on stderr and the exit codes. It fails today (plain text on stdout, exit `1` for usage). If a higher boundary is used instead, record why it is clearer or the only practical option; link red and green output and the final recheck to `manual-verification-evidence.md`.
+A test that runs the binary against a local test server and a port that is bound but not listening and asserts stdout empty, JSON records on stderr and the exit codes. It fails today (plain text on stdout, exit `1` for usage). If a higher boundary is used instead, record why it is clearer or the only practical option; link red and green output and the final recheck to `manual-verification-evidence.md`.
 
 ## Implementation Plan
 

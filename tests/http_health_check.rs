@@ -3,7 +3,7 @@
 //! unhealthy or unreachable, `2` usage error (issue #2764).
 
 use std::io::{Read, Write};
-use std::net::{SocketAddr, TcpListener};
+use std::net::{Ipv4Addr, SocketAddr, TcpListener};
 use std::path::PathBuf;
 use std::process::{Child, Command, Output, Stdio};
 use std::sync::Arc;
@@ -175,14 +175,17 @@ fn it_should_exit_1_and_report_unhealthy_when_the_endpoint_answers_a_non_2xx_sta
 
 #[test]
 fn it_should_exit_1_and_report_unreachable_when_nothing_listens_on_the_port() {
-    // Bind a port to learn its number, then close it before the probe.
-    let closed_port = TcpListener::bind("127.0.0.1:0")
-        .expect("an ephemeral port should bind")
-        .local_addr()
-        .expect("the listener has an address")
-        .port();
+    // A bound socket that never listens: the test owns the port for the whole probe, so no other
+    // test can bind it and answer, and a connection to it is refused.
+    let bound_but_not_listening = tokio::net::TcpSocket::new_v4().expect("create a TCP socket");
+    bound_but_not_listening
+        .bind(SocketAddr::from((Ipv4Addr::LOCALHOST, 0)))
+        .expect("bind the TCP socket without listening");
+    let dead_port = bound_but_not_listening.local_addr().expect("read the bound address").port();
 
-    let output = run_health_check(&[&format!("http://127.0.0.1:{closed_port}/health_check")]);
+    let output = run_health_check(&[&format!("http://127.0.0.1:{dead_port}/health_check")]);
+
+    drop(bound_but_not_listening);
 
     assert_eq!(output.status.code(), Some(1));
     let records = records(&output);
