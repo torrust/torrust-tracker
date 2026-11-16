@@ -6,7 +6,7 @@ epic: null
 github-issue: 1347
 spec-path: docs/issues/open/1347-overhaul-packages-testing/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-15 21:22"
+last-updated-utc: "2026-11-16 09:38"
 semantic-links:
   skill-links:
     - create-issue
@@ -96,9 +96,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | 8     | #2301 - Review package coverage rollout           | `docs/issues/open/2301-1347-review-package-coverage-rollout/ISSUE.md`             | TODO   | After the EPIC completes, review real rollout evidence before retaining, revising, or proposing a required coverage check. |
 | 9     | #2361 - Keep the report-only package coverage summary from failing on a discovery failure | `docs/issues/open/2361-1347-package-coverage-summary-discovery-failure/ISSUE.md` | TODO | Bug follow-up of #2347 (`review-finding:pr-2293-f1`): the #2222 summary check goes red with a JSON parse error when discovery fails. |
 | 10    | #2637 - Add tests to the axum-rest-api-server package | `docs/issues/closed/2637-1347-add-tests-axum-rest-api-server/ISSUE.md` | DONE | S0 (spec and T1 baseline) merged through #2638; S1 (authentication and shared responses) merged through #2667; S2 (routes) merged through #2687; S3 (auth-key and whitelist contexts) merged through #2702; S4 (torrent and stats contexts) merged through #2718; S5 (server lifecycle) merged through #2744; S6 (crate root, wiring and final tasks) merged through #2772; the issue is closed. Replaces the former draft that was misfiled under #1349. |
-| 11    | #2824 - Add tests to the primitives package | `docs/issues/closed/2824-1347-add-tests-primitives/ISSUE.md` | DONE | S0 (the spec, #2828), S1 (the `PeerRole` JSON casing fix, #2834), S2 (the `peer.rs` tests, #2841), S3 (the configuration defaults and bounded values, #2852) and S4 (`swarm_metadata.rs`, the no-change files, the mutation run, the manual checks, #2864) are merged; the issue is closed. Unit-only lines 60.56% → 94.07%. Findings F1 (fixed through #2811), F2 (fixed in S1), F3 (#2804), F4 (#2823), F6 (#2838, #2850) and F5 (draft spec PR #2865) have owners. |
+| 11    | #2824 - Add tests to the primitives package | `docs/issues/closed/2824-1347-add-tests-primitives/ISSUE.md` | DONE | S0 (the spec, #2828), S1 (the `PeerRole` JSON casing fix, #2834), S2 (the `peer.rs` tests, #2841), S3 (the configuration defaults and bounded values, #2852) and S4 (`swarm_metadata.rs`, the no-change files, the mutation run, the manual checks, #2864) are merged; the issue is closed. Unit-only lines 60.56% → 94.07%. Findings F1 (fixed through #2811), F2 (fixed in S1), F3 (#2804), F4 (#2823), F6 (#2838, #2850) and F5 (#2876, drafted through #2865) have owners. |
 | 12    | #2838 - UDP tracker accepts announces with a negative left, uploaded or downloaded | `docs/issues/open/2838-1347-udp-reject-negative-announce-bytes/ISSUE.md` | IN_PROGRESS | Bug found by the #2824 primitives tests work. Fixed by the standalone issue #2850 (`docs/issues/open/2850-non-negative-number-of-bytes/ISSUE.md`): its implementation PR #2872 (open) closes this issue on merge; until then the bug is present on `develop`. The patch of PR #2839 was not merged. |
-| 13    | Additional package-testing subissues              | Create a folder-style spec when a concrete package need is identified             | TODO   | Permitted but not required upfront; retain scope in this EPIC.                                                       |
+| 13    | #2876 - Move `peer::Id::new` to a realistic test helper and decide whether `peer::fixture` goes behind a `testing` feature | `docs/issues/open/2876-1347-peer-id-test-helper/ISSUE.md` | TODO | Finding F5 of #2824. Spec-only PR first; the maintainer answers the design questions Q1-Q7 before implementation. |
+| 14    | Additional package-testing subissues              | Create a folder-style spec when a concrete package need is identified             | TODO   | Permitted but not required upfront; retain scope in this EPIC.                                                       |
 
 ## Package Coverage Tracking
 
