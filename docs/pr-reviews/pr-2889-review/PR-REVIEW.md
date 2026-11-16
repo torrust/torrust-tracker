@@ -1,7 +1,7 @@
 ---
 pr-number: 2889
 pr-url: https://github.com/torrust/torrust-tracker/pull/2889
-last-updated-utc: "2026-11-16 18:30"
+last-updated-utc: "2026-11-16 18:57"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -45,6 +45,8 @@ Round 2, on the head that carries the commit `docs(pr-reviews): [#2764] audit re
 
 Round 3, on the head that carries the commit `docs(pr-reviews): [#2764] audit review round 2 of PR 2889`: da2ce7 review 5925258553 (APPROVED) with findings F13 and F14 (one Minor, one Nit). Their IDs collide with this audit's F13 and F14, so they are audit findings F16 and F17.
 
+Round 4, on the head that carries the commit `docs(pr-reviews): [#2764] audit review round 3 of PR 2889`: Copilot review 5925595121 (COMMENTED, a "Lite" review) with five threads and no severity tags, so each severity is inferred. Four threads carry the same text, each anchored to a different evidence section (F18 to F21); each section got its own note. The fifth is F22.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2889-f1 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
@@ -64,6 +66,11 @@ Round 3, on the head that carries the commit `docs(pr-reviews): [#2764] audit re
 | F15 | review-finding:pr-2889-f15 | Human | Suggestion | correctness | ORIGINAL | FIXED | RESOLVED |
 | F16 | review-finding:pr-2889-f16 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F17 | review-finding:pr-2889-f17 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-2889-f18 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F19 | review-finding:pr-2889-f19 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-2889-f20 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F21 | review-finding:pr-2889-f21 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F22 | review-finding:pr-2889-f22 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -288,6 +295,71 @@ Round 3, on the head that carries the commit `docs(pr-reviews): [#2764] audit re
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2889#discussion_r4589799971
 
+### F18 - Evidence G1 reads as current but shows the first implementation
+
+- PR number: 2889
+- Source review ID: 5925595121
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2889#discussion_r4590037910
+- Concern: Section G1 (the first green run with 5 tests, line 103) does not match the final binary (11 tests, no URL in records) and is not labelled as historical.
+- Solution: The section opens with a "Historical" note: it ran on the first implementation (records with `url`, 5 tests), the final binary writes no URL and has 11 tests, and the results for it are in the sections "Round 1 of PR 2889" to "Round 3 of PR 2889". A note under "Verification Processes" explains the order. The recorded output is kept as it ran.
+- Current-tree verification: Evidence G1 heading and note.
+- Resolution reference: `docs(issues): [#2764] address review round 4 of PR 2889 in the evidence`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2889#discussion_r4590084900
+
+### F19 - Evidence V1, V3 shows records with the URL
+
+- PR number: 2889
+- Source review ID: 5925595121
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2889#discussion_r4590037976
+- Concern: Section V1, V3 (line 122) shows records with a `url` field and the URL in `message`, which the final binary no longer writes, without saying the output is historical.
+- Solution: The section opens with a "Historical" note: it ran on the first implementation (records with `url`, 5 tests), the final binary writes no URL and has 11 tests, and the results for it are in the sections "Round 1 of PR 2889" to "Round 3 of PR 2889". A note under "Verification Processes" explains the order. The recorded output is kept as it ran.
+- Current-tree verification: Evidence V1, V3 heading and note.
+- Resolution reference: `docs(issues): [#2764] address review round 4 of PR 2889 in the evidence`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2889#discussion_r4590085273
+
+### F20 - Evidence V2 healthy record shows the URL
+
+- PR number: 2889
+- Source review ID: 5925595121
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2889#discussion_r4590038015
+- Concern: Section V2 (line 155) shows the `healthy` probe record with the URL, unlike the final binary, without saying the output is historical.
+- Solution: The section opens with a "Historical" note: it ran on the first implementation (records with `url`, 5 tests), the final binary writes no URL and has 11 tests, and the results for it are in the sections "Round 1 of PR 2889" to "Round 3 of PR 2889". A note under "Verification Processes" explains the order. The recorded output is kept as it ran.
+- Current-tree verification: Evidence V2 heading and note.
+- Resolution reference: `docs(issues): [#2764] address review round 4 of PR 2889 in the evidence`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2889#discussion_r4590085683
+
+### F21 - Evidence V2 unreachable record shows the URL
+
+- PR number: 2889
+- Source review ID: 5925595121
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2889#discussion_r4590038064
+- Concern: Section V2 (line 161) shows the `unreachable` probe record with the URL, unlike the final binary, without saying the output is historical.
+- Solution: The section opens with a "Historical" note: it ran on the first implementation (records with `url`, 5 tests), the final binary writes no URL and has 11 tests, and the results for it are in the sections "Round 1 of PR 2889" to "Round 3 of PR 2889". A note under "Verification Processes" explains the order. The recorded output is kept as it ran.
+- Current-tree verification: Evidence V2 heading and note.
+- Resolution reference: `docs(issues): [#2764] address review round 4 of PR 2889 in the evidence`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2889#discussion_r4590086075
+
+### F22 - Test server treats every accept error as WouldBlock
+
+- PR number: 2889
+- Source review ID: 5925595121
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2889#discussion_r4590038112
+- Concern: The test server's accept loop slept and continued on any error, so a real failure (for example no file descriptors left) would make it a silent non-responder.
+- Solution: The loop sleeps only on `WouldBlock`, retries on `Interrupted` and panics on any other error; `TestServer::drop` re-raises the panic with `resume_unwind` unless the test is already panicking.
+- Current-tree verification: 11 tests pass under `cargo test` and nextest; with the `WouldBlock` guard temporarily changed, the four server tests failed with `the test server could not accept a connection: ...` (evidence "Round 4 of PR 2889").
+- Resolution reference: `test(health-check): [#2764] fail the test when the test server cannot accept a connection`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2889#discussion_r4590086454
+
 ## Processing Log
 
 - 2026-11-16 17:32 UTC - Replied to F1 (reply created 17:32:05Z) after committing its fix and before this record existed: a late start of the audit.
@@ -301,6 +373,9 @@ Round 3, on the head that carries the commit `docs(pr-reviews): [#2764] audit re
 - 2026-11-16 18:30 UTC - Round 3: normalized da2ce7 review 5925258553 (F16, F17), committed the evidence fix, then replied (replies created at 18:30:03Z and 18:30:05Z). `validate-audit-record.py --pr-number 2889 --base torrust/develop` reported 17 rows, 0 failures.
 - 2026-11-16 18:30 UTC - Resolved the two round-3 threads (`isResolved: true` for each, the last at about 18:30:38Z). A GraphQL refresh found no unresolved thread and no thread whose last comment is not a reply from `josecelano-bot`.
 - 2026-11-16 18:30 UTC - Committed this record.
+- 2026-11-16 18:56 UTC - Round 4: normalized Copilot review 5925595121 (F18 to F22), committed the fixes, then replied (replies created from 18:55:54Z to 18:56:03Z). `validate-audit-record.py --pr-number 2889 --base torrust/develop` reported 22 rows, 0 failures.
+- 2026-11-16 18:56 UTC - Resolved the five round-4 threads (`isResolved: true` for each, the last at about 18:56:55Z). A GraphQL refresh found no unresolved thread and no thread whose last comment is not a reply from `josecelano-bot`.
+- 2026-11-16 18:57 UTC - Committed this record.
 
 ## Completion Rules
 
