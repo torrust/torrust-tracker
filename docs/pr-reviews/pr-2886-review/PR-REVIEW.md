@@ -51,7 +51,7 @@ Copilot's review 5923297015 has no finding: Copilot did not review the PR becaus
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2886-f1 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F2 | review-finding:pr-2886-f2 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
-| F3 | review-finding:pr-2886-f3 | Human | Minor | metadata | ORIGINAL | NO_ACTION | RESOLVED |
+| F3 | review-finding:pr-2886-f3 | Human | Minor | metadata | ORIGINAL | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
