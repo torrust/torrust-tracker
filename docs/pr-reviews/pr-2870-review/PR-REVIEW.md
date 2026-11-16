@@ -17,7 +17,7 @@ Source: pull-request reviews and inline review threads for https://github.com/to
 The PR author owns this tracked audit record. Reviewers, including repository review agents,
 deliver findings through GitHub and have no repository-artifact obligation.
 
-- Post-merge workflow approval: N/A
+- Post-merge workflow approval: https://github.com/torrust/torrust-tracker/pull/2870#issuecomment-6914058589 (comment created 2026-11-16 10:37 UTC by `josecelano-bot` on behalf of the maintainer, who approved in chat at about 08:17 UTC to merge as is and fix the late finding F13 (C13) in the close-out PR; review 5916759580 was submitted at 08:08 UTC and the PR merged at 08:27 UTC)
 
 ## Status Values
 
@@ -293,6 +293,9 @@ with `F13`, recorded as `C13`.
 - 2026-11-16 08:08 UTC - da2ce7 review 5916759580 (approved) submitted with one inline finding (F13, non-blocking).
 - 2026-11-16 08:17 UTC - Replied on the F13 thread: fix deferred to the close-out PR at the maintainer's choice.
 - 2026-11-16 08:27 UTC - PR #2870 merged by the maintainer.
+- 2026-11-16 09:51 UTC - Replied on the F13 thread with the close-out PR fix (C13's resolution reference) and resolved it.
+- 2026-11-16 10:24 UTC - Reopened the F13 thread and replied: C13 stays `FOLLOW_UP` / `OPEN` until the close-out PR merges.
+- 2026-11-16 10:37 UTC - Posted the durable post-merge workflow approval comment.
 
 ## Completion Rules
 
