@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2850-non-negative-number-of-bytes/ISSUE.md
-last-updated-utc: "2026-11-15 21:04"
+last-updated-utc: "2026-11-16 08:17"
 ---
 
 # Manual Verification Evidence
@@ -193,6 +193,53 @@ after `SIGTERM`.
 - Conclusion: AC11. Values above 2^53 lose precision in JavaScript clients that parse them as
   numbers; that already held for large `i64` values (see the specification, "Risks and
   Trade-offs").
+
+## Regression Tests: Red and Green Runs
+
+The fix-bug process records the failing run of the maintained regression test before the fix and
+the passing runs after it. Both runs were made on 2026-11-16 with `rustc 1.99.1 (58cf8f9c3
+2026-10-13)` and `cargo 1.99.1`, debug test profile.
+
+### Red: the handler test before the fix
+
+- Commit: `test(udp-server): [#2850] reject a negative left in an announce (red)`, checked out in
+  its own detached `git worktree` (no local edits), the commit right before
+  `fix(udp-core)!: [#2850] refuse a negative byte count in the wire-to-domain conversion`.
+- Command:
+
+  ```sh
+  cargo test -p torrust-tracker-udp-server --lib it_should_reject_an_announce_with_a_negative_number_of_bytes_left
+  ```
+
+- Output (08:16:06 to 08:16:41 UTC, full text in
+  [`evidence/regression-red-run.txt`](evidence/regression-red-run.txt)): the test `FAILED` with
+  exit code 101, and the panic shows the bug of #2838, a negative `left` counted as a seeder:
+
+  ```text
+  a negative `left` must be rejected, got: Ok(AnnounceIpv4(AnnounceResponse { fixed: AnnounceResponseFixedData { transaction_id: TransactionId(I32(0)), announce_interval: AnnounceInterval(I32(120)), leechers: NumberOfPeers(I32(0)), seeders: NumberOfPeers(I32(1)) }, peers: [] }))
+  ```
+
+- The fix commit then also tightened this test to match the exact error, the transaction id and
+  the request kind; that final form is the one of the green run.
+
+### Green: the regression tests after the fix
+
+- Commit: the branch head with
+  `docs(issues): [#2850] drop the removed overflow variant from the SI-3 draft` as its last
+  commit, which includes every production change.
+- Commands and output (08:16:11 to 08:16:38 UTC, full text in
+  [`evidence/regression-green-run.txt`](evidence/regression-green-run.txt)), each `ok`:
+
+  | Command | Result |
+  | --- | --- |
+  | `cargo test -p torrust-tracker-udp-server --lib it_should_reject_an_announce_with_a_negative_number_of_bytes_left` | 1 passed |
+  | `cargo test -p torrust-tracker-udp-server --lib it_should_classify_a_negative_number_of_bytes_in_an_announce_as_a_bad_request` | 1 passed |
+  | `cargo test -p torrust-tracker-udp-core --lib number_of_bytes` | 9 passed (the `peer_builder` cases and the two check-order tests) |
+  | `cargo test -p torrust-tracker-udp-core --lib it_should_validate_the_connection_id_before_the_number_of_bytes` | 1 passed |
+  | `cargo test -p torrust-tracker-udp-core --lib it_should_reject_a_negative_number_of_bytes_before_revealing_whether_the_torrent_is_whitelisted` | 1 passed |
+  | `cargo test -p torrust-tracker-primitives --lib peer` | 43 passed (including the seeder and role-table tests) |
+  | `cargo test -p torrust-tracker-http-protocol --lib when_a_number_of_bytes_param_is_parsed` | 15 passed |
+  | `cargo test -p torrust-tracker-axum-http-server --test integration should_accept_a_number_of_bytes_left_above_the_largest_signed_64_bit_value` | 1 passed |
 
 ## Failures and Follow-up
 
