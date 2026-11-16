@@ -53,6 +53,9 @@ Review 5922953773 by da2ce7 (`APPROVED`, 2026-11-16 15:52:16 UTC, at the head en
 IDs F4 to F6 collide with this audit's F4 and F5, so they are recorded as F6 to F8. Its body's other
 paragraphs are a summary and checks, with no request.
 
+Review 5923064664 by Copilot (`COMMENTED`, 2026-11-16 15:59:13 UTC, at the same head) raised one inline
+finding, DOC-001, a re-raise of F7. Its body is an overview with no other request.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2883-f1 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
@@ -63,6 +66,7 @@ paragraphs are a summary and checks, with no request.
 | F6 | review-finding:pr-2883-f6 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F7 | review-finding:pr-2883-f7 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F8 | review-finding:pr-2883-f8 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| DOC-001 | review-finding:pr-2883-doc-001 | Copilot | Minor | documentation | RE_RAISE_OF:F7 | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -170,11 +174,25 @@ paragraphs are a summary and checks, with no request.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2883#discussion_r4588073176
 
+### DOC-001 - The non-Linux ignore reason misstates Windows
+
+- PR number: 2883
+- Source review ID: 5923064664
+- Reviewer finding ID: DOC-001
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2883#discussion_r4588088742
+- Concern: The resolved coverage risk says every non-Linux system configures only `127.0.0.1`, though the #2393 spec says Windows answers on the whole range and the ignore is conservative.
+- Solution: No change. It asks for the change F7 already made to the same sentence; Copilot reviewed the head before that fix was pushed.
+- Current-tree verification: `rg -n 'conservatively ignored' docs/issues/open/2392-test-isolation/EPIC.md` prints the corrected risk.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2883#discussion_r4588134221
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2883#discussion_r4588134221
+
 ## Processing Log
 
 - 2026-11-16 15:38 UTC - Started audit for reviews 5921522069 and 5921551645; F1 and F3 to F5 fixed in four commits, and F2 by rewording the first commit with the maintainer's approval.
 - 2026-11-16 15:39 UTC - Replied on the five threads before pushing the fixes.
 - 2026-11-16 15:57 UTC - Recorded review 5922953773 as F6 to F8, fixed them (F6 in the PR description, F7 and F8 in commits), and replied on the three threads before pushing.
+- 2026-11-16 16:03 UTC - Recorded Copilot review 5923064664's DOC-001 as a re-raise of F7, whose fix was not yet pushed at the reviewed head, and replied `Superseded by F7`.
 
 ## Completion Rules
 
