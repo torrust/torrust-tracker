@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-The reviewer numbers the findings `F1` to `F11` across two reviews; the audit keeps those IDs.
+The reviewer numbers the findings `F1` to `F12` across three reviews; the audit keeps those IDs.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -56,6 +56,7 @@ The reviewer numbers the findings `F1` to `F11` across two reviews; the audit ke
 | F9 | review-finding:pr-2881-f9 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F10 | review-finding:pr-2881-f10 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F11 | review-finding:pr-2881-f11 | Human | Nit | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F12 | review-finding:pr-2881-f12 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -202,6 +203,19 @@ The reviewer numbers the findings `F1` to `F11` across two reviews; the audit ke
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2881#discussion_r4586949830
 
+### F12 - Stamp the post-commit validator run
+
+- PR number: 2881
+- Source review ID: 5921823069
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2881#discussion_r4587134338
+- Concern: The F8 reply and verification line said the validator exits 0 after the commit, but they were written at 14:25, before the commit (14:26:22Z) and before that run.
+- Solution: Added Processing Log entries stamped from the run right after the audit commit and from the re-run against the pushed head, and said that the F8 statements came before the run.
+- Current-tree verification: The Processing Log has the 14:26 and 14:42 entries.
+- Resolution reference: docs(pr-reviews): log the post-commit validator run of PR 2881
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2881#discussion_r4587173251
+
 ## Processing Log
 
 - 2026-11-16 14:14 UTC - Replied to and resolved the seven threads of review 5921158708 (F1 to F7) without an audit record.
@@ -209,6 +223,7 @@ The reviewer numbers the findings `F1` to `F11` across two reviews; the audit ke
 - 2026-11-16 14:25 UTC - Started audit late, after the replies above, as finding F8 asks; rows F1 to F11 recorded.
 - 2026-11-16 14:26 UTC - Committed `docs(pr-reviews): add the review audit for the WebTorrent discussion` (commit time 14:26:22Z). In the same shell command, right after the commit and before the push, `validate-audit-record.py --pr-number 2881 --base torrust/develop` (run from a scratchpad copy that calls `gh-bot` instead of `gh`; the logic is unchanged) exited 0 with 11 rows and 0 failures. The F8 reply and the F8 verification line stated this result at 14:25, before the run (finding F12).
 - 2026-11-16 14:42 UTC - Received review 5921823069 with finding F12. Re-ran `validate-audit-record.py --pr-number 2881 --base torrust/develop` against the pushed head: exit 0, 11 rows, 0 failures.
+- 2026-11-16 14:44 UTC - Committed `docs(pr-reviews): log the post-commit validator run of PR 2881` (commit time 14:43:25Z), replied to the F12 thread, and recorded row F12.
 
 ## Completion Rules
 
