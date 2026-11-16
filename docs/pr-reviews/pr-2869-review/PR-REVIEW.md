@@ -45,6 +45,8 @@ F2, R1, F1 and R2 are in Copilot's review 5912836984, in that source order. The 
 
 F7, F8, F3, F4, F5 and F6 are in da2ce7's review 5913004050, in that source order. It was submitted as `APPROVED`; GitHub dismissed it at 21:36:23 UTC when the fixes were pushed, so its state is now `DISMISSED`. His F1 and F2 collide with Copilot's F1 and F2 above, so they are numbered F7 and F8, the next free audit-local IDs, and his IDs are kept as the reviewer finding IDs; his F3 to F6 collide with nothing and keep their IDs.
 
+F9 and F10 are in da2ce7's review 5915663318 (`APPROVED`), in that source order. His F7 and F8 collide with F7 and F8 above, so they are numbered F9 and F10, the next free audit-local IDs, and his IDs are kept as the reviewer finding IDs.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F2 | review-finding:pr-2869-f2 | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -57,6 +59,8 @@ F7, F8, F3, F4, F5 and F6 are in da2ce7's review 5913004050, in that source orde
 | F4 | review-finding:pr-2869-f4 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F5 | review-finding:pr-2869-f5 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-2869-f6 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F9 | review-finding:pr-2869-f9 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-2869-f10 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -190,6 +194,32 @@ F7, F8, F3, F4, F5 and F6 are in da2ce7's review 5913004050, in that source orde
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2869#discussion_r4580342750
 
+### F9 - The gap between the raw and parsed counts comes from one cut description
+
+- PR number: 2869
+- Source review ID: 5915663318
+- Reviewer finding ID: F7
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2869#discussion_r4582463249
+- Concern: The spec, and F8's solution above, attributed the gap between the raw and parsed description counts to quotes and escapes. The reviewer found that the quotes add 6 characters and the other 455 come from the `write-markdown-docs` description, which YAML cuts at the `#NUMBER` that follows a space, because a `#` after a space starts a comment, keeping 123 of 578 characters.
+- Solution: The spec names that cause below the context-cost table, states that no other description is cut, and T1's follow-up issue now includes fixing the cut description. F8's solution above is left as written, as the record of that round; this entry corrects it.
+- Current-tree verification: A per-file comparison of the raw `description:` line with the YAML-parsed value over `git show abd7a10ff:<path>` for the 53 `SKILL.md` files printed one file with a gap over 2 characters: `write-markdown-docs`, 578 against 123. The paragraph below the context-cost table and the T1 row in the spec.
+- Resolution reference: docs(issues): [#2866] name the cut description as the cause of the count gap
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2869#discussion_r4582507337
+
+### F10 - The log line cites a branch commit by id and omits the dismissal
+
+- PR number: 2869
+- Source review ID: 5915663318
+- Reviewer finding ID: F8
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2869#discussion_r4582463260
+- Concern: The Processing Log named the reviewed head by its PR-branch commit id, which the `open-pull-request` commit-id rule forbids in a review audit, and both the log and the Findings paragraph called review 5913004050 `APPROVED`, although GitHub dismissed it when the fixes were pushed.
+- Solution: The log line names the reviewed head by its subject. The Findings paragraph says the review was submitted as `APPROVED` and is now `DISMISSED`, and the 21:36 log entry records the dismissal.
+- Current-tree verification: The timeline of PR #2869 holds one `review_dismissed` event, for review 5913004050 at 21:36:23 UTC; the reviews API reports its state as `DISMISSED`. The `open-pull-request` commit-id check run on this record prints no PR-branch commit id.
+- Resolution reference: docs(pr-reviews): [#2866] cite the reviewed commit by subject and log the dismissal
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2869#discussion_r4582507555
+
 ## Processing Log
 
 - 2026-11-15 20:41 UTC - Review 5912836984 (Copilot, `COMMENTED`) submitted on the first head of the PR: F2, R1, F1, R2.
@@ -199,6 +229,8 @@ F7, F8, F3, F4, F5 and F6 are in da2ce7's review 5913004050, in that source orde
 - 2026-11-15 21:25 UTC - Review 5913004050 (da2ce7, `APPROVED`) submitted on the head commit `docs(pr-reviews): [#2866] record the first review of PR #2869`: six findings, none blocking, recorded here as F7, F8, F3, F4, F5 and F6.
 - 2026-11-15 21:36 UTC - Pushed the six fix commits (committed 21:29 to 21:33 UTC; push log time 21:36:21 UTC); the push dismissed review 5913004050 (timeline event `review_dismissed`, 21:36:23 UTC). Rewrote the PR description (F4), posted the F4 statement (21:36:45 UTC) and replied to the six threads (21:36:47 to 21:36:58 UTC).
 - 2026-11-15 21:38 UTC - Resolved the six threads after the replies; a GraphQL refresh shows no unresolved thread.
+- 2026-11-16 06:01 UTC - Review 5915663318 (da2ce7, `APPROVED`) submitted on the head commit `docs(pr-reviews): [#2866] record the second review of PR #2869`: two Minor findings, none blocking, recorded here as F9 and F10.
+- 2026-11-16 06:09 UTC - Pushed the two fix commits (committed 06:05 and 06:06 UTC; push log time 06:09:18 UTC), replied to the two threads (06:09:30 and 06:09:33 UTC) and resolved them; a GraphQL refresh shows no unresolved thread.
 
 ## Completion Rules
 
