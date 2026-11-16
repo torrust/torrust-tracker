@@ -233,12 +233,15 @@ impl UdpTrackerClient {
 
 /// Helper Function to Check if a UDP Service is Connectable
 ///
-/// # Panics
-///
-/// It will return an error if unable to connect to the UDP service.
+/// It sends a connect request and reports `Ok("Connected")` when the service answers with a
+/// connect response.
 ///
 /// # Errors
 ///
+/// It will return an error if it cannot bind or connect the client socket, if no reply arrives
+/// within 2 seconds (`Timed Out`), if the reply is not a connect response (`Did not Connect`), or
+/// if receiving the reply fails, for example because it is not a valid tracker response; that
+/// error names the cause.
 pub async fn check(service_binding: &ServiceBinding) -> Result<String, String> {
     let remote_addr = service_binding.bind_address();
 
@@ -272,10 +275,58 @@ pub async fn check(service_binding: &ServiceBinding) -> Result<String, String> {
                       Err("Timed Out".to_string())
                 }
                 response = client.receive() => {
-                      process(response.unwrap())
+                      // issue: #2867
+                      match response {
+                          Ok(response) => process(response),
+                          Err(e) => Err(e.to_string()),
+                      }
                 }
             }
         }
         Err(e) => Err(format!("{e:?}")),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use tokio::net::UdpSocket;
+    use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
+
+    use super::check;
+
+    /// A UDP peer that answers every datagram with bytes that are not a tracker response.
+    async fn bind_a_junk_answering_udp_peer() -> ServiceBinding {
+        let socket = UdpSocket::bind("127.0.0.1:0").await.expect("the junk peer should bind");
+        let binding = ServiceBinding::new(
+            Protocol::UDP,
+            socket.local_addr().expect("the junk peer should have an address"),
+        )
+        .expect("the junk peer address should be a valid UDP binding");
+
+        tokio::spawn(async move {
+            let mut buffer = [0u8; 2048];
+            while let Ok((_, from)) = socket.recv_from(&mut buffer).await {
+                drop(socket.send_to(b"junk", from).await);
+            }
+        });
+
+        binding
+    }
+
+    // issue: #2867
+    #[tokio::test]
+    async fn check_should_return_an_error_naming_the_cause_when_the_peer_answers_with_an_invalid_response() {
+        // Arrange
+        let junk_answering_peer = bind_a_junk_answering_udp_peer().await;
+
+        // Act
+        let result = check(&junk_answering_peer).await;
+
+        // Assert
+        let error = result.expect_err("an unparsable reply should be a failed check");
+        assert!(
+            error.contains("Unrecognized UDP tracker response"),
+            "the error should name the unparsable response, got: {error}"
+        );
     }
 }

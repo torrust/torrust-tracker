@@ -355,11 +355,16 @@ mod http {
 }
 
 mod udp {
+    use std::net::SocketAddr;
     use std::sync::Arc;
 
+    use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
+    use torrust_server_lib::registar::{Registar, ServiceRegistration};
     use torrust_tracker_axum_health_check_api_server::environment::Started;
     use torrust_tracker_axum_health_check_api_server::resources::{Report, Status};
+    use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
     use torrust_tracker_test_helpers::{configuration, logging};
+    use torrust_tracker_udp_server::server::launcher::Launcher;
     use url::Url;
 
     use crate::server::client::get;
@@ -458,6 +463,66 @@ mod udp {
 
             env.stop().await.expect("it should stop the service");
         }
+    }
+
+    /// Registers a UDP peer that answers every datagram with bytes that are not a tracker
+    /// response, checked by the production UDP tracker probe.
+    async fn registar_with_a_junk_answering_udp_service() -> (Registar<RuntimeServiceMetadata>, SocketAddr) {
+        let socket = std::net::UdpSocket::bind("127.0.0.1:0").expect("the junk peer should bind");
+        let binding = socket.local_addr().expect("the junk peer should have an address");
+        std::thread::spawn(move || {
+            let mut buffer = [0u8; 2048];
+            while let Ok((_, from)) = socket.recv_from(&mut buffer) {
+                drop(socket.send_to(b"junk", from));
+            }
+        });
+
+        let registar = Registar::default();
+        registar
+            .give_form()
+            .register(ServiceRegistration::new(
+                ServiceBinding::new(Protocol::UDP, binding).expect("the junk peer address should be a valid UDP binding"),
+                RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0)),
+                Some(Launcher::check),
+            ))
+            .await
+            .expect("the junk-answering udp service should register");
+
+        (registar, binding)
+    }
+
+    // issue: #2867
+    #[tokio::test]
+    async fn it_should_return_error_when_the_registered_udp_service_answers_the_check_with_junk() {
+        // Arrange
+        logging::setup();
+        let configuration = configuration::ephemeral_with_no_services();
+        let (registar, binding) = registar_with_a_junk_answering_udp_service().await;
+        let env = Started::new(&configuration.health_check_api.into(), registar).await;
+
+        // Act
+        let response = get(&format!("http://{}/health_check", env.bind_address())).await; // DevSkim: ignore DS137138
+
+        // Assert
+        assert_eq!(response.status(), 200);
+        let report: Report = response
+            .json()
+            .await
+            .expect("it should be able to get the report from the json");
+        assert_eq!(report.status, Status::Error);
+        assert_eq!(report.message, "health check failed".to_string());
+        let details = report.details.first().expect("it should have some details");
+        assert_eq!(details.binding, binding);
+        assert!(
+            details
+                .result
+                .as_ref()
+                .is_err_and(|error| error.contains("Unrecognized UDP tracker response")),
+            "the junk-answering udp service should be a failed check naming the cause, got: {:?}",
+            details.result
+        );
+
+        env.stop().await.expect("it should stop the service");
     }
 }
 
