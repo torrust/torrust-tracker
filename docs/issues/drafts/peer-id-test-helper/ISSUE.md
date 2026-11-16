@@ -68,7 +68,7 @@ The Findings Register of #2824 (row F5) records the finding. What it says, re-ch
   uncovered lines left in `peer.rs` (plus one dead `Display` branch), and left their tests to this
   issue. When this spec was drafted (`develop` at `abd7a10ff`) the package also had 9 uncovered
   lines in `swarm_metadata.rs`; the S4 slice of #2824 (#2864) covered them (31 / 31), and #2824's
-  final measurement puts all 68 uncovered lines of the package (1,077 / 1,145) in `peer.rs`.
+  final measurement puts all 68 uncovered lines of the package (1,078 / 1,146) in `peer.rs`.
 - #2824 also found that the fixture's own ids (`-qB00000000000000000`, `...01`, `...02`) are not valid
   Azureus-style ids (the character after the four version characters must be `-`), so the client
   registry reports no client for them. Its new tests use `-qB4650-abcdefghijkl`, which the registry
