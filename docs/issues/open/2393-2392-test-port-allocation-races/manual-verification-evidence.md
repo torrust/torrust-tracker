@@ -271,6 +271,16 @@ the three tests passed on the committed code.
 failed runs: 0
 ```
 
+#### After the rebase onto `develop`, 2026-11-16 08:35 UTC
+
+The branch was then rebased onto `develop` at `a35960402` (the merge of PR 2868), whose Rust
+changes since the recheck's base touch only `packages/primitives`. One run of the same command on
+the rebased head:
+
+```text
+1 run: 1848 tests run: 1848 passed, 0 skipped
+```
+
 #### Source check
 
 `git grep -n 'see #2393' -- '*.rs'` finds ten lines, all of them
