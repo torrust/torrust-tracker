@@ -44,7 +44,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 Copilot used the reviewer finding ID `R1` for two different findings. The second keeps `R1` as its
 reviewer finding ID and gets the audit-local ID `F3`. The da2ce7 review numbers its findings `F1` to
 `F9`, which collide with `F3`, so they get the audit-local IDs `C1` to `C9` and keep their own IDs as
-reviewer finding IDs.
+reviewer finding IDs. Its second review continues with `F10` to `F12`, recorded as `C10` to `C12`.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -60,6 +60,9 @@ reviewer finding IDs.
 | C7 | review-finding:pr-2870-c7 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | C8 | review-finding:pr-2870-c8 | Human | Nit | maintainability | ORIGINAL | FIXED | RESOLVED |
 | C9 | review-finding:pr-2870-c9 | Human | Nit | formatting | ORIGINAL | FIXED | RESOLVED |
+| C10 | review-finding:pr-2870-c10 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| C11 | review-finding:pr-2870-c11 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| C12 | review-finding:pr-2870-c12 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -111,7 +114,7 @@ reviewer finding IDs.
 - Concern: Line 17 of the PR description used `Closes #2845` in a negated sentence; the keyword closes the issue wherever it appears, and line 5 credited the table test with the controller-join case.
 - Solution: Edited the PR description: the line reads `Related to #2845` and says the issue stays open; line 5 names `it_should_wait_for_the_drain_controller_when_the_server_join_fails`; the M3/M4 line says both stay TODO.
 - Current-tree verification: `gh-bot pr view 2870 --json body` shows no closing keyword; the only `#2845` mention is `Related to #2845`.
-- Resolution reference: PR description edit (no commit)
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2870#discussion_r4583109548
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2870#discussion_r4583109548
 
@@ -214,10 +217,49 @@ reviewer finding IDs.
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2870#discussion_r4582424487
 - Concern: `git diff --check` flagged seven trailing-space lines in the recorded M2 output.
 - Solution: Fixed the script (`paste -sd' '`, `none` when nothing is bound, trimmed diff and log output) and re-ran it rather than editing the output.
-- Current-tree verification: `git diff --check` from `bc966c032` to the current head prints nothing.
+- Current-tree verification: `git diff --check` from the merge base `abd7a10ff` to the current head prints nothing.
 - Resolution reference: docs: fix the stale shutdown docs and record M2 with every component's stop lines (#2845)
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2870#discussion_r4583111464
+
+### C10 - Cite C1's fix by a durable URL
+
+- PR number: 2870
+- Source review ID: 5916635531
+- Reviewer finding ID: F10
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2870#discussion_r4583200322
+- Concern: C1's resolution reference `PR description edit (no commit)` is neither a commit subject nor a URL, so the audit validator rejects it.
+- Solution: Replaced it with the durable thread reply URL that states the description edit.
+- Current-tree verification: C1's `Resolution reference` is `https://github.com/torrust/torrust-tracker/pull/2870#discussion_r4583109548`.
+- Resolution reference: docs(pr-reviews): audit the second da2ce7 review of PR 2870 (#2845)
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2870#discussion_r4583218165
+
+### C11 - Do not cite a PR-branch commit by id
+
+- PR number: 2870
+- Source review ID: 5916635531
+- Reviewer finding ID: F11
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2870#discussion_r4583200328
+- Concern: C9's verification cited the PR-branch commit `bc966c032`, which a rebase would change.
+- Solution: Cited the merge base `abd7a10ff` on `develop` instead.
+- Current-tree verification: `git diff --check abd7a10ff HEAD` prints nothing, and no PR-branch commit id in `abd7a10ff..HEAD` appears in `docs/` or `src/`.
+- Resolution reference: docs(pr-reviews): audit the second da2ce7 review of PR 2870 (#2845)
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2870#discussion_r4583218455
+
+### C12 - Drop the stale summary line of the assertion helper
+
+- PR number: 2870
+- Source review ID: 5916635531
+- Reviewer finding ID: F12
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2870#discussion_r4583200335
+- Concern: `assert_completes_before_every` kept its old summary line naming `producer` and `consumers`.
+- Solution: Dropped that line.
+- Current-tree verification: `src/app.rs` has one summary line for the helper, naming `first` and `later`.
+- Resolution reference: test(app): drop the stale summary line of the stop-order assertion helper (#2845)
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2870#discussion_r4583218733
 
 ## Processing Log
 
@@ -230,6 +272,9 @@ reviewer finding IDs.
 - 2026-11-16 07:41 UTC - Committed the C2, C4 to C7 and C9 fix (`docs: fix the stale shutdown docs ...`).
 - 2026-11-16 07:42 UTC - Edited the PR description for C1.
 - 2026-11-16 07:42 UTC - Replied on the nine threads.
+- 2026-11-16 07:55 UTC - da2ce7 review 5916635531 (commented) submitted with three inline findings.
+- 2026-11-16 07:57 UTC - Committed the C12 fix (`test(app): drop the stale summary line ...`).
+- 2026-11-16 07:58 UTC - Replied on the three threads.
 
 ## Completion Rules
 
