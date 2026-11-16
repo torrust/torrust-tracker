@@ -73,9 +73,9 @@ at a comment (see `manual-verification-evidence.md`, V0).
 | Pull request reviews | `resolve-review-threads` | 380 | 140 | 132 |  |
 | Pull request reviews | `review-pr` | 224 | 80 | 157 |  |
 | Pull request reviews | `wait-for-pr-review` | 418 | 150 | 166 |  |
-| Rust code quality | `fix-clippy-warnings` | 348 | 120 |  |  |
-| Rust code quality | `handle-errors-in-code` | 613 | 210 |  |  |
-| Rust code quality | `handle-secrets` | 541 | 190 |  |  |
+| Rust code quality | `fix-clippy-warnings` | 348 | 120 | 129 |  |
+| Rust code quality | `handle-errors-in-code` | 613 | 210 | 176 |  |
+| Rust code quality | `handle-secrets` | 541 | 190 | 175 |  |
 | Task reviews | `review-task` | 216 | 80 |  |  |
 | Testing | `manual-http-download-completion-e2e` | 396 | 150 |  |  |
 | Testing | `manual-torrent-cleanup-e2e` | 309 | 110 |  |  |
@@ -326,17 +326,17 @@ at a comment (see `manual-verification-evidence.md`, V0).
 #### `fix-clippy-warnings`
 
 - Before (348): Guide for fixing Rust Clippy warnings in the torrust-tracker project. Covers proper application of clippy suggestions, when to add allowances, and how to document exceptions. Use when asked to fix clippy warnings, improve code quality, or resolve linter issues. Triggers on "fix clippy", "clippy warnings", "rust code quality", or "linting issues".
-- After: not yet rewritten
+- After (129): Fix Rust Clippy warnings: apply the suggestion, or add a documented allow when it does not fit. Use when clippy reports warnings.
 
 #### `handle-errors-in-code`
 
 - Before (613): Guide for error handling in this Rust project. Covers the four principles (clarity, context, actionability, explicit enums over anyhow), the thiserror pattern for structured errors, including what/where/when/why context, writing actionable help text, and avoiding vague errors. Also covers the located-error package for errors with source location. Use when writing error types, handling Results, adding error variants, or reviewing error messages. Triggers on "error handling", "error type", "Result", "thiserror", "anyhow", "error enum", "error message", "handle error", "add error variant", or "located-error".
-- After: not yet rewritten
+- After (176): Write Rust error types: thiserror enums over anyhow, with context and actionable messages, located-error for source locations. Use when adding error types or handling a Result.
 
 #### `handle-secrets`
 
 - Before (541): Guide for handling sensitive data (secrets) in this Rust project. NEVER use plain String for API tokens, passwords, or other credentials. Use the current stable secrecy crate's direct secret types to prevent accidental exposure through Debug output, logs, and error messages. Call .expose_secret() only when the actual value is needed. Use when working with credentials, API keys, tokens, passwords, or any sensitive configuration. Triggers on "secret", "API token", "password", "credential", "sensitive data", "secrecy", or "expose secret".
-- After: not yet rewritten
+- After (175): Keep API tokens, passwords and other credentials in secrecy types, never a plain String; expose_secret only where needed. Use when handling secrets or sensitive configuration.
 
 ### Task reviews
 

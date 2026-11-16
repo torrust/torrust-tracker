@@ -1,6 +1,6 @@
 ---
 name: fix-clippy-warnings
-description: Guide for fixing Rust Clippy warnings in the torrust-tracker project. Covers proper application of clippy suggestions, when to add allowances, and how to document exceptions. Use when asked to fix clippy warnings, improve code quality, or resolve linter issues. Triggers on "fix clippy", "clippy warnings", "rust code quality", or "linting issues".
+description: "Fix Rust Clippy warnings: apply the suggestion, or add a documented allow when it does not fit. Use when clippy reports warnings."
 metadata:
   author: torrust
   version: "1.0"

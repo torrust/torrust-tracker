@@ -1,6 +1,6 @@
 ---
 name: handle-secrets
-description: Guide for handling sensitive data (secrets) in this Rust project. NEVER use plain String for API tokens, passwords, or other credentials. Use the current stable secrecy crate's direct secret types to prevent accidental exposure through Debug output, logs, and error messages. Call .expose_secret() only when the actual value is needed. Use when working with credentials, API keys, tokens, passwords, or any sensitive configuration. Triggers on "secret", "API token", "password", "credential", "sensitive data", "secrecy", or "expose secret".
+description: Keep API tokens, passwords and other credentials in secrecy types, never a plain String; expose_secret only where needed. Use when handling secrets or sensitive configuration.
 metadata:
   author: torrust
   version: "1.2"

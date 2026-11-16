@@ -1,6 +1,6 @@
 ---
 name: handle-errors-in-code
-description: Guide for error handling in this Rust project. Covers the four principles (clarity, context, actionability, explicit enums over anyhow), the thiserror pattern for structured errors, including what/where/when/why context, writing actionable help text, and avoiding vague errors. Also covers the located-error package for errors with source location. Use when writing error types, handling Results, adding error variants, or reviewing error messages. Triggers on "error handling", "error type", "Result", "thiserror", "anyhow", "error enum", "error message", "handle error", "add error variant", or "located-error".
+description: "Write Rust error types: thiserror enums over anyhow, with context and actionable messages, located-error for source locations. Use when adding error types or handling a Result."
 metadata:
   author: torrust
   version: "1.0"
