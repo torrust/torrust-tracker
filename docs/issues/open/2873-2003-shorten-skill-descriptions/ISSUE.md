@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p1
 epic: 2003
 github-issue: 2873
 spec-path: docs/issues/open/2873-2003-shorten-skill-descriptions/ISSUE.md
-branch: "2873-shorten-skill-descriptions-spec"
+branch: "2873-shorten-skill-descriptions"
 related-pr: null
-last-updated-utc: "2026-11-16 10:03"
+last-updated-utc: "2026-11-16 17:58"
 semantic-links:
   skill-links:
     - create-issue
@@ -17,11 +17,12 @@ semantic-links:
     - fix-bug
     - write-markdown-docs
   related-artifacts:
-    - .github/skills
+    - .claude/skills
     - contrib/dev-tools/checks/frontmatter-validator
     - docs/issues/open/2866-2003-move-skills-to-claude-skills/ISSUE.md
     - docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
     - docs/issues/open/2873-2003-shorten-skill-descriptions/manual-verification-evidence.md
+    - docs/issues/open/2873-2003-shorten-skill-descriptions/description-measurements.md
     - docs/adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md
     - "issue #2866"
 ---
@@ -194,7 +195,15 @@ It does
 not compare raw and parsed lengths: quoting, escape decoding and block-scalar folding change the
 length of a valid description, so that comparison would reject T3's quoting fix. Its unit tests
 include failing cases for a space and for a tab before `#`, and passing cases for a double-quoted
-description containing `#` and for a block-scalar description. The exact detection is settled in T2 and recorded here.
+description containing `#` and for a block-scalar description.
+
+Settled in T2: the rule reads the `description:` line and its continuation lines (blank or
+indented) up to the next top-level line. The first non-white-space character gives the style
+(`"` or `'` quoted, `|` or `>` block, anything else plain), and a plain value is reported when any
+of those lines holds a space or a tab followed by `#`. The length counts the characters of the
+parsed value. The rule runs in a separate, opt-in mode, `--skill-descriptions`, over the git
+index, as `--skill-layout` does; T4's last commit adds it to the pre-commit hook and the Docs Lint
+workflow.
 
 ## Implementation Plan
 
@@ -202,8 +211,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status  | Task                              | Notes / Expected Output                                                                                                                                                                                                                                   |
 | --- | ------- | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | BLOCKED | Baseline after #2866              | Waits for #2866 to merge. On that `develop` commit, record per skill the parsed description length and its `/context` row, and the category totals, in issue-local `description-measurements.md`. Run the M3 trigger prompts and record which skill loads. |
-| T2  | TODO    | Description rule, proven red      | The regression test: the `frontmatter-validator` rule for skill descriptions (cut at a comment; over 200 characters) with unit tests, next to #2866's skill rules. The rule is opt-in (off unless explicitly selected) until T4 ends: the pre-commit hook already runs `frontmatter-validator --staged`, so a rule on by default would reject the commits that still carry long descriptions. Its opt-in run on the tree before T3 is recorded red in `manual-verification-evidence.md`: it fails on `write-markdown-docs` as cut at a comment and lists every over-long description. |
+| T1  | DONE    | Baseline after #2866              | Done at `develop` `9e463cb0c` (#2866's PR #2886): Skills 9.9k tokens, 53 Project rows summing to 6,980; all eight M3 prompts load their skill. On that `develop` commit, record per skill the parsed description length and its `/context` row, and the category totals, in issue-local `description-measurements.md`. Run the M3 trigger prompts and record which skill loads. |
+| T2  | DONE    | Description rule, proven red      | Done in `e3f7264ac`, `7cd722272` and `6e4d7e4e3` (opt-in `--skill-descriptions`); red run, mutations and test-design review in `manual-verification-evidence.md`, section T2. The regression test: the `frontmatter-validator` rule for skill descriptions (cut at a comment; over 200 characters) with unit tests, next to #2866's skill rules. The rule is opt-in (off unless explicitly selected) until T4 ends: the pre-commit hook already runs `frontmatter-validator --staged`, so a rule on by default would reject the commits that still carry long descriptions. Its opt-in run on the tree before T3 is recorded red in `manual-verification-evidence.md`: it fails on `write-markdown-docs` as cut at a comment and lists every over-long description. |
 | T3  | TODO    | Fix `write-markdown-docs` quoting | Quote the value. The rule no longer reports it as cut and the parser shows the whole description; the `/context` row's cost matching its length corroborates it, recorded as an inference: the green run and like-for-like recheck of V0, recorded in `manual-verification-evidence.md`. |
 | T4  | TODO    | Rewrite the descriptions          | All 53 descriptions to the [Description rules](#description-rules), one commit per area of the `.claude/skills/README.md` index. Each description's old and new text and length go in `description-measurements.md`. The rule from T2 passes, and T4's last commit turns it on in the existing staged and whole-tree gates (pre-commit hook and CI).            |
 | T5  | TODO    | Update `add-new-skill`            | The description rules and the 200-character limit replace "max 1024 chars".                                                                                                                                                                             |
@@ -236,8 +245,8 @@ the last increment, before T6. Commits use Conventional Commit messages and are 
 - [x] Folder-style spec drafted in `docs/issues/drafts/2003-shorten-skill-descriptions/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
-- [ ] #2866 merged (implementation starts after it)
+- [x] Spec-only PR merged into `develop` before implementation
+- [x] #2866 merged (implementation starts after it)
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -258,6 +267,8 @@ the last increment, before T6. Commits use Conventional Commit messages and are 
 - 2026-11-16 09:45 UTC - AI assistant (Claude Code, Claude Opus 5.5) - Addressed F8 from Copilot's review 5917643855 body: the rule detects a comment in a plain scalar only and no longer compares raw and parsed lengths, which valid quoted and block-scalar descriptions change; AC4 asks for passing tests for those
 - 2026-11-16 10:02 UTC - AI assistant (Claude Code, Claude Opus 5.5) - Addressed da2ce7's review 5918129806 (his F8): the measurement note no longer states as fact that Claude Code reads the parsed text, and the evidence says the 08:45:16 UTC parse repeated the drafting-time one
 - 2026-11-16 10:03 UTC - AI assistant (Claude Code, Claude Opus 5.5) - Addressed da2ce7's review 5918129806 (his F9): the comment rule covers white space (a space or a tab) before `#`, and T2's unit tests include a tab case
+
+- 2026-11-16 17:58 UTC - AI assistant (Claude Code, Claude Opus 5.5) - #2866's PR #2886 merged as `9e463cb0c`. T1: recorded the baseline at that commit in `description-measurements.md` and the evidence's V1 and V3 (it equals the spec's numbers; all eight M3 prompts load their skill, `write-markdown-docs` included, so AC6 is judged as "same as before"). T2: added the description rule in three commits, the third an opt-in `--skill-descriptions` mode; its run on the tree fails on `write-markdown-docs` (cut at a comment) and on 49 over-long descriptions
 
 ## Acceptance Criteria
 

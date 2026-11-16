@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2873-2003-shorten-skill-descriptions/ISSUE.md
-last-updated-utc: 2026-11-16 10:02
+last-updated-utc: 2026-11-16 17:55
 ---
 
 # Manual Verification Evidence
@@ -10,16 +10,22 @@ last-updated-utc: 2026-11-16 10:02
 
 ## Purpose
 
-Record real, human-oriented verification for issue #2873. At the spec stage it holds only the
-reproduction of the cut `write-markdown-docs` description (V0), as the `fix-bug` skill asks before
-review. Sections V1 to V4 are added during implementation, one per manual scenario in the spec.
+Record real, human-oriented verification for issue #2873. V0 reproduces the cut
+`write-markdown-docs` description, as the `fix-bug` skill asks before review. Sections V1 to V4
+follow the manual scenarios M1 to M4 of the spec; the T2 section records the description rule's red
+run, its mutations and its test-design review.
 
 ## Environment and Prerequisites
 
 - Date and time (UTC): 2026-11-16, steps stamped below
-- Artifact under test: the skill files on `develop` `a35960402` (this spec PR changes no skill)
+- Artifact under test: V0: the skill files on `develop` `a35960402`, before #2866 moved them. V1
+  and V3 before: `develop` `9e463cb0c`, the merge of #2866's PR #2886, the first commit with the
+  skills at `.claude/skills/<name>/SKILL.md`. T2: branch `2873-shorten-skill-descriptions` at
+  `6e4d7e4e3`, whose skill files are still those of `9e463cb0c`
 - Operating system / environment: Linux; Python 3.14.4 with PyYAML 6.0.3; Claude Code 2.1.318
-- Prerequisites and setup performed: none beyond a checkout of the commit
+  with its default model `claude-sonnet-5-5` and a 1M-token window; stable Rust
+- Prerequisites and setup performed: V1 and V3 run in a detached `git worktree` of the commit in a
+  scratch folder, which has no parent `CLAUDE.md`
 
 ## Verification Processes
 
@@ -77,8 +83,165 @@ the whole 578 characters would cost about 200. That Claude Code lists the same c
 the `Use when` clause and the trigger phrases, is inferred from that cost: `/context` does not
 show the text.
 
+### V1 - Listing cost before and after (M1)
+
+- Goal: measure what the 53 project skill entries cost in every session, before and after the
+  descriptions are shortened.
+- Initial state: before: a fresh checkout of `develop` `9e463cb0c`, clean tree.
+- Status: `IN_PROGRESS` (before recorded; after is task T6)
+
+#### Steps Performed
+
+1. 17:35:47 UTC. In the checkout, ran `claude -p "/context"` with Claude Code 2.1.318.
+2. Read the Skills category and every Project row; tabulated the rows against each skill's parsed
+   description length in `description-measurements.md`.
+
+#### Observed Result
+
+Model `claude-sonnet-5-5`, `32.9k / 1m (3%)` in total. Category rows that bear on this issue:
+
+```text
+| System prompt | 2.6k | 0.3% |
+| Skills | 9.9k | 1.0% |
+```
+
+The Skills table has 53 Project rows, summing to 6,980 tokens; the descriptions total 19,489
+characters (mean 368, max 724; 42 of 53 at 300 or more, 4 at 200 or less). Seven `claude.ai
+sync` skills show `< 20` tokens, their descriptions dropped. `write-markdown-docs` costs `~50`.
+Per-skill numbers: `description-measurements.md`.
+
+#### Conclusion
+
+The baseline after #2866 equals the one the spec measured at `a35960402` in a flat scratch copy:
+the move changed no description, and the listing is at its 1% cap.
+
+### V3 - Skills still load for their tasks (M3)
+
+- Goal: check that a task-like prompt loads the same skill after the descriptions are shortened.
+- Initial state: before: the same checkout of `9e463cb0c` as V1.
+- Status: `IN_PROGRESS` (before recorded; after is task T6)
+
+#### Steps Performed
+
+1. 17:36 to 17:38 UTC. For each of eight skills, ran one prompt with
+   `claude -p --output-format stream-json --verbose --tools Skill,Read,Grep,Glob --max-turns 4`.
+   Only read-only tools are available, so a prompt cannot change anything; `--max-turns 4` stops
+   it soon after the skill is chosen. The default model was used.
+2. Read the `Skill` tool calls from each stream.
+
+The prompts:
+
+| Skill expected          | Prompt                                                                                                                                         |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `write-markdown-docs`   | Add a section to docs/containers.md that mentions issue #2873 and the PR that fixed it, and make sure the issue numbers render as links on GitHub. |
+| `create-issue`          | I want a new GitHub issue for adding a rate limit to the health check endpoint. Start the issue for it.                                       |
+| `process-pr-review`     | Copilot and da2ce7 left review comments on my pull request 2875. Go through each finding and address it.                                       |
+| `run-pre-push-checks`   | I am about to push my branch to GitHub. Run the checks I need before pushing.                                                                 |
+| `commit-changes`        | I have finished my changes. Commit them with a proper commit message.                                                                          |
+| `fix-bug`               | The UDP tracker sends the wrong announce interval to clients. Investigate and fix this bug.                                                    |
+| `add-rust-dependency`   | Add the uuid crate as a dependency of the tracker-core package.                                                                                |
+| `write-unit-test`       | Write a unit test for the function that parses the announce request query string.                                                              |
+
+#### Observed Result
+
+| Skill expected        | Before: skill loaded  | Model               |
+| --------------------- | --------------------- | ------------------- |
+| `write-markdown-docs` | `write-markdown-docs` | `claude-sonnet-5-5` |
+| `create-issue`        | `create-issue`        | `claude-sonnet-5-5` |
+| `process-pr-review`   | `process-pr-review`   | `claude-sonnet-5-5` |
+| `run-pre-push-checks` | `run-pre-push-checks` | `claude-sonnet-5-5` |
+| `commit-changes`      | `commit-changes`      | `claude-sonnet-5-5` |
+| `fix-bug`             | `fix-bug`             | `claude-sonnet-5-5` |
+| `add-rust-dependency` | `add-rust-dependency` | `claude-sonnet-5-5` |
+| `write-unit-test`     | `write-unit-test`     | `claude-sonnet-5-5` |
+
+Each run loaded exactly one skill, its first tool call.
+
+#### Conclusion
+
+Every sample prompt loads its skill before the change, `write-markdown-docs` included: with its
+description cut to 123 characters, its name and the first sentence were enough for this prompt.
+So the spec's expectation that it "loads where it did not" does not apply to this sample; AC6 is
+judged as "the same skill loads after as before" for all eight.
+
+### T2 - The description rule fails on the tree before the fix (red)
+
+- Goal: show that the regression test of the spec's Regression Test Strategy fails for the defect.
+- Initial state: branch `2873-shorten-skill-descriptions` at `6e4d7e4e3`, with the rule (commits
+  `e3f7264ac` and `7cd722272`) and the opt-in `--skill-descriptions` mode (`6e4d7e4e3`); the skill
+  files are those of `9e463cb0c`.
+- Status: `DONE` (outcome: **Red**, as expected)
+
+#### Steps Performed
+
+1. 17:46:58 UTC. Ran
+   `cargo run -q -p frontmatter-validator --bin frontmatter-validator -- --skill-descriptions`.
+
+#### Observed Result
+
+Exit code `1`, 50 diagnostic records: 49 `skill-description-too-long` (the 53 skills minus the 4
+already at 200 characters or less) and one `skill-description-cut-by-comment`:
+
+```text
+{"kind": "diagnostic", "path": ".claude/skills/write-markdown-docs/SKILL.md", "severity": "error", "category": "skill-description-cut-by-comment", "field_path": "description", "message": "YAML cuts this plain `description` at white space followed by `#`, a comment; quote the value."}
+```
+
+`write-markdown-docs` is not among the too-long ones: YAML reads only 123 of its characters.
+
+#### Detection Settled in T2
+
+The rule reads the raw frontmatter: the `description:` line and its continuation lines (blank or
+indented) up to the next top-level line. The first non-white-space character of that text gives
+the style: `"` or `'` is quoted, `|` or `>` is a block scalar, anything else is plain. A plain
+value is reported when any of those lines contains a space or a tab followed by `#`. The length
+rule counts the characters (not bytes) of the parsed value.
+
+A tab before `#` is real for the validator's parser: `serde_yaml` reads
+`description: Writes Markdown, avoiding the<TAB>#NUMBER pattern.` as `Writes Markdown, avoiding
+the`. PyYAML instead rejects that line as a scanner error. The other unit-test fixtures were
+checked with PyYAML: the reported ones are cut, the accepted ones are read whole.
+
+#### Mutations
+
+Each clause of the rule was broken on its own in the working tree, the tests run, the file
+restored. Every mutation compiled (the first attempts of L4, C1 and C2 did not, for an unused item,
+and were rewritten until they did).
+
+| ID  | Clause broken                                       | Tests that failed                                                                                                                      |
+| --- | --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| M1  | A tab before `#` is a comment (only a space checked) | `..._cuts_at_a_comment::case_2_tab_before_hash`                                                                                        |
+| M5  | A space before `#` is a comment (only a tab checked) | `case_1_space_before_hash`, `case_3_on_a_continuation_line`, `case_4_continuation_line_starting_with_hash`, `..._cut_at_a_comment_and_still_too_long` |
+| M2  | Continuation lines are read (first line only)       | `case_3_on_a_continuation_line`, `case_4_continuation_line_starting_with_hash`                                                         |
+| M3  | Quoted and block values are not reported            | `it_should_accept_a_description_that_yaml_reads_whole` cases 3 to 6 (double, single, folded, literal)                                 |
+| M4  | The description ends at the next top-level line     | `it_should_not_read_a_comment_in_the_following_field_as_part_of_the_description`                                                      |
+| L1  | The limit itself is accepted (`>=` for `>`)          | `..._no_longer_than_the_limit::case_1_at_the_limit`, `it_should_count_the_characters_yaml_reads_not_the_raw_text_or_its_bytes`         |
+| L2  | Characters are counted, not bytes                   | `it_should_count_the_characters_yaml_reads_not_the_raw_text_or_its_bytes`                                                              |
+| L3  | The parsed value is counted, not the raw text       | `case_1_at_the_limit`, `it_should_count_the_characters_yaml_reads_not_the_raw_text_or_its_bytes`                                       |
+| L4  | Over-long is reported at all                        | `it_should_report_a_description_longer_than_the_limit`, `..._cut_at_a_comment_and_still_too_long`                                     |
+| C1  | Only skill files are checked (every Markdown file)  | `it_should_check_the_description_of_each_skill_in_the_index_only_with_skill_descriptions`                                              |
+| C2  | The index is read, not the working tree             | `it_should_read_the_skill_description_from_the_index_with_skill_descriptions`                                                          |
+
+#### Test-Design Review
+
+Each increment's tests were reviewed with the prose-first Arrange, Act and Assert pass of the
+`write-unit-test` skill before the next increment started:
+
+- Comment rule (`description_tests` in `src/skills.rs`). Arrange: a skill file whose
+  `description` is written in one way; Act: `description_findings`; Assert: the categories. The
+  one causal difference is the description text, which each case names and shows whole; the
+  fixture `skill_with_description` owns only the incidental frontmatter around it, including a
+  following `metadata` field so the end of the description is exercised. The prose matched the
+  code, so none was kept.
+- Length rule. `description_of_length` names the one causal input, the length, against
+  `MAX_DESCRIPTION_CHARACTERS`. The raw-versus-parsed test keeps a two-line comment: why a folded
+  block of 99 and 100 characters parses to exactly the limit cannot be read from the code alone.
+- CLI mode (`tests/cli.rs`). Arrange and Assert comments name the staged, working-tree and
+  untracked files, as the neighboring `--skill-layout` tests do.
+- Unit level: both rules are pure functions of a file's text, so they are tested there; only file
+  selection and reading the index need the binary.
+
 ## Failures and Follow-up
 
-None at the spec stage. V0's parse first ran while drafting, in the script that measured all 53
+None so far. V0's parse first ran while drafting, in the script that measured all 53
 descriptions, which gave 123 parsed against 578 raw characters for this file; the 08:45:16 UTC run
 in step 2 repeated it for this record with the same result. Neither run failed.
