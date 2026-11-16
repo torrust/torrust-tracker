@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2850-non-negative-number-of-bytes/ISSUE.md
-last-updated-utc: "2026-11-16 08:17"
+last-updated-utc: "2026-11-16 08:34"
 ---
 
 # Manual Verification Evidence
@@ -211,8 +211,10 @@ the passing runs after it. Both runs were made on 2026-11-16 with `rustc 1.99.1 
   cargo test -p torrust-tracker-udp-server --lib it_should_reject_an_announce_with_a_negative_number_of_bytes_left
   ```
 
-- Output (08:16:06 to 08:16:41 UTC, full text in
-  [`evidence/regression-red-run.txt`](evidence/regression-red-run.txt)): the test `FAILED` with
+- Output (08:16:06 to 08:16:41 UTC; excerpt in
+  [`evidence/regression-red-run.txt`](evidence/regression-red-run.txt): cargo's output without its
+  `Compiling` and `Blocking` lines, from `Finished` to the exit code and the end stamp; the command,
+  toolchain and start stamp are the ones above): the test `FAILED` with
   exit code 101, and the panic shows the bug of #2838, a negative `left` counted as a seeder:
 
   ```text
@@ -227,8 +229,9 @@ the passing runs after it. Both runs were made on 2026-11-16 with `rustc 1.99.1 
 - Commit: the branch head with
   `docs(issues): [#2850] drop the removed overflow variant from the SI-3 draft` as its last
   commit, which includes every production change.
-- Commands and output (08:16:11 to 08:16:38 UTC, full text in
-  [`evidence/regression-green-run.txt`](evidence/regression-green-run.txt)), each `ok`:
+- Commands and output (08:16:11 to 08:16:38 UTC; excerpt in
+  [`evidence/regression-green-run.txt`](evidence/regression-green-run.txt): the toolchain, the start
+  and end stamps, each command, and only its `running`, `test` and `test result` lines), each `ok`:
 
   | Command | Result |
   | --- | --- |
