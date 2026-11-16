@@ -1,7 +1,7 @@
 ---
 pr-number: 2889
 pr-url: https://github.com/torrust/torrust-tracker/pull/2889
-last-updated-utc: "2026-11-16 17:51"
+last-updated-utc: "2026-11-16 18:16"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -41,6 +41,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 Round 1, on the head that carries the commit `docs(issues): [#2764] record the evidence and the spec progress`: da2ce7 review 5924341133 (APPROVED) with findings F1 to F9 (five Minor, three Nit, one Suggestion), and Copilot review 5924435062 (COMMENTED) with three findings. Copilot's own IDs F1, F4 and F5 collide with da2ce7's, so they are audit findings F10, F11 and F12; F11 and F12 re-raise F2 and F1.
 
+Round 2, on the head that carries the commit `docs(pr-reviews): [#2764] audit review round 1 of PR 2889`: da2ce7 review 5925054031 (APPROVED) with findings F10 to F12 (two Nit, one Suggestion). Their IDs collide with this audit's F10 to F12, so they are audit findings F13 to F15.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2889-f1 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
@@ -55,6 +57,9 @@ Round 1, on the head that carries the commit `docs(issues): [#2764] record the e
 | F10 | review-finding:pr-2889-f10 | Copilot | Major | security | ORIGINAL | FIXED | RESOLVED |
 | F11 | review-finding:pr-2889-f11 | Copilot | Minor | correctness | RE_RAISE_OF:F2 | FIXED | RESOLVED |
 | F12 | review-finding:pr-2889-f12 | Copilot | Minor | testing | RE_RAISE_OF:F1 | FIXED | RESOLVED |
+| F13 | review-finding:pr-2889-f13 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-2889-f14 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-2889-f15 | Human | Suggestion | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -214,6 +219,45 @@ Round 1, on the head that carries the commit `docs(issues): [#2764] record the e
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2889#discussion_r4589381011
 
+### F13 - Image run during a mutation kept without the stage argument
+
+- PR number: 2889
+- Source review ID: 5925054031
+- Reviewer finding ID: F10
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2889#discussion_r4589622067
+- Concern: The round-1 image build ran while the binary was mutated for R2; the record kept the run with an `--entrypoint` check that rules out only the usage-code mutation, while the evidence template says to discard such a run.
+- Solution: The evidence now states the stage-result argument (the stage builds its tests from the same source, each round-1 mutation fails at least two `http_health_check` tests, and the stage ran 1888 tests with none failing), says what the `--entrypoint` check does and does not rule out, and says the run is kept on that argument.
+- Current-tree verification: Evidence section "Round 1 of PR 2889", Image paragraph.
+- Resolution reference: `docs(issues): [#2764] address review round 2 of PR 2889 in the spec and the evidence`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2889#discussion_r4589653117
+
+### F14 - AC3 claims a mutation per exit-code clause that R2 lacks
+
+- PR number: 2889
+- Source review ID: 5925054031
+- Reviewer finding ID: F11
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2889#discussion_r4589622075
+- Concern: The AC3 row said R2 has one mutation per exit-code clause, but exit 0 on a 2xx answer and exit 1 on a failed request had no row.
+- Solution: R2 gains the two rows (`EXIT_HEALTHY` set to 1; the `unreachable` record returning `EXIT_HEALTHY`), each failing two tests; a first exit-0 attempt that did not compile is recorded and not counted. AC3 names the five clauses R2 covers.
+- Current-tree verification: Evidence R2 table; `ISSUE.md` AC3 row.
+- Resolution reference: `docs(issues): [#2764] address review round 2 of PR 2889 in the spec and the evidence`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2889#discussion_r4589653468
+
+### F15 - Non-HTTP schemes pass as URLs
+
+- PR number: 2889
+- Source review ID: 5925054031
+- Reviewer finding ID: F12
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2889#discussion_r4589622087
+- Concern: `Url::parse` accepts any scheme, so `ftp://` or `mailto:` arguments failed later as `unreachable` with exit 1, unlike other unusable arguments (usage error, exit 2).
+- Solution: `parse_arguments` accepts only `http` and `https`; any other scheme is a `usage_error` with exit 2. A new test covers `ftp://` and `mailto:`.
+- Current-tree verification: The new test failed against the round-1 binary (exit 1, `builder error: URL scheme is not allowed`) and passes on the current tree; 11 tests pass under `cargo test` and nextest (evidence "Round 2 of PR 2889").
+- Resolution reference: `fix(health-check): [#2764] report a URL scheme other than http or https as a usage error`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2889#discussion_r4589653845
+
 ## Processing Log
 
 - 2026-11-16 17:32 UTC - Replied to F1 (reply created 17:32:05Z) after committing its fix and before this record existed: a late start of the audit.
@@ -221,6 +265,9 @@ Round 1, on the head that carries the commit `docs(issues): [#2764] record the e
 - 2026-11-16 17:50 UTC - Replied to F2 to F12 after committing their fixes (replies created from 17:50:24Z to 17:50:49Z). `validate-audit-record.py --pr-number 2889 --base torrust/develop` reported 12 rows, 0 failures.
 - 2026-11-16 17:51 UTC - Resolved the 12 threads (`resolveReviewThread` returned `isResolved: true` for each; the last at about 17:51:37Z). A GraphQL refresh found no unresolved thread and no thread whose last comment is not a reply from `josecelano-bot`.
 - 2026-11-16 17:51 UTC - Committed this record.
+- 2026-11-16 18:16 UTC - Round 2: normalized da2ce7 review 5925054031 (F13 to F15), committed the fixes, then replied (replies created from 18:16:08Z to 18:16:12Z). `validate-audit-record.py --pr-number 2889 --base torrust/develop` reported 15 rows, 0 failures.
+- 2026-11-16 18:16 UTC - Resolved the three round-2 threads (`isResolved: true` for each, the last at about 18:16:50Z). A GraphQL refresh found no unresolved thread and no thread whose last comment is not a reply from `josecelano-bot`.
+- 2026-11-16 18:16 UTC - Committed this record.
 
 ## Completion Rules
 
