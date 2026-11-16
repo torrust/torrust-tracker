@@ -1,6 +1,6 @@
 ---
 name: use-rest-api
-description: Use the Torrust Tracker REST API. Covers authentication, all endpoints (stats, metrics, torrents, auth keys, whitelist), and making announce/scrape requests to verify API behaviour. Triggers on "use API", "test API", "call REST API", "query API", "API endpoint", "curl tracker", "tracker client", "announce request", or "verify API".
+description: "Call the tracker REST API: authentication, stats, metrics, torrents, auth keys and whitelist. Use when querying or testing the API, for example with curl."
 metadata:
   author: torrust
   version: "1.0"

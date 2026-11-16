@@ -1,6 +1,6 @@
 ---
 name: use-tracker-client
-description: Use the Torrust Tracker Client CLI to make BitTorrent announce and scrape requests against UDP and HTTP trackers. Covers the unified `tracker_client` binary, all subcommands, options, and output formats. Triggers on "tracker client", "use tracker client", "announce request", "scrape request", "http announce", "udp announce", "tracker_client", "test tracker", or "verify tracker".
+description: Make BitTorrent announce and scrape requests to UDP and HTTP trackers with the tracker_client CLI. Use when testing a tracker with announce or scrape requests.
 metadata:
   author: torrust
   version: "1.0"

@@ -82,8 +82,8 @@ at a comment (see `manual-verification-evidence.md`, V0).
 | Testing | `manual-udp-download-completion-e2e` | 364 | 140 | 163 |  |
 | Testing | `public-trackers-for-testing` | 328 | 120 | 170 |  |
 | Testing | `write-unit-test` | 383 | 130 | 154 |  |
-| Using the tracker | `use-rest-api` | 333 | 120 |  |  |
-| Using the tracker | `use-tracker-client` | 381 | 130 |  |  |
+| Using the tracker | `use-rest-api` | 333 | 120 | 154 |  |
+| Using the tracker | `use-tracker-client` | 381 | 130 | 159 |  |
 | **Total** | 53 skills | **19489** | **6980** |  |  |
 
 ## Description Texts
@@ -377,9 +377,9 @@ at a comment (see `manual-verification-evidence.md`, V0).
 #### `use-rest-api`
 
 - Before (333): Use the Torrust Tracker REST API. Covers authentication, all endpoints (stats, metrics, torrents, auth keys, whitelist), and making announce/scrape requests to verify API behaviour. Triggers on "use API", "test API", "call REST API", "query API", "API endpoint", "curl tracker", "tracker client", "announce request", or "verify API".
-- After: not yet rewritten
+- After (154): Call the tracker REST API: authentication, stats, metrics, torrents, auth keys and whitelist. Use when querying or testing the API, for example with curl.
 
 #### `use-tracker-client`
 
 - Before (381): Use the Torrust Tracker Client CLI to make BitTorrent announce and scrape requests against UDP and HTTP trackers. Covers the unified `tracker_client` binary, all subcommands, options, and output formats. Triggers on "tracker client", "use tracker client", "announce request", "scrape request", "http announce", "udp announce", "tracker_client", "test tracker", or "verify tracker".
-- After: not yet rewritten
+- After (159): Make BitTorrent announce and scrape requests to UDP and HTTP trackers with the tracker_client CLI. Use when testing a tracker with announce or scrape requests.
