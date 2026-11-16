@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: closed
 priority: p3
 epic: 1488
 github-issue: 2846
-spec-path: docs/issues/open/2846-1488-si-27-deregister-stopped-services/ISSUE.md
+spec-path: docs/issues/closed/2846-1488-si-27-deregister-stopped-services/ISSUE.md
 branch: "2846-deregister-stopped-services"
 related-pr: null
-last-updated-utc: "2026-11-12 14:30"
+last-updated-utc: "2026-11-16 17:27"
 semantic-links:
   skill-links:
     - create-issue
@@ -26,14 +26,19 @@ semantic-links:
     - docs/issues/closed/2697-1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md
     - docs/issues/closed/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
+    - docs/adrs/20261116172628_keep_registar_registrations_for_the_process_lifetime.md
 ---
 
 <!-- skill-link: create-issue -->
 
 # Issue #2846 - Deregister Services from the Registar as They Stop (SI-27)
 
-> **EPIC position**: Roadmap row 24, sub-issue SI-27 of [EPIC #1488](../1488-overhaul-tracker-shutdown/ISSUE.md).
-> A follow-up of [SI-21](../../closed/2697-1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md).
+> **Decision (2026-11-16): no-go, closed as not planned.** Registrations stay until the process exits.
+> Reasons and the reopening trigger are in the
+> [registration lifetime ADR](../../../adrs/20261116172628_keep_registar_registrations_for_the_process_lifetime.md).
+>
+> **EPIC position**: Roadmap row 24, sub-issue SI-27 of [EPIC #1488](../../open/1488-overhaul-tracker-shutdown/ISSUE.md).
+> A follow-up of [SI-21](../2697-1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md).
 > Implementation order 3 of 4. Priority p3; must land before the first publish (#2583, see Dependencies).
 
 ## Goal
@@ -120,16 +125,16 @@ application-level test), plus the final maintainer-review pause.
 
 ## Implementation Plan
 
-Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
+Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `NOT PLANNED` (dropped by the T1 no-go).
 
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
-| T1 | TODO | Go/no-go and location decision; recorded in the spec after the maintainer answers. | Decision and reasons in the progress log. |
-| T2 | TODO | HTTP tracker: deregister after an orderly drain; tests for drained, timed out, and other services intact. | First vertical slice; design-review checkpoint. |
-| T3 | TODO | REST API, UDP tracker and health-check API, the same way. | Same tests per service. Design-review checkpoint. |
-| T4 | TODO | Application-level test: stop one component and check the registry lists the rest. | Uses the existing component test harness. Design-review checkpoint. |
-| T5 | TODO | Docs. | Shutdown-process docs and `Registar` notes. |
-| T6 | TODO | Verify and record evidence. | `manual-verification-evidence.md`. |
+| T1 | DONE | Go/no-go and location decision; recorded in the spec after the maintainer answers. | No-go (2026-11-16); reasons in the progress log and the registration lifetime ADR. |
+| T2 | NOT PLANNED | HTTP tracker: deregister after an orderly drain; tests for drained, timed out, and other services intact. | First vertical slice; design-review checkpoint. |
+| T3 | NOT PLANNED | REST API, UDP tracker and health-check API, the same way. | Same tests per service. Design-review checkpoint. |
+| T4 | NOT PLANNED | Application-level test: stop one component and check the registry lists the rest. | Uses the existing component test harness. Design-review checkpoint. |
+| T5 | NOT PLANNED | Docs. | Shutdown-process docs and `Registar` notes. |
+| T6 | NOT PLANNED | Verify and record evidence. | `manual-verification-evidence.md`. |
 
 ## Commit Points
 
@@ -151,23 +156,25 @@ Sign every commit with GPG.
 - [x] Folder-style spec drafted in `docs/issues/drafts/`, moved to `docs/issues/open/`
 - [x] Spec reviewed and approved by the maintainer (decisions of 2026-11-12, in chat)
 - [x] GitHub issue created and issue number added to this spec (#2846)
-- [ ] Spec-only PR merged into `develop` before implementation
-- [ ] Go/no-go and location decision recorded (T1)
-- [ ] Implementation completed
+- [x] Spec-only PR merged into `develop` before implementation
+- [x] Go/no-go and location decision recorded (T1): no-go
+- [ ] Implementation completed (not planned: no-go)
 - [ ] Design review after the first passing vertical slice recorded
 - [ ] Automatic verification completed (`linter all`, relevant tests, pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Spec moved from `docs/issues/open/` to `docs/issues/closed/` (the maintainer marks the GitHub issue as not planned)
 
 ### Progress Log
 
 - 2026-11-12 14:30 UTC - AI agent (Claude Sonnet 5.5) - Spec created from the SI-21 follow-up ("deregister services from the Registar as they shut down") on `torrust/develop` at `388faf59a`; recorded the maintainer's decisions of 2026-11-12 (opened as SI-27; lands before #2583) and the finding that the 503 short-circuit hides the stale entries during a normal shutdown, which is why T1 is a go/no-go decision.
+- 2026-11-16 17:27 UTC - AI agent (Claude Opus 5.5) - T1 investigated on `torrust/develop` at `b009b6425`: component tokens are cancelled only after shutdown is requested (`JobManager::request_shutdown`, `mark_finished`); `begin_shutdown` marks the tracker not ready first, so `/health_check` answers 503 "shutting down" with an empty list for the whole drain without reading the registry; outside shutdown a stale entry fails its live probe and is reported as failing; and the servers hold only a single-use `ServiceRegistrationForm`, so removing an entry needs a `Registar` handle in each server, the binding returned to the root supervisors, or a `torrust-server-lib` change. The maintainer asked whether a stopped service could look available while another one still drains; it cannot, for the two reasons above.
+- 2026-11-16 17:27 UTC - AI agent (Claude Opus 5.5) - Maintainer decision: **no-go**. Shutdown is short and bounded by `P`, the tracker is marked not ready before any service stops, shutdowns are rare (dedicated servers, no autoscaling), and BitTorrent clients tolerate a tracker that disappears. Recorded as a new root ADR ([registration lifetime ADR](../../../adrs/20261116172628_keep_registar_registrations_for_the_process_lifetime.md)) with the reopening trigger (restarting one service in a running process, which a stale entry would reject with `DuplicateBinding`; preferred fix then: a registration handle in `torrust-server-lib`). The SI-21 ADR consequence that pointed to a deregistration follow-up now links the new ADR. The SI-24 test environment keeps its `deregister` call (a test restart on a fixed port is that trigger); it is not changed. T2-T6 are not planned; no behavior change (only a comment in `src/container.rs` pointing to the ADR), no version bump and no manual evidence. Implementation completion review: nothing material to record beyond this log, so no `implementation-retrospective.md`. Spec moved to `docs/issues/closed/`; EPIC row 24 marked not planned.
 
 ## Acceptance Criteria
 
-- [ ] The go/no-go and location decision is recorded.
+- [x] The go/no-go and location decision is recorded (no-go; the remaining criteria are not planned).
 - [ ] After an orderly stop the registry no longer lists the service's binding, for each of the four services.
 - [ ] After a failed, timed-out or aborted stop the registration remains.
 - [ ] Other services' registrations are unaffected, including two instances of one service type.
@@ -204,7 +211,7 @@ None.
 
 | AC | Status | Evidence |
 | -- | ------ | -------- |
-| Decision recorded | TODO | T1 |
+| Decision recorded | DONE | T1, progress log, registration lifetime ADR |
 | Orderly stop deregisters, four services | TODO | Automatic checks, M2 |
 | Failure keeps the registration | TODO | Automatic checks, M3 |
 | Other registrations unaffected | TODO | Automatic checks |

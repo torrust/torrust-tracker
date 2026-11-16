@@ -6,7 +6,7 @@ epic: null
 github-issue: 1488
 spec-path: docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-16 09:00"
+last-updated-utc: "2026-11-16 17:27"
 semantic-links:
   skill-links:
     - create-issue
@@ -215,7 +215,7 @@ deterministic tests, and manual evidence.
 | 21       | #2697 | [Mark health check unhealthy during shutdown](../../closed/2697-1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md)         | Done       | Set readiness to not ready before root cancellation and component drain.                             |
 | 22       | #2844 | [Remove the unused public error variants](../../closed/2844-1488-si-25-remove-unused-error-variants/ISSUE.md) | Done | Follow-up of SI-19. Removed the shutdown error variants nothing constructs (`Error::Stop`, `StartupNotification`, `StartupNotificationDropped` of the HTTP and REST servers; three `UdpError` variants). Breaking change to public enums of unpublished crates, landed before the first publish (#2583); merged in PR #2858, no version bump. |
 | 23       | #2845 | [Consolidate the shutdown supervisors and migrate the last legacy job](../../closed/2845-1488-si-26-consolidate-shutdown-supervisor/ISSUE.md) | Done | Follow-up of SI-19 and SI-21. One shared token-aware supervisor (`token_aware_server.rs`) with the health-check join order serves the HTTP tracker, REST API and health check; `OwnedReceiveLoop` stays package-local; `udp_ban_cleanup` is a reserved component ordered before the health check; `register_legacy`, `LegacyJob` and the manager's root token are removed. Merged in PR #2870 on 2026-11-16; M1 to M4 are recorded, and M2 to M4 ran on the binary. |
-| 24       | #2846 | [Deregister stopped services from the Registar](../2846-1488-si-27-deregister-stopped-services/ISSUE.md) | Planned | Follow-up of SI-21. An orderly stop removes the service's registration (`Registar::deregister`); a failed stop keeps it. Starts with a go/no-go decision. Lands before #2583. |
+| 24       | #2846 | [Deregister stopped services from the Registar](../../closed/2846-1488-si-27-deregister-stopped-services/ISSUE.md) | Not planned | Follow-up of SI-21. No-go decided on 2026-11-16: registrations stay until the process exits, because the 503 readiness answer hides the registry during shutdown and a stale entry fails its live probe. Reasons and the reopening trigger are in the [registration lifetime ADR](../../../adrs/20261116172628_keep_registar_registrations_for_the_process_lifetime.md). |
 | 25       | #2847 | [Verify the hung-component abort on the real binary](../2847-1488-si-28-verify-hung-component-abort/ISSUE.md) | Planned | Follow-up of SI-21 and SI-20. Executable-boundary evidence that a never-finishing component is aborted at the process deadline with exit code 1. Evidence only; after SI-26. |
 | —        | SI-3  | [Combined standalone environment migration](discarded-drafts/si-3-fix-environment-stop/discarded-draft.md) | Superseded | Replaced by SI-16 and SI-17. Do not implement. Discarded draft, kept as evidence in `discarded-drafts/`. |
 | —        | SI-6  | [Concurrent supervisor outcomes](discarded-drafts/si-6-align-grace-periods/discarded-draft.md) | Superseded | Replaced by existing issue #1586. Do not implement separately. Discarded draft, kept as evidence in `discarded-drafts/`. |
@@ -229,7 +229,9 @@ spec for every pending item. They do not change the shutdown contract, which is 
 stays open until they are done or dropped. Recommended implementation order: SI-25 (#2844), SI-26
 (#2845), SI-27 (#2846), SI-28 (#2847); SI-28 follows SI-26 so its evidence covers the final supervisor.
 The maintainer decided on 2026-11-12 that SI-25, SI-26 and SI-27 land before the first publish of the
-workspace crates (#2583), which is blocked on this EPIC as a whole.
+workspace crates (#2583), which is blocked on this EPIC as a whole. On 2026-11-16 the maintainer
+dropped SI-27 after its go/no-go decision (no-go, recorded in the registration lifetime ADR), so it no
+longer gates #2583.
 
 The four specs were written in one combined spec PR, so their `branch:` frontmatter names the reserved
 implementation branch (`{issue}-{description}`), not the spec branch; the implementing PR uses that name.
