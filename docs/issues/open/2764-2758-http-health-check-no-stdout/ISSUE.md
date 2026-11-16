@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p2
 epic: 2758
 github-issue: 2764
 spec-path: docs/issues/open/2764-2758-http-health-check-no-stdout/ISSUE.md
 branch: "2764-http-health-check-no-stdout"
 related-pr: null
-last-updated-utc: "2026-11-09 12:12"
+last-updated-utc: "2026-11-16 16:59"
 semantic-links:
   skill-links:
     - create-issue
@@ -92,9 +92,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
-| T1 | TODO | Tests for exit codes and records against a local test server | Red tests. |
-| T2 | TODO | Rewrite `main` to the contract | Green tests; no `print_*` allow. |
-| T3 | TODO | Verify the container `HEALTHCHECK` | `docker inspect` shows `healthy`, then `unhealthy` after stopping the endpoint. |
+| T1 | DONE | Tests for exit codes and records against a local test server | Red tests: evidence R1. |
+| T2 | DONE | Rewrite `main` to the contract | Green tests: evidence G1; no `print_*` allow. |
+| T3 | DONE | Verify the container `HEALTHCHECK` | `docker inspect` shows `healthy`, then `unhealthy` after stopping the endpoint. |
 
 ## Commit Points
 
@@ -113,11 +113,11 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - [x] Folder-style spec drafted in `docs/issues/drafts/2758-http-health-check-no-stdout/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Spec-only PR merged into `develop` before implementation
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Committer verified spec progress is up to date before commit
@@ -129,18 +129,19 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-06 16:51 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the spec; GitHub issue #2764 created.
 - 2026-11-09 10:25 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the review rounds on PR 2771 and PR 2774 and fixed the earlier log stamps from the commit and issue creation times.
 - 2026-11-09 12:12 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the review of PR 2771 (da2ce7 findings F1 to F27 and Copilot's later comments): specs corrected from the code, reproductions recorded where a spec has a bug-fix section.
+- 2026-11-16 16:59 UTC - Claude Code (Claude Sonnet 5.5) - Implemented T1 to T3 on a branch rebased onto `torrust/develop` after the image-build job cap (PR 2854) merged. The tests ran red against the old binary, the binary now follows the contract, and the evidence (R1, R2, G1, V1 to V3) is recorded. The first image build failed because the image test stages could not find the binary through `CARGO_BIN_EXE_http_health_check`; the test now reads `NEXTEST_BIN_EXE_http_health_check` first, and the second build passed with 1883 tests. No `Containerfile` change was needed. `healthy` emits one stderr record (see Risks).
 
 ## Acceptance Criteria
 
-- [ ] AC1: stdout is empty in every case.
-- [ ] AC2: Every stderr line is one JSON object with a `kind`.
-- [ ] AC3: Exit codes are `0`, `1`, `2` as specified.
-- [ ] AC4: The container still reports `unhealthy` when the endpoint fails.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior or workflow changes
+- [x] AC1: stdout is empty in every case.
+- [x] AC2: Every stderr line is one JSON object with a `kind`.
+- [x] AC3: Exit codes are `0`, `1`, `2` as specified.
+- [x] AC4: The container still reports `unhealthy` when the endpoint fails.
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated when behavior or workflow changes (no document describes the tool's output; the ADR's classification table is out of scope for this issue)
 
 ## Verification Plan
 
@@ -156,9 +157,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Healthy and unhealthy | Run against a running tracker's `/health_check`, then a closed port | Exit `0` then `1`; stderr is NDJSON | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | Container health | Build the image, run it, stop the health API, wait for the interval | `docker inspect` reports `unhealthy` | TODO | `manual-verification-evidence.md` section V2 |
-| M3 | Usage error | `http_health_check` with no argument | Exit `2`, JSON record | TODO | `manual-verification-evidence.md` section V3 |
+| M1 | Healthy and unhealthy | Run against a running tracker's `/health_check`, then a closed port | Exit `0` then `1`; stderr is NDJSON | DONE | `manual-verification-evidence.md` section V1 |
+| M2 | Container health | Build the image, run it, stop the health API, wait for the interval | `docker inspect` reports `unhealthy` | DONE | `manual-verification-evidence.md` section V2 |
+| M3 | Usage error | `http_health_check` with no argument | Exit `2`, JSON record | DONE | `manual-verification-evidence.md` section V3 |
 
 Manual verification is mandatory even when automated tests pass. Record actual commands, output and the toolchain that produced each result in `manual-verification-evidence.md` (from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`).
 
@@ -166,18 +167,18 @@ Manual verification is mandatory even when automated tests pass. Record actual c
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1 | TODO |  |
-| AC2 | TODO |  |
-| AC3 | TODO |  |
-| AC4 | TODO |  |
+| AC1 | DONE | Evidence V1, V3 and the tests: stdout is 0 bytes in every case |
+| AC2 | DONE | Evidence V1, V3, V2; the test helper parses every stderr line as one JSON object with a `kind` |
+| AC3 | DONE | Evidence V1, V3 (`0`, `1`, `1`, `2`); the five tests; mutation check R2 |
+| AC4 | DONE | Evidence V2: `unhealthy` after the probe exited `1` (`unreachable`) |
 
 ## Risks and Trade-offs
 
-- Logging to stderr on every healthy probe is noisy in container logs. Mitigation: decide in the issue whether `healthy` emits a record; the contract does not require one.
+- Logging to stderr on every healthy probe is noisy in container logs. Decision: `healthy` emits one record. The `HEALTHCHECK` output is kept by Docker in `.State.Health.Log` (the last 5 probes), not in the container's logs, so the cost is small and the record shows the status (evidence V2).
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: not needed. One unplanned finding, recorded in the evidence (G1) and the progress log: the image test stages could not find the binary through `CARGO_BIN_EXE_*`, fixed in the test.
 - If needed, create `implementation-retrospective.md` from `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this directory; otherwise record in the progress log why none was needed.
 
 ## References
