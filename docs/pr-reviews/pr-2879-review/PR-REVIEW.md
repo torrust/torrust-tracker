@@ -42,7 +42,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-F1 to F3 come from the first da2ce7 review (APPROVED, three Nits, none blocking), on the head ending in `docs(pr-reviews): [#2867] record the deferred second da2ce7 review of PR 2868 as follow-ups`. F4 comes from the first Copilot review (COMMENTED), on the same head; Copilot called it F1, which collides with the audit's F1. F5 and F6 come from the second da2ce7 review (APPROVED, two Nits, none blocking), on the head ending in `docs(pr-reviews): [#2867] log the resolution of the first Copilot review of PR 2879`; da2ce7 called them F10 and F11.
+F1 to F3 come from the first da2ce7 review (APPROVED, three Nits, none blocking), on the head ending in `docs(pr-reviews): [#2867] record the deferred second da2ce7 review of PR 2868 as follow-ups`. F4 comes from the first Copilot review (COMMENTED), on the same head; Copilot called it F1, which collides with the audit's F1. F5 and F6 come from the second da2ce7 review (APPROVED, two Nits, none blocking), on the head ending in `docs(pr-reviews): [#2867] log the resolution of the first Copilot review of PR 2879`; da2ce7 called them F10 and F11. F7 to F9 come from the third da2ce7 review (APPROVED, one Minor, one Nit and one Suggestion, none blocking), on the head `Merge torrust/torrust-tracker develop into 2867-udp-health-check-panics-on-invalid-response`; da2ce7 called them F12 to F14.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -52,6 +52,9 @@ F1 to F3 come from the first da2ce7 review (APPROVED, three Nits, none blocking)
 | F4 | review-finding:pr-2879-f4 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | F5 | review-finding:pr-2879-f5 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-2879-f6 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-2879-f7 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-2879-f8 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F9 | review-finding:pr-2879-f9 | Human | Suggestion | maintainability | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -133,11 +136,51 @@ F1 to F3 come from the first da2ce7 review (APPROVED, three Nits, none blocking)
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2879#discussion_r4584685917>
 
+### F7 - The merged `develop` removed the stopped-UDP test that V4, AC4 and the description cite
+
+- PR number: 2879
+- Source review ID: 5921882653
+- Reviewer finding ID: F12
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2879#discussion_r4587180897>
+- Concern: The #2393 rewrite merged with `develop` replaced `it_should_return_error_when_udp_service_was_stopped_after_registration` with `it_should_return_error_when_the_registered_udp_service_never_answers_the_check`, but V3, V4 step 2, the AC4 row and the description still named the removed test as maintained, so its filter now matches no test.
+- Solution: A new V4 subsection names the replacement as AC4's coverage from the merge on, with a new run log (`evidence/never-answering-udp-run.log`). V3 and V4 step 2 speak of the removed test in the past tense, the AC4 row names the replacement, and the description's Validation bullet was updated.
+- Current-tree verification: `grep -n "never_answers_the_check" docs/issues/open/2867-udp-health-check-panics-on-invalid-response/*.md` prints the V3 conclusion, the V4 subsection and the AC4 row; the new log shows `1 passed`.
+- Resolution reference: docs(issues): [#2867] record the replacement stopped-UDP test as AC4 coverage after the develop merge
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2879#discussion_r4587243057>
+
+### F8 - The line references moved again with the merge
+
+- PR number: 2879
+- Source review ID: 5921882653
+- Reviewer finding ID: F13
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2879#discussion_r4587180913>
+- Concern: The merge added shared helpers above the tests, so T3's red-run line (520) and T5's `panic!` line (670), given for the head, no longer held there.
+- Solution: Both numbers are tied to the commit where they hold (the T3 fixture-change commit) instead of to the head.
+- Current-tree verification: `grep -n "520\|line 670" docs/issues/open/2867-udp-health-check-panics-on-invalid-response/manual-verification-evidence.md` prints both, each next to its commit.
+- Resolution reference: docs(issues): [#2867] record the replacement stopped-UDP test as AC4 coverage after the develop merge
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2879#discussion_r4587243504>
+
+### F9 - T3 could register through the shared helper the merge brings in
+
+- PR number: 2879
+- Source review ID: 5921882653
+- Reviewer finding ID: F14
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2879#discussion_r4587180924>
+- Concern: T3's helper repeated `registar_with_one_service`, and T3's and T5's `Started::new` calls repeated `start_health_check_api`, both added by the #2393 work.
+- Solution: T3 registers through `registar_with_one_service` and starts the API with `start_health_check_api`; its helper only binds the peer (`bind_a_junk_answering_udp_peer`). T5 starts its API with `start_health_check_api` and keeps `register` for its second service. Unused imports were removed.
+- Current-tree verification: `cargo clippy -p torrust-tracker-axum-health-check-api-server --tests -- -D warnings` passes; `cargo test -p torrust-tracker-axum-health-check-api-server --test integration` reports 13 passed. A mutate-then-restore run with the `check` fix reverted failed T3 at its cause assertion (`contract.rs:541`); its log was not stored.
+- Resolution reference: test(axum-health-check-api-server): [#2867] register T3 and start T5's API through the shared helpers
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2879#discussion_r4587243893>
+
 ## Processing Log
 
 - 2026-11-16 10:21 UTC - Started audit. da2ce7 reviewed the head ending in `docs(pr-reviews): [#2867] record the deferred second da2ce7 review of PR 2868 as follow-ups` at 10:18:14Z (APPROVED, three inline threads, all Nits, none blocking), recorded as F1 to F3. Fixed each in its own commit and replied on all three threads before the push.
 - 2026-11-16 10:28 UTC - Copilot reviewed the head ending in `docs(pr-reviews): [#2867] record the deferred second da2ce7 review of PR 2868 as follow-ups` at 10:20:41Z (COMMENTED, one inline thread), recorded as F4. Fixed the fixture in its own commit, repeated T3's red and green runs in a docs commit, and replied before the push.
 - 2026-11-16 10:40 UTC - da2ce7 reviewed the head ending in `docs(pr-reviews): [#2867] log the resolution of the first Copilot review of PR 2879` at 10:39:03Z (APPROVED, two inline threads, both Nits), recorded as F5 and F6. F5 was fixed in its own commit; F6 is fixed by this audit commit. Replied on both threads before the push.
+- 2026-11-16 14:50 UTC - da2ce7 reviewed the head `Merge torrust/torrust-tracker develop into 2867-udp-health-check-panics-on-invalid-response` at 14:44:35Z (APPROVED, three inline threads: one Minor, one Nit, one Suggestion), recorded as F7 to F9. F9 was fixed in a test commit and F7 and F8 in one docs commit; the description's Validation bullet was updated. Replied on all three threads before the push.
 
 ## Completion Rules
 
