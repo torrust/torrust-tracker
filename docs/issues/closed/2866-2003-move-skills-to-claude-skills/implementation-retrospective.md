@@ -18,7 +18,7 @@ verification.
 
 ## Outcome
 
-PR #2886 moved the 53 skills from `.github/skills/dev/<area>/<name>/` to a flat
+PR #2886 moved the 53 skills from `.github/skills/` (mostly `dev/<area>/<name>/`) to a flat
 `.claude/skills/<name>/`, left a redirect stub at each old `SKILL.md` path, added the index
 `.claude/skills/README.md`, and added `frontmatter-validator --skill-layout`, which runs on every
 commit and in the Docs Lint workflow. In a fresh clone of the branch, Claude Code listed the 53
