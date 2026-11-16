@@ -271,7 +271,7 @@ with `F13`, recorded as `C13`.
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2870#discussion_r4583289425
 - Concern: C11's Concern named the PR-branch commit id it set out to remove, so the commit-id check still printed it, and C11's verification and the F11 reply were wrong at that head.
 - Solution: The maintainer merged PR #2870 as is; the close-out PR describes that commit by its subject in C11. It merged into `develop` on 2026-11-16 at 13:39 UTC (`Merge torrust/torrust-tracker#2880`).
-- Current-tree verification: on `develop`, the `open-pull-request` skill's commit-id check prints no PR-branch commit id for this record.
+- Current-tree verification: at the head of PR #2882, which marks C13 fixed, the `open-pull-request` skill's commit-id check scans this record and prints nothing; the record's only commit-shaped token is a `develop` commit.
 - Resolution reference: docs(issues): close out #2845 with the M3 and M4 evidence
 - Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2880
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2870#discussion_r4586484820
