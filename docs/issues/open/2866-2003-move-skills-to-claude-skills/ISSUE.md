@@ -9,7 +9,7 @@ github-issue: 2866
 spec-path: docs/issues/open/2866-2003-move-skills-to-claude-skills/ISSUE.md
 branch: "2866-move-skills-to-claude-skills-spec"
 related-pr: null
-last-updated-utc: "2026-11-15 21:32"
+last-updated-utc: "2026-11-16 06:05"
 semantic-links:
   skill-links:
     - create-issue
@@ -122,9 +122,16 @@ kept, and the descriptions of the least-invoked skills are dropped first; each e
 
 The two description rows measure the YAML-parsed `description` value of each `SKILL.md` at
 `abd7a10ff`, the text Claude Code reads, in Unicode characters (Python `yaml.safe_load` of the
-frontmatter, then `len`). Counting the raw frontmatter text instead, with its quotes and escape
-characters, gives about 19,950 characters, a mean of 376 and 43 of 53 at 300 or more. The first
-draft of this spec said 37 of 53; that count was wrong.
+frontmatter, then `len`). Counting the raw frontmatter text instead gives about 19,950
+characters, a mean of 376 and 43 of 53 at 300 or more. The first draft of this spec said 37 of
+53; that count was wrong.
+
+Nearly all of the gap between the two counts is one cut description, not quoting: the quotes
+around three descriptions add 6 characters. The `write-markdown-docs` description is a plain
+YAML scalar. It contains `#NUMBER` after a space, and YAML reads a `#` after a space as the
+start of a comment. A YAML parser therefore keeps only its first 123 of 578 characters, none of
+the trigger phrases. No other description is cut. T1's follow-up issue fixes it, for example by quoting the
+value.
 
 The listing already exceeds the budget on a 1M window. On a 200k window the budget is about 2k
 tokens, and most descriptions would be dropped. Descriptions need shortening; that is the
@@ -305,7 +312,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                     | Notes / Expected Output                                                                                                                                                                                                              |
 | --- | ------ | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| T1  | TODO   | Create the description follow-up issue   | A new EPIC #2003 sub-issue to shorten and retune the 53 descriptions, with the measurements above. Created before the implementation PR opens, so the PR links it.                                                                     |
+| T1  | TODO   | Create the description follow-up issue   | A new EPIC #2003 sub-issue to shorten and retune the 53 descriptions, with the measurements above, and to fix the cut `write-markdown-docs` description. Created before the implementation PR opens, so the PR links it.                                                                     |
 | T2  | TODO   | Placement rule, proven red               | The regression test: the placement rule of [Validator rules](#validator-rules-after-the-move) with its unit tests, not yet wired into the hook. Its run against the tree before the move is recorded red in `manual-verification-evidence.md`. |
 | T3  | TODO   | Move the skills and fix every live path  | `git mv` of all 71 files; relative links inside moved skills; depth-dependent paths in moved scripts (`validate-skill-links.sh`); tooling paths; every live reference by the classification rule. The commit passes `linter all` and the tests on its own. Git shows 71 renames.                           |
 | T4  | TODO   | Add the redirect stubs                   | 53 stubs plus `.github/skills/README.md`, which says the folder only holds redirects and inventories the 53 original paths.                                                                                                                                                       |
