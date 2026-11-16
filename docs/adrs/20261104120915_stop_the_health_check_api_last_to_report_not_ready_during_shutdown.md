@@ -65,8 +65,10 @@ no signal that the instance is draining.
 
 ## Consequences
 
-- During a normal shutdown the health check API outlives the other servers, so its list of services
-  can still show ones that already stopped. `Registar::deregister` can remove them in a follow-up.
+- During a normal shutdown the health check API outlives the other servers, so the registry still
+  holds services that already stopped; the `503` answer never lists them. SI-27 (#2846) decided not to
+  deregister them (amended 2026-11-16, see the
+  [registration lifetime ADR](20261116172628_keep_registar_registrations_for_the_process_lifetime.md)).
 - Every 503 answer is logged by the health check API at error level, as any server error response is.
 - `torrust-tracker-primitives` gains a public type (3.1.0) and the health check API package a changed
   start signature (0.2.0), under the independent-versioning decision.
