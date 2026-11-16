@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p2
 epic: 1347
 github-issue: 2876
 spec-path: docs/issues/open/2876-1347-peer-id-test-helper/ISSUE.md
-branch: "2876-peer-id-test-helper-spec"
+branch: "2876-peer-id-test-helper"
 related-pr: null
-last-updated-utc: "2026-11-16 09:41"
+last-updated-utc: "2026-11-16 17:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -82,7 +82,9 @@ test data in a production API, with ids no tracker ever receives.
 ### Caller inventory (`develop` at `abd7a10ff`, 2026-11-15)
 
 Searched with `grep -rn --include=*.rs` over `packages/`, `src/` and `tests/`, then checked by
-compiling (below).
+compiling (below). Re-run at implementation start (T1) on `develop` at `c8b1477ad` (2026-11-16):
+every table below is unchanged, and the compile proof again exited 0 with no warnings
+(`manual-verification-evidence.md`, V1).
 
 **`peer::Id::new`**: three calls, all in the integration tests of one package, which has
 `publish = false`.
@@ -181,6 +183,18 @@ by project conventions.
 ## Open Design Decisions (for the maintainer)
 
 Each question has a recommendation. Nothing is implemented until the maintainer answers them.
+
+**Answers (the maintainer, in chat, 2026-11-16).** Every recommendation was accepted:
+
+| Q | Decision |
+| --- | --- |
+| Q1 | (a) The helper lives in `primitives`, in `peer::fixture` next to `PeerBuilder`. |
+| Q2 | Yes. `peer::fixture` moves behind a `testing` feature of `primitives`. |
+| Q3 | (a) Remove `Id::new`, guarded by a `compile_fail` doctest. |
+| Q4 | (b) The helper takes a `u32`; the `-1` sentinel becomes a named constant outside the made range, and the `0..408` loops iterate over `u32` and convert only where an `i32` is needed. |
+| Q5 | Gate `impl Default for Peer` and `impl Default for Id` with the module. |
+| Q6 | Yes, the three fixture ids become realistic (built with the helper); literals in other packages stay out of scope. |
+| Q7 | Amend the test-support ADR. |
 
 **Q1. Where does the realistic-id helper live?**
 
@@ -323,16 +337,16 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
-| T0  | TODO   | Get the maintainer's answers to Q1-Q7 | Answers recorded in this spec; later tasks adjusted. |
-| T1  | TODO   | Re-run the caller inventory and the compile proof | Tables above updated if `develop` moved; evidence in `manual-verification-evidence.md`. |
-| T2  | TODO   | Add the realistic-id helper with unit tests | In the Q1 location, with the Q4 format; design-review checkpoint after the first passing test. |
-| T3  | TODO   | Move the `torrent-repository-benchmarking` callers to the helper | Its tests pass; ids are distinct. |
-| T4  | TODO   | Remove or deprecate `Id::new` (Q3) | `compile_fail` doctest if removed. |
-| T5  | TODO   | Gate `peer::fixture` (and the `Default` impls, Q5) behind `testing` (Q2) | Feature in `primitives/Cargo.toml` with the semver comment of ADR rule A.6, self dev-dependency, consumer `[dev-dependencies]`; `cargo machete --with-metadata` clean. |
-| T6  | TODO   | Make the fixture's ids realistic (Q6) | Assertions on the old bytes listed first, then updated. |
-| T7  | TODO   | Tests or a no-test decision for every remaining fixture line | Issue-local `coverage-evidence.md` (see Coverage Evidence) shows no line owned by F5 left uncovered. |
-| T8  | TODO   | Record the decision (Q7) | ADR amendment, or a note in this spec. |
-| T9  | TODO   | Final verification and acceptance review | `linter all`, tests, manual scenarios, AC table filled in. |
+| T0  | DONE   | Get the maintainer's answers to Q1-Q7 | Answers recorded in this spec; later tasks adjusted. |
+| T1  | DONE   | Re-run the caller inventory and the compile proof | Tables above updated if `develop` moved; evidence in `manual-verification-evidence.md`. |
+| T2  | DONE   | Add the realistic-id helper with unit tests | In the Q1 location, with the Q4 format; design-review checkpoint after the first passing test. |
+| T3  | DONE   | Move the `torrent-repository-benchmarking` callers to the helper | Its tests pass; ids are distinct. |
+| T4  | DONE   | Remove or deprecate `Id::new` (Q3) | `compile_fail` doctest if removed. |
+| T5  | DONE   | Gate `peer::fixture` (and the `Default` impls, Q5) behind `testing` (Q2) | Feature in `primitives/Cargo.toml` with the semver comment of ADR rule A.6, self dev-dependency, consumer `[dev-dependencies]`; `cargo machete --with-metadata` clean. |
+| T6  | DONE   | Make the fixture's ids realistic (Q6) | Assertions on the old bytes listed first, then updated. |
+| T7  | DONE   | Tests or a no-test decision for every remaining fixture line | Issue-local `coverage-evidence.md` (see Coverage Evidence) shows no line owned by F5 left uncovered. |
+| T8  | DONE   | Record the decision (Q7) | ADR amendment, or a note in this spec. |
+| T9  | DONE   | Final verification and acceptance review | `linter all`, tests, manual scenarios, AC table filled in. |
 
 ## Commit Points
 
@@ -368,17 +382,17 @@ with the narrow affected scope, and sign every commit with GPG.
 
 - [x] Folder-style spec drafted in `docs/issues/drafts/peer-id-test-helper/ISSUE.md`
 - [x] Draft spec reviewed and merged through #2865 (filing approved by the maintainer in chat, 2026-11-16)
-- [ ] Open design questions Q1-Q7 answered by the maintainer (before T0)
+- [x] Open design questions Q1-Q7 answered by the maintainer (before T0)
 - [x] GitHub issue created (#2876) and issue number added to this spec
-- [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -413,28 +427,76 @@ with the narrow affected scope, and sign every commit with GPG.
   two re-raises): `branch` is now the `-spec` branch, the parent EPIC line is under the title, the
   approval checkpoint is split from the Q1-Q7 answers, and the F5 owner cells of EPIC row 11 and the
   closed #2824 spec point at #2876.
+- 2026-11-16 15:57 UTC - Claude Code (Opus 5.5) - The spec-only PR #2878 merged and the maintainer
+  answered Q1-Q7 in chat, accepting every recommendation (Q4 (b): `u32` with a named sentinel).
+  Answers recorded under Open Design Decisions; status `in-progress` on branch
+  `2876-peer-id-test-helper`. T0 done.
+- 2026-11-16 15:59 UTC - Claude Code (Opus 5.5) - T1 on `develop` at `c8b1477ad`: the caller
+  inventory is unchanged and the compile proof exited 0 with no warnings (V1); a scratch test
+  reproduced the finding, every fixture and `Id::new` id gives `get_client_name() == None` (V0); the
+  coverage baseline is 1,075 / 1,143 lines, with the 68 uncovered lines all in `peer.rs`
+  (`coverage-evidence.md`).
+- 2026-11-16 16:05 UTC - Claude Code (Opus 5.5) - T2: `peer::fixture::qbittorrent_peer_id(u32) -> Id`
+  (`const fn`, `-qB4650-` + 12 zero-padded decimal digits) with three unit tests, red first, each
+  guarded by a mutation; the maintainer approved its name, signature and format at the design-review
+  checkpoint (`test-plans/qbittorrent-peer-id.md`).
+- 2026-11-16 16:07 UTC - Claude Code (Opus 5.5) - T3: the `torrent-repository-benchmarking`
+  tests use `qbittorrent_peer_id`; `-1` is the named `OTHER_PEER` (1000) and the `0..408` loops
+  iterate over `u32`. Same tests pass (17 and 1,468); with `OTHER_PEER` set to a made number, the
+  cutoff test fails (`test-plans/qbittorrent-peer-id.md`, Caller Migration).
+- 2026-11-16 16:09 UTC - Claude Code (Opus 5.5) - T4: `Id::new` removed. A `compile_fail,E0599`
+  doctest on `peer::Id`, with a companion that builds an id from 20 bytes, fails when `Id::new` is
+  put back (stable and nightly). The break adds to the 4.0.0 that `primitives` already owes (#2583).
+- 2026-11-16 16:18 UTC - Claude Code (Opus 5.5) - T5: `peer::fixture` and the `Default` impls are
+  behind the new `testing` feature of `primitives` (self dev-dependency, rule A.6 comment). Built
+  member by member, eight packages needed a `[dev-dependencies]` entry: the six of the inventory plus
+  `http-core` and the root crate (Q5). Machete, packaging, M2 and `cargo test --workspace` (4,087
+  passed) are green (`test-plans/qbittorrent-peer-id.md`, `testing` Feature).
+- 2026-11-16 16:22 UTC - Claude Code (Opus 5.5) - T6: the fixture's three ids are
+  `qbittorrent_peer_id(0)`, `(1)` and `(2)`. No assertion depended on the old bytes: with the ids
+  changed, `cargo test --workspace` still passed 4,087 tests. M3 (V3): every fixture id names
+  qBittorrent.
+- 2026-11-16 16:24 UTC - Claude Code (Opus 5.5) - T7: 14 fixture tests (the two `Default` impls and
+  every `PeerBuilder` setter), each setter guarded by a mutation. `primitives` is at 1,270 / 1,273
+  lines; the 3 uncovered lines are #2824's dead `Display` branch and two test-only lines
+  (`coverage-evidence.md`).
+- 2026-11-16 16:26 UTC - Claude Code (Opus 5.5) - T8: the test-support ADR is amended (Q7): rule
+  D's reasoning covers shared fixtures, and the ownership map has a row for `peer::fixture`, owned by
+  `primitives` and reached through its `testing` feature.
+- 2026-11-16 16:29 UTC - Claude Code (Opus 5.5) - T9: `linter all`, M1 and M2 on the final code,
+  `cargo machete --with-metadata`, `cargo package --workspace --no-verify` and
+  `cargo test --workspace` (4,101 passed) are green; final coverage 1,274 / 1,277 lines. Acceptance
+  criteria filled in; retrospective recorded. Ready for the pull request.
+- 2026-11-16 16:52 UTC - Claude Code (Opus 5.5) - Review round 1 of PR #2888 (da2ce7, approved, F1
+  Nit and F2 Suggestion): the test plan records why the short tests have no AAA markers, and the ADR
+  amendment notes when machete flags the self dev-dependency (`docs/pr-reviews/pr-2888-review/`).
+- 2026-11-16 17:30 UTC - Claude Code (Opus 5.5) - Review round 2 of PR #2888 (da2ce7, approved, F3
+  and F4 Nits): the test plan's statement count is corrected (one to four), and the audit's reply time.
+- 2026-11-16 17:55 UTC - Claude Code (Opus 5.5) - Review round 3 of PR #2888 (da2ce7, approved, F5
+  Minor): the audit's round-1 log entry is restored and the F4 time correction is appended as a new
+  entry, because the log is append-only.
 
 ## Acceptance Criteria
 
-- [ ] AC1: The caller inventory and the compile proof are re-run at implementation start and at the
+- [x] AC1: The caller inventory and the compile proof are re-run at implementation start and at the
   end, and show that no library or binary target uses `Id::new` or the fixture.
-- [ ] AC2: `Id::new` is no longer part of the unconditional public API of `primitives`, as decided
+- [x] AC2: `Id::new` is no longer part of the unconditional public API of `primitives`, as decided
   in Q3.
-- [ ] AC3: A test helper builds peer ids that the client registry recognizes
+- [x] AC3: A test helper builds peer ids that the client registry recognizes
   (`get_client_name()` is `Some`), gives distinct ids for distinct inputs, and has unit tests.
-- [ ] AC4: The `torrent-repository-benchmarking` tests use the helper and pass.
-- [ ] AC5: The Q2 and Q5 decisions are applied: either `cargo check -p torrust-tracker-primitives`
+- [x] AC4: The `torrent-repository-benchmarking` tests use the helper and pass.
+- [x] AC5: The Q2 and Q5 decisions are applied: either `cargo check -p torrust-tracker-primitives`
   without features compiles no fixture code and every consumer enables `testing` only from
   `[dev-dependencies]`, or the spec records why the fixture stays unconditional.
-- [ ] AC6: Every line of the helper and of the fixture that remains is covered by a unit test or has
+- [x] AC6: Every line of the helper and of the fixture that remains is covered by a unit test or has
   a recorded no-test decision; issue-local `coverage-evidence.md` shows no uncovered line owned by
   F5.
-- [ ] AC7: The decision is recorded as Q7 says.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior/workflow changes
+- [x] AC7: The decision is recorded as Q7 says.
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated when behavior/workflow changes
 
 ## Verification Plan
 
@@ -455,9 +517,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1  | Production builds need no test support | Before the change: the throwaway gate and `cargo check --workspace --lib --bins`. After: the same command on the final code, no throwaway change. | Exit code 0 both times | TODO | `manual-verification-evidence.md` section V1 |
-| M2  | The release tracker carries no `testing` feature of `primitives` (if Q2 is yes) | `cargo run -p shipped-features-check -- --package torrust-tracker`, and as the readable view `cargo tree -p torrust-tracker -e normal,build,features -i torrust-tracker-primitives` | The check exits 0; the tree shows no `testing` feature of `primitives` | TODO | `manual-verification-evidence.md` section V2 |
-| M3  | Realistic ids | Print a few helper ids and their `get_client_name()` in a scratch test; compare with the old fixture ids | New ids name a client; old ones give `None` | TODO | `manual-verification-evidence.md` section V3 |
+| M1  | Production builds need no test support | Before the change: the throwaway gate and `cargo check --workspace --lib --bins`. After: the same command on the final code, no throwaway change. | Exit code 0 both times | DONE | `manual-verification-evidence.md` section V1 |
+| M2  | The release tracker carries no `testing` feature of `primitives` (if Q2 is yes) | `cargo run -p shipped-features-check -- --package torrust-tracker`, and as the readable view `cargo tree -p torrust-tracker -e normal,build,features -i torrust-tracker-primitives` | The check exits 0; the tree shows no `testing` feature of `primitives` | DONE | `manual-verification-evidence.md` section V2 |
+| M3  | Realistic ids | Print a few helper ids and their `get_client_name()` in a scratch test; compare with the old fixture ids | New ids name a client; old ones give `None` | DONE | `manual-verification-evidence.md` section V3 |
 
 Notes:
 
@@ -491,13 +553,13 @@ commands and output.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | TODO | |
-| AC2   | TODO | |
-| AC3   | TODO | |
-| AC4   | TODO | |
-| AC5   | TODO | |
-| AC6   | TODO | |
-| AC7   | TODO | |
+| AC1   | DONE | V1 (baseline at `c8b1477ad` and final run in T9): `cargo check --workspace --lib --bins` exit 0, no warnings; the T1 inventory is unchanged and, at the end, `peer::Id::new` has no caller (`grep`, T3) and no longer exists (T4). |
+| AC2   | DONE | Removed (Q3 (a)); the `compile_fail,E0599` doctest on `peer::Id` fails when it is put back (test plan, T4). |
+| AC3   | DONE | `peer::fixture::qbittorrent_peer_id`; three unit tests (exact bytes, client name `Some("qBittorrent")` for any `u32`, distinct ids), each guarded by a mutation (test plan, T2). |
+| AC4   | DONE | Its builders and the scrape-limit test use the helper; 17 and 1,468 tests pass; a colliding `OTHER_PEER` fails the cutoff test (test plan, T3). |
+| AC5   | DONE | `cargo check -p torrust-tracker-primitives` (no features) exit 0; eight consumers enable `testing` only from `[dev-dependencies]`; M2 (V2) exit 0; packaged manifest has no self dev-dependency (test plan, T5). |
+| AC6   | DONE | `coverage-evidence.md`: 1,274 / 1,277 lines; the 3 uncovered lines are #2824's dead `Display` branch and two test-only lines with recorded no-test decisions. |
+| AC7   | DONE | ADR amendment of 2026-11-16 (rule D's reasoning, ownership-map row for `peer::fixture`). |
 
 ## Risks and Trade-offs
 
@@ -515,7 +577,7 @@ After implementation, compare the result with this specification. Record
 invalidated assumptions, material design changes, unexpected validation
 findings, and reusable lessons.
 
-- Retrospective: `Not yet assessed`
+- Retrospective: [`implementation-retrospective.md`](implementation-retrospective.md) (the workspace build hid missing consumer entries; machete flagged the self dev-dependency, unlike the ADR's O1c note; no assertion depended on the fixture's id bytes)
 - If needed, create `implementation-retrospective.md` from
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this directory.
 - If no retrospective is needed, add a concise progress-log entry explaining

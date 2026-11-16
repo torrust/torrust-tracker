@@ -14,7 +14,7 @@ use torrust_tracker_torrent_repository_benchmarking::repository::rw_lock_tokio::
 use torrust_tracker_torrent_repository_benchmarking::repository::skip_map_mutex_std::CrossbeamSkipList;
 
 use crate::common::repo::Repo;
-use crate::common::torrent_peer_builder::{a_completed_peer, a_started_peer};
+use crate::common::torrent_peer_builder::{OTHER_PEER, a_completed_peer, a_started_peer};
 
 #[fixture]
 fn standard() -> Repo {
@@ -135,10 +135,11 @@ fn three() -> Entries {
 fn many_out_of_order() -> Entries {
     let mut entries: HashSet<(InfoHash, EntrySingle)> = HashSet::default();
 
-    for i in 0..408 {
+    for i in 0..408_u32 {
         let mut entry = EntrySingle::default();
         entry.upsert_peer(&a_started_peer(i));
 
+        let i = i32::try_from(i).expect("0..408 fits in an i32");
         entries.insert((InfoHash::from(&i), entry));
     }
 
@@ -150,10 +151,11 @@ fn many_out_of_order() -> Entries {
 fn many_hashed_in_order() -> Entries {
     let mut entries: BTreeMap<InfoHash, EntrySingle> = BTreeMap::default();
 
-    for i in 0..408 {
+    for i in 0..408_u32 {
         let mut entry = EntrySingle::default();
         entry.upsert_peer(&a_started_peer(i));
 
+        let i = i32::try_from(i).expect("0..408 fits in an i32");
         let hash: &mut DefaultHasher = &mut DefaultHasher::default();
         hash.write_i32(i);
 
@@ -545,7 +547,7 @@ async fn it_should_remove_inactive_peers(
         let hash = &mut DefaultHasher::default();
         hash.write_u8(255);
         info_hash = InfoHash::from(&hash.clone());
-        peer = a_completed_peer(-1);
+        peer = a_completed_peer(OTHER_PEER);
     }
 
     // Set the last updated time of the peer to be 121 seconds ago.
