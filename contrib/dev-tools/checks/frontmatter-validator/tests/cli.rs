@@ -507,6 +507,54 @@ fn it_should_read_the_stub_inventory_from_the_index_with_skill_layout() {
     );
 }
 
+#[test]
+fn it_should_check_the_description_of_each_skill_in_the_index_only_with_skill_descriptions() {
+    // Arrange: a staged skill whose description YAML cuts at a comment, a staged skill whose
+    // description is whole, a skill that is not staged, and a document that is no skill.
+    let repository = Repository::new();
+    let cut = "---\nname: cut\ndescription: Writes Markdown, avoiding the #NUMBER pattern.\n---\n";
+    let whole = "---\nname: whole\ndescription: \"Writes Markdown, avoiding the #NUMBER pattern.\"\n---\n";
+    repository.write(".claude/skills/cut/SKILL.md", cut);
+    repository.write(".claude/skills/whole/SKILL.md", whole);
+    repository.write(".claude/skills/untracked/SKILL.md", cut);
+    repository.write("docs/notes.md", cut);
+    repository.stage(".claude/skills/cut/SKILL.md");
+    repository.stage(".claude/skills/whole/SKILL.md");
+    repository.stage("docs/notes.md");
+
+    // Act
+    let outcome = repository.validate(&["--skill-descriptions"]);
+
+    // Assert: only the staged skill with the cut description is reported.
+    assert_eq!(outcome.exit_code, 1, "records: {:?}", outcome.records);
+    assert_eq!(outcome.paths(), [".claude/skills/cut/SKILL.md"]);
+    assert_eq!(outcome.only_record()["category"], "skill-description-cut-by-comment");
+}
+
+#[test]
+fn it_should_read_the_skill_description_from_the_index_with_skill_descriptions() {
+    // Arrange: the staged description is whole; the working-tree copy is cut at a comment.
+    let repository = Repository::new();
+    let skill = ".claude/skills/example/SKILL.md";
+    repository.write(
+        skill,
+        "---\nname: example\ndescription: \"Avoids the #NUMBER pattern.\"\n---\n",
+    );
+    repository.stage(skill);
+    repository.write(skill, "---\nname: example\ndescription: Avoids the #NUMBER pattern.\n---\n");
+
+    // Act
+    let outcome = repository.validate(&["--skill-descriptions"]);
+
+    // Assert
+    assert_eq!(
+        (outcome.exit_code, outcome.records.len()),
+        (0, 0),
+        "records: {:?}",
+        outcome.records
+    );
+}
+
 #[rstest]
 #[case::staged_invalid_working_copy_fixed(WRONG_SCALAR_ISSUE, VALID_ISSUE, 1)]
 #[case::staged_valid_working_copy_broken(VALID_ISSUE, WRONG_SCALAR_ISSUE, 0)]

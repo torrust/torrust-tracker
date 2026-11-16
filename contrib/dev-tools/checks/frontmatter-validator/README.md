@@ -27,6 +27,9 @@ cargo run --package frontmatter-validator --bin frontmatter-validator -- --all
 
 # The repository-wide skill layout, over the index
 cargo run --package frontmatter-validator --bin frontmatter-validator -- --skill-layout
+
+# The description of every skill, over the index
+cargo run --package frontmatter-validator --bin frontmatter-validator -- --skill-descriptions
 ```
 
 Output follows the `no-stdout-result` class of the
@@ -55,6 +58,19 @@ skills moved there from `.github/skills/` in issue #2866. Each finding is an err
 - `skill-name-mismatch`: a skill's frontmatter `name` is not its folder name;
 - `skill-index-mismatch`: the table rows of `.claude/skills/README.md` do not list every skill
   folder exactly once, or list a skill that does not exist.
+
+`--skill-descriptions` checks the `description` of every `.claude/skills/<name>/SKILL.md` in the
+git index. Claude Code loads every skill's name and description into every session, within a
+budget of 1% of the context window (issue #2873). Each finding is an error:
+
+- `skill-description-cut-by-comment`: a plain (unquoted, not block) description holds a space or
+  a tab followed by `#`, which YAML reads as the start of a comment, so the rest is lost. Quote
+  the value;
+- `skill-description-too-long`: the description, as YAML reads it, is longer than 200
+  characters.
+
+Issue #2873 adds this mode while the descriptions are still being shortened, so no hook or
+workflow runs it yet.
 
 An explicit file path is reported as given, even when it is a symlink, and its content is read
 through the link. A symlinked directory is expanded under its target's path. A dangling symlink
