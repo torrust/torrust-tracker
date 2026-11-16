@@ -49,7 +49,7 @@ F8 is in da2ce7's review 5925179048 (`APPROVED`, on the head `docs(pr-reviews): 
 
 F9 is in da2ce7's review 5925370203 (`APPROVED`, on the head `docs(pr-reviews): [#2846] audit the second review of PR #2890`) and keeps his ID; the F9 fix push dismissed that approval.
 
-F10 to F12 are in Copilot's review 5925587139 (on the head `docs(adrs): [#2846] narrow where the job manager cancels running components`), in source order; Copilot gives no IDs. Their fix push dismissed da2ce7's clean approval 5925580607 of the head `docs(pr-reviews): [#2846] audit the third review of PR #2890`, which had no finding and needs no row.
+F10 to F12 are in Copilot's review 5925587139 (on the head `docs(pr-reviews): [#2846] audit the second review of PR #2890`), in source order; Copilot gives no IDs. Their fix push dismissed da2ce7's clean approval 5925580607 of the head `docs(pr-reviews): [#2846] audit the third review of PR #2890`, which had no finding and needs no row.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -237,6 +237,7 @@ F10 to F12 are in Copilot's review 5925587139 (on the head `docs(adrs): [#2846] 
 - 2026-11-16 18:41 UTC - Pushed the F9 fix (committed 18:38 UTC, push 18:41:14 UTC), which dismissed review 5925370203. Replied to the F9 thread (18:41:15 UTC) and resolved it (18:41:19 UTC); a GraphQL refresh shows no unresolved thread.
 - 2026-11-16 18:50 UTC - Review 5925580607 (da2ce7, `APPROVED`, no finding) on the third audit head, followed by his `ACK` comment on it, and review 5925587139 (Copilot, `COMMENTED`) on the F8 head: three findings, recorded here as F10 to F12.
 - 2026-11-16 18:56 UTC - Pushed the three fix commits (committed 18:52 to 18:53 UTC, push 18:56:28 UTC), which dismissed review 5925580607. Replied to the three Copilot threads (18:56:30 to 18:56:35 UTC) and resolved them (18:56:48 UTC); a GraphQL refresh shows no unresolved thread.
+- 2026-11-16 19:09 UTC - Correction (finding F13): the 18:50 entry says review 5925587139 was on "the F8 head"; it was on the F8 audit head, `docs(pr-reviews): [#2846] audit the second review of PR #2890`. The Findings note now cites that subject.
 
 ## Completion Rules
 
