@@ -47,6 +47,8 @@ Copilot's review 5924775596 has no finding: its overview reports no open issues.
 
 F8 is in da2ce7's review 5925179048 (`APPROVED`, on the head `docs(pr-reviews): [#2846] audit the first review of PR #2890`) and keeps his ID; the F8 fix push dismissed that approval.
 
+F9 is in da2ce7's review 5925370203 (`APPROVED`, on the head `docs(pr-reviews): [#2846] audit the second review of PR #2890`) and keeps his ID; the F9 fix push dismissed that approval.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2890-f1 | Human | Major | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -57,6 +59,7 @@ F8 is in da2ce7's review 5925179048 (`APPROVED`, on the head `docs(pr-reviews): 
 | F6 | review-finding:pr-2890-f6 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F7 | review-finding:pr-2890-f7 | Human | Nit | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F8 | review-finding:pr-2890-f8 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F9 | review-finding:pr-2890-f9 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -164,6 +167,19 @@ F8 is in da2ce7's review 5925179048 (`APPROVED`, on the head `docs(pr-reviews): 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2890#discussion_r4589765055
 
+### F9 - Say a failed registration cancels before the start function returns
+
+- PR number: 2890
+- Source review ID: 5925370203
+- Reviewer finding ID: F9
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2890#discussion_r4589866052
+- Concern: The ADR said a server cancels its own token on a failed registration "before it serves"; each server starts serving before it registers, so it may already accept connections.
+- Solution: The bullet says the cancel happens before the start function returns, and that a failed registration fails the whole startup. No other record on the branch used "before it serves".
+- Current-tree verification: `packages/axum-http-server/src/server.rs` starts the runtime before `form.register`; a search of the ADR, the spec folder and this audit for "before it serves" finds nothing.
+- Resolution reference: docs(adrs): [#2846] say a failed registration cancels before the start function returns
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2890#discussion_r4589921849
+
 ## Processing Log
 
 - 2026-11-16 17:53 UTC - Review 5924775596 (Copilot, `COMMENTED`) submitted on the pre-rebase head: no finding; no reply needed.
@@ -173,6 +189,8 @@ F8 is in da2ce7's review 5925179048 (`APPROVED`, on the head `docs(pr-reviews): 
 - 2026-11-16 18:11 UTC - Resolved the seven threads (18:11 UTC); a GraphQL refresh shows no unresolved thread.
 - 2026-11-16 18:22 UTC - Review 5925179048 (da2ce7, `APPROVED`) submitted on the audit head: one Nit, recorded here as F8.
 - 2026-11-16 18:26 UTC - Pushed the F8 fix (committed 18:24 UTC, push 18:26:43 UTC), which dismissed review 5925179048, and corrected the PR description. Replied to the F8 thread (18:26:44 UTC) and resolved it (18:26:53 UTC); a GraphQL refresh shows no unresolved thread.
+- 2026-11-16 18:36 UTC - Review 5925370203 (da2ce7, `APPROVED`) submitted on the audit head: one Nit, recorded here as F9.
+- 2026-11-16 18:41 UTC - Pushed the F9 fix (committed 18:38 UTC, push 18:41:14 UTC), which dismissed review 5925370203. Replied to the F9 thread (18:41:15 UTC) and resolved it (18:41:19 UTC); a GraphQL refresh shows no unresolved thread.
 
 ## Completion Rules
 
