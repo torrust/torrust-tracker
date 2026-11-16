@@ -42,7 +42,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Findings from da2ce7's review 5912769583 (F1-F11, reviewer IDs kept) and Copilot's review 5912779850 (F12-F13, re-raises of F1 and F2), both on the first commit, `docs(issues): draft the peer-id-test-helper spec (finding F5 of #2824)`. Round 2: da2ce7's review 5913005734 (APPROVED) on the audit commit, `docs(pr-reviews): add the review audit of PR #2865, round 1`; its F12-F15 collide with existing audit IDs and are recorded as F14-F17. Round 3: da2ce7's review 5915609693 (APPROVED) on the round-2 audit commit, `docs(pr-reviews): record round 2 of the PR #2865 review audit`; its F16 collides and is recorded as F18.
+Findings from da2ce7's review 5912769583 (F1-F11, reviewer IDs kept) and Copilot's review 5912779850 (F12-F13, re-raises of F1 and F2), both on the first commit, `docs(issues): draft the peer-id-test-helper spec (finding F5 of #2824)`. Round 2: da2ce7's review 5913005734 (APPROVED) on the audit commit, `docs(pr-reviews): add the review audit of PR #2865, round 1`; its F12-F15 collide with existing audit IDs and are recorded as F14-F17. Round 3: da2ce7's review 5915609693 (APPROVED) on the round-2 audit commit, `docs(pr-reviews): record round 2 of the PR #2865 review audit`; its F16 collides and is recorded as F18. Round 4: da2ce7's review 5915707496 (APPROVED) on the round-3 audit commit, `docs(pr-reviews): record round 3 of the PR #2865 review audit`; its F18-F19 collide and are recorded as F19-F20.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -64,6 +64,8 @@ Findings from da2ce7's review 5912769583 (F1-F11, reviewer IDs kept) and Copilot
 | F16 | review-finding:pr-2865-f16 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 | F17 | review-finding:pr-2865-f17 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F18 | review-finding:pr-2865-f18 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F19 | review-finding:pr-2865-f19 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-2865-f20 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -301,6 +303,32 @@ Findings from da2ce7's review 5912769583 (F1-F11, reviewer IDs kept) and Copilot
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2865#discussion_r4582436774>
 
+### F19 - Round-3 Processing Log stamps contradict the forge and commit times
+
+- PR number: 2865
+- Source review ID: 5915707496
+- Reviewer finding ID: F18
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2865#discussion_r4582497465>
+- Concern: The round-3 entries said the review was received at 05:58 and the reply sent at 05:59 UTC, and stamped the validator run 06:00 UTC, but the review was submitted at 05:55:42, the reply posted at 05:57:50 and the audit commit made at 05:59:12 UTC.
+- Solution: Appended a correction entry with the forge and commit times; the round-3 entries are left as written.
+- Current-tree verification: The Processing Log's round-4 correction entry gives 05:55:42, 05:57:19, 05:57:50 and 05:59:12 UTC.
+- Resolution reference: docs(pr-reviews): record round 4 of the PR #2865 review audit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2865#discussion_r4582505855>
+
+### F20 - Spec last-updated stamp and Progress Log miss the round-3 edit
+
+- PR number: 2865
+- Source review ID: 5915707496
+- Reviewer finding ID: F19
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2865#discussion_r4582497479>
+- Concern: `last-updated-utc` still said 2026-11-15 21:27 after the round-3 spec change, and the Progress Log had no entry for it.
+- Solution: Bumped `last-updated-utc` and added Progress Log entries for rounds 3 and 4.
+- Current-tree verification: `grep -n 'last-updated-utc\|Review round 3' docs/issues/drafts/peer-id-test-helper/ISSUE.md` shows the 2026-11-16 stamp and the round-3 entry.
+- Resolution reference: docs(issues): log review rounds 3 and 4 in the peer-id-test-helper spec
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2865#discussion_r4582506057>
+
 ## Processing Log
 
 - 2026-11-15 20:31 UTC - Review round 1: da2ce7 review 5912769583 (CHANGES_REQUESTED, F1-F11) and Copilot review 5912779850 (two comments) received on the first commit, `docs(issues): draft the peer-id-test-helper spec (finding F5 of #2824)`; every finding checked against the tree.
@@ -314,6 +342,9 @@ Findings from da2ce7's review 5912769583 (F1-F11, reviewer IDs kept) and Copilot
 - 2026-11-16 05:58 UTC - Review round 3: da2ce7 review 5915609693 (APPROVED, one finding, recorded as F18) received on the round-2 audit commit; the figure checked against #2824's `coverage-evidence.md` on `develop`.
 - 2026-11-16 05:58 UTC - Correction for F18: F17's solution and current-tree verification lines were edited in place to replace 1,077 / 1,145 with 1,078 / 1,146. Added row F18 before replying, then replied on the thread (05:59 UTC).
 - 2026-11-16 06:00 UTC - Validator `validate-audit-record.py --pr-number 2865` exited 0 for round 3 (18 rows, 0 failures).
+- 2026-11-16 06:08 UTC - Review round 4: da2ce7 review 5915707496 (APPROVED, two findings, recorded as F19-F20) received on the round-3 audit commit at 06:07:50 UTC; both checked against the forge record and the commits. Added rows F19-F20 before replying.
+- 2026-11-16 06:08 UTC - Correction for F19: the round-3 entries above carry wrong times. The review was submitted at 05:55:42 UTC, the spec fix committed at 05:57:19, the reply posted at 05:57:50, and the audit committed (with its validator run) at 05:59:12 UTC.
+- 2026-11-16 06:09 UTC - Replied on the two round-4 threads (06:09 UTC); validator `validate-audit-record.py --pr-number 2865` exited 0 for round 4 (20 rows, 0 failures).
 
 ## Completion Rules
 
