@@ -51,6 +51,8 @@ F7 is the one finding of da2ce7's review 5917548188 on the head commit `docs(pr-
 
 F8 and F9 are in Copilot's review 5917643855 (`COMMENTED`) on the same head, in that source order. Its IDs F7 and F8 collide with F7 above and with each other's renumbering, so they are numbered F8 and F9 and Copilot's IDs are kept as the reviewer finding IDs. F8 is an inline thread; F9 is in the review body under "previously missed issue", with no thread, so its source URL is the review and its reply is a PR conversation comment. The fix commit bodies and the replies of this round cite the reviewers' IDs (`review-finding:pr-2875-f5`, `-f7`, `-f8`); they mean this record's F7, F8 and F9.
 
+F10 and F11 are in da2ce7's review 5918129806 on the head commit `docs(pr-reviews): [#2873] record the second reviews of PR #2875`, in that source order. It was submitted as `APPROVED` and is now `DISMISSED`, after the fixes were pushed at 10:07 UTC. His IDs F8 and F9 collide with F8 and F9 above, so they are numbered F10 and F11, and his IDs are kept as the reviewer finding IDs.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2875-f1 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
@@ -62,6 +64,8 @@ F8 and F9 are in Copilot's review 5917643855 (`COMMENTED`) on the same head, in 
 | F7 | review-finding:pr-2875-f7 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F8 | review-finding:pr-2875-f8 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F9 | review-finding:pr-2875-f9 | Copilot | Minor | correctness | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F10 | review-finding:pr-2875-f10 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-2875-f11 | Human | Suggestion | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -182,6 +186,32 @@ F8 and F9 are in Copilot's review 5917643855 (`COMMENTED`) on the same head, in 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2875#issuecomment-6913012946
 
+### F10 - Two statements escaped the second round's corrections
+
+- PR number: 2875
+- Source review ID: 5918129806
+- Reviewer finding ID: F8
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2875#discussion_r4584301795
+- Concern: The measurement note still called the parsed values the text Claude Code reads, as a fact, and the evidence said V0 ran once although its parse was rerun at 08:45:16 UTC.
+- Solution: The note says the parsed values are what a YAML parser reads and that Claude Code reading the same text is an inference. The evidence says the parse first ran while drafting and the 08:45:16 UTC run repeated it with the same result.
+- Current-tree verification: The note below the measurement table in the spec, and `Failures and Follow-up` in the evidence file; `grep -n "Claude Code reads"` over both files prints three lines, lines 71 and 92 of the spec, each stating it as an inference, and the progress-log entry about this fix.
+- Resolution reference: docs(issues): [#2873] state the parsed text and the V0 reruns as observed
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2875#discussion_r4584364702
+
+### F11 - YAML also ends a plain scalar at a tab before `#`
+
+- PR number: 2875
+- Source review ID: 5918129806
+- Reviewer finding ID: F9
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2875#discussion_r4584301806
+- Concern: YAML separates a comment by white space, a space or a tab; a rule that tests only for a space would pass a value cut at a tab.
+- Solution: The Background, the Analysis bullet, the Regression Test Strategy and M4 say white space (a space or a tab); the rule scans the whole value, including continuation lines; T2's unit tests include failing space and tab cases.
+- Current-tree verification: The named sections of the spec; `grep -n "space followed"` over the spec prints one line, M4, which says white space followed by `#`.
+- Resolution reference: docs(issues): [#2873] cover a tab before '#' in the comment rule
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2875#discussion_r4584365048
+
 ## Processing Log
 
 - 2026-11-16 08:44 UTC - Review 5917183183 (da2ce7, `APPROVED`) submitted on the first head: F1, F2 and F3, none blocking.
@@ -195,6 +225,9 @@ F8 and F9 are in Copilot's review 5917643855 (`COMMENTED`) on the same head, in 
 - 2026-11-16 09:44 UTC - Pushed the F7 and F8 fixes (push finished 09:44:39 UTC); the push dismissed review 5917548188 (timeline event `review_dismissed`, 09:44:41 UTC).
 - 2026-11-16 09:48 UTC - Pushed the F9 fix (committed 09:45:14 UTC; push finished 09:48:46 UTC) and posted the F9 response on the PR conversation (09:48:53 UTC).
 - 2026-11-16 09:49 UTC - Resolved the F7 and F8 threads (09:49 UTC); a GraphQL refresh shows no unresolved thread. `validate-audit-record.py` was not run this round: it calls plain `gh`, which acts as the maintainer's account, and its use needs his approval.
+- 2026-11-16 10:01 UTC - Review 5918129806 (da2ce7, `APPROVED`) submitted on the head commit `docs(pr-reviews): [#2873] record the second reviews of PR #2875`: F10 (Nit) and F11 (Suggestion), not blocking.
+- 2026-11-16 10:07 UTC - Pushed the F10 and F11 fixes (committed 10:02:55 and 10:03:43 UTC; push finished 10:07:10 UTC); review 5918129806 is now `DISMISSED`. Replied to the two threads (10:07:23 and 10:07:26 UTC).
+- 2026-11-16 10:08 UTC - Resolved the two threads (10:08 UTC); a GraphQL refresh shows no unresolved thread. `validate-audit-record.py` was not run, for the reason given at 09:49 UTC.
 
 ## Completion Rules
 
