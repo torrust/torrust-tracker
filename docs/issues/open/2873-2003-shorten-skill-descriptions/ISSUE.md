@@ -9,7 +9,7 @@ github-issue: 2873
 spec-path: docs/issues/open/2873-2003-shorten-skill-descriptions/ISSUE.md
 branch: "2873-shorten-skill-descriptions"
 related-pr: null
-last-updated-utc: "2026-11-16 17:58"
+last-updated-utc: "2026-11-16 18:14"
 semantic-links:
   skill-links:
     - create-issue
@@ -213,10 +213,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | ------- | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T1  | DONE    | Baseline after #2866              | Done at `develop` `9e463cb0c` (#2866's PR #2886): Skills 9.9k tokens, 53 Project rows summing to 6,980; all eight M3 prompts load their skill. On that `develop` commit, record per skill the parsed description length and its `/context` row, and the category totals, in issue-local `description-measurements.md`. Run the M3 trigger prompts and record which skill loads. |
 | T2  | DONE    | Description rule, proven red      | Done in `e3f7264ac`, `7cd722272` and `6e4d7e4e3` (opt-in `--skill-descriptions`); red run, mutations and test-design review in `manual-verification-evidence.md`, section T2. The regression test: the `frontmatter-validator` rule for skill descriptions (cut at a comment; over 200 characters) with unit tests, next to #2866's skill rules. The rule is opt-in (off unless explicitly selected) until T4 ends: the pre-commit hook already runs `frontmatter-validator --staged`, so a rule on by default would reject the commits that still carry long descriptions. Its opt-in run on the tree before T3 is recorded red in `manual-verification-evidence.md`: it fails on `write-markdown-docs` as cut at a comment and lists every over-long description. |
-| T3  | TODO    | Fix `write-markdown-docs` quoting | Quote the value. The rule no longer reports it as cut and the parser shows the whole description; the `/context` row's cost matching its length corroborates it, recorded as an inference: the green run and like-for-like recheck of V0, recorded in `manual-verification-evidence.md`. |
-| T4  | TODO    | Rewrite the descriptions          | All 53 descriptions to the [Description rules](#description-rules), one commit per area of the `.claude/skills/README.md` index. Each description's old and new text and length go in `description-measurements.md`. The rule from T2 passes, and T4's last commit turns it on in the existing staged and whole-tree gates (pre-commit hook and CI).            |
-| T5  | TODO    | Update `add-new-skill`            | The description rules and the 200-character limit replace "max 1024 chars".                                                                                                                                                                             |
-| T6  | TODO    | Measure again and verify          | `claude -p "/context"` after the change, same Claude Code version and model as T1 where possible; M3 trigger prompts again; the governance ADR's review-record row; `linter all`; acceptance review.                                                                                               |
+| T3  | DONE    | Fix `write-markdown-docs` quoting | Done in `1787ec813`; evidence V2. Quote the value. The rule no longer reports it as cut and the parser shows the whole description; the `/context` row's cost matching its length corroborates it, recorded as an inference: the green run and like-for-like recheck of V0, recorded in `manual-verification-evidence.md`. |
+| T4  | DONE    | Rewrite the descriptions          | Done in 15 area commits, `b5d086ce7` to `84ee1e073`, then `ce2d5fe03` turns the rule on in the pre-commit hook and Docs Lint. All 53 descriptions to the [Description rules](#description-rules), one commit per area of the `.claude/skills/README.md` index. Each description's old and new text and length go in `description-measurements.md`. The rule from T2 passes, and T4's last commit turns it on in the existing staged and whole-tree gates (pre-commit hook and CI).            |
+| T5  | DONE    | Update `add-new-skill`            | Done in `c8f7fcee8`. The description rules and the 200-character limit replace "max 1024 chars".                                                                                                                                                                             |
+| T6  | DONE    | Measure again and verify          | Done: evidence V1 to V4, the ADR row, `linter all` exit `0`. `claude -p "/context"` after the change, same Claude Code version and model as T1 where possible; M3 trigger prompts again; the governance ADR's review-record row; `linter all`; acceptance review.                                                                                               |
 
 ## Commit Points
 
@@ -247,14 +247,14 @@ the last increment, before T6. Commits use Conventional Commit messages and are 
 - [x] GitHub issue created and issue number added to this spec
 - [x] Spec-only PR merged into `develop` before implementation
 - [x] #2866 merged (implementation starts after it)
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -269,30 +269,31 @@ the last increment, before T6. Commits use Conventional Commit messages and are 
 - 2026-11-16 10:03 UTC - AI assistant (Claude Code, Claude Opus 5.5) - Addressed da2ce7's review 5918129806 (his F9): the comment rule covers white space (a space or a tab) before `#`, and T2's unit tests include a tab case
 
 - 2026-11-16 17:58 UTC - AI assistant (Claude Code, Claude Opus 5.5) - #2866's PR #2886 merged as `9e463cb0c`. T1: recorded the baseline at that commit in `description-measurements.md` and the evidence's V1 and V3 (it equals the spec's numbers; all eight M3 prompts load their skill, `write-markdown-docs` included, so AC6 is judged as "same as before"). T2: added the description rule in three commits, the third an opt-in `--skill-descriptions` mode; its run on the tree fails on `write-markdown-docs` (cut at a comment) and on 49 over-long descriptions
+- 2026-11-16 18:14 UTC - AI assistant (Claude Code, Claude Opus 5.5) - T3 to T6 done. T3 quoted the `write-markdown-docs` description (`1787ec813`); T4 rewrote all 53 descriptions in 15 commits, one per index area, and `ce2d5fe03` turned the rule on in the pre-commit hook and Docs Lint; T5 put the description rules in `add-new-skill` (`c8f7fcee8`). T6: the 53 entries cost 3,220 tokens, 46% of 6,980, Skills is 7.8k (0.8%) and no description is dropped; the eight M3 prompts load the same skills; M4 fails on both broken descriptions; the governance ADR has its review-record row; `linter all` exits `0`. No retrospective: the two discoveries are small and recorded where they apply, PyYAML rejecting a tab before `#` that `serde_yaml` cuts at (evidence T2) and `write-markdown-docs` loading even with its cut description (evidence V3)
 
 ## Acceptance Criteria
 
-- [ ] AC1: Every skill `description` is 200 characters or less, YAML-parsed.
-- [ ] AC2: Every description says what the skill does and when to use it, and keeps its
+- [x] AC1: Every skill `description` is 200 characters or less, YAML-parsed.
+- [x] AC2: Every description says what the skill does and when to use it, and keeps its
       distinguishing trigger words, as the [Description rules](#description-rules) say;
       `description-measurements.md` shows each old and new text.
-- [ ] AC3: A YAML parser reads the whole `write-markdown-docs` description, and its `/context`
+- [x] AC3: A YAML parser reads the whole `write-markdown-docs` description, and its `/context`
       row costs what that length predicts (corroborating evidence: `/context` does not show the
       text).
-- [ ] AC4: A `frontmatter-validator` rule fails on a skill description cut at a YAML comment or
+- [x] AC4: A `frontmatter-validator` rule fails on a skill description cut at a YAML comment or
       longer than 200 characters, with unit tests for both and for passing plain, quoted and
       block-scalar descriptions, and runs
       on every commit and in CI.
-- [ ] AC5: The 53 project entries cost at most about half of today's ~6,980 tokens in `/context`,
+- [x] AC5: The 53 project entries cost at most about half of today's ~6,980 tokens in `/context`,
       and the Skills category is below its 1% cap on the same model.
-- [ ] AC6: For each M3 sample prompt, the same skill loads after the change as before (or, for
+- [x] AC6: For each M3 sample prompt, the same skill loads after the change as before (or, for
       `write-markdown-docs`, loads where it did not).
-- [ ] AC7: `add-new-skill` states the description rules and the limit.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior/workflow changes
+- [x] AC7: `add-new-skill` states the description rules and the limit.
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated when behavior/workflow changes
 
 ## Verification Plan
 
@@ -309,10 +310,10 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario                           | Human-oriented command/steps                                                                                                                                                       | Expected Result                                                                                         | Status | Evidence                                     |
 | --- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | Listing cost before and after      | In a fresh checkout of the commit, run `claude -p "/context"` before (T1) and after (T6); record the Claude Code version, model and window, the Skills category and every Project row | After: Skills below the cap, project rows sum to about half of before, no project description dropped   | TODO   | `manual-verification-evidence.md` section V1 |
-| M2  | `write-markdown-docs` read whole   | Parse its frontmatter with a YAML parser and compare with the file; check its `/context` row                                                                                        | Before: 123 of 578 characters, ~50 tokens. After: the parser reads the whole (new) description, and the row's cost matches its length (an inference: `/context` shows no text) | TODO   | `manual-verification-evidence.md` section V2 |
-| M3  | Skills still load for their tasks  | For about eight skills (including `write-markdown-docs`, `create-issue`, `process-pr-review`, `run-pre-push-checks`), run a task-like prompt with `claude -p --output-format stream-json --verbose` and record which skill the `Skill` tool loads, before and after | The same skill loads after as before; `write-markdown-docs` loads for a Markdown task after the fix | TODO   | `manual-verification-evidence.md` section V3 |
-| M4  | The rule catches a cut description | In a scratch commit, put white space followed by `#` into one unquoted description, and separately make one longer than 200 characters; run the validator                                              | Each run fails and names the file and the problem                                                        | TODO   | `manual-verification-evidence.md` section V4 |
+| M1  | Listing cost before and after      | In a fresh checkout of the commit, run `claude -p "/context"` before (T1) and after (T6); record the Claude Code version, model and window, the Skills category and every Project row | After: Skills below the cap, project rows sum to about half of before, no project description dropped   | DONE   | `manual-verification-evidence.md` section V1 |
+| M2  | `write-markdown-docs` read whole   | Parse its frontmatter with a YAML parser and compare with the file; check its `/context` row                                                                                        | Before: 123 of 578 characters, ~50 tokens. After: the parser reads the whole (new) description, and the row's cost matches its length (an inference: `/context` shows no text) | DONE   | `manual-verification-evidence.md` section V2 |
+| M3  | Skills still load for their tasks  | For about eight skills (including `write-markdown-docs`, `create-issue`, `process-pr-review`, `run-pre-push-checks`), run a task-like prompt with `claude -p --output-format stream-json --verbose` and record which skill the `Skill` tool loads, before and after | The same skill loads after as before; `write-markdown-docs` loads for a Markdown task after the fix | DONE   | `manual-verification-evidence.md` section V3 |
+| M4  | The rule catches a cut description | In a scratch commit, put white space followed by `#` into one unquoted description, and separately make one longer than 200 characters; run the validator                                              | Each run fails and names the file and the problem                                                        | DONE   | `manual-verification-evidence.md` section V4 |
 
 Notes:
 
@@ -328,13 +329,13 @@ Notes:
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
-| AC4   | TODO                   |          |
-| AC5   | TODO                   |          |
-| AC6   | TODO                   |          |
-| AC7   | TODO                   |          |
+| AC1   | DONE                   | `--skill-descriptions` exits `0` on the tree; all 53 at 200 or less (max 187), `description-measurements.md` |
+| AC2   | DONE                   | Each old and new text in `description-measurements.md`; every new one is a "what" sentence then `Use when` |
+| AC3   | DONE                   | V2: 179 of 179 parsed after T4 (578 of 578 after T3); row `~50` to `~200` to `~70` (inference) |
+| AC4   | DONE                   | T2 section: unit and CLI tests, 11 mutations each caught; `ce2d5fe03` runs it in the hook and Docs Lint; V4 |
+| AC5   | DONE                   | V1: 3,220 of 6,980 tokens (46%); Skills 7.8k, 0.8%, below the 1% cap |
+| AC6   | DONE                   | V3: all eight prompts load the same skill before and after; `write-markdown-docs` already loaded before |
+| AC7   | DONE                   | `c8f7fcee8`: Description Rules section and the 200-character limit |
 
 ## Risks and Trade-offs
 
@@ -348,7 +349,7 @@ Notes:
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: not needed; see the progress log entry of 2026-11-16 18:14 UTC
 - If needed, create `implementation-retrospective.md` from
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this directory; otherwise add a progress-log
   entry saying why none was needed.

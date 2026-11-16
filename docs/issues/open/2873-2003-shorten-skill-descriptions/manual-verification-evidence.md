@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2873-2003-shorten-skill-descriptions/ISSUE.md
-last-updated-utc: 2026-11-16 17:55
+last-updated-utc: 2026-11-16 18:12
 ---
 
 # Manual Verification Evidence
@@ -21,7 +21,8 @@ run, its mutations and its test-design review.
 - Artifact under test: V0: the skill files on `develop` `a35960402`, before #2866 moved them. V1
   and V3 before: `develop` `9e463cb0c`, the merge of #2866's PR #2886, the first commit with the
   skills at `.claude/skills/<name>/SKILL.md`. T2: branch `2873-shorten-skill-descriptions` at
-  `6e4d7e4e3`, whose skill files are still those of `9e463cb0c`
+  `6e4d7e4e3`, whose skill files are still those of `9e463cb0c`. V2 after T3: `1787ec813`. V1, V3
+  and V4 after: `c8f7fcee8`, the branch after task T5
 - Operating system / environment: Linux; Python 3.14.4 with PyYAML 6.0.3; Claude Code 2.1.318
   with its default model `claude-sonnet-5-5` and a 1M-token window; stable Rust
 - Prerequisites and setup performed: V1 and V3 run in a detached `git worktree` of the commit in a
@@ -87,14 +88,16 @@ show the text.
 
 - Goal: measure what the 53 project skill entries cost in every session, before and after the
   descriptions are shortened.
-- Initial state: before: a fresh checkout of `develop` `9e463cb0c`, clean tree.
-- Status: `IN_PROGRESS` (before recorded; after is task T6)
+- Initial state: before: a fresh checkout of `develop` `9e463cb0c`, clean tree. After: a fresh
+  checkout of `c8f7fcee8`.
+- Status: `DONE`
 
 #### Steps Performed
 
 1. 17:35:47 UTC. In the checkout, ran `claude -p "/context"` with Claude Code 2.1.318.
 2. Read the Skills category and every Project row; tabulated the rows against each skill's parsed
    description length in `description-measurements.md`.
+3. 18:04:51 UTC. Repeated step 1 in the checkout of `c8f7fcee8`, same version and model.
 
 #### Observed Result
 
@@ -110,16 +113,60 @@ characters (mean 368, max 724; 42 of 53 at 300 or more, 4 at 200 or less). Seven
 sync` skills show `< 20` tokens, their descriptions dropped. `write-markdown-docs` costs `~50`.
 Per-skill numbers: `description-measurements.md`.
 
+After (step 3), `30.7k / 1m (3%)` in total:
+
+```text
+| Skills | 7.8k | 0.8% |
+```
+
+The 53 Project rows sum to 3,220 tokens; the descriptions total 8,306 characters (mean 157, max
+187, all 53 at 200 or less). No skill in the table shows `< 20` tokens: the seven `claude.ai sync`
+descriptions dropped before are listed again. `write-markdown-docs` costs `~70`.
+
 #### Conclusion
 
 The baseline after #2866 equals the one the spec measured at `a35960402` in a flat scratch copy:
-the move changed no description, and the listing is at its 1% cap.
+the move changed no description, and the listing is at its 1% cap. After the rewrite the project
+entries cost 46% of before (3,220 of 6,980 tokens), the Skills category is below its cap, and no
+description is dropped: M1's expected result holds.
+
+### V2 - `write-markdown-docs` read whole (M2)
+
+- Goal: show that the T3 fix makes a YAML parser read the whole description; the like-for-like
+  recheck of V0.
+- Initial state: the branch at `1787ec813` (T3, the value quoted) and at `c8f7fcee8` (after T4).
+- Status: `DONE` (outcome: **Green**)
+
+#### Steps Performed
+
+1. 17:51:45 UTC. At T3, parsed the frontmatter with PyYAML as in V0 step 2, and ran the opt-in
+   `--skill-descriptions` mode before and after staging the file.
+2. 17:52:27 UTC. In a fresh checkout of `1787ec813`, ran `claude -p "/context"`.
+3. At `c8f7fcee8`, read the parsed length and the `/context` row from V1's after run.
+
+#### Observed Result
+
+| Commit      | Parsed by PyYAML        | Rule finding for the file            | `/context` row |
+| ----------- | ----------------------- | ------------------------------------ | -------------- |
+| `9e463cb0c` | 123 of 578 characters   | `skill-description-cut-by-comment`   | `~50`          |
+| `1787ec813` | 578 of 578 characters   | `skill-description-too-long` only    | `~200`         |
+| `c8f7fcee8` | 179 of 179 characters   | none                                 | `~70`          |
+
+At `1787ec813` the parsed text ends `... "markdown pitfall", or "GFM".`, the end of the file's text.
+
+#### Conclusion
+
+Observed: the parser reads the whole description once it is quoted, and the rule no longer reports
+it as cut. Inferred: Claude Code reads it whole too, since its row grew from about 50 to about 200
+tokens, what 578 characters cost at the measured rate of about 3 characters per token, and then
+fell to about 70 for 179 characters. `/context` does not show the text.
 
 ### V3 - Skills still load for their tasks (M3)
 
 - Goal: check that a task-like prompt loads the same skill after the descriptions are shortened.
-- Initial state: before: the same checkout of `9e463cb0c` as V1.
-- Status: `IN_PROGRESS` (before recorded; after is task T6)
+- Initial state: before: the same checkout of `9e463cb0c` as V1. After: the same checkout of
+  `c8f7fcee8` as V1.
+- Status: `DONE`
 
 #### Steps Performed
 
@@ -128,6 +175,8 @@ the move changed no description, and the listing is at its 1% cap.
    Only read-only tools are available, so a prompt cannot change anything; `--max-turns 4` stops
    it soon after the skill is chosen. The default model was used.
 2. Read the `Skill` tool calls from each stream.
+3. 18:05 to 18:07 UTC. Repeated steps 1 and 2 with the same prompts in the checkout of
+   `c8f7fcee8`.
 
 The prompts:
 
@@ -144,25 +193,56 @@ The prompts:
 
 #### Observed Result
 
-| Skill expected        | Before: skill loaded  | Model               |
-| --------------------- | --------------------- | ------------------- |
-| `write-markdown-docs` | `write-markdown-docs` | `claude-sonnet-5-5` |
-| `create-issue`        | `create-issue`        | `claude-sonnet-5-5` |
-| `process-pr-review`   | `process-pr-review`   | `claude-sonnet-5-5` |
-| `run-pre-push-checks` | `run-pre-push-checks` | `claude-sonnet-5-5` |
-| `commit-changes`      | `commit-changes`      | `claude-sonnet-5-5` |
-| `fix-bug`             | `fix-bug`             | `claude-sonnet-5-5` |
-| `add-rust-dependency` | `add-rust-dependency` | `claude-sonnet-5-5` |
-| `write-unit-test`     | `write-unit-test`     | `claude-sonnet-5-5` |
+| Skill expected        | Before: skill loaded  | After: skill loaded   | Model               |
+| --------------------- | --------------------- | --------------------- | ------------------- |
+| `write-markdown-docs` | `write-markdown-docs` | `write-markdown-docs` | `claude-sonnet-5-5` |
+| `create-issue`        | `create-issue`        | `create-issue`        | `claude-sonnet-5-5` |
+| `process-pr-review`   | `process-pr-review`   | `process-pr-review`   | `claude-sonnet-5-5` |
+| `run-pre-push-checks` | `run-pre-push-checks` | `run-pre-push-checks` | `claude-sonnet-5-5` |
+| `commit-changes`      | `commit-changes`      | `commit-changes`      | `claude-sonnet-5-5` |
+| `fix-bug`             | `fix-bug`             | `fix-bug`             | `claude-sonnet-5-5` |
+| `add-rust-dependency` | `add-rust-dependency` | `add-rust-dependency` | `claude-sonnet-5-5` |
+| `write-unit-test`     | `write-unit-test`     | `write-unit-test`     | `claude-sonnet-5-5` |
 
-Each run loaded exactly one skill, its first tool call.
+Each run loaded exactly one skill, its first tool call. No result differed, so no prompt was
+repeated.
 
 #### Conclusion
 
-Every sample prompt loads its skill before the change, `write-markdown-docs` included: with its
-description cut to 123 characters, its name and the first sentence were enough for this prompt.
-So the spec's expectation that it "loads where it did not" does not apply to this sample; AC6 is
-judged as "the same skill loads after as before" for all eight.
+Every sample prompt loads the same skill after the change as before. Before the change
+`write-markdown-docs` already loaded: with its description cut to 123 characters, its name and the
+first sentence were enough for this prompt. So the spec's expectation that it "loads where it did
+not" does not apply to this sample; AC6 holds as "the same skill loads after as before" for all
+eight. Eight prompts on one model are a sample, not a guarantee for every task.
+
+### V4 - The rule catches a cut description (M4)
+
+- Goal: show that the check fails, naming the file and the problem, when a description breaks a
+  rule.
+- Initial state: a scratch `git worktree` of `c8f7fcee8`.
+- Status: `DONE`
+
+#### Steps Performed
+
+1. 18:05:10 UTC. Replaced the `create-adr` description with the unquoted
+   `Create an ADR for issue #2873. Use when recording a decision.`, made a scratch commit (no hook,
+   unsigned), and ran `frontmatter-validator --skill-descriptions`. Reset the commit.
+2. Replaced it with a 201-character unquoted description (`Create an ADR.` and 186 `x`), made a
+   scratch commit, ran the same command, and reset the commit.
+
+#### Observed Result
+
+```text
+{"kind":"diagnostic","path":".claude/skills/create-adr/SKILL.md","severity":"error","category":"skill-description-cut-by-comment","field_path":"description","message":"YAML cuts this plain `description` at white space followed by `#`, a comment; quote the value."}
+exit=1
+{"kind":"diagnostic","path":".claude/skills/create-adr/SKILL.md","severity":"error","category":"skill-description-too-long","field_path":"description","message":"The skill's `description` has 201 characters; the limit is 200. Keep what the skill does and when to use it; move details to the body."}
+exit=1
+```
+
+#### Conclusion
+
+Each run fails and names the file and the problem. The pre-commit hook and the Docs Lint workflow
+run this same command since `ce2d5fe03`.
 
 ### T2 - The description rule fails on the tree before the fix (red)
 

@@ -1,5 +1,5 @@
 ---
-last-updated-utc: "2026-11-16 17:50"
+last-updated-utc: "2026-11-16 18:10"
 semantic-links:
   related-artifacts:
     - docs/issues/open/2873-2003-shorten-skill-descriptions/ISSUE.md
@@ -22,69 +22,71 @@ trigger phrase can be restored and the saving checked.
   `claude-sonnet-5-5`, 1M-token window. `/context` rounds each row to the nearest 10 tokens.
 - **Before:** `develop` `9e463cb0c`, the merge of #2866's PR #2886, on 2026-11-16 at 17:35 UTC.
   The Skills category was 9.9k tokens (1.0%, its cap), with 53 Project rows.
-- **After:** filled in by task T6.
+- **After:** branch `2873-shorten-skill-descriptions` at `c8f7fcee8`, after task T5, on
+  2026-11-16 at 18:04 UTC, same Claude Code version and model. The Skills category was 7.8k tokens
+  (0.8%), with 53 Project rows and no description dropped.
 
-`write-markdown-docs` is 123 characters before because YAML cuts its 578-character description
+`write-markdown-docs` is 123 characters before, not 578, because YAML cuts its 578-character description
 at a comment (see `manual-verification-evidence.md`, V0).
 
 ## Per Skill
 
 | Area | Skill | Before (chars) | Before (tokens) | After (chars) | After (tokens) |
 | ---- | ----- | -------------: | --------------: | ------------: | -------------: |
-| Skill authoring | `add-new-skill` | 326 | 110 | 171 |  |
-| Benchmarking | `run-benchmarks` | 724 | 250 | 187 |  |
-| CI | `implement-workflow` | 151 | 60 | 155 |  |
-| CI | `watch-pull-request-checks` | 352 | 130 | 155 |  |
-| Debugging | `fix-bug` | 337 | 120 | 170 |  |
-| Environment setup | `run-tracker-locally` | 334 | 120 | 161 |  |
-| Git workflow | `commit-changes` | 399 | 140 | 123 |  |
-| Git workflow | `create-feature-branch` | 359 | 130 | 127 |  |
-| Git workflow | `merge-pull-request` | 222 | 80 | 147 |  |
-| Git workflow | `open-pull-request` | 306 | 110 | 183 |  |
-| Git workflow | `push-changes` | 329 | 120 | 178 |  |
-| Git workflow | `release-new-version` | 377 | 130 | 157 |  |
-| Git workflow | `release-workspace-package` | 358 | 130 | 146 |  |
-| Git workflow | `run-linters` | 397 | 140 | 176 |  |
-| Git workflow | `run-pre-commit-checks` | 356 | 130 | 128 |  |
-| Git workflow | `run-pre-push-checks` | 355 | 130 | 138 |  |
-| GitHub | `link-subissue-to-parent-issue` | 483 | 170 | 158 |  |
-| Logging | `structured-runtime-logging` | 204 | 80 | 178 |  |
-| Maintenance | `add-rust-dependency` | 352 | 130 | 169 |  |
-| Maintenance | `add-workspace-member` | 265 | 100 | 155 |  |
-| Maintenance | `catalog-security-vulnerabilities` | 457 | 160 | 170 |  |
-| Maintenance | `check-runner-health` | 478 | 170 | 163 |  |
-| Maintenance | `install-linter` | 346 | 120 | 128 |  |
-| Maintenance | `run-manual-docker-security-scan` | 289 | 110 | 144 |  |
-| Maintenance | `setup-dev-environment` | 400 | 140 | 180 |  |
-| Maintenance | `triage-github-security-findings` | 370 | 140 | 173 |  |
-| Maintenance | `update-dependencies` | 439 | 150 | 168 |  |
-| Maintenance | `update-github-workflow-actions` | 238 | 90 | 164 |  |
-| Planning | `cleanup-completed-issues` | 711 | 250 | 170 |  |
-| Planning | `create-adr` | 452 | 160 | 151 |  |
-| Planning | `create-issue` | 455 | 160 | 157 |  |
-| Planning | `create-markdown-template` | 417 | 150 | 139 |  |
-| Planning | `create-refactor-plan` | 479 | 170 | 161 |  |
-| Planning | `reopen-issue` | 555 | 190 | 172 |  |
-| Planning | `write-markdown-docs` | 123 | 50 | 179 |  |
-| Pull request reviews | `fetch-review-threads` | 425 | 150 | 165 |  |
-| Pull request reviews | `process-copilot-suggestions` | 127 | 50 | 95 |  |
-| Pull request reviews | `process-pr-review` | 392 | 140 | 173 |  |
-| Pull request reviews | `process-pr-review-feedback` | 116 | 50 | 84 |  |
-| Pull request reviews | `resolve-review-threads` | 380 | 140 | 132 |  |
-| Pull request reviews | `review-pr` | 224 | 80 | 157 |  |
-| Pull request reviews | `wait-for-pr-review` | 418 | 150 | 166 |  |
-| Rust code quality | `fix-clippy-warnings` | 348 | 120 | 129 |  |
-| Rust code quality | `handle-errors-in-code` | 613 | 210 | 176 |  |
-| Rust code quality | `handle-secrets` | 541 | 190 | 175 |  |
-| Task reviews | `review-task` | 216 | 80 | 160 |  |
-| Testing | `manual-http-download-completion-e2e` | 396 | 150 | 159 |  |
-| Testing | `manual-torrent-cleanup-e2e` | 309 | 110 | 154 |  |
-| Testing | `manual-udp-download-completion-e2e` | 364 | 140 | 163 |  |
-| Testing | `public-trackers-for-testing` | 328 | 120 | 170 |  |
-| Testing | `write-unit-test` | 383 | 130 | 154 |  |
-| Using the tracker | `use-rest-api` | 333 | 120 | 154 |  |
-| Using the tracker | `use-tracker-client` | 381 | 130 | 159 |  |
-| **Total** | 53 skills | **19489** | **6980** |  |  |
+| Skill authoring | `add-new-skill` | 326 | 110 | 171 | 60 |
+| Benchmarking | `run-benchmarks` | 724 | 250 | 187 | 70 |
+| CI | `implement-workflow` | 151 | 60 | 155 | 60 |
+| CI | `watch-pull-request-checks` | 352 | 130 | 155 | 60 |
+| Debugging | `fix-bug` | 337 | 120 | 170 | 60 |
+| Environment setup | `run-tracker-locally` | 334 | 120 | 161 | 60 |
+| Git workflow | `commit-changes` | 399 | 140 | 123 | 50 |
+| Git workflow | `create-feature-branch` | 359 | 130 | 127 | 50 |
+| Git workflow | `merge-pull-request` | 222 | 80 | 147 | 60 |
+| Git workflow | `open-pull-request` | 306 | 110 | 183 | 70 |
+| Git workflow | `push-changes` | 329 | 120 | 178 | 70 |
+| Git workflow | `release-new-version` | 377 | 130 | 157 | 60 |
+| Git workflow | `release-workspace-package` | 358 | 130 | 146 | 60 |
+| Git workflow | `run-linters` | 397 | 140 | 176 | 60 |
+| Git workflow | `run-pre-commit-checks` | 356 | 130 | 128 | 50 |
+| Git workflow | `run-pre-push-checks` | 355 | 130 | 138 | 50 |
+| GitHub | `link-subissue-to-parent-issue` | 483 | 170 | 158 | 60 |
+| Logging | `structured-runtime-logging` | 204 | 80 | 178 | 70 |
+| Maintenance | `add-rust-dependency` | 352 | 130 | 169 | 60 |
+| Maintenance | `add-workspace-member` | 265 | 100 | 155 | 60 |
+| Maintenance | `catalog-security-vulnerabilities` | 457 | 160 | 170 | 70 |
+| Maintenance | `check-runner-health` | 478 | 170 | 163 | 60 |
+| Maintenance | `install-linter` | 346 | 120 | 128 | 50 |
+| Maintenance | `run-manual-docker-security-scan` | 289 | 110 | 144 | 60 |
+| Maintenance | `setup-dev-environment` | 400 | 140 | 180 | 70 |
+| Maintenance | `triage-github-security-findings` | 370 | 140 | 173 | 70 |
+| Maintenance | `update-dependencies` | 439 | 150 | 168 | 60 |
+| Maintenance | `update-github-workflow-actions` | 238 | 90 | 164 | 70 |
+| Planning | `cleanup-completed-issues` | 711 | 250 | 170 | 70 |
+| Planning | `create-adr` | 452 | 160 | 151 | 60 |
+| Planning | `create-issue` | 455 | 160 | 157 | 60 |
+| Planning | `create-markdown-template` | 417 | 150 | 139 | 60 |
+| Planning | `create-refactor-plan` | 479 | 170 | 161 | 60 |
+| Planning | `reopen-issue` | 555 | 190 | 172 | 60 |
+| Planning | `write-markdown-docs` | 123 | 50 | 179 | 70 |
+| Pull request reviews | `fetch-review-threads` | 425 | 150 | 165 | 60 |
+| Pull request reviews | `process-copilot-suggestions` | 127 | 50 | 95 | 40 |
+| Pull request reviews | `process-pr-review` | 392 | 140 | 173 | 70 |
+| Pull request reviews | `process-pr-review-feedback` | 116 | 50 | 84 | 40 |
+| Pull request reviews | `resolve-review-threads` | 380 | 140 | 132 | 50 |
+| Pull request reviews | `review-pr` | 224 | 80 | 157 | 60 |
+| Pull request reviews | `wait-for-pr-review` | 418 | 150 | 166 | 60 |
+| Rust code quality | `fix-clippy-warnings` | 348 | 120 | 129 | 50 |
+| Rust code quality | `handle-errors-in-code` | 613 | 210 | 176 | 70 |
+| Rust code quality | `handle-secrets` | 541 | 190 | 175 | 60 |
+| Task reviews | `review-task` | 216 | 80 | 160 | 60 |
+| Testing | `manual-http-download-completion-e2e` | 396 | 150 | 159 | 70 |
+| Testing | `manual-torrent-cleanup-e2e` | 309 | 110 | 154 | 60 |
+| Testing | `manual-udp-download-completion-e2e` | 364 | 140 | 163 | 70 |
+| Testing | `public-trackers-for-testing` | 328 | 120 | 170 | 70 |
+| Testing | `write-unit-test` | 383 | 130 | 154 | 60 |
+| Using the tracker | `use-rest-api` | 333 | 120 | 154 | 60 |
+| Using the tracker | `use-tracker-client` | 381 | 130 | 159 | 60 |
+| **Total** | 53 skills | **19489** | **6980** | **8306** | **3220** |
 
 ## Description Texts
 
