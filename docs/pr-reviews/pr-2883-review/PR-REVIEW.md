@@ -140,7 +140,7 @@ paragraphs are a summary and checks, with no request.
 - Concern: The F2 fix reworded the first commit, but the PR description did not say the history was rewritten, as the `open-pull-request` skill's history rules ask.
 - Solution: The description now has a "History rewritten" note: the first commit's body was reworded for F2 with its tree unchanged, and the head `e12f3b0db` that the first round and its ACKs cite is that commit before the reword.
 - Current-tree verification: `gh pr view 2883 --json body --jq .body | grep -c 'History rewritten'` prints `1`.
-- Resolution reference: PR description edit (no commit)
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2883#discussion_r4588072127
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2883#discussion_r4588072127
 
