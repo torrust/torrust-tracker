@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2876-1347-peer-id-test-helper/ISSUE.md
-last-updated-utc: 2026-11-16 15:59
+last-updated-utc: 2026-11-16 16:18
 ---
 
 # Manual Verification Evidence
@@ -91,6 +91,42 @@ test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
 
 The finding is reproduced: the three fixture ids (`-qB000...`) and the `Id::new` ids give
 `get_client_name() == None`; the Azureus-style control id gives `Some("qBittorrent")`.
+
+### V2 - The release tracker carries no `testing` feature of `primitives` (M2)
+
+- Goal: show that, with `peer::fixture` behind the new `testing` feature (T5), the shipped
+  `torrust-tracker` binary's dependency tree does not enable it.
+- Initial state: branch `2876-peer-id-test-helper` with the T5 change (feature, self
+  dev-dependency, eight consumer `[dev-dependencies]` entries), uncommitted at the time of the run.
+- Status: `DONE` (repeated on the final code in T9)
+
+#### Steps Performed
+
+1. `cargo run -q -p shipped-features-check -- --package torrust-tracker` (stable Rust toolchain,
+   cargo 1.99.1).
+2. `cargo tree -p torrust-tracker -e normal,build,features -i torrust-tracker-primitives`, then
+   `grep -c 'feature "testing"'` on its output.
+
+#### Observed Result
+
+```text
+shipped-features exit=0
+{"kind":"checked","message":"no workspace package has the `testing` feature enabled in the dependency tree of shipped package `torrust-tracker`","shipped_package":"torrust-tracker","feature":"testing","exit_code":0}
+tree exit=0
+0
+```
+
+The tree's first lines show only the `default` feature:
+
+```text
+torrust-tracker-primitives v3.1.0 (.../packages/primitives)
+└── torrust-tracker-primitives feature "default"
+    ├── torrust-tracker v3.0.0-develop (...)
+```
+
+#### Conclusion
+
+Met. The check exits 0 and the tree has no `testing` feature of `primitives`.
 
 ## Failures and Follow-up
 

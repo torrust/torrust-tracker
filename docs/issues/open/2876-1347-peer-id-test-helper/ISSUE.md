@@ -9,7 +9,7 @@ github-issue: 2876
 spec-path: docs/issues/open/2876-1347-peer-id-test-helper/ISSUE.md
 branch: "2876-peer-id-test-helper"
 related-pr: null
-last-updated-utc: "2026-11-16 16:09"
+last-updated-utc: "2026-11-16 16:18"
 semantic-links:
   skill-links:
     - create-issue
@@ -342,7 +342,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2  | DONE   | Add the realistic-id helper with unit tests | In the Q1 location, with the Q4 format; design-review checkpoint after the first passing test. |
 | T3  | DONE   | Move the `torrent-repository-benchmarking` callers to the helper | Its tests pass; ids are distinct. |
 | T4  | DONE   | Remove or deprecate `Id::new` (Q3) | `compile_fail` doctest if removed. |
-| T5  | TODO   | Gate `peer::fixture` (and the `Default` impls, Q5) behind `testing` (Q2) | Feature in `primitives/Cargo.toml` with the semver comment of ADR rule A.6, self dev-dependency, consumer `[dev-dependencies]`; `cargo machete --with-metadata` clean. |
+| T5  | DONE   | Gate `peer::fixture` (and the `Default` impls, Q5) behind `testing` (Q2) | Feature in `primitives/Cargo.toml` with the semver comment of ADR rule A.6, self dev-dependency, consumer `[dev-dependencies]`; `cargo machete --with-metadata` clean. |
 | T6  | TODO   | Make the fixture's ids realistic (Q6) | Assertions on the old bytes listed first, then updated. |
 | T7  | TODO   | Tests or a no-test decision for every remaining fixture line | Issue-local `coverage-evidence.md` (see Coverage Evidence) shows no line owned by F5 left uncovered. |
 | T8  | TODO   | Record the decision (Q7) | ADR amendment, or a note in this spec. |
@@ -447,6 +447,11 @@ with the narrow affected scope, and sign every commit with GPG.
 - 2026-11-16 16:09 UTC - Claude Code (Opus 5.5) - T4: `Id::new` removed. A `compile_fail,E0599`
   doctest on `peer::Id`, with a companion that builds an id from 20 bytes, fails when `Id::new` is
   put back (stable and nightly). The break adds to the 4.0.0 that `primitives` already owes (#2583).
+- 2026-11-16 16:18 UTC - Claude Code (Opus 5.5) - T5: `peer::fixture` and the `Default` impls are
+  behind the new `testing` feature of `primitives` (self dev-dependency, rule A.6 comment). Built
+  member by member, eight packages needed a `[dev-dependencies]` entry: the six of the inventory plus
+  `http-core` and the root crate (Q5). Machete, packaging, M2 and `cargo test --workspace` (4,087
+  passed) are green (`test-plans/qbittorrent-peer-id.md`, `testing` Feature).
 
 ## Acceptance Criteria
 

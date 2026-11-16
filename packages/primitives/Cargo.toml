@@ -17,6 +17,13 @@ version = "3.1.0"
 [lints]
 workspace = true
 
+[features]
+default = [  ]
+# Test support outside the semver guarantees of this package: the peer fixture in `peer::fixture` (`PeerBuilder`,
+# `qbittorrent_peer_id` and the `Default` impls of `Peer` and `peer::Id`), which the tests of other workspace packages
+# use. Never enable it from a `[dependencies]` entry.
+testing = [  ]
+
 [dependencies]
 torrust-peer-id = "0.1.0"
 binascii = "0"
@@ -34,7 +41,9 @@ url = "2"
 quickcheck = { version = "1", default-features = false }
 quickcheck_macros = "1"
 serde_json = "1"
+torrust-tracker-primitives = { path = ".", features = [ "testing" ] }
 
 [package.metadata.cargo-machete]
-# The `#[quickcheck]` attribute expands to code that calls the `quickcheck` crate, which machete cannot see.
-ignored = [ "quickcheck" ]
+# The self dev-dependency only turns on the `testing` feature for this package's own tests (ADR
+# 20261021190318, rule A.3); no code names the crate by its package name, so machete cannot see the use.
+ignored = [ "torrust-tracker-primitives" ]

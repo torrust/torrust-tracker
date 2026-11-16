@@ -354,7 +354,8 @@ pub enum IdConversionError {
 /// ```
 ///
 /// There is no constructor from a number: tests that need many distinct ids use
-/// `peer::fixture::qbittorrent_peer_id`, which makes ids a real client could send.
+/// `peer::fixture::qbittorrent_peer_id` (behind the `testing` feature), which makes ids a real
+/// client could send.
 ///
 /// ```compile_fail,E0599
 /// use torrust_tracker_primitives::peer::Id;
@@ -498,6 +499,12 @@ impl<P: Encoding> FromIterator<Peer> for Vec<P> {
     }
 }
 
+/// Test support: peers, peer ids and the `Default` impls of [`Peer`] and [`Id`], for this crate's
+/// tests and the tests of other workspace packages.
+///
+/// Compiled only with the `testing` feature, which is outside the semver guarantees of this crate.
+/// Enable it only from a `[dev-dependencies]` entry.
+#[cfg(feature = "testing")]
 pub mod fixture {
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 

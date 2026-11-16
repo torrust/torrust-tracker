@@ -46,6 +46,7 @@ quickcheck = { version = "1", default-features = false }
 quickcheck_macros = "1"
 rstest = "0"
 torrust-tracker-core = { version = "0.1.0", path = "../tracker-core", features = [ "testing" ] }
+torrust-tracker-primitives = { version = "3.0.0", path = "../primitives", features = [ "testing" ] }
 
 [[bench]]
 harness = false

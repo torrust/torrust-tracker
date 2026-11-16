@@ -4,7 +4,7 @@ issue: 2876
 package: torrust-tracker-primitives
 target-file: packages/primitives/src/peer.rs
 status: done
-last-updated-utc: "2026-11-16 16:09"
+last-updated-utc: "2026-11-16 16:18"
 ---
 
 # `peer::fixture::qbittorrent_peer_id` Test Plan (T2)
@@ -131,3 +131,31 @@ it's marked `compile_fail`"; 3 passed, 1 failed. The file was restored (`cmp` ag
 
 Removing a public item is a breaking change for the published `torrust-tracker-primitives` 3.0.0.
 The crate already owes a major release (4.0.0, for #2454) in the #2583 plan; this removal adds to it.
+
+## `testing` Feature (T5)
+
+Q2 and Q5: `peer::fixture` (with `PeerBuilder`, `qbittorrent_peer_id` and the `Default` impls of
+`Peer` and `Id`) is compiled only with the new `testing` feature of `primitives`.
+
+- `primitives/Cargo.toml`: `testing = [  ]`, not in `default`, with the rule A.6 comment; the
+  path-only self dev-dependency (rule A.3). The module's doc comment says it is test support outside
+  semver.
+- `cargo check -p torrust-tracker-primitives` (no features) exits 0.
+- Consumers. `cargo test --workspace --no-run` passed without any consumer entry, because the self
+  dev-dependency unifies the feature on for every member (the ADR's V4 note). Building each of the
+  34 members on its own (`cargo test -q -p <member> --no-run`) found the eight that need it, with
+  `E0432` (`peer::fixture` unresolved) or `E0599` (`Peer::default` missing): `torrust-tracker`
+  (`src/app.rs`), `axum-http-server`, `axum-rest-api-server`, `http-core` (`src/event.rs`),
+  `swarm-coordination-registry`, `torrent-repository-benchmarking`, `udp-core` and `udp-server`.
+  That is the six packages of the inventory plus the two that Q5 names. Each got
+  `torrust-tracker-primitives = { version = "3.0.0", path = ..., features = [ "testing" ] }` under
+  `[dev-dependencies]`, and all eight then built on their own. No `[dependencies]` entry enables
+  `testing`.
+- `cargo machete --with-metadata` first reported the self dev-dependency as unused (no code in
+  `primitives` names the crate by its package name: it has no `tests/` folder) and warned that the
+  ignored `quickcheck` is used (T2's test imports `quickcheck::TestResult`). The ignore list now
+  names the self dev-dependency, with the reason, instead of `quickcheck`; machete is clean.
+- `cargo package -p torrust-tracker-primitives --no-verify --allow-dirty` exits 0, and the packaged
+  `Cargo.toml` has `testing = []` and no self dev-dependency (ADR criterion 5).
+- `cargo test -q --workspace` (stable Rust toolchain, cargo 1.99.1): 4,087 passed, 0 failed.
+- M2 (`manual-verification-evidence.md`, V2): the shipped-features check exits 0.
