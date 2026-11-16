@@ -49,6 +49,8 @@ F8 is in da2ce7's review 5925179048 (`APPROVED`, on the head `docs(pr-reviews): 
 
 F9 is in da2ce7's review 5925370203 (`APPROVED`, on the head `docs(pr-reviews): [#2846] audit the second review of PR #2890`) and keeps his ID; the F9 fix push dismissed that approval.
 
+F10 to F12 are in Copilot's review 5925587139 (on the head `docs(adrs): [#2846] narrow where the job manager cancels running components`), in source order; Copilot gives no IDs. Their fix push dismissed da2ce7's clean approval 5925580607 of the head `docs(pr-reviews): [#2846] audit the third review of PR #2890`, which had no finding and needs no row.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2890-f1 | Human | Major | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -60,6 +62,9 @@ F9 is in da2ce7's review 5925370203 (`APPROVED`, on the head `docs(pr-reviews): 
 | F7 | review-finding:pr-2890-f7 | Human | Nit | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F8 | review-finding:pr-2890-f8 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 | F9 | review-finding:pr-2890-f9 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-2890-f10 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-2890-f11 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-2890-f12 | Copilot | Nit (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -180,6 +185,45 @@ F9 is in da2ce7's review 5925370203 (`APPROVED`, on the head `docs(pr-reviews): 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2890#discussion_r4589921849
 
+### F10 - Mark the skipped workflow checkpoints as not planned
+
+- PR number: 2890
+- Source review ID: 5925587139
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2890#discussion_r4590031496
+- Concern: Unchecked workflow checkpoints on a closed, not-planned spec read as incomplete work.
+- Solution: The implementation, design-review and manual-verification checkpoints are struck through and marked "Not planned (no-go)"; the automatic verification, acceptance-criteria review and completion-review checkpoints are checked for the documentation change, each saying what it covers.
+- Current-tree verification: The Workflow Checkpoints list of the spec has no plain unchecked item.
+- Resolution reference: docs(issues): [#2846] mark the skipped SI-27 workflow checkpoints as not planned
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2890#discussion_r4590091329
+
+### F11 - Mark the acceptance criteria and scenarios as not planned
+
+- PR number: 2890
+- Source review ID: 5925587139
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2890#discussion_r4590031562
+- Concern: The Acceptance Criteria still listed unchecked implementation criteria, implying pending work on a closed spec.
+- Solution: The three implementation criteria are struck through and marked "Not planned (no-go)"; "shutdown behavior unchanged" and "`linter all` passes" are checked because no code changed. The manual scenarios and acceptance verification rows use a new `NOT PLANNED` status (swept in the same commit).
+- Current-tree verification: The Acceptance Criteria, Manual Verification Scenarios and Acceptance Verification sections of the spec have no `TODO` left.
+- Resolution reference: docs(issues): [#2846] mark the SI-27 acceptance criteria and scenarios as not planned
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2890#discussion_r4590091724
+
+### F12 - List the health check API server in the ADR frontmatter
+
+- PR number: 2890
+- Source review ID: 5925587139
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2890#discussion_r4590031623
+- Concern: The ADR Affected Code section links `packages/axum-health-check-api-server/src/server.rs`, which the frontmatter `related-artifacts` did not list.
+- Solution: Added it to `related-artifacts`; every Affected Code file is now in the list.
+- Current-tree verification: The ADR frontmatter lists `packages/axum-health-check-api-server/src/server.rs`.
+- Resolution reference: docs(adrs): [#2846] list the health check API server in the ADR frontmatter
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2890#discussion_r4590092128
+
 ## Processing Log
 
 - 2026-11-16 17:53 UTC - Review 5924775596 (Copilot, `COMMENTED`) submitted on the pre-rebase head: no finding; no reply needed.
@@ -191,6 +235,8 @@ F9 is in da2ce7's review 5925370203 (`APPROVED`, on the head `docs(pr-reviews): 
 - 2026-11-16 18:26 UTC - Pushed the F8 fix (committed 18:24 UTC, push 18:26:43 UTC), which dismissed review 5925179048, and corrected the PR description. Replied to the F8 thread (18:26:44 UTC) and resolved it (18:26:53 UTC); a GraphQL refresh shows no unresolved thread.
 - 2026-11-16 18:36 UTC - Review 5925370203 (da2ce7, `APPROVED`) submitted on the audit head: one Nit, recorded here as F9.
 - 2026-11-16 18:41 UTC - Pushed the F9 fix (committed 18:38 UTC, push 18:41:14 UTC), which dismissed review 5925370203. Replied to the F9 thread (18:41:15 UTC) and resolved it (18:41:19 UTC); a GraphQL refresh shows no unresolved thread.
+- 2026-11-16 18:50 UTC - Review 5925580607 (da2ce7, `APPROVED`, no finding) on the third audit head, followed by his `ACK` comment on it, and review 5925587139 (Copilot, `COMMENTED`) on the F8 head: three findings, recorded here as F10 to F12.
+- 2026-11-16 18:56 UTC - Pushed the three fix commits (committed 18:52 to 18:53 UTC, push 18:56:28 UTC), which dismissed review 5925580607. Replied to the three Copilot threads (18:56:30 to 18:56:35 UTC) and resolved them (18:56:48 UTC); a GraphQL refresh shows no unresolved thread.
 
 ## Completion Rules
 
