@@ -278,11 +278,33 @@ pub fn skill_name(path: &str) -> Option<&str> {
         .filter(|name| !name.is_empty() && !name.contains('/'))
 }
 
-/// Checks the `description` of one skill file's text, the list of skills Claude Code loads into
-/// every session (issue #2873).
+/// The longest skill `description`, in characters as YAML reads it. Claude Code loads every
+/// skill's name and description into every session, within a budget of 1% of the context window
+/// (issue #2873).
+pub const MAX_DESCRIPTION_CHARACTERS: usize = 200;
+
+/// Checks the `description` of one skill file's text, which Claude Code lists in every session.
 #[must_use]
 pub fn description_findings(markdown: &str) -> Vec<Diagnostic> {
-    description_cut_by_comment(markdown).into_iter().collect()
+    description_cut_by_comment(markdown)
+        .into_iter()
+        .chain(description_too_long(markdown))
+        .collect()
+}
+
+/// Reports a `description` whose parsed value is longer than [`MAX_DESCRIPTION_CHARACTERS`].
+fn description_too_long(markdown: &str) -> Option<Diagnostic> {
+    let frontmatter = extract_with_ownership(markdown, DocumentOwnership::External).ok().flatten()?;
+    let length = frontmatter.values.get("description").and_then(Value::as_str)?.chars().count();
+    (length > MAX_DESCRIPTION_CHARACTERS).then(|| {
+        Diagnostic::for_field(
+            DiagnosticCategory::SkillDescriptionTooLong,
+            "description",
+            format!(
+                "The skill's `description` has {length} characters; the limit is {MAX_DESCRIPTION_CHARACTERS}. Keep what the skill does and when to use it; move details to the body."
+            ),
+        )
+    })
 }
 
 /// Reports a plain (unquoted, not block) `description` that holds white space followed by `#`.
@@ -568,7 +590,7 @@ mod description_tests {
 
     use rstest::rstest;
 
-    use super::description_findings;
+    use super::{MAX_DESCRIPTION_CHARACTERS, description_findings};
     use crate::DiagnosticCategory;
 
     /// A skill file whose frontmatter `description` is written exactly as `description`, which
@@ -617,5 +639,52 @@ mod description_tests {
         let skill = "---\nname: example\ndescription: Writes Markdown.\nmetadata: # owner\n  owner: docs\n---\n";
 
         assert_eq!(categories(skill), []);
+    }
+
+    /// A plain description of exactly `length` characters.
+    fn description_of_length(length: usize) -> String {
+        format!(" {}", "a".repeat(length))
+    }
+
+    #[test]
+    fn it_should_report_a_description_longer_than_the_limit() {
+        let skill = skill_with_description(&description_of_length(MAX_DESCRIPTION_CHARACTERS + 1));
+
+        assert_eq!(categories(&skill), [DiagnosticCategory::SkillDescriptionTooLong]);
+    }
+
+    #[rstest]
+    #[case::at_the_limit(MAX_DESCRIPTION_CHARACTERS)]
+    #[case::short(1)]
+    fn it_should_accept_a_description_no_longer_than_the_limit(#[case] length: usize) {
+        let skill = skill_with_description(&description_of_length(length));
+
+        assert_eq!(categories(&skill), []);
+    }
+
+    #[test]
+    fn it_should_count_the_characters_yaml_reads_not_the_raw_text_or_its_bytes() {
+        // A folded block whose parsed value is exactly the limit: 99 characters, the space the
+        // line break folds into, then 99 characters and a two-byte `é`. Its raw text, with the
+        // block indicator and the indentation, is longer than the limit, and so are its bytes.
+        let first_line = "a".repeat(99);
+        let second_line = format!("{}é", "a".repeat(99));
+        let skill = skill_with_description(&format!(" >-\n  {first_line}\n  {second_line}"));
+
+        assert_eq!(categories(&skill), []);
+    }
+
+    #[test]
+    fn it_should_report_both_problems_of_a_description_cut_at_a_comment_and_still_too_long() {
+        let long = "a".repeat(MAX_DESCRIPTION_CHARACTERS + 1);
+        let skill = skill_with_description(&format!(" {long} #NUMBER"));
+
+        assert_eq!(
+            categories(&skill),
+            [
+                DiagnosticCategory::SkillDescriptionCutByComment,
+                DiagnosticCategory::SkillDescriptionTooLong
+            ]
+        );
     }
 }

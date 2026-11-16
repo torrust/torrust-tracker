@@ -55,6 +55,8 @@ pub enum DiagnosticCategory {
     /// A skill's plain `description` holds white space followed by `#`, which YAML reads as the
     /// start of a comment, so the description is cut there.
     SkillDescriptionCutByComment,
+    /// A skill's `description`, as YAML reads it, is longer than the limit.
+    SkillDescriptionTooLong,
 }
 
 /// Whether a diagnostic fails validation or is advisory.
@@ -137,6 +139,7 @@ mod tests {
             DiagnosticCategory::SkillNameMismatch => "skill-name-mismatch",
             DiagnosticCategory::SkillIndexMismatch => "skill-index-mismatch",
             DiagnosticCategory::SkillDescriptionCutByComment => "skill-description-cut-by-comment",
+            DiagnosticCategory::SkillDescriptionTooLong => "skill-description-too-long",
         }
     }
 
@@ -164,6 +167,7 @@ mod tests {
     #[case::skill_name_mismatch(DiagnosticCategory::SkillNameMismatch)]
     #[case::skill_index_mismatch(DiagnosticCategory::SkillIndexMismatch)]
     #[case::skill_description_cut_by_comment(DiagnosticCategory::SkillDescriptionCutByComment)]
+    #[case::skill_description_too_long(DiagnosticCategory::SkillDescriptionTooLong)]
     fn it_should_serialize_each_category_as_its_stable_kebab_case_name(#[case] category: DiagnosticCategory) {
         // Act: serialize the category as the command will.
         let actual = serde_json::to_value(category).unwrap();
