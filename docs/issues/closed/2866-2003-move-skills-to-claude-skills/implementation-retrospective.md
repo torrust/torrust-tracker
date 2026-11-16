@@ -51,7 +51,7 @@ listed none (V0). The design is the one the spec approved; no task changed scope
   20,000-line limit. Copilot did not review; da2ce7 reviewed alone.
 - **`develop` moved three times during review.** Each merge brought specs that the move had
   edited and that were then archived or renamed on `develop`; one needed a hand resolution, and
-  each push dismissed the approval. The merge message of the hand resolution carried a closing
+  the last merge push dismissed the standing approval. The merge message of the hand resolution carried a closing
   keyword (`closed #2850`), recorded as F3 and left as is by the maintainer's decision.
 - **Progress-log times were first estimated.** The T2 to T7 entries were written with guessed
   times and corrected to the commit times in the T8 commit.
