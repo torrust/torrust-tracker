@@ -17,7 +17,7 @@ use clap::error::ErrorKind;
 use clap::{ArgGroup, Parser};
 use discovery::{DiscoveryError, Mode, discover, repository_files};
 use frontmatter_validator::repository::validate_document;
-use frontmatter_validator::skills::misplaced_skill;
+use frontmatter_validator::skills::{layout_findings, reads_text};
 use git::Git;
 use record::{EXIT_FAILURE, EXIT_SUCCESS, EXIT_USAGE, Record, emit};
 
@@ -81,14 +81,20 @@ fn run(arguments: impl IntoIterator<Item = OsString>, working_directory: &Path, 
 
 /// Runs the repository-wide skill rules over the index, so a commit is checked as it will be made.
 fn validate_skill_layout(working_directory: &Path) -> (Vec<Record>, u8) {
-    let files = match Git::discover(working_directory).and_then(|git| git.tracked_files(None)) {
-        Ok(files) => files,
+    let (git, files) = match Git::discover(working_directory).and_then(|git| git.tracked_files(None).map(|files| (git, files))) {
+        Ok(snapshot) => snapshot,
         Err(message) => return (vec![Record::runtime_error(None, message)], EXIT_FAILURE),
     };
+    let text = |path: &str| {
+        (reads_text(path) && files.iter().any(|file| file == path))
+            .then(|| git.index_content(path).ok())
+            .flatten()
+            .and_then(|bytes| String::from_utf8(bytes).ok())
+    };
 
-    let records: Vec<Record> = files
-        .iter()
-        .filter_map(|path| misplaced_skill(path).map(|diagnostic| Record::diagnostic(path, diagnostic)))
+    let records: Vec<Record> = layout_findings(files.iter().map(String::as_str), text)
+        .into_iter()
+        .map(|finding| Record::diagnostic(finding.path, finding.diagnostic))
         .collect();
     let has_error = records.iter().any(Record::is_error);
     (records, if has_error { EXIT_FAILURE } else { EXIT_SUCCESS })

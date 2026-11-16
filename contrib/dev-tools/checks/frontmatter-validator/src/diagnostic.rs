@@ -42,6 +42,10 @@ pub enum DiagnosticCategory {
     UnknownSkill,
     /// A `SKILL.md` is not at `.claude/skills/<name>/SKILL.md`, where Claude Code discovers it.
     MisplacedSkill,
+    /// A path the redirect stub inventory lists has no stub.
+    MissingRedirectStub,
+    /// A file under `.github/skills/` is neither an inventoried redirect stub nor the inventory.
+    StrayRedirectFile,
 }
 
 /// Whether a diagnostic fails validation or is advisory.
@@ -118,6 +122,8 @@ mod tests {
             DiagnosticCategory::MissingArtifact => "missing-artifact",
             DiagnosticCategory::UnknownSkill => "unknown-skill",
             DiagnosticCategory::MisplacedSkill => "misplaced-skill",
+            DiagnosticCategory::MissingRedirectStub => "missing-redirect-stub",
+            DiagnosticCategory::StrayRedirectFile => "stray-redirect-file",
         }
     }
 
@@ -139,6 +145,8 @@ mod tests {
     #[case::missing_artifact(DiagnosticCategory::MissingArtifact)]
     #[case::unknown_skill(DiagnosticCategory::UnknownSkill)]
     #[case::misplaced_skill(DiagnosticCategory::MisplacedSkill)]
+    #[case::missing_redirect_stub(DiagnosticCategory::MissingRedirectStub)]
+    #[case::stray_redirect_file(DiagnosticCategory::StrayRedirectFile)]
     fn it_should_serialize_each_category_as_its_stable_kebab_case_name(#[case] category: DiagnosticCategory) {
         // Act: serialize the category as the command will.
         let actual = serde_json::to_value(category).unwrap();

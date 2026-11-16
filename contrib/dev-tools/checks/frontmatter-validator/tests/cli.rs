@@ -477,6 +477,32 @@ fn it_should_check_the_skill_layout_of_the_index_only_with_skill_layout() {
     assert_eq!(outcome.only_record()["category"], "misplaced-skill");
 }
 
+#[test]
+fn it_should_read_the_stub_inventory_from_the_index_with_skill_layout() {
+    // Arrange: the staged inventory lists the staged stub; the working-tree inventory no longer does.
+    let repository = Repository::new();
+    let stub = ".github/skills/dev/old/SKILL.md";
+    repository.write(stub, PLAIN_DOCUMENT);
+    repository.write(
+        ".github/skills/README.md",
+        &format!("| Old path | Original name | Current name |\n| --- | --- | --- |\n| `{stub}` | `old` | `old` |\n"),
+    );
+    repository.stage(stub);
+    repository.stage(".github/skills/README.md");
+    repository.write(".github/skills/README.md", "# Emptied in the working tree\n");
+
+    // Act
+    let outcome = repository.validate(&["--skill-layout"]);
+
+    // Assert: the staged inventory exempts the stub from the placement rule.
+    assert_eq!(
+        (outcome.exit_code, outcome.records.len()),
+        (0, 0),
+        "records: {:?}",
+        outcome.records
+    );
+}
+
 #[rstest]
 #[case::staged_invalid_working_copy_fixed(WRONG_SCALAR_ISSUE, VALID_ISSUE, 1)]
 #[case::staged_valid_working_copy_broken(VALID_ISSUE, WRONG_SCALAR_ISSUE, 0)]

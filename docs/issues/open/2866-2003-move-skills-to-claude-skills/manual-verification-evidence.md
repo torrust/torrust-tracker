@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2866-2003-move-skills-to-claude-skills/ISSUE.md
-last-updated-utc: 2026-11-16 08:40
+last-updated-utc: 2026-11-16 09:20
 ---
 
 <!-- cspell:ignore Autocompact dataviz endswith findall isfile normpath relpath startswith -->
@@ -388,6 +388,41 @@ main()
 ```
 
 </details>
+
+### T6 - Validator rule increments and their test-design reviews
+
+Each increment was run with `cargo test -p frontmatter-validator` and
+`cargo clippy -p frontmatter-validator --all-targets -- -D warnings` (stable Rust toolchain), then
+mutated, reviewed and committed before the next started.
+
+#### Increment 1 - The stub inventory
+
+- Rules: an inventoried old `SKILL.md` path is exempt from the placement rule; an inventoried path
+  with no stub is `missing-redirect-stub`; any other file under `.github/skills/` except the
+  inventory is `stray-redirect-file` (a `SKILL.md` there stays `misplaced-skill`). The binary
+  reads the inventory from the index.
+- After the increment, `frontmatter-validator --skill-layout` on the branch exited `0` with no
+  record: the 53 stubs are inventoried.
+- Mutations, each restored afterwards:
+
+  | Mutation                                         | Failing tests                                                                                     |
+  | ------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
+  | No exemption for inventoried paths               | `..._accept_an_inventoried_redirect_stub...`, `..._no_redirect_stub`, `..._does_not_list`          |
+  | Never report a missing stub                      | `..._whose_redirect_stub_was_deleted`                                                              |
+  | Never report a stray file                        | `..._that_is_no_redirect_stub`                                                                     |
+  | The binary reads the inventory from the working tree | `it_should_read_the_stub_inventory_from_the_index_with_skill_layout` (`tests/cli.rs`)          |
+
+  A first version of the third mutation left `stray_redirect_file` unused, which the workspace
+  lints reject; it ran no test, so it was replaced by one that compiles.
+- Test-design review: each unit test varies one thing against the same accepted state (one stub,
+  inventoried): the stub is deleted, a skill the inventory does not list is added, or a non-stub
+  file is added. The Act is `layout_findings` itself; the expected `(path, category)` pairs are
+  written in each test. Temporary Arrange, Act and Assert comments added nothing the variable
+  names and the blank lines did not already say, so they were removed. The helpers `inventory`
+  and `layout` hold only incidental mechanics: rendering the inventory table, and reducing
+  findings to their path and category. The command-boundary test owns only where the inventory
+  is read from; its one causal difference is the working-tree inventory that differs from the
+  staged one.
 
 ## Failures and Follow-up
 
