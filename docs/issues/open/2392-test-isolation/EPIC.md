@@ -6,14 +6,14 @@ epic: null
 github-issue: 2392
 spec-path: docs/issues/open/2392-test-isolation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-15 12:50"
+last-updated-utc: "2026-11-16 13:56"
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
     - .github/skills/dev/planning/create-issue/SKILL.md
     - docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
-    - docs/issues/open/2393-2392-test-port-allocation-races/ISSUE.md
+    - docs/issues/closed/2393-2392-test-port-allocation-races/ISSUE.md
     - docs/issues/open/2394-2392-audit-shared-test-resources/ISSUE.md
     - docs/issues/open/2395-2392-e2e-runner-dynamic-host-ports/ISSUE.md
     - docs/issues/open/2396-2392-e2e-unique-tracker-image-tag/ISSUE.md
@@ -100,7 +100,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | Order | Issue | Local Spec | Status | Notes |
 | ----- | ----- | ---------- | ------ | ----- |
-| 1 | #2393 - Eliminate parallel test port allocation races | `docs/issues/open/2393-2392-test-port-allocation-races/ISSUE.md` | IN_PROGRESS | Bug. PR #2859 (merged) ignored 21 racing tests and rewrote 4 that never needed a racing port. The full suite passed 150 of 150 runs with the 18 tests ignored at that head, and 20 of 20 runs with the final 21. T5 is decided (2026-11-15): delete 9 tests of test-support code, rewrite the 3 health-check contract tests to probe an address the test holds, and restore 9 socket-release tests on a unique loopback address. Open: T7 to T11, which apply those decisions, recheck the suite and close out. |
+| 1 | #2393 - Eliminate parallel test port allocation races | `docs/issues/closed/2393-2392-test-port-allocation-races/ISSUE.md` | DONE | Bug. PR #2859 ignored 21 racing tests and rewrote 4 that never needed a racing port. PR #2874 applied the T5 decisions: deleted 9 tests of test-support code, rewrote the 3 health-check contract tests to probe an address the test holds, and restored 9 socket-release tests on a random loopback address (ignored off Linux). The full suite then passed 150 of 150 runs with no #2393 test ignored (V6). Found during the work: #2867 (UDP health check panics on a malformed reply). |
 | 2 | #2394 - Audit shared test resources | `docs/issues/open/2394-2392-audit-shared-test-resources/ISSUE.md` | TODO | Task. Inventories the resource classes in scope, records a disposition for each finding, and drafts subissues for confirmed problems. |
 | 3 | #2395 - Use dynamic host ports in the E2E runner | `docs/issues/open/2395-2392-e2e-runner-dynamic-host-ports/ISSUE.md` | TODO | Task. Removes fixed E2E host ports. Independent of orders 1 and 2. |
 | 4 | #2396 - Use a unique tracker image tag per CI run | `docs/issues/open/2396-2392-e2e-unique-tracker-image-tag/ISSUE.md` | TODO | Task. Prevents one run from testing another run's image. Latent today (one runner instance per server). Independent of order 3. |
@@ -234,6 +234,8 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
   PR #2862: merged `develop`, which carries the #2393 T5 decisions (PR #2863); order 1 now has
   T5 decided and T7 to T11 open, the Decisions section records the T5 decisions and the loopback
   helper, and AC2 and the lost-coverage risk point at #2393 T10 and T9.
+- 2026-11-16 13:56 UTC - Claude Code (Claude Opus 5.5), #2393 session - #2393 closed after PR
+  #2874 merged: order 1 is DONE and its spec moved to `docs/issues/closed/`.
 
 ## Acceptance Criteria
 
