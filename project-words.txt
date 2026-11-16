@@ -435,7 +435,6 @@ pathspecs
 peekable
 peerlist
 peersld
-peerslee
 penalise
 pessimize
 pgrep

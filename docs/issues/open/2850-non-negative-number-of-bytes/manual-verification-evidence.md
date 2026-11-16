@@ -6,7 +6,7 @@ last-updated-utc: "2026-11-15 21:04"
 
 # Manual Verification Evidence
 
-<!-- cspell:ignore EPOCHREALTIME -->
+<!-- cspell:ignore EPOCHREALTIME peerslee -->
 
 ## Purpose
 
