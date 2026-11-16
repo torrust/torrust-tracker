@@ -4,6 +4,7 @@
 
 use std::io::{Read, Write};
 use std::net::{SocketAddr, TcpListener};
+use std::path::PathBuf;
 use std::process::{Child, Command, Output, Stdio};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -80,9 +81,21 @@ impl Drop for ChildGuard {
     }
 }
 
+/// The binary under test.
+///
+/// nextest sets `NEXTEST_BIN_EXE_http_health_check` at run time, remapped to where the archive was
+/// extracted. The container's `test` stages run from an archive built in another stage, where the
+/// path Cargo compiled into `CARGO_BIN_EXE_http_health_check` no longer exists, so the nextest
+/// variable is read first and the compiled-in path is the fallback for `cargo test`.
+fn health_check_binary() -> PathBuf {
+    std::env::var_os("NEXTEST_BIN_EXE_http_health_check")
+        .filter(|path| !path.is_empty())
+        .map_or_else(|| PathBuf::from(env!("CARGO_BIN_EXE_http_health_check")), PathBuf::from)
+}
+
 /// Runs the binary with the given arguments, with stdout and stderr piped, within the deadline.
 fn run_health_check(arguments: &[&str]) -> Output {
-    let child = Command::new(env!("CARGO_BIN_EXE_http_health_check"))
+    let child = Command::new(health_check_binary())
         .args(arguments)
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
