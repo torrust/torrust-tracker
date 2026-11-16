@@ -4,6 +4,7 @@ use std::time::Duration;
 
 use criterion::{Criterion, criterion_group, criterion_main};
 
+use crate::helpers::announce::AnnounceBenchmarkContext;
 use crate::helpers::connect::ConnectBenchmarkContext;
 use crate::helpers::routine_guard::RoutineGuard;
 
@@ -31,5 +32,29 @@ fn bench_connect_once(c: &mut Criterion) {
     guard.assert_routine_ran(&format!("{GROUP}/{BENCHMARK}"));
 }
 
-criterion_group!(benches, bench_connect_once);
+const ANNOUNCE_GROUP: &str = "udp_tracker/announce_once";
+const ANNOUNCE_BENCHMARK: &str = "announce_once";
+
+fn bench_announce_once(c: &mut Criterion) {
+    let runtime = tokio::runtime::Runtime::new().expect("it should build a Tokio runtime");
+    let context = AnnounceBenchmarkContext::new();
+    let guard = RoutineGuard::default();
+
+    {
+        let mut group = c.benchmark_group(ANNOUNCE_GROUP);
+        group.warm_up_time(Duration::from_millis(500));
+        group.measurement_time(Duration::from_secs(1));
+
+        group.bench_function(ANNOUNCE_BENCHMARK, |b| {
+            guard.record_benchmark_invocation();
+            b.to_async(&runtime).iter(|| guard.track(context.announce_once()));
+        });
+
+        group.finish();
+    }
+
+    guard.assert_routine_ran(&format!("{ANNOUNCE_GROUP}/{ANNOUNCE_BENCHMARK}"));
+}
+
+criterion_group!(benches, bench_connect_once, bench_announce_once);
 criterion_main!(benches);

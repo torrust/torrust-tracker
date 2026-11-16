@@ -610,6 +610,46 @@ async fn should_return_no_peers_if_the_announced_peer_is_the_first_one() {
 }
 
 #[tokio::test]
+async fn should_accept_a_number_of_bytes_left_above_the_largest_signed_64_bit_value() {
+    logging::setup();
+
+    let cfg = configuration::ephemeral_public();
+    let core_config = Arc::new(cfg.core.clone());
+    let http_tracker_config = Arc::new(cfg.http_trackers.unwrap()[0].clone());
+    let env = Started::new(&core_config, &http_tracker_config).await;
+
+    // One above `i64::MAX`: refused with an overflow error before issue #2850.
+    let left = 9_223_372_036_854_775_808;
+
+    let response = Client::new(env.base_url(), Duration::from_secs(5))
+        .unwrap()
+        .announce(
+            &AnnounceBuilder::default()
+                .with_info_hash(&InfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap()) // DevSkim: ignore DS173237
+                .with_left(left)
+                .query(),
+        )
+        .await
+        .unwrap();
+
+    let announce_policy = env.container.tracker_core_container.core_config.announce_policy;
+
+    assert_announce_response(
+        response,
+        &DeserializedNormal {
+            complete: 0,
+            incomplete: 1, // the peer for this test, a leecher
+            interval: announce_policy.interval.get(),
+            min_interval: announce_policy.interval_min.get(),
+            peers: vec![],
+        },
+    )
+    .await;
+
+    env.stop().await;
+}
+
+#[tokio::test]
 async fn should_return_the_list_of_previously_announced_peers() {
     logging::setup();
 

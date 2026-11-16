@@ -1,0 +1,99 @@
+rustc 1.99.1 (58cf8f9c3 2026-10-13)
+start 2026-11-16 08:16:11 UTC
+$ cargo test -p torrust-tracker-udp-server --lib it_should_reject_an_announce_with_a_negative_number_of_bytes_left
+running 1 test
+test handlers::announce::tests::announce_request::using_ipv4::it_should_reject_an_announce_with_a_negative_number_of_bytes_left ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 225 filtered out; finished in 0.02s
+$ cargo test -p torrust-tracker-udp-server --lib it_should_classify_a_negative_number_of_bytes_in_an_announce_as_a_bad_request
+running 1 test
+test event::tests::it_should_classify_a_negative_number_of_bytes_in_an_announce_as_a_bad_request ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 225 filtered out; finished in 0.00s
+$ cargo test -p torrust-tracker-udp-core --lib number_of_bytes
+running 9 tests
+test peer_builder::tests::it_should_accept_a_non_negative_number_of_bytes_left::case_1_zero ... ok
+test peer_builder::tests::it_should_accept_a_non_negative_number_of_bytes_left::case_3_unknown_size_of_transmission ... ok
+test peer_builder::tests::it_should_accept_a_non_negative_number_of_bytes_left::case_2_unknown_size_of_libtorrent ... ok
+test peer_builder::tests::it_should_reject_a_negative_number_of_bytes::case_1_left ... ok
+test peer_builder::tests::it_should_reject_a_negative_number_of_bytes::case_2_left_min ... ok
+test peer_builder::tests::it_should_reject_a_negative_number_of_bytes::case_4_downloaded ... ok
+test peer_builder::tests::it_should_reject_a_negative_number_of_bytes::case_3_uploaded ... ok
+test services::announce::tests::it_should_validate_the_connection_id_before_the_number_of_bytes ... ok
+test services::announce::tests::it_should_reject_a_negative_number_of_bytes_before_revealing_whether_the_torrent_is_whitelisted ... ok
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 99 filtered out; finished in 0.00s
+$ cargo test -p torrust-tracker-udp-core --lib it_should_validate_the_connection_id_before_the_number_of_bytes
+running 1 test
+test services::announce::tests::it_should_validate_the_connection_id_before_the_number_of_bytes ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 107 filtered out; finished in 0.00s
+$ cargo test -p torrust-tracker-udp-core --lib it_should_reject_a_negative_number_of_bytes_before_revealing_whether_the_torrent_is_whitelisted
+running 1 test
+test services::announce::tests::it_should_reject_a_negative_number_of_bytes_before_revealing_whether_the_torrent_is_whitelisted ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 107 filtered out; finished in 0.00s
+$ cargo test -p torrust-tracker-primitives --lib peer
+running 43 tests
+test peer::test::peer_id::it_should_be_converted_from_exactly_twenty_bytes_keeping_the_bytes ... ok
+test peer::test::peer::should_be_comparable ... ok
+test peer::test::peer_id::it_should_be_created_from_a_peer_id ... ok
+test peer::test::peer_id::it_should_know_the_client_that_generated_a_registered_peer_id_prefix ... ok
+test peer::test::peer_id::it_should_give_mutable_access_to_the_peer_id_bytes ... ok
+test peer::test::peer_collection::it_should_collect_peers_into_a_vector_of_their_encoding_in_order ... ok
+test announce::tests::announce_data::it_should_default_to_no_peers_empty_statistics_and_the_default_policy ... ok
+test peer::test::peer_id_encoding::it_should_reject_any_byte_vector_whose_length_is_not_twenty ... ok
+test peer::test::peer_state::it_should_be_a_seeder_when_it_has_no_bytes_left_to_download ... ok
+test peer::test::peer_serialization::it_should_serialize_every_field_in_its_json_form ... ok
+test peer::test::peer_role::it_should_have_the_seeder_as_the_opposite_of_the_leecher ... ok
+test peer::test::peer_role::it_should_be_parsed_from_its_lowercase_name ... ok
+test peer::test::peer_state::read_info::it_should_expose_the_peer_state_through_the_read_info_trait ... ok
+test peer::test::torrent_peer_id::should_fail_trying_to_convert_from_a_byte_vector_with_less_than_20_bytes - should panic ... ok
+test peer::test::peer_state::it_should_be_completed_only_when_its_last_event_is_completed ... ok
+test peer::test::unix_time_value_serialization::it_should_serialize_the_largest_timestamp_that_fits_in_u64_milliseconds ... ok
+test peer::test::torrent_peer_id::should_fail_trying_to_convert_from_a_byte_vector_with_more_than_20_bytes - should panic ... ok
+test peer::test::peer_state::it_should_be_marked_as_completed_without_changing_anything_else ... ok
+test peer::test::peer_state::it_should_be_converted_into_a_seeder_without_changing_anything_else ... ok
+test peer::test::peer_role_serialization::it_should_serialize_a_seeder_in_lowercase_like_its_display_format ... ok
+test peer::test::peer_id::it_should_not_know_the_client_of_an_unregistered_peer_id_prefix ... ok
+test peer::test::torrent_peer_id::should_be_converted_to_hex_string ... ok
+test policy::tests::it_should_keep_the_given_peer_timeout_and_default_the_rest ... ok
+test peer::test::peer_state::read_info::it_should_expose_the_peer_state_through_the_read_info_trait_of_a_shared_peer ... ok
+test peer::test::peer_state::read_info::it_should_classify_the_role_through_the_read_info_trait_like_the_peer_does ... ok
+test peer::test::peer_state::it_should_be_a_leecher_when_it_has_bytes_left_to_download ... ok
+test peer::test::peer_role::it_should_be_parsed_ignoring_the_case_of_its_name ... ok
+test peer::test::torrent_peer_id::should_be_converted_into_string_type_using_the_hex_string_format ... ok
+test peer::test::peer_role::it_should_fail_to_parse_a_name_that_is_not_a_role_and_report_the_rejected_text ... ok
+test peer::test::peer_state::it_should_be_a_leecher_when_it_has_stopped_even_with_no_bytes_left_to_download ... ok
+test peer::test::unix_time_value_serialization::it_should_fail_instead_of_truncating_a_timestamp_beyond_u64_milliseconds ... ok
+test peer::test::peer_serialization::it_should_serialize_the_none_announce_event_as_its_name ... ok
+test peer::test::peer_state::it_should_keep_its_port_when_its_ip_address_changes ... ok
+test peer::test::peer_id::it_should_serialize_an_unknown_client_as_null ... ok
+test peer::test::peer_id_encoding::it_should_encode_any_twenty_bytes_as_a_hex_string_with_the_0x_prefix ... ok
+test peer::test::peer_role::it_should_have_the_leecher_as_the_opposite_of_the_seeder ... ok
+test peer::test::unix_time_value_serialization::it_should_serialize_the_timestamp_as_unix_milliseconds ... ok
+test peer::test::peer_serialization::it_should_serialize_the_stopped_announce_event_as_its_name ... ok
+test peer::test::peer_role_serialization::it_should_serialize_a_leecher_in_lowercase_like_its_display_format ... ok
+test peer::test::peer_id::it_should_serialize_the_hex_string_and_the_client_name ... ok
+test peer::test::peer_state::it_should_be_converted_into_a_completed_peer_without_changing_anything_else ... ok
+test peer::test::peer_state::it_should_be_a_seeder_when_it_has_completed_the_download ... ok
+test peer::test::peer_serialization::it_should_serialize_the_started_announce_event_as_its_name ... ok
+test result: ok. 43 passed; 0 failed; 0 ignored; 0 measured; 65 filtered out; finished in 0.01s
+$ cargo test -p torrust-tracker-http-protocol --lib when_a_number_of_bytes_param_is_parsed
+running 15 tests
+test v1::requests::announce::tests::announce_request::when_a_number_of_bytes_param_is_parsed::it_should_accept_the_largest_unsigned_64_bit_value::case_2_uploaded ... ok
+test v1::requests::announce::tests::announce_request::when_a_number_of_bytes_param_is_parsed::it_should_accept_zero::case_1_downloaded ... ok
+test v1::requests::announce::tests::announce_request::when_a_number_of_bytes_param_is_parsed::it_should_accept_the_largest_unsigned_64_bit_value::case_1_downloaded ... ok
+test v1::requests::announce::tests::announce_request::when_a_number_of_bytes_param_is_parsed::it_should_accept_zero::case_2_uploaded ... ok
+test v1::requests::announce::tests::announce_request::when_a_number_of_bytes_param_is_parsed::it_should_accept_the_largest_unsigned_64_bit_value::case_3_left ... ok
+test v1::requests::announce::tests::announce_request::when_a_number_of_bytes_param_is_parsed::it_should_reject_a_negative_value::case_1_downloaded ... ok
+test v1::requests::announce::tests::announce_request::when_a_number_of_bytes_param_is_parsed::it_should_reject_a_negative_value::case_2_uploaded ... ok
+test v1::requests::announce::tests::announce_request::when_a_number_of_bytes_param_is_parsed::it_should_accept_zero::case_3_left ... ok
+test v1::requests::announce::tests::announce_request::when_a_number_of_bytes_param_is_parsed::it_should_reject_a_negative_value::case_3_left ... ok
+test v1::requests::announce::tests::announce_request::when_a_number_of_bytes_param_is_parsed::it_should_reject_a_non_numeric_value::case_1_downloaded ... ok
+test v1::requests::announce::tests::announce_request::when_a_number_of_bytes_param_is_parsed::it_should_reject_a_non_numeric_value::case_2_uploaded ... ok
+test v1::requests::announce::tests::announce_request::when_a_number_of_bytes_param_is_parsed::it_should_reject_a_non_numeric_value::case_3_left ... ok
+test v1::requests::announce::tests::announce_request::when_a_number_of_bytes_param_is_parsed::it_should_reject_a_value_above_the_largest_unsigned_64_bit_value::case_1_downloaded ... ok
+test v1::requests::announce::tests::announce_request::when_a_number_of_bytes_param_is_parsed::it_should_reject_a_value_above_the_largest_unsigned_64_bit_value::case_2_uploaded ... ok
+test v1::requests::announce::tests::announce_request::when_a_number_of_bytes_param_is_parsed::it_should_reject_a_value_above_the_largest_unsigned_64_bit_value::case_3_left ... ok
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 57 filtered out; finished in 0.00s
+$ cargo test -p torrust-tracker-axum-http-server --test integration should_accept_a_number_of_bytes_left_above_the_largest_signed_64_bit_value
+running 1 test
+test server::v1::contract::for_all_config_modes::receiving_an_announce_request::should_accept_a_number_of_bytes_left_above_the_largest_signed_64_bit_value ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 62 filtered out; finished in 1.03s
+end 2026-11-16 08:16:38 UTC

@@ -20,9 +20,9 @@ pub fn from_domain_peer(value: domain_peer::Peer) -> protocol_peer::Peer {
         updated: updated_at_ms,
         updated_milliseconds_ago: updated_at_ms,
         updated_at_ms,
-        uploaded: value.uploaded.0,
-        downloaded: value.downloaded.0,
-        left: value.left.0,
+        uploaded: value.uploaded.get(),
+        downloaded: value.downloaded.get(),
+        left: value.left.get(),
         event: format!("{:?}", value.event),
     }
 }

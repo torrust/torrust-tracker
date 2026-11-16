@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/error-locations-si-3-http-tracker-request-errors/ISSUE.md
 branch: "{issue-number}-error-locations-si-3-http-tracker-request-errors"
 related-pr: null
-last-updated-utc: "2026-11-11 17:39"
+last-updated-utc: "2026-11-16 08:34"
 semantic-links:
   skill-links:
     - create-issue
@@ -46,12 +46,13 @@ no HTTP tracker `failure reason` produced by request parsing holds a source path
 This is the largest client-visible exposure found by the audit. The bencoded `failure reason` of an
 HTTP tracker response embeds the error text, and a BitTorrent client shows it to its user.
 
-Variants that print `{location}` (11, `options.md` fact 1):
+Variants that print `{location}` (10; `options.md` fact 1 counts 11, including
+`ParseAnnounceQueryError::NumberOfBytesOverflow`, which issue #2850 removed):
 
 | File | Variants |
 | --- | --- |
 | `http-protocol/src/v1/query.rs:103` | `ParseQueryError::InvalidParam` |
-| `http-protocol/src/v1/requests/announce.rs:182`, `:184`, `:190`, `:197` | `ParseAnnounceQueryError::{MissingParams, MissingParam, InvalidParam, NumberOfBytesOverflow}` |
+| `http-protocol/src/v1/requests/announce.rs:219`, `:221`, `:227` | `ParseAnnounceQueryError::{MissingParams, MissingParam, InvalidParam}` |
 | `http-protocol/src/v1/requests/scrape.rs:41`, `:43` | `ParseScrapeQueryError::{MissingParams, MissingParam}` |
 | `http-protocol/src/v1/services/peer_ip_resolver.rs:117-120`, `:125` | `PeerIpResolutionError::{MissingRightMostXForwardedForIp, MissingClientIp}` (three-line attribute at `:117`) |
 | `http-protocol/src/v1/auth.rs:13`, `:16` | `auth::Error::{InvalidKeyFormat, CannotExtractKeyParam}` |
@@ -70,7 +71,7 @@ Text path to the client: `From<ParseQueryError>`, `From<ParseAnnounceQueryError>
 `From<ParseScrapeQueryError>` (`requests/announce.rs:318-329`, `scrape.rs:59`) and, in
 `responses/error.rs:54` and `:62`, `From<auth::Error>` and `From<PeerIpResolutionError>`.
 
-Six of the 11 formats print no input (`MissingParams` twice, the two `PeerIpResolutionError`
+Six of the 10 formats print no input (`MissingParams` twice, the two `PeerIpResolutionError`
 variants and the two `auth::Error` variants; `options.md` fact 3 has the full list), so removing
 `in {location}` needs new wording there.
 
@@ -81,7 +82,7 @@ publish planned in #2583), so the change adds no release step.
 
 ### In Scope
 
-- Remove `location` from the 11 variants and their formats; reword the messages that lose their
+- Remove `location` from the 10 variants and their formats; reword the messages that lose their
   only context so that each names what failed.
 - Replace the three `LocatedError` sources with the plain source error (`#[source]`), and stop
   formatting a source the workspace does not control (`torrust_info_hash::ConversionError`) into the
@@ -149,7 +150,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | --- | --- | --- |
 | T1 | TODO | Reproduce and record | Responses of the malformed requests with a library path, in `manual-verification-evidence.md`. |
 | T2 | TODO | Red tests | Unit tests at the `FromStr`/`TryFrom<Query>` seams and HTTP-server tests for the failure reasons; red output recorded. |
-| T3 | TODO | Remove `location` from the 11 variants | Fields, formats and captures removed in `http-protocol` and the `axum-http-server` extractors; messages reworded where needed. |
+| T3 | TODO | Remove `location` from the 10 variants | Fields, formats and captures removed in `http-protocol` and the `axum-http-server` extractors; messages reworded where needed. |
 | T4 | TODO | Replace the three `LocatedError` sources | Plain `#[source]` errors; client text does not print the inner source; `torrust-located-error` removed from `http-protocol/Cargo.toml`. |
 | T5 | TODO | Green and recheck | Green output, then the T1 requests repeated against the running tracker. |
 | T6 | TODO | Review the reworded messages | A table of old and new `failure reason` texts in the evidence file, for the maintainer to approve the wording. |

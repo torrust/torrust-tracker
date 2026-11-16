@@ -133,6 +133,9 @@ impl From<Error> for ErrorKind {
                     unknown => Self::InternalServer(unknown.to_string()),
                 },
                 UdpAnnounceError::TrackerCoreWhitelistError { source } => Self::Whitelist(source.to_string()),
+                invalid_request @ UdpAnnounceError::InvalidAnnounceRequest { .. } => {
+                    Self::BadRequest(invalid_request.to_string())
+                }
                 unknown => Self::InternalServer(unknown.to_string()),
             },
             Error::ScrapeFailed { source } => match source {
@@ -186,6 +189,7 @@ mod tests {
     use torrust_tracker_core::error::{AnnounceError, ScrapeError, WhitelistError};
     use torrust_tracker_primitives::Driver;
     use torrust_tracker_udp_core::connection_cookie::ConnectionCookieError;
+    use torrust_tracker_udp_core::peer_builder::{ByteCountField, FromRequestError};
     use torrust_tracker_udp_core::services::announce::UdpAnnounceError;
     use torrust_tracker_udp_core::services::scrape::UdpScrapeError;
     use torrust_tracker_udp_protocol::{
@@ -405,6 +409,28 @@ mod tests {
         assert_eq!(
             actual,
             ErrorKind::Database("Malformed Sqlite3 database record: corrupt record".to_string())
+        );
+    }
+
+    #[test]
+    fn it_should_classify_a_negative_number_of_bytes_in_an_announce_as_a_bad_request() {
+        // Arrange
+        let error = Error::AnnounceFailed {
+            source: UdpAnnounceError::InvalidAnnounceRequest {
+                source: FromRequestError::NegativeNumberOfBytes {
+                    field: ByteCountField::Left,
+                    value: -5,
+                },
+            },
+        };
+
+        // Act
+        let actual = ErrorKind::from(error);
+
+        // Assert
+        assert_eq!(
+            actual,
+            ErrorKind::BadRequest("Invalid announce request: `left` must not be negative, got -5".to_string())
         );
     }
 
