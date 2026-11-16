@@ -1,7 +1,7 @@
 ---
 pr-number: 2891
 pr-url: https://github.com/torrust/torrust-tracker/pull/2891
-last-updated-utc: "2026-11-16 22:42"
+last-updated-utc: "2026-11-16 22:43"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -245,7 +245,7 @@ Round 1: da2ce7 review 5925551139 (APPROVED, F1 to F6) and Copilot review 592559
 - Current-tree verification: Running the `open-pull-request` commit-id check at the head with this commit prints exactly the four mapped ids, as F11's line now says.
 - Resolution reference: `docs(pr-reviews): [#2394] correct two statements in the PR 2891 audit record`
 - Follow-up PR URL: N/A
-- Reply URL: REPLY_F14
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2891#discussion_r4592680925
 
 ### F15 - The round-2 log entry misstates the order of replies, commit and validation
 
@@ -258,7 +258,7 @@ Round 1: da2ce7 review 5925551139 (APPROVED, F1 to F6) and Copilot review 592559
 - Current-tree verification: The correction entry's stamps match `git log --format='%h %cI %s' -- docs/pr-reviews/pr-2891-review/PR-REVIEW.md` and the reply `created_at` values from `gh-bot api repos/torrust/torrust-tracker/pulls/2891/comments`.
 - Resolution reference: `docs(pr-reviews): [#2394] correct two statements in the PR 2891 audit record`
 - Follow-up PR URL: N/A
-- Reply URL: REPLY_F15
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2891#discussion_r4592681320
 
 ## Processing Log
 
@@ -269,6 +269,9 @@ Round 1: da2ce7 review 5925551139 (APPROVED, F1 to F6) and Copilot review 592559
 - 2026-11-16 22:28 UTC - Committed these log entries.
 - 2026-11-16 22:42 UTC - Correction (F15) of the 2026-11-16 22:26 entry, which stays as written. The real order of round 2 was: the F11 and F13 fixes were committed (22:24:06Z and 22:24:38Z); the F11 to F13 replies were posted (22:26:29Z to 22:26:35Z) while this record existed only in the worktree, so the F12 reply cited the commit `docs(pr-reviews): [#2394] record the review audit of PR 2891` and "13 rows, 0 failures" before either existed; a validator run right after the replies reported 13 rows and 1 failure (F12's resolution reference, not yet a commit); the record was committed at 22:27:30Z; the next validator run reported 13 rows, 0 failures. The F11 reply's statement that the commit-id check prints nothing was true when it was posted; once this record's id map was committed, the check prints the four mapped ids (F14).
 - 2026-11-16 22:42 UTC - Round 3: normalized da2ce7 review 5929156734 (APPROVED) with findings F10 and F11 as audit findings F14 and F15, and committed their fixes before replying.
+- 2026-11-16 22:43 UTC - Replied to F14 and F15 (replies created at 22:43:07Z and 22:43:10Z) after their fix commit (22:42:24Z), then filled in the two reply URLs in the worktree. `validate-audit-record.py --pr-number 2891 --base torrust/develop` (scratchpad copy, `gh` calls through `gh-bot`) on that worktree record reported 15 rows, 7 log entries, 0 failures at about 22:43:35Z.
+- 2026-11-16 22:43 UTC - Resolved the two round-3 threads (`isResolved: true` for each, at about 22:43:42Z). A GraphQL refresh found no unresolved thread and no thread whose last comment is not a reply from `josecelano-bot`.
+- 2026-11-16 22:43 UTC - Committed the reply URLs and these log entries.
 
 <!-- Copied verbatim into each audit record. -->
 
