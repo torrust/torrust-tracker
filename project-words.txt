@@ -617,6 +617,7 @@ upcasting
 ureq
 urlencode
 uroot
+userinfo
 usize
 utoipa
 uutils

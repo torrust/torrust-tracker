@@ -45,6 +45,10 @@ Most tests should be in the corresponding `packages/*/tests/` directories:
 **Guideline**: If the test can be written at the package level, it should be. Only use main-level
 integration tests when you genuinely need the full application context.
 
+**Exception — root `src/bin` tools**: a black-box test of a binary in the root `src/bin` (for example
+`tests/http_health_check.rs`) also lives here, because `CARGO_BIN_EXE_<name>` reaches only the
+integration tests of the package that owns the binary. Such a test runs the tool, not the tracker.
+
 ## Execution Model
 
 Each top-level Rust source file in `tests/` is a **separate Cargo integration-test
@@ -183,6 +187,7 @@ tests/
 │   ├── port_zero.rs                  # Port-zero metrics and identity
 │   ├── udp_error_disabled_port_zero.rs # Disabled-listener error filtering
 │   └── udp_error_enabled_port_zero.rs # Enabled-listener error metrics
+├── http_health_check.rs              # Black-box contract tests of the `http_health_check` binary
 ├── persistence/
 │   └── scrape_after_restart.rs       # Persisted scrape downloads after a restart
 └── scaffold.rs                       # Scaffolding demo — pattern reference for new binaries
