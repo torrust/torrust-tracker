@@ -5,6 +5,7 @@ use rstest::{fixture, rstest};
 use torrust_clock::clock::stopped::Stopped as _;
 use torrust_clock::clock::{self, Time as _};
 use torrust_tracker_primitives::peer::Peer;
+use torrust_tracker_primitives::peer::fixture::qbittorrent_peer_id;
 use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, TrackerPolicy, peer};
 
 const MAX_PEERS: usize = 74;
@@ -14,7 +15,7 @@ use torrust_tracker_torrent_repository_benchmarking::{
 
 use crate::CurrentClock;
 use crate::common::torrent::Torrent;
-use crate::common::torrent_peer_builder::{a_completed_peer, a_started_peer};
+use crate::common::torrent_peer_builder::{OTHER_PEER, a_completed_peer, a_started_peer};
 
 #[fixture]
 fn single() -> Torrent {
@@ -189,7 +190,7 @@ async fn it_should_update_a_peer(#[values(single(), mutex_std(), mutex_tokio())]
     make(&mut torrent, makes).await;
 
     // Make and insert a new peer.
-    let mut peer = a_started_peer(-1);
+    let mut peer = a_started_peer(OTHER_PEER);
     torrent.upsert_peer(&peer).await;
 
     // Get the Inserted Peer by Id.
@@ -230,7 +231,7 @@ async fn it_should_remove_a_peer_upon_stopped_announcement(
 
     make(&mut torrent, makes).await;
 
-    let mut peer = a_started_peer(-1);
+    let mut peer = a_started_peer(OTHER_PEER);
 
     torrent.upsert_peer(&peer).await;
 
@@ -399,7 +400,7 @@ async fn it_should_limit_the_number_of_peers_returned(
     // We add one more peer than the scrape limit
     for peer_number in 1..=74 + 1 {
         let mut peer = a_started_peer(1);
-        peer.peer_id = *peer::Id::new(peer_number);
+        peer.peer_id = *qbittorrent_peer_id(peer_number);
         torrent.upsert_peer(&peer).await;
     }
 
@@ -424,7 +425,7 @@ async fn it_should_remove_inactive_peers_beyond_cutoff(
 
     let peers = make(&mut torrent, makes).await;
 
-    let mut peer = a_completed_peer(-1);
+    let mut peer = a_completed_peer(OTHER_PEER);
 
     let now = clock::Working::now();
     clock::Stopped::local_set(&now);

@@ -4,7 +4,7 @@ issue: 2876
 package: torrust-tracker-primitives
 target-file: packages/primitives/src/peer.rs
 status: done
-last-updated-utc: "2026-11-16 16:05"
+last-updated-utc: "2026-11-16 16:07"
 ---
 
 # `peer::fixture::qbittorrent_peer_id` Test Plan (T2)
@@ -87,3 +87,27 @@ test asserts in a loop, but every assertion checks the same behavior and its mes
 Approved by the maintainer in chat on 2026-11-16 ("Approve, continue"): the name
 `qbittorrent_peer_id`, the signature `const fn(u32) -> Id` and the `-qB4650-` + 12-digit format,
 before the callers move to it (T3).
+
+## Caller Migration (T3)
+
+`torrent-repository-benchmarking` moved from `peer::Id::new` to the helper (Q4 (b)):
+
+- `tests/common/torrent_peer_builder.rs`: `a_completed_peer` and `a_started_peer` take a `u32` and
+  build the id with `qbittorrent_peer_id`. A new `pub const OTHER_PEER: u32 = 1000` names the peer
+  that no scenario makes (the scenarios number their peers from 0 to 407).
+- `tests/entry/mod.rs`: the three `-1` arguments are `OTHER_PEER`; the scrape-limit loop builds its
+  75 ids with `qbittorrent_peer_id(peer_number)`.
+- `tests/repository/mod.rs`: the `-1` argument is `OTHER_PEER`; the two fixtures iterate over
+  `0..408_u32` and convert to `i32` only for `InfoHash::from(&i32)` and `write_i32`, so the info
+  hashes are the same as before.
+
+`grep -rn 'peer::Id::new' --include=*.rs packages src tests` finds no caller left.
+`cargo test -q -p torrust-tracker-torrent-repository-benchmarking` (stable Rust toolchain, cargo
+1.99.1): 17 and 1,468 passed, the same tests as before the change (no test added or removed), and
+`cargo clippy -p torrust-tracker-torrent-repository-benchmarking --all-targets --all-features -- -D warnings`
+is clean.
+
+Sentinel check: with `OTHER_PEER` changed to `1` (a number the scenarios make), 10 cases failed,
+all of `entry::it_should_remove_inactive_peers_beyond_cutoff` for the `started` and `three`
+scenarios (the ones that make peer 1) over the five entry types; 1,458 passed. The constant was
+restored to `1000`.
