@@ -79,7 +79,11 @@ async fn run(arguments: Vec<OsString>) -> (Value, u8) {
 fn parse_arguments(arguments: Vec<OsString>) -> Result<Url, &'static str> {
     let [argument] = <[OsString; 1]>::try_from(arguments).map_err(|_| "expected exactly one argument")?;
     let argument = argument.into_string().map_err(|_| "the argument is not valid UTF-8")?;
-    Url::parse(&argument).map_err(|_| "the argument is not a valid URL")
+    let url = Url::parse(&argument).map_err(|_| "the argument is not a valid URL")?;
+    match url.scheme() {
+        "http" | "https" => Ok(url),
+        _ => Err("the URL scheme is not `http` or `https`"),
+    }
 }
 
 /// The request failed; the URL is removed from the error and its causes before formatting.

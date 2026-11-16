@@ -269,6 +269,18 @@ fn it_should_exit_2_with_a_usage_error_record_when_the_argument_is_not_a_url() {
     assert_no_credentials(&output);
 }
 
+#[test]
+fn it_should_exit_2_with_a_usage_error_record_when_the_url_scheme_is_not_http_or_https() {
+    for url in ["ftp://127.0.0.1/health_check", "mailto:probe@example.com"] {
+        let output = run_health_check(&[url]);
+
+        assert_exit_code(&output, 2);
+        let records = records(&output);
+        assert_eq!(records.len(), 1, "one record for `{url}`");
+        assert_eq!(records[0]["kind"], "usage_error", "the kind for `{url}`");
+    }
+}
+
 #[cfg(unix)]
 #[test]
 fn it_should_exit_2_with_a_usage_error_record_when_the_argument_is_not_valid_utf8() {
