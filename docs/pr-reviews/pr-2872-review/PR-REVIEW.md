@@ -50,6 +50,10 @@ Round 2 is da2ce7's review `5916791851` (approved) at the head whose last commit
 F1 to F5 by the reviewer; F1 and F2 collide with round 1, so they get the audit IDs F3 to F7 in
 source order, with the reviewer's ID kept in each detail entry. The review body only summarizes them.
 
+Round 3 is da2ce7's second review `5917052481` (approved) at the head whose last commit is
+`docs(pr-reviews): [#2850] audit review round 2 of PR #2872`. Its three inline findings F6 to F8
+collide with existing audit IDs, so they get F8 to F10 in source order, with the reviewer's ID kept.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2872-f1 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
@@ -59,6 +63,9 @@ source order, with the reviewer's ID kept in each detail entry. The review body 
 | F5 | review-finding:pr-2872-f5 | Human | Nit | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-2872-f6 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F7 | review-finding:pr-2872-f7 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-2872-f8 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F9 | review-finding:pr-2872-f9 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-2872-f10 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -168,6 +175,45 @@ source order, with the reviewer's ID kept in each detail entry. The review body 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2872#discussion_r4583392250
 
+### F8 - The SI-3 draft still counts 11 variants after its row lost one
+
+- PR number: 2872
+- Source review ID: 5917052481
+- Reviewer finding ID: F6
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2872#discussion_r4583490622
+- Concern: with `NumberOfBytesOverflow` gone the draft's table lists 10 variants, but its text says 11 on lines 49, 84 and 152.
+- Solution: changed the count to 10 and said on line 49 why fact 1 of `options.md` counts 11. The sweep found a fourth count, line 73 ("Six of the 11 formats"), changed to 10 as well.
+- Current-tree verification: `grep -n` for `11` in the draft finds no variant count left; the table lists 1 + 3 + 2 + 2 + 2 = 10 variants.
+- Resolution reference: docs(issues): [#2850] count 10 located variants in the SI-3 draft
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2872#discussion_r4583544077
+
+### F9 - The two regression-run captures are excerpts, not the full text
+
+- PR number: 2872
+- Source review ID: 5917052481
+- Reviewer finding ID: F7
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2872#discussion_r4583490625
+- Concern: the record called both captures the full text, but the red one starts at cargo's `Finished` line and the green one keeps only selected lines.
+- Solution: both lines of `manual-verification-evidence.md` now say "excerpt" and what each capture keeps.
+- Current-tree verification: the red capture's first line is cargo's `Finished` line; the green capture has no `Finished` or `Running` line; the record describes both.
+- Resolution reference: docs(issues): [#2850] call the regression-run captures excerpts
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2872#discussion_r4583544352
+
+### F10 - The green runs passed 72 tests, not 73
+
+- PR number: 2872
+- Source review ID: 5917052481
+- Reviewer finding ID: F8
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2872#discussion_r4583490631
+- Concern: row F3's verification and the reply on its thread said 73 results; the eight `test result` lines add up to 72.
+- Solution: row F3 now says 72 tests, and a correcting reply was posted on F3's thread (https://github.com/torrust/torrust-tracker/pull/2872#discussion_r4583545035).
+- Current-tree verification: `grep -c "\.\.\. ok" evidence/regression-green-run.txt` prints 72.
+- Resolution reference: docs(pr-reviews): [#2850] count 72 tests in the green regression run
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2872#discussion_r4583544693
+
 ## Processing Log
 
 - 2026-11-16 07:51 UTC - Started this audit for Copilot's review `5916561572` (submitted
@@ -188,6 +234,15 @@ source order, with the reviewer's ID kept in each detail entry. The review body 
 - 2026-11-16 08:21 UTC - Round 2 processed. `validate-audit-record.py --pr-number 2872` returned
   `status: ok`, 7 rows, 3 log entries, 0 failures; then the five threads were resolved
   (`isResolved: true`) and a fresh GraphQL fetch shows 0 unresolved threads.
+- 2026-11-16 08:35 UTC - Copilot's review `5916992112` (submitted 2026-11-16T08:27:42Z) reports
+  no open issues; it only restates the HTTP benchmark decision of the description; no row.
+- 2026-11-16 08:38 UTC - Round 3: da2ce7's review `5917052481` (submitted 2026-11-16T08:32:27Z,
+  approved, three Nit findings). The fixes of F8 to F10 were pushed by `git-bot-push` (head
+  `docs(pr-reviews): [#2850] count 72 tests in the green regression run`) and the three threads
+  were replied to, plus a correcting reply on F3's thread; the rows were added after the replies.
+- 2026-11-16 08:39 UTC - Round 3 processed. `validate-audit-record.py --pr-number 2872` returned
+  `status: ok`, 10 rows, 6 log entries, 0 failures; then the three threads were resolved and a
+  fresh GraphQL fetch shows 0 unresolved threads.
 
 ## Completion Rules
 
