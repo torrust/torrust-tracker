@@ -2,6 +2,7 @@
 //! (`no-stdout-result`): empty stdout, one JSON object per line on stderr, exit `0` healthy, `1`
 //! unhealthy or unreachable, `2` usage error (issue #2764).
 
+use std::ffi::OsStr;
 use std::io::{Read, Write};
 use std::net::{Ipv4Addr, SocketAddr, TcpListener};
 use std::path::PathBuf;
@@ -93,9 +94,24 @@ fn health_check_binary() -> PathBuf {
         .map_or_else(|| PathBuf::from(env!("CARGO_BIN_EXE_http_health_check")), PathBuf::from)
 }
 
+/// Proxy variables `reqwest` honours by default; removed from the child so every probe reaches the
+/// local test server whatever the host's proxy settings are.
+const PROXY_VARIABLES: [&str; 6] = [
+    "HTTP_PROXY",
+    "http_proxy",
+    "HTTPS_PROXY",
+    "https_proxy",
+    "ALL_PROXY",
+    "all_proxy",
+];
+
 /// Runs the binary with the given arguments, with stdout and stderr piped, within the deadline.
-fn run_health_check(arguments: &[&str]) -> Output {
-    let child = Command::new(health_check_binary())
+fn run_health_check<S: AsRef<OsStr>>(arguments: &[S]) -> Output {
+    let mut command = Command::new(health_check_binary());
+    for variable in PROXY_VARIABLES {
+        command.env_remove(variable);
+    }
+    let child = command
         .args(arguments)
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
@@ -125,6 +141,27 @@ fn run_health_check(arguments: &[&str]) -> Output {
         .expect("the output should be collected")
 }
 
+/// A socket bound to a loopback port that never listens: while it is held, nothing else can bind the
+/// port, and a connection to it is refused.
+fn hold_a_port_that_refuses_connections() -> (tokio::net::TcpSocket, u16) {
+    let socket = tokio::net::TcpSocket::new_v4().expect("create a TCP socket");
+    socket
+        .bind(SocketAddr::from((Ipv4Addr::LOCALHOST, 0)))
+        .expect("bind the TCP socket without listening");
+    let port = socket.local_addr().expect("read the bound address").port();
+    (socket, port)
+}
+
+/// Asserts the exit code, showing stderr (the record that explains the outcome) on failure.
+fn assert_exit_code(output: &Output, expected: i32) {
+    assert_eq!(
+        output.status.code(),
+        Some(expected),
+        "unexpected exit code; stderr was: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
 /// Asserts stdout is empty and returns the stderr records, each parsed as one JSON object with a `kind`.
 fn records(output: &Output) -> Vec<Value> {
     assert!(
@@ -145,13 +182,26 @@ fn records(output: &Output) -> Vec<Value> {
     records
 }
 
+/// Asserts that no part of a credential-bearing URL reaches stderr.
+fn assert_no_credentials(output: &Output) {
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    for secret in ["probe-user", "userinfo-secret", "query-secret", "path-secret"] {
+        assert!(!stderr.contains(secret), "stderr exposes `{secret}`: {stderr}");
+    }
+}
+
+/// A URL for the given port whose userinfo, path and query carry credentials.
+fn credential_url(port: u16) -> String {
+    format!("http://probe-user:userinfo-secret@127.0.0.1:{port}/path-secret/health_check?token=query-secret")
+}
+
 #[test]
 fn it_should_exit_0_and_report_healthy_when_the_endpoint_answers_2xx() {
     let server = TestServer::start("200 OK");
 
-    let output = run_health_check(&[&server.url()]);
+    let output = run_health_check(&[server.url()]);
 
-    assert_eq!(output.status.code(), Some(0));
+    assert_exit_code(&output, 0);
     let records = records(&output);
     assert_eq!(records.len(), 1);
     assert_eq!(records[0]["kind"], "healthy");
@@ -163,9 +213,9 @@ fn it_should_exit_0_and_report_healthy_when_the_endpoint_answers_2xx() {
 fn it_should_exit_1_and_report_unhealthy_when_the_endpoint_answers_a_non_2xx_status() {
     let server = TestServer::start("503 Service Unavailable");
 
-    let output = run_health_check(&[&server.url()]);
+    let output = run_health_check(&[server.url()]);
 
-    assert_eq!(output.status.code(), Some(1));
+    assert_exit_code(&output, 1);
     let records = records(&output);
     assert_eq!(records.len(), 1);
     assert_eq!(records[0]["kind"], "unhealthy");
@@ -175,19 +225,12 @@ fn it_should_exit_1_and_report_unhealthy_when_the_endpoint_answers_a_non_2xx_sta
 
 #[test]
 fn it_should_exit_1_and_report_unreachable_when_nothing_listens_on_the_port() {
-    // A bound socket that never listens: the test owns the port for the whole probe, so no other
-    // test can bind it and answer, and a connection to it is refused.
-    let bound_but_not_listening = tokio::net::TcpSocket::new_v4().expect("create a TCP socket");
-    bound_but_not_listening
-        .bind(SocketAddr::from((Ipv4Addr::LOCALHOST, 0)))
-        .expect("bind the TCP socket without listening");
-    let dead_port = bound_but_not_listening.local_addr().expect("read the bound address").port();
+    let (held_socket, dead_port) = hold_a_port_that_refuses_connections();
 
-    let output = run_health_check(&[&format!("http://127.0.0.1:{dead_port}/health_check")]);
+    let output = run_health_check(&[format!("http://127.0.0.1:{dead_port}/health_check")]);
 
-    drop(bound_but_not_listening);
-
-    assert_eq!(output.status.code(), Some(1));
+    drop(held_socket);
+    assert_exit_code(&output, 1);
     let records = records(&output);
     assert_eq!(records.len(), 1);
     assert_eq!(records[0]["kind"], "unreachable");
@@ -197,9 +240,9 @@ fn it_should_exit_1_and_report_unreachable_when_nothing_listens_on_the_port() {
 
 #[test]
 fn it_should_exit_2_with_a_usage_error_record_when_the_url_argument_is_missing() {
-    let output = run_health_check(&[]);
+    let output = run_health_check::<&str>(&[]);
 
-    assert_eq!(output.status.code(), Some(2));
+    assert_exit_code(&output, 2);
     let records = records(&output);
     assert_eq!(records.len(), 1);
     assert_eq!(records[0]["kind"], "usage_error");
@@ -210,7 +253,65 @@ fn it_should_exit_2_with_a_usage_error_record_when_the_url_argument_is_missing()
 fn it_should_exit_2_with_a_usage_error_record_when_there_are_extra_arguments() {
     let output = run_health_check(&["http://127.0.0.1:1/health_check", "extra"]);
 
-    assert_eq!(output.status.code(), Some(2));
+    assert_exit_code(&output, 2);
     let records = records(&output);
     assert_eq!(records[0]["kind"], "usage_error");
+}
+
+#[test]
+fn it_should_exit_2_with_a_usage_error_record_when_the_argument_is_not_a_url() {
+    let output = run_health_check(&["not-a-url-path-secret"]);
+
+    assert_exit_code(&output, 2);
+    let records = records(&output);
+    assert_eq!(records.len(), 1);
+    assert_eq!(records[0]["kind"], "usage_error");
+    assert_no_credentials(&output);
+}
+
+#[cfg(unix)]
+#[test]
+fn it_should_exit_2_with_a_usage_error_record_when_the_argument_is_not_valid_utf8() {
+    use std::os::unix::ffi::OsStrExt as _;
+
+    let output = run_health_check(&[OsStr::from_bytes(b"http://127.0.0.1/\xff")]);
+
+    assert_exit_code(&output, 2);
+    let records = records(&output);
+    assert_eq!(records.len(), 1);
+    assert_eq!(records[0]["kind"], "usage_error");
+}
+
+#[test]
+fn it_should_not_expose_url_credentials_when_the_endpoint_is_healthy() {
+    let server = TestServer::start("200 OK");
+
+    let output = run_health_check(&[credential_url(server.address.port())]);
+
+    assert_exit_code(&output, 0);
+    assert_eq!(records(&output)[0]["kind"], "healthy");
+    assert_no_credentials(&output);
+}
+
+#[test]
+fn it_should_not_expose_url_credentials_when_the_endpoint_is_unhealthy() {
+    let server = TestServer::start("503 Service Unavailable");
+
+    let output = run_health_check(&[credential_url(server.address.port())]);
+
+    assert_exit_code(&output, 1);
+    assert_eq!(records(&output)[0]["kind"], "unhealthy");
+    assert_no_credentials(&output);
+}
+
+#[test]
+fn it_should_not_expose_url_credentials_when_the_endpoint_is_unreachable() {
+    let (held_socket, dead_port) = hold_a_port_that_refuses_connections();
+
+    let output = run_health_check(&[credential_url(dead_port)]);
+
+    drop(held_socket);
+    assert_exit_code(&output, 1);
+    assert_eq!(records(&output)[0]["kind"], "unreachable");
+    assert_no_credentials(&output);
 }
