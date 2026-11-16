@@ -9,7 +9,7 @@ github-issue: 2393
 spec-path: docs/issues/open/2393-2392-test-port-allocation-races/ISSUE.md
 branch: "2392-test-isolation-spec"
 related-pr: 2397
-last-updated-utc: "2026-11-16 08:25"
+last-updated-utc: "2026-11-16 08:57"
 semantic-links:
   skill-links:
     - create-issue
@@ -333,10 +333,16 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   address the test holds, added `random::loopback_ipv4`, and restored the nine release tests on a
   random loopback address (ignored off Linux). V5 and V7 recorded per increment. The first UDP
   mutation found an unrelated panic in the UDP health check, now #2867.
-- 2026-11-16 08:25 UTC - Claude Code (Claude Opus 5.5) - The maintainer reviewed the T8 and T9
+- 2026-11-16 08:18 UTC - Claude Code (Claude Opus 5.5) - The maintainer reviewed the T8 and T9
   tests. T10: 150 of 150 full-suite runs passed with no #2393 test skipped (V6), and the source
   check finds `see #2393` only in the non-Linux `cfg_attr`. Recorded the completion review; T11
   waits for the implementation PR to merge.
+- 2026-11-16 08:57 UTC - Claude Code (Claude Opus 5.5) - Addressed da2ce7's first review of PR 2874
+  (approved, six non-blocking findings): corrected the guessed times of the post-rebase run and of
+  this file's previous log entry, recorded repeated green runs for T8 and the helper, recorded the
+  maintainer's review of the final increment in V7, ticked the last acceptance criterion with its
+  evidence, restored the no-retries warning in the HTTP tracker test, and gave the contract tests
+  one registration path.
 
 ## Acceptance Criteria
 
@@ -353,9 +359,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   removed, and passes when it is restored (V5).
 - [x] AC6: The full parallel suite passes 150 of 150 runs with the restored tests running (V6).
 - [x] AC7: Every test-producing increment of T8 and T9 has a recorded prose-first
-  Arrange-Act-Assert design review, and the maintainer reviewed the final increment (V7).
+  Arrange-Act-Assert design review, and the maintainer reviewed the final increment (V7, "Maintainer
+  review of the final increment").
 - [x] `linter all` exits with code `0`.
-- [ ] Relevant focused tests and pre-push checks pass.
+- [x] Relevant focused tests and pre-push checks pass: the focused runs of V5, the pre-commit hook on
+  every commit, and the repository's pre-push hook on each push of the branch on 2026-11-16, which
+  `git-bot-push` runs and which blocks the push when it fails.
 
 ## Verification Plan
 

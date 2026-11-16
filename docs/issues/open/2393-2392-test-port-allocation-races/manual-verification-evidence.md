@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2393-2392-test-port-allocation-races/ISSUE.md
-last-updated-utc: "2026-11-16 08:25"
+last-updated-utc: "2026-11-16 08:57"
 ---
 
 <!-- markdownlint-disable MD003 -->
@@ -182,6 +182,10 @@ A first UDP mutation answered with junk bytes. The test failed, but by a panic i
 handler, not by its assertion, so it was replaced by the valid connect response above. That panic is
 noted under [Failures and Follow-up](#failures-and-follow-up).
 
+Repeated green, 2026-11-16 08:53 to 08:54 UTC, on the commit `test(http-server): [#2393] keep the
+no-retries guard on the released test address`: 20 of 20 runs of the command above passed ("3 tests
+run: 3 passed, 21 skipped"; nextest counts the tests the filter excludes as skipped).
+
 #### T9 - the loopback helper, 2026-11-15 12:20 UTC
 
 Command:
@@ -192,7 +196,9 @@ Command:
 | A: always returns `127.0.0.1` | `it_should_return_a_loopback_address_other_than_127_0_0_1` ("127.0.0.1 should have its last three octets in 1..=254"); `it_should_return_an_address_that_can_bind_a_port_another_socket_holds_on_127_0_0_1` (`AddrInUse`) |
 | B: octets drawn from `0..=255` | `it_should_return_a_loopback_address_other_than_127_0_0_1` ("127.226.175.255 should have its last three octets in 1..=254") |
 
-Green: both tests pass on the committed code. Mutation B leaves the port-sharing test passing, as
+Green: both tests pass on the committed code. Repeated green, 2026-11-16 08:53 to 08:54 UTC, on the
+commit `test(http-server): [#2393] keep the no-retries guard on the released test address`: 20 of 20
+runs of the command above passed ("2 tests run: 2 passed, 0 skipped"). Mutation B leaves the port-sharing test passing, as
 expected: a random address in the wider range still shares the port.
 
 #### T9 - server registration-failure tests, 2026-11-15 12:22 UTC
@@ -271,11 +277,12 @@ the three tests passed on the committed code.
 failed runs: 0
 ```
 
-#### After the rebase onto `develop`, 2026-11-16 08:35 UTC
+#### After the rebase onto `develop`, 2026-11-16 between 08:22:32 and 08:23:00 UTC
 
 The branch was then rebased onto `develop` at `a35960402` (the merge of PR 2868), whose Rust
-changes since the recheck's base touch only `packages/primitives`. One run of the same command on
-the rebased head:
+changes since the recheck's base touch only `packages/primitives`. One run of the same command, on
+the rebased commit `docs(issues): [#2393] record the T10 full recheck and the completion review`
+(committed 08:22:32 UTC) before the commit that records it (08:23:00 UTC):
 
 ```text
 1 run: 1848 tests run: 1848 passed, 0 skipped
@@ -427,6 +434,18 @@ Comparison and changes:
 - A keeps its occupied HTTP port on `127.0.0.1`: the test holds it for the whole run, so it cannot
   race.
 - Prose kept: the helpers' documentation.
+
+#### Maintainer review of the final increment
+
+- When and where: on 2026-11-16, in the agent session that implemented T7 to T9, before the T10
+  recheck started at 07:45 UTC. Nothing was pushed yet, so the review was of the local commits, as
+  the Bug-Fix Process requires.
+- What was reviewed: T8 and then T9, one at a time, each with its design points listed: for T8 the
+  renamed tests and the start-and-stop scenario they no longer exercise; for T9 the Linux-only
+  restoration, the UDP launcher fixture change, and the REST API test's Complex Arrange that the
+  server review above leaves unchanged.
+- Outcome: both approved as reasonable, with no change requested. The REST API Complex Arrange stays
+  as it is in this change.
 
 ## Failures and Follow-up
 
