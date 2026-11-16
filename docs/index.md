@@ -127,6 +127,7 @@ A discussion is input, not a decision.
 | [discussions/2003-overhaul-guardrails-and-automation/20261007-ai-model-provenance-in-commits/](discussions/2003-overhaul-guardrails-and-automation/20261007-ai-model-provenance-in-commits/)     | AI model provenance in commits: which models a commit records, and how (EPIC #2003)    |
 | [discussions/2429-templated-documentation/20261009-templated-documentation-design/](discussions/2429-templated-documentation/20261009-templated-documentation-design/) | Templated documentation: rendering restated facts from committed data, combined with typed frontmatter (issue #2429, PR #2430) |
 | [discussions/2491-i2p-peer-support/20261008-i2p-peer-support-design/](discussions/2491-i2p-peer-support/20261008-i2p-peer-support-design/) | I2P peer support design: PRs #2050 and #2059, their review, and open questions (EPIC #2491) |
+| [discussions/2877-webtorrent-support/20261116-webtorrent-tracker-service/](discussions/2877-webtorrent-support/20261116-webtorrent-tracker-service/) | WebTorrent tracker service: hybrid desktop clients, WebSocket signalling, and open questions (issue #2877) |
 
 ## External Source Snapshots
 

@@ -11,19 +11,19 @@ semantic-links:
     - docs/templates/DISCUSSION.md
 ---
 
-<!-- cspell:ignore Ageneau arvidn libdatachannel libjuice webrtc -->
+<!-- cspell:ignore arvidn webrtc -->
 
 # WebTorrent Tracker Service
 
-| Field          | Value                                                                                                                                                                                       |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status         | Open for rounds                                                                                                                                                                             |
-| Started        | 2026-11-16                                                                                                                                                                                  |
-| Opened by      | Jose Celano (`josecelano`)                                                                                                                                                                  |
-| Decision owner | Not assigned yet: the owner of the WebTorrent EPIC, once it is created                                                                                                                      |
-| Informs        | Issue #2877 - qbittorrent 5.3 lt 2.x already support webrtc/webtorrent with NAT transfer                                                                                                    |
+| Field          | Value                                                                                                                                                                                        |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status         | Open for rounds                                                                                                                                                                              |
+| Started        | 2026-11-16                                                                                                                                                                                   |
+| Opened by      | Jose Celano (`josecelano`)                                                                                                                                                                   |
+| Decision owner | Not assigned yet: the owner of the WebTorrent EPIC, once it is created                                                                                                                       |
+| Informs        | Issue #2877 - qbittorrent 5.3 lt 2.x already support webrtc/webtorrent with NAT transfer                                                                                                     |
 | Scope          | Whether and how the tracker adds a WebTorrent (WebSocket signalling) service, after the v4.0.0 release. Implementation details are left to the feature definition and the EPIC specification |
-| AI assistance  | Claude Code with Claude Opus 5.5 drafted the context; Claude Sonnet 5.5 researched the qBittorrent and libtorrent sources                                                                   |
+| AI assistance  | Claude Code with Claude Opus 5.5 drafted the context; Claude Sonnet 5.5 researched the qBittorrent and libtorrent sources                                                                    |
 
 ## Context
 
@@ -70,7 +70,8 @@ client built on it is a hybrid peer. For a torrent that lists both kinds of trac
   and exchanges data with browser peers over WebRTC data channels.
 
 So a desktop client can now seed to browser users and download from them. qBittorrent 5.3 uses
-libtorrent 2.1. The sources and what could not be verified are in
+libtorrent 2.1 by default; its libtorrent 1.2 builds have no WebTorrent. The sources and what could
+not be verified are in
 [client-support-research.md](client-support-research.md).
 
 ### Why the Tracker Cannot Bridge the Swarms
@@ -102,7 +103,9 @@ From [client-support-research.md](client-support-research.md):
   browser peers are cut off from the global swarm.
 - qBittorrent 5.3 adds an advanced setting for the WebTorrent STUN server. The reason given for it
   is privacy, not NAT traversal.
-- Not verified: whether the official qBittorrent 5.3 binaries ship with WebTorrent enabled.
+- Partly verified: whether the official qBittorrent 5.3 binaries ship with WebTorrent enabled. A
+  maintainer said the release would enable it and a user reports that 5.3 fixed it; the final binary
+  was not checked.
 - qBittorrent does not add WebSocket trackers to torrents by default. A torrent reaches browser
   peers only if it already lists a `ws://` or `wss://` tracker.
 
@@ -131,8 +134,10 @@ should WebTorrent go among them? Added by Jose Celano.
 
 A hybrid client announces the same torrent to the UDP or HTTP service and to the WebTorrent
 service, so the same client appears in two peer lists. Should the seeder, leecher, and download
-counts of an info hash cover both, or be kept per addressing method? Q12 of the I2P design
-discussion proposes one peer group per addressing method. Added by Jose Celano.
+counts of an info hash cover both, or be kept per addressing method? The
+[Q5 entry of the I2P design discussion](../../2491-i2p-peer-support/20261008-i2p-peer-support-design/README.md#q5---jose-celano-josecelano-2026-10-19-pr-2562)
+proposes one peer group per addressing method and asks the same question for I2P and WebTorrent
+clients. Added by Jose Celano.
 
 #### Positions
 

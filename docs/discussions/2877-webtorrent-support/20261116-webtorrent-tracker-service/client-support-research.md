@@ -5,14 +5,15 @@ semantic-links:
     - docs/discussions/2877-webtorrent-support/20261116-webtorrent-tracker-service/README.md
 ---
 
-<!-- cspell:ignore Ageneau arvidn libdatachannel libjuice apfeltee kevincox gubatron yipperr shayzluf stalkerok jasminsehic Linuxiac Chocobo sledgehammer xavier ThaUnknown LewpyUK btorrent openwebtorrent -->
+<!-- cspell:ignore Ageneau arvidn libdatachannel libjuice btorrent openwebtorrent -->
 
 # WebTorrent Support in qBittorrent and libtorrent
 
-Source material for the [WebTorrent tracker service discussion](README.md). Claude Code with Claude
-Sonnet 5.5 researched it on 2026-11-16, and Claude Opus 5.5 checked the key claims against the
-qBittorrent 5.3.0 release notes and qBittorrent issue 25058. It was edited for the linters and for
-length. Each claim is marked as verified, partly verified, or unverified.
+The opening author's summary of the research behind the
+[WebTorrent tracker service discussion](README.md). It condenses a research report and is not source
+material kept as written. Claude Code with Claude Sonnet 5.5 did the research on 2026-11-16, and
+Claude Opus 5.5 checked the key claims against the qBittorrent 5.3.0 release notes and qBittorrent
+issue 25058. Each claim is marked as verified, partly verified, or unverified.
 
 ## Question
 
@@ -21,14 +22,14 @@ mean for a tracker?
 
 ## Status of the Claims
 
-| Claim                                                      | Status          | Evidence                                                                                                                                                                                                                         |
-| ---------------------------------------------------------- | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| qBittorrent 5.3.0 uses libtorrent 2.1 by default           | Verified        | The release lists builds with libtorrent 2.1.2 and 1.2.20; press coverage says 2.1 is the default.                                                                                                                               |
-| qBittorrent 5.3 exposes a WebTorrent setting               | Verified        | The 5.3.0 release notes list "Expose libtorrent setting for WebTorrent STUN server", qBittorrent PR 24837.                                                                                                                      |
-| WebTorrent is enabled in the official qBittorrent 5.3 builds | Partly verified | In qBittorrent issue 25058, a maintainer says the rc1 build had it disabled and that he would enable it in the release. A user reports it fixed in 5.3. The final binary was not checked.                                     |
-| WebTorrent needs libtorrent 2.1                            | Verified        | The libtorrent 2.1.0 release notes list WebTorrent, enabled by default. libtorrent 2.0 and 1.2 do not have it (arvidn/libtorrent issue 7283).                                                                                    |
-| It is a build option, not a user setting                   | Verified        | libtorrent has the `webtorrent` build option. qBittorrent PR 24564 enables it in CI.                                                                                                                                             |
-| NAT traversal is part of qBittorrent's reasoning           | Unverified      | The STUN server setting exists, but its pull request gives privacy as the reason.                                                                                                                                               |
+| Claim                                                        | Status          | Evidence                                                                                                                                                                                  |
+| ------------------------------------------------------------ | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| qBittorrent 5.3.0 uses libtorrent 2.1 by default             | Verified        | The release lists builds with libtorrent 2.1.2 and 1.2.20; press coverage says 2.1 is the default.                                                                                        |
+| qBittorrent 5.3 exposes a WebTorrent setting                 | Verified        | The 5.3.0 release notes list "Expose libtorrent setting for WebTorrent STUN server", qBittorrent PR 24837.                                                                                |
+| WebTorrent is enabled in the official qBittorrent 5.3 builds | Partly verified | In qBittorrent issue 25058, a maintainer says the rc1 build had it disabled and that he would enable it in the release. A user reports it fixed in 5.3. The final binary was not checked. |
+| WebTorrent needs libtorrent 2.1                              | Verified        | The libtorrent 2.1.0 release notes list WebTorrent, enabled by default. libtorrent 2.0 and 1.2 do not have it (arvidn/libtorrent issue 7283).                                             |
+| It is a build option, not a user setting                     | Verified        | libtorrent has the `webtorrent` build option. qBittorrent PR 24564 enables it in CI.                                                                                                      |
+| NAT traversal is part of qBittorrent's reasoning             | Unverified      | The STUN server setting exists, but its pull request gives privacy as the reason.                                                                                                         |
 
 ## qBittorrent
 
