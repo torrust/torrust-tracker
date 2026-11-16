@@ -508,8 +508,9 @@ stable Rust toolchain: `cargo run -q -p frontmatter-validator --bin frontmatter-
 
 ### T9 - Final sweep and automatic checks
 
-- Artifact under test: branch `2866-move-skills-to-claude-skills` at `0acae3ab9`
-  (`docs(adrs): [#2866] record the move of the skills to .claude/skills`), 2026-11-16 15:42 UTC.
+- Artifact under test: branch `2866-move-skills-to-claude-skills` at its commit
+  `docs(adrs): [#2866] record the move of the skills to .claude/skills` (T8, the head before
+  T9), 2026-11-16 15:42 UTC.
 - Status: `DONE`
 
 #### Sweep
@@ -540,7 +541,7 @@ fix commit passed the pre-commit gate, which runs `linter all` and `--skill-layo
 
 #### Automatic Checks
 
-All ran in the worktree at `0acae3ab9`, stable Rust toolchain, each exiting `0`:
+All ran in the worktree at that commit, stable Rust toolchain, each exiting `0`:
 
 - `linter all`: "All linters passed".
 - `cargo test -p frontmatter-validator -p agent-review-report-contract -p github-review-threads
@@ -555,7 +556,7 @@ The pre-commit and pre-push checks run again on the T9 commit and its push.
 
 - Goal: show that a fresh session at the repository root lists every repository skill.
 - Initial state: `git clone --branch 2866-move-skills-to-claude-skills --single-branch` of the
-  worktree into a scratch folder, at `0acae3ab9`, clean tree; 53 `SKILL.md` files under
+  worktree into a scratch folder, at the T8 commit named in T9, clean tree; 53 `SKILL.md` files under
   `.claude/skills/` and 53 stubs under `.github/skills/`. Claude Code 2.1.318.
 - Status: `DONE` (outcome: **Fixed**)
 
@@ -651,7 +652,7 @@ frontmatter `name: run-tracker-locally`.
 
 - Status: `DONE`
 
-In the scratch clone of V1, with the binary built from `0acae3ab9`. Each change was staged with
+In the scratch clone of V1, with the binary built from the T8 commit named in T9. Each change was staged with
 `git rm` rather than committed: `--skill-layout` reads the git index, so a staged deletion is
 what the commit would contain. `git reset --hard` restored the clone after each run.
 
