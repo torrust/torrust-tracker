@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p2
 epic: 2758
 github-issue: 2764
-spec-path: docs/issues/open/2764-2758-http-health-check-no-stdout/ISSUE.md
+spec-path: docs/issues/closed/2764-2758-http-health-check-no-stdout/ISSUE.md
 branch: "2764-http-health-check-no-stdout"
 related-pr: 2889
-last-updated-utc: "2026-11-16 19:09"
+last-updated-utc: "2026-11-16 21:58"
 semantic-links:
   skill-links:
     - create-issue
@@ -118,10 +118,10 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
+- [x] Evidence-based implementation completion review recorded
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -136,6 +136,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-16 18:29 UTC - Claude Code (Claude Opus 5.5) - Addressed review round 3 of PR 2889 (da2ce7 review 5925258553, APPROVED, audit findings F16 and F17): reran the V1 and V3 real-tracker commands, plus an `ftp://` case, on the build of the last production change (evidence section "Round 3 of PR 2889"); the R2 timing sentence names its rows by clause.
 - 2026-11-16 18:54 UTC - Claude Code (Claude Opus 5.5) - Addressed review round 4 of PR 2889 (Copilot review 5925595121, audit findings F18 to F22): the evidence marks G1, V1 to V3 as runs on the first implementation and says where the results for the final binary are; the test server fails the test on an `accept` error other than `WouldBlock` or `Interrupted` (failure path checked, evidence section "Round 4 of PR 2889").
 - 2026-11-16 19:09 UTC - Claude Code (Claude Opus 5.5) - Addressed review round 5 of PR 2889 (da2ce7 review 5925836500, audit findings F23 and F24): the evidence records that the round-4 accept-error check covered the panic arm only (the exit-code assertion fired) and adds a run where the server panics after answering, which covers the `Drop` re-raise; the evidence's ordering note no longer says the sections are in run order.
+- 2026-11-16 21:58 UTC - Claude Code (Claude Opus 5.5) - PR 2889 merged into `develop` on 2026-11-16 and issue #2764 closed; spec archived to `docs/issues/closed/` and the EPIC row set to DONE in the close-out PR. The checkpoint "Reviewer validated acceptance criteria and updated checkboxes" is left open: no reviewer edited this spec (the approvals are reviews and ACK comments on PR 2889, and the acceptance boxes were ticked by the author).
 
 ## Acceptance Criteria
 
