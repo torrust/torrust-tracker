@@ -222,7 +222,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
   re-raise F3 and F1, recorded as F6 and F7). Fixes F1-F4 committed; PR description edited for F5;
   the PR conversation response and the seven thread replies posted at 09:39-09:40 UTC, before the
   push of the fix commits.
-- 2026-11-16 09:57 UTC - Review round 2: review 5918010504 (da2ce7, APPROVED at `40bf1cb12`) with
+- 2026-11-16 09:57 UTC - Review round 2: review 5918010504 (da2ce7, APPROVED) with
   reviewer findings F6, F7 and F8, recorded as F8, F9 and F10 because F6 and F7 were already taken.
   F9 and F10 committed; description edited for F8; the PR conversation response and the three
   thread replies posted at 09:56-09:57 UTC, before the push of the fix commits.
