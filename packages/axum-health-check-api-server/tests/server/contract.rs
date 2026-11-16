@@ -498,10 +498,10 @@ mod readiness {
     use std::sync::atomic::{AtomicUsize, Ordering};
 
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
-    use torrust_server_lib::registar::{FnSpawnServiceHeathCheck, Registar, ServiceHealthCheckJob, ServiceRegistration};
+    use torrust_server_lib::registar::{FnSpawnServiceHeathCheck, Registar, ServiceHealthCheckJob};
     use torrust_tracker_axum_health_check_api_server::environment::Started;
     use torrust_tracker_axum_health_check_api_server::resources::{Report, Status};
-    use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
+    use torrust_tracker_primitives::{RuntimeServiceMetadata, ServiceRole};
     use torrust_tracker_test_helpers::{configuration, logging};
 
     use crate::server::client::get;
@@ -525,17 +525,12 @@ mod readiness {
     }
 
     async fn registar_with_a_probed_service(probe: FnSpawnServiceHeathCheck) -> Registar<RuntimeServiceMetadata> {
-        let registar = Registar::default();
-        registar
-            .give_form()
-            .register(ServiceRegistration::new(
-                ServiceBinding::new(Protocol::HTTP, "127.0.0.1:7070".parse().unwrap()).unwrap(), // DevSkim: ignore DS137138
-                RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::RestApi, 0)),
-                Some(probe),
-            ))
-            .await
-            .expect("the probed service should register");
-        registar
+        super::registar_with_one_service(
+            ServiceBinding::new(Protocol::HTTP, "127.0.0.1:7070".parse().unwrap()).unwrap(), // DevSkim: ignore DS137138
+            ServiceRole::RestApi,
+            probe,
+        )
+        .await
     }
 
     #[tokio::test]
