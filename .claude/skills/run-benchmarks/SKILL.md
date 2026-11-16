@@ -1,6 +1,6 @@
 ---
 name: run-benchmarks
-description: Choose, run, and record Torrust Tracker benchmarks, including before-and-after performance evidence for changes to performance-critical code. Covers the benchmark levels (Criterion microbenchmarks per package, the persistence benchmark, the aquatic UDP load test, comparative and workflow benchmarks), how to pick one, how to measure a baseline before a change, and how to check that a benchmark measures anything. Use when a change touches the UDP or HTTP request path or other hot code, when an issue needs performance evidence, or when asked to benchmark. Triggers on "benchmark", "run benchmarks", "performance regression", "measure performance", "before and after performance", "load test", "aquatic", or "cargo bench".
+description: Choose, run and record benchmarks (Criterion, persistence, aquatic UDP load test) with before-and-after numbers. Use when a change touches hot code or an issue needs performance evidence.
 semantic-links:
   skill-links:
     - create-issue

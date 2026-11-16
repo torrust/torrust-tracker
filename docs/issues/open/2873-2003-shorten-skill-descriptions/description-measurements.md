@@ -32,7 +32,7 @@ at a comment (see `manual-verification-evidence.md`, V0).
 | Area | Skill | Before (chars) | Before (tokens) | After (chars) | After (tokens) |
 | ---- | ----- | -------------: | --------------: | ------------: | -------------: |
 | Skill authoring | `add-new-skill` | 326 | 110 | 171 |  |
-| Benchmarking | `run-benchmarks` | 724 | 250 |  |  |
+| Benchmarking | `run-benchmarks` | 724 | 250 | 187 |  |
 | CI | `implement-workflow` | 151 | 60 |  |  |
 | CI | `watch-pull-request-checks` | 352 | 130 |  |  |
 | Debugging | `fix-bug` | 337 | 120 |  |  |
@@ -100,7 +100,7 @@ at a comment (see `manual-verification-evidence.md`, V0).
 #### `run-benchmarks`
 
 - Before (724): Choose, run, and record Torrust Tracker benchmarks, including before-and-after performance evidence for changes to performance-critical code. Covers the benchmark levels (Criterion microbenchmarks per package, the persistence benchmark, the aquatic UDP load test, comparative and workflow benchmarks), how to pick one, how to measure a baseline before a change, and how to check that a benchmark measures anything. Use when a change touches the UDP or HTTP request path or other hot code, when an issue needs performance evidence, or when asked to benchmark. Triggers on "benchmark", "run benchmarks", "performance regression", "measure performance", "before and after performance", "load test", "aquatic", or "cargo bench".
-- After: not yet rewritten
+- After (187): Choose, run and record benchmarks (Criterion, persistence, aquatic UDP load test) with before-and-after numbers. Use when a change touches hot code or an issue needs performance evidence.
 
 ### CI
 
