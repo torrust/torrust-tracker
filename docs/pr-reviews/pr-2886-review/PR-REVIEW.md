@@ -17,7 +17,7 @@ Source: pull-request reviews and inline review threads for https://github.com/to
 The PR author owns this tracked audit record. Reviewers, including repository review agents,
 deliver findings through GitHub and have no repository-artifact obligation.
 
-- Post-merge workflow approval: N/A
+- Post-merge workflow approval: https://github.com/torrust/torrust-tracker/pull/2886#issuecomment-6926076793 (comment created 2026-11-16 19:00 UTC by `josecelano-bot` on behalf of the maintainer, who decided in chat at about 17:25 UTC to merge as is and leave F3 with no change; review 5924308761 was submitted at 17:20 UTC and the PR merged at 17:34 UTC)
 
 ## Status Values
 
@@ -90,7 +90,7 @@ Copilot's review 5923297015 has no finding: Copilot did not review the PR becaus
 - Concern: The message of the hand-resolved merge of `develop` said `develop` "pointed its related artifact at the closed #2850 spec"; `closed #2850` is a closing keyword, which `open-pull-request` asks to reword before merge.
 - Solution: No change, by the maintainer's decision to merge as is: rewording the pushed merge commit needs a force push, and #2850 was already closed, so the keyword acts on nothing.
 - Current-tree verification: Issue #2850 is closed, and its archived spec says `status: done`.
-- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2886#discussion_r4589120623
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2886#issuecomment-6926076793; https://github.com/torrust/torrust-tracker/pull/2886#discussion_r4589120623
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2886#discussion_r4589120623
 
@@ -103,7 +103,7 @@ Copilot's review 5923297015 has no finding: Copilot did not review the PR becaus
 - 2026-11-16 17:01 UTC - Review 5924034380 (da2ce7, `APPROVED`) submitted on that merge head: no finding.
 - 2026-11-16 17:13 UTC - Merged `develop` again (merge commit made 17:09:26 UTC), resolving a conflict in the frontmatter of the archived #2838 spec by hand; the push dismissed review 5924034380 (timeline event `review_dismissed`, 17:13:12 UTC).
 - 2026-11-16 17:20 UTC - Review 5924308761 (da2ce7, `APPROVED`) submitted on the hand-resolved merge head: one Minor finding, recorded here as F3.
-- 2026-11-16 17:26 UTC - The maintainer decided to merge as is. Replied to the F3 thread (17:26:20 UTC) and resolved it (17:26:24 UTC); a GraphQL refresh shows no unresolved thread. No further push.
+- 2026-11-16 17:26 UTC - The maintainer decided in chat, at about 17:25 UTC, to merge as is; the decision is recorded in the comment named under Ownership. Replied to the F3 thread (17:26:20 UTC) and resolved it (17:26:24 UTC); a GraphQL refresh shows no unresolved thread. No further push.
 - 2026-11-16 17:34 UTC - The maintainer merged PR #2886 (17:34:52 UTC). This record's last entries are added by the #2866 close-out PR.
 
 ## Completion Rules
