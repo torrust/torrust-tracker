@@ -51,6 +51,10 @@ F6 to F9 are da2ce7's review 5925869377 (`CHANGES_REQUESTED`), submitted at 19:1
 
 F10 and F11 are da2ce7's review 5925989673 (`CHANGES_REQUESTED`), submitted at 19:18:18 UTC on the head commit `docs(issues): [#2873] address da2ce7's first review of PR #2893`, in that source order. His IDs F8 and F9 collide with F8 and F9 above, so they are numbered F10 and F11, and his IDs are kept as the reviewer finding IDs.
 
+F12 and F13 are da2ce7's review 5926183635 (`COMMENTED`), submitted at 19:30:45 UTC on the head commit `docs(issues): [#2873] address da2ce7's third review of PR #2893`, in that source order. His IDs F10 and F11 collide with F10 and F11 above, so they are numbered F12 and F13, and his IDs are kept as the reviewer finding IDs. F13 follows up F11: its fix explained one gap in the totals and left another.
+
+F12 and F13 are da2ce7's review 5926183635 (`COMMENTED`), submitted at 19:30:45 UTC on the head commit `docs(issues): [#2873] address da2ce7's third review of PR #2893`, in that source order. His IDs F10 and F11 collide with F10 and F11 above, so they are numbered F12 and F13, and his IDs are kept as the reviewer finding IDs. F13 follows up F11: its fix explained one gap and left another.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2893-f1 | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -64,6 +68,8 @@ F10 and F11 are da2ce7's review 5925989673 (`CHANGES_REQUESTED`), submitted at 1
 | F9 | review-finding:pr-2893-f9 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F10 | review-finding:pr-2893-f10 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F11 | review-finding:pr-2893-f11 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-2893-f12 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F13 | review-finding:pr-2893-f13 | Human | Nit | documentation | RE_RAISE_OF:F11 | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -180,7 +186,7 @@ F10 and F11 are da2ce7's review 5925989673 (`CHANGES_REQUESTED`), submitted at 1
 - Concern: The PR description says 243 tests pass and does not mention the reader fix; the merge tool copies the description into the merge commit.
 - Solution: The PR description gives the test count from this head (257) and lists the reader fixes and the rewording.
 - Current-tree verification: the PR description, edited at 19:15 UTC.
-- Resolution reference: PR description edit, 2026-11-16 19:15 UTC
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2893#discussion_r4590352901
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2893#discussion_r4590352901
 
@@ -195,7 +201,7 @@ F10 and F11 are da2ce7's review 5925989673 (`CHANGES_REQUESTED`), submitted at 1
 - Current-tree verification: the 2026-11-16 19:07 UTC progress-log entry of the spec; `last-updated-utc` of `description-measurements.md`; the 19:02, 19:05 and 19:07 entries of this record's Processing Log.
 - Resolution reference: docs(issues): [#2873] address da2ce7's third review of PR #2893
 - Follow-up PR URL: N/A
-- Reply URL: pending: posted after the push of this record
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2893#discussion_r4590412489
 
 ### F11 - The after-rewording total is unexplained
 
@@ -207,6 +213,32 @@ F10 and F11 are da2ce7's review 5925989673 (`CHANGES_REQUESTED`), submitted at 1
 - Solution: The total was read from that run's output, not copied. The difference is the MCP rows: the 19:02:47 UTC run lists `MCP tools` (559) and `MCP server instructions` (1.6k), the 18:04:51 UTC run lists neither. The evidence's V1 now records this.
 - Current-tree verification: the paragraph after the after-rewording numbers in the evidence's V1.
 - Resolution reference: docs(issues): [#2873] address da2ce7's third review of PR #2893
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2893#discussion_r4590412952
+
+### F12 - The F9 row's resolution reference is neither a commit subject nor a URL
+
+- PR number: 2893
+- Source review ID: 5926183635
+- Reviewer finding ID: F10
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2893#discussion_r4590473132
+- Concern: The F9 row's resolution reference said "PR description edit, 2026-11-16 19:15 UTC", which the audit validator rejects; for a fix outside the tree the `process-pr-review` skill asks for the durable URL of the response that states it.
+- Solution: The F9 row now cites its reply, which states the PR description edit. The F10 and F11 Reply URLs are filled in too.
+- Current-tree verification: the `Resolution reference` of F9 and the `Reply URL` of F10 and F11 in this record.
+- Resolution reference: docs(issues): [#2873] address da2ce7's fourth review of PR #2893
+- Follow-up PR URL: N/A
+- Reply URL: pending: posted after the push of this record
+
+### F13 - The before run's total is unexplained
+
+- PR number: 2893
+- Source review ID: 5926183635
+- Reviewer finding ID: F11
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2893#discussion_r4590473144
+- Concern: With the MCP rows in both, the before run and the reworded run total 32.9k although Skills differs by 2.0k, and nothing names the category that makes up the difference.
+- Solution: `System tools` is 13.1k in the before run and 15.2k and 15.1k in the after runs; V1 names it and says the totals depend on the session, so the conclusions compare only the Skills category and its rows.
+- Current-tree verification: the paragraph after the after-rewording numbers in the evidence's V1.
+- Resolution reference: docs(issues): [#2873] address da2ce7's fourth review of PR #2893
 - Follow-up PR URL: N/A
 - Reply URL: pending: posted after the push of this record
 
@@ -225,6 +257,9 @@ F10 and F11 are da2ce7's review 5925989673 (`CHANGES_REQUESTED`), submitted at 1
 - 2026-11-16 19:18 UTC - Review 5925989673 (da2ce7, `CHANGES_REQUESTED`) submitted on the head commit `docs(issues): [#2873] address da2ce7's first review of PR #2893`: F10 and F11, both Nits.
 - 2026-11-16 19:19 UTC - Pushed the F6 to F9 fixes (push finished 19:19:33 UTC), replied to their four threads and resolved them by ID; a refresh showed review 5925989673's two threads.
 - 2026-11-16 19:21 UTC - Committed the F10 and F11 fixes, with the F6 to F9 Reply URLs.
+- 2026-11-16 19:25 UTC - Pushed them (push finished 19:25:12 UTC), replied to the two threads and resolved them by ID; no thread was unresolved.
+- 2026-11-16 19:30 UTC - Review 5926183635 (da2ce7, `COMMENTED`) submitted on the head commit `docs(issues): [#2873] address da2ce7's third review of PR #2893`: F12 (Minor) and F13 (Nit), neither blocking; the audit validator, run offline by him, failed on F9's resolution reference and the pending F10 and F11 Reply URLs.
+- 2026-11-16 19:32 UTC - Committed the F12 and F13 fixes, with the F10 and F11 Reply URLs.
 
 ## Completion Rules
 

@@ -9,7 +9,7 @@ github-issue: 2873
 spec-path: docs/issues/open/2873-2003-shorten-skill-descriptions/ISSUE.md
 branch: "2873-shorten-skill-descriptions"
 related-pr: 2893
-last-updated-utc: "2026-11-16 19:20"
+last-updated-utc: "2026-11-16 19:32"
 semantic-links:
   skill-links:
     - create-issue
@@ -277,6 +277,7 @@ the last increment, before T6. Commits use Conventional Commit messages and are 
 - 2026-11-16 19:07 UTC - AI assistant (Claude Code, Claude Opus 5.5) - Addressed da2ce7's review 5925607208 on PR #2893: reworded 16 descriptions to the `Use when` shape without `project` (his F1), recorded the skipped review stop in the 18:14 entry (his F2), and put the quoted texts of `description-measurements.md` in code spans (his F3). Re-measured: 3,270 tokens (47%), Skills 7.9k (0.8%); the eight M3 prompts load the same skills
 - 2026-11-16 19:15 UTC - AI assistant (Claude Code, Claude Opus 5.5) - Addressed da2ce7's review 5925869377 on PR #2893: a description that is only a comment is reported again (his F4, a regression of the reader fix), the N5 mutation row is corrected and O1 added (his F5), the audit record has its reply URLs and all findings (his F6), and the PR description gives the current test count and the reader fixes (his F7)
 - 2026-11-16 19:20 UTC - AI assistant (Claude Code, Claude Opus 5.5) - Addressed da2ce7's review 5925989673 on PR #2893: the 19:07 UTC entry was first stamped 19:10, later than its commit (19:07:29 UTC), and the evidence's after-rewording total is explained by the MCP rows that only that run listed
+- 2026-11-16 19:32 UTC - AI assistant (Claude Code, Claude Opus 5.5) - Addressed da2ce7's review 5926183635 on PR #2893: the evidence names `System tools` (13.1k before, 15.1k to 15.2k after) as the rest of the difference in totals, and says the conclusions compare only the Skills category and its rows
 
 ## Acceptance Criteria
 

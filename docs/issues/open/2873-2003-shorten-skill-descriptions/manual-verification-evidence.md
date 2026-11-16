@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2873-2003-shorten-skill-descriptions/ISSUE.md
-last-updated-utc: 2026-11-16 19:20
+last-updated-utc: 2026-11-16 19:32
 ---
 
 # Manual Verification Evidence
@@ -134,7 +134,10 @@ The two after runs differ by 2.2k in total (30.7k and 32.9k) but only 0.1k in Sk
 2.1k is the MCP rows: the 19:02:47 UTC run lists `MCP tools` (559) and `MCP server instructions`
 (1.6k), as the before run does, and the 18:04:51 UTC run lists neither; `System tools` is 15.2k and
 15.1k. So an MCP connection differed between the runs; it does not touch the Skills category or
-its rows.
+its rows. Against the before run, `System tools` is larger in both after runs: 13.1k before,
+15.2k and 15.1k after. That 2.0k is why the before run and the reworded run both total 32.9k
+although Skills fell 2.0k. The totals depend on the session (tools and connections loaded), so the
+conclusions compare only the Skills category and its Project rows.
 
 #### Conclusion
 
