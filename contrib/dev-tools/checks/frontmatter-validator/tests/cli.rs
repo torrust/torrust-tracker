@@ -460,6 +460,23 @@ fn it_should_validate_every_tracked_markdown_file_that_still_exists_with_all() {
     assert_eq!(outcome.paths(), ["kept.md"]);
 }
 
+#[test]
+fn it_should_check_the_skill_layout_of_the_index_only_with_skill_layout() {
+    // Arrange: two misplaced skills; only one is in the index.
+    let repository = Repository::new();
+    repository.write(".github/skills/dev/staged/SKILL.md", PLAIN_DOCUMENT);
+    repository.write(".github/skills/dev/untracked/SKILL.md", PLAIN_DOCUMENT);
+    repository.stage(".github/skills/dev/staged/SKILL.md");
+
+    // Act
+    let outcome = repository.validate(&["--skill-layout"]);
+
+    // Assert
+    assert_eq!(outcome.exit_code, 1, "records: {:?}", outcome.records);
+    assert_eq!(outcome.paths(), [".github/skills/dev/staged/SKILL.md"]);
+    assert_eq!(outcome.only_record()["category"], "misplaced-skill");
+}
+
 #[rstest]
 #[case::staged_invalid_working_copy_fixed(WRONG_SCALAR_ISSUE, VALID_ISSUE, 1)]
 #[case::staged_valid_working_copy_broken(VALID_ISSUE, WRONG_SCALAR_ISSUE, 0)]

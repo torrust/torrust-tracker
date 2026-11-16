@@ -24,6 +24,9 @@ cargo run --package frontmatter-validator --bin frontmatter-validator -- --stage
 
 # Every tracked Markdown file (manual)
 cargo run --package frontmatter-validator --bin frontmatter-validator -- --all
+
+# The repository-wide skill layout, over the index
+cargo run --package frontmatter-validator --bin frontmatter-validator -- --skill-layout
 ```
 
 Output follows the `no-stdout-result` class of the
@@ -37,6 +40,11 @@ Output follows the `no-stdout-result` class of the
 
 `--all` currently exits `1`, because legacy draft and open specs are migrated one at a time as
 they are edited.
+
+`--skill-layout` checks the index, so it sees a commit as it will be made. It reports, as an
+error of category `misplaced-skill`, every `SKILL.md` that is not at
+`.claude/skills/<name>/SKILL.md`, the only place Claude Code discovers a project skill: a skill
+anywhere else, or one folder deeper, is never listed to the model (issue #2866).
 
 An explicit file path is reported as given, even when it is a symlink, and its content is read
 through the link. A symlinked directory is expanded under its target's path. A dangling symlink

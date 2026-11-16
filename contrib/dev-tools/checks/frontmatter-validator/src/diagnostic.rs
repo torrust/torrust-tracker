@@ -40,6 +40,8 @@ pub enum DiagnosticCategory {
     MissingArtifact,
     /// A skill link names no repository skill.
     UnknownSkill,
+    /// A `SKILL.md` is not at `.claude/skills/<name>/SKILL.md`, where Claude Code discovers it.
+    MisplacedSkill,
 }
 
 /// Whether a diagnostic fails validation or is advisory.
@@ -115,6 +117,7 @@ mod tests {
             DiagnosticCategory::SpecPathMismatch => "spec-path-mismatch",
             DiagnosticCategory::MissingArtifact => "missing-artifact",
             DiagnosticCategory::UnknownSkill => "unknown-skill",
+            DiagnosticCategory::MisplacedSkill => "misplaced-skill",
         }
     }
 
@@ -135,6 +138,7 @@ mod tests {
     #[case::spec_path_mismatch(DiagnosticCategory::SpecPathMismatch)]
     #[case::missing_artifact(DiagnosticCategory::MissingArtifact)]
     #[case::unknown_skill(DiagnosticCategory::UnknownSkill)]
+    #[case::misplaced_skill(DiagnosticCategory::MisplacedSkill)]
     fn it_should_serialize_each_category_as_its_stable_kebab_case_name(#[case] category: DiagnosticCategory) {
         // Act: serialize the category as the command will.
         let actual = serde_json::to_value(category).unwrap();

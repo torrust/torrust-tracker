@@ -17,6 +17,7 @@ use clap::error::ErrorKind;
 use clap::{ArgGroup, Parser};
 use discovery::{DiscoveryError, Mode, discover, repository_files};
 use frontmatter_validator::repository::validate_document;
+use frontmatter_validator::skills::misplaced_skill;
 use git::Git;
 use record::{EXIT_FAILURE, EXIT_SUCCESS, EXIT_USAGE, Record, emit};
 
@@ -24,7 +25,7 @@ use record::{EXIT_FAILURE, EXIT_SUCCESS, EXIT_USAGE, Record, emit};
 #[derive(Debug, Parser)]
 #[command(
     name = "frontmatter-validator",
-    group(ArgGroup::new("mode").required(true).args(["paths", "staged", "all"]))
+    group(ArgGroup::new("mode").required(true).args(["paths", "staged", "all", "skill_layout"]))
 )]
 struct Arguments {
     /// Markdown files, or directories whose tracked Markdown files are validated.
@@ -35,6 +36,9 @@ struct Arguments {
     /// Validate every tracked Markdown file.
     #[arg(long)]
     all: bool,
+    /// Check that every skill in the index is at `.claude/skills/<name>/SKILL.md`.
+    #[arg(long)]
+    skill_layout: bool,
 }
 
 impl Arguments {
@@ -58,6 +62,7 @@ fn main() -> ExitCode {
 /// Runs the command with the program name as the first argument and returns its exit code.
 fn run(arguments: impl IntoIterator<Item = OsString>, working_directory: &Path, stderr: &mut impl Write) -> u8 {
     let (records, exit_code) = match Arguments::try_parse_from(arguments) {
+        Ok(arguments) if arguments.skill_layout => validate_skill_layout(working_directory),
         Ok(arguments) => validate_mode(arguments.mode(), working_directory),
         Err(error) if error.kind() == ErrorKind::DisplayHelp => (
             vec![Record::Help {
@@ -72,6 +77,21 @@ fn run(arguments: impl IntoIterator<Item = OsString>, working_directory: &Path, 
         Ok(()) => exit_code,
         Err(_) => EXIT_FAILURE,
     }
+}
+
+/// Runs the repository-wide skill rules over the index, so a commit is checked as it will be made.
+fn validate_skill_layout(working_directory: &Path) -> (Vec<Record>, u8) {
+    let files = match Git::discover(working_directory).and_then(|git| git.tracked_files(None)) {
+        Ok(files) => files,
+        Err(message) => return (vec![Record::runtime_error(None, message)], EXIT_FAILURE),
+    };
+
+    let records: Vec<Record> = files
+        .iter()
+        .filter_map(|path| misplaced_skill(path).map(|diagnostic| Record::diagnostic(path, diagnostic)))
+        .collect();
+    let has_error = records.iter().any(Record::is_error);
+    (records, if has_error { EXIT_FAILURE } else { EXIT_SUCCESS })
 }
 
 fn validate_mode(mode: Mode, working_directory: &Path) -> (Vec<Record>, u8) {
@@ -154,6 +174,7 @@ mod tests {
     #[rstest]
     #[case::no_mode(&[])]
     #[case::staged_and_all(&["--staged", "--all"])]
+    #[case::skill_layout_and_all(&["--skill-layout", "--all"])]
     #[case::paths_and_staged(&["README.md", "--staged"])]
     #[case::unsupported_version_flag(&["--version"])]
     fn it_should_report_a_single_usage_error_record_for_an_invalid_mode_selection(#[case] arguments: &[&str]) {

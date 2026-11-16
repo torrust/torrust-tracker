@@ -1,7 +1,7 @@
 //! Markdown frontmatter extraction and universal-envelope validation.
 //!
 //! Diagnostics live in [`diagnostic`], strict v1 profiles in [`profile`], and location-dependent
-//! policy in [`repository`].
+//! policy in [`repository`], and the repository-wide skill layout rules in [`skills`].
 
 use serde::de::Error as _;
 use serde::{Deserialize, Deserializer};
@@ -10,6 +10,7 @@ use serde_yaml::{Mapping, Value};
 pub mod diagnostic;
 pub mod profile;
 pub mod repository;
+pub mod skills;
 mod syntax;
 
 pub use diagnostic::{Diagnostic, DiagnosticCategory, Severity};

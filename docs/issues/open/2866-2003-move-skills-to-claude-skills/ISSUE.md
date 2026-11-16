@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p1
 epic: 2003
 github-issue: 2866
 spec-path: docs/issues/open/2866-2003-move-skills-to-claude-skills/ISSUE.md
-branch: "2866-move-skills-to-claude-skills-spec"
+branch: "2866-move-skills-to-claude-skills"
 related-pr: null
-last-updated-utc: "2026-11-16 06:05"
+last-updated-utc: "2026-11-16 08:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -254,8 +254,9 @@ This skill moved to [`.claude/skills/<name>/SKILL.md`](<relative path>) in issue
 - `.claude/skills/README.md` lists every skill folder exactly once and names no missing skill.
 - These repository-wide rules run on every commit and in CI, not only on staged files, so
   deleting or renaming a skill without its stub or index row fails. They live in the
-  `frontmatter-validator` crate, which already snapshots the skill folders; the exact entry point
-  is settled in T6 and recorded here.
+  `frontmatter-validator` crate, which already snapshots the skill folders. Entry point (settled
+  in T2): `frontmatter-validator --skill-layout`, a mode of its own that checks the index. `--all`
+  is not used, because it already fails on legacy specs; `--staged` checks only staged files.
 - `agent-review-report-contract` and `github-review-threads` read the new paths.
 - The link checker needs no new exclusion: live links are rewritten and old links reach a stub.
 
@@ -313,7 +314,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task                                     | Notes / Expected Output                                                                                                                                                                                                              |
 | --- | ------ | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | T1  | TODO   | Create the description follow-up issue   | A new EPIC #2003 sub-issue to shorten and retune the 53 descriptions, with the measurements above, and to fix the cut `write-markdown-docs` description. Created before the implementation PR opens, so the PR links it.                                                                     |
-| T2  | TODO   | Placement rule, proven red               | The regression test: the placement rule of [Validator rules](#validator-rules-after-the-move) with its unit tests, not yet wired into the hook. Its run against the tree before the move is recorded red in `manual-verification-evidence.md`. |
+| T2  | DONE   | Placement rule, proven red               | The regression test: the placement rule of [Validator rules](#validator-rules-after-the-move) with its unit tests, not yet wired into the hook. Its run against the tree before the move is recorded red in `manual-verification-evidence.md`. |
 | T3  | TODO   | Move the skills and fix every live path  | `git mv` of all 71 files; relative links inside moved skills; depth-dependent paths in moved scripts (`validate-skill-links.sh`); tooling paths; every live reference by the classification rule. The commit passes `linter all` and the tests on its own. Git shows 71 renames.                           |
 | T4  | TODO   | Add the redirect stubs                   | 53 stubs plus `.github/skills/README.md`, which says the folder only holds redirects and inventories the 53 original paths.                                                                                                                                                       |
 | T5  | TODO   | Add the index                            | `.claude/skills/README.md` lists each skill by area (today's area folders), with a one-line purpose, and notes the old location. `AGENTS.md` and `docs/agents/` point to it.                                                          |
@@ -355,7 +356,7 @@ pull request.
 - [x] Folder-style spec drafted in `docs/issues/drafts/2003-move-skills-to-claude-skills/ISSUE.md` (now `docs/issues/open/2866-2003-move-skills-to-claude-skills/ISSUE.md`)
 - [x] Spec reviewed and approved by the maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
+- [x] Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -371,6 +372,8 @@ pull request.
 - 2026-11-15 12:50 UTC - Claude Code (Claude Opus 5.5) - Drafted the spec after the nested-folder and context-cost checks and the maintainer's design decisions - this spec, [Pre-spec checks](#pre-spec-checks)
 - 2026-11-15 20:14 UTC - Claude Code (Claude Opus 5.5) - Maintainer approved the draft; created issue #2866, moved the spec to `docs/issues/open/`, and added the EPIC #2003 row at order 21. Linking #2866 as a GitHub sub-issue of #2003 returned HTTP 404 for the contributor account, so the maintainer links it - https://github.com/torrust/torrust-tracker/issues/2866
 - 2026-11-15 20:48 UTC - Claude Code (Claude Opus 5.5) - Reproduced the defect in a fresh clone of `develop` at `abd7a10ff` (M0): no project skill listed, `/create-issue` not run as a command - `manual-verification-evidence.md` V0
+- 2026-11-16 08:00 UTC - Claude Code (Claude Opus 5.5) - Spec PR #2869 merged; implementation started on `2866-move-skills-to-claude-skills` - https://github.com/torrust/torrust-tracker/pull/2869
+- 2026-11-16 08:10 UTC - Claude Code (Claude Opus 5.5) - T2: placement rule `frontmatter-validator --skill-layout` with unit and command tests; red on the tree before the move (53 `misplaced-skill` errors, exit 1); two mutations caught - `manual-verification-evidence.md` T2
 
 ## Acceptance Criteria
 

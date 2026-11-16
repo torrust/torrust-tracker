@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2866-2003-move-skills-to-claude-skills/ISSUE.md
-last-updated-utc: 2026-11-15 21:35
+last-updated-utc: 2026-11-16 08:10
 ---
 
 <!-- cspell:ignore Autocompact dataviz -->
@@ -119,6 +119,58 @@ The repository has a `create-issue` skill (`.github/skills/dev/planning/create-i
 Reproduced. No repository skill is discovered, and `/create-issue` does not run as a command. The
 model found the skill file by reading the repository instead, which is step 2 of the spec's
 "bug in plain terms".
+
+### T2 - The placement rule fails on the tree before the move (red)
+
+- Goal: show that the regression test of the spec's Regression Test Strategy fails for the defect.
+- Initial state: branch `2866-move-skills-to-claude-skills` at `4342dd654` (`Merge
+  torrust/torrust-tracker#2869`), with the T2 change in the working tree and no skill moved.
+- Status: `DONE` (outcome: **Red**, as expected)
+
+#### Steps Performed
+
+1. 2026-11-16 08:03 UTC, stable Rust toolchain:
+   `cargo run -q -p frontmatter-validator --bin frontmatter-validator -- --skill-layout 2> t2-red.ndjson`
+
+#### Observed Result
+
+The command exited `1` and wrote 53 records, all of kind `diagnostic`, severity `error` and
+category `misplaced-skill`, one for each `SKILL.md` under `.github/skills/`; no record names
+another path. The first record, verbatim:
+
+```json
+{"kind":"diagnostic","path":".github/skills/add-new-skill/SKILL.md","severity":"error","category":"misplaced-skill","field_path":null,"message":"A skill must be at `.claude/skills/<name>/SKILL.md`, where Claude Code discovers it."}
+```
+
+#### Mutations
+
+Each mutation was made in the working tree, compiled, run with
+`cargo test -q -p frontmatter-validator --lib skills`, and restored:
+
+| Mutation in `src/skills.rs`                                         | Failing test case                                   |
+| ------------------------------------------------------------------- | --------------------------------------------------- |
+| Accept a skill folder that contains `/` (one folder too deep)       | `..._would_not_discover::case_2_one_folder_too_deep` |
+| Skip paths under `.github/skills/`                                  | `..._would_not_discover::case_1_under_the_copilot_folder` |
+
+After the restore, the 9 `skills` tests passed.
+
+#### Test-Design Review
+
+- `it_should_report_a_skill_that_claude_code_would_not_discover` and
+  `it_should_accept_a_path_that_is_a_discoverable_skill_or_no_skill`: the path is the whole
+  initial state and the one causal difference, named by each `case`. The Act is the production
+  call `misplaced_skill(path)`; the expected result is written in the test (the
+  `misplaced-skill` category, or no finding). Written with temporary Arrange, Act and Assert
+  comments, the Arrange was empty and the other two restated the single line under them, so the
+  comments were removed. No fixture or helper.
+- `it_should_check_the_skill_layout_of_the_index_only_with_skill_layout` (`tests/cli.rs`): the
+  binary decides which files the rule sees, so this test owns only that. The one causal
+  difference is whether a misplaced skill is in the index; both skills are misplaced, so the
+  library's placement decision is not what the test observes. The first draft also staged a
+  correctly placed skill; that tested the library's rule a second time, so it was removed. The
+  repository fixture holds only incidental mechanics (a disposable git repository).
+- Unit-test level: the placement decision is pure and observable from `misplaced_skill`, so it is
+  a unit test; the index selection needs a real git index, so it is a command-boundary test.
 
 ## Failures and Follow-up
 
