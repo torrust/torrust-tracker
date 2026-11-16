@@ -9,7 +9,7 @@ github-issue: 2867
 spec-path: docs/issues/open/2867-udp-health-check-panics-on-invalid-response/ISSUE.md
 branch: "2867-udp-health-check-panics-on-invalid-response"
 related-pr: 2868
-last-updated-utc: "2026-11-16 09:55"
+last-updated-utc: "2026-11-16 10:18"
 semantic-links:
   skill-links:
     - create-issue
@@ -226,13 +226,16 @@ before maintainer review and commit. Use Conventional Commit messages with the n
   `Err("Timed Out")` (V3) for the first da2ce7 review of PR 2868 - `manual-verification-evidence.md`
 - 2026-11-16 08:11 UTC - Maintainer - Merged spec-only PR 2868. Two findings of the second da2ce7
   review (F6, F7 of that review) were deferred to this implementation, as recorded on PR 2868
-- 2026-11-16 09:55 UTC - Claude Code (Claude Opus 5.5) - Implemented T2 to T7: three regression
+- 2026-11-16 09:44 UTC - Claude Code (Claude Opus 5.5) - Implemented T2 to T7: three regression
   tests proven red, the `check` and handler fixes, and the V4 recheck. Tightened T3 to require the
   cause in the error detail and re-proved it red by mutate-then-restore. Addressed the deferred
   findings in `manual-verification-evidence.md`: the stored V1 to V3 logs start at `Finished` (F6)
   and the artifact line names the V3 diff (F7). No retrospective: nothing material was discovered
   beyond the plan; the one lesson (keep build lines in stored logs) is applied in the evidence
   file - `manual-verification-evidence.md`, `evidence/`
+- 2026-11-16 10:19 UTC - Claude Code (Claude Opus 5.5) - Corrected four stamps that were written ahead of the
+  commits that record them (PR 2879 review, F1): the entry above and the evidence file's
+  `last-updated-utc` to 09:44, and the PR 2868 audit's last processing-log entry to 09:48
 
 ## Acceptance Criteria
 
@@ -299,7 +302,7 @@ None planned. The reproduction is a temporary Rust test, kept verbatim in
 
 ## Implementation Completion Review
 
-- Retrospective: not needed; see the 2026-11-16 09:55 progress-log entry
+- Retrospective: not needed; see the 2026-11-16 09:44 progress-log entry
 - If needed, create `implementation-retrospective.md` from
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this folder; otherwise add a progress-log
   entry explaining why none was needed.
