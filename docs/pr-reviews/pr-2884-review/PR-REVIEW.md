@@ -53,6 +53,9 @@ audit IDs, so they get F6 to F9 in source order, with the reviewer's ID kept.
 The review bodies cite heads by commit id. Head `aedfe4e59` (rounds 1 and 2) is the first version
 of `chore(issues): archive closed issue #2850 and #2838 specs to docs/issues/closed`; head `b217ee7e4` (round 3) is its reworded, squashed and rebased version.
 
+Round 4 is Copilot's review `5923416979` (commented) at head `b217ee7e4`. Its one inline finding
+has no reviewer ID, so it gets F10.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | F1 | review-finding:pr-2884-f1 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
@@ -64,6 +67,7 @@ of `chore(issues): archive closed issue #2850 and #2838 specs to docs/issues/clo
 | F7 | review-finding:pr-2884-f7 | Human | Minor | other | ORIGINAL | FIXED | RESOLVED |
 | F8 | review-finding:pr-2884-f8 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F9 | review-finding:pr-2884-f9 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-2884-f10 | Copilot | Nit (inferred) | link-integrity | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -192,6 +196,20 @@ of `chore(issues): archive closed issue #2850 and #2838 specs to docs/issues/clo
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2884#discussion_r4588306286
 
+### F10 - The link text names a folder but the link targets `ISSUE.md`
+
+- PR number: 2884
+- Source review ID: 5923416979
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2884#discussion_r4588361472
+- Concern: in the carry-over table of the #2850 spec, the visible text of the link to the #2838
+  spec ended in `/`, as if it pointed to a folder, while the link targets its `ISSUE.md`.
+- Solution: the visible text now ends in `ISSUE.md`, matching the target.
+- Current-tree verification: line 487 of the #2850 spec shows the same path as text and target.
+- Resolution reference: docs(issues): [#2850] name ISSUE.md in the link text to the #2838 spec
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2884#discussion_r4588409983
+
 ## Processing Log
 
 - 2026-11-16 15:48 UTC - Started this audit for da2ce7's review `5922865820` (submitted
@@ -216,6 +234,10 @@ of `chore(issues): archive closed issue #2850 and #2838 specs to docs/issues/clo
 - 2026-11-16 16:17 UTC - Round 3 replies posted (2026-11-16T16:16 to 16:17 UTC), including the
   second reply on the F5 thread. The threads are resolved after the push of this commit and a
   validator run on the pushed head.
+- 2026-11-16 16:26 UTC - Round 4: Copilot's review `5923416979` (submitted 2026-11-16T16:21:55Z,
+  one finding). The fix was committed as its own commit and the thread was replied to
+  (2026-11-16T16:25:55Z). Late start: this entry and row F10 were added after the reply, not before
+  it. The thread is resolved after the push and a validator run on the pushed head.
 
 ## Completion Rules
 
