@@ -9,7 +9,7 @@ github-issue: 2824
 spec-path: docs/issues/closed/2824-1347-add-tests-primitives/ISSUE.md
 branch: "2824-1347-add-tests-primitives-final"
 related-pr: 2864
-last-updated-utc: "2026-11-16 09:40"
+last-updated-utc: "2026-11-16 09:38"
 semantic-links:
   skill-links:
     - create-issue
