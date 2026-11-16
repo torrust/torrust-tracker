@@ -43,7 +43,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-F1 to F4 come from the first da2ce7 review (COMMENTED, two Minors and two Nits, none Major), on the head ending in `docs(pr-reviews): [#2867] close the PR 2868 follow-up findings after PR 2879 merged`. The F2 fix reworded a commit and replayed the branch on the same base, so the review's commit ids map to subjects: `5bb40f69c` is `chore(issues): archive closed issue #2867 spec to docs/issues/closed` and `cb8ceec73` is `docs(pr-reviews): [#2867] close the PR 2868 follow-up findings after PR 2879 merged`. F5 comes from the first Copilot review (COMMENTED), on the same head; it asks for the change F1 already made.
+F1 to F4 come from the first da2ce7 review (COMMENTED, two Minors and two Nits, none Major), on the head ending in `docs(pr-reviews): [#2867] close the PR 2868 follow-up findings after PR 2879 merged`. The F2 fix reworded a commit and replayed the branch on the same base, so the review's commit ids map to subjects: `5bb40f69c` is `chore(issues): archive closed issue #2867 spec to docs/issues/closed` and `cb8ceec73` is `docs(pr-reviews): [#2867] close the PR 2868 follow-up findings after PR 2879 merged`. F5 comes from the first Copilot review (COMMENTED), on the same head; it asks for the change F1 already made. F9 and F11 come from the second da2ce7 review (CHANGES_REQUESTED), on the head ending in `docs(pr-reviews): [#2867] record the Copilot review of PR 2885 as a re-raise of F1`; their reviewer IDs do not collide with the audit's, so they are kept.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -52,6 +52,8 @@ F1 to F4 come from the first da2ce7 review (COMMENTED, two Minors and two Nits, 
 | F3 | review-finding:pr-2885-f3 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F4 | review-finding:pr-2885-f4 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F5 | review-finding:pr-2885-f5 | Copilot | Minor (inferred) | documentation | RE_RAISE_OF:F1 | NO_ACTION | SUPERSEDED |
+| F9 | review-finding:pr-2885-f9 | Human | Major | documentation | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-2885-f11 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -75,7 +77,7 @@ F1 to F4 come from the first da2ce7 review (COMMENTED, two Minors and two Nits, 
 - Reviewer finding ID: F2
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2885#discussion_r4588235462>
 - Concern: The archive commit's body said the merge "closed #2867", a match of the `open-pull-request` closing-keyword scan that would stay in `develop` history.
-- Solution: Reworded the body to "PR 2879 merged, which closed issue #2867." and replayed the branch on the same base, keeping every commit; pushed with `--force-with-lease`.
+- Solution: Reworded the body to "PR 2879 merged, which closed issue #2867." and replayed the branch on the same base, keeping every commit, to be pushed with `--force-with-lease` (the push is recorded in the Processing Log).
 - Current-tree verification: The skill's scan over the folded commit messages of the branch prints nothing; `git diff` between the old and new tips is empty.
 - Resolution reference: chore(issues): archive closed issue #2867 spec to docs/issues/closed
 - Follow-up PR URL: N/A
@@ -120,10 +122,37 @@ F1 to F4 come from the first da2ce7 review (COMMENTED, two Minors and two Nits, 
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2885#discussion_r4588479333>
 
+### F9 - The description contradicts the record it describes
+
+- PR number: 2885
+- Source review ID: 5924281017
+- Reviewer finding ID: F9
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2885#discussion_r4589036212>
+- Concern: The description, which the merge tool copies into the merge commit, still said F7 and F8 cite the merge commit, counted two commits, omitted this record and the review-round fixes, and did not say that the history was rewritten.
+- Solution: Rewrote the description: F7 and F8 cite the follow-up's fix commit with the merge in Solution, the reviewer checkpoint stays open, this record is listed, a History rewrite section says what was rebuilt and how, and the validation lists what ran, including that the replayed commits ran no pre-commit hook of their own.
+- Current-tree verification: `gh-bot pr view 2885 --json body` shows the History rewrite section and the fix-commit citation; the description no longer says "merge commit as their resolution".
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2885#discussion_r4589061762
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2885#discussion_r4589061762>
+
+### F11 - "pushed with `--force-with-lease`" was written before the push
+
+- PR number: 2885
+- Source review ID: 5924281017
+- Reviewer finding ID: F11
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2885#discussion_r4589036224>
+- Concern: F2's Solution, committed at 16:18:11Z, said the branch was pushed with `--force-with-lease`; the force-push happened at 16:31:06Z.
+- Solution: F2's Solution now says "to be pushed", and a Processing Log entry records the force-push at its timeline time. A sweep of this record, the PR 2868 audit and the spec's progress log found no other statement written ahead of its event.
+- Current-tree verification: `grep -n "to be pushed" docs/pr-reviews/pr-2885-review/PR-REVIEW.md` prints F2's Solution; `grep -n "16:31:06Z" docs/pr-reviews/pr-2885-review/PR-REVIEW.md` prints the push entry.
+- Resolution reference: docs(pr-reviews): [#2867] audit the second da2ce7 review of PR 2885
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2885#discussion_r4589062249>
+
 ## Processing Log
 
 - 2026-11-16 16:17 UTC - Started audit. da2ce7 reviewed the head ending in `docs(pr-reviews): [#2867] close the PR 2868 follow-up findings after PR 2879 merged` at 16:11:50Z (COMMENTED, four inline threads), recorded as F1 to F4. F1 and F4 were fixed in one commit, F3 in another, and F2 by rewording the archive commit and replaying the branch. Replied on all four threads before the push.
 - 2026-11-16 16:31 UTC - Copilot reviewed the same head at 16:15:52Z (COMMENTED, one inline thread), recorded as F5, a re-raise of F1 that F1's fix already covers. After the force-push, all five threads were resolved in one pass, the Copilot one before its reply; it was unresolved again, given its `Superseded by F1` reply, and resolved.
+- 2026-11-16 17:20 UTC - The force-push of the reworded branch happened at 16:31:06Z (the PR timeline's `head_ref_force_pushed` event), and the F5 audit commit was pushed after it. da2ce7 reviewed the head ending in `docs(pr-reviews): [#2867] record the Copilot review of PR 2885 as a re-raise of F1` (CHANGES_REQUESTED, two inline threads), recorded as F9 and F11. F9 was fixed by editing the description; F11 by this audit commit. Replied on both threads before the push.
 
 ## Completion Rules
 
