@@ -42,7 +42,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Findings from da2ce7's review 5912769583 (F1-F11, reviewer IDs kept) and Copilot's review 5912779850 (F12-F13, re-raises of F1 and F2), both on the first commit, `docs(issues): draft the peer-id-test-helper spec (finding F5 of #2824)`. Round 2: da2ce7's review 5913005734 (APPROVED) on the audit commit, `docs(pr-reviews): add the review audit of PR #2865, round 1`; its F12-F15 collide with existing audit IDs and are recorded as F14-F17.
+Findings from da2ce7's review 5912769583 (F1-F11, reviewer IDs kept) and Copilot's review 5912779850 (F12-F13, re-raises of F1 and F2), both on the first commit, `docs(issues): draft the peer-id-test-helper spec (finding F5 of #2824)`. Round 2: da2ce7's review 5913005734 (APPROVED) on the audit commit, `docs(pr-reviews): add the review audit of PR #2865, round 1`; its F12-F15 collide with existing audit IDs and are recorded as F14-F17. Round 3: da2ce7's review 5915609693 (APPROVED) on the round-2 audit commit, `docs(pr-reviews): record round 2 of the PR #2865 review audit`; its F16 collides and is recorded as F18.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -63,6 +63,7 @@ Findings from da2ce7's review 5912769583 (F1-F11, reviewer IDs kept) and Copilot
 | F15 | review-finding:pr-2865-f15 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F16 | review-finding:pr-2865-f16 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 | F17 | review-finding:pr-2865-f17 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-2865-f18 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -281,11 +282,24 @@ Findings from da2ce7's review 5912769583 (F1-F11, reviewer IDs kept) and Copilot
 - Reviewer finding ID: F15
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2865#discussion_r4580304825>
 - Concern: The note about 9 uncovered `swarm_metadata.rs` lines is stale on current `develop`: #2864 covered them, and #2824's final measurement puts all 68 uncovered lines in `peer.rs`.
-- Solution: Dated the note to `develop` at `abd7a10ff` and added #2824's final measurement (31 / 31 for `swarm_metadata.rs`; 1,077 / 1,145 lines, all 68 uncovered in `peer.rs`).
-- Current-tree verification: On `develop` at `4c8c88c0b`, #2824's `coverage-evidence.md` gives `swarm_metadata.rs` 31 / 31 and 1,077 / 1,145 lines for the package.
+- Solution: Dated the note to `develop` at `abd7a10ff` and added #2824's final measurement (31 / 31 for `swarm_metadata.rs`; 1,078 / 1,146 lines, all 68 uncovered in `peer.rs`; corrected by F18).
+- Current-tree verification: On `develop` at `4c8c88c0b`, #2824's `coverage-evidence.md` gives `swarm_metadata.rs` 31 / 31 and 1,078 / 1,146 lines for the package in its final rows.
 - Resolution reference: docs(issues): clarify the loop conversion and coverage note of the peer-id-test-helper spec
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2865#discussion_r4580316808>
+
+### F18 - Coverage note cites the wrong row of #2824's record
+
+- PR number: 2865
+- Source review ID: 5915609693
+- Reviewer finding ID: F16
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2865#discussion_r4582425332>
+- Concern: The note called 1,077 / 1,145 #2824's final measurement, but that is the "After `swarm_metadata.rs`" row; the final rows give 1,078 / 1,146. The audit's F17 solution and verification repeated the figure.
+- Solution: The spec note and F17's solution and verification lines now give 1,078 / 1,146; the 68 uncovered lines in `peer.rs` are unchanged.
+- Current-tree verification: On `develop` at `4c8c88c0b`, `docs/issues/open/2824-1347-add-tests-primitives/coverage-evidence.md` gives 1,077 / 1,145 on line 102 and 1,078 / 1,146 on lines 103 and 116; `grep -n '1,077' docs/issues/drafts/peer-id-test-helper/ISSUE.md` prints nothing.
+- Resolution reference: docs(issues): cite the final #2824 coverage row in the peer-id-test-helper spec
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2865#discussion_r4582436774>
 
 ## Processing Log
 
@@ -297,6 +311,9 @@ Findings from da2ce7's review 5912769583 (F1-F11, reviewer IDs kept) and Copilot
 - 2026-11-15 21:28 UTC - Correction for F14: the findings introduction and the two round-1 entries above (20:31 and 20:32 UTC) were edited in place to replace PR-branch commit ids with commit subjects; they first named the reviewed head and the pushed head by id. Committed as `docs(pr-reviews): cite PR #2865 branch commits by subject in its audit`, with the spec fixes in `docs(issues): clarify the loop conversion and coverage note of the peer-id-test-helper spec`.
 - 2026-11-15 21:29 UTC - Edited the PR description (F15) and recorded it in a PR comment; added rows F14-F17 before replying, then replied on the four threads (21:29 UTC).
 - 2026-11-15 21:29 UTC - Validator `validate-audit-record.py --pr-number 2865` exited 0 for round 2.
+- 2026-11-16 05:58 UTC - Review round 3: da2ce7 review 5915609693 (APPROVED, one finding, recorded as F18) received on the round-2 audit commit; the figure checked against #2824's `coverage-evidence.md` on `develop`.
+- 2026-11-16 05:58 UTC - Correction for F18: F17's solution and current-tree verification lines were edited in place to replace 1,077 / 1,145 with 1,078 / 1,146. Added row F18 before replying, then replied on the thread (05:59 UTC).
+- 2026-11-16 06:00 UTC - Validator `validate-audit-record.py --pr-number 2865` exited 0 for round 3 (18 rows, 0 failures).
 
 ## Completion Rules
 
