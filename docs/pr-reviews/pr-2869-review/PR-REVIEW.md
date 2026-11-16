@@ -47,6 +47,8 @@ F7, F8, F3, F4, F5 and F6 are in da2ce7's review 5913004050, in that source orde
 
 F9 and F10 are in da2ce7's review 5915663318, in that source order. It was submitted as `APPROVED`; GitHub dismissed it at 06:09:20 UTC when the fixes were pushed, so its state is now `DISMISSED`. His F7 and F8 collide with F7 and F8 above, so they are numbered F9 and F10, the next free audit-local IDs, and his IDs are kept as the reviewer finding IDs.
 
+F11 is the one finding in da2ce7's review 5915860000. It was submitted as `APPROVED`; GitHub dismissed it at 06:32:20 UTC when the fix was pushed, so its state is now `DISMISSED`. His F9 collides with F9 above, so it is numbered F11, the next free audit-local ID, and his ID is kept as the reviewer finding ID.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F2 | review-finding:pr-2869-f2 | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -61,6 +63,7 @@ F9 and F10 are in da2ce7's review 5915663318, in that source order. It was submi
 | F6 | review-finding:pr-2869-f6 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F9 | review-finding:pr-2869-f9 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F10 | review-finding:pr-2869-f10 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-2869-f11 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -220,6 +223,19 @@ F9 and F10 are in da2ce7's review 5915663318, in that source order. It was submi
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2869#discussion_r4582507555
 
+### F11 - The record repeats the dismissal gap for review 5915663318
+
+- PR number: 2869
+- Source review ID: 5915860000
+- Reviewer finding ID: F9
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2869#discussion_r4582617185
+- Concern: The record called review 5915663318 `APPROVED` and left its dismissal by the push of the F9 and F10 fixes (06:09:20 UTC) out of the 06:09 log entry, the gap F10 closed for review 5913004050; F10's verification said the timeline held one `review_dismissed` event when it held two.
+- Solution: The Findings paragraph says review 5915663318 is now `DISMISSED`, the 06:09 log entry records the dismissal, and F10's verification names both events. This round's own entries record the dismissal of review 5915860000 by the push of this fix.
+- Current-tree verification: The timeline of PR #2869 lists three `review_dismissed` events: 5913004050 at 21:36:23 UTC, 5915663318 at 06:09:20 UTC and 5915860000 at 06:32:20 UTC. The Findings paragraphs, F10's verification and the Processing Log of this record.
+- Resolution reference: docs(pr-reviews): [#2866] log the dismissal of the third review
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2869#discussion_r4582642975
+
 ## Processing Log
 
 - 2026-11-15 20:41 UTC - Review 5912836984 (Copilot, `COMMENTED`) submitted on the first head of the PR: F2, R1, F1, R2.
@@ -231,6 +247,8 @@ F9 and F10 are in da2ce7's review 5915663318, in that source order. It was submi
 - 2026-11-15 21:38 UTC - Resolved the six threads after the replies; a GraphQL refresh shows no unresolved thread.
 - 2026-11-16 06:01 UTC - Review 5915663318 (da2ce7, `APPROVED`) submitted on the head commit `docs(pr-reviews): [#2866] record the second review of PR #2869`: two Minor findings, none blocking, recorded here as F9 and F10.
 - 2026-11-16 06:09 UTC - Pushed the two fix commits (committed 06:05 and 06:06 UTC; push log time 06:09:18 UTC); the push dismissed review 5915663318 (timeline event `review_dismissed`, 06:09:20 UTC). Replied to the two threads (06:09:30 and 06:09:33 UTC) and resolved them; a GraphQL refresh shows no unresolved thread.
+- 2026-11-16 06:28 UTC - Review 5915860000 (da2ce7, `APPROVED`) submitted on the head commit `docs(pr-reviews): [#2866] record the third review of PR #2869`: one Minor finding, not blocking, recorded here as F11.
+- 2026-11-16 06:32 UTC - Pushed the fix commit (committed 06:29 UTC; push log time 06:32:19 UTC); the push dismissed review 5915860000 (timeline event `review_dismissed`, 06:32:20 UTC). Replied to the thread (06:32:29 UTC) and resolved it; a GraphQL refresh shows no unresolved thread.
 
 ## Completion Rules
 
