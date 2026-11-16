@@ -38,9 +38,11 @@ was opened to decide it, with a go/no-go decision as its first task.
 
 The investigation (on `torrust/develop` at `b009b6425`) found:
 
-- **A service is cancelled only after shutdown begins.** `JobManager` cancels component tokens only
-  in `request_shutdown` and, for the components that wait for others, in `mark_finished` once shutdown
-  was requested. Nothing stops one service while the others keep running.
+- **A running service is cancelled only after shutdown begins.** `JobManager` cancels the running
+  components only in `request_shutdown` and, for the components that wait for others, in
+  `mark_finished` once shutdown was requested; `reserve` issues an already-cancelled token only after
+  shutdown was requested. A server also cancels its own token when its registration fails at startup,
+  before it serves. Nothing stops one running service while the others keep serving.
 - **The health check does not read the registry during shutdown.** `begin_shutdown` marks the tracker
   not ready before it cancels any component, and `/health_check` then answers `503` with the message
   "shutting down" and an empty `details` list, without probing anything. The health check API stops
@@ -133,7 +135,7 @@ No code changes with this decision. These are the places that implement or rely 
 - [`src/app.rs`](../../src/app.rs): `begin_shutdown` marks the tracker not ready before it cancels
   any component.
 - [`src/bootstrap/jobs/manager.rs`](../../src/bootstrap/jobs/manager.rs): `request_shutdown` and
-  `mark_finished`, the only places that cancel component tokens.
+  `mark_finished`, where the job manager cancels the running components once shutdown is requested.
 - [`packages/axum-health-check-api-server/src/handlers.rs`](../../packages/axum-health-check-api-server/src/handlers.rs):
   the `503` answer while not ready, and the probe of each registration that has a health check.
 - [`packages/axum-health-check-api-server/src/server.rs`](../../packages/axum-health-check-api-server/src/server.rs):
