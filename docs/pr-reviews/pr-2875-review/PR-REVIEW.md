@@ -47,6 +47,10 @@ F1, F2 and F3 are in da2ce7's review 5917183183, on the PR's first head commit, 
 
 F4, F5 and F6 are the three inline comments of Copilot's review 5917272531 (`COMMENTED`), submitted at 08:52:33 UTC on the same first head, in that source order. They carry no finding IDs, so they take the next free audit-local IDs. Their severity is inferred from the review overview, which marks each "Low severity". F4 and F5 ask for the changes F2 and F1 had already made on the newer head.
 
+F7 is the one finding of da2ce7's review 5917548188 on the head commit `docs(pr-reviews): [#2873] record the first reviews of PR #2875`. It was submitted as `APPROVED`; GitHub dismissed it at 09:44:41 UTC when the fixes were pushed, so its state is now `DISMISSED`. His ID F5 collides with F5 above, so it is numbered F7, the next free audit-local ID, and his ID is kept as the reviewer finding ID.
+
+F8 and F9 are in Copilot's review 5917643855 (`COMMENTED`) on the same head, in that source order. Its IDs F7 and F8 collide with F7 above and with each other's renumbering, so they are numbered F8 and F9 and Copilot's IDs are kept as the reviewer finding IDs. F8 is an inline thread; F9 is in the review body under "previously missed issue", with no thread, so its source URL is the review and its reply is a PR conversation comment. The fix commit bodies and the replies of this round cite the reviewers' IDs (`review-finding:pr-2875-f5`, `-f7`, `-f8`); they mean this record's F7, F8 and F9.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2875-f1 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
@@ -55,6 +59,9 @@ F4, F5 and F6 are the three inline comments of Copilot's review 5917272531 (`COM
 | F4 | review-finding:pr-2875-f4 | Copilot | Minor (inferred) | documentation | RE_RAISE_OF:F2 | NO_ACTION | SUPERSEDED |
 | F5 | review-finding:pr-2875-f5 | Copilot | Minor (inferred) | testing | RE_RAISE_OF:F1 | NO_ACTION | SUPERSEDED |
 | F6 | review-finding:pr-2875-f6 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-2875-f7 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-2875-f8 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F9 | review-finding:pr-2875-f9 | Copilot | Minor | correctness | ORIGINAL | FIXED | NON_RESOLVABLE |
 
 ## Finding Details
 
@@ -136,6 +143,45 @@ F4, F5 and F6 are the three inline comments of Copilot's review 5917272531 (`COM
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2875#discussion_r4583692368
 
+### F7 - The evidence file departs from its template's headings
+
+- PR number: 2875
+- Source review ID: 5917548188
+- Reviewer finding ID: F5
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2875#discussion_r4583860148
+- Concern: The evidence file used `Observed Output` and `Result` for the template's `Observed Result` and `Conclusion`, lacked the template's `Failures and Follow-up` section, and the spec no longer said the file was created from the template.
+- Solution: The headings and the section are the template's, and the spec's Manual Verification notes say the file was created from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md` and keeps its headings.
+- Current-tree verification: The headings of `docs/issues/open/2873-2003-shorten-skill-descriptions/manual-verification-evidence.md` match the template's V1 section and end with `## Failures and Follow-up`; the Notes under Manual Verification Scenarios in the spec.
+- Resolution reference: docs(issues): [#2873] restore the evidence template headings
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2875#discussion_r4584096743
+
+### F8 - The `/context` row is inference, not an observation of the cut text
+
+- PR number: 2875
+- Source review ID: 5917643855
+- Reviewer finding ID: F7
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2875#discussion_r4583932685
+- Concern: `/context` shows a token count, not the description text, so it does not show that Claude Code read the cut value; V0, T3 and M2 should say so.
+- Solution: V0 is classified Reproduced for the parser, and the `/context` row is recorded as corroborating inference in V0's classification and Conclusion and in the spec's Background, Bug-Fix Process, T3, AC3 and M2.
+- Current-tree verification: V0 in the evidence file; the named sections of the spec.
+- Resolution reference: docs(issues): [#2873] treat the /context row as corroborating evidence
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2875#discussion_r4584097064
+
+### F9 - A raw-versus-parsed length check would reject valid descriptions
+
+- PR number: 2875
+- Source review ID: 5917643855
+- Reviewer finding ID: F8
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2875#pullrequestreview-5917643855
+- Concern: Quoting, escape decoding and block-scalar folding change a valid description's length, so comparing raw and parsed lengths would reject T3's quoting fix instead of detecting a comment.
+- Solution: The Regression Test Strategy drops the length comparison: the rule fails only on a plain scalar containing a space followed by `#`, and its tests include passing quoted and block-scalar descriptions; AC4 asks for them.
+- Current-tree verification: The last paragraph of Regression Test Strategy and AC4 in the spec.
+- Resolution reference: docs(issues): [#2873] detect comment truncation without a length comparison
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2875#issuecomment-6913012946
+
 ## Processing Log
 
 - 2026-11-16 08:44 UTC - Review 5917183183 (da2ce7, `APPROVED`) submitted on the first head: F1, F2 and F3, none blocking.
@@ -143,6 +189,12 @@ F4, F5 and F6 are the three inline comments of Copilot's review 5917272531 (`COM
 - 2026-11-16 08:52 UTC - Review 5917272531 (Copilot, `COMMENTED`) submitted on the first head: F4, F5 and F6.
 - 2026-11-16 08:56 UTC - Pushed the F6 fix commit (committed 08:53:23 UTC; push finished 08:56:39 UTC). Replied to the six threads (08:56:53 to 08:57:05 UTC) before this record existed; it was started late, after the replies.
 - 2026-11-16 08:58 UTC - Started this record from the template, validated it (`validate-audit-record.py`: 6 rows, 0 failures), then resolved the six threads (08:58 UTC); a GraphQL refresh shows no unresolved thread.
+- 2026-11-16 09:16 UTC - Review 5917548188 (da2ce7, `APPROVED`) submitted on the head commit `docs(pr-reviews): [#2873] record the first reviews of PR #2875`: F7, a Nit, not blocking.
+- 2026-11-16 09:24 UTC - Review 5917643855 (Copilot, `COMMENTED`) submitted on the same head: F8 (inline) and F9 (review body).
+- 2026-11-16 09:38 UTC - Committed the F7 and F8 fixes (09:37:21 and 09:38:35 UTC). A first push attempt at 09:41 UTC did not reach GitHub: its output was piped to `head`, which ended it during the pre-push hook. The replies on the F7 and F8 threads (09:41:58 and 09:42:00 UTC) were posted before the fixes were on GitHub.
+- 2026-11-16 09:44 UTC - Pushed the F7 and F8 fixes (push finished 09:44:39 UTC); the push dismissed review 5917548188 (timeline event `review_dismissed`, 09:44:41 UTC).
+- 2026-11-16 09:48 UTC - Pushed the F9 fix (committed 09:45:14 UTC; push finished 09:48:46 UTC) and posted the F9 response on the PR conversation (09:48:53 UTC).
+- 2026-11-16 09:49 UTC - Resolved the F7 and F8 threads (09:49 UTC); a GraphQL refresh shows no unresolved thread. `validate-audit-record.py` was not run this round: it calls plain `gh`, which acts as the maintainer's account, and its use needs his approval.
 
 ## Completion Rules
 
