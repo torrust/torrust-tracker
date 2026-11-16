@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p2
 epic: 1347
 github-issue: 2876
 spec-path: docs/issues/open/2876-1347-peer-id-test-helper/ISSUE.md
-branch: "2876-peer-id-test-helper-spec"
+branch: "2876-peer-id-test-helper"
 related-pr: null
-last-updated-utc: "2026-11-16 09:41"
+last-updated-utc: "2026-11-16 15:57"
 semantic-links:
   skill-links:
     - create-issue
@@ -182,6 +182,18 @@ by project conventions.
 
 Each question has a recommendation. Nothing is implemented until the maintainer answers them.
 
+**Answers (the maintainer, in chat, 2026-11-16).** Every recommendation was accepted:
+
+| Q | Decision |
+| --- | --- |
+| Q1 | (a) The helper lives in `primitives`, in `peer::fixture` next to `PeerBuilder`. |
+| Q2 | Yes. `peer::fixture` moves behind a `testing` feature of `primitives`. |
+| Q3 | (a) Remove `Id::new`, guarded by a `compile_fail` doctest. |
+| Q4 | (b) The helper takes a `u32`; the `-1` sentinel becomes a named constant outside the made range, and the `0..408` loops iterate over `u32` and convert only where an `i32` is needed. |
+| Q5 | Gate `impl Default for Peer` and `impl Default for Id` with the module. |
+| Q6 | Yes, the three fixture ids become realistic (built with the helper); literals in other packages stay out of scope. |
+| Q7 | Amend the test-support ADR. |
+
 **Q1. Where does the realistic-id helper live?**
 
 - (a) In `primitives`, next to `PeerBuilder` in `peer::fixture` (behind `testing` if Q2 says so).
@@ -323,7 +335,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
-| T0  | TODO   | Get the maintainer's answers to Q1-Q7 | Answers recorded in this spec; later tasks adjusted. |
+| T0  | DONE   | Get the maintainer's answers to Q1-Q7 | Answers recorded in this spec; later tasks adjusted. |
 | T1  | TODO   | Re-run the caller inventory and the compile proof | Tables above updated if `develop` moved; evidence in `manual-verification-evidence.md`. |
 | T2  | TODO   | Add the realistic-id helper with unit tests | In the Q1 location, with the Q4 format; design-review checkpoint after the first passing test. |
 | T3  | TODO   | Move the `torrent-repository-benchmarking` callers to the helper | Its tests pass; ids are distinct. |
@@ -368,9 +380,9 @@ with the narrow affected scope, and sign every commit with GPG.
 
 - [x] Folder-style spec drafted in `docs/issues/drafts/peer-id-test-helper/ISSUE.md`
 - [x] Draft spec reviewed and merged through #2865 (filing approved by the maintainer in chat, 2026-11-16)
-- [ ] Open design questions Q1-Q7 answered by the maintainer (before T0)
+- [x] Open design questions Q1-Q7 answered by the maintainer (before T0)
 - [x] GitHub issue created (#2876) and issue number added to this spec
-- [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
+- [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -413,6 +425,10 @@ with the narrow affected scope, and sign every commit with GPG.
   two re-raises): `branch` is now the `-spec` branch, the parent EPIC line is under the title, the
   approval checkpoint is split from the Q1-Q7 answers, and the F5 owner cells of EPIC row 11 and the
   closed #2824 spec point at #2876.
+- 2026-11-16 15:57 UTC - Claude Code (Opus 5.5) - The spec-only PR #2878 merged and the maintainer
+  answered Q1-Q7 in chat, accepting every recommendation (Q4 (b): `u32` with a named sentinel).
+  Answers recorded under Open Design Decisions; status `in-progress` on branch
+  `2876-peer-id-test-helper`. T0 done.
 
 ## Acceptance Criteria
 
