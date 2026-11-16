@@ -3,7 +3,7 @@
 //! unhealthy or unreachable, `2` usage error (issue #2764).
 
 use std::ffi::OsStr;
-use std::io::{Read, Write};
+use std::io::{ErrorKind, Read, Write};
 use std::net::{Ipv4Addr, SocketAddr, TcpListener};
 use std::path::PathBuf;
 use std::process::{Child, Command, Output, Stdio};
@@ -44,7 +44,11 @@ impl TestServer {
                         let response = format!("HTTP/1.1 {status_line}\r\nContent-Length: 0\r\nConnection: close\r\n\r\n");
                         drop(stream.write_all(response.as_bytes()));
                     }
-                    Err(_) => thread::sleep(Duration::from_millis(10)),
+                    Err(error) if error.kind() == ErrorKind::WouldBlock => thread::sleep(Duration::from_millis(10)),
+                    Err(error) if error.kind() == ErrorKind::Interrupted => {}
+                    // Any other error (for example no file descriptors left) stops the server loudly
+                    // instead of leaving a silent non-responder; `Drop` re-raises the panic.
+                    Err(error) => panic!("the test server could not accept a connection: {error}"),
                 }
             }
         });
@@ -64,8 +68,12 @@ impl TestServer {
 impl Drop for TestServer {
     fn drop(&mut self) {
         self.stop.store(true, Ordering::Relaxed);
-        if let Some(thread) = self.thread.take() {
-            drop(thread.join());
+        if let Some(thread) = self.thread.take()
+            && let Err(panic) = thread.join()
+            && !thread::panicking()
+        {
+            // The server thread failed; fail the test with its message.
+            std::panic::resume_unwind(panic);
         }
     }
 }
