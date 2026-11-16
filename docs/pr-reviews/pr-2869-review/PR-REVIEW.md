@@ -43,7 +43,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 F2, R1, F1 and R2 are in Copilot's review 5912836984, in that source order. The IDs are Copilot's own and collide with nothing earlier in this record. The task numbers in the replies and solutions are those of the current spec: the fix for R1 added a task T2 and renumbered the later tasks, so the fixes for F1 and R2 were written as T2 and T5 and are now T3 and T6.
 
-F7, F8, F3, F4, F5 and F6 are in da2ce7's review 5913004050 (`APPROVED`), in that source order. His F1 and F2 collide with Copilot's F1 and F2 above, so they are numbered F7 and F8, the next free audit-local IDs, and his IDs are kept as the reviewer finding IDs; his F3 to F6 collide with nothing and keep their IDs.
+F7, F8, F3, F4, F5 and F6 are in da2ce7's review 5913004050, in that source order. It was submitted as `APPROVED`; GitHub dismissed it at 21:36:23 UTC when the fixes were pushed, so its state is now `DISMISSED`. His F1 and F2 collide with Copilot's F1 and F2 above, so they are numbered F7 and F8, the next free audit-local IDs, and his IDs are kept as the reviewer finding IDs; his F3 to F6 collide with nothing and keep their IDs.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -196,8 +196,8 @@ F7, F8, F3, F4, F5 and F6 are in da2ce7's review 5913004050 (`APPROVED`), in tha
 - 2026-11-15 20:52 UTC - Started this audit after the five fix commits (committed 20:45 to 20:51 UTC).
 - 2026-11-15 20:54 UTC - Pushed the five fix commits (push log time 20:54:18 UTC), then replied to the four threads (reply times 20:54:36 to 20:54:43 UTC); the reply URLs are in the entries.
 - 2026-11-15 20:55 UTC - Resolved the four threads after the replies; a GraphQL refresh shows no unresolved thread.
-- 2026-11-15 21:25 UTC - Review 5913004050 (da2ce7, `APPROVED`) submitted on head `4f3e9aa93`: six findings, none blocking, recorded here as F7, F8, F3, F4, F5 and F6.
-- 2026-11-15 21:36 UTC - Pushed the six fix commits (committed 21:29 to 21:33 UTC; push log time 21:36:21 UTC), rewrote the PR description (F4), posted the F4 statement (21:36:45 UTC) and replied to the six threads (21:36:47 to 21:36:58 UTC).
+- 2026-11-15 21:25 UTC - Review 5913004050 (da2ce7, `APPROVED`) submitted on the head commit `docs(pr-reviews): [#2866] record the first review of PR #2869`: six findings, none blocking, recorded here as F7, F8, F3, F4, F5 and F6.
+- 2026-11-15 21:36 UTC - Pushed the six fix commits (committed 21:29 to 21:33 UTC; push log time 21:36:21 UTC); the push dismissed review 5913004050 (timeline event `review_dismissed`, 21:36:23 UTC). Rewrote the PR description (F4), posted the F4 statement (21:36:45 UTC) and replied to the six threads (21:36:47 to 21:36:58 UTC).
 - 2026-11-15 21:38 UTC - Resolved the six threads after the replies; a GraphQL refresh shows no unresolved thread.
 
 ## Completion Rules
