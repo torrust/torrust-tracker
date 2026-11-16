@@ -9,7 +9,7 @@ github-issue: 2876
 spec-path: docs/issues/open/2876-1347-peer-id-test-helper/ISSUE.md
 branch: "2876-peer-id-test-helper"
 related-pr: null
-last-updated-utc: "2026-11-16 15:59"
+last-updated-utc: "2026-11-16 16:05"
 semantic-links:
   skill-links:
     - create-issue
@@ -339,7 +339,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | ------ | ---- | ----------------------- |
 | T0  | DONE   | Get the maintainer's answers to Q1-Q7 | Answers recorded in this spec; later tasks adjusted. |
 | T1  | DONE   | Re-run the caller inventory and the compile proof | Tables above updated if `develop` moved; evidence in `manual-verification-evidence.md`. |
-| T2  | TODO   | Add the realistic-id helper with unit tests | In the Q1 location, with the Q4 format; design-review checkpoint after the first passing test. |
+| T2  | DONE   | Add the realistic-id helper with unit tests | In the Q1 location, with the Q4 format; design-review checkpoint after the first passing test. |
 | T3  | TODO   | Move the `torrent-repository-benchmarking` callers to the helper | Its tests pass; ids are distinct. |
 | T4  | TODO   | Remove or deprecate `Id::new` (Q3) | `compile_fail` doctest if removed. |
 | T5  | TODO   | Gate `peer::fixture` (and the `Default` impls, Q5) behind `testing` (Q2) | Feature in `primitives/Cargo.toml` with the semver comment of ADR rule A.6, self dev-dependency, consumer `[dev-dependencies]`; `cargo machete --with-metadata` clean. |
@@ -436,6 +436,10 @@ with the narrow affected scope, and sign every commit with GPG.
   reproduced the finding, every fixture and `Id::new` id gives `get_client_name() == None` (V0); the
   coverage baseline is 1,075 / 1,143 lines, with the 68 uncovered lines all in `peer.rs`
   (`coverage-evidence.md`).
+- 2026-11-16 16:05 UTC - Claude Code (Opus 5.5) - T2: `peer::fixture::qbittorrent_peer_id(u32) -> Id`
+  (`const fn`, `-qB4650-` + 12 zero-padded decimal digits) with three unit tests, red first, each
+  guarded by a mutation; the maintainer approved its name, signature and format at the design-review
+  checkpoint (`test-plans/qbittorrent-peer-id.md`).
 
 ## Acceptance Criteria
 

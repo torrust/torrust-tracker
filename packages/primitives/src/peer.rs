@@ -500,7 +500,7 @@ pub mod fixture {
 
     use torrust_clock::DurationSinceUnixEpoch;
 
-    use super::{Id, Peer, PeerId};
+    use super::{Id, PEER_ID_BYTES_LEN, Peer, PeerId};
     use crate::{AnnounceEvent, NumberOfBytes};
 
     #[derive(PartialEq, Eq, Debug, Default)]
@@ -613,6 +613,29 @@ pub mod fixture {
         pub const fn into(self) -> Peer {
             self.peer
         }
+    }
+
+    /// Builds a peer id that a real qBittorrent client could send, numbered so tests can make many
+    /// distinct peers.
+    ///
+    /// The id is the Azureus-style client prefix `-qB4650-` (qBittorrent 4.6.5) followed by
+    /// `number` as 12 zero-padded decimal digits, so `qbittorrent_peer_id(42)` is
+    /// `-qB4650-000000000042`. Distinct numbers give distinct ids, and the client registry knows
+    /// every id as qBittorrent ([`Id::get_client_name`]).
+    #[must_use]
+    pub const fn qbittorrent_peer_id(number: u32) -> Id {
+        const DECIMAL_DIGITS: &[u8; 10] = b"0123456789";
+
+        let mut bytes = *b"-qB4650-000000000000";
+        let mut remaining = number;
+        let mut position = PEER_ID_BYTES_LEN;
+        while remaining > 0 {
+            position -= 1;
+            bytes[position] = DECIMAL_DIGITS[(remaining % 10) as usize];
+            remaining /= 10;
+        }
+
+        Id { data: PeerId(bytes) }
     }
 
     impl Default for Peer {
@@ -1027,6 +1050,48 @@ pub mod test {
         #[quickcheck]
         fn it_should_reject_any_byte_vector_whose_length_is_not_twenty(bytes: Vec<u8>) -> bool {
             bytes.len() == peer::PEER_ID_BYTES_LEN || peer::Id::try_from(bytes).is_err()
+        }
+    }
+
+    mod qbittorrent_peer_id {
+        use quickcheck::TestResult;
+        use quickcheck_macros::quickcheck;
+
+        use crate::peer::fixture::qbittorrent_peer_id;
+
+        #[test]
+        fn it_should_write_the_number_as_twelve_zero_padded_decimal_digits_after_the_qbittorrent_prefix() {
+            // Arrange
+            for (number, expected) in [
+                (0, b"-qB4650-000000000000"),        // no digit to write: all padding
+                (42, b"-qB4650-000000000042"),       // an ordinary number
+                (u32::MAX, b"-qB4650-004294967295"), // the widest number, ten digits
+            ] {
+                // Act
+                let id = qbittorrent_peer_id(number);
+
+                // Assert
+                assert_eq!(
+                    id.0,
+                    *expected,
+                    "peer id made from {number}: {:?}",
+                    String::from_utf8_lossy(&id.0)
+                );
+            }
+        }
+
+        #[quickcheck]
+        fn it_should_make_ids_that_the_client_registry_knows_as_qbittorrent(number: u32) -> bool {
+            qbittorrent_peer_id(number).get_client_name().as_deref() == Some("qBittorrent")
+        }
+
+        #[quickcheck]
+        fn it_should_make_distinct_ids_from_distinct_numbers(number: u32, other_number: u32) -> TestResult {
+            if number == other_number {
+                return TestResult::discard();
+            }
+
+            TestResult::from_bool(qbittorrent_peer_id(number).0 != qbittorrent_peer_id(other_number).0)
         }
     }
 
