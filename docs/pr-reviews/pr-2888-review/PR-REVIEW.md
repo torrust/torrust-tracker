@@ -45,6 +45,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2888-f1 | Human | Nit | testing | ORIGINAL | FIXED | RESOLVED |
 | F2 | review-finding:pr-2888-f2 | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
+| F3 | review-finding:pr-2888-f3 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F4 | review-finding:pr-2888-f4 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -59,7 +61,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
   not. The reviewer offered two fixes: add the markers, or record in the test plan that they were
   dropped as redundant prose.
 - Solution: Recorded the decision in the test plan, for both the properties and the fixture tests:
-  the markers are redundant prose for one-expression properties and one- to three-statement bodies
+  the markers are redundant prose for one-expression properties and one- to four-statement bodies
   (the skill's prose-first step 4), matching the other short tests in `peer.rs`.
 - Current-tree verification: `grep -n "markers were left out" docs/issues/open/2876-1347-peer-id-test-helper/test-plans/qbittorrent-peer-id.md`
   finds the property note (T2 section) and the fixture-test note (T7 section).
@@ -85,12 +87,50 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2888#discussion_r4588757687
 
+### F3 - Two fixture tests have four statements, not one to three
+
+- PR number: 2888
+- Source review ID: 5924274073
+- Reviewer finding ID: F3
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2888#discussion_r4589031084
+- Concern: The F1 fix described the fixture tests as one- to three-statement bodies, but
+  `it_should_set_no_bytes_left_to_download_for_a_peer_that_had_bytes_left` and
+  `it_should_set_the_started_event_for_a_peer_that_had_completed` have four (they first assert their
+  starting fixture). The F1 reply repeats the count.
+- Solution: The test plan and the F1 row now say one- to four-statement bodies, four in the two
+  tests that assert their starting fixture. The F1 reply cannot be edited; this row records the
+  correction.
+- Current-tree verification: `grep -n "four-statement" docs/issues/open/2876-1347-peer-id-test-helper/test-plans/qbittorrent-peer-id.md docs/pr-reviews/pr-2888-review/PR-REVIEW.md`
+  finds the T7 note and the F1 solution; `grep -c "three-statement"` on the test plan gives 0 (the
+  audit keeps the old wording only where F3 quotes it).
+- Resolution reference: docs(issues): [#2876] correct the statement count of the short peer.rs tests
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2888#discussion_r4589180027
+
+### F4 - The Processing Log puts the round-1 replies one minute early
+
+- PR number: 2888
+- Source review ID: 5924274073
+- Reviewer finding ID: F4
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2888#discussion_r4589031100
+- Concern: The round-1 entry said the two thread replies were posted at 16:53 UTC; GitHub records
+  16:54:26 and 16:54:29 UTC. Their order before the push is right.
+- Solution: The round-1 entry now says 16:54 UTC and notes the correction.
+- Current-tree verification: `grep -n "16:54 UTC" docs/pr-reviews/pr-2888-review/PR-REVIEW.md`
+  finds the round-1 entry.
+- Resolution reference: docs(pr-reviews): [#2876] record review round 2 of PR 2888
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2888#discussion_r4589180507
+
 ## Processing Log
 
 - 2026-11-16 16:52 UTC - Started audit for review round 1: review 5923877279 (da2ce7, APPROVED, with
   ACK, one Nit F1 and one Suggestion F2, neither blocking). The maintainer had posted his ACK on the
-  same head before the review. Both fixed by commit; the two thread replies posted at 16:53 UTC,
+  same head before the review. Both fixed by commit; the two thread replies posted at 16:54 UTC (corrected in round 2, F4),
   before the push of the fix commits.
+- 2026-11-16 17:32 UTC - Review round 2: review 5924274073 (da2ce7, APPROVED, two Nits F3 and F4,
+  neither blocking) on the head with the round-1 fixes, which the maintainer ACKed. F3 fixed by
+  commit, F4 in this audit; the two thread replies posted at 17:31 UTC, before the push.
 
 ## Completion Rules
 
