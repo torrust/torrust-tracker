@@ -50,6 +50,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F5 | review-finding:pr-2878-f5 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-2878-f6 | Copilot | Minor | link-integrity | RE_RAISE_OF:F3 | NO_ACTION | SUPERSEDED |
 | F7 | review-finding:pr-2878-f7 | Copilot | Minor | metadata | RE_RAISE_OF:F1 | NO_ACTION | SUPERSEDED |
+| F8 | review-finding:pr-2878-f8 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F9 | review-finding:pr-2878-f9 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-2878-f10 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -163,6 +166,55 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2878#discussion_r4584080662
 
+### F8 - The edited description carries a closing keyword for #2824
+
+- PR number: 2878
+- Source review ID: 5918010504
+- Reviewer finding ID: F6
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2878#discussion_r4584209561
+- Concern: The F5 edit of the description wrote "the closed #2824 Findings Register", and
+  `closed #2824` matches the closing-keyword pattern of the open-pull-request skill.
+- Solution: Edited the description: the bullet now reads "the Findings Register, AC9 row and
+  `lessons.md` of the closed spec of #2824".
+- Current-tree verification: `grep -niE '\b(close[sd]?|fix(e[sd])?|resolve[sd]?)\b:?\s+#[0-9]+'`
+  on the new description body printed nothing.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2878#issuecomment-6913176963
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2878#discussion_r4584242781
+
+### F9 - The #2824 AC9 row cites a `lessons.md` row that no longer says what it claims
+
+- PR number: 2878
+- Source review ID: 5918010504
+- Reviewer finding ID: F7
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2878#discussion_r4584209574
+- Concern: The AC9 row said F5 had no GitHub issue and that "its `lessons.md` row says so", while
+  this PR rewrote that `lessons.md` row to name #2876.
+- Solution: The AC9 cell now ends "with no GitHub issue yet at closure (filed later as #2876; see
+  the Findings Register)"; the draft path stays as evidence of the time.
+- Current-tree verification: `grep -n "filed later as #2876" docs/issues/closed/2824-1347-add-tests-primitives/ISSUE.md`
+  shows the AC9 row at line 401.
+- Resolution reference: docs(issues): [#2876] note in the #2824 AC9 row that F5 was filed later as #2876
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2878#discussion_r4584243304
+
+### F10 - The update stamps of the files the F3 commit touched do not match its time
+
+- PR number: 2878
+- Source review ID: 5918010504
+- Reviewer finding ID: F8
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2878#discussion_r4584209583
+- Concern: The F3 commit was made at 09:38:58 UTC, but the #2824 spec said 09:40 and the EPIC
+  kept 08:45.
+- Solution: Both stamps set to `2026-11-16 09:38`. The F9 commit then edited the #2824 spec again
+  at 09:55:51 UTC and set its stamp to `2026-11-16 09:55`.
+- Current-tree verification: `git log --format=%cI` gives 09:38:58Z for the F3 commit and
+  09:55:51Z for the F9 commit; line 9 of the EPIC reads `2026-11-16 09:38` and line 12 of the #2824
+  spec reads `2026-11-16 09:55`.
+- Resolution reference: docs(issues): [#2876] match the update stamps of the EPIC and the #2824 spec to their edit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2878#discussion_r4584243807
+
 ## Processing Log
 
 - 2026-11-16 09:41 UTC - Started audit for review round 1: review 5917568324 (da2ce7, APPROVED,
@@ -170,6 +222,10 @@ deliver findings through GitHub and have no repository-artifact obligation.
   re-raise F3 and F1, recorded as F6 and F7). Fixes F1-F4 committed; PR description edited for F5;
   the PR conversation response and the seven thread replies posted at 09:39-09:40 UTC, before the
   push of the fix commits.
+- 2026-11-16 09:57 UTC - Review round 2: review 5918010504 (da2ce7, APPROVED at `40bf1cb12`) with
+  reviewer findings F6, F7 and F8, recorded as F8, F9 and F10 because F6 and F7 were already taken.
+  F9 and F10 committed; description edited for F8; the PR conversation response and the three
+  thread replies posted at 09:56-09:57 UTC, before the push of the fix commits.
 
 ## Completion Rules
 
