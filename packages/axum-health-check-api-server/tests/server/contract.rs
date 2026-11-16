@@ -648,3 +648,80 @@ mod readiness {
         env.stop().await.expect("it should stop the service");
     }
 }
+
+// issue: #2867
+mod failed_probe_job {
+    use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
+    use torrust_server_lib::registar::{FnSpawnServiceHeathCheck, Registar, ServiceHealthCheckJob, ServiceRegistration};
+    use torrust_tracker_axum_health_check_api_server::environment::Started;
+    use torrust_tracker_axum_health_check_api_server::resources::{Report, Status};
+    use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
+    use torrust_tracker_test_helpers::{configuration, logging};
+
+    use crate::server::client::get;
+
+    fn panicking_probe(_binding: &ServiceBinding) -> ServiceHealthCheckJob {
+        ServiceHealthCheckJob::new(
+            "panicking probe".to_string(),
+            tokio::spawn(async { panic!("the probe job panicked on purpose") }),
+        )
+    }
+
+    fn passing_probe(_binding: &ServiceBinding) -> ServiceHealthCheckJob {
+        ServiceHealthCheckJob::new("passing probe".to_string(), tokio::spawn(async { Ok("200 OK".to_string()) }))
+    }
+
+    async fn register(
+        registar: &Registar<RuntimeServiceMetadata>,
+        address: &str,
+        role: ServiceRole,
+        probe: FnSpawnServiceHeathCheck,
+    ) {
+        registar
+            .give_form()
+            .register(ServiceRegistration::new(
+                ServiceBinding::new(Protocol::HTTP, address.parse().unwrap()).unwrap(),
+                RuntimeServiceMetadata::new(ConfigurationInstanceId::new(role, 0)),
+                Some(probe),
+            ))
+            .await
+            .expect("the probed service should register");
+    }
+
+    #[tokio::test]
+    async fn it_should_report_a_probe_job_that_panicked_as_a_failed_check_and_keep_the_other_results() {
+        // Arrange: one service whose probe job panics, next to one whose probe passes.
+        logging::setup();
+        let configuration = configuration::ephemeral_with_no_services();
+        let registar = Registar::default();
+        register(&registar, "127.0.0.1:7070", ServiceRole::HttpTracker, panicking_probe).await; // DevSkim: ignore DS137138
+        register(&registar, "127.0.0.1:1212", ServiceRole::RestApi, passing_probe).await; // DevSkim: ignore DS137138
+        let env = Started::new(&configuration.health_check_api.into(), registar).await;
+
+        // Act
+        let response = get(&format!("http://{}/health_check", env.bind_address())).await; // DevSkim: ignore DS137138
+
+        // Assert
+        assert_eq!(response.status(), 200);
+        let report: Report = response.json().await.expect("the body should be a report");
+        assert_eq!(report.status, Status::Error);
+        assert_eq!(report.message, "health check failed");
+        let result_of = |info: &str| {
+            report
+                .details
+                .iter()
+                .find(|detail| detail.info == info)
+                .unwrap_or_else(|| panic!("the report should have a detail for the {info}"))
+                .result
+                .clone()
+        };
+        let panicked = result_of("panicking probe");
+        assert!(
+            panicked.is_err(),
+            "the panicking probe should be a failed check, got: {panicked:?}"
+        );
+        assert_eq!(result_of("passing probe"), Ok("200 OK".to_string()));
+
+        env.stop().await.expect("it should stop the service");
+    }
+}
