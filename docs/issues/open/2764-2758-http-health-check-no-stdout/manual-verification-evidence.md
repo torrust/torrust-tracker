@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2764-2758-http-health-check-no-stdout/ISSUE.md
-last-updated-utc: 2026-11-16 18:15
+last-updated-utc: 2026-11-16 18:29
 ---
 
 # Manual Verification Evidence
@@ -80,7 +80,7 @@ it_should_not_expose_url_credentials_when_the_endpoint_is_healthy: stderr expose
 - Goal: show that the tests detect a break of each clause of AC2 and AC3.
 - Status: `DONE`
 
-Run on 2026-11-16 against the round-1 binary: the first and third rows at about 17:33 UTC, before that binary was committed (the working-tree file had the same content), the second row at about 17:40 UTC after the commit. Before each mutation the file was copied to the scratchpad; afterwards it was copied back.
+The rows ran at different times. The rows for exit `1` on a non-2xx answer and for JSON on stderr ran on 2026-11-16 at about 17:33 UTC against the round-1 binary, before it was committed (the working-tree file had the same content); the row for exit `2` on a usage error ran at about 17:40 UTC after that commit; the two rows marked "review round 2" ran later, as the paragraph after the table says. Before each mutation the file was copied to the scratchpad; afterwards it was copied back.
 
 | Clause | Mutation | Result of `cargo test --test http_health_check` |
 | ------ | -------- | ----------------------------------------------- |
@@ -236,3 +236,62 @@ All four containers were removed afterwards (`docker ps -a --filter name=tt-r1 -
 - Status: `DONE`
 
 Red, on 2026-11-16 at about 18:13 UTC: the new test `it_should_exit_2_with_a_usage_error_record_when_the_url_scheme_is_not_http_or_https` (it probes `ftp://127.0.0.1/health_check` and `mailto:probe@example.com`) against the round-1 binary gave `10 passed; 1 failed`, with `unexpected exit code; stderr was: {"kind":"unreachable","message":"could not probe the health endpoint: builder error: URL scheme is not allowed","exit_code":1}`, `left: Some(1)`, `right: Some(2)`. Green after the fix: `cargo test --test http_health_check` and `cargo nextest run --test http_health_check` report 11 passed; clippy gives no warning. The image was not rebuilt for this change: it touches only argument parsing, and the container `HEALTHCHECK` (V2) passes an `http` URL, which the scheme check accepts.
+
+### Round 3 of PR 2889 - recheck of V1 and V3 on the final binary
+
+- Goal: repeat the like-for-like real-tracker runs after the last production change (review finding `review-finding:pr-2889-f16`).
+- Status: `DONE`
+- Build: debug build of the tree whose last production change is the commit `fix(health-check): [#2764] report a URL scheme other than http or https as a usage error` (no change to `src/` after it); the tracker started from `share/default/config/tracker.container.no-persistence.toml`. Run on 2026-11-16 at about 18:29 UTC.
+
+```text
+$ target/debug/http_health_check http://127.0.0.1:1313/health_check
+exit=0
+stdout (0 bytes):
+stderr:
+{"kind":"healthy","message":"the health endpoint answered 200 OK","status":200,"exit_code":0}
+
+$ target/debug/http_health_check http://probe-user:userinfo-secret@127.0.0.1:1313/health_check?token=query-secret
+exit=0
+stdout (0 bytes):
+stderr:
+{"kind":"healthy","message":"the health endpoint answered 200 OK","status":200,"exit_code":0}
+
+$ target/debug/http_health_check http://127.0.0.1:1313/nope
+exit=1
+stdout (0 bytes):
+stderr:
+{"kind":"unhealthy","message":"the health endpoint answered the non-success status 404 Not Found","status":404,"exit_code":1}
+
+$ target/debug/http_health_check http://127.0.0.1:9/health_check
+exit=1
+stdout (0 bytes):
+stderr:
+{"kind":"unreachable","message":"could not probe the health endpoint: error sending request: client error (Connect): tcp connect error: Connection refused (os error 111)","exit_code":1}
+
+$ target/debug/http_health_check
+exit=2
+stdout (0 bytes):
+stderr:
+{"kind":"usage_error","message":"usage error: expected exactly one argument; use `http_health_check <HEALTH_URL>`, for example `http_health_check http://127.0.0.1:1313/health_check`","exit_code":2}
+
+$ target/debug/http_health_check not-a-url
+exit=2
+stdout (0 bytes):
+stderr:
+{"kind":"usage_error","message":"usage error: the argument is not a valid URL; use `http_health_check <HEALTH_URL>`, for example `http_health_check http://127.0.0.1:1313/health_check`","exit_code":2}
+
+$ target/debug/http_health_check ftp://127.0.0.1:1313/health_check
+exit=2
+stdout (0 bytes):
+stderr:
+{"kind":"usage_error","message":"usage error: the URL scheme is not `http` or `https`; use `http_health_check <HEALTH_URL>`, for example `http_health_check http://127.0.0.1:1313/health_check`","exit_code":2}
+
+(tracker stopped)
+$ target/debug/http_health_check http://127.0.0.1:1313/health_check
+exit=1
+stdout (0 bytes):
+stderr:
+{"kind":"unreachable","message":"could not probe the health endpoint: error sending request: client error (Connect): tcp connect error: Connection refused (os error 111)","exit_code":1}
+```
+
+Observed: stdout is empty in every case, each stderr line is one JSON object with a `kind`, no credential of the second URL appears, and the exit codes are `0`, `0`, `1`, `1`, `2`, `2`, `2`, `1`. The new `ftp://` case is a `usage_error` with exit `2`. The image (V2) was not rebuilt: the scheme check runs before any probe and accepts the `http` URL the `HEALTHCHECK` passes.
