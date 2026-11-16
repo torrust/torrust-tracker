@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2873-2003-shorten-skill-descriptions/ISSUE.md
-last-updated-utc: 2026-11-16 19:15
+last-updated-utc: 2026-11-16 19:20
 ---
 
 # Manual Verification Evidence
@@ -129,6 +129,12 @@ descriptions dropped before are listed again. `write-markdown-docs` costs `~70`.
 After the rewording (step 4), `32.9k / 1m (3%)` in total, Skills `7.9k`, `0.8%`. The 53 Project
 rows sum to 3,270 tokens; the descriptions total 8,431 characters (mean 159, max 187). No skill
 shows `< 20` tokens. `description-measurements.md` holds this run.
+
+The two after runs differ by 2.2k in total (30.7k and 32.9k) but only 0.1k in Skills. The other
+2.1k is the MCP rows: the 19:02:47 UTC run lists `MCP tools` (559) and `MCP server instructions`
+(1.6k), as the before run does, and the 18:04:51 UTC run lists neither; `System tools` is 15.2k and
+15.1k. So an MCP connection differed between the runs; it does not touch the Skills category or
+its rows.
 
 #### Conclusion
 

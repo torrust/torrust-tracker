@@ -1,5 +1,5 @@
 ---
-last-updated-utc: "2026-11-16 19:08"
+last-updated-utc: "2026-11-16 19:07"
 semantic-links:
   related-artifacts:
     - docs/issues/open/2873-2003-shorten-skill-descriptions/ISSUE.md
