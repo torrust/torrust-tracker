@@ -45,6 +45,9 @@ Review 5917243839 by da2ce7 (`APPROVED`, 2026-11-16 08:50:01 UTC, at the head en
 [#2393] record a full-suite run after the rebase onto develop`) raised six inline findings. Its
 body's other paragraphs are a summary and checks, with no request.
 
+Review 5917266238 by Copilot (`COMMENTED`, 2026-11-16 08:52:03 UTC, same head) raised four inline
+findings, F7 to F10. Its body is an overview with no other request.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2874-f1 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
@@ -53,6 +56,10 @@ body's other paragraphs are a summary and checks, with no request.
 | F4 | review-finding:pr-2874-f4 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F5 | review-finding:pr-2874-f5 | Human | Nit | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-2874-f6 | Human | Suggestion | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-2874-f7 | Copilot | Minor (inferred) | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F8 | review-finding:pr-2874-f8 | Copilot | Nit (inferred) | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F9 | review-finding:pr-2874-f9 | Copilot | Nit (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-2874-f10 | Copilot | Suggestion (inferred) | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -134,10 +141,66 @@ body's other paragraphs are a summary and checks, with no request.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2874#discussion_r4583688624
 
+### F7 - Loopback helper does not encode its Linux constraint
+
+- PR number: 2874
+- Source review ID: 5917266238
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2874#discussion_r4583648616
+- Concern: `loopback_ipv4()` is public but only works on Linux; the review suggests a `#[cfg(target_os = "linux")]` gate, a `Result`, or a fallback to `127.0.0.1`.
+- Solution: No change. Every caller is a test that still compiles on macOS and Windows, which CI builds, and is ignored there at run time through `cfg_attr`; a `cfg` gate would break those builds, and a fallback to `127.0.0.1` would restore the race. The doc comment states the constraint, and the spec approved the design.
+- Current-tree verification: `git grep -n 'loopback_ipv4()' -- '*.rs'` lists only test code; the helper's doc comment names the Linux constraint.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2874#discussion_r4583742457
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2874#discussion_r4583742457
+
+### F8 - Borrow of a temporary configuration in `start_health_check_api`
+
+- PR number: 2874
+- Source review ID: 5917266238
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2874#discussion_r4583648705
+- Concern: `start_health_check_api` passes `&...into()` to `Started::new`, which the review calls brittle.
+- Solution: No change. The temporary lives until the end of the call statement and the borrow checker prevents `Started::new` from keeping the reference; the readiness tests in the same file pass their configuration the same way.
+- Current-tree verification: `git grep -n 'health_check_api.into()' packages/axum-health-check-api-server/tests/server/contract.rs` shows the same form in the readiness tests.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2874#discussion_r4583742746
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2874#discussion_r4583742746
+
+### F9 - String parse in the held TCP socket helper
+
+- PR number: 2874
+- Source review ID: 5917266238
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2874#discussion_r4583648758
+- Concern: `hold_a_tcp_address_that_refuses_connections` parses `"127.0.0.1:0"` and unwraps, where a typed address avoids the panic path.
+- Solution: The socket now binds `SocketAddr::from((Ipv4Addr::LOCALHOST, 0))`.
+- Current-tree verification: `cargo nextest run -p torrust-tracker-axum-health-check-api-server --all-features --no-fail-fast`: 24 tests run, 24 passed.
+- Resolution reference: test(health-check): [#2393] bind the held TCP socket with a typed address
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2874#discussion_r4583743092
+
+### F10 - Repeated rationale comment across address helpers
+
+- PR number: 2874
+- Source review ID: 5917266238
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2874#discussion_r4583648833
+- Concern: The same rationale comment appears in several test address helpers; the review suggests shared `reserve_*_on_random_loopback()` helpers in the test-helpers crate.
+- Solution: No change. The helpers differ in protocol, socket type and whether they keep the socket, so one shared helper is a refactor beyond this change, whose approved scope changes only the address. The rationale is documented once on `random::loopback_ipv4`, and each call site keeps a short comment.
+- Current-tree verification: `git grep -n 'random::loopback_ipv4()' -- '*.rs'` shows the call sites in TCP and UDP helpers of different shapes.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2874#discussion_r4583743410
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2874#discussion_r4583743410
+
 ## Processing Log
 
 - 2026-11-16 08:55 UTC - Started audit for review 5917243839; F1 to F6 fixed in three commits.
 - 2026-11-16 08:56 UTC - Replied on the six threads of review 5917243839 before pushing the fixes.
+- 2026-11-16 09:03 UTC - Correction: after pushing the F1 to F6 fixes, every unresolved thread was
+  resolved in one command, including the four threads of Copilot review 5917266238, which had not
+  been read or answered. They were unresolved at once, recorded as F7 to F10, F9 fixed in its own
+  commit, and all four replied to at 09:02 to 09:03 UTC before being resolved again.
 
 ## Completion Rules
 
