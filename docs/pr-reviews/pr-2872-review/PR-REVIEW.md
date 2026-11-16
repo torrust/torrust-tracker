@@ -58,6 +58,10 @@ Round 4 is da2ce7's third review `5917226013` (approved) at the head whose last 
 `docs(pr-reviews): [#2850] audit review round 3 of PR #2872`. Its one inline finding F9 collides
 with an existing audit ID, so it gets F11, with the reviewer's ID kept.
 
+Round 5 is da2ce7's fourth review `5918318903` (approved) at the head whose last commit is
+`docs(pr-reviews): [#2850] record the reply and resolution of round 4`. Its one inline finding F11
+collides with an existing audit ID, so it gets F12, with the reviewer's ID kept.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2872-f1 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
@@ -71,6 +75,7 @@ with an existing audit ID, so it gets F11, with the reviewer's ID kept.
 | F9 | review-finding:pr-2872-f9 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F10 | review-finding:pr-2872-f10 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F11 | review-finding:pr-2872-f11 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-2872-f12 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -234,6 +239,25 @@ with an existing audit ID, so it gets F11, with the reviewer's ID kept.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2872#discussion_r4584227007
 
+### F12 - The HTTP benchmark acceptance is not recorded in the repository
+
+- PR number: 2872
+- Source review ID: 5918318903
+- Reviewer finding ID: F11
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2872#discussion_r4584446219
+- Concern: the description says the maintainer accepted the HTTP `announce_once` result, but it
+  still asked for the confirmation, and `performance-evidence.md` and the spec left the verdict
+  open, so the merged record would not hold the decision.
+- Solution: `performance-evidence.md` and the spec's "Performance Evidence" section record the
+  decision, its date and where it was given (the implementing session's conversation with the
+  maintainer); a spec progress entry records it together with the approval of the client-visible
+  changes; the question was dropped from the description.
+- Current-tree verification: `grep -n "HTTP verdict"` finds the line in the spec; the description
+  no longer contains "Please confirm".
+- Resolution reference: docs(issues): [#2850] record the maintainer's benchmark and client-visible decisions
+- Follow-up PR URL: N/A
+- Reply URL: pending
+
 ## Processing Log
 
 - 2026-11-16 07:51 UTC - Started this audit for Copilot's review `5916561572` (submitted
@@ -272,6 +296,8 @@ with an existing audit ID, so it gets F11, with the reviewer's ID kept.
   (2026-11-16T09:55:09Z). `validate-audit-record.py --pr-number 2872` returned `status: ok`, 11
   rows, 8 log entries, 0 failures; then the thread was resolved and a fresh GraphQL fetch shows 0
   unresolved threads.
+- 2026-11-16 10:16 UTC - Started round 5 for da2ce7's review `5918318903` (submitted
+  2026-11-16T10:15:34Z, approved, one Nit finding), before any reply.
 
 ## Completion Rules
 

@@ -9,7 +9,7 @@ github-issue: 2850
 spec-path: docs/issues/open/2850-non-negative-number-of-bytes/ISSUE.md
 branch: "2850-non-negative-number-of-bytes"
 related-pr: 2872
-last-updated-utc: "2026-11-15 21:22"
+last-updated-utc: "2026-11-16 10:16"
 semantic-links:
   skill-links:
     - create-issue
@@ -717,6 +717,7 @@ the model that produced them.
 - 2026-11-12 20:29 UTC - Claude Code (Fable 5.2) - Rebased the spec-only branch onto `develop` after PR #2841 (the primitives tests of #2824) merged and conflicted in the EPIC #1347 table. Updated the coordination note: those tests are on `develop` and name this issue.
 - 2026-11-15 21:17 UTC - Claude Code (Opus 5.5) - Implemented T0 to T6 on branch `2850-non-negative-number-of-bytes`. T0 added `udp_tracker/announce_once`; the first baseline was discarded because uncommitted T1/T2 edits leaked into its build, and each measurement is now built in a clean worktree (`performance-evidence.md`, lesson added to `docs/benchmarking.md`). T2 named the field with the `ByteCountField` enum (one variant, one message, the field as a matchable value) and moved the peer conversion before the whitelist check, as the order tests of PR #2839 require. The maintainer agreed a 5% tolerance for the UDP benchmark before the after measurement. Load test and UDP pass; HTTP `announce_once` failed the one-sided rule by 0.3% on a path T3 does not add work to, and an interleaved A/B run put it inside the noise: the verdict is the maintainer's. Manual run 1 was discarded for non-monotonic timestamps. No design assumption was invalidated, so no retrospective file.
 - 2026-11-15 21:22 UTC - Claude Code (Opus 5.5) - Rebased onto `develop` and opened the implementation PR #2872 (closes #2850 and #2838). Updated the #2838 specification and row 12 of the EPIC #1347 table to point to it.
+- 2026-11-16 10:16 UTC - Claude Code (Opus 5.5) - Recorded two maintainer decisions of 2026-11-16, both given to this session in its conversation with the maintainer: the client-visible changes listed in PR #2872 are approved, and the HTTP `announce_once` result is accepted ("Performance Evidence" and `performance-evidence.md`).
 
 ## Acceptance Criteria
 
@@ -774,6 +775,9 @@ of `http-core`, and the end-to-end UDP load test.
 - Agreed tolerance (maintainer, 2026-11-15, after the baseline and before the after measurement):
   the after UDP `announce_once` median may be up to 5% above the highest baseline median, that is
   at most 318.70 ns (highest baseline median 303.52 ns; baseline spread 6.5%).
+- HTTP verdict (maintainer, 2026-11-16, after the after measurement): the HTTP `announce_once`
+  result, 0.3% above the highest baseline median and inside the noise of the interleaved A/B
+  run, is accepted. The decision was given to the implementing agent session (Claude Code) in its conversation with the maintainer; there is no separate statement on the pull request.
 
 ### Manual Verification Scenarios
 

@@ -1,7 +1,7 @@
 ---
 doc-type: performance-evidence
 issue-spec: docs/issues/open/2850-non-negative-number-of-bytes/ISSUE.md
-last-updated-utc: "2026-11-15 21:17"
+last-updated-utc: "2026-11-16 10:16"
 ---
 
 # Performance Evidence - Non-Negative Number of Bytes
@@ -157,3 +157,6 @@ The after build is faster in two pairs and slower in one; the baseline alone spa
 ns (10.7%) within a minute. The difference of the original after run is inside this noise, so no
 regression is attributed to the change. The one-sided rule is formally failed and the verdict is
 the maintainer's: this record is listed in the pull request for that decision.
+
+Decision (maintainer, 2026-11-16): the HTTP `announce_once` result is accepted; no regression is
+attributed to the change. The decision was given to the implementing agent session (Claude Code) in its conversation with the maintainer; there is no separate statement on the pull request.
