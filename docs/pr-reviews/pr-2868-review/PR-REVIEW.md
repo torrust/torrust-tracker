@@ -4,7 +4,7 @@ semantic-links:
     - process-pr-review
   related-artifacts:
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
-    - docs/issues/open/2867-udp-health-check-panics-on-invalid-response/ISSUE.md
+    - docs/issues/closed/2867-udp-health-check-panics-on-invalid-response/ISSUE.md
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -52,8 +52,8 @@ F1 comes from the first Copilot review (COMMENTED, Lite effort; Copilot noted it
 | F4 | review-finding:pr-2868-f4 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 | F5 | review-finding:pr-2868-f5 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-2868-f6 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
-| F7 | review-finding:pr-2868-f7 | Human | Minor | documentation | ORIGINAL | FOLLOW_UP | OPEN |
-| F8 | review-finding:pr-2868-f8 | Human | Nit | documentation | ORIGINAL | FOLLOW_UP | OPEN |
+| F7 | review-finding:pr-2868-f7 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-2868-f8 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -143,8 +143,8 @@ F1 comes from the first Copilot review (COMMENTED, Lite effort; Copilot noted it
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2868#discussion_r4582464465>
 - Concern: The stored V1 to V3 logs start at `Finished`, so no kept file shows the `Compiling` line that V3 and the F6 Solution cite as proof that the value assertion was rebuilt.
 - Solution: Deferred by the maintainer to the implementation PR. There, `manual-verification-evidence.md` says that the stored V1 to V3 logs start at `Finished` and that the V3 rebuild was not kept, and points to the maintained stopped-UDP test run whose full log is kept; every new log keeps its build lines. The F6 Solution above no longer claims the rebuild.
-- Current-tree verification: on the follow-up branch, `grep -n "Finished" docs/issues/open/2867-udp-health-check-panics-on-invalid-response/manual-verification-evidence.md` prints the statements about the V1 to V3 logs and the V3 rebuild.
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2868#discussion_r4583253808>
+- Current-tree verification: on `develop` after the follow-up merged, `grep -n "Finished" docs/issues/closed/2867-udp-health-check-panics-on-invalid-response/manual-verification-evidence.md` prints the statements about the V1 to V3 logs and the V3 rebuild.
+- Resolution reference: `Merge torrust/torrust-tracker#2879: fix(tracker-client): [#2867] report an invalid UDP health-check reply as an error instead of panicking` (PR 2879, merged 2026-11-16 15:31:32Z); closing reply <https://github.com/torrust/torrust-tracker/pull/2868#discussion_r4587758733>
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2879>
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2868#discussion_r4583253808>
 
@@ -156,8 +156,8 @@ F1 comes from the first Copilot review (COMMENTED, Lite effort; Copilot noted it
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2868#discussion_r4582464475>
 - Concern: V3 applied `evidence/closed-port-value-check.diff`, but the artifact-under-test line names only `evidence/reproduction-tests.diff`.
 - Solution: Deferred by the maintainer to the implementation PR, where the line names `evidence/reproduction-tests.diff` (V1, V2) and `evidence/closed-port-value-check.diff` (V3).
-- Current-tree verification: on the follow-up branch, `grep -n "(V3) applied" docs/issues/open/2867-udp-health-check-panics-on-invalid-response/manual-verification-evidence.md` prints the artifact-under-test line.
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2868#discussion_r4583254064>
+- Current-tree verification: on `develop` after the follow-up merged, `grep -n "(V3) applied" docs/issues/closed/2867-udp-health-check-panics-on-invalid-response/manual-verification-evidence.md` prints the artifact-under-test line.
+- Resolution reference: `Merge torrust/torrust-tracker#2879: fix(tracker-client): [#2867] report an invalid UDP health-check reply as an error instead of panicking` (PR 2879, merged 2026-11-16 15:31:32Z); closing reply <https://github.com/torrust/torrust-tracker/pull/2868#discussion_r4587759257>
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2879>
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2868#discussion_r4583254064>
 
@@ -166,6 +166,7 @@ F1 comes from the first Copilot review (COMMENTED, Lite effort; Copilot noted it
 - 2026-11-15 20:47 UTC - Started audit. Copilot reviewed the head ending in `docs(issues): [#2867] move the UDP health check panic spec to open` at 20:43:53Z (COMMENTED, one inline thread, F1). Fixed F1 in its own commit, replied on the thread, and recorded spec-only PR 2868 in the spec frontmatter in a separate commit.
 - 2026-11-15 21:34 UTC - da2ce7 reviewed the head ending in `docs(pr-reviews): [#2867] log the resolution of the first PR 2868 review round` at 21:27:05Z (APPROVED, five inline threads, none blocking), recorded as F2 to F6. Each in-tree finding was fixed in its own commit; F3 was fixed by editing the PR description. Replied on all five threads before the push.
 - 2026-11-16 09:48 UTC - da2ce7 reviewed the head ending in `docs(pr-reviews): [#2867] log the resolution of the first da2ce7 review of PR 2868` at 06:01:56Z (APPROVED, two inline threads, none blocking), recorded as F7 and F8 because the reviewer's F6 collides with the audit's F6. The maintainer chose to merge as is (merged 08:11:29Z) and defer both to the implementation PR 2879. Replied on both threads, recorded the approval on PR 2868, and reopened both threads, which stay `OPEN` until PR 2879 merges.
+- 2026-11-16 15:32 UTC - PR 2879 merged at 15:31:32Z. Replied on the F7 and F8 threads with the merge reference and resolved both; F7 and F8 are now `FIXED`/`RESOLVED`. A GraphQL refresh shows no unresolved thread on PR 2868.
 
 ## Completion Rules
 
