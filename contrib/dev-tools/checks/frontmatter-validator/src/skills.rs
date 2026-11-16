@@ -313,9 +313,12 @@ fn description_too_long(markdown: &str) -> Option<Diagnostic> {
 /// text before it. A parsed value no longer holds the comment, so the rule reads the raw
 /// frontmatter lines.
 fn description_cut_by_comment(markdown: &str) -> Option<Diagnostic> {
-    let value = plain_description(markdown)?;
-    let has_comment = value.iter().any(|line| line.contains(" #") || line.contains("\t#"));
-    has_comment.then(|| {
+    let is_cut = match raw_description(markdown)? {
+        RawDescription::Plain(lines) => lines.iter().any(|line| line.contains(" #") || line.contains("\t#")),
+        RawDescription::OnlyAComment => true,
+        RawDescription::NotPlain => false,
+    };
+    is_cut.then(|| {
         Diagnostic::for_field(
             DiagnosticCategory::SkillDescriptionCutByComment,
             "description",
@@ -324,13 +327,22 @@ fn description_cut_by_comment(markdown: &str) -> Option<Diagnostic> {
     })
 }
 
-/// The raw lines of a top-level `description` whose value is a plain scalar, from where the value
-/// starts to its last continuation line (blank or indented) before the next top-level line.
+/// How the raw text of a top-level `description` value is written.
+enum RawDescription<'a> {
+    /// A plain scalar: its lines, from where the value starts to its last continuation line.
+    Plain(Vec<&'a str>),
+    /// No value, only a comment, so YAML reads the description as null and loses all of it.
+    OnlyAComment,
+    /// Quoted, a block scalar, an alias, or empty without a comment.
+    NotPlain,
+}
+
+/// The raw text of a top-level `description`: its line and its continuation lines (blank or
+/// indented) before the next top-level line. `None` when there is no such field.
 ///
 /// The value starts after any node properties (a `!` tag or an `&` anchor) and after a comment
-/// that ends the key's line. `None` when there is no such field, or its value is quoted, a block
-/// scalar, an alias, or empty.
-fn plain_description(markdown: &str) -> Option<Vec<&str>> {
+/// that ends the key's line.
+fn raw_description(markdown: &str) -> Option<RawDescription<'_>> {
     let mut lines = markdown.lines();
     if lines.next()? != "---" {
         return None;
@@ -340,21 +352,30 @@ fn plain_description(markdown: &str) -> Option<Vec<&str>> {
     let continuation = frontmatter.take_while(|line| line.is_empty() || line.starts_with([' ', '\t']));
 
     let mut value: Vec<&str> = Vec::new();
+    let mut skipped_a_comment = false;
     for line in std::iter::once(first).chain(continuation) {
         if !value.is_empty() {
             value.push(line);
             continue;
         }
         let start = without_node_properties(line);
-        if start.is_empty() || start.starts_with('#') {
+        if start.starts_with('#') {
+            skipped_a_comment = true;
+            continue;
+        }
+        if start.is_empty() {
             continue;
         }
         if start.starts_with(['"', '\'', '|', '>', '*']) {
-            return None;
+            return Some(RawDescription::NotPlain);
         }
         value.push(start);
     }
-    (!value.is_empty()).then_some(value)
+    Some(match (value.is_empty(), skipped_a_comment) {
+        (false, _) => RawDescription::Plain(value),
+        (true, true) => RawDescription::OnlyAComment,
+        (true, false) => RawDescription::NotPlain,
+    })
 }
 
 /// What follows the `:` of a top-level `description` key, plain or quoted, with or without white
@@ -677,6 +698,9 @@ mod description_tests {
     #[case::after_a_tag("description: !!str Avoids the #NUMBER pattern.")]
     #[case::after_an_anchor("description: &text Avoids the #NUMBER pattern.")]
     #[case::after_a_comment_on_the_key_line("description: # note\n  Avoids the #NUMBER pattern.")]
+    #[case::only_a_comment_on_the_key_line("description: #NUMBER pitfalls in Markdown. Use when writing docs.")]
+    #[case::only_a_comment_on_the_next_line("description:\n  #NUMBER pitfalls in Markdown. Use when writing docs.")]
+    #[case::only_a_comment_after_a_tag("description: !!str #NUMBER pitfalls in Markdown.")]
     fn it_should_report_a_cut_plain_description_however_its_key_and_properties_are_written(#[case] field: &str) {
         let skill = format!("---\nname: example\n{field}\nmetadata:\n  owner: docs\n---\n");
 
