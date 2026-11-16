@@ -42,7 +42,7 @@ The investigation (on `torrust/develop` at `b009b6425`) found:
   components only in `request_shutdown` and, for the components that wait for others, in
   `mark_finished` once shutdown was requested; `reserve` issues an already-cancelled token only after
   shutdown was requested. A server also cancels its own token when its registration fails at startup,
-  before it serves. Nothing stops one running service while the others keep serving.
+  before its start function returns, and that fails the whole startup. Nothing stops one running service while the others keep serving.
 - **The health check does not read the registry during shutdown.** `begin_shutdown` marks the tracker
   not ready before it cancels any component, and `/health_check` then answers `503` with the message
   "shutting down" and an empty `details` list, without probing anything. The health check API stops
