@@ -5,7 +5,7 @@ semantic-links:
     - open-pull-request
   related-artifacts:
     - docs/adrs/20261013161419_stop_requiring_pull_request_rebases.md
-    - .github/skills/dev/git-workflow/merge-pull-request/SKILL.md
+    - .claude/skills/merge-pull-request/SKILL.md
     - contrib/dev-tools/git/github-merge.py
     - "issue #2507"
     - "issue #2525"

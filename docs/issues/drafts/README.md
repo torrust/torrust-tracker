@@ -4,7 +4,7 @@ semantic-links:
     - create-issue
   related-artifacts:
     - docs/issues/README.md
-    - .github/skills/dev/planning/create-issue/SKILL.md
+    - .claude/skills/create-issue/SKILL.md
 ---
 
 # Issue Drafts
@@ -37,4 +37,4 @@ Use drafts when:
 ## References
 
 - Issues index: [../README.md](../README.md)
-- Workflow source of truth: [`.github/skills/dev/planning/create-issue/SKILL.md`](../../../.github/skills/dev/planning/create-issue/SKILL.md)
+- Workflow source of truth: [`.claude/skills/create-issue/SKILL.md`](../../../.claude/skills/create-issue/SKILL.md)

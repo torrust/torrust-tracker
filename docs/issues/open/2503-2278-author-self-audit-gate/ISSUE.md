@@ -22,9 +22,9 @@ semantic-links:
     - docs/pr-reviews/pr-2270-review/review-retrospective.md
     - docs/pr-reviews/pr-2271-review/review-retrospective.md
     - docs/pr-reviews/pr-2484-review/review-retrospective.md
-    - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
+    - .claude/skills/process-pr-review/SKILL.md
     - docs/templates/PR-REVIEW-TEMPLATE.md
-    - .github/skills/dev/planning/create-issue/SKILL.md
+    - .claude/skills/create-issue/SKILL.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -45,9 +45,9 @@ The EPIC (`docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/EPI
 
 The PR #2270 retrospective counts about a third of its findings as re-raises, traces them to bookkeeping from memory rather than from the bytes, and asks for these rules (`docs/pr-reviews/pr-2270-review/review-retrospective.md`, lines 56-57, 115, and 166-173). The PR #2271 retrospective asks for a recorded self-audit pass before each re-review request and judges it would alone have prevented rounds four through seven (`docs/pr-reviews/pr-2271-review/review-retrospective.md`, lines 119-122, 130-131, and 145-146). The PR #2484 retrospective (`docs/pr-reviews/pr-2484-review/review-retrospective.md`) adds two items the matrix assigns to this order: a manual sweep before each push to a reviewed branch, and anchoring each `Current-tree verification` to a heading or quoted phrase rather than a line number.
 
-At `develop`, the skill (`.github/skills/dev/pr-reviews/process-pr-review/SKILL.md`, version 1.5 at `686a42f45`) runs the validator "before every audit commit" and before any reply or resolution (Validation Script) and asks to "Update the audit progressively" (Workflow step 9, Verify completion), but has no rule for a validator that cannot run, for what to re-derive and when, or for recording a self-audit, and its Completion Checklist has no progressive-update item. The template (`docs/templates/PR-REVIEW-TEMPLATE.md`) has no evidence-first or stamp-source rule: neither the `Current-tree verification` placeholder under Finding Details nor the Processing Log guidance ("Append entries only.") states one.
+At `develop`, the skill (`.claude/skills/process-pr-review/SKILL.md`, version 1.5 at `686a42f45`) runs the validator "before every audit commit" and before any reply or resolution (Validation Script) and asks to "Update the audit progressively" (Workflow step 9, Verify completion), but has no rule for a validator that cannot run, for what to re-derive and when, or for recording a self-audit, and its Completion Checklist has no progressive-update item. The template (`docs/templates/PR-REVIEW-TEMPLATE.md`) has no evidence-first or stamp-source rule: neither the `Current-tree verification` placeholder under Finding Details nor the Processing Log guidance ("Append entries only.") states one.
 
-That run cannot pass before the first reply: the validator (`.github/skills/dev/pr-reviews/process-pr-review/scripts/validate-audit-record.py`) requires one posted reply on each discussion-anchored row's own thread ("expected exactly one discussion Reply URL"), and the skill's Validation Script section says to "treat a non-zero exit" as blocking. Hence a pre-posting pass and a full pass.
+That run cannot pass before the first reply: the validator (`.claude/skills/process-pr-review/scripts/validate-audit-record.py`) requires one posted reply on each discussion-anchored row's own thread ("expected exactly one discussion Reply URL"), and the skill's Validation Script section says to "treat a non-zero exit" as blocking. Hence a pre-posting pass and a full pass.
 
 ## Scope
 
@@ -197,7 +197,7 @@ Define verification before implementation starts and execute it before closing t
 - `linter all`
 - `TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-commit.sh --format=text`
 - `cargo run --package agent-review-report-contract` (stable Rust toolchain)
-- `python3 .github/skills/dev/pr-reviews/process-pr-review/scripts/validate-audit-record.py --pr-number <N> --base <B>` for the three most recent audits, `<B>` being each audit PR's recorded merge base (`git merge-base <M>^1 <M>^2` for its merge commit `<M>`); the `develop` default excludes merged fixes (the validator's `default="develop"` for `--base` and its `f"{base}..HEAD"` subject range), and no record is edited to fit it.
+- `python3 .claude/skills/process-pr-review/scripts/validate-audit-record.py --pr-number <N> --base <B>` for the three most recent audits, `<B>` being each audit PR's recorded merge base (`git merge-base <M>^1 <M>^2` for its merge commit `<M>`); the `develop` default excludes merged fixes (the validator's `default="develop"` for `--base` and its `f"{base}..HEAD"` subject range), and no record is edited to fit it.
 - Pre-push checks before opening the implementation PR
 
 ### Manual Verification Scenarios

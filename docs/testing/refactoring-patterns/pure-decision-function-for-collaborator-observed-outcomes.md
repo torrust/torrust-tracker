@@ -3,7 +3,7 @@ semantic-links:
   skill-links:
     - write-unit-test
   related-artifacts:
-    - .github/skills/dev/testing/write-unit-test/SKILL.md
+    - .claude/skills/write-unit-test/SKILL.md
     - packages/swarm-coordination-registry/src/statistics/activity_metrics_updater.rs
     - packages/swarm-coordination-registry/src/statistics/mod.rs
     - docs/testing/refactoring-patterns/README.md

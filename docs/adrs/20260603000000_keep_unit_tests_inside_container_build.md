@@ -3,7 +3,7 @@ semantic-links:
   skill-links:
     - create-adr
   related-artifacts:
-    - .github/skills/dev/planning/create-adr/SKILL.md
+    - .claude/skills/create-adr/SKILL.md
     - Containerfile
     - .github/workflows/container.yaml
     - docs/security/analysis/non-affecting/2026-06-10_containerfile-trixie-cves.md

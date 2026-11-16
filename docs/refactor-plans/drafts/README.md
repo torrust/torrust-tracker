@@ -7,7 +7,7 @@ semantic-links:
     - docs/refactor-plans/open/README.md
     - docs/refactor-plans/closed/README.md
     - docs/templates/REFACTOR-PLAN.md
-    - .github/skills/dev/planning/create-refactor-plan/SKILL.md
+    - .claude/skills/create-refactor-plan/SKILL.md
 ---
 
 # Draft Refactor Plans
@@ -25,4 +25,4 @@ before implementation begins. Each record's primary document is `REFACTOR-PLAN.m
 ## Related Skills
 
 - Create a refactor plan:
-  [`.github/skills/dev/planning/create-refactor-plan/SKILL.md`](../../../.github/skills/dev/planning/create-refactor-plan/SKILL.md)
+  [`.claude/skills/create-refactor-plan/SKILL.md`](../../../.claude/skills/create-refactor-plan/SKILL.md)

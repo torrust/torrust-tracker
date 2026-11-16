@@ -3,13 +3,18 @@ semantic-links:
   skill-links:
     - create-adr
   related-artifacts:
-    - .github/skills/dev/planning/create-adr/SKILL.md
+    - .claude/skills/create-adr/SKILL.md
     - AGENTS.md
     - .github/skills/
     - .github/agents/
 ---
 
 # Adopt a Custom, GitHub-Copilot-Aligned Agent Framework
+
+- Status: Partly superseded by
+  [Store Agent Skills Flat in `.claude/skills/`](20261116082711_store_agent_skills_flat_in_claude_skills.md):
+  the skills moved from `.github/skills/` to `.claude/skills/` (issue #2866). The other decisions
+  stand.
 
 ## Description
 

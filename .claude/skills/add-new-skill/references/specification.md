@@ -20,7 +20,7 @@ Level 3: Bundled resources - On-demand - Loaded only when referenced
 ### Directory Structure
 
 ```text
-.github/
+.claude/
 └── skills/
     └── skill-name/
         ├── SKILL.md          # Required: frontmatter + instructions

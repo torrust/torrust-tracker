@@ -8,8 +8,8 @@ semantic-links:
     - docs/issues/closed/README.md
     - docs/issues/drafts/README.md
     - docs/issues/open/README.md
-    - .github/skills/dev/planning/create-issue/SKILL.md
-    - .github/skills/dev/planning/cleanup-completed-issues/SKILL.md
+    - .claude/skills/create-issue/SKILL.md
+    - .claude/skills/cleanup-completed-issues/SKILL.md
 ---
 
 # Issue Specifications
@@ -28,6 +28,6 @@ To keep documentation easy to maintain, this file is the index and points to the
 
 Use these skills as the authoritative process definitions:
 
-- Create and maintain issue specs: [`.github/skills/dev/planning/create-issue/SKILL.md`](../../.github/skills/dev/planning/create-issue/SKILL.md)
-- Close and archive completed specs: [`.github/skills/dev/planning/cleanup-completed-issues/SKILL.md`](../../.github/skills/dev/planning/cleanup-completed-issues/SKILL.md)
-- Reopen an archived issue or EPIC: [`.github/skills/dev/planning/reopen-issue/SKILL.md`](../../.github/skills/dev/planning/reopen-issue/SKILL.md)
+- Create and maintain issue specs: [`.claude/skills/create-issue/SKILL.md`](../../.claude/skills/create-issue/SKILL.md)
+- Close and archive completed specs: [`.claude/skills/cleanup-completed-issues/SKILL.md`](../../.claude/skills/cleanup-completed-issues/SKILL.md)
+- Reopen an archived issue or EPIC: [`.claude/skills/reopen-issue/SKILL.md`](../../.claude/skills/reopen-issue/SKILL.md)

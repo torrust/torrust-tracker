@@ -14,7 +14,7 @@ semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - .github/skills/dev/planning/create-issue/SKILL.md
+    - .claude/skills/create-issue/SKILL.md
     - .github/workflows/generate_coverage_pr.yaml
     - docs/issues/closed/2222-1347-package-coverage-regression-ci/ISSUE.md
     - docs/issues/closed/2222-1347-package-coverage-regression-ci/manual-verification-evidence.md

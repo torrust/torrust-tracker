@@ -10,7 +10,8 @@ semantic-links:
 
 This collection documents the repository's current AI-agent workflows in a portable, tracked
 format. It complements the authoritative custom profile definitions in `.github/agents/` and
-the repository instructions and skills they reference.
+the repository instructions and skills they reference. The skills are listed by area in
+[`.claude/skills/README.md`](../../.claude/skills/README.md).
 
 ## Documents
 

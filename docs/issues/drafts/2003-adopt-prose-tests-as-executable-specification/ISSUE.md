@@ -16,8 +16,8 @@ semantic-links:
     - create-adr
     - write-unit-test
   related-artifacts:
-    - .github/skills/dev/planning/create-adr/SKILL.md
-    - .github/skills/dev/testing/write-unit-test/SKILL.md
+    - .claude/skills/create-adr/SKILL.md
+    - .claude/skills/write-unit-test/SKILL.md
     - docs/testing.md
     - docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
     - docs/skills/semantic-skill-link-convention.md

@@ -3,8 +3,8 @@ semantic-links:
   skill-links:
     - create-adr
   related-artifacts:
-    - .github/skills/dev/planning/create-adr/SKILL.md
-    - .github/skills/dev/rust-code-quality/handle-errors-in-code/SKILL.md
+    - .claude/skills/create-adr/SKILL.md
+    - .claude/skills/handle-errors-in-code/SKILL.md
     - "issue #2435"
     - docs/issues/closed/2435-remove-misleading-panics-in-in-memory-torrent-repository/ISSUE.md
     - packages/swarm-coordination-registry/src/swarm/registry.rs

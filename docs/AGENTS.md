@@ -109,5 +109,5 @@ See the `write-markdown-docs` skill for the full checklist and GFM pitfalls.
 
 | Skill                                                                                | When to use                                                                             |
 | ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
-| [`write-markdown-docs`](../.github/skills/dev/planning/write-markdown-docs/SKILL.md) | Writing or editing any `.md` file — covers GFM pitfalls, frontmatter, and linting scope |
-| [`create-issue`](../.github/skills/dev/planning/create-issue/SKILL.md)               | Drafting and creating issue specifications                                              |
+| [`write-markdown-docs`](../.claude/skills/write-markdown-docs/SKILL.md) | Writing or editing any `.md` file — covers GFM pitfalls, frontmatter, and linting scope |
+| [`create-issue`](../.claude/skills/create-issue/SKILL.md)               | Drafting and creating issue specifications                                              |

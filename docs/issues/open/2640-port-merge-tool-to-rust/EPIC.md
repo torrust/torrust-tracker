@@ -14,9 +14,9 @@ semantic-links:
     - add-workspace-member
     - handle-secrets
   related-artifacts:
-    - .github/skills/dev/planning/create-issue/SKILL.md
-    - .github/skills/dev/git-workflow/merge-pull-request/SKILL.md
-    - .github/skills/dev/rust-code-quality/handle-secrets/SKILL.md
+    - .claude/skills/create-issue/SKILL.md
+    - .claude/skills/merge-pull-request/SKILL.md
+    - .claude/skills/handle-secrets/SKILL.md
     - contrib/dev-tools/git/github-merge.py
     - contrib/dev-tools/git/github-merge-COPYING
     - contrib/dev-tools/git/merge-pull-request.sh
@@ -450,5 +450,5 @@ Decided by the maintainer on 2026-10-23:
 - Related issues: #2525 (the decision that keeps checks advisory), #2022 (vendoring), #2175 (symbolic links),
   #2507 (stale base), #1843 (the hooks port)
 - Related documents: [`docs/github-rulesets.md`](../../../github-rulesets.md),
-  [`merge-pull-request` skill](../../../../.github/skills/dev/git-workflow/merge-pull-request/SKILL.md),
+  [`merge-pull-request` skill](../../../../.claude/skills/merge-pull-request/SKILL.md),
   [global CLI output contract](../../../adrs/20260519000000_define_global_cli_output_contract.md)

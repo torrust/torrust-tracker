@@ -21,9 +21,9 @@ semantic-links:
     - docs/pr-reviews/pr-2270-review/review-retrospective.md
     - docs/pr-reviews/pr-2271-review/review-retrospective.md
     - docs/pr-reviews/pr-2272-review/review-retrospective.md
-    - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
-    - .github/skills/dev/pr-reviews/process-pr-review/scripts/validate-audit-record.py
-    - .github/skills/dev/pr-reviews/fetch-review-threads/SKILL.md
+    - .claude/skills/process-pr-review/SKILL.md
+    - .claude/skills/process-pr-review/scripts/validate-audit-record.py
+    - .claude/skills/fetch-review-threads/SKILL.md
     - docs/adrs/20260519000000_define_global_cli_output_contract.md
     - docs/templates/PR-REVIEW-TEMPLATE.md
     - contrib/dev-tools/checks/agent-review-report-contract/src/main.rs

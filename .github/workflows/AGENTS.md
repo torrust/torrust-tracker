@@ -6,7 +6,7 @@ semantic-links:
 
 # GitHub Actions Workflows
 
-Follow the canonical [workflow implementation skill](../skills/dev/ci/implement-workflow/SKILL.md)
+Follow the canonical [workflow implementation skill](../../.claude/skills/implement-workflow/SKILL.md)
 when adding or materially changing a workflow.
 
 ## Local Constraints

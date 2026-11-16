@@ -12,8 +12,8 @@ semantic-links:
     - create-issue
     - write-unit-test
   related-artifacts:
-    - .github/skills/dev/planning/create-issue/SKILL.md
-    - .github/skills/dev/testing/write-unit-test/SKILL.md
+    - .claude/skills/create-issue/SKILL.md
+    - .claude/skills/write-unit-test/SKILL.md
     - docs/issues/open/1347-overhaul-packages-testing/subissue-spec-guidelines.md
     - docs/testing/README.md
     - docs/testing/refactoring-patterns/README.md

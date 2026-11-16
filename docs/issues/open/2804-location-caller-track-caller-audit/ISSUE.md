@@ -14,9 +14,9 @@ semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - .github/skills/dev/debugging/fix-bug/SKILL.md
-    - .github/skills/dev/planning/create-issue/SKILL.md
-    - .github/skills/dev/rust-code-quality/handle-errors-in-code/SKILL.md
+    - .claude/skills/fix-bug/SKILL.md
+    - .claude/skills/create-issue/SKILL.md
+    - .claude/skills/handle-errors-in-code/SKILL.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -154,7 +154,7 @@ This is an **audit first, then refactor, with bug-fix rigor for the user-visible
   question: which locations are meaningful at all.
 - The inventory and the decision (T1-T4) are research and produce a recommendation, not code.
 - Slices that change output users see (HTTP/UDP responses) are substantively bug fixes: misleading
-  output. They follow `.github/skills/dev/debugging/fix-bug/SKILL.md` per slice (red test, fix,
+  output. They follow `.claude/skills/fix-bug/SKILL.md` per slice (red test, fix,
   green test, like-for-like recheck with a real request). The mechanical slices that only change
   an internal `Debug`-visible field are refactors with the same regression tests.
 
@@ -172,7 +172,7 @@ Not applicable.
 ## Bug-Fix Process
 
 Applies to each fix slice that changes client-visible output (see Issue Type Decision). Per slice,
-following `.github/skills/dev/debugging/fix-bug/SKILL.md`:
+following `.claude/skills/fix-bug/SKILL.md`:
 
 - analysis: which call path builds the error and who sees the text;
 - real-artifact reproduction: run the tracker and send a request that triggers the error (for
@@ -395,5 +395,5 @@ findings, and reusable lessons.
 - Reporting work: EPIC #1347 (`docs/issues/open/1347-overhaul-packages-testing/EPIC.md`), primitives test session, finding F3.
 - Related issues: #2804, #1894 (`torrust-located-error` extraction).
 - Related ADRs: `docs/adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md`
-- Skill: `.github/skills/dev/rust-code-quality/handle-errors-in-code/SKILL.md`
+- Skill: `.claude/skills/handle-errors-in-code/SKILL.md`
 - Rust reference: `#[track_caller]` (<https://doc.rust-lang.org/reference/attributes/codegen.html#the-track_caller-attribute>)

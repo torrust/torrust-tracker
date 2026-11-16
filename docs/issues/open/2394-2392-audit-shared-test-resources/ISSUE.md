@@ -14,7 +14,7 @@ semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - .github/skills/dev/planning/create-issue/SKILL.md
+    - .claude/skills/create-issue/SKILL.md
     - docs/issues/open/2392-test-isolation/EPIC.md
     - docs/issues/closed/2393-2392-test-port-allocation-races/ISSUE.md
     - docs/issues/closed/2386-1840-self-hosted-runner-minimum-capacity/ISSUE.md
@@ -81,7 +81,7 @@ Not applicable. The audit changes no code.
 ## Bug-Fix Process
 
 Not applicable. This is an inventory task; confirmed defects become bug subissues that follow
-`.github/skills/dev/debugging/fix-bug/SKILL.md`.
+`.claude/skills/fix-bug/SKILL.md`.
 
 ## Regression Test Strategy
 

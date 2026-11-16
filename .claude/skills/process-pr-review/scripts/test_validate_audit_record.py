@@ -2,7 +2,7 @@
 """Deterministic tests for the commit subjects that validate-audit-record.py accepts.
 
 `git` and `gh` are faked at the process boundary: no repository and no network are needed.
-Run: python3 -m unittest discover -s .github/skills/dev/pr-reviews/process-pr-review/scripts
+Run: python3 -m unittest discover -s .claude/skills/process-pr-review/scripts
 """
 
 import contextlib

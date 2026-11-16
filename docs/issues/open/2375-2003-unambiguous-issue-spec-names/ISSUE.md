@@ -15,8 +15,8 @@ semantic-links:
     - create-issue
     - cleanup-completed-issues
   related-artifacts:
-    - .github/skills/dev/planning/create-issue/SKILL.md
-    - .github/skills/dev/planning/cleanup-completed-issues/SKILL.md
+    - .claude/skills/create-issue/SKILL.md
+    - .claude/skills/cleanup-completed-issues/SKILL.md
     - contrib/dev-tools/checks/frontmatter-validator
     - docs/issues/README.md
     - docs/issues/drafts/README.md

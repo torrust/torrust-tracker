@@ -14,8 +14,8 @@ semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - .github/skills/dev/debugging/fix-bug/SKILL.md
-    - .github/skills/dev/planning/create-issue/SKILL.md
+    - .claude/skills/fix-bug/SKILL.md
+    - .claude/skills/create-issue/SKILL.md
     - docs/adrs/20261021190318_share_workspace_test_support_through_testing_features.md
     - docs/issues/closed/2482-1669-reorganize-shared-test-support/test-support-inventory.md
     - docs/issues/closed/2824-1347-add-tests-primitives/ISSUE.md
@@ -278,7 +278,7 @@ This is reusable test-fixture work, so ownership applies; the process, I/O and d
 
 F5 is a design problem, not a behavior defect: `Id::new` returns the bytes it promises, for every
 input. So the `fix-bug` sequence
-([fix-bug](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md)) is adapted:
+([fix-bug](../../../../.claude/skills/fix-bug/SKILL.md)) is adapted:
 
 - **Analysis.** Done in this spec: test-only data in a production API, with ids that no client
   sends, and fixture code compiled into every build against ADR criterion 1.

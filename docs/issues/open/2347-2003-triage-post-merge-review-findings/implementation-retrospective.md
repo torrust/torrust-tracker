@@ -6,7 +6,7 @@ semantic-links:
   related-artifacts:
     - docs/issues/open/2347-2003-triage-post-merge-review-findings/ISSUE.md
     - docs/issues/open/2347-2003-triage-post-merge-review-findings/triage.md
-    - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
+    - .claude/skills/process-pr-review/SKILL.md
 ---
 
 # Implementation Retrospective — Issue #2347 Post-Merge Review Triage

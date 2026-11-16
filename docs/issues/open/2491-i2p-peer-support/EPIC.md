@@ -11,7 +11,7 @@ semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - .github/skills/dev/planning/create-issue/SKILL.md
+    - .claude/skills/create-issue/SKILL.md
     - docs/discussions/AGENTS.md
     - docs/discussions/2491-i2p-peer-support/20261008-i2p-peer-support-design/README.md
     - "issue #144"

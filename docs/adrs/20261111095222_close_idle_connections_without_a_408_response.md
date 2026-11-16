@@ -7,7 +7,7 @@ semantic-links:
     - clippy.toml
     - docs/adrs/20260830124000_place_adrs_by_decision_scope.md
     - docs/issues/closed/2776-2411-axum-server-0-9-timeouts/ISSUE.md
-    - .github/skills/dev/planning/create-adr/SKILL.md
+    - .claude/skills/create-adr/SKILL.md
 ---
 
 <!-- skill-link: create-adr -->

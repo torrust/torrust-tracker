@@ -14,8 +14,8 @@ semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - .github/skills/dev/planning/create-issue/SKILL.md
-    - .github/skills/dev/debugging/fix-bug/SKILL.md
+    - .claude/skills/create-issue/SKILL.md
+    - .claude/skills/fix-bug/SKILL.md
     - docs/adrs/20260519000000_define_global_cli_output_contract.md
     - docs/adrs/20261106102632_scope_the_cli_output_contract_and_keep_exit_codes_to_zero_one_two.md
     - docs/issues/open/2758-cli-output-contract-tools-migration/EPIC.md
@@ -74,7 +74,7 @@ The test plan spawns the binary as a child process against a local test server, 
 
 ## Bug-Fix Process
 
-This issue fixes a deviation from the CLI output contract, so it is bug work in substance. Follow the [fix-bug](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md) skill:
+This issue fixes a deviation from the CLI output contract, so it is bug work in substance. Follow the [fix-bug](../../../../.claude/skills/fix-bug/SKILL.md) skill:
 
 - analysis of the defect: the tool's current behavior against the contract (see Background);
 - real-artifact reproduction: run the real binary, record the commands and output of the deviation in `manual-verification-evidence.md` before changing code;

@@ -18,8 +18,8 @@ semantic-links:
   related-artifacts:
     - docs/issues/open/2392-test-isolation/EPIC.md
     - docs/issues/open/2395-2392-e2e-runner-dynamic-host-ports/ISSUE.md
-    - .github/skills/dev/debugging/fix-bug/SKILL.md
-    - .github/skills/dev/testing/write-unit-test/SKILL.md
+    - .claude/skills/fix-bug/SKILL.md
+    - .claude/skills/write-unit-test/SKILL.md
     - packages/axum-http-server/src/server.rs
     - tests/configuration/cli_configuration/base_source_precedence.rs
     - docs/issues/closed/2298-rust-dev-tool-container-integration/manual-verification-evidence.md
@@ -203,7 +203,7 @@ The maintainer decided the twenty-one ignored tests on 2026-11-15 (T5):
 ## Bug-Fix Process
 
 The defect is in the tests, not in tracker behavior. This patch disables the racing tests instead of
-repairing them, so the red-then-green steps of `.github/skills/dev/debugging/fix-bug/SKILL.md` do
+repairing them, so the red-then-green steps of `.claude/skills/fix-bug/SKILL.md` do
 not apply to it: a disabled test has no regression boundary to prove red. The steps that still
 apply:
 

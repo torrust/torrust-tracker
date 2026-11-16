@@ -5,7 +5,7 @@ semantic-links:
   related-artifacts:
     - docs/index.md
     - docs/adrs/index.md
-    - .github/skills/dev/planning/create-adr/SKILL.md
+    - .claude/skills/create-adr/SKILL.md
 ---
 
 # Architectural Decision Records (ADRs)

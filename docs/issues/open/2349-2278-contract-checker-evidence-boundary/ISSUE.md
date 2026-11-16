@@ -22,7 +22,7 @@ semantic-links:
     - docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/retrospective-improvement-matrix.md
     - contrib/dev-tools/checks/agent-review-report-contract/src/main.rs
     - docs/adrs/20260519000000_define_global_cli_output_contract.md
-    - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
+    - .claude/skills/process-pr-review/SKILL.md
 ---
 
 <!-- skill-link: create-issue -->
