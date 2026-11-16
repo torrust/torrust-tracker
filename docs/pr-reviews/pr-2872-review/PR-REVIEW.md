@@ -256,7 +256,7 @@ collides with an existing audit ID, so it gets F12, with the reviewer's ID kept.
   no longer contains "Please confirm".
 - Resolution reference: docs(issues): [#2850] record the maintainer's benchmark and client-visible decisions
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2872#discussion_r4584492157
 
 ## Processing Log
 
@@ -298,6 +298,12 @@ collides with an existing audit ID, so it gets F12, with the reviewer's ID kept.
   unresolved threads.
 - 2026-11-16 10:16 UTC - Started round 5 for da2ce7's review `5918318903` (submitted
   2026-11-16T10:15:34Z, approved, one Nit finding), before any reply.
+- 2026-11-16 10:21 UTC - Round 5 processed. The fix was pushed by `git-bot-push` (head
+  `docs(issues): [#2850] record the maintainer's benchmark and client-visible decisions`), the
+  description was edited to drop the question, and the thread was replied to
+  (2026-11-16T10:20:20Z). `validate-audit-record.py --pr-number 2872` returned `status: ok`, 12
+  rows, 10 log entries, 0 failures; then the thread was resolved and a fresh GraphQL fetch shows 0
+  unresolved threads.
 
 ## Completion Rules
 
