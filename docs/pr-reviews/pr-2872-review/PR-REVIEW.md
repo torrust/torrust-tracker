@@ -8,6 +8,8 @@ semantic-links:
 
 # PR #2872 Review Audit
 
+<!-- cspell:ignore peerslee -->
+
 Source: pull-request reviews and inline review threads for https://github.com/torrust/torrust-tracker/pull/2872.
 
 ## Ownership
@@ -43,10 +45,20 @@ Round 1 is Copilot's review `5916561572` (commented, "Changes recommended") at t
 commit is `docs(issues): [#2850] point #2838 and the EPIC #1347 table to PR #2872`. Its two inline
 findings keep the reviewer's IDs F1 and F2; the review body only summarizes them.
 
+Round 2 is da2ce7's review `5916791851` (approved) at the head whose last commit is
+`docs(pr-reviews): [#2850] audit review round 1 of PR #2872`. Its five inline findings are numbered
+F1 to F5 by the reviewer; F1 and F2 collide with round 1, so they get the audit IDs F3 to F7 in
+source order, with the reviewer's ID kept in each detail entry. The review body only summarizes them.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2872-f1 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | F2 | review-finding:pr-2872-f2 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F3 | review-finding:pr-2872-f3 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F4 | review-finding:pr-2872-f4 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F5 | review-finding:pr-2872-f5 | Human | Nit | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F6 | review-finding:pr-2872-f6 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-2872-f7 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -91,6 +103,71 @@ findings keep the reviewer's IDs F1 and F2; the review body only summarizes them
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2872#discussion_r4583187197
 
+### F3 - The branch's red and green regression runs are not recorded
+
+- PR number: 2872
+- Source review ID: 5916791851
+- Reviewer finding ID: F1
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2872#discussion_r4583310003
+- Concern: the spec's Bug-Fix Process and the fix-bug skill ask for the failing run of the regression test on this branch before the fix and the passing runs after it; the issue's evidence held only the manual recheck.
+- Solution: added the section "Regression Tests: Red and Green Runs" to `docs/issues/open/2850-non-negative-number-of-bytes/manual-verification-evidence.md`, with the raw outputs in `evidence/regression-red-run.txt` and `evidence/regression-green-run.txt`. The red run was made at the red commit in its own detached worktree; the green run at the branch head after the F4 to F6 fixes.
+- Current-tree verification: red: `cargo test -p torrust-tracker-udp-server --lib it_should_reject_an_announce_with_a_negative_number_of_bytes_left` at `test(udp-server): [#2850] reject a negative left in an announce (red)` exited 101 with the test `FAILED` and `seeders: NumberOfPeers(I32(1))` in the response (2026-11-16 08:16:06 to 08:16:41 UTC). Green: the eight commands of the table passed, 73 results, 0 failed (08:16:11 to 08:16:38 UTC).
+- Resolution reference: docs(issues): [#2850] record the red and green runs of the regression tests
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2872#discussion_r4583390892
+
+### F4 - Progress-log and frontmatter stamps are later than the commits that carry them
+
+- PR number: 2872
+- Source review ID: 5916791851
+- Reviewer finding ID: F2
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2872#discussion_r4583310011
+- Concern: the 21:40 UTC stamps (2850 spec entry and frontmatter, 2838 spec, EPIC) come from a commit authored at 21:23 UTC, after the PR was opened at 21:22 UTC; the 21:25 UTC entry and `performance-evidence.md`'s 21:20 come from a commit authored at 21:17 UTC.
+- Solution: set the 21:40 stamps to 21:22 and the 21:25 and 21:20 stamps to 21:17. A sweep of every stamp the branch adds against its commit's author time found one more: `manual-verification-evidence.md` at 21:05 in a commit authored at 21:04, set to 21:04.
+- Current-tree verification: a script listed each `last-updated-utc` and progress-log stamp added by each branch commit next to that commit's author time; after the fix, `grep` finds no `21:40` and no `21:25 UTC` in the three specs and the evidence.
+- Resolution reference: docs(issues): [#2850] set each stamp to no later than its own commit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2872#discussion_r4583391235
+
+### F5 - `peerslee` is a bencode fragment, not a term
+
+- PR number: 2872
+- Source review ID: 5916791851
+- Reviewer finding ID: F3
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2872#discussion_r4583310019
+- Concern: `peerslee` is `5:peers`, an empty list and a closing `e`, so a dictionary entry admits a non-word in every file; the tree already ignores it per file.
+- Solution: removed it from `project-words.txt`, added it to the spelling directive of `manual-verification-evidence.md`, and added `docs/issues/*/2850-non-negative-number-of-bytes/evidence/*.txt` to the `ignorePaths` of `cspell.json`.
+- Current-tree verification: `grep -c peerslee project-words.txt` printed `0`; `linter cspell` passed ("All files passed spell checking!").
+- Resolution reference: chore(cspell): [#2850] ignore the bencode fragment `peerslee` per file
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2872#discussion_r4583391581
+
+### F6 - A draft spec still lists the removed `NumberOfBytesOverflow`
+
+- PR number: 2872
+- Source review ID: 5916791851
+- Reviewer finding ID: F4
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2872#discussion_r4583310025
+- Concern: `docs/issues/drafts/error-locations-si-3-http-tracker-request-errors/ISSUE.md` line 54 maps `NumberOfBytesOverflow`, which no longer exists, and its line numbers were already off.
+- Solution: dropped the variant from the row and pointed the three remaining variants at their current lines.
+- Current-tree verification: `grep -n` on the `ParseAnnounceQueryError` enum shows `MissingParams` at 219, `MissingParam` at 221 and `InvalidParam` at 227; the row now cites `:219`, `:221`, `:227`.
+- Resolution reference: docs(issues): [#2850] drop the removed overflow variant from the SI-3 draft
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2872#discussion_r4583391911
+
+### F7 - The description does not mention the compile-fail doctests or the audit
+
+- PR number: 2872
+- Source review ID: 5916791851
+- Reviewer finding ID: F5
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2872#discussion_r4583310033
+- Concern: the PR description, which the merge tool copies into the merge commit, did not list the review-round commits or a `cargo test --doc` run that covers the compile-fail doctests.
+- Solution: edited the description: a "Review rounds" list names the commits of both rounds by subject, and the validation list names the `cargo test --doc --workspace` run of the pre-commit hook and the red and green runs. The fix is outside the tree, so the reference is the PR conversation response that states it.
+- Current-tree verification: `gh-bot pr edit 2872 --body-file` succeeded; the description shows the "Review rounds" list.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2872#issuecomment-6911164755
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2872#discussion_r4583392250
+
 ## Processing Log
 
 - 2026-11-16 07:51 UTC - Started this audit for Copilot's review `5916561572` (submitted
@@ -101,6 +178,16 @@ findings keep the reviewer's IDs F1 and F2; the review body only summarizes them
   two threads has a reply (posted 2026-11-16T07:54 UTC) and was resolved (`isResolved: true`); a
   fresh GraphQL fetch shows 0 unresolved threads. `validate-audit-record.py --pr-number 2872`
   returned `status: ok`, 2 rows, 0 failures, before the resolution.
+- 2026-11-16 08:21 UTC - Round 2: da2ce7's review `5916791851` (submitted 2026-11-16T08:11:06Z,
+  approved, five findings). The fixes of F3 to F6 were committed and pushed by `git-bot-push` (head
+  `docs(issues): [#2850] record the red and green runs of the regression tests`), the description
+  was edited for F7 and comment
+  https://github.com/torrust/torrust-tracker/pull/2872#issuecomment-6911164755 states it, and the
+  five threads were replied to (2026-11-16T08:20:34Z to 08:20:43Z). Late start: the round-2 rows
+  were added to this record after those replies, not before them.
+- 2026-11-16 08:21 UTC - Round 2 processed. `validate-audit-record.py --pr-number 2872` returned
+  `status: ok`, 7 rows, 3 log entries, 0 failures; then the five threads were resolved
+  (`isResolved: true`) and a fresh GraphQL fetch shows 0 unresolved threads.
 
 ## Completion Rules
 
