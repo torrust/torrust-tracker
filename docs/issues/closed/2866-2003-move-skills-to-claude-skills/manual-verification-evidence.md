@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/closed/2866-2003-move-skills-to-claude-skills/ISSUE.md
-last-updated-utc: 2026-11-16 15:43
+last-updated-utc: 2026-11-16 19:02
 ---
 
 <!-- cspell:ignore Autocompact dataviz endswith findall isfile normpath relpath startswith -->
