@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2866-2003-move-skills-to-claude-skills/ISSUE.md
-last-updated-utc: 2026-11-16 08:29
+last-updated-utc: 2026-11-16 15:43
 ---
 
 <!-- cspell:ignore Autocompact dataviz endswith findall isfile normpath relpath startswith -->
@@ -16,7 +16,7 @@ do not invent commands, output, logs, or results.
 
 ## Environment and Prerequisites
 
-- Date and time (UTC): 2026-11-15 20:48 (V0)
+- Date and time (UTC): 2026-11-15 20:48 (V0); 2026-11-16 15:42 to 15:43 (T9, V1 to V5)
 - Artifact under test: V0: `develop` at `abd7a10ff` (`Merge torrust/torrust-tracker#2863`), before
   any change of this issue.
 - Operating system / environment: Linux 7.0.0-43-generic; Claude Code 2.1.318
@@ -505,6 +505,158 @@ runs on every push and pull request, documentation-only ones included. The
 `run-pre-commit-checks` skill lists the new step. Green run on the branch, 2026-11-16 08:24 UTC, as the hook step of the wiring commit,
 stable Rust toolchain: `cargo run -q -p frontmatter-validator --bin frontmatter-validator --
 --skill-layout` exited `0` and wrote no record (the red run is under T2).
+
+### T9 - Final sweep and automatic checks
+
+- Artifact under test: branch `2866-move-skills-to-claude-skills` at `0acae3ab9`
+  (`docs(adrs): [#2866] record the move of the skills to .claude/skills`), 2026-11-16 15:42 UTC.
+- Status: `DONE`
+
+#### Sweep
+
+`git grep -l -F '.github/skills'` found 552 files and `git grep -l -F 'skills/dev/'` 530. Outside
+`docs/issues/closed/`, `docs/pr-reviews/`, `docs/refactor-plans/closed/` and the stubs under
+`.github/skills/`, the hits are:
+
+- Text about the move itself: the skills index, `add-new-skill`, `run-pre-commit-checks`, the
+  Docs Lint workflow comment, the `frontmatter-validator` sources, tests and README, the three
+  ADRs, and this issue's spec and evidence.
+- Agent profiles out of scope: `committer`, `github-operator`, `implementer`, `pr-reviewer` and
+  `task-reviewer` under `.github/agents/`. They name old paths as code spans, which the stubs
+  resolve.
+- Dated records: `docs/copilot-pr-reviews/pr-2241-copilot-suggestions.md`, two discussion
+  records under `docs/discussions/`, the memory snapshot
+  `docs/issues/drafts/2003-mine-ai-agent-memories/github-copilot-memory-snapshot.md`, the EPIC
+  #2003 initial inventory, and the 2026-09-18 external link-check record of issue #2264.
+
+No live reference to an old path remains.
+
+#### Automatic Checks
+
+All ran in the worktree at `0acae3ab9`, stable Rust toolchain, each exiting `0`:
+
+- `linter all`: "All linters passed".
+- `cargo test -p frontmatter-validator -p agent-review-report-contract -p github-review-threads
+  -p wait-for-pr-review`: every test result `ok`, no failure.
+- `python3 -m unittest discover -s .claude/skills/process-pr-review/scripts`: 9 tests, `OK`.
+- `cargo run -q -p frontmatter-validator --bin frontmatter-validator -- --skill-layout`: no
+  record.
+
+The pre-commit and pre-push checks run again on the T9 commit and its push.
+
+### V1 - Claude Code discovers the skills (M1)
+
+- Goal: show that a fresh session at the repository root lists every repository skill.
+- Initial state: `git clone --branch 2866-move-skills-to-claude-skills --single-branch` of the
+  worktree into a scratch folder, at `0acae3ab9`, clean tree; 53 `SKILL.md` files under
+  `.claude/skills/` and 53 stubs under `.github/skills/`. Claude Code 2.1.318.
+- Status: `DONE` (outcome: **Fixed**)
+
+#### Steps Performed
+
+At the clone's root, 15:42:40 to 15:42:43 UTC: `claude -p "/context" > m1-context.md`, the same
+command as V0.
+
+#### Observed Result
+
+The category table, verbatim:
+
+```text
+| Category | Tokens | Percentage |
+|----------|--------|------------|
+| System prompt | 2.6k | 0.3% |
+| System tools | 13.1k | 1.3% |
+| MCP tools | 559 | 0.1% |
+| MCP server instructions | 1.6k | 0.2% |
+| MCP tools (deferred) | 13.1k | 1.3% |
+| System tools (deferred) | 22.7k | 2.3% |
+| Memory files | 5k | 0.5% |
+| Skills | 9.9k | 1.0% |
+| Messages | 10 | 0.0% |
+| Free space | 934.2k | 93.4% |
+| Autocompact buffer | 33k | 3.3% |
+```
+
+The Skills table has 53 rows with source `Project` (V0: 0), next to the same 26 `Built-in` and
+`claude.ai sync` rows as V0. The Project skill names, sorted, equal the folder names under
+`.claude/skills/` (`diff` of the two lists printed nothing), so no stub is listed. The Skills
+total grew from 4.6k to 9.9k tokens, which reaches the 1% listing budget; issue #2873 shortens
+the descriptions.
+
+### V2 - A skill runs by name (M2)
+
+- Goal: show that `/create-issue` runs as a command.
+- Initial state: the clone of V1.
+- Status: `DONE` (outcome: **Fixed**)
+
+#### Steps Performed
+
+At the clone's root, 15:42:43 to 15:42:52 UTC: `claude -p "/create-issue" > m2-create-issue.txt`,
+the same command as V0.
+
+#### Observed Result
+
+The first sentences of the reply:
+
+```text
+`/create-issue` came through without a description, so I don't know what the issue is about. I haven't drafted or created anything.
+
+The skill is spec-first. I draft a folder-style `ISSUE.md` or `EPIC.md` in `docs/issues/drafts/`, you review it, and only then do I create the GitHub issue.
+```
+
+The reply treats `/create-issue` as an invoked command and follows the skill's workflow; it then
+lists the inputs the skill asks for. In V0 the model said the command did not run and found the
+skill file at `.github/skills/dev/planning/create-issue/SKILL.md` by reading the repository. This
+shows the skill ran; the output does not print the path Claude Code loaded it from, which is the
+only skill of that name V1 lists.
+
+### V3 - The moved scripts and tool run (M3)
+
+- Status: `DONE`
+
+From the worktree root, 2026-11-16 15:43 UTC:
+
+1. `python3 .claude/skills/process-pr-review/scripts/validate-audit-record.py --pr-number 2869
+   --base torrust/develop`, on the merged audit record of the spec PR, printed
+   `{"status": "ok", "rows": 13, "log_entries": 11, "failures": 0}` and exited `0`.
+2. `bash .claude/skills/run-tracker-locally/scripts/validate-skill-links.sh` printed
+   `Skill links validation passed` and exited `0`.
+3. `cargo run -q -p wait-for-pr-review -- --help` printed its help record and exited `0`.
+
+### V4 - An old link still leads somewhere (M4)
+
+- Status: `DONE`
+
+The closed spec `docs/issues/closed/1750-refactor-run-tracker-skill-semantic-coupling/ISSUE.md`
+links `../../../../.github/skills/dev/environment-setup/run-tracker-locally/SKILL.md`. On the
+branch that path resolves to the stub:
+
+```text
+# Moved: `run-tracker-locally`
+
+This skill moved to [`.claude/skills/run-tracker-locally/SKILL.md`](../../../../../.claude/skills/run-tracker-locally/SKILL.md) in issue #2866.
+```
+
+Its link resolves to `.claude/skills/run-tracker-locally/SKILL.md`, which starts with the
+frontmatter `name: run-tracker-locally`.
+
+### V5 - The validator catches drift (M5)
+
+- Status: `DONE`
+
+In the scratch clone of V1, with the binary built from `0acae3ab9`. Each change was staged with
+`git rm` rather than committed: `--skill-layout` reads the git index, so a staged deletion is
+what the commit would contain. `git reset --hard` restored the clone after each run.
+
+1. Baseline: no record, exit `0`.
+2. `git rm -r .claude/skills/create-adr`: exit `1` with two errors, `skill-index-mismatch` on
+   `.claude/skills/README.md` ("The index lists `create-adr`, which is no skill under
+   `.claude/skills/`.") and `invalid-redirect-stub` on
+   `.github/skills/dev/planning/create-adr/SKILL.md` ("This redirect stub must link to
+   `.claude/skills/create-adr/SKILL.md`, an existing skill.").
+3. `git rm .github/skills/dev/planning/create-adr/SKILL.md` alone: exit `1` with one error,
+   `missing-redirect-stub` on that path ("`.github/skills/README.md` inventories this path, but it
+   has no redirect stub.").
 
 ## Failures and Follow-up
 

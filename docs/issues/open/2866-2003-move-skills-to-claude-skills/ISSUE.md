@@ -9,7 +9,7 @@ github-issue: 2866
 spec-path: docs/issues/open/2866-2003-move-skills-to-claude-skills/ISSUE.md
 branch: "2866-move-skills-to-claude-skills"
 related-pr: null
-last-updated-utc: "2026-11-16 08:29"
+last-updated-utc: "2026-11-16 15:43"
 semantic-links:
   skill-links:
     - create-issue
@@ -315,7 +315,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                     | Notes / Expected Output                                                                                                                                                                                                              |
 | --- | ------ | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| T1  | TODO   | Create the description follow-up issue   | A new EPIC #2003 sub-issue to shorten and retune the 53 descriptions, with the measurements above, and to fix the cut `write-markdown-docs` description. Created before the implementation PR opens, so the PR links it.                                                                     |
+| T1  | DONE   | Create the description follow-up issue   | A new EPIC #2003 sub-issue to shorten and retune the 53 descriptions, with the measurements above, and to fix the cut `write-markdown-docs` description. Created before the implementation PR opens, so the PR links it. Done: issue #2873, a sub-issue of #2003; its spec PR #2875 merged on 2026-11-16 and added EPIC row 22.                                                                     |
 | T2  | DONE   | Placement rule, proven red               | The regression test: the placement rule of [Validator rules](#validator-rules-after-the-move) with its unit tests, not yet wired into the hook. Its run against the tree before the move is recorded red in `manual-verification-evidence.md`. |
 | T3  | DONE   | Move the skills and fix every live path  | `git mv` of all 71 files; relative links inside moved skills; depth-dependent paths in moved scripts (`validate-skill-links.sh`); tooling paths; every live reference by the classification rule. The commit passes `linter all` and the tests on its own. Git shows 71 renames.                           |
 | T4  | DONE   | Add the redirect stubs                   | 53 stubs plus `.github/skills/README.md`, which says the folder only holds redirects and inventories the 53 original paths.                                                                                                                                                       |
@@ -323,7 +323,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T6  | DONE   | Remaining validator rules                | The other rules in [Validator rules](#validator-rules-after-the-move), with unit tests and a negative case for each; the placement rule and these rules are wired into the pre-commit hook and CI, and the placement rule's green run is recorded. Tests follow the `write-unit-test` skill and the test-design review in [Commit Points](#commit-points).                                                                                  |
 | T7  | DONE   | Update `add-new-skill`                   | New skills go to `.claude/skills/<name>/`, add an index row, and need no stub.                                                                                                                                                         |
 | T8  | DONE   | ADRs                                     | New ADR; dated row in the governance ADR's inventory and review log.                                                                                                                                                                   |
-| T9  | TODO   | Final sweep and verification             | Search again for `.github/skills` and `skills/dev/` after the last edit; every remaining hit is a stub, out-of-scope agent profile, or historical record. Run every validator, `linter all`, and the manual scenarios.                  |
+| T9  | DONE   | Final sweep and verification             | Search again for `.github/skills` and `skills/dev/` after the last edit; every remaining hit is a stub, out-of-scope agent profile, or historical record. Run every validator, `linter all`, and the manual scenarios.                  |
 
 ## Commit Points
 
@@ -359,14 +359,14 @@ pull request.
 - [x] Spec reviewed and approved by the maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [x] Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded in `implementation-retrospective.md`
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -382,31 +382,32 @@ pull request.
 - 2026-11-16 08:24 UTC - Claude Code (Claude Opus 5.5) - T6: four reviewed increments (stub inventory, stub contents, skill name, index), each mutation-tested and committed; `--skill-layout` wired into the pre-commit hook and the Docs Lint workflow; green on the branch - `manual-verification-evidence.md` T6
 - 2026-11-16 08:26 UTC - Claude Code (Claude Opus 5.5) - T7: `add-new-skill` puts a new skill at `.claude/skills/<name>/`, adds its index row, needs no stub, and runs `--skill-layout` before committing - `.claude/skills/add-new-skill/SKILL.md`
 - 2026-11-16 08:29 UTC - Claude Code (Claude Opus 5.5) - T8: ADR `20261116082711` (store agent skills flat in `.claude/skills/`), its index row, a partial-supersession status on ADR `20260420200013`, and the governance ADR's Skills row and a 2026-11-16 review record. The T2 to T7 entries above were first written with estimated times; they now carry their commit times - `docs/adrs/20261116082711_store_agent_skills_flat_in_claude_skills.md`
+- 2026-11-16 15:43 UTC - Claude Code (Claude Opus 5.5) - T1 done as issue #2873 (spec PR #2875 merged). T9: final sweep found no live old path; `linter all`, the crate and Python tests, and `--skill-layout` pass; M1 to M5 done in a fresh clone of the branch: 53 project skills listed, `/create-issue` runs, moved scripts run, an old link reaches its stub, and drift fails the validator - `manual-verification-evidence.md` T9, V1 to V5
 
 ## Acceptance Criteria
 
-- [ ] AC1: No `SKILL.md` remains under `.github/skills/` except the 53 redirect stubs, and every
+- [x] AC1: No `SKILL.md` remains under `.github/skills/` except the 53 redirect stubs, and every
   skill is at `.claude/skills/<name>/SKILL.md`, flat.
-- [ ] AC2: A new Claude Code session at the repository root lists all 53 project skills.
-- [ ] AC3: Git records the move as renames (`git log --follow` on a moved skill reaches its
+- [x] AC2: A new Claude Code session at the repository root lists all 53 project skills.
+- [x] AC3: Git records the move as renames (`git log --follow` on a moved skill reaches its
   history before the move).
-- [ ] AC4: Every live reference names the new path; every remaining `.github/skills` hit is a
+- [x] AC4: Every live reference names the new path; every remaining `.github/skills` hit is a
   stub, an out-of-scope agent profile, or a historical record.
-- [ ] AC5: Every old `SKILL.md` path resolves to a stub that links to the moved skill, and the
+- [x] AC5: Every old `SKILL.md` path resolves to a stub that links to the moved skill, and the
   validator fails when a stub, the stub inventory, the index, or a skill folder disagree,
   including when only a stub is deleted.
-- [ ] AC6: `.claude/skills/README.md` lists every skill by area.
-- [ ] AC7: The moved scripts and the `wait-for-pr-review` tool run from their new paths.
-- [ ] AC8: The new ADR exists and the governance ADR's inventory records the move.
-- [ ] AC9: The description follow-up sub-issue exists and is linked from the EPIC.
-- [ ] AC10: The placement rule fails on the tree before the move (recorded red, T2) and passes on
+- [x] AC6: `.claude/skills/README.md` lists every skill by area.
+- [x] AC7: The moved scripts and the `wait-for-pr-review` tool run from their new paths.
+- [x] AC8: The new ADR exists and the governance ADR's inventory records the move.
+- [x] AC9: The description follow-up sub-issue exists and is linked from the EPIC.
+- [x] AC10: The placement rule fails on the tree before the move (recorded red, T2) and passes on
   the moved tree, with unit tests for a skill under `.github/skills/` and a skill one folder too
   deep under `.claude/skills/`.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior/workflow changes
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated when behavior/workflow changes
 
 ## Verification Plan
 
@@ -427,26 +428,26 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | ID  | Scenario                          | Human-oriented command/steps                                                                                                       | Expected Result                                                               | Status | Evidence                                     |
 | --- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ------ | -------------------------------------------- |
 | M0  | Reproduce the defect before T3    | In a fresh clone of `develop` (done at `abd7a10ff`), run `claude -p "/context"` and `claude -p "/create-issue"` at the root         | No `Project` skill row; `/create-issue` is an unknown command                  | DONE   | `manual-verification-evidence.md` section V0 |
-| M1  | Claude Code discovers the skills  | In a fresh clone of the branch, run M0's `claude -p "/context"` and count the `Project` rows                                       | 53 project skills; no stub listed                                              | TODO   | `manual-verification-evidence.md` section V1 |
-| M2  | A skill runs by name              | In the same clone, run M0's `claude -p "/create-issue"`                                                                          | Claude Code loads `.claude/skills/create-issue/SKILL.md`                      | TODO   | `manual-verification-evidence.md` section V2 |
-| M3  | Moved scripts and tool run        | Run `validate-audit-record.py` on a merged audit record, `bash .claude/skills/run-tracker-locally/scripts/validate-skill-links.sh`, and `cargo run -p wait-for-pr-review -- --help` from the new paths | All three succeed; the skill-links script prints `Skill links validation passed` | TODO   | `manual-verification-evidence.md` section V3 |
-| M4  | An old link still leads somewhere | Open a closed spec that links an old `SKILL.md` path and follow the link on the branch                                             | The stub opens and its link reaches the moved skill                           | TODO   | `manual-verification-evidence.md` section V4 |
-| M5  | The validator catches drift       | In scratch commits, delete one skill folder, then (separately) delete only one stub, and run the new rules each time               | Each run fails: the first names the orphan stub and index row, the second the missing inventoried stub | TODO   | `manual-verification-evidence.md` section V5 |
+| M1  | Claude Code discovers the skills  | In a fresh clone of the branch, run M0's `claude -p "/context"` and count the `Project` rows                                       | 53 project skills; no stub listed                                              | DONE   | `manual-verification-evidence.md` section V1 |
+| M2  | A skill runs by name              | In the same clone, run M0's `claude -p "/create-issue"`                                                                          | Claude Code loads `.claude/skills/create-issue/SKILL.md`                      | DONE   | `manual-verification-evidence.md` section V2 |
+| M3  | Moved scripts and tool run        | Run `validate-audit-record.py` on a merged audit record, `bash .claude/skills/run-tracker-locally/scripts/validate-skill-links.sh`, and `cargo run -p wait-for-pr-review -- --help` from the new paths | All three succeed; the skill-links script prints `Skill links validation passed` | DONE   | `manual-verification-evidence.md` section V3 |
+| M4  | An old link still leads somewhere | Open a closed spec that links an old `SKILL.md` path and follow the link on the branch                                             | The stub opens and its link reaches the moved skill                           | DONE   | `manual-verification-evidence.md` section V4 |
+| M5  | The validator catches drift       | In scratch commits, delete one skill folder, then (separately) delete only one stub, and run the new rules each time               | Each run fails: the first names the orphan stub and index row, the second the missing inventoried stub | DONE   | `manual-verification-evidence.md` section V5 |
 
 ### Acceptance Verification
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
-| AC4   | TODO                   |          |
-| AC5   | TODO                   |          |
-| AC6   | TODO                   |          |
-| AC7   | TODO                   |          |
-| AC8   | TODO                   |          |
-| AC9   | TODO                   |          |
-| AC10  | TODO                   |          |
+| AC1   | DONE                   | 53 `SKILL.md` under `.claude/skills/<name>/` and 53 stubs under `.github/skills/` (V1 setup); `--skill-layout` passes (T9). |
+| AC2   | DONE                   | V1: 53 `Project` rows, equal to the skill folder names; V0 had none. |
+| AC3   | DONE                   | 71 renames in the T3 commit; `git log --follow` on `create-issue` reaches 40 commits before the move (T3). |
+| AC4   | DONE                   | T9 sweep: every remaining hit is a stub, text about the move, an out-of-scope agent profile, or a dated record. |
+| AC5   | DONE                   | V4 (old link to stub to skill); V5 and the T6 increments (drift fails, including a lone deleted stub). |
+| AC6   | DONE                   | `.claude/skills/README.md`: 53 skills in 15 area tables; `--skill-layout` checks it lists each once. |
+| AC7   | DONE                   | V3: the audit validator, `validate-skill-links.sh`, and `wait-for-pr-review --help` exit `0`. |
+| AC8   | DONE                   | ADR `20261116082711`; the governance ADR Skills row and 2026-11-16 review record (T8). |
+| AC9   | DONE                   | #2873 is a sub-issue of #2003 (GitHub API `parent_issue_url`) and EPIC row 22 on `develop`. |
+| AC10  | DONE                   | T2 red run (53 `misplaced-skill`, exit 1); green in T9; unit tests for a skill under `.github/skills/` and one folder too deep. |
 
 ## Risks and Trade-offs
 
