@@ -3,9 +3,11 @@
 //! Claude Code discovers a project skill only at `.claude/skills/<name>/SKILL.md`: a skill anywhere
 //! else, or one folder deeper, is never listed to the model. The skills used to live under
 //! `.github/skills/`; each old `SKILL.md` path keeps a redirect stub, inventoried in
-//! `.github/skills/README.md` (issue #2866). These decisions are pure: they take
-//! repository-relative paths with `/` separators and file texts, and never touch the filesystem or
-//! git.
+//! `.github/skills/README.md` (issue #2866). ADR
+//! `docs/adrs/20261116082711_store_agent_skills_flat_in_claude_skills.md` records the decision.
+//!
+//! These decisions are pure: they take repository-relative paths with `/` separators and file
+//! texts, and never touch the filesystem or git.
 
 use std::collections::{BTreeMap, BTreeSet};
 

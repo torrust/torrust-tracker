@@ -81,6 +81,11 @@ This supersedes the skills location of ADR `20260420200013`; its other decisions
 - `linter lychee` (`torrust-linting` 0.2.0) checks `**/*.md` and `.github/**/*.md`, so links
   inside `.claude/skills/` are not link-checked until that tool also covers `.claude/`.
 
+## Affected Code
+
+- [`contrib/dev-tools/checks/frontmatter-validator/src/skills.rs`](../../contrib/dev-tools/checks/frontmatter-validator/src/skills.rs):
+  the `--skill-layout` rules that enforce this layout.
+
 ## Date
 
 2026-11-16
