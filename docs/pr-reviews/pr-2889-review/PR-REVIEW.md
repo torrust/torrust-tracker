@@ -1,7 +1,7 @@
 ---
 pr-number: 2889
 pr-url: https://github.com/torrust/torrust-tracker/pull/2889
-last-updated-utc: "2026-11-16 18:16"
+last-updated-utc: "2026-11-16 18:30"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -43,6 +43,8 @@ Round 1, on the head that carries the commit `docs(issues): [#2764] record the e
 
 Round 2, on the head that carries the commit `docs(pr-reviews): [#2764] audit review round 1 of PR 2889`: da2ce7 review 5925054031 (APPROVED) with findings F10 to F12 (two Nit, one Suggestion). Their IDs collide with this audit's F10 to F12, so they are audit findings F13 to F15.
 
+Round 3, on the head that carries the commit `docs(pr-reviews): [#2764] audit review round 2 of PR 2889`: da2ce7 review 5925258553 (APPROVED) with findings F13 and F14 (one Minor, one Nit). Their IDs collide with this audit's F13 and F14, so they are audit findings F16 and F17.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2889-f1 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
@@ -60,6 +62,8 @@ Round 2, on the head that carries the commit `docs(pr-reviews): [#2764] audit re
 | F13 | review-finding:pr-2889-f13 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F14 | review-finding:pr-2889-f14 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F15 | review-finding:pr-2889-f15 | Human | Suggestion | correctness | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-2889-f16 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-2889-f17 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -258,6 +262,32 @@ Round 2, on the head that carries the commit `docs(pr-reviews): [#2764] audit re
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2889#discussion_r4589653845
 
+### F16 - Real-artifact recheck not repeated after the scheme check
+
+- PR number: 2889
+- Source review ID: 5925258553
+- Reviewer finding ID: F13
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2889#discussion_r4589777162
+- Concern: The scheme check is a production change made after the round-1 recheck; `fix-bug` asks for the like-for-like real-artifact recheck after the last production change, naming the commit it ran on.
+- Solution: Reran the V1 and V3 real-tracker commands, plus an `ftp://` case, on the build whose last production change is the scheme-check commit; the evidence names that commit and says why the image was not rebuilt.
+- Current-tree verification: Evidence section "Round 3 of PR 2889": exits 0, 0, 1, 1, 2, 2, 2, 1; stdout empty; one JSON record per run.
+- Resolution reference: `docs(issues): [#2764] address review round 3 of PR 2889 in the evidence`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2889#discussion_r4589799562
+
+### F17 - R2 timing sentence refers to shifted rows
+
+- PR number: 2889
+- Source review ID: 5925258553
+- Reviewer finding ID: F14
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2889#discussion_r4589777170
+- Concern: Inserting the round-2 rows shifted the R2 table under a sentence that named rows by position ("the first and third rows").
+- Solution: The sentence names the rows by clause and points to the paragraph that times the round-2 rows.
+- Current-tree verification: Evidence R2, the sentence before the table.
+- Resolution reference: `docs(issues): [#2764] address review round 3 of PR 2889 in the evidence`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2889#discussion_r4589799971
+
 ## Processing Log
 
 - 2026-11-16 17:32 UTC - Replied to F1 (reply created 17:32:05Z) after committing its fix and before this record existed: a late start of the audit.
@@ -268,6 +298,9 @@ Round 2, on the head that carries the commit `docs(pr-reviews): [#2764] audit re
 - 2026-11-16 18:16 UTC - Round 2: normalized da2ce7 review 5925054031 (F13 to F15), committed the fixes, then replied (replies created from 18:16:08Z to 18:16:12Z). `validate-audit-record.py --pr-number 2889 --base torrust/develop` reported 15 rows, 0 failures.
 - 2026-11-16 18:16 UTC - Resolved the three round-2 threads (`isResolved: true` for each, the last at about 18:16:50Z). A GraphQL refresh found no unresolved thread and no thread whose last comment is not a reply from `josecelano-bot`.
 - 2026-11-16 18:16 UTC - Committed this record.
+- 2026-11-16 18:30 UTC - Round 3: normalized da2ce7 review 5925258553 (F16, F17), committed the evidence fix, then replied (replies created at 18:30:03Z and 18:30:05Z). `validate-audit-record.py --pr-number 2889 --base torrust/develop` reported 17 rows, 0 failures.
+- 2026-11-16 18:30 UTC - Resolved the two round-3 threads (`isResolved: true` for each, the last at about 18:30:38Z). A GraphQL refresh found no unresolved thread and no thread whose last comment is not a reply from `josecelano-bot`.
+- 2026-11-16 18:30 UTC - Committed this record.
 
 ## Completion Rules
 
