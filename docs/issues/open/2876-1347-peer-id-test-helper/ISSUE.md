@@ -9,7 +9,7 @@ github-issue: 2876
 spec-path: docs/issues/open/2876-1347-peer-id-test-helper/ISSUE.md
 branch: "2876-peer-id-test-helper"
 related-pr: null
-last-updated-utc: "2026-11-16 16:07"
+last-updated-utc: "2026-11-16 16:09"
 semantic-links:
   skill-links:
     - create-issue
@@ -341,7 +341,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1  | DONE   | Re-run the caller inventory and the compile proof | Tables above updated if `develop` moved; evidence in `manual-verification-evidence.md`. |
 | T2  | DONE   | Add the realistic-id helper with unit tests | In the Q1 location, with the Q4 format; design-review checkpoint after the first passing test. |
 | T3  | DONE   | Move the `torrent-repository-benchmarking` callers to the helper | Its tests pass; ids are distinct. |
-| T4  | TODO   | Remove or deprecate `Id::new` (Q3) | `compile_fail` doctest if removed. |
+| T4  | DONE   | Remove or deprecate `Id::new` (Q3) | `compile_fail` doctest if removed. |
 | T5  | TODO   | Gate `peer::fixture` (and the `Default` impls, Q5) behind `testing` (Q2) | Feature in `primitives/Cargo.toml` with the semver comment of ADR rule A.6, self dev-dependency, consumer `[dev-dependencies]`; `cargo machete --with-metadata` clean. |
 | T6  | TODO   | Make the fixture's ids realistic (Q6) | Assertions on the old bytes listed first, then updated. |
 | T7  | TODO   | Tests or a no-test decision for every remaining fixture line | Issue-local `coverage-evidence.md` (see Coverage Evidence) shows no line owned by F5 left uncovered. |
@@ -444,6 +444,9 @@ with the narrow affected scope, and sign every commit with GPG.
   tests use `qbittorrent_peer_id`; `-1` is the named `OTHER_PEER` (1000) and the `0..408` loops
   iterate over `u32`. Same tests pass (17 and 1,468); with `OTHER_PEER` set to a made number, the
   cutoff test fails (`test-plans/qbittorrent-peer-id.md`, Caller Migration).
+- 2026-11-16 16:09 UTC - Claude Code (Opus 5.5) - T4: `Id::new` removed. A `compile_fail,E0599`
+  doctest on `peer::Id`, with a companion that builds an id from 20 bytes, fails when `Id::new` is
+  put back (stable and nightly). The break adds to the 4.0.0 that `primitives` already owes (#2583).
 
 ## Acceptance Criteria
 

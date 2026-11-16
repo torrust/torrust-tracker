@@ -4,7 +4,7 @@ issue: 2876
 package: torrust-tracker-primitives
 target-file: packages/primitives/src/peer.rs
 status: done
-last-updated-utc: "2026-11-16 16:07"
+last-updated-utc: "2026-11-16 16:09"
 ---
 
 # `peer::fixture::qbittorrent_peer_id` Test Plan (T2)
@@ -111,3 +111,23 @@ Sentinel check: with `OTHER_PEER` changed to `1` (a number the scenarios make), 
 all of `entry::it_should_remove_inactive_peers_beyond_cutoff` for the `started` and `three`
 scenarios (the ones that make peer 1) over the five entry types; 1,458 passed. The constant was
 restored to `1000`.
+
+## `Id::new` Removal (T4)
+
+`Id::new` is removed (Q3 (a)). The doc comment of `peer::Id` now has two doctests, following the
+`write-unit-test` rule for compile-time guarantees:
+
+- a companion that compiles: `Id::from(PeerId(*b"-qB4650-000000000042"))`, whose client name is
+  `Some("qBittorrent")`;
+- `compile_fail,E0599`: `Id::new(1)`.
+
+`cargo test -q -p torrust-tracker-primitives` (stable Rust toolchain, cargo 1.99.1): 111 unit tests
+and the doctests pass; `cargo +nightly test -q -p torrust-tracker-primitives --doc` (nightly Rust
+toolchain, which checks the error code) passes too.
+
+Mutation: an `Id::new(number: i32)` put back into `impl Id`. With both `cargo test --doc` and
+`cargo +nightly test --doc`, `peer::Id (line 359)` failed with "Test compiled successfully, but
+it's marked `compile_fail`"; 3 passed, 1 failed. The file was restored (`cmp` against a saved copy).
+
+Removing a public item is a breaking change for the published `torrust-tracker-primitives` 3.0.0.
+The crate already owes a major release (4.0.0, for #2454) in the #2583 plan; this removal adds to it.

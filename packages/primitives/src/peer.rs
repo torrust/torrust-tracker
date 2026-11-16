@@ -340,6 +340,27 @@ pub enum IdConversionError {
     },
 }
 
+/// A peer id, with its hex form and the name of the client that made it.
+///
+/// It is built from the 20 bytes a peer sends:
+///
+/// ```
+/// use torrust_tracker_primitives::PeerId;
+/// use torrust_tracker_primitives::peer::Id;
+///
+/// let id = Id::from(PeerId(*b"-qB4650-000000000042"));
+///
+/// assert_eq!(id.get_client_name().as_deref(), Some("qBittorrent"));
+/// ```
+///
+/// There is no constructor from a number: tests that need many distinct ids use
+/// `peer::fixture::qbittorrent_peer_id`, which makes ids a real client could send.
+///
+/// ```compile_fail,E0599
+/// use torrust_tracker_primitives::peer::Id;
+///
+/// let id = Id::new(1);
+/// ```
 pub struct Id {
     data: PeerId,
 }
@@ -361,24 +382,6 @@ impl Deref for Id {
 impl DerefMut for Id {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.data
-    }
-}
-
-impl Id {
-    #[must_use]
-    pub fn new<T>(number: T) -> Self
-    where
-        T: Into<i128>,
-    {
-        let number: i128 = number.into();
-        let number = number.to_le_bytes();
-        let bytes = [
-            0u8, 0u8, 0u8, 0u8, number[0], number[1], number[2], number[3], number[4], number[5], number[6], number[7],
-            number[8], number[9], number[10], number[11], number[12], number[13], number[14], number[15],
-        ];
-
-        let data = PeerId(bytes);
-        Self { data }
     }
 }
 
