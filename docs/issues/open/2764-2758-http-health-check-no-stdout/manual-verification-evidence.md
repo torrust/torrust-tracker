@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2764-2758-http-health-check-no-stdout/ISSUE.md
-last-updated-utc: 2026-11-16 16:58
+last-updated-utc: 2026-11-16 17:49
 ---
 
 # Manual Verification Evidence
@@ -48,17 +48,47 @@ Usage error: plain text on stderr and exit `1` (the contract requires JSON and e
 
 ### R1 - Red regression tests against the old binary
 
-- Goal: see the new tests fail against the unchanged binary before the fix.
+- Goal: see the tests fail against the unchanged binary before the fix.
 - Status: `DONE`
 
-Run on 2026-11-11 (before the rebase onto the newer `torrust/develop`) with the tests added and the old `src/bin/http_health_check.rs` (the commit `test(health-check): [#2764] add contract tests for http_health_check` alone): `cargo test --test http_health_check` gave `5 failed`. The assertions that fired: stdout was `Health check ...` (not empty) for the healthy and unreachable cases, and the usage cases returned exit `1` where `2` is required (`left: Some(1)`, `right: Some(2)`).
+First run on 2026-11-11 (before the rebase onto the newer `torrust/develop`), with the commit `test(health-check): [#2764] add contract tests for http_health_check` alone: `cargo test --test http_health_check` gave `5 failed`.
 
-### R2 - Mutation check
+Re-run on 2026-11-16 at about 17:38 UTC (review round 1 of PR 2889, finding F5 asked for every case): the tests of the current tree against the binary of `torrust/develop` (`git show torrust/develop:src/bin/http_health_check.rs > src/bin/http_health_check.rs`, restored afterwards; see R2 for the restore check). `cargo test --test http_health_check` gave `0 passed; 10 failed`. The assertion that fired, per test:
 
-- Goal: show the tests detect a wrong exit code.
+```text
+it_should_exit_0_and_report_healthy_when_the_endpoint_answers_2xx                  stdout must be empty, but was: Health check ...
+it_should_exit_1_and_report_unhealthy_when_the_endpoint_answers_a_non_2xx_status   stdout must be empty, but was: Health check ...
+it_should_exit_1_and_report_unreachable_when_nothing_listens_on_the_port           stdout must be empty, but was: Health check ...
+it_should_exit_2_with_a_usage_error_record_when_the_url_argument_is_missing        unexpected exit code; stderr was: Usage:   cargo run --bin http_health_check <HEALTH_URL> ... left: Some(1) right: Some(2)
+it_should_exit_2_with_a_usage_error_record_when_there_are_extra_arguments          unexpected exit code; stderr was: Usage:   cargo run --bin http_health_check <HEALTH_URL> ... left: Some(1) right: Some(2)
+it_should_exit_2_with_a_usage_error_record_when_the_argument_is_not_a_url          unexpected exit code; stderr was: (empty) left: Some(1) right: Some(2)
+it_should_exit_2_with_a_usage_error_record_when_the_argument_is_not_valid_utf8     unexpected exit code; stderr was: thread 'main' panicked at .../library/std/src/env.rs:878:51 ... left: Some(101) right: Some(2)
+it_should_not_expose_url_credentials_when_the_endpoint_is_healthy                  stdout must be empty, but was: Health check ...
+it_should_not_expose_url_credentials_when_the_endpoint_is_unhealthy                stdout must be empty, but was: Health check ...
+it_should_not_expose_url_credentials_when_the_endpoint_is_unreachable              stdout must be empty, but was: Health check ...
+```
+
+The tests added in round 1 were also run against the binary of the previous round (the commit `test(health-check): [#2764] hold the unreachable port bound without listening`): `5 passed; 5 failed`. The malformed URL gave exit 1 with an `unreachable` record, the non-UTF-8 argument gave exit 101 with the `env.rs` panic, and each credential test failed on the credential check. Excerpts:
+
+```text
+it_should_exit_2_with_a_usage_error_record_when_the_argument_is_not_a_url: left: Some(1) right: Some(2); stderr was: {"kind":"unreachable","message":"could not probe `not-a-url-path-secret`: builder error","url":"not-a-url-path-secret","exit_code":1}
+it_should_not_expose_url_credentials_when_the_endpoint_is_healthy: stderr exposes `probe-user`: {"kind":"healthy","message":"`http://probe-user:userinfo-secret@127.0.0.1:42237/path-secret/health_check?token=query-secret` answered 200 OK","url":"http://probe-user:userinfo-secret@127.0.0.1:42237/path-secret/health_check?token=query-secret","status":200,"exit_code":0}
+```
+
+### R2 - Mutation checks
+
+- Goal: show that the tests detect a break of each clause of AC2 and AC3.
 - Status: `DONE`
 
-Changing `EXIT_USAGE_ERROR` from `2` to `1` in the fixed binary makes `it_should_exit_2_with_a_usage_error_record_when_the_url_argument_is_missing` and `..._when_there_are_extra_arguments` fail (`3 passed; 2 failed`); the change was reverted (`git checkout`), and the tree was clean afterwards.
+Run on 2026-11-16 against the round-1 binary: the first and third rows at about 17:33 UTC, before that binary was committed (the working-tree file had the same content), the second row at about 17:40 UTC after the commit. Before each mutation the file was copied to the scratchpad; afterwards it was copied back.
+
+| Clause | Mutation | Result of `cargo test --test http_health_check` |
+| ------ | -------- | ----------------------------------------------- |
+| Exit `1` on a non-2xx answer | the `unhealthy` branch returns `EXIT_HEALTHY` | `8 passed; 2 failed`: the two 503 tests, `left: Some(0)`, `right: Some(1)` |
+| Exit `2` on a usage error | `EXIT_USAGE_ERROR` set to `1` | `6 passed; 4 failed`: the four usage-error tests |
+| One JSON object per stderr line | `main` writes `kind=<kind>` as plain text | `0 passed; 10 failed`: `stderr line is not JSON (expected value at line 1 column 1): kind="..."` |
+
+After the last mutation, `diff -q` of the saved copy and `src/bin/http_health_check.rs` printed nothing (`identical`), and `git status --short` listed no change under `src/` (only the spec and the new audit folder of this round).
 
 ### G1 - Green tests, linters and image test stage
 
@@ -128,3 +158,70 @@ ExitCode 1, Output: {"kind":"unreachable","message":"could not probe `http://loc
 ```
 
 Not used as evidence: `docker pause` of the healthy container. Docker marked it `unhealthy` with `FailingStreak` 0 and the log held only the earlier `healthy` probe, so the pause made Docker flag the container without running the binary. The `docker stop` of the health endpoint alone is not possible (it shares the tracker process), which is why the port mismatch was used. Both containers were removed afterwards.
+
+### Round 1 of PR 2889 - recheck of G1, V1, V2 and V3
+
+- Goal: repeat the checks on the binary changed by review round 1 (no URL in the records, non-UTF-8 and malformed arguments as usage errors, exit code kept when the record cannot be written).
+- Status: `DONE`
+
+Tests: `cargo test --test http_health_check` and `cargo nextest run --test http_health_check` report 10 passed; clippy gives no warning.
+
+Image: `docker build -f Containerfile --target release -t torrust-tracker-2764:round1 .` exited `0`, and its test stage reported `1888 tests run: 1888 passed, 0 skipped`. While the build ran, `src/bin/http_health_check.rs` was briefly mutated for R2, so the image's own binary was checked: `docker run --rm --entrypoint /usr/bin/http_health_check torrust-tracker-2764:round1` printed the `usage_error` record with `"exit_code":2` and exited `2`, so the image was not built from the mutated file (that mutation set the usage exit code to 1).
+
+Real tracker (2026-11-16, about 17:36 UTC, debug build, same config as V1):
+
+```text
+$ target/debug/http_health_check http://127.0.0.1:1313/health_check
+exit=0
+stdout (0 bytes):
+stderr:
+{"kind":"healthy","message":"the health endpoint answered 200 OK","status":200,"exit_code":0}
+
+$ target/debug/http_health_check http://probe-user:userinfo-secret@127.0.0.1:1313/health_check?token=query-secret
+exit=0
+stdout (0 bytes):
+stderr:
+{"kind":"healthy","message":"the health endpoint answered 200 OK","status":200,"exit_code":0}
+
+$ target/debug/http_health_check http://127.0.0.1:1313/nope
+exit=1
+stdout (0 bytes):
+stderr:
+{"kind":"unhealthy","message":"the health endpoint answered the non-success status 404 Not Found","status":404,"exit_code":1}
+
+$ target/debug/http_health_check http://127.0.0.1:9/health_check
+exit=1
+stdout (0 bytes):
+stderr:
+{"kind":"unreachable","message":"could not probe the health endpoint: error sending request: client error (Connect): tcp connect error: Connection refused (os error 111)","exit_code":1}
+
+$ target/debug/http_health_check
+exit=2
+stdout (0 bytes):
+stderr:
+{"kind":"usage_error","message":"usage error: expected exactly one argument; use `http_health_check <HEALTH_URL>`, for example `http_health_check http://127.0.0.1:1313/health_check`","exit_code":2}
+
+$ target/debug/http_health_check not-a-url
+exit=2
+stdout (0 bytes):
+stderr:
+{"kind":"usage_error","message":"usage error: the argument is not a valid URL; use `http_health_check <HEALTH_URL>`, for example `http_health_check http://127.0.0.1:1313/health_check`","exit_code":2}
+
+(tracker stopped)
+$ target/debug/http_health_check http://127.0.0.1:1313/health_check
+exit=1
+stdout (0 bytes):
+stderr:
+{"kind":"unreachable","message":"could not probe the health endpoint: error sending request: client error (Connect): tcp connect error: Connection refused (os error 111)","exit_code":1}
+```
+
+Container (2026-11-16, 17:46 to 17:47 UTC, image `torrust-tracker-2764:round1`): a container with the shipped no-persistence config was `healthy` from the 5 s mark; a second one with `HEALTH_CHECK_API_PORT=1314` was `starting` with `FailingStreak` 0, 1, 2, then `unhealthy` from the 20 s mark. A second pair, started to read the probe records, gave:
+
+```text
+tt-r1a: healthy failing=0
+ExitCode 0 Output: {"kind":"healthy","message":"the health endpoint answered 200 OK","status":200,"exit_code":0}
+tt-r1b: unhealthy failing=4
+ExitCode 1 Output: {"kind":"unreachable","message":"could not probe the health endpoint: error sending request: client error (Connect): tcp connect error: Connection refused (os error 111)","exit_code":1}
+```
+
+All four containers were removed afterwards (`docker ps -a --filter name=tt-r1 -q` printed nothing).

@@ -8,8 +8,8 @@ epic: 2758
 github-issue: 2764
 spec-path: docs/issues/open/2764-2758-http-health-check-no-stdout/ISSUE.md
 branch: "2764-http-health-check-no-stdout"
-related-pr: null
-last-updated-utc: "2026-11-16 16:59"
+related-pr: 2889
+last-updated-utc: "2026-11-16 17:49"
 semantic-links:
   skill-links:
     - create-issue
@@ -94,7 +94,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | ------ | ---- | ----------------------- |
 | T1 | DONE | Tests for exit codes and records against a local test server | Red tests: evidence R1. |
 | T2 | DONE | Rewrite `main` to the contract | Green tests: evidence G1; no `print_*` allow. |
-| T3 | DONE | Verify the container `HEALTHCHECK` | `docker inspect` shows `healthy`, then `unhealthy` after stopping the endpoint. |
+| T3 | DONE | Verify the container `HEALTHCHECK` | `docker inspect` shows `healthy` for a container whose probe reaches the health API, and `unhealthy` for a container whose probe port has nothing listening (the health API cannot be stopped on its own; see evidence V2). |
 
 ## Commit Points
 
@@ -130,6 +130,8 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-09 10:25 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the review rounds on PR 2771 and PR 2774 and fixed the earlier log stamps from the commit and issue creation times.
 - 2026-11-09 12:12 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the review of PR 2771 (da2ce7 findings F1 to F27 and Copilot's later comments): specs corrected from the code, reproductions recorded where a spec has a bug-fix section.
 - 2026-11-16 16:59 UTC - Claude Code (Claude Sonnet 5.5) - Implemented T1 to T3 on a branch rebased onto `torrust/develop` after the image-build job cap (PR 2854) merged. The tests ran red against the old binary, the binary now follows the contract, and the evidence (R1, R2, G1, V1 to V3) is recorded. The first image build failed because the image test stages could not find the binary through `CARGO_BIN_EXE_http_health_check`; the test now reads `NEXTEST_BIN_EXE_http_health_check` first, and the second build passed with 1883 tests. No `Containerfile` change was needed. `healthy` emits one stderr record (see Risks).
+- 2026-11-16 17:49 UTC - Claude Code (Claude Opus 5.5) - Correction to the entry stamped 2026-11-16 16:59 UTC (review finding `review-finding:pr-2889-f7`): that entry and `last-updated-utc` were written before the commit that carries them, which was made at 16:58:26Z; the stamp is later than its commit. The entry is kept as written.
+- 2026-11-16 17:49 UTC - Claude Code (Claude Opus 5.5) - Opened PR 2889 (`related-pr`). Addressed review round 1 (da2ce7 review 5924341133, Copilot review 5924435062; audit in `docs/pr-reviews/pr-2889-review/PR-REVIEW.md`): the unreachable test holds a bound, non-listening port; the binary reads `args_os`, reports a non-UTF-8 or malformed argument as a usage error, keeps the URL out of every record (contract redaction policy) and keeps the outcome exit code when the record cannot be written; the tests show stderr in exit-code assertions and clear the proxy variables; M2 and T3 describe the run that happened; R1 and R2 are completed. Rechecked G1, V1 to V3 on the changed binary (evidence section "Round 1 of PR 2889"). `tests/AGENTS.md` mentions the tests of root `src/bin` tools.
 
 ## Acceptance Criteria
 
@@ -158,7 +160,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | ID  | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | -------- | ---------------------------- | --------------- | ------ | -------- |
 | M1 | Healthy and unhealthy | Run against a running tracker's `/health_check`, then a closed port | Exit `0` then `1`; stderr is NDJSON | DONE | `manual-verification-evidence.md` section V1 |
-| M2 | Container health | Build the image, run it, stop the health API, wait for the interval | `docker inspect` reports `unhealthy` | DONE | `manual-verification-evidence.md` section V2 |
+| M2 | Container health | Build the image; run it and wait for `healthy`; run a second container with `HEALTH_CHECK_API_PORT=1314` (nothing listens there) and wait past the retries. Stopping the health API alone is not possible: it runs in the tracker process | `docker inspect` reports `healthy` for the first container and `unhealthy` for the second | DONE | `manual-verification-evidence.md` section V2 |
 | M3 | Usage error | `http_health_check` with no argument | Exit `2`, JSON record | DONE | `manual-verification-evidence.md` section V3 |
 
 Manual verification is mandatory even when automated tests pass. Record actual commands, output and the toolchain that produced each result in `manual-verification-evidence.md` (from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`).
@@ -169,7 +171,7 @@ Manual verification is mandatory even when automated tests pass. Record actual c
 | ----- | ---------------------- | -------- |
 | AC1 | DONE | Evidence V1, V3 and the tests: stdout is 0 bytes in every case |
 | AC2 | DONE | Evidence V1, V3, V2; the test helper parses every stderr line as one JSON object with a `kind` |
-| AC3 | DONE | Evidence V1, V3 (`0`, `1`, `1`, `2`); the five tests; mutation check R2 |
+| AC3 | DONE | Evidence V1, V3 (`0`, `1`, `1`, `2`); the tests; mutation checks R2 (one per exit-code and JSON clause) |
 | AC4 | DONE | Evidence V2: `unhealthy` after the probe exited `1` (`unreachable`) |
 
 ## Risks and Trade-offs
