@@ -13,7 +13,7 @@ Run the non-destructive preflight before a real merge attempt:
 
 For the interactive workflow, credentials, signing prerequisites, hook behavior, validation,
 and recovery steps, follow the canonical
-[`merge-pull-request` skill](../../../.github/skills/dev/git-workflow/merge-pull-request/SKILL.md).
+[`merge-pull-request` skill](../../../.claude/skills/merge-pull-request/SKILL.md).
 The tool is intentionally not a replacement for maintainer review or explicit approval to sign
 and push.
 
@@ -53,7 +53,7 @@ copy can be an older snapshot with different behavior.
 
 For SSH host-key verification failures, public-key authorization failures, branch-policy rejection,
 or transient GitHub `5xx` errors, follow the canonical skill's
-[Push Failure Diagnosis and Recovery](../../../.github/skills/dev/git-workflow/merge-pull-request/SKILL.md#push-failure-diagnosis-and-recovery)
+[Push Failure Diagnosis and Recovery](../../../.claude/skills/merge-pull-request/SKILL.md#push-failure-diagnosis-and-recovery)
 section. It defines the required remote-state checks and the narrowly authorized single-push retry
 after a transient failure.
 

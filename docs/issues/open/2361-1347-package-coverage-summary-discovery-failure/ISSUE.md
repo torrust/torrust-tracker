@@ -16,8 +16,8 @@ semantic-links:
     - fix-bug
     - implement-workflow
   related-artifacts:
-    - .github/skills/dev/debugging/fix-bug/SKILL.md
-    - .github/skills/dev/planning/create-issue/SKILL.md
+    - .claude/skills/fix-bug/SKILL.md
+    - .claude/skills/create-issue/SKILL.md
     - .github/workflows/generate_coverage_pr.yaml
     - contrib/dev-tools/checks/package-coverage-check/src/main.rs
     - docs/issues/closed/2222-1347-package-coverage-regression-ci/ISSUE.md
@@ -107,7 +107,7 @@ plus a workflow input; it adds no process, asynchronous I/O, readiness, or fixtu
 
 ## Bug-Fix Process
 
-Follow [`fix-bug`](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md):
+Follow [`fix-bug`](../../../../.claude/skills/fix-bug/SKILL.md):
 
 1. Analysis: the causal decision is `summary` in `package-coverage-check/src/main.rs`, which calls
    `read_json::<SummaryInput>` on the discovery path and propagates the parse error. Nothing

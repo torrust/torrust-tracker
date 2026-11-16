@@ -15,8 +15,8 @@ semantic-links:
     - create-issue
     - fix-bug
   related-artifacts:
-    - .github/skills/dev/debugging/fix-bug/SKILL.md
-    - .github/skills/dev/planning/create-issue/SKILL.md
+    - .claude/skills/fix-bug/SKILL.md
+    - .claude/skills/create-issue/SKILL.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -217,7 +217,7 @@ Not applicable.
 
 ## Bug-Fix Process
 
-Follows `.github/skills/dev/debugging/fix-bug/SKILL.md`:
+Follows `.claude/skills/fix-bug/SKILL.md`:
 
 1. **Analysis**: hypothesis — `impl Ord for Peer` compares `peer_id` only while derived `Eq`
    compares all fields. Done above.

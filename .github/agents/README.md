@@ -12,7 +12,7 @@ authoritative definition of its purpose, workflow, and declared tools. This READ
 catalog only; do not duplicate profile metadata here.
 
 When adding, removing, or renaming a profile, update this link inventory in the same change.
-Repository workflow and policy remain authoritative in `AGENTS.md`, `.github/skills/`, tracked
+Repository workflow and policy remain authoritative in `AGENTS.md`, `.claude/skills/`, tracked
 scripts, tests, and documentation. Profiles are optional adapters, as defined by the
 [AI agent context, capability, and portability governance ADR](../../docs/adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md).
 

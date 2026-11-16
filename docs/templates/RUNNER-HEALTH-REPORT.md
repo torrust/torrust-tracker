@@ -5,7 +5,7 @@ semantic-links:
   related-artifacts:
     - docs/self-hosted-runner.md
     - docs/self-hosted-runner-reports/README.md
-    - .github/skills/dev/maintenance/check-runner-health/SKILL.md
+    - .claude/skills/check-runner-health/SKILL.md
 ---
 
 <!-- skill-link: check-runner-health -->

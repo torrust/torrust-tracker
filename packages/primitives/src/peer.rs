@@ -340,6 +340,28 @@ pub enum IdConversionError {
     },
 }
 
+/// A peer id, with its hex form and the name of the client that made it.
+///
+/// It is built from the 20 bytes a peer sends:
+///
+/// ```
+/// use torrust_tracker_primitives::PeerId;
+/// use torrust_tracker_primitives::peer::Id;
+///
+/// let id = Id::from(PeerId(*b"-qB4650-000000000042"));
+///
+/// assert_eq!(id.get_client_name().as_deref(), Some("qBittorrent"));
+/// ```
+///
+/// There is no constructor from a number: tests that need many distinct ids use
+/// `peer::fixture::qbittorrent_peer_id` (behind the `testing` feature), which makes ids a real
+/// client could send.
+///
+/// ```compile_fail,E0599
+/// use torrust_tracker_primitives::peer::Id;
+///
+/// let id = Id::new(1);
+/// ```
 pub struct Id {
     data: PeerId,
 }
@@ -361,24 +383,6 @@ impl Deref for Id {
 impl DerefMut for Id {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.data
-    }
-}
-
-impl Id {
-    #[must_use]
-    pub fn new<T>(number: T) -> Self
-    where
-        T: Into<i128>,
-    {
-        let number: i128 = number.into();
-        let number = number.to_le_bytes();
-        let bytes = [
-            0u8, 0u8, 0u8, 0u8, number[0], number[1], number[2], number[3], number[4], number[5], number[6], number[7],
-            number[8], number[9], number[10], number[11], number[12], number[13], number[14], number[15],
-        ];
-
-        let data = PeerId(bytes);
-        Self { data }
     }
 }
 
@@ -495,12 +499,18 @@ impl<P: Encoding> FromIterator<Peer> for Vec<P> {
     }
 }
 
+/// Test support: peers, peer ids and the `Default` impls of [`Peer`] and [`Id`], for this crate's
+/// tests and the tests of other workspace packages.
+///
+/// Compiled only with the `testing` feature, which is outside the semver guarantees of this crate.
+/// Enable it only from a `[dev-dependencies]` entry.
+#[cfg(feature = "testing")]
 pub mod fixture {
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
     use torrust_clock::DurationSinceUnixEpoch;
 
-    use super::{Id, Peer, PeerId};
+    use super::{Id, PEER_ID_BYTES_LEN, Peer, PeerId};
     use crate::{AnnounceEvent, NumberOfBytes};
 
     #[derive(PartialEq, Eq, Debug, Default)]
@@ -514,7 +524,7 @@ pub mod fixture {
         #[must_use]
         pub const fn seeder() -> Self {
             let peer = Peer {
-                peer_id: PeerId(*b"-qB00000000000000001"),
+                peer_id: qbittorrent_peer_id(1).data,
                 peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080),
                 updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
                 uploaded: NumberOfBytes::new(0),
@@ -530,7 +540,7 @@ pub mod fixture {
         #[must_use]
         pub const fn leecher() -> Self {
             let peer = Peer {
-                peer_id: PeerId(*b"-qB00000000000000002"),
+                peer_id: qbittorrent_peer_id(2).data,
                 peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)), 8080),
                 updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
                 uploaded: NumberOfBytes::new(0),
@@ -615,10 +625,33 @@ pub mod fixture {
         }
     }
 
+    /// Builds a peer id that a real qBittorrent client could send, numbered so tests can make many
+    /// distinct peers.
+    ///
+    /// The id is the Azureus-style client prefix `-qB4650-` (qBittorrent 4.6.5) followed by
+    /// `number` as 12 zero-padded decimal digits, so `qbittorrent_peer_id(42)` is
+    /// `-qB4650-000000000042`. Distinct numbers give distinct ids, and the client registry knows
+    /// every id as qBittorrent ([`Id::get_client_name`]).
+    #[must_use]
+    pub const fn qbittorrent_peer_id(number: u32) -> Id {
+        const DECIMAL_DIGITS: &[u8; 10] = b"0123456789";
+
+        let mut bytes = *b"-qB4650-000000000000";
+        let mut remaining = number;
+        let mut position = PEER_ID_BYTES_LEN;
+        while remaining > 0 {
+            position -= 1;
+            bytes[position] = DECIMAL_DIGITS[(remaining % 10) as usize];
+            remaining /= 10;
+        }
+
+        Id { data: PeerId(bytes) }
+    }
+
     impl Default for Peer {
         fn default() -> Self {
             Self {
-                peer_id: PeerId(*b"-qB00000000000000000"),
+                peer_id: qbittorrent_peer_id(0).data,
                 peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080),
                 updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
                 uploaded: NumberOfBytes::new(0),
@@ -631,8 +664,7 @@ pub mod fixture {
 
     impl Default for Id {
         fn default() -> Self {
-            let data = PeerId(*b"-qB00000000000000000");
-            Self { data }
+            qbittorrent_peer_id(0)
         }
     }
 }
@@ -1027,6 +1059,250 @@ pub mod test {
         #[quickcheck]
         fn it_should_reject_any_byte_vector_whose_length_is_not_twenty(bytes: Vec<u8>) -> bool {
             bytes.len() == peer::PEER_ID_BYTES_LEN || peer::Id::try_from(bytes).is_err()
+        }
+    }
+
+    mod qbittorrent_peer_id {
+        use quickcheck::TestResult;
+        use quickcheck_macros::quickcheck;
+
+        use crate::peer::fixture::qbittorrent_peer_id;
+
+        #[test]
+        fn it_should_write_the_number_as_twelve_zero_padded_decimal_digits_after_the_qbittorrent_prefix() {
+            // Arrange
+            for (number, expected) in [
+                (0, b"-qB4650-000000000000"),        // no digit to write: all padding
+                (42, b"-qB4650-000000000042"),       // an ordinary number
+                (u32::MAX, b"-qB4650-004294967295"), // the widest number, ten digits
+            ] {
+                // Act
+                let id = qbittorrent_peer_id(number);
+
+                // Assert
+                assert_eq!(
+                    id.0,
+                    *expected,
+                    "peer id made from {number}: {:?}",
+                    String::from_utf8_lossy(&id.0)
+                );
+            }
+        }
+
+        #[quickcheck]
+        fn it_should_make_ids_that_the_client_registry_knows_as_qbittorrent(number: u32) -> bool {
+            qbittorrent_peer_id(number).get_client_name().as_deref() == Some("qBittorrent")
+        }
+
+        #[quickcheck]
+        fn it_should_make_distinct_ids_from_distinct_numbers(number: u32, other_number: u32) -> TestResult {
+            if number == other_number {
+                return TestResult::discard();
+            }
+
+            TestResult::from_bool(qbittorrent_peer_id(number).0 != qbittorrent_peer_id(other_number).0)
+        }
+    }
+
+    mod peer_fixture_defaults {
+        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+
+        use torrust_clock::DurationSinceUnixEpoch;
+
+        use crate::peer::{Id, Peer};
+        use crate::{AnnounceEvent, NumberOfBytes, PeerId};
+
+        #[test]
+        fn it_should_make_a_default_peer_that_has_started_with_nothing_left_to_download_from_localhost() {
+            assert_eq!(
+                Peer::default(),
+                Peer {
+                    peer_id: PeerId(*b"-qB4650-000000000000"),
+                    peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080),
+                    updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
+                    uploaded: NumberOfBytes::new(0),
+                    downloaded: NumberOfBytes::new(0),
+                    left: NumberOfBytes::new(0),
+                    event: AnnounceEvent::Started,
+                }
+            );
+        }
+
+        #[test]
+        fn it_should_make_a_default_peer_id_that_names_qbittorrent() {
+            let id = Id::default();
+
+            assert_eq!(id.0, *b"-qB4650-000000000000");
+            assert_eq!(id.get_client_name().as_deref(), Some("qBittorrent"));
+        }
+    }
+
+    /// Each builder method changes its own field and leaves every other field as it was.
+    mod peer_builder {
+        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+
+        use torrust_clock::DurationSinceUnixEpoch;
+
+        use crate::peer::Peer;
+        use crate::peer::fixture::PeerBuilder;
+        use crate::{AnnounceEvent, NumberOfBytes, PeerId};
+
+        fn another_address() -> SocketAddr {
+            SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 6969)
+        }
+
+        fn another_time() -> DurationSinceUnixEpoch {
+            DurationSinceUnixEpoch::new(1_700_000_000, 0)
+        }
+
+        #[test]
+        fn it_should_start_from_the_default_peer() {
+            assert_eq!(PeerBuilder::default().build(), Peer::default());
+        }
+
+        #[test]
+        fn it_should_set_the_peer_id() {
+            let peer_id = PeerId(*b"-qB4650-000000000042");
+
+            let peer = PeerBuilder::default().with_peer_id(&peer_id).build();
+
+            assert_eq!(
+                peer,
+                Peer {
+                    peer_id,
+                    ..Peer::default()
+                }
+            );
+        }
+
+        #[test]
+        fn it_should_set_the_peer_address_from_a_reference() {
+            let peer = PeerBuilder::default().with_peer_addr(&another_address()).build();
+
+            assert_eq!(
+                peer,
+                Peer {
+                    peer_addr: another_address(),
+                    ..Peer::default()
+                }
+            );
+        }
+
+        #[test]
+        fn it_should_set_the_peer_address_from_a_value() {
+            let peer = PeerBuilder::default().with_peer_address(another_address()).build();
+
+            assert_eq!(
+                peer,
+                Peer {
+                    peer_addr: another_address(),
+                    ..Peer::default()
+                }
+            );
+        }
+
+        #[test]
+        fn it_should_set_the_last_update_time_with_updated_on() {
+            let peer = PeerBuilder::default().updated_on(another_time()).build();
+
+            assert_eq!(
+                peer,
+                Peer {
+                    updated: another_time(),
+                    ..Peer::default()
+                }
+            );
+        }
+
+        #[test]
+        fn it_should_set_the_last_update_time_with_last_updated_on() {
+            let peer = PeerBuilder::default().last_updated_on(another_time()).build();
+
+            assert_eq!(
+                peer,
+                Peer {
+                    updated: another_time(),
+                    ..Peer::default()
+                }
+            );
+        }
+
+        #[test]
+        fn it_should_set_the_bytes_left_to_download() {
+            let peer = PeerBuilder::default().with_bytes_left_to_download(5).build();
+
+            assert_eq!(
+                peer,
+                Peer {
+                    left: NumberOfBytes::new(5),
+                    ..Peer::default()
+                }
+            );
+        }
+
+        #[test]
+        fn it_should_set_no_bytes_left_to_download_for_a_peer_that_had_bytes_left() {
+            let leecher = PeerBuilder::leecher().build();
+            assert_ne!(leecher.left, NumberOfBytes::new(0), "the leecher must start with bytes left");
+
+            let peer = PeerBuilder::leecher().with_no_bytes_left_to_download().build();
+
+            assert_eq!(
+                peer,
+                Peer {
+                    left: NumberOfBytes::new(0),
+                    ..leecher
+                }
+            );
+        }
+
+        #[test]
+        fn it_should_set_any_announce_event() {
+            let peer = PeerBuilder::default().with_event(AnnounceEvent::Stopped).build();
+
+            assert_eq!(
+                peer,
+                Peer {
+                    event: AnnounceEvent::Stopped,
+                    ..Peer::default()
+                }
+            );
+        }
+
+        #[test]
+        fn it_should_set_the_started_event_for_a_peer_that_had_completed() {
+            let seeder = PeerBuilder::seeder().build();
+            assert_eq!(seeder.event, AnnounceEvent::Completed, "the seeder must start as completed");
+
+            let peer = PeerBuilder::seeder().with_event_started().build();
+
+            assert_eq!(
+                peer,
+                Peer {
+                    event: AnnounceEvent::Started,
+                    ..seeder
+                }
+            );
+        }
+
+        #[test]
+        fn it_should_set_the_completed_event_for_a_peer_that_had_started() {
+            let peer = PeerBuilder::default().with_event_completed().build();
+
+            assert_eq!(
+                peer,
+                Peer {
+                    event: AnnounceEvent::Completed,
+                    ..Peer::default()
+                }
+            );
+        }
+
+        #[test]
+        fn it_should_give_the_same_peer_with_into_as_with_build() {
+            let peer: Peer = PeerBuilder::leecher().into();
+
+            assert_eq!(peer, PeerBuilder::leecher().build());
         }
     }
 

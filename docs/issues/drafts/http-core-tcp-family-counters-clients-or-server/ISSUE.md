@@ -15,8 +15,8 @@ semantic-links:
     - create-issue
     - fix-bug
   related-artifacts:
-    - .github/skills/dev/debugging/fix-bug/SKILL.md
-    - .github/skills/dev/planning/create-issue/SKILL.md
+    - .claude/skills/fix-bug/SKILL.md
+    - .claude/skills/create-issue/SKILL.md
     - docs/architecture/events.md
     - docs/adrs/20260727000000_events_are_objective_facts.md
     - docs/adrs/20260727180000_shared_services_across_tracker_instances.md
@@ -131,7 +131,7 @@ Not applicable.
 
 ## Bug-Fix Process
 
-Follow `.github/skills/dev/debugging/fix-bug/SKILL.md`:
+Follow `.claude/skills/fix-bug/SKILL.md`:
 
 - analysis: confirm the label source in `packages/http-core/src/event.rs` (~151–152) and the history of the selection;
 - reproduction: in reverse-proxy mode (`on_reverse_proxy = true`), send an announce with an IPv6 `X-Forwarded-For`

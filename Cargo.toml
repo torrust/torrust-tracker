@@ -127,6 +127,7 @@ torrust-net-primitives = "0.1.0"
 torrust-peer-id = "0.1.0"
 torrust-tracker-client-lib = { version = "0.1.0", path = "packages/tracker-client" }
 torrust-tracker-http-protocol = { version = "0.1.0", path = "packages/http-protocol" }
+torrust-tracker-primitives = { version = "3.0.0", path = "packages/primitives", features = [ "testing" ] }
 torrust-tracker-test-helpers = { version = "3.0.0", path = "packages/test-helpers" }
 torrust-tracker-udp-protocol = { version = "0.1.0", path = "packages/udp-protocol" }
 url = { version = "2", features = [ "serde" ] }
@@ -143,7 +144,7 @@ nix = { version = "0.31.3", default-features = false, features = [ "signal" ] }
 # auto-discovery) so that the cargo-chef `--external-only` skeleton, which strips
 # path dependencies, still resolves the same membership and `default-members`.
 members = [
-  ".github/skills/dev/pr-reviews/wait-for-pr-review/tool",
+  ".claude/skills/wait-for-pr-review/tool",
   "console/tracker-client",
   "contrib/dev-tools/analysis/workspace-coupling",
   "contrib/dev-tools/checks/agent-review-report-contract",

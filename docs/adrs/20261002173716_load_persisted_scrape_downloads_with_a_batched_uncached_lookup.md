@@ -3,7 +3,7 @@ semantic-links:
   skill-links:
     - create-adr
   related-artifacts:
-    - .github/skills/dev/planning/create-adr/SKILL.md
+    - .claude/skills/create-adr/SKILL.md
     - "issue #2406"
     - docs/research/20261002-scrape-downloaded-semantics/README.md
     - packages/tracker-core/src/scrape_handler.rs

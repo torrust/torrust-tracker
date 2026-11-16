@@ -17,10 +17,10 @@ semantic-links:
   related-artifacts:
     - docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/EPIC.md
     - docs/issues/closed/2308-2278-reconcile-audit-contract-rules/ISSUE.md
-    - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
+    - .claude/skills/process-pr-review/SKILL.md
     - docs/templates/PR-REVIEW-TEMPLATE.md
     - contrib/dev-tools/checks/agent-review-report-contract/src/main.rs
-    - .github/skills/dev/planning/create-issue/SKILL.md
+    - .claude/skills/create-issue/SKILL.md
     - review-finding:pr-2313-f4
     - review-finding:pr-2313-f5
     - review-finding:pr-2313-f6
@@ -178,7 +178,7 @@ One finding per commit keeps each finding's `FIXED` resolution reference precise
 
 - `linter all`
 - `cargo run --package agent-review-report-contract` (stable Rust toolchain)
-- `python3 .github/skills/dev/pr-reviews/process-pr-review/scripts/validate-audit-record.py --pr-number <N>` for the three most recent audits
+- `python3 .claude/skills/process-pr-review/scripts/validate-audit-record.py --pr-number <N>` for the three most recent audits
 - Pre-push checks
 
 ### Manual Verification Scenarios

@@ -1,10 +1,10 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2866-2003-move-skills-to-claude-skills/ISSUE.md
-last-updated-utc: 2026-11-15 21:35
+last-updated-utc: 2026-11-16 15:43
 ---
 
-<!-- cspell:ignore Autocompact dataviz -->
+<!-- cspell:ignore Autocompact dataviz endswith findall isfile normpath relpath startswith -->
 
 # Manual Verification Evidence
 
@@ -16,7 +16,7 @@ do not invent commands, output, logs, or results.
 
 ## Environment and Prerequisites
 
-- Date and time (UTC): 2026-11-15 20:48 (V0)
+- Date and time (UTC): 2026-11-15 20:48 (V0); 2026-11-16 15:42 to 15:43 (T9, V1 to V5)
 - Artifact under test: V0: `develop` at `abd7a10ff` (`Merge torrust/torrust-tracker#2863`), before
   any change of this issue.
 - Operating system / environment: Linux 7.0.0-43-generic; Claude Code 2.1.318
@@ -120,6 +120,554 @@ Reproduced. No repository skill is discovered, and `/create-issue` does not run 
 model found the skill file by reading the repository instead, which is step 2 of the spec's
 "bug in plain terms".
 
+### T2 - The placement rule fails on the tree before the move (red)
+
+- Goal: show that the regression test of the spec's Regression Test Strategy fails for the defect.
+- Initial state: branch `2866-move-skills-to-claude-skills` at `4342dd654` (`Merge
+  torrust/torrust-tracker#2869`), with the T2 change in the working tree and no skill moved.
+- Status: `DONE` (outcome: **Red**, as expected)
+
+#### Steps Performed
+
+1. 2026-11-16 08:03 UTC, stable Rust toolchain:
+   `cargo run -q -p frontmatter-validator --bin frontmatter-validator -- --skill-layout 2> t2-red.ndjson`
+
+#### Observed Result
+
+The command exited `1` and wrote 53 records, all of kind `diagnostic`, severity `error` and
+category `misplaced-skill`, one for each `SKILL.md` under `.github/skills/`; no record names
+another path. The first record, verbatim:
+
+```json
+{"kind":"diagnostic","path":".github/skills/add-new-skill/SKILL.md","severity":"error","category":"misplaced-skill","field_path":null,"message":"A skill must be at `.claude/skills/<name>/SKILL.md`, where Claude Code discovers it."}
+```
+
+#### Mutations
+
+Each mutation was made in the working tree, compiled, run with
+`cargo test -q -p frontmatter-validator --lib skills`, and restored:
+
+| Mutation in `src/skills.rs`                                         | Failing test case                                   |
+| ------------------------------------------------------------------- | --------------------------------------------------- |
+| Accept a skill folder that contains `/` (one folder too deep)       | `..._would_not_discover::case_2_one_folder_too_deep` |
+| Skip paths under `.github/skills/`                                  | `..._would_not_discover::case_1_under_the_copilot_folder` |
+
+After the restore, the 9 `skills` tests passed.
+
+#### Test-Design Review
+
+- `it_should_report_a_skill_that_claude_code_would_not_discover` and
+  `it_should_accept_a_path_that_is_a_discoverable_skill_or_no_skill`: the path is the whole
+  initial state and the one causal difference, named by each `case`. The Act is the production
+  call `misplaced_skill(path)`; the expected result is written in the test (the
+  `misplaced-skill` category, or no finding). Written with temporary Arrange, Act and Assert
+  comments, the Arrange was empty and the other two restated the single line under them, so the
+  comments were removed. No fixture or helper.
+- `it_should_check_the_skill_layout_of_the_index_only_with_skill_layout` (`tests/cli.rs`): the
+  binary decides which files the rule sees, so this test owns only that. The one causal
+  difference is whether a misplaced skill is in the index; both skills are misplaced, so the
+  library's placement decision is not what the test observes. The first draft also staged a
+  correctly placed skill; that tested the library's rule a second time, so it was removed. The
+  repository fixture holds only incidental mechanics (a disposable git repository).
+- Unit-test level: the placement decision is pure and observable from `misplaced_skill`, so it is
+  a unit test; the index selection needs a real git index, so it is a command-boundary test.
+
+### T3 - The move and the reference sweep
+
+- Goal: record the commands that moved the skills and classified and rewrote the references, so a
+  reviewer can reproduce the sweep (spec, Classification rule for references).
+- Initial state: branch `2866-move-skills-to-claude-skills` after the T2 commit.
+- Status: `DONE`
+
+#### Steps Performed
+
+1. Built the name and area map from the 53 `SKILL.md` paths, then moved each skill folder:
+
+   ```bash
+   git ls-files .github/skills | grep 'SKILL.md$' | while read f; do d=$(dirname $f); n=$(basename $d); rel=${d#.github/skills/}; echo -e "$n\t$(dirname $rel)\t$d"; done | sort > .tmp/skill-map.tsv
+   mkdir -p .claude/skills
+   while IFS=$'\t' read n area d; do git mv "$d" ".claude/skills/$n"; done < .tmp/skill-map.tsv
+   ```
+
+   `git ls-files .github/skills | wc -l` printed `0`, `git ls-files .claude/skills | wc -l`
+   printed `71`, and every staged change was a rename.
+2. Ran the rewrite script below from the repository root (`python3 -I rewrite_skill_paths.py`).
+   It printed 121 link rewrites and 227 literal rewrites in 171 files, and two links it could not
+   map because they named an area folder, not a skill.
+3. Reviewed the result and corrected it by hand:
+   - restored the files the literal rewrite must not change: this issue's own spec and evidence
+     (they describe the old layout), the dated report
+     `docs/issues/open/2264-2003-refactor-semantic-link-conventions/external-link-check-residual-failures-2026-09-18.md`,
+     the verbatim `docs/issues/drafts/2003-mine-ai-agent-memories/github-copilot-memory-snapshot.md`,
+     and the placement test case in `src/skills.rs`, which must keep an old path;
+   - the two folder links: `AGENTS.md` now links `.claude/skills/`, and `docs/testing.md` links
+     `../.claude/skills/` until the T5 index exists;
+   - prose that names the folder in general: `AGENTS.md` (four places),
+     `.github/agents/README.md`, `setup-dev-environment`, `docs/agents/orchestration.md`, the
+     #1347 sub-issue guidelines, the #2758 EPIC, #2767, the #2003 EPIC `related-artifacts`, and
+     the validator README;
+   - `frontmatter-validator`: `skill-links` now resolve against `.claude/skills/<name>/SKILL.md`
+     only, through the placement rule's `skill_name`, with test cases for a skill one folder too
+     deep and one under the old folder;
+   - `validate-skill-links.sh` walks four folders up to the root instead of six.
+   - five legacy specs whose paths changed failed the commit gate with `legacy-shape`, so they
+     were migrated to v1 in the same commit, as the validator README requires:
+     `docs/issues/drafts/increase-main-app-integration-test-coverage/ISSUE.md`,
+     `docs/issues/drafts/optimize-event-publication-without-consumers/ISSUE.md`, and the open
+     specs of #1768, #1774 and #1843. The migration added `schema-version: 1` and `epic: null`,
+     quoted `last-updated-utc` (`00:00` where no time was recorded), replaced `status: open` with
+     `planned` (#1843), gave the first draft a `{issue-number}-...` branch instead of `null`, and
+     dropped its `related-artifacts` entry `tests/stats.rs`, deleted in `8151e920c` (2026-07-29).
+4. Checked the result (stable Rust toolchain): `frontmatter-validator --skill-layout` exited `0`
+   with no record; `linter lychee` exited `0`; `--all` reported only the 15 legacy-shape errors it
+   reported before; the tests of `frontmatter-validator`, `agent-review-report-contract`,
+   `github-review-threads` and `wait-for-pr-review`, and
+   `python3 -m unittest discover -s .claude/skills/process-pr-review/scripts`, passed;
+   `bash .claude/skills/run-tracker-locally/scripts/validate-skill-links.sh` printed
+   `Skill links validation passed`.
+
+#### Observed Result
+
+`linter lychee` (`torrust-linting` 0.2.0) passes `lychee` the globs `**/*.md` and
+`.github/**/*.md`; the first skips hidden folders. So the skills were link-checked under
+`.github/skills/`, and after the move they are not: a broken link appended to
+`.claude/skills/fix-bug/SKILL.md` was not reported, while one appended to
+`.github/workflows/AGENTS.md` was. Closing that gap needs a change in `torrust-linting`; it is
+recorded under Failures and Follow-up. Meanwhile a separate check resolved every relative
+Markdown link outside code fences in the tracked Markdown under `.claude/skills/` and `.github/`:
+115 links, none broken.
+
+Historical records keep their plain-text paths and frontmatter; their Markdown links were
+rewritten, because `lychee` checks them (only `docs/issues/closed/` is excluded). The literal
+rewrite skipped `docs/issues/closed/`, `docs/pr-reviews/pr-*`, `docs/copilot-pr-reviews/pr-*`,
+the closed refactor plans, `docs/discussions/`, the runner reports, and the
+`.github/agents/*.agent.md` profiles (out of scope).
+
+#### The Rewrite Script
+
+<details>
+<summary><code>rewrite_skill_paths.py</code> (one-off, not kept in the tree)</summary>
+
+```python
+"""Rewrite references to the moved skills (issue #2866, T3).
+
+Run from the repository root after `git mv` of every skill folder is staged.
+
+1. Markdown link targets: in every tracked Markdown file the link checker checks (all but
+   docs/issues/closed/ and docs/external-snapshots/), each relative link is resolved against the
+   file's OLD location, the target is mapped to its NEW location, and the link is recomputed from
+   the file's NEW location. This fixes depth changes inside moved skills and links into skills.
+2. Literal paths: in live files only, `.github/skills/<old skill dir>` becomes
+   `.claude/skills/<name>`.
+
+Prints every change as `file<TAB>kind<TAB>old<TAB>new` on stdout; unresolved targets under the old
+folder go to stderr.
+"""
+
+import os
+import re
+import subprocess
+import sys
+
+OLD_ROOT = ".github/skills"
+LINK_EXCLUDED = ("docs/issues/closed/", "docs/external-snapshots/")
+HISTORICAL = (
+    "docs/issues/closed/",
+    "docs/pr-reviews/pr-",
+    "docs/copilot-pr-reviews/pr-",
+    "docs/refactor-plans/closed/2",
+    "docs/refactor-plans/closed/agent-docs-refactor-plan/",
+    "docs/discussions/",
+    "docs/self-hosted-runner-reports/2",
+    "docs/external-snapshots/",
+)
+OUT_OF_SCOPE = re.compile(r"^\.github/agents/.*\.agent\.md$")
+
+
+def git(*args):
+    return subprocess.run(["git", *args], check=True, capture_output=True, text=True).stdout
+
+
+def renames():
+    files = {}
+    for line in git("diff", "--cached", "-M", "--name-status").splitlines():
+        parts = line.split("\t")
+        if parts[0].startswith("R") and parts[1].startswith(OLD_ROOT + "/"):
+            files[parts[1]] = parts[2]
+    return files
+
+
+FILES = renames()
+DIRS = {}
+for old, new in FILES.items():
+    if old.endswith("/SKILL.md"):
+        DIRS[os.path.dirname(old)] = os.path.dirname(new)
+NEW_TO_OLD = {new: old for old, new in FILES.items()}
+
+
+def new_of(old_path):
+    """The new repository path of an old path, or the path itself when it did not move."""
+    if old_path in FILES:
+        return FILES[old_path]
+    for old_dir, new_dir in DIRS.items():
+        if old_path == old_dir:
+            return new_dir
+        if old_path.startswith(old_dir + "/"):
+            return new_dir + old_path[len(old_dir):]
+    if old_path == OLD_ROOT or old_path.startswith(OLD_ROOT + "/"):
+        return None
+    return old_path
+
+
+LINK = re.compile(r"(\]\()(<?)([^)\s>]+)(>?)((?:\s+\"[^\"]*\")?\))|^(\[[^\]]+\]:\s+)(\S+)", re.M)
+
+
+def rewrite_target(target, old_file, new_file, report):
+    if re.match(r"^[a-z][a-z0-9+.-]*:", target, re.I) or target.startswith(("#", "/")):
+        return target
+    path, sep, fragment = target.partition("#")
+    if not path:
+        return target
+    old_target = os.path.normpath(os.path.join(os.path.dirname(old_file), path))
+    new_target = new_of(old_target)
+    if new_target is None:
+        report.append((new_file, target))
+        return target
+    if new_target == old_target and old_file == new_file:
+        return target
+    relative = os.path.relpath(new_target, os.path.dirname(new_file) or ".")
+    if path.endswith("/") and not relative.endswith("/"):
+        relative += "/"
+    if os.path.normpath(os.path.join(os.path.dirname(new_file), path)) == new_target:
+        return target  # still correct, keep the author's spelling
+    return relative + sep + fragment
+
+
+def main():
+    tracked = git("ls-files").splitlines()
+    literal = sorted(DIRS.items(), key=lambda item: -len(item[0]))
+    unresolved = []
+    for new_file in tracked:
+        if not os.path.isfile(new_file):
+            continue
+        old_file = NEW_TO_OLD.get(new_file, new_file)
+        try:
+            text = open(new_file, encoding="utf-8").read()
+        except UnicodeDecodeError:
+            continue
+        original = text
+        if new_file.endswith(".md") and not new_file.startswith(LINK_EXCLUDED):
+            def replace(match):
+                if match.group(1):
+                    target = match.group(3)
+                    new = rewrite_target(target, old_file, new_file, unresolved)
+                    if new != target:
+                        print(f"{new_file}\tlink\t{target}\t{new}")
+                    return match.group(1) + match.group(2) + new + match.group(4) + match.group(5)
+                target = match.group(7)
+                new = rewrite_target(target, old_file, new_file, unresolved)
+                if new != target:
+                    print(f"{new_file}\tlink\t{target}\t{new}")
+                return match.group(6) + new
+            text = LINK.sub(replace, text)
+        live = not new_file.startswith(HISTORICAL) and not OUT_OF_SCOPE.match(new_file)
+        if live:
+            for old_dir, new_dir in literal:
+                if old_dir in text:
+                    count = len(re.findall(re.escape(old_dir) + r"(?![\w-])", text))
+                    text = re.sub(re.escape(old_dir) + r"(?![\w-])", new_dir, text)
+                    if count:
+                        print(f"{new_file}\tliteral\t{old_dir}\t{new_dir}\t{count}")
+        if text != original:
+            open(new_file, "w", encoding="utf-8").write(text)
+    for file, target in unresolved:
+        print(f"UNRESOLVED\t{file}\t{target}", file=sys.stderr)
+
+
+main()
+```
+
+</details>
+
+### T6 - Validator rule increments and their test-design reviews
+
+Each increment was run with `cargo test -p frontmatter-validator` and
+`cargo clippy -p frontmatter-validator --all-targets -- -D warnings` (stable Rust toolchain), then
+mutated, reviewed and committed before the next started.
+
+#### Increment 1 - The stub inventory
+
+- Rules: an inventoried old `SKILL.md` path is exempt from the placement rule; an inventoried path
+  with no stub is `missing-redirect-stub`; any other file under `.github/skills/` except the
+  inventory is `stray-redirect-file` (a `SKILL.md` there stays `misplaced-skill`). The binary
+  reads the inventory from the index.
+- After the increment, `frontmatter-validator --skill-layout` on the branch exited `0` with no
+  record: the 53 stubs are inventoried.
+- Mutations, each restored afterwards:
+
+  | Mutation                                         | Failing tests                                                                                     |
+  | ------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
+  | No exemption for inventoried paths               | `..._accept_an_inventoried_redirect_stub...`, `..._no_redirect_stub`, `..._does_not_list`          |
+  | Never report a missing stub                      | `..._whose_redirect_stub_was_deleted`                                                              |
+  | Never report a stray file                        | `..._that_is_no_redirect_stub`                                                                     |
+  | The binary reads the inventory from the working tree | `it_should_read_the_stub_inventory_from_the_index_with_skill_layout` (`tests/cli.rs`)          |
+
+  A first version of the third mutation left `stray_redirect_file` unused, which the workspace
+  lints reject; it ran no test, so it was replaced by one that compiles.
+- Test-design review: each unit test varies one thing against the same accepted state (one stub,
+  inventoried): the stub is deleted, a skill the inventory does not list is added, or a non-stub
+  file is added. The Act is `layout_findings` itself; the expected `(path, category)` pairs are
+  written in each test. Temporary Arrange, Act and Assert comments added nothing the variable
+  names and the blank lines did not already say, so they were removed. The helpers `inventory`
+  and `layout` hold only incidental mechanics: rendering the inventory table, and reducing
+  findings to their path and category. The command-boundary test owns only where the inventory
+  is read from; its one causal difference is the working-tree inventory that differs from the
+  staged one.
+
+#### Increment 2 - The stub contents
+
+- Rules: a stub whose inventory row does not say `removed` has no frontmatter and exactly one
+  link, which resolves to `.claude/skills/<current name>/SKILL.md`, and that file exists;
+  otherwise `invalid-redirect-stub`. A stub of a removed skill is not checked. The binary reads
+  the stubs from the index too.
+- After the increment, `frontmatter-validator --skill-layout` on the branch exited `0` with no
+  record.
+- Mutations, each restored afterwards:
+
+  | Mutation                                   | Failing tests                                                  |
+  | ------------------------------------------ | -------------------------------------------------------------- |
+  | Accept frontmatter                         | `..._does_not_lead_to_its_skill::case_1_frontmatter`           |
+  | Accept any number of links                 | `::case_2_no_link`, `::case_3_two_links`                       |
+  | Do not check that the skill exists         | `..._whose_skill_was_deleted`                                  |
+  | Do not check where the link points         | `::case_4_link_to_another_skill`                               |
+  | Check a stub of a removed skill            | `..._of_a_removed_skill_without_a_link`                        |
+
+  Three first attempts left a variable or function unused, which the workspace lints reject;
+  they ran no test and were replaced by mutations that compile.
+- Test-design review: the increment-1 tests used two helpers that rebuilt the whole snapshot in
+  each test. Once stub texts mattered, that hid the one difference under repeated setup, so the
+  fixture became `Snapshot::accepted()` (one moved skill, its stub, its inventory row), and each
+  test changes it once with `with` or `without`: the causal difference is the only line of the
+  test's Arrange. The renamed and removed cases change three things because the rename or
+  removal is those three edits together (the skill folder, the stub, the inventory row); the
+  test names say so. The expected findings are written in each test with `only(path,
+  category)`. The fixture owns only incidental mechanics: the stub's wording and the inventory
+  table's layout.
+
+#### Increment 3 - The skill name
+
+- Rule: the frontmatter `name` of `.claude/skills/<folder>/SKILL.md` equals `<folder>`; a
+  different, missing, or unreadable `name` is `skill-name-mismatch`. Claude Code lists a skill by
+  this name, and a stub's link and the index rows rely on it matching the folder.
+- After the increment, `frontmatter-validator --skill-layout` on the branch exited `0`: all 53
+  names match their folders.
+- Mutations, each restored afterwards: accepting a missing `name` failed `::case_2_no_name` and
+  `::case_3_no_frontmatter`; accepting a different `name` failed `::case_1_another_name`.
+- Test-design review: the accepted snapshot's skill now has a real frontmatter, written by the
+  `skill(name)` helper, so the earlier tests stay accepted for the reason they claim. The new
+  test replaces only the skill's text; its three cases name the one difference each. The
+  command-boundary fixture gained a `name` for the same reason; what it observes did not change.
+
+#### Increment 4 - The index
+
+- Rule: the table rows of `.claude/skills/README.md` link every skill folder exactly once, as
+  `<name>/SKILL.md`, and link no missing skill; otherwise `skill-index-mismatch`, reported on
+  the index. A missing index is a finding only when a skill exists. Links outside table rows do
+  not count: the first run on the branch reported `add-new-skill` twice, because the index's
+  introduction links it too.
+- The rules now read a file's text only when the file is in the snapshot, so the binary no longer
+  guards that itself.
+- After the increment, `frontmatter-validator --skill-layout` on the branch exited `0` with no
+  record.
+- Mutations, each restored afterwards:
+
+  | Mutation                               | Failing tests                                                                         |
+  | -------------------------------------- | ------------------------------------------------------------------------------------- |
+  | Never report an unlisted skill         | `..._exactly_once::case_1_unlisted_skill`                                             |
+  | Never report a repeated row            | `..._exactly_once::case_2_listed_twice`                                               |
+  | Never report a listed missing skill    | `::case_3_listed_but_missing`, `..._index_row_of_a_deleted_skill`                     |
+  | Count links outside table rows         | `it_should_count_only_the_index_table_rows`                                           |
+  | Read the text of a file not in the snapshot | `it_should_report_a_missing_index`                                               |
+
+- Test-design review: the accepted snapshot gained the index that lists its skill, so every
+  earlier test stays accepted for its own reason. Deleting a skill now yields two findings, its
+  stub and its index row; the test was renamed to say so, and it is the behavior scenario M5
+  expects. The rename and removal tests update the index too, because a rename or removal
+  includes that edit. The index test's cases each change one thing: an extra skill, a repeated
+  row, or a row for a missing skill. The no-skill test calls `layout_findings` directly with no
+  fixture, because the accepted snapshot has a skill by design.
+
+#### Wiring
+
+`--skill-layout` runs as step 4 of `contrib/dev-tools/git/hooks/pre-commit.sh`, after the staged
+frontmatter check, and as the step `Check Agent Skill Layout` of the Docs Lint workflow, which
+runs on every push and pull request, documentation-only ones included. The
+`run-pre-commit-checks` skill lists the new step. Green run on the branch, 2026-11-16 08:24 UTC, as the hook step of the wiring commit,
+stable Rust toolchain: `cargo run -q -p frontmatter-validator --bin frontmatter-validator --
+--skill-layout` exited `0` and wrote no record (the red run is under T2).
+
+### T9 - Final sweep and automatic checks
+
+- Artifact under test: branch `2866-move-skills-to-claude-skills` at its commit
+  `docs(adrs): [#2866] record the move of the skills to .claude/skills` (T8, the head before
+  T9), 2026-11-16 15:42 UTC.
+- Status: `DONE`
+
+#### Sweep
+
+`git grep -l -F '.github/skills'` found 552 files and `git grep -l -F 'skills/dev/'` 530. Outside
+`docs/issues/closed/`, `docs/pr-reviews/`, `docs/refactor-plans/closed/` and the stubs under
+`.github/skills/`, the hits are:
+
+- Text about the move itself: the skills index, `add-new-skill`, `run-pre-commit-checks`, the
+  Docs Lint workflow comment, the `frontmatter-validator` sources, tests and README, the three
+  ADRs, and this issue's spec and evidence.
+- Agent profiles out of scope: `committer`, `github-operator`, `implementer`, `pr-reviewer` and
+  `task-reviewer` under `.github/agents/`. They name old paths as code spans, which the stubs
+  resolve.
+- Dated records: `docs/copilot-pr-reviews/pr-2241-copilot-suggestions.md`, two discussion
+  records under `docs/discussions/`, the memory snapshot
+  `docs/issues/drafts/2003-mine-ai-agent-memories/github-copilot-memory-snapshot.md`, the EPIC
+  #2003 initial inventory, and the 2026-09-18 external link-check record of issue #2264.
+
+No live reference to an old path remains.
+
+After this sweep, `develop` at `3134dea62` was merged into the branch. The same search on the
+merged tree found two new live files that named old paths: the #2867 spec and the
+`peer-id-test-helper` draft. Both now name `.claude/skills/<name>/`. The new #2873 spec names
+`.github/skills` as the stub folder, and its evidence records the old paths it measured; both
+stay. New PR review audits on `develop` are records and keep their old paths. The merge and the
+fix commit passed the pre-commit gate, which runs `linter all` and `--skill-layout`.
+
+#### Automatic Checks
+
+All ran in the worktree at that commit, stable Rust toolchain, each exiting `0`:
+
+- `linter all`: "All linters passed".
+- `cargo test -p frontmatter-validator -p agent-review-report-contract -p github-review-threads
+  -p wait-for-pr-review`: every test result `ok`, no failure.
+- `python3 -m unittest discover -s .claude/skills/process-pr-review/scripts`: 9 tests, `OK`.
+- `cargo run -q -p frontmatter-validator --bin frontmatter-validator -- --skill-layout`: no
+  record.
+
+The pre-commit and pre-push checks run again on the T9 commit and its push.
+
+### V1 - Claude Code discovers the skills (M1)
+
+- Goal: show that a fresh session at the repository root lists every repository skill.
+- Initial state: `git clone --branch 2866-move-skills-to-claude-skills --single-branch` of the
+  worktree into a scratch folder, at the T8 commit named in T9, clean tree; 53 `SKILL.md` files under
+  `.claude/skills/` and 53 stubs under `.github/skills/`. Claude Code 2.1.318.
+- Status: `DONE` (outcome: **Fixed**)
+
+#### Steps Performed
+
+At the clone's root, 15:42:40 to 15:42:43 UTC: `claude -p "/context" > m1-context.md`, the same
+command as V0.
+
+#### Observed Result
+
+The category table, verbatim:
+
+```text
+| Category | Tokens | Percentage |
+|----------|--------|------------|
+| System prompt | 2.6k | 0.3% |
+| System tools | 13.1k | 1.3% |
+| MCP tools | 559 | 0.1% |
+| MCP server instructions | 1.6k | 0.2% |
+| MCP tools (deferred) | 13.1k | 1.3% |
+| System tools (deferred) | 22.7k | 2.3% |
+| Memory files | 5k | 0.5% |
+| Skills | 9.9k | 1.0% |
+| Messages | 10 | 0.0% |
+| Free space | 934.2k | 93.4% |
+| Autocompact buffer | 33k | 3.3% |
+```
+
+The Skills table has 53 rows with source `Project` (V0: 0), next to the same 26 `Built-in` and
+`claude.ai sync` rows as V0. The Project skill names, sorted, equal the folder names under
+`.claude/skills/` (`diff` of the two lists printed nothing), so no stub is listed. The Skills
+total grew from 4.6k to 9.9k tokens, which reaches the 1% listing budget; issue #2873 shortens
+the descriptions.
+
+### V2 - A skill runs by name (M2)
+
+- Goal: show that `/create-issue` runs as a command.
+- Initial state: the clone of V1.
+- Status: `DONE` (outcome: **Fixed**)
+
+#### Steps Performed
+
+At the clone's root, 15:42:43 to 15:42:52 UTC: `claude -p "/create-issue" > m2-create-issue.txt`,
+the same command as V0.
+
+#### Observed Result
+
+The first sentences of the reply:
+
+```text
+`/create-issue` came through without a description, so I don't know what the issue is about. I haven't drafted or created anything.
+
+The skill is spec-first. I draft a folder-style `ISSUE.md` or `EPIC.md` in `docs/issues/drafts/`, you review it, and only then do I create the GitHub issue.
+```
+
+The reply treats `/create-issue` as an invoked command and follows the skill's workflow; it then
+lists the inputs the skill asks for. In V0 the model said the command did not run and found the
+skill file at `.github/skills/dev/planning/create-issue/SKILL.md` by reading the repository. This
+shows the skill ran; the output does not print the path Claude Code loaded it from, which is the
+only skill of that name V1 lists.
+
+### V3 - The moved scripts and tool run (M3)
+
+- Status: `DONE`
+
+From the worktree root, 2026-11-16 15:43 UTC:
+
+1. `python3 .claude/skills/process-pr-review/scripts/validate-audit-record.py --pr-number 2869
+   --base torrust/develop`, on the merged audit record of the spec PR, printed
+   `{"status": "ok", "rows": 13, "log_entries": 11, "failures": 0}` and exited `0`.
+2. `bash .claude/skills/run-tracker-locally/scripts/validate-skill-links.sh` printed
+   `Skill links validation passed` and exited `0`.
+3. `cargo run -q -p wait-for-pr-review -- --help` printed its help record and exited `0`.
+
+### V4 - An old link still leads somewhere (M4)
+
+- Status: `DONE`
+
+The closed spec `docs/issues/closed/1750-refactor-run-tracker-skill-semantic-coupling/ISSUE.md`
+links `../../../../.github/skills/dev/environment-setup/run-tracker-locally/SKILL.md`. On the
+branch that path resolves to the stub:
+
+```text
+# Moved: `run-tracker-locally`
+
+This skill moved to [`.claude/skills/run-tracker-locally/SKILL.md`](../../../../../.claude/skills/run-tracker-locally/SKILL.md) in issue #2866.
+```
+
+Its link resolves to `.claude/skills/run-tracker-locally/SKILL.md`, which starts with the
+frontmatter `name: run-tracker-locally`.
+
+### V5 - The validator catches drift (M5)
+
+- Status: `DONE`
+
+In the scratch clone of V1, with the binary built from the T8 commit named in T9. Each change was staged with
+`git rm` rather than committed: `--skill-layout` reads the git index, so a staged deletion is
+what the commit would contain. `git reset --hard` restored the clone after each run.
+
+1. Baseline: no record, exit `0`.
+2. `git rm -r .claude/skills/create-adr`: exit `1` with two errors, `skill-index-mismatch` on
+   `.claude/skills/README.md` ("The index lists `create-adr`, which is no skill under
+   `.claude/skills/`.") and `invalid-redirect-stub` on
+   `.github/skills/dev/planning/create-adr/SKILL.md` ("This redirect stub must link to
+   `.claude/skills/create-adr/SKILL.md`, an existing skill.").
+3. `git rm .github/skills/dev/planning/create-adr/SKILL.md` alone: exit `1` with one error,
+   `missing-redirect-stub` on that path ("`.github/skills/README.md` inventories this path, but it
+   has no redirect stub.").
+
 ## Failures and Follow-up
 
-None.
+- `linter lychee` does not check `.claude/**/*.md` (T3): `torrust-linting` passes only
+  `**/*.md` and `.github/**/*.md`. Follow-up: add `.claude/**/*.md` there, then confirm a broken
+  link in a skill fails `linter lychee`.

@@ -4,7 +4,7 @@ last-updated-utc: "2026-09-28 11:48"
 semantic-links:
   related-artifacts:
     - docs/issues/open/2347-2003-triage-post-merge-review-findings/ISSUE.md
-    - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
+    - .claude/skills/process-pr-review/SKILL.md
 ---
 
 # Issue #2347 - T2 Triage of Post-Merge Review Findings

@@ -4,8 +4,8 @@ semantic-links:
     - create-adr
     - add-workspace-member
   related-artifacts:
-    - .github/skills/dev/planning/create-adr/SKILL.md
-    - .github/skills/dev/maintenance/add-workspace-member/SKILL.md
+    - .claude/skills/create-adr/SKILL.md
+    - .claude/skills/add-workspace-member/SKILL.md
     - Containerfile
     - .dockerignore
     - Cargo.toml

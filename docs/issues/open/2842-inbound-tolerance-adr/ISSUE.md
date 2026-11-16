@@ -15,8 +15,8 @@ semantic-links:
     - create-issue
     - create-adr
   related-artifacts:
-    - .github/skills/dev/planning/create-issue/SKILL.md
-    - .github/skills/dev/planning/create-adr/SKILL.md
+    - .claude/skills/create-issue/SKILL.md
+    - .claude/skills/create-adr/SKILL.md
     - docs/adrs/20261111170611_reject_malformed_inbound_protocol_values_unless_clients_need_tolerance.md
 ---
 

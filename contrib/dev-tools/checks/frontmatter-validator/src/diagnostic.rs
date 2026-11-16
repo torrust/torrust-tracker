@@ -40,6 +40,18 @@ pub enum DiagnosticCategory {
     MissingArtifact,
     /// A skill link names no repository skill.
     UnknownSkill,
+    /// A `SKILL.md` is not at `.claude/skills/<name>/SKILL.md`, where Claude Code discovers it.
+    MisplacedSkill,
+    /// A path the redirect stub inventory lists has no stub.
+    MissingRedirectStub,
+    /// A file under `.github/skills/` is neither an inventoried redirect stub nor the inventory.
+    StrayRedirectFile,
+    /// A redirect stub has frontmatter, or does not hold exactly one link to its skill.
+    InvalidRedirectStub,
+    /// A skill's `name` is not its folder name.
+    SkillNameMismatch,
+    /// The skills index does not list every skill folder exactly once, or lists a missing skill.
+    SkillIndexMismatch,
 }
 
 /// Whether a diagnostic fails validation or is advisory.
@@ -115,6 +127,12 @@ mod tests {
             DiagnosticCategory::SpecPathMismatch => "spec-path-mismatch",
             DiagnosticCategory::MissingArtifact => "missing-artifact",
             DiagnosticCategory::UnknownSkill => "unknown-skill",
+            DiagnosticCategory::MisplacedSkill => "misplaced-skill",
+            DiagnosticCategory::MissingRedirectStub => "missing-redirect-stub",
+            DiagnosticCategory::StrayRedirectFile => "stray-redirect-file",
+            DiagnosticCategory::InvalidRedirectStub => "invalid-redirect-stub",
+            DiagnosticCategory::SkillNameMismatch => "skill-name-mismatch",
+            DiagnosticCategory::SkillIndexMismatch => "skill-index-mismatch",
         }
     }
 
@@ -135,6 +153,12 @@ mod tests {
     #[case::spec_path_mismatch(DiagnosticCategory::SpecPathMismatch)]
     #[case::missing_artifact(DiagnosticCategory::MissingArtifact)]
     #[case::unknown_skill(DiagnosticCategory::UnknownSkill)]
+    #[case::misplaced_skill(DiagnosticCategory::MisplacedSkill)]
+    #[case::missing_redirect_stub(DiagnosticCategory::MissingRedirectStub)]
+    #[case::stray_redirect_file(DiagnosticCategory::StrayRedirectFile)]
+    #[case::invalid_redirect_stub(DiagnosticCategory::InvalidRedirectStub)]
+    #[case::skill_name_mismatch(DiagnosticCategory::SkillNameMismatch)]
+    #[case::skill_index_mismatch(DiagnosticCategory::SkillIndexMismatch)]
     fn it_should_serialize_each_category_as_its_stable_kebab_case_name(#[case] category: DiagnosticCategory) {
         // Act: serialize the category as the command will.
         let actual = serde_json::to_value(category).unwrap();

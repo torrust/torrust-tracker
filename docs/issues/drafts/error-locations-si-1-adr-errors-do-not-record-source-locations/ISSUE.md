@@ -14,12 +14,12 @@ semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - .github/skills/dev/debugging/fix-bug/SKILL.md
-    - .github/skills/dev/planning/create-issue/SKILL.md
+    - .claude/skills/fix-bug/SKILL.md
+    - .claude/skills/create-issue/SKILL.md
     - docs/issues/drafts/remove-source-locations-from-errors/EPIC.md
     - docs/issues/open/2804-location-caller-track-caller-audit/inventory.md
-    - .github/skills/dev/rust-code-quality/handle-errors-in-code/SKILL.md
-    - .github/skills/dev/planning/create-adr/SKILL.md
+    - .claude/skills/handle-errors-in-code/SKILL.md
+    - .claude/skills/create-adr/SKILL.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -71,7 +71,7 @@ No ADR covers located errors.
   5. Developer diagnostics go to `tracing` events at the site, which record file and line on the
      server only.
   6. `#[track_caller]` stays allowed in test helpers and assertion helpers.
-- Update `.github/skills/dev/rust-code-quality/handle-errors-in-code/SKILL.md`: remove the
+- Update `.claude/skills/handle-errors-in-code/SKILL.md`: remove the
   `located-error` section and checklist item, add the rule and a link to the ADR.
 - Add the ADR to `docs/adrs/index.md`.
 

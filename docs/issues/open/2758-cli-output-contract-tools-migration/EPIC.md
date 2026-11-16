@@ -11,7 +11,7 @@ semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - .github/skills/dev/planning/create-issue/SKILL.md
+    - .claude/skills/create-issue/SKILL.md
     - docs/adrs/20260519000000_define_global_cli_output_contract.md
     - docs/adrs/20261106102632_scope_the_cli_output_contract_and_keep_exit_codes_to_zero_one_two.md
     - docs/issues/drafts/cli-output-contract-migration/ISSUE.md
@@ -57,7 +57,7 @@ Checked against `develop` at `35ec81000`.
 | `frontmatter-schema` | not listed | Plain-text diagnostics on stderr; not in the table. |
 | `workspace-coupling` | not listed | NDJSON on stderr already; not in the table; needs a class and a check of where its report goes. |
 | `clippy-allow-reasons`, `frontmatter-validator`, `shipped-features-check`, `ci-gate`, `wait-for-pr-review` | listed | Consistent. |
-| Shell and Python scripts under `contrib/dev-tools/` and `.github/skills/` | not listed | Several are called by CI or agents and write plain text (for example `reply-to-thread.sh`). Not audited yet. |
+| Shell and Python scripts under `contrib/dev-tools/` and `.claude/skills/` | not listed | Several are called by CI or agents and write plain text (for example `reply-to-thread.sh`). Not audited yet. |
 
 ## Maintainer Decisions (2026-11-06)
 
@@ -93,7 +93,7 @@ parallel; the maintainer sets how many sessions run at once.
 | Order | Issue | Local Spec | Status | Files it touches / notes |
 | ----- | ----- | ---------- | ------ | ------------------------ |
 | 1 | #2760 - Align the ADR binary table with the audit | `docs/issues/closed/2760-2758-adr-binary-table/ISSUE.md` | DONE | Wave 0, docs only: `docs/adrs/20260519000000_define_global_cli_output_contract.md`. Must land first; no other issue edits it. |
-| 2 | #2761 - `github-review-threads reply-status`: a missing reply is a result | `docs/issues/closed/2761-2758-reply-status-result/ISSUE.md` | DONE | Implemented in PR #2775. Wave 1: `contrib/dev-tools/github/github-review-threads/**`, `.github/skills/dev/pr-reviews/resolve-review-threads/SKILL.md`, `.github/skills/dev/pr-reviews/fetch-review-threads/SKILL.md` |
+| 2 | #2761 - `github-review-threads reply-status`: a missing reply is a result | `docs/issues/closed/2761-2758-reply-status-result/ISSUE.md` | DONE | Implemented in PR #2775. Wave 1: `contrib/dev-tools/github/github-review-threads/**`, `.claude/skills/resolve-review-threads/SKILL.md`, `.claude/skills/fetch-review-threads/SKILL.md` |
 | 3 | #2762 - `package-coverage-check`: NDJSON errors, usage exit 2, TTY refusal, JSON `summary` | `docs/issues/closed/2762-2758-package-coverage-check-contract/ISSUE.md` | DONE | Implemented in PR #2810. Wave 1: `contrib/dev-tools/checks/package-coverage-check/**`, `.github/workflows/generate_coverage_pr.yaml` |
 | 4 | #2763 - Make `agent-review-report-contract` and `frontmatter-schema` emit NDJSON; classify `workspace-coupling` | `docs/issues/open/2763-2758-dev-tool-checks-ndjson/ISSUE.md` | TODO | Wave 1: `contrib/dev-tools/checks/agent-review-report-contract/**`, `contrib/dev-tools/checks/frontmatter-validator/src/bin/frontmatter-schema.rs`, `contrib/dev-tools/analysis/workspace-coupling/**` |
 | 5 | #2764 - `http_health_check`: NDJSON diagnostics, usage exit 2 | `docs/issues/open/2764-2758-http-health-check-no-stdout/ISSUE.md` | TODO | Wave 1: `src/bin/http_health_check.rs` and its tests; verify `Containerfile` `HEALTHCHECK` |

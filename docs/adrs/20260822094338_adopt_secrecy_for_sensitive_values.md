@@ -4,7 +4,7 @@ semantic-links:
     - create-adr
     - handle-secrets
   related-artifacts:
-    - .github/skills/dev/rust-code-quality/handle-secrets/SKILL.md
+    - .claude/skills/handle-secrets/SKILL.md
     - packages/configuration/src/lib.rs
     - docs/issues/closed/2079-adopt-secrecy-for-sensitive-configuration/ISSUE.md
 ---
@@ -90,7 +90,7 @@ a documented compatibility or security reason.
 
 - [`AccessTokens`](../../packages/configuration/src/lib.rs) defines the shared
   configuration credential type.
-- The [secret-handling skill](../../.github/skills/dev/rust-code-quality/handle-secrets/SKILL.md)
+- The [secret-handling skill](../../.claude/skills/handle-secrets/SKILL.md)
   provides implementation and review guidance.
 - [Issue #2079](../issues/closed/2079-adopt-secrecy-for-sensitive-configuration/ISSUE.md)
   applies this decision first to API tokens.

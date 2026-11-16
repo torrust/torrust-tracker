@@ -52,6 +52,7 @@ declare -a STEPS=(
     "Formatting project dictionary|./contrib/dev-tools/checks/format-project-words.sh"
     "Checking documented Clippy allows|cargo run --quiet --package clippy-allow-reasons -- --staged"
     "Checking staged Markdown frontmatter|cargo run --quiet --package frontmatter-validator --bin frontmatter-validator -- --staged"
+    "Checking the agent skill layout|cargo run --quiet --package frontmatter-validator --bin frontmatter-validator -- --skill-layout"
     "Checking for unused dependencies (cargo machete --with-metadata)|cargo machete --with-metadata"
     "Checking workspace layer boundary bans (cargo deny check bans)|cargo deny check bans"
     "Checking nightly Rust formatting|cargo +nightly fmt --all -- --check"

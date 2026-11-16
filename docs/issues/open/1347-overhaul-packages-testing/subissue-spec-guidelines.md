@@ -9,8 +9,8 @@ semantic-links:
     - write-unit-test
   related-artifacts:
     - docs/issues/open/1347-overhaul-packages-testing/EPIC.md
-    - .github/skills/dev/planning/create-issue/SKILL.md
-    - .github/skills/dev/testing/write-unit-test/SKILL.md
+    - .claude/skills/create-issue/SKILL.md
+    - .claude/skills/write-unit-test/SKILL.md
     - docs/testing/refactoring-patterns/README.md
 ---
 
@@ -119,7 +119,7 @@ Two rework cycles came from interpretable terms. The spec must state up front:
 Issue #2149's branch amended seven skill/pattern/agent files across ten commits. The insights were
 valuable; the vehicle was wrong — it grew the review surface mid-review. New process or
 test-design insights go to an issue-local `lessons.md`; promoting them into
-`.github/skills/` or `docs/testing/` is a separate small PR after the subissue merges.
+`.claude/skills/` or `docs/testing/` is a separate small PR after the subissue merges.
 
 ### 7. Reconciliation task before final verification
 

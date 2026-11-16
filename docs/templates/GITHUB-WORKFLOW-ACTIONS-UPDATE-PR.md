@@ -3,14 +3,14 @@ semantic-links:
   skill-links:
     - update-github-workflow-actions
   related-artifacts:
-    - .github/skills/dev/maintenance/update-github-workflow-actions/SKILL.md
+    - .claude/skills/update-github-workflow-actions/SKILL.md
 ---
 
 <!-- skill-link: update-github-workflow-actions -->
 
 # GitHub Workflow Actions Update Pull Request
 
-> Use this template only for the GitHub PR body of a GitHub Actions workflow update. Keep the update, organization-policy, validation, commit, and push process in the [`update-github-workflow-actions` skill](../../.github/skills/dev/maintenance/update-github-workflow-actions/SKILL.md). Do not commit a populated copy of this template.
+> Use this template only for the GitHub PR body of a GitHub Actions workflow update. Keep the update, organization-policy, validation, commit, and push process in the [`update-github-workflow-actions` skill](../../.claude/skills/update-github-workflow-actions/SKILL.md). Do not commit a populated copy of this template.
 
 ## Summary
 
@@ -19,7 +19,7 @@ semantic-links:
 ## Files/packages touched
 
 - `.github/workflows/{workflow files updated}`
-- `.github/skills/dev/maintenance/update-github-workflow-actions/SKILL.md` {if the process changed}
+- `.claude/skills/update-github-workflow-actions/SKILL.md` {if the process changed}
 
 ## Organization allowed-actions policy
 

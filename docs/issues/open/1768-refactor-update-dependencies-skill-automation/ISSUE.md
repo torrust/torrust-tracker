@@ -1,19 +1,21 @@
 ---
+schema-version: 1
 doc-type: issue
 issue-type: enhancement
 status: planned
 priority: p1
+epic: null
 github-issue: 1768
 spec-path: docs/issues/open/1768-refactor-update-dependencies-skill-automation/ISSUE.md
 branch: "1768-refactor-update-dependencies-skill-automation"
 related-pr: null
-last-updated-utc: 2026-09-11
+last-updated-utc: "2026-09-11 00:00"
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - .github/skills/dev/maintenance/update-dependencies/SKILL.md
-    - .github/skills/dev/maintenance/add-rust-dependency/SKILL.md
+    - .claude/skills/update-dependencies/SKILL.md
+    - .claude/skills/add-rust-dependency/SKILL.md
 ---
 
 # Issue #1768 - Refactor update-dependencies skill automation
@@ -24,7 +26,7 @@ Automate the update-dependencies workflow so branch creation, update execution, 
 
 ## Background
 
-The current update workflow in [.github/skills/dev/maintenance/update-dependencies/SKILL.md](../../../../.github/skills/dev/maintenance/update-dependencies/SKILL.md) is clear but mostly manual.
+The current update workflow in [.claude/skills/update-dependencies/SKILL.md](../../../../.claude/skills/update-dependencies/SKILL.md) is clear but mostly manual.
 
 Current pain points:
 
@@ -59,7 +61,7 @@ Automation policy constraint:
 
 ## Deep Analysis Summary
 
-Current workflow in [.github/skills/dev/maintenance/update-dependencies/SKILL.md](../../../../.github/skills/dev/maintenance/update-dependencies/SKILL.md):
+Current workflow in [.claude/skills/update-dependencies/SKILL.md](../../../../.claude/skills/update-dependencies/SKILL.md):
 
 - Branch creation is documented but not enforced.
 - `cargo update` output capture to `/tmp/cargo-update.txt` is documented, but downstream consumption is manual.
@@ -76,7 +78,7 @@ Risk:
 
 ### Task 1: Add script entrypoints for dependency updates
 
-- [ ] Add a script directory under the skill path (example: `.github/skills/dev/maintenance/update-dependencies/scripts/`).
+- [ ] Add a script directory under the skill path (example: `.claude/skills/update-dependencies/scripts/`).
 - [ ] Apply placement decision per script:
   - keep under the skill when only used by that skill
   - place in `contrib/dev-tools/` when useful as standalone dev tooling
@@ -178,7 +180,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 ## References
 
 - Agent Skills script usage: https://agentskills.io/skill-creation/using-scripts
-- Dependency update skill: [.github/skills/dev/maintenance/update-dependencies/SKILL.md](../../../../.github/skills/dev/maintenance/update-dependencies/SKILL.md)
-- Related dependency skill: [.github/skills/dev/maintenance/add-rust-dependency/SKILL.md](../../../../.github/skills/dev/maintenance/add-rust-dependency/SKILL.md)
+- Dependency update skill: [.claude/skills/update-dependencies/SKILL.md](../../../../.claude/skills/update-dependencies/SKILL.md)
+- Related dependency skill: [.claude/skills/add-rust-dependency/SKILL.md](../../../../.claude/skills/add-rust-dependency/SKILL.md)
 - GitHub issue: https://github.com/torrust/torrust-tracker/issues/1768
 - Related split issue spec: [docs/issues/closed/1769-refactor-pre-commit-checks-performance-and-verbosity/ISSUE.md](../../closed/1769-refactor-pre-commit-checks-performance-and-verbosity/ISSUE.md)

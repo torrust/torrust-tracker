@@ -3,14 +3,14 @@ semantic-links:
   skill-links:
     - update-dependencies
   related-artifacts:
-    - .github/skills/dev/maintenance/update-dependencies/SKILL.md
+    - .claude/skills/update-dependencies/SKILL.md
 ---
 
 <!-- skill-link: update-dependencies -->
 
 # Cargo Dependency Update Pull Request
 
-> Use this template only for the GitHub PR body of a Cargo dependency update. Keep the update, validation, commit, and push process in the [`update-dependencies` skill](../../.github/skills/dev/maintenance/update-dependencies/SKILL.md). Do not commit a populated copy of this template.
+> Use this template only for the GitHub PR body of a Cargo dependency update. Keep the update, validation, commit, and push process in the [`update-dependencies` skill](../../.claude/skills/update-dependencies/SKILL.md). Do not commit a populated copy of this template.
 
 ## Summary
 
