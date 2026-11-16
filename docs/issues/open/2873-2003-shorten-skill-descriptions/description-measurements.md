@@ -48,7 +48,7 @@ at a comment (see `manual-verification-evidence.md`, V0).
 | Git workflow | `run-pre-commit-checks` | 356 | 130 | 128 |  |
 | Git workflow | `run-pre-push-checks` | 355 | 130 | 138 |  |
 | GitHub | `link-subissue-to-parent-issue` | 483 | 170 | 158 |  |
-| Logging | `structured-runtime-logging` | 204 | 80 |  |  |
+| Logging | `structured-runtime-logging` | 204 | 80 | 178 |  |
 | Maintenance | `add-rust-dependency` | 352 | 130 |  |  |
 | Maintenance | `add-workspace-member` | 265 | 100 |  |  |
 | Maintenance | `catalog-security-vulnerabilities` | 457 | 160 |  |  |
@@ -192,7 +192,7 @@ at a comment (see `manual-verification-evidence.md`, V0).
 #### `structured-runtime-logging`
 
 - Before (204): Use when adding or changing logs for runtime service identity, service startup, listener bindings, or tracing instrumentation. Prefer explicit structured tracing fields over Rust Debug-formatted metadata.
-- After: not yet rewritten
+- After (178): Write runtime logs with structured tracing fields, not Debug-formatted values. Use when adding or changing logs for service startup, listener bindings or tracing instrumentation.
 
 ### Maintenance
 

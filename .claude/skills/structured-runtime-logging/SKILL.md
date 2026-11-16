@@ -1,6 +1,6 @@
 ---
 name: structured-runtime-logging
-description: "Use when adding or changing logs for runtime service identity, service startup, listener bindings, or tracing instrumentation. Prefer explicit structured tracing fields over Rust Debug-formatted metadata."
+description: Write runtime logs with structured tracing fields, not Debug-formatted values. Use when adding or changing logs for service startup, listener bindings or tracing instrumentation.
 metadata:
   author: torrust
   version: "1.0"
