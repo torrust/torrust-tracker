@@ -1,7 +1,7 @@
 ---
 doc-type: issue-inventory
 issue-spec: docs/issues/open/2394-2392-audit-shared-test-resources/ISSUE.md
-last-updated-utc: "2026-11-16 17:02"
+last-updated-utc: "2026-11-16 22:06"
 ---
 
 # Inventory of Shared Test Resources (tasks T1 to T5)
@@ -10,7 +10,9 @@ Snapshot of `torrust/develop` at `b009b6425` (2026-11-16, after PR #2883). It co
 tests, test fixtures and test helpers of every workspace member, the two E2E runners in
 `src/console/ci/`, the three `compose.qbittorrent-e2e.*.yaml` files, the container test script in
 `contrib/dev-tools/containers/tests/`, the git hooks that run the test suite, and the CI workflow
-steps that run tests. Line numbers are those of this snapshot.
+steps that run tests. Line numbers are those of this snapshot. After the first review round the
+searches were rerun on the merge of `develop` at `da4d1a3cb`; the only new test resource is
+`tests/http_health_check.rs` (P5).
 
 ## Where Tests Run
 
@@ -19,8 +21,8 @@ The answer to "who else can use this resource" depends on where a test runs:
 | Runner | What runs there | Concurrency on one host |
 | --- | --- | --- |
 | Development machine | `cargo test` / `cargo nextest run`, the pre-push hook (`cargo test --workspace`), the E2E runners | Several agents or developers in several checkouts at once |
-| Self-hosted runner (`torrust-hetzner`) | `container.yaml` job `test` and `testing.yaml` job `docker-e2e`: image build, E2E runner, qBittorrent E2E runner, container test script | One runner instance per server today (#2386); several later |
-| GitHub-hosted runner (`ubuntu-latest`) | Every other job, including all `cargo test` jobs | One job per virtual machine (out of scope) |
+| Self-hosted runner (`torrust-hetzner`) | `container.yaml` job `test` and `testing.yaml` job `docker-e2e`: image build (its `Containerfile` `test` stage runs the whole Rust suite with `cargo nextest run`, line 231), E2E runner, qBittorrent E2E runner, container test script | One runner instance per server today (#2386); several later. Each `RUN` step of a BuildKit build has its own network namespace, because neither the `Containerfile` nor the workflows ask for `--network=host` |
+| GitHub-hosted runner (`ubuntu-latest`) | Every other job, including all `cargo test` jobs on the host | One job per virtual machine (out of scope) |
 
 `cargo test` runs the tests of one test binary as threads of one process; `cargo nextest run` runs
 each test in its own process. A process-global finding is only real under `cargo test`.
@@ -32,16 +34,16 @@ each test in its own process. A process-global finding is only real under `cargo
 - **Covered**: an existing subissue owns it.
 - **New problem**: needs a new subissue (drafted in T6).
 
-Summary, after the maintainer's answers to Q1 to Q3 (see [Maintainer Decisions](#maintainer-decisions)):
+Summary, after the maintainer's answers to Q1 to Q4 (see [Maintainer Decisions](#maintainer-decisions)):
 
 | Class | Isolated | Deliberate exception | Covered | New problem |
 | --- | --- | --- | --- | --- |
 | Network ports (P) | 8 | 1 | 2 | 1 |
-| Container resources (C) | 5 | 0 | 3 | 0 |
+| Container resources (C) | 5 | 0 | 3 | 1 |
 | Filesystem paths (F) | 6 | 0 | 0 | 1 |
 | Process-global state (G) | 7 | 0 | 0 | 0 |
 | External services (X) | 3 | 0 | 0 | 0 |
-| **Total (37)** | **29** | **1** | **5** | **2** |
+| **Total (38)** | **29** | **1** | **5** | **3** |
 
 ## T1 - Search Method
 
@@ -119,13 +121,13 @@ Covered only the rows #2393 owns and adds collisions between concurrent runs on 
 | ID | Location | Resource | Who else can use it | Disposition |
 | --- | --- | --- | --- | --- |
 | P1 | The 25 rows of #2393's per-test table (9 restored on `loopback_ipv4()`, 3 health-check contract tests rewritten, 4 other tests rewritten, 9 deleted) | Ports released and rebound or probed (the four racing shapes) | Concurrent tests in the run and in other runs | **Covered** by #2393 (DONE). The 9 restored tests bind port `0` on a random `127.a.b.c`, so another run's `127.0.0.1:0` bind does not block the rebind; the remaining chance of a `0.0.0.0` collision was measured by #2393 V6 (150 of 150 runs). |
-| P2 | `tests/metrics/fixed_ports.rs:46-58` (`metrics-fixed-ports`) | Fixed `0.0.0.0:17091`-`17094`, two TCP and two UDP | Not other tests in the run (one binary, one process). Another run of the same binary on the host: two agents running `cargo test` or the pre-push hook at once. Any other process on those ports. | **New problem** (Q1), draft D1. Outside the ephemeral range (rule 6) and the test contract needs fixed ports, but two concurrent runs on one machine collide with `AddrInUse`. |
+| P2 | `tests/metrics/fixed_ports.rs:46-58` (`metrics-fixed-ports`) | Fixed `0.0.0.0:17091`-`17094`, two TCP and two UDP | Not other tests in the run (one binary, one process). Another run of the same binary on the host network: two agents running `cargo test` or the pre-push hook at once. Any other process on those ports. Not the self-hosted image builds: their `test` stage runs this test in each build step's own network namespace. | **New problem** (Q1), draft D1. Outside the ephemeral range (rule 6) and the test contract needs fixed ports, but two concurrent runs on one machine collide with `AddrInUse`. |
 | P3 | `tests/configuration/cli_configuration/base_source_precedence.rs:12`, `per_value_overrides.rs:12` | Random ports from `10000..32768`, released before the tracker child binds them (`reserve_free_ports`, #2581) | A process that listens on that exact port in the window; another run that draws the same random port | **Deliberate exception.** The test must name distinct ports before the child starts. Documented in `tests/common/native_tracker/ports.rs` and kept by the EPIC decision of 2026-11-14 (no new port helper). |
 | P4 | `packages/test-helpers/src/configuration.rs` (`ephemeral*`), `tests/common/` fixtures (`127.0.0.1:0`, `127.0.0.2:0`), the `testing` environments of the server crates, `src/app.rs` and `src/bootstrap/jobs/*` tests | Port `0`, kept bound by the service until the test ends | Nobody: the kernel assigns a free port and the service holds it | **Isolated.** |
-| P5 | `console/tracker-client/tests/common/fake_trackers/{http,udp}.rs`, `packages/tracker-client/src/udp/client.rs:299`, `packages/udp-server/src/server/{processor,receiver}.rs`, `packages/axum-server/src/signals.rs:285`, `packages/axum-server/tests/idle_connections.rs:84` | Test sockets on `127.0.0.1:0`, kept for the whole test | Nobody | **Isolated.** |
+| P5 | `console/tracker-client/tests/common/fake_trackers/{http,udp}.rs`, `packages/tracker-client/src/udp/client.rs:299`, `packages/udp-server/src/server/{processor,receiver}.rs`, `packages/axum-server/src/signals.rs:285`, `packages/axum-server/tests/idle_connections.rs:84`, `tests/http_health_check.rs` (from `develop` after the snapshot) | Test sockets on `127.0.0.1:0`, kept for the whole test | Nobody | **Isolated.** |
 | P6 | `tests/lifecycle/shutdown_policy.rs:199`, `tests/common/native_tracker/failed_start.rs` | Occupied-port tests: a listener on `127.0.0.1:0` held until the tracker child has exited | Nobody: the test holds the port for the whole assertion | **Isolated.** |
 | P7 | `packages/axum-http-server/tests/server/v1/contract/for_all_config_modes/receiving_an_announce_request.rs:961,1091`, `receiving_an_scrape_request.rs:290` | `[::1]:0` bound and dropped to detect IPv6 support | Nobody: the address is never reused | **Isolated.** A capability probe, not a pre-selected port. |
-| P8 | Literal ports that are only parsed, compared or used as registry keys: `src/bootstrap/config.rs` (`42151`-`42157`), `packages/configuration/src/{lib.rs,v2_0_0,v3_0_0}` (`41002`-`41011`, `1313`, `6969`, `7070`), `tests/common/native_tracker/health.rs` (`43210`), `src/console/ci/e2e/logs_parser.rs`, `packages/axum-health-check-api-server/{src/environment.rs,tests/server/contract.rs}` (registrations with fake probes), `packages/axum-{http,rest-api}-server/src/{server,routes}.rs`, `packages/udp-server/src/server/request_buffer.rs`, `console/tracker-client` checker tests, `packages/http-core` and `packages/primitives` peer addresses | No socket | Nobody | **Isolated.** Never bound. |
+| P8 | Literal ports that are only parsed, compared or used as registry keys: `src/bootstrap/config.rs` (`42151`-`42158`), `packages/configuration/src/lib.rs` (`41001`-`41017`), `packages/configuration/src/{v2_0_0,v3_0_0}` (`1313`, `6969`, `6970`, `7070`), `tests/common/native_tracker/health.rs` (`43210`), `src/console/ci/e2e/logs_parser.rs`, `packages/axum-health-check-api-server/{src/environment.rs,tests/server/contract.rs}` (registrations with fake probes), `packages/axum-http-server/src/{server.rs,v1/routes.rs}`, `packages/axum-rest-api-server/src/{server.rs,routes.rs}`, `packages/udp-server/src/server/request_buffer.rs`, `console/tracker-client` checker tests, `packages/http-core` and `packages/primitives` peer addresses | No socket | Nobody | **Isolated.** Never bound. |
 | P9 | `src/console/ci/e2e/runner.rs:98-103` (`e2e_tests_runner`) | Fixed host ports `6969/udp`, `7070`, `1212`, `1313` | A second E2E run on the same Docker host (self-hosted runner, development machine) | **Covered** by #2395. |
 | P10 | `compose.qbittorrent-e2e.{sqlite3,mysql,postgresql}.yaml` (`qbittorrent_e2e_runner`) | Host port `0` for every published port, read back with `docker compose port` | Nobody | **Isolated.** |
 | P11 | `contrib/dev-tools/containers/tests/test-mounted-no-persistence-configuration.sh` | No published ports | Nobody | **Isolated.** |
@@ -139,10 +141,11 @@ Covered only the rows #2393 owns and adds collisions between concurrent runs on 
 | C2 | `src/console/ci/e2e/runner.rs:39` (`e2e_tests_runner` default `torrust-tracker:local` when it builds the image) | Fixed local image tag | Another E2E run, or `docker-build`-style local work, on the same machine | **Covered** by #2396 (its scope asks to decide this default). |
 | C3 | `src/console/ci/qbittorrent_e2e/runner.rs:22` (default `torrust-tracker:qbt-e2e-local`, built unless `--skip-build`); `contrib/dev-tools/containers/tests/test-mounted-no-persistence-configuration.sh:18-19` (default `torrust-tracker:test-mounted-no-persistence-configuration`, built because `BUILD_IMAGE` defaults to `true`) | Fixed local image tags | Two local runs from two checkouts on one machine: run B rebuilds the tag from its commit while run A is still starting containers from it | **Covered** by #2396 once its scope is extended (Q2). In CI both get `--skip-build` / `BUILD_IMAGE=false` and the CI tag (C1); today #2396's scope names only `e2e_tests_runner`'s default. |
 | C4 | `src/console/ci/e2e/tracker_container.rs:115` | Container name `tracker_<20 random characters>`, removed on drop | Nobody | **Isolated.** |
-| C5 | `src/console/ci/qbittorrent_e2e/types/compose_project_name.rs`, `src/console/ci/compose.rs:108,314` | Compose project `<prefix>-<10 random characters>` passed with `-p`; it overrides the files' `name: qbittorrent-e2e`, and Compose derives container, network and volume names from it; torn down on drop | Nobody | **Isolated.** |
+| C5 | `src/console/ci/qbittorrent_e2e/types/compose_project_name.rs`, `src/console/ci/compose.rs:108,314` | Compose project `<prefix>-<10 random characters>` passed with `-p`; it overrides the files' `name: qbittorrent-e2e`, and Compose derives container, network and volume names from it; torn down on drop after a successful start | Nobody | **Isolated** (the names). The failure path is C9. |
 | C6 | `test-mounted-no-persistence-configuration.sh:38`, `container.yaml:86` (hadolint) | `docker run --rm` without a name | Nobody: Docker assigns a unique name | **Isolated.** |
 | C7 | `packages/tracker-core/src/databases/driver/{mysql,postgres}/mod.rs`, `packages/persistence-benchmark` | testcontainers containers, Docker-assigned names | Nobody | **Isolated.** |
 | C8 | `.github/workflows/security-scan.yaml:52` (`torrust-tracker:local`) | Fixed tag | Nobody: runs on `ubuntu-latest` only | **Isolated** (one job per virtual machine; also excluded by #2396). |
+| C9 | `src/console/ci/compose.rs:73-93`, `src/console/ci/qbittorrent_e2e/services_setup.rs:47` | The containers, network and volumes of a Compose project whose `docker compose up --wait --detach` failed part-way: the `down --volumes` guard exists only after a successful `up` | Nobody else uses them (per-run names, host port `0`), but they stay running and accumulate on the Docker daemon (rule 1); the runner's prune script removes only stopped containers | **New problem** (Q4), draft D3. Found by Copilot in the review of PR #2891. |
 
 ## T4 - Filesystem Paths
 
@@ -185,7 +188,7 @@ Covered only the rows #2393 owns and adds collisions between concurrent runs on 
 
 ## Maintainer Decisions
 
-The maintainer answered the three judgement calls on 2026-11-16:
+The maintainer answered the four judgement calls on 2026-11-16 (Q4 after the first review round):
 
 - **Q1 (P2): new problem.** `tests/metrics/fixed_ports.rs` binds `0.0.0.0:17091`-`17094`, so two
   concurrent runs of `cargo test` on one machine (two agents, or two pre-push hooks) collide.
@@ -199,9 +202,13 @@ The maintainer answered the three judgement calls on 2026-11-16:
   held 232,229 `data_*.db` files (about 10.6 GiB, created since 2026-11-13) and 1,590
   `test_config_*.toml` files.
 
+- **Q4 (C9): new problem, own draft.** A failed `docker compose up` leaves its project's
+  containers, network and volumes on the daemon. Draft D3.
+
 ## New-Problem Drafts (T6)
 
 | Draft | Findings | Local draft |
 | --- | --- | --- |
 | D1 | P2 | `docs/issues/drafts/2392-fixed-port-metrics-test-concurrent-runs/ISSUE.md` |
 | D2 | F2 | `docs/issues/drafts/2392-remove-leaked-test-temporary-files/ISSUE.md` |
+| D3 | C9 | `docs/issues/drafts/2392-compose-cleanup-after-failed-start/ISSUE.md` |

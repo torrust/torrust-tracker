@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p2
 epic: 2392
 github-issue: 2394
 spec-path: docs/issues/open/2394-2392-audit-shared-test-resources/ISSUE.md
 branch: "2392-test-isolation-spec"
 related-pr: 2397
-last-updated-utc: "2026-11-16 17:30"
+last-updated-utc: "2026-11-16 22:06"
 semantic-links:
   skill-links:
     - create-issue
@@ -136,6 +136,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   2 new problems). The maintainer decided the three judgement calls: P2 (fixed-port metrics test)
   and F2 (leaked temporary files) are new problems, drafted for T6; C3 (local default image tags)
   extends #2396's scope.
+- 2026-11-16 22:06 UTC - Claude Code (Claude Opus 5.5), #2394 session - First review round on PR
+  #2891 (da2ce7 approved with F1-F6; Copilot four findings): corrected where the fixed-port test
+  runs in CI, the P8 enumeration and the drafts' skill paths and template sections; added
+  reproduction evidence to D1 and D2; the maintainer classified Copilot's failed-`up` Compose
+  cleanup as a new problem (C9, draft D3). The inventory now has 38 findings (29 isolated,
+  1 deliberate exception, 5 covered, 3 new problems).
 
 ## Acceptance Criteria
 
