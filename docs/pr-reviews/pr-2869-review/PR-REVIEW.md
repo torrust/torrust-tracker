@@ -45,7 +45,7 @@ F2, R1, F1 and R2 are in Copilot's review 5912836984, in that source order. The 
 
 F7, F8, F3, F4, F5 and F6 are in da2ce7's review 5913004050, in that source order. It was submitted as `APPROVED`; GitHub dismissed it at 21:36:23 UTC when the fixes were pushed, so its state is now `DISMISSED`. His F1 and F2 collide with Copilot's F1 and F2 above, so they are numbered F7 and F8, the next free audit-local IDs, and his IDs are kept as the reviewer finding IDs; his F3 to F6 collide with nothing and keep their IDs.
 
-F9 and F10 are in da2ce7's review 5915663318 (`APPROVED`), in that source order. His F7 and F8 collide with F7 and F8 above, so they are numbered F9 and F10, the next free audit-local IDs, and his IDs are kept as the reviewer finding IDs.
+F9 and F10 are in da2ce7's review 5915663318, in that source order. It was submitted as `APPROVED`; GitHub dismissed it at 06:09:20 UTC when the fixes were pushed, so its state is now `DISMISSED`. His F7 and F8 collide with F7 and F8 above, so they are numbered F9 and F10, the next free audit-local IDs, and his IDs are kept as the reviewer finding IDs.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -215,7 +215,7 @@ F9 and F10 are in da2ce7's review 5915663318 (`APPROVED`), in that source order.
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2869#discussion_r4582463260
 - Concern: The Processing Log named the reviewed head by its PR-branch commit id, which the `open-pull-request` commit-id rule forbids in a review audit, and both the log and the Findings paragraph called review 5913004050 `APPROVED`, although GitHub dismissed it when the fixes were pushed.
 - Solution: The log line names the reviewed head by its subject. The Findings paragraph says the review was submitted as `APPROVED` and is now `DISMISSED`, and the 21:36 log entry records the dismissal.
-- Current-tree verification: The timeline of PR #2869 holds one `review_dismissed` event, for review 5913004050 at 21:36:23 UTC; the reviews API reports its state as `DISMISSED`. The `open-pull-request` commit-id check run on this record prints no PR-branch commit id.
+- Current-tree verification: When this entry was written, the timeline of PR #2869 held two `review_dismissed` events: review 5913004050 at 21:36:23 UTC and review 5915663318 at 06:09:20 UTC; the reviews API reports both as `DISMISSED`. The `open-pull-request` commit-id check run on this record prints no PR-branch commit id.
 - Resolution reference: docs(pr-reviews): [#2866] cite the reviewed commit by subject and log the dismissal
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2869#discussion_r4582507555
@@ -230,7 +230,7 @@ F9 and F10 are in da2ce7's review 5915663318 (`APPROVED`), in that source order.
 - 2026-11-15 21:36 UTC - Pushed the six fix commits (committed 21:29 to 21:33 UTC; push log time 21:36:21 UTC); the push dismissed review 5913004050 (timeline event `review_dismissed`, 21:36:23 UTC). Rewrote the PR description (F4), posted the F4 statement (21:36:45 UTC) and replied to the six threads (21:36:47 to 21:36:58 UTC).
 - 2026-11-15 21:38 UTC - Resolved the six threads after the replies; a GraphQL refresh shows no unresolved thread.
 - 2026-11-16 06:01 UTC - Review 5915663318 (da2ce7, `APPROVED`) submitted on the head commit `docs(pr-reviews): [#2866] record the second review of PR #2869`: two Minor findings, none blocking, recorded here as F9 and F10.
-- 2026-11-16 06:09 UTC - Pushed the two fix commits (committed 06:05 and 06:06 UTC; push log time 06:09:18 UTC), replied to the two threads (06:09:30 and 06:09:33 UTC) and resolved them; a GraphQL refresh shows no unresolved thread.
+- 2026-11-16 06:09 UTC - Pushed the two fix commits (committed 06:05 and 06:06 UTC; push log time 06:09:18 UTC); the push dismissed review 5915663318 (timeline event `review_dismissed`, 06:09:20 UTC). Replied to the two threads (06:09:30 and 06:09:33 UTC) and resolved them; a GraphQL refresh shows no unresolved thread.
 
 ## Completion Rules
 
