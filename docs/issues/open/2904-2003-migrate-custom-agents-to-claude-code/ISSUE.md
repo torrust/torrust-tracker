@@ -247,10 +247,11 @@ Decided by the maintainer on 2026-11-15:
   contributor talk to the implementer directly, are not used: they are experimental and not
   available in every Claude Code surface (maintainer, 2026-11-17).
 - **D10 - The harness ADR goes in `docs/adrs/` now.** The ADR for D1 and D2 is written beside the
-  other AI-harness ADRs, which are already there, and moves with them when the harness workspace
-  exists. This issue adds one line to the harness-workspace draft
-  (`docs/issues/drafts/2003-separate-ai-harness-cargo-workspace/ISSUE.md`) that lists it among the
-  ADRs to move (maintainer, 2026-11-17).
+  other AI-harness ADRs, which are already there. The harness-workspace draft
+  (`docs/issues/drafts/2003-separate-ai-harness-cargo-workspace/ISSUE.md`) moves the harness
+  crates and today plans no ADR move. So this issue adds an item to that draft's scope: decide
+  whether the AI-harness ADRs move to the workspace, with this ADR named among them (maintainer,
+  2026-11-17).
 - **D11 - One source of truth, and pointers instead of copies.** `AGENTS.md` holds the root
   instructions because it is the standard and Claude Code supports it. Where a harness-specific
   file is needed for something the standard file cannot do, that file only points to the source of
@@ -381,8 +382,8 @@ Proposed in this specification and approved with it:
   the `run-pre-commit-checks` pointer to the committer, the issue template checkpoints, and the
   governance ADR's inventory and review record.
 - Add a root `CLAUDE.md` that only imports `AGENTS.md` (D11).
-- Record decisions D1 and D2 in an ADR in `docs/adrs/`, and list it in the harness-workspace draft
-  among the ADRs to move (D10).
+- Record decisions D1 and D2 in an ADR in `docs/adrs/`, and add to the harness-workspace draft's
+  scope the item about moving the AI-harness ADRs (D10).
 - Define the JSON reply files (D18): the schema, the validator with its tests, and the rule in
   every agent that writes one.
 - Add the stop hook of `task-reviewer` (D17).
@@ -482,7 +483,7 @@ on are merged.
 | T7  | TODO   | `pr-reviewer` | The agent file with the pinned model; the reply rule in `review-pr` |
 | T8  | TODO   | `researcher` | The agent file |
 | T9  | TODO   | `orchestrator` | The agent file; `docs/agents/orchestration.md` rewritten for the orchestrator-led flow, with the 3-round limit; the issue template checkpoints; scenario M5 recorded |
-| T10 | TODO   | End of `.github/agents/` | `.github/agents/` and the `agent-review-report-contract` check removed; the one-commit-per-lint rule in `fix-clippy-warnings`; `AGENTS.md`, `docs/agents/README.md`, `docs/templates/AGENT-REVIEW-REPORTS.md`, the `frontmatter-validator` rule and the governance ADR updated; the new ADR, and its line in the harness-workspace draft (D10) |
+| T10 | TODO   | End of `.github/agents/` | `.github/agents/` and the `agent-review-report-contract` check removed; the one-commit-per-lint rule in `fix-clippy-warnings`; `AGENTS.md`, `docs/agents/README.md`, `docs/templates/AGENT-REVIEW-REPORTS.md`, the `frontmatter-validator` rule and the governance ADR updated; the new ADR, and the ADR-move item added to the scope of the harness-workspace draft (D10) |
 | T11 | TODO   | Measurement | Review rounds recorded for the first three pull requests handled by `pr-review-handler` (scenario M6); the pull requests of this issue count |
 | T12 | TODO   | Close-out pull request | Completion review, specification moved to `docs/issues/closed/`, EPIC row `DONE` |
 
