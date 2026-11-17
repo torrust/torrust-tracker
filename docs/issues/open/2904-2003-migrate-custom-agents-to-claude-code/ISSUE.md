@@ -230,9 +230,11 @@ Decided by the maintainer on 2026-11-15:
   stubs.
 - **D8 - The skills move first.** This issue started after the skills sub-issue (D7) was merged.
   The agents are therefore written against `.claude/skills/` from the start and can preload their
-  skills with the `skills` field. The move did not rewrite the Copilot profiles in
-  `.github/agents/`: their skill paths now point at the redirect stubs until this issue removes
-  the profiles (maintainer, 2026-11-15).
+  skills with the `skills` field. The move rewrote two files in `.github/agents/`: `README.md`
+  and `copilot-suggestions-handler.agent.md`, which now name the new skills folder. It did not
+  rewrite the other profiles: five of them (`committer`, `implementer`, `github-operator`,
+  `pr-reviewer`, `task-reviewer`) name skill paths that now hold redirect stubs, until this issue
+  removes the profiles (maintainer, 2026-11-15).
 - **D9 - The orchestrator is the session the contributor talks to.** It is not an agent started
   by another session. An agent that another agent starts cannot ask the contributor a question,
   and the orchestrator must: the approval of the specification, design questions, the hand-over.
