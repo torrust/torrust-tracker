@@ -1,7 +1,7 @@
 ---
 pr-number: 2920
 pr-url: https://github.com/torrust/torrust-tracker/pull/2920
-last-updated-utc: "2026-11-17 19:02"
+last-updated-utc: "2026-11-17 19:13"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -207,7 +207,7 @@ that carried the round 2 audit.
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2920#discussion_r4603897988
 - Concern: Round 1 changed the description of checkout P (the personal file four folders above, not three; a worktree inside another checkout whose `AGENTS.md` is three folders above), and the evidence did not say it was a correction. The change appeared only in the reply to F4 and partly in its row.
 - Solution: Failures and Follow-up of the evidence has a line for the correction: what the first version said, what is true, the commit that corrected the Environment section, that no probe was rerun, and why the conclusions do not depend on it.
-- Current-tree verification: `grep -n "Correction to the description of checkout P" manual-verification-evidence.md` in the issue folder prints the line. Read the Q3 answers of the six probes run in checkout P (probes 1, 2, 7, 8, 11 and 12) in `evidence/m4-probe-answers.md`: each lists the personal `CLAUDE.md` of the parent folder and files of checkout P, and none lists an `AGENTS.md` between the two. `linter markdown` and `linter cspell` passed.
+- Current-tree verification: `grep -n "Correction to the description of checkout P" manual-verification-evidence.md` in the issue folder prints the line. Read the Q3 answers of the six probes run in checkout P (probes 1, 2, 7, 8, 11 and 12) in `evidence/m4-probe-answers.md`: probe 1 lists only the personal `CLAUDE.md` of the parent folder, the other five list that file and files of checkout P, and none of the six lists an `AGENTS.md` above checkout P. `linter markdown` and `linter cspell` passed.
 - Resolution reference: `docs(issues): [#2904] note the corrected description of checkout P in the M4 evidence`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2920#discussion_r4604090320
@@ -251,6 +251,7 @@ that carried the round 2 audit.
 - 2026-11-17 18:58 UTC - Correction to the Current-tree verification lines of F11 and F12, after the review `5944671302` of `da2ce7`. F12 gave the counts 15 and 7, taken before the fix added one line with each name; at the fix they are 16 and 8. F11 cited a `grep -c` for a local path that prints 0 whatever the probes answered, because every path in the answers file is replaced, and it named a local folder the answers file withholds; it now cites the Q3 answers of the six probes of checkout P, read in the file.
 - 2026-11-17 19:01 UTC - Round 3: the approving review `5944671302` of `da2ce7` (submitted 18:55:59Z, forge `submitted_at`) with one nit, recorded as F13. The reviewer's `ACK` comment (18:56:04Z, forge `created_at`) names the head it read; the fix moves the head past it. The fix was committed at 18:58:46Z (`git log --format=%cI`, in UTC) and pushed; `git ls-remote` showed the fork branch at the local head before the reply. The reply was posted at 19:01:47Z (forge `created_at`), after the push.
 - 2026-11-17 19:02 UTC - `validate-audit-record.py --pr-number 2920 --base torrust/develop`, with its `gh` calls made through `gh-bot`, exited 0 (13 rows, 0 failures). Resolved the thread of F13 by its thread ID; a GraphQL refresh showed 0 unresolved threads.
+- 2026-11-17 19:13 UTC - Second correction to the Current-tree verification line of F11, after the review `5944877623` of `da2ce7`. The corrected line said each of the six answers of checkout P lists the parent folder's file and files of checkout P; probe 1 lists only the parent folder's file, because it ran before any pointer file existed. The line now says so. The reply of round 3 on the thread of F13 repeated the wrong wording.
 
 <!-- Copied verbatim into each audit record. -->
 
