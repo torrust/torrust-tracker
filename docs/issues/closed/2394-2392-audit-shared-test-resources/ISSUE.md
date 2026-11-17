@@ -9,7 +9,7 @@ github-issue: 2394
 spec-path: docs/issues/closed/2394-2392-audit-shared-test-resources/ISSUE.md
 branch: "2392-test-isolation-spec"
 related-pr: 2397
-last-updated-utc: "2026-11-17 12:35"
+last-updated-utc: "2026-11-17 15:22"
 semantic-links:
   skill-links:
     - create-issue
@@ -121,7 +121,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Subissues drafted for new problems
 - [x] Acceptance criteria reviewed
 - [x] Spec moved from `docs/issues/open/` to `docs/issues/closed/`
-- [ ] GitHub issue #2394 closed (pending: the maintainer closes it when the close-out merges)
+- [ ] GitHub issue #2394 closed (pending: the close-out PR #2898 has merged; the maintainer closes it)
 
 ### Progress Log
 
@@ -160,6 +160,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-17 12:35 UTC - Claude Code (Claude Opus 5.5), EPIC #2392 coordinator - Created the
   GitHub issues for D1 (#2906), D2 (#2907) and D3 (#2908), moved their specs to
   `docs/issues/open/`, and added them to the EPIC as orders 6 to 8.
+- 2026-11-17 15:22 UTC - Claude Code (Claude Opus 5.5), EPIC #2392 coordinator - The issue-closed checkpoint
+  and inventory row C3 now reflect the state after PR #2898 merged and #2396's scope was extended.
 
 ## Acceptance Criteria
 

@@ -1,7 +1,7 @@
 ---
 doc-type: issue-inventory
 issue-spec: docs/issues/closed/2394-2392-audit-shared-test-resources/ISSUE.md
-last-updated-utc: "2026-11-17 08:52"
+last-updated-utc: "2026-11-17 15:22"
 ---
 
 # Inventory of Shared Test Resources (tasks T1 to T5)
@@ -139,7 +139,7 @@ Covered only the rows #2393 owns and adds collisions between concurrent runs on 
 | --- | --- | --- | --- | --- |
 | C1 | `.github/workflows/container.yaml:128-155` (`torrust-tracker:local`), `.github/workflows/testing.yaml:294-315` (`torrust-tracker:e2e-local`) | Fixed image tags on the self-hosted runner's Docker daemon | Another job on the same daemon | **Covered** by #2396. |
 | C2 | `src/console/ci/e2e/runner.rs:39` (`e2e_tests_runner` default `torrust-tracker:local` when it builds the image) | Fixed local image tag | Another E2E run, or `docker-build`-style local work, on the same machine | **Covered** by #2396 (its scope asks to decide this default). |
-| C3 | `src/console/ci/qbittorrent_e2e/runner.rs:22` (default `torrust-tracker:qbt-e2e-local`, built unless `--skip-build`); `contrib/dev-tools/containers/tests/test-mounted-no-persistence-configuration.sh:18-19` (default `torrust-tracker:test-mounted-no-persistence-configuration`, built because `BUILD_IMAGE` defaults to `true`) | Fixed local image tags | Two local runs from two checkouts on one machine: run B rebuilds the tag from its commit while run A is still starting containers from it | **Covered** by #2396 once its scope is extended (Q2). In CI both get `--skip-build` / `BUILD_IMAGE=false` and the CI tag (C1); today #2396's scope names only `e2e_tests_runner`'s default. |
+| C3 | `src/console/ci/qbittorrent_e2e/runner.rs:22` (default `torrust-tracker:qbt-e2e-local`, built unless `--skip-build`); `contrib/dev-tools/containers/tests/test-mounted-no-persistence-configuration.sh:18-19` (default `torrust-tracker:test-mounted-no-persistence-configuration`, built because `BUILD_IMAGE` defaults to `true`) | Fixed local image tags | Two local runs from two checkouts on one machine: run B rebuilds the tag from its commit while run A is still starting containers from it | **Covered** by #2396, whose scope was extended to both defaults (Q2). In CI both get `--skip-build` / `BUILD_IMAGE=false` and the CI tag (C1). |
 | C4 | `src/console/ci/e2e/tracker_container.rs:115` | Container name `tracker_<20 random characters>`, removed on drop | Nobody | **Isolated.** |
 | C5 | `src/console/ci/qbittorrent_e2e/types/compose_project_name.rs`, `src/console/ci/compose.rs:108,314` | Compose project `<prefix>-<10 random characters>` passed with `-p`; it overrides the files' `name: qbittorrent-e2e`, and Compose derives container, network and volume names from it; torn down on drop after a successful start | Nobody | **Isolated** (the names). The failure path is C9. |
 | C6 | `test-mounted-no-persistence-configuration.sh:38`, `container.yaml:86` (hadolint) | `docker run --rm` without a name | Nobody: Docker assigns a unique name | **Isolated.** |
