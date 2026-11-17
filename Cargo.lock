@@ -5258,6 +5258,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "torrust-tracker-hung-component-tracker"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "nix",
+ "tempfile",
+ "tokio",
+ "torrust-tracker",
+]
+
+[[package]]
 name = "torrust-tracker-persistence-benchmark"
 version = "0.1.0"
 dependencies = [
