@@ -1,7 +1,7 @@
 ---
 pr-number: 2910
 pr-url: https://github.com/torrust/torrust-tracker/pull/2910
-last-updated-utc: "2026-11-17 15:31"
+last-updated-utc: "2026-11-17 15:44"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -44,6 +44,11 @@ deliver findings through GitHub and have no repository-artifact obligation.
 ## Findings
 
 Round 1: da2ce7 review 5939730094 (CHANGES_REQUESTED) with findings F1 to F7; the reviewer's IDs are this audit's IDs. Copilot review 5939709564 (COMMENTED) reported no issue and has no row.
+
+Round 1 cited commit ids from before the history rewrite (F4). Mapped to commit subjects:
+
+- `ba0df8f14`: `docs(issues): [#2392] add issue specifications for #2906, #2907 and #2908`
+- `1ee2afe4d`: `docs(issues): [#2392] add orders 6 to 8, close AC4 and extend #2396's scope`
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -150,8 +155,9 @@ Round 1: da2ce7 review 5939730094 (CHANGES_REQUESTED) with findings F1 to F7; th
 
 ## Processing Log
 
-- 2026-11-17 15:29 UTC - Round 1: da2ce7 review 5939730094. Committed the F1, F2/F3/F7 and F3/F5/F6 fixes, reworded the first commit's body for F4 with the maintainer's approval, and force-pushed head `ae1f1e2d6` with `git-bot-push --force-with-lease`. Then replied to the seven threads (15:29:17Z to 15:29:32Z). This record was created after the replies, so the replies came before the audit started.
+- 2026-11-17 15:29 UTC - Round 1: da2ce7 review 5939730094. Committed the F1, F2/F3/F7 and F3/F5/F6 fixes, reworded the first commit's body for F4 with the maintainer's approval, and force-pushed the branch, ending at `docs(issues): [#2392] refresh the #2394 records and evidence timestamps`, with `git-bot-push --force-with-lease`. Then replied to the seven threads (15:29:17Z to 15:29:32Z). This record was created after the replies, so the replies came before the audit started.
 - 2026-11-17 15:31 UTC - The validator on the worktree record reported 7 rows, 1 log entry, 0 failures. Resolved the seven threads at about 15:30:32Z, selecting only unresolved threads whose last comment is a `josecelano-bot` reply. A GraphQL refresh found no unresolved thread. Committed this record.
+- 2026-11-17 15:44 UTC - Round 2: da2ce7 review 5941589792 (APPROVED). Edited the PR description for its F9 (15:44:37Z). For its F8, corrected the 15:29 entry in place: it named the branch head by id (`force-pushed head <id>`), and now names it by its commit subject. Added the id mapping to the Findings section.
 
 <!-- Copied verbatim into each audit record. -->
 
