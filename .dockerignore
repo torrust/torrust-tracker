@@ -49,4 +49,5 @@
 # ── Re-exclusions inside admitted directories ─────────────────────────────────
 # Agent instructions and package documentation are never read by a build stage.
 **/AGENTS.md
+**/CLAUDE.md
 **/docs/
