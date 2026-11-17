@@ -9,7 +9,7 @@ github-issue: 2925
 spec-path: docs/issues/open/2925-2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md
 branch: "2392-split-test-temp-files-spec"
 related-pr: null
-last-updated-utc: "2026-11-17 18:39"
+last-updated-utc: "2026-11-17 21:12"
 semantic-links:
   skill-links:
     - create-issue
@@ -32,7 +32,8 @@ Parent EPIC: #2392 - Test Isolation (`docs/issues/open/2392-test-isolation/EPIC.
 
 ## Goal
 
-No test leaves a `data_*.db` file behind. Tests that need persistence use the guard-owned SQLite
+No test leaves a SQLite database behind: neither a `data_*.db` file nor a guard directory with
+its `data.db`. Tests that need persistence use the guard-owned SQLite
 database of #2924 (`docs/issues/open/2924-2392-sqlite-test-database-guard/ISSUE.md`),
 and the `ephemeral*()` configurations no longer configure a database. After this issue, a full
 test run leaves a fresh temporary directory empty.
@@ -75,8 +76,8 @@ Facts from the #2907 session, measured before PR #2923 and to be rechecked in T1
 - Make helpers that only assume persistence work without it.
 - Then remove the database from `ephemeral()` and the functions built on it, and remove
   `ephemeral_sqlite_database()`.
-- Record the recheck that a fresh `TMPDIR` holds no `data_*.db` after the full suite and, with
-  #2907 done, is empty.
+- Record the recheck that a fresh `TMPDIR` holds no SQLite database file and no database
+  directory after the full suite and, with #2907 done, is empty.
 
 ### Out of Scope
 
@@ -137,7 +138,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2 | TODO | Migrate one package | First pull request; migration pattern reviewed before T3. |
 | T3 | TODO | Migrate the remaining packages | One pull request per package; each records its package count. |
 | T4 | TODO | Default to no database | `ephemeral*()` set no database; `ephemeral_sqlite_database()` removed. |
-| T5 | TODO | Recheck | Fresh `TMPDIR` has no `data_*.db` after the suite (V2); `linter all` passes. |
+| T5 | TODO | Recheck | Fresh `TMPDIR` has no SQLite database file or directory after the suite (V2); `linter all` passes. |
 
 ## Commit Points
 
@@ -173,10 +174,14 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-17 18:39 UTC - Claude Code (Claude Fable 5.2), EPIC #2392 coordinator - The maintainer approved
   the draft. Created GitHub issue #2925 and moved the spec from `docs/issues/drafts/` to
   `docs/issues/open/`. The package order, naming and remaining SQLite coverage stay open until T1.
+- 2026-11-17 21:12 UTC - Claude Code (Claude Fable 5.2), EPIC #2392 coordinator - Review of PR #2926:
+  the goal, AC1, T5 and V2 now also exclude a leftover guard directory, because the guard keeps
+  the database as `data.db` inside a directory and a check for `data_*.db` alone would miss it.
 
 ## Acceptance Criteria
 
-- [ ] AC1: After the full test suite with a fresh `TMPDIR`, no `data_*.db` file remains.
+- [ ] AC1: After the full test suite with a fresh `TMPDIR`, no SQLite database remains:
+  no `data_*.db` file and no directory that holds a database file.
 - [ ] AC2: The `ephemeral*()` configurations set no database, and `ephemeral_sqlite_database()`
   no longer exists.
 - [ ] AC3: Every test that needs persistence gets its database from the guard-owned factory.
@@ -198,7 +203,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | V1 | Reproduce | `TMPDIR=$(mktemp -d) cargo +stable test --tests --benches --examples --workspace --all-targets --all-features`, then count the files | Leaked files counted | TODO | `manual-verification-evidence.md` |
-| V2 | Recheck | Same command after T4 | No `data_*.db`; no entry at all once #2907 is done | TODO | `manual-verification-evidence.md` |
+| V2 | Recheck | Same command after T4 | No `data_*.db` file and no directory holding a database file; no entry at all once #2907 is done | TODO | `manual-verification-evidence.md` |
 
 Evidence policy: every recorded command result names the toolchain that produced it, and the
 evidence file is created from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`.

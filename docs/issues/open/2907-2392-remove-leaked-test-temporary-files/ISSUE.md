@@ -9,7 +9,7 @@ github-issue: 2907
 spec-path: docs/issues/open/2907-2392-remove-leaked-test-temporary-files/ISSUE.md
 branch: "2392-audit-follow-up-issues-spec"
 related-pr: null
-last-updated-utc: "2026-11-17 18:39"
+last-updated-utc: "2026-11-17 21:12"
 semantic-links:
   skill-links:
     - create-issue
@@ -49,7 +49,7 @@ test passes:
 
 | Helper | File | Removed |
 | --- | --- | --- |
-| `torrust_tracker_test_helpers::configuration::ephemeral_sqlite_database` (used by every `ephemeral*` configuration and the `tracker-core` SQLite tests); moved out of this issue | `data_<16 random characters>.db` | Never |
+| `torrust_tracker_test_helpers::configuration::ephemeral_sqlite_database()` (used by every `ephemeral*()` configuration and the `tracker-core` SQLite tests); moved out of this issue | `data_<16 random characters>.db` | Never |
 | The configuration-file tests in `packages/configuration/src/{v2_0_0,v3_0_0}/mod.rs` | `test_config_<uuid>.toml` | Never |
 | `make_temp_file` in `packages/axum-server/src/tls.rs` | `<prefix>-<nanoseconds>.pem` | Only when the test passes |
 
