@@ -9,7 +9,7 @@ github-issue: 2904
 spec-path: docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md
 branch: "2904-t2-pointer-claude-md"
 related-pr: null
-last-updated-utc: "2026-11-17 17:19"
+last-updated-utc: "2026-11-17 17:45"
 semantic-links:
   skill-links:
     - create-issue
@@ -516,7 +516,7 @@ on are merged.
 
 | ID  | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
-| T1  | TODO   | Specification pull request | This specification in `docs/issues/open/`, and a new row in the EPIC's Subissues table |
+| T1  | DONE   | Specification pull request | This specification in `docs/issues/open/`, and a new row in the EPIC's Subissues table |
 | T2  | DONE   | Pointer `CLAUDE.md` | A root `CLAUDE.md` whose only content is the import of `AGENTS.md` (D11); if scenario M4 shows that a scoped `AGENTS.md` is not loaded, an import-only `CLAUDE.md` beside each of the ten scoped `AGENTS.md` files; scenario M4 recorded |
 | T3  | TODO   | Reply schema and validator | `docs/schemas/agent-reply-v1.schema.json`; the validator with tests, developed in the progressive loop of the `write-unit-test` skill with a recorded design review per increment, and run by the repository checks; `docs/schemas/README.md` updated (D18) |
 | T4  | TODO   | `pr-review-handler` | `.claude/agents/pr-review-handler.md` with the pinned model; `wait-for-pr-review` and `process-pr-review` say which agent runs a round; the inventory `removed-profile-rules.md` created in this folder with the rules of `copilot-suggestions-handler` (AC6); scenarios M1 to M3 recorded |
@@ -598,8 +598,9 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - 2026-11-17 13:54 UTC - Claude Code (Claude Fable 5.2) - Addressed Copilot's review `5939656808` on pull request #2905 (two findings): T2 and M4 cover the ten scoped `AGENTS.md` files, and the `agent-review-report-contract` check keeps its pull-request audit rules.
 - 2026-11-17 15:23 UTC - Claude Code (Claude Fable 5.2) - Addressed the reviews `5939681382` and `5939862849` of `da2ce7` on pull request #2905 (one nit, one minor finding about the audit record): the review of T5 itself runs the `task-reviewer` agent on the T5 branch and writes a reply file, so this issue uses `agent-review-reports.md` for T2 to T4 and reply files for T5 to T12.
 - 2026-11-17 16:07 UTC - Claude Code (Claude Fable 5.2) - Addressed Copilot's review `5941597022` on pull request #2905 (two minor findings): AC10 exempts the forced run of M7 that ends without a reply file, and the EPIC records this issue's named models (D4, D13) as an approved exception to its Out of Scope item.
-- 2026-11-17 17:11 UTC - Claude Code (Claude Fable 5.2) - Pull request #2905 merged on 2026-11-17 at 16:52 UTC. Task T2: added the root `CLAUDE.md` and ran scenario M4. A root `CLAUDE.md` alone stops Claude Code from loading the scoped `AGENTS.md` files, with and without a `CLAUDE.md` in a parent folder, so the ten scoped pointer files of D11 were added too. With all eleven, the session and a started agent receive the root and the scoped rules in both checkouts. AC12 is met; evidence in `manual-verification-evidence.md` section V4.
+- 2026-11-17 17:11 UTC - Claude Code (Claude Fable 5.2) - Pull request #2905 merged on 2026-11-17 at 16:52 UTC. Task T2: added the root `CLAUDE.md` and ran scenario M4. Any `CLAUDE.md` at the root or above stops Claude Code from loading the scoped `AGENTS.md` files, and a root `CLAUDE.md` restores only the root `AGENTS.md`, so the ten scoped pointer files of D11 were added too. With all eleven, the session and a started agent receive the root and the scoped rules in both checkouts. AC12 is met; evidence in `manual-verification-evidence.md` section V4.
 - 2026-11-17 17:19 UTC - Claude Code (Claude Fable 5.2) - Independent review of T2 recorded in `agent-review-reports.md` (REVIEW PASSED, two minor findings and four nits). Addressed: the evidence states which probes have recorded tool calls and that the probed files were committed afterwards; `status` is `in-progress` and `branch` names the T2 branch; the T10 row names the ADR line that T2 made untrue; the branch is rebased on `develop`.
+- 2026-11-17 17:45 UTC - Claude Code (Claude Fable 5.2) - Addressed the reviews `5943570147` of `da2ce7` and `5943581377` of Copilot on pull request #2920: `.dockerignore` re-excludes the pointer files; the evidence states what probes 1, 2 and 4 show, names its commands as run, and stores every probe's answer in `evidence/m4-probe-answers.md`; T1 is `DONE` and the EPIC row is `IN_PROGRESS`.
 
 ## Acceptance Criteria
 

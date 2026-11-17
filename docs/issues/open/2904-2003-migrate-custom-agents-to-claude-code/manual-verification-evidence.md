@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md
-last-updated-utc: 2026-11-17 17:19
+last-updated-utc: 2026-11-17 17:45
 ---
 
 # Manual Verification Evidence
@@ -26,12 +26,17 @@ adds the section of the scenario it records.
 - Operating system / environment: Linux 7.0.0-43-generic; Claude Code 2.1.318 (`claude --version`);
   every probe session ran on `claude-sonnet-5-5` (the `init` record of its output).
 - Prerequisites and setup performed: two checkouts of the same commit.
-  - **Checkout P (a `CLAUDE.md` in a parent folder):** the contributor's working checkout. A
-    `CLAUDE.md` with personal instructions exists three folders above it. No `CLAUDE.md` exists
-    in the user's `~/.claude/` folder.
-  - **Checkout N (no `CLAUDE.md` above):** `git clone --no-hardlinks --depth 1` of checkout P
-    into a temporary folder. A loop over its ten parent folders found no `CLAUDE.md` and no
-    `AGENTS.md`. The pointer files were copied into it with `cp` before the probes that need them.
+  - **Checkout P (a `CLAUDE.md` in a parent folder):** the contributor's working checkout, a
+    git worktree inside another checkout of the repository. A `CLAUDE.md` with personal
+    instructions exists four folders above it, and the enclosing checkout's `AGENTS.md` three
+    folders above it. `ls ~/.claude/CLAUDE.md` reported no such file.
+  - **Checkout N (no `CLAUDE.md` above):** made with
+    `git clone -q --no-hardlinks --depth 1 "file://<checkout P>" <temporary folder>/m4-clone/torrust-tracker`
+    (the `file://` form, so `--depth` applies; `git log --oneline -1` in it printed the merge of
+    pull request #2905). The parent folders were checked with
+    `p=$(dirname $C); for i in 1 2 3 4 5 6 7 8 9 10; do ls $p/CLAUDE.md $p/AGENTS.md 2>/dev/null; [ "$p" = "/" ] && break; p=$(dirname $p); done`,
+    where `$C` is the clone; it printed nothing. The pointer files were copied into it with `cp`
+    before the probes that need them.
 
 ## Verification Processes
 
@@ -78,8 +83,8 @@ leaves the session no tool but `Read`. The prompt asks for one call on `Cargo.to
 enforces the number of calls: that the session made that one call and no other is recorded only
 for probes 9 to 12 (see the tool calls below), which repeat probes 5 to 8.
 
-The probes ran one at a time, in this order. Times are UTC: the modification time of the probe's output file (`ls -l`) for
-probes 1 and 2, `date -u` at the end of the probe for probes 3 to 8, and `date -u` at its start
+The probes ran one at a time, in this order. Times are UTC: the modification time of the probe's output file
+(`TZ=UTC ls -l --time-style=+%H:%M:%S`) for probes 1 and 2, `date -u` at the end of the probe for probes 3 to 8, and `date -u` at its start
 and end for probes 9 to 12.
 
 1. Probe 1, checkout P, no pointer file, session prompt. Output written at 16:54:58.
@@ -156,8 +161,9 @@ Q1: Root AGENTS.md was loaded (via CLAUDE.md @AGENTS.md import). First heading l
 Q2: packages/configuration/AGENTS.md was loaded. First rule heading verbatim: "### Rule: Use typed newtypes for domain-constrained configuration fields"
 ```
 
-The full outputs are not stored: each one contains the contributor's personal `CLAUDE.md` from
-the parent folder.
+The answer of every probe is stored in [`evidence/m4-probe-answers.md`](evidence/m4-probe-answers.md),
+with four local path fragments replaced. The rest of each output is not stored: it contains the
+contributor's personal `CLAUDE.md` from the parent folder.
 
 #### Conclusion
 
@@ -172,17 +178,17 @@ The probes also settle the question D11 left to this task:
 - Without any `CLAUDE.md` above or in the checkout, Claude Code loads the root and the scoped
   `AGENTS.md` files by itself (probe 3).
 - With a `CLAUDE.md` in a parent folder and none in the repository, it loads neither (probe 1).
-- A root `CLAUDE.md` alone restores the root `AGENTS.md` but stops the scoped ones, with a
-  parent `CLAUDE.md` (probe 2) and without one (probe 4). So the scoped pointer files are needed,
-  as the reviewer of pull request #2905 reported.
+- Any `CLAUDE.md` at the root or above stops the scoped `AGENTS.md` files from loading (probes
+  1, 2 and 4). A root `CLAUDE.md` restores only the root `AGENTS.md`: in checkout P the scoped
+  ones stay unloaded (probe 2, as in probe 1), and in checkout N, where they loaded without it
+  (probe 3), it stops them (probe 4). So the scoped pointer files are needed, as the reviewer of
+  pull request #2905 reported.
 
 Limits of this evidence: the answers are what each model reported about its own context. For
 probes 9 to 12 the recorded tool calls show the quoted lines were not read from the files. For
 probes 1 to 8 no tool calls were recorded, so a quote there could in principle come from an extra
 `Read` call; this matters most for probe 3, the one positive result behind "loads by itself",
-which was not repeated. The NOT LOADED answers of probes 1, 2 and 4 do not depend on it. What the
-started agents of probes 6, 8 and 10 said about when the files arrived is summarized, not quoted;
-only probe 12's agent is quoted. Only
+which was not repeated; its answer text is in the stored file. The NOT LOADED answers of probes 1, 2 and 4 do not depend on it. Only
 `packages/configuration/` was probed, and the other eight scoped directories rely on the same
 mechanism; the behaviour is that of Claude Code 2.1.318.
 
