@@ -35,7 +35,8 @@ pub struct AppContainer {
     // Readiness: marked not ready when shutdown begins, read by the health check API
     pub readiness: Readiness,
 
-    // Registar
+    // Registar: a registration lives until the process exits; stopped services are not deregistered
+    // (ADR: docs/adrs/20261116172628_keep_registar_registrations_for_the_process_lifetime.md)
     pub registar: Arc<Registar<torrust_tracker_primitives::RuntimeServiceMetadata>>,
 
     // Swarm Coordination Registry Container

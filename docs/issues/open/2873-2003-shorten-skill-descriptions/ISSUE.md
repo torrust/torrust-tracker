@@ -19,7 +19,7 @@ semantic-links:
   related-artifacts:
     - .claude/skills
     - contrib/dev-tools/checks/frontmatter-validator
-    - docs/issues/open/2866-2003-move-skills-to-claude-skills/ISSUE.md
+    - docs/issues/closed/2866-2003-move-skills-to-claude-skills/ISSUE.md
     - docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
     - docs/issues/open/2873-2003-shorten-skill-descriptions/manual-verification-evidence.md
     - docs/issues/open/2873-2003-shorten-skill-descriptions/description-measurements.md

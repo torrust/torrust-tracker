@@ -30,6 +30,7 @@ torrust-tracker-primitives = { version = "3.0.0", path = "../primitives" }
 [dev-dependencies]
 criterion = { version = "0", features = [ "async_tokio" ] }
 rstest = "0"
+torrust-tracker-primitives = { version = "3.0.0", path = "../primitives", features = [ "testing" ] }
 
 [[bench]]
 harness = false

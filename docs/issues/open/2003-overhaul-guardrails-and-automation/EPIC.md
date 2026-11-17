@@ -6,7 +6,7 @@ epic: null
 github-issue: 2003
 spec-path: docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-16 08:30"
+last-updated-utc: "2026-11-16 17:35"
 semantic-links:
   skill-links:
     - create-issue
@@ -33,7 +33,7 @@ semantic-links:
     - docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md
     - docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/EPIC.md
     - docs/issues/open/2347-2003-triage-post-merge-review-findings/ISSUE.md
-    - docs/issues/open/2866-2003-move-skills-to-claude-skills/ISSUE.md
+    - docs/issues/closed/2866-2003-move-skills-to-claude-skills/ISSUE.md
     - docs/issues/open/2873-2003-shorten-skill-descriptions/ISSUE.md
     - docs/schemas/frontmatter-v1.schema.json
     - "issue #2264"
@@ -195,7 +195,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | 18 | #2713 - `wait-for-pr-review` panics when `--timeout-seconds` is too large | `docs/issues/closed/2713-2003-wait-for-pr-review-timeout-overflow-panic/ISSUE.md` | DONE | Bug in the #2581 poller: an oversized timeout overflows the deadline. Fixed by PR #2802: `--timeout-seconds` is bounded to 1..=86400. |
 | 19 | #2714 - `wait-for-pr-review` can report a review of a newer commit than the head it reports | `docs/issues/closed/2714-2003-wait-for-pr-review-head-race-between-requests/ISSUE.md` | DONE | Bug in the #2581 poller: a race between its two requests. Fixed by PR #2815: the head is fetched after the feedback. |
 | 20 | #2822 - `wait-for-pr-review`: add a `--gh-command` option to name the GitHub CLI command | `docs/issues/closed/2822-2003-wait-for-pr-review-gh-option/ISSUE.md` | DONE | Enhancement to the #2581 poller: the caller names the command, so no `gh` stand-in on `PATH` is needed, and the identity it runs as is reported. Selects no shared runner, cache or policy engine. Independent of the other poller work; spec PR #2826, implemented by PR #2835. |
-| 21 | #2866 - Move the agent skills to `.claude/skills/` so Claude Code discovers them | `docs/issues/open/2866-2003-move-skills-to-claude-skills/ISSUE.md` | TODO | Moves the 53 skills to a flat `.claude/skills/<name>/` with an index by area and redirect stubs at the old paths, so Claude Code discovers them. Must merge before the custom-agents migration is implemented, because agent definitions name skills. Selects no shared runner, cache or policy engine. |
+| 21 | #2866 - Move the agent skills to `.claude/skills/` so Claude Code discovers them | `docs/issues/closed/2866-2003-move-skills-to-claude-skills/ISSUE.md` | DONE | Moves the 53 skills to a flat `.claude/skills/<name>/` with an index by area and redirect stubs at the old paths, so Claude Code discovers them. Must merge before the custom-agents migration is implemented, because agent definitions name skills. Selects no shared runner, cache or policy engine. |
 | 22 | #2873 - Shorten the agent skill descriptions so they fit Claude Code's skill listing budget | `docs/issues/open/2873-2003-shorten-skill-descriptions/ISSUE.md` | TODO | Follow-up of #2866 (its task T1): shortens the 53 skill descriptions to 200 characters or less so the listing fits its 1% budget, fixes the `write-markdown-docs` description that YAML cuts at a `#`, and adds a `frontmatter-validator` rule. The description edits start after #2866 merges. Selects no shared runner, cache or policy engine. |
 
 Also linked as GitHub sub-issues, outside the order:
@@ -297,6 +297,7 @@ These are proposed planning subissues; none has been created. Titles and boundar
   - `AGENTS.md` keeps its subject grouping: rules are looked up by subject, a tier is a property of a rule rather than a place, and a rule whose tier is unclear can say "always", "ask first" or "never".
   - Where a product decision lives is settled by the prose-tests ADR that [`docs/issues/drafts/2003-adopt-prose-tests-as-executable-specification/ISSUE.md`](../../drafts/2003-adopt-prose-tests-as-executable-specification/ISSUE.md) drafts. Until that ADR is accepted, both homes are in use: Rustdoc beside the tests that specify the rule, and an ADR. The decision log and impact maps stay deferred until then, and a capability's goal lives in its EPIC's Goal section.
   - One issue template, with optional and conditional sections marked and no short form, because a second form is another copy to keep in step. The work is this EPIC's planning-template follow-up, not #2278's; the register tracks it as `issue-template-checkpoint-optionality-unmarked` and `create-issue-init-list-omits-conditional-sections`.
+- **The issue body is a short pointer, not a mirror (2026-11-16, maintainer, [PR #2887](https://github.com/torrust/torrust-tracker/pull/2887)).** The maintainer decided it in a working session with the EPIC coordinator session, not in a GitHub comment; the pull request that carries this entry, which he merges, is its record on GitHub. The mirror rule asked for the body to be re-derived on every change to this file. It was not followed: on 2026-11-16 the body was about 75,000 characters, had 15 of this file's 22 ordered subissue rows and still named the GitHub user da2ce7, whose ownership ended on 2026-11-06, as the EPIC owner. The rule is replaced: the body must hold only stable content, as Issue Body Pointer states, and this file stays the EPIC's record. Replacing the stale body is a separate edit by the maintainer; the change that records this decision does not make it.
 
 ## Friction Register
 
@@ -451,6 +452,8 @@ For each completed subissue in this EPIC, the default completion policy is:
 - 2026-11-12 13:30 UTC - AI assistant (Claude Code, Claude Sonnet 5.5, issue #2822 session) - Row 20 (#2822) is DONE: PR #2835 merged on 2026-11-12 and the poller takes `--gh-command` and reports `gh_command` and `gh_login`; the spec moved to `docs/issues/closed/` in the close-out pull request.
 - 2026-11-15 21:30 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2866 session) - Added row 21 (#2866, move the agent skills to `.claude/skills/` so Claude Code discovers them) on 2026-11-15 at 20:14 UTC; the spec is in PR #2869.
 - 2026-11-16 08:30 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2873 session) - Added row 22 (#2873, shorten the agent skill descriptions) on 2026-11-16 at 08:26 UTC, as #2866's task T1; the description edits wait for #2866 to merge.
+- 2026-11-16 16:11 UTC - AI assistant (Claude Code, Claude Fable 5.2, EPIC #2003 coordinator session) - Replaced the Issue Body Mirror rule with Issue Body Pointer: the issue body must hold only stable content and point to this file. The body itself is not edited by this change. The decision has no GitHub comment; its record is [PR #2887](https://github.com/torrust/torrust-tracker/pull/2887). Decided by the maintainer on 2026-11-16.
+- 2026-11-16 17:35 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2866 session) - Marked row 21 (#2866) DONE and pointed it at `docs/issues/closed/`: PR #2886 merged on 2026-11-16 at 17:34 UTC and closed the issue; the spec is archived by the close-out PR.
 
 ## Acceptance Criteria
 
@@ -503,9 +506,9 @@ For each completed subissue in this EPIC, the default completion policy is:
 - Validate referenced repository paths while producing and reviewing each research artifact.
 - Run focused tests only for a bounded research utility or proof of concept approved later.
 
-### Issue Body Mirror
+### Issue Body Pointer
 
-The GitHub issue body mirrors this file and is re-derived on every change to it. To derive it, drop the frontmatter, the skill-link marker and the title line, and keep the rest byte for byte. A body edited by hand drifts: until this revision, the body mirrored an older spec that lacked six subissue rows, the child-EPIC scope and the #2347 log line.
+This is the rule for the GitHub issue body; the maintainer applies it by editing the body, which no change to this file does. The body must not mirror this file. It must hold only content that does not change as the EPIC progresses: the goal, a link to this file on `develop`, a pointer to GitHub's sub-issue list, and one line on the friction register. It must carry no subissue table, status, progress log or decision. The body changes only when the goal, this file's path or the place where the register is kept changes. Any other change to this file needs no change to the body.
 
 ### Manual Verification Scenarios
 
@@ -532,7 +535,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 - Risk: existing issue scopes conflict with the selected design. Mitigation: do not implement them through this EPIC until their dispositions are reviewed and recorded.
 - Risk: a register disposition graded against text that predates the friction overstates adoption. The 2026-09-21 summary graded F4, F6 and F45 that way ([comment 5866514218](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-5866514218)). Mitigation: recompute every disposition at a stated head with the landing commit found by `git log -S`, as the index does; the index records F4 as OPEN.
 - Risk: late review findings go unnoticed; #2347's 32 findings were posted after merge and found by chance. Mitigation: undecided improvement candidate 1.
-- Risk: the issue body drifts from this specification. Mitigation: the derivation rule under Issue Body Mirror.
+- Risk: the issue body drifts from this specification. Mitigation: the rule under Issue Body Pointer, which limits the body to stable content and a pointer here.
 - Risk: the thread outgrows its readers (46 comments, about 300,000 characters on 2026-09-28). Mitigation: this specification carries what the thread established; only the register index and the current ownership record stay visible, and minimized comments remain reachable by link.
 - Assumption: maintainers prefer evidence and reversible incremental adoption over a mandatory repository-wide migration. Maintainer review may replace this assumption with an explicit constraint.
 

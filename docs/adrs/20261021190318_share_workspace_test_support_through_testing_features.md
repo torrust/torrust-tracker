@@ -13,6 +13,8 @@ semantic-links:
     - "issue #2482"
     - "issue #2582"
     - "issue #2618"
+    - "issue #2876"
+    - docs/issues/open/2876-1347-peer-id-test-helper/ISSUE.md
 ---
 
 <!-- skill-link: create-adr -->
@@ -54,6 +56,20 @@ semantic-links:
 > 3. **Naming.** A file that contains only test code outside a `#[cfg(test)] mod tests` carries the prefix
 >    `test_` (`test_support.rs`, and `tracker-core`'s `test_helpers.rs` and `whitelist/test_helpers.rs`,
 >    which already follow it and need no move).
+>
+> **Amendment of 2026-11-16 (issue #2876).** The decision stands. Rule D speaks of `mockall` mocks, but its
+> reasoning covers any test fixture that other packages' tests use: such a fixture belongs to the crate whose
+> types it builds and sits behind that crate's `testing` feature, with the self dev-dependency of rule A.3 for
+> the crate's own tests and a `[dev-dependencies]` entry in each consumer (rule A.4). The O1c note that
+> `cargo machete --with-metadata` does not flag the self dev-dependency holds only when the package's `tests/`
+> or examples name the crate by its package name; a package without them, such as `primitives`, lists the self
+> dev-dependency in its `[package.metadata.cargo-machete]` `ignored` list, with the reason. The first fixture moved
+> this way is `peer::fixture` of `torrust-tracker-primitives` (`PeerBuilder`, `qbittorrent_peer_id` and the
+> `Default` impls of `Peer` and `peer::Id`), which #2482 did not find because its inventory searched for
+> plural module names such as `fixtures`. Trait impls inside such a module (here `Default`) are gated with it,
+> so they leave production builds too. The ownership map has a row for it. The maintainer decided this on
+> 2026-11-16 (the answers to Q2, Q5 and Q7 in the
+> [#2876 spec](../issues/open/2876-1347-peer-id-test-helper/ISSUE.md)).
 
 ## Scope
 
@@ -256,6 +272,7 @@ package's environment.
 | REST API environment | `axum-rest-api-server` | Own `tests/`, `axum-health-check-api-server` tests | `axum-rest-api-server` `testing` feature |
 | Health check API environment | `axum-health-check-api-server` | Own `tests/` | `axum-health-check-api-server` `testing` feature |
 | `MockTorrentMetricsStore` and the other `tracker-core` database mocks | `tracker-core` | Own `src/`; `http-core` and `udp-core` unit tests (`MockTorrentMetricsStore`) | `tracker-core` `testing` feature |
+| Peer fixture (`peer::fixture`: `PeerBuilder`, `qbittorrent_peer_id`, the `Default` impls of `Peer` and `peer::Id`); added by the amendment of 2026-11-16 | `primitives` | Own `src/` unit tests; `src/` unit tests, `tests/` or benches of `axum-http-server`, `axum-rest-api-server`, `http-core`, `swarm-coordination-registry`, `torrent-repository-benchmarking`, `udp-core`, `udp-server` and the root crate | `primitives` `testing` feature |
 | Ephemeral configurations, test logging, random strings | `test-helpers` (generic) | Seven packages | `[dev-dependencies]` entry |
 | Protocol client helpers (`http`, `udp` modules today) | The root crate's `tests/common/` | The root crate's integration tests | Not shared |
 
@@ -342,3 +359,5 @@ so it is not an example of public test infrastructure. DEC-18 in the
 - #2582, the packaging failure caused by a self dev-dependency with a `version`
 - [Independent package versioning](20260629000000_adopt_independent_package_versioning.md)
 - [`deny.toml`](../../deny.toml), the layer boundary rules referenced by rule B
+- [#2876 spec](../issues/open/2876-1347-peer-id-test-helper/ISSUE.md), which moved `peer::fixture`
+  behind the `testing` feature of `primitives` (amendment of 2026-11-16)
