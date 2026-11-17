@@ -509,8 +509,10 @@ T4 to T8 are additive: each adds one agent and removes nothing that a live docum
 The Copilot profiles stay until T10, so `develop` is consistent after every merge.
 
 The inventory of AC6 is the file `removed-profile-rules.md` in this folder. It lists every rule
-that only a Copilot profile holds, with its destination (a named skill or agent) or the reason it
-is dropped. T4 creates it, each of T5 to T9 adds the rows of the profiles its agent replaces, and
+that only a Copilot profile holds, with its destination or the reason it
+is dropped. The destination is a named skill. It is the agent file only for a rule about the role
+itself (its identity, tools, inputs or report format), which P2 keeps in the agent; workflow text
+never goes there. T4 creates it, each of T5 to T9 adds the rows of the profiles its agent replaces, and
 T10 completes it before removing the profiles.
 
 ## Commit Points
@@ -581,7 +583,8 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - [ ] AC5: `.github/agents/` no longer exists, and no tracked live document, skill, check or
       template refers to a removed profile. Closed specifications and merged audit records are
       history and stay unchanged.
-- [ ] AC6: Every rule that only a removed profile held is either in a named skill or listed as
+- [ ] AC6: Every rule that only a removed profile held is either in a named skill, or in the agent
+      file when it is about the role itself (identity, tools, inputs, report format), or listed as
       dropped with its reason, in the inventory `removed-profile-rules.md` in this specification's
       folder.
 - [ ] AC7: `docs/agents/orchestration.md` describes the orchestrator-led flow and matches the
