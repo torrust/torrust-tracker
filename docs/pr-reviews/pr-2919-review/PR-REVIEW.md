@@ -156,7 +156,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: `sed -n 70,76p docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md` shows the new wording; `inventory.md` names the five class C conversions in its `LocatedError` conversions table.
 - Resolution reference: `docs(issues): [#2912] separate the wrong direct captures from the correct LocatedError conversions in decision 1`
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2919#issuecomment-6956820638
 
 ## Processing Log
 
@@ -166,6 +166,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-17 18:02 UTC - Round 3: normalized da2ce7 review 5943851942 (APPROVED) with findings F6 and F7. Correction (F7) of the 2026-11-17 17:48 entry: its words naming the head by branch commit id were replaced in place by the commit subject `docs(pr-reviews): [#2912] record the review audit of PR 2919`; the rest of that entry is unchanged. F6 corrected the F2 verification line.
 - 2026-11-17 18:06 UTC - Pushed the commit `docs(pr-reviews): [#2912] correct the F2 verification and drop a branch commit id from the review audit of PR 2919`, then replied to F6 and F7 (replies created at 18:06:21Z and 18:06:23Z) and filled in their reply URLs. `validate-audit-record.py --pr-number 2919 --base torrust/develop` (scratchpad copy, `gh` calls through `gh-bot`) on this worktree record reported 7 rows, 0 failures.
 - 2026-11-17 18:11 UTC - Round 4: normalized Copilot review 5943970292, whose body reports one previously missed issue (Copilot's own ID F6) as audit finding F8, and committed its fix. It has no inline thread, so its row is `NON_RESOLVABLE` and its reply goes to the PR conversation.
+- 2026-11-17 18:14 UTC - Pushed the F8 fix and its row, then replied to F8 in the PR conversation (comment created at 18:14:51Z) and filled in its reply URL. `validate-audit-record.py --pr-number 2919 --base torrust/develop` (scratchpad copy, `gh` calls through `gh-bot`) on this worktree record reported 8 rows, 0 failures.
 
 ## Completion Rules
 
