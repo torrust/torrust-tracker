@@ -43,7 +43,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1: Copilot review 5946976502 (COMMENTED, a lite review, since its full agentic review did not start before the timeout) with one inline finding, rated medium by Copilot; this audit maps that to `Minor (inferred)`, since the comment carries no severity bracket. The `F` ID is this audit's.
+Round 1: Copilot review 5946976502 (COMMENTED, a lite review, since its full agentic review did not start before the timeout) with one inline finding, rated medium by Copilot. The audit severity scale (`Blocker`, `Major`, `Minor`, `Nit`, `Suggestion`) has no medium level, so this audit maps Copilot's `Medium severity` badge to `Minor (inferred)`, as the PR #2421 and PR #2430 audits do; `(inferred)` marks that the comment carries no `[Severity]` bracket. The `F` IDs are this audit's.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
