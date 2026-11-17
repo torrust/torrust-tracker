@@ -432,9 +432,9 @@ Round 1, on the head that carries the commit `docs(issues): [#2765] record the i
 - Source review ID: 5943297032
 - Reviewer finding ID: da2ce7 F28
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4603243348
-- Concern: the two excerpt tests check the helper only, so inverting the success check or swapping the two limits would still pass the helper tests; the reviewer suggested a small pure function for the log limit, tested for success, a non-zero exit and a timeout.
-- Solution: none; the maintainer decided (record: https://github.com/torrust/torrust-tracker/pull/2921#issuecomment-6956412285) to leave this non-blocking nit (the PR was already past the fix-round limit and each push restarts about 17 minutes of image-test CI). The reply on the thread says so.
-- Current-tree verification: no change was made, so there is nothing new to verify; the claim of the finding (the policy is not pinned by a test) holds at the merged head.
+- Concern: The two excerpt tests check the helper only, so inverting the success check or swapping the two limits would still pass the helper tests; the reviewer suggested a small pure function for the log limit, tested for success, a non-zero exit and a timeout.
+- Solution: None; the maintainer decided (record: https://github.com/torrust/torrust-tracker/pull/2921#issuecomment-6956412285) to leave this non-blocking nit (the PR was already past the fix-round limit and each push restarts about 17 minutes of image-test CI). The reply on the thread says so.
+- Current-tree verification: No change was made, so there is nothing new to verify; the claim of the finding (the policy is not pinned by a test) holds at the merged head.
 - Resolution reference: https://github.com/torrust/torrust-tracker/pull/2921#issuecomment-6956412285
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4603267282

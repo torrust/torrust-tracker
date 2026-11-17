@@ -1,7 +1,7 @@
 ---
 pr-number: 2921
 pr-url: https://github.com/torrust/torrust-tracker/pull/2921
-last-updated-utc: "2026-11-17 20:57"
+last-updated-utc: "2026-11-17 22:23"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -39,7 +39,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1: da2ce7 review 5943744061 (APPROVED, later shown as dismissed) with findings F1 to F6 (two Minor, four Nit), and Copilot review 5943800775 (COMMENTED) with three threads that carry the reviewer IDs F1, F2 and F1; they are F7 to F9 here.
+Round 1: da2ce7 review 5943744061 (APPROVED, later shown as dismissed) with findings F1 to F6 (two Minor, four Nit), and Copilot review 5943800775 (COMMENTED) with three threads. Copilot labelled two of them with the same ID (F1), so this audit renumbers them F7 to F9 to avoid collisions.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -61,6 +61,9 @@ Round 1: da2ce7 review 5943744061 (APPROVED, later shown as dismissed) with find
 | F33 | review-finding:pr-2921-f33 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F34 | review-finding:pr-2921-f34 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F35 | review-finding:pr-2921-f35 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F36 | review-finding:pr-2921-f36 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F37 | review-finding:pr-2921-f37 | Copilot | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F38 | review-finding:pr-2921-f38 | Copilot | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -298,6 +301,45 @@ Round 1: da2ce7 review 5943744061 (APPROVED, later shown as dismissed) with find
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2921#discussion_r4605663153
 
+### F36 - The AC4 line of the spec had grown into a long narrative of jobs and commits
+
+- PR number: 2921
+- Source review ID: 5946993870
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2921#discussion_r4606091002
+- Concern: The AC4 line of the spec had grown into a long narrative of jobs and commits.
+- Solution: AC4 is a short statement; the job, the commits and the caveat moved to section V4 of `manual-verification-evidence.md`.
+- Current-tree verification: Read the AC4 line of `ISSUE.md` and section V4 of the evidence file.
+- Resolution reference: `docs(pr-reviews): [#2765] audit review round 5 of PR 2921`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2921#discussion_r4606594241
+
+### F37 - The F28 fields of the PR 2901 audit started with lowercase letters
+
+- PR number: 2921
+- Source review ID: 5946993870
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2921#discussion_r4606091059
+- Concern: The F28 fields of the PR 2901 audit started with lowercase letters.
+- Solution: The Concern, Solution and Current-tree verification fields of F28 start with a capital letter.
+- Current-tree verification: Read the F28 entry of the PR 2901 audit.
+- Resolution reference: `docs(pr-reviews): [#2765] audit review round 5 of PR 2921`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2921#discussion_r4606594624
+
+### F38 - The sentence about the reviewer IDs F1, F2 and F1 read like a duplication error
+
+- PR number: 2921
+- Source review ID: 5946993870
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2921#discussion_r4606091102
+- Concern: The sentence about the reviewer IDs F1, F2 and F1 read like a duplication error.
+- Solution: The sentence says Copilot labelled two threads with the same ID (F1) and that this audit renumbers them F7 to F9.
+- Current-tree verification: Read the Round 1 paragraph of the Findings section.
+- Resolution reference: `docs(pr-reviews): [#2765] audit review round 5 of PR 2921`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2921#discussion_r4606594958
+
 ## Processing Log
 
 - 2026-11-17 17:53 UTC - Review 5943744061 (da2ce7, APPROVED) arrived on the first head (submitted 17:53:43).
@@ -310,6 +352,7 @@ Round 1: da2ce7 review 5943744061 (APPROVED, later shown as dismissed) with find
 - 2026-11-17 19:01 UTC - Fixed F29 to F31 in one commit and posted the replies on the six threads; the four round-2 threads had already been resolved by the 18:25 batch command, so their replies came after the resolution, and the two others were resolved after their replies. The rows were recorded in the same commit.
 - 2026-11-17 19:05 UTC - Updated the PR description (F32); the description was still the first one at 19:00:40 and the pull request update time is 19:05:14.
 - 2026-11-17 20:57 UTC - Round 4: da2ce7 review 5944892818 (APPROVED) with one Nit (F35) about those two statements; corrected both and recorded the row.
+- 2026-11-17 22:23 UTC - Round 5: Copilot review 5946993870 (COMMENTED, submitted 21:34:58) with three docs Nits (F36 to F38); fixed all three, replied on the threads (the first replies named the round-4 commit by mistake, corrected in a second reply) and recorded the rows.
 
 ## Completion Rules
 
