@@ -1,7 +1,7 @@
 ---
 pr-number: 2920
 pr-url: https://github.com/torrust/torrust-tracker/pull/2920
-last-updated-utc: "2026-11-17 17:56"
+last-updated-utc: "2026-11-17 18:04"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -45,7 +45,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 Round 1 is two reviews on the first head that carried the post-merge audit rows of pull request 2905: the approving review
 `5943570147` of `da2ce7` (F1 to F8, reviewer-provided IDs) and Copilot's review `5943581377` (COMMENTED, two findings
-with its own IDs F1 and F2, which collide with the first review's and are recorded as F9 and F10). F8 and F10 have no row yet; see the Processing Log.
+with its own IDs F1 and F2, which collide with the first review's and are recorded as F9 and F10). F8 and F10 were processed after the others, once the maintainer had posted the comment they ask for; see the Processing Log.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -56,7 +56,9 @@ with its own IDs F1 and F2, which collide with the first review's and are record
 | F5 | `review-finding:pr-2920-f5` | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
 | F6 | `review-finding:pr-2920-f6` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F7 | `review-finding:pr-2920-f7` | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F8 | `review-finding:pr-2920-f8` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F9 | `review-finding:pr-2920-f9` | Copilot | Minor | correctness | RE_RAISE_OF:F7 | FIXED | RESOLVED |
+| F10 | `review-finding:pr-2920-f10` | Copilot | Minor | documentation | RE_RAISE_OF:F8 | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -151,6 +153,19 @@ with its own IDs F1 and F2, which collide with the first review's and are record
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2920#discussion_r4603598317
 
+### F8 - The Ownership section of the audit of pull request 2905 has no post-merge approval
+
+- PR number: 2920
+- Source review ID: 5943570147
+- Reviewer finding ID: F8
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2920#discussion_r4603463689
+- Concern: Round 8 of the audit record of pull request 2905 is feedback unprocessed at merge, yet its Ownership section read `Post-merge workflow approval: N/A`. Step 2 of `process-pr-review` (Reviews Submitted After Merge) asks for the maintainer's approval as a durable comment URL before any mutating action; chat-only approval does not satisfy it.
+- Solution: The maintainer posted the approval as a comment on pull request 2905 at 17:59:16Z. The Ownership section of that audit record holds its URL as a retrospective record, with the original approval time (about 16:44 UTC, in the working session) and the comment's creation time, and its Processing Log has an entry for it. The round 8 changes were made before the comment existed; the log of that record says so.
+- Current-tree verification: `grep -n "Post-merge workflow approval" docs/pr-reviews/pr-2905-review/PR-REVIEW.md` shows the comment URL and both times. `gh api repos/torrust/torrust-tracker/issues/comments/6956439261` shows the author `josecelano` and `created_at` 17:59:16Z. `validate-audit-record.py --pr-number 2905` exited 0 (22 rows).
+- Resolution reference: `docs(pr-reviews): [#2904] record the maintainer's approval of the post-merge work of PR #2905`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2920#discussion_r4603701212
+
 ### F9 - Keep F20 pending until the follow-up merges
 
 - PR number: 2920
@@ -164,12 +179,27 @@ with its own IDs F1 and F2, which collide with the first review's and are record
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2920#discussion_r4603599135
 
+### F10 - Record the authorization URL for this post-merge handoff
+
+- PR number: 2920
+- Source review ID: 5943581377
+- Reviewer finding ID: F2
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2920#discussion_r4603473174
+- Concern: The same concern as F8, raised by Copilot's review 49 seconds later. It suggests filling the field with the reply `discussion_r4602755221` on pull request 2905.
+- Solution: The change recorded under F8. The suggested URL is not used: the contributor account wrote that reply, and the skill asks for the maintainer's approval.
+- Current-tree verification: The checks recorded under F8.
+- Resolution reference: `docs(pr-reviews): [#2904] record the maintainer's approval of the post-merge work of PR #2905`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2920#discussion_r4603701767
+
 ## Processing Log
 
 - 2026-11-17 17:55 UTC - Started audit.
 - 2026-11-17 17:55 UTC - Round 1: the approving review `5943570147` of `da2ce7` (submitted 17:42:25Z) with eight findings and Copilot's review `5943581377` (submitted 17:43:14Z, forge `submitted_at`) with two. The `ACK` comments of `josecelano` (17:36:20Z and 17:43:52Z) and `da2ce7` (17:42:30Z, forge `created_at`) name the head these reviews read; the fixes move the head past them. The fixes were committed between 17:48:20Z and 17:51:07Z (`git log --format=%cI`, in UTC) and pushed; `git ls-remote` showed the fork branch at the local head at 17:53:45Z (`date -u`). The description was edited at 17:54:15Z, and the ten replies were posted between 17:54:17Z and 17:54:39Z (forge `created_at`), after the push.
 - 2026-11-17 17:55 UTC - Two findings of round 1 are answered and not processed: the reviewer's F8 (comment `4603463689`) and Copilot's F2 (comment `4603473174`), both about the missing post-merge approval URL in the audit record of pull request 2905. The field needs a durable comment by the maintainer, who has been asked for it. They have no row yet and their threads stay unresolved. Copilot's suggestion to use the reply `4602755221` is not followed: the contributor account wrote that reply.
 - 2026-11-17 17:56 UTC - `validate-audit-record.py --pr-number 2920 --base torrust/develop`, with its `gh` calls made through `gh-bot`, exited 0 (8 rows, 0 failures). Resolved the eight threads of F1 to F7 and F9 by their thread IDs, each with the contributor's reply as its last comment and its fix on the pull request. A GraphQL refresh showed 2 unresolved threads: the two about the approval URL, which wait for the maintainer's comment.
+- 2026-11-17 18:04 UTC - The maintainer posted the approval comment on pull request #2905 at 17:59:16Z (forge `created_at`). The two findings left from round 1 are recorded as F8 and F10. Their fix was committed at 18:00:55Z (`git log --format=%cI`, in UTC) and pushed; `git ls-remote` showed the fork branch at the local head at 18:03:26Z (`date -u`). Each thread already had a reply from 17:54 that said the fix was pending; the two replies that name the fix were posted at 18:03:39Z and 18:03:42Z (forge `created_at`), after the push.
+- 2026-11-17 18:04 UTC - `validate-audit-record.py --pr-number 2920 --base torrust/develop`, with its `gh` calls made through `gh-bot`, exited 0 (10 rows, 0 failures). Resolved the two threads of F8 and F10 by their thread IDs; a GraphQL refresh showed 0 unresolved threads.
 
 <!-- Copied verbatim into each audit record. -->
 
