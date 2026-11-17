@@ -182,7 +182,7 @@ Manual verification is mandatory even when automated tests pass. Record actual c
 ## Implementation Completion Review
 
 - Retrospective: `implementation-retrospective.md` in this directory.
-- Prose-first Arrange-Act-Assert comparison (`write-unit-test`), recorded for the unit tests of `src/console/ci/e2e/tracker_checker.rs` (each test carries the Arrange, Act and Assert sections in code, and the comparison found the code to state the prose):
+- Prose-first Arrange-Act-Assert comparison (`write-unit-test`), recorded for every unit test of `src/console/ci/e2e/tracker_checker.rs` at the head of the last review round (each test carries the Arrange, Act and Assert sections in code, and the comparison found the code to state the prose):
 
 | Test | Arrange (prose) | Act (prose) | Assert (prose) | Result of the comparison |
 | ---- | --------------- | ----------- | -------------- | ------------------------ |
@@ -195,6 +195,11 @@ Manual verification is mandatory even when automated tests pass. Record actual c
 | `it_should_kill_the_child_and_return_promptly_when_the_deadline_expires` | A child that sleeps 60 s and a 300 ms deadline. | Run it. | A `TimedOut` error in under 20 s: without the kill the wait takes the 60 s. | Matches; the elapsed bound pins the kill. |
 | `it_should_not_wait_for_a_descendant_that_keeps_the_pipes_open` | A hung child whose descendant holds both pipes for 8 s, a 300 ms deadline and a 500 ms grace. | Run it. | `TimedOut` in under 5 s. | Matches. |
 | `it_should_keep_the_output_read_before_a_descendant_held_the_pipe_open` | A child that prints a line and exits while a descendant keeps stdout open. | Run it with a 500 ms grace. | The line is captured and the call returns in under 5 s. | Matches. |
+| `it_should_return_the_output_written_before_the_deadline_expired` | A child that writes a line to each stream and then hangs, with a 500 ms deadline. | Run it. | The error is `TimedOut` and both captured streams hold their line. | Matches. |
+| `it_should_keep_the_chunks_already_queued_when_the_drain_window_ended` | A chunk read and queued, and a drain window that ended a second ago. | Collect. | The chunk is returned (what was read before the end is kept). | Matches. |
+| `it_should_cut_the_output_at_the_byte_cap_even_when_more_is_queued` | More than the byte cap queued and an ended window. | Collect. | The result has exactly the cap's length. | Matches. |
+| `it_should_keep_the_output_of_the_second_pipe_when_the_first_one_uses_the_whole_window` | A child that writes to both pipes and exits while a descendant holds them open, with a 500 ms window. | Run it. | Both streams hold their text. | Matches. |
+| `it_should_share_one_drain_window_between_both_pipes` | A child that exits while a descendant holds both pipes for 8 s, with a 3 s window. | Run it. | The call returns in under 5 s (one window is about 3.1 s, two would be about 6.1 s). | Matches. |
 | `it_should_fail_when_the_program_cannot_be_launched` | A program that does not exist. | Run it. | The error kind is `NotFound`. | Matches; replaced a bare `is_err`. |
 
 ## References
