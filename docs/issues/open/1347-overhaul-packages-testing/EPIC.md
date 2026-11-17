@@ -6,7 +6,7 @@ epic: null
 github-issue: 1347
 spec-path: docs/issues/open/1347-overhaul-packages-testing/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-17 12:16"
+last-updated-utc: "2026-11-17 12:43"
 semantic-links:
   skill-links:
     - create-issue
@@ -358,8 +358,8 @@ For each subissue implementation, the completion policy is:
 - 2026-11-15 21:22 UTC - Claude Code (Opus 5.5) - Row 12 (#2838): the fix is the implementation of the standalone issue #2850, PR #2872 (open), which closes #2838 on merge. It removes the `primitives` test that pinned a negative `left` as a seeder (finding F6 of #2824) and the `-1` rows of the role table.
 - 2026-11-16 14:07 UTC - Claude Code (Opus 5.5) - #2838 closed by PR #2872 (merged 2026-11-16 14:05 UTC); row 12 set to `DONE` and the specifications of #2838 and #2850 archived to `docs/issues/closed/`.
 - 2026-11-16 21:52 UTC - Claude Code (Opus 5.5) - #2876 closed by PR #2888 (merged 2026-11-16 21:49 UTC); row 13 set to `DONE` and the spec archived to `docs/issues/closed/2876-1347-peer-id-test-helper/`.
-
-- 2026-11-17 10:57 UTC - Claude Code (Sonnet 5.5) - Created #2902 (`tracker-core`, row 14; the link under #1347 is set by the maintainer). Clean baseline at `5833cdae9`, filtered to the package source: unit-only (`--all-features --lib`) lines 80.31% (4,099 / 5,104), regions 80.20%, functions 72.01%, 157 unit tests; aggregate lines 82.15%; integration-only 44.05% (12 tests). The MySQL and PostgreSQL driver suites skip themselves without Docker and two environment variables, so those 10 files count as 0-4% covered; with the suites running (Docker) the aggregate is lines 93.80% (T1b). Delivered in slices S0-S5; the row stays `TODO` until the first implementation slice starts.
+- 2026-11-17 10:57 UTC - Claude Code (Sonnet 5.5) - Created #2902 (`tracker-core`, row 14; the link under #1347 is set by the maintainer). Clean baseline at `5833cdae9`, filtered to the package source: unit-only (`--all-features --lib`) lines 80.31% (4,099 / 5,104), regions 80.20%, functions 72.01%, 157 unit tests; aggregate lines 82.15%; integration-only 44.05% (12 tests). The MySQL and PostgreSQL driver suites skip themselves without Docker and two environment variables, so those 10 files count as 0-4% covered; the container-gated scope is not yet measured. Delivered in slices S0-S5; the row stays `TODO` until the first implementation slice starts.
+- 2026-11-17 12:43 UTC - Claude Code (Opus 5.5) - #2902 T1b, measured on 2026-11-17 after the maintainer allowed pulling the `mysql:8.0` and `postgres:16` images: with both driver suites running, the `tracker-core` aggregate is lines 93.80% (4,830 / 5,149). Correction: the commit that recorded T1b edited the 10:57 entry above in place; its original text is restored (review finding F9 of #2903).
 
 ## Acceptance Criteria
 
