@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/drafts/2392-fixed-port-metrics-test-concurrent-runs/ISSUE.md
-last-updated-utc: "2026-11-16 22:23"
+issue-spec: docs/issues/open/2906-2392-fixed-port-metrics-test-concurrent-runs/ISSUE.md
+last-updated-utc: "2026-11-17 15:22"
 ---
 
 # Manual Verification Evidence

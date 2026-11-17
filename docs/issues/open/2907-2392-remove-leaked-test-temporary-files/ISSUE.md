@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: draft
+status: planned
 priority: p2
 epic: 2392
-github-issue: null
-spec-path: docs/issues/drafts/2392-remove-leaked-test-temporary-files/ISSUE.md
-branch: "{issue-number}-2392-remove-leaked-test-temporary-files"
+github-issue: 2907
+spec-path: docs/issues/open/2907-2392-remove-leaked-test-temporary-files/ISSUE.md
+branch: "2392-audit-follow-up-issues-spec"
 related-pr: null
-last-updated-utc: "2026-11-17 08:52"
+last-updated-utc: "2026-11-17 12:35"
 semantic-links:
   skill-links:
     - create-issue
@@ -28,7 +28,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Remove the Temporary Files Tests Leave Behind
+# Issue #2907 - Remove the Temporary Files Tests Leave Behind
 
 Parent EPIC: #2392 - Test Isolation (`docs/issues/open/2392-test-isolation/EPIC.md`)
 
@@ -152,8 +152,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 ### Workflow Checkpoints
 
 - [x] Folder-style spec drafted in `docs/issues/drafts/2392-remove-leaked-test-temporary-files/ISSUE.md`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -165,6 +165,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 - 2026-11-16 17:30 UTC - Claude Code (Claude Opus 5.5), #2394 session - Drafted from audit finding
   F2 after the maintainer classified it as a new problem; counted the leaked files in `/tmp`.
+- 2026-11-17 12:35 UTC - Claude Code (Claude Opus 5.5), EPIC #2392 coordinator - The
+  maintainer approved the draft in the review of PR #2891. Created GitHub issue #2907 and
+  moved the spec from `docs/issues/drafts/` to `docs/issues/open/`.
 
 ## Acceptance Criteria
 
