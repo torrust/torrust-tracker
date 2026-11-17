@@ -148,9 +148,14 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-17 08:52 UTC - Claude Code (Claude Opus 5.5), #2394 session - PR #2891 merged
   (approved by da2ce7 after three review rounds). T6 done: the EPIC's order 2 row links drafts
   D1, D2 and D3; the EPIC coordinator creates their GitHub issues and EPIC rows and extends
-  #2396's scope (C3). Spec moved to `docs/issues/closed/`; #2394 is closed by the maintainer. No
-  retrospective: the audit invalidated no assumption of this spec; the review findings were
-  corrections to the audit documents, recorded in `docs/pr-reviews/pr-2891-review/PR-REVIEW.md`.
+  #2396's scope (C3). Spec moved to `docs/issues/closed/`; #2394 is still open, and the
+  maintainer closes it when this close-out merges. No retrospective file: the audit invalidated no
+  assumption of this spec, and the one reusable lesson fits here. The T1 searches looked for
+  shared names and values, not for resources released only on the success path, so Copilot's
+  review found C9 (a failed `docker compose up` leaves the stack running) that the inventory's
+  first version had marked as torn down on drop. A future audit also checks each resource's
+  failure and drop paths (EPIC rule 1). The other review findings were corrections to the audit
+  documents, recorded in `docs/pr-reviews/pr-2891-review/PR-REVIEW.md`.
 
 ## Acceptance Criteria
 
