@@ -1,7 +1,7 @@
 ---
 pr-number: 2905
 pr-url: https://github.com/torrust/torrust-tracker/pull/2905
-last-updated-utc: "2026-11-17 17:50"
+last-updated-utc: "2026-11-17 17:59"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -17,7 +17,7 @@ Source: pull-request reviews and inline review threads for https://github.com/to
 The PR author owns this tracked audit record. Reviewers, including repository review agents,
 deliver findings through GitHub and have no repository-artifact obligation.
 
-- Post-merge workflow approval: N/A
+- Post-merge workflow approval: https://github.com/torrust/torrust-tracker/pull/2905#issuecomment-6956439261 (retrospective record: the maintainer gave the approval in the working session on 2026-11-17 at about 16:44 UTC, and created this comment at 17:59:16Z)
 
 <!-- Copied verbatim into each audit record. -->
 
@@ -400,6 +400,7 @@ handled after the merge, in pull request #2920.
 - 2026-11-17 16:14 UTC - `validate-audit-record.py --pr-number 2905 --base torrust/develop`, with its `gh` calls made through `gh-bot`, exited 0 (20 rows, 0 failures). The unresolved threads were the three of round 7, each with the contributor's reply as its last comment. Resolved the two threads of F17 and F18 by their thread IDs, their fixes being on the pull request; a GraphQL refresh showed 1 unresolved thread, the one of F19. Its row records `RESOLVED` as the state it takes once this record is pushed: it is not resolved at the time of this entry, and is resolved by its thread ID after the push.
 - 2026-11-17 17:23 UTC - Round 8, after the merge: the review `5942183537` of `da2ce7` (submitted 16:16:56Z, forge `submitted_at`) on the head between the two pushes of round 7, with two findings, recorded as F20 and F21. The reply to F21 was posted at 16:18:40Z and the reply to F20 at 16:44:18Z (forge `created_at`), after the maintainer chose to merge without another push. Pull request #2905 was merged at 16:52:36Z (forge `mergedAt`) with both threads unresolved. The fix for F20 was committed on the branch of pull request #2920 and pushed before this entry; `git ls-remote` showed the fork branch at the local head. The two threads are not resolved at the time of this entry: they are resolved by their thread IDs after this record is pushed.
 - 2026-11-17 17:50 UTC - Correction for the round 8 entry, after the reviews `5943570147` of `da2ce7` and `5943581377` of Copilot on pull request #2920. That entry said both threads would be resolved after the push, and both were, at about 17:28Z, with F20 recorded `FIXED`/`RESOLVED`. For F20 that was wrong: its fix is only on the branch of pull request #2920, and `process-pr-review` (Reviews Submitted After Merge, steps 5 and 6) keeps such a row `FOLLOW_UP`/`OPEN` until the follow-up merges. The thread of F20 was reopened by its thread ID at 17:48:28Z (`date -u` after the call) and its row corrected. F21 stays `FIXED`/`RESOLVED`: its fix was on `develop` at the merge. Step 2 of the same section asks for the maintainer's approval as a durable comment URL in the Ownership section before any mutating action. That was not done: the choice was made in the working session, and the round 8 changes were made without the comment. The field stays `N/A` until the maintainer posts the comment; it is then recorded as a retrospective approval with both times.
+- 2026-11-17 17:59 UTC - The maintainer posted the approval of the post-merge work as a comment on pull request #2905 at 17:59:16Z (forge `created_at`, author `josecelano`). It is a retrospective record: it states that the approval was given in the working session at about 16:44 UTC, before the round 8 changes. Its URL is recorded in the Ownership section.
 
 <!-- Copied verbatim into each audit record. -->
 
