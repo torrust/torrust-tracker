@@ -6,7 +6,7 @@ epic: null
 github-issue: 2392
 spec-path: docs/issues/open/2392-test-isolation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-17 12:35"
+last-updated-utc: "2026-11-17 15:22"
 semantic-links:
   skill-links:
     - create-issue
@@ -104,19 +104,21 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | Order | Issue | Local Spec | Status | Notes |
 | ----- | ----- | ---------- | ------ | ----- |
 | 1 | #2393 - Eliminate parallel test port allocation races | `docs/issues/closed/2393-2392-test-port-allocation-races/ISSUE.md` | DONE | Bug. PR #2859 ignored 21 racing tests and rewrote 4 that never needed a racing port. PR #2874 applied the T5 decisions: deleted 9 tests of test-support code, rewrote the 3 health-check contract tests to probe an address the test holds, and restored 9 socket-release tests on a unique loopback address, picked at random from `127.0.0.0/8` (ignored off Linux). The full suite then passed 150 of 150 runs with no #2393 test ignored (V6). Found during the work: #2867 (UDP health check panics on a malformed reply). |
-| 2 | #2394 - Audit shared test resources | `docs/issues/closed/2394-2392-audit-shared-test-resources/ISSUE.md` | DONE | Task. PR #2891 recorded 38 findings in `inventory.md`: 29 isolated, 1 deliberate exception (P3), 5 covered (P1, P9, C1, C2, C3; C3 through order 4, whose scope now includes the local default image tags) and 3 new problems, now orders 6 to 8: D1 (P2) is #2906, D2 (F2) is #2907 and D3 (C9) is #2908. GitHub issue #2394 is still open; the maintainer closes it when the close-out PR merges. |
+| 2 | #2394 - Audit shared test resources | `docs/issues/closed/2394-2392-audit-shared-test-resources/ISSUE.md` | DONE | Task. PR #2891 recorded 38 findings in `inventory.md`: 29 isolated, 1 deliberate exception (P3), 5 covered (P1, P9, C1, C2, C3; C3 through order 4, whose scope now includes the local default image tags) and 3 new problems, now orders 6 to 8: D1 (P2) is #2906, D2 (F2) is #2907 and D3 (C9) is #2908. The close-out PR #2898 has merged; GitHub issue #2394 is still open until the maintainer closes it. |
 | 3 | #2395 - Use dynamic host ports in the E2E runner | `docs/issues/open/2395-2392-e2e-runner-dynamic-host-ports/ISSUE.md` | TODO | Task. Removes fixed E2E host ports. Independent of orders 1 and 2. |
 | 4 | #2396 - Use a unique tracker image tag per CI run | `docs/issues/open/2396-2392-e2e-unique-tracker-image-tag/ISSUE.md` | TODO | Task. Prevents one run from testing another run's image. Latent today (one runner instance per server). Independent of order 3. |
 | 5 | #1419 - Allow multiple integration tests at the main app level | `docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md` | BLOCKED | Existing issue, linked as a subissue. Isolation work is done; the remaining AC8a waits on #1488. |
 | 6 | #2906 - Let two runs of the fixed-port metrics test share a machine | `docs/issues/open/2906-2392-fixed-port-metrics-test-concurrent-runs/ISSUE.md` | TODO | Bug (#2394 D1, P2). `tests/metrics/fixed_ports.rs` binds `0.0.0.0:17091`-`17094`, so two runs on one machine collide (20 of 20 paired runs had one failure). The proposed fix uses the loopback helper beyond the 9 #2393 tests, which needs a maintainer decision before implementation starts (the Decisions section limits the helper to those 9 tests). |
 | 7 | #2907 - Remove the temporary files tests leave behind | `docs/issues/open/2907-2392-remove-leaked-test-temporary-files/ISSUE.md` | TODO | Bug (#2394 D2, F2). Three test helpers leave `data_*.db`, `test_config_*.toml` and PEM files in the system temporary directory; they accumulate until the disk fills. Independent of the other orders. |
-| 8 | #2908 - Tear down the qBittorrent E2E stack when it fails to start | `docs/issues/open/2908-2392-compose-cleanup-after-failed-start/ISSUE.md` | TODO | Bug (#2394 D3, C9). A failed `docker compose up` leaves the stack running on the Docker host. Touches the qBittorrent E2E runner, like order 3. |
+| 8 | #2908 - Tear down the qBittorrent E2E stack when it fails to start | `docs/issues/open/2908-2392-compose-cleanup-after-failed-start/ISSUE.md` | TODO | Bug (#2394 D3, C9). A failed `docker compose up` leaves the stack running on the Docker host. Touches the qBittorrent E2E runner, like order 4. |
 
 ## Delivery Strategy
 
 Deliver order 1 first: it fixes failures contributors already hit. Start order 2 early, because
 its findings may add subissues. Orders 3 and 4 touch only the E2E runners and CI workflows and can
-proceed in parallel. #1419 closes on its own schedule after #1488.
+proceed in parallel. #1419 closes on its own schedule after #1488. Order 2 added orders 6 to 8:
+orders 6 and 7 make the suite fail on a shared machine and gate AC2; they are independent of each
+other and of the E2E orders. Order 8 touches the qBittorrent E2E runner and belongs to Phase 3.
 
 Test isolation rules (apply to every subissue):
 
@@ -169,7 +171,7 @@ For each subissue implementation in this EPIC, the default completion policy is:
 ### Phase 3 - Isolated E2E runs
 
 - Outcome: two E2E runs on one Docker host neither collide nor test each other's image.
-- Exit criteria: orders 3 and 4 are done, and `docs/self-hosted-runner.md` no longer lists fixed
+- Exit criteria: orders 3, 4 and 8 are done, and `docs/self-hosted-runner.md` no longer lists fixed
   host ports or the shared image tag as concurrency limits.
 
 ### Phase 4 - Document and close
@@ -253,6 +255,10 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
   and #2908 from drafts D1, D2 and D3, moved their specs to `docs/issues/open/` and added them as
   orders 6 to 8; extended order 4 (#2396) with the local default image tags (#2394 C3, decision
   Q2). Phase 2 is done and AC4 is DONE; AC2 now waits on orders 6 and 7.
+- 2026-11-17 15:22 UTC - Claude Code (Claude Opus 5.5), EPIC coordinator - From da2ce7's review of PR #2910:
+  placed orders 6 to 8 in the Delivery Strategy and order 8 in Phase 3's exit criteria; order 8's
+  note now points at order 4; order 2's row records that the close-out PR merged and #2394 waits
+  on the maintainer.
 
 ## Acceptance Criteria
 
