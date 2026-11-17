@@ -1,7 +1,7 @@
 ---
 pr-number: 2920
 pr-url: https://github.com/torrust/torrust-tracker/pull/2920
-last-updated-utc: "2026-11-17 19:13"
+last-updated-utc: "2026-11-17 19:17"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -50,6 +50,8 @@ Round 2 is the approving review `5944190011` of `da2ce7` (F11 and F12, audit-loc
 and F23, continuing the count of pull request 2905's record), on the head that carried the last audit commit of round 1.
 Round 3 is the approving review `5944671302` of `da2ce7` (F13, audit-local ID; the reviewer numbers it F24), on the head
 that carried the round 2 audit.
+Round 4 is the approving review `5944877623` of `da2ce7` (F14, audit-local ID; the reviewer numbers it F25), on the head
+that carried the round 3 audit.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -66,6 +68,7 @@ that carried the round 2 audit.
 | F11 | `review-finding:pr-2920-f11` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F12 | `review-finding:pr-2920-f12` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F13 | `review-finding:pr-2920-f13` | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F14 | `review-finding:pr-2920-f14` | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -238,6 +241,19 @@ that carried the round 2 audit.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2920#discussion_r4604343733
 
+### F14 - The corrected line of F11 says more than probe 1's answer shows
+
+- PR number: 2920
+- Source review ID: 5944877623
+- Reviewer finding ID: F25
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2920#discussion_r4604444973
+- Concern: The verification line of F11, as corrected in round 3, said each of the six answers of checkout P lists the parent folder's personal file and files of checkout P. Probe 1 lists only the parent folder's file: it ran before any pointer file. The clause the finding needs, that none of the six lists an `AGENTS.md` above checkout P, holds for all six.
+- Solution: The line of F11 says that probe 1 lists only the parent folder's file, that the other five list it and files of checkout P, and that none of the six lists an `AGENTS.md` above checkout P. The Processing Log has a correction entry.
+- Current-tree verification: A script over the Q3 answers of probes 1, 2, 7, 8, 11 and 12 in `evidence/m4-probe-answers.md` printed, per probe, whether the answer names the parent folder's file and whether it names a file of checkout P: both for probes 2, 7, 8, 11 and 12, and the parent folder's file only for probe 1.
+- Resolution reference: `docs(pr-reviews): [#2904] say what probe 1 lists in the review audit of PR #2920`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2920#discussion_r4604513267
+
 ## Processing Log
 
 - 2026-11-17 17:55 UTC - Started audit.
@@ -252,6 +268,8 @@ that carried the round 2 audit.
 - 2026-11-17 19:01 UTC - Round 3: the approving review `5944671302` of `da2ce7` (submitted 18:55:59Z, forge `submitted_at`) with one nit, recorded as F13. The reviewer's `ACK` comment (18:56:04Z, forge `created_at`) names the head it read; the fix moves the head past it. The fix was committed at 18:58:46Z (`git log --format=%cI`, in UTC) and pushed; `git ls-remote` showed the fork branch at the local head before the reply. The reply was posted at 19:01:47Z (forge `created_at`), after the push.
 - 2026-11-17 19:02 UTC - `validate-audit-record.py --pr-number 2920 --base torrust/develop`, with its `gh` calls made through `gh-bot`, exited 0 (13 rows, 0 failures). Resolved the thread of F13 by its thread ID; a GraphQL refresh showed 0 unresolved threads.
 - 2026-11-17 19:13 UTC - Second correction to the Current-tree verification line of F11, after the review `5944877623` of `da2ce7`. The corrected line said each of the six answers of checkout P lists the parent folder's file and files of checkout P; probe 1 lists only the parent folder's file, because it ran before any pointer file existed. The line now says so. The reply of round 3 on the thread of F13 repeated the wrong wording.
+- 2026-11-17 19:16 UTC - Round 4: the approving review `5944877623` of `da2ce7` (submitted 19:10:53Z, forge `submitted_at`) with one nit, recorded as F14. The reviewer's `ACK` comment (19:10:57Z, forge `created_at`) names the head it read; the fix moves the head past it. The fix was committed at 19:13:28Z (`git log --format=%cI`, in UTC) and pushed; `git ls-remote` showed the fork branch at the local head before the reply. The reply was posted at 19:16:20Z (forge `created_at`), after the push.
+- 2026-11-17 19:17 UTC - `validate-audit-record.py --pr-number 2920 --base torrust/develop`, with its `gh` calls made through `gh-bot`, exited 0 (14 rows, 0 failures). Resolved the thread of F14 by its thread ID; a GraphQL refresh showed 0 unresolved threads.
 
 <!-- Copied verbatim into each audit record. -->
 
