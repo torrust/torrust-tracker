@@ -3,8 +3,8 @@ semantic-links:
   skill-links:
     - process-pr-review
   related-artifacts:
-    - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
-    - .github/skills/dev/planning/cleanup-completed-issues/SKILL.md
+    - .claude/skills/process-pr-review/SKILL.md
+    - .claude/skills/cleanup-completed-issues/SKILL.md
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -48,6 +48,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F2 | review-finding:pr-2895-f2 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-2895-f3 | Human | Nit | other | ORIGINAL | NO_ACTION | RESOLVED |
 | F4 | review-finding:pr-2895-f4 | Copilot | Minor | link-integrity | RE_RAISE_OF:F1 | NO_ACTION | SUPERSEDED |
+| F6 | review-finding:pr-2895-f6 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-2895-f7 | Human | Nit | link-integrity | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-2895-f8 | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -98,7 +101,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
   close-out, so the match closes nothing. Rewording would need a force push of an approved commit.
 - Current-tree verification: `gh-bot issue view 2876 --repo torrust/torrust-tracker --json state`
   prints `CLOSED`.
-- Resolution reference: N/A
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2895#discussion_r4596697701
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2895#discussion_r4596697701
 
@@ -111,9 +114,54 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Concern: The same two cells as F1.
 - Solution: Fixed with F1.
 - Current-tree verification: as F1.
-- Resolution reference: docs(issues): [#2876] point the #2824 F5 owner cells at the archived spec
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2895#discussion_r4596698017
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2895#discussion_r4596698017
+
+### F6 - The audit validator fails on F3's `Resolution reference: N/A`
+
+- PR number: 2895
+- Source review ID: 5934845195
+- Reviewer finding ID: F6
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2895#discussion_r4596803972
+- Concern: `validate-audit-record.py` checks `N/A` as a commit subject and fails; the skill asks for
+  the durable reply URL on a `NO_ACTION` row, which applies to F3 and F4.
+- Solution: F3 and F4 give their own Reply URL as the resolution reference.
+- Current-tree verification: `python3 .claude/skills/process-pr-review/scripts/validate-audit-record.py --pr-number 2895`
+  exits 0.
+- Resolution reference: docs(issues): [#2876] address review round 2 of PR 2895
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2895#discussion_r4596817256
+
+### F7 - The audit's `related-artifacts` name the old-path redirect stubs
+
+- PR number: 2895
+- Source review ID: 5934845195
+- Reviewer finding ID: F7
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2895#discussion_r4596803980
+- Concern: The two skill paths in the frontmatter are the "Moved" stubs under `.github/skills/`;
+  the template names the skills' current location.
+- Solution: The frontmatter names `.claude/skills/process-pr-review/SKILL.md` and
+  `.claude/skills/cleanup-completed-issues/SKILL.md`.
+- Current-tree verification: `head -8 docs/pr-reviews/pr-2895-review/PR-REVIEW.md`
+- Resolution reference: docs(issues): [#2876] address review round 2 of PR 2895
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2895#discussion_r4596817649
+
+### F8 - The #2824 F5 owner cell still says the design questions are open
+
+- PR number: 2895
+- Source review ID: 5934845195
+- Reviewer finding ID: F8
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2895#discussion_r4596803984
+- Concern: The cell is a live pointer but still says the maintainer answers the design questions
+  before implementation, which #2888 has done.
+- Solution: The cell says the questions were answered on 2026-11-16 and #2888 implemented the
+  outcome; the status column stays HANDED OFF.
+- Current-tree verification: `grep -n 'implemented the outcome' docs/issues/closed/2824-1347-add-tests-primitives/ISSUE.md`
+- Resolution reference: docs(issues): [#2876] address review round 2 of PR 2895
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2895#discussion_r4596818003
 
 ## Processing Log
 
@@ -122,6 +170,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
   one comment, the same concern as F1). F1 and F2 fixed by commit; F3 needs no change; the Copilot
   comment is recorded as F4, superseded by F1. The four thread replies posted at 07:45 UTC, before the
   push of the fix commit.
+- 2026-11-17 08:02 UTC - Review round 2: review 5934845195 (da2ce7, COMMENTED, one Minor F6, one
+  Nit F7 and one Suggestion F8; APPROVE withheld only because the validator failed). All three fixed
+  by commit; the three thread replies posted at 08:01 UTC, before the push.
 
 ## Completion Rules
 
