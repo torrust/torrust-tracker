@@ -6,7 +6,7 @@ epic: null
 github-issue: 2003
 spec-path: docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-16 16:11"
+last-updated-utc: "2026-11-16 17:35"
 semantic-links:
   skill-links:
     - create-issue
@@ -33,7 +33,7 @@ semantic-links:
     - docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md
     - docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/EPIC.md
     - docs/issues/open/2347-2003-triage-post-merge-review-findings/ISSUE.md
-    - docs/issues/open/2866-2003-move-skills-to-claude-skills/ISSUE.md
+    - docs/issues/closed/2866-2003-move-skills-to-claude-skills/ISSUE.md
     - docs/issues/open/2873-2003-shorten-skill-descriptions/ISSUE.md
     - docs/schemas/frontmatter-v1.schema.json
     - "issue #2264"
@@ -195,7 +195,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | 18 | #2713 - `wait-for-pr-review` panics when `--timeout-seconds` is too large | `docs/issues/closed/2713-2003-wait-for-pr-review-timeout-overflow-panic/ISSUE.md` | DONE | Bug in the #2581 poller: an oversized timeout overflows the deadline. Fixed by PR #2802: `--timeout-seconds` is bounded to 1..=86400. |
 | 19 | #2714 - `wait-for-pr-review` can report a review of a newer commit than the head it reports | `docs/issues/closed/2714-2003-wait-for-pr-review-head-race-between-requests/ISSUE.md` | DONE | Bug in the #2581 poller: a race between its two requests. Fixed by PR #2815: the head is fetched after the feedback. |
 | 20 | #2822 - `wait-for-pr-review`: add a `--gh-command` option to name the GitHub CLI command | `docs/issues/closed/2822-2003-wait-for-pr-review-gh-option/ISSUE.md` | DONE | Enhancement to the #2581 poller: the caller names the command, so no `gh` stand-in on `PATH` is needed, and the identity it runs as is reported. Selects no shared runner, cache or policy engine. Independent of the other poller work; spec PR #2826, implemented by PR #2835. |
-| 21 | #2866 - Move the agent skills to `.claude/skills/` so Claude Code discovers them | `docs/issues/open/2866-2003-move-skills-to-claude-skills/ISSUE.md` | TODO | Moves the 53 skills to a flat `.claude/skills/<name>/` with an index by area and redirect stubs at the old paths, so Claude Code discovers them. Must merge before the custom-agents migration is implemented, because agent definitions name skills. Selects no shared runner, cache or policy engine. |
+| 21 | #2866 - Move the agent skills to `.claude/skills/` so Claude Code discovers them | `docs/issues/closed/2866-2003-move-skills-to-claude-skills/ISSUE.md` | DONE | Moves the 53 skills to a flat `.claude/skills/<name>/` with an index by area and redirect stubs at the old paths, so Claude Code discovers them. Must merge before the custom-agents migration is implemented, because agent definitions name skills. Selects no shared runner, cache or policy engine. |
 | 22 | #2873 - Shorten the agent skill descriptions so they fit Claude Code's skill listing budget | `docs/issues/open/2873-2003-shorten-skill-descriptions/ISSUE.md` | TODO | Follow-up of #2866 (its task T1): shortens the 53 skill descriptions to 200 characters or less so the listing fits its 1% budget, fixes the `write-markdown-docs` description that YAML cuts at a `#`, and adds a `frontmatter-validator` rule. The description edits start after #2866 merges. Selects no shared runner, cache or policy engine. |
 
 Also linked as GitHub sub-issues, outside the order:
@@ -453,6 +453,7 @@ For each completed subissue in this EPIC, the default completion policy is:
 - 2026-11-15 21:30 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2866 session) - Added row 21 (#2866, move the agent skills to `.claude/skills/` so Claude Code discovers them) on 2026-11-15 at 20:14 UTC; the spec is in PR #2869.
 - 2026-11-16 08:30 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2873 session) - Added row 22 (#2873, shorten the agent skill descriptions) on 2026-11-16 at 08:26 UTC, as #2866's task T1; the description edits wait for #2866 to merge.
 - 2026-11-16 16:11 UTC - AI assistant (Claude Code, Claude Fable 5.2, EPIC #2003 coordinator session) - Replaced the Issue Body Mirror rule with Issue Body Pointer: the issue body must hold only stable content and point to this file. The body itself is not edited by this change. The decision has no GitHub comment; its record is [PR #2887](https://github.com/torrust/torrust-tracker/pull/2887). Decided by the maintainer on 2026-11-16.
+- 2026-11-16 17:35 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2866 session) - Marked row 21 (#2866) DONE and pointed it at `docs/issues/closed/`: PR #2886 merged on 2026-11-16 at 17:34 UTC and closed the issue; the spec is archived by the close-out PR.
 
 ## Acceptance Criteria
 

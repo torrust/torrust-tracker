@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p1
 epic: 2003
 github-issue: 2866
-spec-path: docs/issues/open/2866-2003-move-skills-to-claude-skills/ISSUE.md
+spec-path: docs/issues/closed/2866-2003-move-skills-to-claude-skills/ISSUE.md
 branch: "2866-move-skills-to-claude-skills"
 related-pr: 2886
-last-updated-utc: "2026-11-16 15:43"
+last-updated-utc: "2026-11-16 17:36"
 semantic-links:
   skill-links:
     - create-issue
@@ -355,7 +355,7 @@ pull request.
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/drafts/2003-move-skills-to-claude-skills/ISSUE.md` (now `docs/issues/open/2866-2003-move-skills-to-claude-skills/ISSUE.md`)
+- [x] Folder-style spec drafted in `docs/issues/drafts/2003-move-skills-to-claude-skills/ISSUE.md` (later `docs/issues/open/2866-2003-move-skills-to-claude-skills/ISSUE.md`, now `docs/issues/closed/2866-2003-move-skills-to-claude-skills/ISSUE.md`)
 - [x] Spec reviewed and approved by the maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [x] Spec-only PR merged into `develop` before implementation
@@ -363,11 +363,11 @@ pull request.
 - [x] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded in `implementation-retrospective.md`
+- [x] Evidence-based implementation completion review recorded in `implementation-retrospective.md`
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [x] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -383,6 +383,7 @@ pull request.
 - 2026-11-16 08:26 UTC - Claude Code (Claude Opus 5.5) - T7: `add-new-skill` puts a new skill at `.claude/skills/<name>/`, adds its index row, needs no stub, and runs `--skill-layout` before committing - `.claude/skills/add-new-skill/SKILL.md`
 - 2026-11-16 08:29 UTC - Claude Code (Claude Opus 5.5) - T8: ADR `20261116082711` (store agent skills flat in `.claude/skills/`), its index row, a partial-supersession status on ADR `20260420200013`, and the governance ADR's Skills row and a 2026-11-16 review record. The T2 to T7 entries above were first written with estimated times; they now carry their commit times - `docs/adrs/20261116082711_store_agent_skills_flat_in_claude_skills.md`
 - 2026-11-16 15:43 UTC - Claude Code (Claude Opus 5.5) - T1 done as issue #2873 (spec PR #2875 merged). T9: final sweep found no live old path; `linter all`, the crate and Python tests, and `--skill-layout` pass; M1 to M5 done in a fresh clone of the branch: 53 project skills listed, `/create-issue` runs, moved scripts run, an old link reaches its stub, and drift fails the validator - `manual-verification-evidence.md` T9, V1 to V5
+- 2026-11-16 17:36 UTC - Claude Code (Claude Opus 5.5) - PR #2886 merged on 2026-11-16 at 17:34 UTC and closed issue #2866; archived the spec to `docs/issues/closed/`, marked EPIC #2003 row 21 DONE, and recorded the implementation retrospective - `implementation-retrospective.md`
 
 ## Acceptance Criteria
 
