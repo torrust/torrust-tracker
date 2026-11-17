@@ -123,7 +123,8 @@ impl HungComponentTracker {
     /// # Panics
     ///
     /// Panics with the child output when the child is still running after `timeout`; the child is
-    /// killed and reaped first.
+    /// killed and reaped first. Also panics when an output reader thread panicked, since the
+    /// captured output is then incomplete.
     pub fn signal_and_wait_for_exit(mut self, signal: Signal, timeout: Duration) -> ChildExit {
         let pid = Pid::from_raw(i32::try_from(self.child_mut().id()).expect("the child PID fits an i32"));
         let signalled_at = Instant::now();
@@ -245,7 +246,9 @@ where
 {
     std::thread::spawn(move || {
         for line in BufReader::new(stream).lines() {
-            let Ok(line) = line else { return };
+            // A read error or a non-UTF-8 line panics, so `join_readers` reports the output as
+            // incomplete instead of the test failing later on missing log lines.
+            let line = line.expect("read a line of the child output");
             let mut output = output.lock().expect("the output lock is not poisoned");
             output.push_str(&line);
             output.push('\n');
