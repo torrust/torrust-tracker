@@ -9,7 +9,7 @@ github-issue: 2907
 spec-path: docs/issues/open/2907-2392-remove-leaked-test-temporary-files/ISSUE.md
 branch: "2392-audit-follow-up-issues-spec"
 related-pr: null
-last-updated-utc: "2026-11-17 12:35"
+last-updated-utc: "2026-11-17 18:03"
 semantic-links:
   skill-links:
     - create-issue
@@ -20,7 +20,8 @@ semantic-links:
     - .claude/skills/create-issue/SKILL.md
     - docs/issues/open/2392-test-isolation/EPIC.md
     - docs/issues/closed/2394-2392-audit-shared-test-resources/inventory.md
-    - packages/test-helpers/src/configuration.rs
+    - docs/issues/drafts/2392-sqlite-test-database-guard/ISSUE.md
+    - docs/issues/drafts/2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md
     - packages/configuration/src/v2_0_0/mod.rs
     - packages/configuration/src/v3_0_0/mod.rs
     - packages/axum-server/src/tls.rs
@@ -28,14 +29,17 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #2907 - Remove the Temporary Files Tests Leave Behind
+# Issue #2907 - Remove the Temporary TOML and PEM Files Tests Leave Behind
 
 Parent EPIC: #2392 - Test Isolation (`docs/issues/open/2392-test-isolation/EPIC.md`)
 
 ## Goal
 
-Tests remove every temporary file they create, on success, failure and drop paths (EPIC rule 1).
-A test run leaves the system temporary directory as it found it.
+The configuration-file tests and the TLS tests remove every temporary file they create, on
+success, failure and drop paths (EPIC rule 1).
+
+This issue was narrowed on 2026-11-17. It first covered three leaks; the SQLite database leak
+turned out to be larger than one issue and moved to two new issues (see Scope).
 
 ## Background
 
@@ -45,7 +49,7 @@ test passes:
 
 | Helper | File | Removed |
 | --- | --- | --- |
-| `torrust_tracker_test_helpers::configuration::ephemeral_sqlite_database` (used by every `ephemeral*` configuration and the `tracker-core` SQLite tests) | `data_<16 random characters>.db` | Never |
+| `torrust_tracker_test_helpers::configuration::ephemeral_sqlite_database` (used by every `ephemeral*` configuration and the `tracker-core` SQLite tests); moved out of this issue | `data_<16 random characters>.db` | Never |
 | The configuration-file tests in `packages/configuration/src/{v2_0_0,v3_0_0}/mod.rs` | `test_config_<uuid>.toml` | Never |
 | `make_temp_file` in `packages/axum-server/src/tls.rs` | `<prefix>-<nanoseconds>.pem` | Only when the test passes |
 
@@ -61,14 +65,17 @@ and then unrelated tests fail.
 
 ### In Scope
 
-- Make each helper's file owned by a guard that removes it on drop (for example a
-  `tempfile::TempDir` or `NamedTempFile` kept alive as long as the configuration or test that uses
-  the path).
-- Adjust the callers of `ephemeral_sqlite_database` and the `ephemeral*` configurations so the
-  guard outlives the tracker that opens the database.
+- The configuration-file tests in `packages/configuration/src/{v2_0_0,v3_0_0}/mod.rs`: the
+  `test_config_<uuid>.toml` file is removed when the test ends.
+- `make_temp_file` in `packages/axum-server/src/tls.rs`: the PEM files are removed when the test
+  fails too.
 
 ### Out of Scope
 
+- The SQLite database leak (`data_*.db`). The maintainer split it out on 2026-11-17 (EPIC
+  Decisions): `docs/issues/drafts/2392-sqlite-test-database-guard/ISSUE.md` adds a guard-owned
+  database, and `docs/issues/drafts/2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md` moves
+  the tests to it and owns the check that a fresh `TMPDIR` is empty after the suite.
 - Deleting the files already leaked on any machine (a one-off cleanup for the machine's owner).
 - Examples that use fixed temporary paths; no test runs them (#2394 F7).
 - Any other resource class.
@@ -76,26 +83,26 @@ and then unrelated tests fail.
 ## Architectural Decisions
 
 - Related ADRs: none.
-- ADRs to create: none expected. Changing the return type of public `torrust-tracker-test-helpers`
-  functions is a test-support API change; record the chosen shape in this spec.
+- ADRs to create: none expected.
 
 ## Design and Ownership Review
 
-The `ephemeral*` functions return a `Configuration` that carries only a path string, and many
-callers (51 files) keep the configuration, not a guard. Decide before implementation:
+Both files are owned by the test that creates them, following patterns the workspace already
+uses. The designs below are the #2907 session's proposal; the maintainer confirms them in T2.
 
-- who owns the guard: the configuration factory's caller, a wrapper type returned with the
-  configuration, or the test environment that starts the tracker;
-- that the guard is dropped only after the tracker and its database handles are dropped;
-- the failure path: a test that panics still drops the guard;
-- deadline: not applicable, the change awaits no readiness operation;
-- design-review checkpoint: after the first passing vertical slice (T3, the SQLite helper and one
-  caller family), stop for a design review of the guard's shape before converting the remaining
-  callers and starting T4.
+- TOML: each test creates a `tempfile::tempdir()` and writes its configuration file inside it, as
+  the tests in `src/bootstrap/config.rs` do.
+- TLS: `make_temp_file` returns a `tempfile::NamedTempFile`, as the tests in
+  `console/tracker-client/tests/tracker_checker/configuration.rs` do, so a failing test removes
+  its files too.
+- Both need `tempfile` as a dev-dependency of `torrust-tracker-configuration` and
+  `torrust-tracker-axum-server`.
+- Failure path: a test that panics still drops the guard.
+- Deadline: not applicable, the change awaits no readiness operation.
 
 ### Test Development Loop
 
-T3 to T5 add tests, so it follows the progressive test-development loop of the `write-unit-test`
+T3 and T4 change tests, so the work follows the progressive test-development loop of the `write-unit-test`
 skill (`.claude/skills/write-unit-test/SKILL.md`):
 
 - Work in the smallest behavior-focused increment that passes focused validation.
@@ -115,14 +122,15 @@ The defect is in test-support code. Follow `.claude/skills/fix-bug/SKILL.md`:
 1. Real-artifact reproduction: done while drafting with a fresh `TMPDIR` and recorded in this
    folder's `manual-verification-evidence.md` (V1); T1 repeats it on the `develop` the work starts
    from.
-2. Regression boundary: unit tests of each helper that assert the file is gone after the guard is
-   dropped.
+2. Regression boundary: a unit test of `make_temp_file` that asserts the file is gone after the
+   guard is dropped. The TOML tests own their directory directly, so the recheck count covers
+   them.
 3. Red before the change, green after; final like-for-like recheck of step 1.
 
 ## Regression Test Strategy
 
-One unit test per helper: create the file through the helper, drop the guard, assert the path no
-longer exists. The step-1 count is the end-to-end recheck.
+One unit test for `make_temp_file`: create the file, drop the guard, assert the path no longer
+exists. The step-1 count is the end-to-end recheck for both leaks.
 
 ## Implementation Plan
 
@@ -130,22 +138,20 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | TODO | Reproduce with a fresh `TMPDIR` | Before-counts recorded (V1). |
-| T2 | TODO | Decide the guard ownership | Design recorded in this spec, approved by the maintainer. |
-| T3 | TODO | SQLite helper and its callers | Unit test red then green; design review of the first slice before the rest. |
-| T4 | TODO | Configuration-file tests | Files removed on drop; test-design review recorded before T5. |
-| T5 | TODO | TLS test files | Files removed on failure too; test-design review recorded before T6. |
-| T6 | TODO | Recheck | Fresh `TMPDIR` is empty after the suite (V2); `linter all` passes. |
+| T1 | TODO | Reproduce with a fresh `TMPDIR` | Before-counts recorded (V1). The #2907 session ran it on 2026-11-17 at `develop` `61e3fedcf` and records it in the evidence file. |
+| T2 | TODO | Confirm the two designs | The maintainer confirms the TOML and TLS designs above; recorded in this spec. |
+| T3 | TODO | Configuration-file tests | Files removed when the test ends; test-design review recorded before T4. |
+| T4 | TODO | TLS test files | Files removed on failure too; test-design review recorded before T5. |
+| T5 | TODO | Recheck | No `test_config_*.toml` and no PEM file after the suite (V2); `linter all` passes. |
 
 ## Commit Points
 
 | Task | Coherent change set | Commit policy |
 | --- | --- | --- |
 | T1-T2 | Evidence and design | Documentation-only commit after maintainer review. |
-| T3 | SQLite helper and callers | Commit after focused validation and review. |
-| T4 | Configuration-file tests | Commit after focused validation and review. |
-| T5 | TLS test files | Commit after focused validation and review. |
-| T6 | Recheck evidence | Documentation-only commit. |
+| T3 | Configuration-file tests | Commit after focused validation and review. |
+| T4 | TLS test files | Commit after focused validation and review. |
+| T5 | Recheck evidence | Documentation-only commit. |
 
 ## Progress Tracking
 
@@ -168,12 +174,17 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-17 12:35 UTC - Claude Code (Claude Opus 5.5), EPIC #2392 coordinator - The
   maintainer approved the draft in the review of PR #2891. Created GitHub issue #2907 and
   moved the spec from `docs/issues/drafts/` to `docs/issues/open/`.
+- 2026-11-17 18:03 UTC - Claude Code (Claude Fable 5.2), EPIC #2392 coordinator - Narrowed to the
+  TOML and TLS leaks after the maintainer split the SQLite leak into two new issues (EPIC
+  Decisions, 2026-11-17). The #2907 session's T1 and T2 findings showed about 100 tests need
+  persistence and about 278 call sites use the `ephemeral*()` configurations. Renumbered the
+  plan: the old T3 (SQLite) left, T4 to T6 became T3 to T5.
 
 ## Acceptance Criteria
 
-- [ ] AC1: After `cargo test --workspace` with a fresh `TMPDIR`, no `data_*.db`,
-  `test_config_*.toml` or test PEM file remains.
-- [ ] AC2: Each helper has a unit test proving its file is removed when the guard is dropped.
+- [ ] AC1: After the full test suite with a fresh `TMPDIR`, no `test_config_*.toml` and no test
+  PEM file remains.
+- [ ] AC2: `make_temp_file` has a unit test proving its file is removed when the guard is dropped.
 - [ ] AC3: A failing TLS test also removes its files.
 - [ ] `linter all` exits with code `0`
 
@@ -191,7 +202,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | V1 | Reproduce | `TMPDIR=$(mktemp -d) cargo +stable test --tests --benches --examples --workspace --all-targets --all-features`, then count the files | Leaked files counted | DONE | `manual-verification-evidence.md` |
-| V2 | Recheck | Same command after the change | No leaked files | TODO | `manual-verification-evidence.md` |
+| V2 | Recheck | Same command after the change | No `test_config_*.toml` and no PEM file; `data_*.db` files remain until the SQLite issues are done | TODO | `manual-verification-evidence.md` |
 
 Evidence policy: every recorded command result names the toolchain that produced it (for example
 `cargo +stable test`), and the evidence file is created from
@@ -202,16 +213,13 @@ Evidence policy: every recorded command result names the toolchain that produced
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | --- | --- | --- |
 | AC1 | TODO | V2 |
-| AC2 | TODO | Unit tests |
+| AC2 | TODO | Unit test |
 | AC3 | TODO | Unit test |
 
 ## Risks and Trade-offs
 
-- **API churn.** Many callers use the `ephemeral*` configurations; returning a guard touches all of
-  them. A wrapper that keeps the guard next to the configuration may limit the change.
-- **Early drop.** A guard dropped before the tracker stops would delete an open database; SQLite on
-  Linux keeps working on an unlinked file, which can hide the mistake. The unit tests must check
-  the order.
+- **Partial result.** After this issue the temporary directory still fills with `data_*.db`
+  files, which are most of the leak (301 of 303 files in T1). The SQLite issues remove them.
 
 ## Implementation Completion Review
 
