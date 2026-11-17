@@ -100,7 +100,7 @@ impl HungComponentTracker {
     pub fn wait_until_signal_handlers_installed(&mut self) {
         let deadline = Instant::now() + STARTUP_TIMEOUT;
         loop {
-            if self.output().contains(SIGNAL_HANDLERS_INSTALLED) {
+            if self.output_contains(SIGNAL_HANDLERS_INSTALLED) {
                 return;
             }
             if let Some(status) = self.child_mut().try_wait().expect("check the child status") {
@@ -158,6 +158,11 @@ impl HungComponentTracker {
         self.output.lock().expect("the output lock is not poisoned").clone()
     }
 
+    /// Checks the captured output under its lock, without copying it on every poll.
+    fn output_contains(&self, text: &str) -> bool {
+        self.output.lock().expect("the output lock is not poisoned").contains(text)
+    }
+
     const fn child_mut(&mut self) -> &mut Child {
         self.child.as_mut().expect("the child is running")
     }
@@ -170,9 +175,14 @@ impl HungComponentTracker {
         }
     }
 
+    /// Joins the output reader threads and fails the test when one of them panicked, since the
+    /// captured output would then be incomplete.
     fn join_readers(&mut self) {
         for reader in self.readers.drain(..) {
-            drop(reader.join());
+            assert!(
+                reader.join().is_ok(),
+                "an output reader thread panicked, so the captured child output is incomplete"
+            );
         }
     }
 }
@@ -181,7 +191,11 @@ impl Drop for HungComponentTracker {
     /// Kills and reaps a child still running when a test fails, so no process or port is left behind.
     fn drop(&mut self) {
         self.kill_and_reap();
-        self.join_readers();
+        // This also runs while a failed assertion unwinds, so a reader panic must not panic again
+        // here; the normal paths have already joined the readers with `join_readers`.
+        for reader in self.readers.drain(..) {
+            drop(reader.join());
+        }
     }
 }
 
