@@ -9,7 +9,7 @@ github-issue: 2394
 spec-path: docs/issues/closed/2394-2392-audit-shared-test-resources/ISSUE.md
 branch: "2392-test-isolation-spec"
 related-pr: 2397
-last-updated-utc: "2026-11-17 09:47"
+last-updated-utc: "2026-11-17 12:35"
 semantic-links:
   skill-links:
     - create-issue
@@ -19,9 +19,9 @@ semantic-links:
     - docs/issues/closed/2393-2392-test-port-allocation-races/ISSUE.md
     - docs/issues/closed/2386-1840-self-hosted-runner-minimum-capacity/ISSUE.md
     - docs/analysis/20260909-cli-config-path-test-isolation/README.md
-    - docs/issues/drafts/2392-fixed-port-metrics-test-concurrent-runs/ISSUE.md
-    - docs/issues/drafts/2392-remove-leaked-test-temporary-files/ISSUE.md
-    - docs/issues/drafts/2392-compose-cleanup-after-failed-start/ISSUE.md
+    - docs/issues/open/2906-2392-fixed-port-metrics-test-concurrent-runs/ISSUE.md
+    - docs/issues/open/2907-2392-remove-leaked-test-temporary-files/ISSUE.md
+    - docs/issues/open/2908-2392-compose-cleanup-after-failed-start/ISSUE.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -101,7 +101,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3 | DONE | Inventory container resources | Findings with dispositions. |
 | T4 | DONE | Inventory filesystem paths | Findings with dispositions. |
 | T5 | DONE | Inventory process-global state and external services | Findings with dispositions. |
-| T6 | DONE | Draft subissues for new problems | One draft per confirmed problem (or cohesive group), linked from the EPIC after maintainer review. Done: D1 (P2), D2 (F2) and D3 (C9) under `docs/issues/drafts/`, merged in PR #2891 and linked from the EPIC's order 2 row. The EPIC coordinator creates their GitHub issues and EPIC rows. |
+| T6 | DONE | Draft subissues for new problems | One draft per confirmed problem (or cohesive group), linked from the EPIC after maintainer review. Done: D1 (P2), D2 (F2) and D3 (C9) under `docs/issues/drafts/`, merged in PR #2891 and linked from the EPIC's order 2 row. The EPIC coordinator created their GitHub issues (#2906, #2907, #2908) and EPIC rows (orders 6 to 8). |
 
 ## Commit Points
 
@@ -157,6 +157,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   first version had marked as torn down on drop. A future audit also checks each resource's
   failure and drop paths (EPIC rule 1). The other review findings were corrections to the audit
   documents, recorded in `docs/pr-reviews/pr-2891-review/PR-REVIEW.md`.
+- 2026-11-17 12:35 UTC - Claude Code (Claude Opus 5.5), EPIC #2392 coordinator - Created the
+  GitHub issues for D1 (#2906), D2 (#2907) and D3 (#2908), moved their specs to
+  `docs/issues/open/`, and added them to the EPIC as orders 6 to 8.
 
 ## Acceptance Criteria
 
@@ -188,7 +191,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | --- | --- | --- |
 | AC1 | DONE | `inventory.md` (search commands per class, rerun on the merge of `develop` `0373f05f8`) |
 | AC2 | DONE | `inventory.md`: 38 findings, 29 isolated, 1 deliberate exception, 5 covered, 3 new problems |
-| AC3 | DONE | EPIC order 2 row links drafts D1, D2 and D3; their own EPIC rows follow when the coordinator creates the GitHub issues |
+| AC3 | DONE | EPIC order 2 row links drafts D1, D2 and D3; their GitHub issues #2906, #2907 and #2908 are EPIC orders 6 to 8 |
 
 ## Risks and Trade-offs
 

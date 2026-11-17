@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: draft
+status: planned
 priority: p2
 epic: 2392
-github-issue: null
-spec-path: docs/issues/drafts/2392-compose-cleanup-after-failed-start/ISSUE.md
-branch: "{issue-number}-2392-compose-cleanup-after-failed-start"
+github-issue: 2908
+spec-path: docs/issues/open/2908-2392-compose-cleanup-after-failed-start/ISSUE.md
+branch: "2392-audit-follow-up-issues-spec"
 related-pr: null
-last-updated-utc: "2026-11-17 08:52"
+last-updated-utc: "2026-11-17 12:35"
 semantic-links:
   skill-links:
     - create-issue
@@ -26,7 +26,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Tear Down the qBittorrent E2E Stack When It Fails to Start
+# Issue #2908 - Tear Down the qBittorrent E2E Stack When It Fails to Start
 
 Parent EPIC: #2392 - Test Isolation (`docs/issues/open/2392-test-isolation/EPIC.md`)
 
@@ -137,8 +137,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 ### Workflow Checkpoints
 
 - [x] Folder-style spec drafted in `docs/issues/drafts/2392-compose-cleanup-after-failed-start/ISSUE.md`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -151,6 +151,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-16 22:06 UTC - Claude Code (Claude Opus 5.5), #2394 session - Drafted from Copilot's
   review of PR #2891 after the maintainer classified the failed-`up` cleanup as a new problem.
   Confirmed in the code; not reproduced against Docker yet (T1).
+- 2026-11-17 12:35 UTC - Claude Code (Claude Opus 5.5), EPIC #2392 coordinator - The
+  maintainer approved the draft in the review of PR #2891. Created GitHub issue #2908 and
+  moved the spec from `docs/issues/drafts/` to `docs/issues/open/`.
 
 ## Acceptance Criteria
 

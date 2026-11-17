@@ -1,6 +1,6 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/drafts/2392-remove-leaked-test-temporary-files/ISSUE.md
+issue-spec: docs/issues/open/2907-2392-remove-leaked-test-temporary-files/ISSUE.md
 last-updated-utc: "2026-11-16 22:23"
 ---
 
