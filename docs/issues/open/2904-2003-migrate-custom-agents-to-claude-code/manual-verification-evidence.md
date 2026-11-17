@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md
-last-updated-utc: 2026-11-17 17:11
+last-updated-utc: 2026-11-17 17:19
 ---
 
 # Manual Verification Evidence
@@ -18,10 +18,11 @@ adds the section of the scenario it records.
 ## Environment and Prerequisites
 
 - Date and time (UTC): 2026-11-17, 16:53 to 17:09
-- Artifact under test: the pointer files of task T2, added by
+- Artifact under test: the pointer files of task T2, on top of `develop` at the merge of pull
+  request #2905. The probes ran on the files before they were committed (written with `printf`
+  and `cp`, see the steps); they were committed unchanged afterwards by
   `docs(agents): [#2904] add a root CLAUDE.md that only imports AGENTS.md` and
-  `docs(agents): [#2904] add an import-only CLAUDE.md beside each scoped AGENTS.md`, on top of
-  `develop` at the merge of pull request #2905.
+  `docs(agents): [#2904] add an import-only CLAUDE.md beside each scoped AGENTS.md`.
 - Operating system / environment: Linux 7.0.0-43-generic; Claude Code 2.1.318 (`claude --version`);
   every probe session ran on `claude-sonnet-5-5` (the `init` record of its output).
 - Prerequisites and setup performed: two checkouts of the same commit.
@@ -73,8 +74,9 @@ The expected quotes are the first line of `AGENTS.md`
 (`# Torrust Tracker — AI Assistant Instructions`) and the first rule heading of
 `packages/configuration/AGENTS.md`
 (`### Rule: Use typed newtypes for domain-constrained configuration fields`). `--tools Read`
-leaves the session no tool but `Read`, and the prompt allows one call, so a correct quote of the
-scoped rule cannot come from reading the file.
+leaves the session no tool but `Read`. The prompt asks for one call on `Cargo.toml`, but nothing
+enforces the number of calls: that the session made that one call and no other is recorded only
+for probes 9 to 12 (see the tool calls below), which repeat probes 5 to 8.
 
 The probes ran one at a time, in this order. Times are UTC: the modification time of the probe's output file (`ls -l`) for
 probes 1 and 2, `date -u` at the end of the probe for probes 3 to 8, and `date -u` at its start
@@ -174,8 +176,13 @@ The probes also settle the question D11 left to this task:
   parent `CLAUDE.md` (probe 2) and without one (probe 4). So the scoped pointer files are needed,
   as the reviewer of pull request #2905 reported.
 
-Limits of this evidence: the answers are what each model reported about its own context, checked
-against lines it could not have read with its one allowed `Read` call; only
+Limits of this evidence: the answers are what each model reported about its own context. For
+probes 9 to 12 the recorded tool calls show the quoted lines were not read from the files. For
+probes 1 to 8 no tool calls were recorded, so a quote there could in principle come from an extra
+`Read` call; this matters most for probe 3, the one positive result behind "loads by itself",
+which was not repeated. The NOT LOADED answers of probes 1, 2 and 4 do not depend on it. What the
+started agents of probes 6, 8 and 10 said about when the files arrived is summarized, not quoted;
+only probe 12's agent is quoted. Only
 `packages/configuration/` was probed, and the other eight scoped directories rely on the same
 mechanism; the behaviour is that of Claude Code 2.1.318.
 

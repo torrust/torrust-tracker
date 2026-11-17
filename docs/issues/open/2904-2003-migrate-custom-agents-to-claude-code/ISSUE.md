@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p1
 epic: 2003
 github-issue: 2904
 spec-path: docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md
-branch: "2904-migrate-custom-agents-to-claude-code-spec"
+branch: "2904-t2-pointer-claude-md"
 related-pr: null
-last-updated-utc: "2026-11-17 17:11"
+last-updated-utc: "2026-11-17 17:19"
 semantic-links:
   skill-links:
     - create-issue
@@ -525,7 +525,7 @@ on are merged.
 | T7  | TODO   | `pr-reviewer` | The agent file with the pinned model; the reply rule in `review-pr` |
 | T8  | TODO   | `researcher` | The agent file |
 | T9  | TODO   | `orchestrator` | The agent file; `docs/agents/orchestration.md` rewritten for the orchestrator-led flow, with the 3-round limit; the issue template checkpoints; scenario M5 recorded |
-| T10 | TODO   | End of `.github/agents/` | `.github/agents/` removed, with the rules of the `agent-review-report-contract` check that name the profiles and `docs/templates/AGENT-REVIEW-REPORTS.md`; the rest of that check kept and passing; the one-commit-per-lint rule in `fix-clippy-warnings`; the inventory `removed-profile-rules.md` completed for all ten profiles (AC6); `AGENTS.md`, `docs/agents/README.md`, `docs/templates/AGENT-REVIEW-REPORTS.md`, the `frontmatter-validator` rule and the governance ADR updated; the new ADR, and the ADR-move item added to the scope of the harness-workspace draft (D10) |
+| T10 | TODO   | End of `.github/agents/` | `.github/agents/` removed, with the rules of the `agent-review-report-contract` check that name the profiles and `docs/templates/AGENT-REVIEW-REPORTS.md`; the rest of that check kept and passing; the one-commit-per-lint rule in `fix-clippy-warnings`; the inventory `removed-profile-rules.md` completed for all ten profiles (AC6); `AGENTS.md`, `docs/agents/README.md`, `docs/templates/AGENT-REVIEW-REPORTS.md`, the `frontmatter-validator` rule and the governance ADR updated, with the line of ADR `20261116082711` that says there is no repository `CLAUDE.md`, which T2 made untrue; the new ADR, and the ADR-move item added to the scope of the harness-workspace draft (D10) |
 | T11 | TODO   | Measurement | Review rounds recorded for the first three pull requests handled by `pr-review-handler` (scenario M6); the pull requests of this issue count |
 | T12 | TODO   | Close-out pull request | Completion review, specification moved to `docs/issues/closed/`, EPIC row `DONE` |
 
@@ -599,6 +599,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - 2026-11-17 15:23 UTC - Claude Code (Claude Fable 5.2) - Addressed the reviews `5939681382` and `5939862849` of `da2ce7` on pull request #2905 (one nit, one minor finding about the audit record): the review of T5 itself runs the `task-reviewer` agent on the T5 branch and writes a reply file, so this issue uses `agent-review-reports.md` for T2 to T4 and reply files for T5 to T12.
 - 2026-11-17 16:07 UTC - Claude Code (Claude Fable 5.2) - Addressed Copilot's review `5941597022` on pull request #2905 (two minor findings): AC10 exempts the forced run of M7 that ends without a reply file, and the EPIC records this issue's named models (D4, D13) as an approved exception to its Out of Scope item.
 - 2026-11-17 17:11 UTC - Claude Code (Claude Fable 5.2) - Pull request #2905 merged on 2026-11-17 at 16:52 UTC. Task T2: added the root `CLAUDE.md` and ran scenario M4. A root `CLAUDE.md` alone stops Claude Code from loading the scoped `AGENTS.md` files, with and without a `CLAUDE.md` in a parent folder, so the ten scoped pointer files of D11 were added too. With all eleven, the session and a started agent receive the root and the scoped rules in both checkouts. AC12 is met; evidence in `manual-verification-evidence.md` section V4.
+- 2026-11-17 17:19 UTC - Claude Code (Claude Fable 5.2) - Independent review of T2 recorded in `agent-review-reports.md` (REVIEW PASSED, two minor findings and four nits). Addressed: the evidence states which probes have recorded tool calls and that the probed files were committed afterwards; `status` is `in-progress` and `branch` names the T2 branch; the T10 row names the ADR line that T2 made untrue; the branch is rebased on `develop`.
 
 ## Acceptance Criteria
 
