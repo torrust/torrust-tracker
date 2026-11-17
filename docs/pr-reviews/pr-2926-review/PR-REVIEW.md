@@ -1,7 +1,7 @@
 ---
 pr-number: 2926
 pr-url: https://github.com/torrust/torrust-tracker/pull/2926
-last-updated-utc: "2026-11-17 22:40"
+last-updated-utc: "2026-11-17 23:12"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -43,7 +43,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1: Copilot review 5946669412 (COMMENTED) with three findings without reviewer IDs, as audit findings F1 to F3. Round 2: Copilot review 5946979677 (COMMENTED, at the round 1 fix head) with two findings without reviewer IDs, as audit findings F4 and F5. Round 3: Copilot review 5947468225 (COMMENTED) with four findings without reviewer IDs, as audit findings F6 to F9. Round 4: Copilot review 5947772095 (COMMENTED, at the round 3 fix head) with one finding without a reviewer ID, as audit finding F10.
+Round 1: Copilot review 5946669412 (COMMENTED) with three findings without reviewer IDs, as audit findings F1 to F3. Round 2: Copilot review 5946979677 (COMMENTED, at the round 1 fix head) with two findings without reviewer IDs, as audit findings F4 and F5. Round 3: Copilot review 5947468225 (COMMENTED) with four findings without reviewer IDs, as audit findings F6 to F9. Round 4: Copilot review 5947772095 (COMMENTED, at the round 3 fix head) with one finding without a reviewer ID, as audit finding F10. Round 5: Copilot review 5948148595 (COMMENTED) with four findings without reviewer IDs, as audit findings F11 to F14.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -57,6 +57,10 @@ Round 1: Copilot review 5946669412 (COMMENTED) with three findings without revie
 | F8 | review-finding:pr-2926-f8 | Copilot | Nit (inferred) | metadata | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F9 | review-finding:pr-2926-f9 | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F10 | review-finding:pr-2926-f10 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-2926-f11 | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-2926-f12 | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F13 | review-finding:pr-2926-f13 | Copilot | Nit | other | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F14 | review-finding:pr-2926-f14 | Copilot | Nit | other | ORIGINAL | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -81,7 +85,7 @@ Round 1: Copilot review 5946669412 (COMMENTED) with three findings without revie
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4605825865
 - Concern: The goal, acceptance criteria and verifications of #2925 target `data_*.db` files, but the guard of #2924 keeps the database as `data.db` inside a directory, so the check could miss a leftover guard directory.
 - Solution: The goal, the scope item, T5, AC1 and V2 now exclude a leftover directory that holds a database file as well as `data_*.db` files; a progress-log entry records it. V1 still counts `data_*.db`, which is what the tests leave before the change, and AC5 keeps the check that the fresh `TMPDIR` is empty.
-- Current-tree verification: `grep -n 'no directory that holds a database file\|SQLite database file or directory' docs/issues/open/2925-*/ISSUE.md` finds AC1 and T5.
+- Current-tree verification: `grep -n 'no directory that holds a database file\|SQLite database file or directory' docs/issues/open/2925-*/ISSUE.md` finds T5; the F11 fix later reworded AC1.
 - Resolution reference: docs(issues): [#2392] align the order 7 title and widen #2925's SQLite leftover check
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4605878716
@@ -190,6 +194,58 @@ Round 1: Copilot review 5946669412 (COMMENTED) with three findings without revie
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4606765190
 
+### F11 - AC1 of #2925 names any directory with a database file
+
+- PR number: 2926
+- Source review ID: 5948148595
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4607020014
+- Concern: AC1 says "no directory that holds a database file", which could be read to include unrelated directories.
+- Solution: AC1 now reads "no `data_*.db` file and no leftover guard directory (a directory with a `data.db` file)".
+- Current-tree verification: `grep -n 'no leftover guard directory (a directory with a' docs/issues/open/2925-*/ISSUE.md` finds AC1 and V2.
+- Resolution reference: docs(issues): [#2392] name the leftover guard directory in #2925's AC1 and V2
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4607057588
+
+### F12 - V2 of #2925 names any directory with a database file
+
+- PR number: 2926
+- Source review ID: 5948148595
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4607020071
+- Concern: V2 says "no directory holding a database file", with the same ambiguity as AC1.
+- Solution: V2 now uses the same wording as AC1.
+- Current-tree verification: `grep -n 'no leftover guard directory (a directory with a' docs/issues/open/2925-*/ISSUE.md` finds AC1 and V2.
+- Resolution reference: docs(issues): [#2392] name the leftover guard directory in #2925's AC1 and V2
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4607057888
+
+### F13 - Article before SQLite in #2924
+
+- PR number: 2926
+- Source review ID: 5948148595
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4607020105
+- Concern: The reviewer asks for "an SQLite database" instead of "a SQLite database".
+- Solution: No change. Both articles are in use; the repository writes "a SQLite" (12 occurrences against 3 of "an SQLite" under `docs`, `packages`, `src` and the README), and the spec follows that.
+- Current-tree verification: `grep -rIoh '\ba SQLite' docs packages src README.md | wc -l` printed 12 and the same count for `an SQLite` printed 3, before this record was written.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4607027028
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4607027028
+
+### F14 - Article before SQLite in #2925
+
+- PR number: 2926
+- Source review ID: 5948148595
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4607020156
+- Concern: The reviewer asks for "an SQLite database" instead of "a SQLite database".
+- Solution: No change. Both articles are in use; the repository writes "a SQLite" (12 occurrences against 3 of "an SQLite" under `docs`, `packages`, `src` and the README), and the spec follows that.
+- Current-tree verification: `grep -rIoh '\ba SQLite' docs packages src README.md | wc -l` printed 12 and the same count for `an SQLite` printed 3, before this record was written.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4607027321
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4607027321
+
 ## Processing Log
 
 - 2026-11-17 21:15 UTC - Round 1: Copilot review 5946669412 with F1 to F3. Committed and pushed the fix (`docs(issues): [#2392] align the order 7 title and widen #2925's SQLite leftover check`), then replied to the three threads (21:14:38Z to 21:14:43Z).
@@ -200,6 +256,8 @@ Round 1: Copilot review 5946669412 (COMMENTED) with three findings without revie
 - 2026-11-17 22:15 UTC - The validator on the worktree record reported 9 rows, 5 log entries, 0 failures. Resolved the four round 3 threads (about 22:15:30Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread. Committed these entries.
 - 2026-11-17 22:39 UTC - Round 4: Copilot review 5947772095 (at the round 3 fix head) with F10. Committed and pushed the fix (`docs(issues): [#2392] make #2925's goal depend on #2907 for an empty directory`), then replied to the thread (22:39:47Z).
 - 2026-11-17 22:40 UTC - The validator on the worktree record reported 10 rows, 7 log entries, 0 failures. Resolved the F10 thread (about 22:40:02Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread. Committed these entries.
+- 2026-11-17 23:11 UTC - Round 5: Copilot review 5948148595 with F11 to F14. Replied to F13 and F14 with no change (23:08:24Z and 23:08:27Z). Committed and pushed the fix for F11 and F12 (`docs(issues): [#2392] name the leftover guard directory in #2925's AC1 and V2`), then replied to those two threads (23:11:50Z and 23:11:53Z). Updated F2's verification, because the F11 fix reworded AC1.
+- 2026-11-17 23:12 UTC - The validator on the worktree record reported 14 rows, 9 log entries, 0 failures. Resolved the four round 5 threads (about 23:12:12Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread. Committed these entries. This was the fifth round of fixes; further rounds wait for the maintainer.
 
 <!-- Copied verbatim into each audit record. -->
 
