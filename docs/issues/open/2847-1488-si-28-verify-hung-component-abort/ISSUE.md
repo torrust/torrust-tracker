@@ -9,7 +9,7 @@ github-issue: 2847
 spec-path: docs/issues/open/2847-1488-si-28-verify-hung-component-abort/ISSUE.md
 branch: "2847-verify-hung-component-abort"
 related-pr: null
-last-updated-utc: "2026-11-17 14:01"
+last-updated-utc: "2026-11-17 16:47"
 semantic-links:
   skill-links:
     - create-issue
@@ -211,11 +211,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
-| T1 | TODO | Move the shutdown sequence into a library function; `main.rs` calls it (D2). | No behavior change; existing tests green. |
-| T2 | TODO | Dev crate with the hung-component binary (D1, D3). | Under `packages/`; workspace member, not default member. |
-| T3 | TODO | Integration test for `SIGTERM` and `SIGINT`. | Assertions listed in Scope. |
-| T4 | TODO | Manual run of the binary; record the evidence. | `manual-verification-evidence.md`. |
-| T5 | TODO | Update the shutdown docs if they say the path is unverified. | Doc edit or none. |
+| T1 | DONE | Move the shutdown sequence into a library function; `main.rs` calls it (D2). | No behavior change; existing tests green. |
+| T2 | DONE | Dev crate with the hung-component binary (D1, D3). | Under `packages/`; workspace member, not default member. |
+| T3 | DONE | Integration test for `SIGTERM` and `SIGINT`. | Assertions listed in Scope. |
+| T4 | DONE | Manual run of the binary; record the evidence. | `manual-verification-evidence.md`. |
+| T5 | DONE | Update the shutdown docs if they say the path is unverified. | Doc edit or none. |
 
 ## Commit Points
 
@@ -245,12 +245,12 @@ Sign every commit with GPG.
 - [x] Spec reviewed and approved by the maintainer (decisions of 2026-11-12, in chat)
 - [x] GitHub issue created and issue number added to this spec (#2847)
 - [x] Technique chosen by the maintainer (D1 to D4, 2026-11-17)
-- [ ] Spec-only PR with the decisions merged into `develop` before implementation
-- [ ] Integration test passing for `SIGTERM` and `SIGINT`
-- [ ] Test-design review recorded in `test-design-review.md` and reviewed by the maintainer
-- [ ] Manual verification executed and recorded in `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
+- [x] Spec-only PR with the decisions merged into `develop` before implementation (#2909)
+- [x] Integration test passing for `SIGTERM` and `SIGINT`
+- [x] Test-design review recorded in `test-design-review.md` and reviewed by the maintainer
+- [x] Manual verification executed and recorded in `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed and updated with evidence
+- [x] Evidence-based implementation completion review recorded
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -259,18 +259,19 @@ Sign every commit with GPG.
 - 2026-11-17 11:03 UTC - AI agent (Claude Opus 5.5) - Recorded the maintainer's decisions D1 to D4 of 2026-11-17 (test-only binary in a dev crate, shared shutdown sequence, kept as a regression test, spec first) and the alternatives considered; the goal is now an automated executable-boundary test. Checked against `torrust/develop` at `5833cdae9`.
 - 2026-11-17 13:55 UTC - AI agent (Claude Opus 5.5) - Addressed review round 1 of PR #2909 (da2ce7, findings F1 to F6): alternative D is rejected on cost, since the persistent statistics listener can hang on a stalled MySQL write; the moved log events pin their target; T3 and M1 name drain budgets that pass validation; case 4 names both mechanisms; the crate path moves under `packages/`.
 - 2026-11-17 14:01 UTC - AI agent (Claude Opus 5.5) - Addressed Copilot finding R1 of PR #2909: the T1 and T2/T3 commit points require the review, and the T2/T3 test work requires the prose-first Arrange-Act-Assert design review of the issue template, recorded in `test-design-review.md`, before maintainer review and commit.
+- 2026-11-17 16:47 UTC - AI agent (Claude Opus 5.5) - Implemented T1 to T5 on `torrust/develop` at `a544a58fb`: `app::run_until_shutdown_signal` holds the shutdown sequence and `main.rs` calls it; the test-only crate `packages/hung-component-tracker` and its integration test pass for `SIGTERM` and `SIGINT` (exit code 1 about 4.01 s after the signal, `hung_component` and `health_check_api` aborted); the maintainer reviewed T1 to T3 and the test-design review before the commits. M1 to M4 are recorded in `manual-verification-evidence.md` (the real binary's normalized log is identical before and after the refactor). T5 updated `docs/architecture/application-jobs.md` and `docs/packages.md`; no shutdown doc called the path unverified. Completion review: no implementation retrospective is needed; the two surprises were local to the manual runs (a shared target directory left a stale library build, and the run script's `date` stamps lagged on a loaded machine, so one M4 run was discarded and rerun) and are recorded in the evidence.
 
 ## Acceptance Criteria
 
-- [ ] `main.rs` and the test binary run the same library shutdown function, and the refactor changes no
+- [x] `main.rs` and the test binary run the same library shutdown function, and the refactor changes no
       signal handling, log line (target included) or exit code.
-- [ ] An automated test spawns a real process, sends `SIGTERM` and `SIGINT` in separate cases, and
+- [x] An automated test spawns a real process, sends `SIGTERM` and `SIGINT` in separate cases, and
       asserts: exit code 1, exit within `P` plus a small margin, `hung_component` and
       `health_check_api` reported as aborted, and both named in `incomplete_components`.
 - [ ] The test runs in CI (`cargo test --workspace --all-targets`).
-- [ ] The shipped `torrust-tracker` crate and binary contain no test code, feature or hook for this.
-- [ ] `manual-verification-evidence.md` records one run per signal and states the case-4 limit.
-- [ ] `linter all` passes.
+- [x] The shipped `torrust-tracker` crate and binary contain no test code, feature or hook for this.
+- [x] `manual-verification-evidence.md` records one run per signal and states the case-4 limit.
+- [x] `linter all` passes.
 
 ## Verification Plan
 
@@ -288,10 +289,10 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | -- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Hung component, `SIGTERM` | Start the test binary with `deadline_in_secs = 4` and all three drain budgets `1` (as in T3), signal the actual PID. | Exit code 1 within `P` plus a small margin; the aborted component is named in the log. | TODO | `manual-verification-evidence.md` |
-| M2 | Hung component, `SIGINT` | Same with `SIGINT`. | Same result. | TODO | `manual-verification-evidence.md` |
-| M3 | Health server does not delay the exit | Read the M1 and M2 logs. | `health_check_api` is aborted at `P` with the hung component, and the process still exits within `P` plus the margin. | TODO | `manual-verification-evidence.md` |
-| M4 | Real binary unchanged | Start the real `torrust-tracker`, signal it with `SIGTERM`. | Graceful shutdown, exit code 0, same log lines and targets as before the refactor. | TODO | `manual-verification-evidence.md` |
+| M1 | Hung component, `SIGTERM` | Start the test binary with `deadline_in_secs = 4` and all three drain budgets `1` (as in T3), signal the actual PID. | Exit code 1 within `P` plus a small margin; the aborted component is named in the log. | DONE | `manual-verification-evidence.md` |
+| M2 | Hung component, `SIGINT` | Same with `SIGINT`. | Same result. | DONE | `manual-verification-evidence.md` |
+| M3 | Health server does not delay the exit | Read the M1 and M2 logs. | `health_check_api` is aborted at `P` with the hung component, and the process still exits within `P` plus the margin. | DONE | `manual-verification-evidence.md` |
+| M4 | Real binary unchanged | Start the real `torrust-tracker`, signal it with `SIGTERM`. | Graceful shutdown, exit code 0, same log lines and targets as before the refactor. | DONE | `manual-verification-evidence.md` |
 
 ### Disposable Verification Scripts
 
@@ -302,12 +303,12 @@ inlined in the evidence file.
 
 | AC | Status | Evidence |
 | -- | ------ | -------- |
-| Shared shutdown function, no behavior change | TODO | T1, M4, existing tests |
-| Automated test for both signals | TODO | T3 |
+| Shared shutdown function, no behavior change | DONE | T1, M4, existing tests |
+| Automated test for both signals | DONE | T3 |
 | Test runs in CI | TODO | PR checks |
-| No test code in the shipped crate | TODO | Diff review |
-| Manual evidence with the case-4 limit | TODO | M1, M2, M3 |
-| `linter all` passes | TODO | Automatic checks |
+| No test code in the shipped crate | DONE | Diff review |
+| Manual evidence with the case-4 limit | DONE | M1, M2, M3 |
+| `linter all` passes | DONE | Automatic checks |
 
 ## Risks and Trade-offs
 
