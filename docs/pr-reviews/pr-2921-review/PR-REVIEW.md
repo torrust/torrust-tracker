@@ -1,7 +1,7 @@
 ---
 pr-number: 2921
 pr-url: https://github.com/torrust/torrust-tracker/pull/2921
-last-updated-utc: "2026-11-17 18:05"
+last-updated-utc: "2026-11-17 18:39"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -52,6 +52,8 @@ Round 1: da2ce7 review 5943744061 (APPROVED, later shown as dismissed) with find
 | F7 | review-finding:pr-2921-f7 | Copilot | Minor | documentation | RE_RAISE_OF:F2 | FIXED | RESOLVED |
 | F8 | review-finding:pr-2921-f8 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F9 | review-finding:pr-2921-f9 | Copilot | Minor | documentation | RE_RAISE_OF:F4 | FIXED | RESOLVED |
+| F10 | review-finding:pr-2921-f10 | Copilot | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-2921-f11 | Copilot | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -172,11 +174,39 @@ Round 1: da2ce7 review 5943744061 (APPROVED, later shown as dismissed) with find
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2921#discussion_r4603723026
 
+### F10 - Mark F7 as a re-raise of F2
+
+- PR number: 2921
+- Source review ID: 5944168304
+- Reviewer finding ID: Copilot F3
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2921#discussion_r4603882874
+- Concern: Row F7 repeated F2 (correct the revision the AC4 evidence identifies) but had the relationship `ORIGINAL`.
+- Solution: The row has `RE_RAISE_OF:F2`; the row and its details are kept.
+- Current-tree verification: `validate-audit-record.py --pr-number 2921` returns ok; the relationship column of the rows F7 and F9 reads `RE_RAISE_OF:F2` and `RE_RAISE_OF:F4`.
+- Resolution reference: `docs(pr-reviews): [#2765] mark the duplicated findings of PR 2921 as re-raises`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2921#discussion_r4604092354
+
+### F11 - Mark F9 as a re-raise of F4
+
+- PR number: 2921
+- Source review ID: 5944168304
+- Reviewer finding ID: Copilot F4
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2921#discussion_r4603882953
+- Concern: Row F9 repeated F4 (separate the reply time from the audit-update time) but had the relationship `ORIGINAL`.
+- Solution: The row has `RE_RAISE_OF:F4`; the row and its details are kept.
+- Current-tree verification: `validate-audit-record.py --pr-number 2921` returns ok; the relationship column of the rows F7 and F9 reads `RE_RAISE_OF:F2` and `RE_RAISE_OF:F4`.
+- Resolution reference: `docs(pr-reviews): [#2765] mark the duplicated findings of PR 2921 as re-raises`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2921#discussion_r4604092761
+
 ## Processing Log
 
 - 2026-11-17 17:53 UTC - Review 5943744061 (da2ce7, APPROVED) arrived on the first head (submitted 17:53:43).
 - 2026-11-17 18:02 UTC - Fixed all six in one commit and a title edit, replied on the six threads and resolved them; created this audit after the replies.
 - 2026-11-17 18:05 UTC - Copilot review 5943800775 (three threads) was handled together with the above; its threads were resolved by my batch command before they were replied to (a process error, as in PR 2901), and the replies were posted afterwards on the resolved threads. F8 needed one more commit (`docs(pr-reviews): [#2765] audit review round 1 of PR 2921`).
+- 2026-11-17 18:19 UTC - Round 2: Copilot review 5944168304 (COMMENTED, submitted 18:19:50) with two Nits (reviewer IDs F3 and F4, recorded as F10 and F11).
+- 2026-11-17 18:39 UTC - Fixed in one commit, replied on both threads and resolved them.
 
 ## Completion Rules
 
