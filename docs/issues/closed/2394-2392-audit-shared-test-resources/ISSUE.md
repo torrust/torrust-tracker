@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p2
 epic: 2392
 github-issue: 2394
-spec-path: docs/issues/open/2394-2392-audit-shared-test-resources/ISSUE.md
+spec-path: docs/issues/closed/2394-2392-audit-shared-test-resources/ISSUE.md
 branch: "2392-test-isolation-spec"
 related-pr: 2397
-last-updated-utc: "2026-11-16 22:06"
+last-updated-utc: "2026-11-17 09:47"
 semantic-links:
   skill-links:
     - create-issue
@@ -19,6 +19,9 @@ semantic-links:
     - docs/issues/closed/2393-2392-test-port-allocation-races/ISSUE.md
     - docs/issues/closed/2386-1840-self-hosted-runner-minimum-capacity/ISSUE.md
     - docs/analysis/20260909-cli-config-path-test-isolation/README.md
+    - docs/issues/drafts/2392-fixed-port-metrics-test-concurrent-runs/ISSUE.md
+    - docs/issues/drafts/2392-remove-leaked-test-temporary-files/ISSUE.md
+    - docs/issues/drafts/2392-compose-cleanup-after-failed-start/ISSUE.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -98,7 +101,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3 | DONE | Inventory container resources | Findings with dispositions. |
 | T4 | DONE | Inventory filesystem paths | Findings with dispositions. |
 | T5 | DONE | Inventory process-global state and external services | Findings with dispositions. |
-| T6 | IN_PROGRESS | Draft subissues for new problems | One draft per confirmed problem (or cohesive group), linked from the EPIC after maintainer review. |
+| T6 | DONE | Draft subissues for new problems | One draft per confirmed problem (or cohesive group), linked from the EPIC after maintainer review. Done: D1 (P2), D2 (F2) and D3 (C9) under `docs/issues/drafts/`, merged in PR #2891 and linked from the EPIC's order 2 row. The EPIC coordinator creates their GitHub issues and EPIC rows. |
 
 ## Commit Points
 
@@ -114,10 +117,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Folder-style spec drafted in `docs/issues/drafts/audit-shared-test-resources/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created, linked to the EPIC, and issue number added to this spec
-- [ ] Inventory completed and reviewed
-- [ ] Subissues drafted for new problems
-- [ ] Acceptance criteria reviewed
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Inventory completed and reviewed
+- [x] Subissues drafted for new problems
+- [x] Acceptance criteria reviewed
+- [x] Spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [ ] GitHub issue #2394 closed (pending: the maintainer closes it when the close-out merges)
 
 ### Progress Log
 
@@ -142,15 +146,26 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   reproduction evidence to D1 and D2; the maintainer classified Copilot's failed-`up` Compose
   cleanup as a new problem (C9, draft D3). The inventory now has 38 findings (29 isolated,
   1 deliberate exception, 5 covered, 3 new problems).
+- 2026-11-17 08:52 UTC - Claude Code (Claude Opus 5.5), #2394 session - PR #2891 merged
+  (approved by da2ce7 after three review rounds). T6 done: the EPIC's order 2 row links drafts
+  D1, D2 and D3; the EPIC coordinator creates their GitHub issues and EPIC rows and extends
+  #2396's scope (C3). Spec moved to `docs/issues/closed/`; #2394 is still open, and the
+  maintainer closes it when this close-out merges. No retrospective file: the audit invalidated no
+  assumption of this spec, and the one reusable lesson fits here. The T1 searches looked for
+  shared names and values, not for resources released only on the success path, so Copilot's
+  review found C9 (a failed `docker compose up` leaves the stack running) that the inventory's
+  first version had marked as torn down on drop. A future audit also checks each resource's
+  failure and drop paths (EPIC rule 1). The other review findings were corrections to the audit
+  documents, recorded in `docs/pr-reviews/pr-2891-review/PR-REVIEW.md`.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `inventory.md` lists findings for every resource class in scope, with the search
+- [x] AC1: `inventory.md` lists findings for every resource class in scope, with the search
   commands used, so the audit can be repeated.
-- [ ] AC2: Every finding has one disposition: isolated, deliberate exception, covered, or new
+- [x] AC2: Every finding has one disposition: isolated, deliberate exception, covered, or new
   problem.
-- [ ] AC3: Every new problem has a subissue draft linked from the EPIC.
-- [ ] `linter all` exits with code `0`
+- [x] AC3: Every new problem has a subissue draft linked from the EPIC.
+- [x] `linter all` exits with code `0`
 
 ## Verification Plan
 
@@ -164,16 +179,16 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | Repeat the search | Rerun the recorded search commands on the final commit. | Results match the inventory. | TODO | `inventory.md` |
-| M2 | Spot-check dispositions | Maintainer reviews a sample of findings from each class. | Dispositions are accepted. | TODO | Review comment |
+| M1 | Repeat the search | Rerun the recorded search commands on the final commit. | Results match the inventory. | DONE | `inventory.md` |
+| M2 | Spot-check dispositions | Maintainer reviews a sample of findings from each class. | Dispositions are accepted. | DONE | Maintainer decisions Q1-Q4 in `inventory.md`; PR #2891 approved and merged |
 
 ### Acceptance Verification
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | --- | --- | --- |
-| AC1 | TODO | `inventory.md` |
-| AC2 | TODO | `inventory.md` |
-| AC3 | TODO | EPIC subissue table |
+| AC1 | DONE | `inventory.md` (search commands per class, rerun on the merge of `develop` `0373f05f8`) |
+| AC2 | DONE | `inventory.md`: 38 findings, 29 isolated, 1 deliberate exception, 5 covered, 3 new problems |
+| AC3 | DONE | EPIC order 2 row links drafts D1, D2 and D3; their own EPIC rows follow when the coordinator creates the GitHub issues |
 
 ## Risks and Trade-offs
 
@@ -184,7 +199,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: `Not needed` (see the progress log)
 - Add a progress-log entry explaining whether a retrospective is needed.
 
 ## References

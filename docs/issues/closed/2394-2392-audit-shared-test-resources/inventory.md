@@ -1,7 +1,7 @@
 ---
 doc-type: issue-inventory
-issue-spec: docs/issues/open/2394-2392-audit-shared-test-resources/ISSUE.md
-last-updated-utc: "2026-11-16 22:23"
+issue-spec: docs/issues/closed/2394-2392-audit-shared-test-resources/ISSUE.md
+last-updated-utc: "2026-11-17 08:52"
 ---
 
 # Inventory of Shared Test Resources (tasks T1 to T5)

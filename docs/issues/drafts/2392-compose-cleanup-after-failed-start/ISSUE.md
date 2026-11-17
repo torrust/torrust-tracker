@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2392-compose-cleanup-after-failed-start/ISSUE.md
 branch: "{issue-number}-2392-compose-cleanup-after-failed-start"
 related-pr: null
-last-updated-utc: "2026-11-16 22:06"
+last-updated-utc: "2026-11-17 08:52"
 semantic-links:
   skill-links:
     - create-issue
@@ -19,7 +19,7 @@ semantic-links:
     - .claude/skills/fix-bug/SKILL.md
     - .claude/skills/create-issue/SKILL.md
     - docs/issues/open/2392-test-isolation/EPIC.md
-    - docs/issues/open/2394-2392-audit-shared-test-resources/inventory.md
+    - docs/issues/closed/2394-2392-audit-shared-test-resources/inventory.md
     - src/console/ci/compose.rs
     - src/console/ci/qbittorrent_e2e/services_setup.rs
 ---
@@ -206,5 +206,5 @@ Evidence policy: every recorded command result names the toolchain or runtime th
 ## References
 
 - Parent EPIC: #2392
-- Audit: #2394, `docs/issues/open/2394-2392-audit-shared-test-resources/inventory.md` (C9)
+- Audit: #2394, `docs/issues/closed/2394-2392-audit-shared-test-resources/inventory.md` (C9)
 - Found in: PR #2891 (Copilot review)
