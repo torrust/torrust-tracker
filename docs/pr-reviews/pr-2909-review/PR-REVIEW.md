@@ -1,7 +1,7 @@
 ---
 pr-number: 2909
 pr-url: https://github.com/torrust/torrust-tracker/pull/2909
-last-updated-utc: "2026-11-17 13:59"
+last-updated-utc: "2026-11-17 14:05"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -43,7 +43,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1: da2ce7 review 5939688807 (CHANGES_REQUESTED) with findings F1 to F6; the reviewer's IDs are this audit's IDs.
+Round 1: da2ce7 review 5939688807 (CHANGES_REQUESTED) with findings F1 to F6, and Copilot review 5939793811 (COMMENTED, on head `ac4e7eeb1`) with finding R1; the reviewers' IDs are this audit's IDs.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -53,6 +53,7 @@ Round 1: da2ce7 review 5939688807 (CHANGES_REQUESTED) with findings F1 to F6; th
 | F4 | review-finding:pr-2909-f4 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F5 | review-finding:pr-2909-f5 | Human | Suggestion | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-2909-f6 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| R1 | review-finding:pr-2909-r1 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -134,10 +135,26 @@ Round 1: da2ce7 review 5939688807 (CHANGES_REQUESTED) with findings F1 to F6; th
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2909#discussion_r4600583256
 
+### R1 - Commit points skip the test-design review
+
+- PR number: 2909
+- Source review ID: 5939793811
+- Reviewer finding ID: R1
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2909#discussion_r4600581742
+- Concern: The T2/T3 commit policy went from a passing test straight to a commit, while `docs/templates/ISSUE.md` (Commit Points) requires a recorded prose-first Arrange-Act-Assert design review after each passing test increment and a maintainer review before commit.
+- Solution: The T1 and T2/T3 commit points require the review; a new paragraph under Commit Points requires the template's design review for the test work, names what it checks for this test, and records it in `test-design-review.md` in the issue folder; a workflow checkpoint tracks it.
+- Current-tree verification: `grep -n 'test-design-review.md' docs/issues/open/2847-1488-si-28-verify-hung-component-abort/ISSUE.md` finds the T2/T3 paragraph, the workflow checkpoint and the progress-log entry.
+- Resolution reference: `docs(issues): [#2847] require the test-design review before T2 and T3 commits`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2909#discussion_r4600646667
+
 ## Processing Log
 
 - 2026-11-17 13:57 UTC - Started audit for round 1: da2ce7 review 5939688807 (CHANGES_REQUESTED), findings F1 (Major), F2 (Minor), F3 (Minor), F4 (Nit), F5 (Suggestion) and F6 (Nit). Committed the six fixes in one commit (13:56:06Z) before creating this record and before any reply.
 - 2026-11-17 13:59 UTC - Pushed the fix commit (head 630207df0 on the bot fork, checked with `git ls-remote`), then replied to the six threads (13:59:26Z to 13:59:37Z) and recorded the reply URLs.
+- 2026-11-17 14:02 UTC - Committed the audit (14:00:21Z). Resolved the six da2ce7 threads (14:01:10Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply. The GraphQL refresh after it found one more unresolved thread: Copilot review 5939793811 (13:59:29Z, finding R1), posted while the replies were going out. Normalized it as R1 and committed its fix (14:01:58Z).
+- 2026-11-17 14:05 UTC - Pushed the R1 fix and the audit (head 8dc7be5a4 on the bot fork), then replied to the R1 thread (14:05:05Z) and recorded its reply URL.
+- 2026-11-17 14:05 UTC - The validator on the worktree record reported 7 rows, 4 log entries, 0 failures. Resolved the R1 thread (14:05:30Z); a GraphQL refresh found no unresolved thread and none whose last comment is not a `josecelano-bot` reply. Committed these entries.
 
 <!-- Copied verbatim into each audit record. -->
 
