@@ -6,7 +6,7 @@ epic: null
 github-issue: 2392
 spec-path: docs/issues/open/2392-test-isolation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-17 08:52"
+last-updated-utc: "2026-11-17 09:47"
 semantic-links:
   skill-links:
     - create-issue
