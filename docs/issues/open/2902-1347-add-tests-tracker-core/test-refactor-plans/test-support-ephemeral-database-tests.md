@@ -21,8 +21,9 @@ first `TempDir`-owned SQLite fixture). It changes test code only: no production 
 It was first developed on the S1 branch and split into its own pull request, #2923, on
 2026-11-17, at the maintainer's request, because issue #2907 (EPIC #2392, test isolation) planned
 the same fix for the shared `test-helpers` function and every package. #2923 covers `tracker-core`
-only. The #2907 session confirmed on 2026-11-17 that `tracker-core`'s callers are out of its scope
-and that the SQLite part moves to a new #2392 subissue, which reuses the shape below.
+only. The SQLite part of #2907 then moved to two EPIC #2392 subissues: #2924 adds a guard-owned
+database to the shared `test-helpers` function, and #2925 migrates the other packages to it and
+skips `tracker-core`.
 
 ## Current State
 
