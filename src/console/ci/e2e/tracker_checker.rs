@@ -1,15 +1,26 @@
 use std::io::{self, Read};
 use std::process::{Child, Command, ExitStatus, Stdio};
-use std::thread::{self, JoinHandle};
+use std::sync::mpsc::{self, Receiver, RecvTimeoutError};
+use std::thread;
 use std::time::{Duration, Instant};
 
-/// Absolute deadline for the whole checker run, including the `cargo run`
-/// build. The checker has its own network timeout; this only guarantees that
-/// a hung child cannot hang the runner.
-const CHECKER_DEADLINE: Duration = Duration::from_secs(15 * 60);
+/// Absolute deadline for building `tracker_client`.
+const BUILD_DEADLINE: Duration = Duration::from_secs(15 * 60);
+
+/// Absolute deadline for the checker run itself (the network timeout of the
+/// checker is shorter; this only guarantees that a hung child cannot hang the
+/// runner). The binary is built before, so this does not include the build.
+const CHECKER_DEADLINE: Duration = Duration::from_secs(5 * 60);
+
+/// How long the output readers may keep running after the child has exited or
+/// was killed. It bounds the drain when something else keeps a pipe open.
+const READER_GRACE: Duration = Duration::from_secs(5);
 
 /// How often the wait loop polls the child.
 const POLL_INTERVAL: Duration = Duration::from_millis(100);
+
+/// The arguments of the command that builds the checker (after `cargo`).
+const BUILD_ARGS: [&str; 5] = ["build", "-p", "torrust-tracker-client", "--bin", "tracker_client"];
 
 /// The arguments of the command that runs the checker (after `cargo`).
 const CHECKER_ARGS: [&str; 7] = [
@@ -24,88 +35,172 @@ const CHECKER_ARGS: [&str; 7] = [
 
 /// Runs the Tracker Checker (`tracker_client check`).
 ///
-/// The configuration is passed to the child in `TORRUST_CHECKER_CONFIG`. The
-/// child's stdout and stderr are captured (not inherited) and logged, so the
-/// runner's own stdout is never written by the child.
+/// The binary is built first, under its own deadline, so the deadline of the
+/// check does not include a cold build. The configuration is passed to the
+/// child in `TORRUST_CHECKER_CONFIG`. The child's stdout and stderr are
+/// captured (not inherited) and logged, so the runner's own stdout is never
+/// written by the child.
 ///
 /// # Errors
 ///
-/// Will return an error if the Tracker Checker cannot be launched, exits with
-/// a non-zero status or does not finish before the deadline.
+/// Will return an error if the Tracker Checker cannot be built or launched,
+/// exits with a non-zero status or does not finish before its deadline.
 pub fn run(config_content: &str) -> io::Result<()> {
-    run_command("cargo", &CHECKER_ARGS, config_content, CHECKER_DEADLINE)
+    run_command("cargo", &BUILD_ARGS, None, BUILD_DEADLINE, READER_GRACE)?;
+    run_command("cargo", &CHECKER_ARGS, Some(config_content), CHECKER_DEADLINE, READER_GRACE)
 }
 
-fn run_command(program: &str, args: &[&str], config_content: &str, deadline: Duration) -> io::Result<()> {
+/// What a finished child left behind.
+struct Captured {
+    status: ExitStatus,
+    stdout: String,
+    stderr: String,
+}
+
+fn run_command(
+    program: &str,
+    args: &[&str],
+    config_content: Option<&str>,
+    deadline: Duration,
+    reader_grace: Duration,
+) -> io::Result<()> {
     tracing::info!(
-        "Running Tracker Checker: TORRUST_CHECKER_CONFIG=[config] {program} {}",
+        "Running: {}{program} {}",
+        if config_content.is_some() {
+            "TORRUST_CHECKER_CONFIG=[config] "
+        } else {
+            ""
+        },
         args.join(" ")
     );
-    tracing::info!("Tracker Checker config:\n{config_content}");
+    if let Some(config) = config_content {
+        tracing::info!("Tracker Checker config:\n{config}");
+    }
 
-    let mut child = Command::new(program)
-        .env("TORRUST_CHECKER_CONFIG", config_content)
-        .args(args)
-        .stdin(Stdio::null())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()?;
+    let captured = execute(program, args, config_content, deadline, reader_grace)?;
 
-    // The child is owned by this guard: whatever happens below (success, error
-    // or panic), it is killed and reaped before `run_command` returns.
-    let guard = ChildGuard { child: &mut child };
+    log_output("stdout", &captured.stdout);
+    log_output("stderr", &captured.stderr);
 
-    let stdout_reader = guard.child.stdout.take().map(spawn_reader);
-    let stderr_reader = guard.child.stderr.take().map(spawn_reader);
-
-    let wait_result = wait_with_deadline(guard.child, deadline);
-
-    // The pipes are closed when the child exits (or is killed), so the readers end.
-    let stdout = join_reader(stdout_reader);
-    let stderr = join_reader(stderr_reader);
-
-    log_output("stdout", &stdout);
-    log_output("stderr", &stderr);
-
-    let status = wait_result?;
-
-    if status.success() {
+    if captured.status.success() {
         Ok(())
     } else {
-        Err(io::Error::other(format!("Failed to run Tracker Checker: {status}")))
+        Err(io::Error::other(format!(
+            "`{program} {}` failed: {}",
+            args.join(" "),
+            captured.status
+        )))
     }
 }
 
-/// Kills and reaps the child on drop (a no-op when it already exited).
-struct ChildGuard<'a> {
-    child: &'a mut Child,
+/// Spawns the child with piped output, drains both pipes and waits for it.
+///
+/// The child is always killed (when still running) and reaped before this
+/// returns, on every path including a panic. Both pipes are read on their own
+/// threads, so a full pipe cannot block the child, and the draining is bounded
+/// by `reader_grace` after the child ends, so a pipe kept open by something
+/// else cannot hold this function past its deadline.
+///
+/// Assumption: the child has no descendant that outlives it. On Unix `cargo run`
+/// replaces itself with the binary it runs, so the process killed at the
+/// deadline is the checker itself. A descendant that kept a pipe open would only
+/// cost the grace period and part of the output, not a hang.
+fn execute(
+    program: &str,
+    args: &[&str],
+    config_content: Option<&str>,
+    deadline: Duration,
+    reader_grace: Duration,
+) -> io::Result<Captured> {
+    let mut command = Command::new(program);
+    command
+        .args(args)
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
+    if let Some(config) = config_content {
+        command.env("TORRUST_CHECKER_CONFIG", config);
+    }
+
+    let mut child = ChildGuard(command.spawn()?);
+
+    let stdout = child.0.stdout.take().map(spawn_reader);
+    let stderr = child.0.stderr.take().map(spawn_reader);
+
+    let wait_result = wait_with_deadline(&mut child.0, deadline);
+
+    let stdout = collect(stdout, reader_grace);
+    let stderr = collect(stderr, reader_grace);
+
+    Ok(Captured {
+        status: wait_result?,
+        stdout,
+        stderr,
+    })
 }
 
-impl Drop for ChildGuard<'_> {
+/// Kills and reaps the child on drop (a no-op when it already exited).
+struct ChildGuard(Child);
+
+impl Drop for ChildGuard {
     fn drop(&mut self) {
-        if matches!(self.child.try_wait(), Ok(None)) {
-            drop(self.child.kill());
+        if matches!(self.0.try_wait(), Ok(None)) {
+            drop(self.0.kill());
         }
-        drop(self.child.wait());
+        drop(self.0.wait());
     }
 }
 
 fn log_output(stream: &str, content: &str) {
     if !content.is_empty() {
-        tracing::info!("Tracker Checker {stream}:\n{content}");
+        tracing::info!("{stream}:\n{content}");
     }
 }
 
-fn spawn_reader<R: Read + Send + 'static>(mut pipe: R) -> JoinHandle<String> {
+/// Reads the pipe in chunks and sends each one, so whatever was read before a
+/// deadline is kept.
+fn spawn_reader<R: Read + Send + 'static>(mut pipe: R) -> Receiver<Vec<u8>> {
+    let (sender, receiver) = mpsc::channel();
+
     thread::spawn(move || {
-        let mut bytes = Vec::new();
-        drop(pipe.read_to_end(&mut bytes));
-        String::from_utf8_lossy(&bytes).into_owned()
-    })
+        let mut buffer = [0_u8; 8192];
+        loop {
+            match pipe.read(&mut buffer) {
+                Ok(0) | Err(_) => break,
+                Ok(read) => {
+                    if sender.send(buffer[..read].to_vec()).is_err() {
+                        break;
+                    }
+                }
+            }
+        }
+    });
+
+    receiver
 }
 
-fn join_reader(reader: Option<JoinHandle<String>>) -> String {
-    reader.and_then(|handle| handle.join().ok()).unwrap_or_default()
+/// Collects the chunks until the pipe closes or `grace` has passed.
+fn collect(receiver: Option<Receiver<Vec<u8>>>, grace: Duration) -> String {
+    let Some(receiver) = receiver else {
+        return String::new();
+    };
+
+    let end = Instant::now() + grace;
+    let mut bytes = Vec::new();
+
+    loop {
+        let remaining = end.saturating_duration_since(Instant::now());
+        match receiver.recv_timeout(remaining) {
+            Ok(chunk) => bytes.extend_from_slice(&chunk),
+            Err(RecvTimeoutError::Timeout) => {
+                tracing::warn!("Output of the child was still open after {grace:?}; it was cut");
+                break;
+            }
+            Err(RecvTimeoutError::Disconnected) => break,
+        }
+    }
+
+    String::from_utf8_lossy(&bytes).into_owned()
 }
 
 fn wait_with_deadline(child: &mut Child, deadline: Duration) -> io::Result<ExitStatus> {
@@ -121,7 +216,7 @@ fn wait_with_deadline(child: &mut Child, deadline: Duration) -> io::Result<ExitS
             drop(child.wait());
             return Err(io::Error::new(
                 io::ErrorKind::TimedOut,
-                format!("Tracker Checker did not finish within {deadline:?}"),
+                format!("the child did not finish within {deadline:?}"),
             ));
         }
 
@@ -131,64 +226,155 @@ fn wait_with_deadline(child: &mut Child, deadline: Duration) -> io::Result<ExitS
 
 #[cfg(all(test, unix))]
 mod tests {
-    use std::time::Duration;
+    use std::io::ErrorKind;
+    use std::time::{Duration, Instant};
 
-    use super::{CHECKER_ARGS, run_command};
+    use super::{BUILD_ARGS, CHECKER_ARGS, execute, run_command};
+
+    const GRACE: Duration = Duration::from_secs(5);
 
     #[test]
     fn it_should_launch_the_unified_tracker_client_check_command() {
-        assert_eq!(
-            CHECKER_ARGS.join(" "),
-            "run -p torrust-tracker-client --bin tracker_client -- check"
-        );
+        // Arrange
+        let expected = "run -p torrust-tracker-client --bin tracker_client -- check";
+
+        // Act
+        let command_line = CHECKER_ARGS.join(" ");
+
+        // Assert
+        assert_eq!(command_line, expected);
+    }
+
+    #[test]
+    fn it_should_build_the_same_binary_before_running_it() {
+        // Arrange
+        let expected = "build -p torrust-tracker-client --bin tracker_client";
+
+        // Act
+        let command_line = BUILD_ARGS.join(" ");
+
+        // Assert
+        assert_eq!(command_line, expected);
     }
 
     #[test]
     fn it_should_pass_the_configuration_in_the_checker_config_env_var() {
-        let result = run_command(
+        // Arrange
+        let config = r#"{"a":1}"#;
+        let script = r#"printf '%s' "$TORRUST_CHECKER_CONFIG""#;
+
+        // Act
+        let captured = execute("sh", &["-c", script], Some(config), Duration::from_secs(10), GRACE).expect("it should run");
+
+        // Assert
+        assert_eq!(captured.stdout, config);
+    }
+
+    #[test]
+    fn it_should_capture_stdout_and_stderr_separately() {
+        // Arrange
+        let script = "echo out; echo err >&2";
+
+        // Act
+        let captured = execute("sh", &["-c", script], None, Duration::from_secs(10), GRACE).expect("it should run");
+
+        // Assert
+        assert_eq!(captured.stdout, "out\n");
+        assert_eq!(captured.stderr, "err\n");
+    }
+
+    #[test]
+    fn it_should_report_a_non_zero_exit_status_as_an_error() {
+        // Arrange
+        let args = ["-c", "exit 1"];
+
+        // Act
+        let result = run_command("sh", &args, None, Duration::from_secs(10), GRACE);
+
+        // Assert
+        let error = result.expect_err("a non-zero exit should be an error");
+        assert_eq!(error.kind(), ErrorKind::Other);
+    }
+
+    #[test]
+    fn it_should_capture_everything_when_the_child_writes_more_than_a_pipe_buffer_to_both_streams() {
+        // Arrange
+        let script = "head -c 300000 /dev/zero | tr '\\0' x; head -c 300000 /dev/zero | tr '\\0' y >&2";
+
+        // Act
+        let captured = execute("sh", &["-c", script], None, Duration::from_secs(30), GRACE).expect("it should run");
+
+        // Assert
+        assert_eq!(captured.stdout, "x".repeat(300_000));
+        assert_eq!(captured.stderr, "y".repeat(300_000));
+    }
+
+    #[test]
+    fn it_should_kill_the_child_and_return_promptly_when_the_deadline_expires() {
+        // Arrange
+        let start = Instant::now();
+
+        // Act
+        let result = execute("sh", &["-c", "exec sleep 60"], None, Duration::from_millis(300), GRACE);
+
+        // Assert: the child was killed (a surviving `sleep 60` would be waited out).
+        let error = result.err().expect("a hung child should time out");
+        assert_eq!(error.kind(), ErrorKind::TimedOut);
+        assert!(start.elapsed() < Duration::from_secs(20), "took {:?}", start.elapsed());
+    }
+
+    #[test]
+    fn it_should_not_wait_for_a_descendant_that_keeps_the_pipes_open() {
+        // Arrange: the main process hangs and a descendant holds both pipes for 8 s.
+        let script = "sleep 8 & exec sleep 60";
+        let start = Instant::now();
+
+        // Act
+        let result = execute(
             "sh",
-            &["-c", r#"test "$TORRUST_CHECKER_CONFIG" = '{"a":1}'"#],
-            r#"{"a":1}"#,
+            &["-c", script],
+            None,
+            Duration::from_millis(300),
+            Duration::from_millis(500),
+        );
+
+        // Assert: the drain is cut after the grace period, long before the 8 s of the descendant.
+        let error = result.err().expect("a hung child should time out");
+        assert_eq!(error.kind(), ErrorKind::TimedOut);
+        assert!(start.elapsed() < Duration::from_secs(5), "took {:?}", start.elapsed());
+    }
+
+    #[test]
+    fn it_should_keep_the_output_read_before_a_descendant_held_the_pipe_open() {
+        // Arrange: the child exits at once, a descendant keeps stdout open for 8 s.
+        let script = "echo first; sleep 8 &";
+        let start = Instant::now();
+
+        // Act
+        let captured = execute(
+            "sh",
+            &["-c", script],
+            None,
             Duration::from_secs(10),
-        );
+            Duration::from_millis(500),
+        )
+        .expect("it should run");
 
-        assert!(result.is_ok(), "{result:?}");
-    }
-
-    #[test]
-    fn it_should_fail_when_the_child_exits_with_a_non_zero_status() {
-        let result = run_command("sh", &["-c", "exit 1"], "{}", Duration::from_secs(10));
-
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn it_should_not_block_when_the_child_writes_more_than_a_pipe_buffer_to_both_streams() {
-        let result = run_command(
-            "sh",
-            &[
-                "-c",
-                "head -c 300000 /dev/zero | tr '\\0' x; head -c 300000 /dev/zero | tr '\\0' y >&2",
-            ],
-            "{}",
-            Duration::from_secs(30),
-        );
-
-        assert!(result.is_ok(), "{result:?}");
-    }
-
-    #[test]
-    fn it_should_kill_the_child_and_fail_when_the_deadline_expires() {
-        let result = run_command("sh", &["-c", "exec sleep 60"], "{}", Duration::from_millis(300));
-
-        let error = result.expect_err("a hung child should time out");
-        assert_eq!(error.kind(), std::io::ErrorKind::TimedOut);
+        // Assert
+        assert_eq!(captured.stdout, "first\n");
+        assert!(start.elapsed() < Duration::from_secs(5), "took {:?}", start.elapsed());
     }
 
     #[test]
     fn it_should_fail_when_the_program_cannot_be_launched() {
-        let result = run_command("/nonexistent/program", &[], "{}", Duration::from_secs(1));
+        // Arrange
+        let program = "/nonexistent/program";
 
-        assert!(result.is_err());
+        // Act
+        let result = run_command(program, &[], None, Duration::from_secs(1), GRACE);
+
+        // Assert
+        let error = result.expect_err("a missing program should be an error");
+        assert_eq!(error.kind(), ErrorKind::NotFound);
     }
 }
