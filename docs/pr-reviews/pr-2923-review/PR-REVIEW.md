@@ -1,0 +1,132 @@
+---
+semantic-links:
+  skill-links:
+    - process-pr-review
+  related-artifacts:
+    - .claude/skills/process-pr-review/SKILL.md
+---
+
+<!-- skill-link: process-pr-review -->
+
+# PR #2923 Review Audit
+
+Source: pull-request reviews and inline review threads for https://github.com/torrust/torrust-tracker/pull/2923.
+
+## Ownership
+
+The PR author owns this tracked audit record. Reviewers, including repository review agents,
+deliver findings through GitHub and have no repository-artifact obligation.
+
+- Post-merge workflow approval: N/A
+
+## Status Values
+
+- Relationship: `ORIGINAL`, `RE_RAISE_OF:<FindingId>`
+- Disposition: `FIXED`, `NO_ACTION`, `SUPERSEDED`, `FOLLOW_UP`
+- Thread state: `OPEN`, `RESOLVED`, `NON_RESOLVABLE`, `SUPERSEDED`. `OPEN` applies prospectively
+  to audits created or updated for approved follow-up work; historical audits remain valid without
+  bulk migration.
+- Severity: `Blocker`, `Major`, `Minor`, `Nit`, `Suggestion`; append `(inferred)` when derived
+  from free prose.
+- Author class: `Copilot`, `Human`, `Unknown`
+- Category: `link-integrity`, `formatting`, `metadata`, `testing`, `correctness`,
+  `documentation`, `maintainability`, `security`, `other`
+- An outdated thread whose concern was fixed is `FIXED`/`RESOLVED`, even when GitHub marks the
+  original thread outdated after the push. For in-PR feedback, use `NO_ACTION`/`SUPERSEDED` only
+  for a duplicate, superseded, or no-change concern. A post-merge `NO_ACTION` requires maintainer
+  approval to decline the follow-up work.
+- When the current identity cannot resolve a thread (`viewerCanResolve` is `false`), keep the
+  disposition established from the current tree and record `Thread state=OPEN`. The reviewer or PR
+  author resolves it; permission says nothing about whether the concern was fixed.
+
+## Findings
+
+Round 1 is da2ce7's review `5944329364` (18:30:53 UTC, approval) of the head whose last commit is
+`docs(issues): [#2902] record the tracker-core temporary-database fix`; its inline findings keep the
+reviewer's IDs F1 to F4. Copilot's review `5944310231` (18:29:28 UTC, comment) of the same head is an
+overview with no inline comment and no request (its full review timed out), so it needs no row.
+
+| Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
+| ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
+| F1 | review-finding:pr-2923-f1 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F2 | review-finding:pr-2923-f2 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F3 | review-finding:pr-2923-f3 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F4 | review-finding:pr-2923-f4 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+
+## Finding Details
+
+### F1 - The E1 step said 167 unit tests
+
+- PR number: 2923
+- Source review ID: 5944329364
+- Reviewer finding ID: F1
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2923#discussion_r4604004209
+- Concern: The E1 completion evidence said 167 unit tests; the package has 157 at this head.
+- Solution: The E1 row says `157 unit tests pass.`; 167 was the count on the S1 branch.
+- Current-tree verification: `grep -n "167" docs/issues/open/2902-1347-add-tests-tracker-core/test-refactor-plans/test-support-ephemeral-database-tests.md` prints nothing.
+- Resolution reference: docs(issues): [#2902] correct the unit-test count of the E1 step
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2923#discussion_r4604046254
+
+### F2 - The findings register said none is fixed
+
+- PR number: 2923
+- Source review ID: 5944329364
+- Reviewer finding ID: F2
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2923#discussion_r4604004215
+- Concern: F5 is `FIXED`, but the register lead sentence said "None is fixed in this issue".
+- Solution: The lead sentence now reads "Each is a proposal for the maintainer unless its status says otherwise."
+- Current-tree verification: `grep -n "unless its status says otherwise" docs/issues/open/2902-1347-add-tests-tracker-core/ISSUE.md` shows the sentence.
+- Resolution reference: docs(issues): [#2902] qualify the findings register lead sentence
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2923#discussion_r4604046682
+
+### F3 - Row T2b was still TODO
+
+- PR number: 2923
+- Source review ID: 5944329364
+- Reviewer finding ID: F3
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2923#discussion_r4604004218
+- Concern: The plan and the progress log record the SQLite half of T2b as approved, but the T2b row was `TODO`.
+- Solution: Row T2b is `IN_PROGRESS` and names the plan as the approved SQLite half.
+- Current-tree verification: `grep -n "^| T2b | IN_PROGRESS" docs/issues/open/2902-1347-add-tests-tracker-core/ISSUE.md` shows the row.
+- Resolution reference: docs(issues): [#2902] mark checkpoint T2b in progress
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2923#discussion_r4604047118
+
+### F4 - "This PR" lost its referent after merge
+
+- PR number: 2923
+- Source review ID: 5944329364
+- Reviewer finding ID: F4
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2923#discussion_r4604004224
+- Concern: "This PR covers `tracker-core` only" names no pull request, so it loses its referent once merged.
+- Solution: The plan names #2923 and records that the SQLite part of #2907 moves to a new #2392 subissue.
+- Current-tree verification: `grep -n "#2923 covers" docs/issues/open/2902-1347-add-tests-tracker-core/test-refactor-plans/test-support-ephemeral-database-tests.md` shows the sentence.
+- Resolution reference: docs(issues): [#2902] name the pull request of the temporary-database split
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2923#discussion_r4604047504
+
+## Processing Log
+
+- 2026-11-17 18:31 UTC - The review poller reported both round 1 reviews; all four findings verified against the tree.
+- 2026-11-17 18:34 UTC - Fixed each finding in its own commit; replied to the four threads up to 18:34:50 UTC, before pushing the fixes and this record together; the threads are resolved after the push.
+
+## Completion Rules
+
+- Re-derive the reply claim against the current tree before replying or resolving a thread.
+- Reply on every resolvable thread before resolving it.
+- For an outdated thread whose concern was fixed, record `Disposition=FIXED` and
+  `Thread state=RESOLVED`, even if GitHub marks the thread outdated after the push. For a
+  duplicate, superseded, or no-change in-PR thread, reply exactly
+  `Superseded by <FindingId>: <reason>.`, record `Disposition=NO_ACTION` and
+  `Thread state=SUPERSEDED`, then resolve it. A post-merge `NO_ACTION` requires maintainer
+  approval to decline the follow-up work. When the current identity cannot resolve a thread
+  (`viewerCanResolve` is `false`), still reply, keep the disposition established from the current
+  tree, and record `Thread state=OPEN`; the reviewer or PR author resolves it.
+- A consolidated PR conversation response may cover multiple review rounds only when it names
+  every review ID and every finding ID with its disposition and resolution reference. Record its
+  durable URL in each related row.
+- Cite a fix by its unique Conventional Commit subject or durable reply URL, never by a branch SHA
+  that can change after a rebase.
+- Refresh review threads using GraphQL and confirm that no unresolved actionable thread remains.
