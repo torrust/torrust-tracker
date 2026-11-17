@@ -6,7 +6,7 @@ epic: null
 github-issue: 2912
 spec-path: docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md
 epic-owner: null
-last-updated-utc: "2026-11-17 17:30"
+last-updated-utc: "2026-11-17 18:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -69,8 +69,11 @@ Recorded 2026-11-17 by the EPIC coordinator session:
 
 1. **Remove the field (option 4).** Error types lose their `location` field, no non-test code calls
    `Location::caller()`, and the workspace drops `torrust-located-error`. Stripping the location from
-   `Display` only (option 3 alone) was rejected: the recorded value is wrong at every production site, so
-   keeping it keeps a misleading `Debug` and log value.
+   `Display` only (option 3 alone) was rejected: each of the 38 production `Location::caller()` sites
+   records a fixed library line, so keeping the field keeps a misleading `Debug` and log value. The
+   five `#[track_caller]` `From` conversions into `LocatedError` record a location that is correct
+   for their call chain (`inventory.md`, class C), and they are removed as well, because that
+   location is still an implementation path.
 2. **#384 keeps its title.** It is linked as SI-7 and gets a comment that explains the new scope
    (removal instead of an option); it closes after the recheck.
 3. **One sub-issue session at a time.** SI-1, then SI-2, SI-3, SI-4, SI-5 and SI-6 in that order,
