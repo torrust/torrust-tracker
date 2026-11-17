@@ -120,7 +120,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Inventory completed and reviewed
 - [x] Subissues drafted for new problems
 - [x] Acceptance criteria reviewed
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [ ] GitHub issue #2394 closed (pending: the maintainer closes it when the close-out merges)
 
 ### Progress Log
 
