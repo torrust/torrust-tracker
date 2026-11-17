@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2392-fixed-port-metrics-test-concurrent-runs/ISSUE.md
 branch: "{issue-number}-2392-fixed-port-metrics-test-concurrent-runs"
 related-pr: null
-last-updated-utc: "2026-11-16 22:06"
+last-updated-utc: "2026-11-17 08:52"
 semantic-links:
   skill-links:
     - create-issue
@@ -19,7 +19,7 @@ semantic-links:
     - .claude/skills/fix-bug/SKILL.md
     - .claude/skills/create-issue/SKILL.md
     - docs/issues/open/2392-test-isolation/EPIC.md
-    - docs/issues/open/2394-2392-audit-shared-test-resources/inventory.md
+    - docs/issues/closed/2394-2392-audit-shared-test-resources/inventory.md
     - docs/issues/closed/2393-2392-test-port-allocation-races/ISSUE.md
     - tests/metrics/fixed_ports.rs
     - packages/test-helpers/src/random.rs
@@ -231,5 +231,5 @@ Evidence policy: every recorded command result names the toolchain that produced
 ## References
 
 - Parent EPIC: #2392
-- Audit: #2394, `docs/issues/open/2394-2392-audit-shared-test-resources/inventory.md` (P2)
+- Audit: #2394, `docs/issues/closed/2394-2392-audit-shared-test-resources/inventory.md` (P2)
 - Loopback helper: #2393, `packages/test-helpers/src/random.rs`
