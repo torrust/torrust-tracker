@@ -49,7 +49,9 @@ of the head whose last commit is `docs(issues): [#2902] specify the tracker-core
 with no request, so it needs no row), found only after the first reply push; its three
 inline comments have no IDs and get F11 to F13 in source order. Round 4 is da2ce7's review `5939100172`
 (approval) of the head whose last commit is `docs(pr-reviews): [#2902] record Copilot's review of #2903`;
-its inline findings keep the reviewer's IDs F14 to F16.
+its inline findings keep the reviewer's IDs F14 to F16. Round 5 is Copilot's review `5939369230`
+(13:30:51 UTC, comment) of the head whose last commit is `docs(pr-reviews): [#2902] record the fourth
+review round of #2903`; its one inline finding keeps the reviewer's ID F17.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -69,6 +71,7 @@ its inline findings keep the reviewer's IDs F14 to F16.
 | F14 | review-finding:pr-2903-f14 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F15 | review-finding:pr-2903-f15 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F16 | review-finding:pr-2903-f16 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-2903-f17 | Copilot | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -280,6 +283,19 @@ its inline findings keep the reviewer's IDs F14 to F16.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2903#discussion_r4600183671
 
+### F17 - Pending reply markers in the round 4 rows
+
+- PR number: 2903
+- Source review ID: 5939369230
+- Reviewer finding ID: F17
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2903#discussion_r4600249246
+- Concern: F14-F16 were marked `FIXED`/`RESOLVED` while their Reply URL fields held `PENDING_REPLY_*` markers, which fail the validator's same-thread reply check.
+- Solution: The markers were in the audit commit made before the replies existed; the next commit replaced them with the three reply URLs, which are the ones the comment lists. No further change was needed beyond recording this row.
+- Current-tree verification: `grep -c PENDING docs/pr-reviews/pr-2903-review/PR-REVIEW.md` prints 0; the audit validator reports no failure.
+- Resolution reference: docs(pr-reviews): [#2902] record the round 4 replies of #2903
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2903#discussion_r4600261767
+
 ## Processing Log
 
 - 2026-11-17 12:48 UTC - Started audit late: the round 1 threads (12:08:23 UTC) and round 2 threads (12:28:40 UTC) had no reply before this record; the fixes were committed first, between 12:37 and 12:46 UTC, one commit per finding (F5 and F9 share one).
@@ -288,6 +304,7 @@ its inline findings keep the reviewer's IDs F14 to F16.
 - 2026-11-17 13:01 UTC - Pushed the F11 and F12 fixes (head `8f42a03a6`); replied to the three threads between 13:01:41 and 13:01:48 UTC and resolved each after its reply (F13 superseded by F12).
 - 2026-11-17 13:16 UTC - Round 4 (da2ce7's review `5939100172`, 13:13:35 UTC, approval with F14-F16) processed: F15 and F14 fixed in their own commits; the round descriptions and finding details now cite commits by subject. Correction of the 12:53 UTC entry above: Copilot's review was submitted at 12:38:27 UTC (12:38:26 UTC is the time of its first inline comments) and was of the first head, not the second (F16).
 - 2026-11-17 13:25 UTC - Pushed the round 4 fixes and audit commits; replied to the F14-F16 threads between 13:24:53 and 13:25:01 UTC and resolved each after its reply.
+- 2026-11-17 13:31 UTC - Round 5 (Copilot's review `5939369230`, 13:30:51 UTC, F17) was about the head before the round 4 replies were recorded; replied at 13:31:57 UTC and resolved the thread.
 
 ## Completion Rules
 
