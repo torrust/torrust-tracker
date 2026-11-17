@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/closed/2847-1488-si-28-verify-hung-component-abort/ISSUE.md
-last-updated-utc: 2026-11-17 21:02
+last-updated-utc: "2026-11-17 21:35"
 ---
 
 # Manual Verification Evidence
