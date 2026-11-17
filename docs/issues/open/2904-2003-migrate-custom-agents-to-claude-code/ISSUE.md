@@ -611,6 +611,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 
 - `linter all`
 - The reply validator's tests, and a run of the validator on every reply file
+- The tests of the stop hook's limit of 3 refusals (T5)
 - `cargo test -p agent-review-report-contract` until the check is removed in T10
 - `cargo test -p frontmatter-validator` in the task that changes its `.agent.md` rule
 - The pre-commit and pre-push hooks
