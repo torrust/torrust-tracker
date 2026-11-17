@@ -1,7 +1,7 @@
 ---
 pr-number: 2926
 pr-url: https://github.com/torrust/torrust-tracker/pull/2926
-last-updated-utc: "2026-11-17 21:39"
+last-updated-utc: "2026-11-17 22:15"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -43,7 +43,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1: Copilot review 5946669412 (COMMENTED) with three findings without reviewer IDs, as audit findings F1 to F3. Round 2: Copilot review 5946979677 (COMMENTED, at the round 1 fix head) with two findings without reviewer IDs, as audit findings F4 and F5.
+Round 1: Copilot review 5946669412 (COMMENTED) with three findings without reviewer IDs, as audit findings F1 to F3. Round 2: Copilot review 5946979677 (COMMENTED, at the round 1 fix head) with two findings without reviewer IDs, as audit findings F4 and F5. Round 3: Copilot review 5947468225 (COMMENTED) with four findings without reviewer IDs, as audit findings F6 to F9.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -52,6 +52,10 @@ Round 1: Copilot review 5946669412 (COMMENTED) with three findings without revie
 | F3 | review-finding:pr-2926-f3 | Copilot | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F4 | review-finding:pr-2926-f4 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F5 | review-finding:pr-2926-f5 | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F6 | review-finding:pr-2926-f6 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-2926-f7 | Copilot | Minor (inferred) | other | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F8 | review-finding:pr-2926-f8 | Copilot | Nit (inferred) | metadata | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F9 | review-finding:pr-2926-f9 | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -120,12 +124,66 @@ Round 1: Copilot review 5946669412 (COMMENTED) with three findings without revie
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4606129559
 
+### F6 - Ambiguous AC3 in #2924
+
+- PR number: 2926
+- Source review ID: 5947468225
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4606467734
+- Concern: AC3 says no file calls `ephemeral_sqlite_database()` "directly, except through the existing `ephemeral*()` functions"; a call cannot be both direct and through those functions.
+- Solution: AC3 now states one invariant: no code outside `torrust-tracker-test-helpers` calls `ephemeral_sqlite_database()`; inside it, only the existing `ephemeral*()` functions call it, until #2925 removes it.
+- Current-tree verification: `grep -n 'AC3: No code outside .torrust-tracker-test-helpers. calls' docs/issues/open/2924-*/ISSUE.md` finds AC3.
+- Resolution reference: docs(issues): [#2392] state #2924's AC3 as one invariant and name what V2 leaves
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4606511287
+
+### F7 - Full-suite command mixes target flags with `--all-targets`
+
+- PR number: 2926
+- Source review ID: 5947468225
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4606467829
+- Concern: The V1 command of #2925 passes `--tests --benches --examples` together with `--all-targets`, which is redundant.
+- Solution: No change. It is the repository's full-suite command, and the #2907 reproduction this spec builds on was recorded with it; keeping it identical lets the counts be compared with CI and with that evidence.
+- Current-tree verification: `grep -n -- '--tests --benches --examples --workspace --all-targets --all-features' .github/workflows/testing.yaml README.md .claude/skills/run-pre-push-checks/SKILL.md` finds the same command in all three.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4606491037
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4606491037
+
+### F8 - Test-helpers file missing from #2907's related artifacts
+
+- PR number: 2926
+- Source review ID: 5947468225
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4606467876
+- Concern: The Background of #2907 still names `ephemeral_sqlite_database()`, but `packages/test-helpers/src/configuration.rs` was removed from its `related-artifacts`.
+- Solution: No change. `related-artifacts` of #2907 lists the files in its narrowed scope. The file is in the `related-artifacts` of #2924 and #2925, which own that function, and #2907 lists both specs.
+- Current-tree verification: `grep -n 'packages/test-helpers/src/configuration.rs' docs/issues/open/2924-*/ISSUE.md docs/issues/open/2925-*/ISSUE.md` finds it in both; `grep -n '2924-2392\|2925-2392' docs/issues/open/2907-*/ISSUE.md` finds both specs in #2907's `related-artifacts`.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4606491487
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4606491487
+
+### F9 - V2 of #2924 names the callers, not the leak source
+
+- PR number: 2926
+- Source review ID: 5947468225
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4606467949
+- Concern: V2 expects that "files from `ephemeral*()` callers remain", but the remaining leak source is the `ephemeral*()` configurations themselves.
+- Solution: V2 now expects that only `data_*.db` files created through the `ephemeral*()` configurations remain, counted and listed by test.
+- Current-tree verification: `grep -n 'created through the .ephemeral\*(). configurations remain' docs/issues/open/2924-*/ISSUE.md` finds V2.
+- Resolution reference: docs(issues): [#2392] state #2924's AC3 as one invariant and name what V2 leaves
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4606511762
+
 ## Processing Log
 
 - 2026-11-17 21:15 UTC - Round 1: Copilot review 5946669412 with F1 to F3. Committed and pushed the fix (`docs(issues): [#2392] align the order 7 title and widen #2925's SQLite leftover check`), then replied to the three threads (21:14:38Z to 21:14:43Z).
 - 2026-11-17 21:15 UTC - The validator on the worktree record reported 3 rows, 1 log entry, 0 failures. Resolved the three threads (about 21:15:31Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread. Committed this record.
 - 2026-11-17 21:39 UTC - Round 2: Copilot review 5946979677 (at the round 1 fix head) with F4 and F5. Committed and pushed the fix (`docs(issues): [#2392] keep #2907's leak table in scope and reword the #2924 guard goal`), then replied to the two threads (21:38:39Z and 21:38:42Z). Updated F3's verification, because the F4 fix moved the function name out of the table.
 - 2026-11-17 21:39 UTC - The validator on the worktree record reported 5 rows, 3 log entries, 0 failures. Resolved the F4 and F5 threads (about 21:39:20Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread. Committed these entries.
+- 2026-11-17 22:15 UTC - Round 3: Copilot review 5947468225 with F6 to F9. Replied to F7 and F8 with no change (22:12:42Z and 22:12:45Z). Committed and pushed the fix for F6 and F9 (`docs(issues): [#2392] state #2924's AC3 as one invariant and name what V2 leaves`), then replied to those two threads (22:14:45Z and 22:14:47Z).
+- 2026-11-17 22:15 UTC - The validator on the worktree record reported 9 rows, 5 log entries, 0 failures. Resolved the four round 3 threads (about 22:15:30Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread. Committed these entries.
 <!-- Copied verbatim into each audit record. -->
 
 ## Completion Rules
