@@ -1,7 +1,7 @@
 ---
 pr-number: 2901
 pr-url: https://github.com/torrust/torrust-tracker/pull/2901
-last-updated-utc: "2026-11-17 10:55"
+last-updated-utc: "2026-11-17 11:10"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -55,6 +55,8 @@ Round 1, on the head that carries the commit `docs(issues): [#2765] record the i
 | F10 | review-finding:pr-2901-f10 | Copilot | Major | correctness | ORIGINAL | FIXED | RESOLVED |
 | F11 | review-finding:pr-2901-f11 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-2901-f12 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F13 | review-finding:pr-2901-f13 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-2901-f14 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -214,12 +216,40 @@ Round 1, on the head that carries the commit `docs(issues): [#2765] record the i
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4598572312
 
+### F13 - On the deadline path the output read so far is dropped
+
+- PR number: 2901
+- Source review ID: 5937298122
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4598704325
+- Concern: `execute` returned the error before the captured streams reached `Captured` and `run_command` logged only on success, so a hung checker ended with the timeout error and none of its output; the statement in the F10 solution of this audit that the output read so far is kept held only when the child exits.
+- Solution: `execute` returns the captured output with the status or the error that ended the wait, and `run_command` logs both streams before it propagates the error; a test asserts the output written before a hang.
+- Current-tree verification: `cargo test -p torrust-tracker --lib console::ci::e2e::tracker_checker` passes 12 tests, including `it_should_return_the_output_written_before_the_deadline_expired`.
+- Resolution reference: `fix(e2e): [#2765] keep the output on the deadline path and share one drain window`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4598757185
+
+### F14 - The drain bound is twice the grace period
+
+- PR number: 2901
+- Source review ID: 5937298122
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4598704345
+- Concern: the two `collect` calls each opened their own grace window, so the drain could take twice the documented bound.
+- Solution: both calls share one end instant.
+- Current-tree verification: `cargo test -p torrust-tracker --lib console::ci::e2e::tracker_checker` passes 12 tests, including `it_should_share_one_drain_window_between_both_pipes`; no mutation run was done for that test.
+- Resolution reference: `fix(e2e): [#2765] keep the output on the deadline path and share one drain window`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4598757602
+
 ## Processing Log
 
 - 2026-11-17 10:39 UTC - Reviews 5936922508 (da2ce7, submitted 10:38:51) and 5936930487 (Copilot, submitted 10:39:28) arrived on the first head.
 - 2026-11-17 10:49 UTC - Pushed the fixes of round 1 (the head commit time is 10:49:18).
 - 2026-11-17 10:54 UTC - Replied on all twelve threads (the reply times are 10:53:50 to 10:54:15) and resolved them; `reply-status` reported `all_replied` before the resolution.
 - 2026-11-17 10:55 UTC - Created this audit record after the replies and the resolution (a late start: the fixes had to be pushed first so the replies could cite their commit subjects).
+- 2026-11-17 11:05 UTC - Round 2: da2ce7 review 5937298122 (APPROVED, submitted 11:05:49) with F13 (Minor) and F14 (Nit); the IDs are free in this audit.
+- 2026-11-17 11:10 UTC - Fixed both in one commit, replied and resolved the two threads. Correction to the F10 entry: its Solution and the reply on that thread said the output read before a deadline is kept; that held only when the child exits, and F13 fixed the deadline path.
 
 ## Completion Rules
 
