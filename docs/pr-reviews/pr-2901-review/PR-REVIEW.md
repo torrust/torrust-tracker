@@ -1,7 +1,7 @@
 ---
 pr-number: 2901
 pr-url: https://github.com/torrust/torrust-tracker/pull/2901
-last-updated-utc: "2026-11-17 11:25"
+last-updated-utc: "2026-11-17 11:45"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -58,6 +58,11 @@ Round 1, on the head that carries the commit `docs(issues): [#2765] record the i
 | F13 | review-finding:pr-2901-f13 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F14 | review-finding:pr-2901-f14 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 | F15 | review-finding:pr-2901-f15 | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-2901-f16 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-2901-f17 | Human | Suggestion | testing | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-2901-f18 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F19 | review-finding:pr-2901-f19 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-2901-f20 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -256,6 +261,71 @@ Round 1, on the head that carries the commit `docs(issues): [#2765] record the i
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4598905282
 
+### F16 - The prose-first record and the PR body still count ten tests
+
+- PR number: 2901
+- Source review ID: 5937498680
+- Reviewer finding ID: da2ce7 F15
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4598862732
+- Concern: The spec table had no rows for two of the helper tests and the PR body said "ten unit tests", which was stale.
+- Solution: The table has a row for every helper test and the PR body no longer states a count. The thread was resolved before it was replied to (see the log); the reply is late.
+- Current-tree verification: Read the spec table (15 rows for the 15 tests of `cargo test -p torrust-tracker --lib console::ci::e2e::tracker_checker`, which passes 15 tests); `gh pr edit` updated the body.
+- Resolution reference: `docs(issues): [#2765] add the prose-first rows for the new helper tests`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4599092929
+
+### F17 - The bound leaves about 0.7 s of slack for a loaded runner
+
+- PR number: 2901
+- Source review ID: 5937498680
+- Reviewer finding ID: da2ce7 F16
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4598862738
+- Concern: `it_should_share_one_drain_window_between_both_pipes` expected about 1.1 s against a 1.8 s bound.
+- Solution: The test uses a 3 s window and a 5 s bound (about 3.1 s expected, about 6.1 s with two windows). Resolved before replying (see the log).
+- Current-tree verification: `cargo test -p torrust-tracker --lib console::ci::e2e::tracker_checker` passes 15 tests, including the test.
+- Resolution reference: `fix(e2e): [#2765] keep the queued output after the drain window and cap it`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4599093325
+
+### F18 - The check also drops output that was already read and queued for the second pipe
+
+- PR number: 2901
+- Source review ID: 5937712954
+- Reviewer finding ID: da2ce7 F17
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4599028233
+- Concern: Both pipes share the window, so the second `collect` started after its end and discarded chunks that were already queued.
+- Solution: After the window `collect` takes the chunks already queued, without waiting, up to an 8 MiB cap; a test with the reviewer's script asserts both streams, and the queued-chunk test now asserts the chunk is kept.
+- Current-tree verification: `cargo test -p torrust-tracker --lib console::ci::e2e::tracker_checker` passes 15 tests, including `it_should_keep_the_output_of_the_second_pipe_when_the_first_one_uses_the_whole_window`.
+- Resolution reference: `fix(e2e): [#2765] keep the queued output after the drain window and cap it`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4599093720
+
+### F19 - An unbounded yes stream test keeps gigabytes in memory
+
+- PR number: 2901
+- Source review ID: 5937712954
+- Reviewer finding ID: da2ce7 F18
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4599028250
+- Concern: The descendant test with `yes` pushed about 1.15 GB through the pipe and the helper kept it all.
+- Solution: The test is removed and the helper keeps at most 8 MiB per stream; a test asserts the cap. This supersedes the part of the F15 solution that named the `yes` test.
+- Current-tree verification: `cargo test -p torrust-tracker --lib console::ci::e2e::tracker_checker` passes 15 tests, including `it_should_cut_the_output_at_the_byte_cap_even_when_more_is_queued`; no test of the helper starts `yes` any more.
+- Resolution reference: `fix(e2e): [#2765] keep the queued output after the drain window and cap it`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4599094074
+
+### F20 - Round 3 also had review 5937498680, whose two threads have no reply and no row
+
+- PR number: 2901
+- Source review ID: 5937712954
+- Reviewer finding ID: da2ce7 F19
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4599028260
+- Concern: Two threads (F16 and F17 here) were resolved without a reply and without rows, and the audit F15 reused a reviewer ID without recording it.
+- Solution: Replies were posted on both threads, rows F16 and F17 were added, and the colliding IDs were mapped to the next free ones with the reviewer ID recorded; the audit F15 is the Copilot finding and the reviewer-provided IDs of this round are recorded in each entry.
+- Current-tree verification: Read this audit and `validate-audit-record.py` output (ok).
+- Resolution reference: `docs(issues): [#2765] add the prose-first rows for the new helper tests`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4599094506
+
 ## Processing Log
 
 - 2026-11-17 10:39 UTC - Reviews 5936922508 (da2ce7, submitted 10:38:51) and 5936930487 (Copilot, submitted 10:39:28) arrived on the first head.
@@ -265,7 +335,10 @@ Round 1, on the head that carries the commit `docs(issues): [#2765] record the i
 - 2026-11-17 11:05 UTC - Round 2: da2ce7 review 5937298122 (APPROVED, submitted 11:05:49) with F13 (Minor) and F14 (Nit); the IDs are free in this audit.
 - 2026-11-17 11:10 UTC - Fixed both in one commit, replied and resolved the two threads. Correction to the F10 entry: its Solution and the reply on that thread said the output read before a deadline is kept; that held only when the child exits, and F13 fixed the deadline path.
 - 2026-11-17 11:20 UTC - Round 3: Copilot review 5937491189 (COMMENTED, submitted 11:20:08) with one thread; its reviewer ID F1 collides, so it is F15.
+- 2026-11-17 11:20 UTC - Round 3 also had da2ce7 review 5937498680 (submitted 11:20:36, later shown as dismissed) with two threads (reviewer IDs F15 and F16). They were not processed in round 3: my batch resolution resolved them without a reply and without rows (a process error), and they were not in this audit.
 - 2026-11-17 11:25 UTC - Fixed in one commit, replied and resolved the thread.
+- 2026-11-17 11:37 UTC - Round 4: da2ce7 review 5937712954 (COMMENTED, submitted 11:37:44) with F17 to F19 of its own numbering, which with the two threads above give reviewer IDs F15 to F19; they are F16 to F20 here.
+- 2026-11-17 11:45 UTC - Fixed in two commits, replied on the five threads and on the Copilot thread of F15 (a follow-up reply, because the fix changed what that reply said), resolved the three that were open. Correction to F15: its Solution and Verification name two tests, one of which (the `yes` descendant test) was removed in this round and the behaviour that test guarded was changed (queued chunks are kept up to a cap).
 
 ## Completion Rules
 
