@@ -1,6 +1,6 @@
 use std::io::{self, Read};
 use std::process::{Child, Command, ExitStatus, Stdio};
-use std::sync::mpsc::{self, Receiver, RecvTimeoutError};
+use std::sync::mpsc::{self, Receiver, RecvTimeoutError, TryRecvError};
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -15,6 +15,10 @@ const CHECKER_DEADLINE: Duration = Duration::from_secs(5 * 60);
 /// How long the output readers may keep running after the child has exited or
 /// was killed. It bounds the drain when something else keeps a pipe open.
 const READER_GRACE: Duration = Duration::from_secs(5);
+
+/// The most bytes kept from each stream. It bounds the memory of a child that
+/// writes without end and the time of the last, non-waiting step of the drain.
+const MAX_CAPTURED_BYTES: usize = 8 * 1024 * 1024;
 
 /// How often the wait loop polls the child.
 const POLL_INTERVAL: Duration = Duration::from_millis(100);
@@ -181,7 +185,30 @@ fn spawn_reader<R: Read + Send + 'static>(mut pipe: R) -> Receiver<Vec<u8>> {
     receiver
 }
 
+/// Receives the next chunk, waiting only until `end`; after `end` it takes a
+/// chunk that is already queued and never waits.
+fn receive(receiver: &Receiver<Vec<u8>>, end: Instant) -> Result<Vec<u8>, RecvTimeoutError> {
+    let remaining = end
+        .checked_duration_since(Instant::now())
+        .filter(|remaining| !remaining.is_zero());
+
+    remaining.map_or_else(
+        || {
+            receiver.try_recv().map_err(|error| match error {
+                TryRecvError::Empty => RecvTimeoutError::Timeout,
+                TryRecvError::Disconnected => RecvTimeoutError::Disconnected,
+            })
+        },
+        |remaining| receiver.recv_timeout(remaining),
+    )
+}
+
 /// Collects the chunks until the pipe closes or the `end` instant has passed.
+///
+/// After the window ends, chunks that were already read and queued are still
+/// taken (without waiting), so output read before the end is not lost; at most
+/// `MAX_CAPTURED_BYTES` are kept, which bounds both the time of this last step
+/// and the memory of a child that writes without end.
 fn collect(receiver: Option<Receiver<Vec<u8>>>, end: Instant) -> String {
     let Some(receiver) = receiver else {
         return String::new();
@@ -189,16 +216,10 @@ fn collect(receiver: Option<Receiver<Vec<u8>>>, end: Instant) -> String {
 
     let mut bytes = Vec::new();
 
-    loop {
-        // `recv_timeout` returns queued chunks even with a zero timeout, so check the window first.
-        let Some(remaining) = end
-            .checked_duration_since(Instant::now())
-            .filter(|remaining| !remaining.is_zero())
-        else {
-            tracing::warn!("Output of the child was still open at the end of the drain window; it was cut");
-            break;
-        };
-        match receiver.recv_timeout(remaining) {
+    while bytes.len() < MAX_CAPTURED_BYTES {
+        let next = receive(&receiver, end);
+
+        match next {
             Ok(chunk) => bytes.extend_from_slice(&chunk),
             Err(RecvTimeoutError::Timeout) => {
                 tracing::warn!("Output of the child was still open at the end of the drain window; it was cut");
@@ -206,6 +227,11 @@ fn collect(receiver: Option<Receiver<Vec<u8>>>, end: Instant) -> String {
             }
             Err(RecvTimeoutError::Disconnected) => break,
         }
+    }
+
+    if bytes.len() > MAX_CAPTURED_BYTES {
+        tracing::warn!("Output of the child exceeded {MAX_CAPTURED_BYTES} bytes; it was cut");
+        bytes.truncate(MAX_CAPTURED_BYTES);
     }
 
     String::from_utf8_lossy(&bytes).into_owned()
@@ -237,7 +263,7 @@ mod tests {
     use std::io::ErrorKind;
     use std::time::{Duration, Instant};
 
-    use super::{BUILD_ARGS, CHECKER_ARGS, collect, execute, run_command};
+    use super::{BUILD_ARGS, CHECKER_ARGS, MAX_CAPTURED_BYTES, collect, execute, run_command};
 
     const GRACE: Duration = Duration::from_secs(5);
 
@@ -352,8 +378,8 @@ mod tests {
     }
 
     #[test]
-    fn it_should_not_collect_queued_chunks_after_the_drain_window_ended() {
-        // Arrange: a chunk is already queued and the window ended a second ago.
+    fn it_should_keep_the_chunks_already_queued_when_the_drain_window_ended() {
+        // Arrange: a chunk was read and queued, and the window ended a second ago.
         let (sender, receiver) = std::sync::mpsc::channel();
         sender.send(b"queued".to_vec()).expect("the receiver is alive");
         let ended = Instant::now()
@@ -364,28 +390,45 @@ mod tests {
         let collected = collect(Some(receiver), ended);
 
         // Assert
-        assert_eq!(collected, "");
+        assert_eq!(collected, "queued");
     }
 
     #[test]
-    fn it_should_stop_draining_a_descendant_that_keeps_writing() {
-        // Arrange: the main process hangs and a descendant writes without end.
-        let script = "yes & exec sleep 60";
-        let start = Instant::now();
+    fn it_should_cut_the_output_at_the_byte_cap_even_when_more_is_queued() {
+        // Arrange: more than the cap is queued and the window ended a second ago.
+        let (sender, receiver) = std::sync::mpsc::channel();
+        sender
+            .send(vec![b'x'; MAX_CAPTURED_BYTES + 1000])
+            .expect("the receiver is alive");
+        let ended = Instant::now()
+            .checked_sub(Duration::from_secs(1))
+            .expect("the clock is past one second");
 
         // Act
-        let result = execute(
+        let collected = collect(Some(receiver), ended);
+
+        // Assert
+        assert_eq!(collected.len(), MAX_CAPTURED_BYTES);
+    }
+
+    #[test]
+    fn it_should_keep_the_output_of_the_second_pipe_when_the_first_one_uses_the_whole_window() {
+        // Arrange: the child exits after writing to both pipes while a descendant holds them open.
+        let script = "echo out; echo err >&2; sleep 8 &";
+
+        // Act
+        let captured = execute(
             "sh",
             &["-c", script],
             None,
-            Duration::from_millis(300),
+            Duration::from_secs(10),
             Duration::from_millis(500),
-        );
+        )
+        .expect("it should run");
 
-        // Assert: the drain ends with its window although data keeps arriving.
-        let captured = result.expect("it should run");
-        assert!(captured.status.is_err());
-        assert!(start.elapsed() < Duration::from_secs(5), "took {:?}", start.elapsed());
+        // Assert
+        assert_eq!(captured.stdout, "out\n");
+        assert_eq!(captured.stderr, "err\n");
     }
 
     #[test]
@@ -396,11 +439,11 @@ mod tests {
 
         // Act
         let captured =
-            execute("sh", &["-c", script], None, Duration::from_secs(10), Duration::from_secs(1)).expect("it should run");
+            execute("sh", &["-c", script], None, Duration::from_secs(10), Duration::from_secs(3)).expect("it should run");
 
-        // Assert: one 1 s window, not two.
+        // Assert: one 3 s window (about 3.1 s), not two (about 6.1 s), with 1.9 s of slack for a loaded runner.
         assert!(captured.status.is_ok());
-        assert!(start.elapsed() < Duration::from_millis(1800), "took {:?}", start.elapsed());
+        assert!(start.elapsed() < Duration::from_secs(5), "took {:?}", start.elapsed());
     }
 
     #[test]
