@@ -74,7 +74,7 @@ All on 2026-11-17:
 
 | ID | Status | Work | Completion evidence |
 | --- | --- | --- | --- |
-| E1 | DONE | Shared unit-test fixtures and their callers (sources 1 and 6). | 167 unit tests pass. |
+| E1 | DONE | Shared unit-test fixtures and their callers (sources 1 and 6). | 157 unit tests pass. |
 | E2 | DONE | Integration fixture (source 2). | 12 integration tests pass. |
 | E3 | DONE | The three private copies (sources 3 to 5). | Unit tests pass. |
 | E4 | DONE | Count the files a full run leaves. | Results below. |
