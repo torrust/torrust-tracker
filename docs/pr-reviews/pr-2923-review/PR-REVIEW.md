@@ -51,6 +51,9 @@ reviewer's ID F6. (The reviewer's IDs skip F5, which is the spec's own register 
 Round 3 is da2ce7's review `5944756705` (19:02:10 UTC, approval) of the head whose last commit is
 `docs(pr-reviews): [#2902] record the second review round of #2923`; its one optional inline finding
 keeps the reviewer's ID F7.
+Round 4 is Copilot's review `5946673166` (21:09:58 UTC, comment) of the head whose last commit is
+`docs(pr-reviews): [#2902] record the third review round of #2923`; its one inline comment has no
+reviewer ID and is recorded as F8.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -60,6 +63,7 @@ keeps the reviewer's ID F7.
 | F4 | review-finding:pr-2923-f4 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-2923-f6 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F7 | review-finding:pr-2923-f7 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-2923-f8 | Copilot | Minor (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -141,12 +145,26 @@ keeps the reviewer's ID F7.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2923#discussion_r4604374966
 
+### F8 - The tracker fixtures were named like trackers
+
+- PR number: 2923
+- Source review ID: 5946673166
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2923#discussion_r4605828713
+- Concern: `listed_tracker()` reads like it returns a tracker, but it returns an `EphemeralTrackerConfiguration` whose guard must stay alive.
+- Solution: All four named fixtures end in `_configuration`: `public_tracker_configuration()`, `private_tracker_configuration()`, `private_tracker_configuration_with_keys_expiration_check_disabled()` and `listed_tracker_configuration()`; the plan uses the new names.
+- Current-tree verification: `grep -rnE '\b(public|private|listed)_tracker\(' packages/tracker-core/src` prints nothing; `cargo test -p torrust-tracker-core --all-features` passes.
+- Resolution reference: test(tracker-core): [#2902] name the tracker fixtures after the configurations they return
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2923#discussion_r4605924207
+
 ## Processing Log
 
 - 2026-11-17 18:31 UTC - The review poller reported both round 1 reviews; all four findings verified against the tree.
 - 2026-11-17 18:34 UTC - Fixed each finding in its own commit; replied to the four threads up to 18:34:50 UTC, before pushing the fixes and this record together; the threads are resolved after the push.
 - 2026-11-17 18:53 UTC - Round 2 (approval with F6): fixed in its own commit and in the description; replied at 18:53:09 UTC, before pushing the fix and this record together; the thread is resolved after the push.
 - 2026-11-17 19:04 UTC - Round 3 (approval with the optional F7): fixed in its own commit; replied at 19:04:41 UTC, before pushing the fix and this record together; the thread is resolved after the push.
+- 2026-11-17 21:18 UTC - Round 4 (Copilot comment, Low, recorded as F8, Minor (inferred) from its Low label): fixed in its own commit; replied at 21:18:55 UTC, before pushing the fix and this record together; the thread is resolved after the push.
 
 ## Completion Rules
 
