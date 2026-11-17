@@ -1,7 +1,7 @@
 ---
 pr-number: 2921
 pr-url: https://github.com/torrust/torrust-tracker/pull/2921
-last-updated-utc: "2026-11-17 18:39"
+last-updated-utc: "2026-11-17 19:01"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -54,6 +54,12 @@ Round 1: da2ce7 review 5943744061 (APPROVED, later shown as dismissed) with find
 | F9 | review-finding:pr-2921-f9 | Copilot | Minor | documentation | RE_RAISE_OF:F4 | FIXED | RESOLVED |
 | F10 | review-finding:pr-2921-f10 | Copilot | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F11 | review-finding:pr-2921-f11 | Copilot | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F29 | review-finding:pr-2921-f29 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F30 | review-finding:pr-2921-f30 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F31 | review-finding:pr-2921-f31 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F32 | review-finding:pr-2921-f32 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F33 | review-finding:pr-2921-f33 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F34 | review-finding:pr-2921-f34 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -155,11 +161,11 @@ Round 1: da2ce7 review 5943744061 (APPROVED, later shown as dismissed) with find
 - Reviewer finding ID: Copilot F2
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2921#discussion_r4603628654
 - Concern: The F28 row of the PR 2901 audit had `NO_ACTION` with `RESOLVED`; the rules and the F25 row use `SUPERSEDED`.
-- Solution: The row has `NO_ACTION` / `SUPERSEDED`.
+- Solution: The row has `NO_ACTION` / `SUPERSEDED`. The reply on the thread (the Reply URL below) was posted at 18:05:35, before the change it reports was committed, and cites a commit subject that never existed; the correction posted on the same thread at 18:09:58 names `docs(pr-reviews): [#2765] audit review round 1 of PR 2921` (https://github.com/torrust/torrust-tracker/pull/2921#discussion_r4603774081).
 - Current-tree verification: `validate-audit-record.py --pr-number 2901` returns ok (28 rows).
 - Resolution reference: `docs(pr-reviews): [#2765] audit review round 1 of PR 2921`
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2921#discussion_r4603722613 (this reply, posted at 18:05:35 before the change it reports was committed, cites a commit subject that never existed; the correction posted on the same thread at 18:09:58 names `docs(pr-reviews): [#2765] audit review round 1 of PR 2921`: https://github.com/torrust/torrust-tracker/pull/2921#discussion_r4603774081)
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2921#discussion_r4603722613
 
 ### F9 - Distinguish the audit-update time from the reply time
 
@@ -200,13 +206,94 @@ Round 1: da2ce7 review 5943744061 (APPROVED, later shown as dismissed) with find
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2921#discussion_r4604092761
 
+### F29 - The AC4 wording attributes the later changes wrongly
+
+- PR number: 2921
+- Source review ID: 5944250618
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2921#discussion_r4603941350
+- Concern: The line said two later commits changed only the reader and its logging; the fix commit also added tests and prose-first rows to the spec, and the audit commit touched only the audit.
+- Solution: The line now describes each commit correctly.
+- Current-tree verification: Read the AC4 line of the spec in `docs/issues/closed/`.
+- Resolution reference: `docs(issues): [#2765] correct the AC4 wording and two statements of the PR 2921 audit`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2921#discussion_r4604329895
+
+### F30 - The introduction says Minor is inferred although the threads carry brackets
+
+- PR number: 2921
+- Source review ID: 5944250618
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2921#discussion_r4603941361
+- Concern: The Findings introduction said the three Copilot threads have no severity tags, but each opens with a `[Minor]` bracket.
+- Solution: The parenthesis is removed.
+- Current-tree verification: Read the Findings introduction of this audit.
+- Resolution reference: `docs(issues): [#2765] correct the AC4 wording and two statements of the PR 2921 audit`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2921#discussion_r4604330427
+
+### F31 - The F8 entry cites a reply that names a commit that never existed
+
+- PR number: 2921
+- Source review ID: 5944250618
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2921#discussion_r4603941373
+- Concern: The F8 Reply URL pointed to a reply citing a nonexistent commit subject, and the later correction on the same thread was not mentioned.
+- Solution: The F8 entry names the correction and links it.
+- Current-tree verification: Read the F8 entry of this audit.
+- Resolution reference: `docs(issues): [#2765] correct the AC4 wording and two statements of the PR 2921 audit`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2921#discussion_r4604330960
+
+### F32 - The PR description is out of date
+
+- PR number: 2921
+- Source review ID: 5944250618
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2921#discussion_r4603941384
+- Concern: The description did not list the new audit record and its Validation line showed outdated counts for the PR 2901 audit.
+- Solution: The PR description was edited with `gh pr edit` (no repository change).
+- Current-tree verification: `gh pr view 2921` shows the updated description.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2921#discussion_r4604331443
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2921#discussion_r4604331443
+
+### F33 - The log has no entry for review 5944250618 and its four threads have no rows
+
+- PR number: 2921
+- Source review ID: 5944674441
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2921#discussion_r4604281545
+- Concern: The audit recorded review 5944168304 but not review 5944250618, whose four threads had no rows.
+- Solution: Rows F29 to F32 and this review are recorded; the log has entries for both reviews.
+- Current-tree verification: `validate-audit-record.py --pr-number 2921` returns ok.
+- Resolution reference: `docs(pr-reviews): [#2765] audit review round 3 of PR 2921`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2921#discussion_r4604331931
+
+### F34 - The four threads are resolved with no reply
+
+- PR number: 2921
+- Source review ID: 5944674441
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2921#discussion_r4604281563
+- Concern: The threads of review 5944250618 were resolved by a batch command before any reply, which the audit rules forbid.
+- Solution: Replies were posted on the four threads and the threads were resolved after them; the batch resolution is logged as an error.
+- Current-tree verification: Read the replies of the four threads and the Processing Log.
+- Resolution reference: `docs(pr-reviews): [#2765] audit review round 3 of PR 2921`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2921#discussion_r4604332433
+
 ## Processing Log
 
 - 2026-11-17 17:53 UTC - Review 5943744061 (da2ce7, APPROVED) arrived on the first head (submitted 17:53:43).
 - 2026-11-17 18:02 UTC - Fixed all six in one commit and a title edit, replied on the six threads and resolved them; created this audit after the replies.
 - 2026-11-17 18:05 UTC - Copilot review 5943800775 (three threads) was handled together with the above; its threads were resolved by my batch command before they were replied to (a process error, as in PR 2901), and the replies were posted afterwards on the resolved threads. F8 needed one more commit (`docs(pr-reviews): [#2765] audit review round 1 of PR 2921`).
 - 2026-11-17 18:19 UTC - Round 2: Copilot review 5944168304 (COMMENTED, submitted 18:19:50) with two Nits (reviewer IDs F3 and F4, recorded as F10 and F11).
+- 2026-11-17 18:25 UTC - Round 2 also had da2ce7 review 5944250618 (submitted 18:25:12, later shown as dismissed) with four Nit threads (F29 to F32), which I did not see in time; my batch resolution closed them without replies and without rows (a process error).
 - 2026-11-17 18:39 UTC - Fixed in one commit, replied on both threads and resolved them.
+- 2026-11-17 18:56 UTC - Round 3: da2ce7 review 5944674441 (COMMENTED, submitted 18:56:13) with F33 and F34 about those four threads.
+- 2026-11-17 19:01 UTC - Fixed F29 to F31 in one commit, updated the PR description (F32), replied on the six threads, resolved them after the replies, and recorded the rows here.
 
 ## Completion Rules
 
