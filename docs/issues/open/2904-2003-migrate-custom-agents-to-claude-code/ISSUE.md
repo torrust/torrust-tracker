@@ -9,7 +9,7 @@ github-issue: 2904
 spec-path: docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md
 branch: "2904-migrate-custom-agents-to-claude-code-spec"
 related-pr: null
-last-updated-utc: "2026-11-17 12:14"
+last-updated-utc: "2026-11-17 12:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -487,7 +487,7 @@ on are merged.
 | T2  | TODO   | Pointer `CLAUDE.md` | A root `CLAUDE.md` whose only content is the import of `AGENTS.md` (D11); scenario M4 recorded |
 | T3  | TODO   | Reply schema and validator | `docs/schemas/agent-reply-v1.schema.json`; the validator with tests, developed in the progressive loop of the `write-unit-test` skill with a recorded design review per increment, and run by the repository checks; `docs/schemas/README.md` updated (D18) |
 | T4  | TODO   | `pr-review-handler` | `.claude/agents/pr-review-handler.md` with the pinned model; `wait-for-pr-review` and `process-pr-review` say which agent runs a round; the inventory `removed-profile-rules.md` created in this folder with the rules of `copilot-suggestions-handler` (AC6); scenarios M1 to M3 recorded |
-| T5  | TODO   | `task-reviewer` | The agent file with the pinned model and the stop hook (D17); the complexity item in `review-task` (D12); the reply rule in `review-task`; scenario M7 recorded |
+| T5  | TODO   | `task-reviewer` | The agent file with the pinned model and the stop hook (D17), with tests of its bounded refusals; the complexity item in `review-task` (D12); the reply rule in `review-task`; scenario M7 recorded |
 | T6  | TODO   | `implementer` | The agent file; the three committer rules in `commit-changes` (D14); the rules that only `planner` held moved into `create-issue` |
 | T7  | TODO   | `pr-reviewer` | The agent file with the pinned model; the reply rule in `review-pr` |
 | T8  | TODO   | `researcher` | The agent file |
@@ -556,6 +556,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - 2026-11-15 08:40 UTC - Claude Code (Claude Fable 5.2) - Inventoried the ten profiles against the skills and the Claude Code documentation; drafted this specification with the maintainer's decisions D1 to D8, and eleven open questions; added what the Claude Code documentation says is possible, each fact with its link.
 - 2026-11-17 12:09 UTC - Claude Code (Claude Fable 5.2) - Updated the draft after the skills move (#2866) merged; settled the open questions Q1 to Q11 with the maintainer as decisions D9 to D18; reordered the Implementation Plan into small pull requests that merge independently (D16).
 - 2026-11-17 12:14 UTC - Claude Code (Claude Fable 5.2) - The maintainer approved the draft; created issue #2904, moved the specification to `docs/issues/open/`, and added row 23 to the EPIC's Subissues table. Linking #2904 as a GitHub sub-issue of #2003 is pending: the contributor account's request was refused with `404`.
+- 2026-11-17 12:55 UTC - Claude Code (Claude Fable 5.2) - Addressed the review `5938631990` of `da2ce7` on pull request #2905 (findings F1 to F7), one commit per finding: the baseline of pull request #2851 is 14 rounds on three models, not 9 on one; the archived-report counts are recomputed with their method; the plan gains the AC6 inventory, the planner rules and the test-development loop.
 
 ## Acceptance Criteria
 
