@@ -1,7 +1,7 @@
 ---
 pr-number: 2922
 pr-url: https://github.com/torrust/torrust-tracker/pull/2922
-last-updated-utc: "2026-11-17 18:41"
+last-updated-utc: "2026-11-17 18:52"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -43,7 +43,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1: da2ce7 review 5944086342 (APPROVED) with findings F1 to F4; the reviewer's IDs are this audit's IDs. Copilot review 5944100743 (COMMENTED) with one finding, R1; the reviewer's ID is this audit's ID. R1 asks for the same current-tree change as F2. Round 2: da2ce7 review 5944394364 (APPROVED) with findings F5 and F6; the reviewer's IDs are this audit's IDs.
+Round 1: da2ce7 review 5944086342 (APPROVED) with findings F1 to F4; the reviewer's IDs are this audit's IDs. Copilot review 5944100743 (COMMENTED) with one finding, R1; the reviewer's ID is this audit's ID. R1 asks for the same current-tree change as F2. Round 2: da2ce7 review 5944394364 (APPROVED) with findings F5 and F6; the reviewer's IDs are this audit's IDs. Round 3: Copilot review 5944579824 (COMMENTED, at the round 1 fix head) with two findings without reviewer IDs, as audit findings F7 and F8; da2ce7 review 5944605224 (APPROVED) reported no finding and has no row.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -54,6 +54,8 @@ Round 1: da2ce7 review 5944086342 (APPROVED) with findings F1 to F4; the reviewe
 | R1 | review-finding:pr-2922-r1 | Copilot | Nit | metadata | RE_RAISE_OF:F2 | NO_ACTION | SUPERSEDED |
 | F5 | review-finding:pr-2922-f5 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-2922-f6 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-2922-f7 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-2922-f8 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -148,11 +150,38 @@ Round 1: da2ce7 review 5944086342 (APPROVED) with findings F1 to F4; the reviewe
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2922#discussion_r4604118907
 
+### F7 - EPIC row 13 reads as if the hold were an upstream dependency
+
+- PR number: 2922
+- Source review ID: 5944579824
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2922#discussion_r4604207004
+- Concern: The text said T3 "waits for a later review of upstream" `zerocopy` issue 3414, which reads like an upstream dependency, while the #2360 specification says the hold is a deferral and that the Temporary reason rewrite depends on nothing upstream.
+- Solution: Reworded the sentence to say that T3 is deferred until the next maintainer review, when the status of the upstream issue is checked again. The row also says outright that the hold is a deferral and not an upstream dependency.
+- Current-tree verification: `grep -c "waits for a later review" docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md` prints `0`; `grep -c "The hold is a deferral, not an upstream dependency" docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md` prints `1`.
+- Resolution reference: docs(issues): [#2360] say in the #2003 EPIC that the hold is a deferral
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2922#discussion_r4604240027
+
+### F8 - The EPIC progress-log entry for row 13 reads as if the hold were an upstream dependency
+
+- PR number: 2922
+- Source review ID: 5944579824
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2922#discussion_r4604207053
+- Concern: The text said T3 "waits for a later review of upstream" `zerocopy` issue 3414, which reads like an upstream dependency, while the #2360 specification says the hold is a deferral and that the Temporary reason rewrite depends on nothing upstream.
+- Solution: Reworded the sentence to say that T3 is deferred until the next maintainer review, when the status of the upstream issue is checked again. The entry was written by this pull request and is corrected in place. F8 is the same concern as F7 at another line of the same file; it has its own row because it needs its own change.
+- Current-tree verification: `grep -c "waits for a later review" docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md` prints `0`; `grep -c "T3 is deferred until the next maintainer review" docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md` prints `2` (the row and the progress-log entry).
+- Resolution reference: docs(issues): [#2360] say in the #2003 EPIC that the hold is a deferral
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2922#discussion_r4604240529
+
 ## Processing Log
 
 - 2026-11-17 18:23 UTC - Started audit. Round 1: da2ce7 review 5944086342 (submitted 18:14:41Z) and Copilot review 5944100743 (submitted 18:15:35Z). Committed the F2, F1 (specification wording), F3 and F4 fixes as four signed commits and pushed them with `git-bot-push`, ending at `docs(issues): [#2360] mark the issue blocked in the #2003 EPIC table`. Edited the PR description for F1 and posted the PR conversation response (18:22:36Z). Replied to the five threads (18:22:46Z to 18:22:56Z).
 - 2026-11-17 18:41 UTC - Late start of round 1: this record was created at 18:23 UTC, after the five round 1 replies (18:22:46Z to 18:22:56Z), although the skill asks for the record before the first reply. Also not logged before: the five round 1 threads were resolved after the push of the commit `docs(pr-reviews): [#2360] audit review round 1 of PR 2922`, and a GraphQL refresh then found no unresolved thread.
 - 2026-11-17 18:41 UTC - Round 2: da2ce7 review 5944394364 (APPROVED, submitted 18:35:43Z) with F5 and F6. Committed the F5 fix. Added the F5 and F6 rows to this record, then replied to the two threads (18:41:21Z and 18:41:24Z). The validator then reported 7 rows and 1 failure: the F6 resolution reference names the commit of this record, which did not exist yet. The two threads were resolved at about 18:41:43Z in the same command, before that failure was read; a GraphQL refresh found no unresolved thread. Nothing of round 2 is pushed when this entry is written.
+- 2026-11-17 18:52 UTC - The round 2 commits were pushed with `git-bot-push`, ending at `docs(pr-reviews): [#2360] audit review round 2 of PR 2922`. Round 3: Copilot review 5944579824 (COMMENTED, submitted 18:49:22Z) with F7 and F8, and da2ce7 review 5944605224 (APPROVED, submitted 18:51:03Z) with no finding. Committed the fix for F7 and F8 as one commit. Added the two rows to this record, then replied to the two threads (18:52:22Z and 18:52:25Z). The validator reported 9 rows, 3 log entries, 0 failures. Then resolved the two threads at about 18:52:54Z; a GraphQL refresh found no unresolved thread. Nothing of round 3 is pushed when this entry is written.
 
 <!-- Copied verbatim into each audit record. -->
 
