@@ -316,7 +316,7 @@ mod tests {
 
         use crate::test_helpers::tests::{EphemeralTrackerConfiguration, ephemeral_tracker_configuration};
 
-        fn public_tracker() -> EphemeralTrackerConfiguration {
+        fn public_tracker_configuration() -> EphemeralTrackerConfiguration {
             ephemeral_tracker_configuration(configuration::ephemeral_public())
         }
 
@@ -372,7 +372,7 @@ mod tests {
 
                 use crate::announce_handler::PeersWanted;
                 use crate::announce_handler::tests::the_announce_handler::{
-                    peer_ip, public_tracker, sample_peer_1, sample_peer_2, sample_peer_3,
+                    peer_ip, public_tracker_configuration, sample_peer_1, sample_peer_2, sample_peer_3,
                 };
                 use crate::test_helpers::tests::{initialize_handlers, sample_info_hash, sample_peer};
 
@@ -540,7 +540,7 @@ mod tests {
 
                 #[tokio::test]
                 async fn it_should_return_the_announce_data_with_an_empty_peer_list_when_it_is_the_first_announced_peer() {
-                    let ephemeral = public_tracker();
+                    let ephemeral = public_tracker_configuration();
                     let (announce_handler, _scrape_handler) = initialize_handlers(&ephemeral.config).await;
 
                     let mut peer = sample_peer();
@@ -561,7 +561,7 @@ mod tests {
 
                 #[tokio::test]
                 async fn it_should_return_the_announce_data_with_the_previously_announced_peers() {
-                    let ephemeral = public_tracker();
+                    let ephemeral = public_tracker_configuration();
                     let (announce_handler, _scrape_handler) = initialize_handlers(&ephemeral.config).await;
 
                     let mut previously_announced_peer = sample_peer_1();
@@ -593,7 +593,7 @@ mod tests {
 
                 #[tokio::test]
                 async fn it_should_allow_peers_to_get_only_a_subset_of_the_peers_in_the_swarm() {
-                    let ephemeral = public_tracker();
+                    let ephemeral = public_tracker_configuration();
                     let (announce_handler, _scrape_handler) = initialize_handlers(&ephemeral.config).await;
 
                     let mut previously_announced_peer_1 = sample_peer_1();
@@ -637,14 +637,14 @@ mod tests {
                 mod it_should_update_the_swarm_stats_for_the_torrent {
 
                     use crate::announce_handler::PeersWanted;
-                    use crate::announce_handler::tests::the_announce_handler::{peer_ip, public_tracker};
+                    use crate::announce_handler::tests::the_announce_handler::{peer_ip, public_tracker_configuration};
                     use crate::test_helpers::tests::{
                         completed_peer, initialize_handlers, leecher, sample_info_hash, seeder, started_peer,
                     };
 
                     #[tokio::test]
                     async fn when_the_peer_is_a_seeder() {
-                        let ephemeral = public_tracker();
+                        let ephemeral = public_tracker_configuration();
                         let (announce_handler, _scrape_handler) = initialize_handlers(&ephemeral.config).await;
 
                         let mut peer = seeder();
@@ -665,7 +665,7 @@ mod tests {
 
                     #[tokio::test]
                     async fn when_the_peer_is_a_leecher() {
-                        let ephemeral = public_tracker();
+                        let ephemeral = public_tracker_configuration();
                         let (announce_handler, _scrape_handler) = initialize_handlers(&ephemeral.config).await;
 
                         let mut peer = leecher();
@@ -686,7 +686,7 @@ mod tests {
 
                     #[tokio::test]
                     async fn when_a_previously_announced_started_peer_has_completed_downloading() {
-                        let ephemeral = public_tracker();
+                        let ephemeral = public_tracker_configuration();
                         let (announce_handler, _scrape_handler) = initialize_handlers(&ephemeral.config).await;
 
                         // We have to announce with "started" event because peer does not count if peer was not previously known

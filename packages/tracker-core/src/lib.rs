@@ -155,11 +155,11 @@ mod tests {
 
         use crate::test_helpers::tests::{EphemeralTrackerConfiguration, ephemeral_tracker_configuration};
 
-        fn public_tracker() -> EphemeralTrackerConfiguration {
+        fn public_tracker_configuration() -> EphemeralTrackerConfiguration {
             ephemeral_tracker_configuration(configuration::ephemeral_public())
         }
 
-        fn listed_tracker() -> EphemeralTrackerConfiguration {
+        fn listed_tracker_configuration() -> EphemeralTrackerConfiguration {
             ephemeral_tracker_configuration(configuration::ephemeral_listed())
         }
 
@@ -175,11 +175,11 @@ mod tests {
 
                 use crate::announce_handler::PeersWanted;
                 use crate::test_helpers::tests::{complete_peer, incomplete_peer, initialize_handlers};
-                use crate::tests::the_tracker::public_tracker;
+                use crate::tests::the_tracker::public_tracker_configuration;
 
                 #[tokio::test]
                 async fn it_should_return_the_swarm_metadata_for_the_requested_file_if_the_tracker_has_that_torrent() {
-                    let ephemeral = public_tracker();
+                    let ephemeral = public_tracker_configuration();
                     let (announce_handler, scrape_handler) = initialize_handlers(&ephemeral.config).await;
 
                     let info_hash = "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap(); // DevSkim: ignore DS173237
@@ -238,11 +238,11 @@ mod tests {
                 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 
                 use crate::test_helpers::tests::initialize_handlers;
-                use crate::tests::the_tracker::listed_tracker;
+                use crate::tests::the_tracker::listed_tracker_configuration;
 
                 #[tokio::test]
                 async fn it_should_return_the_zeroed_swarm_metadata_for_the_requested_file_if_it_is_not_whitelisted() {
-                    let ephemeral = listed_tracker();
+                    let ephemeral = listed_tracker_configuration();
                     let (_announce_handler, scrape_handler) = initialize_handlers(&ephemeral.config).await;
 
                     let non_whitelisted_info_hash = "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0".parse::<InfoHash>().unwrap(); // DevSkim: ignore DS173237

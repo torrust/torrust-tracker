@@ -45,11 +45,11 @@ mod tests {
         use crate::databases::setup::initialize_database;
         use crate::test_helpers::tests::{EphemeralTrackerConfiguration, ephemeral_tracker_configuration};
 
-        fn private_tracker() -> EphemeralTrackerConfiguration {
+        fn private_tracker_configuration() -> EphemeralTrackerConfiguration {
             ephemeral_tracker_configuration(configuration::ephemeral_private())
         }
 
-        fn private_tracker_with_keys_expiration_check_disabled() -> EphemeralTrackerConfiguration {
+        fn private_tracker_configuration_with_keys_expiration_check_disabled() -> EphemeralTrackerConfiguration {
             let mut config = configuration::ephemeral_private();
 
             config.core.private_mode = Some(PrivateMode {
@@ -73,7 +73,7 @@ mod tests {
 
         #[tokio::test]
         async fn it_should_remove_an_authentication_key() {
-            let ephemeral = private_tracker();
+            let ephemeral = private_tracker_configuration();
             let (keys_manager, authentication_service) = instantiate_keys_manager_and_authentication(&ephemeral.config).await;
 
             let expiring_key = keys_manager
@@ -91,7 +91,7 @@ mod tests {
 
         #[tokio::test]
         async fn it_should_load_authentication_keys_from_the_database() {
-            let ephemeral = private_tracker();
+            let ephemeral = private_tracker_configuration();
             let (keys_manager, authentication_service) = instantiate_keys_manager_and_authentication(&ephemeral.config).await;
 
             let expiring_key = keys_manager
@@ -117,13 +117,13 @@ mod tests {
 
                 use crate::authentication::Key;
                 use crate::authentication::tests::the_tracker_configured_as_private::{
-                    instantiate_keys_manager_and_authentication, private_tracker,
-                    private_tracker_with_keys_expiration_check_disabled,
+                    instantiate_keys_manager_and_authentication, private_tracker_configuration,
+                    private_tracker_configuration_with_keys_expiration_check_disabled,
                 };
 
                 #[tokio::test]
                 async fn it_should_authenticate_a_peer_with_the_key() {
-                    let ephemeral = private_tracker();
+                    let ephemeral = private_tracker_configuration();
                     let (keys_manager, authentication_service) =
                         instantiate_keys_manager_and_authentication(&ephemeral.config).await;
 
@@ -139,7 +139,7 @@ mod tests {
 
                 #[tokio::test]
                 async fn it_should_accept_an_expired_key_when_checking_expiration_is_disabled_in_configuration() {
-                    let ephemeral = private_tracker_with_keys_expiration_check_disabled();
+                    let ephemeral = private_tracker_configuration_with_keys_expiration_check_disabled();
                     let (keys_manager, authentication_service) =
                         instantiate_keys_manager_and_authentication(&ephemeral.config).await;
 
@@ -159,13 +159,13 @@ mod tests {
                 use crate::authentication::Key;
                 use crate::authentication::handler::AddKeyRequest;
                 use crate::authentication::tests::the_tracker_configured_as_private::{
-                    instantiate_keys_manager_and_authentication, private_tracker,
-                    private_tracker_with_keys_expiration_check_disabled,
+                    instantiate_keys_manager_and_authentication, private_tracker_configuration,
+                    private_tracker_configuration_with_keys_expiration_check_disabled,
                 };
 
                 #[tokio::test]
                 async fn it_should_authenticate_a_peer_with_the_key() {
-                    let ephemeral = private_tracker();
+                    let ephemeral = private_tracker_configuration();
                     let (keys_manager, authentication_service) =
                         instantiate_keys_manager_and_authentication(&ephemeral.config).await;
 
@@ -184,7 +184,7 @@ mod tests {
 
                 #[tokio::test]
                 async fn it_should_accept_an_expired_key_when_checking_expiration_is_disabled_in_configuration() {
-                    let ephemeral = private_tracker_with_keys_expiration_check_disabled();
+                    let ephemeral = private_tracker_configuration_with_keys_expiration_check_disabled();
                     let (keys_manager, authentication_service) =
                         instantiate_keys_manager_and_authentication(&ephemeral.config).await;
 
@@ -205,12 +205,12 @@ mod tests {
 
             mod randomly_generated_keys {
                 use crate::authentication::tests::the_tracker_configured_as_private::{
-                    instantiate_keys_manager_and_authentication, private_tracker,
+                    instantiate_keys_manager_and_authentication, private_tracker_configuration,
                 };
 
                 #[tokio::test]
                 async fn it_should_authenticate_a_peer_with_the_key() {
-                    let ephemeral = private_tracker();
+                    let ephemeral = private_tracker_configuration();
                     let (keys_manager, authentication_service) =
                         instantiate_keys_manager_and_authentication(&ephemeral.config).await;
 
@@ -226,12 +226,12 @@ mod tests {
                 use crate::authentication::Key;
                 use crate::authentication::handler::AddKeyRequest;
                 use crate::authentication::tests::the_tracker_configured_as_private::{
-                    instantiate_keys_manager_and_authentication, private_tracker,
+                    instantiate_keys_manager_and_authentication, private_tracker_configuration,
                 };
 
                 #[tokio::test]
                 async fn it_should_authenticate_a_peer_with_the_key() {
-                    let ephemeral = private_tracker();
+                    let ephemeral = private_tracker_configuration();
                     let (keys_manager, authentication_service) =
                         instantiate_keys_manager_and_authentication(&ephemeral.config).await;
 

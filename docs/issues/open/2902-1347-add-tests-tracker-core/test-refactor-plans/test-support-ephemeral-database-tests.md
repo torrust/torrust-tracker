@@ -60,8 +60,8 @@ All on 2026-11-17:
   built by `ephemeral_configuration()` and `ephemeral_configuration_for_listed_tracker()`.
 - `test_helpers::tests::EphemeralTrackerConfiguration { pub config: Configuration, .. }`, built by
   `ephemeral_tracker_configuration(config)`, which moves the database of a shared configuration
-  into the directory. Test modules wrap it in a named fixture (`public_tracker()`,
-  `listed_tracker()`, `private_tracker()`, `private_tracker_with_keys_expiration_check_disabled()`).
+  into the directory. Test modules wrap it in a named fixture (`public_tracker_configuration()`,
+  `listed_tracker_configuration()`, `private_tracker_configuration()`, `private_tracker_configuration_with_keys_expiration_check_disabled()`).
 - `tests/common/fixtures.rs` has its own `EphemeralConfiguration` (the integration binary cannot
   see `#[cfg(test)]` items of the library).
 - `schema_migrator.rs`'s `new_pool()` returns the `TempDir` with the pool and the path.

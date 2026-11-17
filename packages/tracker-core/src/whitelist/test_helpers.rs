@@ -30,7 +30,7 @@ pub mod tests {
     }
 
     #[must_use]
-    pub fn listed_tracker() -> EphemeralTrackerConfiguration {
+    pub fn listed_tracker_configuration() -> EphemeralTrackerConfiguration {
         ephemeral_tracker_configuration(configuration::ephemeral_listed())
     }
 }
