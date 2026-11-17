@@ -50,6 +50,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F5 | review-finding:pr-2919-f5 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-2919-f6 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F7 | review-finding:pr-2919-f7 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-2919-f8 | Copilot | Minor | correctness | ORIGINAL | FIXED | NON_RESOLVABLE |
 
 ## Finding Details
 
@@ -144,6 +145,19 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2919#discussion_r4603731569
 
+### F8 - Decision 1 calls every production location wrong
+
+- PR number: 2919
+- Source review ID: 5943970292
+- Reviewer finding ID: F6 (reassigned: audit F6 is an earlier finding)
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2919#pullrequestreview-5943970292
+- Concern: Decision 1 of the EPIC said the recorded value is wrong at every production site, but the audit inventory classifies the five `#[track_caller]` `From` conversions into `LocatedError` as correct for their call chain (class C), so the rationale contradicts its evidence. The finding is in the review body (a "previously missed issue"), with no inline thread.
+- Solution: Decision 1 now says that each of the 38 production `Location::caller()` sites records a fixed library line, and that the five class C conversions record a correct location but are removed as well, because that location is still an implementation path.
+- Current-tree verification: `sed -n 70,76p docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md` shows the new wording; `inventory.md` names the five class C conversions in its `LocatedError` conversions table.
+- Resolution reference: `docs(issues): [#2912] separate the wrong direct captures from the correct LocatedError conversions in decision 1`
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
 ## Processing Log
 
 - 2026-11-17 17:35 UTC - Replied to F1 to F3 (replies created from 17:35:15Z to 17:35:20Z) and resolved their threads after pushing the round 1 fixes, before this record existed: a late start of the audit. The replies cite the branch commit id `280121c6a`, which is the commit `docs(issues): [#2912] address review of PR 2919: approval checkpoints, audit status and option wording`. The three independent fixes share that one commit instead of one commit each (step 6). The F1 reply says the #384 spec now ticks both checkpoints; only the approval checkpoint changed there, because its issue checkpoint was already ticked.
@@ -151,6 +165,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-17 17:48 UTC - Pushed the F5 fix and this record (head commit `docs(pr-reviews): [#2912] record the review audit of PR 2919`), then replied to F4 and F5 (replies created at 17:48:01Z and 17:48:04Z) and filled in their reply URLs. `validate-audit-record.py --pr-number 2919 --base torrust/develop`, run from a scratchpad copy whose `gh` calls go through `gh-bot`, reported 5 rows, 0 failures on this worktree record.
 - 2026-11-17 18:02 UTC - Round 3: normalized da2ce7 review 5943851942 (APPROVED) with findings F6 and F7. Correction (F7) of the 2026-11-17 17:48 entry: its words naming the head by branch commit id were replaced in place by the commit subject `docs(pr-reviews): [#2912] record the review audit of PR 2919`; the rest of that entry is unchanged. F6 corrected the F2 verification line.
 - 2026-11-17 18:06 UTC - Pushed the commit `docs(pr-reviews): [#2912] correct the F2 verification and drop a branch commit id from the review audit of PR 2919`, then replied to F6 and F7 (replies created at 18:06:21Z and 18:06:23Z) and filled in their reply URLs. `validate-audit-record.py --pr-number 2919 --base torrust/develop` (scratchpad copy, `gh` calls through `gh-bot`) on this worktree record reported 7 rows, 0 failures.
+- 2026-11-17 18:11 UTC - Round 4: normalized Copilot review 5943970292, whose body reports one previously missed issue (Copilot's own ID F6) as audit finding F8, and committed its fix. It has no inline thread, so its row is `NON_RESOLVABLE` and its reply goes to the PR conversation.
 
 ## Completion Rules
 
