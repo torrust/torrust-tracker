@@ -1,79 +1,80 @@
 ---
 schema-version: 1
 doc-type: issue
-issue-type: bug
-status: draft
+issue-type: task
+status: planned
 priority: p2
-epic: null
-github-issue: null
-spec-path: docs/issues/drafts/error-locations-si-2-primitives/ISSUE.md
-branch: "{issue-number}-error-locations-si-2-primitives"
+epic: 2912
+github-issue: 2918
+spec-path: docs/issues/open/2918-2912-si-6-drop-located-error-and-enforce-the-rule/ISSUE.md
+branch: "2918-drop-located-error-and-enforce-the-rule"
 related-pr: null
-last-updated-utc: "2026-11-15 21:07"
+last-updated-utc: "2026-11-17 17:01"
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
     - .claude/skills/fix-bug/SKILL.md
     - .claude/skills/create-issue/SKILL.md
-    - docs/issues/drafts/remove-source-locations-from-errors/EPIC.md
+    - docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md
     - docs/issues/open/2804-location-caller-track-caller-audit/inventory.md
-    - packages/primitives/src/peer.rs
+    - packages/tracker-client/src/udp/mod.rs
+    - contrib/dev-tools/checks
 ---
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Remove source locations from the errors of `torrust-tracker-primitives`
+# Issue #2918 - Drop `torrust-located-error` from the workspace and enforce the rule
 
-Parent EPIC: [Remove source locations from errors](../remove-source-locations-from-errors/EPIC.md) (draft, GitHub issue not
-created yet, so `epic` is `null` and this folder carries no EPIC number). Sub-issue SI-2 of the EPIC.
+Parent EPIC: [Remove source locations from errors](../2912-remove-source-locations-from-errors/EPIC.md) (#2912). Sub-issue SI-6 of the EPIC.
 
 ## Goal
 
-Remove the `location` field and its text from `ParsePeerRoleError` and `peer::IdConversionError` in
-`packages/primitives`, so that their messages state the invalid input and nothing about source files.
+Remove the last uses of `torrust-located-error` from the workspace and add a repository check that
+fails when non-test code records a source location in an error, so the rule of the ADR stays true.
 
 ## Background
 
-This is the defect that started the audit: finding F3 of the primitives test work under EPIC #1347.
-`"x".parse::<PeerRole>()` returns an error whose text ends in `packages/primitives/src/peer.rs:73:27`,
-the same line for every caller (`docs/issues/open/2804-location-caller-track-caller-audit/manual-verification-evidence.md`, section D1).
+After SI-3 to SI-5 the only remaining user of the crate is expected to be
+`packages/tracker-client`, which imports the type alias `torrust_located_error::DynError`
+(`src/udp/mod.rs:5`) and lists the crate in its `Cargo.toml`.
 
-Sites (inventory rows P1 and P2):
+The audit looked for a lint (`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`, T3): neither rustc nor clippy 1.99.1 has one
+for `Location::caller()` in a function that is not `#[track_caller]`. With the ADR the rule is
+simpler than the one the audit considered: non-test code does not use `Location::caller()`,
+`#[track_caller]` or `torrust_located_error` at all. A text-based check can enforce that.
 
-| Error variant | Format (line) | Built at | Shape |
-| --- | --- | --- | --- |
-| `ParsePeerRoleError::InvalidPeerRole` | `"invalid param {raw_param} in {location}"` (`peer.rs:83`) | `peer.rs:73`, `FromStr for PeerRole` | trait impl reached through `str::parse` |
-| `IdConversionError::NotEnoughBytes` | `"not enough bytes for peer id: {message} {location}"` (`peer.rs:331`) | `peer.rs:391`, `TryFrom<Vec<u8>> for Id` | trait impl reached through `try_into` |
-| `IdConversionError::TooManyBytes` | `"too many bytes for peer id: {message} {location}"` (`peer.rs:336`) | `peer.rs:397`, same impl | same |
-
-The audit found no production path that prints these two errors (`inventory.md`, T2 table, last
-row): they are not used outside `peer.rs`. The exposure is to library consumers of the published
-crate. The crate was published at 3.0.0 and the publish plan already schedules 4.0.0
-(`docs/issues/open/2583-1669-first-publish-of-workspace-crates/ISSUE.md`), so removing a public field
-adds no release step if it lands before that publish.
+Two standalone crates in other repositories carry the same pattern (`inventory.md`, standalone
+crates): `torrust-info-hash` 0.2.0 builds `ConversionError` with `Location::caller()` in a `TryFrom`
+impl (`info_hash.rs:273`, `:279`), and `torrust-located-error` 3.0.0 is the wrapper itself.
 
 ## Scope
 
 ### In Scope
 
-- Remove `location` from the three variants and from their `#[error(..)]` formats.
-- Remove the three `Location::caller()` calls and the unused `std::panic::Location` import.
-- Keep or improve the context in the message (`raw_param`, and the byte counts in `message`).
-- Update the tests of `peer.rs` that build or match these variants.
-- Record the breaking change for the 4.0.0 release notes of the crate, where the publish plan tracks them.
+- Replace `torrust_located_error::DynError` in `packages/tracker-client` with a local alias or the
+  spelled-out type, and remove the dependency from its `Cargo.toml`.
+- Confirm no workspace `Cargo.toml` depends on `torrust-located-error` and that `Cargo.lock` no
+  longer lists it (unless a registry dependency still pulls it in; record which).
+- A repository check under `contrib/dev-tools/checks/` (the place of the existing checks) that fails
+  when `Location::caller()`, `#[track_caller]` or `torrust_located_error` appears in a `.rs` file
+  outside `#[cfg(test)]` modules, `tests/` directories and an explicit allow-list with a reason per
+  entry. Wire it where the other checks run (pre-commit and CI).
+- Draft the text of the two upstream issues (remove the location from
+  `torrust_info_hash::ConversionError`; decide the future of `torrust-located-error`) and hand them
+  to the maintainer, who opens them in those repositories.
 
 ### Out of Scope
 
-- Other packages (SI-3 to SI-5).
-- Any other change to `PeerRole` or `peer::Id` parsing behavior.
-- Publishing the crate (#2583).
+- Changing `torrust-info-hash` or `torrust-located-error` (other repositories).
+- A custom clippy or rustc lint.
+- Extracting `tracker-client` (#2594).
 
 ## Architectural Decisions
 
 - Related ADRs: the ADR created by sub-issue SI-1 of the parent EPIC (errors do not record source locations); `docs/adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md`
   (`#[non_exhaustive]` policy for public error enums).
-- ADRs to create: None known
+- ADRs to create: None known. If the check needs a policy for the allow-list, record it in the ADR of SI-1 as an amendment
 
 During implementation, stop and create an ADR when a decision affects project
 architecture or design patterns, selects an approach among meaningful
@@ -88,27 +89,11 @@ asynchronous I/O, network readiness, resource cleanup or reusable test fixture.
 
 ## Bug-Fix Process
 
-Removing a location that a client can read is substantively a bug fix (misleading output), so this
-issue follows `.claude/skills/fix-bug/SKILL.md`:
-
-- analysis: the call paths and audiences are in the audit inventory
-  (`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`, T2 table); re-check them against the tree before the first change;
-- real-artifact reproduction: a scratch program or `cargo test` snippet that prints `"x".parse::<PeerRole>().unwrap_err()` and `peer::Id::try_from(vec![0; 19]).unwrap_err()` before the change, like section D1 of the audit evidence;
-- regression-test boundary: see Regression Test Strategy;
-- red regression-test evidence, production fix, green test evidence, and the same reproduction run
-  again after the last production change, all recorded in `manual-verification-evidence.md`.
+Not applicable: this sub-issue removes a dependency and adds a check; the behavior fixes are SI-2 to SI-5.
 
 ## Regression Test Strategy
 
-- **Smallest boundary**: a unit test at the error's constructor or `FromStr`/`TryFrom` seam that
-  asserts the rendered `Display` holds no source path and still names what failed. It needs no
-  server. Write it first and record its red output.
-- **Trait-dispatch case**: where the error is built in a `FromStr` or `TryFrom` impl, call through
-  `str::parse::<T>()` or `try_into()`, the call shape real callers use.
-- **Portable path check**: a helper forbids these substrings: `.rs:`, `packages/`, `packages\`,
-  `src/`, `src\`, `.cargo/registry` and `rustlib/src`, so workspace paths, registry checkouts, CI
-  checkout paths and Windows paths are all caught.
-- **No server boundary**: no production path prints these errors, so the unit tests are the whole regression suite of this sub-issue.
+Not applicable: this sub-issue removes a dependency and adds a check; the behavior fixes are SI-2 to SI-5.
 
 ## Implementation Plan
 
@@ -116,11 +101,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | TODO | Reproduce and record | Current text of the three errors recorded in `manual-verification-evidence.md` (toolchain named). |
-| T2 | TODO | Red tests | Unit tests through `str::parse::<PeerRole>()` and `try_into()`/`Id::try_from` asserting no source path and the presence of the input; red output recorded. |
-| T3 | TODO | Remove the field, the format text and the captures | The three variants have no `location`; `grep -n 'Location' packages/primitives/src` finds nothing outside tests. |
-| T4 | TODO | Green and recheck | Green test output, then the T1 reproduction run again. |
-| T5 | TODO | Record the breaking change | Entry where the 4.0.0 changes of the crate are tracked (publish plan checklist row or the crate changelog, whichever the plan uses at that time). |
+| T1 | TODO | Remove the last uses | `tracker-client` without the dependency; `grep -rn 'located' --include=Cargo.toml .` finds no workspace manifest; `Cargo.lock` state recorded. |
+| T2 | TODO | Design the check | Short design note in this spec: a Rust crate like the existing checks in `contrib/dev-tools/checks/`, how test code is recognized, the allow-list format, false-positive cases tried. |
+| T3 | TODO | Implement the check with tests | The check, its tests (a fixture that must fail and one that must pass) and its wiring into pre-commit and CI. |
+| T4 | TODO | Prove the check fails | Evidence of the check failing on a temporary `Location::caller()` added to production code, then passing after its removal. |
+| T5 | TODO | Draft the upstream issues | Two issue texts in this folder, handed to the maintainer; links added here once opened. |
 
 ## Commit Points
 
@@ -130,9 +115,9 @@ refactor, or evidence increment; do not group unrelated changes merely to reduce
 
 | Task | Coherent change set | Commit policy |
 | --- | --- | --- |
-| T2 | The red regression tests | Commit after focused validation and required review. |
-| T3 | The production change with the tests now green | Commit after focused validation and required review. |
-| T1, T4, T5 | Evidence and release-note entry | Commit after focused validation and required review. |
+| T1 | The dependency removal | Commit after focused validation and required review. |
+| T3 | The check, its tests and its wiring | Commit after focused validation and required review. |
+| T2, T4, T5 | Design note, evidence and the upstream issue drafts | Commit after focused validation and required review. |
 
 Record a justified no-change decision in the task's evidence without creating an empty commit. For
 test-producing work, use the `write-unit-test` skill and complete an explicit design review after
@@ -152,7 +137,7 @@ with the narrow affected scope, and sign every commit with GPG.
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/drafts/error-locations-si-2-primitives/ISSUE.md`
+- [x] Folder-style spec drafted in `docs/issues/open/2918-2912-si-6-drop-located-error-and-enforce-the-rule/ISSUE.md`
 - [ ] Spec reviewed and approved by user/maintainer
 - [ ] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
@@ -176,10 +161,10 @@ the model that produced them.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `ParsePeerRoleError` and `IdConversionError` have no `location` field.
-- [ ] AC2: `Display` of the three variants holds no source path and names the invalid input, proven by tests that go through `str::parse` and `try_into`.
-- [ ] AC3: `packages/primitives/src` has no `Location::caller()` outside test code.
-- [ ] AC4: The breaking change is recorded for the 4.0.0 release of the crate.
+- [ ] AC1: No workspace package depends on `torrust-located-error`.
+- [ ] AC2: The check fails on `Location::caller()`, `#[track_caller]` or `torrust_located_error` in non-test code and passes on the tree, proven by its tests and by the T4 evidence.
+- [ ] AC3: The check runs in pre-commit and in CI.
+- [ ] AC4: The two upstream issue drafts exist and the maintainer has them.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -194,6 +179,7 @@ Define verification before implementation starts and execute it before closing t
 
 - `linter all`
 - Relevant tests for changed components
+- The new check on the whole tree
 - Pre-push checks (when applicable)
 
 ### Manual Verification Scenarios
@@ -202,8 +188,8 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | Parse an invalid peer role as a library consumer | In a scratch crate that depends on the workspace `torrust-tracker-primitives` by path, print `"x".parse::<PeerRole>().unwrap_err()` | The text names `x` and holds no file path or line | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | Convert a short peer id | Same crate: print `peer::Id::try_from(vec![0; 19]).unwrap_err()` | The text states the byte count and holds no file path or line | TODO | `manual-verification-evidence.md` section V2 |
+| M1 | A contributor reintroduces a location | Add `location: Location::caller()` to a production error on a scratch branch and commit | The pre-commit check fails and names the file and the rule | TODO | `manual-verification-evidence.md` section V1 |
+| M2 | Test helpers stay allowed | Run the check on the tree, which has `#[track_caller]` assertion helpers in test code | The check passes | TODO | `manual-verification-evidence.md` section V2 |
 
 Notes:
 
@@ -250,10 +236,12 @@ None planned for this issue.
 
 ## Risks and Trade-offs
 
-- **A consumer matches on the field.** Mitigation: the change ships in the already planned major
-  release and is listed in its notes.
-- **The change lands after 4.0.0 is published.** Mitigation: the EPIC orders this sub-issue before
-  the first publish; if that fails, the sub-issue needs a new major and the EPIC must say so.
+- **False positives in test detection.** A text check cannot parse Rust. Mitigation: the allow-list
+  with reasons, and tests for the detection.
+- **A registry crate still pulls `torrust-located-error` in.** Mitigation: T1 records it; removal
+  then waits for that crate.
+- **Runs before SI-3 to SI-5 are merged.** Mitigation: the EPIC orders it last; the check's
+  allow-list may start with the not-yet-migrated files and must end empty of them.
 
 ## Implementation Completion Review
 
@@ -275,7 +263,7 @@ findings, and reusable lessons.
 
 ## References
 
-- Parent EPIC draft: `docs/issues/drafts/remove-source-locations-from-errors/EPIC.md`
+- Parent EPIC: #2912, `docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md`
 - Audit: `docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md`, `inventory.md`, `options.md`, `experiments.md` (issue #2804)
 - Related issues: #2804 (audit), #384 (external report), #2583 (first publish of the workspace crates)
-- Reporting work: `docs/issues/closed/2824-1347-add-tests-primitives/` (EPIC #1347)
+- Related: #2594 (extraction of `torrust-tracker-client`)

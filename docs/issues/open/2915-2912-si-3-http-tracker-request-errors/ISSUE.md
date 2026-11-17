@@ -2,104 +2,103 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: draft
+status: planned
 priority: p1
-epic: null
-github-issue: null
-spec-path: docs/issues/drafts/error-locations-si-4-tracker-core/ISSUE.md
-branch: "{issue-number}-error-locations-si-4-tracker-core"
+epic: 2912
+github-issue: 2915
+spec-path: docs/issues/open/2915-2912-si-3-http-tracker-request-errors/ISSUE.md
+branch: "2915-http-tracker-request-errors"
 related-pr: null
-last-updated-utc: "2026-11-11 17:39"
+last-updated-utc: "2026-11-17 17:01"
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
     - .claude/skills/fix-bug/SKILL.md
     - .claude/skills/create-issue/SKILL.md
-    - docs/issues/drafts/remove-source-locations-from-errors/EPIC.md
+    - docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md
     - docs/issues/open/2804-location-caller-track-caller-audit/inventory.md
-    - packages/tracker-core/src/error.rs
-    - packages/tracker-core/src/databases/error.rs
-    - packages/tracker-core/src/authentication/key/mod.rs
-    - packages/tracker-core/src/authentication/handler.rs
-    - packages/http-core/src/services/announce.rs
-    - packages/udp-server/src/handlers/error.rs
+    - packages/http-protocol/src/v1/requests/announce.rs
+    - packages/http-protocol/src/v1/requests/scrape.rs
+    - packages/http-protocol/src/v1/query.rs
+    - packages/http-protocol/src/v1/auth.rs
+    - packages/http-protocol/src/v1/services/peer_ip_resolver.rs
+    - packages/axum-http-server/src/v1/extractors/announce_request.rs
+    - packages/axum-http-server/src/v1/extractors/scrape_request.rs
+    - packages/axum-http-server/src/v1/extractors/authentication_key.rs
 ---
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Remove source locations from the errors of `torrust-tracker-core`
+# Issue #2915 - Remove source locations from the HTTP tracker request errors
 
-Parent EPIC: [Remove source locations from errors](../remove-source-locations-from-errors/EPIC.md) (draft, GitHub issue not
-created yet, so `epic` is `null` and this folder carries no EPIC number). Sub-issue SI-4 of the EPIC.
+Parent EPIC: [Remove source locations from errors](../2912-remove-source-locations-from-errors/EPIC.md) (#2912). Sub-issue SI-3 of the EPIC.
 
 ## Goal
 
 Remove the `location` fields, the `LocatedError` sources and their text from the errors of
-`packages/tracker-core`, and update the packages that build or format them, so that no UDP error
-message, REST API error text, HTTP failure reason or event payload produced from a tracker-core
-error holds a source path.
+`packages/http-protocol`, and from the code in `packages/axum-http-server` that builds them, so that
+no HTTP tracker `failure reason` produced by request parsing holds a source path.
 
 ## Background
 
-The tracker-core errors reach three kinds of client (`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`, T2 table).
+This is the largest client-visible exposure found by the audit. The bencoded `failure reason` of an
+HTTP tracker response embeds the error text, and a BitTorrent client shows it to its user.
 
-Variants that print `{location}` (7):
+Variants that print `{location}` (10; `options.md` fact 1 counts 11, including
+`ParseAnnounceQueryError::NumberOfBytesOverflow`, which issue #2850 removed):
 
-| File | Variants | Built at (inventory row) |
-| --- | --- | --- |
-| `tracker-core/src/error.rs:104` | `WhitelistError::TorrentNotWhitelisted` | `whitelist/authorization.rs:61` (P12) |
-| `tracker-core/src/databases/error.rs:47`, `:56`, `:66` | `databases::error::Error::{InsertFailed, UpdateFailed, DeleteFailed}` | 12 driver sites in `databases/driver/{sqlite,mysql,postgres}/{whitelist_store,auth_key_store}.rs` (P15); no production site was found for `UpdateFailed` |
-| `tracker-core/src/authentication/key/mod.rs:180`, `:187`, `:191` | `authentication::key::Error::{UnableToReadKey, KeyExpired, MissingAuthKey}` | `authentication/service.rs:98` (P13), `key/mod.rs:158` (P14), and `http-core/src/services/announce.rs:308` (P11) |
+| File | Variants |
+| --- | --- |
+| `http-protocol/src/v1/query.rs:103` | `ParseQueryError::InvalidParam` |
+| `http-protocol/src/v1/requests/announce.rs:219`, `:221`, `:227` | `ParseAnnounceQueryError::{MissingParams, MissingParam, InvalidParam}` |
+| `http-protocol/src/v1/requests/scrape.rs:41`, `:43` | `ParseScrapeQueryError::{MissingParams, MissingParam}` |
+| `http-protocol/src/v1/services/peer_ip_resolver.rs:117-120`, `:125` | `PeerIpResolutionError::{MissingRightMostXForwardedForIp, MissingClientIp}` (three-line attribute at `:117`) |
+| `http-protocol/src/v1/auth.rs:13`, `:16` | `auth::Error::{InvalidKeyFormat, CannotExtractKeyParam}` |
 
-`LocatedError` uses:
+Variants whose source is a `LocatedError`, which prints its own location (3):
+`ParseAnnounceQueryError::InvalidInfoHashParam` and `InvalidPeerIdParam` (`announce.rs:543`, `:560`)
+and `ParseScrapeQueryError::InvalidInfoHashParam` (`scrape.rs:84`), all built with
+`Located(err).into()`. For the two info-hash variants the inner error,
+`torrust_info_hash::ConversionError` (registry crate, 0.2.0), prints a second location of its own.
 
-- `databases/error.rs`: the `#[track_caller]` conversions `From<(SqlxError, Driver)>` (`:112`) and
-  `From<(MigrateError, Driver)>` (`:139`). The location there is the driver's `map_err` line, which is
-  correct for the chain and still a library path in a client reply.
-- `error.rs:132`, `:138`: `PeerKeyError::InvalidKey` and `DatabaseError` sources, built with
-  `Located(..).into()` at `authentication/handler.rs:103`, `:108`, `:120`, `:125`, `:141`, `:150`.
-- `authentication/key/mod.rs:198`: `From<sqlx::Error>` without `#[track_caller]`.
+Construction sites (inventory rows): P3, P4, P5a, P5b, P6 and P7 in `http-protocol`; P8, P9 and
+P10 in the `axum-http-server` extractors, which build `MissingParams`, `InvalidKeyFormat` and
+`CannotExtractKeyParam`.
 
-Who reads the text:
+Text path to the client: `From<ParseQueryError>`, `From<ParseAnnounceQueryError>`,
+`From<ParseScrapeQueryError>` (`requests/announce.rs:318-329`, `scrape.rs:59`) and, in
+`responses/error.rs:54` and `:62`, `From<auth::Error>` and `From<PeerIpResolutionError>`.
 
-- **UDP clients**: a non-whitelisted announce (`udp-core/src/services/announce.rs:109`, then
-  `ErrorResponse { message: error.to_string() }` in `udp-server/src/handlers/error.rs:57-59`), and a
-  database failure when `core.tracker_policy.persistent_torrent_completed_stat` loads downloads.
-- **HTTP clients**: `"Tracker authentication error: {source}"` and
-  `"Tracker whitelist error: {source}"` (`http-core/src/services/error_mapping.rs`).
-- **REST API clients**: `failed to whitelist torrent: {e}`, `failed to add key: {e}` and the other
-  messages built from database and `PeerKeyError` text
-  (`rest-api-runtime-adapter/.../adapters/auth_key.rs:74-85` and the response modules).
-- **Event consumers**: `ErrorKind::Whitelist(String)` from `source.to_string()`
-  (`udp-server/src/event.rs:135`, `:145`).
+Six of the 10 formats print no input (`MissingParams` twice, the two `PeerIpResolutionError`
+variants and the two `auth::Error` variants; `options.md` fact 3 has the full list), so removing
+`in {location}` needs new wording there.
 
-`torrust-tracker-core` and the packages around it are unpublished (0.1.0), so the change adds no
-release step if it lands before the first publish (#2583).
+`torrust-tracker-http-protocol` and `torrust-tracker-axum-http-server` are unpublished (0.1.0, first
+publish planned in #2583), so the change adds no release step.
 
 ## Scope
 
 ### In Scope
 
-- Remove `location` from the 7 variants and their formats, and from every site that builds them,
-  including `http-core/src/services/announce.rs:308`.
-- Replace the `LocatedError` sources in `databases::error::Error` and `PeerKeyError` with plain
-  sources; remove the two `#[track_caller]` conversions' location capture and the `From<sqlx::Error>`
-  one; remove the six `Located(..).into()` calls in `authentication/handler.rs`.
-- Remove the `torrust-located-error` dependency from `packages/tracker-core/Cargo.toml`.
-- Add a `tracing` event at the driver sites where the lost line was the only way to tell which
-  query failed, if the message and the variant do not already say it.
-- Update the consumers so the workspace compiles and their tests pass: `http-core`, `udp-core`,
-  `udp-server` (`event.rs`, `handlers/error.rs` tests), `rest-api-runtime-adapter`.
-- Decide, with evidence, whether the unused `UpdateFailed` variant stays.
+- Remove `location` from the 10 variants and their formats; reword the messages that lose their
+  only context so that each names what failed.
+- Replace the three `LocatedError` sources with the plain source error (`#[source]`), and stop
+  formatting a source the workspace does not control (`torrust_info_hash::ConversionError`) into the
+  client text. The message keeps `param_name` and `param_value`.
+- Remove every `Location::caller()` and `Located(..).into()` in `packages/http-protocol/src` and in
+  the three `axum-http-server` extractors.
+- Remove the `torrust-located-error` dependency from `packages/http-protocol/Cargo.toml`.
+- Update the tests that build or match these variants (`http-protocol` `responses/error.rs` tests,
+  `axum-http-server` tests) and the contract tests that assert failure reasons.
 
 ### Out of Scope
 
-- The two `udp-server` variants `Internal` and `AuthRequired` (SI-5).
-- Errors defined in `http-protocol` (SI-3).
-- Changing database behavior, retry policy or the REST API response shape beyond the error text.
-- Whether REST and UDP replies should carry database error details at all: note it as a follow-up
-  if the review finds the remaining text too detailed.
+- `authentication::key::Error` and `WhitelistError` reasons, which are owned by `tracker-core` (SI-4).
+- The `location` parameter of `assert_bencoded_error` in `axum-http-server/tests/server/asserts.rs`:
+  it is a test helper that reports the test's own line and is allowed by the ADR.
+- A fix inside `torrust-info-hash` (its repository; listed in the EPIC's external follow-ups).
+- Changing which requests are accepted or rejected.
 
 ## Architectural Decisions
 
@@ -125,7 +124,7 @@ issue follows `.claude/skills/fix-bug/SKILL.md`:
 
 - analysis: the call paths and audiences are in the audit inventory
   (`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`, T2 table); re-check them against the tree before the first change;
-- real-artifact reproduction: run a listed tracker and send a UDP announce for a non-whitelisted info-hash; send the same over HTTP; on a private tracker announce with an expired key; and call the REST API to add a key or whitelist a torrent in a way that fails in the database (for example a duplicate); record each reply;
+- real-artifact reproduction: run the tracker with the default development configuration and send a malformed announce (for example `numwant=x`, a missing `info_hash`, a 19-byte `peer_id`, a short `info_hash`) and a scrape without `info_hash`; record each bencoded response;
 - regression-test boundary: see Regression Test Strategy;
 - red regression-test evidence, production fix, green test evidence, and the same reproduction run
   again after the last production change, all recorded in `manual-verification-evidence.md`.
@@ -140,7 +139,7 @@ issue follows `.claude/skills/fix-bug/SKILL.md`:
 - **Portable path check**: a helper forbids these substrings: `.rs:`, `packages/`, `packages\`,
   `src/`, `src\`, `.cargo/registry` and `rustlib/src`, so workspace paths, registry checkouts, CI
   checkout paths and Windows paths are all caught.
-- **Real boundary**: one test per protocol with the existing test servers (`packages/udp-server`, `packages/axum-http-server/tests`, the REST API server tests) asserting the reply holds no source path. The database case uses a driver error the tests can force (a duplicate insert).
+- **Real boundary**: one test per failure family through the HTTP test server in `packages/axum-http-server/tests`, asserting that the `failure reason` holds no source path. Include a short `info_hash` and a short `peer_id`, the cases that went through `LocatedError`.
 
 ## Implementation Plan
 
@@ -148,13 +147,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | TODO | Reproduce and record | UDP, HTTP and REST replies with a library path, in `manual-verification-evidence.md`. |
-| T2 | TODO | Red tests | Unit tests for the 7 variants and the `PeerKeyError`/database sources; protocol tests for UDP, HTTP and REST; red output recorded. |
-| T3 | TODO | Whitelist and key errors | `location` removed from `WhitelistError` and `authentication::key::Error` and their sites, including `http-core`. |
-| T4 | TODO | Database errors | `location` removed from the three variants and 12 driver sites; `LocatedError` sources replaced; `tracing` event added where needed. |
-| T5 | TODO | `PeerKeyError` sources and dependency | Plain sources; six `Located(..).into()` removed; `torrust-located-error` removed from `tracker-core/Cargo.toml`. |
-| T6 | TODO | Consumers | `udp-core`, `udp-server`, `http-core`, `rest-api-runtime-adapter` compile and their tests are updated. |
-| T7 | TODO | Green and recheck | Green output, then the T1 requests repeated against the running tracker. |
+| T1 | TODO | Reproduce and record | Responses of the malformed requests with a library path, in `manual-verification-evidence.md`. |
+| T2 | TODO | Red tests | Unit tests at the `FromStr`/`TryFrom<Query>` seams and HTTP-server tests for the failure reasons; red output recorded. |
+| T3 | TODO | Remove `location` from the 10 variants | Fields, formats and captures removed in `http-protocol` and the `axum-http-server` extractors; messages reworded where needed. |
+| T4 | TODO | Replace the three `LocatedError` sources | Plain `#[source]` errors; client text does not print the inner source; `torrust-located-error` removed from `http-protocol/Cargo.toml`. |
+| T5 | TODO | Green and recheck | Green output, then the T1 requests repeated against the running tracker. |
+| T6 | TODO | Review the reworded messages | A table of old and new `failure reason` texts in the evidence file, for the maintainer to approve the wording. |
 
 ## Commit Points
 
@@ -165,11 +163,9 @@ refactor, or evidence increment; do not group unrelated changes merely to reduce
 | Task | Coherent change set | Commit policy |
 | --- | --- | --- |
 | T2 | The red regression tests | Commit after focused validation and required review. |
-| T3 | Whitelist and key errors | Commit after focused validation and required review. |
-| T4 | Database errors | Commit after focused validation and required review. |
-| T5 | `PeerKeyError` sources and the dependency removal | Commit after focused validation and required review. |
-| T6 | Consumer updates not already needed by T3 to T5 to compile | Commit after focused validation and required review. |
-| T1, T7 | Evidence | Commit after focused validation and required review. |
+| T3 | The `location` removal with its tests green | Commit after focused validation and required review. |
+| T4 | The `LocatedError` replacement and dependency removal | Commit after focused validation and required review. |
+| T1, T5, T6 | Evidence | Commit after focused validation and required review. |
 
 Record a justified no-change decision in the task's evidence without creating an empty commit. For
 test-producing work, use the `write-unit-test` skill and complete an explicit design review after
@@ -189,7 +185,7 @@ with the narrow affected scope, and sign every commit with GPG.
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/drafts/error-locations-si-4-tracker-core/ISSUE.md`
+- [x] Folder-style spec drafted in `docs/issues/open/2915-2912-si-3-http-tracker-request-errors/ISSUE.md`
 - [ ] Spec reviewed and approved by user/maintainer
 - [ ] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
@@ -213,11 +209,11 @@ the model that produced them.
 
 ## Acceptance Criteria
 
-- [ ] AC1: No error type in `packages/tracker-core` has a `location` field or a `LocatedError` source.
-- [ ] AC2: `packages/tracker-core/src` and `http-core/src/services/announce.rs` have no `Location::caller()`, `#[track_caller]` or `Located(..).into()` outside test code.
-- [ ] AC3: A UDP reply to a non-whitelisted announce, an HTTP failure reason for whitelist and key errors, and a REST API error for a failed key or whitelist write hold no source path, each proven by a test through the protocol server.
-- [ ] AC4: The `ErrorKind::Whitelist` event payload holds no source path.
-- [ ] AC5: `packages/tracker-core/Cargo.toml` no longer depends on `torrust-located-error`.
+- [ ] AC1: No error type in `packages/http-protocol` has a `location` field or a `LocatedError` source.
+- [ ] AC2: `packages/http-protocol/src` and the `axum-http-server` extractors have no `Location::caller()` and no `Located(..).into()` outside test code.
+- [ ] AC3: No `failure reason` produced by request parsing, key extraction or peer-IP resolution holds a source path, proven by HTTP-server tests including the short `info_hash` and short `peer_id` cases.
+- [ ] AC4: Each reworded message still names what failed and the offending input where there is one.
+- [ ] AC5: `packages/http-protocol/Cargo.toml` no longer depends on `torrust-located-error`.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -240,9 +236,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | UDP whitelist rejection | Start a listed tracker; send a UDP announce for an info-hash that is not whitelisted (tracker client or a script) | The error message says the torrent is not whitelisted and holds no path | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | HTTP key and whitelist errors | Announce over HTTP for the same info-hash, and on a private tracker with an expired key | The failure reasons hold no path | TODO | `manual-verification-evidence.md` section V2 |
-| M3 | REST database failure | Add the same whitelist entry or key twice through the REST API | The error text names the failed operation and holds no path, including no driver file | TODO | `manual-verification-evidence.md` section V3 |
+| M1 | Malformed announce | Start the tracker; `curl` an announce with `numwant=x`, then one without `info_hash`, then one with a 19-byte `peer_id` | Each bencoded `failure reason` names the parameter and holds no `.rs:` path | TODO | `manual-verification-evidence.md` section V1 |
+| M2 | Short info-hash | `curl` an announce and a scrape with a 10-byte `info_hash` | The reason names `info_hash` and holds no path, including no `.cargo/registry` path | TODO | `manual-verification-evidence.md` section V2 |
+| M3 | Key and proxy errors | On a private tracker, announce with a malformed key in the URL; on a reverse-proxy tracker, announce without `X-Forwarded-For` | The reasons hold no path | TODO | `manual-verification-evidence.md` section V3 |
 
 Notes:
 
@@ -290,12 +286,11 @@ None planned for this issue.
 
 ## Risks and Trade-offs
 
-- **Largest diff of the EPIC**: 12 driver sites in three drivers, plus consumers in four packages.
-  Mitigation: commit points T3 to T6 keep each change reviewable.
-- **Lost diagnostic for database failures.** The driver line told which statement failed.
-  Mitigation: the `tracing` event in T4 and the variant's own context.
-- **Depends on SI-3 ordering only for `http-core` tests**, which assert failure reasons.
-  Mitigation: the EPIC runs SI-3 first; if run in parallel, the later one rebases.
+- **A client parses the old text.** The `failure reason` is free text in the protocol and the old
+  text changed with every refactor. Mitigation: list old and new texts in the evidence (T6).
+- **Messages become vague.** Mitigation: AC4 and the wording review.
+- **Scope overlap with SI-4.** `http-core` maps `tracker-core` errors into failure reasons.
+  Mitigation: this sub-issue owns only errors defined in `http-protocol`.
 
 ## Implementation Completion Review
 
@@ -317,6 +312,6 @@ findings, and reusable lessons.
 
 ## References
 
-- Parent EPIC draft: `docs/issues/drafts/remove-source-locations-from-errors/EPIC.md`
+- Parent EPIC: #2912, `docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md`
 - Audit: `docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md`, `inventory.md`, `options.md`, `experiments.md` (issue #2804)
 - Related issues: #2804 (audit), #384 (external report), #2583 (first publish of the workspace crates)

@@ -4,19 +4,19 @@ doc-type: issue
 issue-type: bug
 status: planned
 priority: p1
-epic: null
+epic: 2912
 github-issue: 384
 spec-path: docs/issues/open/384-strip-location-from-errors-sent-to-clients/ISSUE.md
 branch: "384-strip-location-from-errors-sent-to-clients"
 related-pr: null
-last-updated-utc: "2026-11-11 17:39"
+last-updated-utc: "2026-11-17 17:01"
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
     - .claude/skills/fix-bug/SKILL.md
     - .claude/skills/create-issue/SKILL.md
-    - docs/issues/drafts/remove-source-locations-from-errors/EPIC.md
+    - docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md
     - docs/issues/open/2804-location-caller-track-caller-audit/inventory.md
 ---
 
@@ -24,8 +24,7 @@ semantic-links:
 
 # Issue #384 - Make Option to Strip Location from Errors sent to Clients
 
-Parent EPIC: [Remove source locations from errors](../../drafts/remove-source-locations-from-errors/EPIC.md) (draft, GitHub issue not
-created yet, so `epic` is `null` and this folder carries no EPIC number). Sub-issue SI-7 (the last one) of the EPIC.
+Parent EPIC: [Remove source locations from errors](../2912-remove-source-locations-from-errors/EPIC.md) (#2912). Sub-issue SI-7 (the last one) of the EPIC.
 
 ## Goal
 
@@ -306,7 +305,7 @@ findings, and reusable lessons.
 
 ## References
 
-- Parent EPIC draft: `docs/issues/drafts/remove-source-locations-from-errors/EPIC.md`
+- Parent EPIC: #2912, `docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md`
 - Audit: `docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md`, `inventory.md`, `options.md`, `experiments.md` (issue #2804)
 - Related issues: #2804 (audit), #2583 (first publish of the workspace crates)
 - This issue on GitHub: <https://github.com/torrust/torrust-tracker/issues/384>

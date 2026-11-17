@@ -1,81 +1,86 @@
 ---
 schema-version: 1
 doc-type: issue
-issue-type: task
-status: draft
+issue-type: bug
+status: planned
 priority: p2
-epic: null
-github-issue: null
-spec-path: docs/issues/drafts/error-locations-si-6-drop-located-error-and-enforce-the-rule/ISSUE.md
-branch: "{issue-number}-error-locations-si-6-drop-located-error-and-enforce-the-rule"
+epic: 2912
+github-issue: 2917
+spec-path: docs/issues/open/2917-2912-si-5-startup-and-udp-server-errors/ISSUE.md
+branch: "2917-startup-and-udp-server-errors"
 related-pr: null
-last-updated-utc: "2026-11-11 17:39"
+last-updated-utc: "2026-11-17 17:01"
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
     - .claude/skills/fix-bug/SKILL.md
     - .claude/skills/create-issue/SKILL.md
-    - docs/issues/drafts/remove-source-locations-from-errors/EPIC.md
+    - docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md
     - docs/issues/open/2804-location-caller-track-caller-audit/inventory.md
-    - packages/tracker-client/src/udp/mod.rs
-    - contrib/dev-tools/checks
+    - packages/configuration/src/lib.rs
+    - packages/axum-server/src/tls.rs
+    - packages/udp-server/src/error.rs
 ---
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Drop `torrust-located-error` from the workspace and enforce the rule
+# Issue #2917 - Remove source locations from the configuration, TLS and UDP server errors
 
-Parent EPIC: [Remove source locations from errors](../remove-source-locations-from-errors/EPIC.md) (draft, GitHub issue not
-created yet, so `epic` is `null` and this folder carries no EPIC number). Sub-issue SI-6 of the EPIC.
+Parent EPIC: [Remove source locations from errors](../2912-remove-source-locations-from-errors/EPIC.md) (#2912). Sub-issue SI-5 of the EPIC.
 
 ## Goal
 
-Remove the last uses of `torrust-located-error` from the workspace and add a repository check that
-fails when non-test code records a source location in an error, so the rule of the ADR stays true.
+Remove the remaining `location` fields and `LocatedError` sources from
+`packages/configuration`, `packages/axum-server` and `packages/udp-server`, so that startup errors
+shown to an operator and the UDP server's own errors hold no source path.
 
 ## Background
 
-After SI-3 to SI-5 the only remaining user of the crate is expected to be
-`packages/tracker-client`, which imports the type alias `torrust_located_error::DynError`
-(`src/udp/mod.rs:5`) and lists the crate in its `Cargo.toml`.
+These are the uses left after SI-2 to SI-4 (`docs/issues/open/2804-location-caller-track-caller-audit/options.md`, facts 1 and 2).
 
-The audit looked for a lint (`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`, T3): neither rustc nor clippy 1.99.1 has one
-for `Location::caller()` in a function that is not `#[track_caller]`. With the ADR the rule is
-simpler than the one the audit considered: non-test code does not use `Location::caller()`,
-`#[track_caller]` or `torrust_located_error` at all. A text-based check can enforce that.
+| Package | Use | Audience |
+| --- | --- | --- |
+| `configuration` | Four public variants of `Error` whose source is a `LocatedError` and whose format prints it (`lib.rs:312-337`: `UnableToProcessExplicitConfigFile`, `UnableToLoadFromEnvironmentVariable`, `UnableToLoadFromConfigFile`, `ConfigError`); the `#[track_caller]` `From<figment::Error>` (`lib.rs:348`); `attach_explicit_config_path` (`lib.rs:258`) | Operator, at startup |
+| `axum-server` | `Error::BadTlsConfig` with a `LocatedError` source (`tls.rs:25`, built at `:53`); `Error::MissingTlsConfig` with a `location` field its format does not print (`tls.rs:19`, built at `:43`, inventory row P16) | Operator, at startup |
+| `udp-server` | `Error::Internal` and `Error::AuthRequired` print `{location}` (`error.rs:36`, `:43`). Both are built only in `#[cfg(test)]` code | None in production today |
 
-Two standalone crates in other repositories carry the same pattern (`inventory.md`, standalone
-crates): `torrust-info-hash` 0.2.0 builds `ConversionError` with `Location::caller()` in a `TryFrom`
-impl (`info_hash.rs:273`, `:279`), and `torrust-located-error` 3.0.0 is the wrapper itself.
+For `configuration` the location is correct as a chain (it is the `?` line in the loader), and it is
+still a library path in a message for an operator who needs the configuration key and the file, not
+the tracker's source line.
+
+Release steps: `torrust-tracker-configuration` was published at 3.0.0 and the publish plan schedules
+4.0.0 (#2583), so changing the type of a public source is inside that release. `axum-server` and
+`udp-server` are unpublished (0.1.0).
 
 ## Scope
 
 ### In Scope
 
-- Replace `torrust_located_error::DynError` in `packages/tracker-client` with a local alias or the
-  spelled-out type, and remove the dependency from its `Cargo.toml`.
-- Confirm no workspace `Cargo.toml` depends on `torrust-located-error` and that `Cargo.lock` no
-  longer lists it (unless a registry dependency still pulls it in; record which).
-- A repository check under `contrib/dev-tools/checks/` (the place of the existing checks) that fails
-  when `Location::caller()`, `#[track_caller]` or `torrust_located_error` appears in a `.rs` file
-  outside `#[cfg(test)]` modules, `tests/` directories and an explicit allow-list with a reason per
-  entry. Wire it where the other checks run (pre-commit and CI).
-- Draft the text of the two upstream issues (remove the location from
-  `torrust_info_hash::ConversionError`; decide the future of `torrust-located-error`) and hand them
-  to the maintainer, who opens them in those repositories.
+- `configuration`: replace the four `LocatedError` sources with the plain source error; remove the
+  `#[track_caller]` conversion's location capture and the `Located`/`DynError` use in
+  `attach_explicit_config_path`; keep the path and the figment diagnostic in the message.
+- `axum-server`: replace the `BadTlsConfig` source with the plain error; remove the `location` field
+  of `MissingTlsConfig` and its capture.
+- `udp-server`: remove `location` from `Internal` and `AuthRequired` and from the tests that build
+  them (`handlers/error.rs`, `event.rs`).
+- Remove the `torrust-located-error` dependency from `packages/configuration/Cargo.toml` and
+  `packages/axum-server/Cargo.toml`.
+- Record the breaking change of `configuration` for its 4.0.0 release.
 
 ### Out of Scope
 
-- Changing `torrust-info-hash` or `torrust-located-error` (other repositories).
-- A custom clippy or rustc lint.
-- Extracting `tracker-client` (#2594).
+- Removing the two test-only `udp-server` variants altogether:
+  a follow-up issue, not drafted yet (issue #2844 removed other unused `udp-server` variants, not
+  these two).
+- `packages/tracker-client`, which imports `torrust_located_error::DynError` (SI-6).
+- Changing configuration loading behavior or TLS setup.
 
 ## Architectural Decisions
 
 - Related ADRs: the ADR created by sub-issue SI-1 of the parent EPIC (errors do not record source locations); `docs/adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md`
   (`#[non_exhaustive]` policy for public error enums).
-- ADRs to create: None known. If the check needs a policy for the allow-list, record it in the ADR of SI-1 as an amendment
+- ADRs to create: None known
 
 During implementation, stop and create an ADR when a decision affects project
 architecture or design patterns, selects an approach among meaningful
@@ -90,11 +95,27 @@ asynchronous I/O, network readiness, resource cleanup or reusable test fixture.
 
 ## Bug-Fix Process
 
-Not applicable: this sub-issue removes a dependency and adds a check; the behavior fixes are SI-2 to SI-5.
+Removing a location that a client can read is substantively a bug fix (misleading output), so this
+issue follows `.claude/skills/fix-bug/SKILL.md`:
+
+- analysis: the call paths and audiences are in the audit inventory
+  (`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`, T2 table); re-check them against the tree before the first change;
+- real-artifact reproduction: start the tracker with a configuration file that has an invalid value and, separately, with TLS enabled and a certificate file that is not valid PEM; record the startup error text;
+- regression-test boundary: see Regression Test Strategy;
+- red regression-test evidence, production fix, green test evidence, and the same reproduction run
+  again after the last production change, all recorded in `manual-verification-evidence.md`.
 
 ## Regression Test Strategy
 
-Not applicable: this sub-issue removes a dependency and adds a check; the behavior fixes are SI-2 to SI-5.
+- **Smallest boundary**: a unit test at the error's constructor or `FromStr`/`TryFrom` seam that
+  asserts the rendered `Display` holds no source path and still names what failed. It needs no
+  server. Write it first and record its red output.
+- **Trait-dispatch case**: where the error is built in a `FromStr` or `TryFrom` impl, call through
+  `str::parse::<T>()` or `try_into()`, the call shape real callers use.
+- **Portable path check**: a helper forbids these substrings: `.rs:`, `packages/`, `packages\`,
+  `src/`, `src\`, `.cargo/registry` and `rustlib/src`, so workspace paths, registry checkouts, CI
+  checkout paths and Windows paths are all caught.
+- **Seams for this sub-issue**: direct `to_string()` tests. For TLS use invalid PEM files through `make_rust_tls` (`BadTlsConfig`); a missing certificate gives `MissingTlsConfig`, whose text has no location today, so it is not a red test. For `udp-server`, format the two variants directly, because no UDP reply builds them.
 
 ## Implementation Plan
 
@@ -102,11 +123,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | TODO | Remove the last uses | `tracker-client` without the dependency; `grep -rn 'located' --include=Cargo.toml .` finds no workspace manifest; `Cargo.lock` state recorded. |
-| T2 | TODO | Design the check | Short design note in this spec: a Rust crate like the existing checks in `contrib/dev-tools/checks/`, how test code is recognized, the allow-list format, false-positive cases tried. |
-| T3 | TODO | Implement the check with tests | The check, its tests (a fixture that must fail and one that must pass) and its wiring into pre-commit and CI. |
-| T4 | TODO | Prove the check fails | Evidence of the check failing on a temporary `Location::caller()` added to production code, then passing after its removal. |
-| T5 | TODO | Draft the upstream issues | Two issue texts in this folder, handed to the maintainer; links added here once opened. |
+| T1 | TODO | Reproduce and record | Startup error text for a bad configuration file and for invalid PEM files, in `manual-verification-evidence.md`. |
+| T2 | TODO | Red tests | `to_string()` tests for the four configuration variants, `BadTlsConfig` and the two UDP variants; red output recorded. |
+| T3 | TODO | `configuration` | Plain sources, no location capture, dependency removed, 4.0.0 note recorded. |
+| T4 | TODO | `axum-server` | Plain `BadTlsConfig` source, `MissingTlsConfig` without `location`, dependency removed. |
+| T5 | TODO | `udp-server` | The two variants and their tests without `location`. |
+| T6 | TODO | Green and recheck | Green output, then the T1 startups repeated. |
 
 ## Commit Points
 
@@ -116,9 +138,11 @@ refactor, or evidence increment; do not group unrelated changes merely to reduce
 
 | Task | Coherent change set | Commit policy |
 | --- | --- | --- |
-| T1 | The dependency removal | Commit after focused validation and required review. |
-| T3 | The check, its tests and its wiring | Commit after focused validation and required review. |
-| T2, T4, T5 | Design note, evidence and the upstream issue drafts | Commit after focused validation and required review. |
+| T2 | The red regression tests | Commit after focused validation and required review. |
+| T3 | `configuration` | Commit after focused validation and required review. |
+| T4 | `axum-server` | Commit after focused validation and required review. |
+| T5 | `udp-server` | Commit after focused validation and required review. |
+| T1, T6 | Evidence | Commit after focused validation and required review. |
 
 Record a justified no-change decision in the task's evidence without creating an empty commit. For
 test-producing work, use the `write-unit-test` skill and complete an explicit design review after
@@ -138,7 +162,7 @@ with the narrow affected scope, and sign every commit with GPG.
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/drafts/error-locations-si-6-drop-located-error-and-enforce-the-rule/ISSUE.md`
+- [x] Folder-style spec drafted in `docs/issues/open/2917-2912-si-5-startup-and-udp-server-errors/ISSUE.md`
 - [ ] Spec reviewed and approved by user/maintainer
 - [ ] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
@@ -162,10 +186,11 @@ the model that produced them.
 
 ## Acceptance Criteria
 
-- [ ] AC1: No workspace package depends on `torrust-located-error`.
-- [ ] AC2: The check fails on `Location::caller()`, `#[track_caller]` or `torrust_located_error` in non-test code and passes on the tree, proven by its tests and by the T4 evidence.
-- [ ] AC3: The check runs in pre-commit and in CI.
-- [ ] AC4: The two upstream issue drafts exist and the maintainer has them.
+- [ ] AC1: `configuration::Error`, `axum_server::tls::Error` and the `udp-server` `Error` have no `location` field and no `LocatedError` source.
+- [ ] AC2: The startup error for a bad configuration file names the file and the invalid key or value and holds no source path.
+- [ ] AC3: The startup error for invalid PEM files holds no source path.
+- [ ] AC4: `packages/configuration/Cargo.toml` and `packages/axum-server/Cargo.toml` no longer depend on `torrust-located-error`.
+- [ ] AC5: The breaking change of `torrust-tracker-configuration` is recorded for its 4.0.0 release.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -180,7 +205,6 @@ Define verification before implementation starts and execute it before closing t
 
 - `linter all`
 - Relevant tests for changed components
-- The new check on the whole tree
 - Pre-push checks (when applicable)
 
 ### Manual Verification Scenarios
@@ -189,8 +213,8 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | A contributor reintroduces a location | Add `location: Location::caller()` to a production error on a scratch branch and commit | The pre-commit check fails and names the file and the rule | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | Test helpers stay allowed | Run the check on the tree, which has `#[track_caller]` assertion helpers in test code | The check passes | TODO | `manual-verification-evidence.md` section V2 |
+| M1 | Bad configuration file | Run the tracker with `TORRUST_TRACKER_CONFIG_TOML_PATH` pointing to a file with an invalid value | The error names the file and the problem and holds no `.rs:` path | TODO | `manual-verification-evidence.md` section V1 |
+| M2 | Invalid TLS files | Enable TLS for the HTTP tracker with a certificate file that is not valid PEM and start the tracker | The error says the TLS configuration is bad and holds no path | TODO | `manual-verification-evidence.md` section V2 |
 
 Notes:
 
@@ -234,15 +258,14 @@ None planned for this issue.
 | AC2 | TODO | {test/log/PR link} |
 | AC3 | TODO | {test/log/PR link} |
 | AC4 | TODO | {test/log/PR link} |
+| AC5 | TODO | {test/log/PR link} |
 
 ## Risks and Trade-offs
 
-- **False positives in test detection.** A text check cannot parse Rust. Mitigation: the allow-list
-  with reasons, and tests for the detection.
-- **A registry crate still pulls `torrust-located-error` in.** Mitigation: T1 records it; removal
-  then waits for that crate.
-- **Runs before SI-3 to SI-5 are merged.** Mitigation: the EPIC orders it last; the check's
-  allow-list may start with the not-yet-migrated files and must end empty of them.
+- **The figment diagnostic already carries enough context, or not.** Mitigation: T1 records the
+  current text so the new text can be compared.
+- **`configuration` 4.0.0 is published first.** Mitigation: EPIC ordering; otherwise this needs a
+  later major.
 
 ## Implementation Completion Review
 
@@ -264,7 +287,7 @@ findings, and reusable lessons.
 
 ## References
 
-- Parent EPIC draft: `docs/issues/drafts/remove-source-locations-from-errors/EPIC.md`
+- Parent EPIC: #2912, `docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md`
 - Audit: `docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md`, `inventory.md`, `options.md`, `experiments.md` (issue #2804)
 - Related issues: #2804 (audit), #384 (external report), #2583 (first publish of the workspace crates)
-- Related: #2594 (extraction of `torrust-tracker-client`)
+- Related issue: #2844 (removed other unused `udp-server` error variants)

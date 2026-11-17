@@ -1,90 +1,78 @@
 ---
 schema-version: 1
 doc-type: issue
-issue-type: task
-status: draft
-priority: p1
-epic: null
-github-issue: null
-spec-path: docs/issues/drafts/error-locations-si-1-adr-errors-do-not-record-source-locations/ISSUE.md
-branch: "{issue-number}-error-locations-si-1-adr-errors-do-not-record-source-locations"
+issue-type: bug
+status: planned
+priority: p2
+epic: 2912
+github-issue: 2914
+spec-path: docs/issues/open/2914-2912-si-2-primitives/ISSUE.md
+branch: "2914-primitives"
 related-pr: null
-last-updated-utc: "2026-11-11 17:39"
+last-updated-utc: "2026-11-17 17:01"
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
     - .claude/skills/fix-bug/SKILL.md
     - .claude/skills/create-issue/SKILL.md
-    - docs/issues/drafts/remove-source-locations-from-errors/EPIC.md
+    - docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md
     - docs/issues/open/2804-location-caller-track-caller-audit/inventory.md
-    - .claude/skills/handle-errors-in-code/SKILL.md
-    - .claude/skills/create-adr/SKILL.md
+    - packages/primitives/src/peer.rs
 ---
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Record the decision that errors do not record source locations
+# Issue #2914 - Remove source locations from the errors of `torrust-tracker-primitives`
 
-Parent EPIC: [Remove source locations from errors](../remove-source-locations-from-errors/EPIC.md) (draft, GitHub issue not
-created yet, so `epic` is `null` and this folder carries no EPIC number). Sub-issue SI-1 of the EPIC.
+Parent EPIC: [Remove source locations from errors](../2912-remove-source-locations-from-errors/EPIC.md) (#2912). Sub-issue SI-2 of the EPIC.
 
 ## Goal
 
-Write the ADR that says errors in this workspace do not record or print source locations, and
-change the `handle-errors-in-code` skill so that it gives that rule instead of recommending
-`torrust-located-error`. Every other sub-issue of the EPIC implements this decision.
+Remove the `location` field and its text from `ParsePeerRoleError` and `peer::IdConversionError` in
+`packages/primitives`, so that their messages state the invalid input and nothing about source files.
 
 ## Background
 
-The audit of issue #2804 found that the source location recorded in errors is never the caller's
-(`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`): none of the 38 production `Location::caller()` sites is in a
-`#[track_caller]` function, and `#[track_caller]` cannot fix any of them, because they are reached
-through `str::parse`, `try_into`, closures, `async fn` or `async` blocks (`options.md`, fact 6). The
-location is a fixed library line, and 23 `Display` formats print it into text that reaches HTTP, UDP
-and REST clients, event payloads and logs. `LocatedError` (`torrust-located-error` 3.0.0) prints its
-own location as well.
+This is the defect that started the audit: finding F3 of the primitives test work under EPIC #1347.
+`"x".parse::<PeerRole>()` returns an error whose text ends in `packages/primitives/src/peer.rs:73:27`,
+the same line for every caller (`docs/issues/open/2804-location-caller-track-caller-audit/manual-verification-evidence.md`, section D1).
 
-Issue #384 (2023) reported the exposure. The answer then was that the information helps
-administrators and developers more than it risks. The audit removes that argument, and the
-maintainer listed three further objections: the text lets an attacker infer the running version, it
-couples the user-facing interface to the implementation, and it makes messages unstable for
-consumers.
+Sites (inventory rows P1 and P2):
 
-The current guidance points the other way: the `handle-errors-in-code` skill has a section "The
-`located-error` Package" and a checklist item "Consider `located-error` for diagnostics-rich errors".
-No ADR covers located errors.
+| Error variant | Format (line) | Built at | Shape |
+| --- | --- | --- | --- |
+| `ParsePeerRoleError::InvalidPeerRole` | `"invalid param {raw_param} in {location}"` (`peer.rs:83`) | `peer.rs:73`, `FromStr for PeerRole` | trait impl reached through `str::parse` |
+| `IdConversionError::NotEnoughBytes` | `"not enough bytes for peer id: {message} {location}"` (`peer.rs:331`) | `peer.rs:391`, `TryFrom<Vec<u8>> for Id` | trait impl reached through `try_into` |
+| `IdConversionError::TooManyBytes` | `"too many bytes for peer id: {message} {location}"` (`peer.rs:336`) | `peer.rs:397`, same impl | same |
+
+The audit found no production path that prints these two errors (`inventory.md`, T2 table, last
+row): they are not used outside `peer.rs`. The exposure is to library consumers of the published
+crate. The crate was published at 3.0.0 and the publish plan already schedules 4.0.0
+(`docs/issues/open/2583-1669-first-publish-of-workspace-crates/ISSUE.md`), so removing a public field
+adds no release step if it lands before that publish.
 
 ## Scope
 
 ### In Scope
 
-- An ADR in `docs/adrs/` (repository-wide decision), created with the `create-adr` skill, that records:
-  the context (audit result, #384, the three objections), the decision, the alternatives considered
-  (the four options of `options.md`) and the consequences.
-- The decision to record, for review:
-  1. Error types have no `location` field and do not call `Location::caller()`.
-  2. The workspace does not use `torrust-located-error`; a source error is kept as a plain `#[source]`.
-  3. `Display` of an error states what failed and the offending input. It holds no source path.
-  4. Text sent to a client is the error's own message. A source error from a crate the workspace
-     does not control is not formatted into client text.
-  5. Developer diagnostics go to `tracing` events at the site, which record file and line on the
-     server only.
-  6. `#[track_caller]` stays allowed in test helpers and assertion helpers.
-- Update `.claude/skills/handle-errors-in-code/SKILL.md`: remove the
-  `located-error` section and checklist item, add the rule and a link to the ADR.
-- Add the ADR to `docs/adrs/index.md`.
+- Remove `location` from the three variants and from their `#[error(..)]` formats.
+- Remove the three `Location::caller()` calls and the unused `std::panic::Location` import.
+- Keep or improve the context in the message (`raw_param`, and the byte counts in `message`).
+- Update the tests of `peer.rs` that build or match these variants.
+- Record the breaking change for the 4.0.0 release notes of the crate, where the publish plan tracks them.
 
 ### Out of Scope
 
-- Any change to Rust code (sub-issues SI-2 to SI-6).
-- Changes to `torrust-located-error` or `torrust-info-hash` (other repositories).
+- Other packages (SI-3 to SI-5).
+- Any other change to `PeerRole` or `peer::Id` parsing behavior.
+- Publishing the crate (#2583).
 
 ## Architectural Decisions
 
-- Related ADRs: none about located errors today; `docs/adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md`
+- Related ADRs: the ADR created by sub-issue SI-1 of the parent EPIC (errors do not record source locations); `docs/adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md`
   (`#[non_exhaustive]` policy for public error enums).
-- ADRs to create: `Errors do not record source locations` (root collection `docs/adrs/`, because it binds every package)
+- ADRs to create: None known
 
 During implementation, stop and create an ADR when a decision affects project
 architecture or design patterns, selects an approach among meaningful
@@ -99,11 +87,27 @@ asynchronous I/O, network readiness, resource cleanup or reusable test fixture.
 
 ## Bug-Fix Process
 
-Not applicable: this sub-issue records a decision and changes guidance; it changes no behavior.
+Removing a location that a client can read is substantively a bug fix (misleading output), so this
+issue follows `.claude/skills/fix-bug/SKILL.md`:
+
+- analysis: the call paths and audiences are in the audit inventory
+  (`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`, T2 table); re-check them against the tree before the first change;
+- real-artifact reproduction: a scratch program or `cargo test` snippet that prints `"x".parse::<PeerRole>().unwrap_err()` and `peer::Id::try_from(vec![0; 19]).unwrap_err()` before the change, like section D1 of the audit evidence;
+- regression-test boundary: see Regression Test Strategy;
+- red regression-test evidence, production fix, green test evidence, and the same reproduction run
+  again after the last production change, all recorded in `manual-verification-evidence.md`.
 
 ## Regression Test Strategy
 
-Not applicable: this sub-issue records a decision and changes guidance; it changes no behavior.
+- **Smallest boundary**: a unit test at the error's constructor or `FromStr`/`TryFrom` seam that
+  asserts the rendered `Display` holds no source path and still names what failed. It needs no
+  server. Write it first and record its red output.
+- **Trait-dispatch case**: where the error is built in a `FromStr` or `TryFrom` impl, call through
+  `str::parse::<T>()` or `try_into()`, the call shape real callers use.
+- **Portable path check**: a helper forbids these substrings: `.rs:`, `packages/`, `packages\`,
+  `src/`, `src\`, `.cargo/registry` and `rustlib/src`, so workspace paths, registry checkouts, CI
+  checkout paths and Windows paths are all caught.
+- **No server boundary**: no production path prints these errors, so the unit tests are the whole regression suite of this sub-issue.
 
 ## Implementation Plan
 
@@ -111,9 +115,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | TODO | Draft the ADR with the `create-adr` skill | ADR file in `docs/adrs/` with context, decision (the six points), alternatives and consequences; listed in `docs/adrs/index.md`. |
-| T2 | TODO | Update the `handle-errors-in-code` skill | The `located-error` section and checklist item are replaced by the rule and a link to the ADR. |
-| T3 | TODO | Search for other guidance that recommends located errors | `grep -rn 'located' .github docs AGENTS.md packages/*/README.md` reviewed; each hit updated or recorded as historical. |
+| T1 | TODO | Reproduce and record | Current text of the three errors recorded in `manual-verification-evidence.md` (toolchain named). |
+| T2 | TODO | Red tests | Unit tests through `str::parse::<PeerRole>()` and `try_into()`/`Id::try_from` asserting no source path and the presence of the input; red output recorded. |
+| T3 | TODO | Remove the field, the format text and the captures | The three variants have no `location`; `grep -n 'Location' packages/primitives/src` finds nothing outside tests. |
+| T4 | TODO | Green and recheck | Green test output, then the T1 reproduction run again. |
+| T5 | TODO | Record the breaking change | Entry where the 4.0.0 changes of the crate are tracked (publish plan checklist row or the crate changelog, whichever the plan uses at that time). |
 
 ## Commit Points
 
@@ -123,8 +129,9 @@ refactor, or evidence increment; do not group unrelated changes merely to reduce
 
 | Task | Coherent change set | Commit policy |
 | --- | --- | --- |
-| T1 | The ADR and its index entry | Commit after focused validation and required review. |
-| T2-T3 | The skill update and any other guidance change | Commit after focused validation and required review. |
+| T2 | The red regression tests | Commit after focused validation and required review. |
+| T3 | The production change with the tests now green | Commit after focused validation and required review. |
+| T1, T4, T5 | Evidence and release-note entry | Commit after focused validation and required review. |
 
 Record a justified no-change decision in the task's evidence without creating an empty commit. For
 test-producing work, use the `write-unit-test` skill and complete an explicit design review after
@@ -144,7 +151,7 @@ with the narrow affected scope, and sign every commit with GPG.
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/drafts/error-locations-si-1-adr-errors-do-not-record-source-locations/ISSUE.md`
+- [x] Folder-style spec drafted in `docs/issues/open/2914-2912-si-2-primitives/ISSUE.md`
 - [ ] Spec reviewed and approved by user/maintainer
 - [ ] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
@@ -168,9 +175,10 @@ the model that produced them.
 
 ## Acceptance Criteria
 
-- [ ] AC1: The ADR exists in `docs/adrs/`, is listed in the index and states the six decision points or the form the reviewers agreed.
-- [ ] AC2: The `handle-errors-in-code` skill no longer recommends `torrust-located-error` and links to the ADR.
-- [ ] AC3: No live guidance in the repository recommends recording a source location in an error.
+- [ ] AC1: `ParsePeerRoleError` and `IdConversionError` have no `location` field.
+- [ ] AC2: `Display` of the three variants holds no source path and names the invalid input, proven by tests that go through `str::parse` and `try_into`.
+- [ ] AC3: `packages/primitives/src` has no `Location::caller()` outside test code.
+- [ ] AC4: The breaking change is recorded for the 4.0.0 release of the crate.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -193,7 +201,8 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | Read the guidance as a contributor | Open the `handle-errors-in-code` skill and follow its error checklist for a new error variant | The checklist leads to an error without a `location` field and points to the ADR | TODO | `manual-verification-evidence.md` section V1 |
+| M1 | Parse an invalid peer role as a library consumer | In a scratch crate that depends on the workspace `torrust-tracker-primitives` by path, print `"x".parse::<PeerRole>().unwrap_err()` | The text names `x` and holds no file path or line | TODO | `manual-verification-evidence.md` section V1 |
+| M2 | Convert a short peer id | Same crate: print `peer::Id::try_from(vec![0; 19]).unwrap_err()` | The text states the byte count and holds no file path or line | TODO | `manual-verification-evidence.md` section V2 |
 
 Notes:
 
@@ -236,13 +245,14 @@ None planned for this issue.
 | AC1 | TODO | {test/log/PR link} |
 | AC2 | TODO | {test/log/PR link} |
 | AC3 | TODO | {test/log/PR link} |
+| AC4 | TODO | {test/log/PR link} |
 
 ## Risks and Trade-offs
 
-- **The decision is contested in review.** Mitigation: this sub-issue goes first and the code
-  sub-issues wait for it.
-- **Guidance and code disagree while the EPIC is in progress.** Mitigation: the ADR states that
-  existing uses are removed by the EPIC's sub-issues and links to the EPIC.
+- **A consumer matches on the field.** Mitigation: the change ships in the already planned major
+  release and is listed in its notes.
+- **The change lands after 4.0.0 is published.** Mitigation: the EPIC orders this sub-issue before
+  the first publish; if that fails, the sub-issue needs a new major and the EPIC must say so.
 
 ## Implementation Completion Review
 
@@ -264,6 +274,7 @@ findings, and reusable lessons.
 
 ## References
 
-- Parent EPIC draft: `docs/issues/drafts/remove-source-locations-from-errors/EPIC.md`
+- Parent EPIC: #2912, `docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md`
 - Audit: `docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md`, `inventory.md`, `options.md`, `experiments.md` (issue #2804)
 - Related issues: #2804 (audit), #384 (external report), #2583 (first publish of the workspace crates)
+- Reporting work: `docs/issues/closed/2824-1347-add-tests-primitives/` (EPIC #1347)

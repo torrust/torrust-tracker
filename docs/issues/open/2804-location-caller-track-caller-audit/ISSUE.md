@@ -217,7 +217,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 After T4 the maintainer proposed to remove source locations from errors altogether, instead of the
 options compared in `options.md`. The work is then larger than this issue and cuts across the
 workspace, so the fix tasks that this plan listed as T6 to T9 are not done here. They are planned in
-the EPIC draft `docs/issues/drafts/remove-source-locations-from-errors/EPIC.md`:
+the EPIC draft `docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md`:
 
 | Former task | Now in |
 | --- | --- |
