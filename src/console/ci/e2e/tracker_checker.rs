@@ -190,7 +190,14 @@ fn collect(receiver: Option<Receiver<Vec<u8>>>, end: Instant) -> String {
     let mut bytes = Vec::new();
 
     loop {
-        let remaining = end.saturating_duration_since(Instant::now());
+        // `recv_timeout` returns queued chunks even with a zero timeout, so check the window first.
+        let Some(remaining) = end
+            .checked_duration_since(Instant::now())
+            .filter(|remaining| !remaining.is_zero())
+        else {
+            tracing::warn!("Output of the child was still open at the end of the drain window; it was cut");
+            break;
+        };
         match receiver.recv_timeout(remaining) {
             Ok(chunk) => bytes.extend_from_slice(&chunk),
             Err(RecvTimeoutError::Timeout) => {
@@ -230,7 +237,7 @@ mod tests {
     use std::io::ErrorKind;
     use std::time::{Duration, Instant};
 
-    use super::{BUILD_ARGS, CHECKER_ARGS, execute, run_command};
+    use super::{BUILD_ARGS, CHECKER_ARGS, collect, execute, run_command};
 
     const GRACE: Duration = Duration::from_secs(5);
 
@@ -342,6 +349,43 @@ mod tests {
         );
         assert_eq!(captured.stdout, "before\n");
         assert_eq!(captured.stderr, "err_before\n");
+    }
+
+    #[test]
+    fn it_should_not_collect_queued_chunks_after_the_drain_window_ended() {
+        // Arrange: a chunk is already queued and the window ended a second ago.
+        let (sender, receiver) = std::sync::mpsc::channel();
+        sender.send(b"queued".to_vec()).expect("the receiver is alive");
+        let ended = Instant::now()
+            .checked_sub(Duration::from_secs(1))
+            .expect("the clock is past one second");
+
+        // Act
+        let collected = collect(Some(receiver), ended);
+
+        // Assert
+        assert_eq!(collected, "");
+    }
+
+    #[test]
+    fn it_should_stop_draining_a_descendant_that_keeps_writing() {
+        // Arrange: the main process hangs and a descendant writes without end.
+        let script = "yes & exec sleep 60";
+        let start = Instant::now();
+
+        // Act
+        let result = execute(
+            "sh",
+            &["-c", script],
+            None,
+            Duration::from_millis(300),
+            Duration::from_millis(500),
+        );
+
+        // Assert: the drain ends with its window although data keeps arriving.
+        let captured = result.expect("it should run");
+        assert!(captured.status.is_err());
+        assert!(start.elapsed() < Duration::from_secs(5), "took {:?}", start.elapsed());
     }
 
     #[test]
