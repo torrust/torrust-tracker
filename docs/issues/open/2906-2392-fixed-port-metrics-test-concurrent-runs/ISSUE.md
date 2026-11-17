@@ -9,7 +9,7 @@ github-issue: 2906
 spec-path: docs/issues/open/2906-2392-fixed-port-metrics-test-concurrent-runs/ISSUE.md
 branch: "2392-audit-follow-up-issues-spec"
 related-pr: null
-last-updated-utc: "2026-11-17 12:35"
+last-updated-utc: "2026-11-17 15:22"
 semantic-links:
   skill-links:
     - create-issue
@@ -73,8 +73,9 @@ Where it can happen:
 ### In Scope
 
 - Make concurrent runs of `metrics-fixed-ports` not collide, keeping listeners on configured
-  non-zero ports. Candidate approach, to be confirmed in spec review: bind the four fixed ports on
-  a random loopback address from `torrust_tracker_test_helpers::random::loopback_ipv4()` (#2393)
+  non-zero ports. Candidate approach, still undecided: the maintainer approved the draft in the
+  review of PR #2891 but left this approach open, to be decided before T2 (see Architectural
+  Decisions). It binds the four fixed ports on a random loopback address from `torrust_tracker_test_helpers::random::loopback_ipv4()` (#2393)
   instead of `0.0.0.0`, so two runs use different addresses with the same ports. Linux only, like
   the nine #2393 tests that use the helper, so the test is ignored off Linux.
 - Document in the test why the ports are fixed and how concurrent runs avoid each other.
@@ -90,8 +91,8 @@ Where it can happen:
 - Related ADRs: none.
 - ADRs to create: none expected.
 - Using `loopback_ipv4()` here extends the helper beyond the nine #2393 tests. The EPIC records
-  that only those nine use it; the maintainer must approve the extension in spec review, or pick
-  another option (for example deleting the test if `metrics-port-zero` already covers the same
+  that only those nine use it. Approving the draft did not approve the extension: before T2 starts,
+  the maintainer approves it or picks another option (for example deleting the test if `metrics-port-zero` already covers the same
   contract, after the disable-first decision of 2026-11-14).
 
 ## Design and Ownership Review
@@ -145,7 +146,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
 | T1 | TODO | Reproduce on the current `develop` | Held-port and paired-run failures recorded (V1). |
-| T2 | TODO | Isolate the fixed-port listeners per run | Approach approved in spec review; test documents why the ports are fixed. |
+| T2 | TODO | Isolate the fixed-port listeners per run | Starts after the maintainer decides the approach (Architectural Decisions); test documents why the ports are fixed. |
 | T3 | TODO | Recheck | 20 paired runs, all green (V2); `linter all` passes. |
 
 ## Commit Points
@@ -176,6 +177,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-17 12:35 UTC - Claude Code (Claude Opus 5.5), EPIC #2392 coordinator - The
   maintainer approved the draft in the review of PR #2891. Created GitHub issue #2906 and
   moved the spec from `docs/issues/drafts/` to `docs/issues/open/`.
+- 2026-11-17 15:22 UTC - Claude Code (Claude Opus 5.5), EPIC #2392 coordinator - Made explicit that the
+  draft's approval left the loopback-helper extension undecided: the maintainer decides it before
+  T2 (da2ce7's review of PR #2910, F1).
 
 ## Acceptance Criteria
 

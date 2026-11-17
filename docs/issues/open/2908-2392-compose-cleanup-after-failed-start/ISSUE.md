@@ -9,7 +9,7 @@ github-issue: 2908
 spec-path: docs/issues/open/2908-2392-compose-cleanup-after-failed-start/ISSUE.md
 branch: "2392-audit-follow-up-issues-spec"
 related-pr: null
-last-updated-utc: "2026-11-17 12:35"
+last-updated-utc: "2026-11-17 15:22"
 semantic-links:
   skill-links:
     - create-issue
@@ -103,7 +103,7 @@ Follow `.claude/skills/fix-bug/SKILL.md`:
    example a tracker image that exits at once), then list the project's containers with
    `docker ps -a --filter label=com.docker.compose.project=<project>`; record it in
    `manual-verification-evidence.md` (V1).
-2. Regression boundary: decide in spec review between a unit test with a fake `docker` command at
+2. Regression boundary: decide in T2, with the maintainer's approval, between a unit test with a fake `docker` command at
    the `DockerCompose` seam and a Docker-dependent test; record why.
 3. Red before the change, green after; final like-for-like recheck of step 1 (V2).
 
@@ -154,6 +154,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-17 12:35 UTC - Claude Code (Claude Opus 5.5), EPIC #2392 coordinator - The
   maintainer approved the draft in the review of PR #2891. Created GitHub issue #2908 and
   moved the spec from `docs/issues/drafts/` to `docs/issues/open/`.
+- 2026-11-17 15:22 UTC - Claude Code (Claude Opus 5.5), EPIC #2392 coordinator - The regression boundary is
+  decided in T2, not in the spec review (da2ce7's review of PR #2910, F1).
 
 ## Acceptance Criteria
 
