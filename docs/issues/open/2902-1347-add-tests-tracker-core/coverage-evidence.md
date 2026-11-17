@@ -31,7 +31,7 @@ cargo llvm-cov -p torrust-tracker-core --lib --json --output-path .tmp/cov/unit-
 | Unit-only (`--all-features --lib`) | 157 unit | 4,099 / 5,104 (80.31%) | 5,716 / 7,127 (80.20%) | 687 / 954 (72.01%) |
 | Integration-only (`--all-features --test integration`) | 12 integration | 841 / 1,909 (44.05%) | 936 / 2,506 (37.35%) | 145 / 484 (29.96%) |
 | Aggregate (`--all-features`, all targets) | 157 unit + 12 integration | 4,230 / 5,149 (82.15%) | 5,834 / 7,182 (81.23%) | 703 / 958 (73.38%) |
-| Unit-only without the `db-compatibility-tests` feature (`--lib`) | 157 unit | 4,085 / 4,780 (85.46%) | 5,700 / 6,691 (85.19%) | 683 / 916 (74.56%) |
+| Unit-only without the `db-compatibility-tests` feature (`--lib`) | 155 unit (the two driver tests are not compiled) | 4,085 / 4,780 (85.46%) | 5,700 / 6,691 (85.19%) | 683 / 916 (74.56%) |
 | Container-gated aggregate (`--all-features`, both `TORRUST_TRACKER_CORE_RUN_*_DRIVER_TEST=true`, Docker `mysql:8.0` and `postgres:16`) | 157 unit + 12 integration, both driver suites run | 4,830 / 5,149 (93.80%) | 6,723 / 7,182 (93.61%) | 809 / 958 (84.45%) |
 
 Reading the scopes:
