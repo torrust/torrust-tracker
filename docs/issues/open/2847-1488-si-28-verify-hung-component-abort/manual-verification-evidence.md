@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2847-1488-si-28-verify-hung-component-abort/ISSUE.md
-last-updated-utc: 2026-11-17 16:46
+last-updated-utc: 2026-11-17 17:27
 ---
 
 # Manual Verification Evidence
@@ -34,7 +34,8 @@ The runs wrote to `.tmp/m/` in the checkout; nothing there is the only copy of t
 - Operating system / environment: Linux 7.0.0-43-generic (x86_64), debug builds
   (`cargo build`, dev profile). Load average about 4.4 during the runs.
 - Prerequisites and setup performed: built both binaries of the branch and the pre-refactor
-  `torrust-tracker`, then copied all three to `.tmp/m/`.
+  `torrust-tracker`, then copied all three to `.tmp/m/` (see "Stale build in the shared target
+  directory" below for how each copy was confirmed).
 
 ### Run script
 
@@ -276,15 +277,35 @@ target too (V1 and V2).
 
 ## Failures and Follow-up
 
+- **Stale build in the shared target directory.** The pre-refactor binary was built from a
+  temporary detached worktree at `a544a58fb` with `CARGO_TARGET_DIR` pointing at the checkout's own
+  `target/`. Afterwards `target/debug/torrust-tracker` was the pre-refactor binary (`cmp` against
+  the `.tmp/m/torrust-tracker-before` copy reported them equal), and the next `cargo build` of the
+  branch failed in `src/main.rs` with "cannot find function `run_until_shutdown_signal` in module
+  `app`": the library build in `target/` was still the pre-refactor one. Touching `src/lib.rs`,
+  `src/app.rs` and `src/main.rs` forced a rebuild, after which `cmp` reported the branch binary
+  different from the pre-refactor copy. The copies used in V1 to V4 were not affected:
+  `.tmp/m/torrust-tracker-after` and `.tmp/m/hung-component-tracker` were copied at 16:44:10, after
+  a `cargo build` at the branch head and before the worktree build, and
+  `.tmp/m/torrust-tracker-before` was copied at 16:44:21, right after the worktree build. Since the
+  M4 logs are meant to be identical, they cannot show which binary ran, so the copies were checked
+  afterwards with `nm -C <binary> | grep -c 'torrust_tracker_lib::app::run_until_shutdown_signal'`:
+  4 matches in `torrust-tracker-after` and in `hung-component-tracker`, 0 in
+  `torrust-tracker-before`. The sizes differ too (190,411,400 bytes after, 190,406,376 bytes before).
+  V1 and V2 also show by behavior that the hung-component binary was not the mutated one of the
+  test-design review's mutation check, which exits 0.
 - **First M4 run discarded (16:45:13 to 16:45:14).** It also ended with exit code 0 for both
   binaries and the moved lines identical, but the stamps of the run script disagreed with the
   tracker's own log: the "after" tracker logged its shutdown at 16:45:14.044, while the script
-  printed "sending SIGTERM" at 16:45:14.438. The script's `date` stamps lagged by about 0.4 s on the
-  loaded machine (load average 4.7), so they could not show the order of the steps. Its sorted-log
-  diff had one line: `health_check_api ... last_completed_job=http_core_event_listener` before and
-  `last_completed_job=tracker_core_in_memory_event_listener` after, which names whichever concurrent
-  job finished last and is not a change of the refactor. M4 was rerun at once; the rerun above has
-  consistent stamps and identical normalized logs.
+  printed "sending SIGTERM" at 16:45:14.438. The script takes that stamp before it runs `kill`, and
+  the tracker can log its shutdown only after the signal arrives, so a late `date` cannot produce
+  this order. Its "readiness marker seen" stamp (16:45:14.393) was also about 0.4 s after the
+  tracker's marker line (16:45:13.977), more than the 0.1 s poll interval allows. The cause is
+  unknown: it was not investigated before the rerun, and nothing recorded from that run identifies
+  it. Its sorted-log diff had one line: `health_check_api ... last_completed_job=http_core_event_listener`
+  before and `last_completed_job=tracker_core_in_memory_event_listener` after, which names whichever
+  concurrent job finished last and is not a change of the refactor. M4 was rerun at once; the rerun
+  above has consistent stamps and identical normalized logs and stands on its own committed logs.
 - **Case 4 limit.** These runs and the integration test cover a component that hangs at an await
   point (cases 1 to 3 of the spec). A component that blocks its worker thread, or one waiting on
   `spawn_blocking` work, never reaches an await point: `JoinSet::abort_all` cannot stop it, and the
