@@ -14,7 +14,7 @@ semantic-links:
     - "issue #2582"
     - "issue #2618"
     - "issue #2876"
-    - docs/issues/open/2876-1347-peer-id-test-helper/ISSUE.md
+    - docs/issues/closed/2876-1347-peer-id-test-helper/ISSUE.md
 ---
 
 <!-- skill-link: create-adr -->
@@ -69,7 +69,7 @@ semantic-links:
 > plural module names such as `fixtures`. Trait impls inside such a module (here `Default`) are gated with it,
 > so they leave production builds too. The ownership map has a row for it. The maintainer decided this on
 > 2026-11-16 (the answers to Q2, Q5 and Q7 in the
-> [#2876 spec](../issues/open/2876-1347-peer-id-test-helper/ISSUE.md)).
+> [#2876 spec](../issues/closed/2876-1347-peer-id-test-helper/ISSUE.md)).
 
 ## Scope
 
@@ -359,5 +359,5 @@ so it is not an example of public test infrastructure. DEC-18 in the
 - #2582, the packaging failure caused by a self dev-dependency with a `version`
 - [Independent package versioning](20260629000000_adopt_independent_package_versioning.md)
 - [`deny.toml`](../../deny.toml), the layer boundary rules referenced by rule B
-- [#2876 spec](../issues/open/2876-1347-peer-id-test-helper/ISSUE.md), which moved `peer::fixture`
+- [#2876 spec](../issues/closed/2876-1347-peer-id-test-helper/ISSUE.md), which moved `peer::fixture`
   behind the `testing` feature of `primitives` (amendment of 2026-11-16)

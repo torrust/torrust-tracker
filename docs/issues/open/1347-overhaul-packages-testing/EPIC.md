@@ -6,7 +6,7 @@ epic: null
 github-issue: 1347
 spec-path: docs/issues/open/1347-overhaul-packages-testing/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-16 14:07"
+last-updated-utc: "2026-11-17 07:45"
 semantic-links:
   skill-links:
     - create-issue
@@ -98,7 +98,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | 10    | #2637 - Add tests to the axum-rest-api-server package | `docs/issues/closed/2637-1347-add-tests-axum-rest-api-server/ISSUE.md` | DONE | S0 (spec and T1 baseline) merged through #2638; S1 (authentication and shared responses) merged through #2667; S2 (routes) merged through #2687; S3 (auth-key and whitelist contexts) merged through #2702; S4 (torrent and stats contexts) merged through #2718; S5 (server lifecycle) merged through #2744; S6 (crate root, wiring and final tasks) merged through #2772; the issue is closed. Replaces the former draft that was misfiled under #1349. |
 | 11    | #2824 - Add tests to the primitives package | `docs/issues/closed/2824-1347-add-tests-primitives/ISSUE.md` | DONE | S0 (the spec, #2828), S1 (the `PeerRole` JSON casing fix, #2834), S2 (the `peer.rs` tests, #2841), S3 (the configuration defaults and bounded values, #2852) and S4 (`swarm_metadata.rs`, the no-change files, the mutation run, the manual checks, #2864) are merged; the issue is closed. Unit-only lines 60.56% → 94.07%. Findings F1 (fixed through #2811), F2 (fixed in S1), F3 (#2804), F4 (#2823), F6 (#2838, #2850) and F5 (#2876, drafted through #2865) have owners. |
 | 12    | #2838 - UDP tracker accepts announces with a negative left, uploaded or downloaded | `docs/issues/closed/2838-1347-udp-reject-negative-announce-bytes/ISSUE.md` | DONE | Bug found by the #2824 primitives tests work. Fixed by the standalone issue #2850 (`docs/issues/closed/2850-non-negative-number-of-bytes/ISSUE.md`): its implementation PR #2872 merged on 2026-11-16 and closed this issue. The patch of PR #2839 was not merged; its tests were taken over by PR #2872. |
-| 13    | #2876 - Move `peer::Id::new` to a realistic test helper and decide whether `peer::fixture` goes behind a `testing` feature | `docs/issues/open/2876-1347-peer-id-test-helper/ISSUE.md` | TODO | Finding F5 of #2824. Spec-only PR first; the maintainer answers the design questions Q1-Q7 before implementation. |
+| 13    | #2876 - Move `peer::Id::new` to a realistic test helper and decide whether `peer::fixture` goes behind a `testing` feature | `docs/issues/closed/2876-1347-peer-id-test-helper/ISSUE.md` | DONE | Finding F5 of #2824. Spec through #2878, implementation through #2888: `Id::new` removed, `qbittorrent_peer_id` helper, `peer::fixture` behind the new `testing` feature of `primitives`, test-support ADR amended. Breaking for the published `primitives` 3.0.0; adds to the 4.0.0 it owes (#2583). |
 | 14    | Additional package-testing subissues              | Create a folder-style spec when a concrete package need is identified             | TODO   | Permitted but not required upfront; retain scope in this EPIC.                                                       |
 
 ## Package Coverage Tracking
@@ -354,6 +354,7 @@ For each subissue implementation, the completion policy is:
 - 2026-11-15 21:07 UTC - Claude Code - #2824 closed by #2864 (merged 2026-11-15 21:05 UTC); row 11 set to `DONE` and the spec archived to `docs/issues/closed/2824-1347-add-tests-primitives/`.
 - 2026-11-15 21:22 UTC - Claude Code (Opus 5.5) - Row 12 (#2838): the fix is the implementation of the standalone issue #2850, PR #2872 (open), which closes #2838 on merge. It removes the `primitives` test that pinned a negative `left` as a seeder (finding F6 of #2824) and the `-1` rows of the role table.
 - 2026-11-16 14:07 UTC - Claude Code (Opus 5.5) - #2838 closed by PR #2872 (merged 2026-11-16 14:05 UTC); row 12 set to `DONE` and the specifications of #2838 and #2850 archived to `docs/issues/closed/`.
+- 2026-11-16 21:52 UTC - Claude Code (Opus 5.5) - #2876 closed by PR #2888 (merged 2026-11-16 21:49 UTC); row 13 set to `DONE` and the spec archived to `docs/issues/closed/2876-1347-peer-id-test-helper/`.
 
 ## Acceptance Criteria
 
