@@ -94,11 +94,15 @@ commit `project-words.txt` changes first when one change is split into several c
 
 ### Why the review role comes first
 
-Review loops have been the main cost of recent work. Pull request #2851 took 9 review rounds with
-the review-addressing session on Sonnet 5.5, and most rounds came from mistakes in the author's own
-records (the audit record, replies, time stamps), not from the change. The maintainer decided
-(2026-11-14) that the role that addresses reviews runs on Opus 5.5 at minimum, and that the result
-is measured. A Claude Code agent definition can pin the model, so the role no longer depends on
+Review loops have been the main cost of recent work. Pull request #2851 took 14 review rounds,
+recorded in `docs/pr-reviews/pr-2851-review/PR-REVIEW.md`. The attribution footers of the commits
+that record each round name three models: rounds 1 to 3 Claude Fable 5.2, rounds 4 to 9 Claude
+Sonnet (round 4 names Sonnet 5.5, rounds 5 to 9 name Sonnet 5), and rounds 10 to 14 Claude Opus
+5.5. The processing log of that record holds 10 entries that correct earlier entries of the same
+record. After round 9, the maintainer decided (2026-11-14) that the role that addresses reviews
+runs on Opus 5.5 at minimum, and that the result is measured. So five rounds of that pull request
+already ran on the model that D13 pins; the baseline for the measurement is the whole pull
+request, 14 rounds on mixed models, not a count on one model. A Claude Code agent definition can pin the model, so the role no longer depends on
 which model the session happens to use.
 
 ### What Claude Code supports
@@ -550,7 +554,7 @@ Conventional Commit messages.
 - [ ] AC11: The stop hook of `task-reviewer` refuses to let it finish without a valid reply file,
       and stops refusing after its bounded number of attempts.
 - [ ] AC9: The review rounds of the first three pull requests handled by `pr-review-handler` are
-      recorded next to the baseline of 9 rounds on pull request #2851.
+      recorded next to the baseline of pull request #2851: 14 rounds, with its split by model.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -581,7 +585,7 @@ Every scenario records the Claude Code version it ran on.
 | M4  | `AGENTS.md` reaches the agents | In a checkout with a `CLAUDE.md` in a parent folder, and in one without, ask the session and one started agent which repository rules they were given | Both the session and the started agent received `AGENTS.md` in both cases; `CLAUDE.md` contains only the import | TODO | `manual-verification-evidence.md` section V4 |
 | M5  | The orchestrator leads | Start a session as the orchestrator on a small real task, once with `claude --agent orchestrator` and once by telling a normal session to read the file and take the role | It starts the implementer, then the task reviewer; each writes a valid reply file in `agent-replies/`; the implementer starts no agent; questions come back to the contributor through the orchestrator | TODO | `manual-verification-evidence.md` section V5 |
 | M7  | The stop hook holds the reviewer | Start `task-reviewer` on a task, first with an instruction that makes it try to finish without a reply file, then normally | The hook refuses the first attempt and names what is missing; the agent then writes a valid reply file and finishes; the bounded limit is shown by a forced case | TODO | `manual-verification-evidence.md` section V7 |
-| M6  | Review rounds per pull request | For the first three pull requests handled by `pr-review-handler`, count the review rounds with fixes | The counts are recorded with the model, next to the baseline | TODO | `manual-verification-evidence.md` section V6 |
+| M6  | Review rounds per pull request | For the first three pull requests handled by `pr-review-handler`, count the review rounds with fixes | The counts are recorded with the model of each round, next to the baseline of pull request #2851 (14 rounds, split by model) | TODO | `manual-verification-evidence.md` section V6 |
 
 Notes:
 
@@ -659,7 +663,7 @@ progress-log entry.
 ## References
 
 - Related issues: #2003, #2155, #2160, #2278
-- Related PRs: #2851 (the baseline of 9 review rounds)
+- Related PRs: #2851 (the baseline: 14 review rounds on three models, see Background)
 - Related ADRs: `docs/adrs/20260420200013_adopt_custom_github_copilot_aligned_agent_framework.md`,
   `docs/adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md`
 - Agent orchestration guide: `docs/agents/orchestration.md`
