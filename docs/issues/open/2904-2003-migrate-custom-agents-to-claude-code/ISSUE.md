@@ -476,7 +476,7 @@ on are merged.
 | --- | ------ | ---- | ----------------------- |
 | T1  | TODO   | Specification pull request | This specification in `docs/issues/open/`, and a new row in the EPIC's Subissues table |
 | T2  | TODO   | Pointer `CLAUDE.md` | A root `CLAUDE.md` whose only content is the import of `AGENTS.md` (D11); scenario M4 recorded |
-| T3  | TODO   | Reply schema and validator | `docs/schemas/agent-reply-v1.schema.json`; the validator with tests, run by the repository checks; `docs/schemas/README.md` updated (D18) |
+| T3  | TODO   | Reply schema and validator | `docs/schemas/agent-reply-v1.schema.json`; the validator with tests, developed in the progressive loop of the `write-unit-test` skill with a recorded design review per increment, and run by the repository checks; `docs/schemas/README.md` updated (D18) |
 | T4  | TODO   | `pr-review-handler` | `.claude/agents/pr-review-handler.md` with the pinned model; `wait-for-pr-review` and `process-pr-review` say which agent runs a round; the inventory `removed-profile-rules.md` created in this folder with the rules of `copilot-suggestions-handler` (AC6); scenarios M1 to M3 recorded |
 | T5  | TODO   | `task-reviewer` | The agent file with the pinned model and the stop hook (D17); the complexity item in `review-task` (D12); the reply rule in `review-task`; scenario M7 recorded |
 | T6  | TODO   | `implementer` | The agent file; the three committer rules in `commit-changes` (D14); the rules that only `planner` held moved into `create-issue` |
@@ -501,15 +501,28 @@ T10 completes it before removing the profiles.
 | ---- | ------------------- | ------------- |
 | T1   | The specification; the EPIC row | One commit each, after `linter all` |
 | T2   | The pointer file; the evidence | One commit each |
-| T3   | The schema; the validator with its tests; its wiring into the checks; the documentation | One commit per item, after focused validation |
+| T3   | The schema; the validator, one commit per reviewed test increment; its wiring into the checks; the documentation | One commit per item, after focused validation and the test-design review |
 | T4 to T8 | The agent file; each skill change (in T6 the `create-issue` change is its own commit); the inventory rows; the evidence | One commit per item, after focused validation |
 | T9   | The agent file; the orchestration guide; the template checkpoints; the inventory rows; the evidence | One commit per item, after focused validation |
 | T10  | The completed inventory; the removal of `.github/agents/` with the old check and the validator rule; each moved rule; each documentation update; the ADR | One commit per item, after focused validation |
 | T11  | The measurement evidence | One commit per recorded pull request |
 | T12  | The completion review; the move to `closed/`; the EPIC row | One commit each |
 
-Rust tests are added only for the reply validator. Sign every commit with GPG and use
-Conventional Commit messages.
+Tests are added in T3 (the reply validator) and in T5 (the bounded refusals of the stop hook). For
+this test-producing work, use the `write-unit-test` skill and complete an explicit design review
+after each passing test increment, before maintainer review and commit. Confirm that the test
+exposes the one causal initial-state difference; its fixture owns only incidental mechanics; and
+the production Act plus independently specified expected result remain visible. The review must
+use the mandatory prose-first Arrange-Act-Assert comparison: write temporary prose for each
+section, refactor until the code expresses it, remove redundant prose, and retain only irreducible
+context. Record this review in task evidence or a file-local test plan. Assess helper boundaries
+by meaningful named actions and abstraction-level alignment, not caller count: a single-use helper
+is valid when it keeps the test readable and hides only incidental mechanics. Commit each reviewed
+test-design increment before starting the next planned file or behavior area. Keep final
+verification and completion evidence separate when it improves reviewability.
+
+Record a justified no-change decision in the task's evidence without creating an empty commit. Use
+a Conventional Commit message with the narrow affected scope, and sign every commit with GPG.
 
 ## Progress Tracking
 
