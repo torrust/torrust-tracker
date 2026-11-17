@@ -20,6 +20,9 @@ const READER_GRACE: Duration = Duration::from_secs(5);
 /// writes without end and the time of the last, non-waiting step of the drain.
 const MAX_CAPTURED_BYTES: usize = 8 * 1024 * 1024;
 
+/// The most bytes of each stream logged when the run succeeded.
+const MAX_SUCCESS_LOG_BYTES: usize = 64 * 1024;
+
 /// How many discarded bytes pass between two probes of the receiver by a reader thread.
 const DISCARD_PROBE_BYTES: usize = 1024 * 1024;
 
@@ -87,8 +90,15 @@ fn run_command(
 
     let captured = execute(program, args, config_content, deadline, reader_grace)?;
 
-    log_output("stdout", &captured.stdout);
-    log_output("stderr", &captured.stderr);
+    // Full output (up to the capture cap) when the run failed; only a bounded excerpt when it succeeded.
+    let succeeded = captured.status.as_ref().is_ok_and(ExitStatus::success);
+    let limit = if succeeded {
+        MAX_SUCCESS_LOG_BYTES
+    } else {
+        MAX_CAPTURED_BYTES
+    };
+    log_output("stdout", &captured.stdout, limit);
+    log_output("stderr", &captured.stderr, limit);
 
     let status = captured.status?;
 
@@ -160,10 +170,26 @@ impl Drop for ChildGuard {
     }
 }
 
-fn log_output(stream: &str, content: &str) {
-    if !content.is_empty() {
+fn log_output(stream: &str, content: &str, limit: usize) {
+    if content.is_empty() {
+        return;
+    }
+
+    let excerpt = excerpt(content, limit);
+    if excerpt.len() < content.len() {
+        tracing::info!("{stream} (first {} of {} bytes):\n{excerpt}", excerpt.len(), content.len());
+    } else {
         tracing::info!("{stream}:\n{content}");
     }
+}
+
+/// The start of `content`, at most `limit` bytes long and cut on a character boundary.
+fn excerpt(content: &str, limit: usize) -> &str {
+    let end = (0..=limit.min(content.len()))
+        .rev()
+        .find(|end| content.is_char_boundary(*end))
+        .unwrap_or(0);
+    &content[..end]
 }
 
 /// Reads the pipe in chunks and sends each one, so whatever was read before a
@@ -181,6 +207,7 @@ fn spawn_reader<R: Read + Send + 'static>(mut pipe: R) -> Receiver<Vec<u8>> {
         let mut discarded_since_probe = 0_usize;
         loop {
             match pipe.read(&mut buffer) {
+                Err(error) if error.kind() == io::ErrorKind::Interrupted => {}
                 Ok(0) | Err(_) => break,
                 Ok(read) => {
                     let keep = read.min(MAX_CAPTURED_BYTES.saturating_sub(queued));
@@ -283,7 +310,9 @@ mod tests {
     use std::io::ErrorKind;
     use std::time::{Duration, Instant};
 
-    use super::{BUILD_ARGS, CHECKER_ARGS, DISCARD_PROBE_BYTES, MAX_CAPTURED_BYTES, collect, execute, run_command, spawn_reader};
+    use super::{
+        BUILD_ARGS, CHECKER_ARGS, DISCARD_PROBE_BYTES, MAX_CAPTURED_BYTES, collect, excerpt, execute, run_command, spawn_reader,
+    };
 
     const GRACE: Duration = Duration::from_secs(5);
 
@@ -476,6 +505,58 @@ mod tests {
             "read only {at_drop} bytes"
         );
         assert_eq!(load(), after_drop);
+    }
+
+    #[test]
+    fn it_should_retry_a_read_interrupted_by_a_signal_instead_of_ending_the_stream() {
+        // Arrange: a pipe whose first read is interrupted, followed by data.
+        struct InterruptedOnce {
+            interrupted: bool,
+            data: std::io::Cursor<Vec<u8>>,
+        }
+        impl std::io::Read for InterruptedOnce {
+            fn read(&mut self, buffer: &mut [u8]) -> std::io::Result<usize> {
+                if self.interrupted {
+                    return self.data.read(buffer);
+                }
+                self.interrupted = true;
+                Err(std::io::ErrorKind::Interrupted.into())
+            }
+        }
+        let pipe = InterruptedOnce {
+            interrupted: false,
+            data: std::io::Cursor::new(b"after".to_vec()),
+        };
+
+        // Act
+        let collected = collect(Some(spawn_reader(pipe)), Instant::now() + GRACE);
+
+        // Assert
+        assert_eq!(collected, "after");
+    }
+
+    #[test]
+    fn it_should_cut_the_log_excerpt_on_a_character_boundary() {
+        // Arrange: a three-byte character straddles the limit.
+        let content = "ab\u{20ac}cd";
+
+        // Act
+        let cut = excerpt(content, 3);
+
+        // Assert
+        assert_eq!(cut, "ab");
+    }
+
+    #[test]
+    fn it_should_keep_the_whole_content_when_it_is_within_the_log_limit() {
+        // Arrange
+        let content = "short";
+
+        // Act
+        let cut = excerpt(content, 64);
+
+        // Assert
+        assert_eq!(cut, content);
     }
 
     #[test]
