@@ -1,7 +1,7 @@
 ---
 pr-number: 2898
 pr-url: https://github.com/torrust/torrust-tracker/pull/2898
-last-updated-utc: "2026-11-17 09:20"
+last-updated-utc: "2026-11-17 09:33"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -43,13 +43,16 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1: da2ce7 review 5935780107 (APPROVED) with findings F1 to F3.
+Round 1: da2ce7 review 5935780107 (APPROVED) with findings F1 to F3, and Copilot review 5935810986 (COMMENTED, three findings without reviewer IDs) as audit findings F4 to F6; F5 re-raises F1.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2898-f1 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F2 | review-finding:pr-2898-f2 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-2898-f3 | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
+| F4 | review-finding:pr-2898-f4 | Copilot | Minor (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
+| F5 | review-finding:pr-2898-f5 | Copilot | Minor (inferred) | documentation | RE_RAISE_OF:F1 | FIXED | RESOLVED |
+| F6 | review-finding:pr-2898-f6 | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -92,9 +95,52 @@ Round 1: da2ce7 review 5935780107 (APPROVED) with findings F1 to F3.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2898#discussion_r4597553169
 
+### F4 - The closure checkpoint mixes the done move and the pending closure
+
+- PR number: 2898
+- Source review ID: 5935810986
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2898#discussion_r4597552064
+- Concern: The spec sits in `docs/issues/closed/` while its single checkpoint "Issue closed and spec moved" is unticked and #2394 is open; Copilot asked to split the checkpoint and word the log as awaiting closure.
+- Solution: The checkpoint is split: the archive move is ticked, and "GitHub issue #2394 closed" stays unticked as pending. The log wording was fixed with F1.
+- Current-tree verification: `grep -n 'GitHub issue #2394 closed' docs/issues/closed/2394-2392-audit-shared-test-resources/ISSUE.md` finds the unticked item next to the ticked move.
+- Resolution reference: `docs(issues): [#2394] mark the pending closure of #2394 in the spec and EPIC`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2898#discussion_r4597575482
+
+### F5 - The log says #2394 is closed while it is open
+
+- PR number: 2898
+- Source review ID: 5935810986
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2898#discussion_r4597552126
+- Concern: Same thread text as F4, anchored on the log line that F1 already raised.
+- Solution: Fixed by F1's rewording; the checkpoint split is F4's fix.
+- Current-tree verification: `grep -c 'is closed by the maintainer' docs/issues/closed/2394-2392-audit-shared-test-resources/ISSUE.md` prints 0.
+- Resolution reference: `docs(issues): [#2394] address review round 1 of PR 2898`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2898#discussion_r4597575888
+
+### F6 - The EPIC row says DONE while #2394 is open
+
+- PR number: 2898
+- Source review ID: 5935810986
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2898#discussion_r4597552201
+- Concern: Order 2 is DONE in the EPIC while GitHub issue #2394 is still open; Copilot asked for an explicit note.
+- Solution: The order 2 row says #2394 is still open and the maintainer closes it when the close-out PR merges.
+- Current-tree verification: `grep -n 'GitHub issue #2394 is still open' docs/issues/open/2392-test-isolation/EPIC.md` finds the order 2 row.
+- Resolution reference: `docs(issues): [#2394] mark the pending closure of #2394 in the spec and EPIC`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2898#discussion_r4597576259
+
 ## Processing Log
 
 - 2026-11-17 09:20 UTC - Round 1: da2ce7 review 5935780107 (APPROVED) with findings F1 (Minor), F2 (Nit) and F3 (Suggestion); the reviewer's IDs are this audit's IDs. Committed the three fixes (09:19:51Z), then replied to the three threads (09:19:57Z to 09:20:02Z). This record was created after the replies, a late start of the audit; the reviewer had said no record was due because the PR had no thread yet.
+- 2026-11-17 09:21 UTC - Committed this record (09:20:57Z). `validate-audit-record.py --pr-number 2898 --base torrust/develop` (scratchpad copy, `gh` calls through `gh-bot`) reported 3 rows, 1 log entry, 0 failures.
+- 2026-11-17 09:21 UTC - Resolved the unresolved threads at about 09:21:19Z. That resolved six threads, not three: Copilot review 5935810986 had posted three threads at 09:19:55Z, which I resolved before reading or replying to them, against the completion rules. The GraphQL refresh after it showed those three threads without a reply.
+- 2026-11-17 09:22 UTC - Copilot's round: normalized its three findings as F4 to F6 (F5 re-raises F1), committed the F4 and F6 fixes (09:22:10Z), then replied to the three threads (09:22:16Z to 09:22:21Z), each reply noting the premature resolution. The threads stay resolved, now with their replies.
+- 2026-11-17 09:33 UTC - The validator on the worktree record reported 6 rows, 4 log entries, 0 failures (about 09:23Z). A GraphQL refresh found every thread resolved with a reply from `josecelano-bot` as its last comment. Committed these entries.
 
 <!-- Copied verbatim into each audit record. -->
 
