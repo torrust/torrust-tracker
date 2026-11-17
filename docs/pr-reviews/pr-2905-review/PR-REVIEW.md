@@ -1,7 +1,7 @@
 ---
 pr-number: 2905
 pr-url: https://github.com/torrust/torrust-tracker/pull/2905
-last-updated-utc: "2026-11-17 13:15"
+last-updated-utc: "2026-11-17 13:23"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -49,6 +49,9 @@ Round 2 is Copilot's review `5939023583` (COMMENTED, F8 and F9, audit-local IDs)
 request; it was submitted after the round 1 fixes were pushed. Copilot labels both findings "Medium severity"; the
 severity `Minor` is inferred from that label. Its body says the full agentic review did not run because it did not
 start before the timeout.
+Round 3 is the review `5939071001` of `da2ce7` (DISMISSED, F10 to F12, audit-local IDs; the reviewer's own F8 and F9
+collide with the audit's F8 and F9, and its F10 follows them, so all three are recorded as the original), on the head
+that carried the round 1 audit.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -61,6 +64,9 @@ start before the timeout.
 | F7 | `review-finding:pr-2905-f7` | Human | Nit | formatting | ORIGINAL | FIXED | RESOLVED |
 | F8 | `review-finding:pr-2905-f8` | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F9 | `review-finding:pr-2905-f9` | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F10 | `review-finding:pr-2905-f10` | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F11 | `review-finding:pr-2905-f11` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F12 | `review-finding:pr-2905-f12` | Human | Nit | testing | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -181,12 +187,54 @@ start before the timeout.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2905#discussion_r4600064725
 
+### F10 - The stated method gives 24 of 48 for October, not 25
+
+- PR number: 2905
+- Source review ID: 5939071001
+- Reviewer finding ID: F8
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2905#discussion_r4600032714
+- Concern: The method added for F5 said a folder has a report when the file exists "at that commit". Read as the commit that archived the folder, it gives 24 of 48 for October, not the 25 stated. The folder `2413-2410-si-22-1-document-event-flows-and-draft-adr` received its report in a later commit the same day.
+- Solution: The method says the report is checked at the counting revision of `develop`, not at the archive commit, names that folder, and says that checking at the archive commit gives 24 of 48. The counts stay 25 of 48 and 2 of 32. This also answers the difference of one that the F5 entry could not place.
+- Current-tree verification: `TZ=UTC git log torrust/develop --diff-filter=AR --date=format-local:'%Y-%m-%d %H:%M' --format='%cd %s' -- docs/issues/closed/2413-2410-si-22-1-document-event-flows-and-draft-adr` prints the archive commit at 2026-10-19 15:56 and the commit that added the report at 2026-10-19 17:22. `git cat-file -e torrust/develop:docs/issues/closed/2413-2410-si-22-1-document-event-flows-and-draft-adr/agent-review-reports.md` exits 0.
+- Resolution reference: `docs(issues): [#2904] say at which revision the archived report is checked`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2905#discussion_r4600155615
+
+### F11 - The inventory accepts an agent as a rule's destination; AC6 accepts only a skill
+
+- PR number: 2905
+- Source review ID: 5939071001
+- Reviewer finding ID: F9
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2905#discussion_r4600032737
+- Concern: The inventory paragraph added for F3 let a rule's destination be a named skill or agent, while AC6 required a named skill. A rule moved into an agent file would satisfy the inventory and fail AC6.
+- Solution: Both now say the same: a named skill, or the agent file only when the rule is about the role itself (identity, tools, inputs, report format), which P2 keeps in the agent.
+- Current-tree verification: Read the inventory paragraph under the Implementation Plan and AC6 in the specification after the change; both carry the same rule. `linter markdown` passed.
+- Resolution reference: `docs(issues): [#2904] align the inventory's destinations with AC6`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2905#discussion_r4600156170
+
+### F12 - Automatic Checks names the reply validator's tests but not the stop hook's
+
+- PR number: 2905
+- Source review ID: 5939071001
+- Reviewer finding ID: F10
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2905#discussion_r4600032753
+- Concern: T5 and the test paragraph add tests of the stop hook's limit, but the Automatic Checks list named only the reply validator's tests.
+- Solution: Automatic Checks lists the tests of the stop hook's limit of 3 refusals (T5).
+- Current-tree verification: Read the Automatic Checks list in the specification after the change. `linter markdown` and `linter cspell` passed.
+- Resolution reference: `docs(issues): [#2904] list the stop hook's tests among the automatic checks`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2905#discussion_r4600156740
+
 ## Processing Log
 
 - 2026-11-17 12:58 UTC - Started audit, after the seven replies, because it holds their URLs. Review `5938631990` of `da2ce7` was submitted at 12:45:09Z (forge `submitted_at`) with seven findings, F1 to F7. The seven fixes and a plan and log follow-up were committed between 12:48:39Z and 12:55:23Z (`git log --format=%cI`, in UTC), one commit per finding, and pushed; `git ls-remote` showed the fork branch at the local head before the replies. The seven replies were posted between 12:57:58Z and 12:58:14Z (forge `created_at`). The body of issue 2904 was edited for F5 before the replies.
 - 2026-11-17 12:59 UTC - `validate-audit-record.py --pr-number 2905 --base torrust/develop`, with its `gh` calls made through the contributor account's `gh-bot`, exited 0 (7 rows, 0 failures). Resolved the seven threads; a GraphQL refresh showed 0 unresolved threads.
 - 2026-11-17 13:14 UTC - Round 2: Copilot's review `5939023583` (submitted 13:09:05Z, forge `submitted_at`) on the first head, with two findings, F8 and F9. Both still applied to the current tree. The two fixes were committed at 13:10:24Z and 13:11:26Z (`git log --format=%cI`, in UTC) and pushed; `git ls-remote` showed the fork branch at the local head before the replies. The two replies were posted at 13:14:27Z and 13:14:29Z (forge `created_at`).
 - 2026-11-17 13:15 UTC - `validate-audit-record.py --pr-number 2905 --base torrust/develop`, with its `gh` calls made through `gh-bot`, exited 0 (9 rows, 0 failures). Resolved the two threads of round 2; a GraphQL refresh showed 0 unresolved threads.
+- 2026-11-17 13:23 UTC - Correction for the entry stamped 13:15: it says the two threads of round 2 were resolved. The call resolved every unresolved thread, five in all: the two of round 2 and the three threads of review `5939071001`, which had been submitted at 13:11:58Z (forge `submitted_at`) and had not been read or answered. The three were reopened by 13:16:45Z (`date -u` after the call). This repeats the mistake recorded in round 8 of the audit of pull request 2851; from here on threads are resolved by their IDs, not by a query for unresolved threads.
+- 2026-11-17 13:23 UTC - Round 3: review `5939071001` of `da2ce7` with three nits, recorded as F10 to F12. The three fixes were committed between 13:17:23Z and 13:18:56Z (`git log --format=%cI`, in UTC) and pushed with the round 2 audit commit; `git ls-remote` showed the fork branch at the local head before the replies. The three replies were posted between 13:22:34Z and 13:22:40Z (forge `created_at`).
+- 2026-11-17 13:23 UTC - `validate-audit-record.py --pr-number 2905 --base torrust/develop`, with its `gh` calls made through `gh-bot`, exited 0 (12 rows, 0 failures). Before resolving, the only unresolved threads were the three of round 3, each with the contributor's reply as its last comment. Resolved those three by their thread IDs; a GraphQL refresh showed 0 unresolved threads.
 
 <!-- Copied verbatim into each audit record. -->
 
