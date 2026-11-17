@@ -80,9 +80,16 @@ has been available, and the handoffs drawn in `docs/agents/orchestration.md` hav
 | `github-operator` | GitHub operations kept out of the main context | `create-issue`, `link-subissue-to-parent-issue`, `fetch-review-threads`, `resolve-review-threads` | Yes, through the skills |
 | `clippy-fixer` | Fix Clippy warnings, one commit per lint | `fix-clippy-warnings` skill | Yes, through the skill |
 
-Evidence that the independent task review stopped: of the issue specifications archived in October
-2026, 24 of 46 contain an `agent-review-reports.md`; of those archived from 1 November 2026 to
-15 November 2026, 2 of 30 do. The issue template still has a checkpoint for that report.
+Evidence that the independent task review stopped: of the issue folders archived in October 2026,
+25 of 48 contain an `agent-review-reports.md`; of those archived from 1 November 2026 to
+15 November 2026, 2 of 32 do. The issue template still has a checkpoint for that report.
+
+Method, on `develop` at the commit "Merge torrust/torrust-tracker#2900": a folder counts as
+archived on the UTC date of the oldest commit that added or renamed a file into
+`docs/issues/closed/<folder>/` (`git log --diff-filter=AR --name-only`, committer date); it has a
+report when `docs/issues/closed/<folder>/agent-review-reports.md` exists at that commit. The
+counts include EPIC folders: two in October, one of them with a report, and one in November,
+without.
 
 The implementation retrospective was not lost with the profiles: the `create-issue` skill and the
 issue template both require the completion review.
@@ -313,8 +320,8 @@ Decided by the maintainer on 2026-11-15:
   its frontmatter. When the agent tries to finish, the hook runs the reply validator (D18) on the
   reply file the reviewer was asked to write; if the file is missing or invalid, it exits with
   code 2, which keeps the agent working, and tells it what is wrong. Reason: the review report is
-  the one that stopped being written (24 of 46 specifications in October, 2 of 30 since
-  November). Requirements: the hook cannot loop forever (it lets the agent finish after a bounded
+  the one that stopped being written (25 of 48 archived folders in October, 2 of 32 in the first
+  half of November; see Background for the method). Requirements: the hook cannot loop forever (it lets the agent finish after a bounded
   number of refusals and says so), and it lets the agent finish when the reviewer was given no
   folder-style specification, because then there is no place for a reply file. This is the only
   hook in this issue; it is a Claude Code mechanism, so the rule itself stays written in the
