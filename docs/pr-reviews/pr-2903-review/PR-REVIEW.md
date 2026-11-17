@@ -43,7 +43,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 Round 1 is da2ce7's review `5938095803` of `690cfb5f5` (submitted as an approval, later dismissed by the
 push), round 2 his review `5938377458` of `2b0c3fe36` (comment). Their inline findings keep the
-reviewer's IDs F1 to F10; the review bodies only summarize them.
+reviewer's IDs F1 to F10; the review bodies only summarize them. Round 3 is Copilot's review `5938522893`
+of `2b0c3fe36` (12:38:26 UTC, comment, empty body), found only after the first reply push; its three
+inline comments have no IDs and get F11 to F13 in source order.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -57,6 +59,9 @@ reviewer's IDs F1 to F10; the review bodies only summarize them.
 | F8 | review-finding:pr-2903-f8 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F9 | review-finding:pr-2903-f9 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F10 | review-finding:pr-2903-f10 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-2903-f11 | Copilot | Nit (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-2903-f12 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F13 | review-finding:pr-2903-f13 | Copilot | Minor (inferred) | documentation | RE_RAISE_OF:F12 | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -190,10 +195,51 @@ reviewer's IDs F1 to F10; the review bodies only summarize them.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2903#discussion_r4599800899
 
+### F11 - The measured commits were cited by short SHA
+
+- PR number: 2903
+- Source review ID: 5938522893
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2903#discussion_r4599655402
+- Concern: Coverage evidence meant to be reproducible should record the full 40-character SHA, since a short one can become ambiguous.
+- Solution: `coverage-evidence.md` records the full SHAs of `5833cdae9` (also in its `measured-commit` frontmatter) and of `690cfb5f5`, the commit of the container-gated run; the short forms stay in prose.
+- Current-tree verification: `git rev-parse 5833cdae9 690cfb5f5` prints the two SHAs the file now cites.
+- Resolution reference: docs(issues): [#2902] record the full commit SHAs of the measurements
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2903#discussion_r4599904133
+
+### F12 - The slash in the uncovered-lines column was ambiguous
+
+- PR number: 2903
+- Source review ID: 5938522893
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2903#discussion_r4599655482
+- Concern: In the combined rows, `304 / 64` reads like a fraction and the slash does not say which file each set of lines belongs to; split the rows per file or label them.
+- Solution: The slash came from the first table and spread with the F3 fix, which used it between production and test-module lines. Every lines cell of a file with a test module now labels its `production:` and `test module:` lines, the two multi-file rows are split into one row per file (`peer_key.rs`, `key/mod.rs`; `whitelist/manager.rs`, `repository/persisted.rs`, `authorization.rs`), and the class column names alternatives in words instead of a slash.
+- Current-tree verification: `grep -n ' / [0-9]' docs/issues/open/2902-1347-add-tests-tracker-core/coverage-evidence.md` prints nothing after the `## Uncovered Line Groups` heading.
+- Resolution reference: docs(issues): [#2902] label production and test-module uncovered lines
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2903#discussion_r4599905007
+
+### F13 - The same slash ambiguity on a second row
+
+- PR number: 2903
+- Source review ID: 5938522893
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2903#discussion_r4599655543
+- Concern: The same comment as F12, on a second combined row.
+- Solution: Same change as F12; no separate fix.
+- Current-tree verification: As F12.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2903#discussion_r4599905897
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2903#discussion_r4599905897
+
 ## Processing Log
 
 - 2026-11-17 12:48 UTC - Started audit late: the round 1 threads (12:08:23 UTC) and round 2 threads (12:28:40 UTC) had no reply before this record; the fixes were committed first, between 12:37 and 12:46 UTC, one commit per finding (F5 and F9 share one).
 - 2026-11-17 12:51 UTC - Pushed the fix commits (head `37d9b1218`), edited the PR description and posted the F10 note at 12:51:13 UTC (issue comment 6948544053); replied to the ten threads between 12:51:24 and 12:51:57 UTC and resolved each after its reply.
+- 2026-11-17 12:53 UTC - Found Copilot's review `5938522893` (12:38:26 UTC, three threads), which the 12:51 replies had missed: the thread check right after pushing the audit commit (committed 12:53:03 UTC) showed three unresolved threads. Recorded as F11-F13.
+- 2026-11-17 13:01 UTC - Pushed the F11 and F12 fixes (head `8f42a03a6`); replied to the three threads between 13:01:41 and 13:01:48 UTC and resolved each after its reply (F13 superseded by F12).
 
 ## Completion Rules
 
