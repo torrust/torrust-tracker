@@ -9,7 +9,7 @@ github-issue: 2902
 spec-path: docs/issues/open/2902-1347-add-tests-tracker-core/ISSUE.md
 branch: "2902-1347-add-tests-tracker-core-spec"
 related-pr: null
-last-updated-utc: "2026-11-17 12:16"
+last-updated-utc: "2026-11-17 12:45"
 semantic-links:
   skill-links:
     - create-issue
@@ -411,6 +411,7 @@ The first slice's record checks the grouping against `find packages/tracker-core
 
 - 2026-11-17 10:57 UTC - Claude Code (Sonnet 5.5) - Created issue #2902; measured the baseline at `5833cdae9` in four scopes; drafted this specification and the coverage evidence; registered the subissue in EPIC #1347 (row 14). Open questions Q1-Q6 are for the maintainer.
 - 2026-11-17 12:16 UTC - Claude Code (Sonnet 5.5) - The maintainer allowed the Docker image pull (Q1); T1b measured the container-gated scope: lines 93.80% (server drivers 58-96% per file). No review of #2903 arrived within 60 minutes.
+- 2026-11-17 12:45 UTC - Claude Code (Opus 5.5) - Correction of the 12:16 UTC entry above: its last sentence is wrong as written. The poller I started right after the PR opened (11:05:26 UTC) timed out after its 60-minute wait with no review, but Cameron (`da2ce7`) had submitted a review of `690cfb5f5` with findings F1-F6 at 12:08:23 UTC, before that entry was written, and the six threads had no reply. A second review of `2b0c3fe36` (F7-F10) followed at 12:28:40 UTC. The ten findings are processed in `docs/pr-reviews/pr-2903-review/PR-REVIEW.md` (review finding F7 of #2903).
 
 ## Open Design Questions
 
