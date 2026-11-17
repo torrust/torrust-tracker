@@ -1,7 +1,7 @@
 ---
 pr-number: 2920
 pr-url: https://github.com/torrust/torrust-tracker/pull/2920
-last-updated-utc: "2026-11-17 18:58"
+last-updated-utc: "2026-11-17 19:02"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -48,6 +48,8 @@ Round 1 is two reviews on the first head that carried the post-merge audit rows 
 with its own IDs F1 and F2, which collide with the first review's and are recorded as F9 and F10). F8 and F10 were processed after the others, once the maintainer had posted the comment they ask for; see the Processing Log.
 Round 2 is the approving review `5944190011` of `da2ce7` (F11 and F12, audit-local IDs; the reviewer numbers them F22
 and F23, continuing the count of pull request 2905's record), on the head that carried the last audit commit of round 1.
+Round 3 is the approving review `5944671302` of `da2ce7` (F13, audit-local ID; the reviewer numbers it F24), on the head
+that carried the round 2 audit.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -63,6 +65,7 @@ and F23, continuing the count of pull request 2905's record), on the head that c
 | F10 | `review-finding:pr-2920-f10` | Copilot | Minor | documentation | RE_RAISE_OF:F8 | FIXED | RESOLVED |
 | F11 | `review-finding:pr-2920-f11` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F12 | `review-finding:pr-2920-f12` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F13 | `review-finding:pr-2920-f13` | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -222,6 +225,19 @@ and F23, continuing the count of pull request 2905's record), on the head that c
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2920#discussion_r4604090708
 
+### F13 - Two current-tree verifications of the round 2 rows do not show what they state
+
+- PR number: 2920
+- Source review ID: 5944671302
+- Reviewer finding ID: F24
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2920#discussion_r4604278993
+- Concern: The verification of F12 gave the counts 15 and 7 for the two placeholder names; at the head they are 16 and 8, the earlier counts being from before the fix. The verification of F11 cited a `grep -c` for a literal local path, which prints 0 whatever the probes answered because every path in the answers file is replaced, and it named a local folder the answers file withholds.
+- Solution: The line of F12 gives 16 and 8 and says one of each is the new paragraph. The line of F11 cites the Q3 answers of the six probes of checkout P instead of the path search. The Processing Log has a correction entry.
+- Current-tree verification: `grep -c "<worktree>"` and `grep -c "<repo>"` on `evidence/m4-probe-answers.md`, run again after the fix of round 2, print 16 and 8. A script listed the `AGENTS.md` and `CLAUDE.md` paths in the Q3 answers of probes 1, 2, 7, 8, 11 and 12: each list holds the parent folder's `CLAUDE.md` or files of checkout P only. A search of `docs/` for the local folder name the earlier line contained finds no match.
+- Resolution reference: `docs(pr-reviews): [#2904] correct two verification lines in the review audit of PR #2920`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2920#discussion_r4604343733
+
 ## Processing Log
 
 - 2026-11-17 17:55 UTC - Started audit.
@@ -233,6 +249,8 @@ and F23, continuing the count of pull request 2905's record), on the head that c
 - 2026-11-17 18:39 UTC - Round 2: the approving review `5944190011` of `da2ce7` (submitted 18:21:14Z, forge `submitted_at`) with two nits, recorded as F11 and F12. The reviewer's `ACK` comment (18:21:18Z, forge `created_at`) names the head it read; the fix moves the head past it. The contributor (maintainer of the repository) chose to fix them in this pull request. The fix was committed at 18:35:10Z (`git log --format=%cI`, in UTC) and pushed; `git ls-remote` showed the fork branch at the local head at 18:38:31Z (`date -u`). The two replies were posted at 18:38:46Z and 18:38:48Z (forge `created_at`), after the push.
 - 2026-11-17 18:39 UTC - `validate-audit-record.py --pr-number 2920 --base torrust/develop`, with its `gh` calls made through `gh-bot`, exited 0 (12 rows, 0 failures). Resolved the two threads of F11 and F12 by their thread IDs; a GraphQL refresh showed 0 unresolved threads.
 - 2026-11-17 18:58 UTC - Correction to the Current-tree verification lines of F11 and F12, after the review `5944671302` of `da2ce7`. F12 gave the counts 15 and 7, taken before the fix added one line with each name; at the fix they are 16 and 8. F11 cited a `grep -c` for a local path that prints 0 whatever the probes answered, because every path in the answers file is replaced, and it named a local folder the answers file withholds; it now cites the Q3 answers of the six probes of checkout P, read in the file.
+- 2026-11-17 19:01 UTC - Round 3: the approving review `5944671302` of `da2ce7` (submitted 18:55:59Z, forge `submitted_at`) with one nit, recorded as F13. The reviewer's `ACK` comment (18:56:04Z, forge `created_at`) names the head it read; the fix moves the head past it. The fix was committed at 18:58:46Z (`git log --format=%cI`, in UTC) and pushed; `git ls-remote` showed the fork branch at the local head before the reply. The reply was posted at 19:01:47Z (forge `created_at`), after the push.
+- 2026-11-17 19:02 UTC - `validate-audit-record.py --pr-number 2920 --base torrust/develop`, with its `gh` calls made through `gh-bot`, exited 0 (13 rows, 0 failures). Resolved the thread of F13 by its thread ID; a GraphQL refresh showed 0 unresolved threads.
 
 <!-- Copied verbatim into each audit record. -->
 
