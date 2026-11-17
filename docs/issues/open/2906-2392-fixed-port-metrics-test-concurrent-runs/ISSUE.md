@@ -9,7 +9,7 @@ github-issue: 2906
 spec-path: docs/issues/open/2906-2392-fixed-port-metrics-test-concurrent-runs/ISSUE.md
 branch: "2392-audit-follow-up-issues-spec"
 related-pr: null
-last-updated-utc: "2026-11-17 15:22"
+last-updated-utc: "2026-11-17 15:52"
 semantic-links:
   skill-links:
     - create-issue
@@ -75,9 +75,10 @@ Where it can happen:
 - Make concurrent runs of `metrics-fixed-ports` not collide, keeping listeners on configured
   non-zero ports. Candidate approach, still undecided: the maintainer approved the draft in the
   review of PR #2891 but left this approach open, to be decided before T2 (see Architectural
-  Decisions). It binds the four fixed ports on a random loopback address from `torrust_tracker_test_helpers::random::loopback_ipv4()` (#2393)
-  instead of `0.0.0.0`, so two runs use different addresses with the same ports. Linux only, like
-  the nine #2393 tests that use the helper, so the test is ignored off Linux.
+  Decisions). If chosen, it would bind the four fixed ports on a random loopback address from
+  `torrust_tracker_test_helpers::random::loopback_ipv4()` (#2393) instead of `0.0.0.0`, so two
+  runs would use different addresses with the same ports. It would be Linux only, like the nine
+  #2393 tests that use the helper, so the test would be ignored off Linux.
 - Document in the test why the ports are fixed and how concurrent runs avoid each other.
 
 ### Out of Scope
@@ -180,6 +181,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-17 15:22 UTC - Claude Code (Claude Opus 5.5), EPIC #2392 coordinator - Made explicit that the
   draft's approval left the loopback-helper extension undecided: the maintainer decides it before
   T2 (da2ce7's review of PR #2910, F1).
+- 2026-11-17 15:52 UTC - Claude Code (Claude Opus 5.5), EPIC #2392 coordinator - Scope now
+  describes the candidate approach in the conditional (Copilot's review of PR #2910).
 
 ## Acceptance Criteria
 
