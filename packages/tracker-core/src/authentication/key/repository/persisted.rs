@@ -80,30 +80,16 @@ mod tests {
 
         use std::time::Duration;
 
-        use torrust_tracker_configuration::v3_0_0::core::Core;
-        use torrust_tracker_configuration::v3_0_0::database::Database;
-        use torrust_tracker_test_helpers::configuration::ephemeral_sqlite_database;
-
         use crate::authentication::key::repository::persisted::DatabaseKeyRepository;
         use crate::authentication::{Key, PeerKey};
         use crate::databases::setup::initialize_database;
-
-        fn ephemeral_configuration() -> Core {
-            let mut config = Core::default();
-            let temp_file = ephemeral_sqlite_database();
-            let database = config.database.get_or_insert_with(Database::default);
-            let torrust_tracker_configuration::v3_0_0::database::Database::Sqlite3 { path } = database else {
-                unreachable!("default core configuration uses SQLite persistence");
-            };
-            temp_file.to_str().unwrap().clone_into(path);
-            config
-        }
+        use crate::test_helpers::tests::ephemeral_configuration;
 
         #[tokio::test]
         async fn persist_a_new_peer_key() {
-            let configuration = ephemeral_configuration();
+            let ephemeral = ephemeral_configuration();
 
-            let stores = initialize_database(&configuration).await;
+            let stores = initialize_database(&ephemeral.config).await;
 
             let repository = DatabaseKeyRepository::new(&stores.auth_key_store);
 
@@ -121,9 +107,9 @@ mod tests {
 
         #[tokio::test]
         async fn remove_a_persisted_peer_key() {
-            let configuration = ephemeral_configuration();
+            let ephemeral = ephemeral_configuration();
 
-            let stores = initialize_database(&configuration).await;
+            let stores = initialize_database(&ephemeral.config).await;
 
             let repository = DatabaseKeyRepository::new(&stores.auth_key_store);
 
@@ -143,9 +129,9 @@ mod tests {
 
         #[tokio::test]
         async fn load_all_persisted_peer_keys() {
-            let configuration = ephemeral_configuration();
+            let ephemeral = ephemeral_configuration();
 
-            let stores = initialize_database(&configuration).await;
+            let stores = initialize_database(&ephemeral.config).await;
 
             let repository = DatabaseKeyRepository::new(&stores.auth_key_store);
 

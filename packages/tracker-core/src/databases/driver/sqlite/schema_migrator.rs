@@ -161,7 +161,7 @@ mod tests {
 
     use ::sqlx::SqlitePool;
     use ::sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
-    use torrust_tracker_test_helpers::configuration::ephemeral_sqlite_database;
+    use tempfile::TempDir;
 
     use super::{LEGACY_TABLES, bootstrap_legacy_schema};
     use crate::databases::SchemaMigrator;
@@ -176,14 +176,18 @@ mod tests {
     /// `Sqlite::new`) so the filesystem path is handled by `sqlx` directly
     /// instead of being string-formatted into a `sqlite://` URL — that keeps
     /// non-UTF-8 and Windows paths working.
-    async fn new_pool() -> (SqlitePool, PathBuf) {
-        let path = ephemeral_sqlite_database();
+    ///
+    /// The database lives in a temporary directory returned with the pool; keep it alive for as long as the pool is
+    /// used, so the directory and the database are removed when the test ends, also by panicking.
+    async fn new_pool() -> (SqlitePool, PathBuf, TempDir) {
+        let database_directory = tempfile::tempdir().expect("a temporary directory can be created");
+        let path = database_directory.path().join("data.db");
         let options = SqliteConnectOptions::new().filename(&path).create_if_missing(true);
         let pool = SqlitePoolOptions::new()
             .connect_with(options)
             .await
             .expect("connect to sqlite");
-        (pool, path)
+        (pool, path, database_directory)
     }
 
     fn driver(path: &std::path::Path) -> Sqlite {
@@ -216,7 +220,7 @@ mod tests {
 
     #[tokio::test]
     async fn bootstrap_legacy_schema_should_be_a_noop_on_a_fresh_database() {
-        let (pool, _path) = new_pool().await;
+        let (pool, _path, _database_directory) = new_pool().await;
 
         bootstrap_legacy_schema(&pool).await.expect("noop on empty db");
 
@@ -232,7 +236,7 @@ mod tests {
 
     #[tokio::test]
     async fn bootstrap_legacy_schema_should_seed_history_when_all_legacy_tables_exist() {
-        let (pool, path) = new_pool().await;
+        let (pool, path, _database_directory) = new_pool().await;
 
         create_legacy_pre_v4_schema(&pool).await;
 
@@ -255,7 +259,7 @@ mod tests {
 
     #[tokio::test]
     async fn bootstrap_legacy_schema_should_reject_partial_legacy_state() {
-        let (pool, _path) = new_pool().await;
+        let (pool, _path, _database_directory) = new_pool().await;
 
         // Only two of the four legacy tables exist.
         ::sqlx::query("CREATE TABLE whitelist (id INTEGER PRIMARY KEY);")
