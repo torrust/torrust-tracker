@@ -48,6 +48,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F3 | review-finding:pr-2919-f3 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F4 | review-finding:pr-2919-f4 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F5 | review-finding:pr-2919-f5 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F6 | review-finding:pr-2919-f6 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-2919-f7 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -72,7 +74,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2919#discussion_r4603304297
 - Concern: The repaired sentence in the #2804 audit spec still said "EPIC draft", and the paragraph after the table said the EPIC and its sub-issues were drafts with no issue, which was false once #2912 to #2918 existed.
 - Solution: The sentence names EPIC #2912, the table says "Sub-issues", and the paragraph says the issues exist, that the closing condition is met and that the issue's own session does the close-out.
-- Current-tree verification: `grep -n 'EPIC #2912' docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md` finds the sentence, the paragraph and (after F5) the heading.
+- Current-tree verification: `grep -n '#2912' docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md` finds the heading (after F5, `EPIC #2912`), the sentence (`EPIC #2912`) and the paragraph (`issue #2912`).
 - Resolution reference: `docs(issues): [#2912] address review of PR 2919: approval checkpoints, audit status and option wording`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2919#discussion_r4603383063
@@ -116,11 +118,38 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2919#discussion_r4603526079
 
+### F6 - The F2 verification claims a grep match it does not produce
+
+- PR number: 2919
+- Source review ID: 5943851942
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2919#discussion_r4603665151
+- Concern: The F2 verification said `grep -n 'EPIC #2912'` finds the sentence, the paragraph and the heading, but it prints only the heading and the sentence; the paragraph says `issue #2912`.
+- Solution: The F2 verification now uses `grep -n '#2912'` and names what each of the three matches says.
+- Current-tree verification: `grep -n '#2912' docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md` prints lines 215, 220 and 228 (heading, sentence, paragraph), plus other lines that cite the EPIC.
+- Resolution reference: `docs(pr-reviews): [#2912] correct the F2 verification and drop a branch commit id from the review audit of PR 2919`
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
+### F7 - The Processing Log cites a branch commit id as its own reference
+
+- PR number: 2919
+- Source review ID: 5943851942
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2919#discussion_r4603665136
+- Concern: The 17:48 Processing Log entry named the head by its branch commit id, which a rebase changes; `open-pull-request` forbids such ids in durable references, except where the record maps the id cited by uneditable replies.
+- Solution: The entry now names that commit by its subject, and a correction entry at the end of the log records the change.
+- Current-tree verification: the commit-id check of `open-pull-request` prints only `280121c6a`, the id the round 1 replies cite and the Processing Log maps to its subject.
+- Resolution reference: `docs(pr-reviews): [#2912] correct the F2 verification and drop a branch commit id from the review audit of PR 2919`
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
 ## Processing Log
 
 - 2026-11-17 17:35 UTC - Replied to F1 to F3 (replies created from 17:35:15Z to 17:35:20Z) and resolved their threads after pushing the round 1 fixes, before this record existed: a late start of the audit. The replies cite the branch commit id `280121c6a`, which is the commit `docs(issues): [#2912] address review of PR 2919: approval checkpoints, audit status and option wording`. The three independent fixes share that one commit instead of one commit each (step 6). The F1 reply says the #384 spec now ticks both checkpoints; only the approval checkpoint changed there, because its issue checkpoint was already ticked.
 - 2026-11-17 17:44 UTC - Started audit: created this record from `docs/templates/PR-REVIEW-TEMPLATE.md` after da2ce7's round 2 review 5943554323 (F4 asked for it). Normalized round 1 (F1 to F3, review 5943374190) and round 2 (F4 and F5); committed the F5 fix (`docs(issues): [#2912] date only the new sub-issues in the #2804 audit spec and name the EPIC in its heading`) before this record. Copilot review 5943384927 is an overview with no actionable assertion, so it has no row.
-- 2026-11-17 17:48 UTC - Pushed the F5 fix and this record (head `a728bc17d`), then replied to F4 and F5 (replies created at 17:48:01Z and 17:48:04Z) and filled in their reply URLs. `validate-audit-record.py --pr-number 2919 --base torrust/develop`, run from a scratchpad copy whose `gh` calls go through `gh-bot`, reported 5 rows, 0 failures on this worktree record.
+- 2026-11-17 17:48 UTC - Pushed the F5 fix and this record (head commit `docs(pr-reviews): [#2912] record the review audit of PR 2919`), then replied to F4 and F5 (replies created at 17:48:01Z and 17:48:04Z) and filled in their reply URLs. `validate-audit-record.py --pr-number 2919 --base torrust/develop`, run from a scratchpad copy whose `gh` calls go through `gh-bot`, reported 5 rows, 0 failures on this worktree record.
+- 2026-11-17 18:02 UTC - Round 3: normalized da2ce7 review 5943851942 (APPROVED) with findings F6 and F7. Correction (F7) of the 2026-11-17 17:48 entry: its words naming the head by branch commit id were replaced in place by the commit subject `docs(pr-reviews): [#2912] record the review audit of PR 2919`; the rest of that entry is unchanged. F6 corrected the F2 verification line.
 
 ## Completion Rules
 
