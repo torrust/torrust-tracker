@@ -9,7 +9,7 @@ github-issue: 2904
 spec-path: docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md
 branch: "2904-migrate-custom-agents-to-claude-code-spec"
 related-pr: null
-last-updated-utc: "2026-11-17 13:54"
+last-updated-utc: "2026-11-17 15:23"
 semantic-links:
   skill-links:
     - create-issue
@@ -365,16 +365,19 @@ Decided by the maintainer on 2026-11-15:
   - Every agent the orchestrator starts writes a reply file. `pr-review-handler` is the
     exception for now: its audit record `PR-REVIEW.md` is its trace, and converting it belongs
     to the audit tooling of EPIC #2278.
-  - The reply file replaces `agent-review-reports.md` from the merge of T5, when the
-    `task-reviewer` agent and its stop hook exist. The switch is keyed to that merge, not to the
-    template a specification came from, so the hook needs no exemption: from then on a
-    `task-reviewer` run on any folder-style specification, this one included, writes a reply
-    file and no entry in `agent-review-reports.md`. A review made before that merge is recorded
-    in `agent-review-reports.md`, and closed specifications keep theirs. A specification
-    created from the earlier template still has a checkpoint that names `agent-review-reports.md`;
-    T5 states in `review-task` that a reply file satisfies it, and T9 changes the template. For
-    this issue, that means `agent-review-reports.md` for a review of T2 to T5 and reply files for
-    a review of T6 to T12. The `agent-review-report-contract` check loses only
+  - The reply file replaces `agent-review-reports.md` from T5, the task that adds the
+    `task-reviewer` agent and its stop hook. The switch is keyed to whether the branch reviewed
+    has that agent, not to the template a specification came from, so the hook needs no
+    exemption. The review of T5 itself is made on the T5 branch, where the agent and its hook
+    already exist, so it runs the agent and writes a reply file (scenario M7 runs it there).
+    From the merge of T5 a `task-reviewer` run on any folder-style specification, this one
+    included, writes a reply file and no entry in `agent-review-reports.md`. A review made on
+    a branch without the agent is recorded in `agent-review-reports.md`, and closed
+    specifications keep theirs. A specification created from the earlier template still has a
+    checkpoint that names `agent-review-reports.md`; T5 states in `review-task` that a reply
+    file satisfies it, and T9 changes the template. For this issue, that means
+    `agent-review-reports.md` for a review of T2 to T4 and reply files for a review of T5 to
+    T12. The `agent-review-report-contract` check loses only
     the rules that name the Copilot profiles and `docs/templates/AGENT-REVIEW-REPORTS.md`; the
     reply validator replaces those. Its other rules stay: they guard the pull-request audit
     contract (`process-pr-review`, `PR-REVIEW-TEMPLATE.md`, the review-finding references, the
@@ -579,7 +582,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification (from the merge of T5 a reply file in `agent-replies/` satisfies this; see D18)
+- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification (from the review of T5 a reply file in `agent-replies/` satisfies this; see D18)
 - [ ] Spec progress verified as up to date before each commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
@@ -593,6 +596,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - 2026-11-17 13:19 UTC - Claude Code (Claude Fable 5.2) - Addressed the review `5939071001` of `da2ce7` on pull request #2905 (three nits): the archived-report method names the revision where the report is checked, the inventory's destinations agree with AC6, and Automatic Checks lists the stop hook's tests.
 - 2026-11-17 13:35 UTC - Claude Code (Claude Fable 5.2) - Addressed the approving review `5939415019` of `da2ce7` on pull request #2905 (one minor finding): the switch from `agent-review-reports.md` to reply files is keyed to the merge of T5, so the stop hook needs no exemption for this specification.
 - 2026-11-17 13:54 UTC - Claude Code (Claude Fable 5.2) - Addressed Copilot's review `5939656808` on pull request #2905 (two findings): T2 and M4 cover the ten scoped `AGENTS.md` files, and the `agent-review-report-contract` check keeps its pull-request audit rules.
+- 2026-11-17 15:23 UTC - Claude Code (Claude Fable 5.2) - Addressed the reviews `5939681382` and `5939862849` of `da2ce7` on pull request #2905 (one nit, one minor finding about the audit record): the review of T5 itself runs the `task-reviewer` agent on the T5 branch and writes a reply file, so this issue uses `agent-review-reports.md` for T2 to T4 and reply files for T5 to T12.
 
 ## Acceptance Criteria
 
@@ -729,8 +733,8 @@ material design changes, unexpected validation findings, and reusable lessons.
 - If no retrospective is needed, add a concise progress-log entry explaining why the work had no
   material discovery.
 - When an independent reviewer receives this folder-style specification, it records its result in
-  `agent-review-reports.md` using `docs/templates/AGENT-REVIEW-REPORTS.md`. From the merge of T5 the
-  reviewer writes a JSON reply file instead, as D18 states.
+  `agent-review-reports.md` using `docs/templates/AGENT-REVIEW-REPORTS.md`. From the review of T5
+  the reviewer writes a JSON reply file instead, as D18 states.
 
 This step is not optional: the close-out pull request carries either the retrospective or the
 progress-log entry.
