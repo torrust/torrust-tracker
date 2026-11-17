@@ -196,7 +196,8 @@ mod tests {
     #[tokio::test]
     async fn it_should_construct_a_tracker_core_container_with_supplied_persistence() {
         // Arrange
-        let core_config = Arc::new(ephemeral_configuration());
+        let ephemeral = ephemeral_configuration();
+        let core_config = Arc::new(ephemeral.config.clone());
         let swarm_coordination_registry_container =
             Arc::new(SwarmCoordinationRegistryContainer::initialize(SenderStatus::Disabled));
 
@@ -215,9 +216,9 @@ mod tests {
     #[tokio::test]
     async fn it_should_load_persistent_completed_statistics_when_a_torrent_is_first_announced() {
         // Arrange
-        let mut core_config = ephemeral_configuration();
-        core_config.tracker_policy.persistent_torrent_completed_stat = true;
-        let core_config = Arc::new(core_config);
+        let mut ephemeral = ephemeral_configuration();
+        ephemeral.config.tracker_policy.persistent_torrent_completed_stat = true;
+        let core_config = Arc::new(ephemeral.config.clone());
         let swarm_coordination_registry_container =
             Arc::new(SwarmCoordinationRegistryContainer::initialize(SenderStatus::Disabled));
         let info_hash = sample_info_hash();

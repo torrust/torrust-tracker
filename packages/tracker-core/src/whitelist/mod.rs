@@ -28,11 +28,12 @@ mod tests {
 
         mod handling_authorization {
             use crate::test_helpers::tests::sample_info_hash;
-            use crate::whitelist::test_helpers::tests::initialize_whitelist_services_for_listed_tracker;
+            use crate::whitelist::test_helpers::tests::{initialize_whitelist_services, listed_tracker};
 
             #[tokio::test]
             async fn it_should_authorize_the_announce_and_scrape_actions_on_whitelisted_torrents() {
-                let (whitelist_authorization, whitelist_manager) = initialize_whitelist_services_for_listed_tracker().await;
+                let ephemeral = listed_tracker();
+                let (whitelist_authorization, whitelist_manager) = initialize_whitelist_services(&ephemeral.config).await;
 
                 let info_hash = sample_info_hash();
 
@@ -45,7 +46,8 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_not_authorize_the_announce_and_scrape_actions_on_not_whitelisted_torrents() {
-                let (whitelist_authorization, _whitelist_manager) = initialize_whitelist_services_for_listed_tracker().await;
+                let ephemeral = listed_tracker();
+                let (whitelist_authorization, _whitelist_manager) = initialize_whitelist_services(&ephemeral.config).await;
 
                 let info_hash = sample_info_hash();
 

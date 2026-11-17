@@ -10,8 +10,10 @@ pub mod tests {
     use std::sync::Arc;
 
     use torrust_tracker_configuration::v3_0_0::Configuration;
+    use torrust_tracker_test_helpers::configuration;
 
     use crate::databases::setup::initialize_database;
+    use crate::test_helpers::tests::{EphemeralTrackerConfiguration, ephemeral_tracker_configuration};
     use crate::whitelist::authorization::WhitelistAuthorization;
     use crate::whitelist::manager::WhitelistManager;
     use crate::whitelist::repository::in_memory::InMemoryWhitelist;
@@ -28,9 +30,7 @@ pub mod tests {
     }
 
     #[must_use]
-    pub async fn initialize_whitelist_services_for_listed_tracker() -> (Arc<WhitelistAuthorization>, Arc<WhitelistManager>) {
-        use torrust_tracker_test_helpers::configuration;
-
-        initialize_whitelist_services(&configuration::ephemeral_listed()).await
+    pub fn listed_tracker() -> EphemeralTrackerConfiguration {
+        ephemeral_tracker_configuration(configuration::ephemeral_listed())
     }
 }

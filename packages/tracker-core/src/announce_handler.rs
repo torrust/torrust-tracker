@@ -308,20 +308,16 @@ mod tests {
 
         use std::net::{IpAddr, Ipv4Addr, SocketAddr};
         use std::str::FromStr;
-        use std::sync::Arc;
 
         use torrust_clock::DurationSinceUnixEpoch;
         use torrust_tracker_primitives::peer::Peer;
         use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId};
         use torrust_tracker_test_helpers::configuration;
 
-        use crate::announce_handler::AnnounceHandler;
-        use crate::scrape_handler::ScrapeHandler;
-        use crate::test_helpers::tests::initialize_handlers;
+        use crate::test_helpers::tests::{EphemeralTrackerConfiguration, ephemeral_tracker_configuration};
 
-        async fn public_tracker() -> (Arc<AnnounceHandler>, Arc<ScrapeHandler>) {
-            let config = configuration::ephemeral_public();
-            initialize_handlers(&config).await
+        fn public_tracker() -> EphemeralTrackerConfiguration {
+            ephemeral_tracker_configuration(configuration::ephemeral_public())
         }
 
         // The client peer IP
@@ -378,7 +374,7 @@ mod tests {
                 use crate::announce_handler::tests::the_announce_handler::{
                     peer_ip, public_tracker, sample_peer_1, sample_peer_2, sample_peer_3,
                 };
-                use crate::test_helpers::tests::{sample_info_hash, sample_peer};
+                use crate::test_helpers::tests::{initialize_handlers, sample_info_hash, sample_peer};
 
                 mod should_assign_the_ip_to_the_peer {
 
@@ -544,7 +540,8 @@ mod tests {
 
                 #[tokio::test]
                 async fn it_should_return_the_announce_data_with_an_empty_peer_list_when_it_is_the_first_announced_peer() {
-                    let (announce_handler, _scrape_handler) = public_tracker().await;
+                    let ephemeral = public_tracker();
+                    let (announce_handler, _scrape_handler) = initialize_handlers(&ephemeral.config).await;
 
                     let mut peer = sample_peer();
 
@@ -564,7 +561,8 @@ mod tests {
 
                 #[tokio::test]
                 async fn it_should_return_the_announce_data_with_the_previously_announced_peers() {
-                    let (announce_handler, _scrape_handler) = public_tracker().await;
+                    let ephemeral = public_tracker();
+                    let (announce_handler, _scrape_handler) = initialize_handlers(&ephemeral.config).await;
 
                     let mut previously_announced_peer = sample_peer_1();
                     announce_handler
@@ -595,7 +593,8 @@ mod tests {
 
                 #[tokio::test]
                 async fn it_should_allow_peers_to_get_only_a_subset_of_the_peers_in_the_swarm() {
-                    let (announce_handler, _scrape_handler) = public_tracker().await;
+                    let ephemeral = public_tracker();
+                    let (announce_handler, _scrape_handler) = initialize_handlers(&ephemeral.config).await;
 
                     let mut previously_announced_peer_1 = sample_peer_1();
                     announce_handler
@@ -639,11 +638,14 @@ mod tests {
 
                     use crate::announce_handler::PeersWanted;
                     use crate::announce_handler::tests::the_announce_handler::{peer_ip, public_tracker};
-                    use crate::test_helpers::tests::{completed_peer, leecher, sample_info_hash, seeder, started_peer};
+                    use crate::test_helpers::tests::{
+                        completed_peer, initialize_handlers, leecher, sample_info_hash, seeder, started_peer,
+                    };
 
                     #[tokio::test]
                     async fn when_the_peer_is_a_seeder() {
-                        let (announce_handler, _scrape_handler) = public_tracker().await;
+                        let ephemeral = public_tracker();
+                        let (announce_handler, _scrape_handler) = initialize_handlers(&ephemeral.config).await;
 
                         let mut peer = seeder();
 
@@ -663,7 +665,8 @@ mod tests {
 
                     #[tokio::test]
                     async fn when_the_peer_is_a_leecher() {
-                        let (announce_handler, _scrape_handler) = public_tracker().await;
+                        let ephemeral = public_tracker();
+                        let (announce_handler, _scrape_handler) = initialize_handlers(&ephemeral.config).await;
 
                         let mut peer = leecher();
 
@@ -683,7 +686,8 @@ mod tests {
 
                     #[tokio::test]
                     async fn when_a_previously_announced_started_peer_has_completed_downloading() {
-                        let (announce_handler, _scrape_handler) = public_tracker().await;
+                        let ephemeral = public_tracker();
+                        let (announce_handler, _scrape_handler) = initialize_handlers(&ephemeral.config).await;
 
                         // We have to announce with "started" event because peer does not count if peer was not previously known
                         let mut started_peer = started_peer();

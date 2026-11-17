@@ -300,11 +300,10 @@ mod tests {
         use crate::authentication::key::repository::persisted::DatabaseKeyRepository;
         use crate::databases::setup::initialize_database;
         use crate::databases::{AuthKeyStore, MockAuthKeyStore};
+        use crate::test_helpers::tests::{EphemeralTrackerConfiguration, ephemeral_tracker_configuration};
 
-        async fn instantiate_keys_handler() -> KeysHandler {
-            let config = configuration::ephemeral_private();
-
-            instantiate_keys_handler_with_configuration(&config).await
+        fn private_tracker() -> EphemeralTrackerConfiguration {
+            ephemeral_tracker_configuration(configuration::ephemeral_private())
         }
 
         fn instantiate_keys_handler_with_database(auth_key_store: &Arc<dyn AuthKeyStore>) -> KeysHandler {
@@ -314,7 +313,7 @@ mod tests {
             KeysHandler::new(&db_key_repository, &in_memory_key_repository)
         }
 
-        async fn instantiate_keys_handler_with_configuration(config: &Configuration) -> KeysHandler {
+        async fn instantiate_keys_handler(config: &Configuration) -> KeysHandler {
             // todo: pass only Core configuration
 
             let stores = initialize_database(&config.core).await;
@@ -334,11 +333,14 @@ mod tests {
             use torrust_clock::clock::Time;
 
             use crate::CurrentClock;
-            use crate::authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::instantiate_keys_handler;
+            use crate::authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::{
+                instantiate_keys_handler, private_tracker,
+            };
 
             #[tokio::test]
             async fn it_should_generate_the_key() {
-                let keys_handler = instantiate_keys_handler().await;
+                let ephemeral = private_tracker();
+                let keys_handler = instantiate_keys_handler(&ephemeral.config).await;
 
                 let peer_key = keys_handler
                     .generate_expiring_peer_key(Some(Duration::from_secs(100)))
@@ -365,14 +367,15 @@ mod tests {
                 use crate::authentication::PeerKey;
                 use crate::authentication::handler::AddKeyRequest;
                 use crate::authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::{
-                    instantiate_keys_handler, instantiate_keys_handler_with_database, mock_auth_key_store,
+                    instantiate_keys_handler, instantiate_keys_handler_with_database, mock_auth_key_store, private_tracker,
                 };
                 use crate::databases::{self, AuthKeyStore};
                 use crate::error::PeerKeyError;
 
                 #[tokio::test]
                 async fn it_should_add_a_randomly_generated_key() {
-                    let keys_handler = instantiate_keys_handler().await;
+                    let ephemeral = private_tracker();
+                    let keys_handler = instantiate_keys_handler(&ephemeral.config).await;
 
                     let peer_key = keys_handler
                         .add_peer_key(AddKeyRequest {
@@ -438,7 +441,7 @@ mod tests {
                 use crate::CurrentClock;
                 use crate::authentication::handler::AddKeyRequest;
                 use crate::authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::{
-                    instantiate_keys_handler, instantiate_keys_handler_with_database, mock_auth_key_store,
+                    instantiate_keys_handler, instantiate_keys_handler_with_database, mock_auth_key_store, private_tracker,
                 };
                 use crate::authentication::{Key, PeerKey};
                 use crate::databases::{self, AuthKeyStore};
@@ -446,7 +449,8 @@ mod tests {
 
                 #[tokio::test]
                 async fn it_should_add_a_pre_generated_key() {
-                    let keys_handler = instantiate_keys_handler().await;
+                    let ephemeral = private_tracker();
+                    let keys_handler = instantiate_keys_handler(&ephemeral.config).await;
 
                     let peer_key = keys_handler
                         .add_peer_key(AddKeyRequest {
@@ -467,7 +471,8 @@ mod tests {
 
                 #[tokio::test]
                 async fn it_should_fail_adding_a_pre_generated_key_when_the_key_duration_exceeds_the_maximum_duration() {
-                    let keys_handler = instantiate_keys_handler().await;
+                    let ephemeral = private_tracker();
+                    let keys_handler = instantiate_keys_handler(&ephemeral.config).await;
 
                     let result = keys_handler
                         .add_peer_key(AddKeyRequest {
@@ -481,7 +486,8 @@ mod tests {
 
                 #[tokio::test]
                 async fn it_should_fail_adding_a_pre_generated_key_when_the_key_is_invalid() {
-                    let keys_handler = instantiate_keys_handler().await;
+                    let ephemeral = private_tracker();
+                    let keys_handler = instantiate_keys_handler(&ephemeral.config).await;
 
                     let result = keys_handler
                         .add_peer_key(AddKeyRequest {
@@ -546,14 +552,15 @@ mod tests {
                 use crate::authentication::PeerKey;
                 use crate::authentication::handler::AddKeyRequest;
                 use crate::authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::{
-                    instantiate_keys_handler, instantiate_keys_handler_with_database, mock_auth_key_store,
+                    instantiate_keys_handler, instantiate_keys_handler_with_database, mock_auth_key_store, private_tracker,
                 };
                 use crate::databases::{self, AuthKeyStore};
                 use crate::error::PeerKeyError;
 
                 #[tokio::test]
                 async fn it_should_generate_the_key() {
-                    let keys_handler = instantiate_keys_handler().await;
+                    let ephemeral = private_tracker();
+                    let keys_handler = instantiate_keys_handler(&ephemeral.config).await;
 
                     let peer_key = keys_handler.generate_permanent_peer_key().await.unwrap();
 
@@ -562,7 +569,8 @@ mod tests {
 
                 #[tokio::test]
                 async fn it_should_add_a_randomly_generated_key() {
-                    let keys_handler = instantiate_keys_handler().await;
+                    let ephemeral = private_tracker();
+                    let keys_handler = instantiate_keys_handler(&ephemeral.config).await;
 
                     let peer_key = keys_handler
                         .add_peer_key(AddKeyRequest {
@@ -615,7 +623,7 @@ mod tests {
 
                 use crate::authentication::handler::AddKeyRequest;
                 use crate::authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::{
-                    instantiate_keys_handler, instantiate_keys_handler_with_database, mock_auth_key_store,
+                    instantiate_keys_handler, instantiate_keys_handler_with_database, mock_auth_key_store, private_tracker,
                 };
                 use crate::authentication::{Key, PeerKey};
                 use crate::databases::{self, AuthKeyStore};
@@ -623,7 +631,8 @@ mod tests {
 
                 #[tokio::test]
                 async fn it_should_add_a_pre_generated_key() {
-                    let keys_handler = instantiate_keys_handler().await;
+                    let ephemeral = private_tracker();
+                    let keys_handler = instantiate_keys_handler(&ephemeral.config).await;
 
                     let peer_key = keys_handler
                         .add_peer_key(AddKeyRequest {
@@ -644,7 +653,8 @@ mod tests {
 
                 #[tokio::test]
                 async fn it_should_fail_adding_a_pre_generated_key_when_the_key_is_invalid() {
-                    let keys_handler = instantiate_keys_handler().await;
+                    let ephemeral = private_tracker();
+                    let keys_handler = instantiate_keys_handler(&ephemeral.config).await;
 
                     let result = keys_handler
                         .add_peer_key(AddKeyRequest {
