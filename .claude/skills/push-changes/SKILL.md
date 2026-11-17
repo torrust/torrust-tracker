@@ -1,6 +1,6 @@
 ---
 name: push-changes
-description: Guide for pushing commits in the torrust-tracker project. Covers the push workflow, pre-push hook setup, and the SSH idle-timeout problem that can interrupt pushes when the pre-push hook runs long. Triggers on "push changes", "git push", "how to push", "push branch", "SSH timeout on push", or "Connection closed by remote host".
+description: Push commits through the pre-push hook, and avoid the SSH idle timeout when the hook runs long. Use when pushing a branch or a push fails with "Connection closed by remote host".
 metadata:
   author: torrust
   version: "1.0"

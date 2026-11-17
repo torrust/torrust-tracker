@@ -1,6 +1,6 @@
 ---
 name: reopen-issue
-description: Guide for reopening a closed GitHub issue or EPIC whose specification was archived in docs/issues/closed/. Covers deciding whether to reopen or file new work, reopening on GitHub, linking a new subissue, moving the spec back to docs/issues/open/, migrating legacy frontmatter, resetting closure checkpoints, and repairing live references. Use when new work belongs to a closed EPIC or a closed issue regressed or was incomplete. Triggers on "reopen issue", "reopen EPIC", "add subissue to closed EPIC", "unarchive issue spec", or "move spec back to open".
+description: Reopen a closed issue or EPIC whose spec is in docs/issues/closed/, and move the spec back to open/. Use when new work belongs to a closed EPIC or a closed issue regressed.
 metadata:
   author: torrust
   version: "1.1"

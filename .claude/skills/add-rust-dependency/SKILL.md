@@ -1,6 +1,6 @@
 ---
 name: add-rust-dependency
-description: Guide for safely adding a new Rust crate dependency in torrust-tracker, starting from the latest stable crates.io version, minimizing features, documenting version rationale, and validating with cargo machete and repository quality gates. Use when introducing a new dependency, selecting a crate version, or justifying why an older version is required.
+description: "Add a Rust crate dependency: latest stable version, minimal features, a recorded version reason, cargo machete. Use when adding a dependency or choosing a crate version."
 metadata:
   author: torrust
   version: "1.0"

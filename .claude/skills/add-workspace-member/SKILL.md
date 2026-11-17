@@ -1,6 +1,6 @@
 ---
 name: add-workspace-member
-description: Add or remove an explicit Cargo workspace member in Torrust Tracker. Use when editing the root workspace members list, adding a developer-tool crate, registering a new standalone workspace package, or deciding whether a package is tested inside the container image.
+description: Add or remove a Cargo workspace member in the root members list. Use when adding a tool or package crate, or deciding whether the container image tests it.
 metadata:
   author: torrust
   version: "2.0"

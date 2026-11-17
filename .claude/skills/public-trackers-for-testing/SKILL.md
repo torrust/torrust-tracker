@@ -1,6 +1,6 @@
 ---
 name: public-trackers-for-testing
-description: Public tracker targets for manual testing and debugging of tracker clients. Use when validating announce/scrape behavior against live services, comparing local vs public behavior, or diagnosing network timeouts. Triggers on "public tracker", "test against demo tracker", "debug tracker timeout", or "which tracker should I use".
+description: Public trackers to test tracker clients against. Use when checking announce or scrape against a live tracker, comparing local and public behavior, or debugging a timeout.
 metadata:
   author: torrust
   version: "1.0"

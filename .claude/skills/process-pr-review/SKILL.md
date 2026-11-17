@@ -1,6 +1,6 @@
 ---
 name: process-pr-review
-description: Process every pull-request review finding, regardless of whether it was authored by Copilot, a person, or another bot. Use when asked to process PR review feedback, resolve review threads, audit review comments, address Copilot and maintainer findings together, triage review feedback submitted after merge, or handle a review left on a closed pull request that another pull request replaced.
+description: "Process every pull-request review finding, from Copilot, a person or a bot: fix, reply, record. Use when addressing PR review feedback, even after merge or on a replaced PR."
 metadata:
   author: torrust
   version: "1.8"

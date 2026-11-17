@@ -1,6 +1,6 @@
 ---
 name: watch-pull-request-checks
-description: Wait for the CI checks of a pull request to finish with the GitHub CLI, then read which ones failed. Use after pushing to a pull request when you need to know whether CI passed, instead of asking the contributor or polling by hand. Triggers on "watch CI", "wait for checks", "wait for CI", "did CI pass", "gh pr checks", or "watch pull request checks".
+description: Wait for a pull request's CI checks to finish with gh pr checks, then read which failed. Use when you need to know whether CI passed after pushing to a PR.
 metadata:
   author: torrust
   version: "1.0"

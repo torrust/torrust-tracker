@@ -1,6 +1,6 @@
 ---
 name: open-pull-request
-description: Open a pull request from a feature branch using GitHub CLI (preferred) or GitHub MCP tools. Covers pre-flight checks, correct base/head configuration for fork workflows, title/body conventions, and post-creation validation. Use when asked to "open PR", "create pull request", or "submit branch for review".
+description: "Open a pull request from a feature branch with the GitHub CLI: fork base and head, title and body conventions, checks after. Use when asked to open a PR or submit a branch for review."
 metadata:
   author: torrust
   version: "1.3"

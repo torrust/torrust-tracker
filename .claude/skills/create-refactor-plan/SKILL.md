@@ -1,6 +1,6 @@
 ---
 name: create-refactor-plan
-description: Guide for creating refactor plans in the torrust-tracker project. Covers identifying quality gaps, decomposing them into trackable items ordered by impact vs effort, writing the plan document, and committing it. Use when planning improvements to readability, testability, maintainability, modularity, or documentation quality. Triggers on "create refactor plan", "refactor plan", "plan refactor", "post-implementation improvements", "code quality plan", or "technical debt plan".
+description: "Write a refactor plan: quality gaps as items ordered by impact and effort. Use when planning readability, testability or maintainability work, or technical debt."
 metadata:
   author: torrust
   version: "1.0"

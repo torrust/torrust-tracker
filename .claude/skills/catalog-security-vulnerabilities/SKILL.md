@@ -1,6 +1,6 @@
 ---
 name: catalog-security-vulnerabilities
-description: Guide for cataloging public container, dependency, and CVE warnings that do not affect the project, with escalation for affecting vulnerabilities. Use for Docker DX, Trivy, cargo audit, RustSec, dependency advisories, CVE analysis, non-affecting CVEs, or container CVEs. GitHub Code Scanning and Code Quality findings, including Trivy alerts, are inventoried and clustered by triage-github-security-findings; this skill records the CVE analysis behind them.
+description: Record the CVE analysis of container and dependency warnings (Trivy, cargo audit, RustSec), and escalate any that affect the tracker. Use when checking a CVE or advisory.
 metadata:
   author: torrust
   version: "1.0"

@@ -1,6 +1,6 @@
 ---
 name: review-task
-description: Review a completed implementation task before push/PR. Validates issue-spec acceptance criteria, scope, tests, docs, and lint readiness on a local branch. Use when asked to verify issue completion without an open PR.
+description: "Review a finished task on a local branch before its PR: acceptance criteria, scope, tests, docs, lint. Use when verifying an issue is complete and no PR exists yet."
 metadata:
   author: torrust
   version: "1.0"

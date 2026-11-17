@@ -1,6 +1,6 @@
 ---
 name: create-adr
-description: Guide for creating Architectural Decision Records (ADRs) in the torrust-tracker project. Covers decision-scope placement, timestamp-based names, free-form structure, collection-specific index registration, and commit workflow. Use when documenting architectural decisions, recording design choices, or adding decision records. Triggers on "create ADR", "add ADR", "new decision record", "architectural decision", "document decision", or "add decision".
+description: "Create an Architectural Decision Record: where it goes, its timestamp name and its index entry. Use when recording an architectural or design decision."
 metadata:
   author: torrust
   version: "1.0"

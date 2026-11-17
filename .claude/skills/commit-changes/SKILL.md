@@ -1,6 +1,6 @@
 ---
 name: commit-changes
-description: Guide for committing changes in the torrust-tracker project. Covers conventional commit format, pre-commit verification checklist, GPG signing, and commit quality guidelines. Use when committing code, running pre-commit checks, or following project commit standards. Triggers on "commit", "commit changes", "how to commit", "pre-commit", "commit message", "commit format", or "conventional commits".
+description: Commit changes as signed Conventional Commits after the pre-commit checks. Use when committing or writing a commit message.
 metadata:
   author: torrust
   version: "1.0"

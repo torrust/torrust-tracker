@@ -1,6 +1,6 @@
 ---
 name: create-feature-branch
-description: Guide for creating feature branches following the torrust-tracker branching conventions. Covers branch naming format, lifecycle, and common patterns. Use when creating branches for issues, starting work on tasks, or setting up development branches. Triggers on "create branch", "new branch", "checkout branch", "branch for issue", or "start working on issue".
+description: Create a feature branch named by the branch conventions. Use when starting work on an issue or creating a new branch.
 metadata:
   author: torrust
   version: "1.0"

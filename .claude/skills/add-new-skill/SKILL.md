@@ -1,6 +1,6 @@
 ---
 name: add-new-skill
-description: Guide for creating effective Agent Skills for the torrust-tracker project. Use when you need to create a new skill (or update an existing skill) that extends AI agent capabilities with specialized knowledge, workflows, or tool integrations. Triggers on "create skill", "add new skill", "how to add skill", or "skill creation".
+description: "Create or update an Agent Skill in .claude/skills: its folder, frontmatter, a short description and its index row. Use when adding a new skill or changing an existing one."
 metadata:
   author: torrust
   version: "1.0"
@@ -22,7 +22,7 @@ open format and work with multiple AI coding agents (Claude Code, VS Code Copilo
 
 Skills use a three-level loading strategy to minimize context window usage:
 
-1. **Metadata** (~100 tokens): `name` and `description` loaded at startup for all skills
+1. **Metadata** (~70 tokens at most): `name` and `description` loaded at startup for all skills
 2. **SKILL.md Body** (<5000 tokens): Loaded when a task matches the skill's description
 3. **Bundled Resources**: Loaded on-demand only when referenced (scripts, references, assets)
 
@@ -106,9 +106,31 @@ that moved in issue #2866. A new skill needs no stub.
 Frontmatter rules:
 
 - `name`: lowercase letters, numbers, hyphens only; max 64 chars; no consecutive hyphens
-- `description`: max 1024 chars; include trigger phrases; describe WHAT and WHEN
+- `description`: 200 characters or less, as YAML reads it; see [Description rules](#description-rules)
 - `metadata.author`: `torrust`
 - `metadata.version`: `"1.0"`
+
+#### Description Rules
+
+Claude Code loads every skill's `name` and `description` into every session, within a budget of 1%
+of the context window; over budget, the descriptions of the least-used skills are dropped. It
+chooses a skill from those two fields, so the words a task uses must be in them. Issue #2873 set
+these rules:
+
+- **Length:** 200 characters or less, counted on the value YAML reads. The open format allows
+  1,024; this repository's limit is lower to keep the listing small.
+- **Shape:** one sentence on what the skill does, then `Use when ...` naming the tasks. Start with
+  a verb or the object, not `Guide for` or `This skill`.
+- **Trigger words:** keep the two to four words a task is most likely to contain and that set this
+  skill apart from its neighbors. Drop words every skill could claim (`documentation`, `project`,
+  `torrust-tracker`) and long `Triggers on "..."` lists.
+- **No duplication:** details, steps, warnings and option lists go in the body, which loads only
+  when the skill does.
+- **Quoting:** put the value in double quotes when it contains `#` or a colon followed by a space,
+  or starts with a character YAML treats specially. Unquoted, YAML reads white space followed by
+  `#` as the start of a comment and drops the rest.
+- **Related skills:** when two skills share trigger words, each description says what sets it
+  apart (for example `run-pre-commit-checks` and `run-pre-push-checks`).
 
 Semantic coupling rules:
 
@@ -131,6 +153,9 @@ linter all
 
 # Check the skill layout: placement, name, and the index row
 cargo run --quiet --package frontmatter-validator --bin frontmatter-validator -- --skill-layout
+
+# Check the description: whole as YAML reads it, 200 characters or less
+cargo run --quiet --package frontmatter-validator --bin frontmatter-validator -- --skill-descriptions
 
 # Commit
 git add .claude/skills/

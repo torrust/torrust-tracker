@@ -1,6 +1,6 @@
 ---
 name: cleanup-completed-issues
-description: Guide for archiving closed issue specification files from docs/issues/open/ to docs/issues/closed/. Covers verifying closure on GitHub, moving files, updating frontmatter, auditing and repairing affected documentation links, creating a branch, and opening a PR. Permanent deletion of closed specs is not automated — the user must explicitly request it. Also covers a read-only periodic audit that checks docs/issues/open/ holds only open issues. Use when cleaning up closed issue specs, archiving issue docs, auditing docs/issues/, or maintaining the docs/issues/ folder. Triggers on "cleanup issue", "archive issue", "move closed issue", "clean completed issues", "audit issue specs", or "maintain issue docs".
+description: Move closed issue specs from docs/issues/open/ to docs/issues/closed/ and repair links, or audit that open/ holds only open issues. Use when archiving closed issue specs.
 metadata:
   author: torrust
   version: "1.12"

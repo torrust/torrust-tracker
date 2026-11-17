@@ -73,3 +73,11 @@ jobs:
       - id: skill-layout
         name: Check Agent Skill Layout
         run: cargo run --quiet --package frontmatter-validator --bin frontmatter-validator -- --skill-layout
+
+      # issue: #2873
+      # Claude Code loads every skill's description into every session, within 1% of the context
+      # window. The check keeps each description whole (not cut by a YAML comment) and within 200
+      # characters.
+      - id: skill-descriptions
+        name: Check Agent Skill Descriptions
+        run: cargo run --quiet --package frontmatter-validator --bin frontmatter-validator -- --skill-descriptions

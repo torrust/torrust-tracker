@@ -278,6 +278,124 @@ pub fn skill_name(path: &str) -> Option<&str> {
         .filter(|name| !name.is_empty() && !name.contains('/'))
 }
 
+/// The longest skill `description`, in characters as YAML reads it. Claude Code loads every
+/// skill's name and description into every session, within a budget of 1% of the context window
+/// (issue #2873).
+pub const MAX_DESCRIPTION_CHARACTERS: usize = 200;
+
+/// Checks the `description` of one skill file's text, which Claude Code lists in every session.
+#[must_use]
+pub fn description_findings(markdown: &str) -> Vec<Diagnostic> {
+    description_cut_by_comment(markdown)
+        .into_iter()
+        .chain(description_too_long(markdown))
+        .collect()
+}
+
+/// Reports a `description` whose parsed value is longer than [`MAX_DESCRIPTION_CHARACTERS`].
+fn description_too_long(markdown: &str) -> Option<Diagnostic> {
+    let frontmatter = extract_with_ownership(markdown, DocumentOwnership::External).ok().flatten()?;
+    let length = frontmatter.values.get("description").and_then(Value::as_str)?.chars().count();
+    (length > MAX_DESCRIPTION_CHARACTERS).then(|| {
+        Diagnostic::for_field(
+            DiagnosticCategory::SkillDescriptionTooLong,
+            "description",
+            format!(
+                "The skill's `description` has {length} characters; the limit is {MAX_DESCRIPTION_CHARACTERS}. Keep what the skill does and when to use it; move details to the body."
+            ),
+        )
+    })
+}
+
+/// Reports a plain (unquoted, not block) `description` that holds white space followed by `#`.
+///
+/// YAML reads such a `#` as the start of a comment, so a parser, and Claude Code, see only the
+/// text before it. A parsed value no longer holds the comment, so the rule reads the raw
+/// frontmatter lines.
+fn description_cut_by_comment(markdown: &str) -> Option<Diagnostic> {
+    let is_cut = match raw_description(markdown)? {
+        RawDescription::Plain(lines) => lines.iter().any(|line| line.contains(" #") || line.contains("\t#")),
+        RawDescription::OnlyAComment => true,
+        RawDescription::NotPlain => false,
+    };
+    is_cut.then(|| {
+        Diagnostic::for_field(
+            DiagnosticCategory::SkillDescriptionCutByComment,
+            "description",
+            "YAML cuts this plain `description` at white space followed by `#`, a comment; quote the value.",
+        )
+    })
+}
+
+/// How the raw text of a top-level `description` value is written.
+enum RawDescription<'a> {
+    /// A plain scalar: its lines, from where the value starts to its last continuation line.
+    Plain(Vec<&'a str>),
+    /// No value, only a comment, so YAML reads the description as null and loses all of it.
+    OnlyAComment,
+    /// Quoted, a block scalar, an alias, or empty without a comment.
+    NotPlain,
+}
+
+/// The raw text of a top-level `description`: its line and its continuation lines (blank or
+/// indented) before the next top-level line. `None` when there is no such field.
+///
+/// The value starts after any node properties (a `!` tag or an `&` anchor) and after a comment
+/// that ends the key's line.
+fn raw_description(markdown: &str) -> Option<RawDescription<'_>> {
+    let mut lines = markdown.lines();
+    if lines.next()? != "---" {
+        return None;
+    }
+    let mut frontmatter = lines.take_while(|line| *line != "---");
+    let first = frontmatter.find_map(description_field_value)?;
+    let continuation = frontmatter.take_while(|line| line.is_empty() || line.starts_with([' ', '\t']));
+
+    let mut value: Vec<&str> = Vec::new();
+    let mut skipped_a_comment = false;
+    for line in std::iter::once(first).chain(continuation) {
+        if !value.is_empty() {
+            value.push(line);
+            continue;
+        }
+        let start = without_node_properties(line);
+        if start.starts_with('#') {
+            skipped_a_comment = true;
+            continue;
+        }
+        if start.is_empty() {
+            continue;
+        }
+        if start.starts_with(['"', '\'', '|', '>', '*']) {
+            return Some(RawDescription::NotPlain);
+        }
+        value.push(start);
+    }
+    Some(match (value.is_empty(), skipped_a_comment) {
+        (false, _) => RawDescription::Plain(value),
+        (true, true) => RawDescription::OnlyAComment,
+        (true, false) => RawDescription::NotPlain,
+    })
+}
+
+/// What follows the `:` of a top-level `description` key, plain or quoted, with or without white
+/// space before the `:`.
+fn description_field_value(line: &str) -> Option<&str> {
+    let after_key = ["description", "\"description\"", "'description'"]
+        .into_iter()
+        .find_map(|key| line.strip_prefix(key))?;
+    after_key.trim_start_matches([' ', '\t']).strip_prefix(':')
+}
+
+/// `text` without its leading white space and node properties: `!` tags and `&` anchors.
+fn without_node_properties(text: &str) -> &str {
+    let mut rest = text.trim_start();
+    while rest.starts_with(['!', '&']) {
+        rest = rest.find(char::is_whitespace).map_or("", |end| rest[end..].trim_start());
+    }
+    rest
+}
+
 #[cfg(test)]
 mod tests {
     // Owns the placement rule: which `SKILL.md` paths Claude Code discovers. Which files the rule
@@ -519,5 +637,143 @@ mod tests {
         let snapshot = Snapshot::accepted().with(SKILLS_INDEX, &prose);
 
         assert_eq!(snapshot.findings(), []);
+    }
+}
+
+#[cfg(test)]
+mod description_tests {
+    // Owns the description rule over one skill file's text (issue #2873). Which files it runs over
+    // is owned by the binary and tested in `tests/cli.rs`.
+
+    use rstest::rstest;
+
+    use super::{MAX_DESCRIPTION_CHARACTERS, description_findings};
+    use crate::DiagnosticCategory;
+
+    /// A skill file whose frontmatter `description` is written exactly as `description`, which
+    /// starts after `description:` and may span lines.
+    fn skill_with_description(description: &str) -> String {
+        format!("---\nname: write-markdown-docs\ndescription:{description}\nmetadata:\n  owner: docs\n---\n# Skill\n")
+    }
+
+    fn categories(markdown: &str) -> Vec<DiagnosticCategory> {
+        description_findings(markdown)
+            .into_iter()
+            .map(|diagnostic| diagnostic.category)
+            .collect()
+    }
+
+    #[rstest]
+    #[case::space_before_hash(" Writes Markdown, avoiding the #NUMBER pattern. Use when writing docs.")]
+    #[case::tab_before_hash(" Writes Markdown, avoiding the\t#NUMBER pattern. Use when writing docs.")]
+    #[case::on_a_continuation_line(" Writes Markdown,\n  avoiding the #NUMBER pattern.")]
+    #[case::continuation_line_starting_with_hash(" Writes Markdown, avoiding the\n  #NUMBER pattern.")]
+    fn it_should_report_a_plain_description_that_yaml_cuts_at_a_comment(#[case] description: &str) {
+        let skill = skill_with_description(description);
+
+        assert_eq!(
+            categories(&skill),
+            [DiagnosticCategory::SkillDescriptionCutByComment],
+            "description: {description:?}"
+        );
+    }
+
+    #[rstest]
+    #[case::plain_without_hash(" Writes Markdown docs. Use when writing docs.")]
+    #[case::plain_hash_inside_a_word(" Writes C# and F#NUMBER examples. Use when writing docs.")]
+    #[case::double_quoted(" \"Writes Markdown, avoiding the #NUMBER pattern. Use when writing docs.\"")]
+    #[case::single_quoted(" 'Writes Markdown, avoiding the #NUMBER pattern. Use when writing docs.'")]
+    #[case::folded_block(" >-\n  Writes Markdown, avoiding the #NUMBER pattern.\n  Use when writing docs.")]
+    #[case::literal_block(" |\n  Writes Markdown, avoiding the #NUMBER pattern.")]
+    fn it_should_accept_a_description_that_yaml_reads_whole(#[case] description: &str) {
+        let skill = skill_with_description(description);
+
+        assert_eq!(categories(&skill), [], "description: {description:?}");
+    }
+
+    #[rstest]
+    #[case::white_space_before_the_colon("description : Avoids the #NUMBER pattern.")]
+    #[case::double_quoted_key("\"description\": Avoids the #NUMBER pattern.")]
+    #[case::single_quoted_key("'description': Avoids the #NUMBER pattern.")]
+    #[case::after_a_tag("description: !!str Avoids the #NUMBER pattern.")]
+    #[case::after_an_anchor("description: &text Avoids the #NUMBER pattern.")]
+    #[case::after_a_comment_on_the_key_line("description: # note\n  Avoids the #NUMBER pattern.")]
+    #[case::only_a_comment_on_the_key_line("description: #NUMBER pitfalls in Markdown. Use when writing docs.")]
+    #[case::only_a_comment_on_the_next_line("description:\n  #NUMBER pitfalls in Markdown. Use when writing docs.")]
+    #[case::only_a_comment_after_a_tag("description: !!str #NUMBER pitfalls in Markdown.")]
+    fn it_should_report_a_cut_plain_description_however_its_key_and_properties_are_written(#[case] field: &str) {
+        let skill = format!("---\nname: example\n{field}\nmetadata:\n  owner: docs\n---\n");
+
+        assert_eq!(
+            categories(&skill),
+            [DiagnosticCategory::SkillDescriptionCutByComment],
+            "field: {field:?}"
+        );
+    }
+
+    #[rstest]
+    #[case::double_quoted_after_a_tag("description: !!str \"Avoids the #NUMBER pattern.\"")]
+    #[case::folded_after_an_anchor("description: &text >-\n  Avoids the #NUMBER pattern.")]
+    #[case::folded_after_a_comment("description: # note\n  >-\n  Avoids the #NUMBER pattern.")]
+    #[case::plain_after_a_comment("description: # note\n  Avoids the NUMBER pattern.")]
+    #[case::another_key_with_the_same_start("descriptions: Avoids the #NUMBER pattern.\ndescription: Example.")]
+    fn it_should_accept_a_whole_description_however_its_key_and_properties_are_written(#[case] field: &str) {
+        let skill = format!("---\nname: example\n{field}\nmetadata:\n  owner: docs\n---\n");
+
+        assert_eq!(categories(&skill), [], "field: {field:?}");
+    }
+
+    #[test]
+    fn it_should_not_read_a_comment_in_the_following_field_as_part_of_the_description() {
+        let skill = "---\nname: example\ndescription: Writes Markdown.\nmetadata: # owner\n  owner: docs\n---\n";
+
+        assert_eq!(categories(skill), []);
+    }
+
+    /// A plain description of exactly `length` characters.
+    fn description_of_length(length: usize) -> String {
+        format!(" {}", "a".repeat(length))
+    }
+
+    #[test]
+    fn it_should_report_a_description_longer_than_the_limit() {
+        let skill = skill_with_description(&description_of_length(MAX_DESCRIPTION_CHARACTERS + 1));
+
+        assert_eq!(categories(&skill), [DiagnosticCategory::SkillDescriptionTooLong]);
+    }
+
+    #[rstest]
+    #[case::at_the_limit(MAX_DESCRIPTION_CHARACTERS)]
+    #[case::short(1)]
+    fn it_should_accept_a_description_no_longer_than_the_limit(#[case] length: usize) {
+        let skill = skill_with_description(&description_of_length(length));
+
+        assert_eq!(categories(&skill), []);
+    }
+
+    #[test]
+    fn it_should_count_the_characters_yaml_reads_not_the_raw_text_or_its_bytes() {
+        // A folded block whose parsed value is exactly the limit: 99 characters, the space the
+        // line break folds into, then 99 characters and a two-byte `é`. Its raw text, with the
+        // block indicator and the indentation, is longer than the limit, and so are its bytes.
+        let first_line = "a".repeat(99);
+        let second_line = format!("{}é", "a".repeat(99));
+        let skill = skill_with_description(&format!(" >-\n  {first_line}\n  {second_line}"));
+
+        assert_eq!(categories(&skill), []);
+    }
+
+    #[test]
+    fn it_should_report_both_problems_of_a_description_cut_at_a_comment_and_still_too_long() {
+        let long = "a".repeat(MAX_DESCRIPTION_CHARACTERS + 1);
+        let skill = skill_with_description(&format!(" {long} #NUMBER"));
+
+        assert_eq!(
+            categories(&skill),
+            [
+                DiagnosticCategory::SkillDescriptionCutByComment,
+                DiagnosticCategory::SkillDescriptionTooLong
+            ]
+        );
     }
 }

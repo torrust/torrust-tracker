@@ -1,6 +1,6 @@
 ---
 name: implement-workflow
-description: "Use when: adding or materially changing GitHub Actions workflows, CI jobs, workflow scripts, artifacts, matrices, permissions, or provider integration."
+description: Add or change GitHub Actions workflows, CI jobs, workflow scripts and their permissions. Use when editing .github/workflows or changing what a CI job does.
 metadata:
   author: torrust
   version: "1.0"

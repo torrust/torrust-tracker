@@ -1,6 +1,6 @@
 ---
 name: link-subissue-to-parent-issue
-description: Guide for linking an existing GitHub issue as a sub-issue of a parent issue in the torrust-tracker project. Covers the GitHub REST API flow, the required internal issue ID for the child issue, verification, and common failure modes. Use when setting a parent issue for a sub-issue, attaching a child issue to an epic, or linking an existing issue under another issue. Triggers on "set parent issue", "link subissue", "add sub-issue", "attach child issue", or "make issue a subissue".
+description: Link an existing GitHub issue as a sub-issue of a parent issue or EPIC through the REST API. Use when setting a parent issue or adding a sub-issue to an EPIC.
 metadata:
   author: torrust
   version: "1.0"

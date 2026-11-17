@@ -1,6 +1,6 @@
 ---
 name: run-tracker-locally
-description: Run the Torrust Tracker locally for development and testing. Use this skill to start the tracker with default configuration, understand configuration loading, and interact with tracker services (UDP and HTTP). Triggers on "run tracker", "start tracker locally", "develop tracker", "test tracker locally", or "run tracker for testing".
+description: Run the tracker locally with the default configuration and reach its UDP, HTTP and API services. Use when starting the tracker for development or manual testing.
 compatibility: Requires cargo, bash, and local workspace access.
 metadata:
   author: torrust

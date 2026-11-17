@@ -1,6 +1,6 @@
 ---
 name: merge-pull-request
-description: Safely construct, inspect, validate, sign, and optionally push a maintainer GitHub pull-request merge using the repository-local vendored tool. Use when asked to merge a pull request or perform a maintainer merge workflow.
+description: Build, inspect, sign and optionally push a maintainer merge of a pull request with the vendored merge tool. Use when asked to merge a pull request.
 metadata:
   author: torrust
   version: "1.2"

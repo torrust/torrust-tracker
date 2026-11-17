@@ -1,6 +1,6 @@
 ---
 name: run-manual-docker-security-scan
-description: Guide for running a manual Docker security scan for the tracker runtime image and documenting results. Covers build, Trivy scan, CVE triage, per-CVE catalog updates, and scan history updates. Use when asked to run a manual container scan, triage Docker CVEs, or refresh security scan docs.
+description: Build the tracker container image, scan it with Trivy, triage its CVEs and record the results. Use when asked for a manual Docker security scan.
 metadata:
   author: torrust
   version: "1.0"

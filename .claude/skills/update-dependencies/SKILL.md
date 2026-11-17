@@ -1,6 +1,6 @@
 ---
 name: update-dependencies
-description: Guide for updating project dependencies in the torrust-tracker project. Covers the manual cargo update workflow including branch creation, running checks, committing, and pushing. Distinguishes trivial updates (Cargo.lock only) from breaking-change updates (code rework needed). Use when updating dependencies, running cargo update, or bumping deps. Triggers on "update dependencies", "cargo update", "update deps", or "bump dependencies".
+description: Update Cargo dependencies with cargo update, telling Cargo.lock-only updates from breaking ones, then check, commit and push. Use when updating or bumping dependencies.
 metadata:
   author: torrust
   version: "1.2"

@@ -1,6 +1,6 @@
 ---
 name: update-github-workflow-actions
-description: Update GitHub Actions workflow dependencies safely in Torrust Tracker, including synchronizing the Torrust organization allowlist. Use when updating workflow action versions, Dependabot GitHub Actions updates, or allowed-actions settings.
+description: Update the GitHub Actions that workflows use and keep the Torrust organization allowlist in sync. Use when bumping action versions or handling Dependabot GitHub Actions updates.
 metadata:
   author: torrust
   version: "1.1"

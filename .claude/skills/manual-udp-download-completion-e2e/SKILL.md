@@ -1,6 +1,6 @@
 ---
 name: manual-udp-download-completion-e2e
-description: Manual end-to-end verification of started -> completed peer lifecycle using tracker_client (unified) and tracker stats API. Use when contributors need to simulate a peer completing a download without running containerized qBittorrent E2E. Triggers on "manual e2e", "simulate peer completion", "udp started completed test", or "verify downloads increment manually".
+description: Simulate a peer going from started to completed over UDP with tracker_client and the stats API. Use when checking that downloads increment, without the qBittorrent E2E.
 metadata:
   author: torrust
   version: "1.0"

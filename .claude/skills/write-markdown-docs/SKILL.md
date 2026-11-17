@@ -1,6 +1,6 @@
 ---
 name: write-markdown-docs
-description: Guide for writing Markdown documentation in this project. Covers GitHub Flavored Markdown pitfalls, especially the critical #NUMBER pattern that auto-links to GitHub issues and PRs (NEVER use #1, #2, #3 as step/list numbers). Use ordered lists or plain numbers instead. Covers intentional vs accidental autolinks for issues, @mentions, and commit SHAs. Use when writing .md files, documentation, issue descriptions, PR descriptions, or README updates. Triggers on "markdown", "write docs", "documentation", "#number", "github markdown", "autolink", "markdown pitfall", or "GFM".
+description: "Write Markdown that avoids GitHub autolink pitfalls: never #NUMBER as a step number; intended links to issues, @mentions and SHAs. Use when writing .md files, issues or PR bodies."
 metadata:
   author: torrust
   version: "1.0"

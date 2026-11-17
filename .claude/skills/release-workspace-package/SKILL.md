@@ -1,6 +1,6 @@
 ---
 name: release-workspace-package
-description: Guide for releasing a single workspace package, or a crate that lives in its own standalone Torrust repository, to crates.io. Drives the process documented in docs/release-process/workspace-packages.md. Use when asked to "release a package", "publish a crate", "publish torrust-<crate> to crates.io", "tag a package release", or "release torrust-server-lib".
+description: Release one workspace package, or a crate in its own Torrust repository, to crates.io. Use when asked to publish a crate or tag a package release.
 metadata:
   author: torrust
   version: "1.0"
