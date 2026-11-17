@@ -39,7 +39,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1: da2ce7 review 5943744061 (APPROVED, later shown as dismissed) with findings F1 to F6 (two Minor, four Nit), and Copilot review 5943800775 (COMMENTED) with three threads that carry the reviewer IDs F1, F2 and F1 (no severity tags, so Minor is inferred); they are F7 to F9 here.
+Round 1: da2ce7 review 5943744061 (APPROVED, later shown as dismissed) with findings F1 to F6 (two Minor, four Nit), and Copilot review 5943800775 (COMMENTED) with three threads that carry the reviewer IDs F1, F2 and F1; they are F7 to F9 here.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -159,7 +159,7 @@ Round 1: da2ce7 review 5943744061 (APPROVED, later shown as dismissed) with find
 - Current-tree verification: `validate-audit-record.py --pr-number 2901` returns ok (28 rows).
 - Resolution reference: `docs(pr-reviews): [#2765] audit review round 1 of PR 2921`
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2921#discussion_r4603722613
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2921#discussion_r4603722613 (this reply, posted at 18:05:35 before the change it reports was committed, cites a commit subject that never existed; the correction posted on the same thread at 18:09:58 names `docs(pr-reviews): [#2765] audit review round 1 of PR 2921`: https://github.com/torrust/torrust-tracker/pull/2921#discussion_r4603774081)
 
 ### F9 - Distinguish the audit-update time from the reply time
 
