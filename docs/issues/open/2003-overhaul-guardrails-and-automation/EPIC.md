@@ -6,7 +6,7 @@ epic: null
 github-issue: 2003
 spec-path: docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-17 08:58"
+last-updated-utc: "2026-11-17 12:14"
 semantic-links:
   skill-links:
     - create-issue
@@ -35,12 +35,14 @@ semantic-links:
     - docs/issues/open/2347-2003-triage-post-merge-review-findings/ISSUE.md
     - docs/issues/closed/2866-2003-move-skills-to-claude-skills/ISSUE.md
     - docs/issues/closed/2873-2003-shorten-skill-descriptions/ISSUE.md
+    - docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md
     - docs/schemas/frontmatter-v1.schema.json
     - "issue #2264"
     - "issue #2278"
     - "issue #2347"
     - "issue #2866"
     - "issue #2873"
+    - "issue #2904"
 ---
 
 <!-- skill-link: create-issue -->
@@ -197,6 +199,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | 20 | #2822 - `wait-for-pr-review`: add a `--gh-command` option to name the GitHub CLI command | `docs/issues/closed/2822-2003-wait-for-pr-review-gh-option/ISSUE.md` | DONE | Enhancement to the #2581 poller: the caller names the command, so no `gh` stand-in on `PATH` is needed, and the identity it runs as is reported. Selects no shared runner, cache or policy engine. Independent of the other poller work; spec PR #2826, implemented by PR #2835. |
 | 21 | #2866 - Move the agent skills to `.claude/skills/` so Claude Code discovers them | `docs/issues/closed/2866-2003-move-skills-to-claude-skills/ISSUE.md` | DONE | Moves the 53 skills to a flat `.claude/skills/<name>/` with an index by area and redirect stubs at the old paths, so Claude Code discovers them. Must merge before the custom-agents migration is implemented, because agent definitions name skills. Selects no shared runner, cache or policy engine. |
 | 22 | #2873 - Shorten the agent skill descriptions so they fit Claude Code's skill listing budget | `docs/issues/closed/2873-2003-shorten-skill-descriptions/ISSUE.md` | DONE | Follow-up of #2866 (its task T1): shortens the 53 skill descriptions to 200 characters or less so the listing fits its 1% budget, fixes the `write-markdown-docs` description that YAML cuts at a `#`, and adds a `frontmatter-validator` rule. Selects no shared runner, cache or policy engine. Spec PR #2875, implemented by PR #2893. |
+| 23 | #2904 - Migrate the custom agents to Claude Code and add an explicit orchestrator | `docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md` | TODO | Replaces the ten Copilot profiles in `.github/agents/` with six Claude Code agents in `.claude/agents/`, led by an `orchestrator` that is the session the contributor talks to. Started agents write JSON reply files validated against a schema; a stop hook holds the task reviewer until its reply is valid. Delivered in small pull requests that merge independently, after #2866. Selects no shared runner, cache or policy engine. |
 
 Also linked as GitHub sub-issues, outside the order:
 
@@ -454,6 +457,7 @@ For each completed subissue in this EPIC, the default completion policy is:
 - 2026-11-16 08:30 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2873 session) - Added row 22 (#2873, shorten the agent skill descriptions) on 2026-11-16 at 08:26 UTC, as #2866's task T1; the description edits wait for #2866 to merge.
 - 2026-11-16 16:11 UTC - AI assistant (Claude Code, Claude Fable 5.2, EPIC #2003 coordinator session) - Replaced the Issue Body Mirror rule with Issue Body Pointer: the issue body must hold only stable content and point to this file. The body itself is not edited by this change. The decision has no GitHub comment; its record is [PR #2887](https://github.com/torrust/torrust-tracker/pull/2887). Decided by the maintainer on 2026-11-16.
 - 2026-11-16 17:35 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2866 session) - Marked row 21 (#2866) DONE and pointed it at `docs/issues/closed/`: PR #2886 merged on 2026-11-16 at 17:34 UTC and closed the issue; the spec is archived by the close-out PR.
+- 2026-11-17 12:14 UTC - AI assistant (Claude Code, Claude Fable 5.2, issue #2904 session) - Two entries in one. Late entry for row 22 (#2873), which was marked DONE on 2026-11-17 at 08:58 UTC without a log line: implemented by PR #2893, specification archived by the close-out PR #2900. Added row 23 (#2904, migrate the custom agents to Claude Code and add an explicit orchestrator), approved by the maintainer; linking it as a GitHub sub-issue is pending.
 
 ## Acceptance Criteria
 
