@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p2
 epic: 2758
 github-issue: 2765
 spec-path: docs/issues/open/2765-2758-remove-deprecated-tracker-clients/ISSUE.md
 branch: "2765-remove-deprecated-tracker-clients"
 related-pr: null
-last-updated-utc: "2026-11-09 13:21"
+last-updated-utc: "2026-11-17 09:08"
 semantic-links:
   skill-links:
     - create-issue
@@ -89,10 +89,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
-| T1 | TODO | List every reference to the three binaries | `grep` result in the progress log. |
-| T2 | TODO | Remove the binaries | Workspace builds. |
-| T3 | TODO | Keep the test coverage through `tracker_client` | No lost scenarios. |
-| T4 | TODO | Update docs and add the breaking-change note | `grep` finds no stale instruction. |
+| T1 | DONE | List every reference to the three binaries | `grep` result in the progress log. |
+| T2 | DONE | Remove the binaries | Workspace builds. |
+| T3 | DONE | Keep the test coverage through `tracker_client` | No lost scenarios. |
+| T4 | DONE | Update docs and add the breaking-change note | `grep` finds no stale instruction. |
 
 ## Commit Points
 
@@ -112,14 +112,14 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - [x] Folder-style spec drafted in `docs/issues/drafts/2758-remove-deprecated-tracker-clients/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Spec-only PR merged into `develop` before implementation
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -131,18 +131,19 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-09 12:12 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the review of PR 2771 (da2ce7 findings F1 to F27 and Copilot's later comments): specs corrected from the code, reproductions recorded where a spec has a bug-fix section.
 - 2026-11-09 12:39 UTC - Claude Code (Claude Sonnet 5.5) - Addressed Copilot's latest review of PR 2771: filled the Design and Ownership Review for the child-process work and corrected the pseudo-terminal check in the evidence.
 - 2026-11-09 13:21 UTC - Claude Code (Claude Sonnet 5.5) - Addressed da2ce7's review 5826238636 of PR 2771 on this spec.
+- 2026-11-17 09:08 UTC - Claude Code (Claude Sonnet 5.5) - Implemented T1 to T4 on branch `2765-remove-deprecated-client-bins`. T1 references found: the three `src/bin` files, the doc comments in `clients/{http,udp,checker}/app.rs`, `console/tracker-client/README.md`, `docs/packages.md`, the contract doc, the sccache experiment Containerfile and `src/console/ci/e2e/tracker_checker.rs`; no workflow, `Containerfile` or `Cargo.toml` named them. T2: the three files deleted (the library modules stay: `tracker_client` reuses their checks). T3: `tests/tracker_checker*` already run `tracker_client check`, so nothing moved. T4: README breaking-change note (the repo has no changelog). The e2e helper now runs `tracker_client check` with captured, drained pipes and a 15 minute deadline. Evidence: V1 and V2.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `cargo build --workspace --all-targets` passes without the three binaries.
-- [ ] AC2: No document or script tells the reader to run a removed binary.
-- [ ] AC3: `tracker_client check` still passes the tests that covered the checker.
-- [ ] AC4: `src/console/ci/e2e/tracker_checker.rs` launches `tracker_client check` with `TORRUST_CHECKER_CONFIG`, proven by a runner-level run (M2), because the binary name is a runtime string that the workspace build cannot check.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior or workflow changes
+- [x] AC1: `cargo build --workspace --all-targets` passes without the three binaries.
+- [x] AC2: No document or script tells the reader to run a removed binary.
+- [x] AC3: `tracker_client check` still passes the tests that covered the checker.
+- [x] AC4: `src/console/ci/e2e/tracker_checker.rs` launches `tracker_client check` with `TORRUST_CHECKER_CONFIG`, proven by a runner-level run (M2), because the binary name is a runtime string that the workspace build cannot check.
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated when behavior or workflow changes
 
 ## Verification Plan
 
@@ -158,8 +159,8 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Unified checker | Run `tracker_client check` against a local tracker as the README documents | Works as before | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | E2E checker launch | Run the e2e runner (or call the helper) after migrating `tracker_checker.rs` and check that it launches `tracker_client check` with `TORRUST_CHECKER_CONFIG` (for example from the logged command line); the interactive-terminal case is verified in issue 2768 once the TTY refusal exists, and this row is only a smoke test | The checker step runs against the unified binary | TODO | `manual-verification-evidence.md` section V2 |
+| M1 | Unified checker | Run `tracker_client check` against a local tracker as the README documents | Works as before | DONE | `manual-verification-evidence.md` section V1 |
+| M2 | E2E checker launch | Run the e2e runner (or call the helper) after migrating `tracker_checker.rs` and check that it launches `tracker_client check` with `TORRUST_CHECKER_CONFIG` (for example from the logged command line); the interactive-terminal case is verified in issue 2768 once the TTY refusal exists, and this row is only a smoke test | The checker step runs against the unified binary | DONE | `manual-verification-evidence.md` section V2 |
 
 Manual verification is mandatory even when automated tests pass. Record actual commands, output and the toolchain that produced each result in `manual-verification-evidence.md` (from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`).
 
@@ -167,10 +168,10 @@ Manual verification is mandatory even when automated tests pass. Record actual c
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1 | TODO |  |
-| AC2 | TODO |  |
-| AC3 | TODO |  |
-| AC4 | TODO |  |
+| AC1 | DONE | `cargo build --workspace --all-targets` finished without the three binaries (progress log). |
+| AC2 | DONE | Grep in the progress log: only the breaking-change note and the library module doc name the removed binaries. |
+| AC3 | DONE | `cargo test -p torrust-tracker-client`: tests in `tests/tracker_checker/` already launch `tracker_client check` and all pass (no scenario lost; the removed binaries had no tests of their own). |
+| AC4 | DONE | Helper launches `cargo run ... --bin tracker_client -- check` with `TORRUST_CHECKER_CONFIG`; six unit tests in the helper; smoke M2 (evidence V2). |
 
 ## Risks and Trade-offs
 
