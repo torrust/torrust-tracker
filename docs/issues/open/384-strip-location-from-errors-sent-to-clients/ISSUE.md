@@ -9,7 +9,7 @@ github-issue: 384
 spec-path: docs/issues/open/384-strip-location-from-errors-sent-to-clients/ISSUE.md
 branch: "384-strip-location-from-errors-sent-to-clients"
 related-pr: null
-last-updated-utc: "2026-11-17 17:01"
+last-updated-utc: "2026-11-17 17:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -179,7 +179,7 @@ with the narrow affected scope, and sign every commit with GPG.
 ### Workflow Checkpoints
 
 - [x] Folder-style spec written in `docs/issues/open/384-strip-location-from-errors-sent-to-clients/ISSUE.md`
-- [ ] Spec reviewed and approved by user/maintainer
+- [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec (#384 already existed)
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
@@ -199,6 +199,7 @@ agent, for example `GitHub Copilot (Claude Opus 5.5)`, so later reviews can rela
 the model that produced them.
 
 - 2026-11-11 17:05 UTC - Claude Code (Fable 5.2) - Drafted from the audit of issue #2804 (`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`, `options.md`) as a sub-issue of the EPIC draft. Not yet approved; line numbers are those of `develop` at `4f0af379a` and must be re-checked before implementation.
+- 2026-11-17 17:30 UTC - Claude Code (Claude Opus 5.5) - EPIC coordinator: the maintainer approved the specification on 2026-11-17; this issue keeps its title and is SI-7 of EPIC #2912 (comment posted on #384).
 
 ## Acceptance Criteria
 

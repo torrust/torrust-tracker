@@ -9,7 +9,7 @@ github-issue: 2913
 spec-path: docs/issues/open/2913-2912-si-1-adr-errors-do-not-record-source-locations/ISSUE.md
 branch: "2913-adr-errors-do-not-record-source-locations"
 related-pr: null
-last-updated-utc: "2026-11-17 17:01"
+last-updated-utc: "2026-11-17 17:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -143,9 +143,9 @@ with the narrow affected scope, and sign every commit with GPG.
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/open/2913-2912-si-1-adr-errors-do-not-record-source-locations/ISSUE.md`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
+- [x] Folder-style spec drafted in `docs/issues/drafts/` and moved to `docs/issues/open/`
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
@@ -164,6 +164,7 @@ agent, for example `GitHub Copilot (Claude Opus 5.5)`, so later reviews can rela
 the model that produced them.
 
 - 2026-11-11 17:05 UTC - Claude Code (Fable 5.2) - Drafted from the audit of issue #2804 (`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`, `options.md`) as a sub-issue of the EPIC draft. Not yet approved; line numbers are those of `develop` at `4f0af379a` and must be re-checked before implementation.
+- 2026-11-17 17:30 UTC - Claude Code (Claude Opus 5.5) - EPIC coordinator: the maintainer approved the specification on 2026-11-17; issue #2913 created as `josecelano-bot` and the specification moved from `docs/issues/drafts/` to `docs/issues/open/` (SI-1 of EPIC #2912).
 
 ## Acceptance Criteria
 

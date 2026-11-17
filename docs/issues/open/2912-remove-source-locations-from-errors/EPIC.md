@@ -6,7 +6,7 @@ epic: null
 github-issue: 2912
 spec-path: docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md
 epic-owner: null
-last-updated-utc: "2026-11-17 17:01"
+last-updated-utc: "2026-11-17 17:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -59,9 +59,9 @@ What the feature gives, a file and line for a developer, is available on the ser
 events, which record the file and line of the log call.
 
 The four options the audit compared are in `options.md`. This EPIC implements the removal of the
-field (its option 4) together with the context-instead-of-location rule (option 3). The maintainer
-chose option 4 over option 3 (keep the field, strip it from `Display` only) on 2026-11-17; the ADR of
-SI-1 records the decision.
+field (its option 4), which keeps option 3's context-instead-of-location wording and also removes
+the field. Keeping the field and stripping it from `Display` only (option 3 alone) was rejected by the
+maintainer on 2026-11-17; the ADR of SI-1 records the decision.
 
 ## Maintainer Decisions
 
@@ -69,7 +69,7 @@ Recorded 2026-11-17 by the EPIC coordinator session:
 
 1. **Remove the field (option 4).** Error types lose their `location` field, no non-test code calls
    `Location::caller()`, and the workspace drops `torrust-located-error`. Stripping the location from
-   `Display` only (option 3) was rejected: the recorded value is wrong at every production site, so
+   `Display` only (option 3 alone) was rejected: the recorded value is wrong at every production site, so
    keeping it keeps a misleading `Debug` and log value.
 2. **#384 keeps its title.** It is linked as SI-7 and gets a comment that explains the new scope
    (removal instead of an option); it closes after the recheck.
@@ -172,7 +172,7 @@ For each subissue implementation in this EPIC, the default completion policy is:
 
 ### Workflow Checkpoints
 
-- [x] Epic spec drafted in `docs/issues/drafts/`
+- [x] Epic spec drafted in `docs/issues/drafts/` and moved to `docs/issues/open/`
 - [x] Epic spec reviewed and approved by user/maintainer
 - [x] GitHub epic issue created and issue number added to this spec
 - [x] Subissues created and linked in this spec
