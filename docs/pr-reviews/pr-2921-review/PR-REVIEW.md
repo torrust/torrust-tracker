@@ -49,9 +49,9 @@ Round 1: da2ce7 review 5943744061 (APPROVED, later shown as dismissed) with find
 | F4 | review-finding:pr-2921-f4 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F5 | review-finding:pr-2921-f5 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-2921-f6 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
-| F7 | review-finding:pr-2921-f7 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-2921-f7 | Copilot | Minor | documentation | RE_RAISE_OF:F2 | FIXED | RESOLVED |
 | F8 | review-finding:pr-2921-f8 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
-| F9 | review-finding:pr-2921-f9 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F9 | review-finding:pr-2921-f9 | Copilot | Minor | documentation | RE_RAISE_OF:F4 | FIXED | RESOLVED |
 
 ## Finding Details
 
