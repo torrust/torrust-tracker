@@ -1,7 +1,7 @@
 ---
 pr-number: 2920
 pr-url: https://github.com/torrust/torrust-tracker/pull/2920
-last-updated-utc: "2026-11-17 18:39"
+last-updated-utc: "2026-11-17 18:58"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -204,7 +204,7 @@ and F23, continuing the count of pull request 2905's record), on the head that c
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2920#discussion_r4603897988
 - Concern: Round 1 changed the description of checkout P (the personal file four folders above, not three; a worktree inside another checkout whose `AGENTS.md` is three folders above), and the evidence did not say it was a correction. The change appeared only in the reply to F4 and partly in its row.
 - Solution: Failures and Follow-up of the evidence has a line for the correction: what the first version said, what is true, the commit that corrected the Environment section, that no probe was rerun, and why the conclusions do not depend on it.
-- Current-tree verification: `grep -n "Correction to the description of checkout P" manual-verification-evidence.md` in the issue folder prints the line. `grep -c "agent-claude-02/AGENTS" evidence/m4-probe-answers.md` prints 0: no probe listed the enclosing checkout's `AGENTS.md`. `linter markdown` and `linter cspell` passed.
+- Current-tree verification: `grep -n "Correction to the description of checkout P" manual-verification-evidence.md` in the issue folder prints the line. Read the Q3 answers of the six probes run in checkout P (probes 1, 2, 7, 8, 11 and 12) in `evidence/m4-probe-answers.md`: each lists the personal `CLAUDE.md` of the parent folder and files of checkout P, and none lists an `AGENTS.md` between the two. `linter markdown` and `linter cspell` passed.
 - Resolution reference: `docs(issues): [#2904] note the corrected description of checkout P in the M4 evidence`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2920#discussion_r4604090320
@@ -217,7 +217,7 @@ and F23, continuing the count of pull request 2905's record), on the head that c
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2920#discussion_r4603898005
 - Concern: The header of `evidence/m4-probe-answers.md` names four replaced path fragments, but the answers also contain `<worktree>` and `<repo>`, so a reader cannot tell which angle-bracket names are replacements.
 - Solution: The header says that `<worktree>` and `<repo>` are abbreviations the probes chose themselves, that each probe using one says which path it stands for, and that only that path was replaced.
-- Current-tree verification: `sed -n '1,13p' evidence/m4-probe-answers.md` in the issue folder shows the new paragraph. `grep -c "<worktree>"` and `grep -c "<repo>"` on that file print 15 and 7 lines.
+- Current-tree verification: `sed -n '1,13p' evidence/m4-probe-answers.md` in the issue folder shows the new paragraph. `grep -c "<worktree>"` and `grep -c "<repo>"` on that file print 16 and 8 lines, one of each being the new paragraph.
 - Resolution reference: `docs(issues): [#2904] note the corrected description of checkout P in the M4 evidence`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2920#discussion_r4604090708
@@ -232,6 +232,7 @@ and F23, continuing the count of pull request 2905's record), on the head that c
 - 2026-11-17 18:04 UTC - `validate-audit-record.py --pr-number 2920 --base torrust/develop`, with its `gh` calls made through `gh-bot`, exited 0 (10 rows, 0 failures). Resolved the two threads of F8 and F10 by their thread IDs; a GraphQL refresh showed 0 unresolved threads.
 - 2026-11-17 18:39 UTC - Round 2: the approving review `5944190011` of `da2ce7` (submitted 18:21:14Z, forge `submitted_at`) with two nits, recorded as F11 and F12. The reviewer's `ACK` comment (18:21:18Z, forge `created_at`) names the head it read; the fix moves the head past it. The contributor (maintainer of the repository) chose to fix them in this pull request. The fix was committed at 18:35:10Z (`git log --format=%cI`, in UTC) and pushed; `git ls-remote` showed the fork branch at the local head at 18:38:31Z (`date -u`). The two replies were posted at 18:38:46Z and 18:38:48Z (forge `created_at`), after the push.
 - 2026-11-17 18:39 UTC - `validate-audit-record.py --pr-number 2920 --base torrust/develop`, with its `gh` calls made through `gh-bot`, exited 0 (12 rows, 0 failures). Resolved the two threads of F11 and F12 by their thread IDs; a GraphQL refresh showed 0 unresolved threads.
+- 2026-11-17 18:58 UTC - Correction to the Current-tree verification lines of F11 and F12, after the review `5944671302` of `da2ce7`. F12 gave the counts 15 and 7, taken before the fix added one line with each name; at the fix they are 16 and 8. F11 cited a `grep -c` for a local path that prints 0 whatever the probes answered, because every path in the answers file is replaced, and it named a local folder the answers file withholds; it now cites the Q3 answers of the six probes of checkout P, read in the file.
 
 <!-- Copied verbatim into each audit record. -->
 
