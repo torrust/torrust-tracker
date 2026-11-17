@@ -171,7 +171,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: `grep -rn '37 since #2850' docs/issues/open` prints four lines (EPIC lines 41 and 72, SI-1 line 40, #384 line 55); `grep -rn 'the 38 production' docs/issues/open/29*-2912-* docs/issues/open/2912-* docs/issues/open/384-*` finds no line without that qualifier.
 - Resolution reference: `docs(issues): [#2912] count 37 production Location::caller() sites since #2850 in the EPIC, SI-1 and #384 specs`
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2919#discussion_r4604092002
 
 ### F10 - The F6 verification claims extra grep matches
 
@@ -184,7 +184,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: `grep -n '#2912' docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md` prints lines 215, 220 and 228 only.
 - Resolution reference: `docs(pr-reviews): [#2912] record round 5 of the review audit of PR 2919`
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2919#discussion_r4604092428
 
 ## Processing Log
 
@@ -196,6 +196,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-17 18:11 UTC - Round 4: normalized Copilot review 5943970292, whose body reports one previously missed issue (Copilot's own ID F6) as audit finding F8, and committed its fix. It has no inline thread, so its row is `NON_RESOLVABLE` and its reply goes to the PR conversation.
 - 2026-11-17 18:14 UTC - Pushed the F8 fix and its row, then replied to F8 in the PR conversation (comment created at 18:14:51Z) and filled in its reply URL. `validate-audit-record.py --pr-number 2919 --base torrust/develop` (scratchpad copy, `gh` calls through `gh-bot`) on this worktree record reported 8 rows, 0 failures.
 - 2026-11-17 18:34 UTC - Round 5: normalized da2ce7 review 5944340783 (APPROVED) with findings F9 and F10, committed the F9 fix, edited the EPIC issue body on GitHub for F9, and fixed F10 in this record.
+- 2026-11-17 18:39 UTC - Pushed the round 5 commits, then replied to F9 and F10 (replies created at 18:38:56Z and 18:38:58Z) and filled in their reply URLs. `validate-audit-record.py --pr-number 2919 --base torrust/develop` (scratchpad copy, `gh` calls through `gh-bot`) on this worktree record reported 10 rows, 0 failures.
 
 ## Completion Rules
 
