@@ -1,7 +1,7 @@
 ---
 pr-number: 2911
 pr-url: https://github.com/torrust/torrust-tracker/pull/2911
-last-updated-utc: "2026-11-17 17:30"
+last-updated-utc: "2026-11-17 18:02"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -43,7 +43,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1: da2ce7 review 5943211502 (APPROVED) with findings F1 to F6, all non-blocking; the reviewer's IDs are this audit's IDs. Copilot review 5943096341 (COMMENTED) reported no finding.
+Round 1: da2ce7 review 5943211502 (APPROVED) with findings F1 to F6, all non-blocking; the reviewer's IDs are this audit's IDs. Copilot review 5943096341 (COMMENTED) reported no finding. Round 2: Copilot review 5943750223 (COMMENTED, on the head that fixed round 1) with findings R1 and R2, which Copilot rates medium; this audit maps that to `Minor (inferred)`, since the comments carry no severity bracket. The `R` IDs are this audit's.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -53,6 +53,8 @@ Round 1: da2ce7 review 5943211502 (APPROVED) with findings F1 to F6, all non-blo
 | F4 | review-finding:pr-2911-f4 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F5 | review-finding:pr-2911-f5 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-2911-f6 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| R1 | review-finding:pr-2911-r1 | Copilot | Minor (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
+| R2 | review-finding:pr-2911-r2 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -134,9 +136,36 @@ Round 1: da2ce7 review 5943211502 (APPROVED) with findings F1 to F6, all non-blo
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2911#discussion_r4603318782
 
+### R1 - The readiness poll copies the whole output each time
+
+- PR number: 2911
+- Source review ID: 5943750223
+- Reviewer finding ID: R1
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2911#discussion_r4603593852
+- Concern: `wait_until_signal_handlers_installed` called `self.output()` on every 10 ms poll, cloning the whole captured output each time, so the loop's cost grows with the log.
+- Solution: The poll calls a new `output_contains`, which checks `contains` under the mutex guard without cloning; the output is cloned only for a panic message or the final `ChildExit`.
+- Current-tree verification: `grep -n 'output_contains' packages/hung-component-tracker/tests/common/mod.rs` finds the helper and its one caller in the readiness loop; `cargo test -p torrust-tracker-hung-component-tracker` passed both cases after the change.
+- Resolution reference: `test(hung-component-tracker): [#2847] poll the child output without copying it and fail on a reader panic`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2911#discussion_r4603682434
+
+### R2 - Reader-thread panics are discarded
+
+- PR number: 2911
+- Source review ID: 5943750223
+- Reviewer finding ID: R2
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2911#discussion_r4603593928
+- Concern: `join_readers` dropped each `JoinHandle::join()` result, so a reader panic would surface only later, as missing log lines in an assertion message.
+- Solution: `join_readers`, used on the normal and the timeout paths, asserts each join is `Ok` with a direct message. `Drop` keeps ignoring the results, because it also runs while a failed assertion unwinds and a second panic would abort the test process.
+- Current-tree verification: `grep -n 'an output reader thread panicked' packages/hung-component-tracker/tests/common/mod.rs` finds the assertion; `grep -n 'must not panic again' packages/hung-component-tracker/tests/common/mod.rs` finds the `Drop` comment.
+- Resolution reference: `test(hung-component-tracker): [#2847] poll the child output without copying it and fail on a reader panic`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2911#discussion_r4603682816
+
 ## Processing Log
 
 - 2026-11-17 17:30 UTC - Round 1: da2ce7 review 5943211502 (APPROVED, ACK on the head before this round) with findings F1 to F4 (Minor) and F5, F6 (Nit), none blocking; Copilot review 5943096341 (COMMENTED) had no finding and no inline comment. The maintainer chose to fix all six in this PR. Committed the fixes in four commits (17:24:28Z to 17:28:11Z), then, before pushing so that one push carries the fixes and this record, replied to the six threads (17:29:25Z to 17:29:36Z), each naming the commit subject the push brings, and resolved them (17:29:58Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread. Created this record.
+- 2026-11-17 18:02 UTC - Round 2: Copilot review 5943750223 (COMMENTED, 17:54:07Z) on the head that fixed round 1, after both ACKs of that head, with findings R1 and R2. The maintainer chose to fix both with a new push. Committed the fix (18:01:19Z), replied to both threads (18:01:55Z and 18:01:58Z) naming the commit subject the push brings, and resolved them (18:02:08Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread. Recorded R1 and R2.
 
 <!-- Copied verbatim into each audit record. -->
 
