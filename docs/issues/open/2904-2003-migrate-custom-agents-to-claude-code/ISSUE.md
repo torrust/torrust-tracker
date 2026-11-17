@@ -323,9 +323,12 @@ Decided by the maintainer on 2026-11-15:
   reply file the reviewer was asked to write; if the file is missing or invalid, it exits with
   code 2, which keeps the agent working, and tells it what is wrong. Reason: the review report is
   the one that stopped being written (25 of 48 archived folders in October, 2 of 32 in the first
-  half of November; see Background for the method). Requirements: the hook cannot loop forever (it lets the agent finish after a bounded
-  number of refusals and says so), and it lets the agent finish when the reviewer was given no
-  folder-style specification, because then there is no place for a reply file. This is the only
+  half of November; see Background for the method). Requirements: the hook cannot loop forever,
+  and it lets the agent finish when the reviewer was given no folder-style specification, because
+  then there is no place for a reply file. The bound is 3 refusals per run of the agent, the same
+  number as the round limit of D18: the fourth attempt to finish is allowed, and the hook reports
+  that the limit was reached. The orchestrator then finds no valid reply file, stops, and asks the
+  contributor. This is the only
   hook in this issue; it is a Claude Code mechanism, so the rule itself stays written in the
   `review-task` skill (maintainer, 2026-11-17).
 - **D18 - The trace is one JSON reply file per reply, validated against a schema.** Only replies
@@ -487,7 +490,7 @@ on are merged.
 | T2  | TODO   | Pointer `CLAUDE.md` | A root `CLAUDE.md` whose only content is the import of `AGENTS.md` (D11); scenario M4 recorded |
 | T3  | TODO   | Reply schema and validator | `docs/schemas/agent-reply-v1.schema.json`; the validator with tests, developed in the progressive loop of the `write-unit-test` skill with a recorded design review per increment, and run by the repository checks; `docs/schemas/README.md` updated (D18) |
 | T4  | TODO   | `pr-review-handler` | `.claude/agents/pr-review-handler.md` with the pinned model; `wait-for-pr-review` and `process-pr-review` say which agent runs a round; the inventory `removed-profile-rules.md` created in this folder with the rules of `copilot-suggestions-handler` (AC6); scenarios M1 to M3 recorded |
-| T5  | TODO   | `task-reviewer` | The agent file with the pinned model and the stop hook (D17), with tests of its bounded refusals; the complexity item in `review-task` (D12); the reply rule in `review-task`; scenario M7 recorded |
+| T5  | TODO   | `task-reviewer` | The agent file with the pinned model and the stop hook (D17), with tests of its limit of 3 refusals; the complexity item in `review-task` (D12); the reply rule in `review-task`; scenario M7 recorded |
 | T6  | TODO   | `implementer` | The agent file; the three committer rules in `commit-changes` (D14); the rules that only `planner` held moved into `create-issue` |
 | T7  | TODO   | `pr-reviewer` | The agent file with the pinned model; the reply rule in `review-pr` |
 | T8  | TODO   | `researcher` | The agent file |
@@ -517,7 +520,7 @@ T10 completes it before removing the profiles.
 | T11  | The measurement evidence | One commit per recorded pull request |
 | T12  | The completion review; the move to `closed/`; the EPIC row | One commit each |
 
-Tests are added in T3 (the reply validator) and in T5 (the bounded refusals of the stop hook). For
+Tests are added in T3 (the reply validator) and in T5 (the limit of 3 refusals of the stop hook). For
 this test-producing work, use the `write-unit-test` skill and complete an explicit design review
 after each passing test increment, before maintainer review and commit. Confirm that the test
 exposes the one causal initial-state difference; its fixture owns only incidental mechanics; and
@@ -583,7 +586,8 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - [ ] AC10: Every agent started in scenarios M5 and M7 has its reply file in `agent-replies/`, each
       file passes the validator, and a reader can follow the sequence from the files alone.
 - [ ] AC11: The stop hook of `task-reviewer` refuses to let it finish without a valid reply file,
-      and stops refusing after its bounded number of attempts.
+      and lets it finish on the fourth attempt, after 3 refusals, reporting that the limit was
+      reached.
 - [ ] AC12: The root `CLAUDE.md` contains only the import of `AGENTS.md`.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
@@ -615,7 +619,7 @@ Every scenario records the Claude Code version it ran on.
 | M4  | `AGENTS.md` reaches the agents | In a checkout with a `CLAUDE.md` in a parent folder, and in one without, ask the session and one started agent which repository rules they were given | Both the session and the started agent received `AGENTS.md` in both cases; `CLAUDE.md` contains only the import | TODO | `manual-verification-evidence.md` section V4 |
 | M5  | The orchestrator leads | Start a session as the orchestrator on a small real task, once with `claude --agent orchestrator` and once by telling a normal session to read the file and take the role | It starts the implementer, then the task reviewer; each writes a valid reply file in `agent-replies/`; the implementer starts no agent; questions come back to the contributor through the orchestrator | TODO | `manual-verification-evidence.md` section V5 |
 | M6  | Review rounds per pull request | For the first three pull requests handled by `pr-review-handler`, count the review rounds with fixes | The counts are recorded with the model of each round, next to the baseline of pull request #2851 (14 rounds, split by model) | TODO | `manual-verification-evidence.md` section V6 |
-| M7  | The stop hook holds the reviewer | Start `task-reviewer` on a task, first with an instruction that makes it try to finish without a reply file, then normally | The hook refuses the first attempt and names what is missing; the agent then writes a valid reply file and finishes; the bounded limit is shown by a forced case | TODO | `manual-verification-evidence.md` section V7 |
+| M7  | The stop hook holds the reviewer | Start `task-reviewer` on a task, first with an instruction that makes it try to finish without a reply file, then normally | The hook refuses the first attempt and names what is missing; the agent then writes a valid reply file and finishes; a forced case shows 3 refusals and then the fourth attempt allowed, with the limit reported | TODO | `manual-verification-evidence.md` section V7 |
 
 Notes:
 
