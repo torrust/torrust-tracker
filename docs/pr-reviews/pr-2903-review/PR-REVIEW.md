@@ -140,7 +140,7 @@ and F19.
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2903#discussion_r4599332994
 - Concern: Appending the 10:57 entry after the blank line before `## Acceptance Criteria` split the progress log into a loose list.
 - Solution: The blank line is removed, so the entries form one tight list again.
-- Current-tree verification: `git diff $(git log --format=%H --fixed-strings --grep='specify the tracker-core package tests' -1) -- docs/issues/open/1347-overhaul-packages-testing/EPIC.md` (the diff against the S0 commit `docs(issues): [#2902] specify the tracker-core package tests`) shows the removed blank line and no other change to the earlier entries.
+- Current-tree verification: `git diff $(git log --no-merges --format=%H --fixed-strings --grep='specify the tracker-core package tests' -1) -- docs/issues/open/1347-overhaul-packages-testing/EPIC.md` (the diff against the S0 commit `docs(issues): [#2902] specify the tracker-core package tests`) shows the removed blank line and no other change to the earlier entries.
 - Resolution reference: docs(issues): [#1347] restore the 10:57 EPIC log entry and append T1b
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2903#discussion_r4599797846
@@ -309,7 +309,7 @@ and F19.
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2903#discussion_r4600282774
 - Concern: `git diff --stat 5833cdae9 HEAD -- packages` prints nothing only while `HEAD` is on this branch; after the merge, later slices change `packages/` and the check stops holding.
 - Solution: `coverage-evidence.md` and F8's verification name the range by the S0 commit, found by its subject, instead of `HEAD`.
-- Current-tree verification: `git diff --stat 5833cdae9 $(git log --format=%H --fixed-strings --grep='specify the tracker-core package tests' -1) -- packages | wc -l` prints 0.
+- Current-tree verification: `git diff --stat 5833cdae9 $(git log --no-merges --format=%H --fixed-strings --grep='specify the tracker-core package tests' -1) -- packages | wc -l` prints 0.
 - Resolution reference: docs(issues): [#2902] name the S0 commit in the unchanged-source check
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2903#discussion_r4600363938

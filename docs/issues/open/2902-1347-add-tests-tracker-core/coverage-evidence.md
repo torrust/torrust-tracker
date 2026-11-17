@@ -31,7 +31,7 @@ The container-gated row (T1b) was measured afterwards on the S0 branch, at its c
 `docs(issues): [#2902] specify the tracker-core package tests`. That commit changes no file
 under `packages/`, so the measured source is that of `develop` at
 `5833cdae98c0cfe3c2523c7f17e33bcfd3d7292f`: `git diff --stat 5833cdae9 <commit> -- packages`, with
-`<commit>` from `git log --format=%H --fixed-strings --grep='specify the tracker-core package tests'`,
+`<commit>` from `git log --no-merges --format=%H --fixed-strings --grep='specify the tracker-core package tests'`,
 prints nothing. The run followed `docker pull mysql:8.0` and `docker pull postgres:16` (the tests' default tags,
 `mysql/mod.rs:115` and `postgres/mod.rs:102`), with the same separate target directory:
 
