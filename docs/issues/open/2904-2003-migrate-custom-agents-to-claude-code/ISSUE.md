@@ -9,7 +9,7 @@ github-issue: 2904
 spec-path: docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md
 branch: "2904-migrate-custom-agents-to-claude-code-spec"
 related-pr: null
-last-updated-utc: "2026-11-17 13:11"
+last-updated-utc: "2026-11-17 13:19"
 semantic-links:
   skill-links:
     - create-issue
@@ -569,6 +569,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - 2026-11-17 12:14 UTC - Claude Code (Claude Fable 5.2) - The maintainer approved the draft; created issue #2904, moved the specification to `docs/issues/open/`, and added row 23 to the EPIC's Subissues table. Linking #2904 as a GitHub sub-issue of #2003 is pending: the contributor account's request was refused with `404`.
 - 2026-11-17 12:55 UTC - Claude Code (Claude Fable 5.2) - Addressed the review `5938631990` of `da2ce7` on pull request #2905 (findings F1 to F7), one commit per finding: the baseline of pull request #2851 is 14 rounds on three models, not 9 on one; the archived-report counts are recomputed with their method; the plan gains the AC6 inventory, the planner rules and the test-development loop.
 - 2026-11-17 13:11 UTC - Claude Code (Claude Fable 5.2) - Addressed Copilot's review `5939023583` on pull request #2905 (findings F8 and F9): the stop hook's limit is 3 refusals, and D18 states which report file this issue uses for its own reviews.
+- 2026-11-17 13:19 UTC - Claude Code (Claude Fable 5.2) - Addressed the review `5939071001` of `da2ce7` on pull request #2905 (three nits): the archived-report method names the revision where the report is checked, the inventory's destinations agree with AC6, and Automatic Checks lists the stop hook's tests.
 
 ## Acceptance Criteria
 
