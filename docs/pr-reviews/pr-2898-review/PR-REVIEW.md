@@ -1,7 +1,7 @@
 ---
 pr-number: 2898
 pr-url: https://github.com/torrust/torrust-tracker/pull/2898
-last-updated-utc: "2026-11-17 09:33"
+last-updated-utc: "2026-11-17 09:49"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -43,7 +43,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1: da2ce7 review 5935780107 (APPROVED) with findings F1 to F3, and Copilot review 5935810986 (COMMENTED, three findings without reviewer IDs) as audit findings F4 to F6; F5 re-raises F1.
+Round 1: da2ce7 review 5935780107 (APPROVED) with findings F1 to F3, and Copilot review 5935810986 (COMMENTED, three findings without reviewer IDs) as audit findings F4 to F6; F5 re-raises F1. Round 2: da2ce7 review 5936170669 (APPROVED) with findings F4 and F5, whose IDs collide with this audit's, so they are audit findings F7 and F8.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -53,6 +53,8 @@ Round 1: da2ce7 review 5935780107 (APPROVED) with findings F1 to F3, and Copilot
 | F4 | review-finding:pr-2898-f4 | Copilot | Minor (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
 | F5 | review-finding:pr-2898-f5 | Copilot | Minor (inferred) | documentation | RE_RAISE_OF:F1 | FIXED | RESOLVED |
 | F6 | review-finding:pr-2898-f6 | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-2898-f7 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-2898-f8 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -134,6 +136,32 @@ Round 1: da2ce7 review 5935780107 (APPROVED) with findings F1 to F3, and Copilot
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2898#discussion_r4597576259
 
+### F7 - `last-updated-utc` stayed at 08:52 through round 1's edits
+
+- PR number: 2898
+- Source review ID: 5936170669
+- Reviewer finding ID: F4
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2898#discussion_r4597827244
+- Concern: The round-1 fix commits edited the spec and the EPIC, but both kept `last-updated-utc: "2026-11-17 08:52"`, while the cleanup skill asks an edited document to keep its metadata current.
+- Solution: Both stamps read `2026-11-17 09:47`, the minute of the stamping edit.
+- Current-tree verification: `grep -n '^last-updated-utc' docs/issues/closed/2394-2392-audit-shared-test-resources/ISSUE.md docs/issues/open/2392-test-isolation/EPIC.md` prints `"2026-11-17 09:47"` for both.
+- Resolution reference: `docs(issues): [#2394] stamp the spec and EPIC with their last edit`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2898#discussion_r4597844638
+
+### F8 - The PR description was not refreshed for round 1
+
+- PR number: 2898
+- Source review ID: 5936170669
+- Reviewer finding ID: F5
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2898#discussion_r4597827251
+- Concern: The description omitted this audit record and still named the old combined "Issue closed" checkpoint.
+- Solution: The description lists this record and describes the split checkpoint and the EPIC row's note (edited at 09:48:16Z).
+- Current-tree verification: `gh-bot pr view 2898 -R torrust/torrust-tracker --json body --jq .body | grep -c 'pr-2898-review'` prints 1.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2898#discussion_r4597845051
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2898#discussion_r4597845051
+
 ## Processing Log
 
 - 2026-11-17 09:20 UTC - Round 1: da2ce7 review 5935780107 (APPROVED) with findings F1 (Minor), F2 (Nit) and F3 (Suggestion); the reviewer's IDs are this audit's IDs. Committed the three fixes (09:19:51Z), then replied to the three threads (09:19:57Z to 09:20:02Z). This record was created after the replies, a late start of the audit; the reviewer had said no record was due because the PR had no thread yet.
@@ -141,6 +169,8 @@ Round 1: da2ce7 review 5935780107 (APPROVED) with findings F1 to F3, and Copilot
 - 2026-11-17 09:21 UTC - Resolved the unresolved threads at about 09:21:19Z. That resolved six threads, not three: Copilot review 5935810986 had posted three threads at 09:19:55Z, which I resolved before reading or replying to them, against the completion rules. The GraphQL refresh after it showed those three threads without a reply.
 - 2026-11-17 09:22 UTC - Copilot's round: normalized its three findings as F4 to F6 (F5 re-raises F1), committed the F4 and F6 fixes (09:22:10Z), then replied to the three threads (09:22:16Z to 09:22:21Z), each reply noting the premature resolution. The threads stay resolved, now with their replies.
 - 2026-11-17 09:33 UTC - The validator on the worktree record reported 6 rows, 4 log entries, 0 failures (about 09:23Z). A GraphQL refresh found every thread resolved with a reply from `josecelano-bot` as its last comment. Committed these entries.
+- 2026-11-17 09:48 UTC - Round 2: normalized da2ce7 review 5936170669 (APPROVED) with findings F4 and F5 as audit findings F7 and F8. Committed the F7 fix (09:48:07Z), edited the PR description for F8 (09:48:16Z), then replied to both threads (09:48:21Z and 09:48:24Z).
+- 2026-11-17 09:49 UTC - The validator on the worktree record reported 8 rows, 6 log entries, 0 failures. Resolved the two round-2 threads (09:49:02Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread and none without a reply. Committed these entries.
 
 <!-- Copied verbatim into each audit record. -->
 
