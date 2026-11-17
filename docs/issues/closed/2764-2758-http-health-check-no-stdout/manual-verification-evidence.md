@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2764-2758-http-health-check-no-stdout/ISSUE.md
-last-updated-utc: 2026-11-16 19:09
+issue-spec: docs/issues/closed/2764-2758-http-health-check-no-stdout/ISSUE.md
+last-updated-utc: 2026-11-16 21:58
 ---
 
 # Manual Verification Evidence
