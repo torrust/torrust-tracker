@@ -1,7 +1,7 @@
 ---
 pr-number: 2922
 pr-url: https://github.com/torrust/torrust-tracker/pull/2922
-last-updated-utc: "2026-11-17 18:23"
+last-updated-utc: "2026-11-17 18:41"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -43,7 +43,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1: da2ce7 review 5944086342 (APPROVED) with findings F1 to F4; the reviewer's IDs are this audit's IDs. Copilot review 5944100743 (COMMENTED) with one finding, R1; the reviewer's ID is this audit's ID. R1 asks for the same current-tree change as F2.
+Round 1: da2ce7 review 5944086342 (APPROVED) with findings F1 to F4; the reviewer's IDs are this audit's IDs. Copilot review 5944100743 (COMMENTED) with one finding, R1; the reviewer's ID is this audit's ID. R1 asks for the same current-tree change as F2. Round 2: da2ce7 review 5944394364 (APPROVED) with findings F5 and F6; the reviewer's IDs are this audit's IDs.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -52,6 +52,8 @@ Round 1: da2ce7 review 5944086342 (APPROVED) with findings F1 to F4; the reviewe
 | F3 | review-finding:pr-2922-f3 | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
 | F4 | review-finding:pr-2922-f4 | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
 | R1 | review-finding:pr-2922-r1 | Copilot | Nit | metadata | RE_RAISE_OF:F2 | NO_ACTION | SUPERSEDED |
+| F5 | review-finding:pr-2922-f5 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F6 | review-finding:pr-2922-f6 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -120,9 +122,37 @@ Round 1: da2ce7 review 5944086342 (APPROVED) with findings F1 to F4; the reviewe
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2922#discussion_r4603916463
 
+### F5 - The row 13 status change has no line in the EPIC's progress log
+
+- PR number: 2922
+- Source review ID: 5944394364
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2922#discussion_r4604057139
+- Concern: The EPIC template asks for one progress-log line per meaningful update, and this EPIC logs the row changes it makes. The change of row 13 to `BLOCKED` had no line.
+- Solution: Appended a late progress-log entry to the EPIC for row 13, with the agent and its model, the time of the row change, and the reason for the hold.
+- Current-tree verification: `grep -c "issue #2360 session) - Late entry for row 13" docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md` prints `1`. The time in the entry, 18:19 UTC, is the committer time `2026-11-17T18:19:46Z` that `git log --format=%cI` prints for the commit `docs(issues): [#2360] mark the issue blocked in the #2003 EPIC table`.
+- Resolution reference: docs(issues): [#2360] log the row 13 status change in the #2003 EPIC
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2922#discussion_r4604118490
+
+### F6 - The Processing Log does not say that the record was started after the replies
+
+- PR number: 2922
+- Source review ID: 5944394364
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2922#discussion_r4604057158
+- Concern: The `process-pr-review` skill asks for the record before the first reply and, when a reply came first, for the late start to be logged. The first Processing Log entry, stamped 18:23, lists replies of 18:22:46Z to 18:22:56Z, so the order can be read off the times but is not stated.
+- Solution: Appended a Processing Log entry that states the late start of round 1. The first entry is left as written, because the log is append-only. The same entry records the round 1 thread resolutions, which the first entry did not cover.
+- Current-tree verification: `grep -c "Late start of round 1" docs/pr-reviews/pr-2922-review/PR-REVIEW.md` prints `2` (the log entry and this line).
+- Resolution reference: docs(pr-reviews): [#2360] audit review round 2 of PR 2922
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2922#discussion_r4604118907
+
 ## Processing Log
 
 - 2026-11-17 18:23 UTC - Started audit. Round 1: da2ce7 review 5944086342 (submitted 18:14:41Z) and Copilot review 5944100743 (submitted 18:15:35Z). Committed the F2, F1 (specification wording), F3 and F4 fixes as four signed commits and pushed them with `git-bot-push`, ending at `docs(issues): [#2360] mark the issue blocked in the #2003 EPIC table`. Edited the PR description for F1 and posted the PR conversation response (18:22:36Z). Replied to the five threads (18:22:46Z to 18:22:56Z).
+- 2026-11-17 18:41 UTC - Late start of round 1: this record was created at 18:23 UTC, after the five round 1 replies (18:22:46Z to 18:22:56Z), although the skill asks for the record before the first reply. Also not logged before: the five round 1 threads were resolved after the push of the commit `docs(pr-reviews): [#2360] audit review round 1 of PR 2922`, and a GraphQL refresh then found no unresolved thread.
+- 2026-11-17 18:41 UTC - Round 2: da2ce7 review 5944394364 (APPROVED, submitted 18:35:43Z) with F5 and F6. Committed the F5 fix. Added the F5 and F6 rows to this record, then replied to the two threads (18:41:21Z and 18:41:24Z). The validator then reported 7 rows and 1 failure: the F6 resolution reference names the commit of this record, which did not exist yet. The two threads were resolved at about 18:41:43Z in the same command, before that failure was read; a GraphQL refresh found no unresolved thread. Nothing of round 2 is pushed when this entry is written.
 
 <!-- Copied verbatim into each audit record. -->
 
