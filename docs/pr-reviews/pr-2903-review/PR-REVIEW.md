@@ -41,11 +41,15 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1 is da2ce7's review `5938095803` of `690cfb5f5` (submitted as an approval, later dismissed by the
-push), round 2 his review `5938377458` of `2b0c3fe36` (comment). Their inline findings keep the
+Round 1 is da2ce7's review `5938095803` of the head whose last commit is `docs(issues): [#2902] specify the tracker-core package tests` (submitted as an
+approval, later dismissed by the push), round 2 his review `5938377458` of the head whose last commit is
+`docs(issues): [#2902] record the container-gated coverage measurement` (comment). Their inline findings keep the
 reviewer's IDs F1 to F10; the review bodies only summarize them. Round 3 is Copilot's review `5938522893`
-of `2b0c3fe36` (12:38:26 UTC, comment, empty body), found only after the first reply push; its three
-inline comments have no IDs and get F11 to F13 in source order.
+of the head whose last commit is `docs(issues): [#2902] specify the tracker-core package tests` (submitted 12:38:27 UTC as a comment; its body is an overview
+with no request, so it needs no row), found only after the first reply push; its three
+inline comments have no IDs and get F11 to F13 in source order. Round 4 is da2ce7's review `5939100172`
+(approval) of the head whose last commit is `docs(pr-reviews): [#2902] record Copilot's review of #2903`;
+its inline findings keep the reviewer's IDs F14 to F16.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -62,6 +66,9 @@ inline comments have no IDs and get F11 to F13 in source order.
 | F11 | review-finding:pr-2903-f11 | Copilot | Nit (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-2903-f12 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F13 | review-finding:pr-2903-f13 | Copilot | Minor (inferred) | documentation | RE_RAISE_OF:F12 | NO_ACTION | SUPERSEDED |
+| F14 | review-finding:pr-2903-f14 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-2903-f15 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-2903-f16 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -125,7 +132,7 @@ inline comments have no IDs and get F11 to F13 in source order.
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2903#discussion_r4599332994
 - Concern: Appending the 10:57 entry after the blank line before `## Acceptance Criteria` split the progress log into a loose list.
 - Solution: The blank line is removed, so the entries form one tight list again.
-- Current-tree verification: `git diff 690cfb5f5 -- docs/issues/open/1347-overhaul-packages-testing/EPIC.md` shows the removed blank line and no other change to the earlier entries.
+- Current-tree verification: `git diff $(git log --format=%H --fixed-strings --grep='specify the tracker-core package tests' -1) -- docs/issues/open/1347-overhaul-packages-testing/EPIC.md` (the diff against the S0 commit `docs(issues): [#2902] specify the tracker-core package tests`) shows the removed blank line and no other change to the earlier entries.
 - Resolution reference: docs(issues): [#1347] restore the 10:57 EPIC log entry and append T1b
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2903#discussion_r4599797846
@@ -163,8 +170,8 @@ inline comments have no IDs and get F11 to F13 in source order.
 - Reviewer finding ID: F8
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2903#discussion_r4599550883
 - Concern: The fifth scope existed only as row text, with no reproducible command and per-file results only as prose, and the reading note still said the figures above excluded the drivers.
-- Solution: `coverage-evidence.md` now gives the command (both variables, after `cargo llvm-cov clean --workspace`, the separate target directory, the image tags) and the measured commit (`690cfb5f5`, whose `packages/` tree equals `5833cdae9`), adds a container-gated column to all 51 inventory rows, and the note says the four default rows exclude the drivers.
-- Current-tree verification: `git diff --stat 5833cdae9 690cfb5f5 -- packages` prints nothing; the per-file inventory rows each have five columns (`awk -F'|'` counts 7 fields on all 51 rows).
+- Solution: `coverage-evidence.md` now gives the command (both variables, after `cargo llvm-cov clean --workspace`, the separate target directory, the image tags) and the measured commit (the S0 commit `docs(issues): [#2902] specify the tracker-core package tests`; the branch changes nothing under `packages/`, so the source is that of `5833cdae9`), adds a container-gated column to all 51 inventory rows, and the note says the four default rows exclude the drivers.
+- Current-tree verification: `git diff --stat 5833cdae9 HEAD -- packages` prints nothing; the per-file inventory rows each have five columns (`awk -F'|'` counts 7 fields on all 51 rows).
 - Resolution reference: docs(issues): [#2902] add the container-gated command and per-file column
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2903#discussion_r4599799711
@@ -176,8 +183,8 @@ inline comments have no IDs and get F11 to F13 in source order.
 - Reviewer finding ID: F9
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2903#discussion_r4599550894
 - Concern: The T1b commit edited the 10:57 EPIC entry so that an entry dated before the measurement reported it.
-- Solution: The original 10:57 text is restored byte for byte from `690cfb5f5`, and a dated entry records T1b with a correction note.
-- Current-tree verification: `git show 690cfb5f5:docs/issues/open/1347-overhaul-packages-testing/EPIC.md | sed -n 362p` equals the restored line; `git diff 690cfb5f5` shows only the row 14 note, the removed blank line and the appended entry in the log area.
+- Solution: The original 10:57 text is restored byte for byte from the S0 commit `docs(issues): [#2902] specify the tracker-core package tests`, and a dated entry records T1b with a correction note.
+- Current-tree verification: line 362 of the EPIC at the S0 commit (`git show <S0 commit>:docs/issues/open/1347-overhaul-packages-testing/EPIC.md`) equals the restored line; the diff against that commit shows only the row 14 note, the removed blank line and the appended entry in the log area.
 - Resolution reference: docs(issues): [#1347] restore the 10:57 EPIC log entry and append T1b
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2903#discussion_r4599800327
@@ -202,8 +209,8 @@ inline comments have no IDs and get F11 to F13 in source order.
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2903#discussion_r4599655402
 - Concern: Coverage evidence meant to be reproducible should record the full 40-character SHA, since a short one can become ambiguous.
-- Solution: `coverage-evidence.md` records the full SHAs of `5833cdae9` (also in its `measured-commit` frontmatter) and of `690cfb5f5`, the commit of the container-gated run; the short forms stay in prose.
-- Current-tree verification: `git rev-parse 5833cdae9 690cfb5f5` prints the two SHAs the file now cites.
+- Solution: `coverage-evidence.md` records the full SHA of `5833cdae9` (also in its `measured-commit` frontmatter). It first also recorded the full SHA of the branch commit of the container-gated run; F14 replaced that with the commit subject, since a rebase can rewrite a branch id.
+- Current-tree verification: `git rev-parse 5833cdae9` prints the SHA the file cites.
 - Resolution reference: docs(issues): [#2902] record the full commit SHAs of the measurements
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2903#discussion_r4599904133
@@ -234,12 +241,52 @@ inline comments have no IDs and get F11 to F13 in source order.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2903#discussion_r4599905897
 
+### F14 - Durable text cited branch commit ids
+
+- PR number: 2903
+- Source review ID: 5939100172
+- Reviewer finding ID: F14
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2903#discussion_r4600053985
+- Concern: The evidence, the spec log and the audit cited branch commit ids (`2b0c3fe36`, `37d9b1218`, `690cfb5f5` short and full, `8f42a03a6`) that a rebase can rewrite.
+- Solution: `coverage-evidence.md` names the container-gated run's commit by subject and the measured source by the full id of `5833cdae9` on `develop`; the audit's round descriptions and finding details name heads and commits by subject. The ids left are in append-only progress and processing log entries (`ISSUE.md:414`, `PR-REVIEW.md` processing log), which are not rewritten; they resolve at this head and stay reachable after the merge.
+- Current-tree verification: `grep -n -E '2b0c3fe36|37d9b1218|690cfb5f5|8f42a03a6' docs/issues/open/2902-1347-add-tests-tracker-core/coverage-evidence.md` prints nothing; in `PR-REVIEW.md` the ids appear only in Processing Log entries and in this entry.
+- Resolution reference: docs(issues): [#2902] cite the container-gated run by commit subject
+- Follow-up PR URL: N/A
+- Reply URL: PENDING_REPLY_F14
+
+### F15 - Two lines cells in files with a test module had no label
+
+- PR number: 2903
+- Source review ID: 5939100172
+- Reviewer finding ID: F15
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2903#discussion_r4600053992
+- Concern: `error.rs` and `statistics/repository.rs` have test modules but their cells listed production lines without a `production:` label, against the rule above the table and the F12 entry.
+- Solution: Both cells are labeled `production:`. Checking every row against its file found one more: `test_helpers.rs` (test support), now labeled `test module:`.
+- Current-tree verification: a loop over the table rows that checks each file for a `cfg(test)` attribute and an unlabeled cell prints nothing.
+- Resolution reference: docs(issues): [#2902] label the last unlabeled uncovered-line cells
+- Follow-up PR URL: N/A
+- Reply URL: PENDING_REPLY_F15
+
+### F16 - The record described Copilot's review wrongly
+
+- PR number: 2903
+- Source review ID: 5939100172
+- Reviewer finding ID: F16
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2903#discussion_r4600054002
+- Concern: The record said Copilot's review was of the second head and had an empty body; it was of the first head (`commit_id` of the S0 commit) and has a 3,254-character overview with no request.
+- Solution: The Findings introduction now gives the reviewed head (by commit subject), the submission time 12:38:27 UTC and the body as an overview with no request. The processing log entry of 12:53 UTC, which gives 12:38:26 UTC (the time of the inline comments), is corrected by an appended entry.
+- Current-tree verification: `gh-bot api repos/torrust/torrust-tracker/pulls/2903/reviews/5938522893 --jq '[.commit_id,.submitted_at,(.body|length)]'` prints the S0 commit's full id, `2026-11-17T12:38:27Z` and `3254`.
+- Resolution reference: docs(pr-reviews): [#2902] record the fourth review round of #2903
+- Follow-up PR URL: N/A
+- Reply URL: PENDING_REPLY_F16
+
 ## Processing Log
 
 - 2026-11-17 12:48 UTC - Started audit late: the round 1 threads (12:08:23 UTC) and round 2 threads (12:28:40 UTC) had no reply before this record; the fixes were committed first, between 12:37 and 12:46 UTC, one commit per finding (F5 and F9 share one).
 - 2026-11-17 12:51 UTC - Pushed the fix commits (head `37d9b1218`), edited the PR description and posted the F10 note at 12:51:13 UTC (issue comment 6948544053); replied to the ten threads between 12:51:24 and 12:51:57 UTC and resolved each after its reply.
 - 2026-11-17 12:53 UTC - Found Copilot's review `5938522893` (12:38:26 UTC, three threads), which the 12:51 replies had missed: the thread check right after pushing the audit commit (committed 12:53:03 UTC) showed three unresolved threads. Recorded as F11-F13.
 - 2026-11-17 13:01 UTC - Pushed the F11 and F12 fixes (head `8f42a03a6`); replied to the three threads between 13:01:41 and 13:01:48 UTC and resolved each after its reply (F13 superseded by F12).
+- 2026-11-17 13:16 UTC - Round 4 (da2ce7's review `5939100172`, 13:13:35 UTC, approval with F14-F16) processed: F15 and F14 fixed in their own commits; the round descriptions and finding details now cite commits by subject. Correction of the 12:53 UTC entry above: Copilot's review was submitted at 12:38:27 UTC (12:38:26 UTC is the time of its first inline comments) and was of the first head, not the second (F16).
 
 ## Completion Rules
 
