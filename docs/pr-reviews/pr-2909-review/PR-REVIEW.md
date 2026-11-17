@@ -1,7 +1,7 @@
 ---
 pr-number: 2909
 pr-url: https://github.com/torrust/torrust-tracker/pull/2909
-last-updated-utc: "2026-11-17 14:15"
+last-updated-utc: "2026-11-17 14:18"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -43,7 +43,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1: da2ce7 review 5939688807 (CHANGES_REQUESTED) with findings F1 to F6, and Copilot review 5939793811 (COMMENTED, on the first commit of the PR) with finding R1; the reviewers' IDs are this audit's IDs.
+Round 1: da2ce7 review 5939688807 (CHANGES_REQUESTED) with findings F1 to F6, and Copilot review 5939793811 (COMMENTED, on the first commit of the PR) with finding R1; the reviewers' IDs are this audit's IDs. Round 2: da2ce7 review 5940040689 (APPROVED) with finding F9 (non-blocking).
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -54,6 +54,7 @@ Round 1: da2ce7 review 5939688807 (CHANGES_REQUESTED) with findings F1 to F6, an
 | F5 | review-finding:pr-2909-f5 | Human | Suggestion | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-2909-f6 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | R1 | review-finding:pr-2909-r1 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F9 | review-finding:pr-2909-f9 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -148,6 +149,19 @@ Round 1: da2ce7 review 5939688807 (CHANGES_REQUESTED) with findings F1 to F6, an
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2909#discussion_r4600646667
 
+### F9 - The audit cites PR-branch commit ids
+
+- PR number: 2909
+- Source review ID: 5940040689
+- Reviewer finding ID: F9
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2909#discussion_r4600771793
+- Concern: The audit cited three PR-branch commit ids (the Copilot review head and two pushed heads in the Processing Log), which `open-pull-request` keeps out of repository artifacts because a rebase changes them.
+- Solution: The Findings introduction names the Copilot review head as the first commit of the PR, and the two log entries name the pushed commits by their subjects; a log entry records the in-place correction.
+- Current-tree verification: the `open-pull-request` commit-id check, run from the repository root against `torrust/develop`, printed nothing.
+- Resolution reference: `docs(pr-reviews): [#2847] cite commits by subject in the PR 2909 audit`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2909#discussion_r4600823714
+
 ## Processing Log
 
 - 2026-11-17 13:57 UTC - Started audit for round 1: da2ce7 review 5939688807 (CHANGES_REQUESTED), findings F1 (Major), F2 (Minor), F3 (Minor), F4 (Nit), F5 (Suggestion) and F6 (Nit). Committed the six fixes in one commit (13:56:06Z) before creating this record and before any reply.
@@ -156,6 +170,7 @@ Round 1: da2ce7 review 5939688807 (CHANGES_REQUESTED) with findings F1 to F6, an
 - 2026-11-17 14:05 UTC - Pushed the R1 fix and the audit (bot fork head: `docs(issues): [#2847] require the test-design review before T2 and T3 commits`), then replied to the R1 thread (14:05:05Z) and recorded its reply URL.
 - 2026-11-17 14:05 UTC - The validator on the worktree record reported 7 rows, 4 log entries, 0 failures. Resolved the R1 thread (14:05:30Z); a GraphQL refresh found no unresolved thread and none whose last comment is not a `josecelano-bot` reply. Committed these entries.
 - 2026-11-17 14:15 UTC - Round 2: da2ce7 review 5940040689 (APPROVED) with finding F9 (Minor, non-blocking). Correction for F9: rewrote in place the Findings introduction (the Copilot review head) and the 13:59 and 14:05 log entries, which cited PR-branch commit ids; they now name the commits by their subjects or as the first commit of the PR. The other entries are unchanged.
+- 2026-11-17 14:18 UTC - Committed and pushed the F9 fix (14:15:30Z), replied to the F9 thread (14:18:33Z) and resolved it (14:18:37Z); a GraphQL refresh found no unresolved thread and none whose last comment is not a `josecelano-bot` reply. Recorded F9 and committed these entries.
 
 <!-- Copied verbatim into each audit record. -->
 
