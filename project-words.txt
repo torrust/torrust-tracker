@@ -48,6 +48,7 @@ Glrg
 Graphviz
 Grcov
 HDRINCL
+Handback
 Hydranode
 ICASE
 IPPROTO
@@ -291,6 +292,7 @@ gpgsign
 gzprintf
 gzvprintf
 gzwrite
+hardlinks
 hasher
 healthcheck
 heaptrack

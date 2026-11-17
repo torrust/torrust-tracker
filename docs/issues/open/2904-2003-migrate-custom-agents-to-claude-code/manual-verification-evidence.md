@@ -1,0 +1,188 @@
+---
+doc-type: manual-verification-evidence
+issue-spec: docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md
+last-updated-utc: 2026-11-17 17:11
+---
+
+# Manual Verification Evidence
+
+## Purpose
+
+Record real, human-oriented verification of the completed behavior. This is
+evidence from commands or interactions actually performed against the artifact;
+do not invent commands, output, logs, or results.
+
+Sections are numbered after the scenarios of the specification (V4 is scenario M4). Each task
+adds the section of the scenario it records.
+
+## Environment and Prerequisites
+
+- Date and time (UTC): 2026-11-17, 16:53 to 17:09
+- Artifact under test: the pointer files of task T2, added by
+  `docs(agents): [#2904] add a root CLAUDE.md that only imports AGENTS.md` and
+  `docs(agents): [#2904] add an import-only CLAUDE.md beside each scoped AGENTS.md`, on top of
+  `develop` at the merge of pull request #2905.
+- Operating system / environment: Linux 7.0.0-43-generic; Claude Code 2.1.318 (`claude --version`);
+  every probe session ran on `claude-sonnet-5-5` (the `init` record of its output).
+- Prerequisites and setup performed: two checkouts of the same commit.
+  - **Checkout P (a `CLAUDE.md` in a parent folder):** the contributor's working checkout. A
+    `CLAUDE.md` with personal instructions exists three folders above it. No `CLAUDE.md` exists
+    in the user's `~/.claude/` folder.
+  - **Checkout N (no `CLAUDE.md` above):** `git clone --no-hardlinks --depth 1` of checkout P
+    into a temporary folder. A loop over its ten parent folders found no `CLAUDE.md` and no
+    `AGENTS.md`. The pointer files were copied into it with `cp` before the probes that need them.
+
+## Verification Processes
+
+### V4 - `AGENTS.md` reaches the agents (scenario M4)
+
+- Goal: show that the session and an agent it starts receive the root `AGENTS.md`, and the rules
+  of a scoped `AGENTS.md` after reading a file in its directory, with and without a `CLAUDE.md`
+  in a parent folder; and decide whether the scoped pointer files of D11 are needed.
+- Initial state: `develop` at the merge of pull request #2905, with no `CLAUDE.md` in the
+  repository.
+- Status: `DONE`
+
+#### Steps Performed
+
+Each probe is one non-interactive Claude Code session started in the checkout:
+
+```text
+claude -p "<prompt>" --tools <tools> --output-format json < /dev/null
+```
+
+The session prompt, used with `--tools Read`:
+
+```text
+This is a test of which instruction files were loaded into your context. Use the Read tool exactly once, on the file packages/configuration/Cargo.toml. Use no other tool and read no other file. Then answer these three questions from your context only, in three lines:
+Q1: Were you given the content of this repository's root AGENTS.md? If yes, quote its first heading line verbatim. If not, answer NOT LOADED.
+Q2: Were you given the content of packages/configuration/AGENTS.md? If yes, quote verbatim the heading of its first rule (a line starting with "### Rule:"). If not, answer NOT LOADED.
+Q3: List the paths of every CLAUDE.md or AGENTS.md file whose content you were given.
+```
+
+The agent prompt, used with `--tools Read Agent`, wraps the session prompt:
+
+```text
+This is a test of which instruction files a started agent receives. Start exactly one subagent of type general-purpose with the Agent tool. Give it exactly the task between the markers, and nothing else. Do not read any file yourself. When it answers, print its answer verbatim and add nothing.
+---BEGIN TASK---
+<the session prompt>
+---END TASK---
+```
+
+The expected quotes are the first line of `AGENTS.md`
+(`# Torrust Tracker — AI Assistant Instructions`) and the first rule heading of
+`packages/configuration/AGENTS.md`
+(`### Rule: Use typed newtypes for domain-constrained configuration fields`). `--tools Read`
+leaves the session no tool but `Read`, and the prompt allows one call, so a correct quote of the
+scoped rule cannot come from reading the file.
+
+The probes ran one at a time, in this order. Times are UTC: the modification time of the probe's output file (`ls -l`) for
+probes 1 and 2, `date -u` at the end of the probe for probes 3 to 8, and `date -u` at its start
+and end for probes 9 to 12.
+
+1. Probe 1, checkout P, no pointer file, session prompt. Output written at 16:54:58.
+2. Wrote the root `CLAUDE.md` in checkout P (`printf '@AGENTS.md\n' > CLAUDE.md`).
+3. Probe 2, checkout P, root pointer only, session prompt. Output written at 16:55:15.
+4. Wrote a `CLAUDE.md` with the same content beside each of the ten scoped `AGENTS.md` files in
+   checkout P.
+5. Created checkout N from the commit without pointer files.
+6. Probe 3, checkout N, no pointer file, session prompt. Ended 17:06:33.
+7. Copied the root `CLAUDE.md` into checkout N.
+8. Probe 4, checkout N, root pointer only, session prompt. Ended 17:06:52.
+9. Copied the ten scoped `CLAUDE.md` files into checkout N; `git status --short | wc -l` printed 11.
+10. Probes 5 to 8, all pointer files, with `--output-format json`: checkout N session (ended
+    17:07:02), checkout N agent (17:07:19), checkout P session (17:07:30), checkout P agent
+    (17:07:45).
+11. Probes 9 to 12, the same four cases again with `--output-format stream-json --verbose`, to
+    record the tool calls: checkout N session (17:08:05 to 17:08:15), checkout N agent (17:08:15
+    to 17:08:30), checkout P session (17:08:30 to 17:08:41), checkout P agent (17:08:41 to
+    17:08:57).
+
+#### Observed Result
+
+Answers to Q1 and Q2, and the files each probe listed for Q3. "root pair" is the root `CLAUDE.md`
+and `AGENTS.md`; "scoped pairs" is the `CLAUDE.md` and `AGENTS.md` of `packages/` and of
+`packages/configuration/`.
+
+| Probe | Checkout | Pointer files | Who answered | Q1 root `AGENTS.md` | Q2 scoped rule | Q3 files given |
+| ----- | -------- | ------------- | ------------ | ------------------- | -------------- | -------------- |
+| 1 | P | none | session | NOT LOADED | NOT LOADED | only the parent folder's `CLAUDE.md` |
+| 2 | P | root only | session | quoted | NOT LOADED | the parent folder's `CLAUDE.md`, root pair |
+| 3 | N | none | session | quoted | quoted | root `AGENTS.md`, `packages/AGENTS.md`, `packages/configuration/AGENTS.md` |
+| 4 | N | root only | session | quoted | NOT LOADED | root pair |
+| 5, 9 | N | all | session | quoted | quoted | root pair, scoped pairs |
+| 6, 10 | N | all | started agent | quoted | quoted | root pair, scoped pairs |
+| 7, 11 | P | all | session | quoted | quoted | the parent folder's `CLAUDE.md`, root pair, scoped pairs |
+| 8, 12 | P | all | started agent | quoted | quoted | the parent folder's `CLAUDE.md`, root pair, scoped pairs |
+
+Every "quoted" answer gave the expected line verbatim. Answers of probes 1, 2 and 4, verbatim:
+
+```text
+Probe 1
+Q1: NOT LOADED. Only the CLAUDE.md at the Torrust checkouts folder level was given to me, and no root AGENTS.md content appeared in my context.
+Q2: NOT LOADED. No `packages/configuration/AGENTS.md` content appeared, even after reading `packages/configuration/Cargo.toml`.
+
+Probe 2
+Q1: The root AGENTS.md content was loaded (via the `@AGENTS.md` import in the worktree CLAUDE.md). Its first heading line is: `# Torrust Tracker — AI Assistant Instructions`
+Q2: NOT LOADED. Reading `packages/configuration/Cargo.toml` did not bring in a `packages/configuration/AGENTS.md`.
+
+Probe 4
+Q1: Yes. The root AGENTS.md was loaded, and its first heading line is `# Torrust Tracker — AI Assistant Instructions`.
+Q2: NOT LOADED. I was not given the content of packages/configuration/AGENTS.md.
+```
+
+Tool calls recorded by probes 9 to 12 (`tool_use` records of the stream; "main" is the session,
+"agent" is a record with a parent tool call):
+
+```text
+Probe 9   main:  Read packages/configuration/Cargo.toml
+Probe 10  main:  Agent (subagent_type general-purpose)
+          agent: Read packages/configuration/Cargo.toml
+          agent: SubagentHandback
+Probe 11  main:  Read packages/configuration/Cargo.toml
+Probe 12  main:  Agent (subagent_type general-purpose)
+          agent: Read packages/configuration/Cargo.toml
+          agent: SubagentHandback
+```
+
+The started agents of probes 6, 8, 10 and 12 said the root pair was in their context at the
+start and the scoped pairs arrived after their `Read` call. The answer of probe 12's agent to Q1
+and Q2, verbatim:
+
+```text
+Q1: Root AGENTS.md was loaded (via CLAUDE.md @AGENTS.md import). First heading line verbatim: "# Torrust Tracker — AI Assistant Instructions"
+Q2: packages/configuration/AGENTS.md was loaded. First rule heading verbatim: "### Rule: Use typed newtypes for domain-constrained configuration fields"
+```
+
+The full outputs are not stored: each one contains the contributor's personal `CLAUDE.md` from
+the parent folder.
+
+#### Conclusion
+
+The scenario's expected result is met with all eleven pointer files: in both checkouts the
+session and the started agent received the root `AGENTS.md`, and the scoped rule after reading
+a file in `packages/configuration/`. Every `CLAUDE.md` in the repository contains only the
+import `@AGENTS.md` (`git ls-files | grep -E '(^|/)CLAUDE\.md$' | xargs cat | sort -u` prints
+that one line).
+
+The probes also settle the question D11 left to this task:
+
+- Without any `CLAUDE.md` above or in the checkout, Claude Code loads the root and the scoped
+  `AGENTS.md` files by itself (probe 3).
+- With a `CLAUDE.md` in a parent folder and none in the repository, it loads neither (probe 1).
+- A root `CLAUDE.md` alone restores the root `AGENTS.md` but stops the scoped ones, with a
+  parent `CLAUDE.md` (probe 2) and without one (probe 4). So the scoped pointer files are needed,
+  as the reviewer of pull request #2905 reported.
+
+Limits of this evidence: the answers are what each model reported about its own context, checked
+against lines it could not have read with its one allowed `Read` call; only
+`packages/configuration/` was probed, and the other eight scoped directories rely on the same
+mechanism; the behaviour is that of Claude Code 2.1.318.
+
+## Failures and Follow-up
+
+- A first attempt at steps 5 to 10 did not run: `git clone --local` failed with "Invalid
+  cross-device link", and a shell loop in the same command then ran without end and was stopped.
+  No probe ran in that attempt. The clone was repeated with `--no-hardlinks`.
+- In probe 12 the session printed "The subagent is still running" before it printed the agent's
+  answer; the answer recorded above is the one it printed afterwards.
