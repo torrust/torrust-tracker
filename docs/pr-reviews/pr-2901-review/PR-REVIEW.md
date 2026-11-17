@@ -1,7 +1,7 @@
 ---
 pr-number: 2901
 pr-url: https://github.com/torrust/torrust-tracker/pull/2901
-last-updated-utc: "2026-11-17 11:45"
+last-updated-utc: "2026-11-17 12:03"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -63,6 +63,7 @@ Round 1, on the head that carries the commit `docs(issues): [#2765] record the i
 | F18 | review-finding:pr-2901-f18 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F19 | review-finding:pr-2901-f19 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | F20 | review-finding:pr-2901-f20 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F21 | review-finding:pr-2901-f21 | Human | Minor | correctness | ORIGINAL | FIXED | NON_RESOLVABLE |
 
 ## Finding Details
 
@@ -326,6 +327,19 @@ Round 1, on the head that carries the commit `docs(issues): [#2765] record the i
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4599094506
 
+### F21 - The reader channel is unbounded while the cap applies only after the wait
+
+- PR number: 2901
+- Source review ID: 5937956316
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2901#pullrequestreview-5937956316
+- Concern: `mpsc::channel()` for the reader threads is unbounded and `MAX_CAPTURED_BYTES` was applied only in `collect`, after the wait, so a child that writes without end could grow the queue during the wait. A review-body finding without a thread.
+- Solution: the reader thread queues at most `MAX_CAPTURED_BYTES` and goes on reading and discarding the rest, so memory is bounded and the child never blocks on a full pipe; a bounded channel was not used because the collector runs only after the wait, so a full queue would block the child.
+- Current-tree verification: `cargo test -p torrust-tracker --lib console::ci::e2e::tracker_checker` passes 16 tests, including `it_should_queue_at_most_the_byte_cap_from_a_pipe_that_writes_more`.
+- Resolution reference: `fix(e2e): [#2765] cap the bytes the reader threads queue`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2901#issuecomment-6947491371
+
 ## Processing Log
 
 - 2026-11-17 10:39 UTC - Reviews 5936922508 (da2ce7, submitted 10:38:51) and 5936930487 (Copilot, submitted 10:39:28) arrived on the first head.
@@ -339,6 +353,8 @@ Round 1, on the head that carries the commit `docs(issues): [#2765] record the i
 - 2026-11-17 11:25 UTC - Fixed in one commit, replied and resolved the thread.
 - 2026-11-17 11:37 UTC - Round 4: da2ce7 review 5937712954 (COMMENTED, submitted 11:37:44) with F17 to F19 of its own numbering, which with the two threads above give reviewer IDs F15 to F19; they are F16 to F20 here.
 - 2026-11-17 11:45 UTC - Fixed in two commits, replied on the five threads and on the Copilot thread of F15 (a follow-up reply, because the fix changed what that reply said), resolved the three that were open. Correction to F15: its Solution and Verification name two tests, one of which (the `yes` descendant test) was removed in this round and the behaviour that test guarded was changed (queued chunks are kept up to a cap).
+- 2026-11-17 11:57 UTC - Round 5: da2ce7 review 5937956316 (APPROVED, submitted 11:57:15) with one review-body finding, F21 (Minor); it has no thread, so the reply is a PR conversation comment.
+- 2026-11-17 12:03 UTC - Fixed in one commit and replied on the conversation. This is fix round 5 of 5.
 
 ## Completion Rules
 
