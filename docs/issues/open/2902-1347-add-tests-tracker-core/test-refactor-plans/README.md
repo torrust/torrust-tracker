@@ -25,7 +25,7 @@ approves it. A group of declaration-only files may share one plan.
 
 | Plan sequence | Plan | State | Result |
 | ---: | --- | --- | --- |
-| 1 | [statistics-repository-tests.md](statistics-repository-tests.md) | IN_PROGRESS | Approved 2026-11-17 (D1: test the unused gauge methods) |
+| 1 | [statistics-repository-tests.md](statistics-repository-tests.md) | DONE | Approved 2026-11-17 (D1: test the unused gauge methods); completed file approved 2026-11-17 |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 

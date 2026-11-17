@@ -348,7 +348,7 @@ rows are ordered by slice, then by risk.
 
 | Order | Source module | Slice | Unit-only lines | Initial hypothesis | State |
 | ---: | --- | --- | ---: | --- | --- |
-| 1 | `statistics/repository.rs` | S1 | 86 / 140 | Test candidate (four counter/gauge methods and error arms) | IN_PROGRESS |
+| 1 | `statistics/repository.rs` | S1 | 86 / 140 | Test candidate (four counter/gauge methods and error arms) | DONE |
 | 2 | `statistics/metrics.rs` | S1 | 11 / 45 | Test candidate | PENDING |
 | 3 | `statistics/persisted/mod.rs` | S1 | 0 / 11 | Test candidate (`load_persisted_metrics`) | PENDING |
 | 4 | `statistics/event/listener.rs` | S1 | 357 / 406 | Test candidate (spawn wrappers) | PENDING |

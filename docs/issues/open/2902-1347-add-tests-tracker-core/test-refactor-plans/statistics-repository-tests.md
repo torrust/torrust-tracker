@@ -3,7 +3,7 @@ doc-type: file-test-plan
 issue: 2902
 package: torrust-tracker-core
 target-file: packages/tracker-core/src/statistics/repository.rs
-status: in-progress
+status: done
 semantic-links:
   related-artifacts:
     - packages/tracker-core/src/statistics/repository.rs
@@ -121,15 +121,58 @@ Not selected. The candidate property (incrementing `n` times reads `n`) belongs 
 
 | ID | Status | Work | Completion evidence |
 | --- | --- | --- | --- |
-| R1 | TODO | Replace the three `assert!` calls of the first existing test with one tuple `assert_eq!`. | Focused tests pass. |
-| R2 | TODO | Add the tests of the analysis table (the gauge ones only if D1 says so). | Focused tests, `cargo +nightly fmt --all -- --check`, `cargo clippy`, `git diff --check`, the prose-first AAA review, and the named mutations. |
-| R3 | TODO | Integration increment: none expected; the integration binary reaches this file through the event handler. | Recorded here. |
-| R4 | TODO | Re-run unit-only coverage; record before and after. | Results below and `coverage-evidence.md`. |
+| R1 | DONE | Replace the three `assert!` calls of the first existing test with one tuple `assert_eq!`. | Focused tests pass. |
+| R2 | DONE | Add the tests of the analysis table (the gauge ones only if D1 says so). | Focused tests, `cargo +nightly fmt --all -- --check`, `cargo clippy`, `git diff --check`, the prose-first AAA review, and the named mutations. |
+| R3 | DONE | Integration increment: none expected; the integration binary reaches this file through the event handler. | Recorded here. |
+| R4 | DONE | Re-run unit-only coverage; record before and after. | Results below and `coverage-evidence.md`. |
 
 ## Prose-First AAA Review
 
-Filled in R2, before the completed-file review.
+Temporary prose, written before comparing with the code.
+
+| Test | Arrange prose | Act prose | Assert prose | Outcome |
+| --- | --- | --- | --- | --- |
+| `it_should_omit_persisted_metric_when_persisted_completed_statistics_are_disabled` (R1) | A repository with persisted statistics disabled. | Ask the collection whether each of the three download counters exists. | The three answers, as one tuple, are present, present, absent. | One `assert_eq!` on the tuple replaces three `assert!` calls, so a failure prints all three values. Kept. |
+| `it_should_export_persisted_metric_with_zero_value_when_persisted_completed_statistics_are_enabled` | A repository with persisted statistics enabled. | Ask whether the persisted counter exists. | It exists and reads `0`. | Unchanged (clean). |
+| `it_should_read_a_counter_that_is_not_in_the_collection_as_zero` | A repository with persisted statistics disabled, so the persisted counter is not described. | Read the persisted total. | It is `0`. | Kept; pins the `map_or(0, ...)` decision. |
+| `it_should_set_a_counter_to_the_given_value` | A repository with persisted statistics enabled. | Set the persisted counter to `7`. | The call succeeds and the persisted total reads `7`. | Kept. |
+| `it_should_refuse_to_set_a_counter_that_has_the_name_of_a_gauge` | A repository with a gauge `test_gauge` set to `2.5`. | Set a counter with the gauge's name. | A name-collision error on that name, and the gauge still reads `2.5`. | Kept. The gauge is created by `set_gauge` in the Arrange helper, which fails with its own message if that call breaks. |
+| `it_should_refuse_to_increment_a_counter_that_has_the_name_of_a_gauge` | The same gauge. | Increment a counter with the gauge's name. | The same error, and the gauge unchanged. | Kept. |
+| `it_should_set_a_gauge_to_the_given_value` | A repository with no gauge. | Set `test_gauge` to `2.5`. | The call succeeds and the gauge reads `2.5`. | Kept. |
+| `it_should_refuse_to_set_a_gauge_that_has_the_name_of_a_counter` | A repository; the deprecated persistent counter exists at `0`. | Set a gauge with that counter's name. | A name-collision error on that name, and the counter still `0`. | Kept. |
+| `it_should_increment_a_gauge_by_one` | A gauge at `2.5`. | Increment it. | The call succeeds and the gauge reads `3.5`. | Kept. |
+| `it_should_refuse_to_increment_a_gauge_that_has_the_name_of_a_counter` | As the set-gauge refusal. | Increment a gauge with the counter's name. | The same error, and the counter still `0`. | Kept. |
+| `it_should_decrement_a_gauge_by_one` | A gauge at `2.5`. | Decrement it. | The call succeeds and the gauge reads `1.5`. | Kept. |
+| `it_should_refuse_to_decrement_a_gauge_that_has_the_name_of_a_counter` | As the set-gauge refusal. | Decrement a gauge with the counter's name. | The same error, and the counter still `0`. | Kept. |
+
+Helpers: `repository_with_a_gauge_set_to` (Arrange), `gauge` (reads one unlabeled gauge through
+`read_metrics`), `is_a_name_collision_on` (the error pattern), `no_labels` and the literal `NOW`.
+Gauges are compared as `Option<Gauge>` (`Gauge` derives `PartialEq`), which keeps the exact values
+`2.5`, `3.5` and `1.5` without a float comparison that `clippy::float_cmp` would reject.
 
 ## Results
 
-Filled in R4.
+- **Unit-only coverage** (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace,
+  `--all-features --lib`): `statistics/repository.rs` 86 / 140 lines at the S1 baseline; 277 / 277
+  lines (100.00%), 394 / 394 regions and 57 / 57 functions after (the counts include the test
+  module). Package unit-only lines after this file: 4,324 / 5,241 (82.50%), regions 6,023 / 7,349
+  (81.96%), functions 726 / 982 (73.93%), 167 unit tests (157 before).
+- **Covered but not asserted:** `statistics/metrics.rs` (row 2) is now 45 / 45 lines, because every
+  repository write calls its `Metrics` wrapper. Row 2 decides whether that needs its own tests.
+- **Tests:** 10 added, 1 changed (R1), 1 unchanged. No integration test was added or changed.
+- **Mutations** (each applied alone on the production part of the file, stable toolchain, then the
+  file restored from a copy and compared with `cmp`): M1 killed by
+  `it_should_refuse_to_increment_a_counter_that_has_the_name_of_a_gauge`; M2 by
+  `it_should_set_a_counter_to_the_given_value`; M3 by
+  `it_should_refuse_to_set_a_gauge_that_has_the_name_of_a_counter`; M4 by
+  `it_should_increment_a_gauge_by_one`; M5 by `it_should_decrement_a_gauge_by_one`; M6 by
+  `it_should_read_a_counter_that_is_not_in_the_collection_as_zero`; M7 by
+  `it_should_set_a_counter_to_the_given_value` and six handler and listener tests. M7 first did not
+  compile (it left the persisted-counter import unused under `unused = "deny"`) and was redone with
+  `let _ = TRACKER_CORE_PERSISTED_TORRENTS_DOWNLOADS_TOTAL;` so that it compiles.
+- **Dependencies:** none new. **Clippy allows:** none.
+- **Validation:** `cargo test -p torrust-tracker-core --all-features --lib` (167 passed),
+  `cargo clippy -p torrust-tracker-core --all-targets --all-features` (stable; its only warning is
+  the existing `axum::serve` entry of `clippy.toml`), `cargo +nightly fmt --all -- --check`
+  (nightly) and `git diff --check` pass.
+- **Review outcome:** the maintainer approved the plan (with D1) and the completed file on 2026-11-17.
