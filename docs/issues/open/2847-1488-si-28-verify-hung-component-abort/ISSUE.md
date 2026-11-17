@@ -9,7 +9,7 @@ github-issue: 2847
 spec-path: docs/issues/open/2847-1488-si-28-verify-hung-component-abort/ISSUE.md
 branch: "2847-verify-hung-component-abort"
 related-pr: null
-last-updated-utc: "2026-11-17 11:03"
+last-updated-utc: "2026-11-17 13:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -18,6 +18,10 @@ semantic-links:
     - src/bootstrap/jobs/manager.rs
     - src/app.rs
     - src/main.rs
+    - packages/tracker-core/src/statistics/event/listener.rs
+    - packages/events/src/drain.rs
+    - packages/configuration/src/v3_0_0/shutdown.rs
+    - tests/lifecycle/shutdown_policy.rs
     - tests/common/native_tracker/mod.rs
     - docs/issues/closed/2697-1488-si-21-mark-health-unhealthy-during-shutdown/manual-verification-evidence.md
     - docs/issues/closed/2845-1488-si-26-consolidate-shutdown-supervisor/manual-verification-evidence.md
@@ -59,7 +63,13 @@ Checked on 2026-11-12 against `torrust/develop` at `388faf59a`, and again on 202
 
 **Why it is hard.** Every component drains within a validated budget below `P` and the Axum drain
 force-closes at its deadline, so an ordinary overrun ends as a *failed* component, not a hung one. A
-hung component needs a task that ignores cancellation, which no production component does.
+hung component needs a task that stays parked past `P`. No production component ignores its token on
+purpose, but one can hang on a stalled dependency: `tracker_core_persistent_completed_statistics_event_listener`
+awaits each event's database write inside the `recv()` arm of its `select!`, outside the token branch
+(`packages/tracker-core/src/statistics/event/listener.rs`), and its drain always finishes an event it
+has taken (`packages/events/src/drain.rs`). A write stalled by a paused MySQL server keeps it parked
+until `P` (case 1 below). Provoking that on demand needs a database container and a completed-download
+event timed into the shutdown window, which is why this issue uses a synthetic component instead.
 
 **What makes it feasible.** `app::start_with_explicit_config_toml_path` is public and returns the real
 `JobManager` with every real component running. A separate binary can start the full real tracker,
@@ -72,26 +82,31 @@ Stopping is cooperative: on shutdown each component's token is cancelled, and th
 it and return. A component hangs when it never notices:
 
 1. it awaits something (a stalled database query, a write to a dead peer, a channel whose sender never
-   drops, a child task that never ends) without also selecting on its token;
+   drops, a child task that never ends) without also selecting on its token; the persistent statistics
+   listener above is a real instance;
 2. it waits behind something else that is stuck (a lock, a semaphore, another hung task, a deadlock);
 3. its stop logic has a bug (checks the token only at the top of a loop, or does not forward
    cancellation to its children);
-4. it blocks its thread instead of yielding (`std::thread::sleep`, blocking I/O, a long-held
-   `std::sync::Mutex`, a CPU loop without `.await`), or runs inside `spawn_blocking`.
+4. it blocks a thread instead of yielding: either the task itself blocks (`std::thread::sleep`,
+   blocking I/O, a long-held `std::sync::Mutex`, a CPU loop without `.await`), or it waits on work it
+   started with `spawn_blocking` that never returns.
 
 The deadline abort (`JoinSet::abort_all`) only takes effect at an await point. It covers cases 1 to 3,
-where the task is parked on a future. It cannot stop case 4: such a task never reaches an await point,
-the supervisor would wait to join it, and the process would not exit at `P`. The test component awaits
-`std::future::pending()`, so it simulates cases 1 to 3. The evidence must state that it says nothing
-about case 4, which only the "no blocking work in async components" rule prevents.
+where the task is parked on a future. Case 4 escapes it in two ways. A task that blocks itself never
+reaches an await point, so the supervisor waits to join it and `wait_for_all` does not return at `P`.
+A task that awaits a `spawn_blocking` handle is at an await point, so it is aborted and joined, but the
+blocking thread keeps running, and dropping the runtime when `main` returns waits for it, so the process
+still does not exit at `P`. The test component awaits `std::future::pending()`, so it simulates cases 1
+to 3. The evidence must state that it says nothing about case 4, which only the "no blocking work in
+async components" rule prevents.
 
 ## Decisions
 
 Maintainer decisions of 2026-11-17, in chat.
 
 - **D1 - Test-only binary in a dev crate (alternative A).** A new workspace crate (proposed path
-  `contrib/dev-tools/testing/hung-component-tracker`, `publish = false`, a member but not a default
-  member) builds one binary. The binary starts the real tracker through
+  `packages/hung-component-tracker`, `publish = false`, a member but not a default member, like
+  `packages/e2e-tools`) builds one binary. The binary starts the real tracker through
   `app::start_with_explicit_config_toml_path`, reserves and spawns one component named
   `hung_component` whose future never completes and ignores its cancellation token, then runs the
   shared shutdown sequence of D2. The crate's own integration test gets the binary through
@@ -105,13 +120,16 @@ Maintainer decisions of 2026-11-17, in chat.
   exit code. `main.rs` and the test binary both call it, so the test binary differs from the real one
   only by the extra component and cannot drift. This is a refactor with no behavior change: the same
   signals, the same log lines (including the readiness marker `Tracker shutdown signal handlers
-  installed.` that the native-tracker tests wait for), and the same exit codes. Exact names are settled
-  in review of the implementation PR.
+  installed.` that the native-tracker tests wait for), and the same exit codes. The default log format
+  prints each event's target, which a plain move would change from the binary crate `torrust_tracker`
+  to `torrust_tracker_lib::app`; the moved events therefore pin `target: "torrust_tracker"`, so the
+  lines stay identical, target included. Exact names are settled in review of the implementation PR.
 - **D3 - Retention.** The crate and its test stay in the tree as a permanent regression test. CI runs
   it: `testing.yaml` runs `cargo test --workspace --all-targets`, which includes non-default members.
   It is not a default member, so it does not enter the container test archives (the
-  `add-workspace-member` skill rule for tracker verification tools); its directory gets the
-  `.dockerignore` admission line the skill requires.
+  `add-workspace-member` skill rule for tracker verification tools). It lives under `packages/`, which
+  `.dockerignore` already admits, so it needs no admission line; the interim AI-harness block there is
+  for crates with no tracker dependency, and this one depends on the root crate.
 - **D4 - Spec first.** The goal changed from manual evidence to an automated test and the scope now
   touches `main.rs`, so this spec change merges in its own PR before the implementation.
 
@@ -122,7 +140,7 @@ Maintainer decisions of 2026-11-17, in chat.
 | A | Test-only binary in a dev crate, with its own integration test | None | Yes | **Chosen** (D1) |
 | B | Move the signal wait and shutdown reporting from `main.rs` into the library | Refactor, no behavior change | n/a (combined with A) | **Chosen** (D2) |
 | C | In-process integration test in root `tests/`: `app::start`, extra hung component, `begin_shutdown`, `wait_for_all`, assert `shutdown_exit_code` | None | No | Rejected: no real process, signals or exit code, which is what the executable boundary means. |
-| D | External stall of a real dependency (for example pausing a MySQL container during a query) | None | Yes | Rejected: real components select on their token while waiting, so they stop cleanly instead of hanging; also flaky. |
+| D | External stall of a real dependency (for example pausing a MySQL container during a query) | None | Yes | Rejected on cost, not feasibility: the persistent statistics listener does hang on a stalled MySQL write (see Background), but the test needs a database container and a completed-download event timed into the shutdown window, which makes it heavy and timing-dependent. |
 | E | Cargo example (`examples/`) run by hand, with the signal code copied from `main.rs` | None | Yes, manual only | Rejected: manual only, and the copied code can drift from `main.rs`. |
 | F | Fault-injection point in the real binary behind a Cargo feature or an environment variable | Test code in production | Yes | Rejected: the maintainer does not want test code in production. |
 | G | Integration test that runs `cargo run --example` | None | Yes | Rejected: nested Cargo builds are slow and fragile. |
@@ -139,7 +157,11 @@ Maintainer decisions of 2026-11-17, in chat.
   kill and reap on every path). It may reuse ideas from `tests/common/native_tracker`, which is wired to
   `CARGO_BIN_EXE_torrust-tracker` and is not importable from another crate.
 - T3: the integration test, one case per signal (`SIGTERM`, `SIGINT`), with a small `deadline_in_secs`
-  (for example 4 s) set through the configuration. It asserts:
+  set through the configuration together with drain budgets that pass validation (the slowest drain
+  plus the listener drain must stay below the deadline; the defaults, 15 s and 5 s, do not fit). For
+  example `deadline_in_secs = 4` with `http_drain_in_secs`, `udp_request_drain_in_secs` and
+  `event_listener_drain_in_secs` all `1`, as `tests/lifecycle/shutdown_policy.rs` lowers them. It
+  asserts:
   - exit code 1;
   - the process exits after `P` and within `P` plus a small margin;
   - the log reports `hung_component` as aborted after the deadline;
@@ -190,7 +212,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
 | T1 | TODO | Move the shutdown sequence into a library function; `main.rs` calls it (D2). | No behavior change; existing tests green. |
-| T2 | TODO | Dev crate with the hung-component binary (D1, D3). | Workspace member, not default member; `.dockerignore` line. |
+| T2 | TODO | Dev crate with the hung-component binary (D1, D3). | Under `packages/`; workspace member, not default member. |
 | T3 | TODO | Integration test for `SIGTERM` and `SIGINT`. | Assertions listed in Scope. |
 | T4 | TODO | Manual run of the binary; record the evidence. | `manual-verification-evidence.md`. |
 | T5 | TODO | Update the shutdown docs if they say the path is unverified. | Doc edit or none. |
@@ -225,11 +247,12 @@ Sign every commit with GPG.
 
 - 2026-11-12 14:30 UTC - AI agent (Claude Sonnet 5.5) - Spec created from the SI-21 evidence gap on `torrust/develop` at `388faf59a`; recorded the maintainer's decision of 2026-11-12 to open it as SI-28, after SI-26.
 - 2026-11-17 11:03 UTC - AI agent (Claude Opus 5.5) - Recorded the maintainer's decisions D1 to D4 of 2026-11-17 (test-only binary in a dev crate, shared shutdown sequence, kept as a regression test, spec first) and the alternatives considered; the goal is now an automated executable-boundary test. Checked against `torrust/develop` at `5833cdae9`.
+- 2026-11-17 13:55 UTC - AI agent (Claude Opus 5.5) - Addressed review round 1 of PR #2909 (da2ce7, findings F1 to F6): alternative D is rejected on cost, since the persistent statistics listener can hang on a stalled MySQL write; the moved log events pin their target; T3 and M1 name drain budgets that pass validation; case 4 names both mechanisms; the crate path moves under `packages/`.
 
 ## Acceptance Criteria
 
 - [ ] `main.rs` and the test binary run the same library shutdown function, and the refactor changes no
-      signal handling, log line or exit code.
+      signal handling, log line (target included) or exit code.
 - [ ] An automated test spawns a real process, sends `SIGTERM` and `SIGINT` in separate cases, and
       asserts: exit code 1, exit within `P` plus a small margin, `hung_component` and
       `health_check_api` reported as aborted, and both named in `incomplete_components`.
@@ -254,10 +277,10 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | -- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Hung component, `SIGTERM` | Start the test binary with `deadline_in_secs` small (for example 4), signal the actual PID. | Exit code 1 within `P` plus a small margin; the aborted component is named in the log. | TODO | `manual-verification-evidence.md` |
+| M1 | Hung component, `SIGTERM` | Start the test binary with `deadline_in_secs = 4` and all three drain budgets `1` (as in T3), signal the actual PID. | Exit code 1 within `P` plus a small margin; the aborted component is named in the log. | TODO | `manual-verification-evidence.md` |
 | M2 | Hung component, `SIGINT` | Same with `SIGINT`. | Same result. | TODO | `manual-verification-evidence.md` |
 | M3 | Health server does not delay the exit | Read the M1 and M2 logs. | `health_check_api` is aborted at `P` with the hung component, and the process still exits within `P` plus the margin. | TODO | `manual-verification-evidence.md` |
-| M4 | Real binary unchanged | Start the real `torrust-tracker`, signal it with `SIGTERM`. | Graceful shutdown, exit code 0, same log lines as before the refactor. | TODO | `manual-verification-evidence.md` |
+| M4 | Real binary unchanged | Start the real `torrust-tracker`, signal it with `SIGTERM`. | Graceful shutdown, exit code 0, same log lines and targets as before the refactor. | TODO | `manual-verification-evidence.md` |
 
 ### Disposable Verification Scripts
 
