@@ -19,7 +19,8 @@ use torrust_tracker_lib::bootstrap::jobs::manager::ComponentResult;
 /// The name the supervisor logs for the component that never stops.
 const HUNG_COMPONENT: &str = "hung_component";
 
-/// Command-line arguments: the same configuration option as the shipped executable.
+/// Command-line arguments: the shipped executable's `--config-toml-path` flag, without its check that
+/// rejects an empty path (the tests always pass a path).
 #[derive(Debug, Parser)]
 #[command(name = "hung-component-tracker")]
 struct Cli {

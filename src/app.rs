@@ -146,6 +146,11 @@ const PROCESS_LOG_TARGET: &str = "torrust_tracker";
 /// (Ctrl-C only on non-Unix platforms), calls [`begin_shutdown`], waits for every component up to the
 /// configured process deadline, and maps the component outcomes to the process exit code. The
 /// executable and the test-only executables that verify its shutdown share it, so they cannot drift.
+///
+/// # Panics
+///
+/// Panics when the `SIGTERM` or Ctrl-C handler cannot be installed, or when the `SIGTERM` handler
+/// stream closes before a signal arrives.
 // issue: #2847
 pub async fn run_until_shutdown_signal(app_container: Arc<AppContainer>, jobs: JobManager) -> ExitCode {
     let shutdown_signal = wait_for_shutdown_signal().await;
