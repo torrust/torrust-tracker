@@ -9,7 +9,7 @@ github-issue: 2925
 spec-path: docs/issues/open/2925-2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md
 branch: "2392-split-test-temp-files-spec"
 related-pr: null
-last-updated-utc: "2026-11-17 22:36"
+last-updated-utc: "2026-11-17 23:08"
 semantic-links:
   skill-links:
     - create-issue
@@ -182,7 +182,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 ## Acceptance Criteria
 
 - [ ] AC1: After the full test suite with a fresh `TMPDIR`, no SQLite database remains:
-  no `data_*.db` file and no directory that holds a database file.
+  no `data_*.db` file and no leftover guard directory (a directory with a `data.db` file).
 - [ ] AC2: The `ephemeral*()` configurations set no database, and `ephemeral_sqlite_database()`
   no longer exists.
 - [ ] AC3: Every test that needs persistence gets its database from the guard-owned factory.
@@ -204,7 +204,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | V1 | Reproduce | `TMPDIR=$(mktemp -d) cargo +stable test --tests --benches --examples --workspace --all-targets --all-features`, then count the files | Leaked files counted | TODO | `manual-verification-evidence.md` |
-| V2 | Recheck | Same command after T4 | No `data_*.db` file and no directory holding a database file; no entry at all once #2907 is done | TODO | `manual-verification-evidence.md` |
+| V2 | Recheck | Same command after T4 | No `data_*.db` file and no leftover guard directory (a directory with a `data.db` file); no entry at all once #2907 is done | TODO | `manual-verification-evidence.md` |
 
 Evidence policy: every recorded command result names the toolchain that produced it, and the
 evidence file is created from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`.
