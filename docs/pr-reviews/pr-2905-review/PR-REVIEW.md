@@ -1,7 +1,7 @@
 ---
 pr-number: 2905
 pr-url: https://github.com/torrust/torrust-tracker/pull/2905
-last-updated-utc: "2026-11-17 13:39"
+last-updated-utc: "2026-11-17 13:58"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -54,6 +54,8 @@ collide with the audit's F8 and F9, and its F10 follows them, so all three are r
 that carried the round 1 audit.
 Round 4 is the approving review `5939415019` of `da2ce7` (F13, audit-local ID; the reviewer's own F11 collides with the
 audit's F11 and is recorded as the original), on the head that carried the round 3 audit.
+Round 5 is Copilot's review `5939656808` (COMMENTED, F14 and CC1, reviewer-provided IDs, which do not collide), on the head
+that carried the round 4 audit. Its comments carry `[Major]` and `[Minor]` brackets, which are used.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -70,6 +72,8 @@ audit's F11 and is recorded as the original), on the head that carried the round
 | F11 | `review-finding:pr-2905-f11` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F12 | `review-finding:pr-2905-f12` | Human | Nit | testing | ORIGINAL | FIXED | RESOLVED |
 | F13 | `review-finding:pr-2905-f13` | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F14 | `review-finding:pr-2905-f14` | Copilot | Major | correctness | ORIGINAL | FIXED | RESOLVED |
+| CC1 | `review-finding:pr-2905-cc1` | Copilot | Minor | maintainability | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -242,6 +246,32 @@ audit's F11 and is recorded as the original), on the head that carried the round
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2905#discussion_r4600337329
 
+### F14 - Preserve scoped instruction loading in T2
+
+- PR number: 2905
+- Source review ID: 5939656808
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2905#discussion_r4600475505
+- Concern: The reviewer says that, in the default mode, adding a root `CLAUDE.md` stops Claude Code from loading the `AGENTS.md` files in subdirectories, so importing only the root file leaves scoped rules such as `packages/configuration/AGENTS.md` unloaded. It asks T2 to preserve scoped loading and M4 to verify a scoped rule.
+- Solution: The repository has ten scoped `AGENTS.md` files. The documentation states when a subdirectory's `AGENTS.md` loads but not whether a `CLAUDE.md` at the root or above stops it, and the file the reviewer cites could not be opened. The specification therefore asserts neither behaviour: D11 states what is documented, M4 reads a file in `packages/configuration/` and asks for a rule that only its `AGENTS.md` holds, T2 adds an import-only `CLAUDE.md` beside each scoped `AGENTS.md` if M4 shows they are not loaded, and AC12 requires the scoped rule to reach the session.
+- Current-tree verification: `git ls-files | grep -E "(^|/)(AGENTS|CLAUDE)\.md$"` lists the root `AGENTS.md`, ten scoped `AGENTS.md` files and no `CLAUDE.md`. The page `https://code.claude.com/docs/en/memory`, section "When Claude Code reads AGENTS.md", was read on 2026-11-17: it says a subdirectory's `AGENTS.md` loads when Claude opens a file there and that subdirectory has none of the `CLAUDE.md` files of its own, and says nothing about a `CLAUDE.md` above it. `linter markdown` and `linter cspell` passed.
+- Resolution reference: `docs(issues): [#2904] keep the scoped AGENTS.md files loading when the root pointer is added`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2905#discussion_r4600557255
+
+### CC1 - Preserve the checker's non-profile checks
+
+- PR number: 2905
+- Source review ID: 5939656808
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2905#discussion_r4600475579
+- Concern: T10 removed the whole `agent-review-report-contract` check, which also checks the pull-request audit skills, templates and finding references. The reply validator of D18 does not replace those. Issues #2349 and #2362 plan changes to the same check.
+- Solution: D18, In Scope, T10, Commit Points, Automatic Checks and Risks say that only the rules about the Copilot profiles and `docs/templates/AGENT-REVIEW-REPORTS.md` are removed; the rest of the check stays and must pass, including after T9 rewrites `docs/agents/orchestration.md`. Issues #2349 and #2362 are named as changing the same check and are listed in References.
+- Current-tree verification: `grep -n '\.md"' contrib/dev-tools/checks/agent-review-report-contract/src/main.rs` lists, besides four Copilot profiles and `AGENT-REVIEW-REPORTS.md`, the files `process-pr-review/SKILL.md`, `PR-REVIEW-TEMPLATE.md`, `semantic-skill-link-convention.md`, the thread skills and `docs/agents/orchestration.md`. `gh issue view` shows #2349 and #2362 open. `grep -n "check removed\|check is removed\|replaced by the validator"` on the specification prints nothing.
+- Resolution reference: `docs(issues): [#2904] keep the pull-request audit rules of the contract check`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2905#discussion_r4600557739
+
 ## Processing Log
 
 - 2026-11-17 12:58 UTC - Started audit, after the seven replies, because it holds their URLs. Review `5938631990` of `da2ce7` was submitted at 12:45:09Z (forge `submitted_at`) with seven findings, F1 to F7. The seven fixes and a plan and log follow-up were committed between 12:48:39Z and 12:55:23Z (`git log --format=%cI`, in UTC), one commit per finding, and pushed; `git ls-remote` showed the fork branch at the local head before the replies. The seven replies were posted between 12:57:58Z and 12:58:14Z (forge `created_at`). The body of issue 2904 was edited for F5 before the replies.
@@ -253,6 +283,8 @@ audit's F11 and is recorded as the original), on the head that carried the round
 - 2026-11-17 13:23 UTC - `validate-audit-record.py --pr-number 2905 --base torrust/develop`, with its `gh` calls made through `gh-bot`, exited 0 (12 rows, 0 failures). Before resolving, the only unresolved threads were the three of round 3, each with the contributor's reply as its last comment. Resolved those three by their thread IDs; a GraphQL refresh showed 0 unresolved threads.
 - 2026-11-17 13:39 UTC - Round 4: the approving review `5939415019` of `da2ce7` (submitted 13:34:02Z, forge `submitted_at`) with one finding, recorded as F13. The fix was committed at 13:36:02Z (`git log --format=%cI`, in UTC) and pushed; `git ls-remote` showed the fork branch at the local head before the reply. The reply was posted at 13:38:44Z (forge `created_at`). The reviewer's `ACK` comments name the heads before this fix.
 - 2026-11-17 13:39 UTC - `validate-audit-record.py --pr-number 2905 --base torrust/develop`, with its `gh` calls made through `gh-bot`, exited 0 (13 rows, 0 failures). The only unresolved thread was the one of F13. Resolved it by its thread ID; a GraphQL refresh showed 0 unresolved threads.
+- 2026-11-17 13:58 UTC - Round 5: Copilot's review `5939656808` (submitted 13:50:36Z, forge `submitted_at`) with two findings, F14 and CC1. The two fixes were committed at 13:53:23Z and 13:54:41Z (`git log --format=%cI`, in UTC) and pushed; `git ls-remote` showed the fork branch at the local head before the replies. The two replies were posted at 13:57:32Z and 13:57:35Z (forge `created_at`). The `ACK` comments of `josecelano` (13:43:51Z) and `da2ce7` (13:52:21Z) name the head that carried the round 4 audit, before these two fixes.
+- 2026-11-17 13:58 UTC - `validate-audit-record.py --pr-number 2905 --base torrust/develop`, with its `gh` calls made through `gh-bot`, exited 0 (15 rows, 0 failures). Resolved the two threads of round 5 by their thread IDs. A GraphQL refresh showed 1 unresolved thread: the one of review `5939681382` of `da2ce7` (submitted 13:52:17Z, forge `submitted_at`, one nit about which record the review of T5 itself uses). It is not processed: a fix would be round 6, and the round limit of `wait-for-pr-review` requires asking the contributor first. It has no row yet.
 
 <!-- Copied verbatim into each audit record. -->
 
