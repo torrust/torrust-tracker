@@ -62,8 +62,9 @@ executable lines are at or above 98% unit-only coverage. The remaining gap is co
   the integration binary.
 - Many `?` regions (a failing `Database` or whitelist) are untested in the handlers and repositories.
 
-The Phase 3 assessment of EPIC #1347 ranked it as the largest remaining gap among the published
-core crates. Since the integration binary reaches only the `statistics/` files that no unit test
+Its unit-only lines (80.31%) are the lowest of the packages with a unit-only figure in the EPIC
+coverage table: the latest figures there are `primitives` 94.07%, `axum-rest-api-server` 96.67%,
+`udp-core` 98.04%, `udp-server` 98.18% and `http-core` 99.28%. Since the integration binary reaches only the `statistics/` files that no unit test
 reaches, the aggregate and unit-only numbers differ in exactly that area.
 
 ## Baseline Coverage
@@ -476,4 +477,3 @@ progress-log entry saying none was needed.
 - Parent EPIC: https://github.com/torrust/torrust-tracker/issues/1347
 - Template sub-issues: #2824, #2637, #1349, #1348 (`docs/issues/closed/`)
 - Package: `packages/tracker-core/`
-- Phase 3 assessment (coordinator, git-ignored): `.tmp/phase3-assessment.md`
