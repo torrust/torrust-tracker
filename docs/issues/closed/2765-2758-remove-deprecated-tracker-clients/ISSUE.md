@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p2
 epic: 2758
 github-issue: 2765
-spec-path: docs/issues/open/2765-2758-remove-deprecated-tracker-clients/ISSUE.md
+spec-path: docs/issues/closed/2765-2758-remove-deprecated-tracker-clients/ISSUE.md
 branch: "2765-remove-deprecated-client-bins"
 related-pr: 2901
-last-updated-utc: "2026-11-17 10:47"
+last-updated-utc: "2026-11-17 17:36"
 semantic-links:
   skill-links:
     - create-issue
@@ -118,10 +118,10 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
+- [x] Evidence-based implementation completion review recorded
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -134,13 +134,14 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-09 13:21 UTC - Claude Code (Claude Sonnet 5.5) - Addressed da2ce7's review 5826238636 of PR 2771 on this spec.
 - 2026-11-17 09:08 UTC - Claude Code (Claude Sonnet 5.5) - Implemented T1 to T4 on branch `2765-remove-deprecated-client-bins`. T1 references found: the three `src/bin` files, the doc comments in `clients/{http,udp,checker}/app.rs`, `console/tracker-client/README.md`, `docs/packages.md`, the contract doc, the sccache experiment Containerfile and `src/console/ci/e2e/tracker_checker.rs`; no workflow, `Containerfile` or `Cargo.toml` named them. T2: the three files deleted (the library modules stay: `tracker_client` reuses their checks). T3: `tests/tracker_checker*` already run `tracker_client check`, so nothing moved. T4: README breaking-change note (the repo has no changelog). The e2e helper now runs `tracker_client check` with captured, drained pipes and a 15 minute deadline. Evidence: V1 and V2.
 - 2026-11-17 10:47 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the review of PR 2901 (da2ce7 F1 to F9, Copilot's three comments): the helper builds first under its own deadline, bounds the drain, returns the captured output and has Arrange-Act-Assert tests for the capture, the kill and a descendant that holds the pipes; the migrated examples use `--format text` and `--ip`; the open spec of #2594 names `tracker_client check`; V2 was re-run on the new helper with its harness recorded, V3 records the AC2 search; AC4 stays open until the container job passes; the frontmatter names the real branch and PR; the completion review is recorded below.
+- 2026-11-17 17:36 UTC - Claude Code (Claude Sonnet 5.5) - PR 2901 was merged into `develop` on 2026-11-17 (merged at 17:33:46 UTC) and issue #2765 closed (17:33:47 UTC); spec archived to `docs/issues/closed/` and the EPIC row set to DONE in the close-out PR. Review: eight fix rounds (da2ce7 F1 to F24 and F28, Copilot F25 to F27 and earlier; audit in `docs/pr-reviews/pr-2901-review/PR-REVIEW.md`); F28 (no test for the choice between the full log and the excerpt) was left on the maintainer's decision. "Reviewer validated acceptance criteria" stays unchecked: the reviewers approved the PR but did not validate the criteria checkboxes.
 
 ## Acceptance Criteria
 
 - [x] AC1: `cargo build --workspace --all-targets` passes without the three binaries.
 - [x] AC2: No document or script tells the reader to run a removed binary.
 - [x] AC3: `tracker_client check` still passes the tests that covered the checker.
-- [ ] AC4: `src/console/ci/e2e/tracker_checker.rs` launches `tracker_client check` with `TORRUST_CHECKER_CONFIG`, proven by a runner-level run (M2), because the binary name is a runtime string that the workspace build cannot check. Checked once the container test job of the PR, which runs `e2e_tests_runner`, passes on the final head; the helper-level smoke run (evidence V2) is already done.
+- [x] AC4: `src/console/ci/e2e/tracker_checker.rs` launches `tracker_client check` with `TORRUST_CHECKER_CONFIG`, proven by a runner-level run (M2), because the binary name is a runtime string that the workspace build cannot check. Proven by the container test job of PR 2901, which runs `e2e_tests_runner`: it passed on the head of review round 6 (job https://github.com/torrust/torrust-tracker/actions/runs/44115063923/job/134153598863), and its log shows the helper running `cargo build -p torrust-tracker-client --bin tracker_client` and then `TORRUST_CHECKER_CONFIG=[config] cargo run -p torrust-tracker-client --bin tracker_client -- check`, which ran `target/debug/tracker_client check`. The runs on the later heads (review rounds 7 and 8) changed only the reader thread, the log excerpt and the audit; the Docker job of the final head was still in progress when the PR was merged.
 - [x] `linter all` exits with code `0`
 - [x] Relevant tests pass
 - [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -173,7 +174,7 @@ Manual verification is mandatory even when automated tests pass. Record actual c
 | AC1 | DONE | `cargo build --workspace --all-targets` finished without the three binaries (progress log). |
 | AC2 | DONE | Evidence V3: the search for an instruction to run a removed binary prints nothing (exit 1); the open spec of #2594 that named `tracker_checker` was updated. |
 | AC3 | DONE | `cargo test -p torrust-tracker-client`: tests in `tests/tracker_checker/` already launch `tracker_client check` and all pass (no scenario lost; the removed binaries had no tests of their own). |
-| AC4 | TODO | Helper builds and launches `cargo run ... --bin tracker_client -- check` with `TORRUST_CHECKER_CONFIG` (unit tests in the helper; smoke M2, evidence V2). The runner-level run is the container test job of the PR; record its result here when it passes. |
+| AC4 | DONE | Helper builds and launches `cargo run ... --bin tracker_client -- check` with `TORRUST_CHECKER_CONFIG`: unit tests in the helper, smoke M2 (evidence V2), and the runner-level run in the container test job of PR 2901 (see the AC4 line above for the job and what its log shows). |
 
 ## Risks and Trade-offs
 

@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2765-2758-remove-deprecated-tracker-clients/ISSUE.md
-last-updated-utc: "2026-11-17 10:46"
+issue-spec: docs/issues/closed/2765-2758-remove-deprecated-tracker-clients/ISSUE.md
+last-updated-utc: "2026-11-17 17:36"
 ---
 
 # Manual Verification Evidence
@@ -96,6 +96,8 @@ Command (ran at 2026-11-17 10:46 UTC):
 ```text
 git grep -nE -e '--bin (h[t]tp_tracker_client|u[d]p_tracker_client|tracker_che[c]ker)' -e '^[[:space:]]*(h[t]tp_tracker_client|u[d]p_tracker_client|tracker_che[c]ker) ' -e '(run|Run|use) `(h[t]tp_tracker_client|u[d]p_tracker_client|tracker_che[c]ker)' -- . ':!docs/issues/closed' ':!docs/issues/drafts' ':!docs/pr-reviews' ':!docs/adrs' ':!docs/refactor-plans' ':!docs/issues/open/2765-2758-remove-deprecated-tracker-clients/ISSUE.md'
 ```
+
+(The spec was in `docs/issues/open/` when the search ran; the exclusion names that path. The spec has since moved to `docs/issues/closed/`.)
 
 Result: no output, exit code `1`. The same search without the last exclusion matches only line 47
 of this spec's `ISSUE.md` (exit code `0`). The open spec of issue #2594 named `tracker_checker` as a
