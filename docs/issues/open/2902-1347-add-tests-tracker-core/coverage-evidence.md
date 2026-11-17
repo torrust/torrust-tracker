@@ -153,8 +153,8 @@ module or in test support). A
 | `databases/driver/mod.rs` | test module: 67-68, 70 | Retry loop of the test-only `create_database_tables` helper | test support | No-change |
 | `databases/error.rs` | production: 140-147; test module: 160, 173 | Production: `From<(MigrateError, Driver)>` (the `MigrationError` mapping). Test module: lines 160 and 173 are assertions | 3A (production), test code (test module) | One test of the migration-error mapping; the `sqlx::Error` arms are already tested |
 | `databases/setup.rs` | production: 114-128 | `initialize_database_from_configuration` for MySQL and PostgreSQL | 3B (success path) or 3A (unreachable endpoint) | Unreachable-endpoint error test is 3A; the success path is container-gated |
-| `error.rs` | 47-49, 53-55, 59-61, 65-67 | The four `From` conversions into `TrackerCoreError` | 3A | Trivial but package-owned wiring; one table test |
-| `statistics/repository.rs` | 104, 114-120, 139-146, 148-154, 157-158, 164-206 | `set_counter`, `set_gauge`, `increment_gauge`, `decrement_gauge` and their error-logging arms | 3A | Covered only by the integration binary today; direct unit tests (success and metric-type-mismatch error) |
+| `error.rs` | production: 47-49, 53-55, 59-61, 65-67 | The four `From` conversions into `TrackerCoreError` | 3A | Trivial but package-owned wiring; one table test |
+| `statistics/repository.rs` | production: 104, 114-120, 139-146, 148-154, 157-158, 164-206 | `set_counter`, `set_gauge`, `increment_gauge`, `decrement_gauge` and their error-logging arms | 3A | Covered only by the integration binary today; direct unit tests (success and metric-type-mismatch error) |
 | `statistics/metrics.rs` | 36-44, 49-57, 62-69, 74-81 | `Metrics::set_counter`, `set_gauge`, `increment_gauge`, `decrement_gauge` | 3A | Same |
 | `statistics/persisted/mod.rs` | 21-25, 59-61, 65-67 | `load_persisted_metrics` (startup load into the in-memory counters) | 3A | Unit test with the `testing` feature's `TorrentMetricsStore` mock (ADR on test support) or a temp SQLite store |
 | `statistics/persisted/downloads.rs` | production: 133 | Production: the `?` of `increase_global_downloads` when `load_global_downloads` fails | 3A (medium) | Failing-`Database` case |
@@ -173,7 +173,7 @@ module or in test support). A
 | `whitelist/manager.rs` | production: 53, 66, 79 | The `?` regions of `add`, `remove` and `load` (database failure) | 3A | Same failing-`Database` fake |
 | `whitelist/repository/persisted.rs` | production: 30, 36, 46, 52 | The `?` regions of the read and the write in `add` and `remove` | 3A | Same fake (finding F4 check) |
 | `whitelist/authorization.rs` | test module: 139 | An assertion | test code | No-change |
-| `test_helpers.rs` | 144-156, 209 | Test-support builder branch for persistent completed statistics | test support | Not package-owned behavior; no test by decision, unless a slice uses it |
+| `test_helpers.rs` | test module: 144-156, 209 | Test-support builder branch for persistent completed statistics | test support | Not package-owned behavior; no test by decision, unless a slice uses it |
 
 Counts are by line class, not by decision: a "region" group can disappear when its neighbors are
 tested. The grouping above is the T1 hypothesis the decision records revisit.
