@@ -1,7 +1,7 @@
 ---
 pr-number: 2910
 pr-url: https://github.com/torrust/torrust-tracker/pull/2910
-last-updated-utc: "2026-11-17 15:44"
+last-updated-utc: "2026-11-17 15:49"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -43,7 +43,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1: da2ce7 review 5939730094 (CHANGES_REQUESTED) with findings F1 to F7; the reviewer's IDs are this audit's IDs. Copilot review 5939709564 (COMMENTED) reported no issue and has no row.
+Round 1: da2ce7 review 5939730094 (CHANGES_REQUESTED) with findings F1 to F7; the reviewer's IDs are this audit's IDs. Copilot review 5939709564 (COMMENTED) reported no issue and has no row. Round 2: da2ce7 review 5941589792 (APPROVED) with findings F8 and F9; the reviewer's IDs are this audit's IDs.
 
 Round 1 cited commit ids from before the history rewrite (F4). Mapped to commit subjects:
 
@@ -59,6 +59,8 @@ Round 1 cited commit ids from before the history rewrite (F4). Mapped to commit 
 | F5 | review-finding:pr-2910-f5 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-2910-f6 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F7 | review-finding:pr-2910-f7 | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-2910-f8 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F9 | review-finding:pr-2910-f9 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -153,11 +155,39 @@ Round 1 cited commit ids from before the history rewrite (F4). Mapped to commit 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2910#discussion_r4601754919
 
+### F8 - Audit cites a PR-branch commit id and maps no rewritten ids
+
+- PR number: 2910
+- Source review ID: 5941589792
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2910#discussion_r4601916124
+- Concern: The round 1 log entry named the branch head by its id, which the `open-pull-request` commit-id check reports; and after the rewrite the audit did not map the ids that round 1 comments cite.
+- Solution: The round 1 entry now names the head by its commit subject, a later log entry records that in-place correction, and the Findings section maps `ba0df8f14` and `1ee2afe4d` to their subjects.
+- Current-tree verification: The `open-pull-request` commit-id check prints only `1ee2afe4d` and `ba0df8f14`, the pre-rewrite ids that the mapping must cite; `git branch -a --contains` finds no branch with either.
+- Resolution reference: docs(pr-reviews): [#2392] cite commit subjects in the PR #2910 audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2910#discussion_r4602003760
+
+### F9 - Description still says two commits and omits the rewrite
+
+- PR number: 2910
+- Source review ID: 5941589792
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2910#discussion_r4601916146
+- Concern: The PR description said the pre-commit hook passes "on both commits" while the branch has six, and it did not say that the history was rewritten.
+- Solution: The description now says the hook passes on each of the branch's commits and has one paragraph on the approved rewrite (F4), the unchanged tree and the id mapping in this audit.
+- Current-tree verification: `gh-bot pr view 2910 --json body` shows the new Validation line and the rewrite paragraph.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2910#issuecomment-6952991621
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2910#discussion_r4601975878
+
 ## Processing Log
 
 - 2026-11-17 15:29 UTC - Round 1: da2ce7 review 5939730094. Committed the F1, F2/F3/F7 and F3/F5/F6 fixes, reworded the first commit's body for F4 with the maintainer's approval, and force-pushed the branch, ending at `docs(issues): [#2392] refresh the #2394 records and evidence timestamps`, with `git-bot-push --force-with-lease`. Then replied to the seven threads (15:29:17Z to 15:29:32Z). This record was created after the replies, so the replies came before the audit started.
 - 2026-11-17 15:31 UTC - The validator on the worktree record reported 7 rows, 1 log entry, 0 failures. Resolved the seven threads at about 15:30:32Z, selecting only unresolved threads whose last comment is a `josecelano-bot` reply. A GraphQL refresh found no unresolved thread. Committed this record.
 - 2026-11-17 15:44 UTC - Round 2: da2ce7 review 5941589792 (APPROVED). Edited the PR description for its F9 (15:44:37Z). For its F8, corrected the 15:29 entry in place: it named the branch head by id (`force-pushed head <id>`), and now names it by its commit subject. Added the id mapping to the Findings section.
+- 2026-11-17 15:48 UTC - Committed and pushed the F8 fix (`docs(pr-reviews): [#2392] cite commit subjects in the PR #2910 audit`). Posted the F9 PR conversation response (15:46:02Z), then replied to the F9 thread (15:46:10Z) and the F8 thread (15:48:05Z). Added rows F8 and F9.
+- 2026-11-17 15:49 UTC - The validator on the worktree record reported 9 rows, 4 log entries, 0 failures. Resolved the F8 and F9 threads (15:48:37Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread. Committed these entries.
 
 <!-- Copied verbatim into each audit record. -->
 
