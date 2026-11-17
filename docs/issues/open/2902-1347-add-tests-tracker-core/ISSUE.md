@@ -187,6 +187,44 @@ Questions each file's record must answer; the first four are already in the
 - The swarm registry and the `events` package own the registry state and the drain behavior: this
   package tests its own wiring and statistics, not theirs.
 
+## Asynchronous Work, Cleanup and Test Fixtures
+
+S1 spawns and cancels the statistics listeners, S2, S4 and S5 open SQLite databases on disk, and
+each slice may add a failing fake of the persistence traits, so the `create-issue` rules for
+asynchronous I/O, resource cleanup and reusable fixtures apply. Each file's decision record that adds
+such a test restates the parts it uses.
+
+Responsibility and ownership map:
+
+| Resource | Created by | Owner of normal cleanup | Owner of failure and drop-path cleanup |
+| --- | --- | --- | --- |
+| Spawned listener task (`run_*_event_listener`) | The test | The test: cancels the `CancellationToken`, then awaits the `JoinHandle` | The `#[tokio::test]` runtime: when a test panics, dropping the per-test runtime drops the task. The test never relies on a detached task finishing |
+| Event sender and receiver | The test, through the swarm registry's channel | The test drops the sender after the last event | Dropped with the test's stack frame |
+| SQLite database file (new tests) | The test, in a `tempfile::TempDir` it owns | `TempDir` drop at the end of the test | `TempDir` drop during unwinding after a failed assertion |
+| SQLite database file (existing tests) | `ephemeral_sqlite_database()` (`packages/test-helpers/src/configuration.rs:85`), directly or through `test_helpers::ephemeral_configuration` | **None today**: the helper returns a bare `PathBuf` under `env::temp_dir()`, so every run leaves `data_*.db` files behind (finding F5) | None today (F5) |
+| Failing fake of a persistence trait | The slice's test module | Dropped with the test | Dropped with the test; holds no global or shared state |
+| MySQL and PostgreSQL containers | `testcontainers` in the existing suites | `testcontainers` (unchanged by this issue) | `testcontainers` (unchanged) |
+| Drain of queued events after cancellation | `torrust-tracker-events` (`drain`) | The `events` package; this package tests only that its listeners call it | The `events` package |
+
+Lifetime invariants:
+
+- Normal path: when a test returns, its listener task has finished (the `JoinHandle` was awaited), its
+  temporary directory is removed and no fake is shared with another test.
+- Failure and drop path: a failed assertion unwinds through the `TempDir` (directory removed) and
+  ends the per-test runtime (task dropped); no test leaves a running task or a new file behind.
+- New tests do not call `ephemeral_sqlite_database()` without a cleanup owner.
+
+Deadlines: every awaited operation that waits on another task (awaiting a listener's `JoinHandle`,
+waiting until an event has been handled, a drain) is wrapped in `tokio::time::timeout` with an
+absolute deadline (5 seconds unless the record justifies another value) and fails with a message
+naming the operation. Database calls on a local temporary SQLite file use the same bound when they
+can wait on the pool. No test sleeps for a fixed time to wait for a result.
+
+Design-review checkpoint (T2b): after the first passing vertical slice, meaning the first listener
+test (spawn, handle one event, cancel, join under a deadline) and the first `TempDir`-owned SQLite
+test pass in S1, stop and ask the maintainer to review the fixture shape before any other file
+reuses it.
+
 ## Bug-Fix Process
 
 The issue as a whole is coverage and test-design work, not a known defect. A defect found is handed
@@ -228,6 +266,7 @@ fixed in this issue; each is a proposal for the maintainer.
 | F2 | The row-to-`PeerKey` mapping and `parse_valid_until` (negative timestamp to `MalformedDatabaseRecord`) are copied in the SQLite, MySQL and PostgreSQL `auth_key_store.rs`; the `u32` conversion of the aggregate metric is copied likewise. A test of the SQLite copy protects none of the others, and Docker-less tests cannot reach the MySQL and PostgreSQL copies. | `parse_valid_until` is identical in the three files (MySQL and PostgreSQL lines 119-125, SQLite lines 122-128) | A refactor issue extracting one helper (Q4); until then each driver's copy is assessed in its own record. | OPEN (proposed) |
 | F3 | `authentication::key::Key` derives `Deserialize` over its inner `String`, so deserializing a key skips the 32-character, ASCII-alphanumeric validation of `Key::new`. To confirm in the `peer_key.rs` record: where (if anywhere) a `Key` is deserialized from untrusted input (REST path and JSON are the candidates). | `authentication/key/peer_key.rs:127` | Confirm first; if reachable, a bug issue under `fix-bug`. | TO CONFIRM |
 | F4 | `PersistedWhitelist::add` and `remove` read `is_info_hash_whitelisted` and then write, without a transaction; two concurrent adds of the same hash can reach the driver's duplicate-insert error that `it_should_fail_trying_to_add_the_same_infohash_twice` shows is an error. Probably benign (the in-memory whitelist is the read path), but the behavior is unspecified. | `whitelist/repository/persisted.rs:29-54` | Confirm with a throwaway test in the whitelist record; at most a documentation or small fix issue. | TO CONFIRM |
+| F5 | `ephemeral_sqlite_database()` (`packages/test-helpers/src/configuration.rs:85`) returns a bare `PathBuf` under `env::temp_dir()` with no cleanup owner. In this package it is called directly by `src/test_helpers.rs`, three other source files (`databases/driver/sqlite/mod.rs`, `sqlite/schema_migrator.rs`, `authentication/key/repository/persisted.rs`) and `tests/common/fixtures.rs`, and indirectly through `test_helpers::ephemeral_configuration` by most test modules that open a database, so every run leaves `data_*.db` files behind, the leak #2637 fixed for its own package in its S5. | Code reading, 2026-11-17 (review finding F1 of #2903); `grep -rn ephemeral_sqlite_database packages/tracker-core` | Q7: fix the package's shared test helpers once, in S1, as a test-support commit, or hand off to a separate issue. New tests never use the helper without a cleanup owner either way. | OPEN (proposed) |
 
 ## Implementation Plan
 
@@ -238,6 +277,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 | T1 | DONE | Coverage evidence and complete module inventory | [coverage-evidence.md](coverage-evidence.md): baseline in four scopes, per-file uncovered groups, property candidacy, initial hypothesis for the 62 files. Delivered with this spec (S0). |
 | T1b | DONE | Measure the container-gated scope | The `--all-features` run with `TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST` and `TORRUST_TRACKER_CORE_RUN_POSTGRES_DRIVER_TEST` set (images pulled with the maintainer's permission, 2026-11-17): lines 93.80%. Recorded in `coverage-evidence.md`; informs the scope of S3. |
 | T2 | TODO | Shared plan guidance | `test-refactor-plans/README.md`: two-phase sequence, guardrails, toolchain-pinned commands. First test slice (S1). |
+| T2b | TODO | Design-review checkpoint | After the first listener test and the first `TempDir`-owned SQLite test pass in S1, the maintainer reviews the fixture shape (see [Asynchronous Work, Cleanup and Test Fixtures](#asynchronous-work-cleanup-and-test-fixtures)) before other files reuse it. |
 | T3 | TODO | Process every ledger row through the per-file workflow | Each row ends in exactly one of: test added, no-change with reason, deferred with owner. |
 | T4 | TODO | Bounded mutation assessment | `mutation-evidence.md`: configuration, survivors, reason for each unviable mutant. Last slice. |
 | T5 | TODO | Reconcile evidence and progress state | Ledger, records, slice table, acceptance rows and both EPIC coverage tables agree; grep for `status: proposed` and stray `TODO` labels in finished records. |
@@ -384,6 +424,7 @@ Each has a recommendation; the maintainer decides.
 | Q4 | Extract the duplicated `parse_valid_until` and row mapping (F2)? | Separate refactor issue after this one; tests per driver meanwhile. |
 | Q5 | Is `quickcheck` acceptable for `Key` and the expiry bounds, as in #2824 and #1348? | Decide in the `peer_key.rs` and `key/mod.rs` records; add only if examples leave a surviving mutant. |
 | Q6 | Is the six-slice plan (S0-S5) right, or should S4 and S5 merge? | Keep six: S4 and S5 are mostly failing-fake cases and no-change decisions; merging them mixes a risky area with the closing tasks. |
+| Q7 | The temporary SQLite files the existing tests leave behind (F5): fix them here or hand them off? | Fix here, as the first commit of S1: make `test_helpers::ephemeral_configuration` and the integration fixtures return a `TempDir` guard with the configuration, a package-local test-support change with no production change; the shared `test-helpers` function stays for the other packages. |
 
 Which EPIC row is the "unit-only" baseline? Recommendation: `--all-features --lib` (80.31%), the same
 command as the other packages, with the container-gated figure reported separately in
@@ -462,8 +503,9 @@ Reviewed against observed behavior after the last slice, before the issue is clo
 - A test of a suspected defect would pin wrong behavior; mitigate with the findings procedure.
 - Failing `Database` fakes can become large; mitigate by reusing the `testing` feature mock and one
   shared fake per slice, justified in its record.
-- Tests that need a SQLite file must use temp files unique per test; mitigate with the existing
-  `ephemeral_sqlite_database` helper.
+- Tests that need a SQLite file can leak it: `ephemeral_sqlite_database()` has no cleanup owner
+  (F5); mitigate by giving every new test a `tempfile::TempDir` it owns, added as a dev-dependency
+  under `add-rust-dependency`.
 - `develop` moves under the work; mitigate by re-measuring at every slice start.
 
 ## Implementation Completion Review
