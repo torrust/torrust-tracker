@@ -53,6 +53,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F8 | review-finding:pr-2919-f8 | Copilot | Minor | correctness | ORIGINAL | FIXED | NON_RESOLVABLE |
 | F9 | review-finding:pr-2919-f9 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F10 | review-finding:pr-2919-f10 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-2919-f11 | Copilot | Minor (inferred) | metadata | ORIGINAL | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -186,6 +187,19 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2919#discussion_r4604092428
 
+### F11 - The EPIC frontmatter keeps `epic: null`
+
+- PR number: 2919
+- Source review ID: 5944681077
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2919#discussion_r4604286890
+- Concern: The EPIC spec sets `github-issue: 2912` but keeps `epic: null`, which the reviewer read as inconsistent with the sub-issue specs that use `epic: 2912`.
+- Solution: No change. `epic` names the parent EPIC. A top-level EPIC has none, so `docs/templates/EPIC.md` and the open top-level EPIC specs (#1347, #1669, #2003, #2758) keep `epic: null`; only nested EPICs (#2264, #2278) set it. The EPIC's own number is in `github-issue`. The maintainer chose to record this row in the PR after the fifth fix round.
+- Current-tree verification: `for f in docs/issues/open/*/EPIC.md; do grep -m1 '^epic:' $f; done` prints `epic: null` for every top-level EPIC and `epic: 2003` for the two nested ones; `docs/templates/EPIC.md` has `epic: null`.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2919#discussion_r4605659875
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2919#discussion_r4605659875
+
 ## Processing Log
 
 - 2026-11-17 17:35 UTC - Replied to F1 to F3 (replies created from 17:35:15Z to 17:35:20Z) and resolved their threads after pushing the round 1 fixes, before this record existed: a late start of the audit. The replies cite the branch commit id `280121c6a`, which is the commit `docs(issues): [#2912] address review of PR 2919: approval checkpoints, audit status and option wording`. The three independent fixes share that one commit instead of one commit each (step 6). The F1 reply says the #384 spec now ticks both checkpoints; only the approval checkpoint changed there, because its issue checkpoint was already ticked.
@@ -197,6 +211,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-17 18:14 UTC - Pushed the F8 fix and its row, then replied to F8 in the PR conversation (comment created at 18:14:51Z) and filled in its reply URL. `validate-audit-record.py --pr-number 2919 --base torrust/develop` (scratchpad copy, `gh` calls through `gh-bot`) on this worktree record reported 8 rows, 0 failures.
 - 2026-11-17 18:34 UTC - Round 5: normalized da2ce7 review 5944340783 (APPROVED) with findings F9 and F10, committed the F9 fix, edited the EPIC issue body on GitHub for F9, and fixed F10 in this record.
 - 2026-11-17 18:39 UTC - Pushed the round 5 commits, then replied to F9 and F10 (replies created at 18:38:56Z and 18:38:58Z) and filled in their reply URLs. `validate-audit-record.py --pr-number 2919 --base torrust/develop` (scratchpad copy, `gh` calls through `gh-bot`) on this worktree record reported 10 rows, 0 failures.
+- 2026-11-17 20:54 UTC - Round 6: normalized Copilot review 5944681077 (posted after da2ce7's approval of the round 5 head) as F11, a no-change finding. The maintainer chose to record it in this PR rather than after the merge. Replied at 20:54:12Z with the `Superseded by F11` form. `validate-audit-record.py --pr-number 2919 --base torrust/develop` (scratchpad copy, `gh` calls through `gh-bot`) on this worktree record reported 11 rows, 0 failures.
 
 ## Completion Rules
 
