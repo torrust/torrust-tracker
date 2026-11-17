@@ -1,7 +1,7 @@
 ---
 pr-number: 2929
 pr-url: https://github.com/torrust/torrust-tracker/pull/2929
-last-updated-utc: "2026-11-17 21:36"
+last-updated-utc: "2026-11-17 22:37"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -43,11 +43,14 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1: Copilot review 5946976502 (COMMENTED, a lite review, since its full agentic review did not start before the timeout) with one inline finding, rated medium by Copilot. The audit severity scale (`Blocker`, `Major`, `Minor`, `Nit`, `Suggestion`) has no medium level, so this audit maps Copilot's `Medium severity` badge to `Minor (inferred)`, as the PR #2421 and PR #2430 audits do; `(inferred)` marks that the comment carries no `[Severity]` bracket. The `F` IDs are this audit's.
+Round 1: Copilot review 5946976502 (COMMENTED, a lite review, since its full agentic review did not start before the timeout) with one inline finding, rated medium by Copilot. The audit severity scale (`Blocker`, `Major`, `Minor`, `Nit`, `Suggestion`) has no medium level, so this audit maps Copilot's `Medium severity` badge to `Minor (inferred)`, as the PR #2421 and PR #2430 audits do; `(inferred)` marks that the comment carries no `[Severity]` bracket. The `F` IDs are this audit's. Round 2: Copilot review 5947779724 (COMMENTED, a lite review again) on the head that fixed F1, with findings F2 to F4, each rated medium and recorded as `Minor (inferred)` by the same rule. F2 asks for the rule above; F3 and F4 describe content the file does not have.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2929-f1 | Copilot | Minor (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
+| F2 | review-finding:pr-2929-f2 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F3 | review-finding:pr-2929-f3 | Copilot | Minor (inferred) | documentation | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F4 | review-finding:pr-2929-f4 | Copilot | Minor (inferred) | formatting | ORIGINAL | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -64,9 +67,49 @@ Round 1: Copilot review 5946976502 (COMMENTED, a lite review, since its full age
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2929#discussion_r4606101763
 
+### F2 - The medium-to-minor severity mapping is not explained
+
+- PR number: 2929
+- Source review ID: 5947779724
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2929#discussion_r4606720677
+- Concern: The Findings paragraph mapped Copilot's medium rating to `Minor (inferred)` without a stated rule, so the normalization was not reproducible.
+- Solution: The paragraph states the rule: the audit scale has no medium level, so a `Medium severity` badge maps to `Minor (inferred)`, as in the PR #2421 and PR #2430 audits.
+- Current-tree verification: `grep -n 'has no medium level' docs/pr-reviews/pr-2929-review/PR-REVIEW.md` finds the rule in the Findings paragraph; `grep -n 'Minor (inferred)' docs/pr-reviews/pr-2430-review/PR-REVIEW.md` shows the same mapping there.
+- Resolution reference: `docs(pr-reviews): [#2847] state the medium-to-minor severity mapping in the PR 2929 audit`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2929#discussion_r4606734628
+
+### F3 - A short SHA in the Processing Log
+
+- PR number: 2929
+- Source review ID: 5947779724
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2929#discussion_r4606720745
+- Concern: The Processing Log was said to cite PR #2911 findings by a short SHA such as `da2ce7`, against the record's rule to cite commit subjects.
+- Solution: No change. The record cites no commit SHA; `da2ce7` is a reviewer's GitHub login, which did not occur in the reviewed file (only this entry names it), and the F1 fix is cited by its commit subject.
+- Current-tree verification: on the reviewed head, `git show <reviewed head>:docs/pr-reviews/pr-2929-review/PR-REVIEW.md | grep -n da2ce7` found nothing, nor did a search for six-to-forty-character hex words outside review and comment IDs; on the current tree, `grep -n da2ce7` matches only this F3 entry.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2929#discussion_r4606735041
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2929#discussion_r4606735041
+
+### F4 - Table rows starting with `||`
+
+- PR number: 2929
+- Source review ID: 5947779724
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2929#discussion_r4606720806
+- Concern: The table rows were said to start with `||`, rendering an empty leading column.
+- Solution: No change. Every row of the Findings table starts with a single `|`.
+- Current-tree verification: `grep -n '^||' docs/pr-reviews/pr-2929-review/PR-REVIEW.md` finds nothing.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2929#discussion_r4606735442
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2929#discussion_r4606735442
+
 ## Processing Log
 
 - 2026-11-17 21:36 UTC - Round 1: Copilot review 5946976502 (COMMENTED, 21:33:38Z) with finding F1. Fixed it, following the maintainer's choice for the non-blocking findings of PR #2911: committed the fix, then, before pushing so that one push carries the fix and this record, replied to the thread (21:35:59Z) naming the commit subject the push brings, and resolved it (21:36:07Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread. Created this record.
+- 2026-11-17 22:37 UTC - Round 2: Copilot review 5947779724 (COMMENTED, 22:35:04Z) with findings F2 to F4. Fixed F2 in a commit; F3 and F4 describe content the file does not have, so they need no change. Replied to the three threads (22:36Z) and resolved them (22:36:45Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread. Recorded F2 to F4.
 
 <!-- Copied verbatim into each audit record. -->
 
