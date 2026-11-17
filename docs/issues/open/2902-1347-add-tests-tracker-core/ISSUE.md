@@ -257,8 +257,8 @@ Non-bug findings (dead code, misleading docs) need only a `lessons.md` row.
 
 ### Findings Register
 
-Found while writing this specification (code reading and the coverage runs, 2026-11-17). None is
-fixed in this issue; each is a proposal for the maintainer.
+Found while writing this specification (code reading and the coverage runs, 2026-11-17). Each is a
+proposal for the maintainer unless its status says otherwise.
 
 | ID | Finding | Evidence | Proposed owner | Status |
 | --- | --- | --- | --- | --- |
