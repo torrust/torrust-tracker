@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: draft
+status: planned
 priority: p2
 epic: 2392
-github-issue: null
-spec-path: docs/issues/drafts/2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md
-branch: "{issue-number}-2392-migrate-tests-to-guarded-sqlite-database"
+github-issue: 2925
+spec-path: docs/issues/open/2925-2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md
+branch: "2392-split-test-temp-files-spec"
 related-pr: null
-last-updated-utc: "2026-11-17 18:10"
+last-updated-utc: "2026-11-17 18:39"
 semantic-links:
   skill-links:
     - create-issue
@@ -20,20 +20,20 @@ semantic-links:
     - .claude/skills/create-issue/SKILL.md
     - docs/issues/open/2392-test-isolation/EPIC.md
     - docs/issues/open/2907-2392-remove-leaked-test-temporary-files/ISSUE.md
-    - docs/issues/drafts/2392-sqlite-test-database-guard/ISSUE.md
+    - docs/issues/open/2924-2392-sqlite-test-database-guard/ISSUE.md
     - packages/test-helpers/src/configuration.rs
 ---
 
 <!-- skill-link: create-issue -->
 
-# Move Tests to the Guard-Owned SQLite Database and Default to No Database
+# Issue #2925 - Move Tests to the Guard-Owned SQLite Database and Default to No Database
 
 Parent EPIC: #2392 - Test Isolation (`docs/issues/open/2392-test-isolation/EPIC.md`)
 
 ## Goal
 
 No test leaves a `data_*.db` file behind. Tests that need persistence use the guard-owned SQLite
-database of the foundation issue (`docs/issues/drafts/2392-sqlite-test-database-guard/ISSUE.md`),
+database of #2924 (`docs/issues/open/2924-2392-sqlite-test-database-guard/ISSUE.md`),
 and the `ephemeral*()` configurations no longer configure a database. After this issue, a full
 test run leaves a fresh temporary directory empty.
 
@@ -42,11 +42,11 @@ test run leaves a fresh temporary directory empty.
 Every `ephemeral*()` configuration of `torrust-tracker-test-helpers` sets a SQLite database at
 `<temp dir>/data_<16 random characters>.db`, and nothing removes the file. #2907's T1 on `develop`
 `61e3fedcf` counted 301 such files after one full run; about 256 come from these configurations
-(#2907 T2 experiment, recorded in the foundation issue's Background).
+(#2907 T2 experiment, recorded in the #2924 spec's Background).
 
 The maintainer decided (EPIC Decisions, 2026-11-17) that `ephemeral()` may default to no
 database: `core.database` is an `Option`, and a tracker runs without persistence. Tests that need
-persistence opt in through the foundation issue's factory and keep its guard.
+persistence opt in through the factory of #2924 and keep its guard.
 
 PR #2923 (#2902, open on 2026-11-17) fixes the leak inside `packages/tracker-core` with that
 package's own guard, so this issue skips that package's tests once it merges.
@@ -70,7 +70,7 @@ Facts from the #2907 session, measured before PR #2923 and to be rechecked in T1
 
 - Classify the tests that fail without a database: the test needs persistence, or only a helper
   assumes it.
-- Move the tests that need persistence to the foundation issue's factory, one pull request per
+- Move the tests that need persistence to the factory of #2924, one pull request per
   package.
 - Make helpers that only assume persistence work without it.
 - Then remove the database from `ephemeral()` and the functions built on it, and remove
@@ -80,7 +80,7 @@ Facts from the #2907 session, measured before PR #2923 and to be rechecked in T1
 
 ### Out of Scope
 
-- The guard type and the factory (foundation issue).
+- The guard type and the factory (#2924).
 - The TOML and TLS leaks (#2907).
 - Deleting the files already leaked on any machine.
 
@@ -119,7 +119,7 @@ Follow `.claude/skills/fix-bug/SKILL.md`:
 
 1. Real-artifact reproduction: the full suite with a fresh `TMPDIR`, counting `data_*.db` (V1).
 2. Regression boundary: the end-to-end count per package after its pull request, and the final
-   full-suite count. The guard's own unit tests belong to the foundation issue.
+   full-suite count. The guard's own unit tests belong to #2924.
 3. Like-for-like recheck of step 1 after the last pull request (V2).
 
 ## Regression Test Strategy
@@ -153,8 +153,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 ### Workflow Checkpoints
 
 - [x] Folder-style spec drafted in `docs/issues/drafts/2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -170,6 +170,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-17 18:10 UTC - Claude Code (Claude Fable 5.2), EPIC #2392 coordinator - Noted that
   PR #2923 (#2902) fixes `tracker-core`, so T1 rechecks the counts and this issue skips that
   package.
+- 2026-11-17 18:39 UTC - Claude Code (Claude Fable 5.2), EPIC #2392 coordinator - The maintainer approved
+  the draft. Created GitHub issue #2925 and moved the spec from `docs/issues/drafts/` to
+  `docs/issues/open/`. The package order, naming and remaining SQLite coverage stay open until T1.
 
 ## Acceptance Criteria
 
@@ -232,6 +235,6 @@ evidence file is created from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`.
 ## References
 
 - Parent EPIC: #2392
-- Depends on: the foundation issue, `docs/issues/drafts/2392-sqlite-test-database-guard/ISSUE.md`
+- Depends on: #2924, `docs/issues/open/2924-2392-sqlite-test-database-guard/ISSUE.md`
 - Found by: #2907 (T1 and T2), #2394 finding F2
 - Related: PR #2923 (#2902), the same fix inside `tracker-core`

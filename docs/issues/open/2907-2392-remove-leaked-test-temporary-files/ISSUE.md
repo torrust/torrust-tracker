@@ -9,7 +9,7 @@ github-issue: 2907
 spec-path: docs/issues/open/2907-2392-remove-leaked-test-temporary-files/ISSUE.md
 branch: "2392-audit-follow-up-issues-spec"
 related-pr: null
-last-updated-utc: "2026-11-17 18:03"
+last-updated-utc: "2026-11-17 18:39"
 semantic-links:
   skill-links:
     - create-issue
@@ -20,8 +20,8 @@ semantic-links:
     - .claude/skills/create-issue/SKILL.md
     - docs/issues/open/2392-test-isolation/EPIC.md
     - docs/issues/closed/2394-2392-audit-shared-test-resources/inventory.md
-    - docs/issues/drafts/2392-sqlite-test-database-guard/ISSUE.md
-    - docs/issues/drafts/2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md
+    - docs/issues/open/2924-2392-sqlite-test-database-guard/ISSUE.md
+    - docs/issues/open/2925-2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md
     - packages/configuration/src/v2_0_0/mod.rs
     - packages/configuration/src/v3_0_0/mod.rs
     - packages/axum-server/src/tls.rs
@@ -39,7 +39,7 @@ The configuration-file tests and the TLS tests remove every temporary file they 
 success, failure and drop paths (EPIC rule 1).
 
 This issue was narrowed on 2026-11-17. It first covered three leaks; the SQLite database leak
-turned out to be larger than one issue and moved to two new issues (see Scope).
+turned out to be larger than one issue and moved to #2924 and #2925 (see Scope).
 
 ## Background
 
@@ -73,8 +73,8 @@ and then unrelated tests fail.
 ### Out of Scope
 
 - The SQLite database leak (`data_*.db`). The maintainer split it out on 2026-11-17 (EPIC
-  Decisions): `docs/issues/drafts/2392-sqlite-test-database-guard/ISSUE.md` adds a guard-owned
-  database, and `docs/issues/drafts/2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md` moves
+  Decisions): `docs/issues/open/2924-2392-sqlite-test-database-guard/ISSUE.md` adds a guard-owned
+  database, and `docs/issues/open/2925-2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md` moves
   the tests to it and owns the check that a fresh `TMPDIR` is empty after the suite.
 - Deleting the files already leaked on any machine (a one-off cleanup for the machine's owner).
 - Examples that use fixed temporary paths; no test runs them (#2394 F7).
@@ -179,6 +179,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   Decisions, 2026-11-17). The #2907 session's T1 and T2 findings showed about 100 tests need
   persistence and about 278 call sites use the `ephemeral*()` configurations. Renumbered the
   plan: the old T3 (SQLite) left, T4 to T6 became T3 to T5.
+- 2026-11-17 18:39 UTC - Claude Code (Claude Fable 5.2), EPIC #2392 coordinator - The SQLite issues are
+  #2924 and #2925. Updated this issue's title and body on GitHub to the narrowed scope.
 
 ## Acceptance Criteria
 

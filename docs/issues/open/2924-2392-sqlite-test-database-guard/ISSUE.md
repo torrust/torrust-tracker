@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: draft
+status: planned
 priority: p2
 epic: 2392
-github-issue: null
-spec-path: docs/issues/drafts/2392-sqlite-test-database-guard/ISSUE.md
-branch: "{issue-number}-2392-sqlite-test-database-guard"
+github-issue: 2924
+spec-path: docs/issues/open/2924-2392-sqlite-test-database-guard/ISSUE.md
+branch: "2392-split-test-temp-files-spec"
 related-pr: null
-last-updated-utc: "2026-11-17 18:10"
+last-updated-utc: "2026-11-17 18:39"
 semantic-links:
   skill-links:
     - create-issue
@@ -20,7 +20,7 @@ semantic-links:
     - .claude/skills/create-issue/SKILL.md
     - docs/issues/open/2392-test-isolation/EPIC.md
     - docs/issues/open/2907-2392-remove-leaked-test-temporary-files/ISSUE.md
-    - docs/issues/drafts/2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md
+    - docs/issues/open/2925-2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md
     - docs/issues/closed/2394-2392-audit-shared-test-resources/inventory.md
     - packages/test-helpers/src/configuration.rs
     - packages/axum-rest-api-server/src/test_support.rs
@@ -28,7 +28,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Add a Guard-Owned SQLite Test Database
+# Issue #2924 - Add a Guard-Owned SQLite Test Database
 
 Parent EPIC: #2392 - Test Isolation (`docs/issues/open/2392-test-isolation/EPIC.md`)
 
@@ -38,8 +38,8 @@ A test that needs persistence gets its SQLite database from a factory that also 
 The guard owns the database's directory and removes it on drop, on success, failure and drop
 paths (EPIC rule 1). This issue adds the guard and the factory next to the existing functions and
 converts the helpers outside `tracker-core` that build the database path themselves. It is the
-foundation for the migration issue
-(`docs/issues/drafts/2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md`).
+foundation for the migration issue, #2925
+(`docs/issues/open/2925-2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md`).
 
 ## Background
 
@@ -97,9 +97,9 @@ helpers and starts after PR #2923 merges.
 
 ### Out of Scope
 
-- Changing `ephemeral()` or the other existing `ephemeral*()` functions; their callers move in the
-  migration issue.
-- Removing `ephemeral_sqlite_database()`; the migration issue removes it after its last caller.
+- Changing `ephemeral()` or the other existing `ephemeral*()` functions; their callers move in
+  #2925.
+- Removing `ephemeral_sqlite_database()`; #2925 removes it after its last caller.
 - The TOML and TLS leaks (#2907).
 
 ## Architectural Decisions
@@ -177,8 +177,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 ### Workflow Checkpoints
 
 - [x] Folder-style spec drafted in `docs/issues/drafts/2392-sqlite-test-database-guard/ISSUE.md`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -194,6 +194,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-17 18:10 UTC - Claude Code (Claude Fable 5.2), EPIC #2392 coordinator - PR #2923 (#2902)
   fixes the leak inside `tracker-core`. Removed that package's helpers from the scope, made its
   approved wrapper struct the starting point, and made this issue start after it merges.
+- 2026-11-17 18:39 UTC - Claude Code (Claude Fable 5.2), EPIC #2392 coordinator - The maintainer approved
+  the draft. Created GitHub issue #2924 and moved the spec from `docs/issues/drafts/` to
+  `docs/issues/open/`. The names and the return shape stay open until T1.
 
 ## Acceptance Criteria
 
@@ -236,7 +239,7 @@ evidence file is created from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`.
 
 ## Risks and Trade-offs
 
-- **Two ways for a while.** Until the migration issue ends, the old path helper and the guard
+- **Two ways for a while.** Until #2925 ends, the old path helper and the guard
   coexist. That is the price of small pull requests: changing `ephemeral()` in place would break
   every package in one pull request.
 - **Early drop.** A guard dropped before the tracker stops deletes an open database. The unit
