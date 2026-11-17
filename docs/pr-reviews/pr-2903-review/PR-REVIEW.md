@@ -252,7 +252,7 @@ its inline findings keep the reviewer's IDs F14 to F16.
 - Current-tree verification: `grep -n -E '2b0c3fe36|37d9b1218|690cfb5f5|8f42a03a6' docs/issues/open/2902-1347-add-tests-tracker-core/coverage-evidence.md` prints nothing; in `PR-REVIEW.md` the ids appear only in Processing Log entries and in this entry.
 - Resolution reference: docs(issues): [#2902] cite the container-gated run by commit subject
 - Follow-up PR URL: N/A
-- Reply URL: PENDING_REPLY_F14
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2903#discussion_r4600182264
 
 ### F15 - Two lines cells in files with a test module had no label
 
@@ -265,7 +265,7 @@ its inline findings keep the reviewer's IDs F14 to F16.
 - Current-tree verification: a loop over the table rows that checks each file for a `cfg(test)` attribute and an unlabeled cell prints nothing.
 - Resolution reference: docs(issues): [#2902] label the last unlabeled uncovered-line cells
 - Follow-up PR URL: N/A
-- Reply URL: PENDING_REPLY_F15
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2903#discussion_r4600182958
 
 ### F16 - The record described Copilot's review wrongly
 
@@ -278,7 +278,7 @@ its inline findings keep the reviewer's IDs F14 to F16.
 - Current-tree verification: `gh-bot api repos/torrust/torrust-tracker/pulls/2903/reviews/5938522893 --jq '[.commit_id,.submitted_at,(.body|length)]'` prints the S0 commit's full id, `2026-11-17T12:38:27Z` and `3254`.
 - Resolution reference: docs(pr-reviews): [#2902] record the fourth review round of #2903
 - Follow-up PR URL: N/A
-- Reply URL: PENDING_REPLY_F16
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2903#discussion_r4600183671
 
 ## Processing Log
 
@@ -287,6 +287,7 @@ its inline findings keep the reviewer's IDs F14 to F16.
 - 2026-11-17 12:53 UTC - Found Copilot's review `5938522893` (12:38:26 UTC, three threads), which the 12:51 replies had missed: the thread check right after pushing the audit commit (committed 12:53:03 UTC) showed three unresolved threads. Recorded as F11-F13.
 - 2026-11-17 13:01 UTC - Pushed the F11 and F12 fixes (head `8f42a03a6`); replied to the three threads between 13:01:41 and 13:01:48 UTC and resolved each after its reply (F13 superseded by F12).
 - 2026-11-17 13:16 UTC - Round 4 (da2ce7's review `5939100172`, 13:13:35 UTC, approval with F14-F16) processed: F15 and F14 fixed in their own commits; the round descriptions and finding details now cite commits by subject. Correction of the 12:53 UTC entry above: Copilot's review was submitted at 12:38:27 UTC (12:38:26 UTC is the time of its first inline comments) and was of the first head, not the second (F16).
+- 2026-11-17 13:25 UTC - Pushed the round 4 fixes and audit commits; replied to the F14-F16 threads between 13:24:53 and 13:25:01 UTC and resolved each after its reply.
 
 ## Completion Rules
 
