@@ -9,7 +9,7 @@ github-issue: 2904
 spec-path: docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md
 branch: "2904-migrate-custom-agents-to-claude-code-spec"
 related-pr: null
-last-updated-utc: "2026-11-17 13:35"
+last-updated-utc: "2026-11-17 13:54"
 semantic-links:
   skill-links:
     - create-issue
@@ -374,8 +374,13 @@ Decided by the maintainer on 2026-11-15:
     created from the earlier template still has a checkpoint that names `agent-review-reports.md`;
     T5 states in `review-task` that a reply file satisfies it, and T9 changes the template. For
     this issue, that means `agent-review-reports.md` for a review of T2 to T5 and reply files for
-    a review of T6 to T12. The `agent-review-report-contract` check, which
-    requires exact sentences in the Copilot profiles, is replaced by the validator.
+    a review of T6 to T12. The `agent-review-report-contract` check loses only
+    the rules that name the Copilot profiles and `docs/templates/AGENT-REVIEW-REPORTS.md`; the
+    reply validator replaces those. Its other rules stay: they guard the pull-request audit
+    contract (`process-pr-review`, `PR-REVIEW-TEMPLATE.md`, the review-finding references, the
+    thread skills and the `pr_review_audit` node of `docs/agents/orchestration.md`), which this
+    issue does not change. Issues #2349 and #2362 plan changes to that check and are not blocked
+    by this one.
   - Reply files are committed with the work they describe (maintainer, 2026-11-17).
 
 Proposed in this specification and approved with it:
@@ -409,7 +414,8 @@ Proposed in this specification and approved with it:
 - Move the rules that only a dropped profile held into the skill that owns the workflow.
 - Remove `.github/agents/`.
 - Update every tracked reference to the profiles: `AGENTS.md`, `docs/agents/README.md`, the
-  `agent-review-report-contract` check (replaced by the reply validator), the
+  `agent-review-report-contract` check (only its rules about the profiles and the review-report
+  template, which the reply validator replaces), the
   `frontmatter-validator` rule for `.agent.md` files,
   the `run-pre-commit-checks` pointer to the committer, the issue template checkpoints, and the
   governance ADR's inventory and review record.
@@ -516,7 +522,7 @@ on are merged.
 | T7  | TODO   | `pr-reviewer` | The agent file with the pinned model; the reply rule in `review-pr` |
 | T8  | TODO   | `researcher` | The agent file |
 | T9  | TODO   | `orchestrator` | The agent file; `docs/agents/orchestration.md` rewritten for the orchestrator-led flow, with the 3-round limit; the issue template checkpoints; scenario M5 recorded |
-| T10 | TODO   | End of `.github/agents/` | `.github/agents/` and the `agent-review-report-contract` check removed; the one-commit-per-lint rule in `fix-clippy-warnings`; the inventory `removed-profile-rules.md` completed for all ten profiles (AC6); `AGENTS.md`, `docs/agents/README.md`, `docs/templates/AGENT-REVIEW-REPORTS.md`, the `frontmatter-validator` rule and the governance ADR updated; the new ADR, and the ADR-move item added to the scope of the harness-workspace draft (D10) |
+| T10 | TODO   | End of `.github/agents/` | `.github/agents/` removed, with the rules of the `agent-review-report-contract` check that name the profiles and `docs/templates/AGENT-REVIEW-REPORTS.md`; the rest of that check kept and passing; the one-commit-per-lint rule in `fix-clippy-warnings`; the inventory `removed-profile-rules.md` completed for all ten profiles (AC6); `AGENTS.md`, `docs/agents/README.md`, `docs/templates/AGENT-REVIEW-REPORTS.md`, the `frontmatter-validator` rule and the governance ADR updated; the new ADR, and the ADR-move item added to the scope of the harness-workspace draft (D10) |
 | T11 | TODO   | Measurement | Review rounds recorded for the first three pull requests handled by `pr-review-handler` (scenario M6); the pull requests of this issue count |
 | T12 | TODO   | Close-out pull request | Completion review, specification moved to `docs/issues/closed/`, EPIC row `DONE` |
 
@@ -539,7 +545,7 @@ T10 completes it before removing the profiles.
 | T3   | The schema; the validator, one commit per reviewed test increment; its wiring into the checks; the documentation | One commit per item, after focused validation and the test-design review |
 | T4 to T8 | The agent file; each skill change (in T6 the `create-issue` change is its own commit); the inventory rows; the evidence | One commit per item, after focused validation |
 | T9   | The agent file; the orchestration guide; the template checkpoints; the inventory rows; the evidence | One commit per item, after focused validation |
-| T10  | The completed inventory; the removal of `.github/agents/` with the old check and the validator rule; each moved rule; each documentation update; the ADR | One commit per item, after focused validation |
+| T10  | The completed inventory; the removal of `.github/agents/` with the profile rules of the contract check and the validator rule; each moved rule; each documentation update; the ADR | One commit per item, after focused validation |
 | T11  | The measurement evidence | One commit per recorded pull request |
 | T12  | The completion review; the move to `closed/`; the EPIC row | One commit each |
 
@@ -586,6 +592,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - 2026-11-17 13:11 UTC - Claude Code (Claude Fable 5.2) - Addressed Copilot's review `5939023583` on pull request #2905 (findings F8 and F9): the stop hook's limit is 3 refusals, and D18 states which report file this issue uses for its own reviews.
 - 2026-11-17 13:19 UTC - Claude Code (Claude Fable 5.2) - Addressed the review `5939071001` of `da2ce7` on pull request #2905 (three nits): the archived-report method names the revision where the report is checked, the inventory's destinations agree with AC6, and Automatic Checks lists the stop hook's tests.
 - 2026-11-17 13:35 UTC - Claude Code (Claude Fable 5.2) - Addressed the approving review `5939415019` of `da2ce7` on pull request #2905 (one minor finding): the switch from `agent-review-reports.md` to reply files is keyed to the merge of T5, so the stop hook needs no exemption for this specification.
+- 2026-11-17 13:54 UTC - Claude Code (Claude Fable 5.2) - Addressed Copilot's review `5939656808` on pull request #2905 (two findings): T2 and M4 cover the ten scoped `AGENTS.md` files, and the `agent-review-report-contract` check keeps its pull-request audit rules.
 
 ## Acceptance Criteria
 
@@ -630,7 +637,8 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - `linter all`
 - The reply validator's tests, and a run of the validator on every reply file
 - The tests of the stop hook's limit of 3 refusals (T5)
-- `cargo test -p agent-review-report-contract` until the check is removed in T10
+- `cargo test -p agent-review-report-contract` and a run of the check itself, in every task that
+  touches a file it reads, including T9 (`docs/agents/orchestration.md`) and T10
 - `cargo test -p frontmatter-validator` in the task that changes its `.agent.md` rule
 - The pre-commit and pre-push hooks
 
@@ -705,8 +713,10 @@ None planned.
   the orchestrator role depends on the session being told to take it and keeping to it. M5 runs
   both ways and records the difference.
 - **Text contract check.** The `agent-review-report-contract` check requires exact sentences in
-  four Copilot profiles. The profiles and the check stay untouched until T10 removes both
-  together, so the check passes after every merge.
+  four Copilot profiles, and others in the pull-request audit skills and templates. The profiles
+  and their rules stay untouched until T10 removes both together, so the check passes after every
+  merge. T9 rewrites `docs/agents/orchestration.md` and must keep the text the check requires
+  there. T10 coordinates with issues #2349 and #2362, which change the same file.
 
 ## Implementation Completion Review
 
@@ -727,7 +737,7 @@ progress-log entry.
 
 ## References
 
-- Related issues: #2003, #2155, #2160, #2278
+- Related issues: #2003, #2155, #2160, #2278, #2349, #2362
 - Related PRs: #2851 (the baseline: 14 review rounds on three models, see Background)
 - Related ADRs: `docs/adrs/20260420200013_adopt_custom_github_copilot_aligned_agent_framework.md`,
   `docs/adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md`
