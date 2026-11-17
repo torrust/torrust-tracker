@@ -6,6 +6,10 @@ are the two checkouts, `<checkout-P-relative>` is checkout P's path below that f
 contributor's personal `CLAUDE.md`. The rest of each output is not stored, because it contains
 that personal file. See section V4 of `../manual-verification-evidence.md`.
 
+Two other names in angle brackets are not replacements made here: `<worktree>` and `<repo>` are
+abbreviations the probes chose themselves in their answers. Each probe that uses one says which
+path it stands for, and only that path was replaced.
+
 ## Probe 1 - checkout P, no pointer file, session
 
 ```text

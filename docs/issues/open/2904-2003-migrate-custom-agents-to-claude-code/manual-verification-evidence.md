@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md
-last-updated-utc: 2026-11-17 17:45
+last-updated-utc: 2026-11-17 18:34
 ---
 
 # Manual Verification Evidence
@@ -197,5 +197,13 @@ mechanism; the behaviour is that of Claude Code 2.1.318.
 - A first attempt at steps 5 to 10 did not run: `git clone --local` failed with "Invalid
   cross-device link", and a shell loop in the same command then ran without end and was stopped.
   No probe ran in that attempt. The clone was repeated with `--no-hardlinks`.
+- Correction to the description of checkout P. The first version of this document, in
+  `docs(issues): [#2904] record scenario M4 and mark task T2 done`, said the personal `CLAUDE.md`
+  was three folders above checkout P and did not say that checkout P is a git worktree inside
+  another checkout of the repository. It is four folders above, and the enclosing checkout's
+  `AGENTS.md` is three folders above. The Environment section was corrected in
+  `docs(issues): [#2904] correct the M4 evidence and store every probe's answer`. No probe was
+  rerun and the conclusions do not depend on it: the enclosing `AGENTS.md` was not loaded in
+  probe 1, and no probe listed it.
 - In probe 12 the session printed "The subagent is still running" before it printed the agent's
   answer; the answer recorded above is the one it printed afterwards.

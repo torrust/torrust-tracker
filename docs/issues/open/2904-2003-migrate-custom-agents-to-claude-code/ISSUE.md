@@ -9,7 +9,7 @@ github-issue: 2904
 spec-path: docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md
 branch: "2904-t2-pointer-claude-md"
 related-pr: null
-last-updated-utc: "2026-11-17 17:45"
+last-updated-utc: "2026-11-17 18:34"
 semantic-links:
   skill-links:
     - create-issue
@@ -601,6 +601,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - 2026-11-17 17:11 UTC - Claude Code (Claude Fable 5.2) - Pull request #2905 merged on 2026-11-17 at 16:52 UTC. Task T2: added the root `CLAUDE.md` and ran scenario M4. Any `CLAUDE.md` at the root or above stops Claude Code from loading the scoped `AGENTS.md` files, and a root `CLAUDE.md` restores only the root `AGENTS.md`, so the ten scoped pointer files of D11 were added too. With all eleven, the session and a started agent receive the root and the scoped rules in both checkouts. AC12 is met; evidence in `manual-verification-evidence.md` section V4.
 - 2026-11-17 17:19 UTC - Claude Code (Claude Fable 5.2) - Independent review of T2 recorded in `agent-review-reports.md` (REVIEW PASSED, two minor findings and four nits). Addressed: the evidence states which probes have recorded tool calls and that the probed files were committed afterwards; `status` is `in-progress` and `branch` names the T2 branch; the T10 row names the ADR line that T2 made untrue; the branch is rebased on `develop`.
 - 2026-11-17 17:45 UTC - Claude Code (Claude Fable 5.2) - Addressed the reviews `5943570147` of `da2ce7` and `5943581377` of Copilot on pull request #2920: `.dockerignore` re-excludes the pointer files; the evidence states what probes 1, 2 and 4 show, names its commands as run, and stores every probe's answer in `evidence/m4-probe-answers.md`; T1 is `DONE` and the EPIC row is `IN_PROGRESS`.
+- 2026-11-17 18:34 UTC - Claude Code (Claude Fable 5.2) - Addressed the approving review `5944190011` of `da2ce7` on pull request #2920 (two nits): the evidence records the correction to the description of checkout P, and the stored answers say which angle-bracket names are the probes' own.
 
 ## Acceptance Criteria
 
