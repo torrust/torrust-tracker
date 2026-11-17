@@ -20,6 +20,9 @@ const READER_GRACE: Duration = Duration::from_secs(5);
 /// writes without end and the time of the last, non-waiting step of the drain.
 const MAX_CAPTURED_BYTES: usize = 8 * 1024 * 1024;
 
+/// How many discarded bytes pass between two probes of the receiver by a reader thread.
+const DISCARD_PROBE_BYTES: usize = 1024 * 1024;
+
 /// How often the wait loop polls the child.
 const POLL_INTERVAL: Duration = Duration::from_millis(100);
 
@@ -175,16 +178,24 @@ fn spawn_reader<R: Read + Send + 'static>(mut pipe: R) -> Receiver<Vec<u8>> {
     thread::spawn(move || {
         let mut buffer = [0_u8; 8192];
         let mut queued = 0_usize;
+        let mut discarded_since_probe = 0_usize;
         loop {
             match pipe.read(&mut buffer) {
                 Ok(0) | Err(_) => break,
                 Ok(read) => {
                     let keep = read.min(MAX_CAPTURED_BYTES.saturating_sub(queued));
-                    if keep > 0 {
-                        queued += keep;
-                        if sender.send(buffer[..keep].to_vec()).is_err() {
-                            break;
-                        }
+                    queued += keep;
+                    // Past the cap nothing is sent, so probe the receiver with an empty chunk once per
+                    // `DISCARD_PROBE_BYTES` discarded: when it is gone the thread ends and closes the pipe.
+                    let probe = keep < read && {
+                        discarded_since_probe += read - keep;
+                        discarded_since_probe >= DISCARD_PROBE_BYTES
+                    };
+                    if probe {
+                        discarded_since_probe = 0;
+                    }
+                    if (keep > 0 || probe) && sender.send(buffer[..keep].to_vec()).is_err() {
+                        break;
                     }
                 }
             }
@@ -272,7 +283,7 @@ mod tests {
     use std::io::ErrorKind;
     use std::time::{Duration, Instant};
 
-    use super::{BUILD_ARGS, CHECKER_ARGS, MAX_CAPTURED_BYTES, collect, execute, run_command, spawn_reader};
+    use super::{BUILD_ARGS, CHECKER_ARGS, DISCARD_PROBE_BYTES, MAX_CAPTURED_BYTES, collect, execute, run_command, spawn_reader};
 
     const GRACE: Duration = Duration::from_secs(5);
 
@@ -431,6 +442,45 @@ mod tests {
 
         // Assert: the reader read it all (the channel closed) but queued only the cap.
         assert_eq!(queued, MAX_CAPTURED_BYTES);
+    }
+
+    #[test]
+    fn it_should_stop_reading_a_pipe_past_the_cap_when_the_receiver_is_gone() {
+        // Arrange: a pipe that never ends, counting what the reader takes, and a receiver already dropped.
+        struct Endless(std::sync::Arc<std::sync::atomic::AtomicUsize>);
+        impl std::io::Read for Endless {
+            fn read(&mut self, buffer: &mut [u8]) -> std::io::Result<usize> {
+                self.0.fetch_add(buffer.len(), std::sync::atomic::Ordering::SeqCst);
+                buffer.fill(b'x');
+                Ok(buffer.len())
+            }
+        }
+        let read = std::sync::Arc::new(std::sync::atomic::AtomicUsize::new(0));
+        let receiver = spawn_reader(Endless(read.clone()));
+
+        // Act: let the reader pass the cap and discard some, then drop the receiver.
+        let load = || read.load(std::sync::atomic::Ordering::SeqCst);
+        let start = Instant::now();
+        while load() < MAX_CAPTURED_BYTES + 3 * DISCARD_PROBE_BYTES && start.elapsed() < Duration::from_secs(20) {
+            std::thread::sleep(Duration::from_millis(5));
+        }
+        let at_drop = load();
+        drop(receiver);
+        std::thread::sleep(Duration::from_millis(300));
+        let after_drop = load();
+        std::thread::sleep(Duration::from_millis(300));
+
+        // Assert: it passed the cap, then ended within one probe interval of the drop and read nothing more.
+        assert!(
+            at_drop >= MAX_CAPTURED_BYTES + 3 * DISCARD_PROBE_BYTES,
+            "read only {at_drop} bytes"
+        );
+        assert!(
+            after_drop - at_drop <= DISCARD_PROBE_BYTES + 2 * 8192,
+            "read {} bytes after the drop",
+            after_drop - at_drop
+        );
+        assert_eq!(load(), after_drop);
     }
 
     #[test]
