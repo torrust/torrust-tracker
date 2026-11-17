@@ -1,7 +1,7 @@
 ---
 pr-number: 2901
 pr-url: https://github.com/torrust/torrust-tracker/pull/2901
-last-updated-utc: "2026-11-17 12:40"
+last-updated-utc: "2026-11-17 15:26"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -66,6 +66,7 @@ Round 1, on the head that carries the commit `docs(issues): [#2765] record the i
 | F21 | review-finding:pr-2901-f21 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F22 | review-finding:pr-2901-f22 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F23 | review-finding:pr-2901-f23 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F24 | review-finding:pr-2901-f24 | Human | Suggestion | testing | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -369,6 +370,19 @@ Round 1, on the head that carries the commit `docs(issues): [#2765] record the i
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4599679621
 
+### F24 - The byte-delta bound of the receiver-gone test races the reader
+
+- PR number: 2901
+- Source review ID: 5938701192
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4599775490
+- Concern: the test asserted that the reader read at most about 1 MiB between two lines, but the reader reads that in tens of microseconds, so a pause of the test thread could fail the test with the code correct.
+- Solution: first left as `NO_ACTION` on the maintainer's decision (a reply on the thread); then the Docker test job failed on this exact assertion (`read 34963456 bytes after the drop`), and the maintainer allowed a seventh round. The delta assertion is removed and the test keeps the check that the read count stops growing after the drop.
+- Current-tree verification: `cargo test -p torrust-tracker --lib console::ci::e2e::tracker_checker` passed 17 tests in three runs; with the probe removed the test still failed (mutation run, reverted).
+- Resolution reference: `test(e2e): [#2765] drop the racy byte-delta assertion of the receiver-gone test`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4601712393
+
 ## Processing Log
 
 - 2026-11-17 10:39 UTC - Reviews 5936922508 (da2ce7, submitted 10:38:51) and 5936930487 (Copilot, submitted 10:39:28) arrived on the first head.
@@ -386,6 +400,9 @@ Round 1, on the head that carries the commit `docs(issues): [#2765] record the i
 - 2026-11-17 12:03 UTC - Fixed in one commit and replied on the conversation. This is fix round 5 of 5.
 - 2026-11-17 12:14 UTC - Round 6: da2ce7 review 5938165981 (COMMENTED, submitted 12:13:59) with F22 (Minor) and F23 (Nit), after the five fix rounds; the maintainer allowed a sixth round.
 - 2026-11-17 12:40 UTC - Fixed F23 in code, replied on both threads and on r4599222310 and resolved them. Correction to the 11:57 entry: F21 was an inline thread (r4599222310), not a review-body finding; its row is now discussion-anchored. Two batch resolutions earlier (rounds 3 and 6) resolved threads before they were replied to; both were reopened or answered afterwards.
+- 2026-11-17 12:49 UTC - Round 7: da2ce7 review 5938701192 (APPROVED, submitted 12:49:30) with F24 (Suggestion); the maintainer first chose to leave it, and a reply with `NO_ACTION` was posted on the thread.
+- 2026-11-17 13:56 UTC - The `Test (Docker) (release)` job of the head failed on the test of F24 in the image test stage (the failure time is the log time of the run).
+- 2026-11-17 15:26 UTC - The maintainer asked for the fix; fixed in one commit, replied on the thread (which replaces the earlier `NO_ACTION` reply) and resolved it.
 
 ## Completion Rules
 
