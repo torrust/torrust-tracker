@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2873-2003-shorten-skill-descriptions/ISSUE.md
-last-updated-utc: 2026-11-16 19:32
+issue-spec: docs/issues/closed/2873-2003-shorten-skill-descriptions/ISSUE.md
+last-updated-utc: "2026-11-17 08:58"
 ---
 
 # Manual Verification Evidence
