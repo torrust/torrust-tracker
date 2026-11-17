@@ -1,7 +1,7 @@
 ---
 pr-number: 2921
 pr-url: https://github.com/torrust/torrust-tracker/pull/2921
-last-updated-utc: "2026-11-17 19:01"
+last-updated-utc: "2026-11-17 20:57"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -60,6 +60,7 @@ Round 1: da2ce7 review 5943744061 (APPROVED, later shown as dismissed) with find
 | F32 | review-finding:pr-2921-f32 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F33 | review-finding:pr-2921-f33 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F34 | review-finding:pr-2921-f34 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F35 | review-finding:pr-2921-f35 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -278,11 +279,24 @@ Round 1: da2ce7 review 5943744061 (APPROVED, later shown as dismissed) with find
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2921#discussion_r4604281563
 - Concern: The threads of review 5944250618 were resolved by a batch command before any reply, which the audit rules forbid.
-- Solution: Replies were posted on the four threads and the threads were resolved after them; the batch resolution is logged as an error.
+- Solution: Replies were posted on the four threads after the batch resolution (the threads stayed resolved); the batch resolution is logged as an error.
 - Current-tree verification: Read the replies of the four threads and the Processing Log.
 - Resolution reference: `docs(pr-reviews): [#2765] audit review round 3 of PR 2921`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2921#discussion_r4604332433
+
+### F35 - Two log statements run ahead of the events
+
+- PR number: 2921
+- Source review ID: 5944892818
+- Reviewer finding ID: F35
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2921#discussion_r4604457413
+- Concern: The 19:01 entry and the F34 Solution said the round-2 threads were resolved after the replies, and the description edit was stamped before it happened.
+- Solution: The F34 Solution and the log now say the four replies came after the batch resolution, and the description edit has its own entry at 19:05.
+- Current-tree verification: Read the Processing Log and the F34 Solution.
+- Resolution reference: `docs(pr-reviews): [#2765] audit review round 4 of PR 2921`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2921#discussion_r4605663153
 
 ## Processing Log
 
@@ -293,7 +307,9 @@ Round 1: da2ce7 review 5943744061 (APPROVED, later shown as dismissed) with find
 - 2026-11-17 18:25 UTC - Round 2 also had da2ce7 review 5944250618 (submitted 18:25:12, later shown as dismissed) with four Nit threads (F29 to F32), which I did not see in time; my batch resolution closed them without replies and without rows (a process error).
 - 2026-11-17 18:39 UTC - Fixed in one commit, replied on both threads and resolved them.
 - 2026-11-17 18:56 UTC - Round 3: da2ce7 review 5944674441 (COMMENTED, submitted 18:56:13) with F33 and F34 about those four threads.
-- 2026-11-17 19:01 UTC - Fixed F29 to F31 in one commit, updated the PR description (F32), replied on the six threads, resolved them after the replies, and recorded the rows here.
+- 2026-11-17 19:01 UTC - Fixed F29 to F31 in one commit and posted the replies on the six threads; the four round-2 threads had already been resolved by the 18:25 batch command, so their replies came after the resolution, and the two others were resolved after their replies. The rows were recorded in the same commit.
+- 2026-11-17 19:05 UTC - Updated the PR description (F32); the description was still the first one at 19:00:40 and the pull request update time is 19:05:14.
+- 2026-11-17 20:57 UTC - Round 4: da2ce7 review 5944892818 (APPROVED) with one Nit (F35) about those two statements; corrected both and recorded the row.
 
 ## Completion Rules
 
