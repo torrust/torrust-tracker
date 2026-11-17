@@ -2,12 +2,12 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p2
 epic: 1347
 github-issue: 2902
 spec-path: docs/issues/open/2902-1347-add-tests-tracker-core/ISSUE.md
-branch: "2902-1347-add-tests-tracker-core-spec"
+branch: "2902-1347-add-tests-tracker-core-statistics"
 related-pr: null
 last-updated-utc: "2026-11-17 18:04"
 semantic-links:
@@ -276,9 +276,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 | --- | ------ | ---- | ----------------------- |
 | T1 | DONE | Coverage evidence and complete module inventory | [coverage-evidence.md](coverage-evidence.md): baseline in four scopes, per-file uncovered groups, property candidacy, initial hypothesis for the 62 files. Delivered with this spec (S0). |
 | T1b | DONE | Measure the container-gated scope | The `--all-features` run with `TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST` and `TORRUST_TRACKER_CORE_RUN_POSTGRES_DRIVER_TEST` set (images pulled with the maintainer's permission, 2026-11-17): lines 93.80%. Recorded in `coverage-evidence.md`; informs the scope of S3. |
-| T2 | TODO | Shared plan guidance | `test-refactor-plans/README.md`: two-phase sequence, guardrails, toolchain-pinned commands. First test slice (S1). |
+| T2 | DONE | Shared plan guidance | [`test-refactor-plans/README.md`](test-refactor-plans/README.md): two-phase sequence, guardrails, toolchain-pinned commands. First test slice (S1). |
 | T2b | IN_PROGRESS | Design-review checkpoint | After the first listener test and the first `TempDir`-owned SQLite test pass in S1, the maintainer reviews the fixture shape (see [Asynchronous Work, Cleanup and Test Fixtures](#asynchronous-work-cleanup-and-test-fixtures)) before other files reuse it. The SQLite half is done: the fixture shape of the [temporary-database fix](test-refactor-plans/test-support-ephemeral-database-tests.md) was approved on 2026-11-17; the listener half comes with S1. |
-| T3 | TODO | Process every ledger row through the per-file workflow | Each row ends in exactly one of: test added, no-change with reason, deferred with owner. |
+| T3 | IN_PROGRESS | Process every ledger row through the per-file workflow | Each row ends in exactly one of: test added, no-change with reason, deferred with owner. |
 | T4 | TODO | Bounded mutation assessment | `mutation-evidence.md`: configuration, survivors, reason for each unviable mutant. Last slice. |
 | T5 | TODO | Reconcile evidence and progress state | Ledger, records, slice table, acceptance rows and both EPIC coverage tables agree; grep for `status: proposed` and stray `TODO` labels in finished records. |
 | T6 | TODO | Final verification, acceptance review, retrospective | Automatic checks, manual verification, acceptance review, `implementation-retrospective.md` (or a log entry saying none was needed). |
@@ -292,8 +292,8 @@ is the proposal for the maintainer's approval (questions Q5, Q6):
 
 | Slice | Content | Ledger rows | Branch | PR | Status |
 | --- | --- | --- | --- | --- | --- |
-| S0 | This specification, the T1 evidence, and the EPIC registration with the baseline | - | `2902-1347-add-tests-tracker-core-spec` | TBD | IN_PROGRESS |
-| S1 | T2, then `statistics/`: `repository.rs`, `metrics.rs`, `persisted/mod.rs`, `persisted/downloads.rs`, `event/listener.rs`, `event/handler.rs`, `mod.rs` (the only area reached just by the integration binary) | 1-7 | `2902-1347-add-tests-tracker-core-statistics` | TBD | TODO |
+| S0 | This specification, the T1 evidence, and the EPIC registration with the baseline | - | `2902-1347-add-tests-tracker-core-spec` | #2903 | DONE |
+| S1 | T2, then `statistics/`: `repository.rs`, `metrics.rs`, `persisted/mod.rs`, `persisted/downloads.rs`, `event/listener.rs`, `event/handler.rs`, `mod.rs` (the only area reached just by the integration binary) | 1-7 | `2902-1347-add-tests-tracker-core-statistics` | TBD | IN_PROGRESS |
 | S2 | The SQLite persistence boundary: `sqlite/{auth_key_store,torrent_metrics_store,whitelist_store,mod,schema_migrator}.rs`, `databases/{error,setup}.rs`, `error.rs`, plus the `databases/traits` and `driver/mod.rs` no-change decisions | 8-17 | `2902-1347-add-tests-tracker-core-sqlite` | TBD | TODO |
 | S3 | MySQL and PostgreSQL drivers: assess after T1b; Docker-free error-path tests if non-flaky, otherwise no-change rows with the `db-compatibility` workflow as owner | 18-27 | `2902-1347-add-tests-tracker-core-server-drivers` | TBD | TODO |
 | S4 | Authentication and whitelist: failing-`Database` propagation, `Key` property decision (F3, F4 checks) | 28-39 | `2902-1347-add-tests-tracker-core-auth-whitelist` | TBD | TODO |
@@ -347,7 +347,7 @@ rows are ordered by slice, then by risk.
 
 | Order | Source module | Slice | Unit-only lines | Initial hypothesis | State |
 | ---: | --- | --- | ---: | --- | --- |
-| 1 | `statistics/repository.rs` | S1 | 86 / 140 | Test candidate (four counter/gauge methods and error arms) | PENDING |
+| 1 | `statistics/repository.rs` | S1 | 86 / 140 | Test candidate (four counter/gauge methods and error arms) | IN_PROGRESS |
 | 2 | `statistics/metrics.rs` | S1 | 11 / 45 | Test candidate | PENDING |
 | 3 | `statistics/persisted/mod.rs` | S1 | 0 / 11 | Test candidate (`load_persisted_metrics`) | PENDING |
 | 4 | `statistics/event/listener.rs` | S1 | 357 / 406 | Test candidate (spawn wrappers) | PENDING |
@@ -394,9 +394,9 @@ The first slice's record checks the grouping against `find packages/tracker-core
 - [x] Read EPIC #1347, the subissue guidelines, the `create-issue` workflow and the closed specs of
       #1348, #1349, #2637 and #2824.
 - [x] Clean baseline coverage measured in four scopes and the complete module inventory recorded (T1).
-- [ ] Specification and slicing reviewed and approved by the maintainer.
-- [x] GitHub issue #2902 created. Linking it as a subissue of #1347 needs the maintainer (the bot account gets 404 from the sub-issues API).
-- [ ] Spec-only PR (S0) merged before implementation.
+- [x] Specification and slicing reviewed and approved by the maintainer (#2903 merged, 2026-11-17).
+- [x] GitHub issue #2902 created and linked as a subissue of #1347 by the maintainer.
+- [x] Spec-only PR (S0) merged before implementation (#2903).
 - [x] Container-gated scope measured (T1b) with the maintainer's permission.
 - [ ] Every ledger row `DONE` with a decision record, merged through its slice.
 - [ ] Maintainer review after the final test-producing increment.
@@ -412,6 +412,7 @@ The first slice's record checks the grouping against `find packages/tracker-core
 - 2026-11-17 10:57 UTC - Claude Code (Sonnet 5.5) - Created issue #2902; measured the baseline at `5833cdae9` in four scopes; drafted this specification and the coverage evidence; registered the subissue in EPIC #1347 (row 14). Open questions Q1-Q6 are for the maintainer.
 - 2026-11-17 12:16 UTC - Claude Code (Sonnet 5.5) - The maintainer allowed the Docker image pull (Q1); T1b measured the container-gated scope: lines 93.80% (server drivers 58-96% per file). No review of #2903 arrived within 60 minutes.
 - 2026-11-17 12:45 UTC - Claude Code (Opus 5.5) - Correction of the 12:16 UTC entry above: its last sentence is wrong as written. The poller I started right after the PR opened (11:05:26 UTC) timed out after its 60-minute wait with no review, but Cameron (`da2ce7`) had submitted a review of `690cfb5f5` with findings F1-F6 at 12:08:23 UTC, before that entry was written, and the six threads had no reply. A second review of `2b0c3fe36` (F7-F10) followed at 12:28:40 UTC. The ten findings are processed in `docs/pr-reviews/pr-2903-review/PR-REVIEW.md` (review finding F7 of #2903).
+- 2026-11-17 16:16 UTC - Claude Code (Opus 5.5) - S0 merged (#2903); the maintainer linked #2902 to #1347 and said to start S1. S1 baseline: no file under `packages/` changed since the measured commit and the unit-only run gives the same 80.31% (4,099 / 5,104 lines). T2 done ([guidance](test-refactor-plans/README.md)). First plan proposed: [`statistics/repository.rs`](test-refactor-plans/statistics-repository-tests.md), which proposes finding F6 (unused public gauge methods) and asks decision D1. Questions Q2-Q7 still wait for the maintainer; Q7 decides the first S1 commit.
 - 2026-11-17 18:04 UTC - Claude Code (Opus 5.5) - F5 fixed for this package in its own PR, split from S1 at the maintainer's request because #2907 (EPIC #2392) plans the same fix for the shared helper: a full `cargo test -p torrust-tracker-core --all-features` leaves 0 `data_*.db` files (72 before). The maintainer approved the shape (a struct with a private `TempDir`, owned by the test), the scope (all six sources in the package) and the completed change. S1 continues on its own branch.
 
 ## Open Design Questions
