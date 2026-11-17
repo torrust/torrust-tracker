@@ -53,7 +53,8 @@ async fn number_of_swarm_bus_listeners_once_they_finish(container: &SwarmCoordin
 
 #[tokio::test]
 async fn it_should_handle_the_announce_request() {
-    let test_env = TestEnv::started(ephemeral_configuration()).await;
+    let ephemeral = ephemeral_configuration();
+    let test_env = TestEnv::started(ephemeral.config.clone()).await;
 
     let announce_data = test_env
         .announce_peer_started(sample_peer(), &remote_client_ip(), &sample_info_hash())
@@ -79,7 +80,8 @@ async fn it_should_handle_the_announce_request() {
 
 #[tokio::test]
 async fn it_should_not_return_the_peer_making_the_announce_request() {
-    let test_env = TestEnv::started(ephemeral_configuration()).await;
+    let ephemeral = ephemeral_configuration();
+    let test_env = TestEnv::started(ephemeral.config.clone()).await;
 
     let announce_data = test_env
         .announce_peer_started(sample_peer(), &remote_client_ip(), &sample_info_hash())
@@ -90,7 +92,8 @@ async fn it_should_not_return_the_peer_making_the_announce_request() {
 
 #[tokio::test]
 async fn it_should_handle_the_scrape_request() {
-    let test_env = TestEnv::started(ephemeral_configuration()).await;
+    let ephemeral = ephemeral_configuration();
+    let test_env = TestEnv::started(ephemeral.config.clone()).await;
 
     let info_hash = sample_info_hash();
 
@@ -107,7 +110,8 @@ async fn it_should_handle_the_scrape_request() {
 #[tokio::test]
 async fn it_should_scrape_the_persisted_downloads_of_a_torrent_absent_from_memory() {
     // Arrange
-    let mut core_config = ephemeral_configuration();
+    let ephemeral = ephemeral_configuration();
+    let mut core_config = ephemeral.config.clone();
     core_config.tracker_policy.persistent_torrent_completed_stat = true;
     let test_env = TestEnv::started(core_config).await;
     let info_hash = sample_info_hash();
@@ -131,7 +135,8 @@ async fn it_should_scrape_the_persisted_downloads_of_a_torrent_absent_from_memor
 #[tokio::test]
 async fn it_should_not_load_a_scraped_torrent_into_memory() {
     // Arrange
-    let mut core_config = ephemeral_configuration();
+    let ephemeral = ephemeral_configuration();
+    let mut core_config = ephemeral.config.clone();
     core_config.tracker_policy.persistent_torrent_completed_stat = true;
     let test_env = TestEnv::started(core_config).await;
     let info_hash = sample_info_hash();
@@ -150,7 +155,8 @@ async fn it_should_not_load_a_scraped_torrent_into_memory() {
 #[tokio::test]
 async fn it_should_not_scrape_persisted_downloads_when_the_persistent_completed_stat_is_disabled() {
     // Arrange
-    let mut core_config = ephemeral_configuration();
+    let ephemeral = ephemeral_configuration();
+    let mut core_config = ephemeral.config.clone();
     core_config.tracker_policy.persistent_torrent_completed_stat = false;
     let test_env = TestEnv::started(core_config).await;
     let info_hash = sample_info_hash();
@@ -169,7 +175,8 @@ async fn it_should_not_scrape_persisted_downloads_when_the_persistent_completed_
 
 #[tokio::test]
 async fn it_should_persist_the_number_of_completed_peers_for_each_torrent_into_the_database() {
-    let mut core_config = ephemeral_configuration();
+    let ephemeral = ephemeral_configuration();
+    let mut core_config = ephemeral.config.clone();
     core_config.tracker_policy.persistent_torrent_completed_stat = true;
 
     let test_env = TestEnv::started(core_config).await;
@@ -227,7 +234,8 @@ async fn it_should_persist_the_number_of_completed_peers_for_each_torrent_into_t
 
 #[tokio::test]
 async fn it_should_persist_the_global_number_of_completed_peers_into_the_database() {
-    let mut core_config = ephemeral_configuration();
+    let ephemeral = ephemeral_configuration();
+    let mut core_config = ephemeral.config.clone();
 
     core_config.tracker_policy.persistent_torrent_completed_stat = true;
 
@@ -275,7 +283,8 @@ async fn it_should_persist_the_global_number_of_completed_peers_into_the_databas
 #[tokio::test]
 async fn it_should_reset_in_session_completed_downloads_after_a_persistence_free_restart() {
     // Arrange
-    let mut core_config = ephemeral_configuration();
+    let ephemeral = ephemeral_configuration();
+    let mut core_config = ephemeral.config.clone();
     core_config.database = None;
     let test_env = TestEnv::started(core_config.clone()).await;
 
@@ -318,7 +327,8 @@ async fn it_should_release_every_listener_receiver_when_the_environment_is_stopp
     // Arrange
     // Persistence for completed downloads is on, so the environment runs three swarm-bus
     // listeners.
-    let mut core_config = ephemeral_configuration();
+    let ephemeral = ephemeral_configuration();
+    let mut core_config = ephemeral.config.clone();
     core_config.tracker_policy.persistent_torrent_completed_stat = true;
     let mut test_env = TestEnv::started(core_config).await;
     let listeners_before_stop = number_of_swarm_bus_listeners(&test_env.swarm_coordination_registry_container).await;
@@ -349,7 +359,8 @@ async fn it_should_cancel_every_listener_when_the_environment_is_dropped_without
     // Arrange
     // The environment runs three swarm-bus listeners. The test keeps a handle to the swarm
     // container, so it can still observe the bus after the environment is gone.
-    let mut core_config = ephemeral_configuration();
+    let ephemeral = ephemeral_configuration();
+    let mut core_config = ephemeral.config.clone();
     core_config.tracker_policy.persistent_torrent_completed_stat = true;
     let test_env = TestEnv::started(core_config).await;
     let swarm_container = test_env.swarm_coordination_registry_container.clone();
@@ -387,7 +398,8 @@ async fn it_should_persist_every_completed_download_queued_before_the_persistent
     // different peers then announce `started` and `completed` for one torrent, so three
     // completed downloads are queued, and the listener's token is cancelled before it runs.
     let number_of_completions: u32 = 3;
-    let mut core_config = ephemeral_configuration();
+    let ephemeral = ephemeral_configuration();
+    let mut core_config = ephemeral.config.clone();
     core_config.tracker_policy.persistent_torrent_completed_stat = true;
     let test_env = TestEnv::new(core_config).await;
     let persistent_listener_receiver = test_env.swarm_coordination_registry_container.event_bus.receiver();

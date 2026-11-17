@@ -1,29 +1,47 @@
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::str::FromStr;
 
+use tempfile::TempDir;
 use torrust_clock::DurationSinceUnixEpoch;
 use torrust_info_hash::InfoHash;
 use torrust_tracker_configuration::v3_0_0::core::Core;
 use torrust_tracker_configuration::v3_0_0::database::Database;
 use torrust_tracker_primitives::peer::Peer;
 use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId};
-use torrust_tracker_test_helpers::configuration::ephemeral_sqlite_database;
+
+/// A core configuration whose SQLite database lives in a temporary directory owned by this value.
+///
+/// Dropping the value removes the directory and the database in it, also when the test fails by panicking, so a
+/// test run leaves no database file behind. Keep the value alive for as long as the configuration is used: once it
+/// is dropped, the database path points into a removed directory and opening it fails.
+pub struct EphemeralConfiguration {
+    pub config: Core,
+    _database_directory: TempDir,
+}
 
 /// # Panics
 ///
-/// Will panic if the temporary file path is not a valid UTF-8 string.
+/// Will panic if the temporary directory cannot be created or its path is not valid UTF-8.
 #[must_use]
-pub fn ephemeral_configuration() -> Core {
-    let mut config = Core::default();
+pub fn ephemeral_configuration() -> EphemeralConfiguration {
+    let database_directory = tempfile::tempdir().expect("a temporary directory can be created");
 
-    let temp_file = ephemeral_sqlite_database();
+    let mut config = Core::default();
     let database = config.database.get_or_insert_with(Database::default);
     let Database::Sqlite3 { path } = database else {
         unreachable!("default core configuration uses SQLite persistence");
     };
-    temp_file.to_str().unwrap().clone_into(path);
+    database_directory
+        .path()
+        .join("data.db")
+        .to_str()
+        .expect("the temporary database path is valid UTF-8")
+        .clone_into(path);
 
-    config
+    EphemeralConfiguration {
+        config,
+        _database_directory: database_directory,
+    }
 }
 
 /// # Panics
