@@ -51,6 +51,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F6 | review-finding:pr-2919-f6 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F7 | review-finding:pr-2919-f7 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F8 | review-finding:pr-2919-f8 | Copilot | Minor | correctness | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F9 | review-finding:pr-2919-f9 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-2919-f10 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -127,7 +129,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2919#discussion_r4603665151
 - Concern: The F2 verification said `grep -n 'EPIC #2912'` finds the sentence, the paragraph and the heading, but it prints only the heading and the sentence; the paragraph says `issue #2912`.
 - Solution: The F2 verification now uses `grep -n '#2912'` and names what each of the three matches says.
-- Current-tree verification: `grep -n '#2912' docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md` prints lines 215, 220 and 228 (heading, sentence, paragraph), plus other lines that cite the EPIC.
+- Current-tree verification: `grep -n '#2912' docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md` prints lines 215, 220 and 228 (heading, sentence, paragraph).
 - Resolution reference: `docs(pr-reviews): [#2912] correct the F2 verification and drop a branch commit id from the review audit of PR 2919`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2919#discussion_r4603731183
@@ -158,6 +160,32 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2919#issuecomment-6956820638
 
+### F9 - Decision 1 counts 38 direct captures where the tree has 37
+
+- PR number: 2919
+- Source review ID: 5944340783
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2919#discussion_r4604013534
+- Concern: Decision 1 and the "wrong by construction" line of the EPIC say 38 production `Location::caller()` sites, but #2850 removed one from `http-protocol/src/v1/requests/announce.rs` after the inventory was taken, so the merge base and this head have 37.
+- Solution: The EPIC (both lines), the SI-1 spec and the #384 spec now say "the 38 production `Location::caller()` sites of the audit (37 since #2850)"; the same sentence in the EPIC issue body on GitHub was edited the same way. `inventory.md` and `options.md` keep 38, because they are dated to their commit.
+- Current-tree verification: `grep -rn '37 since #2850' docs/issues/open` prints four lines (EPIC lines 41 and 72, SI-1 line 40, #384 line 55); `grep -rn 'the 38 production' docs/issues/open/29*-2912-* docs/issues/open/2912-* docs/issues/open/384-*` finds no line without that qualifier.
+- Resolution reference: `docs(issues): [#2912] count 37 production Location::caller() sites since #2850 in the EPIC, SI-1 and #384 specs`
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
+### F10 - The F6 verification claims extra grep matches
+
+- PR number: 2919
+- Source review ID: 5944340783
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2919#discussion_r4604013542
+- Concern: The F6 verification ended "plus other lines that cite the EPIC", but `grep -n '#2912'` on the #2804 audit spec prints only lines 215, 220 and 228.
+- Solution: Dropped the clause.
+- Current-tree verification: `grep -n '#2912' docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md` prints lines 215, 220 and 228 only.
+- Resolution reference: `docs(pr-reviews): [#2912] record round 5 of the review audit of PR 2919`
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
 ## Processing Log
 
 - 2026-11-17 17:35 UTC - Replied to F1 to F3 (replies created from 17:35:15Z to 17:35:20Z) and resolved their threads after pushing the round 1 fixes, before this record existed: a late start of the audit. The replies cite the branch commit id `280121c6a`, which is the commit `docs(issues): [#2912] address review of PR 2919: approval checkpoints, audit status and option wording`. The three independent fixes share that one commit instead of one commit each (step 6). The F1 reply says the #384 spec now ticks both checkpoints; only the approval checkpoint changed there, because its issue checkpoint was already ticked.
@@ -167,6 +195,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-17 18:06 UTC - Pushed the commit `docs(pr-reviews): [#2912] correct the F2 verification and drop a branch commit id from the review audit of PR 2919`, then replied to F6 and F7 (replies created at 18:06:21Z and 18:06:23Z) and filled in their reply URLs. `validate-audit-record.py --pr-number 2919 --base torrust/develop` (scratchpad copy, `gh` calls through `gh-bot`) on this worktree record reported 7 rows, 0 failures.
 - 2026-11-17 18:11 UTC - Round 4: normalized Copilot review 5943970292, whose body reports one previously missed issue (Copilot's own ID F6) as audit finding F8, and committed its fix. It has no inline thread, so its row is `NON_RESOLVABLE` and its reply goes to the PR conversation.
 - 2026-11-17 18:14 UTC - Pushed the F8 fix and its row, then replied to F8 in the PR conversation (comment created at 18:14:51Z) and filled in its reply URL. `validate-audit-record.py --pr-number 2919 --base torrust/develop` (scratchpad copy, `gh` calls through `gh-bot`) on this worktree record reported 8 rows, 0 failures.
+- 2026-11-17 18:34 UTC - Round 5: normalized da2ce7 review 5944340783 (APPROVED) with findings F9 and F10, committed the F9 fix, edited the EPIC issue body on GitHub for F9, and fixed F10 in this record.
 
 ## Completion Rules
 
