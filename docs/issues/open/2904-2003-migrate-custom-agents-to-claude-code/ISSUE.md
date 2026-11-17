@@ -477,18 +477,23 @@ on are merged.
 | T1  | TODO   | Specification pull request | This specification in `docs/issues/open/`, and a new row in the EPIC's Subissues table |
 | T2  | TODO   | Pointer `CLAUDE.md` | A root `CLAUDE.md` whose only content is the import of `AGENTS.md` (D11); scenario M4 recorded |
 | T3  | TODO   | Reply schema and validator | `docs/schemas/agent-reply-v1.schema.json`; the validator with tests, run by the repository checks; `docs/schemas/README.md` updated (D18) |
-| T4  | TODO   | `pr-review-handler` | `.claude/agents/pr-review-handler.md` with the pinned model; `wait-for-pr-review` and `process-pr-review` say which agent runs a round; scenarios M1 to M3 recorded |
+| T4  | TODO   | `pr-review-handler` | `.claude/agents/pr-review-handler.md` with the pinned model; `wait-for-pr-review` and `process-pr-review` say which agent runs a round; the inventory `removed-profile-rules.md` created in this folder with the rules of `copilot-suggestions-handler` (AC6); scenarios M1 to M3 recorded |
 | T5  | TODO   | `task-reviewer` | The agent file with the pinned model and the stop hook (D17); the complexity item in `review-task` (D12); the reply rule in `review-task`; scenario M7 recorded |
-| T6  | TODO   | `implementer` | The agent file; the three committer rules in `commit-changes` (D14) |
+| T6  | TODO   | `implementer` | The agent file; the three committer rules in `commit-changes` (D14); the rules that only `planner` held moved into `create-issue` |
 | T7  | TODO   | `pr-reviewer` | The agent file with the pinned model; the reply rule in `review-pr` |
 | T8  | TODO   | `researcher` | The agent file |
 | T9  | TODO   | `orchestrator` | The agent file; `docs/agents/orchestration.md` rewritten for the orchestrator-led flow, with the 3-round limit; the issue template checkpoints; scenario M5 recorded |
-| T10 | TODO   | End of `.github/agents/` | `.github/agents/` and the `agent-review-report-contract` check removed; the one-commit-per-lint rule in `fix-clippy-warnings`; `AGENTS.md`, `docs/agents/README.md`, `docs/templates/AGENT-REVIEW-REPORTS.md`, the `frontmatter-validator` rule and the governance ADR updated; the new ADR, and the ADR-move item added to the scope of the harness-workspace draft (D10) |
+| T10 | TODO   | End of `.github/agents/` | `.github/agents/` and the `agent-review-report-contract` check removed; the one-commit-per-lint rule in `fix-clippy-warnings`; the inventory `removed-profile-rules.md` completed for all ten profiles (AC6); `AGENTS.md`, `docs/agents/README.md`, `docs/templates/AGENT-REVIEW-REPORTS.md`, the `frontmatter-validator` rule and the governance ADR updated; the new ADR, and the ADR-move item added to the scope of the harness-workspace draft (D10) |
 | T11 | TODO   | Measurement | Review rounds recorded for the first three pull requests handled by `pr-review-handler` (scenario M6); the pull requests of this issue count |
 | T12 | TODO   | Close-out pull request | Completion review, specification moved to `docs/issues/closed/`, EPIC row `DONE` |
 
 T4 to T8 are additive: each adds one agent and removes nothing that a live document still names.
 The Copilot profiles stay until T10, so `develop` is consistent after every merge.
+
+The inventory of AC6 is the file `removed-profile-rules.md` in this folder. It lists every rule
+that only a Copilot profile holds, with its destination (a named skill or agent) or the reason it
+is dropped. T4 creates it, each of T5 to T9 adds the rows of the profiles its agent replaces, and
+T10 completes it before removing the profiles.
 
 ## Commit Points
 
@@ -497,9 +502,9 @@ The Copilot profiles stay until T10, so `develop` is consistent after every merg
 | T1   | The specification; the EPIC row | One commit each, after `linter all` |
 | T2   | The pointer file; the evidence | One commit each |
 | T3   | The schema; the validator with its tests; its wiring into the checks; the documentation | One commit per item, after focused validation |
-| T4 to T8 | The agent file; each skill change; the evidence | One commit per item, after focused validation |
-| T9   | The agent file; the orchestration guide; the template checkpoints; the evidence | One commit per item, after focused validation |
-| T10  | The removal of `.github/agents/` with the old check and the validator rule; each moved rule; each documentation update; the ADR | One commit per item, after focused validation |
+| T4 to T8 | The agent file; each skill change (in T6 the `create-issue` change is its own commit); the inventory rows; the evidence | One commit per item, after focused validation |
+| T9   | The agent file; the orchestration guide; the template checkpoints; the inventory rows; the evidence | One commit per item, after focused validation |
+| T10  | The completed inventory; the removal of `.github/agents/` with the old check and the validator rule; each moved rule; each documentation update; the ADR | One commit per item, after focused validation |
 | T11  | The measurement evidence | One commit per recorded pull request |
 | T12  | The completion review; the move to `closed/`; the EPIC row | One commit each |
 
@@ -545,7 +550,8 @@ Conventional Commit messages.
       template refers to a removed profile. Closed specifications and merged audit records are
       history and stay unchanged.
 - [ ] AC6: Every rule that only a removed profile held is either in a named skill or listed as
-      dropped with its reason, in an inventory in this specification's folder.
+      dropped with its reason, in the inventory `removed-profile-rules.md` in this specification's
+      folder.
 - [ ] AC7: `docs/agents/orchestration.md` describes the orchestrator-led flow and matches the
       agent files.
 - [ ] AC8: The ADR for D1 and D2 exists at the agreed location, and the governance ADR's inventory
