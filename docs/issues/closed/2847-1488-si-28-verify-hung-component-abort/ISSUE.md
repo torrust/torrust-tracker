@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: done
 priority: p3
 epic: 1488
 github-issue: 2847
-spec-path: docs/issues/open/2847-1488-si-28-verify-hung-component-abort/ISSUE.md
+spec-path: docs/issues/closed/2847-1488-si-28-verify-hung-component-abort/ISSUE.md
 branch: "2847-verify-hung-component-abort"
-related-pr: null
-last-updated-utc: "2026-11-17 18:16"
+related-pr: 2911
+last-updated-utc: "2026-11-17 21:02"
 semantic-links:
   skill-links:
     - create-issue
@@ -33,7 +33,7 @@ semantic-links:
 
 # Issue #2847 - Verify the Hung-Component Abort at the Deadline on the Real Binary (SI-28)
 
-> **EPIC position**: Roadmap row 25, sub-issue SI-28 of [EPIC #1488](../1488-overhaul-tracker-shutdown/ISSUE.md).
+> **EPIC position**: Roadmap row 25, sub-issue SI-28 of [EPIC #1488](../../open/1488-overhaul-tracker-shutdown/ISSUE.md).
 > A follow-up of [SI-21](../../closed/2697-1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md)
 > (and SI-20). Implementation order 4 of 4, after SI-26. Priority p3. No production behavior changes:
 > the only production edit is a behavior-preserving refactor of `main.rs` (decision D2).
@@ -251,7 +251,7 @@ Sign every commit with GPG.
 - [x] Manual verification executed and recorded in `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed and updated with evidence
 - [x] Evidence-based implementation completion review recorded
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -263,6 +263,7 @@ Sign every commit with GPG.
 - 2026-11-17 17:27 UTC - AI agent (Claude Opus 5.5) - Addressed review round 1 of PR #2911 (da2ce7, findings F1 to F6, none blocking): the release skill's version bumps name every manifest that requires the root crate; the evidence records the stale build in the shared target directory and how each binary copy of V1 to V4 was confirmed (`nm` finds `run_until_shutdown_signal` in the branch binaries only); the discarded M4 run's cause is recorded as unknown, and the 16:47 entry above is corrected in place; `src/AGENTS.md`, `packages/AGENTS.md` and the shutdown task inventory place the shutdown sequence in `app.rs` and list the crate; `run_until_shutdown_signal` documents its panics; the test binary's CLI comment states the missing empty-path check.
 - 2026-11-17 18:02 UTC - AI agent (Claude Opus 5.5) - Addressed Copilot's round 2 of PR #2911 (findings R1 and R2, test helper only): the readiness poll checks the captured output under its lock instead of copying it, and a panic in an output reader thread now fails the test on the normal paths.
 - 2026-11-17 18:16 UTC - AI agent (Claude Opus 5.5) - Addressed round 3 of PR #2911 (da2ce7 findings F7 and F8, test helper only): an output read error now panics the reader thread so the test reports incomplete output, and `signal_and_wait_for_exit` documents that panic.
+- 2026-11-17 21:02 UTC - AI agent (Claude Opus 5.5) - PR #2911 merged into `develop` (merge commit `d1c231ae2`) and issue #2847 closed. Both tests of `hung_component_abort.rs` ran and passed in the PR's Unit (stable) and Unit (nightly) jobs, so the CI acceptance criterion is ticked. Spec archived to `docs/issues/closed/`, and EPIC #1488 row 25 marked Done.
 
 ## Acceptance Criteria
 
@@ -271,7 +272,7 @@ Sign every commit with GPG.
 - [x] An automated test spawns a real process, sends `SIGTERM` and `SIGINT` in separate cases, and
       asserts: exit code 1, exit within `P` plus a small margin, `hung_component` and
       `health_check_api` reported as aborted, and both named in `incomplete_components`.
-- [ ] The test runs in CI (`cargo test --workspace --all-targets`).
+- [x] The test runs in CI (`cargo test --workspace --all-targets`).
 - [x] The shipped `torrust-tracker` crate and binary contain no test code, feature or hook for this.
 - [x] `manual-verification-evidence.md` records one run per signal and states the case-4 limit.
 - [x] `linter all` passes.
@@ -308,7 +309,7 @@ inlined in the evidence file.
 | -- | ------ | -------- |
 | Shared shutdown function, no behavior change | DONE | T1, M4, existing tests |
 | Automated test for both signals | DONE | T3 |
-| Test runs in CI | TODO | PR checks |
+| Test runs in CI | DONE | PR #2911 checks: Unit (stable) and Unit (nightly) ran both tests |
 | No test code in the shipped crate | DONE | Diff review |
 | Manual evidence with the case-4 limit | DONE | M1, M2, M3 |
 | `linter all` passes | DONE | Automatic checks |
