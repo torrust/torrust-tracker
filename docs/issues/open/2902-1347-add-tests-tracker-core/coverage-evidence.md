@@ -26,6 +26,17 @@ cargo llvm-cov clean --workspace
 cargo llvm-cov -p torrust-tracker-core --lib --json --output-path .tmp/cov/unit-default.json
 ```
 
+The container-gated row (T1b) was measured afterwards on the S0 branch at `690cfb5f5`, whose
+`packages/` tree is identical to `5833cdae9` (`git diff --stat 5833cdae9 690cfb5f5 -- packages` prints
+nothing), after `docker pull mysql:8.0` and `docker pull postgres:16` (the tests' default tags,
+`mysql/mod.rs:115` and `postgres/mod.rs:102`), with the same separate target directory:
+
+```console
+cargo llvm-cov clean --workspace
+TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST=true TORRUST_TRACKER_CORE_RUN_POSTGRES_DRIVER_TEST=true \
+  cargo llvm-cov -p torrust-tracker-core --all-features --json --output-path .tmp/cov/container.json
+```
+
 | Scope | Tests | Lines | Regions | Functions |
 | --- | ---: | ---: | ---: | ---: |
 | Unit-only (`--all-features --lib`) | 157 unit | 4,099 / 5,104 (80.31%) | 5,716 / 7,127 (80.20%) | 687 / 954 (72.01%) |
@@ -42,8 +53,8 @@ Reading the scopes:
 - The MySQL and PostgreSQL driver tests (`run_mysql_driver_tests`, `run_postgres_driver_tests`) are
   compiled by `--all-features` but **skip themselves and pass** unless
   `TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST` / `TORRUST_TRACKER_CORE_RUN_POSTGRES_DRIVER_TEST` is
-  set, and they then need Docker and the `mysql` / `postgres` images. So the figures above do **not**
-  include them: the two drivers (728 measured lines in ten files, 0-4% covered) are measured here as
+  set, and they then need Docker and the `mysql` / `postgres` images. So the four default rows above do
+  **not** include them: the two drivers (728 measured lines in ten files, 0-4% covered) are measured here as
   uncovered. The fifth row above measures them with the suites running (T1b, 2026-11-17, images
   `mysql:8.0` and `postgres:16`, the tests' defaults): the drivers' `mod.rs` files reach 95.8%, the
   schema migrators 83-88%, and each store 58-64%: the same failure branches (malformed row,
@@ -61,61 +72,62 @@ Reading the scopes:
 ## Per-File Inventory
 
 Lines only; the integration-only and aggregate columns show where the integration binary adds
-anything (a `-` means the file is not reached or has no executable entries).
+anything, and the last column is the container-gated run (T1b) with both driver suites running (a `-`
+means the file is not reached).
 
-| File | Unit-only lines | Integration-only lines | Aggregate lines |
-| --- | ---: | ---: | ---: |
-| `announce_handler.rs` | 400 / 401 (99.75%) | 80 / 92 (86.96%) | 400 / 401 (99.75%) |
-| `authentication/handler.rs` | 371 / 371 (100.00%) | 6 / 90 (6.67%) | 371 / 371 (100.00%) |
-| `authentication/key/mod.rs` | 77 / 77 (100.00%) | 0 / 31 (0.00%) | 77 / 77 (100.00%) |
-| `authentication/key/peer_key.rs` | 100 / 101 (99.01%) | 0 / 45 (0.00%) | 100 / 101 (99.01%) |
-| `authentication/key/repository/in_memory.rs` | 92 / 92 (100.00%) | 0 / 21 (0.00%) | 92 / 92 (100.00%) |
-| `authentication/key/repository/persisted.rs` | 73 / 74 (98.65%) | 5 / 20 (25.00%) | 73 / 74 (98.65%) |
-| `authentication/mod.rs` | 123 / 123 (100.00%) | - | 123 / 123 (100.00%) |
-| `authentication/service.rs` | 144 / 144 (100.00%) | 6 / 30 (20.00%) | 144 / 144 (100.00%) |
-| `container.rs` | 143 / 144 (99.31%) | 72 / 73 (98.63%) | 143 / 144 (99.31%) |
-| `databases/driver/mod.rs` | 185 / 188 (98.40%) | - | 185 / 188 (98.40%) |
-| `databases/driver/mysql/auth_key_store.rs` | 0 / 50 (0.00%) | 0 / 50 (0.00%) | 0 / 50 (0.00%) |
-| `databases/driver/mysql/mod.rs` | 7 / 212 (3.30%) | 0 / 38 (0.00%) | 7 / 212 (3.30%) |
-| `databases/driver/mysql/schema_migrator.rs` | 0 / 75 (0.00%) | 0 / 75 (0.00%) | 0 / 75 (0.00%) |
-| `databases/driver/mysql/torrent_metrics_store.rs` | 0 / 45 (0.00%) | 0 / 45 (0.00%) | 0 / 45 (0.00%) |
-| `databases/driver/mysql/whitelist_store.rs` | 0 / 28 (0.00%) | 0 / 28 (0.00%) | 0 / 28 (0.00%) |
-| `databases/driver/postgres/auth_key_store.rs` | 0 / 50 (0.00%) | 0 / 50 (0.00%) | 0 / 50 (0.00%) |
-| `databases/driver/postgres/mod.rs` | 7 / 189 (3.70%) | 0 / 39 (0.00%) | 7 / 189 (3.70%) |
-| `databases/driver/postgres/schema_migrator.rs` | 0 / 6 (0.00%) | 0 / 6 (0.00%) | 0 / 6 (0.00%) |
-| `databases/driver/postgres/torrent_metrics_store.rs` | 0 / 45 (0.00%) | 0 / 45 (0.00%) | 0 / 45 (0.00%) |
-| `databases/driver/postgres/whitelist_store.rs` | 0 / 28 (0.00%) | 0 / 28 (0.00%) | 0 / 28 (0.00%) |
-| `databases/driver/sqlite/auth_key_store.rs` | 29 / 50 (58.00%) | 0 / 50 (0.00%) | 29 / 50 (58.00%) |
-| `databases/driver/sqlite/mod.rs` | 85 / 92 (92.39%) | 32 / 37 (86.49%) | 85 / 92 (92.39%) |
-| `databases/driver/sqlite/schema_migrator.rs` | 145 / 155 (93.55%) | 22 / 73 (30.14%) | 145 / 155 (93.55%) |
-| `databases/driver/sqlite/torrent_metrics_store.rs` | 29 / 45 (64.44%) | 29 / 45 (64.44%) | 29 / 45 (64.44%) |
-| `databases/driver/sqlite/whitelist_store.rs` | 17 / 28 (60.71%) | 0 / 28 (0.00%) | 17 / 28 (60.71%) |
-| `databases/error.rs` | 28 / 35 (80.00%) | 0 / 23 (0.00%) | 28 / 35 (80.00%) |
-| `databases/setup.rs` | 34 / 44 (77.27%) | 18 / 29 (62.07%) | 34 / 44 (77.27%) |
-| `databases/traits/whitelist.rs` | 2 / 2 (100.00%) | 0 / 2 (0.00%) | 2 / 2 (100.00%) |
-| `error.rs` | 38 / 50 (76.00%) | 0 / 12 (0.00%) | 38 / 50 (76.00%) |
-| `lib.rs` | 58 / 58 (100.00%) | - | 58 / 58 (100.00%) |
-| `peer_tests.rs` | 30 / 30 (100.00%) | - | 30 / 30 (100.00%) |
-| `scrape_handler.rs` | 190 / 190 (100.00%) | 43 / 44 (97.73%) | 190 / 190 (100.00%) |
-| `statistics/event/handler.rs` | 179 / 203 (88.18%) | 92 / 99 (92.93%) | 198 / 203 (97.54%) |
-| `statistics/event/listener.rs` | 357 / 406 (87.93%) | 156 / 168 (92.86%) | 419 / 421 (99.52%) |
-| `statistics/metrics.rs` | 11 / 45 (24.44%) | 20 / 45 (44.44%) | 20 / 45 (44.44%) |
-| `statistics/mod.rs` | 40 / 40 (100.00%) | 40 / 40 (100.00%) | 40 / 40 (100.00%) |
-| `statistics/persisted/downloads.rs` | 77 / 77 (100.00%) | 39 / 39 (100.00%) | 77 / 77 (100.00%) |
-| `statistics/persisted/mod.rs` | 0 / 11 (0.00%) | 26 / 32 (81.25%) | 26 / 32 (81.25%) |
-| `statistics/repository.rs` | 86 / 140 (61.43%) | 60 / 115 (52.17%) | 101 / 149 (67.79%) |
-| `test_helpers.rs` | 109 / 123 (88.62%) | - | 109 / 123 (88.62%) |
-| `torrent/manager.rs` | 153 / 153 (100.00%) | 15 / 48 (31.25%) | 153 / 153 (100.00%) |
-| `torrent/persisted_downloads.rs` | 22 / 22 (100.00%) | 22 / 22 (100.00%) | 22 / 22 (100.00%) |
-| `torrent/repository/in_memory.rs` | 56 / 60 (93.33%) | 30 / 60 (50.00%) | 56 / 60 (93.33%) |
-| `torrent/services.rs` | 267 / 267 (100.00%) | 0 / 1 (0.00%) | 267 / 267 (100.00%) |
-| `whitelist/authorization.rs` | 74 / 74 (100.00%) | 12 / 16 (75.00%) | 74 / 74 (100.00%) |
-| `whitelist/manager.rs` | 99 / 99 (100.00%) | 6 / 26 (23.08%) | 99 / 99 (100.00%) |
-| `whitelist/mod.rs` | 18 / 18 (100.00%) | - | 18 / 18 (100.00%) |
-| `whitelist/repository/in_memory.rs` | 51 / 51 (100.00%) | 0 / 17 (0.00%) | 51 / 51 (100.00%) |
-| `whitelist/repository/persisted.rs` | 74 / 74 (100.00%) | 3 / 25 (12.00%) | 74 / 74 (100.00%) |
-| `whitelist/setup.rs` | 7 / 7 (100.00%) | 7 / 7 (100.00%) | 7 / 7 (100.00%) |
-| `whitelist/test_helpers.rs` | 12 / 12 (100.00%) | - | 12 / 12 (100.00%) |
+| File | Unit-only lines | Integration-only lines | Aggregate lines | Container-gated aggregate lines |
+| --- | ---: | ---: | ---: | ---: |
+| `announce_handler.rs` | 400 / 401 (99.75%) | 80 / 92 (86.96%) | 400 / 401 (99.75%) | 400 / 401 (99.75%) |
+| `authentication/handler.rs` | 371 / 371 (100.00%) | 6 / 90 (6.67%) | 371 / 371 (100.00%) | 371 / 371 (100.00%) |
+| `authentication/key/mod.rs` | 77 / 77 (100.00%) | 0 / 31 (0.00%) | 77 / 77 (100.00%) | 77 / 77 (100.00%) |
+| `authentication/key/peer_key.rs` | 100 / 101 (99.01%) | 0 / 45 (0.00%) | 100 / 101 (99.01%) | 100 / 101 (99.01%) |
+| `authentication/key/repository/in_memory.rs` | 92 / 92 (100.00%) | 0 / 21 (0.00%) | 92 / 92 (100.00%) | 92 / 92 (100.00%) |
+| `authentication/key/repository/persisted.rs` | 73 / 74 (98.65%) | 5 / 20 (25.00%) | 73 / 74 (98.65%) | 73 / 74 (98.65%) |
+| `authentication/mod.rs` | 123 / 123 (100.00%) | - | 123 / 123 (100.00%) | 123 / 123 (100.00%) |
+| `authentication/service.rs` | 144 / 144 (100.00%) | 6 / 30 (20.00%) | 144 / 144 (100.00%) | 144 / 144 (100.00%) |
+| `container.rs` | 143 / 144 (99.31%) | 72 / 73 (98.63%) | 143 / 144 (99.31%) | 143 / 144 (99.31%) |
+| `databases/driver/mod.rs` | 185 / 188 (98.40%) | - | 185 / 188 (98.40%) | 187 / 188 (99.47%) |
+| `databases/driver/mysql/auth_key_store.rs` | 0 / 50 (0.00%) | 0 / 50 (0.00%) | 0 / 50 (0.00%) | 29 / 50 (58.00%) |
+| `databases/driver/mysql/mod.rs` | 7 / 212 (3.30%) | 0 / 38 (0.00%) | 7 / 212 (3.30%) | 203 / 212 (95.75%) |
+| `databases/driver/mysql/schema_migrator.rs` | 0 / 75 (0.00%) | 0 / 75 (0.00%) | 0 / 75 (0.00%) | 66 / 75 (88.00%) |
+| `databases/driver/mysql/torrent_metrics_store.rs` | 0 / 45 (0.00%) | 0 / 45 (0.00%) | 0 / 45 (0.00%) | 29 / 45 (64.44%) |
+| `databases/driver/mysql/whitelist_store.rs` | 0 / 28 (0.00%) | 0 / 28 (0.00%) | 0 / 28 (0.00%) | 17 / 28 (60.71%) |
+| `databases/driver/postgres/auth_key_store.rs` | 0 / 50 (0.00%) | 0 / 50 (0.00%) | 0 / 50 (0.00%) | 29 / 50 (58.00%) |
+| `databases/driver/postgres/mod.rs` | 7 / 189 (3.70%) | 0 / 39 (0.00%) | 7 / 189 (3.70%) | 181 / 189 (95.77%) |
+| `databases/driver/postgres/schema_migrator.rs` | 0 / 6 (0.00%) | 0 / 6 (0.00%) | 0 / 6 (0.00%) | 5 / 6 (83.33%) |
+| `databases/driver/postgres/torrent_metrics_store.rs` | 0 / 45 (0.00%) | 0 / 45 (0.00%) | 0 / 45 (0.00%) | 29 / 45 (64.44%) |
+| `databases/driver/postgres/whitelist_store.rs` | 0 / 28 (0.00%) | 0 / 28 (0.00%) | 0 / 28 (0.00%) | 17 / 28 (60.71%) |
+| `databases/driver/sqlite/auth_key_store.rs` | 29 / 50 (58.00%) | 0 / 50 (0.00%) | 29 / 50 (58.00%) | 29 / 50 (58.00%) |
+| `databases/driver/sqlite/mod.rs` | 85 / 92 (92.39%) | 32 / 37 (86.49%) | 85 / 92 (92.39%) | 85 / 92 (92.39%) |
+| `databases/driver/sqlite/schema_migrator.rs` | 145 / 155 (93.55%) | 22 / 73 (30.14%) | 145 / 155 (93.55%) | 145 / 155 (93.55%) |
+| `databases/driver/sqlite/torrent_metrics_store.rs` | 29 / 45 (64.44%) | 29 / 45 (64.44%) | 29 / 45 (64.44%) | 29 / 45 (64.44%) |
+| `databases/driver/sqlite/whitelist_store.rs` | 17 / 28 (60.71%) | 0 / 28 (0.00%) | 17 / 28 (60.71%) | 17 / 28 (60.71%) |
+| `databases/error.rs` | 28 / 35 (80.00%) | 0 / 23 (0.00%) | 28 / 35 (80.00%) | 35 / 35 (100.00%) |
+| `databases/setup.rs` | 34 / 44 (77.27%) | 18 / 29 (62.07%) | 34 / 44 (77.27%) | 34 / 44 (77.27%) |
+| `databases/traits/whitelist.rs` | 2 / 2 (100.00%) | 0 / 2 (0.00%) | 2 / 2 (100.00%) | 2 / 2 (100.00%) |
+| `error.rs` | 38 / 50 (76.00%) | 0 / 12 (0.00%) | 38 / 50 (76.00%) | 38 / 50 (76.00%) |
+| `lib.rs` | 58 / 58 (100.00%) | - | 58 / 58 (100.00%) | 58 / 58 (100.00%) |
+| `peer_tests.rs` | 30 / 30 (100.00%) | - | 30 / 30 (100.00%) | 30 / 30 (100.00%) |
+| `scrape_handler.rs` | 190 / 190 (100.00%) | 43 / 44 (97.73%) | 190 / 190 (100.00%) | 190 / 190 (100.00%) |
+| `statistics/event/handler.rs` | 179 / 203 (88.18%) | 92 / 99 (92.93%) | 198 / 203 (97.54%) | 198 / 203 (97.54%) |
+| `statistics/event/listener.rs` | 357 / 406 (87.93%) | 156 / 168 (92.86%) | 419 / 421 (99.52%) | 419 / 421 (99.52%) |
+| `statistics/metrics.rs` | 11 / 45 (24.44%) | 20 / 45 (44.44%) | 20 / 45 (44.44%) | 20 / 45 (44.44%) |
+| `statistics/mod.rs` | 40 / 40 (100.00%) | 40 / 40 (100.00%) | 40 / 40 (100.00%) | 40 / 40 (100.00%) |
+| `statistics/persisted/downloads.rs` | 77 / 77 (100.00%) | 39 / 39 (100.00%) | 77 / 77 (100.00%) | 77 / 77 (100.00%) |
+| `statistics/persisted/mod.rs` | 0 / 11 (0.00%) | 26 / 32 (81.25%) | 26 / 32 (81.25%) | 26 / 32 (81.25%) |
+| `statistics/repository.rs` | 86 / 140 (61.43%) | 60 / 115 (52.17%) | 101 / 149 (67.79%) | 101 / 149 (67.79%) |
+| `test_helpers.rs` | 109 / 123 (88.62%) | - | 109 / 123 (88.62%) | 109 / 123 (88.62%) |
+| `torrent/manager.rs` | 153 / 153 (100.00%) | 15 / 48 (31.25%) | 153 / 153 (100.00%) | 153 / 153 (100.00%) |
+| `torrent/persisted_downloads.rs` | 22 / 22 (100.00%) | 22 / 22 (100.00%) | 22 / 22 (100.00%) | 22 / 22 (100.00%) |
+| `torrent/repository/in_memory.rs` | 56 / 60 (93.33%) | 30 / 60 (50.00%) | 56 / 60 (93.33%) | 56 / 60 (93.33%) |
+| `torrent/services.rs` | 267 / 267 (100.00%) | 0 / 1 (0.00%) | 267 / 267 (100.00%) | 267 / 267 (100.00%) |
+| `whitelist/authorization.rs` | 74 / 74 (100.00%) | 12 / 16 (75.00%) | 74 / 74 (100.00%) | 74 / 74 (100.00%) |
+| `whitelist/manager.rs` | 99 / 99 (100.00%) | 6 / 26 (23.08%) | 99 / 99 (100.00%) | 99 / 99 (100.00%) |
+| `whitelist/mod.rs` | 18 / 18 (100.00%) | - | 18 / 18 (100.00%) | 18 / 18 (100.00%) |
+| `whitelist/repository/in_memory.rs` | 51 / 51 (100.00%) | 0 / 17 (0.00%) | 51 / 51 (100.00%) | 51 / 51 (100.00%) |
+| `whitelist/repository/persisted.rs` | 74 / 74 (100.00%) | 3 / 25 (12.00%) | 74 / 74 (100.00%) | 74 / 74 (100.00%) |
+| `whitelist/setup.rs` | 7 / 7 (100.00%) | 7 / 7 (100.00%) | 7 / 7 (100.00%) | 7 / 7 (100.00%) |
+| `whitelist/test_helpers.rs` | 12 / 12 (100.00%) | - | 12 / 12 (100.00%) | 12 / 12 (100.00%) |
 
 ## Uncovered Line Groups (unit-only, `--all-features --lib`)
 
