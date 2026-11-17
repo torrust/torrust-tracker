@@ -11,6 +11,7 @@ semantic-links:
     - src/bootstrap/jobs/
     - src/bootstrap/event_flows.rs
     - src/bootstrap/jobs/manager.rs
+    - packages/hung-component-tracker/tests/hung_component_abort.rs
     - src/bootstrap/jobs/udp_tracker_server.rs
     - docs/adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md
     - docs/architecture/events.md
@@ -46,10 +47,12 @@ unmanaged task) are defined once in the [glossary](glossary.md).
    `JobManager` and an `EventFlows` registry and starts application jobs and
    service instances: first every event listener, then the components that
    publish events (see [Startup sequence](#startup-sequence)).
-4. On `Ctrl+C` or `SIGTERM`, `main` calls `JobManager::cancel`, then waits for
-   registered direct components through
+4. `main` then calls `app::run_until_shutdown_signal`. On `Ctrl+C` or
+   `SIGTERM` it calls `app::begin_shutdown` (mark not ready, then
+   `JobManager::cancel`), waits for registered direct components through
    `JobManager::wait_for_all` under one process-wide deadline
-   (`application.shutdown.deadline_in_secs`, 25 seconds by default)
+   (`application.shutdown.deadline_in_secs`, 25 seconds by default), and maps
+   the outcomes to the process exit code
    (see [Shutdown sequence](#shutdown-sequence)).
 
 ### Supervision Tree and Stop Order
@@ -140,13 +143,13 @@ running.
 ```mermaid
 sequenceDiagram
     participant Operator
-    participant Main as main()
+    participant Main as run_until_shutdown_signal
     participant JM as JobManager
     participant Prod as Producers (HTTP, UDP, torrent cleanup)
     participant Other as Components without edges
     participant Lis as Event listeners
     Operator->>Main: SIGTERM or SIGINT
-    Main->>JM: cancel()
+    Main->>JM: cancel() (after marking not ready)
     JM->>Prod: cancel (they wait for nobody)
     JM->>Other: cancel (they wait for nobody)
     Note over JM,Lis: Listeners with producers are not cancelled yet
@@ -168,6 +171,13 @@ with a `waiting_for` field; `wait_for_all` logs each release with the
 `last_completed_job` that caused it. A failed or panicked producer releases its
 listeners too, and its failure stays in the outcomes. Completion of a producer
 before `cancel()` never cancels a listener by itself.
+
+A component that never completes is aborted when the shared deadline expires,
+and so is the health check API, which stops last and therefore is never asked to
+stop; the process exits with code 1 and names both in `incomplete_components`.
+The test-only `packages/hung-component-tracker` crate verifies this on a real
+tracker process for `SIGTERM` and `SIGINT`. The abort only takes effect at an
+await point: a component that blocks its thread is not stopped by it.
 
 ### Boundary of One Component
 

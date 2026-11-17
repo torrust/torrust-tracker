@@ -1,7 +1,7 @@
 ---
 doc-type: feature-supporting-analysis
 status: verified
-last-updated-utc: "2026-10-26 16:23"
+last-updated-utc: "2026-11-17 17:26"
 semantic-links:
   related-artifacts:
     - docs/features/shutdown-process/README.md
@@ -225,9 +225,9 @@ found the omission).
 Every bus is an `EventBus` whose `Broadcaster` wraps one `tokio` broadcast
 channel with a capacity of 65,536 events (`packages/events/src/broadcaster.rs`).
 Each bus lives in a package container, and `AppContainer` owns those
-containers. `main` binds the container as `_app_container` and holds it past
-`jobs.wait_for_all(...)` (`src/main.rs`), so the channels stay open through
-listener shutdown. `EventBus::sender()` clones the `Broadcaster`, so each
+containers. `app::run_until_shutdown_signal` (`src/app.rs`, called by `main`
+since #2847) owns the container and holds it past `jobs.wait_for_all(...)`, so
+the channels stay open through listener shutdown. `EventBus::sender()` clones the `Broadcaster`, so each
 producer holds its own sender; `EventBus::receiver()` calls `subscribe()`.
 `broadcast::Receiver<Event>` is the only production `Receiver` implementation
 (`packages/events/src/broadcaster.rs`).
@@ -313,7 +313,7 @@ requests can publish on that bus; no listener consumes those events there.
 
 | Fact in entry 27 | Result |
 | --- | --- |
-| `main` holds `_app_container` until after `wait_for_all` | Confirmed (`src/main.rs`). |
+| `main` holds `_app_container` until after `wait_for_all` | Confirmed (`src/main.rs`). Since #2847 `app::run_until_shutdown_signal` in `src/app.rs` holds it. |
 | Consumers subscribe in bootstrap before producers start | Confirmed (see above). |
 | Sends are `.send(...).await` in the request path, none detached | Confirmed; no detached sender found. |
 

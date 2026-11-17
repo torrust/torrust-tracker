@@ -29,6 +29,7 @@ packages/
 ├── events
 ├── http-protocol
 ├── http-core
+├── hung-component-tracker
 ├── persistence-benchmark
 ├── primitives
 ├── rest-api-application
@@ -267,6 +268,7 @@ the `packages/` members by architectural role.
 | `torrent-repository-benchmarking` | `torrust-tracker-torrent-repository-benchmarking` | Torrent storage benchmarks _(unpublished)_ | Criterion benchmarks |
 | `persistence-benchmark` | `torrust-tracker-persistence-benchmark` | Persistence layer benchmarks _(unpublished)_ | SQLite/MySQL/PostgreSQL benchmarks |
 | `e2e-tools` | `torrust-tracker-e2e-tools` | E2E runners and profiling _(unpublished)_ | `e2e_tests_runner`, `qbittorrent_e2e_runner`, `profiling` binaries |
+| `hung-component-tracker` | `torrust-tracker-hung-component-tracker` | Shutdown deadline abort test _(unpublished)_ | `hung-component-tracker` test binary and its integration test |
 
 ### Extracted Packages
 

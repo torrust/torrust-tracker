@@ -163,6 +163,7 @@ members = [
   "packages/events",
   "packages/http-core",
   "packages/http-protocol",
+  "packages/hung-component-tracker",
   "packages/persistence-benchmark",
   "packages/primitives",
   "packages/rest-api-application",

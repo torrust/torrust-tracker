@@ -42,7 +42,7 @@ depend on packages in the same layer or a lower one.
 └────────────────────────────────────────────────────────────────┘
 ```
 
-The benchmarks and developer tools (`e2e-tools`, `persistence-benchmark`,
+The benchmarks and developer tools (`e2e-tools`, `hung-component-tracker`, `persistence-benchmark`,
 `torrent-repository-benchmarking`) are not part of these layers; they are never dependencies of
 another package.
 

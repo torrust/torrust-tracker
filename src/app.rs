@@ -23,6 +23,7 @@
 //! - Tracker REST API: the tracker API can be enabled/disabled.
 use std::future::Future;
 use std::path::PathBuf;
+use std::process::ExitCode;
 use std::sync::Arc;
 
 use torrust_clock::clock::Time;
@@ -35,7 +36,10 @@ use tracing::instrument;
 
 use crate::CurrentClock;
 use crate::bootstrap::event_flows::{self, Bus, EventFlows};
-use crate::bootstrap::jobs::manager::{ComponentCompletion, ComponentResult, JobManager, Reservation, SpawnError, StopBefore};
+use crate::bootstrap::jobs::manager::{
+    ComponentCompletion, ComponentResult, EXIT_CODE_GRACEFUL_SHUTDOWN, JobManager, JobOutcome, Reservation, SpawnError,
+    StopBefore, incomplete_components, shutdown_exit_code,
+};
 use crate::bootstrap::jobs::{
     self, activity_metrics_updater, health_check_api, http_tracker, torrent_cleanup, tracker_apis, udp_tracker,
 };
@@ -126,6 +130,121 @@ pub async fn start_with_explicit_config_toml_path(
 pub fn begin_shutdown(app_container: &AppContainer, job_manager: &JobManager) {
     app_container.readiness.mark_not_ready();
     job_manager.cancel();
+}
+
+/// Log target of the process lifecycle events emitted by [`run_until_shutdown_signal`].
+///
+/// These events were emitted by the `torrust-tracker` binary crate before the shutdown sequence moved
+/// into the library. The default log format prints each event's target, so the target stays pinned to
+/// the binary crate's name and the log lines are unchanged.
+// issue: #2847
+const PROCESS_LOG_TARGET: &str = "torrust_tracker";
+
+/// Runs a started tracker until a shutdown signal arrives, shuts it down, and returns the exit code.
+///
+/// This owns the whole post-startup lifetime of the process: it waits for `SIGINT` or `SIGTERM`
+/// (Ctrl-C only on non-Unix platforms), calls [`begin_shutdown`], waits for every component up to the
+/// configured process deadline, and maps the component outcomes to the process exit code. The
+/// executable and the test-only executables that verify its shutdown share it, so they cannot drift.
+///
+/// # Panics
+///
+/// Panics when the `SIGTERM` or Ctrl-C handler cannot be installed, or when the `SIGTERM` handler
+/// stream closes before a signal arrives.
+// issue: #2847
+pub async fn run_until_shutdown_signal(app_container: Arc<AppContainer>, jobs: JobManager) -> ExitCode {
+    let shutdown_signal = wait_for_shutdown_signal().await;
+
+    tracing::info!(target: PROCESS_LOG_TARGET, "Torrust tracker shutting down ({shutdown_signal}) ...");
+
+    begin_shutdown(&app_container, &jobs);
+
+    let outcomes = jobs.wait_for_all(app_container.application_config.shutdown.deadline()).await;
+
+    report_shutdown(&outcomes)
+}
+
+/// Logs the result of a shutdown and returns the process exit code for it.
+///
+/// The success message appears only when every component stopped gracefully.
+fn report_shutdown(outcomes: &[JobOutcome]) -> ExitCode {
+    let exit_code = shutdown_exit_code(outcomes);
+
+    if exit_code == EXIT_CODE_GRACEFUL_SHUTDOWN {
+        tracing::info!(target: PROCESS_LOG_TARGET, "Torrust tracker successfully shutdown.");
+    } else {
+        tracing::error!(
+            target: PROCESS_LOG_TARGET,
+            incomplete_components = %incomplete_components(outcomes).join(", "),
+            "Torrust tracker shutdown was incomplete: a component failed, panicked, or was aborted at the shutdown deadline."
+        );
+    }
+
+    ExitCode::from(exit_code)
+}
+
+/// Waits until the process receives a supported shutdown signal.
+///
+/// Tokio registers the Ctrl-C listener when its future is first polled. The
+/// outer, biased `select!` polls Ctrl-C after the SIGTERM stream is created
+/// and before its immediately-ready branch logs the observable readiness
+/// marker. The native executable-boundary tests wait for that marker, so they
+/// can signal the child without racing listener registration.
+///
+/// Pin `ctrl_c` because it is polled in the outer `select!` and then awaited
+/// again in the inner signal wait.
+#[cfg(unix)]
+async fn wait_for_shutdown_signal() -> &'static str {
+    let ctrl_c = tokio::signal::ctrl_c();
+    tokio::pin!(ctrl_c);
+    let mut sigterm =
+        tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate()).expect("failed to install SIGTERM handler");
+
+    tokio::select! {
+        biased;
+        result = &mut ctrl_c => {
+            result.expect("failed to install Ctrl-C handler");
+            "SIGINT"
+        },
+        result = sigterm.recv() => {
+            result.expect("SIGTERM handler stream closed unexpectedly");
+            "SIGTERM"
+        },
+        () = std::future::ready(()) => {
+            tracing::info!(target: PROCESS_LOG_TARGET, "Tracker shutdown signal handlers installed.");
+
+            tokio::select! {
+                result = &mut ctrl_c => {
+                    result.expect("failed to install Ctrl-C handler");
+                    "SIGINT"
+                },
+                result = sigterm.recv() => {
+                    result.expect("SIGTERM handler stream closed unexpectedly");
+                    "SIGTERM"
+                },
+            }
+        },
+    }
+}
+
+/// Waits until the process receives Ctrl-C on a non-Unix platform.
+#[cfg(not(unix))]
+async fn wait_for_shutdown_signal() -> &'static str {
+    let ctrl_c = tokio::signal::ctrl_c();
+    tokio::pin!(ctrl_c);
+
+    tokio::select! {
+        biased;
+        result = &mut ctrl_c => {
+            result.expect("failed to install Ctrl-C handler");
+            "SIGINT"
+        },
+        _ = std::future::ready(()) => {
+            tracing::info!(target: PROCESS_LOG_TARGET, "Tracker shutdown signal handlers installed.");
+            ctrl_c.await.expect("failed to install Ctrl-C handler");
+            "SIGINT"
+        },
+    }
 }
 
 async fn run_after_setup(

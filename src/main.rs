@@ -3,9 +3,6 @@ use std::process::ExitCode;
 
 use clap::Parser;
 use torrust_tracker_lib::app;
-use torrust_tracker_lib::bootstrap::jobs::manager::{
-    EXIT_CODE_GRACEFUL_SHUTDOWN, JobOutcome, incomplete_components, shutdown_exit_code,
-};
 
 /// Command-line arguments accepted by the tracker executable.
 #[derive(Debug, Parser)]
@@ -30,104 +27,12 @@ async fn main() -> ExitCode {
     let cli = Cli::parse();
 
     match app::start_with_explicit_config_toml_path(cli.config_toml_path).await {
-        Ok((app_container, jobs)) => {
-            let shutdown_signal = wait_for_shutdown_signal().await;
-
-            tracing::info!("Torrust tracker shutting down ({shutdown_signal}) ...");
-
-            app::begin_shutdown(&app_container, &jobs);
-
-            let outcomes = jobs.wait_for_all(app_container.application_config.shutdown.deadline()).await;
-
-            report_shutdown(&outcomes)
-        }
+        Ok((app_container, jobs)) => app::run_until_shutdown_signal(app_container, jobs).await,
         Err(error) => {
             tracing::error!(%error, "Tracker startup failed");
             report_startup_failure(&error);
             ExitCode::FAILURE
         }
-    }
-}
-
-/// Logs the result of a shutdown and returns the process exit code for it.
-///
-/// The success message appears only when every component stopped gracefully.
-fn report_shutdown(outcomes: &[JobOutcome]) -> ExitCode {
-    let exit_code = shutdown_exit_code(outcomes);
-
-    if exit_code == EXIT_CODE_GRACEFUL_SHUTDOWN {
-        tracing::info!("Torrust tracker successfully shutdown.");
-    } else {
-        tracing::error!(
-            incomplete_components = %incomplete_components(outcomes).join(", "),
-            "Torrust tracker shutdown was incomplete: a component failed, panicked, or was aborted at the shutdown deadline."
-        );
-    }
-
-    ExitCode::from(exit_code)
-}
-
-/// Waits until the process receives a supported shutdown signal.
-///
-/// Tokio registers the Ctrl-C listener when its future is first polled. The
-/// outer, biased `select!` polls Ctrl-C after the SIGTERM stream is created
-/// and before its immediately-ready branch logs the observable readiness
-/// marker. The native executable-boundary tests wait for that marker, so they
-/// can signal the child without racing listener registration.
-///
-/// Pin `ctrl_c` because it is polled in the outer `select!` and then awaited
-/// again in the inner signal wait.
-#[cfg(unix)]
-async fn wait_for_shutdown_signal() -> &'static str {
-    let ctrl_c = tokio::signal::ctrl_c();
-    tokio::pin!(ctrl_c);
-    let mut sigterm =
-        tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate()).expect("failed to install SIGTERM handler");
-
-    tokio::select! {
-        biased;
-        result = &mut ctrl_c => {
-            result.expect("failed to install Ctrl-C handler");
-            "SIGINT"
-        },
-        result = sigterm.recv() => {
-            result.expect("SIGTERM handler stream closed unexpectedly");
-            "SIGTERM"
-        },
-        () = std::future::ready(()) => {
-            tracing::info!("Tracker shutdown signal handlers installed.");
-
-            tokio::select! {
-                result = &mut ctrl_c => {
-                    result.expect("failed to install Ctrl-C handler");
-                    "SIGINT"
-                },
-                result = sigterm.recv() => {
-                    result.expect("SIGTERM handler stream closed unexpectedly");
-                    "SIGTERM"
-                },
-            }
-        },
-    }
-}
-
-/// Waits until the process receives Ctrl-C on a non-Unix platform.
-#[cfg(not(unix))]
-async fn wait_for_shutdown_signal() -> &'static str {
-    let ctrl_c = tokio::signal::ctrl_c();
-    tokio::pin!(ctrl_c);
-
-    tokio::select! {
-        biased;
-        result = &mut ctrl_c => {
-            result.expect("failed to install Ctrl-C handler");
-            "SIGINT"
-        },
-        _ = std::future::ready(()) => {
-            tracing::info!("Tracker shutdown signal handlers installed.");
-            ctrl_c.await.expect("failed to install Ctrl-C handler");
-            "SIGINT"
-        },
     }
 }
 

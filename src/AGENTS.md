@@ -8,9 +8,9 @@ the bootstrap sequence, and the dependency-injection container. All domain logic
 
 | Path                        | Purpose                                                                                                                                                                                            |
 | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `main.rs`                   | Main binary entry point. Parses `-c` / `--config-toml-path`, starts the app, then waits for shutdown and cancels jobs.                                                                             |
+| `main.rs`                   | Main binary entry point. Parses `-c` / `--config-toml-path`, starts the app, then calls `app::run_until_shutdown_signal`.                                                                          |
 | `lib.rs`                    | Library crate root and crate-level documentation. Re-exports the public API used by integration tests and other binaries.                                                                          |
-| `app.rs`                    | Environment-compatible `start()`, parameterized startup, and `complete_startup()` — orchestrate the full startup sequence.                                                                         |
+| `app.rs`                    | Environment-compatible `start()`, parameterized startup, and `complete_startup()` — orchestrate the full startup sequence; `run_until_shutdown_signal()` runs the shutdown sequence.               |
 | `container.rs`              | `AppContainer` — dependency-injection struct that holds `Arc`-wrapped instances of every per-layer container.                                                                                      |
 | `bootstrap/app.rs`          | `setup()` — receives optional explicit path, loads config, validates it, initializes services, builds `AppContainer`.                                                                              |
 | `bootstrap/config.rs`       | `initialize_configuration()` — loads config from an optional explicit path or existing environment/default sources.                                                                                |
@@ -49,7 +49,8 @@ main()
                  └─ start_health_check_api         ← always started
 ```
 
-Shutdown (`main`): receives `Ctrl-C` or `SIGTERM` → calls `jobs.cancel()` (fires the `CancellationToken`) →
+Shutdown (`app::run_until_shutdown_signal`, called by `main`): receives `Ctrl-C` or `SIGTERM` → calls
+`app::begin_shutdown` (marks not ready, then `jobs.cancel()` fires the `CancellationToken`s) →
 waits up to `application.shutdown.deadline_in_secs` (25 seconds by default) for all direct component
 tasks to complete → exits `0` only when every outcome is completed or cancelled, otherwise `1`.
 
