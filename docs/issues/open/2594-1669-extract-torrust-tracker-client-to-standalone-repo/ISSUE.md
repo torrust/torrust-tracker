@@ -53,8 +53,8 @@ issue #2583 has published the three workspace crates the client depends on.
 ## Background
 
 `console/tracker-client` is the crate `torrust-tracker-client` 0.1.0: a set of console clients for
-BitTorrent trackers (`tracker_client`, `tracker_checker`, and the deprecated `udp_tracker_client`
-and `http_tracker_client`), licensed `LGPL-3.0`, unlike the tracker's AGPL-3.0-only workspace. It
+BitTorrent trackers (`tracker_client`; the deprecated `udp_tracker_client`, `http_tracker_client`
+and `tracker_checker` binaries were removed in #2765), licensed `LGPL-3.0`, unlike the tracker's AGPL-3.0-only workspace. It
 has its own documentation (CLI I/O contract, feature docs, local ADRs) because extraction was
 always planned; its README says the code is being extracted from the tracker.
 
@@ -83,7 +83,7 @@ with `cargo install` without the tracker source tree.
 - **The tracker repository uses the client.**
   - The E2E runner (`e2e_tests_runner` in `packages/e2e-tools`, run by `testing.yaml` and
     `container.yaml`) starts the checker with
-    `cargo run -p torrust-tracker-client --bin tracker_checker`
+    `cargo run -p torrust-tracker-client --bin tracker_client -- check`
     (`src/console/ci/e2e/tracker_checker.rs`). Deleting the crate breaks this CI step.
   - Six skills run `cargo run -p torrust-tracker-client --bin tracker_client`:
     `use-tracker-client`, `use-rest-api`, `run-tracker-locally`, `public-trackers-for-testing`,
@@ -126,7 +126,7 @@ IDs are referenced in the rest of the document.
 | Q4  | CI in the new repository         | One `testing.yaml` like the earlier extractions (format, `linter all`, clippy, tests), plus a publish workflow for crates.io. No binary release artefacts.                                                                                               |
 | Q5  | First publish                    | `0.1.0` from the new repository, owners `josecelano` and `da2ce7` (as #2583).                                                                                                                                                                             |
 | Q6  | `torrust-tracker-client-lib`     | Stays in the tracker workspace: `udp-server`, `test-helpers` and `axum-http-server` use it and #2583 publishes it from here. Whether those servers should depend on a client library at all is a question for the coupling-report review, not this issue. |
-| Q7  | Tracker E2E runner               | CI installs the published client (`cargo install torrust-tracker-client --version <v> --locked`) and the E2E runner starts `tracker_checker` from `PATH`.                                                                                                 |
+| Q7  | Tracker E2E runner               | CI installs the published client (`cargo install torrust-tracker-client --version <v> --locked`) and the E2E runner starts `tracker_client check` from `PATH`.                                                                                                 |
 | Q8  | Skills that run the client       | Stay in this repository; they replace `cargo run -p torrust-tracker-client --bin tracker_client` with the installed `tracker_client` after `cargo install torrust-tracker-client`.                                                                       |
 | Q9  | Client ADRs and docs             | Its local ADRs and docs move with it. The root ADRs stay as records of this repository's decisions; the new repository records which CLI output contract it follows.                                                                                    |
 | Q10 | #2583 spec                       | It already agrees (row 13 `DEFERRED`). The spec-only pull request of this issue updates its References link to this specification and names this issue in its T6 hand-over.                                                                            |
@@ -175,7 +175,7 @@ IDs are referenced in the rest of the document.
 ## Design and Ownership Review
 
 Not applicable: no new runtime code. The E2E runner keeps its current process handling for the
-external `tracker_checker` process (Q7); only the command changes.
+external `tracker_client check` process (Q7); only the command changes.
 
 ## Bug-Fix Process
 
@@ -290,7 +290,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | ID  | Scenario                                 | Human-oriented command/steps                                                                                                                                       | Expected Result                                       | Status  | Evidence                                     |
 | --- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------- | ------- | -------------------------------------------- |
 | M1  | A user installs and uses the client      | `cargo install torrust-tracker-client`; start a local tracker (`run-tracker-locally` skill); `tracker_client udp announce` and `tracker_client http scrape` against it | Valid JSON responses from both protocols              | BLOCKED | `manual-verification-evidence.md` section V1 |
-| M2  | The checker reports a healthy tracker    | `TORRUST_CHECKER_CONFIG='{...}' tracker_checker` with the installed binary, against the local tracker                                                               | Every check `Ok`                                      | BLOCKED | `manual-verification-evidence.md` section V2 |
+| M2  | The checker reports a healthy tracker    | `TORRUST_CHECKER_CONFIG='{...}' tracker_client check` with the installed binary, against the local tracker                                                               | Every check `Ok`                                      | BLOCKED | `manual-verification-evidence.md` section V2 |
 | M3  | The tracker E2E runner without the crate | `cargo run -p torrust-tracker-e2e-tools --bin e2e_tests_runner -- --config-toml-path "./share/default/config/tracker.e2e.container.sqlite3.toml"` on the T9 branch, with the client installed (the configuration `testing.yaml` and `container.yaml` pass) | Runner passes                                         | BLOCKED | `manual-verification-evidence.md` section V3 |
 | M4  | No stale references                      | `rg -n --hidden --glob '!.git/**' 'console/tracker-client\|-p torrust-tracker-client\b' --glob '!docs/issues/closed/**' --glob '!docs/pr-reviews/**'` (`--hidden` so the skills under `.github/` are searched)                                         | Only historical records match, each one justified     | BLOCKED | `manual-verification-evidence.md` section V4 |
 

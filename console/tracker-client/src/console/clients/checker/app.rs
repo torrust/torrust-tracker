@@ -3,14 +3,14 @@
 //! Run providing a config file path:
 //!
 //! ```text
-//! cargo run --bin tracker_checker -- --config-path "./share/default/config/tracker_checker.json"
-//! TORRUST_CHECKER_CONFIG_PATH="./share/default/config/tracker_checker.json" cargo run --bin tracker_checker
+//! cargo run --bin tracker_client -- check --format text -- --config-path "./share/default/config/tracker_checker.json"
+//! TORRUST_CHECKER_CONFIG_PATH="./share/default/config/tracker_checker.json" cargo run --bin tracker_client -- check --format text
 //! ```
 //!
 //! Run providing the configuration:
 //!
 //! ```text
-//! TORRUST_CHECKER_CONFIG=$(cat "./share/default/config/tracker_checker.json") cargo run --bin tracker_checker
+//! TORRUST_CHECKER_CONFIG=$(cat "./share/default/config/tracker_checker.json") cargo run --bin tracker_client -- check --format text
 //! ```
 //!
 //! Another real example to test the Torrust demo tracker:
@@ -20,7 +20,7 @@
 //!     "udp_trackers": ["144.126.245.19:6969"],
 //!     "http_trackers": ["https://tracker.torrust-demo.com"],
 //!     "health_checks": ["https://tracker.torrust-demo.com/api/health_check"]
-//! }' cargo run --bin tracker_checker
+//! }' cargo run --bin tracker_client -- check --format text
 //! ```
 //!
 //! The output should be something like the following:

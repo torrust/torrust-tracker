@@ -6,7 +6,7 @@
 //! `Announce` request:
 //!
 //! ```text
-//! cargo run --bin http_tracker_client announce http://127.0.0.1:7070 9c38422213e30bff212b30c360d26f9a02136422
+//! cargo run --bin tracker_client -- http announce http://127.0.0.1:7070 9c38422213e30bff212b30c360d26f9a02136422
 //! ```
 //!
 //! Accepted tracker URL forms for `announce` and `scrape`:
@@ -23,22 +23,22 @@
 //! `Announce` request (pretty JSON output):
 //!
 //! ```text
-//! cargo run --bin http_tracker_client announce \
+//! cargo run --bin tracker_client -- http announce \
 //!   http://127.0.0.1:7070 9c38422213e30bff212b30c360d26f9a02136422 \
-//!   --format pretty
+//!   --format text
 //! ```
 //!
 //! `Announce` request (all optional parameters):
 //!
 //! ```text
-//! cargo run --bin http_tracker_client announce \
+//! cargo run --bin tracker_client -- http announce \
 //!   http://127.0.0.1:7070 443c7602b4fde83d1154d6d9da48808418b181b6 \
 //!   --event completed \
 //!   --uploaded 1234 \
 //!   --downloaded 5678 \
 //!   --left 0 \
 //!   --port 6881 \
-//!   --peer-addr 10.0.0.1 \
+//!   --ip 10.0.0.1 \
 //!   '--peer-id=-RC00000000000000001' \
 //!   --compact 1 | jq
 //! ```
@@ -46,15 +46,15 @@
 //! `Scrape` request:
 //!
 //! ```text
-//! cargo run --bin http_tracker_client scrape http://127.0.0.1:7070 9c38422213e30bff212b30c360d26f9a02136422
+//! cargo run --bin tracker_client -- http scrape http://127.0.0.1:7070 9c38422213e30bff212b30c360d26f9a02136422
 //! ```
 //!
 //! `Scrape` request (pretty JSON output):
 //!
 //! ```text
-//! cargo run --bin http_tracker_client scrape \
+//! cargo run --bin tracker_client -- http scrape \
 //!   http://127.0.0.1:7070 9c38422213e30bff212b30c360d26f9a02136422 \
-//!   --format pretty
+//!   --format text
 //! ```
 //!
 //! Unrecognized response fallback (generic JSON):

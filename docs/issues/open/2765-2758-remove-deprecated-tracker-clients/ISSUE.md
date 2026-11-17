@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p2
 epic: 2758
 github-issue: 2765
 spec-path: docs/issues/open/2765-2758-remove-deprecated-tracker-clients/ISSUE.md
-branch: "2765-remove-deprecated-tracker-clients"
-related-pr: null
-last-updated-utc: "2026-11-09 13:21"
+branch: "2765-remove-deprecated-client-bins"
+related-pr: 2901
+last-updated-utc: "2026-11-17 10:47"
 semantic-links:
   skill-links:
     - create-issue
@@ -74,6 +74,7 @@ The checker caller migration in `src/console/ci/e2e/tracker_checker.rs` spawns a
 - Lifetime invariants: the child is always waited for (or killed and reaped) before `run` returns, on success, on a non-zero exit, on a read error and on a panic in the caller; both pipes are read to the end (or on separate threads) so a full pipe cannot block the child.
 - Deadline: the checker has its own network timeout, and `run` adds an absolute deadline to the wait on the child so a hung checker cannot hang the runner; a missing deadline is a defect.
 - Design-review checkpoint: after the first passing vertical slice (the helper captures a successful `check` run), review the ownership of the child and the pipes before handling the failure paths.
+- Design-review checkpoint record (taken from the code after the review of PR 2901, which asked for it; it was not done as a separate step at the first slice): the child is owned by a `ChildGuard` that kills (if still running) and reaps it on drop, so every path reaps it; each pipe is owned by one reader thread that sends chunks over a channel, and the collector gives up after a grace period, so neither a full pipe nor a pipe kept open by a descendant blocks the child or the deadline; the deadline is an absolute bound on the wait, and the build runs as its own step under its own deadline so a cold build does not count against the check. Assumption: no descendant of the child outlives it (on Unix `cargo run` replaces itself with the binary). Not covered: terminating a process tree.
 
 ## Bug-Fix Process
 
@@ -89,10 +90,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
-| T1 | TODO | List every reference to the three binaries | `grep` result in the progress log. |
-| T2 | TODO | Remove the binaries | Workspace builds. |
-| T3 | TODO | Keep the test coverage through `tracker_client` | No lost scenarios. |
-| T4 | TODO | Update docs and add the breaking-change note | `grep` finds no stale instruction. |
+| T1 | DONE | List every reference to the three binaries | `grep` result in the progress log. |
+| T2 | DONE | Remove the binaries | Workspace builds. |
+| T3 | DONE | Keep the test coverage through `tracker_client` | No lost scenarios. |
+| T4 | DONE | Update docs and add the breaking-change note | `grep` finds no stale instruction. |
 
 ## Commit Points
 
@@ -112,14 +113,14 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - [x] Folder-style spec drafted in `docs/issues/drafts/2758-remove-deprecated-tracker-clients/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Spec-only PR merged into `develop` before implementation
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -131,18 +132,20 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-09 12:12 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the review of PR 2771 (da2ce7 findings F1 to F27 and Copilot's later comments): specs corrected from the code, reproductions recorded where a spec has a bug-fix section.
 - 2026-11-09 12:39 UTC - Claude Code (Claude Sonnet 5.5) - Addressed Copilot's latest review of PR 2771: filled the Design and Ownership Review for the child-process work and corrected the pseudo-terminal check in the evidence.
 - 2026-11-09 13:21 UTC - Claude Code (Claude Sonnet 5.5) - Addressed da2ce7's review 5826238636 of PR 2771 on this spec.
+- 2026-11-17 09:08 UTC - Claude Code (Claude Sonnet 5.5) - Implemented T1 to T4 on branch `2765-remove-deprecated-client-bins`. T1 references found: the three `src/bin` files, the doc comments in `clients/{http,udp,checker}/app.rs`, `console/tracker-client/README.md`, `docs/packages.md`, the contract doc, the sccache experiment Containerfile and `src/console/ci/e2e/tracker_checker.rs`; no workflow, `Containerfile` or `Cargo.toml` named them. T2: the three files deleted (the library modules stay: `tracker_client` reuses their checks). T3: `tests/tracker_checker*` already run `tracker_client check`, so nothing moved. T4: README breaking-change note (the repo has no changelog). The e2e helper now runs `tracker_client check` with captured, drained pipes and a 15 minute deadline. Evidence: V1 and V2.
+- 2026-11-17 10:47 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the review of PR 2901 (da2ce7 F1 to F9, Copilot's three comments): the helper builds first under its own deadline, bounds the drain, returns the captured output and has Arrange-Act-Assert tests for the capture, the kill and a descendant that holds the pipes; the migrated examples use `--format text` and `--ip`; the open spec of #2594 names `tracker_client check`; V2 was re-run on the new helper with its harness recorded, V3 records the AC2 search; AC4 stays open until the container job passes; the frontmatter names the real branch and PR; the completion review is recorded below.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `cargo build --workspace --all-targets` passes without the three binaries.
-- [ ] AC2: No document or script tells the reader to run a removed binary.
-- [ ] AC3: `tracker_client check` still passes the tests that covered the checker.
-- [ ] AC4: `src/console/ci/e2e/tracker_checker.rs` launches `tracker_client check` with `TORRUST_CHECKER_CONFIG`, proven by a runner-level run (M2), because the binary name is a runtime string that the workspace build cannot check.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior or workflow changes
+- [x] AC1: `cargo build --workspace --all-targets` passes without the three binaries.
+- [x] AC2: No document or script tells the reader to run a removed binary.
+- [x] AC3: `tracker_client check` still passes the tests that covered the checker.
+- [ ] AC4: `src/console/ci/e2e/tracker_checker.rs` launches `tracker_client check` with `TORRUST_CHECKER_CONFIG`, proven by a runner-level run (M2), because the binary name is a runtime string that the workspace build cannot check. Checked once the container test job of the PR, which runs `e2e_tests_runner`, passes on the final head; the helper-level smoke run (evidence V2) is already done.
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated when behavior or workflow changes
 
 ## Verification Plan
 
@@ -158,8 +161,8 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Unified checker | Run `tracker_client check` against a local tracker as the README documents | Works as before | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | E2E checker launch | Run the e2e runner (or call the helper) after migrating `tracker_checker.rs` and check that it launches `tracker_client check` with `TORRUST_CHECKER_CONFIG` (for example from the logged command line); the interactive-terminal case is verified in issue 2768 once the TTY refusal exists, and this row is only a smoke test | The checker step runs against the unified binary | TODO | `manual-verification-evidence.md` section V2 |
+| M1 | Unified checker | Run `tracker_client check` against a local tracker as the README documents | Works as before | DONE | `manual-verification-evidence.md` section V1 |
+| M2 | E2E checker launch | Run the e2e runner (or call the helper) after migrating `tracker_checker.rs` and check that it launches `tracker_client check` with `TORRUST_CHECKER_CONFIG` (for example from the logged command line); the interactive-terminal case is verified in issue 2768 once the TTY refusal exists, and this row is only a smoke test | The checker step runs against the unified binary | DONE | `manual-verification-evidence.md` section V2 |
 
 Manual verification is mandatory even when automated tests pass. Record actual commands, output and the toolchain that produced each result in `manual-verification-evidence.md` (from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`).
 
@@ -167,10 +170,10 @@ Manual verification is mandatory even when automated tests pass. Record actual c
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1 | TODO |  |
-| AC2 | TODO |  |
-| AC3 | TODO |  |
-| AC4 | TODO |  |
+| AC1 | DONE | `cargo build --workspace --all-targets` finished without the three binaries (progress log). |
+| AC2 | DONE | Evidence V3: the search for an instruction to run a removed binary prints nothing (exit 1); the open spec of #2594 that named `tracker_checker` was updated. |
+| AC3 | DONE | `cargo test -p torrust-tracker-client`: tests in `tests/tracker_checker/` already launch `tracker_client check` and all pass (no scenario lost; the removed binaries had no tests of their own). |
+| AC4 | TODO | Helper builds and launches `cargo run ... --bin tracker_client -- check` with `TORRUST_CHECKER_CONFIG` (unit tests in the helper; smoke M2, evidence V2). The runner-level run is the container test job of the PR; record its result here when it passes. |
 
 ## Risks and Trade-offs
 
@@ -178,8 +181,31 @@ Manual verification is mandatory even when automated tests pass. Record actual c
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
-- If needed, create `implementation-retrospective.md` from `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this directory; otherwise record in the progress log why none was needed.
+- Retrospective: `implementation-retrospective.md` in this directory.
+- Prose-first Arrange-Act-Assert comparison (`write-unit-test`), recorded for every unit test of `src/console/ci/e2e/tracker_checker.rs` at the head of the last review round (each test carries the Arrange, Act and Assert sections in code, and the comparison found the code to state the prose):
+
+| Test | Arrange (prose) | Act (prose) | Assert (prose) | Result of the comparison |
+| ---- | --------------- | ----------- | -------------- | ------------------------ |
+| `it_should_launch_the_unified_tracker_client_check_command` | The expected command line of the checker. | Join the constant argument list. | It equals `run -p torrust-tracker-client --bin tracker_client -- check`. | Code matches; the expected string is independent of production code. |
+| `it_should_build_the_same_binary_before_running_it` | The expected build command line. | Join the build arguments. | It equals `build -p torrust-tracker-client --bin tracker_client`. | Matches. |
+| `it_should_pass_the_configuration_in_the_checker_config_env_var` | A configuration and a script that prints the variable. | Run the child with the configuration. | The captured stdout is the configuration. | Matches; replaced a weaker `is_ok` check. |
+| `it_should_capture_stdout_and_stderr_separately` | A script that writes one word to each stream. | Run it. | Each captured stream holds its own word. | Matches; this is the test that fails if the pipes are inherited (the captured text would be empty). |
+| `it_should_report_a_non_zero_exit_status_as_an_error` | A child that exits with `1`. | Run the command. | The error kind is `Other` (a failed command, not a timeout or a missing program). | Matches; replaced a bare `is_err`. |
+| `it_should_capture_everything_when_the_child_writes_more_than_a_pipe_buffer_to_both_streams` | A child that writes 300000 bytes to each stream, more than a pipe buffer. | Run it. | Both streams are captured whole. | Matches; replaced an `is_ok` check, and also fails if the capture is lost. |
+| `it_should_kill_the_child_and_return_promptly_when_the_deadline_expires` | A child that sleeps 60 s and a 300 ms deadline. | Run it. | A `TimedOut` error in under 20 s: without the kill the wait takes the 60 s. | Matches; the elapsed bound pins the kill. |
+| `it_should_not_wait_for_a_descendant_that_keeps_the_pipes_open` | A hung child whose descendant holds both pipes for 8 s, a 300 ms deadline and a 500 ms grace. | Run it. | `TimedOut` in under 5 s. | Matches. |
+| `it_should_keep_the_output_read_before_a_descendant_held_the_pipe_open` | A child that prints a line and exits while a descendant keeps stdout open. | Run it with a 500 ms grace. | The line is captured and the call returns in under 5 s. | Matches. |
+| `it_should_return_the_output_written_before_the_deadline_expired` | A child that writes a line to each stream and then hangs, with a 500 ms deadline. | Run it. | The error is `TimedOut` and both captured streams hold their line. | Matches. |
+| `it_should_keep_the_chunks_already_queued_when_the_drain_window_ended` | A chunk read and queued, and a drain window that ended a second ago. | Collect. | The chunk is returned (what was read before the end is kept). | Matches. |
+| `it_should_cut_the_output_at_the_byte_cap_even_when_more_is_queued` | More than the byte cap queued and an ended window. | Collect. | The result has exactly the cap's length. | Matches. |
+| `it_should_queue_at_most_the_byte_cap_from_a_pipe_that_writes_more` | A pipe that holds more than the byte cap. | Read it with the reader thread. | The channel closes (the reader read everything) and the queued bytes equal the cap. | Matches. |
+| `it_should_stop_reading_a_pipe_past_the_cap_when_the_receiver_is_gone` | A pipe that never ends, read by the reader thread until it is well past the byte cap. | Drop the receiver. | The reader ends: the count of bytes it reads stops growing. | Matches; with the probe removed the count keeps growing and the test fails. |
+| `it_should_retry_a_read_interrupted_by_a_signal_instead_of_ending_the_stream` | A pipe whose first read is interrupted and then returns data. | Collect through the reader thread. | The data is collected (the interrupted read is retried). | Matches; without the retry the collected text is empty. |
+| `it_should_cut_the_log_excerpt_on_a_character_boundary` | A string with a three-byte character that straddles the limit. | Take the excerpt. | The excerpt stops before the character. | Matches. |
+| `it_should_keep_the_whole_content_when_it_is_within_the_log_limit` | A string shorter than the limit. | Take the excerpt. | It is returned whole. | Matches. |
+| `it_should_keep_the_output_of_the_second_pipe_when_the_first_one_uses_the_whole_window` | A child that writes to both pipes and exits while a descendant holds them open, with a 500 ms window. | Run it. | Both streams hold their text. | Matches. |
+| `it_should_share_one_drain_window_between_both_pipes` | A child that exits while a descendant holds both pipes for 8 s, with a 3 s window. | Run it. | The call returns in under 5 s (one window is about 3.1 s, two would be about 6.1 s). | Matches. |
+| `it_should_fail_when_the_program_cannot_be_launched` | A program that does not exist. | Run it. | The error kind is `NotFound`. | Matches; replaced a bare `is_err`. |
 
 ## References
 

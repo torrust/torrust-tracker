@@ -15,7 +15,7 @@ There are currently three console clients available:
 - [Tracker CLI I/O Contract](docs/contracts/tracker-cli-io-contract.md)
 - [Tracker Client ADRs](docs/adrs/README.md)
 
-> **Notice**: The separate `udp_tracker_client` and `http_tracker_client` binaries are deprecated. Use the unified `tracker_client` binary with the `udp` and `http` subcommands instead.
+> **Breaking change**: The separate `udp_tracker_client`, `http_tracker_client` and `tracker_checker` binaries were removed (issue #2765). Use the unified `tracker_client` binary with the `udp`, `http` and `check` subcommands instead.
 
 ## UDP Client
 
@@ -109,7 +109,7 @@ TORRUST_CHECKER_CONFIG='{
      "udp_trackers": ["127.0.0.1:6969"],
      "http_trackers": ["http://127.0.0.1:7070"],
      "health_checks": ["http://127.0.0.1:1212/api/health_check"]
- }' cargo run --bin tracker_checker
+ }' cargo run --bin tracker_client -- check --format text
 ```
 
 Output:
