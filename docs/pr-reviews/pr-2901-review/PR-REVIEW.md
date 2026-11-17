@@ -70,7 +70,7 @@ Round 1, on the head that carries the commit `docs(issues): [#2765] record the i
 | F25 | review-finding:pr-2901-f25 | Copilot | Minor (inferred) | documentation | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F26 | review-finding:pr-2901-f26 | Copilot | Minor (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F27 | review-finding:pr-2901-f27 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
-| F28 | review-finding:pr-2901-f28 | Human | Nit | testing | ORIGINAL | NO_ACTION | RESOLVED |
+| F28 | review-finding:pr-2901-f28 | Human | Nit | testing | ORIGINAL | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
