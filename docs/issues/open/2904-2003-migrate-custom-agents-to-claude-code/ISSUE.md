@@ -466,13 +466,13 @@ All settled with the maintainer between 2026-11-15 and 2026-11-17. Each answer i
 - **Q4 - Settled by D7 and D8.** The skills moved to a flat `.claude/skills/` with an index in
   issue #2866. Its index records that Claude Code never lists a skill one folder deeper. The
   context cost of the 53 descriptions is handled by issue #2873.
-- **Q11 - Settled by D18.** One JSON reply file per reply, validated against a schema.
-- **Q10 - Settled by D17.** `task-reviewer` gets a stop hook that requires its report.
 - **Q5 - Settled by D12.** One item in `review-task` now; a follow-up issue for the Clippy lints.
 - **Q6 - Settled by D13.** The handler and both reviewers are pinned to Opus 5.5; the rest inherit.
 - **Q7 - Settled by D14.** The implementer commits; no `committer` agent for now.
 - **Q8 - Settled by D15.** The Copilot setup workflow stays.
 - **Q9 - Settled by D16.** One issue, in small pull requests that merge independently.
+- **Q10 - Settled by D17.** `task-reviewer` gets a stop hook that requires its report.
+- **Q11 - Settled by D18.** One JSON reply file per reply, validated against a schema.
 
 ## Implementation Plan
 
@@ -559,7 +559,6 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 
 ## Acceptance Criteria
 
-- [ ] AC12: The root `CLAUDE.md` contains only the import of `AGENTS.md`.
 - [ ] AC1: `.claude/agents/` contains the agreed agents, and each loads in Claude Code with no
       ignored frontmatter key.
 - [ ] AC2: `pr-review-handler` declares its model in its frontmatter, and a recorded run shows it
@@ -578,12 +577,13 @@ a Conventional Commit message with the narrow affected scope, and sign every com
       agent files.
 - [ ] AC8: The ADR for D1 and D2 exists at the agreed location, and the governance ADR's inventory
       and review record describe the new adapters.
+- [ ] AC9: The review rounds of the first three pull requests handled by `pr-review-handler` are
+      recorded next to the baseline of pull request #2851: 14 rounds, with its split by model.
 - [ ] AC10: Every agent started in scenarios M5 and M7 has its reply file in `agent-replies/`, each
       file passes the validator, and a reader can follow the sequence from the files alone.
 - [ ] AC11: The stop hook of `task-reviewer` refuses to let it finish without a valid reply file,
       and stops refusing after its bounded number of attempts.
-- [ ] AC9: The review rounds of the first three pull requests handled by `pr-review-handler` are
-      recorded next to the baseline of pull request #2851: 14 rounds, with its split by model.
+- [ ] AC12: The root `CLAUDE.md` contains only the import of `AGENTS.md`.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -613,8 +613,8 @@ Every scenario records the Claude Code version it ran on.
 | M3  | A real review round | On an open pull request with a submitted review, let the session that owns it delegate the round to `pr-review-handler` | Fixes committed and pushed, every thread replied to and then resolved, the audit record updated, `validate-audit-record.py` exits `0`, a short report returned | TODO | `manual-verification-evidence.md` section V3 |
 | M4  | `AGENTS.md` reaches the agents | In a checkout with a `CLAUDE.md` in a parent folder, and in one without, ask the session and one started agent which repository rules they were given | Both the session and the started agent received `AGENTS.md` in both cases; `CLAUDE.md` contains only the import | TODO | `manual-verification-evidence.md` section V4 |
 | M5  | The orchestrator leads | Start a session as the orchestrator on a small real task, once with `claude --agent orchestrator` and once by telling a normal session to read the file and take the role | It starts the implementer, then the task reviewer; each writes a valid reply file in `agent-replies/`; the implementer starts no agent; questions come back to the contributor through the orchestrator | TODO | `manual-verification-evidence.md` section V5 |
-| M7  | The stop hook holds the reviewer | Start `task-reviewer` on a task, first with an instruction that makes it try to finish without a reply file, then normally | The hook refuses the first attempt and names what is missing; the agent then writes a valid reply file and finishes; the bounded limit is shown by a forced case | TODO | `manual-verification-evidence.md` section V7 |
 | M6  | Review rounds per pull request | For the first three pull requests handled by `pr-review-handler`, count the review rounds with fixes | The counts are recorded with the model of each round, next to the baseline of pull request #2851 (14 rounds, split by model) | TODO | `manual-verification-evidence.md` section V6 |
+| M7  | The stop hook holds the reviewer | Start `task-reviewer` on a task, first with an instruction that makes it try to finish without a reply file, then normally | The hook refuses the first attempt and names what is missing; the agent then writes a valid reply file and finishes; the bounded limit is shown by a forced case | TODO | `manual-verification-evidence.md` section V7 |
 
 Notes:
 
@@ -656,7 +656,8 @@ None planned.
   in `process-pr-review` apply.
 - **JSON is harder to read in a pull request.** Long findings read worse than in Markdown.
   Accepted for the validation it allows; the `summary` field keeps the first read short.
-- **Many small pull requests.** About ten pull requests, each with its own review rounds.
+- **Many small pull requests.** Twelve pull requests, eleven after the specification's, each with
+  its own review rounds.
   Accepted (D16): small pull requests are easier to review and never depend on unmerged work.
 - **Three samples say little.** Three pull requests cannot prove that the pinned model lowers the
   round count; pull requests differ in size and reviewers. The measurement records the counts and
