@@ -2,13 +2,14 @@
 doc-type: coverage-evidence
 issue: 2902
 package: torrust-tracker-core
-measured-commit: 5833cdae9
+measured-commit: 5833cdae98c0cfe3c2523c7f17e33bcfd3d7292f
 measured-utc: 2026-11-17
 ---
 
 # Coverage Evidence - `torrust-tracker-core`
 
 Baseline for the sub-issue spec of #2902. Measured on 2026-11-17 at `develop` commit `5833cdae9`
+(full SHA `5833cdae98c0cfe3c2523c7f17e33bcfd3d7292f`)
 (`Merge torrust/torrust-tracker#2900: chore(issues): [#2873] archive the closed spec and mark it DONE in EPIC #2003`),
 with `cargo-llvm-cov 0.6.16` and stable Rust 1.99.1, from a clean workspace and a separate
 `CARGO_LLVM_COV_TARGET_DIR`. Every figure is filtered to `packages/tracker-core/src/` (62 files, 51 with executable lines). The
@@ -26,7 +27,8 @@ cargo llvm-cov clean --workspace
 cargo llvm-cov -p torrust-tracker-core --lib --json --output-path .tmp/cov/unit-default.json
 ```
 
-The container-gated row (T1b) was measured afterwards on the S0 branch at `690cfb5f5`, whose
+The container-gated row (T1b) was measured afterwards on the S0 branch at `690cfb5f5`
+(`690cfb5f5d2dbd061fdfe47a9353be608544966a`), whose
 `packages/` tree is identical to `5833cdae9` (`git diff --stat 5833cdae9 690cfb5f5 -- packages` prints
 nothing), after `docker pull mysql:8.0` and `docker pull postgres:16` (the tests' default tags,
 `mysql/mod.rs:115` and `postgres/mod.rs:102`), with the same separate target directory:
