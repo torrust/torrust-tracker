@@ -6,7 +6,7 @@ epic: null
 github-issue: 2003
 spec-path: docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-17 12:14"
+last-updated-utc: "2026-11-17 16:07"
 semantic-links:
   skill-links:
     - create-issue
@@ -139,7 +139,7 @@ Workflows and hooks can themselves be **composite guardrails** when they orchest
 - Changing the CI/CD provider, release process, or the external `torrust-linting` project.
 - Treating every agent instruction as suitable for deterministic enforcement.
 - Shutdown and runtime task-ownership work. Issue #1586 belongs with shutdown EPIC #1488 and is unrelated to repository automation or agent guardrails.
-- Selecting, requiring, or routing work to a named model or vendor for any review or implementation role.
+- Selecting, requiring, or routing work to a named model or vendor for any review or implementation role. The one approved exception is issue #2904; see Decisions Recorded on This EPIC.
 
 ## Known Existing Issues
 
@@ -301,6 +301,7 @@ These are proposed planning subissues; none has been created. Titles and boundar
   - Where a product decision lives is settled by the prose-tests ADR that [`docs/issues/drafts/2003-adopt-prose-tests-as-executable-specification/ISSUE.md`](../../drafts/2003-adopt-prose-tests-as-executable-specification/ISSUE.md) drafts. Until that ADR is accepted, both homes are in use: Rustdoc beside the tests that specify the rule, and an ADR. The decision log and impact maps stay deferred until then, and a capability's goal lives in its EPIC's Goal section.
   - One issue template, with optional and conditional sections marked and no short form, because a second form is another copy to keep in step. The work is this EPIC's planning-template follow-up, not #2278's; the register tracks it as `issue-template-checkpoint-optionality-unmarked` and `create-issue-init-list-omits-conditional-sections`.
 - **The issue body is a short pointer, not a mirror (2026-11-16, maintainer, [PR #2887](https://github.com/torrust/torrust-tracker/pull/2887)).** The maintainer decided it in a working session with the EPIC coordinator session, not in a GitHub comment; the pull request that carries this entry, which he merges, is its record on GitHub. The mirror rule asked for the body to be re-derived on every change to this file. It was not followed: on 2026-11-16 the body was about 75,000 characters, had 15 of this file's 22 ordered subissue rows and still named the GitHub user da2ce7, whose ownership ended on 2026-11-06, as the EPIC owner. The rule is replaced: the body must hold only stable content, as Issue Body Pointer states, and this file stays the EPIC's record. Replacing the stale body is a separate edit by the maintainer; the change that records this decision does not make it.
+- **Named models in #2904 (2026-11-17, maintainer, [PR #2905](https://github.com/torrust/torrust-tracker/pull/2905)).** Issue #2904 is an approved exception to the Out of Scope item about named models. Its decisions D4 and D13 set Opus 5.5 as the minimum for the role that addresses pull-request reviews and pin three review agents to that model's full ID, so its review-rounds measurement is against one known model; its other agents inherit the session's model. The maintainer settled both in the design session of that issue, not in a GitHub comment; the pull request that carries this entry, which he merges, is its record on GitHub. The exclusion holds for every other subissue.
 
 ## Friction Register
 
