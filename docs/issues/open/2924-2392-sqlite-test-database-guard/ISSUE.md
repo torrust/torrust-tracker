@@ -9,7 +9,7 @@ github-issue: 2924
 spec-path: docs/issues/open/2924-2392-sqlite-test-database-guard/ISSUE.md
 branch: "2392-split-test-temp-files-spec"
 related-pr: null
-last-updated-utc: "2026-11-17 21:35"
+last-updated-utc: "2026-11-17 22:11"
 semantic-links:
   skill-links:
     - create-issue
@@ -203,8 +203,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [ ] AC1: `torrust-tracker-test-helpers` has a guard type and a factory that returns a
   configuration with SQLite persistence together with its guard.
 - [ ] AC2: Unit tests prove the database directory is removed when the guard is dropped.
-- [ ] AC3: No file outside the test helpers calls `ephemeral_sqlite_database()` directly, except
-  through the existing `ephemeral*()` functions.
+- [ ] AC3: No code outside `torrust-tracker-test-helpers` calls `ephemeral_sqlite_database()`.
+  Inside it, only the existing `ephemeral*()` functions call it, until #2925 removes it.
 - [ ] AC4: The existing `ephemeral*()` functions keep their signatures, so no other package
   changes.
 - [ ] `linter all` exits with code `0`
@@ -223,7 +223,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | V1 | Reproduce | `TMPDIR=$(mktemp -d) cargo +stable test -p torrust-tracker-http-core --all-targets --all-features`, then count the `data_*.db` files | Leaked files counted | TODO | `manual-verification-evidence.md` |
-| V2 | Recheck | Same command after the change | Only files from `ephemeral*()` callers remain, counted and listed by test | TODO | `manual-verification-evidence.md` |
+| V2 | Recheck | Same command after the change | Only `data_*.db` files created through the `ephemeral*()` configurations remain, counted and listed by test | TODO | `manual-verification-evidence.md` |
 
 Evidence policy: every recorded command result names the toolchain that produced it, and the
 evidence file is created from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`.
