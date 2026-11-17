@@ -48,6 +48,9 @@ overview with no inline comment and no request (its full review timed out), so i
 Round 2 is da2ce7's review `5944598265` (18:50:32 UTC, approval) of the head whose last commit is
 `docs(pr-reviews): [#2902] record the first review round of #2923`; its one inline finding keeps the
 reviewer's ID F6. (The reviewer's IDs skip F5, which is the spec's own register finding.)
+Round 3 is da2ce7's review `5944756705` (19:02:10 UTC, approval) of the head whose last commit is
+`docs(pr-reviews): [#2902] record the second review round of #2923`; its one optional inline finding
+keeps the reviewer's ID F7.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -56,6 +59,7 @@ reviewer's ID F6. (The reviewer's IDs skip F5, which is the spec's own register 
 | F3 | review-finding:pr-2923-f3 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F4 | review-finding:pr-2923-f4 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-2923-f6 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-2923-f7 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -124,11 +128,25 @@ reviewer's ID F6. (The reviewer's IDs skip F5, which is the spec's own register 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2923#discussion_r4604248385
 
+### F7 - The F5 row gave the split a reason that postdates it
+
+- PR number: 2923
+- Source review ID: 5944756705
+- Reviewer finding ID: F7
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2923#discussion_r4604348283
+- Concern: The F6 fix made #2924 and #2925 the reason for the split, but both were opened after it; the reason was #2907's plan.
+- Solution: The F5 row says the split happened because #2907 planned the shared fix, which #2924 and #2925 now take.
+- Current-tree verification: `grep -n "because #2907 planned the shared fix" docs/issues/open/2902-1347-add-tests-tracker-core/ISSUE.md` shows the F5 row.
+- Resolution reference: docs(issues): [#2902] give the F5 split its original reason
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2923#discussion_r4604374966
+
 ## Processing Log
 
 - 2026-11-17 18:31 UTC - The review poller reported both round 1 reviews; all four findings verified against the tree.
 - 2026-11-17 18:34 UTC - Fixed each finding in its own commit; replied to the four threads up to 18:34:50 UTC, before pushing the fixes and this record together; the threads are resolved after the push.
 - 2026-11-17 18:53 UTC - Round 2 (approval with F6): fixed in its own commit and in the description; replied at 18:53:09 UTC, before pushing the fix and this record together; the thread is resolved after the push.
+- 2026-11-17 19:04 UTC - Round 3 (approval with the optional F7): fixed in its own commit; replied at 19:04:41 UTC, before pushing the fix and this record together; the thread is resolved after the push.
 
 ## Completion Rules
 
