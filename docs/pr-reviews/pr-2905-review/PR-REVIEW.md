@@ -1,7 +1,7 @@
 ---
 pr-number: 2905
 pr-url: https://github.com/torrust/torrust-tracker/pull/2905
-last-updated-utc: "2026-11-17 15:25"
+last-updated-utc: "2026-11-17 16:14"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -59,6 +59,9 @@ that carried the round 4 audit. Its comments carry `[Major]` and `[Minor]` brack
 Round 6 is two reviews of `da2ce7`, one finding each: `5939681382` (DISMISSED, F15, audit-local ID; the reviewer's own
 F13 collides with the audit's F13), on the head that carried the round 4 audit, and the approving review `5939862849`
 (F16, audit-local ID; the reviewer's own F14 collides with the audit's F14), on the head that carried the round 5 fixes.
+Round 7 is Copilot's review `5941597022` (COMMENTED, F17 and F18, reviewer-provided IDs, which do not collide; its
+comments carry `[Minor]` brackets, which are used) and the approving review `5941484820` of `da2ce7` (F19, audit-local
+ID; the reviewer's own F15 collides with the audit's F15), both on the head that carried the round 6 audit.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -79,6 +82,9 @@ F13 collides with the audit's F13), on the head that carried the round 4 audit, 
 | CC1 | `review-finding:pr-2905-cc1` | Copilot | Minor | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F15 | `review-finding:pr-2905-f15` | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 | F16 | `review-finding:pr-2905-f16` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F17 | `review-finding:pr-2905-f17` | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F18 | `review-finding:pr-2905-f18` | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F19 | `review-finding:pr-2905-f19` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -303,6 +309,45 @@ F13 collides with the audit's F13), on the head that carried the round 4 audit, 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2905#discussion_r4601684277
 
+### F17 - Exempt M7's deliberate missing-reply run from AC10
+
+- PR number: 2905
+- Source review ID: 5941597022
+- Reviewer finding ID: F17
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2905#discussion_r4601921916
+- Concern: Scenario M7 includes a forced case that uses up the 3 refusals of the stop hook. D17 says that case ends without a valid reply file, but AC10 required a valid file for every agent started in M7, so a correct escape path could not satisfy it.
+- Solution: AC10 exempts the forced run of M7 that uses up the 3 refusals and names its evidence: the 3 refusals and the allowed fourth attempt recorded in `manual-verification-evidence.md` section V7. Every other agent started in M5 and M7 still needs a valid reply file.
+- Current-tree verification: Read D17, AC10, AC11 and the M7 row after the change; they agree. `linter markdown` and `linter cspell` passed.
+- Resolution reference: `docs(issues): [#2904] exempt the forced run of M7 from AC10`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2905#discussion_r4602315071
+
+### F18 - Reconcile the new subissue with the EPIC's model-selection exclusion
+
+- PR number: 2905
+- Source review ID: 5941597022
+- Reviewer finding ID: F18
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2905#discussion_r4601921825
+- Concern: The EPIC's row 23 approves issue 2904, whose D4 and D13 require named models for the review roles, while the EPIC's Out of Scope list excludes selecting, requiring or routing work to a named model for any review or implementation role.
+- Solution: The EPIC has a new entry under "Decisions Recorded on This EPIC" that records issue 2904 as the one approved exception, with what D4 and D13 pin and why, and the Out of Scope item points to it. The maintainer settled D4 and D13 in the design session of issue 2904 and chose to fix this finding in this pull request. The child specification is unchanged on this point.
+- Current-tree verification: `grep -n "named model" docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md` shows the Out of Scope item with its pointer and the new decision entry. Read D4 and D13 of the specification: the entry states them as written. `linter markdown` and `linter cspell` passed.
+- Resolution reference: `docs(issues): [#2904] record the named models of issue 2904 as an EPIC exception`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2905#discussion_r4602314436
+
+### F19 - Round 6 was replied to and resolved before its fixes were pushed
+
+- PR number: 2905
+- Source review ID: 5941484820
+- Reviewer finding ID: F15
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2905#discussion_r4601834291
+- Concern: In round 6 the two replies were posted and the two threads resolved before the push that carried the fix and the audit commits, and one reply said "Both are pushed" about four minutes before they were. `resolve-review-threads` resolves a thread once its fix is pushed, and `process-pr-review` says to state only what ran. The reviewer says the record states the order truthfully and the bytes need no change; the order is the finding.
+- Solution: Acknowledged in the reply; no file needed a change beyond this row. Round 7 follows the order: the fixes were pushed first, the replies posted after `git ls-remote` showed the fork branch at the local head, and the threads resolved after that.
+- Current-tree verification: The round 6 entries of the processing log give the reply times (15:24:09Z, 15:24:12Z) and say the replies came before the push. The round 7 entry gives the push before the replies.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2905#discussion_r4601867922
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2905#discussion_r4601867922
+
 ## Processing Log
 
 - 2026-11-17 12:58 UTC - Started audit, after the seven replies, because it holds their URLs. Review `5938631990` of `da2ce7` was submitted at 12:45:09Z (forge `submitted_at`) with seven findings, F1 to F7. The seven fixes and a plan and log follow-up were committed between 12:48:39Z and 12:55:23Z (`git log --format=%cI`, in UTC), one commit per finding, and pushed; `git ls-remote` showed the fork branch at the local head before the replies. The seven replies were posted between 12:57:58Z and 12:58:14Z (forge `created_at`). The body of issue 2904 was edited for F5 before the replies.
@@ -319,6 +364,9 @@ F13 collides with the audit's F13), on the head that carried the round 4 audit, 
 - 2026-11-17 15:24 UTC - The contributor (maintainer of the repository) answered the round-limit question with "Push before merge": fix the nit as round 6 and push it with the audit commits, although `josecelano` (15:20:48Z) and `da2ce7` (14:04:11Z) had posted `ACK` for the head that carried the round 5 fixes (forge `created_at`); the push moves the head past those comments.
 - 2026-11-17 15:24 UTC - Round 6: the reviews `5939681382` (submitted 13:52:17Z) and `5939862849` (submitted 14:04:07Z, forge `submitted_at`) of `da2ce7`, one finding each, recorded as F15 and F16. The fix for F15 was committed at 15:23:34Z (`git log --format=%cI`, in UTC). The two replies were posted at 15:24:09Z and 15:24:12Z (forge `created_at`), before the push, so that the fix and both audit commits reach the pull request as one new head.
 - 2026-11-17 15:25 UTC - `validate-audit-record.py --pr-number 2905 --base torrust/develop`, with its `gh` calls made through `gh-bot`, exited 0 (17 rows, 0 failures). The only unresolved threads were the two of round 6, each with the contributor's reply as its last comment. Resolved them by their thread IDs; a GraphQL refresh showed 0 unresolved threads.
+- 2026-11-17 16:12 UTC - The contributor (maintainer of the repository) answered the round-limit question for Copilot's review `5941597022` with "Fix as round 7", although `josecelano` (15:33:57Z) and `da2ce7` (15:35:36Z) had posted `ACK` for the head that carried the round 6 audit (forge `created_at`); the push moves the head past those comments.
+- 2026-11-17 16:12 UTC - Round 7: Copilot's review `5941597022` (submitted 15:42:17Z, forge `submitted_at`) with two findings, F17 and F18, and the approving review `5941484820` of `da2ce7` with one finding about the order of round 6, recorded as F19. The reply to F19 was posted at 15:38:07Z (forge `created_at`) with no commit, and its thread was left unresolved until this row existed. The two fixes for F17 and F18 were committed at 16:08:15Z and 16:08:48Z (`git log --format=%cI`, in UTC) and pushed; `git ls-remote` showed the fork branch at the local head at 16:11:45Z (`date -u`). The two replies were posted after that, at 16:12:04Z and 16:12:06Z (forge `created_at`).
+- 2026-11-17 16:14 UTC - `validate-audit-record.py --pr-number 2905 --base torrust/develop`, with its `gh` calls made through `gh-bot`, exited 0 (20 rows, 0 failures). The unresolved threads were the three of round 7, each with the contributor's reply as its last comment. Resolved the two threads of F17 and F18 by their thread IDs, their fixes being on the pull request; a GraphQL refresh showed 1 unresolved thread, the one of F19. Its row records `RESOLVED` as the state it takes once this record is pushed: it is not resolved at the time of this entry, and is resolved by its thread ID after the push.
 
 <!-- Copied verbatim into each audit record. -->
 
