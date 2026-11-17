@@ -1,7 +1,7 @@
 ---
 pr-number: 2905
 pr-url: https://github.com/torrust/torrust-tracker/pull/2905
-last-updated-utc: "2026-11-17 13:23"
+last-updated-utc: "2026-11-17 13:39"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -52,6 +52,8 @@ start before the timeout.
 Round 3 is the review `5939071001` of `da2ce7` (DISMISSED, F10 to F12, audit-local IDs; the reviewer's own F8 and F9
 collide with the audit's F8 and F9, and its F10 follows them, so all three are recorded as the original), on the head
 that carried the round 1 audit.
+Round 4 is the approving review `5939415019` of `da2ce7` (F13, audit-local ID; the reviewer's own F11 collides with the
+audit's F11 and is recorded as the original), on the head that carried the round 3 audit.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -67,6 +69,7 @@ that carried the round 1 audit.
 | F10 | `review-finding:pr-2905-f10` | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 | F11 | `review-finding:pr-2905-f11` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F12 | `review-finding:pr-2905-f12` | Human | Nit | testing | ORIGINAL | FIXED | RESOLVED |
+| F13 | `review-finding:pr-2905-f13` | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -226,6 +229,19 @@ that carried the round 1 audit.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2905#discussion_r4600156740
 
+### F13 - The transition rule contradicts the stop hook's exemption in D17
+
+- PR number: 2905
+- Source review ID: 5939415019
+- Reviewer finding ID: F11
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2905#discussion_r4600284617
+- Concern: The rule added for F9 kept `agent-review-reports.md` for the reviews of this issue's own work until it closes. D17 exempts the stop hook only when the reviewer was given no folder-style specification, and this specification is folder-style, so after T5 a `task-reviewer` run on T6 to T12 would be held until it wrote a reply file here.
+- Solution: D18 keys the switch to the merge of T5, not to the template a specification came from: from that merge a `task-reviewer` run on any folder-style specification writes a reply file and no entry in `agent-review-reports.md`, so the hook needs no exemption. For this issue that is `agent-review-reports.md` for T2 to T5 and reply files for T6 to T12. T5 states in `review-task` that a reply file satisfies the earlier template's checkpoint. This replaces the rule recorded under F9.
+- Current-tree verification: Read D17, D18, the T5 row, the checkpoint line and the last bullet of Implementation Completion Review in the specification after the change; none keeps `agent-review-reports.md` for a review made after T5. `grep -n "specifications created after"` on the specification prints nothing. `linter markdown` and `linter cspell` passed.
+- Resolution reference: `docs(issues): [#2904] key the switch to reply files to the merge of T5`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2905#discussion_r4600337329
+
 ## Processing Log
 
 - 2026-11-17 12:58 UTC - Started audit, after the seven replies, because it holds their URLs. Review `5938631990` of `da2ce7` was submitted at 12:45:09Z (forge `submitted_at`) with seven findings, F1 to F7. The seven fixes and a plan and log follow-up were committed between 12:48:39Z and 12:55:23Z (`git log --format=%cI`, in UTC), one commit per finding, and pushed; `git ls-remote` showed the fork branch at the local head before the replies. The seven replies were posted between 12:57:58Z and 12:58:14Z (forge `created_at`). The body of issue 2904 was edited for F5 before the replies.
@@ -235,6 +251,8 @@ that carried the round 1 audit.
 - 2026-11-17 13:23 UTC - Correction for the entry stamped 13:15: it says the two threads of round 2 were resolved. The call resolved every unresolved thread, five in all: the two of round 2 and the three threads of review `5939071001`, which had been submitted at 13:11:58Z (forge `submitted_at`) and had not been read or answered. The three were reopened by 13:16:45Z (`date -u` after the call). This repeats the mistake recorded in round 8 of the audit of pull request 2851; from here on threads are resolved by their IDs, not by a query for unresolved threads.
 - 2026-11-17 13:23 UTC - Round 3: review `5939071001` of `da2ce7` with three nits, recorded as F10 to F12. The three fixes were committed between 13:17:23Z and 13:18:56Z (`git log --format=%cI`, in UTC) and pushed with the round 2 audit commit; `git ls-remote` showed the fork branch at the local head before the replies. The three replies were posted between 13:22:34Z and 13:22:40Z (forge `created_at`).
 - 2026-11-17 13:23 UTC - `validate-audit-record.py --pr-number 2905 --base torrust/develop`, with its `gh` calls made through `gh-bot`, exited 0 (12 rows, 0 failures). Before resolving, the only unresolved threads were the three of round 3, each with the contributor's reply as its last comment. Resolved those three by their thread IDs; a GraphQL refresh showed 0 unresolved threads.
+- 2026-11-17 13:39 UTC - Round 4: the approving review `5939415019` of `da2ce7` (submitted 13:34:02Z, forge `submitted_at`) with one finding, recorded as F13. The fix was committed at 13:36:02Z (`git log --format=%cI`, in UTC) and pushed; `git ls-remote` showed the fork branch at the local head before the reply. The reply was posted at 13:38:44Z (forge `created_at`). The reviewer's `ACK` comments name the heads before this fix.
+- 2026-11-17 13:39 UTC - `validate-audit-record.py --pr-number 2905 --base torrust/develop`, with its `gh` calls made through `gh-bot`, exited 0 (13 rows, 0 failures). The only unresolved thread was the one of F13. Resolved it by its thread ID; a GraphQL refresh showed 0 unresolved threads.
 
 <!-- Copied verbatim into each audit record. -->
 
