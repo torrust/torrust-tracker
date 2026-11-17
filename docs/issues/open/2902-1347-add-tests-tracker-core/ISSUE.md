@@ -9,7 +9,7 @@ github-issue: 2902
 spec-path: docs/issues/open/2902-1347-add-tests-tracker-core/ISSUE.md
 branch: "2902-1347-add-tests-tracker-core-statistics"
 related-pr: null
-last-updated-utc: "2026-11-17 18:04"
+last-updated-utc: "2026-11-17 22:27"
 semantic-links:
   skill-links:
     - create-issue
@@ -415,6 +415,7 @@ The first slice's record checks the grouping against `find packages/tracker-core
 - 2026-11-17 12:45 UTC - Claude Code (Opus 5.5) - Correction of the 12:16 UTC entry above: its last sentence is wrong as written. The poller I started right after the PR opened (11:05:26 UTC) timed out after its 60-minute wait with no review, but Cameron (`da2ce7`) had submitted a review of `690cfb5f5` with findings F1-F6 at 12:08:23 UTC, before that entry was written, and the six threads had no reply. A second review of `2b0c3fe36` (F7-F10) followed at 12:28:40 UTC. The ten findings are processed in `docs/pr-reviews/pr-2903-review/PR-REVIEW.md` (review finding F7 of #2903).
 - 2026-11-17 16:16 UTC - Claude Code (Opus 5.5) - S0 merged (#2903); the maintainer linked #2902 to #1347 and said to start S1. S1 baseline: no file under `packages/` changed since the measured commit and the unit-only run gives the same 80.31% (4,099 / 5,104 lines). T2 done ([guidance](test-refactor-plans/README.md)). First plan proposed: [`statistics/repository.rs`](test-refactor-plans/statistics-repository-tests.md), which proposes finding F6 (unused public gauge methods) and asks decision D1. Questions Q2-Q7 still wait for the maintainer; Q7 decides the first S1 commit.
 - 2026-11-17 18:04 UTC - Claude Code (Opus 5.5) - F5 fixed for this package in its own PR, split from S1 at the maintainer's request because #2907 (EPIC #2392) plans the same fix for the shared helper: a full `cargo test -p torrust-tracker-core --all-features` leaves 0 `data_*.db` files (72 before). The maintainer approved the shape (a struct with a private `TempDir`, owned by the test), the scope (all six sources in the package) and the completed change. S1 continues on its own branch.
+- 2026-11-17 22:27 UTC - Claude Code (Opus 5.5) - #2923 (the F5 fix) merged into `develop`; the S1 branch was rebuilt on it with only its own commits (the F20 fix of #2903, the S1 guidance, the Q2-Q7 and D1 answers, the repository tests). S1 continues with `statistics/metrics.rs`.
 
 ## Open Design Questions
 
