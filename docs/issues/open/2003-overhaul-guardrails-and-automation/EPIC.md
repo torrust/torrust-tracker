@@ -6,7 +6,7 @@ epic: null
 github-issue: 2003
 spec-path: docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-17 18:19"
+last-updated-utc: "2026-11-17 18:39"
 semantic-links:
   skill-links:
     - create-issue
@@ -459,6 +459,7 @@ For each completed subissue in this EPIC, the default completion policy is:
 - 2026-11-16 16:11 UTC - AI assistant (Claude Code, Claude Fable 5.2, EPIC #2003 coordinator session) - Replaced the Issue Body Mirror rule with Issue Body Pointer: the issue body must hold only stable content and point to this file. The body itself is not edited by this change. The decision has no GitHub comment; its record is [PR #2887](https://github.com/torrust/torrust-tracker/pull/2887). Decided by the maintainer on 2026-11-16.
 - 2026-11-16 17:35 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2866 session) - Marked row 21 (#2866) DONE and pointed it at `docs/issues/closed/`: PR #2886 merged on 2026-11-16 at 17:34 UTC and closed the issue; the spec is archived by the close-out PR.
 - 2026-11-17 12:14 UTC - AI assistant (Claude Code, Claude Fable 5.2, issue #2904 session) - Two entries in one. Late entry for row 22 (#2873), which was marked DONE on 2026-11-17 at 08:58 UTC without a log line: implemented by PR #2893, specification archived by the close-out PR #2900. Added row 23 (#2904, migrate the custom agents to Claude Code and add an explicit orchestrator), approved by the maintainer; linking it as a GitHub sub-issue is pending.
+- 2026-11-17 18:39 UTC - AI assistant (Claude Code, Claude Fable 5.2, issue #2360 session) - Late entry for row 13 (#2360), which was marked `BLOCKED` on 2026-11-17 at 18:19 UTC without a log line: on hold by maintainer decision since 2026-11-17. T1 and T2 are done (outcome: Temporary); T3 waits for a later review of upstream google/zerocopy#3414. Recorded by PR #2922.
 
 ## Acceptance Criteria
 
