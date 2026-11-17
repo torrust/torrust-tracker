@@ -1,7 +1,7 @@
 ---
 pr-number: 2901
 pr-url: https://github.com/torrust/torrust-tracker/pull/2901
-last-updated-utc: "2026-11-17 12:03"
+last-updated-utc: "2026-11-17 12:40"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -63,7 +63,9 @@ Round 1, on the head that carries the commit `docs(issues): [#2765] record the i
 | F18 | review-finding:pr-2901-f18 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F19 | review-finding:pr-2901-f19 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | F20 | review-finding:pr-2901-f20 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
-| F21 | review-finding:pr-2901-f21 | Human | Minor | correctness | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F21 | review-finding:pr-2901-f21 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F22 | review-finding:pr-2901-f22 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F23 | review-finding:pr-2901-f23 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -332,13 +334,40 @@ Round 1, on the head that carries the commit `docs(issues): [#2765] record the i
 - PR number: 2901
 - Source review ID: 5937956316
 - Reviewer finding ID: N/A
-- Source URL: https://github.com/torrust/torrust-tracker/pull/2901#pullrequestreview-5937956316
-- Concern: `mpsc::channel()` for the reader threads is unbounded and `MAX_CAPTURED_BYTES` was applied only in `collect`, after the wait, so a child that writes without end could grow the queue during the wait. A review-body finding without a thread.
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4599222310
+- Concern: `mpsc::channel()` for the reader threads is unbounded and `MAX_CAPTURED_BYTES` was applied only in `collect`, after the wait, so a child that writes without end could grow the queue during the wait. An inline thread (first recorded in this audit as a review-body finding, which was wrong; see the log).
 - Solution: the reader thread queues at most `MAX_CAPTURED_BYTES` and goes on reading and discarding the rest, so memory is bounded and the child never blocks on a full pipe; a bounded channel was not used because the collector runs only after the wait, so a full queue would block the child.
 - Current-tree verification: `cargo test -p torrust-tracker --lib console::ci::e2e::tracker_checker` passes 16 tests, including `it_should_queue_at_most_the_byte_cap_from_a_pipe_that_writes_more`.
 - Resolution reference: `fix(e2e): [#2765] cap the bytes the reader threads queue`
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2901#issuecomment-6947491371
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4599404323
+- Conversation comment (earlier answer): https://github.com/torrust/torrust-tracker/pull/2901#issuecomment-6947491371
+
+### F22 - F21 is an inline thread, not a review-body finding
+
+- PR number: 2901
+- Source review ID: 5938165981
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4599388323
+- Concern: the audit recorded F21 as a review-body finding (review URL, `NON_RESOLVABLE`, a conversation comment as its reply) although it is an inline thread that stayed unresolved without a reply.
+- Solution: replied on the thread and resolved it; the F21 row is now anchored on the discussion with its reply and `RESOLVED`, and the log has an appended correction.
+- Current-tree verification: `validate-audit-record.py --pr-number 2901` with the F21 entry anchored on `r4599222310` returns ok.
+- Resolution reference: `docs(pr-reviews): [#2765] audit review round 6 of PR 2901`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4599680349
+
+### F23 - Past the cap the reader never notices that the receiver is gone
+
+- PR number: 2901
+- Source review ID: 5938165981
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4599388336
+- Concern: past the cap the reader read and discarded without sending, so it could not notice the dropped receiver and a descendant that writes without end kept it busy.
+- Solution: the reader sends an empty chunk once per MiB discarded and ends when the send fails.
+- Current-tree verification: `cargo test -p torrust-tracker --lib console::ci::e2e::tracker_checker` passes 17 tests, including `it_should_stop_reading_a_pipe_past_the_cap_when_the_receiver_is_gone`; with the probe removed that test failed (47 GB read after the drop; mutation run, reverted).
+- Resolution reference: `fix(e2e): [#2765] end the reader thread when the receiver is gone past the cap`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4599679621
 
 ## Processing Log
 
@@ -355,6 +384,8 @@ Round 1, on the head that carries the commit `docs(issues): [#2765] record the i
 - 2026-11-17 11:45 UTC - Fixed in two commits, replied on the five threads and on the Copilot thread of F15 (a follow-up reply, because the fix changed what that reply said), resolved the three that were open. Correction to F15: its Solution and Verification name two tests, one of which (the `yes` descendant test) was removed in this round and the behaviour that test guarded was changed (queued chunks are kept up to a cap).
 - 2026-11-17 11:57 UTC - Round 5: da2ce7 review 5937956316 (APPROVED, submitted 11:57:15) with one review-body finding, F21 (Minor); it has no thread, so the reply is a PR conversation comment.
 - 2026-11-17 12:03 UTC - Fixed in one commit and replied on the conversation. This is fix round 5 of 5.
+- 2026-11-17 12:14 UTC - Round 6: da2ce7 review 5938165981 (COMMENTED, submitted 12:13:59) with F22 (Minor) and F23 (Nit), after the five fix rounds; the maintainer allowed a sixth round.
+- 2026-11-17 12:40 UTC - Fixed F23 in code, replied on both threads and on r4599222310 and resolved them. Correction to the 11:57 entry: F21 was an inline thread (r4599222310), not a review-body finding; its row is now discussion-anchored. Two batch resolutions earlier (rounds 3 and 6) resolved threads before they were replied to; both were reopened or answered afterwards.
 
 ## Completion Rules
 
