@@ -1,7 +1,7 @@
 ---
 pr-number: 2926
 pr-url: https://github.com/torrust/torrust-tracker/pull/2926
-last-updated-utc: "2026-11-17 22:15"
+last-updated-utc: "2026-11-17 22:40"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -43,7 +43,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1: Copilot review 5946669412 (COMMENTED) with three findings without reviewer IDs, as audit findings F1 to F3. Round 2: Copilot review 5946979677 (COMMENTED, at the round 1 fix head) with two findings without reviewer IDs, as audit findings F4 and F5. Round 3: Copilot review 5947468225 (COMMENTED) with four findings without reviewer IDs, as audit findings F6 to F9.
+Round 1: Copilot review 5946669412 (COMMENTED) with three findings without reviewer IDs, as audit findings F1 to F3. Round 2: Copilot review 5946979677 (COMMENTED, at the round 1 fix head) with two findings without reviewer IDs, as audit findings F4 and F5. Round 3: Copilot review 5947468225 (COMMENTED) with four findings without reviewer IDs, as audit findings F6 to F9. Round 4: Copilot review 5947772095 (COMMENTED, at the round 3 fix head) with one finding without a reviewer ID, as audit finding F10.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -56,6 +56,7 @@ Round 1: Copilot review 5946669412 (COMMENTED) with three findings without revie
 | F7 | review-finding:pr-2926-f7 | Copilot | Minor (inferred) | other | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F8 | review-finding:pr-2926-f8 | Copilot | Nit (inferred) | metadata | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F9 | review-finding:pr-2926-f9 | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-2926-f10 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -176,6 +177,19 @@ Round 1: Copilot review 5946669412 (COMMENTED) with three findings without revie
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4606511762
 
+### F10 - #2925 goal promises an empty directory without #2907
+
+- PR number: 2926
+- Source review ID: 5947772095
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4606714695
+- Concern: The goal of #2925 says a full test run leaves a fresh temporary directory empty after this issue, while the scope, AC5 and V2 make that depend on #2907 also being done.
+- Solution: The goal now says a full test run leaves no SQLite database in a fresh temporary directory, and that the directory is empty once #2907 is also done.
+- Current-tree verification: `grep -n 'with #2907 also done, the' docs/issues/open/2925-*/ISSUE.md` finds the goal.
+- Resolution reference: docs(issues): [#2392] make #2925's goal depend on #2907 for an empty directory
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4606765190
+
 ## Processing Log
 
 - 2026-11-17 21:15 UTC - Round 1: Copilot review 5946669412 with F1 to F3. Committed and pushed the fix (`docs(issues): [#2392] align the order 7 title and widen #2925's SQLite leftover check`), then replied to the three threads (21:14:38Z to 21:14:43Z).
@@ -184,6 +198,9 @@ Round 1: Copilot review 5946669412 (COMMENTED) with three findings without revie
 - 2026-11-17 21:39 UTC - The validator on the worktree record reported 5 rows, 3 log entries, 0 failures. Resolved the F4 and F5 threads (about 21:39:20Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread. Committed these entries.
 - 2026-11-17 22:15 UTC - Round 3: Copilot review 5947468225 with F6 to F9. Replied to F7 and F8 with no change (22:12:42Z and 22:12:45Z). Committed and pushed the fix for F6 and F9 (`docs(issues): [#2392] state #2924's AC3 as one invariant and name what V2 leaves`), then replied to those two threads (22:14:45Z and 22:14:47Z).
 - 2026-11-17 22:15 UTC - The validator on the worktree record reported 9 rows, 5 log entries, 0 failures. Resolved the four round 3 threads (about 22:15:30Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread. Committed these entries.
+- 2026-11-17 22:39 UTC - Round 4: Copilot review 5947772095 (at the round 3 fix head) with F10. Committed and pushed the fix (`docs(issues): [#2392] make #2925's goal depend on #2907 for an empty directory`), then replied to the thread (22:39:47Z).
+- 2026-11-17 22:40 UTC - The validator on the worktree record reported 10 rows, 7 log entries, 0 failures. Resolved the F10 thread (about 22:40:02Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread. Committed these entries.
+
 <!-- Copied verbatim into each audit record. -->
 
 ## Completion Rules
