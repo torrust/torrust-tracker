@@ -165,17 +165,26 @@ fn log_output(stream: &str, content: &str) {
 
 /// Reads the pipe in chunks and sends each one, so whatever was read before a
 /// deadline is kept.
+///
+/// At most `MAX_CAPTURED_BYTES` are queued. The reader goes on reading and
+/// discarding the rest, so the child never blocks on a full pipe and a child
+/// that writes without end cannot grow the memory.
 fn spawn_reader<R: Read + Send + 'static>(mut pipe: R) -> Receiver<Vec<u8>> {
     let (sender, receiver) = mpsc::channel();
 
     thread::spawn(move || {
         let mut buffer = [0_u8; 8192];
+        let mut queued = 0_usize;
         loop {
             match pipe.read(&mut buffer) {
                 Ok(0) | Err(_) => break,
                 Ok(read) => {
-                    if sender.send(buffer[..read].to_vec()).is_err() {
-                        break;
+                    let keep = read.min(MAX_CAPTURED_BYTES.saturating_sub(queued));
+                    if keep > 0 {
+                        queued += keep;
+                        if sender.send(buffer[..keep].to_vec()).is_err() {
+                            break;
+                        }
                     }
                 }
             }
@@ -263,7 +272,7 @@ mod tests {
     use std::io::ErrorKind;
     use std::time::{Duration, Instant};
 
-    use super::{BUILD_ARGS, CHECKER_ARGS, MAX_CAPTURED_BYTES, collect, execute, run_command};
+    use super::{BUILD_ARGS, CHECKER_ARGS, MAX_CAPTURED_BYTES, collect, execute, run_command, spawn_reader};
 
     const GRACE: Duration = Duration::from_secs(5);
 
@@ -409,6 +418,19 @@ mod tests {
 
         // Assert
         assert_eq!(collected.len(), MAX_CAPTURED_BYTES);
+    }
+
+    #[test]
+    fn it_should_queue_at_most_the_byte_cap_from_a_pipe_that_writes_more() {
+        // Arrange: a pipe that holds more than the cap.
+        let pipe = std::io::Cursor::new(vec![b'x'; MAX_CAPTURED_BYTES + 100_000]);
+
+        // Act
+        let receiver = spawn_reader(pipe);
+        let queued: usize = receiver.iter().map(|chunk| chunk.len()).sum();
+
+        // Assert: the reader read it all (the channel closed) but queued only the cap.
+        assert_eq!(queued, MAX_CAPTURED_BYTES);
     }
 
     #[test]
