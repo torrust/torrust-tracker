@@ -52,7 +52,8 @@ pub fn run(config_content: &str) -> io::Result<()> {
 
 /// What a finished child left behind.
 struct Captured {
-    status: ExitStatus,
+    /// The exit status, or the error that ended the wait (for example the deadline).
+    status: io::Result<ExitStatus>,
     stdout: String,
     stderr: String,
 }
@@ -82,21 +83,20 @@ fn run_command(
     log_output("stdout", &captured.stdout);
     log_output("stderr", &captured.stderr);
 
-    if captured.status.success() {
+    let status = captured.status?;
+
+    if status.success() {
         Ok(())
     } else {
-        Err(io::Error::other(format!(
-            "`{program} {}` failed: {}",
-            args.join(" "),
-            captured.status
-        )))
+        Err(io::Error::other(format!("`{program} {}` failed: {status}", args.join(" "))))
     }
 }
 
 /// Spawns the child with piped output, drains both pipes and waits for it.
 ///
 /// The child is always killed (when still running) and reaped before this
-/// returns, on every path including a panic. Both pipes are read on their own
+/// returns, on every path including a panic. The captured output is returned
+/// even when the wait ended with an error (the deadline), so it can be logged. Both pipes are read on their own
 /// threads, so a full pipe cannot block the child, and the draining is bounded
 /// by `reader_grace` after the child ends, so a pipe kept open by something
 /// else cannot hold this function past its deadline.
@@ -129,11 +129,13 @@ fn execute(
 
     let wait_result = wait_with_deadline(&mut child.0, deadline);
 
-    let stdout = collect(stdout, reader_grace);
-    let stderr = collect(stderr, reader_grace);
+    // One window for both pipes: the drain after the child ends is bounded by `reader_grace`.
+    let end = Instant::now() + reader_grace;
+    let stdout = collect(stdout, end);
+    let stderr = collect(stderr, end);
 
     Ok(Captured {
-        status: wait_result?,
+        status: wait_result,
         stdout,
         stderr,
     })
@@ -179,13 +181,12 @@ fn spawn_reader<R: Read + Send + 'static>(mut pipe: R) -> Receiver<Vec<u8>> {
     receiver
 }
 
-/// Collects the chunks until the pipe closes or `grace` has passed.
-fn collect(receiver: Option<Receiver<Vec<u8>>>, grace: Duration) -> String {
+/// Collects the chunks until the pipe closes or the `end` instant has passed.
+fn collect(receiver: Option<Receiver<Vec<u8>>>, end: Instant) -> String {
     let Some(receiver) = receiver else {
         return String::new();
     };
 
-    let end = Instant::now() + grace;
     let mut bytes = Vec::new();
 
     loop {
@@ -193,7 +194,7 @@ fn collect(receiver: Option<Receiver<Vec<u8>>>, grace: Duration) -> String {
         match receiver.recv_timeout(remaining) {
             Ok(chunk) => bytes.extend_from_slice(&chunk),
             Err(RecvTimeoutError::Timeout) => {
-                tracing::warn!("Output of the child was still open after {grace:?}; it was cut");
+                tracing::warn!("Output of the child was still open at the end of the drain window; it was cut");
                 break;
             }
             Err(RecvTimeoutError::Disconnected) => break,
@@ -318,9 +319,44 @@ mod tests {
         let result = execute("sh", &["-c", "exec sleep 60"], None, Duration::from_millis(300), GRACE);
 
         // Assert: the child was killed (a surviving `sleep 60` would be waited out).
-        let error = result.err().expect("a hung child should time out");
+        let error = result
+            .expect("it should run")
+            .status
+            .expect_err("a hung child should time out");
         assert_eq!(error.kind(), ErrorKind::TimedOut);
         assert!(start.elapsed() < Duration::from_secs(20), "took {:?}", start.elapsed());
+    }
+
+    #[test]
+    fn it_should_return_the_output_written_before_the_deadline_expired() {
+        // Arrange: the child writes a line and then hangs.
+        let script = "echo before; echo err_before >&2; exec sleep 60";
+
+        // Act
+        let captured = execute("sh", &["-c", script], None, Duration::from_millis(500), GRACE).expect("it should run");
+
+        // Assert
+        assert_eq!(
+            captured.status.expect_err("a hung child should time out").kind(),
+            ErrorKind::TimedOut
+        );
+        assert_eq!(captured.stdout, "before\n");
+        assert_eq!(captured.stderr, "err_before\n");
+    }
+
+    #[test]
+    fn it_should_share_one_drain_window_between_both_pipes() {
+        // Arrange: the child exits at once while a descendant holds both pipes for 8 s.
+        let script = "sleep 8 &";
+        let start = Instant::now();
+
+        // Act
+        let captured =
+            execute("sh", &["-c", script], None, Duration::from_secs(10), Duration::from_secs(1)).expect("it should run");
+
+        // Assert: one 1 s window, not two.
+        assert!(captured.status.is_ok());
+        assert!(start.elapsed() < Duration::from_millis(1800), "took {:?}", start.elapsed());
     }
 
     #[test]
@@ -339,7 +375,10 @@ mod tests {
         );
 
         // Assert: the drain is cut after the grace period, long before the 8 s of the descendant.
-        let error = result.err().expect("a hung child should time out");
+        let error = result
+            .expect("it should run")
+            .status
+            .expect_err("a hung child should time out");
         assert_eq!(error.kind(), ErrorKind::TimedOut);
         assert!(start.elapsed() < Duration::from_secs(5), "took {:?}", start.elapsed());
     }
