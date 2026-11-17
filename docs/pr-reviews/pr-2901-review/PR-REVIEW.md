@@ -1,7 +1,7 @@
 ---
 pr-number: 2901
 pr-url: https://github.com/torrust/torrust-tracker/pull/2901
-last-updated-utc: "2026-11-17 15:26"
+last-updated-utc: "2026-11-17 17:12"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -67,6 +67,9 @@ Round 1, on the head that carries the commit `docs(issues): [#2765] record the i
 | F22 | review-finding:pr-2901-f22 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F23 | review-finding:pr-2901-f23 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 | F24 | review-finding:pr-2901-f24 | Human | Suggestion | testing | ORIGINAL | FIXED | RESOLVED |
+| F25 | review-finding:pr-2901-f25 | Copilot | Minor (inferred) | documentation | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F26 | review-finding:pr-2901-f26 | Copilot | Minor (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F27 | review-finding:pr-2901-f27 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -383,6 +386,45 @@ Round 1, on the head that carries the commit `docs(issues): [#2765] record the i
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4601712393
 
+### F25 - The first checker example has an extra `--`
+
+- PR number: 2901
+- Source review ID: 5941767986
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4602057242
+- Concern: Copilot said the second `--` before `--config-path` becomes part of the program arguments and can break parsing.
+- Solution: No change: the second `--` follows `check`, whose trailing arguments go to the checker; both forms were run and both exited 0.
+- Current-tree verification: Ran `target/debug/tracker_client check --format text -- --config-path share/default/config/tracker_checker.json` (exit 0, checker output) and the same without the second `--` (exit 0).
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4603106380
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4603106380
+
+### F26 - Successful runs log the whole captured output at info
+
+- PR number: 2901
+- Source review ID: 5941767986
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4602057326
+- Concern: Up to 8 MiB per stream could be logged on success, making large CI logs.
+- Solution: A successful run logs at most the first 64 KiB of each stream; a failed run logs the whole capture.
+- Current-tree verification: `cargo test -p torrust-tracker --lib console::ci::e2e::tracker_checker` passes 20 tests, including the two excerpt tests.
+- Resolution reference: `fix(e2e): [#2765] retry interrupted reads and bound the output logged on success`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4603107048
+
+### F27 - The reader treats an interrupted read as end of file
+
+- PR number: 2901
+- Source review ID: 5941767986
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4602057383
+- Concern: `ErrorKind::Interrupted` ended the stream and could truncate the captured output.
+- Solution: The reader retries an interrupted read and ends on other errors.
+- Current-tree verification: `cargo test -p torrust-tracker --lib console::ci::e2e::tracker_checker` passes 20 tests, including `it_should_retry_a_read_interrupted_by_a_signal_instead_of_ending_the_stream`, which failed with the retry arm removed (mutation run, reverted).
+- Resolution reference: `fix(e2e): [#2765] retry interrupted reads and bound the output logged on success`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4603107550
+
 ## Processing Log
 
 - 2026-11-17 10:39 UTC - Reviews 5936922508 (da2ce7, submitted 10:38:51) and 5936930487 (Copilot, submitted 10:39:28) arrived on the first head.
@@ -403,6 +445,8 @@ Round 1, on the head that carries the commit `docs(issues): [#2765] record the i
 - 2026-11-17 12:49 UTC - Round 7: da2ce7 review 5938701192 (APPROVED, submitted 12:49:30) with F24 (Suggestion); the maintainer first chose to leave it, and a reply with `NO_ACTION` was posted on the thread.
 - 2026-11-17 13:56 UTC - The `Test (Docker) (release)` job of the head failed on the test of F24 in the image test stage (the failure time is the log time of the run).
 - 2026-11-17 15:26 UTC - The maintainer asked for the fix; fixed in one commit, replied on the thread (which replaces the earlier `NO_ACTION` reply) and resolved it.
+- 2026-11-17 15:52 UTC - Round 8: Copilot review 5941767986 (COMMENTED, no severity tags, so Minor is inferred) with three threads on the head da2ce7 had approved; the maintainer asked to fix the valid ones.
+- 2026-11-17 17:12 UTC - Fixed F26 and F27 in one commit, replied on all three threads (F25 with no change) and resolved them.
 
 ## Completion Rules
 
