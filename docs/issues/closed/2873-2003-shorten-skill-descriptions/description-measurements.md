@@ -1,9 +1,9 @@
 ---
-last-updated-utc: "2026-11-16 19:07"
+last-updated-utc: "2026-11-17 08:58"
 semantic-links:
   related-artifacts:
-    - docs/issues/open/2873-2003-shorten-skill-descriptions/ISSUE.md
-    - docs/issues/open/2873-2003-shorten-skill-descriptions/manual-verification-evidence.md
+    - docs/issues/closed/2873-2003-shorten-skill-descriptions/ISSUE.md
+    - docs/issues/closed/2873-2003-shorten-skill-descriptions/manual-verification-evidence.md
     - .claude/skills/README.md
 ---
 

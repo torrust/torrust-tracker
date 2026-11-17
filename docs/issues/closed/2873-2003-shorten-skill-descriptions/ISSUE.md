@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p1
 epic: 2003
 github-issue: 2873
-spec-path: docs/issues/open/2873-2003-shorten-skill-descriptions/ISSUE.md
+spec-path: docs/issues/closed/2873-2003-shorten-skill-descriptions/ISSUE.md
 branch: "2873-shorten-skill-descriptions"
 related-pr: 2893
-last-updated-utc: "2026-11-16 19:32"
+last-updated-utc: "2026-11-17 08:58"
 semantic-links:
   skill-links:
     - create-issue
@@ -21,8 +21,8 @@ semantic-links:
     - contrib/dev-tools/checks/frontmatter-validator
     - docs/issues/closed/2866-2003-move-skills-to-claude-skills/ISSUE.md
     - docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
-    - docs/issues/open/2873-2003-shorten-skill-descriptions/manual-verification-evidence.md
-    - docs/issues/open/2873-2003-shorten-skill-descriptions/description-measurements.md
+    - docs/issues/closed/2873-2003-shorten-skill-descriptions/manual-verification-evidence.md
+    - docs/issues/closed/2873-2003-shorten-skill-descriptions/description-measurements.md
     - docs/adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md
     - "issue #2866"
 ---
@@ -258,7 +258,7 @@ the last increment, before T6. Commits use Conventional Commit messages and are 
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [x] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -278,6 +278,7 @@ the last increment, before T6. Commits use Conventional Commit messages and are 
 - 2026-11-16 19:15 UTC - AI assistant (Claude Code, Claude Opus 5.5) - Addressed da2ce7's review 5925869377 on PR #2893: a description that is only a comment is reported again (his F4, a regression of the reader fix), the N5 mutation row is corrected and O1 added (his F5), the audit record has its reply URLs and all findings (his F6), and the PR description gives the current test count and the reader fixes (his F7)
 - 2026-11-16 19:20 UTC - AI assistant (Claude Code, Claude Opus 5.5) - Addressed da2ce7's review 5925989673 on PR #2893: the 19:07 UTC entry was first stamped 19:10, later than its commit (19:07:29 UTC), and the evidence's after-rewording total is explained by the MCP rows that only that run listed
 - 2026-11-16 19:32 UTC - AI assistant (Claude Code, Claude Opus 5.5) - Addressed da2ce7's review 5926183635 on PR #2893: the evidence names `System tools` (13.1k before, 15.1k to 15.2k after) as the rest of the difference in totals, and says the conclusions compare only the Skills category and its rows
+- 2026-11-17 08:58 UTC - AI assistant (Claude Code, Claude Opus 5.5) - PR #2893 merged on 2026-11-17 at 08:57 UTC and closed issue #2873; archived the spec to `docs/issues/closed/` and marked EPIC #2003 row 22 DONE. No retrospective, as recorded on 2026-11-16 18:14 UTC
 
 ## Acceptance Criteria
 

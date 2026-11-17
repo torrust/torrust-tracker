@@ -6,7 +6,7 @@ epic: null
 github-issue: 2003
 spec-path: docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-16 17:35"
+last-updated-utc: "2026-11-17 08:58"
 semantic-links:
   skill-links:
     - create-issue
@@ -34,7 +34,7 @@ semantic-links:
     - docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/EPIC.md
     - docs/issues/open/2347-2003-triage-post-merge-review-findings/ISSUE.md
     - docs/issues/closed/2866-2003-move-skills-to-claude-skills/ISSUE.md
-    - docs/issues/open/2873-2003-shorten-skill-descriptions/ISSUE.md
+    - docs/issues/closed/2873-2003-shorten-skill-descriptions/ISSUE.md
     - docs/schemas/frontmatter-v1.schema.json
     - "issue #2264"
     - "issue #2278"
@@ -196,7 +196,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | 19 | #2714 - `wait-for-pr-review` can report a review of a newer commit than the head it reports | `docs/issues/closed/2714-2003-wait-for-pr-review-head-race-between-requests/ISSUE.md` | DONE | Bug in the #2581 poller: a race between its two requests. Fixed by PR #2815: the head is fetched after the feedback. |
 | 20 | #2822 - `wait-for-pr-review`: add a `--gh-command` option to name the GitHub CLI command | `docs/issues/closed/2822-2003-wait-for-pr-review-gh-option/ISSUE.md` | DONE | Enhancement to the #2581 poller: the caller names the command, so no `gh` stand-in on `PATH` is needed, and the identity it runs as is reported. Selects no shared runner, cache or policy engine. Independent of the other poller work; spec PR #2826, implemented by PR #2835. |
 | 21 | #2866 - Move the agent skills to `.claude/skills/` so Claude Code discovers them | `docs/issues/closed/2866-2003-move-skills-to-claude-skills/ISSUE.md` | DONE | Moves the 53 skills to a flat `.claude/skills/<name>/` with an index by area and redirect stubs at the old paths, so Claude Code discovers them. Must merge before the custom-agents migration is implemented, because agent definitions name skills. Selects no shared runner, cache or policy engine. |
-| 22 | #2873 - Shorten the agent skill descriptions so they fit Claude Code's skill listing budget | `docs/issues/open/2873-2003-shorten-skill-descriptions/ISSUE.md` | TODO | Follow-up of #2866 (its task T1): shortens the 53 skill descriptions to 200 characters or less so the listing fits its 1% budget, fixes the `write-markdown-docs` description that YAML cuts at a `#`, and adds a `frontmatter-validator` rule. The description edits start after #2866 merges. Selects no shared runner, cache or policy engine. |
+| 22 | #2873 - Shorten the agent skill descriptions so they fit Claude Code's skill listing budget | `docs/issues/closed/2873-2003-shorten-skill-descriptions/ISSUE.md` | DONE | Follow-up of #2866 (its task T1): shortens the 53 skill descriptions to 200 characters or less so the listing fits its 1% budget, fixes the `write-markdown-docs` description that YAML cuts at a `#`, and adds a `frontmatter-validator` rule. Selects no shared runner, cache or policy engine. Spec PR #2875, implemented by PR #2893. |
 
 Also linked as GitHub sub-issues, outside the order:
 
