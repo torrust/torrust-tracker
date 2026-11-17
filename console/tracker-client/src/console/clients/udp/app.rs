@@ -14,7 +14,7 @@
 //! ```text
 //! cargo run --bin tracker_client -- udp announce \
 //!   127.0.0.1:6969 9c38422213e30bff212b30c360d26f9a02136422 \
-//!   --format pretty
+//!   --format text
 //! ```
 //!
 //! Announce request (all optional parameters):
@@ -58,7 +58,7 @@
 //! ```text
 //! cargo run --bin tracker_client -- udp scrape \
 //!   127.0.0.1:6969 9c38422213e30bff212b30c360d26f9a02136422 \
-//!   --format pretty
+//!   --format text
 //! ```
 //!
 //! Scrape response:

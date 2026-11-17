@@ -109,7 +109,7 @@ TORRUST_CHECKER_CONFIG='{
      "udp_trackers": ["127.0.0.1:6969"],
      "http_trackers": ["http://127.0.0.1:7070"],
      "health_checks": ["http://127.0.0.1:1212/api/health_check"]
- }' cargo run --bin tracker_client -- check
+ }' cargo run --bin tracker_client -- check --format text
 ```
 
 Output:

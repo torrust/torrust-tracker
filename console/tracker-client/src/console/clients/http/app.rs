@@ -25,7 +25,7 @@
 //! ```text
 //! cargo run --bin tracker_client -- http announce \
 //!   http://127.0.0.1:7070 9c38422213e30bff212b30c360d26f9a02136422 \
-//!   --format pretty
+//!   --format text
 //! ```
 //!
 //! `Announce` request (all optional parameters):
@@ -38,7 +38,7 @@
 //!   --downloaded 5678 \
 //!   --left 0 \
 //!   --port 6881 \
-//!   --peer-addr 10.0.0.1 \
+//!   --ip 10.0.0.1 \
 //!   '--peer-id=-RC00000000000000001' \
 //!   --compact 1 | jq
 //! ```
@@ -54,7 +54,7 @@
 //! ```text
 //! cargo run --bin tracker_client -- http scrape \
 //!   http://127.0.0.1:7070 9c38422213e30bff212b30c360d26f9a02136422 \
-//!   --format pretty
+//!   --format text
 //! ```
 //!
 //! Unrecognized response fallback (generic JSON):
