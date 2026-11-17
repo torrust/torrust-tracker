@@ -9,7 +9,7 @@ github-issue: 2904
 spec-path: docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md
 branch: "2904-migrate-custom-agents-to-claude-code-spec"
 related-pr: null
-last-updated-utc: "2026-11-17 12:55"
+last-updated-utc: "2026-11-17 13:11"
 semantic-links:
   skill-links:
     - create-issue
@@ -353,8 +353,11 @@ Decided by the maintainer on 2026-11-15:
   - Every agent the orchestrator starts writes a reply file. `pr-review-handler` is the
     exception for now: its audit record `PR-REVIEW.md` is its trace, and converting it belongs
     to the audit tooling of EPIC #2278.
-  - The reply file replaces `agent-review-reports.md` for specifications created after this
-    issue; closed specifications keep theirs. The `agent-review-report-contract` check, which
+  - The reply file replaces `agent-review-reports.md` for specifications created after T9
+    changes the issue template; closed specifications keep theirs. This specification was
+    created from the earlier template, so the independent reviews of its own work are recorded
+    in `agent-review-reports.md` until the issue closes. The reply files written in this folder
+    are the evidence of scenarios M5 and M7 only. The `agent-review-report-contract` check, which
     requires exact sentences in the Copilot profiles, is replaced by the validator.
   - Reply files are committed with the work they describe (maintainer, 2026-11-17).
 
@@ -550,7 +553,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
+- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification (this issue keeps that file for its own reviews; see D18)
 - [ ] Spec progress verified as up to date before each commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
@@ -560,6 +563,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - 2026-11-17 12:09 UTC - Claude Code (Claude Fable 5.2) - Updated the draft after the skills move (#2866) merged; settled the open questions Q1 to Q11 with the maintainer as decisions D9 to D18; reordered the Implementation Plan into small pull requests that merge independently (D16).
 - 2026-11-17 12:14 UTC - Claude Code (Claude Fable 5.2) - The maintainer approved the draft; created issue #2904, moved the specification to `docs/issues/open/`, and added row 23 to the EPIC's Subissues table. Linking #2904 as a GitHub sub-issue of #2003 is pending: the contributor account's request was refused with `404`.
 - 2026-11-17 12:55 UTC - Claude Code (Claude Fable 5.2) - Addressed the review `5938631990` of `da2ce7` on pull request #2905 (findings F1 to F7), one commit per finding: the baseline of pull request #2851 is 14 rounds on three models, not 9 on one; the archived-report counts are recomputed with their method; the plan gains the AC6 inventory, the planner rules and the test-development loop.
+- 2026-11-17 13:11 UTC - Claude Code (Claude Fable 5.2) - Addressed Copilot's review `5939023583` on pull request #2905 (findings F8 and F9): the stop hook's limit is 3 refusals, and D18 states which report file this issue uses for its own reviews.
 
 ## Acceptance Criteria
 
@@ -690,7 +694,9 @@ material design changes, unexpected validation findings, and reusable lessons.
 - If no retrospective is needed, add a concise progress-log entry explaining why the work had no
   material discovery.
 - When an independent reviewer receives this folder-style specification, it records its result in
-  `agent-review-reports.md` using `docs/templates/AGENT-REVIEW-REPORTS.md`.
+  `agent-review-reports.md` using `docs/templates/AGENT-REVIEW-REPORTS.md`. This issue keeps that
+  file for the reviews of its own work, as D18 states; the JSON reply files apply to
+  specifications created after T9.
 
 This step is not optional: the close-out pull request carries either the retrospective or the
 progress-log entry.
