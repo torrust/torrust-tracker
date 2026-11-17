@@ -3,7 +3,7 @@ name: release-new-version
 description: "Release a new tracker version: version bump, staging branch, PR to main, tag, crate publication, merge-back. Use when asked to release or cut version vX.Y.Z."
 metadata:
   author: torrust
-  version: "1.0"
+  version: "1.1"
 ---
 
 # Release New Version
@@ -58,8 +58,10 @@ git push --force torrust develop:staging/main
 git stash
 git switch staging/main
 git reset --hard torrust/staging/main
-# Edit the `torrust-tracker` version in the root `Cargo.toml` and in the
-# `torrust-tracker` requirement of `packages/e2e-tools/Cargo.toml`:
+# Edit the `torrust-tracker` version in the root `Cargo.toml` and the
+# `torrust-tracker` requirement of every manifest that depends on it
+# (`packages/e2e-tools/Cargo.toml`, `packages/hung-component-tracker/Cargo.toml`;
+# list them with `grep -rl --include=Cargo.toml '^torrust-tracker = ' packages`):
 #   change X.Y.Z-develop → X.Y.Z
 git add -A
 git commit -S -m "release: version X.Y.Z"
@@ -119,8 +121,10 @@ git push --force torrust main:staging/develop
 git stash
 git switch staging/develop
 git reset --hard torrust/staging/develop
-# Edit the `torrust-tracker` version in the root `Cargo.toml` and in the
-# `torrust-tracker` requirement of `packages/e2e-tools/Cargo.toml`:
+# Edit the `torrust-tracker` version in the root `Cargo.toml` and the
+# `torrust-tracker` requirement of every manifest that depends on it
+# (`packages/e2e-tools/Cargo.toml`, `packages/hung-component-tracker/Cargo.toml`;
+# list them with `grep -rl --include=Cargo.toml '^torrust-tracker = ' packages`):
 #   change X.Y.Z → (next)X.Y.Z-develop (e.g. 3.0.0 → 3.0.1-develop)
 git add -A
 git commit -S -m "develop: bump to version (next)X.Y.Z-develop"
