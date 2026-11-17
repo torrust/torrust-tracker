@@ -9,7 +9,7 @@ github-issue: 2913
 spec-path: docs/issues/open/2913-2912-si-1-adr-errors-do-not-record-source-locations/ISSUE.md
 branch: "2913-adr-errors-do-not-record-source-locations"
 related-pr: null
-last-updated-utc: "2026-11-17 17:30"
+last-updated-utc: "2026-11-17 18:33"
 semantic-links:
   skill-links:
     - create-issue
@@ -37,7 +37,7 @@ change the `handle-errors-in-code` skill so that it gives that rule instead of r
 ## Background
 
 The audit of issue #2804 found that the source location recorded in errors is never the caller's
-(`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`): none of the 38 production `Location::caller()` sites is in a
+(`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`): none of the 38 production `Location::caller()` sites of the audit (37 since #2850) is in a
 `#[track_caller]` function, and `#[track_caller]` cannot fix any of them, because they are reached
 through `str::parse`, `try_into`, closures, `async fn` or `async` blocks (`options.md`, fact 6). The
 location is a fixed library line, and 23 `Display` formats print it into text that reaches HTTP, UDP

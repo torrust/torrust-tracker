@@ -6,7 +6,7 @@ epic: null
 github-issue: 2912
 spec-path: docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md
 epic-owner: null
-last-updated-utc: "2026-11-17 18:10"
+last-updated-utc: "2026-11-17 18:33"
 semantic-links:
   skill-links:
     - create-issue
@@ -38,7 +38,7 @@ The feature was meant to point a developer to the origin of an error. The audit 
 (`docs/issues/open/2804-location-caller-track-caller-audit/`) shows that it does not do that, and
 that it has costs:
 
-- **It is wrong by construction.** None of the 38 production `Location::caller()` sites is in a
+- **It is wrong by construction.** None of the 38 production `Location::caller()` sites of the audit (37 since #2850) is in a
   `#[track_caller]` function, so each reports the fixed line where it is written. `#[track_caller]`
   cannot fix any of them: they are reached through `str::parse`, `try_into`, closures, `async fn`
   or `async` blocks (`options.md`, fact 6; `experiments.md`, E3 to E8). Through `str::parse` the
@@ -69,7 +69,7 @@ Recorded 2026-11-17 by the EPIC coordinator session:
 
 1. **Remove the field (option 4).** Error types lose their `location` field, no non-test code calls
    `Location::caller()`, and the workspace drops `torrust-located-error`. Stripping the location from
-   `Display` only (option 3 alone) was rejected: each of the 38 production `Location::caller()` sites
+   `Display` only (option 3 alone) was rejected: each of the 38 production `Location::caller()` sites of the audit (37 since #2850)
    records a fixed library line, so keeping the field keeps a misleading `Debug` and log value. The
    five `#[track_caller]` `From` conversions into `LocatedError` record a location that is correct
    for their call chain (`inventory.md`, class C), and they are removed as well, because that
