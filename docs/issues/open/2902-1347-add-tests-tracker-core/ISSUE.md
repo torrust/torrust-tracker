@@ -9,7 +9,7 @@ github-issue: 2902
 spec-path: docs/issues/open/2902-1347-add-tests-tracker-core/ISSUE.md
 branch: "2902-1347-add-tests-tracker-core-spec"
 related-pr: null
-last-updated-utc: "2026-11-17 10:57"
+last-updated-utc: "2026-11-17 12:16"
 semantic-links:
   skill-links:
     - create-issue
@@ -79,8 +79,11 @@ modules and `src/test_helpers.rs` included).
 | Aggregate (`--all-features`) | 157 unit + 12 integration | 4,230 / 5,149 (82.15%) | 5,834 / 7,182 (81.23%) | 703 / 958 (73.38%) |
 | Unit-only without `db-compatibility-tests` (`--lib`) | 157 unit | 4,085 / 4,780 (85.46%) | 5,700 / 6,691 (85.19%) | 683 / 916 (74.56%) |
 
-The container-gated scope (the database suites run against real MySQL and PostgreSQL servers) is
-not measured yet: pulling the images needs the maintainer's permission (question Q1, task T1b).
+With the MySQL and PostgreSQL suites actually running (Docker `mysql:8.0` and `postgres:16`, both
+`TORRUST_TRACKER_CORE_RUN_*_DRIVER_TEST=true`, measured 2026-11-17 with the maintainer's permission)
+the aggregate is lines 4,830 / 5,149 (93.80%), regions 93.61%, functions 84.45%: the server drivers
+reach 58-96% per file, and what stays uncovered there are the failure branches (F2). The default
+runs above do not include them (F1).
 The per-file inventory and the uncovered-line groups are in [coverage-evidence.md](coverage-evidence.md).
 Indirect coverage from other packages' tests is not accepted as evidence.
 
@@ -136,7 +139,7 @@ is added only if it protects a state that examples miss.
   `testing` feature's `TorrentMetricsStore` mock and small failing fakes of the persistence traits.
   Review existing tests against `write-unit-test` and refactor those that have smells only when a
   record says so.
-- Measure the container-gated scope once the maintainer permits it (T1b) and record the result.
+- Record the container-gated measurement (T1b, done).
 - Dev-dependencies a record justifies (`quickcheck`), following `add-rust-dependency` and
   `cargo machete --with-metadata`.
 - Documentation-comment corrections in the files under test.
@@ -232,7 +235,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 | ID | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
 | T1 | DONE | Coverage evidence and complete module inventory | [coverage-evidence.md](coverage-evidence.md): baseline in four scopes, per-file uncovered groups, property candidacy, initial hypothesis for the 62 files. Delivered with this spec (S0). |
-| T1b | TODO | Measure the container-gated scope | The `--all-features` run with `TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST` and `TORRUST_TRACKER_CORE_RUN_POSTGRES_DRIVER_TEST` set, which pulls the `mysql` and `postgres` images. Needs the maintainer's permission (Q1). Recorded in `coverage-evidence.md`; decides the scope of S3. |
+| T1b | DONE | Measure the container-gated scope | The `--all-features` run with `TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST` and `TORRUST_TRACKER_CORE_RUN_POSTGRES_DRIVER_TEST` set (images pulled with the maintainer's permission, 2026-11-17): lines 93.80%. Recorded in `coverage-evidence.md`; informs the scope of S3. |
 | T2 | TODO | Shared plan guidance | `test-refactor-plans/README.md`: two-phase sequence, guardrails, toolchain-pinned commands. First test slice (S1). |
 | T3 | TODO | Process every ledger row through the per-file workflow | Each row ends in exactly one of: test added, no-change with reason, deferred with owner. |
 | T4 | TODO | Bounded mutation assessment | `mutation-evidence.md`: configuration, survivors, reason for each unviable mutant. Last slice. |
@@ -353,7 +356,7 @@ The first slice's record checks the grouping against `find packages/tracker-core
 - [ ] Specification and slicing reviewed and approved by the maintainer.
 - [x] GitHub issue #2902 created. Linking it as a subissue of #1347 needs the maintainer (the bot account gets 404 from the sub-issues API).
 - [ ] Spec-only PR (S0) merged before implementation.
-- [ ] Container-gated scope measured (T1b) once the maintainer permits it.
+- [x] Container-gated scope measured (T1b) with the maintainer's permission.
 - [ ] Every ledger row `DONE` with a decision record, merged through its slice.
 - [ ] Maintainer review after the final test-producing increment.
 - [ ] Automatic verification with toolchain-qualified evidence.
@@ -366,6 +369,7 @@ The first slice's record checks the grouping against `find packages/tracker-core
 ### Progress Log
 
 - 2026-11-17 10:57 UTC - Claude Code (Sonnet 5.5) - Created issue #2902; measured the baseline at `5833cdae9` in four scopes; drafted this specification and the coverage evidence; registered the subissue in EPIC #1347 (row 14). Open questions Q1-Q6 are for the maintainer.
+- 2026-11-17 12:16 UTC - Claude Code (Sonnet 5.5) - The maintainer allowed the Docker image pull (Q1); T1b measured the container-gated scope: lines 93.80% (server drivers 58-96% per file). No review of #2903 arrived within 60 minutes.
 
 ## Open Design Questions
 
@@ -373,7 +377,7 @@ Each has a recommendation; the maintainer decides.
 
 | ID | Question | Recommendation |
 | --- | --- | --- |
-| Q1 | May the agent pull the `mysql` and `postgres` Docker images (hundreds of MB) to measure the container-gated scope (T1b)? | Yes, once, on the maintainer's go; or the maintainer runs the command in `coverage-evidence.md` himself. |
+| Q1 | May the agent pull the `mysql` and `postgres` Docker images (hundreds of MB) to measure the container-gated scope (T1b)? | ANSWERED: yes (maintainer, 2026-11-17); measured. |
 | Q2 | The two database suites skip themselves silently (F1). Is the visible-skip fix in scope here? | No: separate issue; this one only records the scope separately. |
 | Q3 | Scope of S3 for the MySQL and PostgreSQL drivers? | Docker-free unit tests only for what needs no server (an unreachable endpoint gives `ConnectionError`), if they are not flaky or slow; the happy path stays with the `db-compatibility` workflow, recorded as owner. |
 | Q4 | Extract the duplicated `parse_valid_until` and row mapping (F2)? | Separate refactor issue after this one; tests per driver meanwhile. |

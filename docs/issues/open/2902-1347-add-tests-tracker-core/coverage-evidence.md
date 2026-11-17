@@ -32,6 +32,7 @@ cargo llvm-cov -p torrust-tracker-core --lib --json --output-path .tmp/cov/unit-
 | Integration-only (`--all-features --test integration`) | 12 integration | 841 / 1,909 (44.05%) | 936 / 2,506 (37.35%) | 145 / 484 (29.96%) |
 | Aggregate (`--all-features`, all targets) | 157 unit + 12 integration | 4,230 / 5,149 (82.15%) | 5,834 / 7,182 (81.23%) | 703 / 958 (73.38%) |
 | Unit-only without the `db-compatibility-tests` feature (`--lib`) | 157 unit | 4,085 / 4,780 (85.46%) | 5,700 / 6,691 (85.19%) | 683 / 916 (74.56%) |
+| Container-gated aggregate (`--all-features`, both `TORRUST_TRACKER_CORE_RUN_*_DRIVER_TEST=true`, Docker `mysql:8.0` and `postgres:16`) | 157 unit + 12 integration, both driver suites run | 4,830 / 5,149 (93.80%) | 6,723 / 7,182 (93.61%) | 809 / 958 (84.45%) |
 
 Reading the scopes:
 
@@ -43,9 +44,11 @@ Reading the scopes:
   `TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST` / `TORRUST_TRACKER_CORE_RUN_POSTGRES_DRIVER_TEST` is
   set, and they then need Docker and the `mysql` / `postgres` images. So the figures above do **not**
   include them: the two drivers (728 measured lines in ten files, 0-4% covered) are measured here as
-  uncovered. A fifth, container-gated scope (the same `--all-features` aggregate run with both
-  variables set) is **not yet measured**: pulling the images needs the maintainer's permission
-  (the open question Q1 in the spec). Task T1b records it.
+  uncovered. The fifth row above measures them with the suites running (T1b, 2026-11-17, images
+  `mysql:8.0` and `postgres:16`, the tests' defaults): the drivers' `mod.rs` files reach 95.8%, the
+  schema migrators 83-88%, and each store 58-64%: the same failure branches (malformed row,
+  failed query) that the SQLite stores leave uncovered. So the container-gated suite already
+  protects the server drivers' happy path; the remaining gap there is the failure branches (F2).
 - Aggregate and unit-only lines differ in five files only, all under `statistics/`
   (`event/handler.rs` 179 → 198 of 203 lines, `event/listener.rs` 357 → 419 of 421, `metrics.rs`
   11 → 20 of 45, `persisted/mod.rs` 0 → 26 of 32, `repository.rs` 86 → 101 of 149). That is the
@@ -124,7 +127,7 @@ above a unit test (a container, a real database); **owned** by a collaborator or
 
 | File | Uncovered lines | What they are | Class | Hypothesis |
 | --- | --- | --- | --- | --- |
-| `databases/driver/mysql/*` (5 files), `postgres/*` (5 files) | 0-4% of 728 measured lines | The whole MySQL and PostgreSQL drivers: schema migrator, three stores, `mod.rs` pool code | 3B (container-gated) | The suite exists (`run_tests`) and runs in the `db-compatibility` workflow; measure it (T1b) before choosing. Candidates for 3A: error mapping with an unreachable endpoint (no container) |
+| `databases/driver/mysql/*` (5 files), `postgres/*` (5 files) | 0-4% of 728 measured lines | The whole MySQL and PostgreSQL drivers: schema migrator, three stores, `mod.rs` pool code | 3B (container-gated) | With the suites running the files reach 58-96% (T1b). The suite exists (`run_tests`) and runs in the `db-compatibility` workflow; the uncovered rest is the failure branches (a malformed row needs a hand-written row). Candidates for 3A: error mapping with an unreachable endpoint (no container) |
 | `databases/driver/sqlite/auth_key_store.rs` | 18-100, 124-126 | Row-parse failure branches (`MalformedDatabaseRecord` for a bad key or a negative `valid_until`), `sqlx` failures, `parse_valid_until` negative case | 3A | Test through a temp SQLite file with a malformed row inserted by raw `sqlx`; the same helper is copied in three drivers (finding F2) |
 | `databases/driver/sqlite/torrent_metrics_store.rs` | 15-124 (16 of 45 lines uncovered) | Aggregate metric load/save error branches, `u32` conversion failure (`MalformedDatabaseRecord`) | 3A | Same technique |
 | `databases/driver/sqlite/whitelist_store.rs` | 18-75 (11 of 28) | Row-parse and query failure branches | 3A | Same technique |
@@ -161,7 +164,7 @@ tested. The grouping above is the T1 hypothesis the decision records revisit.
 | --- | --- | --- |
 | Unit tests | The package is almost all in-process logic over traits | Primary level for every slice |
 | Package-local integration (`tests/integration.rs`) | 12 tests over the container already exist | Keep; add only if a unit cannot reach the boundary (for example persistence plus listeners) |
-| Container-gated database suite (MySQL, PostgreSQL) | Exists, skipped silently without the environment variables | Measure (T1b); change nothing without the maintainer's decision (Q1, Q2) |
+| Container-gated database suite (MySQL, PostgreSQL) | Exists, skipped silently without the environment variables | Measured (T1b); change nothing without the maintainer's decision (Q2, Q3) |
 | Runnable examples | None; `lib.rs` has doc examples | Out of scope |
 | Property-based (`quickcheck`) | Candidates flagged below; the package has no property-test dependency | Per-seam decision in the records, with an `add-rust-dependency` justification |
 | Mutation testing | Applicable after the last test increment | Bounded sample (T4) |
