@@ -9,7 +9,7 @@ github-issue: 2847
 spec-path: docs/issues/open/2847-1488-si-28-verify-hung-component-abort/ISSUE.md
 branch: "2847-verify-hung-component-abort"
 related-pr: null
-last-updated-utc: "2026-11-17 13:55"
+last-updated-utc: "2026-11-17 14:01"
 semantic-links:
   skill-links:
     - create-issue
@@ -221,10 +221,19 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | Task | Coherent change set | Commit policy |
 | ---- | ------------------- | ------------- |
-| T1 | `main.rs` and the new library function | Commit after the existing tests pass. |
-| T2, T3 | Dev crate, binary and integration test | Commit after the test passes for both signals. |
+| T1 | `main.rs` and the new library function | Commit after the existing tests pass and the required review. |
+| T2, T3 | Dev crate, binary and integration test | Commit after the test passes for both signals, the test-design review below is recorded, and the maintainer has reviewed it. |
 | T4 | Evidence | Commit after the run. |
 | T5 | Documentation | Commit last. |
+
+Test-design review (T2, T3): the test is written with the `write-unit-test` skill. After each passing
+test increment, and before maintainer review and commit, run the prose-first Arrange-Act-Assert design
+review of `docs/templates/ISSUE.md` (Commit Points): the one causal initial-state difference is the
+extra `hung_component`; the child-process fixture owns only incidental mechanics (spawn, readiness
+wait, signal, bounded wait, reap); the Act (signal the PID) and the independently specified expected
+result (exit code 1 within `P` plus the margin, the named aborted components) stay visible in the test.
+Record the review in `test-design-review.md` in this issue folder. Commit each reviewed increment
+before starting the next one.
 
 Sign every commit with GPG.
 
@@ -238,6 +247,7 @@ Sign every commit with GPG.
 - [x] Technique chosen by the maintainer (D1 to D4, 2026-11-17)
 - [ ] Spec-only PR with the decisions merged into `develop` before implementation
 - [ ] Integration test passing for `SIGTERM` and `SIGINT`
+- [ ] Test-design review recorded in `test-design-review.md` and reviewed by the maintainer
 - [ ] Manual verification executed and recorded in `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed and updated with evidence
 - [ ] Evidence-based implementation completion review recorded
@@ -248,6 +258,7 @@ Sign every commit with GPG.
 - 2026-11-12 14:30 UTC - AI agent (Claude Sonnet 5.5) - Spec created from the SI-21 evidence gap on `torrust/develop` at `388faf59a`; recorded the maintainer's decision of 2026-11-12 to open it as SI-28, after SI-26.
 - 2026-11-17 11:03 UTC - AI agent (Claude Opus 5.5) - Recorded the maintainer's decisions D1 to D4 of 2026-11-17 (test-only binary in a dev crate, shared shutdown sequence, kept as a regression test, spec first) and the alternatives considered; the goal is now an automated executable-boundary test. Checked against `torrust/develop` at `5833cdae9`.
 - 2026-11-17 13:55 UTC - AI agent (Claude Opus 5.5) - Addressed review round 1 of PR #2909 (da2ce7, findings F1 to F6): alternative D is rejected on cost, since the persistent statistics listener can hang on a stalled MySQL write; the moved log events pin their target; T3 and M1 name drain budgets that pass validation; case 4 names both mechanisms; the crate path moves under `packages/`.
+- 2026-11-17 14:01 UTC - AI agent (Claude Opus 5.5) - Addressed Copilot finding R1 of PR #2909: the T1 and T2/T3 commit points require the review, and the T2/T3 test work requires the prose-first Arrange-Act-Assert design review of the issue template, recorded in `test-design-review.md`, before maintainer review and commit.
 
 ## Acceptance Criteria
 
