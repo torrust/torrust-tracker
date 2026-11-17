@@ -1,7 +1,7 @@
 ---
 pr-number: 2901
 pr-url: https://github.com/torrust/torrust-tracker/pull/2901
-last-updated-utc: "2026-11-17 11:10"
+last-updated-utc: "2026-11-17 11:25"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -57,6 +57,7 @@ Round 1, on the head that carries the commit `docs(issues): [#2765] record the i
 | F12 | review-finding:pr-2901-f12 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F13 | review-finding:pr-2901-f13 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F14 | review-finding:pr-2901-f14 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-2901-f15 | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -242,6 +243,19 @@ Round 1, on the head that carries the commit `docs(issues): [#2765] record the i
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4598757602
 
+### F15 - Enforce the drain deadline before receiving queued chunks
+
+- PR number: 2901
+- Source review ID: 5937491189
+- Reviewer finding ID: Copilot F1
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4598857730
+- Concern: Copilot labelled it a re-raise of its first finding (F10 here). The earlier change, bounding the drain by a grace period, is in the tree; this one asks for a different change in the new collector: `recv_timeout` with a zero timeout still returns queued chunks after the window ended, so a backlog or a descendant that keeps writing could extend the drain. Recorded as `ORIGINAL`, because the requested change differs from F10's.
+- Solution: `collect` checks the end of the window before every receive; two tests cover a queued chunk after the window and a descendant that keeps writing.
+- Current-tree verification: `cargo test -p torrust-tracker --lib console::ci::e2e::tracker_checker` passes 14 tests; no mutation run was done for the new tests.
+- Resolution reference: `fix(e2e): [#2765] enforce the drain window before receiving queued chunks`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4598905282
+
 ## Processing Log
 
 - 2026-11-17 10:39 UTC - Reviews 5936922508 (da2ce7, submitted 10:38:51) and 5936930487 (Copilot, submitted 10:39:28) arrived on the first head.
@@ -250,6 +264,8 @@ Round 1, on the head that carries the commit `docs(issues): [#2765] record the i
 - 2026-11-17 10:55 UTC - Created this audit record after the replies and the resolution (a late start: the fixes had to be pushed first so the replies could cite their commit subjects).
 - 2026-11-17 11:05 UTC - Round 2: da2ce7 review 5937298122 (APPROVED, submitted 11:05:49) with F13 (Minor) and F14 (Nit); the IDs are free in this audit.
 - 2026-11-17 11:10 UTC - Fixed both in one commit, replied and resolved the two threads. Correction to the F10 entry: its Solution and the reply on that thread said the output read before a deadline is kept; that held only when the child exits, and F13 fixed the deadline path.
+- 2026-11-17 11:20 UTC - Round 3: Copilot review 5937491189 (COMMENTED, submitted 11:20:08) with one thread; its reviewer ID F1 collides, so it is F15.
+- 2026-11-17 11:25 UTC - Fixed in one commit, replied and resolved the thread.
 
 ## Completion Rules
 
