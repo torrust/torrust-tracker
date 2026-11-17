@@ -37,10 +37,12 @@ The final design differs from the first implementation in five ways. Review foun
 
 ## What Went Well
 
-1. Writing the black-box tests first against the old binary gave a red run per clause (R1), and
-   each later production change got its own red test first.
-2. The mutation runs (R2) showed each exit-code clause is pinned by a test, and they exposed the
-   AC3 claim that a clause had a mutation when it did not (F14).
+1. Writing the black-box tests first against the old binary gave a red run per clause (R1). The
+   later production changes got a red test first, except the write-failure path (F3): no test
+   makes the stderr write fail, and that path was verified by reading `main` only.
+2. The mutation runs (R2) showed that each exit-code clause they cover is pinned by a test. They
+   did not cover every clause AC3 named: review found two clauses without a row (F14), and the
+   rows were added.
 3. Running the container `HEALTHCHECK` with a port mismatch gave a real `unhealthy` result
    without stopping the tracker, which the spec's first procedure assumed was possible (F4).
 
