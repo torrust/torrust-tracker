@@ -9,7 +9,7 @@ github-issue: 2907
 spec-path: docs/issues/open/2907-2392-remove-leaked-test-temporary-files/ISSUE.md
 branch: "2392-audit-follow-up-issues-spec"
 related-pr: null
-last-updated-utc: "2026-11-17 21:12"
+last-updated-utc: "2026-11-17 21:35"
 semantic-links:
   skill-links:
     - create-issue
@@ -45,13 +45,17 @@ turned out to be larger than one issue and moved to #2924 and #2925 (see Scope).
 
 The shared-resource audit (#2394, finding F2 in its `inventory.md`) found three test helpers that
 write files to `std::env::temp_dir()` with unique names and never remove them, or only when the
-test passes:
+test passes. Two of them stay in this issue:
 
 | Helper | File | Removed |
 | --- | --- | --- |
-| `torrust_tracker_test_helpers::configuration::ephemeral_sqlite_database()` (used by every `ephemeral*()` configuration and the `tracker-core` SQLite tests); moved out of this issue | `data_<16 random characters>.db` | Never |
 | The configuration-file tests in `packages/configuration/src/{v2_0_0,v3_0_0}/mod.rs` | `test_config_<uuid>.toml` | Never |
 | `make_temp_file` in `packages/axum-server/src/tls.rs` | `<prefix>-<nanoseconds>.pem` | Only when the test passes |
+
+The third is out of scope here and moved to #2924 and #2925:
+`torrust_tracker_test_helpers::configuration::ephemeral_sqlite_database()`, used by every
+`ephemeral*()` configuration and the `tracker-core` SQLite tests. It leaves a
+`data_<16 random characters>.db` file that is never removed.
 
 The names are unique, so no two tests or runs collide; the problem is accumulation. One full
 `cargo +stable test --workspace` run with a fresh `TMPDIR` leaves the files counted in this

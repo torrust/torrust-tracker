@@ -9,7 +9,7 @@ github-issue: 2924
 spec-path: docs/issues/open/2924-2392-sqlite-test-database-guard/ISSUE.md
 branch: "2392-split-test-temp-files-spec"
 related-pr: null
-last-updated-utc: "2026-11-17 18:39"
+last-updated-utc: "2026-11-17 21:35"
 semantic-links:
   skill-links:
     - create-issue
@@ -34,11 +34,11 @@ Parent EPIC: #2392 - Test Isolation (`docs/issues/open/2392-test-isolation/EPIC.
 
 ## Goal
 
-A test that needs persistence gets its SQLite database from a factory that also returns a guard.
-The guard owns the database's directory and removes it on drop, on success, failure and drop
-paths (EPIC rule 1). This issue adds the guard and the factory next to the existing functions and
-converts the helpers outside `tracker-core` that build the database path themselves. It is the
-foundation for the migration issue, #2925
+A test that needs persistence gets its SQLite database from a factory that also returns a guard. The
+guard owns the database's directory and removes it when the guard is dropped, so the directory goes
+whether the test passes or fails (EPIC rule 1). This issue adds the guard and the factory next to
+the existing functions and converts the helpers outside `tracker-core` that build the database path
+themselves. It is the foundation for the migration issue, #2925
 (`docs/issues/open/2925-2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md`).
 
 ## Background
