@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: blocked
 priority: p3
 epic: 2003
 github-issue: 2360
 spec-path: docs/issues/open/2360-2003-resolve-udp-protocol-empty-enums-allowance-scope/ISSUE.md
 branch: "2360-2003-resolve-udp-protocol-empty-enums-allowance-scope"
 related-pr: null
-last-updated-utc: "2026-11-17 17:39"
+last-updated-utc: "2026-11-17 17:46"
 semantic-links:
   skill-links:
     - create-issue
@@ -155,6 +155,7 @@ T1 and T2 change no repository file; their results are recorded in the progress 
 - 2026-09-28 09:42 UTC - GitHub Copilot - Maintainer approved the specification. Created GitHub issue #2360, linked it as a sub-issue of #2003 (`parent_issue_url` verified), registered it as order 13 in the #2003 EPIC, and moved this specification to `docs/issues/open/`.
 - 2026-11-17 17:39 UTC - Claude Code - T1 done. With the A159 allowance removed in the working tree (restored afterwards), nightly Clippy `0.1.102 (5df8c02afd 2026-11-16)` still reports the same 18 unique `enum with no variants` diagnostics: `common.rs` 11, `announce.rs` 5, `connect.rs` 1, and `scrape.rs` 1. A module-level `#![allow(clippy::empty_enums, reason = ...)]` at the top of those four modules suppresses all 18 (spike on nightly `9c5648833 2026-11-10`, restored afterwards), so module level is the narrowest scope that works. Upstream: <https://github.com/google/zerocopy/issues/3414> (open) tracks the diagnostics; it explains that the derive emits one empty field-token enum per field and that the lint began firing in every crate once `never_type` was stabilized (nightly 2026-08-25). <https://github.com/google/zerocopy/pull/3600> (open) proposes adding `clippy::empty_enums` to the derive's generated `#[allow]` list. No released `zerocopy` contains the fix; `Cargo.lock` has `zerocopy` `0.8.63`. `rust-clippy` was searched for `empty_enums derive` only; no issue was found.
 - 2026-11-17 17:39 UTC - Claude Code - T2 done. The maintainer chose **Temporary**: keep the crate-level allowance and rewrite its native reason to name the removal condition, a `zerocopy` release that fixes google/zerocopy#3414. Reasons: the diagnostics come from an upstream bug with a fix already proposed, so the allowance is expected to be deleted; one crate-level line is simpler to remove than four module-level ones; a framework carve-out would weaken a rule permanently for a temporary problem.
+- 2026-11-17 17:46 UTC - Claude Code - On hold by maintainer decision. No separate follow-up issue is created for removing A159: this issue stays open as the tracker for it. The maintainer will review it again in some weeks, checking whether a `zerocopy` release fixes google/zerocopy#3414. T3 and T4 are not started.
 
 ## Acceptance Criteria
 
