@@ -45,6 +45,9 @@ Round 1 is da2ce7's review `5944329364` (18:30:53 UTC, approval) of the head who
 `docs(issues): [#2902] record the tracker-core temporary-database fix`; its inline findings keep the
 reviewer's IDs F1 to F4. Copilot's review `5944310231` (18:29:28 UTC, comment) of the same head is an
 overview with no inline comment and no request (its full review timed out), so it needs no row.
+Round 2 is da2ce7's review `5944598265` (18:50:32 UTC, approval) of the head whose last commit is
+`docs(pr-reviews): [#2902] record the first review round of #2923`; its one inline finding keeps the
+reviewer's ID F6. (The reviewer's IDs skip F5, which is the spec's own register finding.)
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -52,6 +55,7 @@ overview with no inline comment and no request (its full review timed out), so i
 | F2 | review-finding:pr-2923-f2 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-2923-f3 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F4 | review-finding:pr-2923-f4 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F6 | review-finding:pr-2923-f6 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -107,10 +111,24 @@ overview with no inline comment and no request (its full review timed out), so i
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2923#discussion_r4604047504
 
+### F6 - The shared fix was still handed to #2907
+
+- PR number: 2923
+- Source review ID: 5944598265
+- Reviewer finding ID: F6
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2923#discussion_r4604219719
+- Concern: "a new #2392 subissue" named no issue, and the spec (F5, Q7) and the description still gave the shared fix to #2907; "the #2907 session" read as process jargon.
+- Solution: The plan names #2924 (the guard in `test-helpers`) and #2925 (the other packages, skipping `tracker-core`); F5 and Q7 point at them; the description relates to #2924 and #2925 instead of #2907. The 18:04 UTC progress-log entry stays, as the log is append-only.
+- Current-tree verification: `grep -n "2924" docs/issues/open/2902-1347-add-tests-tracker-core/test-refactor-plans/test-support-ephemeral-database-tests.md docs/issues/open/2902-1347-add-tests-tracker-core/ISSUE.md` shows the plan, F5 and Q7; `grep -n "#2907 session" docs/issues/open/2902-1347-add-tests-tracker-core/test-refactor-plans/test-support-ephemeral-database-tests.md` prints nothing.
+- Resolution reference: docs(issues): [#2902] name the issues that take the shared SQLite fix
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2923#discussion_r4604248385
+
 ## Processing Log
 
 - 2026-11-17 18:31 UTC - The review poller reported both round 1 reviews; all four findings verified against the tree.
 - 2026-11-17 18:34 UTC - Fixed each finding in its own commit; replied to the four threads up to 18:34:50 UTC, before pushing the fixes and this record together; the threads are resolved after the push.
+- 2026-11-17 18:53 UTC - Round 2 (approval with F6): fixed in its own commit and in the description; replied at 18:53:09 UTC, before pushing the fix and this record together; the thread is resolved after the push.
 
 ## Completion Rules
 
