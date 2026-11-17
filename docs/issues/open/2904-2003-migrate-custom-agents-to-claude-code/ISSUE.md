@@ -87,7 +87,10 @@ Evidence that the independent task review stopped: of the issue folders archived
 Method, on `develop` at the commit "Merge torrust/torrust-tracker#2900": a folder counts as
 archived on the UTC date of the oldest commit that added or renamed a file into
 `docs/issues/closed/<folder>/` (`git log --diff-filter=AR --name-only`, committer date); it has a
-report when `docs/issues/closed/<folder>/agent-review-reports.md` exists at that commit. The
+report when `docs/issues/closed/<folder>/agent-review-reports.md` exists at that revision of
+`develop`, not at the commit that archived the folder: one October folder
+(`2413-2410-si-22-1-document-event-flows-and-draft-adr`) received its report in a later commit the
+same day, and checking at the archive commit gives 24 of 48. The
 counts include EPIC folders: two in October, one of them with a report, and one in November,
 without.
 
