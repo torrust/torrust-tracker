@@ -9,7 +9,7 @@ github-issue: 2904
 spec-path: docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md
 branch: "2904-migrate-custom-agents-to-claude-code-spec"
 related-pr: null
-last-updated-utc: "2026-11-17 13:19"
+last-updated-utc: "2026-11-17 13:35"
 semantic-links:
   skill-links:
     - create-issue
@@ -356,11 +356,16 @@ Decided by the maintainer on 2026-11-15:
   - Every agent the orchestrator starts writes a reply file. `pr-review-handler` is the
     exception for now: its audit record `PR-REVIEW.md` is its trace, and converting it belongs
     to the audit tooling of EPIC #2278.
-  - The reply file replaces `agent-review-reports.md` for specifications created after T9
-    changes the issue template; closed specifications keep theirs. This specification was
-    created from the earlier template, so the independent reviews of its own work are recorded
-    in `agent-review-reports.md` until the issue closes. The reply files written in this folder
-    are the evidence of scenarios M5 and M7 only. The `agent-review-report-contract` check, which
+  - The reply file replaces `agent-review-reports.md` from the merge of T5, when the
+    `task-reviewer` agent and its stop hook exist. The switch is keyed to that merge, not to the
+    template a specification came from, so the hook needs no exemption: from then on a
+    `task-reviewer` run on any folder-style specification, this one included, writes a reply
+    file and no entry in `agent-review-reports.md`. A review made before that merge is recorded
+    in `agent-review-reports.md`, and closed specifications keep theirs. A specification
+    created from the earlier template still has a checkpoint that names `agent-review-reports.md`;
+    T5 states in `review-task` that a reply file satisfies it, and T9 changes the template. For
+    this issue, that means `agent-review-reports.md` for a review of T2 to T5 and reply files for
+    a review of T6 to T12. The `agent-review-report-contract` check, which
     requires exact sentences in the Copilot profiles, is replaced by the validator.
   - Reply files are committed with the work they describe (maintainer, 2026-11-17).
 
@@ -496,7 +501,7 @@ on are merged.
 | T2  | TODO   | Pointer `CLAUDE.md` | A root `CLAUDE.md` whose only content is the import of `AGENTS.md` (D11); scenario M4 recorded |
 | T3  | TODO   | Reply schema and validator | `docs/schemas/agent-reply-v1.schema.json`; the validator with tests, developed in the progressive loop of the `write-unit-test` skill with a recorded design review per increment, and run by the repository checks; `docs/schemas/README.md` updated (D18) |
 | T4  | TODO   | `pr-review-handler` | `.claude/agents/pr-review-handler.md` with the pinned model; `wait-for-pr-review` and `process-pr-review` say which agent runs a round; the inventory `removed-profile-rules.md` created in this folder with the rules of `copilot-suggestions-handler` (AC6); scenarios M1 to M3 recorded |
-| T5  | TODO   | `task-reviewer` | The agent file with the pinned model and the stop hook (D17), with tests of its limit of 3 refusals; the complexity item in `review-task` (D12); the reply rule in `review-task`; scenario M7 recorded |
+| T5  | TODO   | `task-reviewer` | The agent file with the pinned model and the stop hook (D17), with tests of its limit of 3 refusals; the complexity item in `review-task` (D12); the reply rule in `review-task`, which also says that a reply file satisfies the earlier template's checkpoint (D18); scenario M7 recorded |
 | T6  | TODO   | `implementer` | The agent file; the three committer rules in `commit-changes` (D14); the rules that only `planner` held moved into `create-issue` |
 | T7  | TODO   | `pr-reviewer` | The agent file with the pinned model; the reply rule in `review-pr` |
 | T8  | TODO   | `researcher` | The agent file |
@@ -558,7 +563,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification (this issue keeps that file for its own reviews; see D18)
+- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification (from the merge of T5 a reply file in `agent-replies/` satisfies this; see D18)
 - [ ] Spec progress verified as up to date before each commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
@@ -570,6 +575,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - 2026-11-17 12:55 UTC - Claude Code (Claude Fable 5.2) - Addressed the review `5938631990` of `da2ce7` on pull request #2905 (findings F1 to F7), one commit per finding: the baseline of pull request #2851 is 14 rounds on three models, not 9 on one; the archived-report counts are recomputed with their method; the plan gains the AC6 inventory, the planner rules and the test-development loop.
 - 2026-11-17 13:11 UTC - Claude Code (Claude Fable 5.2) - Addressed Copilot's review `5939023583` on pull request #2905 (findings F8 and F9): the stop hook's limit is 3 refusals, and D18 states which report file this issue uses for its own reviews.
 - 2026-11-17 13:19 UTC - Claude Code (Claude Fable 5.2) - Addressed the review `5939071001` of `da2ce7` on pull request #2905 (three nits): the archived-report method names the revision where the report is checked, the inventory's destinations agree with AC6, and Automatic Checks lists the stop hook's tests.
+- 2026-11-17 13:35 UTC - Claude Code (Claude Fable 5.2) - Addressed the approving review `5939415019` of `da2ce7` on pull request #2905 (one minor finding): the switch from `agent-review-reports.md` to reply files is keyed to the merge of T5, so the stop hook needs no exemption for this specification.
 
 ## Acceptance Criteria
 
@@ -702,9 +708,8 @@ material design changes, unexpected validation findings, and reusable lessons.
 - If no retrospective is needed, add a concise progress-log entry explaining why the work had no
   material discovery.
 - When an independent reviewer receives this folder-style specification, it records its result in
-  `agent-review-reports.md` using `docs/templates/AGENT-REVIEW-REPORTS.md`. This issue keeps that
-  file for the reviews of its own work, as D18 states; the JSON reply files apply to
-  specifications created after T9.
+  `agent-review-reports.md` using `docs/templates/AGENT-REVIEW-REPORTS.md`. From the merge of T5 the
+  reviewer writes a JSON reply file instead, as D18 states.
 
 This step is not optional: the close-out pull request carries either the retrospective or the
 progress-log entry.
