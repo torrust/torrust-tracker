@@ -9,7 +9,7 @@ github-issue: 2925
 spec-path: docs/issues/open/2925-2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md
 branch: "2392-split-test-temp-files-spec"
 related-pr: null
-last-updated-utc: "2026-11-17 21:12"
+last-updated-utc: "2026-11-17 22:36"
 semantic-links:
   skill-links:
     - create-issue
@@ -36,7 +36,8 @@ No test leaves a SQLite database behind: neither a `data_*.db` file nor a guard 
 its `data.db`. Tests that need persistence use the guard-owned SQLite
 database of #2924 (`docs/issues/open/2924-2392-sqlite-test-database-guard/ISSUE.md`),
 and the `ephemeral*()` configurations no longer configure a database. After this issue, a full
-test run leaves a fresh temporary directory empty.
+test run leaves no SQLite database in a fresh temporary directory; with #2907 also done, the
+directory is empty.
 
 ## Background
 
