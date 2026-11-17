@@ -1,8 +1,9 @@
 //! Console clients.
 //!
-//! `unified` contains the in-progress single-binary implementation for issue #1771.
-//! Legacy modules remain available during the deprecation window and are intentionally
-//! kept separate so old binaries can stay frozen until the scheduled cleanup removal.
+//! `unified` contains the single-binary implementation (`tracker_client`).
+//! The legacy `http`, `udp` and `checker` modules are the libraries the removed
+//! `http_tracker_client`, `udp_tracker_client` and `tracker_checker` binaries used;
+//! `tracker_client` still reuses their checks and types.
 pub mod checker;
 pub mod http;
 pub mod udp;

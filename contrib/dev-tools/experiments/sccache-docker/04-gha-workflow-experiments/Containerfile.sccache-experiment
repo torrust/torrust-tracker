@@ -84,7 +84,7 @@ COPY console/tracker-client/Cargo.toml console/tracker-client/
 # and do not need to be tested inside the container image:
 #   - workspace-coupling (analysis/coupling tool, no production value)
 #   - torrust-tracker-torrent-repository-benchmarking (benchmarking only)
-#   - torrust-tracker-client (CLI dev tools: tracker_client, tracker_checker, etc.)
+#   - torrust-tracker-client (CLI dev tools: tracker_client)
 #   - torrust-tracker-e2e-tools (E2E runners + profiling tool, GHA host-only)
 #   - torrust-tracker-persistence-benchmark (persistence layer dev benchmarking tool)
 # Their Cargo.toml manifests and stub source files must still be present here
@@ -173,10 +173,7 @@ RUN mkdir -p \
       packages/persistence-benchmark/src/bin/persistence_benchmark_runner.rs \
       contrib/dev-tools/analysis/workspace-coupling/src/main.rs \
       console/tracker-client/src/lib.rs \
-      console/tracker-client/src/bin/http_tracker_client.rs \
-      console/tracker-client/src/bin/tracker_checker.rs \
       console/tracker-client/src/bin/tracker_client.rs \
-      console/tracker-client/src/bin/udp_tracker_client.rs \
       packages/axum-health-check-api-server/src/lib.rs \
       packages/axum-http-server/src/lib.rs \
       packages/axum-http-server/examples/http_only_public_tracker.rs \

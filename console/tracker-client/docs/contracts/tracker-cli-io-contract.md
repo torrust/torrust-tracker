@@ -34,7 +34,7 @@ This contract is designed for automation-first CLI usage and progressive adoptio
 
 ### Monitor/progress events
 
-For monitor commands (for example `tracker_checker monitor udp`):
+For monitor commands (for example `tracker_client check monitor udp`):
 
 - Per-probe progress is emitted as NDJSON style: one JSON object per line.
 - Per-probe progress events go to stderr.

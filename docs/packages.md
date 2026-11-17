@@ -286,7 +286,7 @@ Under `console/`.
 
 | Tool             | Crate Name               | Description                                                                    |
 | ---------------- | ------------------------ | ------------------------------------------------------------------------------ |
-| `tracker-client` | `torrust-tracker-client` | Console clients for trackers (`tracker_client`, `tracker_checker`, and others) |
+| `tracker-client` | `torrust-tracker-client` | Console clients for trackers (`tracker_client`) |
 
 ### Workspace developer tools
 
