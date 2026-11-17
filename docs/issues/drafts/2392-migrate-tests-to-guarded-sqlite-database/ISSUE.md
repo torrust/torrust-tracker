@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md
 branch: "{issue-number}-2392-migrate-tests-to-guarded-sqlite-database"
 related-pr: null
-last-updated-utc: "2026-11-17 18:03"
+last-updated-utc: "2026-11-17 18:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -48,7 +48,10 @@ The maintainer decided (EPIC Decisions, 2026-11-17) that `ephemeral()` may defau
 database: `core.database` is an `Option`, and a tracker runs without persistence. Tests that need
 persistence opt in through the foundation issue's factory and keep its guard.
 
-Facts from the #2907 session, to be rechecked in T1:
+PR #2923 (#2902, open on 2026-11-17) fixes the leak inside `packages/tracker-core` with that
+package's own guard, so this issue skips that package's tests once it merges.
+
+Facts from the #2907 session, measured before PR #2923 and to be rechecked in T1:
 
 - About 278 call sites of the `ephemeral*()` factories in 6 packages plus `src/`:
   `axum-rest-api-server` 75, `axum-http-server` 70, `http-core` 56, `udp-server` 23,
@@ -164,6 +167,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-17 18:03 UTC - Claude Code (Claude Fable 5.2), EPIC #2392 coordinator - Drafted from the
   split of #2907 that the maintainer decided on 2026-11-17, using the #2907 session's T1 and T2
   findings.
+- 2026-11-17 18:10 UTC - Claude Code (Claude Fable 5.2), EPIC #2392 coordinator - Noted that
+  PR #2923 (#2902) fixes `tracker-core`, so T1 rechecks the counts and this issue skips that
+  package.
 
 ## Acceptance Criteria
 
@@ -228,3 +234,4 @@ evidence file is created from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`.
 - Parent EPIC: #2392
 - Depends on: the foundation issue, `docs/issues/drafts/2392-sqlite-test-database-guard/ISSUE.md`
 - Found by: #2907 (T1 and T2), #2394 finding F2
+- Related: PR #2923 (#2902), the same fix inside `tracker-core`

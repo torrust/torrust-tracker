@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2392-sqlite-test-database-guard/ISSUE.md
 branch: "{issue-number}-2392-sqlite-test-database-guard"
 related-pr: null
-last-updated-utc: "2026-11-17 18:03"
+last-updated-utc: "2026-11-17 18:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -37,8 +37,8 @@ Parent EPIC: #2392 - Test Isolation (`docs/issues/open/2392-test-isolation/EPIC.
 A test that needs persistence gets its SQLite database from a factory that also returns a guard.
 The guard owns the database's directory and removes it on drop, on success, failure and drop
 paths (EPIC rule 1). This issue adds the guard and the factory next to the existing functions and
-converts the `tracker-core` helpers that build the database path themselves. It is the foundation
-for the migration issue
+converts the helpers outside `tracker-core` that build the database path themselves. It is the
+foundation for the migration issue
 (`docs/issues/drafts/2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md`).
 
 ## Background
@@ -71,7 +71,15 @@ How the workspace already keeps a `tempfile` guard:
 | A struct, next to the resource it serves | `TestApiContainer` in `packages/axum-rest-api-server/src/test_support.rs` |
 | The test, with a `TempDir` local | `src/bootstrap/config.rs`, `src/bootstrap/jobs/http_tracker.rs` |
 | The test, with a `NamedTempFile` local | `console/tracker-client/tests/tracker_checker/configuration.rs` |
-| Returned next to a configuration | none yet; this issue adds it |
+| Returned next to a configuration | none on `develop`; PR #2923 adds it for `tracker-core` |
+
+PR #2923 (#2902, open on 2026-11-17) already fixes this leak inside `packages/tracker-core`: its
+tests go from 72 `data_*.db` files per run to 0. It leaves the shared test-helpers function and
+the other packages unchanged. Its shape, approved by the maintainer at #2902's design review, is
+a struct `EphemeralConfiguration { pub config: Core, _database_directory: TempDir }` that the
+test owns; the database is `data.db` inside the directory, so a guard dropped too early makes
+SQLite fail to open the file instead of leaking. This issue reuses that shape for the shared
+helpers and starts after PR #2923 merges.
 
 ## Scope
 
@@ -81,8 +89,9 @@ How the workspace already keeps a `tempfile` guard:
   SQLite database file and exposes the database path.
 - A factory, next to the existing `ephemeral*()` functions, that returns a configuration with
   SQLite persistence together with its guard. The test binds the guard for its whole body.
-- Convert the helpers that call `ephemeral_sqlite_database()` directly (the six files listed in
-  the Background) to the guard.
+- Convert the helpers outside `tracker-core` that call `ephemeral_sqlite_database()` directly
+  (`packages/http-core/src/container.rs`, and any other that T2 finds) to the guard. The
+  `tracker-core` ones are converted by PR #2923.
 - Unit tests of the guard: the directory is gone after the guard is dropped, and a connection
   opened after the drop fails.
 
@@ -100,9 +109,11 @@ How the workspace already keeps a `tempfile` guard:
 - Decided by the maintainer (EPIC Decisions, 2026-11-17): persistence in tests is opt-in through
   a factory that returns a guard the test keeps; the guard is a `TempDir`, independent of the
   test environment.
-- Open, decided in T1 with the maintainer's approval: the names of the guard type and the
-  factory, and whether the factory returns a tuple or a wrapper type. The maintainer's suggestion
-  for the no-database side is a name like `ephemeral_without_persistence`; naming is open.
+- Starting point: the wrapper struct of PR #2923, which keeps the configuration and its
+  `TempDir` together. T1 decides, with the maintainer's approval, the names of the shared type
+  and factory and whether `tracker-core` then uses the shared type instead of its own. The
+  maintainer's suggestion for the no-database side is a name like
+  `ephemeral_without_persistence`; naming is open.
 
 ## Design and Ownership Review
 
@@ -129,8 +140,8 @@ review in `manual-verification-evidence.md` and commit the reviewed increment be
 
 The defect is in test-support code. Follow `.claude/skills/fix-bug/SKILL.md`:
 
-1. Real-artifact reproduction: count the `data_*.db` files the `tracker-core` and `http-core`
-   test binaries leave in a fresh `TMPDIR` (V1).
+1. Real-artifact reproduction: count the `data_*.db` files the `http-core` test binaries leave
+   in a fresh `TMPDIR` (V1).
 2. Regression boundary: unit tests of the guard.
 3. Red before the change, green after; like-for-like recheck of step 1 (V2).
 
@@ -149,7 +160,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1 | TODO | Decide the names and the return shape | Recorded in this spec, approved by the maintainer. |
 | T2 | TODO | Reproduce for the direct users | Before-count recorded (V1). |
 | T3 | TODO | Guard type and factory | Unit tests red then green; design review recorded. |
-| T4 | TODO | Convert the direct users | The six files use the guard; test-design review recorded. |
+| T4 | TODO | Convert the direct users | The direct users outside `tracker-core` use the guard; test-design review recorded. |
 | T5 | TODO | Recheck | Direct users leave no `data_*.db` (V2); `linter all` passes. |
 
 ## Commit Points
@@ -180,6 +191,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-17 18:03 UTC - Claude Code (Claude Fable 5.2), EPIC #2392 coordinator - Drafted from the
   split of #2907 that the maintainer decided on 2026-11-17, using the #2907 session's T1 and T2
   findings.
+- 2026-11-17 18:10 UTC - Claude Code (Claude Fable 5.2), EPIC #2392 coordinator - PR #2923 (#2902)
+  fixes the leak inside `tracker-core`. Removed that package's helpers from the scope, made its
+  approved wrapper struct the starting point, and made this issue start after it merges.
 
 ## Acceptance Criteria
 
@@ -205,7 +219,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| V1 | Reproduce | `TMPDIR=$(mktemp -d) cargo +stable test -p torrust-tracker-core -p torrust-tracker-http-core --all-targets --all-features`, then count the `data_*.db` files | Leaked files counted | TODO | `manual-verification-evidence.md` |
+| V1 | Reproduce | `TMPDIR=$(mktemp -d) cargo +stable test -p torrust-tracker-http-core --all-targets --all-features`, then count the `data_*.db` files | Leaked files counted | TODO | `manual-verification-evidence.md` |
 | V2 | Recheck | Same command after the change | Only files from `ephemeral*()` callers remain, counted and listed by test | TODO | `manual-verification-evidence.md` |
 
 Evidence policy: every recorded command result names the toolchain that produced it, and the
@@ -242,3 +256,4 @@ evidence file is created from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`.
 
 - Parent EPIC: #2392
 - Found by: #2907 (T1 and T2), #2394 finding F2
+- Related: PR #2923 (#2902), the same fix inside `tracker-core`
