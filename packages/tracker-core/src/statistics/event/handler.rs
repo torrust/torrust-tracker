@@ -136,6 +136,7 @@ mod tests {
     use std::sync::Arc;
 
     use torrust_clock::DurationSinceUnixEpoch;
+    use torrust_tracker_configuration::v3_0_0::core::Core;
     use torrust_tracker_primitives::Driver;
     use torrust_tracker_swarm_coordination_registry::event::Event;
 
@@ -161,9 +162,8 @@ mod tests {
         }
     }
 
-    async fn database_downloads_repository() -> Arc<DatabaseDownloadsMetricRepository> {
-        let configuration = ephemeral_configuration();
-        let stores = initialize_database(&configuration).await;
+    async fn database_downloads_repository(configuration: &Core) -> Arc<DatabaseDownloadsMetricRepository> {
+        let stores = initialize_database(configuration).await;
 
         Arc::new(DatabaseDownloadsMetricRepository::new(&stores.torrent_metrics_store))
     }
@@ -200,7 +200,8 @@ mod tests {
     async fn it_should_persist_completion_statistics_when_a_peer_download_is_completed() {
         // Arrange
         let stats_repository = Arc::new(Repository::new(true, true));
-        let downloads_repository = database_downloads_repository().await;
+        let ephemeral = ephemeral_configuration();
+        let downloads_repository = database_downloads_repository(&ephemeral.config).await;
         let now = DurationSinceUnixEpoch::new(1, 0);
 
         // Act
@@ -228,7 +229,8 @@ mod tests {
     async fn it_should_not_persist_completion_statistics_when_an_event_is_not_a_completion() {
         // Arrange
         let stats_repository = Arc::new(Repository::new(true, true));
-        let downloads_repository = database_downloads_repository().await;
+        let ephemeral = ephemeral_configuration();
+        let downloads_repository = database_downloads_repository(&ephemeral.config).await;
         let now = DurationSinceUnixEpoch::new(1, 0);
 
         // Act

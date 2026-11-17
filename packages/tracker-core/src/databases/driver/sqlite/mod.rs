@@ -89,22 +89,11 @@ mod tests {
 
     use torrust_tracker_configuration::v3_0_0::core::Core;
     use torrust_tracker_configuration::v3_0_0::database::Database as DatabaseConfig;
-    use torrust_tracker_test_helpers::configuration::ephemeral_sqlite_database;
 
     use crate::databases::driver::sqlite::Sqlite;
     use crate::databases::driver::tests::run_tests;
     use crate::databases::traits::Database;
-
-    fn ephemeral_configuration() -> Core {
-        let mut config = Core::default();
-        let temp_file = ephemeral_sqlite_database();
-        let database = config.database.get_or_insert_with(DatabaseConfig::default);
-        let DatabaseConfig::Sqlite3 { path } = database else {
-            unreachable!("default core configuration uses SQLite persistence");
-        };
-        temp_file.to_str().unwrap().clone_into(path);
-        config
-    }
+    use crate::test_helpers::tests::ephemeral_configuration;
 
     fn initialize_driver(config: &Core) -> Arc<Box<dyn Database>> {
         Arc::new(Box::new(Sqlite::new(sqlite_path(config)).unwrap()))
@@ -123,9 +112,10 @@ mod tests {
 
     #[tokio::test]
     async fn run_sqlite_driver_tests() -> Result<(), Box<dyn std::error::Error + 'static>> {
-        let config = ephemeral_configuration();
+        let ephemeral = ephemeral_configuration();
+        let config = &ephemeral.config;
 
-        let driver = initialize_driver(&config);
+        let driver = initialize_driver(config);
 
         run_tests(&driver).await;
 
@@ -134,10 +124,11 @@ mod tests {
 
     #[tokio::test]
     async fn create_database_tables_should_be_idempotent_on_a_fresh_database() {
-        let config = ephemeral_configuration();
-        let driver = initialize_driver(&config);
+        let ephemeral = ephemeral_configuration();
+        let config = &ephemeral.config;
+        let driver = initialize_driver(config);
         let options = ::sqlx::sqlite::SqliteConnectOptions::new()
-            .filename(sqlite_path(&config))
+            .filename(sqlite_path(config))
             .create_if_missing(true);
         let pool = ::sqlx::sqlite::SqlitePoolOptions::new()
             .connect_with(options)

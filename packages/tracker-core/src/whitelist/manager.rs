@@ -96,7 +96,6 @@ mod tests {
     use torrust_tracker_configuration::v3_0_0::core::Core;
 
     use crate::databases::setup::initialize_database;
-    use crate::test_helpers::tests::ephemeral_configuration_for_listed_tracker;
     use crate::whitelist::manager::WhitelistManager;
     use crate::whitelist::repository::in_memory::InMemoryWhitelist;
     use crate::whitelist::repository::persisted::DatabaseWhitelist;
@@ -104,11 +103,6 @@ mod tests {
     struct WhitelistManagerDeps {
         pub database_whitelist: Arc<DatabaseWhitelist>,
         pub in_memory_whitelist: Arc<InMemoryWhitelist>,
-    }
-
-    async fn initialize_whitelist_manager_for_whitelisted_tracker() -> (Arc<WhitelistManager>, Arc<WhitelistManagerDeps>) {
-        let config = ephemeral_configuration_for_listed_tracker();
-        initialize_whitelist_manager_and_deps(&config).await
     }
 
     async fn initialize_whitelist_manager_and_deps(config: &Core) -> (Arc<WhitelistManager>, Arc<WhitelistManagerDeps>) {
@@ -130,12 +124,13 @@ mod tests {
     mod configured_as_whitelisted {
 
         mod handling_the_torrent_whitelist {
-            use crate::test_helpers::tests::sample_info_hash;
-            use crate::whitelist::manager::tests::initialize_whitelist_manager_for_whitelisted_tracker;
+            use crate::test_helpers::tests::{ephemeral_configuration_for_listed_tracker, sample_info_hash};
+            use crate::whitelist::manager::tests::initialize_whitelist_manager_and_deps;
 
             #[tokio::test]
             async fn it_should_add_a_torrent_to_the_whitelist() {
-                let (whitelist_manager, services) = initialize_whitelist_manager_for_whitelisted_tracker().await;
+                let ephemeral = ephemeral_configuration_for_listed_tracker();
+                let (whitelist_manager, services) = initialize_whitelist_manager_and_deps(&ephemeral.config).await;
 
                 let info_hash = sample_info_hash();
 
@@ -154,7 +149,8 @@ mod tests {
 
             #[tokio::test]
             async fn it_should_remove_a_torrent_from_the_whitelist() {
-                let (whitelist_manager, services) = initialize_whitelist_manager_for_whitelisted_tracker().await;
+                let ephemeral = ephemeral_configuration_for_listed_tracker();
+                let (whitelist_manager, services) = initialize_whitelist_manager_and_deps(&ephemeral.config).await;
 
                 let info_hash = sample_info_hash();
 
@@ -174,12 +170,13 @@ mod tests {
             }
 
             mod persistence {
-                use crate::test_helpers::tests::sample_info_hash;
-                use crate::whitelist::manager::tests::initialize_whitelist_manager_for_whitelisted_tracker;
+                use crate::test_helpers::tests::{ephemeral_configuration_for_listed_tracker, sample_info_hash};
+                use crate::whitelist::manager::tests::initialize_whitelist_manager_and_deps;
 
                 #[tokio::test]
                 async fn it_should_load_the_whitelist_from_the_database() {
-                    let (whitelist_manager, services) = initialize_whitelist_manager_for_whitelisted_tracker().await;
+                    let ephemeral = ephemeral_configuration_for_listed_tracker();
+                    let (whitelist_manager, services) = initialize_whitelist_manager_and_deps(&ephemeral.config).await;
 
                     let info_hash = sample_info_hash();
 

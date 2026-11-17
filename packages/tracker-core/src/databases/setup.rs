@@ -137,7 +137,7 @@ mod tests {
 
     #[tokio::test]
     async fn it_should_initialize_the_sqlite_database() {
-        let config = ephemeral_configuration();
-        let _database = initialize_database(&config).await;
+        let ephemeral = ephemeral_configuration();
+        let _database = initialize_database(&ephemeral.config).await;
     }
 }

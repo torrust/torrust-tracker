@@ -151,21 +151,22 @@ impl DatabaseDownloadsMetricRepository {
 #[cfg(test)]
 mod tests {
 
+    use torrust_tracker_configuration::v3_0_0::core::Core;
     use torrust_tracker_primitives::NumberOfDownloadsPerInfoHash;
 
     use super::DatabaseDownloadsMetricRepository;
     use crate::databases::setup::initialize_database;
     use crate::test_helpers::tests::{ephemeral_configuration, sample_info_hash, sample_info_hash_one, sample_info_hash_two};
 
-    async fn initialize_db_persistent_torrent_repository() -> DatabaseDownloadsMetricRepository {
-        let config = ephemeral_configuration();
-        let stores = initialize_database(&config).await;
+    async fn initialize_db_persistent_torrent_repository(config: &Core) -> DatabaseDownloadsMetricRepository {
+        let stores = initialize_database(config).await;
         DatabaseDownloadsMetricRepository::new(&stores.torrent_metrics_store)
     }
 
     #[tokio::test]
     async fn it_saves_the_numbers_of_downloads_for_a_torrent_into_the_database() {
-        let repository = initialize_db_persistent_torrent_repository().await;
+        let ephemeral = ephemeral_configuration();
+        let repository = initialize_db_persistent_torrent_repository(&ephemeral.config).await;
 
         let infohash = sample_info_hash();
 
@@ -178,7 +179,8 @@ mod tests {
 
     #[tokio::test]
     async fn it_increases_the_numbers_of_downloads_for_a_torrent_into_the_database() {
-        let repository = initialize_db_persistent_torrent_repository().await;
+        let ephemeral = ephemeral_configuration();
+        let repository = initialize_db_persistent_torrent_repository(&ephemeral.config).await;
 
         let infohash = sample_info_hash();
 
@@ -191,7 +193,8 @@ mod tests {
 
     #[tokio::test]
     async fn it_loads_the_numbers_of_downloads_for_all_torrents_from_the_database() {
-        let repository = initialize_db_persistent_torrent_repository().await;
+        let ephemeral = ephemeral_configuration();
+        let repository = initialize_db_persistent_torrent_repository(&ephemeral.config).await;
 
         let infohash_one = sample_info_hash_one();
         let infohash_two = sample_info_hash_two();

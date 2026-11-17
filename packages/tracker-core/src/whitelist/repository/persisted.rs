@@ -68,19 +68,21 @@ impl DatabaseWhitelist {
 mod tests {
     mod the_persisted_whitelist_repository {
 
+        use torrust_tracker_configuration::v3_0_0::core::Core;
+
         use crate::databases::setup::initialize_database;
         use crate::test_helpers::tests::{ephemeral_configuration_for_listed_tracker, sample_info_hash};
         use crate::whitelist::repository::persisted::DatabaseWhitelist;
 
-        async fn initialize_database_whitelist() -> DatabaseWhitelist {
-            let configuration = ephemeral_configuration_for_listed_tracker();
-            let stores = initialize_database(&configuration).await;
+        async fn initialize_database_whitelist(configuration: &Core) -> DatabaseWhitelist {
+            let stores = initialize_database(configuration).await;
             DatabaseWhitelist::new(stores.whitelist_store)
         }
 
         #[tokio::test]
         async fn should_add_a_new_infohash_to_the_list() {
-            let whitelist = initialize_database_whitelist().await;
+            let ephemeral = ephemeral_configuration_for_listed_tracker();
+            let whitelist = initialize_database_whitelist(&ephemeral.config).await;
 
             let infohash = sample_info_hash();
 
@@ -91,7 +93,8 @@ mod tests {
 
         #[tokio::test]
         async fn should_remove_a_infohash_from_the_list() {
-            let whitelist = initialize_database_whitelist().await;
+            let ephemeral = ephemeral_configuration_for_listed_tracker();
+            let whitelist = initialize_database_whitelist(&ephemeral.config).await;
 
             let infohash = sample_info_hash();
 
@@ -104,7 +107,8 @@ mod tests {
 
         #[tokio::test]
         async fn should_load_all_infohashes_from_the_database() {
-            let whitelist = initialize_database_whitelist().await;
+            let ephemeral = ephemeral_configuration_for_listed_tracker();
+            let whitelist = initialize_database_whitelist(&ephemeral.config).await;
 
             let infohash = sample_info_hash();
 
@@ -117,7 +121,8 @@ mod tests {
 
         #[tokio::test]
         async fn should_not_add_the_same_infohash_to_the_list_twice() {
-            let whitelist = initialize_database_whitelist().await;
+            let ephemeral = ephemeral_configuration_for_listed_tracker();
+            let whitelist = initialize_database_whitelist(&ephemeral.config).await;
 
             let infohash = sample_info_hash();
 
@@ -129,7 +134,8 @@ mod tests {
 
         #[tokio::test]
         async fn should_not_fail_removing_an_infohash_that_is_not_in_the_list() {
-            let whitelist = initialize_database_whitelist().await;
+            let ephemeral = ephemeral_configuration_for_listed_tracker();
+            let whitelist = initialize_database_whitelist(&ephemeral.config).await;
 
             let infohash = sample_info_hash();
 

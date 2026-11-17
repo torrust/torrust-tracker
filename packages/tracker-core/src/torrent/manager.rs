@@ -153,8 +153,7 @@ mod tests {
         database_persistent_torrent_repository: Arc<DatabaseDownloadsMetricRepository>,
     }
 
-    async fn initialize_torrents_manager() -> (Arc<TorrentsManager>, Arc<TorrentsManagerDeps>) {
-        let config = ephemeral_configuration();
+    async fn initialize_torrents_manager(config: &Core) -> (Arc<TorrentsManager>, Arc<TorrentsManagerDeps>) {
         initialize_torrents_manager_with(config.clone()).await
     }
 
@@ -179,7 +178,8 @@ mod tests {
 
     #[tokio::test]
     async fn it_should_load_the_numbers_of_downloads_for_all_torrents_from_the_database() {
-        let (torrents_manager, services) = initialize_torrents_manager().await;
+        let ephemeral = ephemeral_configuration();
+        let (torrents_manager, services) = initialize_torrents_manager(&ephemeral.config).await;
 
         let infohash = sample_info_hash();
 
@@ -223,7 +223,8 @@ mod tests {
 
         #[tokio::test]
         async fn it_should_remove_peers_that_have_not_been_updated_after_a_cutoff_time() {
-            let (torrents_manager, services) = initialize_torrents_manager().await;
+            let ephemeral = ephemeral_configuration();
+            let (torrents_manager, services) = initialize_torrents_manager(&ephemeral.config).await;
 
             let infohash = sample_info_hash();
 
@@ -262,10 +263,10 @@ mod tests {
 
         #[tokio::test]
         async fn it_should_remove_torrents_that_have_no_peers_when_it_is_configured_to_do_so() {
-            let mut config = ephemeral_configuration();
-            config.tracker_policy.remove_peerless_torrents = true;
+            let mut ephemeral = ephemeral_configuration();
+            ephemeral.config.tracker_policy.remove_peerless_torrents = true;
 
-            let (torrents_manager, services) = initialize_torrents_manager_with(config).await;
+            let (torrents_manager, services) = initialize_torrents_manager_with(ephemeral.config.clone()).await;
 
             let infohash = sample_info_hash();
 
@@ -278,10 +279,10 @@ mod tests {
 
         #[tokio::test]
         async fn it_should_retain_peerless_torrents_when_it_is_configured_to_do_so() {
-            let mut config = ephemeral_configuration();
-            config.tracker_policy.remove_peerless_torrents = false;
+            let mut ephemeral = ephemeral_configuration();
+            ephemeral.config.tracker_policy.remove_peerless_torrents = false;
 
-            let (torrents_manager, services) = initialize_torrents_manager_with(config).await;
+            let (torrents_manager, services) = initialize_torrents_manager_with(ephemeral.config.clone()).await;
 
             let infohash = sample_info_hash();
 

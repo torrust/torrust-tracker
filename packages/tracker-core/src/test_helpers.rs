@@ -7,6 +7,8 @@ pub mod tests {
     use std::sync::Arc;
 
     use rand::Rng;
+    #[cfg(test)]
+    use tempfile::TempDir;
     use torrust_clock::DurationSinceUnixEpoch;
     use torrust_info_hash::InfoHash;
     use torrust_tracker_configuration::v3_0_0::Configuration;
@@ -14,8 +16,6 @@ pub mod tests {
     use torrust_tracker_configuration::v3_0_0::{core::Core, database::Database};
     use torrust_tracker_primitives::peer::Peer;
     use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId};
-    #[cfg(test)]
-    use torrust_tracker_test_helpers::configuration::ephemeral_sqlite_database;
 
     use crate::announce_handler::AnnounceHandler;
     use crate::databases::setup::initialize_database;
@@ -171,35 +171,72 @@ pub mod tests {
         (announce_handler, scrape_handler)
     }
 
-    /// # Panics
+    /// A core configuration whose SQLite database lives in a temporary directory owned by this value.
     ///
-    /// Will panic if the temporary database file path is not a valid UFT string.
+    /// Dropping the value removes the directory and the database in it, also when the test fails by panicking, so a
+    /// test run leaves no database file behind. Keep the value alive for as long as the configuration is used: once
+    /// it is dropped, the database path points into a removed directory and opening it fails.
     #[cfg(test)]
-    #[must_use]
-    pub fn ephemeral_configuration() -> Core {
-        let mut config = Core::default();
-
-        let temp_file = ephemeral_sqlite_database();
-        set_sqlite_database_path(&mut config, &temp_file);
-
-        config
+    pub struct EphemeralConfiguration {
+        pub config: Core,
+        _database_directory: TempDir,
     }
 
     /// # Panics
     ///
-    /// Will panic if the temporary database file path is not a valid UFT string.
+    /// Will panic if the temporary directory cannot be created or its path is not valid UTF-8.
     #[cfg(test)]
     #[must_use]
-    pub fn ephemeral_configuration_for_listed_tracker() -> Core {
-        let mut config = Core {
+    pub fn ephemeral_configuration() -> EphemeralConfiguration {
+        with_ephemeral_database(Core::default())
+    }
+
+    /// # Panics
+    ///
+    /// Will panic if the temporary directory cannot be created or its path is not valid UTF-8.
+    #[cfg(test)]
+    #[must_use]
+    pub fn ephemeral_configuration_for_listed_tracker() -> EphemeralConfiguration {
+        with_ephemeral_database(Core {
             listed: true,
             ..Default::default()
-        };
+        })
+    }
 
-        let temp_file = ephemeral_sqlite_database();
-        set_sqlite_database_path(&mut config, &temp_file);
+    /// A tracker configuration whose SQLite database lives in a temporary directory owned by this value.
+    ///
+    /// The same lifetime rule as [`EphemeralConfiguration`] applies.
+    #[cfg(test)]
+    pub struct EphemeralTrackerConfiguration {
+        pub config: Configuration,
+        _database_directory: TempDir,
+    }
 
-        config
+    /// Moves the SQLite database of a tracker configuration, for example one from
+    /// `torrust_tracker_test_helpers::configuration`, into a temporary directory owned by the returned value.
+    ///
+    /// # Panics
+    ///
+    /// Will panic if the temporary directory cannot be created or its path is not valid UTF-8.
+    #[cfg(test)]
+    #[must_use]
+    pub fn ephemeral_tracker_configuration(mut config: Configuration) -> EphemeralTrackerConfiguration {
+        let database_directory = tempfile::tempdir().expect("a temporary directory can be created");
+        set_sqlite_database_path(&mut config.core, &database_directory.path().join("data.db"));
+        EphemeralTrackerConfiguration {
+            config,
+            _database_directory: database_directory,
+        }
+    }
+
+    #[cfg(test)]
+    fn with_ephemeral_database(mut config: Core) -> EphemeralConfiguration {
+        let database_directory = tempfile::tempdir().expect("a temporary directory can be created");
+        set_sqlite_database_path(&mut config, &database_directory.path().join("data.db"));
+        EphemeralConfiguration {
+            config,
+            _database_directory: database_directory,
+        }
     }
 
     #[cfg(test)]

@@ -245,6 +245,7 @@ mod tests {
     use tokio_util::sync::CancellationToken;
     use torrust_clock::clock;
     use torrust_clock::clock::stopped::Stopped as _;
+    use torrust_tracker_configuration::v3_0_0::core::Core;
     use torrust_tracker_events::drain::DEFAULT_DRAIN_TIMEOUT;
     use torrust_tracker_events::receiver::{RecvError, TryRecvError};
     use torrust_tracker_events::shutdown::Completion;
@@ -298,9 +299,8 @@ mod tests {
         }
     }
 
-    async fn database_downloads_repository() -> Arc<DatabaseDownloadsMetricRepository> {
-        let configuration = ephemeral_configuration();
-        let stores = initialize_database(&configuration).await;
+    async fn database_downloads_repository(configuration: &Core) -> Arc<DatabaseDownloadsMetricRepository> {
+        let stores = initialize_database(configuration).await;
 
         Arc::new(DatabaseDownloadsMetricRepository::new(&stores.torrent_metrics_store))
     }
@@ -452,7 +452,8 @@ mod tests {
         // Arrange
         clock::Stopped::local_set_to_unix_epoch();
         let stats_repository = Arc::new(Repository::new(true, true));
-        let downloads_repository = database_downloads_repository().await;
+        let ephemeral = ephemeral_configuration();
+        let downloads_repository = database_downloads_repository(&ephemeral.config).await;
         let receiver = Box::new(ScriptedReceiver::new([
             Ok(peer_download_completed_event()),
             Err(RecvError::Closed),
@@ -477,7 +478,8 @@ mod tests {
         // Arrange
         clock::Stopped::local_set_to_unix_epoch();
         let stats_repository = Arc::new(Repository::new(true, true));
-        let downloads_repository = database_downloads_repository().await;
+        let ephemeral = ephemeral_configuration();
+        let downloads_repository = database_downloads_repository(&ephemeral.config).await;
         let receiver = Box::new(ScriptedReceiver::new([
             Err(RecvError::Lagged(2)),
             Ok(peer_download_completed_event()),
@@ -502,7 +504,8 @@ mod tests {
     async fn it_should_stop_when_the_persistent_receiver_is_closed() {
         // Arrange
         let stats_repository = Arc::new(Repository::new(true, true));
-        let downloads_repository = database_downloads_repository().await;
+        let ephemeral = ephemeral_configuration();
+        let downloads_repository = database_downloads_repository(&ephemeral.config).await;
         let receiver = Box::new(ScriptedReceiver::new([Err(RecvError::Closed)]));
 
         // Act
@@ -525,7 +528,8 @@ mod tests {
         // At shutdown a completed download is queued for the persistent listener, and the
         // listener's token is cancelled before the listener takes the event.
         let stats_repository = Arc::new(Repository::new(true, true));
-        let downloads_repository = database_downloads_repository().await;
+        let ephemeral = ephemeral_configuration();
+        let downloads_repository = database_downloads_repository(&ephemeral.config).await;
         let receiver = Box::new(ScriptedReceiver::new([Ok(peer_download_completed_event())]));
         let cancellation_token = CancellationToken::new();
         cancellation_token.cancel();
@@ -551,7 +555,8 @@ mod tests {
         // Two completed downloads are queued for the persistent listener, and its token is
         // cancelled before the listener takes them.
         let stats_repository = Arc::new(Repository::new(true, true));
-        let downloads_repository = database_downloads_repository().await;
+        let ephemeral = ephemeral_configuration();
+        let downloads_repository = database_downloads_repository(&ephemeral.config).await;
         let receiver = Box::new(ScriptedReceiver::new([
             Ok(peer_download_completed_event()),
             Ok(peer_download_completed_event()),
@@ -582,7 +587,8 @@ mod tests {
         // Two completed downloads are queued, the token is cancelled, and the drain timeout is zero,
         // so it has expired before the first event could be admitted.
         let stats_repository = Arc::new(Repository::new(true, true));
-        let downloads_repository = database_downloads_repository().await;
+        let ephemeral = ephemeral_configuration();
+        let downloads_repository = database_downloads_repository(&ephemeral.config).await;
         let receiver = Box::new(ScriptedReceiver::new([
             Ok(peer_download_completed_event()),
             Ok(peer_download_completed_event()),
