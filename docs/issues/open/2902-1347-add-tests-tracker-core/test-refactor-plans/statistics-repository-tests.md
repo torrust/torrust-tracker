@@ -3,7 +3,7 @@ doc-type: file-test-plan
 issue: 2902
 package: torrust-tracker-core
 target-file: packages/tracker-core/src/statistics/repository.rs
-status: proposed
+status: in-progress
 semantic-links:
   related-artifacts:
     - packages/tracker-core/src/statistics/repository.rs
@@ -48,21 +48,18 @@ Follow the shared [guidance](README.md). This plan covers only
   the workspace, and the package describes no gauge (see the finding below).
 - **T1 hypothesis:** test candidate (four counter and gauge methods and their error arms).
 
-## Finding Proposed: F6
+## Finding F6
 
 `Repository::set_gauge`, `increment_gauge` and `decrement_gauge` are public but unused: no gauge is
 described by `describe_metrics` and no code in the workspace calls them (`grep -rn` over
 `packages/` and `src/`, 2026-11-17). Removing them is a public-API change of a published crate,
-so it is not done here. Proposed register entry: F6, handed to a separate issue if the maintainer
-wants them removed.
+so it is not done here. Recorded as F6 in the register.
 
 ## Maintainer Decisions
 
-None yet. The plan asks for one decision (D1):
-
-- **D1:** test the three unused gauge methods as public API (recommended: they are part of the
-  published crate API and the tests are three small cases; a removal issue would delete them with
-  the methods), or leave them uncovered with F6 as their owner.
+The maintainer approved the plan on 2026-11-17, with decision D1: test the three unused gauge
+methods as public API while they exist (F6 records them as unused; removal would be a separate
+issue).
 
 ## Current Tests Review
 
