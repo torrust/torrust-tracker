@@ -1,7 +1,7 @@
 ---
 pr-number: 2926
 pr-url: https://github.com/torrust/torrust-tracker/pull/2926
-last-updated-utc: "2026-11-17 21:15"
+last-updated-utc: "2026-11-17 21:39"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -43,13 +43,15 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1: Copilot review 5946669412 (COMMENTED) with three findings without reviewer IDs, as audit findings F1 to F3.
+Round 1: Copilot review 5946669412 (COMMENTED) with three findings without reviewer IDs, as audit findings F1 to F3. Round 2: Copilot review 5946979677 (COMMENTED, at the round 1 fix head) with two findings without reviewer IDs, as audit findings F4 and F5.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2926-f1 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F2 | review-finding:pr-2926-f2 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-2926-f3 | Copilot | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F4 | review-finding:pr-2926-f4 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F5 | review-finding:pr-2926-f5 | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -87,16 +89,43 @@ Round 1: Copilot review 5946669412 (COMMENTED) with three findings without revie
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4605825963
 - Concern: The leak-sites table of #2907 writes `ephemeral_sqlite_database` without `()`, unlike the other specs in this PR.
 - Solution: The row now writes `ephemeral_sqlite_database()` and `ephemeral*()`.
-- Current-tree verification: `grep -n 'configuration::ephemeral_sqlite_database()' docs/issues/open/2907-*/ISSUE.md` finds the row.
+- Current-tree verification: `grep -n 'configuration::ephemeral_sqlite_database()' docs/issues/open/2907-*/ISSUE.md` finds the name with `()`; the F4 fix moved it from the table row to the paragraph after the table.
 - Resolution reference: docs(issues): [#2392] align the order 7 title and widen #2925's SQLite leftover check
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4605879199
+
+### F4 - Out-of-scope SQLite row in the #2907 leak table
+
+- PR number: 2926
+- Source review ID: 5946979677
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4606079586
+- Concern: The Background leak table of #2907 still lists the SQLite helper although the issue is narrowed and the SQLite work moved to #2924 and #2925, which makes the in-scope inventory ambiguous.
+- Solution: The table now holds only the two in-scope helpers. A paragraph after it names `ephemeral_sqlite_database()` as the third leak the audit found, out of scope and moved to #2924 and #2925.
+- Current-tree verification: `grep -n 'Two of them stay in this issue\|The third is out of scope here' docs/issues/open/2907-*/ISSUE.md` finds both sentences, and the table has two rows.
+- Resolution reference: docs(issues): [#2392] keep #2907's leak table in scope and reword the #2924 guard goal
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4606129122
+
+### F5 - Redundant wording in the #2924 goal
+
+- PR number: 2926
+- Source review ID: 5946979677
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4606079655
+- Concern: The goal says the guard removes the directory "on drop, on success, failure and drop paths", which mentions drop twice and reads unclear.
+- Solution: The goal now says the guard removes the directory when it is dropped, so the directory goes whether the test passes or fails, and keeps the EPIC rule 1 reference.
+- Current-tree verification: `grep -n 'removes it when the guard is dropped' docs/issues/open/2924-*/ISSUE.md` finds the goal.
+- Resolution reference: docs(issues): [#2392] keep #2907's leak table in scope and reword the #2924 guard goal
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4606129559
 
 ## Processing Log
 
 - 2026-11-17 21:15 UTC - Round 1: Copilot review 5946669412 with F1 to F3. Committed and pushed the fix (`docs(issues): [#2392] align the order 7 title and widen #2925's SQLite leftover check`), then replied to the three threads (21:14:38Z to 21:14:43Z).
 - 2026-11-17 21:15 UTC - The validator on the worktree record reported 3 rows, 1 log entry, 0 failures. Resolved the three threads (about 21:15:31Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread. Committed this record.
-
+- 2026-11-17 21:39 UTC - Round 2: Copilot review 5946979677 (at the round 1 fix head) with F4 and F5. Committed and pushed the fix (`docs(issues): [#2392] keep #2907's leak table in scope and reword the #2924 guard goal`), then replied to the two threads (21:38:39Z and 21:38:42Z). Updated F3's verification, because the F4 fix moved the function name out of the table.
+- 2026-11-17 21:39 UTC - The validator on the worktree record reported 5 rows, 3 log entries, 0 failures. Resolved the F4 and F5 threads (about 21:39:20Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread. Committed these entries.
 <!-- Copied verbatim into each audit record. -->
 
 ## Completion Rules
