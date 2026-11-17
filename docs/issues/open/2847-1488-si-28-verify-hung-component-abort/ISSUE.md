@@ -9,7 +9,7 @@ github-issue: 2847
 spec-path: docs/issues/open/2847-1488-si-28-verify-hung-component-abort/ISSUE.md
 branch: "2847-verify-hung-component-abort"
 related-pr: null
-last-updated-utc: "2026-11-17 18:02"
+last-updated-utc: "2026-11-17 18:16"
 semantic-links:
   skill-links:
     - create-issue
@@ -262,6 +262,7 @@ Sign every commit with GPG.
 - 2026-11-17 16:47 UTC - AI agent (Claude Opus 5.5) - Implemented T1 to T5 on `torrust/develop` at `a544a58fb`: `app::run_until_shutdown_signal` holds the shutdown sequence and `main.rs` calls it; the test-only crate `packages/hung-component-tracker` and its integration test pass for `SIGTERM` and `SIGINT` (exit code 1 about 4.01 s after the signal, `hung_component` and `health_check_api` aborted); the maintainer reviewed T1 to T3 and the test-design review before the commits. M1 to M4 are recorded in `manual-verification-evidence.md` (the real binary's normalized log is identical before and after the refactor). T5 updated `docs/architecture/application-jobs.md` and `docs/packages.md`; no shutdown doc called the path unverified. Completion review: no implementation retrospective is needed; the two surprises were local to the manual runs (a shared target directory left a stale library build, and one M4 run whose script stamps disagreed with the tracker's log was discarded and rerun) and are recorded in the evidence. [Corrected in review round 1 of PR #2911: this entry first said the stamps lagged on a loaded machine, a cause that cannot produce the reported order.]
 - 2026-11-17 17:27 UTC - AI agent (Claude Opus 5.5) - Addressed review round 1 of PR #2911 (da2ce7, findings F1 to F6, none blocking): the release skill's version bumps name every manifest that requires the root crate; the evidence records the stale build in the shared target directory and how each binary copy of V1 to V4 was confirmed (`nm` finds `run_until_shutdown_signal` in the branch binaries only); the discarded M4 run's cause is recorded as unknown, and the 16:47 entry above is corrected in place; `src/AGENTS.md`, `packages/AGENTS.md` and the shutdown task inventory place the shutdown sequence in `app.rs` and list the crate; `run_until_shutdown_signal` documents its panics; the test binary's CLI comment states the missing empty-path check.
 - 2026-11-17 18:02 UTC - AI agent (Claude Opus 5.5) - Addressed Copilot's round 2 of PR #2911 (findings R1 and R2, test helper only): the readiness poll checks the captured output under its lock instead of copying it, and a panic in an output reader thread now fails the test on the normal paths.
+- 2026-11-17 18:16 UTC - AI agent (Claude Opus 5.5) - Addressed round 3 of PR #2911 (da2ce7 findings F7 and F8, test helper only): an output read error now panics the reader thread so the test reports incomplete output, and `signal_and_wait_for_exit` documents that panic.
 
 ## Acceptance Criteria
 

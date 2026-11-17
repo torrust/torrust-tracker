@@ -1,7 +1,7 @@
 ---
 pr-number: 2911
 pr-url: https://github.com/torrust/torrust-tracker/pull/2911
-last-updated-utc: "2026-11-17 18:02"
+last-updated-utc: "2026-11-17 18:16"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -43,7 +43,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1: da2ce7 review 5943211502 (APPROVED) with findings F1 to F6, all non-blocking; the reviewer's IDs are this audit's IDs. Copilot review 5943096341 (COMMENTED) reported no finding. Round 2: Copilot review 5943750223 (COMMENTED, on the head that fixed round 1) with findings R1 and R2, which Copilot rates medium; this audit maps that to `Minor (inferred)`, since the comments carry no severity bracket. The `R` IDs are this audit's.
+Round 1: da2ce7 review 5943211502 (APPROVED) with findings F1 to F6, all non-blocking; the reviewer's IDs are this audit's IDs. Copilot review 5943096341 (COMMENTED) reported no finding. Round 2: Copilot review 5943750223 (COMMENTED, on the head that fixed round 1) with findings R1 and R2, which Copilot rates medium; this audit maps that to `Minor (inferred)`, since the comments carry no severity bracket. The `R` IDs are this audit's. Round 3: da2ce7 review 5944078045 (APPROVED) with findings F7 (Suggestion) and F8 (Nit), both non-blocking; Copilot review 5944069436 (COMMENTED) reported no finding.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -55,6 +55,8 @@ Round 1: da2ce7 review 5943211502 (APPROVED) with findings F1 to F6, all non-blo
 | F6 | review-finding:pr-2911-f6 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | R1 | review-finding:pr-2911-r1 | Copilot | Minor (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
 | R2 | review-finding:pr-2911-r2 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-2911-f7 | Human | Suggestion | testing | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-2911-f8 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -162,10 +164,37 @@ Round 1: da2ce7 review 5943211502 (APPROVED) with findings F1 to F6, all non-blo
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2911#discussion_r4603682816
 
+### F7 - A read error still ends a reader silently
+
+- PR number: 2911
+- Source review ID: 5944078045
+- Reviewer finding ID: F7
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2911#discussion_r4603820502
+- Concern: The reader body did `let Ok(line) = line else { return };`, so an I/O error or a non-UTF-8 line ended the thread normally, `join` returned `Ok`, and the R2 assertion passed on output that stopped early.
+- Solution: The reader does `let line = line.expect("read a line of the child output");`, so both cases panic the reader and `join_readers` reports them with its direct message.
+- Current-tree verification: `grep -n 'read a line of the child output' packages/hung-component-tracker/tests/common/mod.rs` finds the `expect`; `grep -c 'let Ok(line) = line else' packages/hung-component-tracker/tests/common/mod.rs` prints 0; `cargo test -p torrust-tracker-hung-component-tracker` passed both cases after the change.
+- Resolution reference: `test(hung-component-tracker): [#2847] fail on an output read error and document the reader panic`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2911#discussion_r4603841420
+
+### F8 - The `# Panics` section omits the reader panic
+
+- PR number: 2911
+- Source review ID: 5944078045
+- Reviewer finding ID: F8
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2911#discussion_r4603820509
+- Concern: The R2 assertion runs on both paths of `signal_and_wait_for_exit`, but its `# Panics` section named only the exit timeout.
+- Solution: The section adds that it also panics when an output reader thread panicked, since the captured output is then incomplete.
+- Current-tree verification: `grep -n 'Also panics when an output reader thread panicked' packages/hung-component-tracker/tests/common/mod.rs` finds the clause.
+- Resolution reference: `test(hung-component-tracker): [#2847] fail on an output read error and document the reader panic`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2911#discussion_r4603841805
+
 ## Processing Log
 
 - 2026-11-17 17:30 UTC - Round 1: da2ce7 review 5943211502 (APPROVED, ACK on the head before this round) with findings F1 to F4 (Minor) and F5, F6 (Nit), none blocking; Copilot review 5943096341 (COMMENTED) had no finding and no inline comment. The maintainer chose to fix all six in this PR. Committed the fixes in four commits (17:24:28Z to 17:28:11Z), then, before pushing so that one push carries the fixes and this record, replied to the six threads (17:29:25Z to 17:29:36Z), each naming the commit subject the push brings, and resolved them (17:29:58Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread. Created this record.
 - 2026-11-17 18:02 UTC - Round 2: Copilot review 5943750223 (COMMENTED, 17:54:07Z) on the head that fixed round 1, after both ACKs of that head, with findings R1 and R2. The maintainer chose to fix both with a new push. Committed the fix (18:01:19Z), replied to both threads (18:01:55Z and 18:01:58Z) naming the commit subject the push brings, and resolved them (18:02:08Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread. Recorded R1 and R2.
+- 2026-11-17 18:16 UTC - Round 3: da2ce7 review 5944078045 (APPROVED, 18:14:12Z) with findings F7 (Suggestion) and F8 (Nit), both non-blocking; Copilot review 5944069436 (COMMENTED, 18:13:38Z) recommended approval with no finding. Fixed both, following the maintainer's choice for round 2's non-blocking findings: committed the fix (18:15:29Z), replied to both threads (18:16:03Z and 18:16:06Z) naming the commit subject the push brings, and resolved them (18:16:10Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread. Recorded F7 and F8.
 
 <!-- Copied verbatim into each audit record. -->
 
