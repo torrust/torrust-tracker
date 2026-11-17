@@ -9,7 +9,7 @@ github-issue: 2396
 spec-path: docs/issues/open/2396-2392-e2e-unique-tracker-image-tag/ISSUE.md
 branch: "2392-test-isolation-spec"
 related-pr: 2397
-last-updated-utc: "2026-10-02 13:30"
+last-updated-utc: "2026-11-17 12:35"
 semantic-links:
   skill-links:
     - create-issue
@@ -60,6 +60,18 @@ runner's default tag. #2386 lists this shared tag as a concurrency limit.
 The security scan workflow also uses `torrust-tracker:local`, but it runs only on `ubuntu-latest`,
 so it is out of scope.
 
+The shared-resource audit (#2394, finding C3) found two more local default tags with the same
+problem as `e2e_tests_runner`'s default. Each tool builds its image under a fixed tag unless told
+not to, so two local runs from two checkouts on one machine replace each other's image:
+
+| Tool | Default tag | Built unless |
+| --- | --- | --- |
+| `qbittorrent_e2e_runner` (`src/console/ci/qbittorrent_e2e/runner.rs`) | `torrust-tracker:qbt-e2e-local` | `--skip-build` |
+| `contrib/dev-tools/containers/tests/test-mounted-no-persistence-configuration.sh` | `torrust-tracker:test-mounted-no-persistence-configuration` | `BUILD_IMAGE=false` |
+
+In CI both skip the build and use the CI tag, so they are fixed by the per-run CI tag. The
+maintainer decided on 2026-11-16 to add their local defaults to this issue (#2394, decision Q2).
+
 ## Scope
 
 ### In Scope
@@ -69,8 +81,11 @@ so it is out of scope.
   consumer step.
 - Remove the per-run image at the end of the job, including when earlier steps fail, so images do
   not accumulate on persistent self-hosted runners.
-- Decide whether `e2e_tests_runner`'s default `torrust-tracker:local` tag (used when it builds the
-  image itself) also needs a per-run value for local runs, and record the decision.
+- Decide whether the local default tags need a per-run value for local runs, and record the
+  decision: `e2e_tests_runner`'s `torrust-tracker:local`, `qbittorrent_e2e_runner`'s
+  `torrust-tracker:qbt-e2e-local`, and the container test script's
+  `torrust-tracker:test-mounted-no-persistence-configuration` (each used when the tool builds the
+  image itself).
 
 ### Out of Scope
 
@@ -110,7 +125,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2 | TODO | Per-run tag in `container.yaml` | One tag value defined once per job and used by the build and every consumer step. |
 | T3 | TODO | Per-run tag in `testing.yaml` | Same as T2 for the `docker-e2e` job. |
 | T4 | TODO | Always-run image cleanup | Each job removes its per-run image even after failed steps; verify on the self-hosted runner (M3). |
-| T5 | TODO | Local runner default and docs | Record the decision on the runner's default tag; remove the shared tag from the concurrency limits in `docs/self-hosted-runner.md`. |
+| T5 | TODO | Local default tags and docs | Record the decision on the three local default tags (`e2e_tests_runner`, `qbittorrent_e2e_runner`, container test script); remove the shared tag from the concurrency limits in `docs/self-hosted-runner.md`. |
 
 ## Commit Points
 
@@ -118,7 +133,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | --- | --- |
 | T2, T4 | `container.yaml` per-run tag and cleanup | Commit after a passing CI run. |
 | T3, T4 | `testing.yaml` per-run tag and cleanup | Commit after a passing CI run. |
-| T5 | Runner default decision and documentation | Separate commit. |
+| T5 | Local default tags decision and documentation | Separate commit. |
 
 ## Progress Tracking
 
@@ -140,13 +155,17 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   the concurrency limit recorded in #2386 and a review of `container.yaml` and `testing.yaml`.
 - 2026-09-30 14:58 UTC - GitHub Copilot - Maintainer approved the draft. Created #2396 as a
   sub-issue of EPIC #2392 and moved the specification to `docs/issues/open/`.
+- 2026-11-17 12:35 UTC - Claude Code (Claude Opus 5.5), EPIC #2392 coordinator - Extended the
+  scope with the local default tags of `qbittorrent_e2e_runner` and the container test script
+  (#2394 finding C3, maintainer decision Q2 of 2026-11-16): background, scope, T5 and AC3.
 
 ## Acceptance Criteria
 
 - [ ] AC1: `container.yaml` and `testing.yaml` build and test a per-run image tag; no consumer step
   uses a fixed tag.
 - [ ] AC2: Each job removes its per-run image, including after a failed step.
-- [ ] AC3: The decision on `e2e_tests_runner`'s default tag is recorded and implemented.
+- [ ] AC3: The decision on the local default tags of `e2e_tests_runner`, `qbittorrent_e2e_runner`
+  and the container test script is recorded and implemented.
 - [ ] AC4: `docs/self-hosted-runner.md` no longer lists the shared image tag as a concurrency limit.
 - [ ] `linter all` exits with code `0`
 - [ ] CI `Container` and `Testing` workflows pass on GitHub-hosted and self-hosted runners
