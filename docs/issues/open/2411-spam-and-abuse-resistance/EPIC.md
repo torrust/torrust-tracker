@@ -6,7 +6,7 @@ epic: null
 github-issue: 2411
 spec-path: docs/issues/open/2411-spam-and-abuse-resistance/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-11 16:08"
+last-updated-utc: "2026-11-17 08:53"
 semantic-links:
   skill-links:
     - create-issue
@@ -112,7 +112,7 @@ Each control bounds one cost locally; none bounds aggregate work across requests
 
 | Order | Issue | Local Spec | Status | Notes |
 | --- | --- | --- | --- | --- |
-| 1 | #324 - Denial of Service attack factor | None (pre-dates specs) | TODO | Existing open issue; linked as a sub-issue |
+| 1 | #324 - Denial of Service attack factor | None (pre-dates specs) | DONE | Closed 2026-11-17: idle-connection part fixed by #2776; remaining rate-limiting work is A1 (subissue 4). See [related-issues.md](../../closed/2776-2411-axum-server-0-9-timeouts/related-issues.md) |
 | 2 | #2417 - Verify whether HTTP scrape enforces the 74 info-hash limit | [ISSUE.md](../../closed/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md) | DONE | A3 |
 | 3 | #2776 - Adopt `axum-server` 0.9 timeouts and close idle-connection gaps | [ISSUE.md](../../closed/2776-2411-axum-server-0-9-timeouts/ISSUE.md) | DONE | A2 |
 | 4 | #[To be assigned] - Rate-limiting design | Not drafted | TODO | Highest-impact mitigation for its effort (A1); deferred until after v4.0.0 |

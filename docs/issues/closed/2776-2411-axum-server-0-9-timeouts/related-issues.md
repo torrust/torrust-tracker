@@ -1,7 +1,7 @@
 ---
 doc-type: related-issues-disposition
 issue-spec: docs/issues/closed/2776-2411-axum-server-0-9-timeouts/ISSUE.md
-last-updated-utc: "2026-11-14 07:59"
+last-updated-utc: "2026-11-17 08:53"
 semantic-links:
   related-artifacts:
     - docs/issues/closed/2776-2411-axum-server-0-9-timeouts/ISSUE.md
@@ -38,6 +38,10 @@ Evidence used below:
 - EPIC [#2411](../../open/2411-spam-and-abuse-resistance/EPIC.md): case A2 (connections without a
   client timeout, mitigated by #2776) and case A1 (no request-rate or connection limit, still open).
 
+## Status
+
+All four issues are closed on GitHub: #612, #613 and #603 on 2026-11-16, #324 on 2026-11-17.
+
 ## Summary
 
 | Issue | Title                                                                                                    | Disposition                                    |
@@ -45,7 +49,7 @@ Evidence used below:
 | #612  | Tracker API: Add a timeout to the TLS handshake, waiting for headers, and waiting for receiving headers  | Fixed by #2813; close                          |
 | #613  | HTTP Tracker: Add a timeout to the TLS handshake, waiting for headers, and waiting for receiving headers | Fixed by #2813; close                          |
 | #603  | Review missing timeouts (EPIC)                                                                           | All items done once #612 and #613 close; close |
-| #324  | Denial of Service attack factor                                                                          | Keep open, re-scoped to EPIC #2411 case A1     |
+| #324  | Denial of Service attack factor                                                                          | Closed; remaining work in EPIC #2411 case A1   |
 
 ## #612 - Tracker API: Add a timeout to the TLS handshake, waiting for headers, and waiting for receiving headers
 
@@ -107,16 +111,18 @@ never disconnected, which the reporter considered a critical security flaw. The 
 raised a missing rate limit and lock contention under load. The reopening comment on #612 and #613
 says the issue was reopened to consolidate those two.
 
-Verdict: **keep open, re-scoped.** The idle-connection part is fixed by #2813 (baseline: the plaintext HTTP
+Verdict: **closed** (maintainer, 2026-11-17). The first disposition (2026-11-12) kept it open,
+re-scoped to EPIC #2411 case A1; the maintainer then closed it because the reported bug is fixed and
+the remaining work is already recorded in the EPIC. The idle-connection part is fixed by #2813 (baseline: the plaintext HTTP
 tracker and REST API listeners were already protected; the real gaps were TLS and the health check API, both now
 closed). What stays valid is the rate-limiting half of the report. In particular, a client that
 stays connected and answers HTTP/2 keep-alive pings is not time-bounded by the timeouts (recorded
 in the ADR and in AC4 of the #2776 spec), and no connection or request-rate limit exists on the
 HTTP tracker, REST API or health check API.
 
-Remains open, and where it lives: [EPIC #2411](../../open/2411-spam-and-abuse-resistance/EPIC.md)
+Remaining work, and where it lives: [EPIC #2411](../../open/2411-spam-and-abuse-resistance/EPIC.md)
 case A1 ("No shared configurable request-rate policy"), whose evidence is detailed enough that no
-new spec is drafted now. #324 is already a sub-issue of #2411. The rate-limiting design issue is
+new spec is drafted now. The rate-limiting design issue is
 the EPIC's subissue 4 (not yet created, deferred until after v4.0.0). Lock contention (`RwLock`)
 is not a timeout topic and has no spec here.
 

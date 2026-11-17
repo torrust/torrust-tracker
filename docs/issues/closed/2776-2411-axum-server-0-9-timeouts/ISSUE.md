@@ -9,7 +9,7 @@ github-issue: 2776
 spec-path: docs/issues/closed/2776-2411-axum-server-0-9-timeouts/ISSUE.md
 branch: "2776-axum-server-0-9-timeouts-spec"
 related-pr: 2813
-last-updated-utc: "2026-11-13 09:42"
+last-updated-utc: "2026-11-17 08:53"
 semantic-links:
   skill-links:
     - create-issue
@@ -180,7 +180,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T5  | DONE   | Compare idle bounds with and without `TimeoutAcceptor`, HTTP/1 and HTTP/2, then decide      | Evidence from M4 for both builds and both protocols; wrapper removed, or kept with reason |
 | T6  | DONE   | Decide timeout configurability; record the TLS handshake timeout behaviour                   | Progress-log decision; constants or configuration keys documented                         |
 | T7  | DONE   | Update EPIC #2411 case A2 and controls, remove stale comments, update docs                   | EPIC rows match the new behaviour; no stale "TLS does not work" comments                  |
-| T8  | TODO   | Close or link #324, #612, #613 and #603 checklist                                            | Maintainer action; issue links recorded in the progress log                              |
+| T8  | DONE   | Close or link #324, #612, #613 and #603 checklist                                            | Maintainer action; issue links recorded in the progress log                              |
 | T9  | DONE   | Green run and final like-for-like recheck after the last production change                  | T1 probes repeated on the final build, named by its Conventional Commit subject          |
 
 ## Commit Points
@@ -232,6 +232,7 @@ with GPG.
 - 2026-11-11 11:03 UTC - Claude Code (Claude Sonnet 5.5) - Review round 2 (da2ce7, findings F9 to F29 of their numbering): the ADR moved to `docs/adrs/` because the placement ADR puts protocol behaviour at the root; the README states the HTTP/2 condition (a client that answers pings is not time-bounded); the `signals.rs` test listener and the `token_aware_drain` example use the shared constructor, and `clippy.toml` also forbids `axum::serve` and the unix constructors; stamps use commit times, attributions to the maintainer are dropped and AC4 reads "no worse than with the wrapper". Audit: `docs/pr-reviews/pr-2813-review/PR-REVIEW.md`.
 - 2026-11-11 12:30 UTC - Claude Code (Claude Sonnet 5.5) - PR #2813 merged (merge commit `a83f3ef29`) after two review rounds; the audit and retrospective are in `docs/pr-reviews/pr-2813-review/`. Spec moved to `docs/issues/closed/`. T8 / AC7 stay with the maintainer: #324, #612, #613 and #603 remain open until he reviews them.
 - 2026-11-12 16:24 UTC - Claude Code (Claude Sonnet 5.5) - T8 / AC7 disposition recorded in [related-issues.md](related-issues.md): #612 and #613 fixed by #2813, #603 closes with them, #324 stays open re-scoped to EPIC #2411 case A1. The maintainer closes or comments on GitHub.
+- 2026-11-17 08:53 UTC - Claude Code (Claude Opus 5.5) - T8 / AC7 done: #612, #613 and #603 closed on 2026-11-16, each with a comment linking [related-issues.md](related-issues.md); the maintainer also closed #324 on 2026-11-17 instead of keeping it open, since its remaining work is EPIC #2411 case A1. The disposition file is updated to match.
 
 ## Acceptance Criteria
 
@@ -241,7 +242,7 @@ with GPG.
 - [x] AC4: An idle persistent connection after a response is closed in bounded time, no worse than with the wrapper (V8), measured on the replacement build: HTTP/1 after 5 s, HTTP/2 after about 10 s (5 s keep-alive interval plus 5 s ping reply wait). The maintainer accepted the HTTP/2 figure on 2026-11-11; a client that answers pings is not time-bounded (EPIC #2411 case A1).
 - [x] AC5: `TimeoutAcceptor` and its helper types are removed only after AC4 is shown by a comparison with and without the wrapper for HTTP/1 and HTTP/2; otherwise the spec records why they stay.
 - [x] AC6: EPIC #2411 case A2 and the existing-controls rows describe the new behaviour; the stale "TLS does not work" comments are gone.
-- [ ] AC7: #324, #612 and #613 are closed or linked to this issue, and the #603 checklist is updated.
+- [x] AC7: #324, #612 and #613 are closed or linked to this issue, and the #603 checklist is updated.
 - [x] `linter all` exits with code `0`
 - [x] Relevant tests pass
 - [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -291,7 +292,7 @@ None planned.
 | AC4   | DONE                    | V8: HTTP/1 idle after response 5.0 s; HTTP/2 10.0 s with and without the wrapper; maintainer accepted HTTP/2 about 10 s on 2026-11-11 |
 | AC5   | DONE                    | V8 comparison; wrapper and helper types removed in `refactor(axum-server): [#2776] remove the TimeoutAcceptor wrapper` |
 | AC6   | DONE                    | EPIC #2411 case A2 and Existing Controls rows rewritten; the stale "TLS does not work" comment was removed with the wrapper |
-| AC7   | TODO                    | Maintainer action (T8): #324, #612, #613 stay open until the maintainer closes them after the fix; #603 checklist then updated |
+| AC7   | DONE                    | #612, #613 and #603 closed 2026-11-16, #324 closed 2026-11-17, each with a comment linking [related-issues.md](related-issues.md) |
 
 ## Risks and Trade-offs
 
