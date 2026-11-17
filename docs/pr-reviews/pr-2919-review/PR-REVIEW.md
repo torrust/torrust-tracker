@@ -129,7 +129,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: `grep -n '#2912' docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md` prints lines 215, 220 and 228 (heading, sentence, paragraph), plus other lines that cite the EPIC.
 - Resolution reference: `docs(pr-reviews): [#2912] correct the F2 verification and drop a branch commit id from the review audit of PR 2919`
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2919#discussion_r4603731183
 
 ### F7 - The Processing Log cites a branch commit id as its own reference
 
@@ -142,7 +142,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: the commit-id check of `open-pull-request` prints only `280121c6a`, the id the round 1 replies cite and the Processing Log maps to its subject.
 - Resolution reference: `docs(pr-reviews): [#2912] correct the F2 verification and drop a branch commit id from the review audit of PR 2919`
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2919#discussion_r4603731569
 
 ## Processing Log
 
@@ -150,6 +150,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-17 17:44 UTC - Started audit: created this record from `docs/templates/PR-REVIEW-TEMPLATE.md` after da2ce7's round 2 review 5943554323 (F4 asked for it). Normalized round 1 (F1 to F3, review 5943374190) and round 2 (F4 and F5); committed the F5 fix (`docs(issues): [#2912] date only the new sub-issues in the #2804 audit spec and name the EPIC in its heading`) before this record. Copilot review 5943384927 is an overview with no actionable assertion, so it has no row.
 - 2026-11-17 17:48 UTC - Pushed the F5 fix and this record (head commit `docs(pr-reviews): [#2912] record the review audit of PR 2919`), then replied to F4 and F5 (replies created at 17:48:01Z and 17:48:04Z) and filled in their reply URLs. `validate-audit-record.py --pr-number 2919 --base torrust/develop`, run from a scratchpad copy whose `gh` calls go through `gh-bot`, reported 5 rows, 0 failures on this worktree record.
 - 2026-11-17 18:02 UTC - Round 3: normalized da2ce7 review 5943851942 (APPROVED) with findings F6 and F7. Correction (F7) of the 2026-11-17 17:48 entry: its words naming the head by branch commit id were replaced in place by the commit subject `docs(pr-reviews): [#2912] record the review audit of PR 2919`; the rest of that entry is unchanged. F6 corrected the F2 verification line.
+- 2026-11-17 18:06 UTC - Pushed the commit `docs(pr-reviews): [#2912] correct the F2 verification and drop a branch commit id from the review audit of PR 2919`, then replied to F6 and F7 (replies created at 18:06:21Z and 18:06:23Z) and filled in their reply URLs. `validate-audit-record.py --pr-number 2919 --base torrust/develop` (scratchpad copy, `gh` calls through `gh-bot`) on this worktree record reported 7 rows, 0 failures.
 
 ## Completion Rules
 
