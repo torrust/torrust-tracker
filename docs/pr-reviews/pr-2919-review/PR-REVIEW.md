@@ -101,7 +101,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: This file exists; `validate-audit-record.py --pr-number 2919 --base torrust/develop` run as the log states.
 - Resolution reference: `docs(pr-reviews): [#2912] record the review audit of PR 2919`
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2919#discussion_r4603525639
 
 ### F5 - The audit spec dates #384 to this week
 
@@ -114,12 +114,13 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: `grep -n 'existing #384\|### Tasks moved to EPIC #2912' docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md` finds both lines.
 - Resolution reference: `docs(issues): [#2912] date only the new sub-issues in the #2804 audit spec and name the EPIC in its heading`
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2919#discussion_r4603526079
 
 ## Processing Log
 
 - 2026-11-17 17:35 UTC - Replied to F1 to F3 (replies created from 17:35:15Z to 17:35:20Z) and resolved their threads after pushing the round 1 fixes, before this record existed: a late start of the audit. The replies cite the branch commit id `280121c6a`, which is the commit `docs(issues): [#2912] address review of PR 2919: approval checkpoints, audit status and option wording`. The three independent fixes share that one commit instead of one commit each (step 6). The F1 reply says the #384 spec now ticks both checkpoints; only the approval checkpoint changed there, because its issue checkpoint was already ticked.
 - 2026-11-17 17:44 UTC - Started audit: created this record from `docs/templates/PR-REVIEW-TEMPLATE.md` after da2ce7's round 2 review 5943554323 (F4 asked for it). Normalized round 1 (F1 to F3, review 5943374190) and round 2 (F4 and F5); committed the F5 fix (`docs(issues): [#2912] date only the new sub-issues in the #2804 audit spec and name the EPIC in its heading`) before this record. Copilot review 5943384927 is an overview with no actionable assertion, so it has no row.
+- 2026-11-17 17:48 UTC - Pushed the F5 fix and this record (head `a728bc17d`), then replied to F4 and F5 (replies created at 17:48:01Z and 17:48:04Z) and filled in their reply URLs. `validate-audit-record.py --pr-number 2919 --base torrust/develop`, run from a scratchpad copy whose `gh` calls go through `gh-bot`, reported 5 rows, 0 failures on this worktree record.
 
 ## Completion Rules
 
