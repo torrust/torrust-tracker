@@ -272,6 +272,15 @@ Decided by the maintainer on 2026-11-15:
   whose only content is the import `@AGENTS.md`. With it, every session and every agent it starts
   gets `AGENTS.md`, whatever the contributor has in parent folders. The same rule applies to any
   later harness-specific file (maintainer, 2026-11-17).
+
+  The repository also has ten scoped `AGENTS.md` files in subdirectories (for example
+  `packages/configuration/AGENTS.md`). The documentation says a subdirectory's `AGENTS.md` loads
+  when Claude Code reads a file there and that subdirectory has no `CLAUDE.md` of its own
+  ([When Claude Code reads AGENTS.md](https://code.claude.com/docs/en/memory#when-claude-code-reads-agents-md)).
+  It does not say whether a `CLAUDE.md` at the root or above stops that. A reviewer of pull
+  request #2905 reports that it does. So T2 tests it (scenario M4): if a scoped `AGENTS.md` is not
+  loaded once the root `CLAUDE.md` exists, T2 adds a `CLAUDE.md` beside each scoped `AGENTS.md`
+  whose only content is the import of that file, under the same rule.
 - **D12 - The complexity audit becomes one review item, then a linter.** `complexity-auditor` is
   not ported. The `review-task` checklist gains one item on function length and nesting, checked
   once before the pull request. A follow-up issue evaluates Clippy's `too_many_lines` and
@@ -404,7 +413,8 @@ Proposed in this specification and approved with it:
   `frontmatter-validator` rule for `.agent.md` files,
   the `run-pre-commit-checks` pointer to the committer, the issue template checkpoints, and the
   governance ADR's inventory and review record.
-- Add a root `CLAUDE.md` that only imports `AGENTS.md` (D11).
+- Add a root `CLAUDE.md` that only imports `AGENTS.md`, and keep the scoped `AGENTS.md` files
+  loading (D11).
 - Record decisions D1 and D2 in an ADR in `docs/adrs/`, and add to the harness-workspace draft's
   scope the item about moving the AI-harness ADRs (D10).
 - Define the JSON reply files (D18): the schema, the validator with its tests, and the rule in
@@ -498,7 +508,7 @@ on are merged.
 | ID  | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
 | T1  | TODO   | Specification pull request | This specification in `docs/issues/open/`, and a new row in the EPIC's Subissues table |
-| T2  | TODO   | Pointer `CLAUDE.md` | A root `CLAUDE.md` whose only content is the import of `AGENTS.md` (D11); scenario M4 recorded |
+| T2  | TODO   | Pointer `CLAUDE.md` | A root `CLAUDE.md` whose only content is the import of `AGENTS.md` (D11); if scenario M4 shows that a scoped `AGENTS.md` is not loaded, an import-only `CLAUDE.md` beside each of the ten scoped `AGENTS.md` files; scenario M4 recorded |
 | T3  | TODO   | Reply schema and validator | `docs/schemas/agent-reply-v1.schema.json`; the validator with tests, developed in the progressive loop of the `write-unit-test` skill with a recorded design review per increment, and run by the repository checks; `docs/schemas/README.md` updated (D18) |
 | T4  | TODO   | `pr-review-handler` | `.claude/agents/pr-review-handler.md` with the pinned model; `wait-for-pr-review` and `process-pr-review` say which agent runs a round; the inventory `removed-profile-rules.md` created in this folder with the rules of `copilot-suggestions-handler` (AC6); scenarios M1 to M3 recorded |
 | T5  | TODO   | `task-reviewer` | The agent file with the pinned model and the stop hook (D17), with tests of its limit of 3 refusals; the complexity item in `review-task` (D12); the reply rule in `review-task`, which also says that a reply file satisfies the earlier template's checkpoint (D18); scenario M7 recorded |
@@ -525,7 +535,7 @@ T10 completes it before removing the profiles.
 | Task | Coherent change set | Commit policy |
 | ---- | ------------------- | ------------- |
 | T1   | The specification; the EPIC row | One commit each, after `linter all` |
-| T2   | The pointer file; the evidence | One commit each |
+| T2   | The root pointer file; the scoped pointer files, if M4 requires them; the evidence | One commit each |
 | T3   | The schema; the validator, one commit per reviewed test increment; its wiring into the checks; the documentation | One commit per item, after focused validation and the test-design review |
 | T4 to T8 | The agent file; each skill change (in T6 the `create-issue` change is its own commit); the inventory rows; the evidence | One commit per item, after focused validation |
 | T9   | The agent file; the orchestration guide; the template checkpoints; the inventory rows; the evidence | One commit per item, after focused validation |
@@ -605,7 +615,8 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - [ ] AC11: The stop hook of `task-reviewer` refuses to let it finish without a valid reply file,
       and lets it finish on the fourth attempt, after 3 refusals, reporting that the limit was
       reached.
-- [ ] AC12: The root `CLAUDE.md` contains only the import of `AGENTS.md`.
+- [ ] AC12: The root `CLAUDE.md` contains only the import of `AGENTS.md`, and a rule of a scoped
+      `AGENTS.md` reaches a session that reads a file in its directory (scenario M4).
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -634,7 +645,7 @@ Every scenario records the Claude Code version it ran on.
 | M1  | The agent files load | Start Claude Code with `--debug` in the repository; list the agents; search the debug output for ignored frontmatter | Every agent merged so far is listed; no key is reported as ignored | TODO | `manual-verification-evidence.md` section V1 |
 | M2  | The pinned model applies | Start `pr-review-handler` from a session running on a different model; record the model named in the agent's transcript file, not the one the agent says it is | The agent ran on the model in its frontmatter, with no fallback | TODO | `manual-verification-evidence.md` section V2 |
 | M3  | A real review round | On an open pull request with a submitted review, let the session that owns it delegate the round to `pr-review-handler` | Fixes committed and pushed, every thread replied to and then resolved, the audit record updated, `validate-audit-record.py` exits `0`, a short report returned | TODO | `manual-verification-evidence.md` section V3 |
-| M4  | `AGENTS.md` reaches the agents | In a checkout with a `CLAUDE.md` in a parent folder, and in one without, ask the session and one started agent which repository rules they were given | Both the session and the started agent received `AGENTS.md` in both cases; `CLAUDE.md` contains only the import | TODO | `manual-verification-evidence.md` section V4 |
+| M4  | `AGENTS.md` reaches the agents | In a checkout with a `CLAUDE.md` in a parent folder, and in one without, ask the session and one started agent which repository rules they were given; then make each read a file in `packages/configuration/` and ask for a rule that only `packages/configuration/AGENTS.md` holds | Both the session and the started agent received the root `AGENTS.md` in both cases, and the scoped rule after reading a file in that directory; each `CLAUDE.md` contains only an import | TODO | `manual-verification-evidence.md` section V4 |
 | M5  | The orchestrator leads | Start a session as the orchestrator on a small real task, once with `claude --agent orchestrator` and once by telling a normal session to read the file and take the role | It starts the implementer, then the task reviewer; each writes a valid reply file in `agent-replies/`; the implementer starts no agent; questions come back to the contributor through the orchestrator | TODO | `manual-verification-evidence.md` section V5 |
 | M6  | Review rounds per pull request | For the first three pull requests handled by `pr-review-handler`, count the review rounds with fixes | The counts are recorded with the model of each round, next to the baseline of pull request #2851 (14 rounds, split by model) | TODO | `manual-verification-evidence.md` section V6 |
 | M7  | The stop hook holds the reviewer | Start `task-reviewer` on a task, first with an instruction that makes it try to finish without a reply file, then normally | The hook refuses the first attempt and names what is missing; the agent then writes a valid reply file and finishes; a forced case shows 3 refusals and then the fourth attempt allowed, with the limit reported | TODO | `manual-verification-evidence.md` section V7 |
