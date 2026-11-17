@@ -9,7 +9,7 @@ github-issue: 2764
 spec-path: docs/issues/closed/2764-2758-http-health-check-no-stdout/ISSUE.md
 branch: "2764-http-health-check-no-stdout"
 related-pr: 2889
-last-updated-utc: "2026-11-16 21:58"
+last-updated-utc: "2026-11-17 07:28"
 semantic-links:
   skill-links:
     - create-issue
@@ -19,6 +19,7 @@ semantic-links:
     - docs/adrs/20260519000000_define_global_cli_output_contract.md
     - docs/adrs/20261106102632_scope_the_cli_output_contract_and_keep_exit_codes_to_zero_one_two.md
     - docs/issues/open/2758-cli-output-contract-tools-migration/EPIC.md
+    - docs/issues/closed/2764-2758-http-health-check-no-stdout/implementation-retrospective.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -137,6 +138,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-16 18:54 UTC - Claude Code (Claude Opus 5.5) - Addressed review round 4 of PR 2889 (Copilot review 5925595121, audit findings F18 to F22): the evidence marks G1, V1 to V3 as runs on the first implementation and says where the results for the final binary are; the test server fails the test on an `accept` error other than `WouldBlock` or `Interrupted` (failure path checked, evidence section "Round 4 of PR 2889").
 - 2026-11-16 19:09 UTC - Claude Code (Claude Opus 5.5) - Addressed review round 5 of PR 2889 (da2ce7 review 5925836500, audit findings F23 and F24): the evidence records that the round-4 accept-error check covered the panic arm only (the exit-code assertion fired) and adds a run where the server panics after answering, which covers the `Drop` re-raise; the evidence's ordering note no longer says the sections are in run order.
 - 2026-11-16 21:58 UTC - Claude Code (Claude Opus 5.5) - PR 2889 merged into `develop` on 2026-11-16 and issue #2764 closed; spec archived to `docs/issues/closed/` and the EPIC row set to DONE in the close-out PR. The checkpoint "Reviewer validated acceptance criteria and updated checkboxes" is left open: no reviewer edited this spec (the approvals are reviews and ACK comments on PR 2889, and the acceptance boxes were ticked by the author).
+- 2026-11-17 07:28 UTC - Claude Code (Claude Opus 5.5) - Correction to the entry stamped 2026-11-16 21:58 UTC (review finding `review-finding:pr-2896-f1`): that entry ticked "Evidence-based implementation completion review recorded" and "Committer verified spec progress is up to date before commit" without saying why, and the only completion review was written before the five review rounds of PR 2889. Redid the completion review against the merged result: the review rounds found material design changes (URL redaction, `args_os` and scheme usage errors, the bound non-listening port), so `implementation-retrospective.md` records them and their root cause. The two ticks now rest on this review and this spec; the entry is kept as written.
 
 ## Acceptance Criteria
 
@@ -185,7 +187,7 @@ Manual verification is mandatory even when automated tests pass. Record actual c
 
 ## Implementation Completion Review
 
-- Retrospective: not needed. One unplanned finding, recorded in the evidence (G1) and the progress log: the image test stages could not find the binary through `CARGO_BIN_EXE_*`, fixed in the test.
+- Retrospective: `implementation-retrospective.md` in this directory, written against the merged result of PR 2889. The first assessment ("not needed", one unplanned finding in G1) was made before the review rounds, which changed the design.
 - If needed, create `implementation-retrospective.md` from `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this directory; otherwise record in the progress log why none was needed.
 
 ## References
