@@ -1,7 +1,7 @@
 ---
 pr-number: 2910
 pr-url: https://github.com/torrust/torrust-tracker/pull/2910
-last-updated-utc: "2026-11-17 15:49"
+last-updated-utc: "2026-11-17 15:56"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -43,7 +43,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1: da2ce7 review 5939730094 (CHANGES_REQUESTED) with findings F1 to F7; the reviewer's IDs are this audit's IDs. Copilot review 5939709564 (COMMENTED) reported no issue and has no row. Round 2: da2ce7 review 5941589792 (APPROVED) with findings F8 and F9; the reviewer's IDs are this audit's IDs.
+Round 1: da2ce7 review 5939730094 (CHANGES_REQUESTED) with findings F1 to F7; the reviewer's IDs are this audit's IDs. Copilot review 5939709564 (COMMENTED) reported no issue and has no row. Round 2: da2ce7 review 5941589792 (APPROVED) with findings F8 and F9; the reviewer's IDs are this audit's IDs. Copilot review 5941743705 (COMMENTED, at the round 1 fix head) with three findings without reviewer IDs, as audit findings F10 to F12.
 
 Round 1 cited commit ids from before the history rewrite (F4). Mapped to commit subjects:
 
@@ -61,6 +61,9 @@ Round 1 cited commit ids from before the history rewrite (F4). Mapped to commit 
 | F7 | review-finding:pr-2910-f7 | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
 | F8 | review-finding:pr-2910-f8 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F9 | review-finding:pr-2910-f9 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-2910-f10 | Copilot | Minor (inferred) | metadata | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F11 | review-finding:pr-2910-f11 | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-2910-f12 | Copilot | Nit (inferred) | documentation | ORIGINAL | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -181,6 +184,45 @@ Round 1 cited commit ids from before the history rewrite (F4). Mapped to commit 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2910#discussion_r4601975878
 
+### F10 - Specs share the spec PR's branch name
+
+- PR number: 2910
+- Source review ID: 5941743705
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2910#discussion_r4602038694
+- Concern: The #2906, #2907 and #2908 specs set `branch:` to this PR's branch instead of an issue-specific implementation branch, which tooling could read as ambiguous.
+- Solution: No change. The `create-issue` skill's Optional Step 6 (Spec-Only PR) sets `branch:` to the `-spec` branch of the spec PR, and all three specs came in through this one spec PR. Each implementation session sets its own `{issue-number}-{short-description}` branch when it starts.
+- Current-tree verification: `.claude/skills/create-issue/SKILL.md` Optional Step 6 (Spec-Only PR) says the frontmatter `branch:` value is the same `-spec` branch name; the three specs carry `branch: "2392-audit-follow-up-issues-spec"`.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2910#discussion_r4602077202
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2910#discussion_r4602077202
+
+### F11 - Undecided approach described as settled
+
+- PR number: 2910
+- Source review ID: 5941743705
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2910#discussion_r4602038791
+- Concern: The #2906 Scope says the approach is undecided and then describes it in definitive terms ("It binds…").
+- Solution: The candidate is now written in the conditional ("If chosen, it would bind…"), and a progress-log entry records it.
+- Current-tree verification: `grep -n 'If chosen, it would bind' docs/issues/open/2906-*/ISSUE.md` finds the Scope line.
+- Resolution reference: docs(issues): [#2392] describe the #2906 candidate approach in the conditional
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2910#discussion_r4602102061
+
+### F12 - Drafted-in checkpoint names the old drafts path
+
+- PR number: 2910
+- Source review ID: 5941743705
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2910#discussion_r4602038876
+- Concern: The checkpoint names a `docs/issues/drafts/` path that no longer exists, which can be misread as the spec's location.
+- Solution: No change. The checkpoint is the template's wording and records where the spec was drafted; `spec-path` carries the current location, and archived specs keep the drafts path the same way.
+- Current-tree verification: `docs/templates/ISSUE.md` line 136 has the checkpoint with the drafts path; `docs/issues/closed/2157-2003-require-documented-clippy-allows/ISSUE.md` line 89 keeps it.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2910#discussion_r4602077793
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2910#discussion_r4602077793
+
 ## Processing Log
 
 - 2026-11-17 15:29 UTC - Round 1: da2ce7 review 5939730094. Committed the F1, F2/F3/F7 and F3/F5/F6 fixes, reworded the first commit's body for F4 with the maintainer's approval, and force-pushed the branch, ending at `docs(issues): [#2392] refresh the #2394 records and evidence timestamps`, with `git-bot-push --force-with-lease`. Then replied to the seven threads (15:29:17Z to 15:29:32Z). This record was created after the replies, so the replies came before the audit started.
@@ -188,6 +230,8 @@ Round 1 cited commit ids from before the history rewrite (F4). Mapped to commit 
 - 2026-11-17 15:44 UTC - Round 2: da2ce7 review 5941589792 (APPROVED). Edited the PR description for its F9 (15:44:37Z). For its F8, corrected the 15:29 entry in place: it named the branch head by id (`force-pushed head <id>`), and now names it by its commit subject. Added the id mapping to the Findings section.
 - 2026-11-17 15:48 UTC - Committed and pushed the F8 fix (`docs(pr-reviews): [#2392] cite commit subjects in the PR #2910 audit`). Posted the F9 PR conversation response (15:46:02Z), then replied to the F9 thread (15:46:10Z) and the F8 thread (15:48:05Z). Added rows F8 and F9.
 - 2026-11-17 15:49 UTC - The validator on the worktree record reported 9 rows, 4 log entries, 0 failures. Resolved the F8 and F9 threads (15:48:37Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread. Committed these entries.
+- 2026-11-17 15:55 UTC - Copilot review 5941743705 (at the round 1 fix head) with F10 to F12. Replied to F10 and F12 with no change (15:53:36Z and 15:53:39Z). Committed and pushed the F11 fix (`docs(issues): [#2392] describe the #2906 candidate approach in the conditional`), then replied to F11 (15:55:29Z).
+- 2026-11-17 15:56 UTC - The F10 reply named the skill step as "Step 4, Open Spec PR"; the rule is in Optional Step 6 (Spec-Only PR). Posted a correction on the F10 thread (15:56:16Z) and named the right step in F10's detail entry. The validator on the worktree record reported 12 rows, 6 log entries, 0 failures. Resolved the three Copilot threads (15:56:35Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread. Committed these entries.
 
 <!-- Copied verbatim into each audit record. -->
 
