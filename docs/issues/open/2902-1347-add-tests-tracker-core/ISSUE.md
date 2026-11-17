@@ -311,22 +311,22 @@ rows are ordered by slice, then by risk.
 | 3 | `statistics/persisted/mod.rs` | S1 | 0 / 11 | Test candidate (`load_persisted_metrics`) | PENDING |
 | 4 | `statistics/event/listener.rs` | S1 | 357 / 406 | Test candidate (spawn wrappers) | PENDING |
 | 5 | `statistics/event/handler.rs` | S1 | 179 / 203 | Mostly logging-only; one error arm | PENDING |
-| 6 | `statistics/persisted/downloads.rs` | S1 | 77 / 77 | No change (one assertion line) | PENDING |
-| 7 | `statistics/mod.rs`, `statistics/event/mod.rs` | S1 | 40 / 40, no entries | No change | PENDING |
+| 6 | `statistics/persisted/downloads.rs` | S1 | 77 / 77 | Failing-`Database` case (line 133, `increase_global_downloads`) | PENDING |
+| 7 | `statistics/mod.rs`, `statistics/event/mod.rs` | S1 | 40 / 40, no entries | Test candidate (`statistics/mod.rs:49`, usage statistics disabled); `event/mod.rs` declarations only | PENDING |
 | 8 | `databases/driver/sqlite/auth_key_store.rs` | S2 | 29 / 50 | Test candidate | PENDING |
 | 9 | `databases/driver/sqlite/torrent_metrics_store.rs` | S2 | 29 / 45 | Test candidate | PENDING |
 | 10 | `databases/driver/sqlite/whitelist_store.rs` | S2 | 17 / 28 | Test candidate | PENDING |
-| 11 | `databases/driver/sqlite/mod.rs` | S2 | 85 / 92 | Test candidate | PENDING |
+| 11 | `databases/driver/sqlite/mod.rs` | S2 | 85 / 92 | Test candidate (aggregate-metric error branches) | PENDING |
 | 12 | `databases/driver/sqlite/schema_migrator.rs` | S2 | 145 / 155 | No change likely; challenge each `?` | PENDING |
-| 13 | `databases/error.rs` | S2 | 28 / 35 | Test candidate | PENDING |
+| 13 | `databases/error.rs` | S2 | 28 / 35 | Test candidate (migration-error mapping) | PENDING |
 | 14 | `databases/setup.rs` | S2 | 34 / 44 | Test candidate (SQLite arm and unreachable endpoint); server arms to S3 | PENDING |
 | 15 | `error.rs` | S2 | 38 / 50 | Test candidate (`From` conversions) | PENDING |
 | 16 | `databases/driver/mod.rs` | S2 | 185 / 188 | No change (test-only retry helper) | PENDING |
 | 17 | `databases/mod.rs`, `databases/traits/*` (6 files) | S2 | 2 / 2, no entries | No change (declarations and the mock) | PENDING |
 | 18-22 | `databases/driver/mysql/{mod,auth_key_store,schema_migrator,torrent_metrics_store,whitelist_store}.rs` | S3 | 7 / 212, 0 / 50, 0 / 75, 0 / 45, 0 / 28 | Container-gated; assess after T1b | PENDING |
 | 23-27 | `databases/driver/postgres/{mod,auth_key_store,schema_migrator,torrent_metrics_store,whitelist_store}.rs` | S3 | 7 / 189, 0 / 50, 0 / 6, 0 / 45, 0 / 28 | Container-gated; assess after T1b | PENDING |
-| 28 | `authentication/handler.rs` | S4 | 371 / 371 | Failing-`Database` cases (9 `?`/assertion regions) | PENDING |
-| 29 | `authentication/key/peer_key.rs` | S4 | 100 / 101 | Property candidate (`Key`); finding F3 check | PENDING |
+| 28 | `authentication/handler.rs` | S4 | 371 / 371 | Failing-`Database` cases (two production `?` regions; seven assertion lines) | PENDING |
+| 29 | `authentication/key/peer_key.rs` | S4 | 100 / 101 | `PartialEq` mixed-expiry arm; property candidate (`Key`); finding F3 check | PENDING |
 | 30 | `authentication/key/mod.rs` | S4 | 77 / 77 | Property candidate (expiry bounds) | PENDING |
 | 31 | `authentication/key/repository/persisted.rs` | S4 | 73 / 74 | Failing-`Database` cases | PENDING |
 | 32 | `authentication/key/repository/in_memory.rs` | S4 | 92 / 92 | No change | PENDING |
@@ -334,12 +334,12 @@ rows are ordered by slice, then by risk.
 | 34 | `authentication/mod.rs`, `authentication/key/repository/mod.rs` | S4 | 123 / 123, no entries | No change | PENDING |
 | 35 | `whitelist/repository/persisted.rs` | S4 | 74 / 74 | Failing-`Database` cases; finding F4 check | PENDING |
 | 36 | `whitelist/manager.rs` | S4 | 99 / 99 | Failing-`Database` cases | PENDING |
-| 37 | `whitelist/authorization.rs` | S4 | 74 / 74 | One `?` region | PENDING |
+| 37 | `whitelist/authorization.rs` | S4 | 74 / 74 | No change (one test assertion line) | PENDING |
 | 38 | `whitelist/repository/in_memory.rs` | S4 | 51 / 51 | No change | PENDING |
 | 39 | `whitelist/{mod,setup,test_helpers}.rs`, `whitelist/repository/mod.rs` | S4 | 18 / 18, 7 / 7, 12 / 12, no entries | No change | PENDING |
 | 40 | `torrent/repository/in_memory.rs` | S5 | 56 / 60 | Delegation of `get_torrent_peers` (owned by the registry) | PENDING |
-| 41 | `torrent/manager.rs`, `torrent/services.rs`, `torrent/persisted_downloads.rs`, `torrent/mod.rs`, `torrent/repository/mod.rs` | S5 | 153 / 153, 267 / 267, 22 / 22, no entries | No change; review breadth | PENDING |
-| 42 | `announce_handler.rs` | S5 | 400 / 401 | Challenge the three `?`/assertion lines | PENDING |
+| 41 | `torrent/manager.rs`, `torrent/services.rs`, `torrent/persisted_downloads.rs`, `torrent/mod.rs`, `torrent/repository/mod.rs` | S5 | 153 / 153, 267 / 267, 22 / 22, no entries | `manager.rs`: failing-`Database` case (line 66); the others no change, review breadth | PENDING |
+| 42 | `announce_handler.rs` | S5 | 400 / 401 | Challenge the two `?` regions (one assertion line) | PENDING |
 | 43 | `scrape_handler.rs` | S5 | 190 / 190 | No change (one assertion line) | PENDING |
 | 44 | `container.rs` | S5 | 143 / 144 | Test candidate (`Persistence` error mapping) | PENDING |
 | 45 | `lib.rs`, `peer_tests.rs`, `test_helpers.rs` | S5 | 58 / 58, 30 / 30, 109 / 123 | No change; test support classified | PENDING |
