@@ -1,7 +1,7 @@
 ---
 pr-number: 2905
 pr-url: https://github.com/torrust/torrust-tracker/pull/2905
-last-updated-utc: "2026-11-17 17:23"
+last-updated-utc: "2026-11-17 17:50"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -88,7 +88,7 @@ handled after the merge, in pull request #2920.
 | F17 | `review-finding:pr-2905-f17` | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F18 | `review-finding:pr-2905-f18` | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F19 | `review-finding:pr-2905-f19` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
-| F20 | `review-finding:pr-2905-f20` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F20 | `review-finding:pr-2905-f20` | Human | Nit | documentation | ORIGINAL | FOLLOW_UP | OPEN |
 | F21 | `review-finding:pr-2905-f21` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
@@ -360,9 +360,9 @@ handled after the merge, in pull request #2920.
 - Reviewer finding ID: F17
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2905#discussion_r4602381116
 - Concern: The entry "Named models in #2904" changes the EPIC's scope, but the EPIC's Progress Log had no line for it. The EPIC template asks for one line per meaningful update.
-- Solution: The maintainer chose to merge pull request #2905 without another push and to carry this to the first implementation pull request of issue 2904. That pull request adds a late Progress Log line naming the exception, its record and who decided it.
-- Current-tree verification: `grep -n "Late entry for a scope change" docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md` prints the new line, after the 12:14 entry of 2026-11-17. `linter markdown` and `linter cspell` passed.
-- Resolution reference: `docs(issues): [#2904] log the named-model exception in the EPIC progress log`
+- Solution: The maintainer chose to merge pull request #2905 without another push and to carry this to the first implementation pull request of issue 2904. That pull request, #2920, adds a late Progress Log line naming the exception, its record and who decided it, in `docs(issues): [#2904] log the named-model exception in the EPIC progress log`. Until it merges the line is not on `develop`, so the disposition is `FOLLOW_UP` and the thread stays open; the row becomes `FIXED` and the thread is resolved after the merge.
+- Current-tree verification: `grep -n "Late entry for a scope change" docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md` prints the new line on the branch of pull request #2920, after the 12:14 entry of 2026-11-17; `git grep -c "Late entry for a scope change" torrust/develop -- docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md` prints nothing. `linter markdown` and `linter cspell` passed.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2905#discussion_r4602755221
 - Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2920
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2905#discussion_r4602755221
 
@@ -399,6 +399,7 @@ handled after the merge, in pull request #2920.
 - 2026-11-17 16:12 UTC - Round 7: Copilot's review `5941597022` (submitted 15:42:17Z, forge `submitted_at`) with two findings, F17 and F18, and the approving review `5941484820` of `da2ce7` with one finding about the order of round 6, recorded as F19. The reply to F19 was posted at 15:38:07Z (forge `created_at`) with no commit, and its thread was left unresolved until this row existed. The two fixes for F17 and F18 were committed at 16:08:15Z and 16:08:48Z (`git log --format=%cI`, in UTC) and pushed; `git ls-remote` showed the fork branch at the local head at 16:11:45Z (`date -u`). The two replies were posted after that, at 16:12:04Z and 16:12:06Z (forge `created_at`).
 - 2026-11-17 16:14 UTC - `validate-audit-record.py --pr-number 2905 --base torrust/develop`, with its `gh` calls made through `gh-bot`, exited 0 (20 rows, 0 failures). The unresolved threads were the three of round 7, each with the contributor's reply as its last comment. Resolved the two threads of F17 and F18 by their thread IDs, their fixes being on the pull request; a GraphQL refresh showed 1 unresolved thread, the one of F19. Its row records `RESOLVED` as the state it takes once this record is pushed: it is not resolved at the time of this entry, and is resolved by its thread ID after the push.
 - 2026-11-17 17:23 UTC - Round 8, after the merge: the review `5942183537` of `da2ce7` (submitted 16:16:56Z, forge `submitted_at`) on the head between the two pushes of round 7, with two findings, recorded as F20 and F21. The reply to F21 was posted at 16:18:40Z and the reply to F20 at 16:44:18Z (forge `created_at`), after the maintainer chose to merge without another push. Pull request #2905 was merged at 16:52:36Z (forge `mergedAt`) with both threads unresolved. The fix for F20 was committed on the branch of pull request #2920 and pushed before this entry; `git ls-remote` showed the fork branch at the local head. The two threads are not resolved at the time of this entry: they are resolved by their thread IDs after this record is pushed.
+- 2026-11-17 17:50 UTC - Correction for the round 8 entry, after the reviews `5943570147` of `da2ce7` and `5943581377` of Copilot on pull request #2920. That entry said both threads would be resolved after the push, and both were, at about 17:28Z, with F20 recorded `FIXED`/`RESOLVED`. For F20 that was wrong: its fix is only on the branch of pull request #2920, and `process-pr-review` (Reviews Submitted After Merge, steps 5 and 6) keeps such a row `FOLLOW_UP`/`OPEN` until the follow-up merges. The thread of F20 was reopened by its thread ID at 17:48:28Z (`date -u` after the call) and its row corrected. F21 stays `FIXED`/`RESOLVED`: its fix was on `develop` at the merge. Step 2 of the same section asks for the maintainer's approval as a durable comment URL in the Ownership section before any mutating action. That was not done: the choice was made in the working session, and the round 8 changes were made without the comment. The field stays `N/A` until the maintainer posts the comment; it is then recorded as a retrospective approval with both times.
 
 <!-- Copied verbatim into each audit record. -->
 
