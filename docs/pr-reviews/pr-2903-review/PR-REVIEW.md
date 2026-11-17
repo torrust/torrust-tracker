@@ -51,7 +51,10 @@ inline comments have no IDs and get F11 to F13 in source order. Round 4 is da2ce
 (approval) of the head whose last commit is `docs(pr-reviews): [#2902] record Copilot's review of #2903`;
 its inline findings keep the reviewer's IDs F14 to F16. Round 5 is Copilot's review `5939369230`
 (13:30:51 UTC, comment) of the head whose last commit is `docs(pr-reviews): [#2902] record the fourth
-review round of #2903`; its one inline finding keeps the reviewer's ID F17.
+review round of #2903`; its one inline finding keeps the reviewer's ID F17. Round 6 is da2ce7's review `5939412622` (13:33:52 UTC,
+submitted as an approval and dismissed by the next push) of the head whose last commit is
+`docs(pr-reviews): [#2902] record the round 4 replies of #2903`; its findings keep the reviewer's IDs F18
+and F19.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -72,6 +75,8 @@ review round of #2903`; its one inline finding keeps the reviewer's ID F17.
 | F15 | review-finding:pr-2903-f15 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F16 | review-finding:pr-2903-f16 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F17 | review-finding:pr-2903-f17 | Copilot | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-2903-f18 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F19 | review-finding:pr-2903-f19 | Human | Nit | metadata | RE_RAISE_OF:F17 | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -174,7 +179,7 @@ review round of #2903`; its one inline finding keeps the reviewer's ID F17.
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2903#discussion_r4599550883
 - Concern: The fifth scope existed only as row text, with no reproducible command and per-file results only as prose, and the reading note still said the figures above excluded the drivers.
 - Solution: `coverage-evidence.md` now gives the command (both variables, after `cargo llvm-cov clean --workspace`, the separate target directory, the image tags) and the measured commit (the S0 commit `docs(issues): [#2902] specify the tracker-core package tests`; the branch changes nothing under `packages/`, so the source is that of `5833cdae9`), adds a container-gated column to all 51 inventory rows, and the note says the four default rows exclude the drivers.
-- Current-tree verification: `git diff --stat 5833cdae9 HEAD -- packages` prints nothing; the per-file inventory rows each have five columns (`awk -F'|'` counts 7 fields on all 51 rows).
+- Current-tree verification: `git diff --stat 5833cdae9 <S0 commit> -- packages` prints nothing (the S0 commit found by its subject; the first version of this line used `HEAD`, which holds only on this branch, F18); the per-file inventory rows each have five columns (`awk -F'|'` counts 7 fields on all 51 rows).
 - Resolution reference: docs(issues): [#2902] add the container-gated command and per-file column
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2903#discussion_r4599799711
@@ -296,6 +301,32 @@ review round of #2903`; its one inline finding keeps the reviewer's ID F17.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2903#discussion_r4600261767
 
+### F18 - The unchanged-source check compared with HEAD
+
+- PR number: 2903
+- Source review ID: 5939412622
+- Reviewer finding ID: F18
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2903#discussion_r4600282774
+- Concern: `git diff --stat 5833cdae9 HEAD -- packages` prints nothing only while `HEAD` is on this branch; after the merge, later slices change `packages/` and the check stops holding.
+- Solution: `coverage-evidence.md` and F8's verification name the range by the S0 commit, found by its subject, instead of `HEAD`.
+- Current-tree verification: `git diff --stat 5833cdae9 $(git log --format=%H --fixed-strings --grep='specify the tracker-core package tests' -1) -- packages | wc -l` prints 0.
+- Resolution reference: docs(issues): [#2902] name the S0 commit in the unchanged-source check
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2903#discussion_r4600363938
+
+### F19 - Copilot's F17 comment had no reply, row or resolution
+
+- PR number: 2903
+- Source review ID: 5939412622
+- Reviewer finding ID: F19
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2903#discussion_r4600282784
+- Concern: Copilot's comment of 13:30:51 UTC had no reply, row or resolution when this review was written.
+- Solution: Same concern as F17, which was recorded, replied to and resolved in the commit after the head this review saw; no separate change.
+- Current-tree verification: the F17 row and detail entry exist and its thread is resolved.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2903#discussion_r4600364534
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2903#discussion_r4600364534
+
 ## Processing Log
 
 - 2026-11-17 12:48 UTC - Started audit late: the round 1 threads (12:08:23 UTC) and round 2 threads (12:28:40 UTC) had no reply before this record; the fixes were committed first, between 12:37 and 12:46 UTC, one commit per finding (F5 and F9 share one).
@@ -305,6 +336,7 @@ review round of #2903`; its one inline finding keeps the reviewer's ID F17.
 - 2026-11-17 13:16 UTC - Round 4 (da2ce7's review `5939100172`, 13:13:35 UTC, approval with F14-F16) processed: F15 and F14 fixed in their own commits; the round descriptions and finding details now cite commits by subject. Correction of the 12:53 UTC entry above: Copilot's review was submitted at 12:38:27 UTC (12:38:26 UTC is the time of its first inline comments) and was of the first head, not the second (F16).
 - 2026-11-17 13:25 UTC - Pushed the round 4 fixes and audit commits; replied to the F14-F16 threads between 13:24:53 and 13:25:01 UTC and resolved each after its reply.
 - 2026-11-17 13:31 UTC - Round 5 (Copilot's review `5939369230`, 13:30:51 UTC, F17) was about the head before the round 4 replies were recorded; replied at 13:31:57 UTC and resolved the thread.
+- 2026-11-17 13:41 UTC - Round 6 (da2ce7's review `5939412622`, 13:33:52 UTC, F18-F19): F18 fixed in its own commit and pushed; replied to both threads at 13:41:03 and 13:41:07 UTC and resolved each after its reply (F19 superseded by F17).
 
 ## Completion Rules
 
