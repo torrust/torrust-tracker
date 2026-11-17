@@ -1,7 +1,7 @@
 ---
 pr-number: 2905
 pr-url: https://github.com/torrust/torrust-tracker/pull/2905
-last-updated-utc: "2026-11-17 12:59"
+last-updated-utc: "2026-11-17 13:15"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -45,6 +45,10 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 Round 1 is the review `5938631990` of `da2ce7` (CHANGES_REQUESTED, F1 to F7, reviewer-provided IDs), on the first head of
 the pull request. Its body holds no finding beyond the seven inline threads.
+Round 2 is Copilot's review `5939023583` (COMMENTED, F8 and F9, audit-local IDs), also on the first head of the pull
+request; it was submitted after the round 1 fixes were pushed. Copilot labels both findings "Medium severity"; the
+severity `Minor` is inferred from that label. Its body says the full agentic review did not run because it did not
+start before the timeout.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -55,6 +59,8 @@ the pull request. Its body holds no finding beyond the seven inline threads.
 | F5 | `review-finding:pr-2905-f5` | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 | F6 | `review-finding:pr-2905-f6` | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 | F7 | `review-finding:pr-2905-f7` | Human | Nit | formatting | ORIGINAL | FIXED | RESOLVED |
+| F8 | `review-finding:pr-2905-f8` | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F9 | `review-finding:pr-2905-f9` | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -149,10 +155,38 @@ the pull request. Its body holds no finding beyond the seven inline threads.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2905#discussion_r4599867733
 
+### F8 - D17 requires the stop hook to be bounded but gives no number
+
+- PR number: 2905
+- Source review ID: 5939023583
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2905#discussion_r4599997320
+- Concern: D17 said the stop hook lets the agent finish after a bounded number of refusals, without the number. T5 tests the bound and AC11 checks it, so they could not be verified against the specification.
+- Solution: D17 sets the bound to 3 refusals per run of the agent, the same number as the round limit of D18; the fourth attempt to finish is allowed and the hook reports that the limit was reached. T5, AC11 and scenario M7 name the number.
+- Current-tree verification: `grep -n "bounded"` on the specification prints nothing; `grep -n "3 refusals"` lists D17, T5, Commit Points, the progress log, AC11 and M7.
+- Resolution reference: `docs(issues): [#2904] set the stop hook's limit to 3 refusals`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2905#discussion_r4600064214
+
+### F9 - The checkpoints and the completion review still require `agent-review-reports.md`
+
+- PR number: 2905
+- Source review ID: 5939023583
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2905#discussion_r4599997411
+- Concern: D18 replaces `agent-review-reports.md` with JSON reply files, but the workflow checkpoints and the Implementation Completion Review of the specification still require the old file, with no rule saying which one applies to this issue.
+- Solution: D18 states the transitional rule: the reply files apply to specifications created after T9 changes the issue template; this specification keeps `agent-review-reports.md` for the reviews of its own work until it closes, and the reply files in its folder are the evidence of scenarios M5 and M7 only. The checkpoint and the completion-review bullet point to that rule.
+- Current-tree verification: Read D18, the checkpoint line and the last bullet of Implementation Completion Review in the specification after the change; each states or points to the rule. `linter markdown` and `linter cspell` passed.
+- Resolution reference: `docs(issues): [#2904] say which report file this issue uses for its own reviews`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2905#discussion_r4600064725
+
 ## Processing Log
 
 - 2026-11-17 12:58 UTC - Started audit, after the seven replies, because it holds their URLs. Review `5938631990` of `da2ce7` was submitted at 12:45:09Z (forge `submitted_at`) with seven findings, F1 to F7. The seven fixes and a plan and log follow-up were committed between 12:48:39Z and 12:55:23Z (`git log --format=%cI`, in UTC), one commit per finding, and pushed; `git ls-remote` showed the fork branch at the local head before the replies. The seven replies were posted between 12:57:58Z and 12:58:14Z (forge `created_at`). The body of issue 2904 was edited for F5 before the replies.
 - 2026-11-17 12:59 UTC - `validate-audit-record.py --pr-number 2905 --base torrust/develop`, with its `gh` calls made through the contributor account's `gh-bot`, exited 0 (7 rows, 0 failures). Resolved the seven threads; a GraphQL refresh showed 0 unresolved threads.
+- 2026-11-17 13:14 UTC - Round 2: Copilot's review `5939023583` (submitted 13:09:05Z, forge `submitted_at`) on the first head, with two findings, F8 and F9. Both still applied to the current tree. The two fixes were committed at 13:10:24Z and 13:11:26Z (`git log --format=%cI`, in UTC) and pushed; `git ls-remote` showed the fork branch at the local head before the replies. The two replies were posted at 13:14:27Z and 13:14:29Z (forge `created_at`).
+- 2026-11-17 13:15 UTC - `validate-audit-record.py --pr-number 2905 --base torrust/develop`, with its `gh` calls made through `gh-bot`, exited 0 (9 rows, 0 failures). Resolved the two threads of round 2; a GraphQL refresh showed 0 unresolved threads.
 
 <!-- Copied verbatim into each audit record. -->
 
