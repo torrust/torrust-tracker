@@ -9,7 +9,7 @@ github-issue: 2904
 spec-path: docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md
 branch: "2904-migrate-custom-agents-to-claude-code-spec"
 related-pr: null
-last-updated-utc: "2026-11-17 15:23"
+last-updated-utc: "2026-11-17 16:07"
 semantic-links:
   skill-links:
     - create-issue
@@ -597,6 +597,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - 2026-11-17 13:35 UTC - Claude Code (Claude Fable 5.2) - Addressed the approving review `5939415019` of `da2ce7` on pull request #2905 (one minor finding): the switch from `agent-review-reports.md` to reply files is keyed to the merge of T5, so the stop hook needs no exemption for this specification.
 - 2026-11-17 13:54 UTC - Claude Code (Claude Fable 5.2) - Addressed Copilot's review `5939656808` on pull request #2905 (two findings): T2 and M4 cover the ten scoped `AGENTS.md` files, and the `agent-review-report-contract` check keeps its pull-request audit rules.
 - 2026-11-17 15:23 UTC - Claude Code (Claude Fable 5.2) - Addressed the reviews `5939681382` and `5939862849` of `da2ce7` on pull request #2905 (one nit, one minor finding about the audit record): the review of T5 itself runs the `task-reviewer` agent on the T5 branch and writes a reply file, so this issue uses `agent-review-reports.md` for T2 to T4 and reply files for T5 to T12.
+- 2026-11-17 16:07 UTC - Claude Code (Claude Fable 5.2) - Addressed Copilot's review `5941597022` on pull request #2905 (two minor findings): AC10 exempts the forced run of M7 that ends without a reply file, and the EPIC records this issue's named models (D4, D13) as an approved exception to its Out of Scope item.
 
 ## Acceptance Criteria
 
@@ -622,7 +623,10 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - [ ] AC9: The review rounds of the first three pull requests handled by `pr-review-handler` are
       recorded next to the baseline of pull request #2851: 14 rounds, with its split by model.
 - [ ] AC10: Every agent started in scenarios M5 and M7 has its reply file in `agent-replies/`, each
-      file passes the validator, and a reader can follow the sequence from the files alone.
+      file passes the validator, and a reader can follow the sequence from the files alone. The
+      one exception is the forced run of M7 that uses up the 3 refusals: it ends without a reply
+      file, as D17 states, and its evidence is the 3 refusals and the allowed fourth attempt
+      recorded in `manual-verification-evidence.md` section V7.
 - [ ] AC11: The stop hook of `task-reviewer` refuses to let it finish without a valid reply file,
       and lets it finish on the fourth attempt, after 3 refusals, reporting that the limit was
       reached.
