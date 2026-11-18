@@ -543,6 +543,7 @@ impl Validator for Configuration {
 mod tests {
 
     use std::convert::TryFrom;
+    use std::fs;
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
     use secrecy::SecretString;
@@ -1023,7 +1024,7 @@ mod tests {
             .expect("Could not save configuration to file");
 
         // Assert
-        let contents = std::fs::read_to_string(&path).expect("Something went wrong reading the file");
+        let contents = fs::read_to_string(&path).expect("Something went wrong reading the file");
         assert_eq!(contents, default_persisted_config_toml());
     }
 

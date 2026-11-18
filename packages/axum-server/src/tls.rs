@@ -61,7 +61,7 @@ mod tests {
     use std::path::PathBuf;
 
     use camino::Utf8PathBuf;
-    use tempfile::NamedTempFile;
+    use tempfile::{Builder, NamedTempFile};
     use torrust_tracker_configuration::v3_0_0::tls::TlsConfig;
 
     use super::{Error, make_rust_tls};
@@ -70,7 +70,7 @@ mod tests {
     ///
     /// The returned guard removes the file when it is dropped, also when the test holding it fails.
     fn make_temp_file(prefix: &str, content: &str) -> NamedTempFile {
-        let mut file = tempfile::Builder::new()
+        let mut file = Builder::new()
             .prefix(prefix)
             .suffix(".pem")
             .tempfile()
