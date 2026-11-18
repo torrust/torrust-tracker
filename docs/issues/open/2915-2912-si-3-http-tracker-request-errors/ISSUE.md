@@ -2,79 +2,103 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: draft
-priority: p2
-epic: null
-github-issue: null
-spec-path: docs/issues/drafts/error-locations-si-5-startup-and-udp-server-errors/ISSUE.md
-branch: "{issue-number}-error-locations-si-5-startup-and-udp-server-errors"
+status: planned
+priority: p1
+epic: 2912
+github-issue: 2915
+spec-path: docs/issues/open/2915-2912-si-3-http-tracker-request-errors/ISSUE.md
+branch: "2915-http-tracker-request-errors"
 related-pr: null
-last-updated-utc: "2026-11-11 17:39"
+last-updated-utc: "2026-11-17 17:30"
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
     - .claude/skills/fix-bug/SKILL.md
     - .claude/skills/create-issue/SKILL.md
-    - docs/issues/drafts/remove-source-locations-from-errors/EPIC.md
+    - docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md
     - docs/issues/open/2804-location-caller-track-caller-audit/inventory.md
-    - packages/configuration/src/lib.rs
-    - packages/axum-server/src/tls.rs
-    - packages/udp-server/src/error.rs
+    - packages/http-protocol/src/v1/requests/announce.rs
+    - packages/http-protocol/src/v1/requests/scrape.rs
+    - packages/http-protocol/src/v1/query.rs
+    - packages/http-protocol/src/v1/auth.rs
+    - packages/http-protocol/src/v1/services/peer_ip_resolver.rs
+    - packages/axum-http-server/src/v1/extractors/announce_request.rs
+    - packages/axum-http-server/src/v1/extractors/scrape_request.rs
+    - packages/axum-http-server/src/v1/extractors/authentication_key.rs
 ---
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Remove source locations from the configuration, TLS and UDP server errors
+# Issue #2915 - Remove source locations from the HTTP tracker request errors
 
-Parent EPIC: [Remove source locations from errors](../remove-source-locations-from-errors/EPIC.md) (draft, GitHub issue not
-created yet, so `epic` is `null` and this folder carries no EPIC number). Sub-issue SI-5 of the EPIC.
+Parent EPIC: [Remove source locations from errors](../2912-remove-source-locations-from-errors/EPIC.md) (#2912). Sub-issue SI-3 of the EPIC.
 
 ## Goal
 
-Remove the remaining `location` fields and `LocatedError` sources from
-`packages/configuration`, `packages/axum-server` and `packages/udp-server`, so that startup errors
-shown to an operator and the UDP server's own errors hold no source path.
+Remove the `location` fields, the `LocatedError` sources and their text from the errors of
+`packages/http-protocol`, and from the code in `packages/axum-http-server` that builds them, so that
+no HTTP tracker `failure reason` produced by request parsing holds a source path.
 
 ## Background
 
-These are the uses left after SI-2 to SI-4 (`docs/issues/open/2804-location-caller-track-caller-audit/options.md`, facts 1 and 2).
+This is the largest client-visible exposure found by the audit. The bencoded `failure reason` of an
+HTTP tracker response embeds the error text, and a BitTorrent client shows it to its user.
 
-| Package | Use | Audience |
-| --- | --- | --- |
-| `configuration` | Four public variants of `Error` whose source is a `LocatedError` and whose format prints it (`lib.rs:312-337`: `UnableToProcessExplicitConfigFile`, `UnableToLoadFromEnvironmentVariable`, `UnableToLoadFromConfigFile`, `ConfigError`); the `#[track_caller]` `From<figment::Error>` (`lib.rs:348`); `attach_explicit_config_path` (`lib.rs:258`) | Operator, at startup |
-| `axum-server` | `Error::BadTlsConfig` with a `LocatedError` source (`tls.rs:25`, built at `:53`); `Error::MissingTlsConfig` with a `location` field its format does not print (`tls.rs:19`, built at `:43`, inventory row P16) | Operator, at startup |
-| `udp-server` | `Error::Internal` and `Error::AuthRequired` print `{location}` (`error.rs:36`, `:43`). Both are built only in `#[cfg(test)]` code | None in production today |
+Variants that print `{location}` (10; `options.md` fact 1 counts 11, including
+`ParseAnnounceQueryError::NumberOfBytesOverflow`, which issue #2850 removed):
 
-For `configuration` the location is correct as a chain (it is the `?` line in the loader), and it is
-still a library path in a message for an operator who needs the configuration key and the file, not
-the tracker's source line.
+| File | Variants |
+| --- | --- |
+| `http-protocol/src/v1/query.rs:103` | `ParseQueryError::InvalidParam` |
+| `http-protocol/src/v1/requests/announce.rs:219`, `:221`, `:227` | `ParseAnnounceQueryError::{MissingParams, MissingParam, InvalidParam}` |
+| `http-protocol/src/v1/requests/scrape.rs:41`, `:43` | `ParseScrapeQueryError::{MissingParams, MissingParam}` |
+| `http-protocol/src/v1/services/peer_ip_resolver.rs:117-120`, `:125` | `PeerIpResolutionError::{MissingRightMostXForwardedForIp, MissingClientIp}` (three-line attribute at `:117`) |
+| `http-protocol/src/v1/auth.rs:13`, `:16` | `auth::Error::{InvalidKeyFormat, CannotExtractKeyParam}` |
 
-Release steps: `torrust-tracker-configuration` was published at 3.0.0 and the publish plan schedules
-4.0.0 (#2583), so changing the type of a public source is inside that release. `axum-server` and
-`udp-server` are unpublished (0.1.0).
+Variants whose source is a `LocatedError`, which prints its own location (3):
+`ParseAnnounceQueryError::InvalidInfoHashParam` and `InvalidPeerIdParam` (`announce.rs:543`, `:560`)
+and `ParseScrapeQueryError::InvalidInfoHashParam` (`scrape.rs:84`), all built with
+`Located(err).into()`. For the two info-hash variants the inner error,
+`torrust_info_hash::ConversionError` (registry crate, 0.2.0), prints a second location of its own.
+
+Construction sites (inventory rows): P3, P4, P5a, P5b, P6 and P7 in `http-protocol`; P8, P9 and
+P10 in the `axum-http-server` extractors, which build `MissingParams`, `InvalidKeyFormat` and
+`CannotExtractKeyParam`.
+
+Text path to the client: `From<ParseQueryError>`, `From<ParseAnnounceQueryError>`,
+`From<ParseScrapeQueryError>` (`requests/announce.rs:318-329`, `scrape.rs:59`) and, in
+`responses/error.rs:54` and `:62`, `From<auth::Error>` and `From<PeerIpResolutionError>`.
+
+Six of the 10 formats print no input (`MissingParams` twice, the two `PeerIpResolutionError`
+variants and the two `auth::Error` variants; `options.md` fact 3 has the full list), so removing
+`in {location}` needs new wording there.
+
+`torrust-tracker-http-protocol` and `torrust-tracker-axum-http-server` are unpublished (0.1.0, first
+publish planned in #2583), so the change adds no release step.
 
 ## Scope
 
 ### In Scope
 
-- `configuration`: replace the four `LocatedError` sources with the plain source error; remove the
-  `#[track_caller]` conversion's location capture and the `Located`/`DynError` use in
-  `attach_explicit_config_path`; keep the path and the figment diagnostic in the message.
-- `axum-server`: replace the `BadTlsConfig` source with the plain error; remove the `location` field
-  of `MissingTlsConfig` and its capture.
-- `udp-server`: remove `location` from `Internal` and `AuthRequired` and from the tests that build
-  them (`handlers/error.rs`, `event.rs`).
-- Remove the `torrust-located-error` dependency from `packages/configuration/Cargo.toml` and
-  `packages/axum-server/Cargo.toml`.
-- Record the breaking change of `configuration` for its 4.0.0 release.
+- Remove `location` from the 10 variants and their formats; reword the messages that lose their
+  only context so that each names what failed.
+- Replace the three `LocatedError` sources with the plain source error (`#[source]`), and stop
+  formatting a source the workspace does not control (`torrust_info_hash::ConversionError`) into the
+  client text. The message keeps `param_name` and `param_value`.
+- Remove every `Location::caller()` and `Located(..).into()` in `packages/http-protocol/src` and in
+  the three `axum-http-server` extractors.
+- Remove the `torrust-located-error` dependency from `packages/http-protocol/Cargo.toml`.
+- Update the tests that build or match these variants (`http-protocol` `responses/error.rs` tests,
+  `axum-http-server` tests) and the contract tests that assert failure reasons.
 
 ### Out of Scope
 
-- Removing the two test-only `udp-server` variants altogether: see the draft
-  `docs/issues/drafts/follow-up-si-19-remove-unused-error-variants/`.
-- `packages/tracker-client`, which imports `torrust_located_error::DynError` (SI-6).
-- Changing configuration loading behavior or TLS setup.
+- `authentication::key::Error` and `WhitelistError` reasons, which are owned by `tracker-core` (SI-4).
+- The `location` parameter of `assert_bencoded_error` in `axum-http-server/tests/server/asserts.rs`:
+  it is a test helper that reports the test's own line and is allowed by the ADR.
+- A fix inside `torrust-info-hash` (its repository; listed in the EPIC's external follow-ups).
+- Changing which requests are accepted or rejected.
 
 ## Architectural Decisions
 
@@ -100,7 +124,7 @@ issue follows `.claude/skills/fix-bug/SKILL.md`:
 
 - analysis: the call paths and audiences are in the audit inventory
   (`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`, T2 table); re-check them against the tree before the first change;
-- real-artifact reproduction: start the tracker with a configuration file that has an invalid value and, separately, with TLS enabled and a certificate file that is not valid PEM; record the startup error text;
+- real-artifact reproduction: run the tracker with the default development configuration and send a malformed announce (for example `numwant=x`, a missing `info_hash`, a 19-byte `peer_id`, a short `info_hash`) and a scrape without `info_hash`; record each bencoded response;
 - regression-test boundary: see Regression Test Strategy;
 - red regression-test evidence, production fix, green test evidence, and the same reproduction run
   again after the last production change, all recorded in `manual-verification-evidence.md`.
@@ -115,7 +139,7 @@ issue follows `.claude/skills/fix-bug/SKILL.md`:
 - **Portable path check**: a helper forbids these substrings: `.rs:`, `packages/`, `packages\`,
   `src/`, `src\`, `.cargo/registry` and `rustlib/src`, so workspace paths, registry checkouts, CI
   checkout paths and Windows paths are all caught.
-- **Seams for this sub-issue**: direct `to_string()` tests. For TLS use invalid PEM files through `make_rust_tls` (`BadTlsConfig`); a missing certificate gives `MissingTlsConfig`, whose text has no location today, so it is not a red test. For `udp-server`, format the two variants directly, because no UDP reply builds them.
+- **Real boundary**: one test per failure family through the HTTP test server in `packages/axum-http-server/tests`, asserting that the `failure reason` holds no source path. Include a short `info_hash` and a short `peer_id`, the cases that went through `LocatedError`.
 
 ## Implementation Plan
 
@@ -123,12 +147,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | TODO | Reproduce and record | Startup error text for a bad configuration file and for invalid PEM files, in `manual-verification-evidence.md`. |
-| T2 | TODO | Red tests | `to_string()` tests for the four configuration variants, `BadTlsConfig` and the two UDP variants; red output recorded. |
-| T3 | TODO | `configuration` | Plain sources, no location capture, dependency removed, 4.0.0 note recorded. |
-| T4 | TODO | `axum-server` | Plain `BadTlsConfig` source, `MissingTlsConfig` without `location`, dependency removed. |
-| T5 | TODO | `udp-server` | The two variants and their tests without `location`. |
-| T6 | TODO | Green and recheck | Green output, then the T1 startups repeated. |
+| T1 | TODO | Reproduce and record | Responses of the malformed requests with a library path, in `manual-verification-evidence.md`. |
+| T2 | TODO | Red tests | Unit tests at the `FromStr`/`TryFrom<Query>` seams and HTTP-server tests for the failure reasons; red output recorded. |
+| T3 | TODO | Remove `location` from the 10 variants | Fields, formats and captures removed in `http-protocol` and the `axum-http-server` extractors; messages reworded where needed. |
+| T4 | TODO | Replace the three `LocatedError` sources | Plain `#[source]` errors; client text does not print the inner source; `torrust-located-error` removed from `http-protocol/Cargo.toml`. |
+| T5 | TODO | Green and recheck | Green output, then the T1 requests repeated against the running tracker. |
+| T6 | TODO | Review the reworded messages | A table of old and new `failure reason` texts in the evidence file, for the maintainer to approve the wording. |
 
 ## Commit Points
 
@@ -139,10 +163,9 @@ refactor, or evidence increment; do not group unrelated changes merely to reduce
 | Task | Coherent change set | Commit policy |
 | --- | --- | --- |
 | T2 | The red regression tests | Commit after focused validation and required review. |
-| T3 | `configuration` | Commit after focused validation and required review. |
-| T4 | `axum-server` | Commit after focused validation and required review. |
-| T5 | `udp-server` | Commit after focused validation and required review. |
-| T1, T6 | Evidence | Commit after focused validation and required review. |
+| T3 | The `location` removal with its tests green | Commit after focused validation and required review. |
+| T4 | The `LocatedError` replacement and dependency removal | Commit after focused validation and required review. |
+| T1, T5, T6 | Evidence | Commit after focused validation and required review. |
 
 Record a justified no-change decision in the task's evidence without creating an empty commit. For
 test-producing work, use the `write-unit-test` skill and complete an explicit design review after
@@ -162,9 +185,9 @@ with the narrow affected scope, and sign every commit with GPG.
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/drafts/error-locations-si-5-startup-and-udp-server-errors/ISSUE.md`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
+- [x] Folder-style spec drafted in `docs/issues/drafts/` and moved to `docs/issues/open/`
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
@@ -183,14 +206,15 @@ agent, for example `GitHub Copilot (Claude Opus 5.5)`, so later reviews can rela
 the model that produced them.
 
 - 2026-11-11 17:05 UTC - Claude Code (Fable 5.2) - Drafted from the audit of issue #2804 (`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`, `options.md`) as a sub-issue of the EPIC draft. Not yet approved; line numbers are those of `develop` at `4f0af379a` and must be re-checked before implementation.
+- 2026-11-17 17:30 UTC - Claude Code (Claude Opus 5.5) - EPIC coordinator: the maintainer approved the specification on 2026-11-17; issue #2915 created as `josecelano-bot` and the specification moved from `docs/issues/drafts/` to `docs/issues/open/` (SI-3 of EPIC #2912).
 
 ## Acceptance Criteria
 
-- [ ] AC1: `configuration::Error`, `axum_server::tls::Error` and the `udp-server` `Error` have no `location` field and no `LocatedError` source.
-- [ ] AC2: The startup error for a bad configuration file names the file and the invalid key or value and holds no source path.
-- [ ] AC3: The startup error for invalid PEM files holds no source path.
-- [ ] AC4: `packages/configuration/Cargo.toml` and `packages/axum-server/Cargo.toml` no longer depend on `torrust-located-error`.
-- [ ] AC5: The breaking change of `torrust-tracker-configuration` is recorded for its 4.0.0 release.
+- [ ] AC1: No error type in `packages/http-protocol` has a `location` field or a `LocatedError` source.
+- [ ] AC2: `packages/http-protocol/src` and the `axum-http-server` extractors have no `Location::caller()` and no `Located(..).into()` outside test code.
+- [ ] AC3: No `failure reason` produced by request parsing, key extraction or peer-IP resolution holds a source path, proven by HTTP-server tests including the short `info_hash` and short `peer_id` cases.
+- [ ] AC4: Each reworded message still names what failed and the offending input where there is one.
+- [ ] AC5: `packages/http-protocol/Cargo.toml` no longer depends on `torrust-located-error`.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -213,8 +237,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | Bad configuration file | Run the tracker with `TORRUST_TRACKER_CONFIG_TOML_PATH` pointing to a file with an invalid value | The error names the file and the problem and holds no `.rs:` path | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | Invalid TLS files | Enable TLS for the HTTP tracker with a certificate file that is not valid PEM and start the tracker | The error says the TLS configuration is bad and holds no path | TODO | `manual-verification-evidence.md` section V2 |
+| M1 | Malformed announce | Start the tracker; `curl` an announce with `numwant=x`, then one without `info_hash`, then one with a 19-byte `peer_id` | Each bencoded `failure reason` names the parameter and holds no `.rs:` path | TODO | `manual-verification-evidence.md` section V1 |
+| M2 | Short info-hash | `curl` an announce and a scrape with a 10-byte `info_hash` | The reason names `info_hash` and holds no path, including no `.cargo/registry` path | TODO | `manual-verification-evidence.md` section V2 |
+| M3 | Key and proxy errors | On a private tracker, announce with a malformed key in the URL; on a reverse-proxy tracker, announce without `X-Forwarded-For` | The reasons hold no path | TODO | `manual-verification-evidence.md` section V3 |
 
 Notes:
 
@@ -262,10 +287,11 @@ None planned for this issue.
 
 ## Risks and Trade-offs
 
-- **The figment diagnostic already carries enough context, or not.** Mitigation: T1 records the
-  current text so the new text can be compared.
-- **`configuration` 4.0.0 is published first.** Mitigation: EPIC ordering; otherwise this needs a
-  later major.
+- **A client parses the old text.** The `failure reason` is free text in the protocol and the old
+  text changed with every refactor. Mitigation: list old and new texts in the evidence (T6).
+- **Messages become vague.** Mitigation: AC4 and the wording review.
+- **Scope overlap with SI-4.** `http-core` maps `tracker-core` errors into failure reasons.
+  Mitigation: this sub-issue owns only errors defined in `http-protocol`.
 
 ## Implementation Completion Review
 
@@ -287,7 +313,6 @@ findings, and reusable lessons.
 
 ## References
 
-- Parent EPIC draft: `docs/issues/drafts/remove-source-locations-from-errors/EPIC.md`
+- Parent EPIC: #2912, `docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md`
 - Audit: `docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md`, `inventory.md`, `options.md`, `experiments.md` (issue #2804)
 - Related issues: #2804 (audit), #384 (external report), #2583 (first publish of the workspace crates)
-- Related draft: `docs/issues/drafts/follow-up-si-19-remove-unused-error-variants/`

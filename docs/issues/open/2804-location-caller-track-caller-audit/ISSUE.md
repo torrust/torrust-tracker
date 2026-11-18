@@ -9,7 +9,7 @@ github-issue: 2804
 spec-path: docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md
 branch: "2804-location-caller-track-caller-audit-spec"
 related-pr: null
-last-updated-utc: "2026-11-11 17:39"
+last-updated-utc: "2026-11-17 17:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -212,22 +212,22 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T4  | DONE   | Analyse fix options, recommend one        | Recommendation in `options.md`: stop printing `{location}` in `Display` (option 3); option 1 fixes no production site (all 38 are reached through trait impls, closures, `TryFrom` or `async` code). Open for the maintainer: keep or remove the field, and the `LocatedError` decision. Awaiting approval before any fix.                                          |
 | T5  | DONE   | Write the ADR and the slicing plan        | Slicing done as an EPIC draft with six sub-issue drafts and the specification for #384 (see below). The ADR moved to sub-issue SI-1 of that EPIC, because the maintainer proposed to remove the feature and that decision is still under review.                                                                                                                    |
 
-### Tasks moved to the EPIC draft
+### Tasks moved to EPIC #2912
 
 After T4 the maintainer proposed to remove source locations from errors altogether, instead of the
 options compared in `options.md`. The work is then larger than this issue and cuts across the
 workspace, so the fix tasks that this plan listed as T6 to T9 are not done here. They are planned in
-the EPIC draft `docs/issues/drafts/remove-source-locations-from-errors/EPIC.md`:
+EPIC #2912, `docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md`:
 
 | Former task | Now in |
 | --- | --- |
-| T6 Red regression tests per slice, T7 Fix slices, T8 Green and like-for-like recheck per slice | Sub-issue drafts SI-2 (`primitives`), SI-3 (HTTP tracker request errors), SI-4 (`tracker-core`), SI-5 (configuration, TLS and UDP server errors), each with its own red test, fix and recheck |
+| T6 Red regression tests per slice, T7 Fix slices, T8 Green and like-for-like recheck per slice | Sub-issues SI-2 (`primitives`), SI-3 (HTTP tracker request errors), SI-4 (`tracker-core`), SI-5 (configuration, TLS and UDP server errors), each with its own red test, fix and recheck |
 | T9 Enforcement and docs | SI-1 (ADR and `handle-errors-in-code` skill) and SI-6 (drop `torrust-located-error`, repository check, upstream issue drafts) |
 | Manual scenarios M1 and M2 of this specification (HTTP and UDP replies); M3 (`parse`) is covered by SI-2 | `docs/issues/open/384-strip-location-from-errors-sent-to-clients/ISSUE.md` (SI-7) |
 
-The EPIC and its sub-issues are drafts: no GitHub issue exists for them yet. This issue can be
-closed when the maintainer creates the EPIC issue; until then it stays open as the record of the
-audit.
+The EPIC is issue #2912 and its sub-issues are #2913 to #2918, created on 2026-11-17, and the
+existing #384, so the closing condition of this issue is met; its close-out is done by its own
+session.
 
 ### Fix options to compare in T4 (research plan)
 

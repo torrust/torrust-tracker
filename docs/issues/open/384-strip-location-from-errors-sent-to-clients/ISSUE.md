@@ -4,19 +4,19 @@ doc-type: issue
 issue-type: bug
 status: planned
 priority: p1
-epic: null
+epic: 2912
 github-issue: 384
 spec-path: docs/issues/open/384-strip-location-from-errors-sent-to-clients/ISSUE.md
 branch: "384-strip-location-from-errors-sent-to-clients"
 related-pr: null
-last-updated-utc: "2026-11-11 17:39"
+last-updated-utc: "2026-11-17 18:33"
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
     - .claude/skills/fix-bug/SKILL.md
     - .claude/skills/create-issue/SKILL.md
-    - docs/issues/drafts/remove-source-locations-from-errors/EPIC.md
+    - docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md
     - docs/issues/open/2804-location-caller-track-caller-audit/inventory.md
 ---
 
@@ -24,8 +24,7 @@ semantic-links:
 
 # Issue #384 - Make Option to Strip Location from Errors sent to Clients
 
-Parent EPIC: [Remove source locations from errors](../../drafts/remove-source-locations-from-errors/EPIC.md) (draft, GitHub issue not
-created yet, so `epic` is `null` and this folder carries no EPIC number). Sub-issue SI-7 (the last one) of the EPIC.
+Parent EPIC: [Remove source locations from errors](../2912-remove-source-locations-from-errors/EPIC.md) (#2912). Sub-issue SI-7 (the last one) of the EPIC.
 
 ## Goal
 
@@ -53,7 +52,7 @@ turn it off.
 
 The audit of issue #2804 (`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`, `options.md`) measured the feature:
 
-- None of the 38 production `Location::caller()` sites reports a caller. Each reports a fixed
+- None of the 38 production `Location::caller()` sites of the audit (37 since #2850) reports a caller. Each reports a fixed
   library line, and `#[track_caller]` cannot fix any of them.
 - 23 `Display` formats print the location, and `LocatedError` prints its own. The text reaches HTTP
   tracker clients (`failure reason`), UDP tracker clients (error message), REST API clients, event
@@ -180,7 +179,7 @@ with the narrow affected scope, and sign every commit with GPG.
 ### Workflow Checkpoints
 
 - [x] Folder-style spec written in `docs/issues/open/384-strip-location-from-errors-sent-to-clients/ISSUE.md`
-- [ ] Spec reviewed and approved by user/maintainer
+- [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec (#384 already existed)
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
@@ -200,6 +199,7 @@ agent, for example `GitHub Copilot (Claude Opus 5.5)`, so later reviews can rela
 the model that produced them.
 
 - 2026-11-11 17:05 UTC - Claude Code (Fable 5.2) - Drafted from the audit of issue #2804 (`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`, `options.md`) as a sub-issue of the EPIC draft. Not yet approved; line numbers are those of `develop` at `4f0af379a` and must be re-checked before implementation.
+- 2026-11-17 17:30 UTC - Claude Code (Claude Opus 5.5) - EPIC coordinator: the maintainer approved the specification on 2026-11-17; this issue keeps its title and is SI-7 of EPIC #2912 (comment posted on #384).
 
 ## Acceptance Criteria
 
@@ -306,7 +306,7 @@ findings, and reusable lessons.
 
 ## References
 
-- Parent EPIC draft: `docs/issues/drafts/remove-source-locations-from-errors/EPIC.md`
+- Parent EPIC: #2912, `docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md`
 - Audit: `docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md`, `inventory.md`, `options.md`, `experiments.md` (issue #2804)
 - Related issues: #2804 (audit), #2583 (first publish of the workspace crates)
 - This issue on GitHub: <https://github.com/torrust/torrust-tracker/issues/384>

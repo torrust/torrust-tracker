@@ -2,72 +2,103 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: draft
-priority: p2
-epic: null
-github-issue: null
-spec-path: docs/issues/drafts/error-locations-si-2-primitives/ISSUE.md
-branch: "{issue-number}-error-locations-si-2-primitives"
+status: planned
+priority: p1
+epic: 2912
+github-issue: 2916
+spec-path: docs/issues/open/2916-2912-si-4-tracker-core/ISSUE.md
+branch: "2916-tracker-core"
 related-pr: null
-last-updated-utc: "2026-11-15 21:07"
+last-updated-utc: "2026-11-17 17:30"
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
     - .claude/skills/fix-bug/SKILL.md
     - .claude/skills/create-issue/SKILL.md
-    - docs/issues/drafts/remove-source-locations-from-errors/EPIC.md
+    - docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md
     - docs/issues/open/2804-location-caller-track-caller-audit/inventory.md
-    - packages/primitives/src/peer.rs
+    - packages/tracker-core/src/error.rs
+    - packages/tracker-core/src/databases/error.rs
+    - packages/tracker-core/src/authentication/key/mod.rs
+    - packages/tracker-core/src/authentication/handler.rs
+    - packages/http-core/src/services/announce.rs
+    - packages/udp-server/src/handlers/error.rs
 ---
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Remove source locations from the errors of `torrust-tracker-primitives`
+# Issue #2916 - Remove source locations from the errors of `torrust-tracker-core`
 
-Parent EPIC: [Remove source locations from errors](../remove-source-locations-from-errors/EPIC.md) (draft, GitHub issue not
-created yet, so `epic` is `null` and this folder carries no EPIC number). Sub-issue SI-2 of the EPIC.
+Parent EPIC: [Remove source locations from errors](../2912-remove-source-locations-from-errors/EPIC.md) (#2912). Sub-issue SI-4 of the EPIC.
 
 ## Goal
 
-Remove the `location` field and its text from `ParsePeerRoleError` and `peer::IdConversionError` in
-`packages/primitives`, so that their messages state the invalid input and nothing about source files.
+Remove the `location` fields, the `LocatedError` sources and their text from the errors of
+`packages/tracker-core`, and update the packages that build or format them, so that no UDP error
+message, REST API error text, HTTP failure reason or event payload produced from a tracker-core
+error holds a source path.
 
 ## Background
 
-This is the defect that started the audit: finding F3 of the primitives test work under EPIC #1347.
-`"x".parse::<PeerRole>()` returns an error whose text ends in `packages/primitives/src/peer.rs:73:27`,
-the same line for every caller (`docs/issues/open/2804-location-caller-track-caller-audit/manual-verification-evidence.md`, section D1).
+The tracker-core errors reach three kinds of client (`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`, T2 table).
 
-Sites (inventory rows P1 and P2):
+Variants that print `{location}` (7):
 
-| Error variant | Format (line) | Built at | Shape |
-| --- | --- | --- | --- |
-| `ParsePeerRoleError::InvalidPeerRole` | `"invalid param {raw_param} in {location}"` (`peer.rs:83`) | `peer.rs:73`, `FromStr for PeerRole` | trait impl reached through `str::parse` |
-| `IdConversionError::NotEnoughBytes` | `"not enough bytes for peer id: {message} {location}"` (`peer.rs:331`) | `peer.rs:391`, `TryFrom<Vec<u8>> for Id` | trait impl reached through `try_into` |
-| `IdConversionError::TooManyBytes` | `"too many bytes for peer id: {message} {location}"` (`peer.rs:336`) | `peer.rs:397`, same impl | same |
+| File | Variants | Built at (inventory row) |
+| --- | --- | --- |
+| `tracker-core/src/error.rs:104` | `WhitelistError::TorrentNotWhitelisted` | `whitelist/authorization.rs:61` (P12) |
+| `tracker-core/src/databases/error.rs:47`, `:56`, `:66` | `databases::error::Error::{InsertFailed, UpdateFailed, DeleteFailed}` | 12 driver sites in `databases/driver/{sqlite,mysql,postgres}/{whitelist_store,auth_key_store}.rs` (P15); no production site was found for `UpdateFailed` |
+| `tracker-core/src/authentication/key/mod.rs:180`, `:187`, `:191` | `authentication::key::Error::{UnableToReadKey, KeyExpired, MissingAuthKey}` | `authentication/service.rs:98` (P13), `key/mod.rs:158` (P14), and `http-core/src/services/announce.rs:308` (P11) |
 
-The audit found no production path that prints these two errors (`inventory.md`, T2 table, last
-row): they are not used outside `peer.rs`. The exposure is to library consumers of the published
-crate. The crate was published at 3.0.0 and the publish plan already schedules 4.0.0
-(`docs/issues/open/2583-1669-first-publish-of-workspace-crates/ISSUE.md`), so removing a public field
-adds no release step if it lands before that publish.
+`LocatedError` uses:
+
+- `databases/error.rs`: the `#[track_caller]` conversions `From<(SqlxError, Driver)>` (`:112`) and
+  `From<(MigrateError, Driver)>` (`:139`). The location there is the driver's `map_err` line, which is
+  correct for the chain and still a library path in a client reply.
+- `error.rs:132`, `:138`: `PeerKeyError::InvalidKey` and `DatabaseError` sources, built with
+  `Located(..).into()` at `authentication/handler.rs:103`, `:108`, `:120`, `:125`, `:141`, `:150`.
+- `authentication/key/mod.rs:198`: `From<sqlx::Error>` without `#[track_caller]`.
+
+Who reads the text:
+
+- **UDP clients**: a non-whitelisted announce (`udp-core/src/services/announce.rs:109`, then
+  `ErrorResponse { message: error.to_string() }` in `udp-server/src/handlers/error.rs:57-59`), and a
+  database failure when `core.tracker_policy.persistent_torrent_completed_stat` loads downloads.
+- **HTTP clients**: `"Tracker authentication error: {source}"` and
+  `"Tracker whitelist error: {source}"` (`http-core/src/services/error_mapping.rs`).
+- **REST API clients**: `failed to whitelist torrent: {e}`, `failed to add key: {e}` and the other
+  messages built from database and `PeerKeyError` text
+  (`rest-api-runtime-adapter/.../adapters/auth_key.rs:74-85` and the response modules).
+- **Event consumers**: `ErrorKind::Whitelist(String)` from `source.to_string()`
+  (`udp-server/src/event.rs:135`, `:145`).
+
+`torrust-tracker-core` and the packages around it are unpublished (0.1.0), so the change adds no
+release step if it lands before the first publish (#2583).
 
 ## Scope
 
 ### In Scope
 
-- Remove `location` from the three variants and from their `#[error(..)]` formats.
-- Remove the three `Location::caller()` calls and the unused `std::panic::Location` import.
-- Keep or improve the context in the message (`raw_param`, and the byte counts in `message`).
-- Update the tests of `peer.rs` that build or match these variants.
-- Record the breaking change for the 4.0.0 release notes of the crate, where the publish plan tracks them.
+- Remove `location` from the 7 variants and their formats, and from every site that builds them,
+  including `http-core/src/services/announce.rs:308`.
+- Replace the `LocatedError` sources in `databases::error::Error` and `PeerKeyError` with plain
+  sources; remove the two `#[track_caller]` conversions' location capture and the `From<sqlx::Error>`
+  one; remove the six `Located(..).into()` calls in `authentication/handler.rs`.
+- Remove the `torrust-located-error` dependency from `packages/tracker-core/Cargo.toml`.
+- Add a `tracing` event at the driver sites where the lost line was the only way to tell which
+  query failed, if the message and the variant do not already say it.
+- Update the consumers so the workspace compiles and their tests pass: `http-core`, `udp-core`,
+  `udp-server` (`event.rs`, `handlers/error.rs` tests), `rest-api-runtime-adapter`.
+- Decide, with evidence, whether the unused `UpdateFailed` variant stays.
 
 ### Out of Scope
 
-- Other packages (SI-3 to SI-5).
-- Any other change to `PeerRole` or `peer::Id` parsing behavior.
-- Publishing the crate (#2583).
+- The two `udp-server` variants `Internal` and `AuthRequired` (SI-5).
+- Errors defined in `http-protocol` (SI-3).
+- Changing database behavior, retry policy or the REST API response shape beyond the error text.
+- Whether REST and UDP replies should carry database error details at all: note it as a follow-up
+  if the review finds the remaining text too detailed.
 
 ## Architectural Decisions
 
@@ -93,7 +124,7 @@ issue follows `.claude/skills/fix-bug/SKILL.md`:
 
 - analysis: the call paths and audiences are in the audit inventory
   (`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`, T2 table); re-check them against the tree before the first change;
-- real-artifact reproduction: a scratch program or `cargo test` snippet that prints `"x".parse::<PeerRole>().unwrap_err()` and `peer::Id::try_from(vec![0; 19]).unwrap_err()` before the change, like section D1 of the audit evidence;
+- real-artifact reproduction: run a listed tracker and send a UDP announce for a non-whitelisted info-hash; send the same over HTTP; on a private tracker announce with an expired key; and call the REST API to add a key or whitelist a torrent in a way that fails in the database (for example a duplicate); record each reply;
 - regression-test boundary: see Regression Test Strategy;
 - red regression-test evidence, production fix, green test evidence, and the same reproduction run
   again after the last production change, all recorded in `manual-verification-evidence.md`.
@@ -108,7 +139,7 @@ issue follows `.claude/skills/fix-bug/SKILL.md`:
 - **Portable path check**: a helper forbids these substrings: `.rs:`, `packages/`, `packages\`,
   `src/`, `src\`, `.cargo/registry` and `rustlib/src`, so workspace paths, registry checkouts, CI
   checkout paths and Windows paths are all caught.
-- **No server boundary**: no production path prints these errors, so the unit tests are the whole regression suite of this sub-issue.
+- **Real boundary**: one test per protocol with the existing test servers (`packages/udp-server`, `packages/axum-http-server/tests`, the REST API server tests) asserting the reply holds no source path. The database case uses a driver error the tests can force (a duplicate insert).
 
 ## Implementation Plan
 
@@ -116,11 +147,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | TODO | Reproduce and record | Current text of the three errors recorded in `manual-verification-evidence.md` (toolchain named). |
-| T2 | TODO | Red tests | Unit tests through `str::parse::<PeerRole>()` and `try_into()`/`Id::try_from` asserting no source path and the presence of the input; red output recorded. |
-| T3 | TODO | Remove the field, the format text and the captures | The three variants have no `location`; `grep -n 'Location' packages/primitives/src` finds nothing outside tests. |
-| T4 | TODO | Green and recheck | Green test output, then the T1 reproduction run again. |
-| T5 | TODO | Record the breaking change | Entry where the 4.0.0 changes of the crate are tracked (publish plan checklist row or the crate changelog, whichever the plan uses at that time). |
+| T1 | TODO | Reproduce and record | UDP, HTTP and REST replies with a library path, in `manual-verification-evidence.md`. |
+| T2 | TODO | Red tests | Unit tests for the 7 variants and the `PeerKeyError`/database sources; protocol tests for UDP, HTTP and REST; red output recorded. |
+| T3 | TODO | Whitelist and key errors | `location` removed from `WhitelistError` and `authentication::key::Error` and their sites, including `http-core`. |
+| T4 | TODO | Database errors | `location` removed from the three variants and 12 driver sites; `LocatedError` sources replaced; `tracing` event added where needed. |
+| T5 | TODO | `PeerKeyError` sources and dependency | Plain sources; six `Located(..).into()` removed; `torrust-located-error` removed from `tracker-core/Cargo.toml`. |
+| T6 | TODO | Consumers | `udp-core`, `udp-server`, `http-core`, `rest-api-runtime-adapter` compile and their tests are updated. |
+| T7 | TODO | Green and recheck | Green output, then the T1 requests repeated against the running tracker. |
 
 ## Commit Points
 
@@ -131,8 +164,11 @@ refactor, or evidence increment; do not group unrelated changes merely to reduce
 | Task | Coherent change set | Commit policy |
 | --- | --- | --- |
 | T2 | The red regression tests | Commit after focused validation and required review. |
-| T3 | The production change with the tests now green | Commit after focused validation and required review. |
-| T1, T4, T5 | Evidence and release-note entry | Commit after focused validation and required review. |
+| T3 | Whitelist and key errors | Commit after focused validation and required review. |
+| T4 | Database errors | Commit after focused validation and required review. |
+| T5 | `PeerKeyError` sources and the dependency removal | Commit after focused validation and required review. |
+| T6 | Consumer updates not already needed by T3 to T5 to compile | Commit after focused validation and required review. |
+| T1, T7 | Evidence | Commit after focused validation and required review. |
 
 Record a justified no-change decision in the task's evidence without creating an empty commit. For
 test-producing work, use the `write-unit-test` skill and complete an explicit design review after
@@ -152,9 +188,9 @@ with the narrow affected scope, and sign every commit with GPG.
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/drafts/error-locations-si-2-primitives/ISSUE.md`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
+- [x] Folder-style spec drafted in `docs/issues/drafts/` and moved to `docs/issues/open/`
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
@@ -173,13 +209,15 @@ agent, for example `GitHub Copilot (Claude Opus 5.5)`, so later reviews can rela
 the model that produced them.
 
 - 2026-11-11 17:05 UTC - Claude Code (Fable 5.2) - Drafted from the audit of issue #2804 (`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`, `options.md`) as a sub-issue of the EPIC draft. Not yet approved; line numbers are those of `develop` at `4f0af379a` and must be re-checked before implementation.
+- 2026-11-17 17:30 UTC - Claude Code (Claude Opus 5.5) - EPIC coordinator: the maintainer approved the specification on 2026-11-17; issue #2916 created as `josecelano-bot` and the specification moved from `docs/issues/drafts/` to `docs/issues/open/` (SI-4 of EPIC #2912).
 
 ## Acceptance Criteria
 
-- [ ] AC1: `ParsePeerRoleError` and `IdConversionError` have no `location` field.
-- [ ] AC2: `Display` of the three variants holds no source path and names the invalid input, proven by tests that go through `str::parse` and `try_into`.
-- [ ] AC3: `packages/primitives/src` has no `Location::caller()` outside test code.
-- [ ] AC4: The breaking change is recorded for the 4.0.0 release of the crate.
+- [ ] AC1: No error type in `packages/tracker-core` has a `location` field or a `LocatedError` source.
+- [ ] AC2: `packages/tracker-core/src` and `http-core/src/services/announce.rs` have no `Location::caller()`, `#[track_caller]` or `Located(..).into()` outside test code.
+- [ ] AC3: A UDP reply to a non-whitelisted announce, an HTTP failure reason for whitelist and key errors, and a REST API error for a failed key or whitelist write hold no source path, each proven by a test through the protocol server.
+- [ ] AC4: The `ErrorKind::Whitelist` event payload holds no source path.
+- [ ] AC5: `packages/tracker-core/Cargo.toml` no longer depends on `torrust-located-error`.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -202,8 +240,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | Parse an invalid peer role as a library consumer | In a scratch crate that depends on the workspace `torrust-tracker-primitives` by path, print `"x".parse::<PeerRole>().unwrap_err()` | The text names `x` and holds no file path or line | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | Convert a short peer id | Same crate: print `peer::Id::try_from(vec![0; 19]).unwrap_err()` | The text states the byte count and holds no file path or line | TODO | `manual-verification-evidence.md` section V2 |
+| M1 | UDP whitelist rejection | Start a listed tracker; send a UDP announce for an info-hash that is not whitelisted (tracker client or a script) | The error message says the torrent is not whitelisted and holds no path | TODO | `manual-verification-evidence.md` section V1 |
+| M2 | HTTP key and whitelist errors | Announce over HTTP for the same info-hash, and on a private tracker with an expired key | The failure reasons hold no path | TODO | `manual-verification-evidence.md` section V2 |
+| M3 | REST database failure | Add the same whitelist entry or key twice through the REST API | The error text names the failed operation and holds no path, including no driver file | TODO | `manual-verification-evidence.md` section V3 |
 
 Notes:
 
@@ -247,13 +286,16 @@ None planned for this issue.
 | AC2 | TODO | {test/log/PR link} |
 | AC3 | TODO | {test/log/PR link} |
 | AC4 | TODO | {test/log/PR link} |
+| AC5 | TODO | {test/log/PR link} |
 
 ## Risks and Trade-offs
 
-- **A consumer matches on the field.** Mitigation: the change ships in the already planned major
-  release and is listed in its notes.
-- **The change lands after 4.0.0 is published.** Mitigation: the EPIC orders this sub-issue before
-  the first publish; if that fails, the sub-issue needs a new major and the EPIC must say so.
+- **Largest diff of the EPIC**: 12 driver sites in three drivers, plus consumers in four packages.
+  Mitigation: commit points T3 to T6 keep each change reviewable.
+- **Lost diagnostic for database failures.** The driver line told which statement failed.
+  Mitigation: the `tracing` event in T4 and the variant's own context.
+- **Depends on SI-3 ordering only for `http-core` tests**, which assert failure reasons.
+  Mitigation: the EPIC runs SI-3 first; if run in parallel, the later one rebases.
 
 ## Implementation Completion Review
 
@@ -275,7 +317,6 @@ findings, and reusable lessons.
 
 ## References
 
-- Parent EPIC draft: `docs/issues/drafts/remove-source-locations-from-errors/EPIC.md`
+- Parent EPIC: #2912, `docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md`
 - Audit: `docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md`, `inventory.md`, `options.md`, `experiments.md` (issue #2804)
 - Related issues: #2804 (audit), #384 (external report), #2583 (first publish of the workspace crates)
-- Reporting work: `docs/issues/closed/2824-1347-add-tests-primitives/` (EPIC #1347)

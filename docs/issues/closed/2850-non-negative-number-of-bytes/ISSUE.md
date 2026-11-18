@@ -56,7 +56,7 @@ semantic-links:
     - docs/issues/closed/2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md
     - docs/issues/closed/2245-2243-review-numeric-protocol-wire-conversions/ISSUE.md
     - docs/issues/drafts/generalize-error-events/EPIC.md
-    - docs/issues/drafts/remove-source-locations-from-errors/EPIC.md
+    - docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -538,7 +538,7 @@ The frontmatter keeps `epic: null`.
 - Hiding the wrapped errors of `UdpAnnounceError` behind an opaque source (D3).
 - An ADR for the maintainer's general rules on error exposure and propagation (D3, follow-up).
 - The `location` field of the error variants touched here; that is the EPIC drafted in
-  `docs/issues/drafts/remove-source-locations-from-errors/EPIC.md`.
+  `docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md`.
 - The console `tracker-client`. Its UDP commands build wire requests, whose type does not change,
   and its HTTP commands already pass a `u64` to the builder.
 

@@ -1,12 +1,12 @@
 ---
 schema-version: 1
 doc-type: epic
-status: draft
+status: planned
 epic: null
-github-issue: null
-spec-path: docs/issues/drafts/remove-source-locations-from-errors/EPIC.md
+github-issue: 2912
+spec-path: docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md
 epic-owner: null
-last-updated-utc: "2026-11-11 17:04"
+last-updated-utc: "2026-11-17 18:33"
 semantic-links:
   skill-links:
     - create-issue
@@ -21,7 +21,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# EPIC #[To be assigned] - Remove source locations from errors
+# EPIC #2912 - Remove source locations from errors
 
 ## Goal
 
@@ -38,7 +38,7 @@ The feature was meant to point a developer to the origin of an error. The audit 
 (`docs/issues/open/2804-location-caller-track-caller-audit/`) shows that it does not do that, and
 that it has costs:
 
-- **It is wrong by construction.** None of the 38 production `Location::caller()` sites is in a
+- **It is wrong by construction.** None of the 38 production `Location::caller()` sites of the audit (37 since #2850) is in a
   `#[track_caller]` function, so each reports the fixed line where it is written. `#[track_caller]`
   cannot fix any of them: they are reached through `str::parse`, `try_into`, closures, `async fn`
   or `async` blocks (`options.md`, fact 6; `experiments.md`, E3 to E8). Through `str::parse` the
@@ -59,8 +59,27 @@ What the feature gives, a file and line for a developer, is available on the ser
 events, which record the file and line of the log call.
 
 The four options the audit compared are in `options.md`. This EPIC implements the removal of the
-field (its option 4) together with the context-instead-of-location rule (option 3). That choice is
-**proposed** here and is confirmed by the review of this specification and by the ADR of SI-1.
+field (its option 4), which keeps option 3's context-instead-of-location wording and also removes
+the field. Keeping the field and stripping it from `Display` only (option 3 alone) was rejected by the
+maintainer on 2026-11-17; the ADR of SI-1 records the decision.
+
+## Maintainer Decisions
+
+Recorded 2026-11-17 by the EPIC coordinator session:
+
+1. **Remove the field (option 4).** Error types lose their `location` field, no non-test code calls
+   `Location::caller()`, and the workspace drops `torrust-located-error`. Stripping the location from
+   `Display` only (option 3 alone) was rejected: each of the 38 production `Location::caller()` sites of the audit (37 since #2850)
+   records a fixed library line, so keeping the field keeps a misleading `Debug` and log value. The
+   five `#[track_caller]` `From` conversions into `LocatedError` record a location that is correct
+   for their call chain (`inventory.md`, class C), and they are removed as well, because that
+   location is still an implementation path.
+2. **#384 keeps its title.** It is linked as SI-7 and gets a comment that explains the new scope
+   (removal instead of an option); it closes after the recheck.
+3. **One sub-issue session at a time.** SI-1, then SI-2, SI-3, SI-4, SI-5 and SI-6 in that order,
+   each started only after the maintainer's go. The parallel order in Delivery Strategy is what the
+   work allows, not the plan.
+4. **Model for sub-issue sessions:** Claude Opus 5.5 at default effort.
 
 ## Scope
 
@@ -91,18 +110,17 @@ field (its option 4) together with the context-instead-of-location rule (option 
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-No GitHub issue exists yet for SI-1 to SI-6; the maintainer creates them after this specification is
-reviewed. Their drafts cannot carry the EPIC number, which does not exist yet, so they share the
-`error-locations-si-<n>` prefix instead.
+SI-1 to SI-6 are issues #2913 to #2918, created by `josecelano-bot` on 2026-11-17. SI-7 is the
+existing issue #384.
 
 | Order | Issue | Local Spec | Status | Notes |
 | --- | --- | --- | --- | --- |
-| 1 | #[To be assigned] - SI-1 Record the decision that errors do not record source locations | `docs/issues/drafts/error-locations-si-1-adr-errors-do-not-record-source-locations/ISSUE.md` | TODO | First. Every code sub-issue waits for it |
-| 2 | #[To be assigned] - SI-2 Remove source locations from the errors of `torrust-tracker-primitives` | `docs/issues/drafts/error-locations-si-2-primitives/ISSUE.md` | TODO | After SI-1. Closes finding F3 of the primitives test work (EPIC #1347). Must land before `primitives` 4.0.0 is published |
-| 3 | #[To be assigned] - SI-3 Remove source locations from the HTTP tracker request errors | `docs/issues/drafts/error-locations-si-3-http-tracker-request-errors/ISSUE.md` | TODO | After SI-1. `http-protocol` and the `axum-http-server` extractors. Largest client-visible exposure |
-| 4 | #[To be assigned] - SI-4 Remove source locations from the errors of `torrust-tracker-core` | `docs/issues/drafts/error-locations-si-4-tracker-core/ISSUE.md` | TODO | After SI-1; after SI-3 if not run in parallel, because both touch `http-core` tests. Largest diff |
-| 5 | #[To be assigned] - SI-5 Remove source locations from the configuration, TLS and UDP server errors | `docs/issues/drafts/error-locations-si-5-startup-and-udp-server-errors/ISSUE.md` | TODO | After SI-1. Must land before `configuration` 4.0.0 is published |
-| 6 | #[To be assigned] - SI-6 Drop `torrust-located-error` from the workspace and enforce the rule | `docs/issues/drafts/error-locations-si-6-drop-located-error-and-enforce-the-rule/ISSUE.md` | TODO | After SI-2 to SI-5 |
+| 1 | #2913 - SI-1 Record the decision that errors do not record source locations | `docs/issues/open/2913-2912-si-1-adr-errors-do-not-record-source-locations/ISSUE.md` | TODO | First. Every code sub-issue waits for it |
+| 2 | #2914 - SI-2 Remove source locations from the errors of `torrust-tracker-primitives` | `docs/issues/open/2914-2912-si-2-primitives/ISSUE.md` | TODO | After SI-1. Closes finding F3 of the primitives test work (EPIC #1347). Must land before `primitives` 4.0.0 is published |
+| 3 | #2915 - SI-3 Remove source locations from the HTTP tracker request errors | `docs/issues/open/2915-2912-si-3-http-tracker-request-errors/ISSUE.md` | TODO | After SI-1. `http-protocol` and the `axum-http-server` extractors. Largest client-visible exposure |
+| 4 | #2916 - SI-4 Remove source locations from the errors of `torrust-tracker-core` | `docs/issues/open/2916-2912-si-4-tracker-core/ISSUE.md` | TODO | After SI-1; after SI-3 if not run in parallel, because both touch `http-core` tests. Largest diff |
+| 5 | #2917 - SI-5 Remove source locations from the configuration, TLS and UDP server errors | `docs/issues/open/2917-2912-si-5-startup-and-udp-server-errors/ISSUE.md` | TODO | After SI-1. Must land before `configuration` 4.0.0 is published |
+| 6 | #2918 - SI-6 Drop `torrust-located-error` from the workspace and enforce the rule | `docs/issues/open/2918-2912-si-6-drop-located-error-and-enforce-the-rule/ISSUE.md` | TODO | After SI-2 to SI-5 |
 | 7 | #384 - Make Option to Strip Location from Errors sent to Clients | `docs/issues/open/384-strip-location-from-errors-sent-to-clients/ISSUE.md` | TODO | Existing issue. Its baseline reproduction can start at once; its recheck waits for SI-2 to SI-6 |
 
 ### External follow-ups (other repositories)
@@ -157,10 +175,10 @@ For each subissue implementation in this EPIC, the default completion policy is:
 
 ### Workflow Checkpoints
 
-- [x] Epic spec drafted in `docs/issues/drafts/`
-- [ ] Epic spec reviewed and approved by user/maintainer
-- [ ] GitHub epic issue created and issue number added to this spec
-- [ ] Subissues created and linked in this spec
+- [x] Epic spec drafted in `docs/issues/drafts/` and moved to `docs/issues/open/`
+- [x] Epic spec reviewed and approved by user/maintainer
+- [x] GitHub epic issue created and issue number added to this spec
+- [x] Subissues created and linked in this spec
 - [ ] Subissue statuses kept up to date in the `Subissues` table
 - [ ] For each implemented subissue: automatic checks completed and recorded
 - [ ] For each implemented subissue: manual verification completed and recorded
@@ -176,6 +194,8 @@ agent, for example `GitHub Copilot (Claude Opus 5.5)`, so later reviews can rela
 the model that produced them.
 
 - 2026-11-11 17:03 UTC - Claude Code (Fable 5.2) - Drafted the EPIC, six sub-issue drafts and the specification for #384 from the audit of issue #2804, after the maintainer proposed to remove the feature. Not approved; no GitHub issue created.
+- 2026-11-17 16:45 UTC - Claude Code (Claude Opus 5.5) - EPIC coordinator recorded the maintainer's decisions (remove the field; keep #384's title; one session at a time; Opus 5.5 for sub-issue sessions).
+- 2026-11-17 17:01 UTC - Claude Code (Claude Opus 5.5) - Maintainer approved the specification. Created EPIC #2912 and sub-issues #2913 to #2918 as `josecelano-bot`, commented on #384, and moved the specification and the six sub-issue specifications from `docs/issues/drafts/` to `docs/issues/open/`. GitHub sub-issue links wait for the maintainer (the bot account cannot add them).
 
 ## Acceptance Criteria
 
