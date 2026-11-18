@@ -20,10 +20,15 @@ fn it_should_show_unified_subcommands_in_help() {
 
     assert_eq!(output.status.code(), Some(0));
 
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(stdout.contains("http"), "Expected http subcommand in help output: {stdout}");
-    assert!(stdout.contains("udp"), "Expected udp subcommand in help output: {stdout}");
-    assert!(stdout.contains("check"), "Expected check subcommand in help output: {stdout}");
+    // The help text is a JSON record on stderr: stdout carries result data only.
+    assert!(output.stdout.is_empty(), "Expected empty stdout");
+
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    let record: serde_json::Value = serde_json::from_str(stderr.trim_end()).expect("help should be one JSON record");
+    let help = record["message"].as_str().expect("help record should have a message");
+    assert!(help.contains("http"), "Expected http subcommand in help output: {help}");
+    assert!(help.contains("udp"), "Expected udp subcommand in help output: {help}");
+    assert!(help.contains("check"), "Expected check subcommand in help output: {help}");
 }
 
 #[test]

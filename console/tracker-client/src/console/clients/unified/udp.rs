@@ -8,7 +8,7 @@ use torrust_tracker_udp_protocol::{AnnounceEvent, Response, TransactionId};
 use url::Url;
 
 use super::app::OutputFormat;
-use super::scrape;
+use super::{output, scrape};
 use crate::DEFAULT_NETWORK_TIMEOUT;
 use crate::console::clients::udp::checker::AnnounceParams;
 use crate::console::clients::udp::responses::dto::SerializableResponse;
@@ -125,7 +125,7 @@ pub async fn run(command: Command) -> anyhow::Result<()> {
             if let Response::Scrape(scrape_response) = &response
                 && let Some(warning) = scrape::truncation_warning(info_hashes.len(), scrape_response.torrent_stats.len())
             {
-                eprintln!("{warning}");
+                output::write_diagnostic(&warning);
             }
 
             (response, format)
@@ -135,9 +135,7 @@ pub async fn run(command: Command) -> anyhow::Result<()> {
     let response: SerializableResponse = response.into();
     let response_json = response.to_json_string(output_format.is_pretty())?;
 
-    print!("{response_json}");
-
-    Ok(())
+    output::write_result(&response_json).context("failed to write the UDP result to stdout")
 }
 
 async fn handle_announce(

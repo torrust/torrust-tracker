@@ -15,7 +15,7 @@ use torrust_tracker_http_protocol::v1::responses::announce::deserialization::{De
 use torrust_tracker_http_protocol::v1::responses::scrape::deserialization;
 
 use super::app::OutputFormat;
-use super::scrape;
+use super::{output, scrape};
 use crate::DEFAULT_NETWORK_TIMEOUT;
 
 #[derive(Clone, Copy, Debug, ValueEnum)]
@@ -192,17 +192,12 @@ async fn announce_command(options: AnnounceOptions, timeout: Duration) -> anyhow
         serialize_json(&compact_response, options.output_format)
             .context("failed to serialize compact announce response into JSON")?
     } else {
-        let fallback = bencode_to_fallback_json_or_raw_bytes(&body, options.output_format)
-            .context("failed to serialize fallback announce response into JSON")?;
-
-        println!("{fallback}");
+        output::write_diagnostic(&unrecognized_response_record("announce", &body));
 
         bail!("unrecognized announce response from tracker")
     };
 
-    println!("{json}");
-
-    Ok(())
+    output::write_result(&json).context("failed to write the announce result to stdout")
 }
 
 async fn scrape_command(
@@ -220,10 +215,7 @@ async fn scrape_command(
     let body = response.bytes().await?;
 
     let Ok(scrape_response) = deserialization::Response::try_from_bencoded(&body) else {
-        let fallback = bencode_to_fallback_json_or_raw_bytes(&body, output_format)
-            .context("failed to serialize fallback scrape response into JSON")?;
-
-        println!("{fallback}");
+        output::write_diagnostic(&unrecognized_response_record("scrape", &body));
 
         bail!("unrecognized scrape response from tracker")
     };
@@ -231,12 +223,10 @@ async fn scrape_command(
     let json = serialize_json(&scrape_response, output_format).context("failed to serialize scrape response into JSON")?;
 
     if let Some(warning) = scrape::truncation_warning(scrape::distinct_count(&query.info_hash), scrape_response.files.len()) {
-        eprintln!("{warning}");
+        output::write_diagnostic(&warning);
     }
 
-    println!("{json}");
-
-    Ok(())
+    output::write_result(&json).context("failed to write the scrape result to stdout")
 }
 
 fn parse_peer_id(peer_id_str: &str) -> anyhow::Result<PeerId> {
@@ -282,20 +272,21 @@ fn validate_tracker_url_parts(url: &Url) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn bencode_to_fallback_json_or_raw_bytes(body: &[u8], output_format: OutputFormat) -> anyhow::Result<String> {
-    match try_bencode_to_json(body) {
-        Ok(json) => match output_format {
-            OutputFormat::Json => Ok(json),
-            OutputFormat::Text => {
-                let value: serde_json::Value = serde_json::from_str(&json).context("failed to parse fallback bencode JSON")?;
+/// The stderr record for a response the client cannot decode. Stdout stays empty: the command
+/// failed. The body is the bencoded response as JSON, or its raw bytes when it is not bencode.
+fn unrecognized_response_record(command: &str, body: &[u8]) -> String {
+    let body = try_bencode_to_json(body)
+        .ok()
+        .and_then(|json| serde_json::from_str::<serde_json::Value>(&json).ok())
+        .unwrap_or_else(|| serde_json::json!({ "raw_bytes": body }));
 
-                serialize_json(&value, output_format).context("failed to format fallback bencode JSON")
-            }
-        },
-        Err(_) => Ok(format!(
-            "Warning: Could not deserialize HTTP tracker response. Raw bytes: {body:?}"
-        )),
-    }
+    serde_json::json!({
+        "kind": "unrecognized_response",
+        "protocol": "http",
+        "command": command,
+        "body": body,
+    })
+    .to_string()
 }
 
 fn serialize_json<T: serde::Serialize>(value: &T, output_format: OutputFormat) -> anyhow::Result<String> {

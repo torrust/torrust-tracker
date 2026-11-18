@@ -72,6 +72,7 @@ MSRV
 Mbps
 Mebibytes
 NOASSERTION
+NOCTTY
 NOGLOB
 NOSYSTEM
 Naim
@@ -89,6 +90,7 @@ QJSF
 QUIC
 Quickstart
 RAII
+RDWR
 REUSEPORT
 RPIT
 RUSTDOCFLAGS
@@ -267,6 +269,7 @@ flamegraphs
 flate
 flate2
 fnix
+fooi
 footgun
 fopen
 formalised
@@ -289,6 +292,7 @@ githubmerge
 gnutimeout
 goaway
 gpgsign
+grantpt
 gzprintf
 gzvprintf
 gzwrite
@@ -419,6 +423,7 @@ oneline
 oneshot
 openexr
 openmetrics
+openpt
 opentracker
 opentrackers
 optimisation
@@ -455,6 +460,7 @@ programatik
 promtool
 proot
 proto
+ptsname
 pullrequestreview
 pushmirrors
 pycache
@@ -505,6 +511,7 @@ rusqlite
 rustc
 rustdoc
 rustfmt
+rustix
 rustlib
 rustup
 rwxrwxr
@@ -602,6 +609,7 @@ ungetwc
 uninit
 unistd
 unittests
+unlockpt
 unparked
 unpushed
 unrecognised

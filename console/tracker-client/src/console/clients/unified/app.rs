@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand, ValueEnum};
 use tracing::level_filters::LevelFilter;
 
-use super::{check, http, udp};
+use super::{check, http, output, udp};
 use crate::console::clients::checker::error::AppError;
 
 #[derive(Clone, Copy, Debug, ValueEnum)]
@@ -20,6 +20,8 @@ impl OutputFormat {
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum Error {
+    /// Stdout is a terminal: the contract refuses to run (exit `2`).
+    TtyRefusal,
     Check(AppError),
     Other(anyhow::Error),
 }
@@ -64,9 +66,13 @@ enum Command {
 ///
 /// Returns an error if command execution fails.
 pub async fn run() -> Result<(), Error> {
-    init_tracing_stdout(LevelFilter::INFO);
+    if output::stdout_is_terminal() {
+        return Err(Error::TtyRefusal);
+    }
 
-    let args = Args::parse();
+    init_tracing_stderr(LevelFilter::INFO);
+
+    let args = Args::try_parse().map_err(|error| Error::Check(AppError::from_clap(&error)))?;
 
     match args.command {
         Command::Http { command } => http::run(command).await.map_err(Error::Other)?,
@@ -80,8 +86,15 @@ pub async fn run() -> Result<(), Error> {
     Ok(())
 }
 
-fn init_tracing_stdout(filter: LevelFilter) {
-    if tracing_subscriber::fmt().with_max_level(filter).try_init().is_ok() {
+/// Tracing records are JSON lines on stderr; stdout is reserved for the result.
+fn init_tracing_stderr(filter: LevelFilter) {
+    if tracing_subscriber::fmt()
+        .json()
+        .with_writer(std::io::stderr)
+        .with_max_level(filter)
+        .try_init()
+        .is_ok()
+    {
         tracing::debug!("Logging initialized");
     }
 }

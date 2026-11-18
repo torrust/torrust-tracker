@@ -5,7 +5,6 @@ use thiserror::Error;
 use torrust_tracker_client::udp;
 use torrust_tracker_udp_protocol::Response;
 
-pub mod app;
 pub mod checker;
 pub mod responses;
 
