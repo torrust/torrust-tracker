@@ -105,7 +105,9 @@ State on 2026-11-18 (EPIC #1347 `Subissues` table and the GitHub state of each s
   `rest-api-runtime-adapter` and `axum-health-check-api-server`.
 - `primitives` (level 0, no workspace dependencies) is the only crate whose testing gate and
   dependency gate are both met. The five other crates with a met testing gate all depend on crates
-  without one. `primitives` still waits for prerequisites 3 and 5.
+  without one. `primitives` still waits for prerequisites 3 and 5, and EPIC #2912 (remove source
+  locations from errors) requires its SI-2 (#2914, `TODO`) to land before `primitives` 4.0.0 is
+  published. That constraint comes from EPIC #2912; it is not a prerequisite decided in this issue.
 - The client extraction (#2594) needs `http-protocol`, `udp-protocol` and `client-lib` published
   (rows 3, 4 and 8). None of the three has a #1347 sub-issue, and they depend only on each other,
   so meeting their testing gate is the shortest path to unblock #2594.
@@ -265,12 +267,12 @@ when a #1347 sub-issue is created or closed; EPIC #1347 owns the sub-issues them
 
 | Order | Level | Crate | Depends on | Dev-depends on | Testing (#1347) | Version to publish | Pre-publish notes | Status |
 | ----- | ----- | ----- | ---------- | -------------- | --------------- | ------------------ | ----------------- | ------ |
-| 1 | 0 | `torrust-tracker-primitives` | - | - | `MET`: [#2824](../../closed/2824-1347-add-tests-primitives/ISSUE.md) closed | 4.0.0 | Published 3.0.0. Major owed (#2454). | BLOCKED |
+| 1 | 0 | `torrust-tracker-primitives` | - | - | `MET`: [#2824](../../closed/2824-1347-add-tests-primitives/ISSUE.md) closed | 4.0.0 | Published 3.0.0. Major owed (#2454). EPIC #2912 requires #2914 (SI-2) to land before 4.0.0 is published. | BLOCKED |
 | 2 | 0 | `torrust-tracker-events` | - | - | `NONE`: no sub-issue (OQ1) | 0.1.0 | `RecvError` stays exhaustive on purpose (#2454 E1). | BLOCKED |
 | 3 | 0 | `torrust-tracker-http-protocol` | - | - | `NONE`: no sub-issue (OQ1) | 0.1.0 | Blocks the client extraction. | BLOCKED |
 | 4 | 0 | `torrust-tracker-udp-protocol` | - | - | `NONE`: no sub-issue (OQ1) | 0.1.0 | `RequestParseError` stays exhaustive on purpose (#2454 E2). Blocks the client extraction. | BLOCKED |
 | 5 | 0 | `torrust-tracker-rest-api-protocol` | - | - | `NONE`: no sub-issue (OQ1) | 0.1.0 | - | BLOCKED |
-| 6 | 1 | `torrust-tracker-configuration` | primitives | - | `NONE`: no sub-issue (OQ1) | 4.0.0 | Published 3.0.0. Major owed (#2454; `Error::Infallible` removed). | BLOCKED |
+| 6 | 1 | `torrust-tracker-configuration` | primitives | - | `NONE`: no sub-issue (OQ1) | 4.0.0 | Published 3.0.0. Major owed (#2454; `Error::Infallible` removed). EPIC #2912 requires #2917 (SI-5) to land before 4.0.0 is published. | BLOCKED |
 | 7 | 1 | `torrust-tracker-swarm-coordination-registry` | events, primitives | - | `NONE`: no sub-issue (OQ1) | 0.1.0 | - | BLOCKED |
 | 8 | 1 | `torrust-tracker-client-lib` | http-protocol, udp-protocol | - | `NONE`: no sub-issue (OQ1) | 0.1.0 | LGPL license links fixed by #2576. Blocks the client extraction. | BLOCKED |
 | 9 | 1 | `torrust-tracker-rest-api-application` | primitives, rest-api-protocol | - | `NONE`: no sub-issue (OQ1) | 0.1.0 | - | BLOCKED |
