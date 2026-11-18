@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: in-progress
+status: done
 priority: p2
 epic: 2392
 github-issue: 2907
-spec-path: docs/issues/open/2907-2392-remove-leaked-test-temporary-files/ISSUE.md
+spec-path: docs/issues/closed/2907-2392-remove-leaked-test-temporary-files/ISSUE.md
 branch: "2907-2392-remove-leaked-test-temporary-files"
 related-pr: 2938
-last-updated-utc: "2026-11-18 11:55"
+last-updated-utc: "2026-11-18 13:39"
 semantic-links:
   skill-links:
     - create-issue
@@ -170,7 +170,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -222,6 +222,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   files; they also changed `.dockerignore` and `project-words.txt` and renamed six `.txt` evidence
   files of an archived spec, but no Rust or Cargo file (finding F6). Added a second red run, which
   covers both maintained TLS tests, to the evidence file (finding F5).
+- 2026-11-18 13:39 UTC - Claude Code (Claude Opus 5.5), #2907 session - PR #2938 merged on 2026-11-18
+  13:38 UTC as `develop` `bf178dd06`, and GitHub closed #2907. Archived this spec to
+  `docs/issues/closed/` and marked order 7 DONE in the EPIC.
 
 ## Acceptance Criteria
 

@@ -1,7 +1,7 @@
 ---
 doc-type: issue-inventory
 issue-spec: docs/issues/closed/2394-2392-audit-shared-test-resources/ISSUE.md
-last-updated-utc: "2026-11-17 15:22"
+last-updated-utc: "2026-11-18 13:39"
 ---
 
 # Inventory of Shared Test Resources (tasks T1 to T5)
@@ -210,5 +210,5 @@ The maintainer answered the four judgement calls on 2026-11-16 (Q4 after the fir
 | Draft | Findings | Issue and spec |
 | --- | --- | --- |
 | D1 | P2 | #2906, `docs/issues/open/2906-2392-fixed-port-metrics-test-concurrent-runs/ISSUE.md` |
-| D2 | F2 | #2907, `docs/issues/open/2907-2392-remove-leaked-test-temporary-files/ISSUE.md` |
+| D2 | F2 | #2907, `docs/issues/closed/2907-2392-remove-leaked-test-temporary-files/ISSUE.md` |
 | D3 | C9 | #2908, `docs/issues/open/2908-2392-compose-cleanup-after-failed-start/ISSUE.md` |

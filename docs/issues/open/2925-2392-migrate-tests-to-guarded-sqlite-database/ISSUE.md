@@ -9,7 +9,7 @@ github-issue: 2925
 spec-path: docs/issues/open/2925-2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md
 branch: "2392-split-test-temp-files-spec"
 related-pr: null
-last-updated-utc: "2026-11-18 04:17"
+last-updated-utc: "2026-11-18 13:39"
 semantic-links:
   skill-links:
     - create-issue
@@ -19,7 +19,7 @@ semantic-links:
     - .claude/skills/fix-bug/SKILL.md
     - .claude/skills/create-issue/SKILL.md
     - docs/issues/open/2392-test-isolation/EPIC.md
-    - docs/issues/open/2907-2392-remove-leaked-test-temporary-files/ISSUE.md
+    - docs/issues/closed/2907-2392-remove-leaked-test-temporary-files/ISSUE.md
     - docs/issues/open/2924-2392-sqlite-test-database-guard/ISSUE.md
     - packages/test-helpers/src/configuration.rs
 ---

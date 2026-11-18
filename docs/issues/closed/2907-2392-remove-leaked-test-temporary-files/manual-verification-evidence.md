@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2907-2392-remove-leaked-test-temporary-files/ISSUE.md
-last-updated-utc: "2026-11-18 12:13"
+issue-spec: docs/issues/closed/2907-2392-remove-leaked-test-temporary-files/ISSUE.md
+last-updated-utc: "2026-11-18 13:39"
 ---
 
 # Manual Verification Evidence
