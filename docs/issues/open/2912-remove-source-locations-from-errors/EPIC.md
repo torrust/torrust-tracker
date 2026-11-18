@@ -6,7 +6,7 @@ epic: null
 github-issue: 2912
 spec-path: docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md
 epic-owner: null
-last-updated-utc: "2026-11-17 18:33"
+last-updated-utc: "2026-11-18 11:08"
 semantic-links:
   skill-links:
     - create-issue
@@ -43,7 +43,7 @@ that it has costs:
   cannot fix any of them: they are reached through `str::parse`, `try_into`, closures, `async fn`
   or `async` blocks (`options.md`, fact 6; `experiments.md`, E3 to E8). Through `str::parse` the
   attribute makes the location a line inside the standard library.
-- **It reaches clients.** 23 `Display` formats print the location and `LocatedError` prints its
+- **It reaches clients.** 23 `Display` formats (22 since #2850) print the location and `LocatedError` prints its
   own. The text is in the HTTP tracker `failure reason`, the UDP error message, REST API error
   text, event payloads and logs (`inventory.md`, T2 table).
 - **It was reported as a security concern** in 2023 (issue #384, still open).
@@ -53,7 +53,7 @@ that it has costs:
   client-visible message.
 - **It makes messages unstable for consumers**, who cannot match on text that changes with
   unrelated refactors.
-- **It costs public API.** The field is part of 24 public enum variants.
+- **It costs public API.** The field is part of 24 public enum variants (23 since #2850).
 
 What the feature gives, a file and line for a developer, is available on the server from `tracing`
 events, which record the file and line of the log call.
@@ -115,7 +115,7 @@ existing issue #384.
 
 | Order | Issue | Local Spec | Status | Notes |
 | --- | --- | --- | --- | --- |
-| 1 | #2913 - SI-1 Record the decision that errors do not record source locations | `docs/issues/open/2913-2912-si-1-adr-errors-do-not-record-source-locations/ISSUE.md` | TODO | First. Every code sub-issue waits for it |
+| 1 | #2913 - SI-1 Record the decision that errors do not record source locations | `docs/issues/closed/2913-2912-si-1-adr-errors-do-not-record-source-locations/ISSUE.md` | DONE | First. Every code sub-issue waits for it |
 | 2 | #2914 - SI-2 Remove source locations from the errors of `torrust-tracker-primitives` | `docs/issues/open/2914-2912-si-2-primitives/ISSUE.md` | TODO | After SI-1. Closes finding F3 of the primitives test work (EPIC #1347). Must land before `primitives` 4.0.0 is published |
 | 3 | #2915 - SI-3 Remove source locations from the HTTP tracker request errors | `docs/issues/open/2915-2912-si-3-http-tracker-request-errors/ISSUE.md` | TODO | After SI-1. `http-protocol` and the `axum-http-server` extractors. Largest client-visible exposure |
 | 4 | #2916 - SI-4 Remove source locations from the errors of `torrust-tracker-core` | `docs/issues/open/2916-2912-si-4-tracker-core/ISSUE.md` | TODO | After SI-1; after SI-3 if not run in parallel, because both touch `http-core` tests. Largest diff |

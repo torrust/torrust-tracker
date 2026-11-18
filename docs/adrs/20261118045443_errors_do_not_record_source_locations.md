@@ -38,7 +38,7 @@ and `options.md`) found that the recorded location is never the caller's:
   `str::parse`, `try_into`, closures, `async fn` or `async` blocks, where the caller chain ends at a
   standard-library or workspace line that never changes (`options.md`, fact 6). The value is a fixed
   library line.
-- 23 `Display` formats print that location, so the text that reaches HTTP, UDP and REST clients,
+- 23 `Display` formats (22 since #2850) print that location, so the text that reaches HTTP, UDP and REST clients,
   event payloads and logs contains a source path of the tracker (`options.md`, fact 1).
 - `LocatedError` prints its own location in its `Display` (`torrust-located-error` 3.0.0,
   `lib.rs:58`), whatever the wrapped error does.
@@ -116,7 +116,7 @@ pub enum ParseKeyError {
 The four options compared in `options.md`:
 
 1. **`#[track_caller]` chains.** Rejected: it cannot reach the caller at any of the 38 production
-   sites (trait impls reached through `parse` and `try_into`, closures, `async`), and where it works
+   sites (37 since #2850; trait impls reached through `parse` and `try_into`, closures, `async`), and where it works
    it still puts a workspace path in user text.
 2. **Capture the location at the call site** (a constructor or macro). Rejected: the same callers are
    trait impls, closures and `async` code, so the captured line is still fixed, and each type needs a
@@ -138,8 +138,8 @@ The four options compared in `options.md`:
 - Positive: one dependency less (`torrust-located-error`).
 - Negative: the developer hint is gone. A developer who needs a location adds a `tracing` event at the
   site, or reads a backtrace.
-- Negative: the 24 production variants that carry the field change shape. This is a breaking change for `primitives` and
-  `configuration`, inside the major releases they already owe, and free for the crates not yet
+- Negative: the 24 production variants that carry the field (23 since #2850) change shape. This is a
+  breaking change for `primitives` and `configuration`, inside the major releases they already owe, and free for the crates not yet
   published if the change lands before their first publish.
 - Messages that relied on the location for their only context need new wording, and in a few cases a
   field that carries the offending input.

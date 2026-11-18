@@ -9,7 +9,7 @@ github-issue: 384
 spec-path: docs/issues/open/384-strip-location-from-errors-sent-to-clients/ISSUE.md
 branch: "384-strip-location-from-errors-sent-to-clients"
 related-pr: null
-last-updated-utc: "2026-11-17 18:33"
+last-updated-utc: "2026-11-18 11:08"
 semantic-links:
   skill-links:
     - create-issue
@@ -54,7 +54,7 @@ The audit of issue #2804 (`docs/issues/open/2804-location-caller-track-caller-au
 
 - None of the 38 production `Location::caller()` sites of the audit (37 since #2850) reports a caller. Each reports a fixed
   library line, and `#[track_caller]` cannot fix any of them.
-- 23 `Display` formats print the location, and `LocatedError` prints its own. The text reaches HTTP
+- 23 `Display` formats (22 since #2850) print the location, and `LocatedError` prints its own. The text reaches HTTP
   tracker clients (`failure reason`), UDP tracker clients (error message), REST API clients, event
   payloads and logs.
 - For a registry crate (`torrust-info-hash`) the printed location is a path inside the build

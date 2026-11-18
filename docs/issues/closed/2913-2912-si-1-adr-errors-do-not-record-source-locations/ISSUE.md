@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p1
 epic: 2912
 github-issue: 2913
-spec-path: docs/issues/open/2913-2912-si-1-adr-errors-do-not-record-source-locations/ISSUE.md
+spec-path: docs/issues/closed/2913-2912-si-1-adr-errors-do-not-record-source-locations/ISSUE.md
 branch: "2913-adr-errors-do-not-record-source-locations"
-related-pr: null
-last-updated-utc: "2026-11-18 04:59"
+related-pr: 2930
+last-updated-utc: "2026-11-18 11:08"
 semantic-links:
   skill-links:
     - create-issue
@@ -26,7 +26,7 @@ semantic-links:
 
 # Issue #2913 - Record the decision that errors do not record source locations
 
-Parent EPIC: [Remove source locations from errors](../2912-remove-source-locations-from-errors/EPIC.md) (#2912). Sub-issue SI-1 of the EPIC.
+Parent EPIC: [Remove source locations from errors](../../open/2912-remove-source-locations-from-errors/EPIC.md) (#2912). Sub-issue SI-1 of the EPIC.
 
 ## Goal
 
@@ -40,7 +40,7 @@ The audit of issue #2804 found that the source location recorded in errors is ne
 (`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`): none of the 38 production `Location::caller()` sites of the audit (37 since #2850) is in a
 `#[track_caller]` function, and `#[track_caller]` cannot fix any of them, because they are reached
 through `str::parse`, `try_into`, closures, `async fn` or `async` blocks (`options.md`, fact 6). The
-location is a fixed library line, and 23 `Display` formats print it into text that reaches HTTP, UDP
+location is a fixed library line, and 23 `Display` formats (22 since #2850) print it into text that reaches HTTP, UDP
 and REST clients, event payloads and logs. `LocatedError` (`torrust-located-error` 3.0.0) prints its
 own location as well.
 
@@ -112,7 +112,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | --- | --- | --- |
 | T1 | DONE | Draft the ADR with the `create-adr` skill | ADR file in `docs/adrs/` with context, decision (the six points), alternatives and consequences; listed in `docs/adrs/index.md`. Done: `docs/adrs/20261118045443_errors_do_not_record_source_locations.md`. |
 | T2 | DONE | Update the `handle-errors-in-code` skill | The `located-error` section and checklist item are replaced by the rule and a link to the ADR. Done: new section "No Source Locations in Errors", checklist item and description updated; the "Where" context line says a runtime resource, not a source location. |
-| T3 | DONE | Search for other guidance that recommends located errors | `grep -rn 'located' .github docs AGENTS.md packages/*/README.md` reviewed; each hit updated or recorded as historical. Done: no hit recommends a location. `packages/axum-server/README.md:39` and `docs/media/packages/dependencies-workspace-packages.md` describe the current dependency on `torrust-located-error` (true until SI-6 drops it; SI-6 should update them); `docs/packages.md:280` lists the standalone crate, which still exists; the other hits are unrelated ("colocated", "located in", a discussion on source locations of knowledge-graph evidence). |
+| T3 | DONE | Search for other guidance that recommends located errors | `grep -rn 'located' .github docs AGENTS.md packages/*/README.md` reviewed; each hit updated or recorded as historical. Done: no hit recommends a location. Re-run on `develop` after PR #2930 merged (review finding F11 of PR 2930): 371 lines, 345 of them under `docs/issues/` and `docs/pr-reviews/`. Those are history, not guidance: issue specs (among them the rename and extraction specs of `torrust-located-error` and the package overhaul EPIC) and review audits that describe the crate without recommending it. Outside them: the new ADR and its index row; `packages/axum-server/README.md:39` and `docs/media/packages/dependencies-workspace-packages.md`, which describe the current dependency on `torrust-located-error` (true until SI-6 drops it; SI-6 should update them); `docs/packages.md:280`, which lists the standalone crate, still in existence; and unrelated matches of the word ("colocated", "co-located", "located in", the flamegraph). The search now also covers `.claude/skills/` (`grep -rln -i 'located' .claude/skills`), where the skills live since #2886: it finds only `handle-errors-in-code`, whose three matches state the new rule. |
 
 ## Commit Points
 
@@ -152,10 +152,10 @@ with the narrow affected scope, and sign every commit with GPG.
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
+- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification (not applicable: the reviewers reviewed PR #2930 on GitHub, recorded in `docs/pr-reviews/pr-2930-review/PR-REVIEW.md`)
 - [x] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -168,6 +168,7 @@ the model that produced them.
 - 2026-11-18 04:56 UTC - Claude Code (Claude Opus 5.5) - T1 done: wrote the ADR `docs/adrs/20261118045443_errors_do_not_record_source_locations.md` with the six decision points, the four options of `options.md` as alternatives, and the consequences; added it to `docs/adrs/index.md`. Branch `2913-adr-errors-do-not-record-source-locations` from `torrust/develop` at `2ef51f6c3`.
 - 2026-11-18 04:58 UTC - Claude Code (Claude Opus 5.5) - T2 and T3 done: the `handle-errors-in-code` skill replaces the `located-error` section and checklist item with the rule and a link to the ADR; the search for other guidance found no recommendation of a source location (hits recorded in T3). M1 executed and recorded in `manual-verification-evidence.md` V1.
 - 2026-11-18 04:59 UTC - Claude Code (Claude Opus 5.5) - `linter all` exited 0 (local `torrust-linting` `linter` binary). No Rust code changed, so no tests apply. Acceptance criteria re-reviewed against the ADR and the skill. No retrospective: the work followed the specification and found nothing that changes it; the only note for later is that SI-6 should update `packages/axum-server/README.md` and the workspace dependency diagram when it drops `torrust-located-error`.
+- 2026-11-18 10:10 UTC - Claude Code (Claude Opus 5.5) - PR #2930 merged into `develop` (merge commit `5b3c8b64c`, 2026-11-18 10:04 UTC) after two Copilot rounds and da2ce7's approval; issue #2913 closed. The maintainer chose to fix da2ce7's three non-blocking findings (audit F9-F11) in this close-out: V1 re-run on the merged skill, ADR counts given since #2850, T3 hits recorded as history with `.claude/skills/` searched. Specification archived to `docs/issues/closed/`.
 
 ## Acceptance Criteria
 
