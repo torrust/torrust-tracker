@@ -51,9 +51,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F6 | review-finding:pr-2930-f6 | Copilot | Suggestion (inferred) | metadata | RE_RAISE_OF:F5 | NO_ACTION | SUPERSEDED |
 | F7 | review-finding:pr-2930-f7 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
 | F8 | review-finding:pr-2930-f8 | Copilot | Major | security | ORIGINAL | FIXED | RESOLVED |
-| F9 | review-finding:pr-2930-f9 | Human | Minor | documentation | ORIGINAL | FOLLOW_UP | OPEN |
-| F10 | review-finding:pr-2930-f10 | Human | Minor | correctness | ORIGINAL | FOLLOW_UP | OPEN |
-| F11 | review-finding:pr-2930-f11 | Human | Nit | documentation | ORIGINAL | FOLLOW_UP | OPEN |
+| F9 | review-finding:pr-2930-f9 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-2930-f10 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-2930-f11 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -168,11 +168,11 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Reviewer finding ID: F1
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2930#discussion_r4611807374
 - Concern: The Observed Result of V1 in `manual-verification-evidence.md` is not what the three recorded commands print at the reviewed head: it shows the skill section from before the review fixes and a shortened first `sed` range.
-- Solution: Follow-up in the close-out PR: V1 re-run on the skill as merged and its output pasted verbatim, in "docs(issues): [#2913] re-run the manual verification V1 on the merged skill".
+- Solution: Fixed by the close-out PR #2936, merged into `develop` on 2026-11-18 at 13:31:43 UTC (`305027e70`): V1 re-run on the skill as merged and its output pasted verbatim, in "docs(issues): [#2913] re-run the manual verification V1 on the merged skill".
 - Current-tree verification: `git diff --quiet torrust/develop -- .claude/skills/handle-errors-in-code/SKILL.md` exited 0 before the re-run at 10:08 UTC; the pasted block is the run's output.
-- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2930#discussion_r4612066643
+- Resolution reference: docs(issues): [#2913] re-run the manual verification V1 on the merged skill
 - Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2936
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2930#discussion_r4612066643
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2930#discussion_r4614752587
 
 ### F10 - ADR counts predate #2850
 
@@ -181,11 +181,11 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Reviewer finding ID: F2
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2930#discussion_r4611807388
 - Concern: The ADR's 24 variants and 23 `Display` formats are the audit's counts from before the fix for #2850; at the reviewed head they are 23 and 22, and the Alternatives line on the 38 sites lacks the "37 since #2850" qualifier.
-- Solution: Follow-up in the close-out PR: the three counts carry the "since #2850" value, in "docs(adrs): [#2913] give the location counts of the ADR since #2850".
+- Solution: Fixed by the close-out PR #2936, merged into `develop` on 2026-11-18 at 13:31:43 UTC (`305027e70`): the three counts carry the "since #2850" value, in "docs(adrs): [#2913] give the location counts of the ADR since #2850".
 - Current-tree verification: At `develop` `5b3c8b64c`: `rg -U --multiline-dotall --count-matches` for `{location}` formats over `packages` sums to 22; `rg -c "location: &'static Location<'static>"` sums to 24, one of them the test helper `packages/axum-http-server/tests/server/asserts.rs:10`, so 23 production fields.
-- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2930#discussion_r4612067048
+- Resolution reference: docs(adrs): [#2913] give the location counts of the ADR since #2850
 - Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2936
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2930#discussion_r4612067048
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2930#discussion_r4614753209
 
 ### F11 - T3 record calls related history unrelated
 
@@ -194,11 +194,11 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Reviewer finding ID: F3
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2930#discussion_r4611807403
 - Concern: The T3 record calls the hits outside three files unrelated, but most of the 367 lines are issue specs and review audits that are related history, and the recorded search leaves out `.claude/skills/`.
-- Solution: Follow-up in the close-out PR: the T3 record names the spec and review trees as history and adds the `.claude/skills/` search, in "docs(issues): [#2913] record the T3 search hits as history and add the skills directory".
+- Solution: Fixed by the close-out PR #2936, merged into `develop` on 2026-11-18 at 13:31:43 UTC (`305027e70`): the T3 record names the spec and review trees as history and adds the `.claude/skills/` search, in "docs(issues): [#2913] record the T3 search hits as history and add the skills directory".
 - Current-tree verification: Re-ran the T3 `grep` at `develop` `5b3c8b64c`: 371 lines, 345 under `docs/issues/` and `docs/pr-reviews/`; `grep -rln -i 'located' .claude/skills` lists only `handle-errors-in-code`.
-- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2930#discussion_r4612067513
+- Resolution reference: docs(issues): [#2913] record the T3 search hits as history and add the skills directory
 - Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2936
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2930#discussion_r4612067513
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2930#discussion_r4614753885
 
 ## Processing Log
 
@@ -211,6 +211,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-18 09:24 UTC - Pushed the F8 fix, replied to F8 (reply created 09:24:16Z) and resolved its thread (`isResolved: true`, 09:24:23Z).
 - 2026-11-18 10:00 UTC - Round 3: da2ce7's review 5953996662 (APPROVED, submitted 09:39:41Z) raised three non-blocking findings (reviewer F1-F3), recorded here as F9-F11. The maintainer chose in chat to fix them in the close-out PR to keep the ACKed head. Replied on the three threads (replies created 10:00:49Z to 10:00:54Z) and left them open.
 - 2026-11-18 10:06 UTC - PR #2930 merged at 10:04:47Z with this record unchanged since round 2. Posted the post-merge workflow record (comment created 10:06:02Z), recorded in Ownership. F9-F11 are added by the close-out PR #2936, which carries their fixes; they stay `FOLLOW_UP`/`OPEN` until it merges.
+- 2026-11-18 13:33 UTC - Close-out PR #2936 merged at 13:31:43 UTC (`305027e70`). Replied on the three threads with the merged fix (13:33:25Z, 13:33:28Z and 13:33:30Z, the replies' `created_at`) and resolved them by 13:33:35Z (a `date -u` run after the resolve commands); F9-F11 are `FIXED` / `RESOLVED`. GraphQL refresh: zero unresolved threads on PR #2930.
 
 ## Completion Rules
 
