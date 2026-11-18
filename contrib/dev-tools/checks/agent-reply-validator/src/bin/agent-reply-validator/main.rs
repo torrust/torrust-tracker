@@ -18,6 +18,9 @@ use clap::{ArgGroup, Parser};
 use git::Git;
 use record::{EXIT_FAILURE, EXIT_SUCCESS, EXIT_USAGE, Record, emit};
 
+/// The message for a reply file that is a symbolic link, in either mode.
+const SYMBOLIC_LINK: &str = "the file is a symbolic link; a reply file must be a regular file";
+
 /// Check agent reply files: their place, name and content, and that the name agrees with the
 /// content.
 ///
@@ -68,15 +71,17 @@ fn run(arguments: impl IntoIterator<Item = OsString>, working_directory: &Path, 
 
 /// Checks the staged content of every candidate in the index, so a commit is checked as it will
 /// be made. A candidate with merge conflicts has no staged content, so the run stops there with
-/// a runtime error.
+/// a runtime error. A candidate staged as a symbolic link is rejected, as in path mode: its staged
+/// content is the link's target path, not a reply.
 fn check_index(git: &Git) -> (Vec<Record>, u8) {
-    let paths = match git.tracked_paths() {
-        Ok(paths) => paths,
+    let entries = match git.index_entries() {
+        Ok(entries) => entries,
         Err(message) => return (vec![Record::runtime_error(None, message)], EXIT_FAILURE),
     };
     let mut checked = Vec::new();
-    for bytes in paths {
-        let path = match String::from_utf8(bytes) {
+    for entry in entries {
+        let is_symbolic_link = entry.is_symbolic_link();
+        let path = match String::from_utf8(entry.path) {
             Ok(path) if is_reply_file_candidate(&path) => path,
             Ok(_) => continue,
             Err(error) => {
@@ -90,6 +95,9 @@ fn check_index(git: &Git) -> (Vec<Record>, u8) {
                 );
             }
         };
+        if is_symbolic_link {
+            return (vec![Record::runtime_error(Some(path), SYMBOLIC_LINK)], EXIT_FAILURE);
+        }
         match git.index_content(&path).map(String::from_utf8) {
             Ok(Ok(text)) => checked.push((path, text)),
             Ok(Err(_)) => {
@@ -118,8 +126,7 @@ fn check_paths(git: &Git, working_directory: &Path, paths: &[PathBuf]) -> (Vec<R
         let shown = Some(path.display().to_string());
         let file = working_directory.join(path);
         if fs::symlink_metadata(&file).is_ok_and(|metadata| metadata.file_type().is_symlink()) {
-            let message = "the file is a symbolic link; a reply file must be a regular file";
-            return (vec![Record::runtime_error(shown, message)], EXIT_FAILURE);
+            return (vec![Record::runtime_error(shown, SYMBOLIC_LINK)], EXIT_FAILURE);
         }
         let relative = match file.parent().zip(file.file_name()) {
             Some((folder, name)) => fs::canonicalize(folder)

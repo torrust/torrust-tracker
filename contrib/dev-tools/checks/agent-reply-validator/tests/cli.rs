@@ -544,3 +544,29 @@ fn it_should_write_the_usage_error_keys_in_the_documented_order() {
     let keys: Vec<_> = outcome.records[0].as_object().unwrap().keys().cloned().collect();
     assert_eq!(keys, ["kind", "message", "exit_code"]);
 }
+
+#[cfg(unix)]
+#[test]
+fn it_should_fail_with_a_runtime_error_when_a_staged_candidate_is_a_symbolic_link() {
+    // Arrange: the link's stored target is itself a valid reply text, under a valid name and place.
+    let repository = Repository::new();
+    let link = format!("{FOLDER}/task-reviewer-t3-r2.json");
+    fs::create_dir_all(repository.root().join(FOLDER)).unwrap();
+    std::os::unix::fs::symlink(reply(2), repository.root().join(&link)).unwrap();
+    repository.git(&["add", "--", &link]);
+
+    // Act
+    let outcome = repository.run(&["--all"]);
+
+    // Assert
+    assert_eq!(outcome.exit_code, 1);
+    assert_eq!(
+        outcome.records,
+        vec![json!({
+            "kind": "runtime_error",
+            "path": link,
+            "message": "the file is a symbolic link; a reply file must be a regular file",
+            "exit_code": 1
+        })]
+    );
+}

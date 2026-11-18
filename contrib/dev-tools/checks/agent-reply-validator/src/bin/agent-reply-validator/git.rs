@@ -24,20 +24,53 @@ impl Git {
         &self.root
     }
 
-    /// Repository-relative paths of the files in the index, as git stores them: bytes, because a
-    /// path need not be UTF-8.
-    pub fn tracked_paths(&self) -> Result<Vec<Vec<u8>>, String> {
-        let output = run_git(&self.root, &["ls-files", "-z"])?;
-        Ok(output
+    /// The entries of the index: each file's mode and its repository-relative path, as git
+    /// stores them. The path is bytes, because it need not be UTF-8.
+    pub fn index_entries(&self) -> Result<Vec<IndexEntry>, String> {
+        let output = run_git(&self.root, &["ls-files", "--stage", "-z"])?;
+        output
             .split(|byte| *byte == 0)
-            .filter(|path| !path.is_empty())
-            .map(<[u8]>::to_vec)
-            .collect())
+            .filter(|entry| !entry.is_empty())
+            .map(IndexEntry::parse)
+            .collect()
     }
 
     /// The content of a repository-relative path in the index.
     pub fn index_content(&self, path: &str) -> Result<Vec<u8>, String> {
         run_git(&self.root, &["show", &format!(":0:{path}")])
+    }
+}
+
+/// One entry of `git ls-files --stage -z`: `<mode> <object> <stage>\t<path>`.
+#[derive(Debug)]
+pub struct IndexEntry {
+    pub mode: String,
+    pub path: Vec<u8>,
+}
+
+impl IndexEntry {
+    /// The mode git gives a symbolic link.
+    const SYMBOLIC_LINK_MODE: &'static str = "120000";
+
+    fn parse(entry: &[u8]) -> Result<Self, String> {
+        let tab = entry
+            .iter()
+            .position(|byte| *byte == b'\t')
+            .ok_or_else(|| "`git ls-files --stage` printed an entry without a tab".to_owned())?;
+        let (fields, path) = (&entry[..tab], &entry[tab + 1..]);
+        let mode = fields
+            .split(|byte| *byte == b' ')
+            .next()
+            .and_then(|mode| std::str::from_utf8(mode).ok())
+            .ok_or_else(|| "`git ls-files --stage` printed an entry without a mode".to_owned())?;
+        Ok(Self {
+            mode: mode.to_owned(),
+            path: path.to_vec(),
+        })
+    }
+
+    pub fn is_symbolic_link(&self) -> bool {
+        self.mode == Self::SYMBOLIC_LINK_MODE
     }
 }
 
