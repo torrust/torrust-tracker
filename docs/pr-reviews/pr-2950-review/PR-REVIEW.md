@@ -47,11 +47,15 @@ Round 1 is Copilot review `5963231037` (`COMMENTED`, on head `docs(pr-reviews): 
 
 Round 2 is Copilot review `5963780219` (`COMMENTED`, on head `docs(pr-reviews): [#2949] record PR #2950 review round 1`), with one inline comment, F3. Its overview counts one open issue and two resolved since the last review, and gives no severity label for F3, so the severity `Nit` is inferred from the request (a wording mismatch). Its body carries the same timeout warning.
 
-| Finding ID | Review finding reference    | Author class | Severity         | Category      | Relationship | Disposition | Thread state |
-| ---------- | --------------------------- | ------------ | ---------------- | ------------- | ------------ | ----------- | ------------ |
-| F1         | `review-finding:pr-2950-f1` | Copilot      | Minor (inferred) | correctness   | ORIGINAL     | FIXED       | RESOLVED     |
-| F2         | `review-finding:pr-2950-f2` | Copilot      | Minor (inferred) | documentation | ORIGINAL     | FIXED       | RESOLVED     |
-| F3         | `review-finding:pr-2950-f3` | Copilot      | Nit (inferred)   | documentation | ORIGINAL     | FIXED       | RESOLVED     |
+Round 3 is Copilot review `5964359494` (`COMMENTED`, on head `docs(pr-reviews): [#2949] record PR #2950 review round 2`), with two inline comments, F4 and F5. Its overview counts two open issues and one resolved since the last review, and gives no severity label, so `Minor` is inferred for F5 (a check that could be implemented wrongly) and `Nit` for F4 (references that go stale). Its body carries the same timeout warning.
+
+| Finding ID | Review finding reference    | Author class | Severity         | Category       | Relationship | Disposition | Thread state |
+| ---------- | --------------------------- | ------------ | ---------------- | -------------- | ------------ | ----------- | ------------ |
+| F1         | `review-finding:pr-2950-f1` | Copilot      | Minor (inferred) | correctness    | ORIGINAL     | FIXED       | RESOLVED     |
+| F2         | `review-finding:pr-2950-f2` | Copilot      | Minor (inferred) | documentation  | ORIGINAL     | FIXED       | RESOLVED     |
+| F3         | `review-finding:pr-2950-f3` | Copilot      | Nit (inferred)   | documentation  | ORIGINAL     | FIXED       | RESOLVED     |
+| F4         | `review-finding:pr-2950-f4` | Copilot      | Nit (inferred)   | link-integrity | ORIGINAL     | FIXED       | RESOLVED     |
+| F5         | `review-finding:pr-2950-f5` | Copilot      | Minor (inferred) | correctness    | ORIGINAL     | FIXED       | RESOLVED     |
 
 ## Finding Details
 
@@ -94,11 +98,38 @@ Round 2 is Copilot review `5963780219` (`COMMENTED`, on head `docs(pr-reviews): 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4619832826
 
+### F4 - Checked facts cite line numbers that shift
+
+- PR number: 2950
+- Source review ID: 5964359494
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4620220580
+- Concern: The checked facts cited `merge-pull-request/SKILL.md` line 63 and `wait-for-pr-review/SKILL.md` line 178, which shift as the skills change.
+- Solution: The fact now names the sections: Merge Readiness, item Reviewer ACK; and The Review Loop, step 4.
+- Current-tree verification: `grep -n "line 63\|line 178"` on the specification prints nothing; the fact names both sections.
+- Resolution reference: `docs(issues): [#2949] cite skill sections instead of line numbers in the checked facts`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4620307218
+
+### F5 - The folder match has no explicit form
+
+- PR number: 2950
+- Source review ID: 5964359494
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4620220646
+- Concern: "Matched as a whole path segment" gives no explicit matching form, so an implementation could use substring matching and let `pr-29-review` match pull request 2947.
+- Solution: The rule and D3 now state the match as the exact prefix `docs/pr-reviews/pr-<N>-review/`, trailing slash included, with the `pr-29-review` / `pr-2947-review` example.
+- Current-tree verification: Read the rule under In Scope and D3 on the current tree: both name the exact prefix with its trailing slash.
+- Resolution reference: `docs(issues): [#2949] state the audit-folder match as an exact prefix with its trailing slash`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4620307853
+
 ## Processing Log
 
 - 2026-11-18 18:34 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Started audit. The poller reported da2ce7's conversation comment [6987829006](https://github.com/torrust/torrust-tracker/pull/2950#issuecomment-6987829006) (2026-11-18 18:31:31 UTC) on head `docs(issues): add issue specification for #2949`; the pull request had no review. The comment does not agree to the rule as written, points to their proposal on #2949 ([issue comment 6987828129](https://github.com/torrust/torrust-tracker/issues/2949#issuecomment-6987828129), 18:31:29 UTC: a metadata branch folded in with a three-parent merge), and asks that the two be compared before deciding. A conversation comment is not a review, so it makes no row. The comparison was added to the specification in `docs(issues): [#2949] compare da2ce7's metadata-branch alternative under D1`; no decision was made, the maintainer decides D1.
 - 2026-11-18 19:13 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Round 1: the poller reported Copilot review 5963231037 (submitted 2026-11-18 19:06:19 UTC). Normalized its two inline comments as F1 and F2, fixed each in its own commit, pushed both, and replied on both threads, then resolved both threads.
 - 2026-11-18 19:48 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Round 2: the poller reported Copilot review 5963780219 (submitted 2026-11-18 19:41:53 UTC). Normalized its inline comment as F3, fixed it in its own commit, pushed it, replied on the thread, then resolved the thread.
+- 2026-11-18 20:26 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Round 3: the poller reported Copilot review 5964359494 (submitted 2026-11-18 20:19:07 UTC). Normalized its two inline comments as F4 and F5, fixed each in its own commit, pushed both, replied on both threads, then resolved both threads.
 
 ## Completion Rules
 
