@@ -20,6 +20,9 @@ use record::{EXIT_FAILURE, EXIT_SUCCESS, EXIT_USAGE, Record, emit};
 
 /// Check agent reply files: their place, name and content, and that the name agrees with the
 /// content.
+///
+/// There is no `--version`: the tool is built from the workspace it checks, so `--version` is a
+/// usage error, exit 2, like any other unknown argument.
 #[derive(Debug, Parser)]
 #[command(
     name = "agent-reply-validator",
