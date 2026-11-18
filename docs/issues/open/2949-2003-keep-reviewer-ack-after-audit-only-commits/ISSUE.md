@@ -9,7 +9,7 @@ github-issue: 2949
 spec-path: docs/issues/open/2949-2003-keep-reviewer-ack-after-audit-only-commits/ISSUE.md
 branch: "2949-keep-reviewer-ack-after-audit-only-commits-spec"
 related-pr: null
-last-updated-utc: "2026-11-18 18:33"
+last-updated-utc: "2026-11-18 19:09"
 semantic-links:
   skill-links:
     - create-issue
@@ -198,7 +198,10 @@ Not applicable. The current behaviour follows the rules as written; this issue c
 
 ## Regression Test Strategy
 
-Not applicable.
+Not applicable unless D2 is (b). In that case the merge tool's ACK matching gets unit tests for an ACK on the
+head, an ACK on an ancestor followed only by audit commits (counts), a later commit outside the folder (stale),
+a later commit in another pull request's folder (stale, D3) and a file moved into the folder from elsewhere
+(stale), matching M1 to M4.
 
 ## Implementation Plan
 
@@ -248,6 +251,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-18 15:43 UTC - AI assistant (Claude Code, Claude Fable 5.2, EPIC #2003 coordinator session) - Drafted the specification from the maintainer's decision of 2026-11-18 and the report of the #2907 session on PR #2947. Facts under Background were read on `develop` at `3a12cd095`. No decision under D1 to D5 is made yet.
 - 2026-11-18 17:25 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - The maintainer approved the draft on 2026-11-18. Created issue #2949 as `josecelano-bot`, moved the specification to `docs/issues/open/2949-2003-keep-reviewer-ack-after-audit-only-commits/` on the spec branch `2949-keep-reviewer-ack-after-audit-only-commits-spec`, and checked the facts under Background again on `develop` at `96923f0d2`: none changed, so only the commit in their heading changed. Formatted the file with prettier 3.9.10 (table alignment only). D1 to D5 stay open for the specification pull request.
 - 2026-11-18 18:33 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - da2ce7 does not agree to the rule as written (PR #2950 comment 6987829006) and proposed a metadata branch folded in with a three-parent merge (issue comment 6987828129). D1 now compares three options, (a) the rule, (b) audit after merge and (c) the metadata branch, with the merge-tool facts for (c) read on `develop` at `96923f0d2` and one point marked not verified. The D1 recommendation changed from "adopt the rule now" to "the maintainer chooses between (a) and (c)", because (a) cannot land without da2ce7's agreement. D5 records da2ce7's suggested limit. Nothing is decided.
+- 2026-11-18 19:09 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Addressed Copilot review 5963231037 on PR #2950: the rule's command is now `git diff --no-renames --name-only X..H`, with scenario M4 for a file moved into the audit folder (rename detection otherwise lists only the new path; reproduced with Git 2.53.0), and Regression Test Strategy now names the merge-tool tests that apply when D2 is (b).
 
 ## Acceptance Criteria
 
