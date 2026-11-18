@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p1
 epic: 2912
 github-issue: 2913
 spec-path: docs/issues/open/2913-2912-si-1-adr-errors-do-not-record-source-locations/ISSUE.md
 branch: "2913-adr-errors-do-not-record-source-locations"
 related-pr: null
-last-updated-utc: "2026-11-17 18:33"
+last-updated-utc: "2026-11-18 04:59"
 semantic-links:
   skill-links:
     - create-issue
@@ -110,9 +110,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | TODO | Draft the ADR with the `create-adr` skill | ADR file in `docs/adrs/` with context, decision (the six points), alternatives and consequences; listed in `docs/adrs/index.md`. |
-| T2 | TODO | Update the `handle-errors-in-code` skill | The `located-error` section and checklist item are replaced by the rule and a link to the ADR. |
-| T3 | TODO | Search for other guidance that recommends located errors | `grep -rn 'located' .github docs AGENTS.md packages/*/README.md` reviewed; each hit updated or recorded as historical. |
+| T1 | DONE | Draft the ADR with the `create-adr` skill | ADR file in `docs/adrs/` with context, decision (the six points), alternatives and consequences; listed in `docs/adrs/index.md`. Done: `docs/adrs/20261118045443_errors_do_not_record_source_locations.md`. |
+| T2 | DONE | Update the `handle-errors-in-code` skill | The `located-error` section and checklist item are replaced by the rule and a link to the ADR. Done: new section "No Source Locations in Errors", checklist item and description updated; the "Where" context line says a runtime resource, not a source location. |
+| T3 | DONE | Search for other guidance that recommends located errors | `grep -rn 'located' .github docs AGENTS.md packages/*/README.md` reviewed; each hit updated or recorded as historical. Done: no hit recommends a location. `packages/axum-server/README.md:39` and `docs/media/packages/dependencies-workspace-packages.md` describe the current dependency on `torrust-located-error` (true until SI-6 drops it; SI-6 should update them); `docs/packages.md:280` lists the standalone crate, which still exists; the other hits are unrelated ("colocated", "located in", a discussion on source locations of knowledge-graph evidence). |
 
 ## Commit Points
 
@@ -147,14 +147,14 @@ with the narrow affected scope, and sign every commit with GPG.
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -165,17 +165,20 @@ the model that produced them.
 
 - 2026-11-11 17:05 UTC - Claude Code (Fable 5.2) - Drafted from the audit of issue #2804 (`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`, `options.md`) as a sub-issue of the EPIC draft. Not yet approved; line numbers are those of `develop` at `4f0af379a` and must be re-checked before implementation.
 - 2026-11-17 17:30 UTC - Claude Code (Claude Opus 5.5) - EPIC coordinator: the maintainer approved the specification on 2026-11-17; issue #2913 created as `josecelano-bot` and the specification moved from `docs/issues/drafts/` to `docs/issues/open/` (SI-1 of EPIC #2912).
+- 2026-11-18 04:56 UTC - Claude Code (Claude Opus 5.5) - T1 done: wrote the ADR `docs/adrs/20261118045443_errors_do_not_record_source_locations.md` with the six decision points, the four options of `options.md` as alternatives, and the consequences; added it to `docs/adrs/index.md`. Branch `2913-adr-errors-do-not-record-source-locations` from `torrust/develop` at `2ef51f6c3`.
+- 2026-11-18 04:58 UTC - Claude Code (Claude Opus 5.5) - T2 and T3 done: the `handle-errors-in-code` skill replaces the `located-error` section and checklist item with the rule and a link to the ADR; the search for other guidance found no recommendation of a source location (hits recorded in T3). M1 executed and recorded in `manual-verification-evidence.md` V1.
+- 2026-11-18 04:59 UTC - Claude Code (Claude Opus 5.5) - `linter all` exited 0 (local `torrust-linting` `linter` binary). No Rust code changed, so no tests apply. Acceptance criteria re-reviewed against the ADR and the skill. No retrospective: the work followed the specification and found nothing that changes it; the only note for later is that SI-6 should update `packages/axum-server/README.md` and the workspace dependency diagram when it drops `torrust-located-error`.
 
 ## Acceptance Criteria
 
-- [ ] AC1: The ADR exists in `docs/adrs/`, is listed in the index and states the six decision points or the form the reviewers agreed.
-- [ ] AC2: The `handle-errors-in-code` skill no longer recommends `torrust-located-error` and links to the ADR.
-- [ ] AC3: No live guidance in the repository recommends recording a source location in an error.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior/workflow changes
+- [x] AC1: The ADR exists in `docs/adrs/`, is listed in the index and states the six decision points or the form the reviewers agreed.
+- [x] AC2: The `handle-errors-in-code` skill no longer recommends `torrust-located-error` and links to the ADR.
+- [x] AC3: No live guidance in the repository recommends recording a source location in an error.
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass (none apply: this issue changes no code, so no test was run)
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated when behavior/workflow changes
 
 ## Verification Plan
 
@@ -193,7 +196,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | Read the guidance as a contributor | Open the `handle-errors-in-code` skill and follow its error checklist for a new error variant | The checklist leads to an error without a `location` field and points to the ADR | TODO | `manual-verification-evidence.md` section V1 |
+| M1 | Read the guidance as a contributor | Open the `handle-errors-in-code` skill and follow its error checklist for a new error variant | The checklist leads to an error without a `location` field and points to the ADR | DONE | `manual-verification-evidence.md` section V1 |
 
 Notes:
 
@@ -233,9 +236,9 @@ None planned for this issue.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | --- | --- | --- |
-| AC1 | TODO | {test/log/PR link} |
-| AC2 | TODO | {test/log/PR link} |
-| AC3 | TODO | {test/log/PR link} |
+| AC1 | DONE | `docs/adrs/20261118045443_errors_do_not_record_source_locations.md` (Agreement points 1-6) and its row in `docs/adrs/index.md` |
+| AC2 | DONE | `.claude/skills/handle-errors-in-code/SKILL.md`, section "No Source Locations in Errors" and checklist; `manual-verification-evidence.md` V1 |
+| AC3 | DONE | T3 search results in the implementation plan |
 
 ## Risks and Trade-offs
 
@@ -250,7 +253,7 @@ After implementation, compare the result with this specification. Record
 invalidated assumptions, material design changes, unexpected validation
 findings, and reusable lessons.
 
-- Retrospective: `Not yet assessed`
+- Retrospective: not needed (see the progress log entry of 2026-11-18 04:59 UTC)
 - If needed, create `implementation-retrospective.md` from the repository
   template at `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this issue
   specification's directory.
