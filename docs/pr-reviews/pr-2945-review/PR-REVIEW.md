@@ -1,7 +1,7 @@
 ---
 pr-number: 2945
 pr-url: https://github.com/torrust/torrust-tracker/pull/2945
-last-updated-utc: "2026-11-18 14:08"
+last-updated-utc: "2026-11-18 14:28"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -87,7 +87,7 @@ review `5957852837` on the same head recommends approval with no findings and ha
 - Reviewer finding ID: F3
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2945#discussion_r4615228637
 - Concern: A YAML 1.1 timestamp needs seconds and the YAML 1.2 core schema has no timestamp type, so `2026-09-28 10:00` parses as the same string with or without quotes; only a date-only value becomes a date.
-- Solution: The description drops the date reason, gives the remaining one (one form across the templates, the form the validator requires for issue and EPIC specs), and says the commit bodies give the wrong reason; the commits are not rewritten.
+- Solution: The description drops the date reason, gives the remaining one (one form across the templates, the form the validator requires for issue and EPIC specs), and says the body of the first commit gives the wrong reason; the commits are not rewritten.
 - Current-tree verification: PyYAML `safe_load` reads `2026-09-28 10:00` as `str`, `2026-09-28 10:00:00` as `datetime` and `2026-09-14` as `date`.
 - Resolution reference: https://github.com/torrust/torrust-tracker/pull/2945#issuecomment-6980964067
 - Follow-up PR URL: N/A
