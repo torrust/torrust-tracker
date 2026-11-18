@@ -272,7 +272,7 @@ that carried the round 5 audit. Their fixes are in the follow-up pull request #2
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2920#discussion_r4611573587
 - Concern: Two rebases set every committer time to 2026-11-18 09:02, so the `git log --format=%cI` the log entries name no longer prints the times they give, and the review threads cite commit ids the rebases replaced. Nothing in the log names the rebases.
 - Solution: A Processing Log entry names both rebases with their times and bases, the EPIC conflict that required the first, and the `git log --format=%aI` form that prints the times of the earlier entries; it says the ids cited in the threads are from before the rebases and that each commit's subject identifies it.
-- Current-tree verification: `git log --format=%aI` over the branch printed 18:00:55Z, 18:35:10Z, 18:58:46Z and 19:13:28Z for four of the six commit times the log entries before the rebase entry give, the same times the entries state. The round 1 entry gives the other two, 17:48:20Z and 17:51:07Z; they were not checked then. F16 corrects this line.
+- Current-tree verification: `git log --format=%aI` over the branch printed 18:00:55Z, 18:35:10Z, 18:58:46Z and 19:13:28Z, the same times the log entries state. The log entries before the rebase entry give six commit times, so this checked four of them. The other two, 17:48:20Z and 17:51:07Z, are in the round 1 entry and were not checked then. F16 corrects this line.
 - Resolution reference: `docs(pr-reviews): [#2904] record the two rebases in the review audit of PR #2920`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2920#discussion_r4611619528
