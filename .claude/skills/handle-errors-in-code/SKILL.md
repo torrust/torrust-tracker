@@ -70,7 +70,9 @@ Errors must not record or print source locations. See
 
 - No `location` field and no `Location::caller()` in error types.
 - No `torrust-located-error`: keep a source error as a plain `#[source]` (or `#[from]`) field.
-- `Display` states what failed and the offending input, never a source path.
+- `Display` states what failed and the offending input, never a source path. A secret (an
+  authentication key, a token, a password) is never echoed or kept in the error: name the parameter
+  and the expected format instead (see the `handle-secrets` skill).
 - Text sent to a client is the error's own message; do not format a source error from a crate the
   workspace does not control into client text.
 - For developer diagnostics, emit a `tracing` event at the site; it records file and line on the
@@ -78,11 +80,11 @@ Errors must not record or print source locations. See
 - `#[track_caller]` is allowed only in test helpers and assertion helpers.
 
 ```rust
-// ✅ Correct: names what failed and the input
+// ✅ Correct: names what failed and the expected format, and does not keep the secret
 #[derive(Debug, thiserror::Error)]
 pub enum KeyError {
-    #[error("invalid authentication key '{key}': expected 32 alphanumeric characters")]
-    InvalidKeyFormat { key: String },
+    #[error("invalid authentication key: expected 32 alphanumeric characters, got {length}")]
+    InvalidKeyFormat { length: usize },
 }
 ```
 
@@ -134,7 +136,7 @@ that a new variant is a deliberate breaking change. See [ADR 20261005145329](../
 ## Quick Checklist
 
 - [ ] Error type uses `thiserror::Error` derive
-- [ ] Error message includes specific context (names, paths, addresses, values)
+- [ ] Error message includes specific context (names, paths, addresses, values), but no secrets
 - [ ] Error message includes fix instructions where possible
 - [ ] Prefer `enum` over `Box<dyn Error>` or `anyhow` in library code
 - [ ] No vague messages like "invalid input" or "error occurred"

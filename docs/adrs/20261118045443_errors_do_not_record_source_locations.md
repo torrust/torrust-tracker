@@ -67,9 +67,11 @@ the sub-issues of EPIC #2912 (see Consequences).
    EPIC removes the existing dependency. A source error is kept as a plain `#[source]` field (or
    `#[from]`), not wrapped in `LocatedError`.
 3. **`Display` states what failed and the offending input.** It names the operation and the value
-   that was rejected (the parameter, the key, the info-hash), and holds no source path. A message
-   that would lose its only context when the location goes gets new wording, or a new field for the
-   input.
+   that was rejected (the parameter, the info-hash), and holds no source path. A message that would
+   lose its only context when the location goes gets new wording, or a new field for the input. A
+   secret (an authentication key, a token, a password) is never the offending input in the message:
+   the message names the parameter and the expected format instead, and the error does not keep the
+   secret, as the `handle-secrets` skill requires.
 4. **Client text is the error's own message.** Text sent to an HTTP, UDP or REST client is the
    `Display` of the workspace error. A source error from a crate the workspace does not control is
    not formatted into client text, because its text can change, and can contain a location, in a
@@ -84,17 +86,29 @@ the sub-issues of EPIC #2912 (see Consequences).
 ```rust
 // ✅ The message names what failed and the input. No location.
 #[derive(Debug, thiserror::Error)]
+pub enum ParseNumWantError {
+    #[error("invalid `numwant` value '{value}': expected a non-negative integer")]
+    NotANumber { value: String },
+}
+
+// ✅ A secret is not kept: the message names the parameter and the expected format.
+#[derive(Debug, thiserror::Error)]
 pub enum ParseKeyError {
-    #[error("invalid authentication key '{key}': expected 32 alphanumeric characters")]
-    InvalidFormat { key: String },
+    #[error("invalid authentication key: expected 32 alphanumeric characters, got {length}")]
+    InvalidFormat { length: usize },
 
     #[error("cannot read the key file '{path}'")]
     CannotRead { path: PathBuf, #[source] source: std::io::Error },
 }
+```
 
+```rust
 // ❌ A location that reaches the client and names a fixed library line.
-#[error("invalid key format, {location}")]
-InvalidKeyFormat { location: &'static Location<'static> },
+#[derive(Debug, thiserror::Error)]
+pub enum ParseKeyError {
+    #[error("invalid key format, {location}")]
+    InvalidFormat { location: &'static Location<'static> },
+}
 ```
 
 ### Alternatives Considered
