@@ -315,7 +315,7 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
 | AC1 | TODO | GitHub sub-issues of #2392: #2393, #2394, #2395, #2396, #1419; the audit added #2906, #2907 and #2908. The split of #2907 added #2924 and #2925, which are created but not yet linked as sub-issues (the maintainer links them). #2907 then found #2943 (order 11), created and also not yet linked. |
 | AC2 | TODO | Order 1 `manual-verification-evidence.md` (V6: 150 of 150 full-suite runs passed with no #2393 test ignored, after PR #2874). The order 2 audit found two more shared resources that make the suite fail: fixed ports that collide across concurrent runs (order 6) and leaked temporary files that fill the disk (order 7, split into orders 7, 9 and 10). Order 7 is done (PR #2938). Stays TODO until orders 6, 9 and 10 are done. |
 | AC3 | TODO | Orders 3 and 4 `manual-verification-evidence.md` |
-| AC4 | DONE | Order 2 `inventory.md`: 38 findings, each isolated (29), a deliberate exception (1), or tracked by a subissue (5 covered by orders 1, 3 and 4; 3 new problems, orders 6 to 8). #2907 later found that G2, counted here as isolated, is not; order 11 tracks it. |
+| AC4 | DONE | Order 2 `inventory.md`: 38 findings: isolated (28), a deliberate exception (1), or tracked by a subissue (5 covered by orders 1, 3 and 4; 3 new problems, orders 6 to 8; and G2, order 11). The inventory itself still counts G2 as isolated (29) until order 11 corrects its row. |
 | AC5 | TODO | Documentation PR |
 
 ## Risks and Trade-offs

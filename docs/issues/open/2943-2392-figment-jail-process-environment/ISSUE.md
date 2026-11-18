@@ -75,10 +75,11 @@ leaves one file there. In a run of the whole package only one file was in the fr
 the other went to `/tmp`, because `TMPDIR` was unset when the test read it. The #2907 fix does
 not depend on this (a `TempDir` removes its folder by absolute path), so the gap stays.
 
-A second concern: since the 2024 edition, which this workspace uses, Rust marks
-`std::env::set_var` and `std::env::remove_var` as `unsafe`, because changing the environment
-while another thread reads it is not safe on every platform. The jail does both while other test
-threads run.
+A second concern: in the 2024 edition (stable since Rust 1.85), which this workspace uses,
+`std::env::set_var` and `std::env::remove_var` are `unsafe` functions, because changing the
+environment while another thread reads it is not safe on every platform (see
+[Newly unsafe functions](https://doc.rust-lang.org/edition-guide/rust-2024/newly-unsafe-functions.html)
+in the Rust Edition Guide). The jail does both while other test threads run.
 
 Finding G1 of the same inventory (`src/bootstrap/config.rs`, `std::env::set_var` in tests of the
 `torrust-tracker` lib binary) was classified as isolated with a similar argument. T1 rechecks it
