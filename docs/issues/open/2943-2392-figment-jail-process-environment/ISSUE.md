@@ -9,7 +9,7 @@ github-issue: 2943
 spec-path: docs/issues/open/2943-2392-figment-jail-process-environment/ISSUE.md
 branch: "2943-2392-figment-jail-process-environment-spec"
 related-pr: null
-last-updated-utc: "2026-11-18 14:40"
+last-updated-utc: "2026-11-18 15:43"
 semantic-links:
   skill-links:
     - create-issue
@@ -84,10 +84,11 @@ inferred this from the `clear_env()` code: it could not tell the file apart from
 sessions in `/tmp`. That is why AC1 asks for a reproduction. The #2907 fix does not depend on
 this (a `TempDir` removes its folder by absolute path), so the gap stays.
 
-Reproduced while drafting (2026-11-18, `manual-verification-evidence.md`, V1): a probe test that
+Reproduced during the review of the spec pull request, after the maintainer approved the spec
+(2026-11-18 15:43 UTC, `manual-verification-evidence.md`, V1): a probe test that
 uses no `Jail` and loops for 2 seconds read `PATH` unset, `TMPDIR` unset and a changed current
-directory in 3 of 3 runs of the package's lib tests, each thousands of times in about 2.3 million
-reads.
+directory in 3 of 3 runs of the package's lib tests, each thousands of times in 2.2 to 2.3
+million reads.
 
 A second concern: in the 2024 edition (stable since Rust 1.85), which this workspace uses,
 `std::env::set_var` and `std::env::remove_var` are `unsafe` functions, because changing the
@@ -159,7 +160,8 @@ The defect is in test code. Follow `.claude/skills/fix-bug/SKILL.md`:
    `Jail` reads `PATH`, `TMPDIR` and the current directory in a loop while the suite runs, and
    reports each read that finds a variable unset or the directory changed (V1). The parent
    environment sets `PATH` and `TMPDIR` before the run, and the probe asserts that at its start,
-   so an absent variable is never counted as interference. It was reproduced while drafting; the
+   so an absent variable is never counted as interference. It was reproduced during the spec
+   review, after the approval; the
    probe's code and output are in `manual-verification-evidence.md`. The probe is evidence, not a
    permanent test, unless T2 keeps it.
 2. Regression boundary: decided with the design in T2.
@@ -180,7 +182,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | TODO | Reproduce and recheck G1 | The drafting baseline of V1 repeated on the implementation base; list of the non-`Jail` tests that read the environment or the current directory; G1 verdict recorded. |
+| T1 | TODO | Reproduce and recheck G1 | The V1 baseline of the spec review repeated on the implementation base; list of the non-`Jail` tests that read the environment or the current directory; G1 verdict recorded. |
 | T2 | TODO | Decide the design | Options with the T1 result; the maintainer's decision and the V2 recheck for that design recorded in this spec. |
 | T3 | TODO | Isolate the tests | Implemented as decided; test-design review recorded. |
 | T4 | TODO | Correct the audit inventory | G2 (and G1 if needed) corrected with a dated note. |
@@ -228,6 +230,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   recorded it in `manual-verification-evidence.md`; V1 now sets `PATH` and `TMPDIR` first; AC2
   and V2 use the recheck that T2 defines for the chosen design, because the unchanged probe
   cannot pass under option A.
+- 2026-11-18 15:43 UTC - Claude Code (Claude Fable 5.2), EPIC #2392 coordinator - Review of PR #2944,
+  da2ce7's fourth review: the reproduction is no longer called a drafting reproduction, because
+  it ran after the approval. Ran it again at 15:43 UTC with the start and end of each step and
+  the full toolchain output, and made that run the evidence.
 
 ## Acceptance Criteria
 
@@ -254,7 +260,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| V1 | Reproduce | `TMPDIR=<fresh empty dir> cargo +stable test -p torrust-tracker-configuration --lib` with the probe test and `PATH` set, repeated as T1 records | Reads with `PATH` or `TMPDIR` unset or the current directory changed, counted per run | DONE (drafting baseline, 3 of 3 runs; T1 repeats it) | `manual-verification-evidence.md` |
+| V1 | Reproduce | `TMPDIR=<fresh empty dir> cargo +stable test -p torrust-tracker-configuration --lib` with the probe test and `PATH` set, repeated as T1 records | Reads with `PATH` or `TMPDIR` unset or the current directory changed, counted per run | DONE (baseline made during the spec review, 3 of 3 runs; T1 repeats it) | `manual-verification-evidence.md` |
 | V2 | Recheck | The recheck T2 defines for the chosen design, with the same environment setup and number of runs, after T3 | No such read | TODO | `manual-verification-evidence.md` |
 
 Evidence policy: every recorded command result names the toolchain that produced it, with the
