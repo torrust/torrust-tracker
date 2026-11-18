@@ -90,7 +90,10 @@ found no other test with this race:
 
 - Make `TestEnv::wait_for_global_downloads_persisted` wait, within its existing 5-second timeout,
   until both the database value and the in-memory
-  `tracker_core_persisted_torrents_downloads_total` counter reach the expected value.
+  `tracker_core_persisted_torrents_downloads_total` counter are at least the expected value
+  (`>= expected`). The helper already compares the database value with `>=`; keeping the same
+  comparison for the counter means a caller that waits for `1` after more downloads were
+  persisted does not hang until the timeout.
 - Update the helper's doc comment and the comment in the test to explain the write order.
 - Issue-local reproduction and recheck evidence.
 
