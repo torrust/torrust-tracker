@@ -1,7 +1,7 @@
 ---
 pr-number: 2944
 pr-url: https://github.com/torrust/torrust-tracker/pull/2944
-last-updated-utc: "2026-11-18 14:45"
+last-updated-utc: "2026-11-18 15:49"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -48,6 +48,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Round 3: Copilot review 5958271471 (COMMENTED, at the round 1 fix head) with two findings without reviewer IDs, as audit findings F6 and F7.
 - Round 4: da2ce7 review 5958625555 (posted as an approval at the round 3 audit head; the rebase push then dismissed it) with the reviewer's findings F4 and F5, neither blocking, as audit findings F8 and F9.
 - Round 5: Copilot review 5958719165 (COMMENTED, at the rebased head) with three findings, as audit findings F10 to F12. The second comment carries the label `[Minor][F9]` in its own text.
+- Round 6, on the maintainer's instruction after the five-round limit: da2ce7 review 5958844326 (COMMENTED, at the round 4 fix head) with the reviewer's findings F8 and F9, as audit findings F14 and F13; and da2ce7 review 5959029017 (COMMENTED, at the round 5 audit head) with the reviewer's findings F10 and F11, as audit findings F15 and F16. Copilot review 5959042101 (COMMENTED, at the round 5 audit head) reported no open issue and has no thread.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -63,6 +64,10 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F10 | review-finding:pr-2944-f10 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
 | F11 | review-finding:pr-2944-f11 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-2944-f12 | Copilot | Major (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F13 | review-finding:pr-2944-f13 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-2944-f14 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-2944-f15 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-2944-f16 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -222,6 +227,58 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4615795155
 
+### F13 - The threads of review 5958625555 had no audit row
+
+- PR number: 2944
+- Source review ID: 5958844326
+- Reviewer finding ID: F9
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4615783064
+- Concern: At the reviewed head the two threads of review 5958625555 were answered and resolved, but the record had no rows for them. `process-pr-review` records each finding with its reply URL before the thread is resolved.
+- Solution: Rows F8 and F9 with their details record that review, and the 14:37 Processing Log entry says that the threads were resolved before their rows were pushed. Rows F10 to F12 record review 5958719165.
+- Current-tree verification: `grep -c 'Source review ID: 5958625555' docs/pr-reviews/pr-2944-review/PR-REVIEW.md` prints 2.
+- Resolution reference: docs(pr-reviews): [#2943] audit review round 5 of PR 2944 and log round 4
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4616679920
+
+### F14 - The PR description said the branch keeps two commits
+
+- PR number: 2944
+- Source review ID: 5958844326
+- Reviewer finding ID: F8
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4615783089
+- Concern: The description said "The branch keeps two commits", while the branch had eleven and later more. The maintainer merge tool copies the description into the merge commit.
+- Solution: The description was edited (no commit): the sentence no longer counts commits and names the draft, the move after the approval, the fixes of each review round and the audit commits. It also names the evidence file added during the review.
+- Current-tree verification: `gh-bot pr view 2944 --repo torrust/torrust-tracker --json body --jq .body` prints a body that contains "keeps its history" and no "two commits".
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4616680630
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4616680630
+
+### F15 - The reproduction was labelled as made while drafting
+
+- PR number: 2944
+- Source review ID: 5959029017
+- Reviewer finding ID: F10
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4615939291
+- Concern: The spec and the evidence file called the reproduction a drafting reproduction or baseline, but it ran after the maintainer approved the spec. The evidence also lacked the start and end of each dependent step and the full output of `rustc -Vv` and `cargo -V`.
+- Solution: The spec and the evidence file say that the reproduction ran during the review of this pull request, after the approval. The reproduction was run again at 15:43 UTC, and that run is the evidence: it has the start and end of the append, of each run and of the revert, and the full toolchain output. The first run's output stays for comparison.
+- Current-tree verification: `grep -rn -i 'drafting' docs/issues/open/2943-2392-figment-jail-process-environment/` finds only the evidence file's statement that it was not made while drafting and the progress-log entry that records this change; `grep -c '15:43:2' docs/issues/open/2943-2392-figment-jail-process-environment/manual-verification-evidence.md` counts the lines with step times; `grep -n 'commit-hash' docs/issues/open/2943-2392-figment-jail-process-environment/manual-verification-evidence.md` finds the toolchain output.
+- Resolution reference: docs(issues): [#2943] time the reproduction steps and say it ran after the approval
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4616771688
+
+### F16 - The threads of review 5958844326 had no reply, row or resolution
+
+- PR number: 2944
+- Source review ID: 5959029017
+- Reviewer finding ID: F11
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4615939307
+- Concern: The two threads of review 5958844326 were opened before the round 5 audit commit and had no reply, row or resolution. The record had stopped at the five-round limit.
+- Solution: On the maintainer's instruction both threads were answered (15:42:59Z and 15:43:01Z), rows F13 and F14 record them, and they are resolved in this round.
+- Current-tree verification: `grep -c 'Source review ID: 5958844326' docs/pr-reviews/pr-2944-review/PR-REVIEW.md` prints 2.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4616772379
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4616772379
+
 ## Processing Log
 
 - 2026-11-18 13:54 UTC - Round 1: Copilot review 5957896114 with F1 and F2. Committed and pushed the fix (`docs(issues): [#2943] count G2 once in the AC4 evidence and cite the edition guide`), then replied to the two threads (13:53:25Z and 13:53:27Z).
@@ -235,6 +292,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-18 14:37 UTC - Round 4: da2ce7 review 5958625555 with F8 and F9 (the reviewer's F4 and F5). Committed and pushed the fix (`docs(pr-reviews): [#2943] keep the PR 2944 audit log and the spec progress log append-only`), then replied to the two threads (14:37:19Z and 14:37:22Z) and resolved them (about 14:37:43Z). The GraphQL refresh then showed three unresolved threads, from Copilot review 5958719165 posted at 14:37:34Z; they are round 5. The commit `docs(pr-reviews): [#2943] audit review round 4 of PR 2944` added the F8 and F9 rows without this entry, which is written at 14:46 UTC.
 - 2026-11-18 14:45 UTC - Round 5: Copilot review 5958719165 with F10 to F12. Ran the reproduction that F11 asks for (a temporary probe test, reverted, 3 of 3 runs) and recorded it in the spec folder. Committed and pushed the fix (`docs(issues): [#2943] record the drafting reproduction and make the recheck depend on the design`), then replied to the three threads (14:45:24Z to 14:45:29Z).
 - 2026-11-18 14:45 UTC - Resolved the three round 5 threads (about 14:45:55Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh showed 2 unresolved thread(s). The validator ran on the worktree record after these entries. Committed these entries. This was the fifth round of fixes; further rounds wait for the maintainer.
+- 2026-11-18 15:49 UTC - Round 6, on the maintainer's instruction ("Fix round 6"): da2ce7 reviews 5958844326 (F13 and F14) and 5959029017 (F15 and F16). Edited the PR description for F14 and replied to the two threads of review 5958844326 (15:42:59Z and 15:43:01Z). Ran the reproduction again with step times (15:43:22 to 15:43:29 UTC), committed and pushed the fix for F15 (`docs(issues): [#2943] time the reproduction steps and say it ran after the approval`), then replied to the two threads of review 5959029017 (15:48:56Z and 15:48:58Z). Added rows F13 to F16; the validator on the worktree record reported 16 rows and 0 failures before any of the four threads was resolved.
+- 2026-11-18 15:49 UTC - Resolved the four round 6 threads (about 15:49:56Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread, and the newest review in the review list was 5959042101. Committed these entries.
 
 <!-- Copied verbatim into each audit record. -->
 
