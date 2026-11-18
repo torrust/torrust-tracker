@@ -54,7 +54,7 @@ Round 4 is the approving review `5944877623` of `da2ce7` (F14, audit-local ID; t
 that carried the round 3 audit.
 Round 5 is the approving review `5953723621` of `da2ce7` (F15, audit-local ID; the reviewer numbers it F26), on the head
 rebased onto `d8e14450d`.
-Round 6 is after the merge: the approving review `5953969566` of `da2ce7` (F16, audit-local ID; the reviewer numbers it
+Round 6 is the feedback still unprocessed when this pull request merged, both reviews submitted before the merge: the approving review `5953969566` of `da2ce7` (F16, audit-local ID; the reviewer numbers it
 F27) and Copilot's review `5954232676` (COMMENTED, three comments without IDs, recorded as F17 to F19), both on the head
 that carried the round 5 audit. Their fixes are in the follow-up pull request #2942.
 
@@ -284,7 +284,7 @@ that carried the round 5 audit. Their fixes are in the follow-up pull request #2
 - Reviewer finding ID: F27
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2920#discussion_r4611784133
 - Concern: The Current-tree verification line of F15 spoke of "the four commits whose times the log entries give", but the entries before the rebase entry give six: the round 1 entry also gives 17:48:20Z and 17:51:07Z. The reviewer checked those two and they match, so the claim of the rebase entry holds; the line should say what ran.
-- Solution: The line of F15 says it checked four of the six times and names the other two. Received after the merge, with five rounds of fixes used; the maintainer chose to merge with it open and approved this follow-up.
+- Solution: The line of F15 says it checked four of the six times and names the other two. Submitted before the merge and unprocessed when it merged: five rounds of fixes were used, the maintainer chose to merge with it open, and approved this follow-up after the merge.
 - Current-tree verification: `git log --format='%aI %s' d8e14450d..68b866938^2` on `develop` prints 17:48:20Z and 17:51:07Z for `build(container): [#2904] keep the pointer CLAUDE.md files out of the build context` and `docs(pr-reviews): [#2904] keep finding F20 of PR #2905 open until its follow-up merges`, and the four times the line names, so all six match.
 - Resolution reference: https://github.com/torrust/torrust-tracker/pull/2920#discussion_r4613226963
 - Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2942
