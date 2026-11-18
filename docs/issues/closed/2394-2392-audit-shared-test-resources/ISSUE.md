@@ -9,7 +9,7 @@ github-issue: 2394
 spec-path: docs/issues/closed/2394-2392-audit-shared-test-resources/ISSUE.md
 branch: "2392-test-isolation-spec"
 related-pr: 2397
-last-updated-utc: "2026-11-17 15:22"
+last-updated-utc: "2026-11-18 13:39"
 semantic-links:
   skill-links:
     - create-issue
@@ -20,7 +20,7 @@ semantic-links:
     - docs/issues/closed/2386-1840-self-hosted-runner-minimum-capacity/ISSUE.md
     - docs/analysis/20260909-cli-config-path-test-isolation/README.md
     - docs/issues/open/2906-2392-fixed-port-metrics-test-concurrent-runs/ISSUE.md
-    - docs/issues/open/2907-2392-remove-leaked-test-temporary-files/ISSUE.md
+    - docs/issues/closed/2907-2392-remove-leaked-test-temporary-files/ISSUE.md
     - docs/issues/open/2908-2392-compose-cleanup-after-failed-start/ISSUE.md
 ---
 
