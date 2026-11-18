@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2769-2758-e2e-runners-json/ISSUE.md
-last-updated-utc: 2026-11-09 12:12
+last-updated-utc: "2026-11-09 12:12"
 ---
 
 # Manual Verification Evidence

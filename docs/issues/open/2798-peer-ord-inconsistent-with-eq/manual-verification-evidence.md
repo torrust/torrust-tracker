@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2798-peer-ord-inconsistent-with-eq/ISSUE.md
-last-updated-utc: 2026-11-10 17:46
+last-updated-utc: "2026-11-10 17:46"
 ---
 
 # Manual Verification Evidence
