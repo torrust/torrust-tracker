@@ -135,6 +135,10 @@ impl JsonSchema for UtcMinute {
 
 #[cfg(test)]
 mod tests {
+    // The pattern tests read each pattern with the Rust `regex` engine, an approximation of the
+    // ECMA-262 engine that JSON Schema names. They show that pattern and Rust check agree on the
+    // samples, not how every JSON Schema validator reads the pattern; the module doc names the
+    // known gap.
     use regex::Regex;
     use rstest::rstest;
     use serde_json::{Value, json};
@@ -254,7 +258,7 @@ mod tests {
         assert_eq!(
             matched,
             subject.parse::<Subject>().is_ok(),
-            "the pattern and the parser disagree on `{subject}`"
+            "the pattern, read by the Rust `regex` engine, and the parser disagree on `{subject}`"
         );
     }
 
@@ -273,7 +277,7 @@ mod tests {
         assert_eq!(
             matched,
             UtcMinute::new(time).is_some(),
-            "the pattern and the model disagree on `{time}`"
+            "the pattern, read by the Rust `regex` engine, and the model disagree on `{time}`"
         );
     }
 
@@ -291,7 +295,7 @@ mod tests {
         assert_eq!(
             matched,
             Text::new(text).is_some(),
-            "the pattern and the model disagree on `{text:?}`"
+            "the pattern, read by the Rust `regex` engine, and the model disagree on `{text:?}`"
         );
     }
 }
