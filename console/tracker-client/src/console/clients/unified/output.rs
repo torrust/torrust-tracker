@@ -54,6 +54,23 @@ pub fn write_diagnostic(record: &str) {
     drop(writeln!(io::stderr().lock(), "{record}"));
 }
 
+/// Replaces the default panic hook, which writes plain text to stderr, with one that writes a
+/// `panic` JSON record. The default hook is not chained.
+pub fn install_panic_hook() {
+    std::panic::set_hook(Box::new(|info| {
+        let message = info
+            .payload()
+            .downcast_ref::<&str>()
+            .map(|message| (*message).to_string())
+            .or_else(|| info.payload().downcast_ref::<String>().cloned())
+            .unwrap_or_else(|| "panic with a non-string payload".to_string());
+        let location = info
+            .location()
+            .map(|location| format!("{}:{}", location.file(), location.line()));
+        write_diagnostic(&serde_json::json!({ "kind": "panic", "message": message, "location": location }).to_string());
+    }));
+}
+
 #[cfg(test)]
 mod tests {
     use super::tty_refusal_record;

@@ -6,10 +6,13 @@
 //! stdout is a terminal, writes one JSON result on stdout, and writes one JSON object per line on
 //! stderr.
 use torrust_tracker_console_client::console::clients::unified::app;
-use torrust_tracker_console_client::console::clients::unified::output::{tty_refusal_record, write_diagnostic};
+use torrust_tracker_console_client::console::clients::unified::output::{
+    install_panic_hook, tty_refusal_record, write_diagnostic,
+};
 
 #[tokio::main]
 async fn main() {
+    install_panic_hook();
     if let Err(error) = app::run().await {
         match error {
             app::Error::TtyRefusal => {
