@@ -32,6 +32,7 @@ approves it. A group of declaration-only files may share one plan.
 | 5 | [statistics-event-listener-tests.md](statistics-event-listener-tests.md) | DONE | Plan approved 2026-11-18; completed file and the T2b fixture shape approved 2026-11-18 |
 | 6 | [statistics-event-handler-tests.md](statistics-event-handler-tests.md) | DONE | Plan approved 2026-11-18; completed file approved 2026-11-18 |
 | 7 | [statistics-persisted-downloads-tests.md](statistics-persisted-downloads-tests.md) | DONE | Plan approved 2026-11-18 (a surviving mutant despite full coverage); completed file approved 2026-11-18 |
+| 8 | [statistics-mod-tests.md](statistics-mod-tests.md) | IN_PROGRESS | Plan approved 2026-11-18 |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 

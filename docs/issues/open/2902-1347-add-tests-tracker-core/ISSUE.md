@@ -357,7 +357,7 @@ rows are ordered by slice, then by risk.
 | 4 | `statistics/event/listener.rs` | S1 | 360 / 411 | Test candidate (spawn wrappers); 538 / 542 with four tests ([plan](test-refactor-plans/statistics-event-listener-tests.md)) | DONE |
 | 5 | `statistics/event/handler.rs` | S1 | 175 / 196 | Mostly logging-only; one error arm; 311 / 311 with two event tables and a failure test ([plan](test-refactor-plans/statistics-event-handler-tests.md)) | DONE |
 | 6 | `statistics/persisted/downloads.rs` | S1 | 77 / 77 | Failing-`Database` case (line 133, `increase_global_downloads`), covered by row 5; two increment tests kill a surviving mutant ([plan](test-refactor-plans/statistics-persisted-downloads-tests.md)) | DONE |
-| 7 | `statistics/mod.rs`, `statistics/event/mod.rs` | S1 | 42 / 43, no entries | Test candidate (`statistics/mod.rs:49`, usage statistics disabled); `event/mod.rs` declarations only | PENDING |
+| 7 | `statistics/mod.rs`, `statistics/event/mod.rs` | S1 | 42 / 43, no entries | Test candidate (`statistics/mod.rs:49`, usage statistics disabled); `event/mod.rs` declarations only | IN_PROGRESS |
 | 8 | `databases/driver/sqlite/auth_key_store.rs` | S2 | 29 / 55 | Test candidate | PENDING |
 | 9 | `databases/driver/sqlite/torrent_metrics_store.rs` | S2 | 27 / 46 | Test candidate | PENDING |
 | 10 | `databases/driver/sqlite/whitelist_store.rs` | S2 | 17 / 31 | Test candidate | PENDING |
