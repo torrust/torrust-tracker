@@ -19,7 +19,7 @@ semantic-links:
     - .claude/skills/fix-bug/SKILL.md
     - .claude/skills/create-issue/SKILL.md
     - docs/issues/open/2392-test-isolation/EPIC.md
-    - docs/issues/open/2907-2392-remove-leaked-test-temporary-files/ISSUE.md
+    - docs/issues/closed/2907-2392-remove-leaked-test-temporary-files/ISSUE.md
     - docs/issues/closed/2394-2392-audit-shared-test-resources/inventory.md
     - packages/configuration/src/lib.rs
     - packages/configuration/src/v2_0_0/mod.rs
