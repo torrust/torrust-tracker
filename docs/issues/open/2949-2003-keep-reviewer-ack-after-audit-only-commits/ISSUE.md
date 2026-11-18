@@ -68,8 +68,8 @@ repository.
 
 ### Facts checked on `develop` (`96923f0d2`)
 
-- The ACK rule is stated in two places only: `merge-pull-request/SKILL.md` line 63 and
-  `wait-for-pr-review/SKILL.md` line 178.
+- The ACK rule is stated in two places only: `merge-pull-request/SKILL.md`, section Merge Readiness, item Reviewer
+  ACK; and `wait-for-pr-review/SKILL.md`, section The Review Loop, step 4 (the exit condition).
 - `merge-pull-request` says the ruleset requires no approvals, so a dismissed GitHub approval blocks no merge.
 - The merge tool `contrib/dev-tools/git/github-merge.py` computes ACKs itself. `get_acks_from_comments` keeps a
   comment line that contains `ACK` and the first six characters of the head commit. It writes the result in the
