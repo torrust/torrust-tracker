@@ -144,7 +144,7 @@ Round 1 covers two reviews of the first commit of the PR, `docs(issues): [#2583]
 - Source review ID: 5954581202
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2935#pullrequestreview-5954581202
-- Concern: The PR description said the branch is rebased on the current `develop`, but #2920 merged 18 seconds before that statement was true of the opened PR.
+- Concern: The PR description said the branch is rebased on the current `develop`, but #2920 merged 18 seconds after the first commit, before the PR was opened.
 - Solution: The description's Validation section says the first commit was rebased on `develop` at `90a7c7d3f` before the PR was opened and that `develop` has moved since. The fix is outside the repository tree.
 - Current-tree verification: `gh pr view 2935 --json body` shows the reworded Validation line and no "current `develop`" wording.
 - Resolution reference: https://github.com/torrust/torrust-tracker/pull/2935#issuecomment-6975743968
