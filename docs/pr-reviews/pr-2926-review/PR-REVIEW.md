@@ -43,7 +43,11 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1: Copilot review 5946669412 (COMMENTED) with three findings without reviewer IDs, as audit findings F1 to F3. Round 2: Copilot review 5946979677 (COMMENTED, at the round 1 fix head) with two findings without reviewer IDs, as audit findings F4 and F5. Round 3: Copilot review 5947468225 (COMMENTED) with four findings without reviewer IDs, as audit findings F6 to F9. Round 4: Copilot review 5947772095 (COMMENTED, at the round 3 fix head) with one finding without a reviewer ID, as audit finding F10. Round 5: Copilot review 5948148595 (COMMENTED) with four findings without reviewer IDs, as audit findings F11 to F14.
+- Round 1: Copilot review 5946669412 (COMMENTED) with three findings without reviewer IDs, as audit findings F1 to F3.
+- Round 2: Copilot review 5946979677 (COMMENTED, at the round 1 fix head) with two findings without reviewer IDs, as audit findings F4 and F5.
+- Round 3: Copilot review 5947468225 (COMMENTED) with four findings without reviewer IDs, as audit findings F6 to F9.
+- Round 4: Copilot review 5947772095 (COMMENTED, at the round 3 fix head) with one finding without a reviewer ID, as audit finding F10.
+- Round 5: Copilot review 5948148595 (COMMENTED) with four findings without reviewer IDs, as audit findings F11 to F14.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
