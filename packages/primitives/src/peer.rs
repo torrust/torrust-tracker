@@ -672,6 +672,26 @@ pub mod fixture {
 #[cfg(test)]
 pub mod test {
 
+    /// Fails when `message` contains anything that looks like a source path: a workspace path, a
+    /// registry checkout, the standard library sources, or a `file.rs:line` suffix, written with
+    /// either path separator.
+    fn assert_names_no_source_path(message: &str) {
+        for fragment in [
+            ".rs:",
+            "packages/",
+            "packages\\",
+            "src/",
+            "src\\",
+            ".cargo/registry",
+            "rustlib/src",
+        ] {
+            assert!(
+                !message.contains(fragment),
+                "the error message must not hold a source path, but it contains {fragment:?}: {message:?}"
+            );
+        }
+    }
+
     mod peer {
         use crate::peer::fixture::PeerBuilder;
 
@@ -688,6 +708,7 @@ pub mod test {
     }
 
     mod peer_role {
+        use super::assert_names_no_source_path;
         use crate::peer::{ParsePeerRoleError, PeerRole};
 
         #[test]
@@ -719,6 +740,17 @@ pub mod test {
             let ParsePeerRoleError::InvalidPeerRole { raw_param, .. } = error;
 
             assert_eq!(raw_param, "peer");
+        }
+
+        #[test]
+        fn it_should_describe_a_name_that_is_not_a_role_by_the_rejected_text_and_no_source_path() {
+            let message = "uploader".parse::<PeerRole>().unwrap_err().to_string();
+
+            assert!(
+                message.contains("uploader"),
+                "the message must name the rejected text: {message:?}"
+            );
+            assert_names_no_source_path(&message);
         }
     }
 
@@ -1411,7 +1443,35 @@ pub mod test {
     }
 
     mod torrent_peer_id {
+        use super::assert_names_no_source_path;
         use crate::{PeerId, peer};
+
+        fn conversion_error_message(bytes: Vec<u8>) -> String {
+            let result: Result<peer::Id, peer::IdConversionError> = bytes.try_into();
+            result.err().expect("the conversion should fail").to_string()
+        }
+
+        #[test]
+        fn it_should_describe_a_byte_vector_with_less_than_20_bytes_by_its_length_and_no_source_path() {
+            let message = conversion_error_message(vec![0; 19]);
+
+            assert!(
+                message.contains("got 19 bytes, expected 20"),
+                "the message must state the byte counts: {message:?}"
+            );
+            assert_names_no_source_path(&message);
+        }
+
+        #[test]
+        fn it_should_describe_a_byte_vector_with_more_than_20_bytes_by_its_length_and_no_source_path() {
+            let message = conversion_error_message(vec![0; 21]);
+
+            assert!(
+                message.contains("got 21 bytes, expected 20"),
+                "the message must state the byte counts: {message:?}"
+            );
+            assert_names_no_source_path(&message);
+        }
 
         #[test]
         #[should_panic = "NotEnoughBytes"]
