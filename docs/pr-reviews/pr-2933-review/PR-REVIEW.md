@@ -46,6 +46,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F1 | review-finding:pr-2933-f1 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F2 | review-finding:pr-2933-f2 | Copilot | Minor (inferred) | documentation | RE_RAISE_OF:F1 | FIXED | RESOLVED |
 | F3 | review-finding:pr-2933-f3 | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F4 | review-finding:pr-2933-f4 | Human | Minor | documentation | RE_RAISE_OF:F3 | FIXED | RESOLVED |
+| F5 | review-finding:pr-2933-f5 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F6 | review-finding:pr-2933-f6 | Copilot | Nit | documentation | RE_RAISE_OF:F5 | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -85,12 +88,55 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2933#discussion_r4612028397
 
+### F4 - the drafting checkpoint states a drafts/ stage that no commit records
+
+- PR number: 2933
+- Source review ID: 5954517301
+- Reviewer finding ID: F2
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2933#discussion_r4612177777
+- Concern: The drafting checkpoint named a `docs/issues/drafts/` stage that no reachable commit records; the merged history shows the line as "drafted in `docs/issues/open/2931-nightly-uncommon-codepoints-zerocopy/ISSUE.md`". Either cite what shows the drafts stage, or restore the recorded `open/` path.
+- Solution: Restored the recorded `open/` path. The `drafts/` stage existed only in the author's local worktree, so nothing in the repository could back it.
+- Current-tree verification: `sed -n 135p docs/issues/closed/2931-nightly-uncommon-codepoints-zerocopy/ISSUE.md` shows the `open/` path, and `rg -c 'issues/drafts/' docs/issues/closed/2931-nightly-uncommon-codepoints-zerocopy` finds no match, both on the pushed head.
+- Resolution reference: docs(issues): [#2931] restore the recorded drafting path in the spec checkpoint
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2933#discussion_r4612281405
+
+### F5 - the Concern of F3 gives the author's account
+
+- PR number: 2933
+- Source review ID: 5954517301
+- Reviewer finding ID: F3
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2933#discussion_r4612177791
+- Concern: The Concern of F3 attributed the author's `drafts/` explanation to the reviewer; the template's Concern field records what the reviewer reported, and the Solution field carries the author's account.
+- Solution: Rewrote the Concern of F3 to the reviewer's report and noted in its Solution that a later round replaced the change.
+- Current-tree verification: Read the F3 entry of this record on the pushed head: its Concern now starts "Copilot reported that".
+- Resolution reference: docs(pr-reviews): [#2931] record what the reviewer reported for finding F3
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2933#discussion_r4612282078
+
+### F6 - preserve the reviewer's original concern in F3
+
+- PR number: 2933
+- Source review ID: 5954593870
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2933#discussion_r4612240378
+- Concern: Copilot asked to keep the reviewer's account in the Concern of F3 and move the author's clarification to its Solution, so that the record distinguishes the request from its resolution.
+- Solution: The same change as F5, made in the same commit, so this is a re-raise of F5; Copilot reviewed the head before that commit.
+- Current-tree verification: Same read of the F3 entry as F5, on the pushed head.
+- Resolution reference: docs(pr-reviews): [#2931] record what the reviewer reported for finding F3
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2933#discussion_r4612286138
+
 ## Processing Log
 
 - 2026-11-18 09:47 UTC - Review 5954125695 (`da2ce7`, state DISMISSED) submitted with one inline finding (F1).
 - 2026-11-18 09:53 UTC - Review 5954222633 (Copilot, COMMENTED) submitted with two inline findings (F2, F3). The review poller watched Copilot only, so review 5954125695 was seen only when the threads were listed.
 - 2026-11-18 09:54 UTC - Committed the fix, `docs(issues): [#2931] correct the archive paths in the spec checkpoints`, for all three findings. It was pushed before the replies below, which cite it.
 - 2026-11-18 09:57 UTC - Replied on the three threads, then resolved them. The audit record was created after the replies, so this is a late start; it was created from the template and the replies' URLs recorded in the rows.
+- 2026-11-18 10:09 UTC - Review 5954517301 (`da2ce7`, submitted as APPROVED, now shown as DISMISSED) with two inline findings, F4 and F5 (reviewer IDs F2 and F3, renumbered because the audit already has them).
+- 2026-11-18 10:12 UTC - Committed `docs(issues): [#2931] restore the recorded drafting path in the spec checkpoint` for F4.
+- 2026-11-18 10:15 UTC - Review 5954593870 (Copilot, COMMENTED) on the previous head, with one inline finding (F6).
+- 2026-11-18 10:15 UTC - Committed `docs(pr-reviews): [#2931] record what the reviewer reported for finding F3` for F5 and F6; it and the F4 commit were pushed before the replies below.
+- 2026-11-18 10:18 UTC - Replied on the threads of F4, F5 and F6, then resolved them. The poller had returned the approval of `da2ce7` first and Copilot's review was seen while listing threads.
 
 ## Completion Rules
 
