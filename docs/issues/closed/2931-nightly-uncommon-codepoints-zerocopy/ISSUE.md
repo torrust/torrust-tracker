@@ -132,7 +132,7 @@ the red/green evidence is the `cargo check` run recorded in `manual-verification
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/drafts/nightly-uncommon-codepoints-zerocopy/ISSUE.md` (moved to `docs/issues/open/2931-nightly-uncommon-codepoints-zerocopy/` once issue #2931 existed)
+- [x] Folder-style spec drafted in `docs/issues/open/2931-nightly-uncommon-codepoints-zerocopy/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer (reviewed in PR #2932)
 - [x] GitHub issue created and issue number added to this spec (#2931)
 - [x] Implementation completed
