@@ -50,6 +50,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Round 5: Copilot review 5958719165 (COMMENTED, at the rebased head) with three findings, as audit findings F10 to F12. The second comment carries the label `[Minor][F9]` in its own text.
 - Round 6, on the maintainer's instruction after the five-round limit: da2ce7 review 5958844326 (COMMENTED, at the round 4 fix head) with the reviewer's findings F8 and F9, as audit findings F14 and F13; and da2ce7 review 5959029017 (COMMENTED, at the round 5 audit head) with the reviewer's findings F10 and F11, as audit findings F15 and F16. Copilot review 5959042101 (COMMENTED, at the round 5 audit head) reported no open issue and has no thread.
 - Round 7, on the maintainer's instruction ("Fix both now"): da2ce7 review 5960255602 (APPROVED, at the round 6 audit head) with the reviewer's findings F13 and F14, both Minor, as audit findings F17 and F18.
+- Round 8, on the maintainer's instruction to address the new Copilot review: Copilot review 5963262753 (COMMENTED, at the round 7 audit head) with two findings that carry the labels `[Minor][F19]` and `[Minor][F20]`, as audit findings F19 and F20. Two earlier reviews had no thread and no finding: da2ce7 review 5961871501 (COMMENTED, at the round 7 fix head; it asked for the rows of review 5960255602, which the round 7 audit commit already carried) and Copilot review 5962100452 (COMMENTED, at the round 7 audit head, no open issue).
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -71,6 +72,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F16 | review-finding:pr-2944-f16 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F17 | review-finding:pr-2944-f17 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F18 | review-finding:pr-2944-f18 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F19 | review-finding:pr-2944-f19 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-2944-f20 | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -308,6 +311,32 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4618182688
 
+### F19 - The plan had no regression-test task with a recorded red run
+
+- PR number: 2944
+- Source review ID: 5963262753
+- Reviewer finding ID: F19
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4619361283
+- Concern: The plan repeated a temporary probe and chose a design, but no task required a maintained check to fail against the unfixed code. The `fix-bug` skill ("Plan the Regression Test Explicitly") requires a regression-test task with a recorded red run, then separate fix and green-plus-recheck tasks.
+- Solution: New task T3 adds the check T2 chose and records its failing run before any test is isolated; if no maintained check is practical, it records the constraints and the substitute evidence. The old T3 to T5 are T4 to T6, T6 records the green run, and the Regression Test Strategy, the Bug-Fix Process, the commit points and V2 follow the new numbers.
+- Current-tree verification: `grep -c '^| T3 | TODO | Add the regression check' docs/issues/open/2943-2392-figment-jail-process-environment/ISSUE.md` prints 1.
+- Resolution reference: docs(issues): [#2943] plan the regression check with its red run and correct the option B visibility
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4619452331
+
+### F20 - Option B said `pub(crate)` seams would serve an integration-test target
+
+- PR number: 2944
+- Source review ID: 5963262753
+- Reviewer finding ID: F20
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4619361221
+- Concern: The options table said the moved tests need "public or `pub(crate)` seams". An integration-test target is a separate crate, so `pub(crate)` items stay out of its reach.
+- Solution: Option B now says the target sees only the public API, so each moved test must use an existing public API or a new public seam.
+- Current-tree verification: `grep -c 'sees only the public API' docs/issues/open/2943-2392-figment-jail-process-environment/ISSUE.md` prints 1.
+- Resolution reference: docs(issues): [#2943] plan the regression check with its red run and correct the option B visibility
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4619452895
+
 ## Processing Log
 
 - 2026-11-18 13:54 UTC - Round 1: Copilot review 5957896114 with F1 and F2. Committed and pushed the fix (`docs(issues): [#2943] count G2 once in the AC4 evidence and cite the edition guide`), then replied to the two threads (13:53:25Z and 13:53:27Z).
@@ -325,6 +354,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-18 15:49 UTC - Resolved the four round 6 threads (about 15:49:56Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread, and the newest review in the review list was 5959042101. Committed these entries.
 - 2026-11-18 17:32 UTC - Round 7, on the maintainer's instruction ("Fix both now"): da2ce7 review 5960255602 (an approval at the round 6 audit head) with F17 and F18. Edited the PR description for F17. Committed and pushed the fix for F18 (`docs(pr-reviews): [#2943] anchor two verification patterns that counted their own line`); the push dismissed the approval. Replied to the two threads (17:29:23Z and 17:29:26Z). Added rows F17 and F18; the validator on the worktree record reported 18 rows and 0 failures before either thread was resolved.
 - 2026-11-18 17:32 UTC - Resolved the two round 7 threads (about 17:29:55Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread, and the newest review by a reviewer in the review list was 5960255602. Committed these entries.
+- 2026-11-18 19:16 UTC - Round 8, on the maintainer's instruction to address the new Copilot review: Copilot review 5963262753 with F19 and F20. The maintainer had posted his ACK for the round 7 audit head at 18:49:48Z, before this review (19:08:33Z); this round's pushes move the head past it. Committed and pushed the fix (`docs(issues): [#2943] plan the regression check with its red run and correct the option B visibility`), then replied to the two threads (19:15:39Z and 19:15:42Z). Added rows F19 and F20; the validator on the worktree record reported 20 rows and 0 failures before either thread was resolved.
+- 2026-11-18 19:16 UTC - Resolved the two round 8 threads (about 19:16:18Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread, and the newest review by a reviewer in the review list was 5963262753. Committed these entries.
 
 <!-- Copied verbatim into each audit record. -->
 
