@@ -129,7 +129,7 @@ with the same question: can a test outside the serialized group read what the gr
 | Option | What changes | EPIC rule 5 | For | Against |
 | --- | --- | --- | --- | --- |
 | A. Every test that reads the environment or the current directory runs inside a `Jail` | The few non-`Jail` tests that read them move into `Jail::expect_with` | Not met: the jails still change process-global state in a process other tests share. Needs an exception recorded in the EPIC | Smallest change; the jail also gives them a temporary directory | Nothing stops a new test from reading the environment outside a jail |
-| B. The `Jail` tests move to their own test binary | An integration-test target where every test uses `Jail` | Not met to the letter: the jails still change process-global state, but every test of that process takes the jail's lock. Needs a narrower exception | Process boundary; the unit-test binary never sees a changed environment | The tests reach private items today, so some need public or `pub(crate)` seams; about 50 tests move |
+| B. The `Jail` tests move to their own test binary | An integration-test target where every test uses `Jail` | Not met to the letter: the jails still change process-global state, but every test of that process takes the jail's lock. Needs a narrower exception | Process boundary; the unit-test binary never sees a changed environment | The tests reach private items today, and an integration-test target is a separate crate that sees only the public API (`pub(crate)` items stay out of reach), so each moved test must use an existing public API or a new public seam; about 50 tests move |
 | C. The tests stop changing the process environment | The loading code takes its environment from a provider that tests replace | Met: it is the rule's own remedy ("pass configuration explicitly") | No process-global change left | Changes production code, which is out of scope unless the maintainer widens it |
 
   The coordinator's starting recommendation is A plus a check that fails when a test of the
@@ -165,16 +165,19 @@ The defect is in test code. Follow `.claude/skills/fix-bug/SKILL.md`:
    probe's code and output are in `manual-verification-evidence.md`. The probe is evidence, not a
    permanent test, unless T2 keeps it.
 2. Regression boundary: decided with the design in T2.
-3. Red before the change, green after (V2). The recheck depends on the design: the unchanged
-   probe, which stays outside a jail, can pass only when no jail runs in its process (options B
-   and C). Under option A the jails still run there, so the probe would still fail; T2 then
+3. Red before the change (T3), green after (T6 and V2). The recheck depends on the design: the
+   unchanged probe, which stays outside a jail, can pass only when no jail runs in its process
+   (options B and C). Under option A the jails still run there, so the probe would still fail; T2 then
    defines the recheck at the boundary A relies on (no test outside a jail reads the environment
    or the current directory).
 
 ## Regression Test Strategy
 
-Decided in T2 with the design. The reproduction probe of V1 is the starting candidate: it fails
-on `develop` whenever a jail is active during one of its reads.
+T2 chooses the maintained check with the design. The reproduction probe of V1 is the starting
+candidate: it fails on `develop` whenever a jail is active during one of its reads. T3 adds the
+chosen check and records its failing run against the tests as they are, before T4 changes them.
+If T2 finds that no maintained check is practical, T3 records the constraints and the substitute
+evidence instead (the failing run of the temporary V1 probe on the implementation base).
 
 ## Implementation Plan
 
@@ -184,17 +187,19 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | --- | --- | --- |
 | T1 | TODO | Reproduce and recheck G1 | The V1 baseline of the spec review repeated on the implementation base; list of the non-`Jail` tests that read the environment or the current directory; G1 verdict recorded. |
 | T2 | TODO | Decide the design | Options with the T1 result; the maintainer's decision and the V2 recheck for that design recorded in this spec. |
-| T3 | TODO | Isolate the tests | Implemented as decided; test-design review recorded. |
-| T4 | TODO | Correct the audit inventory | G2 (and G1 if needed) corrected with a dated note. |
-| T5 | TODO | Recheck | V2 recorded; `linter all` passes. |
+| T3 | TODO | Add the regression check and record its red run | The check T2 chose, added before any test is isolated, with its failing run on the unfixed tests recorded in `manual-verification-evidence.md`. If no maintained check is practical: the constraints and the substitute evidence recorded there. |
+| T4 | TODO | Isolate the tests | Implemented as decided; test-design review recorded. |
+| T5 | TODO | Correct the audit inventory | G2 (and G1 if needed) corrected with a dated note. |
+| T6 | TODO | Recheck | The T3 check passes (green) and V2 is recorded; `linter all` passes. |
 
 ## Commit Points
 
 | Task | Coherent change set | Commit policy |
 | --- | --- | --- |
 | T1-T2 | Evidence and decision | Documentation-only commit after maintainer review. |
-| T3 | Isolated tests | Commit after focused validation and review. |
-| T4-T5 | Inventory correction and recheck evidence | Documentation-only commit. |
+| T3 | Regression check and its red run | Commit the check with its recorded failing run, before the fix. |
+| T4 | Isolated tests | Commit after focused validation and review. |
+| T5-T6 | Inventory correction and recheck evidence | Documentation-only commit. |
 
 ## Progress Tracking
 
@@ -234,6 +239,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   da2ce7's fourth review: the reproduction is no longer called a drafting reproduction, because
   it ran after the approval. Ran it again at 15:43 UTC with the start and end of each step and
   the full toolchain output, and made that run the evidence.
+- 2026-11-18 19:10 UTC - Claude Code (Claude Fable 5.2), EPIC #2392 coordinator - Review of PR #2944,
+  Copilot's review 5963262753: added task T3, the regression check with its recorded red run
+  before the fix (the old T3 to T5 are now T4 to T6), and corrected option B, because an
+  integration-test target cannot reach `pub(crate)` items.
 
 ## Acceptance Criteria
 
@@ -261,7 +270,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | V1 | Reproduce | `TMPDIR=<fresh empty dir> cargo +stable test -p torrust-tracker-configuration --lib` with the probe test and `PATH` set, repeated as T1 records | Reads with `PATH` or `TMPDIR` unset or the current directory changed, counted per run | DONE (baseline made during the spec review, 3 of 3 runs; T1 repeats it) | `manual-verification-evidence.md` |
-| V2 | Recheck | The recheck T2 defines for the chosen design, with the same environment setup and number of runs, after T3 | No such read | TODO | `manual-verification-evidence.md` |
+| V2 | Recheck | The recheck T2 defines for the chosen design, with the same environment setup and number of runs, after T4 | No such read | TODO | `manual-verification-evidence.md` |
 
 Evidence policy: every recorded command result names the toolchain that produced it, with the
 output of `rustc -Vv` and `cargo -V`, because `+stable` moves. V2 runs on the same toolchain
