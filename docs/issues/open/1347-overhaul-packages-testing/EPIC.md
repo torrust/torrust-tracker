@@ -102,8 +102,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | 14    | #2902 - Add tests to the tracker-core package | `docs/issues/open/2902-1347-add-tests-tracker-core/ISSUE.md` | TODO | Lowest unit-only lines of the packages in the EPIC coverage table: 80.31% (MySQL/PostgreSQL drivers 0-4%, SQLite failure branches, `statistics/` reached only by the integration binary). Slices S0-S5 proposed; S0 is the spec-only PR. |
 | 15    | Additional package-testing subissues              | Create a folder-style spec when a concrete package need is identified             | TODO   | Permitted but not required upfront; retain scope in this EPIC.                                                       |
 
-**Publishing gate (maintainer decision of 2026-11-18).** A workspace crate may be published for
-the first time once its own package-testing subissues in this table are closed; EPIC #1669 no longer
+**Publishing gate (maintainer decision of 2026-11-18).** A workspace crate may be published
+under #2583 (a first publish, or the next publish of an already published crate) once its own
+package-testing subissues in this table are closed; EPIC #1669 no longer
 waits for this EPIC to close as a whole. The per-crate gate is tracked in the "Testing (#1347)"
 column of the
 [#2583 Per-Crate Checklist](../2583-1669-first-publish-of-workspace-crates/ISSUE.md#per-crate-checklist),
