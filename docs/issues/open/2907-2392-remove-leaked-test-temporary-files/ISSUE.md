@@ -9,7 +9,7 @@ github-issue: 2907
 spec-path: docs/issues/open/2907-2392-remove-leaked-test-temporary-files/ISSUE.md
 branch: "2907-2392-remove-leaked-test-temporary-files"
 related-pr: null
-last-updated-utc: "2026-11-18 10:02"
+last-updated-utc: "2026-11-18 10:06"
 semantic-links:
   skill-links:
     - create-issue
@@ -145,7 +145,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | --- | --- | --- |
 | T1 | DONE | Reproduce with a fresh `TMPDIR` | Before-counts recorded (V1): 2 `test_config_*.toml`, 0 PEM, 301 `data_*.db` at `develop` `61e3fedcf` (evidence file, "V1 repeated by T1"). |
 | T2 | DONE | Confirm the two designs | The maintainer confirmed the TOML and TLS designs above on 2026-11-18. |
-| T3 | TODO | Configuration-file tests | Files removed when the test ends; test-design review recorded before T4. |
+| T3 | DONE | Configuration-file tests | Files removed when the test ends (focused run: 1 file before, 0 after); test-design review recorded in the evidence file. |
 | T4 | TODO | TLS test files | Files removed on failure too; test-design review recorded before T5. |
 | T5 | TODO | Recheck | No `test_config_*.toml` and no PEM file after the suite (V2); `linter all` passes. |
 
@@ -194,6 +194,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-18 10:02 UTC - Claude Code (Claude Opus 5.5), #2907 session - T2 done: the maintainer
   confirmed both designs (TOML: a `tempfile::tempdir()` in each test; TLS: `make_temp_file` returns
   a `NamedTempFile`).
+- 2026-11-18 10:06 UTC - Claude Code (Claude Opus 5.5), #2907 session - T3 done: both TOML tests
+  write inside a `TempDir`. Found why the leaked-file count varies between runs: five `figment::Jail`
+  tests in `packages/configuration/src/lib.rs` call `clear_env()`, which removes `TMPDIR` from the
+  whole process while they run, so a parallel test can write to `/tmp` instead. Recorded in the
+  evidence file and reported to the EPIC coordinator; out of this issue's scope.
 
 ## Acceptance Criteria
 
