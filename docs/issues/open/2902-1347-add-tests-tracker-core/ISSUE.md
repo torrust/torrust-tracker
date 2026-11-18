@@ -355,7 +355,7 @@ rows are ordered by slice, then by risk.
 | 2 | `statistics/metrics.rs` | S1 | 11 / 45 | Test candidate; no change, covered 45 / 45 by the repository tests ([record](test-refactor-plans/statistics-metrics-tests.md)) | DONE |
 | 3 | `statistics/persisted/mod.rs` | S1 | 0 / 11 | Test candidate (`load_persisted_metrics`); 11 / 11 with five tests ([plan](test-refactor-plans/statistics-persisted-mod-tests.md)) | DONE |
 | 4 | `statistics/event/listener.rs` | S1 | 360 / 411 | Test candidate (spawn wrappers); 538 / 542 with four tests ([plan](test-refactor-plans/statistics-event-listener-tests.md)) | DONE |
-| 5 | `statistics/event/handler.rs` | S1 | 175 / 196 | Mostly logging-only; one error arm | PENDING |
+| 5 | `statistics/event/handler.rs` | S1 | 175 / 196 | Mostly logging-only; one error arm | IN_PROGRESS |
 | 6 | `statistics/persisted/downloads.rs` | S1 | 77 / 77 | Failing-`Database` case (line 133, `increase_global_downloads`) | PENDING |
 | 7 | `statistics/mod.rs`, `statistics/event/mod.rs` | S1 | 42 / 43, no entries | Test candidate (`statistics/mod.rs:49`, usage statistics disabled); `event/mod.rs` declarations only | PENDING |
 | 8 | `databases/driver/sqlite/auth_key_store.rs` | S2 | 29 / 55 | Test candidate | PENDING |
