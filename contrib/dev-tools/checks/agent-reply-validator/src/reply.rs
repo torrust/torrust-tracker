@@ -37,6 +37,7 @@ pub struct Reply {
     /// When the reply was written, in UTC: `YYYY-MM-DD HH:MM`.
     pub created_utc: UtcMinute,
     /// The outcome, from which the orchestrator decides the next step.
+    #[serde(deserialize_with = "from_string")]
     pub verdict: Verdict,
     /// A short account of what the agent did or found.
     pub summary: Text,
@@ -122,6 +123,7 @@ pub enum Verdict {
 #[serde(deny_unknown_fields)]
 pub struct Finding {
     /// How much the problem matters.
+    #[serde(deserialize_with = "from_string")]
     pub severity: Severity,
     /// Where it is, such as `src/name.rs:42` or a section of a document.
     pub location: Text,
@@ -191,6 +193,19 @@ impl<'de> Deserialize<'de> for Text {
         }
         Ok(Self(text))
     }
+}
+
+/// Reads a unit-variant enum from a JSON string only.
+///
+/// Serde's derived enum reader also takes the object form `{"DONE": null}`; the format, like the
+/// schema, allows only the string `"DONE"`.
+fn from_string<'de, D, T>(deserializer: D) -> Result<T, D::Error>
+where
+    D: Deserializer<'de>,
+    T: Deserialize<'de>,
+{
+    let text = String::deserialize(deserializer)?;
+    T::deserialize(de::value::StringDeserializer::<D::Error>::new(text))
 }
 
 /// Whether a text has no character other than white space.
@@ -464,9 +479,11 @@ mod tests {
     #[case::time_on_day_thirty_one_of_november(reply_with("created-utc", json!("2026-11-31 17:25")), "created-utc", "a UTC time written YYYY-MM-DD HH:MM")]
     #[case::time_on_day_zero(reply_with("created-utc", json!("2026-11-00 17:25")), "created-utc", "a UTC time written YYYY-MM-DD HH:MM")]
     #[case::verdict_outside_the_list(reply_with("verdict", json!("PASSED")), "verdict", "unknown variant `PASSED`")]
+    #[case::verdict_as_an_object(reply_with("verdict", json!({ "REVIEW_PASSED": null })), "verdict", "invalid type: map, expected a string")]
     #[case::verdict_in_lower_case(reply_with("verdict", json!("done")), "verdict", "unknown variant `done`")]
     #[case::blank_summary(reply_with("summary", json!("")), "summary", "a text that is not blank")]
     #[case::severity_outside_the_list(reply_with("findings", json!([{ "severity": "Critical", "location": "a", "description": "b" }])), "findings[0].severity", "unknown variant `Critical`")]
+    #[case::severity_as_an_object(reply_with("findings", json!([{ "severity": { "Major": null }, "location": "a", "description": "b" }])), "findings[0].severity", "invalid type: map, expected a string")]
     #[case::blank_location(reply_with("findings", json!([{ "severity": "Nit", "location": "", "description": "b" }])), "findings[0].location", "a text that is not blank")]
     #[case::finding_without_description(reply_with("findings", json!([{ "severity": "Nit", "location": "a" }])), "findings[0]", "missing field `description`")]
     #[case::unknown_finding_field(reply_with("findings", json!([{ "severity": "Nit", "location": "a", "description": "b", "fix": "c" }])), "findings[0].fix", "unknown field `fix`")]
