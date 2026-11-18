@@ -9,7 +9,7 @@ github-issue: 2913
 spec-path: docs/issues/closed/2913-2912-si-1-adr-errors-do-not-record-source-locations/ISSUE.md
 branch: "2913-adr-errors-do-not-record-source-locations"
 related-pr: 2930
-last-updated-utc: "2026-11-18 10:10"
+last-updated-utc: "2026-11-18 11:08"
 semantic-links:
   skill-links:
     - create-issue
@@ -40,7 +40,7 @@ The audit of issue #2804 found that the source location recorded in errors is ne
 (`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`): none of the 38 production `Location::caller()` sites of the audit (37 since #2850) is in a
 `#[track_caller]` function, and `#[track_caller]` cannot fix any of them, because they are reached
 through `str::parse`, `try_into`, closures, `async fn` or `async` blocks (`options.md`, fact 6). The
-location is a fixed library line, and 23 `Display` formats print it into text that reaches HTTP, UDP
+location is a fixed library line, and 23 `Display` formats (22 since #2850) print it into text that reaches HTTP, UDP
 and REST clients, event payloads and logs. `LocatedError` (`torrust-located-error` 3.0.0) prints its
 own location as well.
 

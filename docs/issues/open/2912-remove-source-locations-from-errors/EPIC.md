@@ -6,7 +6,7 @@ epic: null
 github-issue: 2912
 spec-path: docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md
 epic-owner: null
-last-updated-utc: "2026-11-18 10:10"
+last-updated-utc: "2026-11-18 11:08"
 semantic-links:
   skill-links:
     - create-issue
@@ -43,7 +43,7 @@ that it has costs:
   cannot fix any of them: they are reached through `str::parse`, `try_into`, closures, `async fn`
   or `async` blocks (`options.md`, fact 6; `experiments.md`, E3 to E8). Through `str::parse` the
   attribute makes the location a line inside the standard library.
-- **It reaches clients.** 23 `Display` formats print the location and `LocatedError` prints its
+- **It reaches clients.** 23 `Display` formats (22 since #2850) print the location and `LocatedError` prints its
   own. The text is in the HTTP tracker `failure reason`, the UDP error message, REST API error
   text, event payloads and logs (`inventory.md`, T2 table).
 - **It was reported as a security concern** in 2023 (issue #384, still open).
@@ -53,7 +53,7 @@ that it has costs:
   client-visible message.
 - **It makes messages unstable for consumers**, who cannot match on text that changes with
   unrelated refactors.
-- **It costs public API.** The field is part of 24 public enum variants.
+- **It costs public API.** The field is part of 24 public enum variants (23 since #2850).
 
 What the feature gives, a file and line for a developer, is available on the server from `tracing`
 events, which record the file and line of the log call.
