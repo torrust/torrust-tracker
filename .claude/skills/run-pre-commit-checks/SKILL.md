@@ -78,12 +78,16 @@ The script runs these steps in order:
 5. `cargo run --quiet --package frontmatter-validator --bin frontmatter-validator -- --skill-descriptions` -
    check of each skill's `description` in the index: whole as YAML reads it (not cut by a `#`
    comment) and 200 characters or less. See the `add-new-skill` skill's description rules.
-6. `cargo machete --with-metadata` - unused dependency check
-7. `cargo deny check bans` - workspace layer-boundary dependency check
-8. `cargo +nightly fmt --all -- --check` - nightly Rust formatting check
-9. `linter all` - all linters (markdown, lychee local links, YAML, TOML, clippy, rustfmt, shellcheck, cspell)
-10. `./contrib/dev-tools/checks/lint-containerfile.sh` - hadolint check of the `Containerfile`
-11. `cargo test --doc --workspace` - documentation tests
+6. `cargo run --quiet --package agent-reply-validator --bin agent-reply-validator -- --all` -
+   check of the staged content of every agent reply file in the index: every file in an
+   `agent-replies/` folder or named like a reply file. See the `agent-reply-v1` schema in
+   `docs/schemas/README.md`.
+7. `cargo machete --with-metadata` - unused dependency check
+8. `cargo deny check bans` - workspace layer-boundary dependency check
+9. `cargo +nightly fmt --all -- --check` - nightly Rust formatting check
+10. `linter all` - all linters (markdown, lychee local links, YAML, TOML, clippy, rustfmt, shellcheck, cspell)
+11. `./contrib/dev-tools/checks/lint-containerfile.sh` - hadolint check of the `Containerfile`
+12. `cargo test --doc --workspace` - documentation tests
 
 If the formatter changes the dictionary, the hook exits non-zero before the verification steps.
 Stage `project-words.txt` and retry the commit. Run the formatter independently with:
