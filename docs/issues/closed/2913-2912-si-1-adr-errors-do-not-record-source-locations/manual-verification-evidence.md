@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2913-2912-si-1-adr-errors-do-not-record-source-locations/ISSUE.md
-last-updated-utc: "2026-11-18 10:08"
+issue-spec: docs/issues/closed/2913-2912-si-1-adr-errors-do-not-record-source-locations/ISSUE.md
+last-updated-utc: "2026-11-18 10:10"
 ---
 
 # Manual Verification Evidence

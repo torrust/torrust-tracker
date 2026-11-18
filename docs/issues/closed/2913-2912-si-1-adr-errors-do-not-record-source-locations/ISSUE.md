@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p1
 epic: 2912
 github-issue: 2913
-spec-path: docs/issues/open/2913-2912-si-1-adr-errors-do-not-record-source-locations/ISSUE.md
+spec-path: docs/issues/closed/2913-2912-si-1-adr-errors-do-not-record-source-locations/ISSUE.md
 branch: "2913-adr-errors-do-not-record-source-locations"
-related-pr: null
-last-updated-utc: "2026-11-18 04:59"
+related-pr: 2930
+last-updated-utc: "2026-11-18 10:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -152,10 +152,10 @@ with the narrow affected scope, and sign every commit with GPG.
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
+- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification (not applicable: the reviewers reviewed PR #2930 on GitHub, recorded in `docs/pr-reviews/pr-2930-review/PR-REVIEW.md`)
 - [x] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -168,6 +168,7 @@ the model that produced them.
 - 2026-11-18 04:56 UTC - Claude Code (Claude Opus 5.5) - T1 done: wrote the ADR `docs/adrs/20261118045443_errors_do_not_record_source_locations.md` with the six decision points, the four options of `options.md` as alternatives, and the consequences; added it to `docs/adrs/index.md`. Branch `2913-adr-errors-do-not-record-source-locations` from `torrust/develop` at `2ef51f6c3`.
 - 2026-11-18 04:58 UTC - Claude Code (Claude Opus 5.5) - T2 and T3 done: the `handle-errors-in-code` skill replaces the `located-error` section and checklist item with the rule and a link to the ADR; the search for other guidance found no recommendation of a source location (hits recorded in T3). M1 executed and recorded in `manual-verification-evidence.md` V1.
 - 2026-11-18 04:59 UTC - Claude Code (Claude Opus 5.5) - `linter all` exited 0 (local `torrust-linting` `linter` binary). No Rust code changed, so no tests apply. Acceptance criteria re-reviewed against the ADR and the skill. No retrospective: the work followed the specification and found nothing that changes it; the only note for later is that SI-6 should update `packages/axum-server/README.md` and the workspace dependency diagram when it drops `torrust-located-error`.
+- 2026-11-18 10:10 UTC - Claude Code (Claude Opus 5.5) - PR #2930 merged into `develop` (merge commit `5b3c8b64c`, 2026-11-18 10:04 UTC) after two Copilot rounds and da2ce7's approval; issue #2913 closed. The maintainer chose to fix da2ce7's three non-blocking findings (audit F9-F11) in this close-out: V1 re-run on the merged skill, ADR counts given since #2850, T3 hits recorded as history with `.claude/skills/` searched. Specification archived to `docs/issues/closed/`.
 
 ## Acceptance Criteria
 
