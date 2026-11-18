@@ -19,8 +19,8 @@ Follow the shared [guidance](README.md). This record covers only
 ## Current State
 
 - **Unit-only coverage:** 11 / 45 lines at the S1 baseline; 45 / 45 after the
-  [repository tests](statistics-repository-tests.md) (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`,
-  `--all-features --lib`, 2026-11-17). The baseline left 36-44, 49-57, 62-69 and 74-81 uncovered:
+  [repository tests](statistics-repository-tests.md) (stable Rust 1.100.0, `cargo-llvm-cov 0.9.1`,
+  `--all-features --lib`; re-measured on 2026-11-18, the same figures). The baseline left 36-44, 49-57, 62-69 and 74-81 uncovered:
   `set_counter`, `set_gauge`, `increment_gauge` and `decrement_gauge`.
 - **What the file decides:** nothing of its own. `Metrics` holds a `MetricCollection`; its accessor
   returns it and its five write methods pass their arguments to the method of the same name and

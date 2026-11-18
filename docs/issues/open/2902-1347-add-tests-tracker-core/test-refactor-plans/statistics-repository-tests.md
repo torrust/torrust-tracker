@@ -21,10 +21,10 @@ Follow the shared [guidance](README.md). This plan covers only
 
 ## Current State
 
-- **Unit-only coverage:** 86 / 140 lines (61.43%), 117 / 172 regions, 22 / 29 functions, at the S1
-  baseline (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace,
-  `--all-features --lib`, 2026-11-17). It is the T1 figure: no file under `packages/` changed
-  between the measured commit and the S1 branch point.
+- **Unit-only coverage:** 85 / 139 lines (61.15%), 92 / 138 regions, 22 / 29 functions, at the S1
+  baseline (stable Rust 1.100.0, `cargo-llvm-cov 0.9.1`, clean workspace, `--all-features --lib`; re-measured on
+  2026-11-18, see [coverage-evidence.md](../coverage-evidence.md)). It is the T1 figure: this file
+  did not change between the measured commit and the S1 branch point.
 - **Uncovered lines** (as `cargo-llvm-cov` reports them): 104 (the error arm of
   `increment_counter`), 114-120 (the entry of `set_counter`), 139-158 (`set_gauge`), 164-182
   (`increment_gauge`) and 188-206 (`decrement_gauge`). The async bodies make the per-line split
@@ -152,11 +152,13 @@ Gauges are compared as `Option<Gauge>` (`Gauge` derives `PartialEq`), which keep
 
 ## Results
 
-- **Unit-only coverage** (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace,
-  `--all-features --lib`): `statistics/repository.rs` 86 / 140 lines at the S1 baseline; 277 / 277
-  lines (100.00%), 394 / 394 regions and 57 / 57 functions after (the counts include the test
-  module). Package unit-only lines after this file: 4,324 / 5,241 (82.50%), regions 6,023 / 7,349
-  (81.96%), functions 726 / 982 (73.93%), 167 unit tests (157 before).
+- **Unit-only coverage** (stable Rust 1.100.0, `cargo-llvm-cov 0.9.1`, clean workspace, `--all-features --lib`;
+  re-measured on 2026-11-18): `statistics/repository.rs` 85 / 139 lines at the S1 baseline;
+  275 / 275 lines (100.00%), 342 / 347 regions and 57 / 57 functions after (the counts include the
+  test module's helpers). The five uncovered regions are the log-level checks of the
+  `tracing::error!` calls in the error arms (lines 104, 129, 154, 178 and 202); the arms themselves
+  run in the refusal tests. Package unit-only lines after this file: 4,256 / 5,211 (81.67%),
+  regions 4,624 / 5,739 (80.57%), functions 716 / 972 (73.66%), 167 unit tests (157 before).
 - **Covered but not asserted:** `statistics/metrics.rs` (row 2) is now 45 / 45 lines, because every
   repository write calls its `Metrics` wrapper. Row 2 decides whether that needs its own tests.
 - **Tests:** 10 added, 1 changed (R1), 1 unchanged. No integration test was added or changed.

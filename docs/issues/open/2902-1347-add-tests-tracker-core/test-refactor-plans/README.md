@@ -78,7 +78,10 @@ Each file goes through the same two phases, with a maintainer gate after each:
 ## Commands
 
 Use stable Rust for tests and coverage and the nightly toolchain for formatting only; record the
-toolchain with every result. The S1 baseline used stable Rust 1.99.1 and `cargo-llvm-cov 0.6.16`.
+toolchain with every result. Every figure of this issue uses stable Rust 1.100.0 and
+`cargo-llvm-cov 0.9.1` (re-measured on 2026-11-18; the first figures used Rust 1.99.1 and
+`cargo-llvm-cov 0.6.16`, which cannot read the test-binary layout of Cargo 1.100.0). Measure from a
+clean coverage target directory: a stale binary there is merged into the report.
 
 ```bash
 # Focused tests

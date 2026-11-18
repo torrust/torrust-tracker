@@ -20,8 +20,7 @@ Follow the shared [guidance](README.md). This plan covers only
 
 ## Current State
 
-- **Unit-only coverage:** 0 / 11 lines, at the S1 baseline and after rows 1 and 2 (stable Rust
-  1.99.1, `cargo-llvm-cov 0.6.16`, `--all-features --lib`). Uncovered: 21-46
+- **Unit-only coverage:** 0 / 11 lines, at the S1 baseline and after rows 1 and 2 (stable Rust 1.100.0, `cargo-llvm-cov 0.9.1`, `--all-features --lib`; re-measured on 2026-11-18). Uncovered: 21-46
   (`load_persisted_metrics`) and 58-68 (the two `From` conversions into `Error`).
 - **Callers:** the tracker start-up (`src/app.rs:385`) and the integration test environment
   (`tests/common/test_env.rs:138`), which unwraps the result on a real SQLite database with no
@@ -86,9 +85,10 @@ a runtime per case for no extra mutant.
 
 ## Results
 
-- **Coverage:** the file's production lines 0 / 11 to 11 / 11 (`--all-features --lib`, stable Rust
-  1.99.1, 2026-11-18); the package's unit-only lines 4,351 / 5,266 (82.62%) to 4,474 / 5,378
-  (83.19%), where the denominator grows with the 112 lines of the new test module. One region stays
+- **Coverage:** the file's production lines 0 / 11 to 11 / 11 (`--all-features --lib`,
+  stable Rust 1.100.0, `cargo-llvm-cov 0.9.1`, re-measured on 2026-11-18; 124 / 124 lines with the test module's
+  helpers); the package's unit-only lines 4,256 / 5,211 (81.67%) to 4,380 / 5,324 (82.27%), where
+  the denominator grows with the 113 measured lines of the new test module. One region stays
   uncovered: the `?` error arm of the first write (line 34), which cannot be reached because
   `describe_metrics` always registers the persistent total as a counter.
 - **Tests:** five added, all passing; 172 unit tests in the package.
