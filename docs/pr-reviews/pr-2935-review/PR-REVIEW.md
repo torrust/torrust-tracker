@@ -1,7 +1,7 @@
 ---
 pr-number: 2935
 pr-url: https://github.com/torrust/torrust-tracker/pull/2935
-last-updated-utc: "2026-11-18 10:25"
+last-updated-utc: "2026-11-18 10:42"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -44,6 +44,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 ## Findings
 
 Round 1 covers two reviews of the first commit of the PR, `docs(issues): [#2583] make the #1347 publish prerequisite a per-crate testing gate`, which was the head when both were submitted. Review 5954581202 (da2ce7, APPROVED) has six inline findings (F1 to F6) and one finding in its body (F7, on the PR description, which has no thread). Review 5954617412 (Copilot, COMMENTED, a lite review) has three inline findings (F8 to F10) without a severity bracket. The audit severity scale has no medium level, so this audit maps Copilot's `Medium severity` badge to `Minor (inferred)` and its `Low severity` badge to `Nit (inferred)`, as the PR #2929 audit does.
+Round 2: review 5954958077 (da2ce7, APPROVED) of the head that round 1 pushed has two inline findings on this record and one finding in its body on the PR description. The reviewer numbered them F8, F9 and F10, which this audit already uses, so they are F11, F12 and F13 here, with the reviewer's ID in each detail entry.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -57,6 +58,9 @@ Round 1 covers two reviews of the first commit of the PR, `docs(issues): [#2583]
 | F8 | review-finding:pr-2935-f8 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F9 | review-finding:pr-2935-f9 | Copilot | Minor (inferred) | correctness | RE_RAISE_OF:F6 | NO_ACTION | SUPERSEDED |
 | F10 | review-finding:pr-2935-f10 | Copilot | Nit (inferred) | formatting | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F11 | review-finding:pr-2935-f11 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-2935-f12 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F13 | review-finding:pr-2935-f13 | Human | Nit | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
 
 ## Finding Details
 
@@ -190,9 +194,49 @@ Round 1 covers two reviews of the first commit of the PR, `docs(issues): [#2583]
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2935#discussion_r4612347402
 
+### F11 - Three "Current-tree verification" counts were not the output at the head
+
+- PR number: 2935
+- Source review ID: 5954958077
+- Reviewer finding ID: F8
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2935#discussion_r4612541275
+- Concern: The counts recorded for F1 (4), F2 (2 and 1) and F10 (52) were not what the commands print at the pushed head (5, 3 and 2, and 53).
+- Solution: The three counts were written from the fix diffs without running the commands. Every command named in a Current-tree verification field of this record was then run on the current tree, and the F1, F2 and F10 entries record the printed values; the F10 entry notes that its reply says 52. The other entries already matched the output.
+- Current-tree verification: on the current tree, `grep -c 'every dependency and dev-dependency first'`, `grep -c '#2914'` and `grep -c '#2917'` on the #2583 spec printed 5, 3 and 2, and `grep -ci subissue` on the EPIC #1347 spec printed 53; the `grep -n` and other `grep -c` commands of F1 to F10 printed what their entries say (no match, or 1, or the two `2026-11-18 10:20` lines).
+- Resolution reference: `docs(pr-reviews): [#2583] record the verification outputs of the PR 2935 audit at the head`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2935#discussion_r4612566964
+
+### F12 - The F7 concern reversed the timing
+
+- PR number: 2935
+- Source review ID: 5954958077
+- Reviewer finding ID: F9
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2935#discussion_r4612541290
+- Concern: The F7 concern said #2920 merged 18 seconds "before that statement was true of the opened PR", which reads as the opposite of what happened: the merge came 18 seconds after the first commit and before the PR was opened.
+- Solution: The F7 concern says "#2920 merged 18 seconds after the first commit, before the PR was opened".
+- Current-tree verification: `grep -c 'merged 18 seconds after the first commit' docs/pr-reviews/pr-2935-review/PR-REVIEW.md` prints 3 (the F7 concern and this entry's concern and solution); `gh pr view 2935 --json createdAt` printed `2026-11-18T09:54:05Z`.
+- Resolution reference: `docs(pr-reviews): [#2583] correct the timing in the F7 concern of the PR 2935 audit`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2935#discussion_r4612567484
+
+### F13 - The description's gate table and consequence line lag the spec
+
+- PR number: 2935
+- Source review ID: 5954958077
+- Reviewer finding ID: F10
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2935#pullrequestreview-5954958077
+- Concern: The description's "State of the gate" table cited only #2824 for `primitives`, and its consequence line omitted the #2914 constraint that the spec states since round 1. The description is copied into the merge commit.
+- Solution: The table cites #2824 and #2876, and the consequence line says `primitives` also waits for #2914 from EPIC #2912. The fix is outside the repository tree.
+- Current-tree verification: `gh pr view 2935 --json body -q .body | grep -c '#2876'` and the same with `'#2914'` are recorded in the Processing Log entry of round 2.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2935#issuecomment-6976144390
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2935#issuecomment-6976144390
+
 ## Processing Log
 
 - 2026-11-18 10:25 UTC - Started audit. Round 1: review 5954581202 (da2ce7, APPROVED, 10:14:16Z) with findings F1 to F7 and review 5954617412 (Copilot, COMMENTED, 10:16:39Z) with findings F8 to F10, both on the first commit of the PR. Committed one fix per finding for F1 to F6 and F8 (10:16Z to 10:21Z) and a progress-log commit in the #2583 spec (10:23Z). Edited the PR description for F7 and answered it in the PR conversation (10:24Z). F9 re-raises F6 and F10 needs no change. Replied on the nine threads (10:23Z) and resolved them (10:24Z), before pushing, so that one push carries the fixes and this record: the fix commits were local when the replies were posted, and each reply says so.
+- 2026-11-18 10:42 UTC - Round 2: review 5954958077 (da2ce7, APPROVED, 10:39:31Z) with findings F11 to F13 (the reviewer's F8 to F10). Ran every command named in the Current-tree verification fields and committed the corrected counts (F11, 10:40:14Z) and the F7 timing (F12, 10:40:59Z). Edited the PR description for F13; afterwards `gh pr view 2935 --json body -q .body | grep -c '#2876'` printed 1 and the same with `'#2914'` printed 2. Replied on the two threads (10:41:35Z and 10:41:38Z), answered F13 in the PR conversation (10:41:41Z) and resolved the two threads (10:42Z), before pushing, as in round 1; each reply says the fix was not pushed yet.
 
 <!-- Copied verbatim into each audit record. -->
 
