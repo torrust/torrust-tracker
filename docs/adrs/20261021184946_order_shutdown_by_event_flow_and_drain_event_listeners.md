@@ -471,7 +471,7 @@ produces the same stop-before edges.
 
 ## References
 
-- EPIC #1488: [Overhaul Tracker Shutdown](../issues/open/1488-overhaul-tracker-shutdown/ISSUE.md)
+- EPIC #1488: [Overhaul Tracker Shutdown](../issues/closed/1488-overhaul-tracker-shutdown/EPIC.md)
 - Sub-EPIC #2410: [EPIC.md](../issues/closed/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md), the design record with decisions D1 to D20 and the discussion record (the diagrams are in the [events](../architecture/events.md) and [application jobs](../architecture/application-jobs.md) architecture documents)
 - Issue #2413: [SI-22.1 spec](../issues/closed/2413-2410-si-22-1-document-event-flows-and-draft-adr/ISSUE.md)
 - [Runtime architecture glossary](../architecture/glossary.md)

@@ -1,14 +1,14 @@
 ---
 doc-type: feature
-status: draft
-last-updated-utc: "2026-11-10 09:41"
+status: done
+last-updated-utc: "2026-11-18 17:25"
 semantic-links:
   related-artifacts:
     - docs/analysis/20260716-shutdown-process/README.md
     - docs/features/shutdown-process/shutdown-architecture-examples.md
     - docs/features/shutdown-process/legacy-api-migration.md
     - docs/features/shutdown-process/task-inventory.md
-    - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
+    - docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md
     - docs/research/20260716-console-shutdown-patterns/README.md
 ---
 
@@ -16,11 +16,22 @@ semantic-links:
 
 ## Status
 
-Draft — implementation in progress under [EPIC #1488](../../issues/open/1488-overhaul-tracker-shutdown/ISSUE.md),
-which tracks each sub-issue's status. The [legacy API migration guide](legacy-api-migration.md) maps each
-removed legacy shutdown symbol to its token-aware replacement. The [task inventory](task-inventory.md)
-records the current state; for example, the standalone HTTP test environment
-and example use the token-aware lifecycle after SI-16 (#2412).
+Implemented. [EPIC #1488](../../issues/closed/1488-overhaul-tracker-shutdown/EPIC.md) delivered this
+feature and was closed on 2026-11-18; its roadmap records each sub-issue.
+
+How to read this document: it was written before the implementation, as the definition of the feature,
+and it keeps that text as history. The sections that describe a problem ("The Problem in One Sentence",
+"Motivation", the "Before the EPIC" notes, "Situation Before the EPIC") describe the tracker **before**
+the EPIC, in the present tense of that time. The sections "Target Shutdown Architecture", "Outcome and
+Deadline Policy", "Readiness Before Drain" and "Shutdown Deadline Policy" describe the **current**
+behaviour. The current task ownership, startup and shutdown sequences are in
+[Application Jobs](../../architecture/application-jobs.md); the [task inventory](task-inventory.md) lists
+every task; the [legacy API migration guide](legacy-api-migration.md) maps each removed legacy shutdown
+symbol to its token-aware replacement.
+
+One design idea was not built: the periodic "still running" progress report sketched in
+[Observable Shutdown](#observable-shutdown). The manager logs each stop request, what each waiting
+component waits for, and each component's outcome instead.
 
 ## Summary
 
@@ -36,6 +47,9 @@ This is not about adding new features. It is about **not surprising the operator
 container conventions.
 
 ## The Problem in One Sentence
+
+This section and the next describe the tracker before the EPIC. Both problems
+are fixed.
 
 `kill <pid>` — the most basic Unix way to ask a process to stop — begins an
 uncoordinated partial shutdown today. Server libraries observe `SIGTERM`, but
@@ -106,10 +120,12 @@ shutdown-ownership differences can be evaluated explicitly.
 
 ## Target Shutdown Architecture
 
-The tracker uses a **supervised cancellation tree**:
+This is the implemented architecture. The tracker uses a **supervised shutdown
+model** (first designed as a cancellation tree with one root token, see the ADRs
+below):
 
-- executable entry points translate OS signals into an in-process shutdown
-  request;
+- the executable entry point translates OS signals into an in-process shutdown
+  request (`app::run_until_shutdown_signal` in `src/app.rs`, called by `main.rs`);
 - `JobManager` supervises named top-level tasks, issues each its own
   `CancellationToken`, requests their cancellation in a declared order (an event
   listener is cancelled only after the components that publish to its buses have
@@ -229,10 +245,10 @@ container runtime, and operator already expects.
 | `SIGINT` (2)   | "User pressed Ctrl+C"         | Same as `SIGTERM` — start graceful shutdown              |
 | `SIGKILL` (9)  | "Stop immediately, no choice" | Immediate termination by OS — cannot be caught           |
 
-**Currently**: server libraries react to `SIGTERM`, but `main.rs` does not
-cancel and await every application job. `kill <pid>` therefore does not provide
+**Before the EPIC**: server libraries reacted to `SIGTERM`, but `main.rs` did not
+cancel and await every application job. `kill <pid>` therefore did not provide
 a coordinated process shutdown.
-**After fix**: `kill <pid>` triggers the same coordinated graceful shutdown as
+**Now**: `kill <pid>` triggers the same coordinated graceful shutdown as
 Ctrl+C.
 
 ### Windows Console Shutdown Support
@@ -267,11 +283,11 @@ kill -TERM <pid>   # sends SIGTERM, waits up to 10s
 kill -KILL <pid>   # sends SIGKILL if process is still running
 ```
 
-**Currently**: `docker stop torrust-tracker` sends `SIGTERM`, which server
-libraries observe independently while `main.rs` does not coordinate cancellation
-and completion of all application jobs. After the 10s timeout, Docker can
+**Before the EPIC**: `docker stop torrust-tracker` sent `SIGTERM`, which server
+libraries observed independently while `main.rs` did not coordinate cancellation
+and completion of all application jobs. After the 10s timeout, Docker could
 force-kill the container with `SIGKILL`.
-**After fix**: `docker stop torrust-tracker` triggers graceful shutdown when
+**Now**: `docker stop torrust-tracker` triggers graceful shutdown when
 Docker is configured with at least the 30-second external grace period required
 by the [Outcome and Deadline Policy](#outcome-and-deadline-policy). Docker's
 default 10-second deadline is insufficient.
@@ -281,17 +297,19 @@ default 10-second deadline is insufficient.
 > When a pod is deleted or evicted, Kubernetes sends `SIGTERM` and waits for
 > `terminationGracePeriodSeconds` (default 30s) before sending `SIGKILL`.
 
-**Currently**: Pod termination force-kills the tracker every time.
-**After fix**: The tracker drains active connections and exits cleanly.
+**Before the EPIC**: Pod termination force-killed the tracker every time.
+**Now**: The tracker drains active connections and exits cleanly within its
+process deadline; `terminationGracePeriodSeconds` must be at least 30 seconds
+for the default budgets.
 
 ### Systemd / Init System Contract
 
 > `systemctl stop <service>` sends `SIGTERM` and waits for `TimeoutStopSec`
 > (default 90s on most distros) before sending `SIGKILL`.
 
-**Currently**: `systemctl stop torrust-tracker` has no effect — the tracker
-keeps running. After `TimeoutStopSec`, systemd force-kills it.
-**After fix**: `systemctl stop torrust-tracker` gracefully shuts down the
+**Before the EPIC**: `systemctl stop torrust-tracker` did not shut the tracker
+down — it kept running until systemd force-killed it after `TimeoutStopSec`.
+**Now**: `systemctl stop torrust-tracker` gracefully shuts down the
 tracker as expected.
 
 ### The Principle of Least Surprise
@@ -299,8 +317,10 @@ tracker as expected.
 Any operator, developer, or automated agent interacting with the tracker will
 try the most natural stop mechanisms first. They should not be surprised:
 
+Before the EPIC:
+
 ```bash
-# These all SHOULD trigger coordinated shutdown, but currently only stop servers:
+# These all SHOULD trigger coordinated shutdown, but only stopped the servers:
 kill <pid>               # SIGTERM reaches server libraries but bypasses main ❌
 kill -TERM <pid>         # SIGTERM reaches server libraries but bypasses main ❌
 docker stop <container>  # SIGTERM reaches server libraries but bypasses main ❌
@@ -314,9 +334,9 @@ kill -INT <pid>          # sends SIGINT — works ✅
 kill -9 <pid>            # SIGKILL — force kill, no cleanup ❌
 ```
 
-After implementing this feature, every graceful-stop mechanism marked ❌ above
-will work when its required external grace period is configured. SIGKILL remains
-an OS-enforced last resort and cannot become graceful.
+Now every graceful-stop mechanism marked ❌ above works when its required
+external grace period is configured. SIGKILL remains an OS-enforced last resort
+and cannot become graceful.
 
 ## User Value
 
@@ -384,12 +404,13 @@ management (e.g., `kill`, `docker stop`, systemd). The tracker must:
 The tracker needs multiple ways to trigger shutdown. Below are the options
 considered, with the recommended combination.
 
-### Current Situation
+### Situation Before the EPIC
 
-`main.rs` only listens for `SIGINT` (Ctrl+C) via `tokio::signal::ctrl_c()`.
-The `kill` command sends `SIGTERM` by default, which is not handled. AI agents
-are forced to use `kill -INT <pid>` or `kill <pid>` (which does nothing) and
-then fall back to `kill -9 <pid>`.
+`main.rs` only listened for `SIGINT` (Ctrl+C) via `tokio::signal::ctrl_c()`.
+The `kill` command sends `SIGTERM` by default, which was not handled. AI agents
+were forced to use `kill -INT <pid>` or `kill <pid>` (which did not shut the
+tracker down) and then fall back to `kill -9 <pid>`. Option 1 below was
+implemented by SI-1 (#2132).
 
 ### Option 1: SIGTERM Handler (Minimum Recommendation)
 
@@ -499,7 +520,8 @@ management, but it is not needed to meet the fundamental standards.
 
 ### In Scope
 
-- Centralize signal handling in `main.rs` (both `SIGINT` and `SIGTERM`).
+- Centralize signal handling at the executable boundary (both `SIGINT` and
+  `SIGTERM`): implemented in `src/app.rs`, which `main.rs` calls.
 - Consistent shutdown mechanism for all jobs (prefer `CancellationToken`).
 - Configurable grace periods.
 - Observable shutdown progress (which jobs are still running).
@@ -519,16 +541,25 @@ management, but it is not needed to meet the fundamental standards.
 
 ## Design Ideas
 
+These ideas guided the implementation. Each subsection says what was built.
+
 ### Centralized Signal Handling
 
-Only `main.rs` captures OS signals. On signal receipt:
+Only the tracker executable captures OS signals, in
+`app::run_until_shutdown_signal` (`src/app.rs`), which `main.rs` calls. On signal
+receipt:
 
-1. Mark the application not ready.
-2. Log the shutdown request and cancel the root `CancellationToken`.
+1. Log the shutdown request.
+2. Mark the application not ready and call `JobManager::cancel()`
+   (`app::begin_shutdown`). There is no root `CancellationToken`: the manager
+   cancels the token of every component that waits for no other component, and
+   cancels each event listener when the components that publish on its buses
+   have completed.
 3. Let each component propagate cancellation to, then join or deliberately
    abort, its owned child tasks.
 4. Await named top-level component outcomes concurrently under the single
-   process deadline.
+   process deadline (`JobManager::wait_for_all`), aborting what remains at the
+   deadline.
 5. Map aggregate outcomes to the defined process exit result.
 
 ### Consistent Job Interface
@@ -540,8 +571,8 @@ than receiving a shutdown `Halted` channel.
 
 ### Observable Shutdown
 
-The `JobManager` should periodically log which jobs are still running during
-shutdown, e.g.:
+Not built in this form. The idea was that the `JobManager` should periodically
+log which jobs are still running during shutdown, e.g.:
 
 ```text
 Waiting for jobs to finish (process deadline: 25s)...
@@ -550,6 +581,11 @@ Waiting for jobs to finish (process deadline: 25s)...
   ⏳ Torrent cleanup — still running
   ❌ Activity metrics updater — timed out
 ```
+
+What was built: the manager logs each stop request and what each waiting
+component waits for, every component logs its own drain, each outcome is logged
+by name when the component finishes, and the final log line names the
+components that did not stop gracefully.
 
 ### Shutdown Deadline Policy
 
@@ -582,4 +618,4 @@ gives the settings for Docker, Compose, Kubernetes, and systemd.
 
 - [Analysis: Shutdown Process](../../analysis/20260716-shutdown-process/README.md) — detailed code-level analysis
 - [Research: Console Shutdown Patterns](../../research/20260716-console-shutdown-patterns/README.md) — SIGINT vs SIGTERM and real-world patterns
-- [EPIC: Overhaul Tracker Shutdown](../../issues/open/1488-overhaul-tracker-shutdown/ISSUE.md) — concrete task breakdown
+- [EPIC: Overhaul Tracker Shutdown](../../issues/closed/1488-overhaul-tracker-shutdown/EPIC.md) — concrete task breakdown

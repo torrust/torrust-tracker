@@ -7,12 +7,12 @@ github-issue: 2234
 spec-path: docs/issues/closed/2234-1488-si-2-remove-global-shutdown-signal/ISSUE.md
 branch: "2234-1488-si-2-token-server-lifecycle"
 related-pr: null
-last-updated-utc: 2026-09-25
+last-updated-utc: "2026-11-18 17:24"
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
+    - docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md
     - docs/features/shutdown-process/questions.md
     - docs/adrs/20260902074438_adopt_supervised_cancellation_tree_for_shutdown.md
     - packages/axum-server/src/signals.rs
@@ -27,7 +27,7 @@ semantic-links:
 
 # Issue #2234 - Add Token-Aware Server Lifecycle API
 
-Parent: [EPIC #1488 - Overhaul: Tracker Shutdown](../../open/1488-overhaul-tracker-shutdown/ISSUE.md)
+Parent: [EPIC #1488 - Overhaul: Tracker Shutdown](../1488-overhaul-tracker-shutdown/EPIC.md)
 
 ## Goal
 

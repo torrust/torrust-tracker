@@ -1,13 +1,13 @@
 ---
 doc-type: questions
 status: resolved
-last-updated-utc: 2026-10-28
+last-updated-utc: "2026-11-18 17:24"
 semantic-links:
   related-artifacts:
     - docs/features/shutdown-process/README.md
     - docs/features/shutdown-process/shutdown-architecture-examples.md
     - docs/features/shutdown-process/task-inventory.md
-    - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
+    - docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md
     - docs/analysis/20260716-shutdown-process/README.md
     - docs/research/20260716-console-shutdown-patterns/README.md
 ---

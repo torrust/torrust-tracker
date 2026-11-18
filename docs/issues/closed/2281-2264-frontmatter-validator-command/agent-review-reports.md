@@ -163,7 +163,7 @@ semantic-links:
     `docs/` and `.github/skills/` into a disposable git repository under `.tmp/` and running the
     built binary with `--all`: 50
     `legacy-shape` records, split into 42 `ISSUE.md` (including
-    `docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md`), 7 `EPIC.md`, and the #2230
+    `docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md`), 7 `EPIC.md`, and the #2230
     sample. This matches the corrected T5 note.
   - Finding-1 check in a disposable repository under `.tmp/`: each rejected fixture, and each
     `open_strict_issue` case written to `docs/issues/open/example/ISSUE.md`, emits exactly its

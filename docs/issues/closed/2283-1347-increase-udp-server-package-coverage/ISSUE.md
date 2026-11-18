@@ -9,7 +9,7 @@ github-issue: 2283
 spec-path: docs/issues/closed/2283-1347-increase-udp-server-package-coverage/ISSUE.md
 branch: "2283-1347-increase-udp-server-package-coverage"
 related-pr: 2381
-last-updated-utc: "2026-09-30 09:20"
+last-updated-utc: "2026-11-18 17:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -107,7 +107,7 @@ Only the file test plan can conclude "no test change" for a file.
 
 - Related ADRs: `docs/adrs/20260527175600_keep_protocol_and_domain_types_decoupled.md`
 - Package-local ADR: `packages/udp-server/docs/adrs/20260907152707_keep_oldest_first_udp_request_eviction.md`
-- Related shutdown governance: `docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md`
+- Related shutdown governance: `docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md`
 - ADRs to create: None known. Create one if this work identifies a durable package or
   cross-package ownership/design decision.
 

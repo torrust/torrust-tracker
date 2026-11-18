@@ -9,7 +9,7 @@ github-issue: 2448
 spec-path: docs/issues/closed/2448-1488-si-17-migrate-standalone-udp-environment/ISSUE.md
 branch: "2448-migrate-standalone-udp-environment"
 related-pr: 2459
-last-updated-utc: "2026-10-26 19:50"
+last-updated-utc: "2026-11-18 17:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -27,20 +27,20 @@ semantic-links:
     - docs/features/shutdown-process/README.md
     - docs/features/shutdown-process/questions.md
     - docs/features/shutdown-process/task-inventory.md
-    - docs/issues/open/1488-overhaul-tracker-shutdown/discarded-drafts/si-3-fix-environment-stop/discarded-draft.md
+    - docs/issues/closed/1488-overhaul-tracker-shutdown/discarded-drafts/si-3-fix-environment-stop/discarded-draft.md
     - docs/issues/closed/2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md
     - docs/issues/closed/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md
     - docs/issues/closed/2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md
     - docs/issues/closed/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md
     - docs/issues/closed/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
-    - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
+    - docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md
 ---
 
 <!-- skill-link: create-issue -->
 
 # Issue #2448 - Migrate Standalone UDP Environment and Example to the Token Lifecycle
 
-Parent: [EPIC #1488 - Overhaul: Tracker Shutdown](../../open/1488-overhaul-tracker-shutdown/ISSUE.md)
+Parent: [EPIC #1488 - Overhaul: Tracker Shutdown](../1488-overhaul-tracker-shutdown/EPIC.md)
 
 > **EPIC position**: Roadmap sequence 13 (SI-17). The UDP counterpart of SI-16
 > (#2412): it moves the UDP package's integration tests onto the token-aware

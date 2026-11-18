@@ -10,7 +10,7 @@ semantic-links:
     - packages/udp-server/src/server/processor.rs
     - packages/udp-server/src/server/request_buffer.rs
     - packages/udp-server/tests/server/contract.rs
-    - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
+    - docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md
     - docs/issues/drafts/1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md
     - docs/issues/closed/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md
     - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md

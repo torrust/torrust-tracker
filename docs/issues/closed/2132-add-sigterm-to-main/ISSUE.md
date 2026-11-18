@@ -7,14 +7,14 @@ github-issue: 2132
 spec-path: docs/issues/closed/2132-add-sigterm-to-main/ISSUE.md
 branch: 2132-add-sigterm-to-main
 related-pr: null
-last-updated-utc: 2026-09-11
+last-updated-utc: "2026-11-18 17:24"
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
     - src/main.rs
     - docs/issues/closed/2132-add-sigterm-to-main/native-shutdown-test-plan.md
-    - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
+    - docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md
     - docs/features/shutdown-process/README.md
     - docs/features/shutdown-process/questions.md
     - docs/analysis/20260716-shutdown-process/README.md

@@ -9,7 +9,7 @@ github-issue: 2324
 spec-path: docs/issues/closed/2324-1488-si-13-migrate-health-check-api-token-lifecycle/ISSUE.md
 branch: "2324-1488-si-13-migrate-health-check-api-token-lifecycle"
 related-pr: null
-last-updated-utc: 2026-09-25
+last-updated-utc: "2026-11-18 17:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -24,7 +24,7 @@ semantic-links:
     - docs/features/shutdown-process/task-inventory.md
     - docs/issues/closed/2234-1488-si-2-remove-global-shutdown-signal/ISSUE.md
     - docs/issues/closed/2274-1488-si-10-add-token-aware-axum-drain-helper/ISSUE.md
-    - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
+    - docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md
 ---
 
 <!-- skill-link: create-issue -->

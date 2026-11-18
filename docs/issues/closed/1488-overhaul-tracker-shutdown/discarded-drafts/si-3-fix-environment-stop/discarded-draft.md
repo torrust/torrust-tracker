@@ -7,7 +7,7 @@
 >
 > **Retention**: This draft was never opened as a GitHub issue. It is kept as an
 > artifact of EPIC #1488, evidence of a decision taken during the EPIC (see
-> [Discarded Drafts](../../ISSUE.md#discarded-drafts)). It is not deleted in the EPIC
+> [Discarded Drafts](../../EPIC.md#discarded-drafts)). It is not deleted in the EPIC
 > close-out. It moved here from `docs/issues/drafts/` and lost its frontmatter, because
 > a specification in `docs/issues/open/` is validated as a live spec; git history has
 > the original.

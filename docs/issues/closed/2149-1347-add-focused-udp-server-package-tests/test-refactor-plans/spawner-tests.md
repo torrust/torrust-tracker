@@ -9,7 +9,7 @@ semantic-links:
     - packages/udp-server/src/server/spawner.rs
     - packages/udp-server/src/server/launcher.rs
     - packages/udp-server/src/server/states.rs
-    - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
+    - docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md
     - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md
     - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/ISSUE.md
 ---

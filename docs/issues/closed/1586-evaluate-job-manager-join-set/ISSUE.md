@@ -7,7 +7,7 @@ github-issue: 1586
 spec-path: docs/issues/closed/1586-evaluate-job-manager-join-set/ISSUE.md
 branch: 1586-evaluate-job-manager-join-set
 related-pr: null
-last-updated-utc: 2026-09-11
+last-updated-utc: "2026-11-18 17:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -17,8 +17,8 @@ semantic-links:
     - docs/features/shutdown-process/README.md
     - docs/features/shutdown-process/questions.md
     - docs/features/shutdown-process/task-inventory.md
-    - docs/issues/open/1488-overhaul-tracker-shutdown/discarded-drafts/si-6-align-grace-periods/discarded-draft.md
-    - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
+    - docs/issues/closed/1488-overhaul-tracker-shutdown/discarded-drafts/si-6-align-grace-periods/discarded-draft.md
+    - docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md
 ---
 
 <!-- skill-link: create-issue -->
