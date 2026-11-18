@@ -56,41 +56,78 @@ pub async fn make_rust_tls(tls_config: &TlsConfig) -> Result<RustlsConfig, Error
 
 #[cfg(test)]
 mod tests {
-    use std::fs;
-    use std::time::{SystemTime, UNIX_EPOCH};
+    use std::io::Write;
+    use std::panic::{AssertUnwindSafe, catch_unwind};
+    use std::path::PathBuf;
 
     use camino::Utf8PathBuf;
+    use tempfile::NamedTempFile;
     use torrust_tracker_configuration::v3_0_0::tls::TlsConfig;
 
     use super::{Error, make_rust_tls};
 
-    fn make_temp_file(prefix: &str, content: &str) -> Utf8PathBuf {
-        let nanos = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .expect("system time should be later than epoch")
-            .as_nanos();
-        let path = std::env::temp_dir().join(format!("{prefix}-{nanos}.pem"));
-        fs::write(&path, content).expect("it should write temporary test file");
+    /// Writes `content` to a new `<prefix><random>.pem` file in the system temporary directory.
+    ///
+    /// The returned guard removes the file when it is dropped, also when the test holding it fails.
+    fn make_temp_file(prefix: &str, content: &str) -> NamedTempFile {
+        let mut file = tempfile::Builder::new()
+            .prefix(prefix)
+            .suffix(".pem")
+            .tempfile()
+            .expect("it should create a temporary test file");
+        file.write_all(content.as_bytes())
+            .expect("it should write the temporary test file");
+        file
+    }
 
-        Utf8PathBuf::from_path_buf(path).expect("temporary test file path should be UTF-8")
+    fn utf8_path(file: &NamedTempFile) -> Utf8PathBuf {
+        Utf8PathBuf::from_path_buf(file.path().to_path_buf()).expect("temporary test file path should be UTF-8")
     }
 
     #[tokio::test]
     async fn it_should_error_on_bad_tls_config() {
-        let cert_path = make_temp_file("bad-cert", "not a valid certificate");
-        let key_path = make_temp_file("bad-key", "not a valid private key");
+        let cert_file = make_temp_file("bad-cert", "not a valid certificate");
+        let key_file = make_temp_file("bad-key", "not a valid private key");
 
         let err = make_rust_tls(&TlsConfig {
-            ssl_cert_path: cert_path.clone(),
-            ssl_key_path: key_path.clone(),
+            ssl_cert_path: utf8_path(&cert_file),
+            ssl_key_path: utf8_path(&key_file),
         })
         .await
         .expect_err("bad_cert_and_key_files");
 
-        fs::remove_file(cert_path).expect("it should remove temporary cert file");
-        fs::remove_file(key_path).expect("it should remove temporary key file");
-
         assert!(matches!(err, Error::BadTlsConfig { source: _ }));
+    }
+
+    #[test]
+    fn it_should_remove_the_temporary_file_when_its_guard_is_dropped() {
+        // Arrange
+        let file = make_temp_file("dropped", "content");
+        let path = file.path().to_path_buf();
+
+        // Act
+        drop(file);
+
+        // Assert
+        assert!(!path.exists(), "{} should have been removed", path.display());
+    }
+
+    #[test]
+    fn it_should_remove_the_temporary_file_when_the_test_using_it_fails() {
+        // Arrange
+        let mut path: Option<PathBuf> = None;
+
+        // Act
+        let outcome = catch_unwind(AssertUnwindSafe(|| {
+            let file = make_temp_file("failing-test", "content");
+            path = Some(file.path().to_path_buf());
+            panic!("a test that fails while it holds the file");
+        }));
+
+        // Assert
+        assert!(outcome.is_err(), "the closure stands for a failing test, so it should panic");
+        let path = path.expect("the file was created before the panic");
+        assert!(!path.exists(), "{} should have been removed", path.display());
     }
 
     #[tokio::test]

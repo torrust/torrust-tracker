@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2907-2392-remove-leaked-test-temporary-files/ISSUE.md
-last-updated-utc: "2026-11-18 10:06"
+last-updated-utc: "2026-11-18 11:08"
 ---
 
 # Manual Verification Evidence
@@ -173,6 +173,72 @@ with the file when the test ends, also when it fails. The one causal initial sta
 not exist yet"; there is no fixture; the production Act (`save_to_file`) and the expected TOML are
 visible. The old test's leftover comments and the `default_configuration` variable that only named
 `Configuration::default()` were removed.
+
+### T4 - TLS test files
+
+- Goal: the PEM files of the TLS tests are removed when the test ends, also when it fails (AC2,
+  AC3).
+- Change: `make_temp_file` in `packages/axum-server/src/tls.rs` returns a `tempfile::NamedTempFile`
+  (built with `tempfile::Builder::new().prefix(prefix).suffix(".pem")`) instead of a path. The test
+  keeps the guard, and the two `fs::remove_file` calls that only ran when `make_rust_tls` returned
+  the expected error are gone. `tempfile` is a new dev-dependency of `torrust-tracker-axum-server`.
+- New tests: `it_should_remove_the_temporary_file_when_its_guard_is_dropped` (AC2) and
+  `it_should_remove_the_temporary_file_when_the_test_using_it_fails` (AC3).
+- Toolchain: stable, `rustc 1.99.1 (58cf8f9c3 2026-10-13)`; `cargo +nightly fmt` for formatting.
+- Status: `DONE`
+
+#### Red Before the Change
+
+At 2026-11-18 10:08:37 UTC, the AC3 test was first written against the old helper, which returned a
+`Utf8PathBuf`: a closure creates a file through `make_temp_file`, keeps its path, and panics, as a
+failing test would. Then the test asserts the path is gone.
+
+```bash
+T=$(mktemp -d)
+TMPDIR=$T cargo +stable test -p torrust-tracker-axum-server --all-features --lib tls::tests
+ls -A "$T"
+```
+
+Result: `it_should_remove_the_temporary_file_when_the_test_using_it_fails ... FAILED` at its final
+assertion (`tls.rs:105`), 2 other tests passed, and `TMPDIR` held
+`failing-test-1794996525401726262.pem`.
+
+#### Green After the Change
+
+At 2026-11-18 10:09:01 UTC, the same command: 4 passed, 0 failed
+(`it_should_error_on_bad_tls_config`, `it_should_error_on_missing_cert_or_key_paths` and the two new
+tests), and `TMPDIR` was empty. `cargo +stable clippy -p torrust-tracker-axum-server
+-p torrust-tracker-configuration --all-targets --all-features -- -D warnings` exited `0`.
+
+The AC3 test prints the expected panic message of its stand-in failing test
+(`a test that fails while it holds the file`) in the captured output; the test still passes. It does
+not install a panic hook to hide the message, because a hook is process-global state.
+
+#### Test-Design Review (Prose-First Arrange-Act-Assert)
+
+`it_should_remove_the_temporary_file_when_its_guard_is_dropped`:
+
+- Arrange: a temporary PEM file exists, held by the guard `make_temp_file` returned; remember its
+  path.
+- Act: drop the guard.
+- Assert: nothing exists at that path any more.
+
+`it_should_remove_the_temporary_file_when_the_test_using_it_fails`:
+
+- Arrange: no file exists yet; prepare a place to remember the path the failing test creates.
+- Act: run a stand-in test that creates a file through `make_temp_file` and panics while it holds
+  the guard; catch the panic.
+- Assert: the stand-in test did fail, and nothing exists at the path it created.
+
+`it_should_error_on_bad_tls_config` (changed, not new): its Arrange still creates an invalid
+certificate and key, its Act and Assert are unchanged; it only stops removing the files itself.
+
+Result: the code states each paragraph, so the prose was removed. The causal initial state of each
+new test is visible in the test: a held guard for the first, a panic while the guard is held for the
+second. The helper hides only incidental mechanics (the builder, the write), and the expected result
+("the path no longer exists") is checked against the file system, not derived from the helper.
+`utf8_path` is a one-line conversion kept as a helper because the two `TlsConfig` fields need it
+and its name says what it does.
 
 ## Failures and Follow-up
 

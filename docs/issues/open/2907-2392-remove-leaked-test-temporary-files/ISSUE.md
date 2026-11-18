@@ -9,7 +9,7 @@ github-issue: 2907
 spec-path: docs/issues/open/2907-2392-remove-leaked-test-temporary-files/ISSUE.md
 branch: "2907-2392-remove-leaked-test-temporary-files"
 related-pr: null
-last-updated-utc: "2026-11-18 10:06"
+last-updated-utc: "2026-11-18 11:08"
 semantic-links:
   skill-links:
     - create-issue
@@ -146,7 +146,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1 | DONE | Reproduce with a fresh `TMPDIR` | Before-counts recorded (V1): 2 `test_config_*.toml`, 0 PEM, 301 `data_*.db` at `develop` `61e3fedcf` (evidence file, "V1 repeated by T1"). |
 | T2 | DONE | Confirm the two designs | The maintainer confirmed the TOML and TLS designs above on 2026-11-18. |
 | T3 | DONE | Configuration-file tests | Files removed when the test ends (focused run: 1 file before, 0 after); test-design review recorded in the evidence file. |
-| T4 | TODO | TLS test files | Files removed on failure too; test-design review recorded before T5. |
+| T4 | DONE | TLS test files | Red then green recorded; test-design review recorded in the evidence file; the maintainer approved the tests of T3 and T4 on 2026-11-18. |
 | T5 | TODO | Recheck | No `test_config_*.toml` and no PEM file after the suite (V2); `linter all` passes. |
 
 ## Commit Points
@@ -199,6 +199,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   tests in `packages/configuration/src/lib.rs` call `clear_env()`, which removes `TMPDIR` from the
   whole process while they run, so a parallel test can write to `/tmp` instead. Recorded in the
   evidence file and reported to the EPIC coordinator; out of this issue's scope.
+- 2026-11-18 11:08 UTC - Claude Code (Claude Opus 5.5), #2907 session - T4 done: `make_temp_file`
+  returns a `NamedTempFile`; the AC3 regression test was red against the old helper (it left
+  `failing-test-<nanoseconds>.pem`) and is green now, with a new AC2 drop test. The maintainer
+  reviewed and approved the tests of T3 and T4.
 
 ## Acceptance Criteria
 

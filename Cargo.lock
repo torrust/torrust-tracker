@@ -5086,6 +5086,7 @@ dependencies = [
  "camino",
  "hyper-util",
  "rustls",
+ "tempfile",
  "thiserror 2.0.21",
  "tokio",
  "tokio-rustls",
