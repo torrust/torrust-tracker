@@ -1,7 +1,7 @@
 ---
 pr-number: 2920
 pr-url: https://github.com/torrust/torrust-tracker/pull/2920
-last-updated-utc: "2026-11-18 14:13"
+last-updated-utc: "2026-11-18 14:15"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -352,6 +352,7 @@ that carried the round 5 audit. Their fixes are in the follow-up pull request #2
 - 2026-11-18 11:52 UTC - Correction to the round 6 entry, after the review `5956009614` of `da2ce7` on pull request #2942. Its sentence "It was pushed right after, with this entry" was written before the push it states, in the commit that the push carried. The push did happen: `git ls-remote` showed the fork branch at the head `docs(pr-reviews): [#2904] record the late review of PR #2920 and correct the verification of F15` at 11:36:42Z (`date -u`). The entry's last words, "until it merges", mean until pull request #2942 merges.
 - 2026-11-18 13:44 UTC - Pull request #2942, the follow-up of F16 to F19, merged at 2026-11-18 13:43:25Z (forge `mergedAt`, merge commit `fe32c7858`), so their fixes are on `develop`. The four rows are now `FIXED`, each with its fixing commit's subject as resolution reference. The replies that say so were posted between 13:43:55Z and 13:44:03Z (forge `created_at`), after the merge. The four threads are resolved by their thread IDs after this record is pushed.
 - 2026-11-18 14:13 UTC - Correction to the 13:44 entry, after the review `5958211073` of `da2ce7` on pull request #2948. The change F16 asked for was made by `docs(pr-reviews): [#2904] record the late review of PR #2920 and correct the verification of F15`; the reword commit the row cited only reorders that corrected line. The row of F16 now cites both, the correction first, so "each with its fixing commit's subject" in that entry holds.
+- 2026-11-18 14:15 UTC - Step 6 of Reviews Submitted After Merge, completed. The record of the 13:44 entry was pushed to the branch of pull request #2948 (`git ls-remote` showed the fork branch at the local head at 13:48:59Z, `date -u`). The four threads of F16 to F19 were then resolved by their thread IDs, by 13:49:23Z (`date -u`); a GraphQL refresh then showed 0 unresolved threads on pull request #2920, and a refresh at the time of this entry shows 0.
 
 <!-- Copied verbatim into each audit record. -->
 
