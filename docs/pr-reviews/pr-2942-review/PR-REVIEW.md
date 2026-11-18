@@ -1,7 +1,7 @@
 ---
 pr-number: 2942
 pr-url: https://github.com/torrust/torrust-tracker/pull/2942
-last-updated-utc: "2026-11-18 12:03"
+last-updated-utc: "2026-11-18 12:16"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -54,8 +54,8 @@ without IDs, recorded as F7 and F8) on the head before it, with the fix of F20 o
 | F3 | `review-finding:pr-2942-f3` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F4 | `review-finding:pr-2942-f4` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F5 | `review-finding:pr-2942-f5` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
-| F6 | `review-finding:pr-2942-f6` | Human | Suggestion | metadata | ORIGINAL | NO_ACTION | RESOLVED |
-| F7 | `review-finding:pr-2942-f7` | Copilot | Nit (inferred) | formatting | ORIGINAL | NO_ACTION | RESOLVED |
+| F6 | `review-finding:pr-2942-f6` | Human | Suggestion | metadata | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F7 | `review-finding:pr-2942-f7` | Copilot | Nit (inferred) | formatting | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F8 | `review-finding:pr-2942-f8` | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
@@ -145,8 +145,8 @@ without IDs, recorded as F7 and F8) on the head before it, with the fix of F20 o
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2942#discussion_r4613449769
 - Concern: The Ownership line of the audit of pull request 2920 gives one time as `09:58 UTC` and another as `11:26:15Z`; Copilot suggests one notation throughout.
-- Solution: No change. The record uses `HH:MM UTC` for stated or approximate times and `HH:MM:SSZ` for times copied from a forge field or a command, in every entry and in the audit of pull request 2905; this line has one of each kind.
-- Current-tree verification: The Ownership line of the audit of pull request 2905 uses the same two forms for the same two kinds of time.
+- Solution: No change. The Ownership lines of the audits of pull requests 2905 and 2920 both use `HH:MM UTC` for a time the maintainer stated and `HH:MM:SSZ` for the comment's `created_at`; this line follows them. The records are not uniform elsewhere: the audit of pull request 2905 writes the forge `mergedAt` of pull request 2920 as `09:54:45 UTC` twice, where the audit of pull request 2920 writes `09:54:45Z`. The first reply on this thread claimed the convention held in every entry; a second reply corrects that.
+- Current-tree verification: The Ownership lines of both audits use the two forms as stated; `grep -n "09:54:45 UTC"` on `docs/pr-reviews/pr-2905-review/PR-REVIEW.md` prints lines 363 and 404.
 - Resolution reference: https://github.com/torrust/torrust-tracker/pull/2942#discussion_r4613562532
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2942#discussion_r4613562532
@@ -170,6 +170,7 @@ without IDs, recorded as F7 and F8) on the head before it, with the fix of F20 o
 - 2026-11-18 11:59 UTC - Round 1: the approving review `5956009614` of `da2ce7` (submitted 11:51:24Z, forge `submitted_at`) with six findings. The fixes of F1, F2 and F3 were committed between 11:52:17Z and 11:55:15Z (`git log --format=%cI`, in UTC) and pushed; `git ls-remote` showed the fork branch at the local head at 11:58:05Z (`date -u`). The description was edited and the conversation response for F4 and F5 posted at 11:58:18Z, and the six replies were posted between 11:58:27Z and 11:58:38Z (forge `created_at`), after the push. F6 is `NO_ACTION`: the reviewer asked for no change here.
 - 2026-11-18 12:03 UTC - Resolved the six threads of F1 to F6 by their thread IDs at 12:00:41Z (`date -u`), each with its reply as the last comment and its fix pushed or, for F4, F5 and F6, stated.
 - 2026-11-18 12:03 UTC - Copilot's review `5956016204` (submitted 11:51:50Z, forge `submitted_at`), found after the first entries were written, with two comments, recorded as F7 and F8. The reply to F7, which needs no change, was posted at 12:00:42Z. The fix of F8 was committed at 11:59:47Z (`git log --format=%cI`, in UTC) and pushed; `git ls-remote` showed the fork branch at the local head at 12:02:26Z (`date -u`), and the reply was posted at 12:02:32Z (forge `created_at`), after the push. `validate-audit-record.py --pr-number 2942 --base torrust/develop`, with its `gh` calls made through `gh-bot`, exited 0 (8 rows, 0 failures). Resolved the two threads of F7 and F8 by their thread IDs at 12:03:04Z; a GraphQL refresh showed 0 unresolved threads.
+- 2026-11-18 12:16 UTC - Correction to the entries above, after the review `5956340268` of `da2ce7`. The rows of F6 and F7 were `NO_ACTION`/`RESOLVED` with replies that start "No change"; this record's rules pair a no-change in-PR thread with the reply `Superseded by <FindingId>: <reason>.` and `NO_ACTION`/`SUPERSEDED`, so the rows are now `SUPERSEDED` and each thread gets that reply. The Solution of F7 claimed a notation convention that two lines of the audit of pull request 2905 break; it is narrowed. The six threads of F1 to F6 were resolved at 12:00:41Z, before the only validator run, which covered 8 rows and so ran after the rows of F7 and F8 existed: `process-pr-review` (Validation Script) runs the validator before resolving any thread.
 
 <!-- Copied verbatim into each audit record. -->
 
