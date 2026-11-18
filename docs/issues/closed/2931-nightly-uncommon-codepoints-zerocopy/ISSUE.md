@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: in-progress
+status: done
 priority: p1
 epic: null
 github-issue: 2931
-spec-path: docs/issues/open/2931-nightly-uncommon-codepoints-zerocopy/ISSUE.md
+spec-path: docs/issues/closed/2931-nightly-uncommon-codepoints-zerocopy/ISSUE.md
 branch: "2931-nightly-uncommon-codepoints-zerocopy"
-related-pr: null
-last-updated-utc: "2026-11-18 07:54"
+related-pr: 2932
+last-updated-utc: "2026-11-18 08:57"
 semantic-links:
   skill-links:
     - create-issue
@@ -133,22 +133,23 @@ the red/green evidence is the `cargo check` run recorded in `manual-verification
 ### Workflow Checkpoints
 
 - [x] Folder-style spec drafted in `docs/issues/open/2931-nightly-uncommon-codepoints-zerocopy/ISSUE.md`
-- [ ] Spec reviewed and approved by user/maintainer (review happens in the PR)
+- [x] Spec reviewed and approved by user/maintainer (reviewed in PR #2932)
 - [x] GitHub issue created and issue number added to this spec (#2931)
 - [x] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded
+- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
 - 2026-11-18 07:51 UTC - Claude Code (Claude Opus 5.5) - Drafted the spec and recorded the red
   reproduction on `nightly-2026-11-17` and `nightly-2026-11-18` - `manual-verification-evidence.md` V1
 - 2026-11-18 07:54 UTC - Claude Code (Claude Sonnet 5.5) - Added the crate-level allow; green run on nightly-2026-11-18 (crate and workspace), stable and 1.88 - `manual-verification-evidence.md` V2
+- 2026-11-18 08:57 UTC - Claude Code (Claude Sonnet 5.5) - PR #2932 merged and issue #2931 closed on 2026-11-18 08:56 UTC; archived the spec to `docs/issues/closed/`. In the PR CI the three nightly Build jobs and `Unit (nightly)` passed; `Package Coverage (torrust-tracker-udp-protocol)` failed only because its base report builds `develop`, which did not yet have the fix. Copilot reviewed with no findings.
 
 ## Acceptance Criteria
 
@@ -157,8 +158,8 @@ the red/green evidence is the `cargo check` run recorded in `manual-verification
 - [x] AC3: the crate still builds on stable and on the MSRV (1.88).
 - [x] AC4: the allow is crate-level in `torrust-tracker-udp-protocol` only, with a comment naming
       the cause, the upstream link and the removal condition.
-- [ ] AC5: the nightly jobs of the PR's CI pass.
-- [ ] `linter all` exits with code `0`
+- [x] AC5: the nightly jobs of the PR's CI pass.
+- [x] `linter all` exits with code `0`
 - [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
 
 ## Verification Plan
@@ -184,7 +185,7 @@ the red/green evidence is the `cargo check` run recorded in `manual-verification
 | AC2   | DONE   | V2       |
 | AC3   | DONE   | V2       |
 | AC4   | DONE   | PR diff  |
-| AC5   | TODO   | PR CI    |
+| AC5   | DONE   | PR CI    |
 
 ## Risks and Trade-offs
 
@@ -196,7 +197,7 @@ the red/green evidence is the `cargo check` run recorded in `manual-verification
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: not needed. The implementation matched the specification; the only surprises were process details (cspell on raw build output, `status: open` not being a valid frontmatter value), neither material to the design.
 
 ## References
 
