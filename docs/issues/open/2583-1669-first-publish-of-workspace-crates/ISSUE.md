@@ -187,7 +187,7 @@ publishes it.
 
 The first publish of a crate starts only when all of these hold. Prerequisites 1, 2, 3 and 5
 apply to every crate; prerequisites 4 and 6 are per crate, so crates become publishable at
-different times, always in checklist order:
+different times, always in dependency order (every dependency and dev-dependency first):
 
 1. **#2482 is closed.** The test-support reorganisation can change public APIs (server
    `testing`/`environment` modules, `test-helpers`, `Mock*` types in `tracker-core`), change
@@ -218,8 +218,8 @@ different times, always in checklist order:
 - Bringing the package publish procedure up to date before the first publish (T2).
 - For each crate whose version changes: a small pull request that sets its version and every
   dependent's `version` requirement, right before its publish.
-- Publishing each crate through `deployment-packages.yaml`, one at a time, in checklist order, with
-  a signed `pkg/<crate>/v<semver>` tag.
+- Publishing each crate through `deployment-packages.yaml`, one at a time, in dependency order
+  (every dependency and dev-dependency first), with a signed `pkg/<crate>/v<semver>` tag.
 - Checking each publish on crates.io and docs.rs, including that the README links #2576 recorded
   as pending (each crate's own docs.rs page) now resolve.
 - Making `josecelano` and `da2ce7` the crates.io owners of each newly published crate.
@@ -243,7 +243,9 @@ different times, always in checklist order:
 
 Order is dependency order, leaves first, counting normal, build and dev-dependencies between
 workspace crates (it matches the order `cargo package --workspace` used). Crates in the same level
-do not depend on each other and can go in any order within the level. "Depends on" and
+do not depend on each other and can go in any order within the level. The row and level numbers
+only present that order: a crate waits for the crates it depends on or dev-depends on, not for
+every crate in an earlier row or level. "Depends on" and
 "Dev-depends on" drop the `torrust-tracker-` prefix. The root crate (level 9) is not listed: it
 depends on 15 of these crates and is published by the tracker release after all of them.
 
@@ -293,7 +295,7 @@ when a #1347 sub-issue is created or closed; EPIC #1347 owns the sub-issues them
 
 ## Per-Crate Publish Procedure
 
-For each crate, in checklist order, follow
+For each crate, in dependency order (every dependency and dev-dependency first), follow
 [Publishing a Workspace Package](../../../release-process/workspace-packages.md#publishing-a-workspace-package)
 (the `deployment-packages.yaml` path), as updated by T2. In short, without repeating that
 document:
@@ -344,7 +346,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2 | TODO | Bring the publish procedure up to date | Not blocked. The release-process spec #2808 already fixed the pre-publish defects: the `pkg/...` push from `torrust/main` is gone, the tag is created on the published commit, and the `release-new-version` crate list and every-package version bump are gone. What remains for this issue is to confirm the procedure in `docs/release-process/workspace-packages.md` fits the first publish (publish order, and each crate's version together with its dependents' `version` requirements in one commit), and to fix any gap found there. |
 | T3 | BLOCKED | Wait for the prerequisites | For every crate: #2482 closed (done), #2576 merged (done), #1488 closed, the rest of the EPIC's API work done. Per crate: its "Testing (#1347)" gate `MET` and its dependencies `PUBLISHED`; #2582 closed (done) before row 21. EPIC #1347 does not need to close as a whole. |
 | T4 | BLOCKED | Check the checklist again | Re-run the checks in "Facts checked" (crate set, order, crates.io names, versions, `cargo package --workspace --no-verify`) and update the checklist; record them in `manual-verification-evidence.md`. Decide the `test-helpers` version against its published 3.0.0 API. |
-| T5 | BLOCKED | Publish each crate in checklist order | One crate at a time with the per-crate procedure; each row `PUBLISHED` with date and evidence. A crate is published when its own gates are met; the task does not wait for every crate's testing gate before the first publish. |
+| T5 | BLOCKED | Publish each crate in dependency order | One crate at a time with the per-crate procedure; each row `PUBLISHED` with date and evidence. Dependency order means every dependency and dev-dependency first, not row or level order. A crate is published when its own gates are met; the task does not wait for every crate's testing gate before the first publish. |
 | T6 | BLOCKED | Hand over | Tell the client-extraction issue (#2594) that `client-lib`, `http-protocol` and `udp-protocol` are published, and the next tracker release that every library crate is published and the root crate owes 4.0.0. |
 | T7 | BLOCKED | Verify and review acceptance criteria | Automatic checks and manual scenarios recorded; acceptance criteria re-reviewed. |
 
