@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2931-nightly-uncommon-codepoints-zerocopy/ISSUE.md
-last-updated-utc: 2026-11-18 07:54
+issue-spec: docs/issues/closed/2931-nightly-uncommon-codepoints-zerocopy/ISSUE.md
+last-updated-utc: 2026-11-18 08:57
 ---
 
 # Manual Verification Evidence
@@ -97,8 +97,7 @@ stable (-p torrust-tracker-udp-protocol):             Finished ... exit: 0
 #### Conclusion
 
 The same command that gave 17 errors in V1 now succeeds on `nightly-2026-11-18`, and nothing else in the
-workspace fails on that nightly. Stable and the MSRV still build. The CI nightly jobs of the PR are the
-final check (AC5).
+workspace fails on that nightly. Stable and the MSRV still build. In the PR CI (#2932) the nightly Build jobs on ubuntu, windows and macOS and `Unit (nightly)` passed (AC5).
 
 ## Failures and Follow-up
 
