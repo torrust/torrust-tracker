@@ -9,7 +9,7 @@ github-issue: 2770
 spec-path: docs/issues/open/2770-2758-close-out-adr-and-epic/ISSUE.md
 branch: "2770-close-out-adr-and-epic"
 related-pr: null
-last-updated-utc: "2026-11-09 12:12"
+last-updated-utc: "2026-11-18 19:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -43,6 +43,8 @@ The global CLI output contract (`docs/adrs/20260519000000_define_global_cli_outp
 - Update the ADR table notes to match the final state.
 - Update the EPIC spec: statuses, acceptance verification, progress log; move it to `docs/issues/closed/`.
 - Repair every live reference to the EPIC's old path: the child specs (open or closed) cite `docs/issues/open/2758-cli-output-contract-tools-migration/EPIC.md` in their `semantic-links.related-artifacts`, and the frontmatter validator reports a moved file as missing. Update them in the same PR as the move, and run the frontmatter validator to confirm.
+- Update the `http_health_check` row of the ADR binary table: it is still marked currently non-compliant, but #2764 (PR 2889) made it `no-stdout-result` with NDJSON on stderr. Do the same check for every other row against the merged children (#2761, #2762, #2764, #2765 and the later ones).
+- Record the leftovers of the merged children that the audit must account for: the untested write-failure path of `http_health_check` (exit code kept when the stderr write fails; verified by reading the code only, #2764) and the full-log versus excerpt choice of the e2e checker helper (finding F28 of the PR 2901 audit, left to the maintainer). Each is fixed elsewhere or recorded with an issue; this issue changes no code.
 - Verify with a fresh audit that no in-scope tool is non-compliant, or that the leftover is recorded with an issue.
 
 ### Out of Scope
@@ -116,6 +118,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-06 16:52 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the spec; GitHub issue #2770 created.
 - 2026-11-09 10:25 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the review rounds on PR 2771 and PR 2774 and fixed the earlier log stamps from the commit and issue creation times.
 - 2026-11-09 12:12 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the review of PR 2771 (da2ce7 findings F1 to F27 and Copilot's later comments): specs corrected from the code, reproductions recorded where a spec has a bug-fix section.
+- 2026-11-18 19:25 UTC - Claude Code (Claude Sonnet 5.5) - Added the ADR `http_health_check` note and the leftovers of #2764 and #2765 to the scope.
 
 ## Acceptance Criteria
 
