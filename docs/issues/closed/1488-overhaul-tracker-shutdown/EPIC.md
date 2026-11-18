@@ -6,7 +6,7 @@ epic: null
 github-issue: 1488
 spec-path: docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-18 17:25"
+last-updated-utc: "2026-11-18 19:07"
 semantic-links:
   skill-links:
     - create-issue
@@ -112,16 +112,16 @@ time; each item ends with its final status at the close of the EPIC
    (#2801) removed it; SI-26 (#2845) migrated the last legacy job.
 3. **Torrent cleanup and activity metrics ignore `CancellationToken`** — they
    listen for `ctrl_c` directly instead of using the shared token.
-   **Status: fixed** by SI-4 (#2169) and #2221.
+   **Status: fixed** by SI-4 (#2169) and SI-5 (#2221).
 4. **Grace period mismatch** — `JobManager` waits 10s per job sequentially and
    force-aborts timed-out wrappers, while Axum servers have a 90s graceful
    shutdown with detached drain controllers. **Status: fixed**: #1586
-   made `JobManager` wait concurrently under one deadline, #2274 made the
+   made `JobManager` wait concurrently under one deadline, SI-10 (#2274) made the
    Axum drain joinable, and SI-20 (#2668) replaced the 90s drain and the 10s
    deadline with configured budgets that the startup validation keeps
    consistent (defaults 15s and 25s).
 5. **No graceful UDP shutdown** — the UDP server simply aborts its main loop.
-   **Status: fixed** by #2342 and #2370.
+   **Status: fixed** by SI-14 (#2342) and SI-15 (#2370).
 6. **Hardcoded timeouts** — grace periods are magic numbers with no configuration
    surface. **Status: fixed** by SI-20 (#2668), which adds the
    `[application.shutdown]` configuration section.
@@ -129,7 +129,7 @@ time; each item ends with its final status at the close of the EPIC
    logs exist, but the supervisor has no concurrent aggregate outcomes or
    complete component-level drain progress. **Status: fixed**: #1586
    added concurrent named outcomes, the migrated components log their drains,
-   and SI-22 (#2414) added the listener drain logs. The manager logs which
+   and SI-22.2 (#2414) added the listener drain logs. The manager logs which
    component is asked to stop and what each waiting component waits for, and
    SI-20 (#2668) made the final log line and the exit code name the components
    that did not stop gracefully. The periodic "still running" progress report
