@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p1
 epic: 2003
 github-issue: 2904
 spec-path: docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md
-branch: "2904-migrate-custom-agents-to-claude-code-spec"
+branch: "2904-t2-pointer-claude-md"
 related-pr: null
-last-updated-utc: "2026-11-17 16:07"
+last-updated-utc: "2026-11-17 18:34"
 semantic-links:
   skill-links:
     - create-issue
@@ -516,8 +516,8 @@ on are merged.
 
 | ID  | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
-| T1  | TODO   | Specification pull request | This specification in `docs/issues/open/`, and a new row in the EPIC's Subissues table |
-| T2  | TODO   | Pointer `CLAUDE.md` | A root `CLAUDE.md` whose only content is the import of `AGENTS.md` (D11); if scenario M4 shows that a scoped `AGENTS.md` is not loaded, an import-only `CLAUDE.md` beside each of the ten scoped `AGENTS.md` files; scenario M4 recorded |
+| T1  | DONE   | Specification pull request | This specification in `docs/issues/open/`, and a new row in the EPIC's Subissues table |
+| T2  | DONE   | Pointer `CLAUDE.md` | A root `CLAUDE.md` whose only content is the import of `AGENTS.md` (D11); if scenario M4 shows that a scoped `AGENTS.md` is not loaded, an import-only `CLAUDE.md` beside each of the ten scoped `AGENTS.md` files; scenario M4 recorded |
 | T3  | TODO   | Reply schema and validator | `docs/schemas/agent-reply-v1.schema.json`; the validator with tests, developed in the progressive loop of the `write-unit-test` skill with a recorded design review per increment, and run by the repository checks; `docs/schemas/README.md` updated (D18) |
 | T4  | TODO   | `pr-review-handler` | `.claude/agents/pr-review-handler.md` with the pinned model; `wait-for-pr-review` and `process-pr-review` say which agent runs a round; the inventory `removed-profile-rules.md` created in this folder with the rules of `copilot-suggestions-handler` (AC6); scenarios M1 to M3 recorded |
 | T5  | TODO   | `task-reviewer` | The agent file with the pinned model and the stop hook (D17), with tests of its limit of 3 refusals; the complexity item in `review-task` (D12); the reply rule in `review-task`, which also says that a reply file satisfies the earlier template's checkpoint (D18); scenario M7 recorded |
@@ -525,7 +525,7 @@ on are merged.
 | T7  | TODO   | `pr-reviewer` | The agent file with the pinned model; the reply rule in `review-pr` |
 | T8  | TODO   | `researcher` | The agent file |
 | T9  | TODO   | `orchestrator` | The agent file; `docs/agents/orchestration.md` rewritten for the orchestrator-led flow, with the 3-round limit; the issue template checkpoints; scenario M5 recorded |
-| T10 | TODO   | End of `.github/agents/` | `.github/agents/` removed, with the rules of the `agent-review-report-contract` check that name the profiles and `docs/templates/AGENT-REVIEW-REPORTS.md`; the rest of that check kept and passing; the one-commit-per-lint rule in `fix-clippy-warnings`; the inventory `removed-profile-rules.md` completed for all ten profiles (AC6); `AGENTS.md`, `docs/agents/README.md`, `docs/templates/AGENT-REVIEW-REPORTS.md`, the `frontmatter-validator` rule and the governance ADR updated; the new ADR, and the ADR-move item added to the scope of the harness-workspace draft (D10) |
+| T10 | TODO   | End of `.github/agents/` | `.github/agents/` removed, with the rules of the `agent-review-report-contract` check that name the profiles and `docs/templates/AGENT-REVIEW-REPORTS.md`; the rest of that check kept and passing; the one-commit-per-lint rule in `fix-clippy-warnings`; the inventory `removed-profile-rules.md` completed for all ten profiles (AC6); `AGENTS.md`, `docs/agents/README.md`, `docs/templates/AGENT-REVIEW-REPORTS.md`, the `frontmatter-validator` rule and the governance ADR updated, with the line of ADR `20261116082711` that says there is no repository `CLAUDE.md`, which T2 made untrue; the new ADR, and the ADR-move item added to the scope of the harness-workspace draft (D10) |
 | T11 | TODO   | Measurement | Review rounds recorded for the first three pull requests handled by `pr-review-handler` (scenario M6); the pull requests of this issue count |
 | T12 | TODO   | Close-out pull request | Completion review, specification moved to `docs/issues/closed/`, EPIC row `DONE` |
 
@@ -575,7 +575,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - [x] Folder-style spec drafted in `docs/issues/drafts/2003-migrate-custom-agents-to-claude-code/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
+- [x] Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -598,6 +598,10 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - 2026-11-17 13:54 UTC - Claude Code (Claude Fable 5.2) - Addressed Copilot's review `5939656808` on pull request #2905 (two findings): T2 and M4 cover the ten scoped `AGENTS.md` files, and the `agent-review-report-contract` check keeps its pull-request audit rules.
 - 2026-11-17 15:23 UTC - Claude Code (Claude Fable 5.2) - Addressed the reviews `5939681382` and `5939862849` of `da2ce7` on pull request #2905 (one nit, one minor finding about the audit record): the review of T5 itself runs the `task-reviewer` agent on the T5 branch and writes a reply file, so this issue uses `agent-review-reports.md` for T2 to T4 and reply files for T5 to T12.
 - 2026-11-17 16:07 UTC - Claude Code (Claude Fable 5.2) - Addressed Copilot's review `5941597022` on pull request #2905 (two minor findings): AC10 exempts the forced run of M7 that ends without a reply file, and the EPIC records this issue's named models (D4, D13) as an approved exception to its Out of Scope item.
+- 2026-11-17 17:11 UTC - Claude Code (Claude Fable 5.2) - Pull request #2905 merged on 2026-11-17 at 16:52 UTC. Task T2: added the root `CLAUDE.md` and ran scenario M4. Any `CLAUDE.md` at the root or above stops Claude Code from loading the scoped `AGENTS.md` files, and a root `CLAUDE.md` restores only the root `AGENTS.md`, so the ten scoped pointer files of D11 were added too. With all eleven, the session and a started agent receive the root and the scoped rules in both checkouts. AC12 is met; evidence in `manual-verification-evidence.md` section V4.
+- 2026-11-17 17:19 UTC - Claude Code (Claude Fable 5.2) - Independent review of T2 recorded in `agent-review-reports.md` (REVIEW PASSED, two minor findings and four nits). Addressed: the evidence states which probes have recorded tool calls and that the probed files were committed afterwards; `status` is `in-progress` and `branch` names the T2 branch; the T10 row names the ADR line that T2 made untrue; the branch is rebased on `develop`.
+- 2026-11-17 17:45 UTC - Claude Code (Claude Fable 5.2) - Addressed the reviews `5943570147` of `da2ce7` and `5943581377` of Copilot on pull request #2920: `.dockerignore` re-excludes the pointer files; the evidence states what probes 1, 2 and 4 show, names its commands as run, and stores every probe's answer in `evidence/m4-probe-answers.md`; T1 is `DONE` and the EPIC row is `IN_PROGRESS`.
+- 2026-11-17 18:34 UTC - Claude Code (Claude Fable 5.2) - Addressed the approving review `5944190011` of `da2ce7` on pull request #2920 (two nits): the evidence records the correction to the description of checkout P, and the stored answers say which angle-bracket names are the probes' own.
 
 ## Acceptance Criteria
 
@@ -630,7 +634,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - [ ] AC11: The stop hook of `task-reviewer` refuses to let it finish without a valid reply file,
       and lets it finish on the fourth attempt, after 3 refusals, reporting that the limit was
       reached.
-- [ ] AC12: The root `CLAUDE.md` contains only the import of `AGENTS.md`, and a rule of a scoped
+- [x] AC12: The root `CLAUDE.md` contains only the import of `AGENTS.md`, and a rule of a scoped
       `AGENTS.md` reaches a session that reads a file in its directory (scenario M4).
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
@@ -661,7 +665,7 @@ Every scenario records the Claude Code version it ran on.
 | M1  | The agent files load | Start Claude Code with `--debug` in the repository; list the agents; search the debug output for ignored frontmatter | Every agent merged so far is listed; no key is reported as ignored | TODO | `manual-verification-evidence.md` section V1 |
 | M2  | The pinned model applies | Start `pr-review-handler` from a session running on a different model; record the model named in the agent's transcript file, not the one the agent says it is | The agent ran on the model in its frontmatter, with no fallback | TODO | `manual-verification-evidence.md` section V2 |
 | M3  | A real review round | On an open pull request with a submitted review, let the session that owns it delegate the round to `pr-review-handler` | Fixes committed and pushed, every thread replied to and then resolved, the audit record updated, `validate-audit-record.py` exits `0`, a short report returned | TODO | `manual-verification-evidence.md` section V3 |
-| M4  | `AGENTS.md` reaches the agents | In a checkout with a `CLAUDE.md` in a parent folder, and in one without, ask the session and one started agent which repository rules they were given; then make each read a file in `packages/configuration/` and ask for a rule that only `packages/configuration/AGENTS.md` holds | Both the session and the started agent received the root `AGENTS.md` in both cases, and the scoped rule after reading a file in that directory; each `CLAUDE.md` contains only an import | TODO | `manual-verification-evidence.md` section V4 |
+| M4  | `AGENTS.md` reaches the agents | In a checkout with a `CLAUDE.md` in a parent folder, and in one without, ask the session and one started agent which repository rules they were given; then make each read a file in `packages/configuration/` and ask for a rule that only `packages/configuration/AGENTS.md` holds | Both the session and the started agent received the root `AGENTS.md` in both cases, and the scoped rule after reading a file in that directory; each `CLAUDE.md` contains only an import | DONE | `manual-verification-evidence.md` section V4 |
 | M5  | The orchestrator leads | Start a session as the orchestrator on a small real task, once with `claude --agent orchestrator` and once by telling a normal session to read the file and take the role | It starts the implementer, then the task reviewer; each writes a valid reply file in `agent-replies/`; the implementer starts no agent; questions come back to the contributor through the orchestrator | TODO | `manual-verification-evidence.md` section V5 |
 | M6  | Review rounds per pull request | For the first three pull requests handled by `pr-review-handler`, count the review rounds with fixes | The counts are recorded with the model of each round, next to the baseline of pull request #2851 (14 rounds, split by model) | TODO | `manual-verification-evidence.md` section V6 |
 | M7  | The stop hook holds the reviewer | Start `task-reviewer` on a task, first with an instruction that makes it try to finish without a reply file, then normally | The hook refuses the first attempt and names what is missing; the agent then writes a valid reply file and finishes; a forced case shows 3 refusals and then the fourth attempt allowed, with the limit reported | TODO | `manual-verification-evidence.md` section V7 |
@@ -692,7 +696,7 @@ None planned.
 | AC9   | TODO                   |          |
 | AC10  | TODO                   |          |
 | AC11  | TODO                   |          |
-| AC12  | TODO                   |          |
+| AC12  | DONE                   | `manual-verification-evidence.md` section V4: probes 5 to 12 quote the root heading and the scoped rule in both checkouts, for the session and a started agent; `git ls-files \| grep -E '(^\|/)CLAUDE\.md$' \| xargs cat \| sort -u` prints only `@AGENTS.md` |
 
 ## Risks and Trade-offs
 
