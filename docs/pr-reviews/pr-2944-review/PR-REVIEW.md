@@ -235,7 +235,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4615783064
 - Concern: At the reviewed head the two threads of review 5958625555 were answered and resolved, but the record had no rows for them. `process-pr-review` records each finding with its reply URL before the thread is resolved.
 - Solution: Rows F8 and F9 with their details record that review, and the 14:37 Processing Log entry says that the threads were resolved before their rows were pushed. Rows F10 to F12 record review 5958719165.
-- Current-tree verification: `grep -c 'Source review ID: 5958625555' docs/pr-reviews/pr-2944-review/PR-REVIEW.md` prints 2.
+- Current-tree verification: `grep -c '^- Source review ID: 5958625555' docs/pr-reviews/pr-2944-review/PR-REVIEW.md` prints 2.
 - Resolution reference: docs(pr-reviews): [#2943] audit review round 5 of PR 2944 and log round 4
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4616679920
@@ -274,7 +274,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4615939307
 - Concern: The two threads of review 5958844326 were opened before the round 5 audit commit and had no reply, row or resolution. The record had stopped at the five-round limit.
 - Solution: On the maintainer's instruction both threads were answered (15:42:59Z and 15:43:01Z), rows F13 and F14 record them, and they are resolved in this round.
-- Current-tree verification: `grep -c 'Source review ID: 5958844326' docs/pr-reviews/pr-2944-review/PR-REVIEW.md` prints 2.
+- Current-tree verification: `grep -c '^- Source review ID: 5958844326' docs/pr-reviews/pr-2944-review/PR-REVIEW.md` prints 2.
 - Resolution reference: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4616772379
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4616772379
