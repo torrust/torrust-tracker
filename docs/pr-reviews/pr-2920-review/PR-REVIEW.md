@@ -52,6 +52,8 @@ Round 3 is the approving review `5944671302` of `da2ce7` (F13, audit-local ID; t
 that carried the round 2 audit.
 Round 4 is the approving review `5944877623` of `da2ce7` (F14, audit-local ID; the reviewer numbers it F25), on the head
 that carried the round 3 audit.
+Round 5 is the approving review `5953723621` of `da2ce7` (F15, audit-local ID; the reviewer numbers it F26), on the head
+rebased onto `d8e14450d`.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -69,6 +71,7 @@ that carried the round 3 audit.
 | F12 | `review-finding:pr-2920-f12` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F13 | `review-finding:pr-2920-f13` | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 | F14 | `review-finding:pr-2920-f14` | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F15 | `review-finding:pr-2920-f15` | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -254,6 +257,19 @@ that carried the round 3 audit.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2920#discussion_r4604513267
 
+### F15 - Record the rebases in the Processing Log
+
+- PR number: 2920
+- Source review ID: 5953723621
+- Reviewer finding ID: F26
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2920#discussion_r4611573587
+- Concern: Two rebases set every committer time to 2026-11-18 09:02, so the `git log --format=%cI` the log entries name no longer prints the times they give, and the review threads cite commit ids the rebases replaced. Nothing in the log names the rebases.
+- Solution: A Processing Log entry names both rebases with their times and bases, the EPIC conflict that required the first, and the `git log --format=%aI` form that prints the times of the earlier entries; it says the ids cited in the threads are from before the rebases and that each commit's subject identifies it.
+- Current-tree verification: `git log --format=%aI` over the branch printed 18:00:55Z, 18:35:10Z, 18:58:46Z and 19:13:28Z for the four commits whose times the log entries give, the same times the entries state.
+- Resolution reference: `docs(pr-reviews): [#2904] record the two rebases in the review audit of PR #2920`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2920#discussion_r4611619528
+
 ## Processing Log
 
 - 2026-11-17 17:55 UTC - Started audit.
@@ -271,6 +287,8 @@ that carried the round 3 audit.
 - 2026-11-17 19:16 UTC - Round 4: the approving review `5944877623` of `da2ce7` (submitted 19:10:53Z, forge `submitted_at`) with one nit, recorded as F14. The reviewer's `ACK` comment (19:10:57Z, forge `created_at`) names the head it read; the fix moves the head past it. The fix was committed at 19:13:28Z (`git log --format=%cI`, in UTC) and pushed; `git ls-remote` showed the fork branch at the local head before the reply. The reply was posted at 19:16:20Z (forge `created_at`), after the push.
 - 2026-11-17 19:17 UTC - `validate-audit-record.py --pr-number 2920 --base torrust/develop`, with its `gh` calls made through `gh-bot`, exited 0 (14 rows, 0 failures). Resolved the thread of F14 by its thread ID; a GraphQL refresh showed 0 unresolved threads.
 - 2026-11-18 09:21 UTC - Two rebases onto `develop`, each keeping every commit. The first, at 2026-11-17 21:30 UTC onto `d24297c23` (the merge of pull request #2922), was required: that pull request changed the same two places of the EPIC file as this one, `last-updated-utc` and the end of its Progress Log. The resolution keeps the later `last-updated-utc` and orders the log lines by time. The second, at 2026-11-18 09:02 UTC onto `d8e14450d` (the merge of pull request #2932), brings in the fix for the nightly toolchain failure of the `OS Compatibility` check, unrelated to this pull request; `git range-diff` showed every commit unchanged. Each rebase reset the committer time of every commit, so `git log --format=%cI` now prints 2026-11-18 09:02 for all of them. The commit times given in the entries above are author times: `git log --format=%aI` prints them. The commit ids cited in the review threads and replies name commits from before the rebases; each of those commits keeps its Conventional Commit subject, which identifies it on the current branch.
+- 2026-11-18 09:24 UTC - Round 5: the approving review `5953723621` of `da2ce7` (submitted 09:19:55Z, forge `submitted_at`) with one suggestion, recorded as F15; Copilot's review `5953709053` (09:19:03Z) on the same head recommends approval with no findings. The reviewer's `ACK` comment (09:19:59Z, forge `created_at`) names the head it read; the fix moves the head past it. The fix is the entry above, committed at 09:20:49Z (`git log --format=%aI`, in UTC) and pushed; `git ls-remote` showed the fork branch at the local head at 09:23:46Z (`date -u`). The reply was posted at 09:23:58Z (forge `created_at`), after the push. This is the fifth round of fixes on this pull request.
+- 2026-11-18 09:25 UTC - `validate-audit-record.py --pr-number 2920 --base torrust/develop`, with its `gh` calls made through `gh-bot`, exited 0 (15 rows, 0 failures). Resolved the thread of F15 by its thread ID; a GraphQL refresh showed 0 unresolved threads.
 
 <!-- Copied verbatim into each audit record. -->
 
