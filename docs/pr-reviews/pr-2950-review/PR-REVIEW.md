@@ -45,10 +45,13 @@ da2ce7's conversation comment 6987829006 is not a review, so, as in the PR #2430
 
 Round 1 is Copilot review `5963231037` (`COMMENTED`, on head `docs(pr-reviews): [#2949] add the PR #2950 review audit record`), with two inline comments, F1 and F2 (audit-local IDs). Copilot labels both "Medium severity" in its overview; the severity `Minor` is inferred from that label, as in the PR #2905 audit. Its body says the full agentic review did not run because it did not start before the timeout.
 
+Round 2 is Copilot review `5963780219` (`COMMENTED`, on head `docs(pr-reviews): [#2949] record PR #2950 review round 1`), with one inline comment, F3. Its overview counts one open issue and two resolved since the last review, and gives no severity label for F3, so the severity `Nit` is inferred from the request (a wording mismatch). Its body carries the same timeout warning.
+
 | Finding ID | Review finding reference    | Author class | Severity         | Category      | Relationship | Disposition | Thread state |
 | ---------- | --------------------------- | ------------ | ---------------- | ------------- | ------------ | ----------- | ------------ |
 | F1         | `review-finding:pr-2950-f1` | Copilot      | Minor (inferred) | correctness   | ORIGINAL     | FIXED       | RESOLVED     |
 | F2         | `review-finding:pr-2950-f2` | Copilot      | Minor (inferred) | documentation | ORIGINAL     | FIXED       | RESOLVED     |
+| F3         | `review-finding:pr-2950-f3` | Copilot      | Nit (inferred)   | documentation | ORIGINAL     | FIXED       | RESOLVED     |
 
 ## Finding Details
 
@@ -78,10 +81,24 @@ Round 1 is Copilot review `5963231037` (`COMMENTED`, on head `docs(pr-reviews): 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4619415354
 
+### F3 - Five test cases said to match four manual scenarios
+
+- PR number: 2950
+- Source review ID: 5963780219
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4619770882
+- Concern: Regression Test Strategy listed five unit-test cases, including an ACK on the head, and then said they match M1 to M4.
+- Solution: The paragraph now calls the ACK-on-head case the baseline with no manual scenario and maps the other four cases to M1 to M4 one by one (Copilot's option (a)).
+- Current-tree verification: Read the Regression Test Strategy section on the current tree: it names M1, M2, M3 and M4 against one case each and says the ACK-on-head case has no manual scenario.
+- Resolution reference: `docs(issues): [#2949] map the regression test cases to M1 to M4 one by one`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4619832826
+
 ## Processing Log
 
 - 2026-11-18 18:34 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Started audit. The poller reported da2ce7's conversation comment [6987829006](https://github.com/torrust/torrust-tracker/pull/2950#issuecomment-6987829006) (2026-11-18 18:31:31 UTC) on head `docs(issues): add issue specification for #2949`; the pull request had no review. The comment does not agree to the rule as written, points to their proposal on #2949 ([issue comment 6987828129](https://github.com/torrust/torrust-tracker/issues/2949#issuecomment-6987828129), 18:31:29 UTC: a metadata branch folded in with a three-parent merge), and asks that the two be compared before deciding. A conversation comment is not a review, so it makes no row. The comparison was added to the specification in `docs(issues): [#2949] compare da2ce7's metadata-branch alternative under D1`; no decision was made, the maintainer decides D1.
 - 2026-11-18 19:13 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Round 1: the poller reported Copilot review 5963231037 (submitted 2026-11-18 19:06:19 UTC). Normalized its two inline comments as F1 and F2, fixed each in its own commit, pushed both, and replied on both threads, then resolved both threads.
+- 2026-11-18 19:48 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Round 2: the poller reported Copilot review 5963780219 (submitted 2026-11-18 19:41:53 UTC). Normalized its inline comment as F3, fixed it in its own commit, pushed it, replied on the thread, then resolved the thread.
 
 ## Completion Rules
 
