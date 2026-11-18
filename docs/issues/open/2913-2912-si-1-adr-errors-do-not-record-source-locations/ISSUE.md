@@ -175,7 +175,7 @@ the model that produced them.
 - [x] AC2: The `handle-errors-in-code` skill no longer recommends `torrust-located-error` and links to the ADR.
 - [x] AC3: No live guidance in the repository recommends recording a source location in an error.
 - [x] `linter all` exits with code `0`
-- [x] Relevant tests pass
+- [x] Relevant tests pass (none apply: this issue changes no code, so no test was run)
 - [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 - [x] Documentation is updated when behavior/workflow changes
