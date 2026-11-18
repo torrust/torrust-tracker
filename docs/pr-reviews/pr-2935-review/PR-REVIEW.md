@@ -215,7 +215,7 @@ Round 2: review 5954958077 (da2ce7, APPROVED) of the head that round 1 pushed ha
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2935#discussion_r4612541290
 - Concern: The F7 concern said #2920 merged 18 seconds "before that statement was true of the opened PR", which reads as the opposite of what happened: the merge came 18 seconds after the first commit and before the PR was opened.
 - Solution: The F7 concern says "#2920 merged 18 seconds after the first commit, before the PR was opened".
-- Current-tree verification: `grep -c 'merged 18 seconds after the first commit' docs/pr-reviews/pr-2935-review/PR-REVIEW.md` prints 3 (the F7 concern and this entry's concern and solution); `gh pr view 2935 --json createdAt` printed `2026-11-18T09:54:05Z`.
+- Current-tree verification: `grep -c 'merged 18 seconds after the first commit' docs/pr-reviews/pr-2935-review/PR-REVIEW.md` prints 3 (the F7 concern, this entry's solution and this line, which quotes the pattern); `gh pr view 2935 --json createdAt` printed `2026-11-18T09:54:05Z`.
 - Resolution reference: `docs(pr-reviews): [#2583] correct the timing in the F7 concern of the PR 2935 audit`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2935#discussion_r4612567484
