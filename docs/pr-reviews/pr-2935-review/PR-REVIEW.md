@@ -68,7 +68,7 @@ Round 1 covers two reviews of the first commit of the PR, `docs(issues): [#2583]
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2935#discussion_r4612229665
 - Concern: "Checklist order" in the prerequisites intro, T5 and the procedure lead-in read as row or level order, while the spec gates a crate only on its own testing gate and on its dependencies and dev-dependencies being `PUBLISHED`. Under level order the shortest-path claim for #2594 would not hold.
 - Solution: The prerequisites intro, the In Scope bullet, the procedure lead-in and T5 say "dependency order (every dependency and dev-dependency first)". T5 adds that this is not row or level order, and the checklist intro says the row and level numbers only present the order.
-- Current-tree verification: `grep -n 'checklist order' docs/issues/open/2583-1669-first-publish-of-workspace-crates/ISSUE.md` finds nothing; `grep -c 'every dependency and dev-dependency first' docs/issues/open/2583-1669-first-publish-of-workspace-crates/ISSUE.md` prints 4.
+- Current-tree verification: `grep -n 'checklist order' docs/issues/open/2583-1669-first-publish-of-workspace-crates/ISSUE.md` finds nothing; `grep -c 'every dependency and dev-dependency first' docs/issues/open/2583-1669-first-publish-of-workspace-crates/ISSUE.md` prints 5 (four spec lines and the round 1 progress-log entry).
 - Resolution reference: `docs(issues): [#2583] say dependency order instead of checklist order`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2935#discussion_r4612343656
@@ -81,7 +81,7 @@ Round 1 covers two reviews of the first commit of the PR, `docs(issues): [#2583]
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2935#discussion_r4612229686
 - Concern: EPIC #2912 lists SI-2 (#2914) as "Must land before `primitives` 4.0.0 is published" and SI-5 (#2917) the same for `configuration` 4.0.0. The spec named neither, so "`primitives` still waits for prerequisites 3 and 5" read as the complete list.
 - Solution: The `primitives` state line names #2914 as a constraint that comes from EPIC #2912, not a prerequisite decided in #2583, and the pre-publish notes of rows 1 and 6 name #2914 and #2917.
-- Current-tree verification: `grep -n '2914\|2917' docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md` shows both "Must land before" notes (rows 2 and 5); `grep -c '#2914' docs/issues/open/2583-1669-first-publish-of-workspace-crates/ISSUE.md` prints 2 and `grep -c '#2917' docs/issues/open/2583-1669-first-publish-of-workspace-crates/ISSUE.md` prints 1, plus the progress-log entry that names both. `gh issue view` reported #2914 and #2917 as open.
+- Current-tree verification: `grep -n '2914\|2917' docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md` shows both "Must land before" notes (rows 2 and 5); `grep -c '#2914' docs/issues/open/2583-1669-first-publish-of-workspace-crates/ISSUE.md` prints 3 and `grep -c '#2917' docs/issues/open/2583-1669-first-publish-of-workspace-crates/ISSUE.md` prints 2 (both counts include the round 1 progress-log entry). `gh issue view` reported #2914 and #2917 as open.
 - Resolution reference: `docs(issues): [#2583] note the EPIC #2912 constraints on primitives and configuration 4.0.0`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2935#discussion_r4612344228
@@ -185,7 +185,7 @@ Round 1 covers two reviews of the first commit of the PR, `docs(issues): [#2583]
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2935#discussion_r4612258595
 - Concern: Copilot asked for "sub-issue" for consistency with the rest of the docs.
 - Solution: No change. The EPIC #1347 spec writes "subissue" throughout, including its `## Subissues` heading, so the new paragraph follows the file it is in.
-- Current-tree verification: `grep -ci subissue docs/issues/open/1347-overhaul-packages-testing/EPIC.md` printed 52 and `grep -ci sub-issue docs/issues/open/1347-overhaul-packages-testing/EPIC.md` printed 0 when the reply was written.
+- Current-tree verification: `grep -ci subissue docs/issues/open/1347-overhaul-packages-testing/EPIC.md` prints 53 and `grep -ci sub-issue docs/issues/open/1347-overhaul-packages-testing/EPIC.md` prints 0. The reply says 52: that count was taken before the stamp-and-log commit of F5 added a line, and was already 53 when the reply was posted.
 - Resolution reference: https://github.com/torrust/torrust-tracker/pull/2935#discussion_r4612347402
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2935#discussion_r4612347402
