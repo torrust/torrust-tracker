@@ -1,7 +1,7 @@
 ---
 pr-number: 2929
 pr-url: https://github.com/torrust/torrust-tracker/pull/2929
-last-updated-utc: "2026-11-18 09:50"
+last-updated-utc: "2026-11-18 11:00"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -51,9 +51,9 @@ Round 1: Copilot review 5946976502 (COMMENTED, a lite review, since its full age
 | F2 | review-finding:pr-2929-f2 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-2929-f3 | Copilot | Minor (inferred) | documentation | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F4 | review-finding:pr-2929-f4 | Copilot | Nit (inferred) | formatting | ORIGINAL | NO_ACTION | SUPERSEDED |
-| F5 | review-finding:pr-2929-f5 | Human | Nit | metadata | ORIGINAL | FOLLOW_UP | OPEN |
-| F6 | review-finding:pr-2929-f6 | Human | Nit | correctness | ORIGINAL | FOLLOW_UP | OPEN |
-| F7 | review-finding:pr-2929-f7 | Human | Nit | documentation | ORIGINAL | FOLLOW_UP | OPEN |
+| F5 | review-finding:pr-2929-f5 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F6 | review-finding:pr-2929-f6 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-2929-f7 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -116,11 +116,11 @@ Round 1: Copilot review 5946976502 (COMMENTED, a lite review, since its full age
 - Reviewer finding ID: F1
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2929#discussion_r4611691532
 - Concern: Step 3 of `cleanup-completed-issues` gives a supplementary document without frontmatter a minimal block linking back to the spec; `test-design-review.md` moved as a pure rename and had none.
-- Solution: Deferred to follow-up PR #2934, because PR #2929 merged before the push that carried the fix. Added the minimal block: `spec-path`, `last-updated-utc`, and `semantic-links` with the archived `ISSUE.md`. The four older archived `test-design-review.md` files are outside this close-out and stay unchanged.
-- Current-tree verification: `head -7 docs/issues/closed/2847-1488-si-28-verify-hung-component-abort/test-design-review.md` shows the block; the pre-commit staged-frontmatter validator passed.
-- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2929#discussion_r4611938555
+- Solution: Fixed by follow-up PR #2934, merged into `develop` on 2026-11-18 at 10:59:19 UTC (`043255835`), because PR #2929 merged before the push that carried the fix. Added the minimal block: `spec-path`, `last-updated-utc`, and `semantic-links` with the archived `ISSUE.md`. The four older archived `test-design-review.md` files are outside this close-out and stay unchanged.
+- Current-tree verification: `git show torrust/develop:docs/issues/closed/2847-1488-si-28-verify-hung-component-abort/test-design-review.md | head -7` shows the frontmatter block on `develop`.
+- Resolution reference: docs(issues): [#2847] add the archive frontmatter to the SI-28 test-design review
 - Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2934
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2929#discussion_r4611938555
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2929#discussion_r4612798091
 
 ### F6 - The round-1 reply stamp is a second late
 
@@ -129,11 +129,11 @@ Round 1: Copilot review 5946976502 (COMMENTED, a lite review, since its full age
 - Reviewer finding ID: F2
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2929#discussion_r4611691540
 - Concern: The round-1 entry gives the reply as `21:35:59Z`; the platform records `2026-11-17T21:35:58Z`.
-- Solution: Deferred to follow-up PR #2934, because PR #2929 merged before the push that carried the fix. The `21:35:59Z` came from a `date -u` run after the reply command, not from its output. The round-1 entry stays as logged, since the log is append-only; a correction entry gives `21:35:58Z` and its source.
-- Current-tree verification: `gh-bot api repos/torrust/torrust-tracker/pulls/comments/4606101763 --jq .created_at` prints `2026-11-17T21:35:58Z`; the correction entry in the Processing Log names it.
-- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2929#discussion_r4611939170
+- Solution: Fixed by follow-up PR #2934, merged into `develop` on 2026-11-18 at 10:59:19 UTC (`043255835`), because PR #2929 merged before the push that carried the fix. The `21:35:59Z` came from a `date -u` run after the reply command, not from its output. The round-1 entry stays as logged, since the log is append-only; a correction entry gives `21:35:58Z` and its source.
+- Current-tree verification: On `develop`, the Processing Log's F6 correction entry gives `2026-11-17T21:35:58Z`, the reply's `created_at`.
+- Resolution reference: docs(pr-reviews): [#2847] record da2ce7's round 4 findings F5 to F7 for PR 2929
 - Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2934
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2929#discussion_r4611939170
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2929#discussion_r4612798644
 
 ### F7 - The record's late start is not logged
 
@@ -142,11 +142,11 @@ Round 1: Copilot review 5946976502 (COMMENTED, a lite review, since its full age
 - Reviewer finding ID: F3
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2929#discussion_r4611691552
 - Concern: `process-pr-review` creates the record before the first reply and logs a late start otherwise; the round-1 entry ends with "Created this record." after the reply, with no late-start note.
-- Solution: Deferred to follow-up PR #2934, because PR #2929 merged before the push that carried the fix. The record did not exist before the reply: it was written after the `21:35:58Z` reply and committed at `21:36:28Z`. A correction entry logs the late start.
-- Current-tree verification: `git log -1 --format=%cI` of the commit `docs(pr-reviews): [#2847] add review audit for PR 2929 round 1` prints `2026-11-17T21:36:28Z`, after the reply's `created_at`; the correction entry in the Processing Log states the late start.
-- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2929#discussion_r4611939639
+- Solution: Fixed by follow-up PR #2934, merged into `develop` on 2026-11-18 at 10:59:19 UTC (`043255835`), because PR #2929 merged before the push that carried the fix. The record did not exist before the reply: it was written after the `21:35:58Z` reply and committed at `21:36:28Z`. A correction entry logs the late start.
+- Current-tree verification: On `develop`, the Processing Log's late-start entry states that the record was created after the round-1 reply.
+- Resolution reference: docs(pr-reviews): [#2847] record da2ce7's round 4 findings F5 to F7 for PR 2929
 - Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2934
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2929#discussion_r4611939639
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2929#discussion_r4612799202
 
 ## Processing Log
 
@@ -157,6 +157,7 @@ Round 1: Copilot review 5946976502 (COMMENTED, a lite review, since its full age
 - 2026-11-18 09:33 UTC - Correction (F6): the round-1 entry's reply stamp `21:35:59Z` came from a `date -u` run after the reply command; the reply's `created_at` is `2026-11-17T21:35:58Z`. The round-1 resolution stamp `21:36:07Z` and the round-2 resolution stamp `22:36:45Z` came the same way, from a `date -u` run after the resolve commands.
 - 2026-11-18 09:33 UTC - Late start (F7): this record was created after the round-1 reply, not before it as `process-pr-review` asks. The reply was posted at `21:35:58Z`; the record was written after it and committed at `21:36:28Z`. The round-1 entry's closing "Created this record." reflects that order.
 - 2026-11-18 09:50 UTC - PR #2929 merged at 09:42:00 UTC at head `5d1efbfb9`, before the push that carried the F5 fix and this record's round 4 entries; the replies of 09:32 UTC named that push. The maintainer chose a follow-up PR; `josecelano-bot` posted the approval comment at 09:46:56 UTC. The two fix commits were cherry-picked onto `develop` as follow-up PR #2934. Replied on the three threads with a correction naming #2934 (09:50:29Z, 09:50:32Z and 09:50:34Z, the replies' `created_at`) and reopened them by 09:50:41Z (a `date -u` run after the unresolve commands). F5 to F7 are `FOLLOW_UP` / `OPEN` until #2934 merges.
+- 2026-11-18 11:00 UTC - Follow-up PR #2934 merged at 10:59:19 UTC (`043255835`). Replied on the three threads with the merged fix (10:59:46Z, 10:59:48Z and 10:59:51Z, the replies' `created_at`) and resolved them by 10:59:57Z (a `date -u` run after the resolve commands); F5 to F7 are `FIXED` / `RESOLVED`. GraphQL refresh: zero unresolved threads on PR #2929.
 
 <!-- Copied verbatim into each audit record. -->
 
