@@ -49,6 +49,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Round 4: da2ce7 review 5958625555 (posted as an approval at the round 3 audit head; the rebase push then dismissed it) with the reviewer's findings F4 and F5, neither blocking, as audit findings F8 and F9.
 - Round 5: Copilot review 5958719165 (COMMENTED, at the rebased head) with three findings, as audit findings F10 to F12. The second comment carries the label `[Minor][F9]` in its own text.
 - Round 6, on the maintainer's instruction after the five-round limit: da2ce7 review 5958844326 (COMMENTED, at the round 4 fix head) with the reviewer's findings F8 and F9, as audit findings F14 and F13; and da2ce7 review 5959029017 (COMMENTED, at the round 5 audit head) with the reviewer's findings F10 and F11, as audit findings F15 and F16. Copilot review 5959042101 (COMMENTED, at the round 5 audit head) reported no open issue and has no thread.
+- Round 7, on the maintainer's instruction ("Fix both now"): da2ce7 review 5960255602 (APPROVED, at the round 6 audit head) with the reviewer's findings F13 and F14, both Minor, as audit findings F17 and F18.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -68,6 +69,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F14 | review-finding:pr-2944-f14 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F15 | review-finding:pr-2944-f15 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | F16 | review-finding:pr-2944-f16 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-2944-f17 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-2944-f18 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -279,6 +282,32 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4616772379
 
+### F17 - The PR description still called it the reproduction made while drafting
+
+- PR number: 2944
+- Source review ID: 5960255602
+- Reviewer finding ID: F13
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4616933192
+- Concern: Round 6 corrected the label of the reproduction in the spec and the evidence file, but the #2943 item of the PR description still said "repeat the reproduction made while drafting". The merge tool copies the description into the merge commit.
+- Solution: The PR description's #2943 item now says "repeat the reproduction made during the review". The description is outside the tree, so this fix has no commit.
+- Current-tree verification: `gh-bot pr view 2944 --repo torrust/torrust-tracker --json body --jq .body | grep -c -i 'drafting'` prints 0 (the description is not in the tree; this ran at 17:29 UTC on 2026-11-18).
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4618182191
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4618182191
+
+### F18 - Two verification commands counted their own line
+
+- PR number: 2944
+- Source review ID: 5960255602
+- Reviewer finding ID: F14
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4616933219
+- Concern: The verification commands of F13 and F16 searched this record for a source review ID without an anchor, so each also matched the line that quotes it and printed 3, while the record said 2.
+- Solution: Both patterns are anchored to the start of the field line, so the line that quotes the command no longer matches and each command prints 2.
+- Current-tree verification: `grep -c '^- Source review ID: 5958625555' docs/pr-reviews/pr-2944-review/PR-REVIEW.md` prints 2, and `grep -c '^- Source review ID: 5958844326' docs/pr-reviews/pr-2944-review/PR-REVIEW.md` prints 2.
+- Resolution reference: docs(pr-reviews): [#2943] anchor two verification patterns that counted their own line
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4618182688
+
 ## Processing Log
 
 - 2026-11-18 13:54 UTC - Round 1: Copilot review 5957896114 with F1 and F2. Committed and pushed the fix (`docs(issues): [#2943] count G2 once in the AC4 evidence and cite the edition guide`), then replied to the two threads (13:53:25Z and 13:53:27Z).
@@ -294,6 +323,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-18 14:45 UTC - Resolved the three round 5 threads (about 14:45:55Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh showed 2 unresolved thread(s). The validator ran on the worktree record after these entries. Committed these entries. This was the fifth round of fixes; further rounds wait for the maintainer.
 - 2026-11-18 15:49 UTC - Round 6, on the maintainer's instruction ("Fix round 6"): da2ce7 reviews 5958844326 (F13 and F14) and 5959029017 (F15 and F16). Edited the PR description for F14 and replied to the two threads of review 5958844326 (15:42:59Z and 15:43:01Z). Ran the reproduction again with step times (15:43:22 to 15:43:29 UTC), committed and pushed the fix for F15 (`docs(issues): [#2943] time the reproduction steps and say it ran after the approval`), then replied to the two threads of review 5959029017 (15:48:56Z and 15:48:58Z). Added rows F13 to F16; the validator on the worktree record reported 16 rows and 0 failures before any of the four threads was resolved.
 - 2026-11-18 15:49 UTC - Resolved the four round 6 threads (about 15:49:56Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread, and the newest review in the review list was 5959042101. Committed these entries.
+- 2026-11-18 17:32 UTC - Round 7, on the maintainer's instruction ("Fix both now"): da2ce7 review 5960255602 (an approval at the round 6 audit head) with F17 and F18. Edited the PR description for F17. Committed and pushed the fix for F18 (`docs(pr-reviews): [#2943] anchor two verification patterns that counted their own line`); the push dismissed the approval. Replied to the two threads (17:29:23Z and 17:29:26Z). Added rows F17 and F18; the validator on the worktree record reported 18 rows and 0 failures before either thread was resolved.
+- 2026-11-18 17:32 UTC - Resolved the two round 7 threads (about 17:29:55Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread, and the newest review by a reviewer in the review list was 5960255602. Committed these entries.
 
 <!-- Copied verbatim into each audit record. -->
 
