@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2907-2392-remove-leaked-test-temporary-files/ISSUE.md
-last-updated-utc: "2026-11-18 11:08"
+last-updated-utc: "2026-11-18 11:11"
 ---
 
 # Manual Verification Evidence
@@ -9,7 +9,8 @@ last-updated-utc: "2026-11-18 11:08"
 ## Purpose
 
 Record the controlled reproduction made while drafting this issue (V1): which files one full test
-run leaves in a fresh temporary directory. The recheck (V2) is added when the issue is implemented.
+run leaves in a fresh temporary directory, its repetition on the `develop` the work started from
+(T1), the focused red and green runs of T3 and T4, and the recheck after the change (V2).
 This is evidence from commands actually performed; nothing here is simulated.
 
 ## Preserving Verification Artifacts
@@ -240,6 +241,68 @@ second. The helper hides only incidental mechanics (the builder, the write), and
 `utf8_path` is a one-line conversion kept as a helper because the two `TlsConfig` fields need it
 and its name says what it does.
 
+### V2 - Recheck after the change
+
+- Goal: one full test run with a fresh `TMPDIR` leaves no `test_config_*.toml` and no PEM file
+  (AC1).
+- Initial state: a fresh, empty `TMPDIR` made with `mktemp -d` in the session's scratch directory
+  (`ls -A` printed 0 entries).
+- Artifact under test: this issue's branch after the T4 commit
+  (`test(axum-server): [#2907] remove the TLS test PEM files also when a test fails`), based on
+  `develop` `90a7c7d3f`, with a clean working tree.
+- Date and time (UTC): 2026-11-18 11:09:08 to 11:10:46
+- Toolchain: `rustc 1.99.1 (58cf8f9c3 2026-10-13)`, `cargo 1.99.1 (5f94df478 2026-08-27)`, Linux
+  7.0.0-43-generic; the same command built the test binaries. No database driver test gates set.
+- Status: `DONE`
+
+#### Steps Performed
+
+```bash
+T=$(mktemp -d)
+ls -A "$T" | wc -l
+TMPDIR=$T cargo +stable test --tests --benches --examples --workspace --all-targets --all-features
+find "$T" -maxdepth 1 -name 'test_config_*.toml' | wc -l
+find "$T" -name '*.toml' | wc -l
+find "$T" -name '*.pem' | wc -l
+find "$T" -maxdepth 1 -name 'data_*.db' | wc -l
+find "$T" -mindepth 1 -maxdepth 1 ! -name 'data_*.db' | wc -l
+du -sh "$T"
+rm -rf "$T"
+```
+
+Then, on the same tree: `linter all`.
+
+#### Observed Result
+
+| Measure | V1 repeated by T1 | V2 |
+| --- | --- | --- |
+| Suite exit status | `0` (4128 passed, 0 failed) | `0` (4152 passed, 0 failed) |
+| `test_config_*.toml` left | 2 | **0** |
+| Any `*.toml` left, at any depth | not counted | **0** |
+| `*.pem` left, at any depth | 0 | **0** |
+| `data_*.db` left (out of scope, #2924 and #2925) | 301 | 229 |
+| Other entries left | 0 | 0 |
+| Size of the directory | 15 MiB | 11 MiB |
+| `linter all` | not run | exit `0` ("All linters passed") |
+
+The test count grew and the `data_*.db` count fell because `develop` moved between the two runs
+(`61e3fedcf` to `90a7c7d3f`): among other changes it merged #2923 (#2902), which keeps the
+`tracker-core` test databases in temporary directories.
+
+#### Conclusion
+
+AC1 holds: the full suite leaves no `test_config_*.toml` and no PEM file in a fresh `TMPDIR`.
+
+Two limits of this check, both covered elsewhere:
+
+- The suite passes, so it never runs the failure path of a TLS test. AC3 is proven by
+  `it_should_remove_the_temporary_file_when_the_test_using_it_fails` (red before, green after, T4).
+- Because of the `figment::Jail::clear_env()` race (T3), a temporary file can be created under
+  `/tmp` instead of `TMPDIR`, outside the counted directory. The new tests remove their files by the
+  absolute path they created, so the race cannot make them leak, but a count of `TMPDIR` alone could
+  not show a leak into `/tmp`. A search of `/tmp` for the old names during the run was not possible
+  to isolate from other sessions on this machine, so it was not used.
+
 ## Failures and Follow-up
 
 - `figment::Jail::clear_env()` empties the environment of the whole test process while a jail is
@@ -247,7 +310,7 @@ and its name says what it does.
   they serialize on `Jail`'s lock, but tests in the same binary that do not use `Jail` are not
   serialized and can observe the cleared environment. Outside this issue's scope; reported to the
   EPIC #2392 coordinator on 2026-11-18.
-- V2 (the recheck after the fix) is recorded in T5.
+- None for this issue: V2 passed (T5).
 
 ## Background Measurement
 
