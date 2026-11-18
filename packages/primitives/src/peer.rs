@@ -70,7 +70,6 @@ impl FromStr for PeerRole {
             "seeder" => Ok(Self::Seeder),
             "leecher" => Ok(Self::Leecher),
             _ => Err(ParsePeerRoleError::InvalidPeerRole {
-                location: Location::caller(),
                 raw_param: s.to_string(),
             }),
         }
@@ -80,11 +79,8 @@ impl FromStr for PeerRole {
 #[derive(Error, Debug)]
 #[non_exhaustive]
 pub enum ParsePeerRoleError {
-    #[error("invalid param {raw_param} in {location}")]
-    InvalidPeerRole {
-        location: &'static Location<'static>,
-        raw_param: String,
-    },
+    #[error("invalid peer role {raw_param:?}, expected \"seeder\" or \"leecher\"")]
+    InvalidPeerRole { raw_param: String },
 }
 
 /// Peer struct used by the core `Tracker`.
@@ -318,8 +314,6 @@ impl Peer {
     }
 }
 
-use std::panic::Location;
-
 use thiserror::Error;
 
 /// Error returned when trying to convert an invalid peer id from another type.
@@ -328,16 +322,10 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 #[non_exhaustive]
 pub enum IdConversionError {
-    #[error("not enough bytes for peer id: {message} {location}")]
-    NotEnoughBytes {
-        location: &'static Location<'static>,
-        message: String,
-    },
-    #[error("too many bytes for peer id: {message} {location}")]
-    TooManyBytes {
-        location: &'static Location<'static>,
-        message: String,
-    },
+    #[error("not enough bytes for peer id: {message}")]
+    NotEnoughBytes { message: String },
+    #[error("too many bytes for peer id: {message}")]
+    TooManyBytes { message: String },
 }
 
 /// A peer id, with its hex form and the name of the client that made it.
@@ -392,13 +380,11 @@ impl TryFrom<Vec<u8>> for Id {
     fn try_from(bytes: Vec<u8>) -> Result<Self, Self::Error> {
         if bytes.len() < PEER_ID_BYTES_LEN {
             return Err(IdConversionError::NotEnoughBytes {
-                location: Location::caller(),
                 message: format!("got {} bytes, expected {}", bytes.len(), PEER_ID_BYTES_LEN),
             });
         }
         if bytes.len() > PEER_ID_BYTES_LEN {
             return Err(IdConversionError::TooManyBytes {
-                location: Location::caller(),
                 message: format!("got {} bytes, expected {}", bytes.len(), PEER_ID_BYTES_LEN),
             });
         }
