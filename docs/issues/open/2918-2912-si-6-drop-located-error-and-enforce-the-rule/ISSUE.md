@@ -9,7 +9,7 @@ github-issue: 2918
 spec-path: docs/issues/open/2918-2912-si-6-drop-located-error-and-enforce-the-rule/ISSUE.md
 branch: "2918-drop-located-error-and-enforce-the-rule"
 related-pr: null
-last-updated-utc: "2026-11-17 17:30"
+last-updated-utc: "2026-11-18 19:11"
 semantic-links:
   skill-links:
     - create-issue
@@ -17,7 +17,7 @@ semantic-links:
     - .claude/skills/fix-bug/SKILL.md
     - .claude/skills/create-issue/SKILL.md
     - docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md
-    - docs/issues/open/2804-location-caller-track-caller-audit/inventory.md
+    - docs/issues/closed/2804-location-caller-track-caller-audit/inventory.md
     - packages/tracker-client/src/udp/mod.rs
     - contrib/dev-tools/checks
 ---
@@ -39,7 +39,7 @@ After SI-3 to SI-5 the only remaining user of the crate is expected to be
 `packages/tracker-client`, which imports the type alias `torrust_located_error::DynError`
 (`src/udp/mod.rs:5`) and lists the crate in its `Cargo.toml`.
 
-The audit looked for a lint (`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`, T3): neither rustc nor clippy 1.99.1 has one
+The audit looked for a lint (`docs/issues/closed/2804-location-caller-track-caller-audit/inventory.md`, T3): neither rustc nor clippy 1.99.1 has one
 for `Location::caller()` in a function that is not `#[track_caller]`. With the ADR the rule is
 simpler than the one the audit considered: non-test code does not use `Location::caller()`,
 `#[track_caller]` or `torrust_located_error` at all. A text-based check can enforce that.
@@ -265,6 +265,6 @@ findings, and reusable lessons.
 ## References
 
 - Parent EPIC: #2912, `docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md`
-- Audit: `docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md`, `inventory.md`, `options.md`, `experiments.md` (issue #2804)
+- Audit: `docs/issues/closed/2804-location-caller-track-caller-audit/ISSUE.md`, `inventory.md`, `options.md`, `experiments.md` (issue #2804)
 - Related issues: #2804 (audit), #384 (external report), #2583 (first publish of the workspace crates)
 - Related: #2594 (extraction of `torrust-tracker-client`)
