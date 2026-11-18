@@ -9,7 +9,7 @@ github-issue: 2949
 spec-path: docs/issues/open/2949-2003-keep-reviewer-ack-after-audit-only-commits/ISSUE.md
 branch: "2949-keep-reviewer-ack-after-audit-only-commits-spec"
 related-pr: null
-last-updated-utc: "2026-11-18 17:25"
+last-updated-utc: "2026-11-18 18:33"
 semantic-links:
   skill-links:
     - create-issue
@@ -98,13 +98,14 @@ repository.
   a link to the rule, and that an author never rewrites history to protect an ACK.
 - da2ce7's agreement to the rule, recorded as a durable comment on the specification pull request, because the
   rule changes what their ACK covers.
-- A comparison with the alternative of writing audit records after merge (see Decisions to make).
+- A comparison with the alternatives of writing audit records after merge and of keeping them on a separate
+  metadata branch (see Decisions to make).
 - A note on the #2363 line of `EPIC.md` that names this issue as the fix for the cause.
 
 ### Out of Scope
 
-- Moving audit records off the pull request branch. This specification compares the alternative and records the
-  reason for the choice; it does not implement it.
+- Moving audit records off the pull request branch. This specification compares the alternatives and records the
+  reason for the choice; it does not implement them.
 - Changing how contributors process findings. They keep recording each finding in the audit on the pull request
   branch, as now.
 - Any change to what a reviewer may do. A reviewer may still ACK in the same round as a finding.
@@ -123,13 +124,46 @@ repository.
 
 These are open. Each has a recommendation; the maintainer decides.
 
-- **D1. Audit on the branch with this rule, or audit after merge.** Writing every audit record in a docs change
-  after merge removes the problem at its root, and also removes the extra review round and workflow-run approval
-  that each audit push causes. It is a larger change: `process-pr-review` and `validate-audit-record.py` assume
-  the record is on the branch, Merge Readiness requires the record to pass the validator before merge, and every
-  pull request would need a second docs pull request. The maintainer's backlog items on roles and on a more
-  deterministic review process (outside this repository) bear on it. Recommendation: adopt the rule now, and
-  record here what would make the after-merge design worth doing later.
+- **D1. Where the audit record lives.** Three options:
+  - (a) On the pull request branch, with the rule in this specification.
+  - (b) After merge. Writing every audit record in a docs change after merge removes the problem at its root, and
+    also removes the extra review round and workflow-run approval that each audit push causes. It is a larger
+    change: `process-pr-review` and `validate-audit-record.py` assume the record is on the branch, Merge Readiness
+    requires the record to pass the validator before merge, and every pull request would need a second docs pull
+    request.
+  - (c) On a separate metadata branch, folded in with a three-parent merge. Proposed by da2ce7 on 2026-11-18 in
+    [issue comment 6987828129](https://github.com/torrust/torrust-tracker/issues/2949#issuecomment-6987828129).
+    Each pull request has two tips: the work branch, which is reviewed and which `ACK <hash>` names, and a
+    metadata branch that changes only `docs/pr-reviews/pr-<N>-review/`. The merge tool makes one commit whose
+    parents are `develop`, the ACKed work tip and the metadata tip, and refuses the merge if the metadata branch
+    changes anything outside that folder.
+
+  The maintainer's backlog items on roles and on a more deterministic review process (outside this repository)
+  bear on the choice. The options compared:
+
+  | Question                                           | (a) Rule                      | (b) After merge               | (c) Metadata branch                                                          |
+  | -------------------------------------------------- | ----------------------------- | ----------------------------- | ---------------------------------------------------------------------------- |
+  | What an ACK vouches for                            | Widened to audit-only commits | Unchanged                     | Unchanged                                                                    |
+  | Workflow-run approval after recording a finding    | Still needed                  | Not needed                    | Not needed: the work tip does not move                                       |
+  | CI and Copilot see the audit text before `develop` | Yes                           | Yes, in the docs pull request | No: GitHub shows one head per pull request                                   |
+  | Audit history lands with the merge                 | Yes                           | No, in a second pull request  | Yes, through the third parent                                                |
+  | Branches the author keeps per pull request         | One                           | One, plus a docs pull request | Two, with a ref convention for the second                                    |
+  | Changes to the merge tool                          | Only if D2 is (b)             | None                          | Fetch the second tip, check its paths, merge three parents, list its commits |
+  | Changes to skills and the validator                | Small (T2 to T4)              | Large                         | Large: every step that commits the audit                                     |
+
+  Facts for (c), read on `develop` at `96923f0d2`: `github-merge.py` fetches only `refs/pull/<N>/*` and the base
+  branch from the upstream repository, so it would need to fetch the metadata tip from the contributor's fork; it
+  merges one head (`git merge --no-ff <head>`); and it builds the commit list and the symbolic-link check from
+  `<base>..<head>`, so both would need the metadata tip too. Not verified: that GitHub marks the pull request
+  merged when its head is reached through a three-parent merge commit pushed by the tool.
+
+  da2ce7's position (comment linked under D5): they do not agree to (a) as written, and ask that (c) be compared
+  before deciding; if (c) turns out impractical, they are open to (a), possibly limited as described under D5.
+
+  Recommendation: the maintainer chooses between (a) and (c); (b) stays recorded as the root fix with the largest
+  cost. (a) cannot land without da2ce7's agreement. If (c) is preferred, a short spike settles its unverified
+  point and the merge-tool cost before the specification is rewritten for it.
+
 - **D2. The merge tool.** Options: (a) leave `github-merge.py` unchanged and document that it prints "Top commit
   has no ACKs" when the ACK counts only under the rule; (b) change `get_acks_from_comments` to also accept an
   ACK on an ancestor that satisfies the rule, and say in the merge message which commit was ACKed.
@@ -144,7 +178,11 @@ These are open. Each has a recommendation; the maintainer decides.
   whether a given ACK counts. Recommendation: text with the command in this issue; a tool only if D2 is (b), in
   which case the same function serves both.
 - **D5. The maintainer's own ACK.** Whether the rule also applies to the ACK the merging maintainer posts.
-  Recommendation: yes, the rule is about what an ACK covers, not about who wrote it.
+  Recommendation: yes, the rule is about what an ACK covers, not about who wrote it. da2ce7, in
+  [pull request comment 6987829006](https://github.com/torrust/torrust-tracker/pull/2950#issuecomment-6987829006)
+  (2026-11-18), does not agree to the rule as written and is open to revisiting it if (c) under D1 turns out
+  impractical, "possibly limited to the reviewer's own ACK (D5 left out)", that is, without applying it to the
+  merging maintainer's ACK.
 
 ## Design and Ownership Review
 
@@ -206,6 +244,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 - 2026-11-18 15:43 UTC - AI assistant (Claude Code, Claude Fable 5.2, EPIC #2003 coordinator session) - Drafted the specification from the maintainer's decision of 2026-11-18 and the report of the #2907 session on PR #2947. Facts under Background were read on `develop` at `3a12cd095`. No decision under D1 to D5 is made yet.
 - 2026-11-18 17:25 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - The maintainer approved the draft on 2026-11-18. Created issue #2949 as `josecelano-bot`, moved the specification to `docs/issues/open/2949-2003-keep-reviewer-ack-after-audit-only-commits/` on the spec branch `2949-keep-reviewer-ack-after-audit-only-commits-spec`, and checked the facts under Background again on `develop` at `96923f0d2`: none changed, so only the commit in their heading changed. Formatted the file with prettier 3.9.10 (table alignment only). D1 to D5 stay open for the specification pull request.
+- 2026-11-18 18:33 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - da2ce7 does not agree to the rule as written (PR #2950 comment 6987829006) and proposed a metadata branch folded in with a three-parent merge (issue comment 6987828129). D1 now compares three options, (a) the rule, (b) audit after merge and (c) the metadata branch, with the merge-tool facts for (c) read on `develop` at `96923f0d2` and one point marked not verified. The D1 recommendation changed from "adopt the rule now" to "the maintainer chooses between (a) and (c)", because (a) cannot land without da2ce7's agreement. D5 records da2ce7's suggested limit. Nothing is decided.
 
 ## Acceptance Criteria
 
