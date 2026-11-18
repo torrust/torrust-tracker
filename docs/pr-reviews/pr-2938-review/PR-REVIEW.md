@@ -156,7 +156,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: `grep -n 'use tempfile' packages/axum-server/src/tls.rs` prints `use tempfile::{Builder, NamedTempFile};` (line 64) and line 73 is `let mut file = Builder::new()`. `grep -rn 'tempfile::Builder' docs/issues/open/2907-2392-remove-leaked-test-temporary-files` prints only the evidence line that names the import.
 - Resolution reference: `docs(pr-reviews): [#2907] describe the current builder call in the F1 verification`
 - Follow-up PR URL: N/A
-- Reply URL: <REPLY_URL_F8>
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2938#discussion_r4613752697
 
 ## Processing Log
 
@@ -166,6 +166,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-18 11:56 UTC - Fixed F7 in `test(configuration, axum-server): [#2907] import fs and Builder instead of using their full paths` and F4, F5 and F6 in `docs(issues): [#2907] correct the clear_env count and the rebase claim, and add a red run of both TLS tests`; not pushed yet.
 - 2026-11-18 12:00 UTC - Pushed both fix commits to the PR branch at 12:00:08 UTC (the pre-push hook passed). Replied to F4 to F7 at 12:00:23, 12:00:26, 12:00:28 and 12:00:31 UTC, then resolved all seven threads; a GraphQL refresh at 12:00:47 UTC showed 0 unresolved threads.
 - 2026-11-18 12:13 UTC - Round 2: da2ce7's review 5956302969 (`APPROVED`, submitted 2026-11-18 12:11:57 UTC on the head that adds this record) has one inline finding, its F6, recorded here as F8 because F6 is taken. Valid on the current tree; fixed in `docs(pr-reviews): [#2907] describe the current builder call in the F1 verification`, not pushed yet.
+- 2026-11-18 12:16 UTC - Pushed the F8 fix at 12:16:13 UTC (the pre-push hook passed), replied at 12:16:25 UTC and resolved the thread; a GraphQL refresh at 12:16:29 UTC showed 0 unresolved threads.
 
 ## Completion Rules
 
