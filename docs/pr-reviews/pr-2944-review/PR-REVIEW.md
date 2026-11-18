@@ -1,7 +1,7 @@
 ---
 pr-number: 2944
 pr-url: https://github.com/torrust/torrust-tracker/pull/2944
-last-updated-utc: "2026-11-18 14:17"
+last-updated-utc: "2026-11-18 14:22"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -45,6 +45,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 - Round 1: Copilot review 5957896114 (COMMENTED) with two findings without reviewer IDs, as audit findings F1 and F2.
 - Round 2: da2ce7 review 5958264981 (CHANGES_REQUESTED, at the round 1 audit head) with the reviewer's findings F1 to F3, as audit findings F3 to F5.
+- Round 3: Copilot review 5958271471 (COMMENTED, at the round 1 fix head) with two findings without reviewer IDs, as audit findings F6 and F7.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -53,6 +54,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F3 | review-finding:pr-2944-f3 | Human | Major | correctness | ORIGINAL | FIXED | RESOLVED |
 | F4 | review-finding:pr-2944-f4 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F5 | review-finding:pr-2944-f5 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F6 | review-finding:pr-2944-f6 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-2944-f7 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -121,12 +124,40 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4615367609
 
+### F6 - The `Jail` usage is pinned to a commit id and claims that no other package uses it
+
+- PR number: 2944
+- Source review ID: 5958271471
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4615293756
+- Concern: The usage table cites a `develop` commit id and says that no other package uses `Jail`, a claim that can become stale and that a reader cannot recompute from the spec.
+- Solution: The sentence now gives the drafting date and the command that produced the list of files, drops the commit id, and says that T1 repeats the counts.
+- Current-tree verification: `grep -n 'grep -rl .Jail.' docs/issues/open/2943-2392-figment-jail-process-environment/ISSUE.md` finds the command in the Background section, and `grep -c 'bc9d0590c' docs/issues/open/2943-2392-figment-jail-process-environment/ISSUE.md` prints 0.
+- Resolution reference: docs(issues): [#2943] record how the Jail usage was counted and require the toolchain version in the evidence
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4615457059
+
+### F7 - `cargo +stable` in V1 and V2 is a moving toolchain
+
+- PR number: 2944
+- Source review ID: 5958271471
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4615293864
+- Concern: V1 and V2 use `cargo +stable`, which moves, so a later recheck may run on another toolchain than the reproduction.
+- Solution: The evidence policy now asks for the output of `rustc -Vv` and `cargo -V` with every recorded result, and for V2 to run on the same toolchain version as V1 or to record why it could not. The command keeps `+stable`, the form the repository's specs use.
+- Current-tree verification: `grep -n 'rustc -Vv' docs/issues/open/2943-2392-figment-jail-process-environment/ISSUE.md` finds the evidence policy.
+- Resolution reference: docs(issues): [#2943] record how the Jail usage was counted and require the toolchain version in the evidence
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4615457577
+
 ## Processing Log
 
 - 2026-11-18 13:54 UTC - Round 1: Copilot review 5957896114 with F1 and F2. Committed and pushed the fix (`docs(issues): [#2943] count G2 once in the AC4 evidence and cite the edition guide`), then replied to the two threads (13:53:25Z and 13:53:27Z).
 - 2026-11-18 13:54 UTC - The validator on the worktree record reported 2 rows, 1 log entry, 0 failures. Resolved the two round 1 threads (about 13:54:38Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread. Committed these entries.
 - 2026-11-18 14:16 UTC - Round 2: da2ce7 review 5958264981 with F3 to F5 (the reviewer's F1 to F3). Committed and pushed the fix (`docs(issues): [#2943] halve the Jail call counts, cite EPIC rule 5 and mark the /tmp file as inferred`), corrected the counts in the body of issue #2943, then replied to the three threads (14:16:01Z to 14:16:07Z).
 - 2026-11-18 14:17 UTC - The validator on the worktree record reported 5 rows, 3 log entries, 0 failures. Resolved the three round 2 threads (about 14:17:01Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh showed two more unresolved threads, from a Copilot review posted at 14:10:52Z that this round had not read; they are round 3. Committed these entries.
+- 2026-11-18 14:22 UTC - Round 3: Copilot review 5958271471 with F6 and F7. Committed and pushed the fix (`docs(issues): [#2943] record how the Jail usage was counted and require the toolchain version in the evidence`) together with the round 2 entries and their correction (`docs(pr-reviews): [#2943] correct the round 2 refresh result in the PR 2944 audit`), then replied to the two threads (14:22:25Z and 14:22:28Z).
+- 2026-11-18 14:22 UTC - Resolved the two round 3 threads (about 14:22:47Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread, and the review list showed no review newer than 5958271471. The validator ran on the worktree record after these entries. Committed these entries.
 
 <!-- Copied verbatim into each audit record. -->
 
