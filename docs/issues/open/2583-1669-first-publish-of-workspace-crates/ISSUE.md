@@ -9,7 +9,7 @@ github-issue: 2583
 spec-path: docs/issues/open/2583-1669-first-publish-of-workspace-crates/ISSUE.md
 branch: "2583-1669-first-publish-of-workspace-crates-spec"
 related-pr: null
-last-updated-utc: "2026-11-18 10:22"
+last-updated-utc: "2026-11-18 18:56"
 semantic-links:
   skill-links:
     - create-issue
@@ -184,6 +184,15 @@ and removed `configuration::Error::Infallible`. `torrust-tracker-test-helpers` p
 too after #2482. The 18 unpublished crates owe nothing: their first publish starts their history.
 The root crate's major bump (3.0.0 to 4.0.0) is recorded here for the tracker release that
 publishes it.
+
+Breaking changes already in `torrust-tracker-primitives` for its 4.0.0 release notes, besides
+the `#[non_exhaustive]` marks of #2454:
+
+- #2914 (SI-2 of EPIC #2912): `peer::ParsePeerRoleError::InvalidPeerRole` and
+  `peer::IdConversionError::{NotEnoughBytes, TooManyBytes}` no longer have a `location` field, and
+  their messages no longer end in a source path. The `InvalidPeerRole` message changed from
+  `invalid param x in <path>:<line>:<column>` to `invalid peer role "x", expected "seeder" or
+  "leecher"`.
 
 ## Prerequisites
 
@@ -425,6 +434,9 @@ release branch and a signed tag.
   and T5; the `primitives` state line and rows 1 and 6 name the EPIC #2912 constraints (#2914,
   #2917); row 1 lists #2876 and the column legend says how EPIC #1347 rows are counted; row 12 says
   six crates and the root crate; the dependency wait is stated in terms of `PUBLISHED`.
+- 2026-11-18 18:56 UTC - Claude Code (Claude Opus 5.5) - Issue #2914 (SI-2 of EPIC #2912) recorded
+  its breaking change of `primitives` under "Semver bumps owed", for the 4.0.0 release notes (T5 of
+  its spec). No crate's status changed.
 
 ## Acceptance Criteria
 

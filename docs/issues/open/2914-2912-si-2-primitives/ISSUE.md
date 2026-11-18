@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: in-progress
 priority: p2
 epic: 2912
 github-issue: 2914
 spec-path: docs/issues/open/2914-2912-si-2-primitives/ISSUE.md
 branch: "2914-primitives"
 related-pr: null
-last-updated-utc: "2026-11-17 17:30"
+last-updated-utc: "2026-11-18 18:57"
 semantic-links:
   skill-links:
     - create-issue
@@ -115,11 +115,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | TODO | Reproduce and record | Current text of the three errors recorded in `manual-verification-evidence.md` (toolchain named). |
-| T2 | TODO | Red tests | Unit tests through `str::parse::<PeerRole>()` and `try_into()`/`Id::try_from` asserting no source path and the presence of the input; red output recorded. |
-| T3 | TODO | Remove the field, the format text and the captures | The three variants have no `location`; `grep -n 'Location' packages/primitives/src` finds nothing outside tests. |
-| T4 | TODO | Green and recheck | Green test output, then the T1 reproduction run again. |
-| T5 | TODO | Record the breaking change | Entry where the 4.0.0 changes of the crate are tracked (publish plan checklist row or the crate changelog, whichever the plan uses at that time). |
+| T1 | DONE | Reproduce and record | Current text of the three errors recorded in `manual-verification-evidence.md` (toolchain named). Done: V1 and V2 "Before"; the `IdConversionError` captures were at `peer.rs:395` and `:401` (the table above has the older 391 and 397). |
+| T2 | DONE | Red tests | Unit tests through `str::parse::<PeerRole>()` and `try_into()`/`Id::try_from` asserting no source path and the presence of the input; red output recorded. |
+| T3 | DONE | Remove the field, the format text and the captures | The three variants have no `location`; `grep -n 'Location' packages/primitives/src` finds nothing outside tests. |
+| T4 | DONE | Green and recheck | Green test output, then the T1 reproduction run again. |
+| T5 | DONE | Record the breaking change | Entry where the 4.0.0 changes of the crate are tracked (publish plan checklist row or the crate changelog, whichever the plan uses at that time). Done: the crate has no changelog; the entry is under "Semver bumps owed" in `docs/issues/open/2583-1669-first-publish-of-workspace-crates/ISSUE.md`. |
 
 ## Commit Points
 
@@ -155,11 +155,11 @@ with the narrow affected scope, and sign every commit with GPG.
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
+- [x] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
@@ -173,18 +173,19 @@ the model that produced them.
 
 - 2026-11-11 17:05 UTC - Claude Code (Fable 5.2) - Drafted from the audit of issue #2804 (`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`, `options.md`) as a sub-issue of the EPIC draft. Not yet approved; line numbers are those of `develop` at `4f0af379a` and must be re-checked before implementation.
 - 2026-11-17 17:30 UTC - Claude Code (Claude Opus 5.5) - EPIC coordinator: the maintainer approved the specification on 2026-11-17; issue #2914 created as `josecelano-bot` and the specification moved from `docs/issues/drafts/` to `docs/issues/open/` (SI-2 of EPIC #2912).
+- 2026-11-18 18:57 UTC - Claude Code (Claude Opus 5.5) - Implemented T1 to T5 on branch `2914-primitives`: reproduced the three messages in a scratch consumer crate, added three red tests through `str::parse` and `try_into`, removed the `location` fields, captures and import, and recorded the breaking change in the publish plan (#2583). The `InvalidPeerRole` message now reads `invalid peer role "x", expected "seeder" or "leecher"`; the peer id messages keep their byte counts. Evidence: `manual-verification-evidence.md`. No retrospective: the work matched the spec; the only discoveries were the shifted line numbers (395/401 for 391/397) and a first test input (`peer`) that matched the path `peer.rs`, both recorded in the evidence.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `ParsePeerRoleError` and `IdConversionError` have no `location` field.
-- [ ] AC2: `Display` of the three variants holds no source path and names the invalid input, proven by tests that go through `str::parse` and `try_into`.
-- [ ] AC3: `packages/primitives/src` has no `Location::caller()` outside test code.
-- [ ] AC4: The breaking change is recorded for the 4.0.0 release of the crate.
+- [x] AC1: `ParsePeerRoleError` and `IdConversionError` have no `location` field.
+- [x] AC2: `Display` of the three variants holds no source path and names the invalid input, proven by tests that go through `str::parse` and `try_into`.
+- [x] AC3: `packages/primitives/src` has no `Location::caller()` outside test code.
+- [x] AC4: The breaking change is recorded for the 4.0.0 release of the crate.
 - [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior/workflow changes
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated when behavior/workflow changes
 
 ## Verification Plan
 
@@ -202,8 +203,8 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | Parse an invalid peer role as a library consumer | In a scratch crate that depends on the workspace `torrust-tracker-primitives` by path, print `"x".parse::<PeerRole>().unwrap_err()` | The text names `x` and holds no file path or line | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | Convert a short peer id | Same crate: print `peer::Id::try_from(vec![0; 19]).unwrap_err()` | The text states the byte count and holds no file path or line | TODO | `manual-verification-evidence.md` section V2 |
+| M1 | Parse an invalid peer role as a library consumer | In a scratch crate that depends on the workspace `torrust-tracker-primitives` by path, print `"x".parse::<PeerRole>().unwrap_err()` | The text names `x` and holds no file path or line | DONE | `manual-verification-evidence.md` section V1 |
+| M2 | Convert a short peer id | Same crate: print `peer::Id::try_from(vec![0; 19]).unwrap_err()` | The text states the byte count and holds no file path or line | DONE | `manual-verification-evidence.md` section V2 |
 
 Notes:
 
@@ -243,10 +244,10 @@ None planned for this issue.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | --- | --- | --- |
-| AC1 | TODO | {test/log/PR link} |
-| AC2 | TODO | {test/log/PR link} |
-| AC3 | TODO | {test/log/PR link} |
-| AC4 | TODO | {test/log/PR link} |
+| AC1 | DONE | `peer.rs`: the variants are `InvalidPeerRole { raw_param }`, `NotEnoughBytes { message }`, `TooManyBytes { message }` |
+| AC2 | DONE | Three `..._no_source_path` tests in `peer.rs` (red, then green) and V1/V2 in `manual-verification-evidence.md` |
+| AC3 | DONE | `grep -rn 'Location' packages/primitives/src` finds nothing |
+| AC4 | DONE | "Semver bumps owed" in `docs/issues/open/2583-1669-first-publish-of-workspace-crates/ISSUE.md` |
 
 ## Risks and Trade-offs
 
@@ -261,7 +262,7 @@ After implementation, compare the result with this specification. Record
 invalidated assumptions, material design changes, unexpected validation
 findings, and reusable lessons.
 
-- Retrospective: `Not yet assessed`
+- Retrospective: not needed (see the progress log entry of 2026-11-18 18:57 UTC)
 - If needed, create `implementation-retrospective.md` from the repository
   template at `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this issue
   specification's directory.
