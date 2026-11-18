@@ -89,7 +89,7 @@ What follows from this decision, without any new decision:
 
 - Publishing stays in dependency order. A crate can be published when its own testing gate is met
   **and** every crate it depends on or dev-depends on is `PUBLISHED`. A crate whose testing gate is
-  met still waits for dependencies whose gate is not.
+  met still waits for every dependency and dev-dependency that is not `PUBLISHED`.
 - The other prerequisites did not change (see [Open Questions](#open-questions) OQ2 and OQ3).
 - T2 (publish procedure check) was never blocked by EPIC #1347 and is still not blocked.
 
