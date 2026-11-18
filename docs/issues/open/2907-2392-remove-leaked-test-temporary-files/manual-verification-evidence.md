@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2907-2392-remove-leaked-test-temporary-files/ISSUE.md
-last-updated-utc: "2026-11-18 11:11"
+last-updated-utc: "2026-11-18 11:55"
 ---
 
 # Manual Verification Evidence
@@ -147,8 +147,11 @@ each of the old `v2_0_0` and `v3_0_0` tests left 1 file.
 
 #### Why a Full Run Counts Fewer Files Than the Tests That Leak
 
-Five tests in `packages/configuration/src/lib.rs` (lines 438, 462, 483, 506 and 528) call
-`figment::Jail::clear_env()`. It removes every environment variable of the process, `TMPDIR`
+Eighteen tests in `packages/configuration/src/lib.rs` call `figment::Jail::clear_env()`, one call
+each, at lines 438, 462, 483, 506, 528, 555, 579, 604, 649, 671, 697, 734, 759, 786, 814, 838, 866
+and 892 (`grep -n 'clear_env()' packages/configuration/src/lib.rs`; no other file of the package
+calls it). The first version of this record said five tests and named only the first five lines;
+review finding F4 of PR 2938 corrected it. It removes every environment variable of the process, `TMPDIR`
 included, until the jail ends (`figment-0.10.19/src/jail.rs:320`). `Jail` serializes only the tests
 that use `Jail`. A test that runs in parallel at that moment and calls `std::env::temp_dir()` gets
 `/tmp` instead of `TMPDIR`. So the old tests sometimes leaked into the shared `/tmp`, outside the
@@ -190,9 +193,29 @@ visible. The old test's leftover comments and the `default_configuration` variab
 
 #### Red Before the Change
 
+Two red runs are recorded: the first, for AC3, against the old helper before the change; the
+second, after review finding F5 of PR 2938, against a mutated copy of the new helper, so that both
+maintained tests have a red run of their own code.
+
+##### Red 1: a variant of the AC3 test against the old helper
+
 At 2026-11-18 10:08:37 UTC, the AC3 test was first written against the old helper, which returned a
-`Utf8PathBuf`: a closure creates a file through `make_temp_file`, keeps its path, and panics, as a
-failing test would. Then the test asserts the path is gone.
+`Utf8PathBuf` and had no guard. This variant was a temporary step: it was replaced by the
+maintained AC3 test in the same task and is in no commit, so its code is recorded here:
+
+```rust
+#[test]
+fn it_should_remove_the_temporary_file_when_the_test_using_it_fails() {
+    let mut path = None;
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let file = make_temp_file("failing-test", "content");
+        path = Some(file.clone());
+        panic!("a test that fails while it holds the file");
+    }));
+    assert!(result.is_err());
+    assert!(!path.unwrap().exists());
+}
+```
 
 ```bash
 T=$(mktemp -d)
@@ -201,8 +224,45 @@ ls -A "$T"
 ```
 
 Result: `it_should_remove_the_temporary_file_when_the_test_using_it_fails ... FAILED` at its final
-assertion (`tls.rs:105`), 2 other tests passed, and `TMPDIR` held
-`failing-test-1794996525401726262.pem`.
+assertion, `assert!(!path.unwrap().exists())` (line 105 of the file as it was during this run), 2
+other tests passed, and `TMPDIR` held `failing-test-1794996525401726262.pem`.
+
+##### Red 2: the maintained tests against a helper that keeps its file
+
+<!-- cspell:ignore testeh Xiht -->
+
+At 2026-11-18 11:54:15 UTC, after the change, `make_temp_file` was mutated so that its guard keeps
+the file on drop, the same command ran, and the mutation was reverted with
+`git checkout -- packages/axum-server/src/tls.rs`. The mutation:
+
+```diff
+         let mut file = Builder::new()
+             .prefix(prefix)
+             .suffix(".pem")
++            .disable_cleanup(true)
+             .tempfile()
+             .expect("it should create a temporary test file");
+```
+
+Result, with the temporary directory written as `<TMPDIR>` and the line numbers of the mutated file:
+
+```text
+test tls::tests::it_should_remove_the_temporary_file_when_its_guard_is_dropped ... FAILED
+test tls::tests::it_should_error_on_missing_cert_or_key_paths ... ok
+test tls::tests::it_should_remove_the_temporary_file_when_the_test_using_it_fails ... FAILED
+test tls::tests::it_should_error_on_bad_tls_config ... ok
+thread 'tls::tests::it_should_remove_the_temporary_file_when_its_guard_is_dropped' (2124036) panicked at packages/axum-server/src/tls.rs:113:9:
+<TMPDIR>/droppedW7A3nD.pem should have been removed
+thread 'tls::tests::it_should_remove_the_temporary_file_when_the_test_using_it_fails' (2124037) panicked at packages/axum-server/src/tls.rs:125:13:
+thread 'tls::tests::it_should_remove_the_temporary_file_when_the_test_using_it_fails' (2124037) panicked at packages/axum-server/src/tls.rs:131:9:
+<TMPDIR>/failing-testehXiht.pem should have been removed
+test result: FAILED. 2 passed; 2 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.00s
+```
+
+Both maintained tests failed at their final assertion (the panic at line 125 is the expected panic
+of the AC3 test's stand-in failing test). `TMPDIR` held `bad-certEVyNZS.pem`, `bad-keySM8xfo.pem`,
+`droppedW7A3nD.pem` and `failing-testehXiht.pem`. After the revert, at 2026-11-18 11:54:16 UTC, the
+same command passed 4 tests and left `TMPDIR` empty.
 
 #### Green After the Change
 
@@ -306,7 +366,7 @@ Two limits of this check, both covered elsewhere:
 ## Failures and Follow-up
 
 - `figment::Jail::clear_env()` empties the environment of the whole test process while a jail is
-  active (T3). The #2394 audit's `inventory.md` classifies the `Jail` tests as isolated (G2) because
+  active (T3); eighteen tests of `packages/configuration/src/lib.rs` call it. The #2394 audit's `inventory.md` classifies the `Jail` tests as isolated (G2) because
   they serialize on `Jail`'s lock, but tests in the same binary that do not use `Jail` are not
   serialized and can observe the cleared environment. Outside this issue's scope; reported to the
   EPIC #2392 coordinator on 2026-11-18.

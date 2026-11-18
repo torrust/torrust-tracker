@@ -8,8 +8,8 @@ epic: 2392
 github-issue: 2907
 spec-path: docs/issues/open/2907-2392-remove-leaked-test-temporary-files/ISSUE.md
 branch: "2907-2392-remove-leaked-test-temporary-files"
-related-pr: null
-last-updated-utc: "2026-11-18 11:19"
+related-pr: 2938
+last-updated-utc: "2026-11-18 11:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -146,7 +146,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1 | DONE | Reproduce with a fresh `TMPDIR` | Before-counts recorded (V1): 2 `test_config_*.toml`, 0 PEM, 301 `data_*.db` at `develop` `61e3fedcf` (evidence file, "V1 repeated by T1"). |
 | T2 | DONE | Confirm the two designs | The maintainer confirmed the TOML and TLS designs above on 2026-11-18. |
 | T3 | DONE | Configuration-file tests | Files removed when the test ends (focused run: 1 file before, 0 after); test-design review recorded in the evidence file. |
-| T4 | DONE | TLS test files | Red then green recorded; test-design review recorded in the evidence file; the maintainer approved the tests of T3 and T4 on 2026-11-18. |
+| T4 | DONE | TLS test files | Red then green recorded for both maintained tests (the second red run after review finding F5 of PR 2938); test-design review recorded in the evidence file; the maintainer approved the tests of T3 and T4 on 2026-11-18. |
 | T5 | DONE | Recheck | V2: 0 `test_config_*.toml`, 0 PEM, 4152 tests passed; `linter all` exit `0`. |
 
 ## Commit Points
@@ -215,6 +215,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   The pre-push hook passed (it ended with `cargo +nightly doc`, `cargo +stable package --workspace`
   and the full `cargo +stable test` run, 2026-11-18 11:16:22 to 11:18:25 UTC), so the automatic
   verification is complete. The independent Task Reviewer's report is in `agent-review-reports.md`.
+- 2026-11-18 11:55 UTC - Claude Code (Claude Opus 5.5), #2907 session - Opened PR #2938. Processing
+  its first reviews (audit: `docs/pr-reviews/pr-2938-review/PR-REVIEW.md`). Corrections to two
+  entries above, found by review: the 10:06 entry says five `figment::Jail` tests call `clear_env()`;
+  eighteen do (finding F4). The 11:19 entry says the new `develop` commits change only Markdown
+  files; they also changed `.dockerignore` and `project-words.txt` and renamed six `.txt` evidence
+  files of an archived spec, but no Rust or Cargo file (finding F6). Added a second red run, which
+  covers both maintained TLS tests, to the evidence file (finding F5).
 
 ## Acceptance Criteria
 
