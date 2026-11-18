@@ -3,7 +3,7 @@ doc-type: file-test-plan
 issue: 2902
 package: torrust-tracker-core
 target-file: packages/tracker-core/src/statistics/event/handler.rs
-status: approved
+status: done
 semantic-links:
   related-artifacts:
     - packages/tracker-core/src/statistics/event/handler.rs
@@ -77,10 +77,31 @@ M1 and M2 survive today: the only non-completion event under test is `PeerAdded`
 
 | ID | Status | Work | Completion evidence |
 | --- | --- | --- | --- |
-| H1 | TODO | Add the three tests and remove the two replaced ones. | They pass; lines 19-58 and 129 run. |
-| H2 | TODO | Run M1-M4. | Each is killed by its expected test. |
-| H3 | TODO | Record the results and ask for the completed-file review. | This record and the ledger. |
+| H1 | DONE | Add the three tests and remove the two replaced ones. | They pass; lines 19-58 and 129 run. |
+| H2 | DONE | Run M1-M4. | Each is killed by its expected test. |
+| H3 | DONE | Record the results and ask for the completed-file review. | This record and the ledger. |
 
 ## Results
 
-To be filled in after H3.
+- **Coverage** (stable Rust 1.100.0, `cargo-llvm-cov 0.9.1`, `--all-features --lib`, clean
+  coverage target directory, 2026-11-18): the file 175 / 196 lines to 311 / 311, regions 204 / 249
+  to 264 / 289, functions 30 / 34 to 39 / 39 (the counts include the test module's helpers, which
+  grew with the event table). The package's unit-only lines 4,553 / 5,450 (83.54%) to
+  4,688 / 5,564 (84.26%), regions 4,993 / 6,056 (82.45%), functions 764 / 1,008 (75.79%). Every
+  line runs; the regions left are the log-level checks of the `tracing` calls (lines 37, 41, 45,
+  49, 57, 66, 106, 108, 120 and 129; at 129 the error arm runs, its log call does not): no decision.
+- **Tests:** three added, two replaced by the tables (their `PeerAdded` case is kept as one row),
+  three unchanged: six in the file, 177 unit tests in the package.
+- **Mutations** (each applied alone and reverted; a mutant that did not compile was rewritten to
+  keep calling the logging handler, which the `unused` lint requires):
+
+  | ID | Result |
+  | --- | --- |
+  | M1 | Killed by the in-memory table: "PeerRemoved must not count as a completed download". It survived the tests before this change (checked against the committed file). |
+  | M2 | Killed by the in-memory table: "PeerUpdated must not count as a completed download" |
+  | M3 | Killed by the global-failure test |
+  | M4 | Killed by the persistence table and by the existing completion test |
+
+- **Review outcome:** the maintainer approved the completed file on 2026-11-18.
+- **Validation:** `cargo clippy -p torrust-tracker-core --all-targets --all-features` (only the
+  existing `axum::serve` warning) and `cargo +nightly fmt --all -- --check` pass.
