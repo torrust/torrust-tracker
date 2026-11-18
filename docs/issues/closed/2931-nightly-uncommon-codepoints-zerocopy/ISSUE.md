@@ -132,7 +132,7 @@ the red/green evidence is the `cargo check` run recorded in `manual-verification
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/closed/2931-nightly-uncommon-codepoints-zerocopy/ISSUE.md`
+- [x] Folder-style spec drafted in `docs/issues/drafts/nightly-uncommon-codepoints-zerocopy/ISSUE.md` (moved to `docs/issues/open/2931-nightly-uncommon-codepoints-zerocopy/` once issue #2931 existed)
 - [x] Spec reviewed and approved by user/maintainer (reviewed in PR #2932)
 - [x] GitHub issue created and issue number added to this spec (#2931)
 - [x] Implementation completed
@@ -142,7 +142,7 @@ the red/green evidence is the `cargo check` run recorded in `manual-verification
 - [x] Evidence-based implementation completion review recorded
 - [x] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Committer verified spec progress is up to date before commit
-- [x] Issue closed and spec moved from `docs/issues/closed/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
