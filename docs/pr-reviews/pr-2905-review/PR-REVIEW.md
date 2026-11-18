@@ -1,7 +1,7 @@
 ---
 pr-number: 2905
 pr-url: https://github.com/torrust/torrust-tracker/pull/2905
-last-updated-utc: "2026-11-17 17:59"
+last-updated-utc: "2026-11-18 11:54"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -88,7 +88,7 @@ handled after the merge, in pull request #2920.
 | F17 | `review-finding:pr-2905-f17` | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F18 | `review-finding:pr-2905-f18` | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F19 | `review-finding:pr-2905-f19` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
-| F20 | `review-finding:pr-2905-f20` | Human | Nit | documentation | ORIGINAL | FOLLOW_UP | OPEN |
+| F20 | `review-finding:pr-2905-f20` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F21 | `review-finding:pr-2905-f21` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
@@ -360,11 +360,11 @@ handled after the merge, in pull request #2920.
 - Reviewer finding ID: F17
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2905#discussion_r4602381116
 - Concern: The entry "Named models in #2904" changes the EPIC's scope, but the EPIC's Progress Log had no line for it. The EPIC template asks for one line per meaningful update.
-- Solution: The maintainer chose to merge pull request #2905 without another push and to carry this to the first implementation pull request of issue 2904. That pull request, #2920, adds a late Progress Log line naming the exception, its record and who decided it, in `docs(issues): [#2904] log the named-model exception in the EPIC progress log`. Until it merges the line is not on `develop`, so the disposition is `FOLLOW_UP` and the thread stays open; the row becomes `FIXED` and the thread is resolved after the merge.
-- Current-tree verification: `grep -n "Late entry for a scope change" docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md` prints the new line on the branch of pull request #2920, after the 12:14 entry of 2026-11-17; `git grep -c "Late entry for a scope change" torrust/develop -- docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md` prints nothing. `linter markdown` and `linter cspell` passed.
-- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2905#discussion_r4602755221
+- Solution: The maintainer chose to merge pull request #2905 without another push and to carry this to the first implementation pull request of issue 2904. That pull request, #2920, adds a late Progress Log line naming the exception, its record and who decided it, in `docs(issues): [#2904] log the named-model exception in the EPIC progress log`. Until it merged the line was not on `develop`, so the disposition was `FOLLOW_UP` and the thread stayed open. Pull request #2920 merged at 2026-11-18 09:54:45 UTC (merge commit `68b866938`); the row is now `FIXED` and the thread is resolved.
+- Current-tree verification: `git grep -n "Late entry for a scope change" torrust/develop -- docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md`, run on `develop` at `a0d97f956`, prints the line, and `git merge-base --is-ancestor 68b866938 torrust/develop` exits 0.
+- Resolution reference: `docs(issues): [#2904] log the named-model exception in the EPIC progress log`
 - Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2920
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2905#discussion_r4602755221
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2905#discussion_r4613181636
 
 ### F21 - Three answered threads still need audit rows
 
@@ -401,6 +401,8 @@ handled after the merge, in pull request #2920.
 - 2026-11-17 17:23 UTC - Round 8, after the merge: the review `5942183537` of `da2ce7` (submitted 16:16:56Z, forge `submitted_at`) on the head between the two pushes of round 7, with two findings, recorded as F20 and F21. The reply to F21 was posted at 16:18:40Z and the reply to F20 at 16:44:18Z (forge `created_at`), after the maintainer chose to merge without another push. Pull request #2905 was merged at 16:52:36Z (forge `mergedAt`) with both threads unresolved. The fix for F20 was committed on the branch of pull request #2920 and pushed before this entry; `git ls-remote` showed the fork branch at the local head. The two threads are not resolved at the time of this entry: they are resolved by their thread IDs after this record is pushed.
 - 2026-11-17 17:50 UTC - Correction for the round 8 entry, after the reviews `5943570147` of `da2ce7` and `5943581377` of Copilot on pull request #2920. That entry said both threads would be resolved after the push, and both were, at about 17:28Z, with F20 recorded `FIXED`/`RESOLVED`. For F20 that was wrong: its fix is only on the branch of pull request #2920, and `process-pr-review` (Reviews Submitted After Merge, steps 5 and 6) keeps such a row `FOLLOW_UP`/`OPEN` until the follow-up merges. The thread of F20 was reopened by its thread ID at 17:48:28Z (`date -u` after the call) and its row corrected. F21 stays `FIXED`/`RESOLVED`: its fix was on `develop` at the merge. Step 2 of the same section asks for the maintainer's approval as a durable comment URL in the Ownership section before any mutating action. That was not done: the choice was made in the working session, and the round 8 changes were made without the comment. The field stays `N/A` until the maintainer posts the comment; it is then recorded as a retrospective approval with both times.
 - 2026-11-17 17:59 UTC - The maintainer posted the approval of the post-merge work as a comment on pull request #2905 at 17:59:16Z (forge `created_at`, author `josecelano`). It is a retrospective record: it states that the approval was given in the working session at about 16:44 UTC, before the round 8 changes. Its URL is recorded in the Ownership section.
+- 2026-11-18 11:30 UTC - Pull request #2920, the follow-up of F20, merged at 2026-11-18 09:54:45 UTC (forge `mergedAt`, merge commit `68b866938`), so the Progress Log line of F20 is on `develop`. The row of F20 is now `FIXED`, with that commit's subject as its resolution reference. The reply that says so was posted at 11:29:02Z (forge `created_at`), after the merge. The thread of F20 is resolved by its thread ID after this record is pushed.
+- 2026-11-18 11:54 UTC - Clarification of the 11:30 entry, after the review `5956009614` of `da2ce7` on pull request #2942: "that commit's subject" there means the subject of the fixing commit inside pull request #2920, `docs(issues): [#2904] log the named-model exception in the EPIC progress log`, not the subject of its merge commit `68b866938`.
 
 <!-- Copied verbatim into each audit record. -->
 

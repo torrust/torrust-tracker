@@ -10,6 +10,9 @@ Two other names in angle brackets are not replacements made here: `<worktree>` a
 abbreviations the probes chose themselves in their answers. Each probe that uses one says which
 path it stands for, and only that path was replaced.
 
+The `...` that starts two paths in probe 3 is not a replacement either: the probe wrote it in its
+answer, so it is kept as is.
+
 ## Probe 1 - checkout P, no pointer file, session
 
 ```text

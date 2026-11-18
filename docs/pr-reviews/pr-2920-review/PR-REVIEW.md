@@ -1,7 +1,7 @@
 ---
 pr-number: 2920
 pr-url: https://github.com/torrust/torrust-tracker/pull/2920
-last-updated-utc: "2026-11-17 19:17"
+last-updated-utc: "2026-11-18 12:15"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -17,7 +17,7 @@ Source: pull-request reviews and inline review threads for https://github.com/to
 The PR author owns this tracked audit record. Reviewers, including repository review agents,
 deliver findings through GitHub and have no repository-artifact obligation.
 
-- Post-merge workflow approval: N/A
+- Post-merge workflow approval: https://github.com/torrust/torrust-tracker/pull/2920#issuecomment-6977200583 (retrospective record: the maintainer gave the approval in the working session on 2026-11-18 at about 09:58 UTC, and created this comment at 11:26:15Z)
 
 <!-- Copied verbatim into each audit record. -->
 
@@ -54,6 +54,9 @@ Round 4 is the approving review `5944877623` of `da2ce7` (F14, audit-local ID; t
 that carried the round 3 audit.
 Round 5 is the approving review `5953723621` of `da2ce7` (F15, audit-local ID; the reviewer numbers it F26), on the head
 rebased onto `d8e14450d`.
+Round 6 is the feedback still unprocessed when this pull request merged, both reviews submitted before the merge: the approving review `5953969566` of `da2ce7` (F16, audit-local ID; the reviewer numbers it
+F27) and Copilot's review `5954232676` (COMMENTED, three comments without IDs, recorded as F17 to F19), both on the head
+that carried the round 5 audit. Their fixes are in the follow-up pull request #2942.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -72,6 +75,10 @@ rebased onto `d8e14450d`.
 | F13 | `review-finding:pr-2920-f13` | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 | F14 | `review-finding:pr-2920-f14` | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 | F15 | `review-finding:pr-2920-f15` | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
+| F16 | `review-finding:pr-2920-f16` | Human | Nit | documentation | ORIGINAL | FOLLOW_UP | OPEN |
+| F17 | `review-finding:pr-2920-f17` | Copilot | Minor (inferred) | documentation | ORIGINAL | FOLLOW_UP | OPEN |
+| F18 | `review-finding:pr-2920-f18` | Copilot | Minor (inferred) | documentation | RE_RAISE_OF:F17 | FOLLOW_UP | OPEN |
+| F19 | `review-finding:pr-2920-f19` | Copilot | Minor (inferred) | metadata | ORIGINAL | FOLLOW_UP | OPEN |
 
 ## Finding Details
 
@@ -265,10 +272,62 @@ rebased onto `d8e14450d`.
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2920#discussion_r4611573587
 - Concern: Two rebases set every committer time to 2026-11-18 09:02, so the `git log --format=%cI` the log entries name no longer prints the times they give, and the review threads cite commit ids the rebases replaced. Nothing in the log names the rebases.
 - Solution: A Processing Log entry names both rebases with their times and bases, the EPIC conflict that required the first, and the `git log --format=%aI` form that prints the times of the earlier entries; it says the ids cited in the threads are from before the rebases and that each commit's subject identifies it.
-- Current-tree verification: `git log --format=%aI` over the branch printed 18:00:55Z, 18:35:10Z, 18:58:46Z and 19:13:28Z for the four commits whose times the log entries give, the same times the entries state.
+- Current-tree verification: `git log --format=%aI` over the branch printed 18:00:55Z, 18:35:10Z, 18:58:46Z and 19:13:28Z, the same times the log entries state. The log entries before the rebase entry give six commit times, so this checked four of them. The other two, 17:48:20Z and 17:51:07Z, are in the round 1 entry and were not checked then. F16 corrects this line.
 - Resolution reference: `docs(pr-reviews): [#2904] record the two rebases in the review audit of PR #2920`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2920#discussion_r4611619528
+
+### F16 - The verification line of F15 checked four of the six commit times
+
+- PR number: 2920
+- Source review ID: 5953969566
+- Reviewer finding ID: F27
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2920#discussion_r4611784133
+- Concern: The Current-tree verification line of F15 spoke of "the four commits whose times the log entries give", but the entries before the rebase entry give six: the round 1 entry also gives 17:48:20Z and 17:51:07Z. The reviewer checked those two and they match, so the claim of the rebase entry holds; the line should say what ran.
+- Solution: The line of F15 says it checked four of the six times and names the other two. Submitted before the merge and unprocessed when it merged: five rounds of fixes were used, the maintainer chose to merge with it open, and approved this follow-up after the merge.
+- Current-tree verification: `git log --format='%aI %s' d8e14450d..68b866938^2` on `develop` prints 17:48:20Z and 17:51:07Z for `build(container): [#2904] keep the pointer CLAUDE.md files out of the build context` and `docs(pr-reviews): [#2904] keep finding F20 of PR #2905 open until its follow-up merges`, and the four times the line names, so all six match.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2920#discussion_r4613226963
+- Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2942
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2920#discussion_r4613226963
+
+### F17 - The ellipsis in probe 3 is not among the replacements the header lists
+
+- PR number: 2920
+- Source review ID: 5954232676
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2920#discussion_r4611977896
+- Concern: The header of `evidence/m4-probe-answers.md` says the outputs are verbatim except for four path fragments, but two paths in probe 3 start with `.../torrust-tracker/`, which is neither one of the four placeholders nor described.
+- Solution: The ellipsis is the probe's own answer text, so the "verbatim" claim holds; a note in the header now says so, so a reader can tell it from a replacement.
+- Current-tree verification: the raw output of probe 3, kept locally and not published, contains `.../torrust-tracker/packages/AGENTS.md` in its `result` field; the header of the answers file has the note.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2920#discussion_r4613227472
+- Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2942
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2920#discussion_r4613227472
+
+### F18 - The same comment on the ellipsis, posted twice
+
+- PR number: 2920
+- Source review ID: 5954232676
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2920#discussion_r4611977966
+- Concern: Same text as F17, posted as a second comment on the same lines in the same review.
+- Solution: Fixed by the fix of F17.
+- Current-tree verification: As for F17.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2920#discussion_r4613228009
+- Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2942
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2920#discussion_r4613228009
+
+### F19 - `last-updated-utc` is not quoted in the manual verification evidence
+
+- PR number: 2920
+- Source review ID: 5954232676
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2920#discussion_r4611978031
+- Concern: An unquoted timestamp in YAML front matter can be parsed as a date instead of a string, unlike the quoted field of `ISSUE.md`.
+- Solution: The value is quoted.
+- Current-tree verification: `sed -n 4p` on `manual-verification-evidence.md` prints `last-updated-utc: "2026-11-17 18:34"`; the pre-commit frontmatter check passed.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2920#discussion_r4613228532
+- Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2942
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2920#discussion_r4613228532
 
 ## Processing Log
 
@@ -289,6 +348,8 @@ rebased onto `d8e14450d`.
 - 2026-11-18 09:21 UTC - Two rebases onto `develop`, each keeping every commit. The first, at 2026-11-17 21:30 UTC onto `d24297c23` (the merge of pull request #2922), was required: that pull request changed the same two places of the EPIC file as this one, `last-updated-utc` and the end of its Progress Log. The resolution keeps the later `last-updated-utc` and orders the log lines by time. The second, at 2026-11-18 09:02 UTC onto `d8e14450d` (the merge of pull request #2932), brings in the fix for the nightly toolchain failure of the `OS Compatibility` check, unrelated to this pull request; `git range-diff` showed every commit unchanged. Each rebase reset the committer time of every commit, so `git log --format=%cI` now prints 2026-11-18 09:02 for all of them. The commit times given in the entries above are author times: `git log --format=%aI` prints them. The commit ids cited in the review threads and replies name commits from before the rebases; each of those commits keeps its Conventional Commit subject, which identifies it on the current branch.
 - 2026-11-18 09:24 UTC - Round 5: the approving review `5953723621` of `da2ce7` (submitted 09:19:55Z, forge `submitted_at`) with one suggestion, recorded as F15; Copilot's review `5953709053` (09:19:03Z) on the same head recommends approval with no findings. The reviewer's `ACK` comment (09:19:59Z, forge `created_at`) names the head it read; the fix moves the head past it. The fix is the entry above, committed at 09:20:49Z (`git log --format=%aI`, in UTC) and pushed; `git ls-remote` showed the fork branch at the local head at 09:23:46Z (`date -u`). The reply was posted at 09:23:58Z (forge `created_at`), after the push. This is the fifth round of fixes on this pull request.
 - 2026-11-18 09:25 UTC - `validate-audit-record.py --pr-number 2920 --base torrust/develop`, with its `gh` calls made through `gh-bot`, exited 0 (15 rows, 0 failures). Resolved the thread of F15 by its thread ID; a GraphQL refresh showed 0 unresolved threads.
+- 2026-11-18 11:33 UTC - Round 6, after the merge. Pull request #2920 merged at 2026-11-18 09:54:45Z (forge `mergedAt`) with four threads open: the approving review `5953969566` of `da2ce7` (submitted 09:37:42Z, forge `submitted_at`) with one nit, recorded as F16, and Copilot's review `5954232676` (09:53:37Z) with three comments, recorded as F17 to F19 (F18 repeats F17). The reply to F16 was posted at 09:53:15Z, before the merge, after the maintainer chose to merge with the nit open. The first replies to F17, F18 and F19 were posted at 09:55:38Z, 09:55:41Z and 09:55:43Z, after the merge and before any durable approval: a slip, because `process-pr-review` (Reviews Submitted After Merge, step 2) allows no reply before the approval comment exists. Those replies only said what the next pull request would do. The maintainer's approval comment was created at 11:26:15Z and is recorded in Ownership. The fixes are in the follow-up pull request #2942, branched from `develop`; its two evidence fixes were pushed (`git ls-remote` showed the fork branch at the local head at 11:32:34Z, `date -u`) before the replies that name it, posted between 11:32:59Z and 11:33:07Z (forge `created_at`). The fix of F16 is in this record, which was not pushed yet when its reply said it was fixed: a second slip, of the order push, then reply. It was pushed right after, with this entry. The rows stay `FOLLOW_UP`/`OPEN` until it merges.
+- 2026-11-18 11:52 UTC - Correction to the round 6 entry, after the review `5956009614` of `da2ce7` on pull request #2942. Its sentence "It was pushed right after, with this entry" was written before the push it states, in the commit that the push carried. The push did happen: `git ls-remote` showed the fork branch at the head `docs(pr-reviews): [#2904] record the late review of PR #2920 and correct the verification of F15` at 11:36:42Z (`date -u`). The entry's last words, "until it merges", mean until pull request #2942 merges.
 
 <!-- Copied verbatim into each audit record. -->
 

@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md
-last-updated-utc: 2026-11-17 18:34
+last-updated-utc: "2026-11-17 18:34"
 ---
 
 # Manual Verification Evidence
