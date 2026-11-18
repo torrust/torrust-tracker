@@ -41,18 +41,47 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-No review has a finding yet. da2ce7's conversation comment 6987829006 is not a review, so, as in the PR #2430 audit, it is recorded in the Processing Log, not as a row.
+da2ce7's conversation comment 6987829006 is not a review, so, as in the PR #2430 audit, it is recorded in the Processing Log, not as a row.
 
-| Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
-| ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
+Round 1 is Copilot review `5963231037` (`COMMENTED`, on head `docs(pr-reviews): [#2949] add the PR #2950 review audit record`), with two inline comments, F1 and F2 (audit-local IDs). Copilot labels both "Medium severity" in its overview; the severity `Minor` is inferred from that label, as in the PR #2905 audit. Its body says the full agentic review did not run because it did not start before the timeout.
+
+| Finding ID | Review finding reference    | Author class | Severity         | Category      | Relationship | Disposition | Thread state |
+| ---------- | --------------------------- | ------------ | ---------------- | ------------- | ------------ | ----------- | ------------ |
+| F1         | `review-finding:pr-2950-f1` | Copilot      | Minor (inferred) | correctness   | ORIGINAL     | FIXED       | RESOLVED     |
+| F2         | `review-finding:pr-2950-f2` | Copilot      | Minor (inferred) | documentation | ORIGINAL     | FIXED       | RESOLVED     |
 
 ## Finding Details
 
-None yet.
+### F1 - The check command misses a file renamed into the audit folder
+
+- PR number: 2950
+- Source review ID: 5963231037
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4619336035
+- Concern: `git diff --name-only` follows Git's rename detection, so a file moved from outside into the audit folder may be listed only by its new path and pass the "only files under the folder" check.
+- Solution: The rule's command is now `git diff --no-renames --name-only X..H`, with a sentence saying why, and scenario M4 covers a file moved into the audit folder.
+- Current-tree verification: On a throwaway repository with Git 2.53.0, after `git mv src/lib.rs docs/pr-reviews/pr-7-review/lib.rs`, `git diff --name-only X..HEAD` printed only `docs/pr-reviews/pr-7-review/lib.rs`, and `git diff --no-renames --name-only X..HEAD` printed both paths. The specification's rule under In Scope names `--no-renames`, and the M4 row is in the manual scenarios table.
+- Resolution reference: `docs(issues): [#2949] require --no-renames in the ACK check command`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4619414676
+
+### F2 - Regression Test Strategy contradicts the merge-tool tests
+
+- PR number: 2950
+- Source review ID: 5963231037
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4619336104
+- Concern: Regression Test Strategy said "Not applicable" while the automatic checks, T5 and AC6 require merge-tool tests when D2 is (b).
+- Solution: The section now says not applicable unless D2 is (b), and names the merge-tool unit tests for that case, matching M1 to M4.
+- Current-tree verification: Read the Regression Test Strategy section of the specification on the current tree: it names the five test cases and the D2 (b) condition, consistent with T5, AC6 and Automatic Checks.
+- Resolution reference: `docs(issues): [#2949] name the merge-tool tests in the regression test strategy`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4619415354
 
 ## Processing Log
 
 - 2026-11-18 18:34 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Started audit. The poller reported da2ce7's conversation comment [6987829006](https://github.com/torrust/torrust-tracker/pull/2950#issuecomment-6987829006) (2026-11-18 18:31:31 UTC) on head `docs(issues): add issue specification for #2949`; the pull request had no review. The comment does not agree to the rule as written, points to their proposal on #2949 ([issue comment 6987828129](https://github.com/torrust/torrust-tracker/issues/2949#issuecomment-6987828129), 18:31:29 UTC: a metadata branch folded in with a three-parent merge), and asks that the two be compared before deciding. A conversation comment is not a review, so it makes no row. The comparison was added to the specification in `docs(issues): [#2949] compare da2ce7's metadata-branch alternative under D1`; no decision was made, the maintainer decides D1.
+- 2026-11-18 19:13 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Round 1: the poller reported Copilot review 5963231037 (submitted 2026-11-18 19:06:19 UTC). Normalized its two inline comments as F1 and F2, fixed each in its own commit, pushed both, and replied on both threads, then resolved both threads.
 
 ## Completion Rules
 
