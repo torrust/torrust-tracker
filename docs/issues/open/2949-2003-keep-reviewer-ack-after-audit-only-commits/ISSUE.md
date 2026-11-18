@@ -9,7 +9,7 @@ github-issue: 2949
 spec-path: docs/issues/open/2949-2003-keep-reviewer-ack-after-audit-only-commits/ISSUE.md
 branch: "2949-keep-reviewer-ack-after-audit-only-commits-spec"
 related-pr: null
-last-updated-utc: "2026-11-18 19:43"
+last-updated-utc: "2026-11-18 20:22"
 semantic-links:
   skill-links:
     - create-issue
@@ -85,7 +85,10 @@ repository.
 - The rule, stated once and referenced from the other places:
   a reviewer's `ACK <X>` counts on head `H` when `X` is `H`, or when `X` is an ancestor of `H` and
   `git diff --no-renames --name-only X..H` lists only files under `docs/pr-reviews/pr-<N>-review/`, where `<N>` is
-  this pull request's number. Any other changed file makes the ACK stale, as today. `--no-renames` is required:
+  this pull request's number. Any other changed file makes the ACK stale, as today. A path is under the folder only when it starts
+  with the exact prefix `docs/pr-reviews/pr-<N>-review/`, trailing slash included; a substring match or a
+  prefix without the slash is not enough (`docs/pr-reviews/pr-29-review/` is not a prefix of
+  `docs/pr-reviews/pr-2947-review/PR-REVIEW.md`). `--no-renames` is required:
   with rename detection, which is on by default, a file moved into the folder from elsewhere is listed only by its
   new path and would pass; without it, the move is listed as a deletion of the old path and an addition of the new
   one, so the ACK goes stale (checked with Git 2.53.0 on a throwaway repository).
@@ -175,7 +178,7 @@ These are open. Each has a recommendation; the maintainer decides.
   (`merge-pull-request`: "the repository-local wrapper and `contrib/dev-tools/git/github-merge.py` are
   authoritative").
 - **D3. Which folder counts.** Only this pull request's own folder, `docs/pr-reviews/pr-<N>-review/`, matched as
-  a whole path segment (`pr-29-review` must not match pull request 2947 or 294). Audit records of other pull
+  a whole path segment, that is, by the exact prefix `docs/pr-reviews/pr-<N>-review/` with its trailing slash (`pr-29-review` must not match pull request 2947 or 294). Audit records of other pull
   requests changed in the same branch make the ACK stale. Recommendation: as stated.
 - **D4. A deterministic check.** Whether the rule ships as text with a command, or as a small tool that prints
   whether a given ACK counts. Recommendation: text with the command in this issue; a tool only if D2 is (b), in
@@ -254,6 +257,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-18 18:33 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - da2ce7 does not agree to the rule as written (PR #2950 comment 6987829006) and proposed a metadata branch folded in with a three-parent merge (issue comment 6987828129). D1 now compares three options, (a) the rule, (b) audit after merge and (c) the metadata branch, with the merge-tool facts for (c) read on `develop` at `96923f0d2` and one point marked not verified. The D1 recommendation changed from "adopt the rule now" to "the maintainer chooses between (a) and (c)", because (a) cannot land without da2ce7's agreement. D5 records da2ce7's suggested limit. Nothing is decided.
 - 2026-11-18 19:09 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Addressed Copilot review 5963231037 on PR #2950: the rule's command is now `git diff --no-renames --name-only X..H`, with scenario M4 for a file moved into the audit folder (rename detection otherwise lists only the new path; reproduced with Git 2.53.0), and Regression Test Strategy now names the merge-tool tests that apply when D2 is (b).
 - 2026-11-18 19:43 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Addressed Copilot review 5963780219 on PR #2950: Regression Test Strategy now maps four of its five test cases to M1 to M4 one by one and says the ACK-on-head case is the baseline with no manual scenario.
+- 2026-11-18 20:22 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Addressed Copilot review 5964359494 on PR #2950: the checked facts cite skill sections instead of line numbers, and the rule and D3 state the folder match as the exact prefix `docs/pr-reviews/pr-<N>-review/` with its trailing slash.
 
 ## Acceptance Criteria
 
