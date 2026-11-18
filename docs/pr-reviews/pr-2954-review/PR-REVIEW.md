@@ -1,7 +1,7 @@
 ---
 pr-number: 2954
 pr-url: https://github.com/torrust/torrust-tracker/pull/2954
-last-updated-utc: "2026-11-18 20:11"
+last-updated-utc: "2026-11-18 20:46"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -47,12 +47,15 @@ Round 1 is Copilot's review `5963601478` on the first head, with two inline find
 
 Round 2 is Copilot's review `5964198269` on the head that carried the round-1 fixes. It ran with the "didn't start before the timeout" warning and left two inline findings without IDs or severity brackets (F3 and F4, audit-local, severity inferred).
 
+Round 3 is Copilot's review `5964694968` on the head with the round-2 audit, again with the timeout warning, and one inline finding without an ID or severity bracket (F5, audit-local, severity inferred).
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2954-f1` | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | F2 | `review-finding:pr-2954-f2` | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | F3 | `review-finding:pr-2954-f3` | Copilot | Nit (inferred) | formatting | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F4 | `review-finding:pr-2954-f4` | Copilot | Nit (inferred) | formatting | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F5 | `review-finding:pr-2954-f5` | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -108,11 +111,25 @@ Round 2 is Copilot's review `5964198269` on the head that carried the round-1 fi
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2954#discussion_r4620121079
 
+### F5 - The spec mixed "at least" and "reach" for the helper's comparison
+
+- PR number: 2954
+- Source review ID: 5964694968
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2954#discussion_r4620476829
+- Concern: AC1 says the helper returns when both values are at least `expected`, while the In Scope item said they "reach the expected value", which can read as equality; the comparison should be stated the same way everywhere.
+- Solution: The In Scope item now says "at least the expected value (`>= expected`)" and gives the reason: the helper already compares the database value with `>=`, and a caller waiting for `1` after more downloads were persisted must not hang until the timeout. The Goal and the Regression Test Strategy state no comparison.
+- Current-tree verification: `grep -n -i "reach" ISSUE.md` prints nothing; the In Scope item and AC1 both say "at least"; `test_env.rs` on `develop` has `u64::from(downloads) >= expected`.
+- Resolution reference: `docs(issues): [#2953] state the at-least comparison of the wait helper in scope`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2954#discussion_r4620545071
+
 ## Processing Log
 
 - 2026-11-18 19:33 UTC - Started audit, before the replies of round 1.
 - 2026-11-18 19:35 UTC - Round 1: Copilot review `5963601478` (submitted 19:28:54Z, poller `cursor`) with two Minor findings. The fixes were committed at 19:31:13Z (F2) and 19:32:26Z (F1) (`git log --format=%cI`); `git ls-remote` showed the fork branch at the local head at 19:35:07Z (`date -u`). The two replies were posted at 19:35:15Z and 19:35:18Z (forge `created_at`), after the push. `validate-audit-record.py --pr-number 2954 --base torrust/develop`, run with the bot token in `GH_TOKEN` so its `gh` calls ran as `josecelano-bot`, exited 0 (2 rows, 0 failures) at 19:35:29Z; the two threads were then resolved by their thread IDs by 19:35:38Z, and a GraphQL refresh showed 0 unresolved threads.
 - 2026-11-18 20:11 UTC - Round 2: Copilot review `5964198269` (submitted 20:08:41Z, poller `cursor`) on the head with the round-1 fixes, with the "didn't start before the timeout" warning and two inline findings without IDs. Both say table rows start with `||`; `git grep -c -E '^\|\|'` on the reviewed head found no match, so F3 and F4 are `NO_ACTION`. The prescribed `Superseded by F3: ...` and `Superseded by F4: ...` replies were posted at 20:10:52Z and 20:10:54Z and edited at 20:11:04Z and 20:11:06Z (forge `created_at` and `updated_at`) to drop a PR-branch commit id they cited. `validate-audit-record.py --pr-number 2954 --base torrust/develop`, with the bot token in `GH_TOKEN`, exited 0 (4 rows, 0 failures) at 20:11:25Z; the two threads were then resolved by 20:11:33Z, and a GraphQL refresh showed 0 unresolved threads. No spec change was needed in this round.
+- 2026-11-18 20:46 UTC - Round 3: Copilot review `5964694968` (submitted 20:40:20Z, poller `cursor`) on the head with the round-2 audit, with the timeout warning and one inline finding (F5). The fix was committed at 20:42:45Z (`git log --format=%cI`); `git ls-remote` showed the fork branch at the local head at 20:45:36Z (`date -u`). The reply was posted at 20:45:43Z (forge `created_at`), after the push. `validate-audit-record.py --pr-number 2954 --base torrust/develop`, with the bot token in `GH_TOKEN`, exited 0 (5 rows, 0 failures) at 20:46:01Z; the thread was then resolved by 20:46:08Z, and a GraphQL refresh showed 0 unresolved threads.
 
 <!-- Copied verbatim into each audit record. -->
 
