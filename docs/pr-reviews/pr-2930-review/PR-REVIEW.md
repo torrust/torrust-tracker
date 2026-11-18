@@ -50,6 +50,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F5 | review-finding:pr-2930-f5 | Copilot | Suggestion (inferred) | metadata | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F6 | review-finding:pr-2930-f6 | Copilot | Suggestion (inferred) | metadata | RE_RAISE_OF:F5 | NO_ACTION | SUPERSEDED |
 | F7 | review-finding:pr-2930-f7 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-2930-f8 | Copilot | Major | security | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -144,6 +145,19 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2930#discussion_r4611361740
 
+### F8 - Examples keep and print an authentication key
+
+- PR number: 2930
+- Source review ID: 5953717892
+- Reviewer finding ID: F8
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2930#discussion_r4611568672
+- Concern: The recommended examples in the ADR and in the `handle-errors-in-code` skill keep the submitted authentication key in a `String` and print it through `Display` and the derived `Debug`, so a contributor copying them leaks credentials. Agreement point 3 and the skill's input-context rule should exclude sensitive input, as the `handle-secrets` skill requires.
+- Solution: Agreement point 3 no longer lists the key as an example of offending input and says that a secret is never the offending input in the message: the message names the parameter and the expected format, and the error does not keep the secret. The skill rule and the checklist item say the same. The key examples now keep only the length; the ADR adds a `numwant` example for an input that may be echoed. The ADR's wrong example is now a complete enum in its own block, the same correction as F1 in the skill.
+- Current-tree verification: `grep -n "'{key}'\|key: String" docs/adrs/20261118045443_errors_do_not_record_source_locations.md .claude/skills/handle-errors-in-code/SKILL.md` prints nothing. `linter markdown` and `linter cspell` passed.
+- Resolution reference: docs(adrs): [#2913] keep secrets out of the offending-input rule and its examples
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2930#discussion_r4611622897
+
 ## Processing Log
 
 - 2026-11-18 08:04 UTC - Started audit for review 5952710132 by Copilot (submitted 2026-11-18 07:58 UTC on the head commit "docs(skills): [#2913] replace located-error guidance with the no-source-location rule"). Seven inline comments, recorded as F1-F7. The review body also warns that Copilot could not run its full agentic review because no runner started before the timeout; that is not a finding about the change.
@@ -151,6 +165,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-18 08:57 UTC - The fix (#2932, issue #2931) was on `develop` (seen by a fetch at 08:57:29Z); rebased the branch onto it and pushed the three fix commits with `--force-with-lease`.
 - 2026-11-18 09:00 UTC - Replied to F1 to F7 (replies created from 09:00:40Z to 09:00:55Z). Threads not yet resolved.
 - 2026-11-18 09:02 UTC - Resolved the seven threads with `resolveReviewThread`; each returned `isResolved: true`.
+- 2026-11-18 09:21 UTC - Round 2: Copilot review 5953717892 (submitted 09:19:32Z on the head commit "docs(pr-reviews): [#2913] record the resolution of the round 1 threads of PR 2930") resolved the seven round-1 comments and raised one new finding, recorded as F8 with the reviewer's own ID. Fixed in one commit.
+- 2026-11-18 09:24 UTC - Pushed the F8 fix, replied to F8 (reply created 09:24:16Z) and resolved its thread (`isResolved: true`, 09:24:23Z).
 
 ## Completion Rules
 
