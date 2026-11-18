@@ -127,3 +127,35 @@ semantic-links:
   - Not changed, with the reviewer's agreement in round 2: no year floor (any floor is
     arbitrary, and the agent writes the time from `date -u`); the serde impls stay with the
     reply format; the round 2 nit.
+
+### 2026-11-18 17:39 UTC - Test-design reviewer (Claude Code subagent, Claude Opus 5.5, `write-unit-test` skill)
+
+- Invocation scope: Read-only review of task T3, increment 3, on branch `2904-t3-reply-schema`
+  before its commit: `src/file.rs`, the checks of one reply file from its repository-relative
+  path and its text (location, name, content, and agreement of the name with the `agent`,
+  `subject` and `round` fields), with its unit tests.
+- Inputs: D18 of the specification and the author's choices (the location read from the path
+  alone, every problem reported, agreement checked only when name and content are valid, one
+  problem per disagreeing field); `.claude/skills/write-unit-test/SKILL.md`; `AGENTS.md`.
+- Evidence: `cargo test -p agent-reply-validator` passed with 116 tests. The reviewer checked by
+  reading that each of the author's 14 mutations has a failing case.
+- Findings:
+  - Minor: the messages of the content and location problems, and the empty field path of the
+    location and name problems, were not asserted.
+  - Minor: `.` and `..` passed as the specification folder.
+  - Suggestion: paths starting with `./`, absolute paths and `\` separators fail with a
+    confusing name problem; the command must pass repository-relative paths with `/`.
+  - Suggestion: decide in the command increment which files it discovers, since the location
+    check only matters if misplaced files can reach it.
+  - Suggestion: a trailing slash and a file named `agent-replies` give acceptable outcomes.
+  - Nit: two test names say the agreement is skipped, which the types already enforce; the
+    fixture's evidence text named a stale test count.
+- Verdict: REVIEW PASSED
+- Follow-up actions:
+  - Author, done before the commit: the location, name and content tests assert the whole
+    problem (the content message only up to its position, which depends on the key order);
+    `.` and `..` are rejected as the specification folder, with a case each; the fixture's
+    evidence text no longer names a count. 118 tests pass, and four more mutations (each dot
+    folder, the content message, the content field path) each made a test fail.
+  - For the command increment: build the paths from the repository root with `/`, and choose
+    the discovery rule there. The nits are left as they are.
