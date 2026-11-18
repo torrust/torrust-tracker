@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p1
 epic: 2912
 github-issue: 2913
 spec-path: docs/issues/open/2913-2912-si-1-adr-errors-do-not-record-source-locations/ISSUE.md
 branch: "2913-adr-errors-do-not-record-source-locations"
 related-pr: null
-last-updated-utc: "2026-11-17 18:33"
+last-updated-utc: "2026-11-18 04:56"
 semantic-links:
   skill-links:
     - create-issue
@@ -110,7 +110,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | TODO | Draft the ADR with the `create-adr` skill | ADR file in `docs/adrs/` with context, decision (the six points), alternatives and consequences; listed in `docs/adrs/index.md`. |
+| T1 | DONE | Draft the ADR with the `create-adr` skill | ADR file in `docs/adrs/` with context, decision (the six points), alternatives and consequences; listed in `docs/adrs/index.md`. Done: `docs/adrs/20261118045443_errors_do_not_record_source_locations.md`. |
 | T2 | TODO | Update the `handle-errors-in-code` skill | The `located-error` section and checklist item are replaced by the rule and a link to the ADR. |
 | T3 | TODO | Search for other guidance that recommends located errors | `grep -rn 'located' .github docs AGENTS.md packages/*/README.md` reviewed; each hit updated or recorded as historical. |
 
@@ -165,6 +165,7 @@ the model that produced them.
 
 - 2026-11-11 17:05 UTC - Claude Code (Fable 5.2) - Drafted from the audit of issue #2804 (`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`, `options.md`) as a sub-issue of the EPIC draft. Not yet approved; line numbers are those of `develop` at `4f0af379a` and must be re-checked before implementation.
 - 2026-11-17 17:30 UTC - Claude Code (Claude Opus 5.5) - EPIC coordinator: the maintainer approved the specification on 2026-11-17; issue #2913 created as `josecelano-bot` and the specification moved from `docs/issues/drafts/` to `docs/issues/open/` (SI-1 of EPIC #2912).
+- 2026-11-18 04:56 UTC - Claude Code (Claude Opus 5.5) - T1 done: wrote the ADR `docs/adrs/20261118045443_errors_do_not_record_source_locations.md` with the six decision points, the four options of `options.md` as alternatives, and the consequences; added it to `docs/adrs/index.md`. Branch `2913-adr-errors-do-not-record-source-locations` from `torrust/develop` at `2ef51f6c3`.
 
 ## Acceptance Criteria
 
