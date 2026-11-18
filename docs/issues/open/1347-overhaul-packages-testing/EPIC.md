@@ -6,7 +6,7 @@ epic: null
 github-issue: 1347
 spec-path: docs/issues/open/1347-overhaul-packages-testing/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-17 12:43"
+last-updated-utc: "2026-11-18 10:20"
 semantic-links:
   skill-links:
     - create-issue
@@ -101,6 +101,15 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | 13    | #2876 - Move `peer::Id::new` to a realistic test helper and decide whether `peer::fixture` goes behind a `testing` feature | `docs/issues/closed/2876-1347-peer-id-test-helper/ISSUE.md` | DONE | Finding F5 of #2824. Spec through #2878, implementation through #2888: `Id::new` removed, `qbittorrent_peer_id` helper, `peer::fixture` behind the new `testing` feature of `primitives`, test-support ADR amended. Breaking for the published `primitives` 3.0.0; adds to the 4.0.0 it owes (#2583). |
 | 14    | #2902 - Add tests to the tracker-core package | `docs/issues/open/2902-1347-add-tests-tracker-core/ISSUE.md` | TODO | Lowest unit-only lines of the packages in the EPIC coverage table: 80.31% (MySQL/PostgreSQL drivers 0-4%, SQLite failure branches, `statistics/` reached only by the integration binary). Slices S0-S5 proposed; S0 is the spec-only PR. |
 | 15    | Additional package-testing subissues              | Create a folder-style spec when a concrete package need is identified             | TODO   | Permitted but not required upfront; retain scope in this EPIC.                                                       |
+
+**Publishing gate (maintainer decision of 2026-11-18).** A workspace crate may be published
+under #2583 (a first publish, or the next publish of an already published crate) once its own
+package-testing subissues in this table are closed; EPIC #1669 no longer
+waits for this EPIC to close as a whole. The per-crate gate is tracked in the "Testing (#1347)"
+column of the
+[#2583 Per-Crate Checklist](../2583-1669-first-publish-of-workspace-crates/ISSUE.md#per-crate-checklist),
+which also lists the 13 publishable crates that have no subissue here yet and the pending
+maintainer decisions about them. This EPIC still owns which subissues are created and when.
 
 ## Package Coverage Tracking
 
@@ -360,6 +369,7 @@ For each subissue implementation, the completion policy is:
 - 2026-11-16 21:52 UTC - Claude Code (Opus 5.5) - #2876 closed by PR #2888 (merged 2026-11-16 21:49 UTC); row 13 set to `DONE` and the spec archived to `docs/issues/closed/2876-1347-peer-id-test-helper/`.
 - 2026-11-17 10:57 UTC - Claude Code (Sonnet 5.5) - Created #2902 (`tracker-core`, row 14; the link under #1347 is set by the maintainer). Clean baseline at `5833cdae9`, filtered to the package source: unit-only (`--all-features --lib`) lines 80.31% (4,099 / 5,104), regions 80.20%, functions 72.01%, 157 unit tests; aggregate lines 82.15%; integration-only 44.05% (12 tests). The MySQL and PostgreSQL driver suites skip themselves without Docker and two environment variables, so those 10 files count as 0-4% covered; the container-gated scope is not yet measured. Delivered in slices S0-S5; the row stays `TODO` until the first implementation slice starts.
 - 2026-11-17 12:43 UTC - Claude Code (Opus 5.5) - #2902 T1b, measured on 2026-11-17 after the maintainer allowed pulling the `mysql:8.0` and `postgres:16` images: with both driver suites running, the `tracker-core` aggregate is lines 93.80% (4,830 / 5,149). Correction: the commit that recorded T1b edited the 10:57 entry above in place; its original text is restored (review finding F9 of #2903).
+- 2026-11-18 10:20 UTC - Claude Code (Claude Fable 5.2) - Added the "Publishing gate" paragraph under the `Subissues` table through PR torrust/torrust-tracker#2935 (issue #2583): by the maintainer's decision of 2026-11-18, a crate may be published under #2583 once its own package-testing subissues are closed, and EPIC #1669 no longer waits for this EPIC to close as a whole. No subissue was created or changed.
 
 ## Acceptance Criteria
 
