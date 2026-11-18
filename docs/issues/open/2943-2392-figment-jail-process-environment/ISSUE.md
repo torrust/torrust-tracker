@@ -9,7 +9,7 @@ github-issue: 2943
 spec-path: docs/issues/open/2943-2392-figment-jail-process-environment/ISSUE.md
 branch: "2943-2392-figment-jail-process-environment-spec"
 related-pr: null
-last-updated-utc: "2026-11-18 13:23"
+last-updated-utc: "2026-11-18 14:12"
 semantic-links:
   skill-links:
     - create-issue
@@ -38,7 +38,8 @@ Parent EPIC: #2392 - Test Isolation (`docs/issues/open/2392-test-isolation/EPIC.
 No test of the `torrust-tracker-configuration` lib test binary sees an environment or a current
 directory that another test changed. Today the tests that use `figment::Jail` change both for the
 whole process while they run, and the tests that do not use `Jail` run at the same time (EPIC
-rule 1).
+rule 5: "Do not change process-global state from a test that shares its process with other
+tests; pass configuration explicitly instead").
 
 ## Background
 
@@ -61,19 +62,25 @@ while a jail is active sees the jail's state.
 
 Where `Jail` is used (`develop` `bc9d0590c`); no other package uses it:
 
-| File | `Jail::expect_with` | `clear_env()` | `set_env()` |
+| File | `Jail::expect_with(` calls | `clear_env()` | `set_env()` |
 | --- | --- | --- | --- |
-| `packages/configuration/src/lib.rs` | 36 | 18 | 11 |
-| `packages/configuration/src/v2_0_0/mod.rs` | 16 | 0 | 1 |
-| `packages/configuration/src/v3_0_0/mod.rs` | 50 | 0 | 2 |
+| `packages/configuration/src/lib.rs` | 18 | 18 | 11 |
+| `packages/configuration/src/v2_0_0/mod.rs` | 8 | 0 | 1 |
+| `packages/configuration/src/v3_0_0/mod.rs` | 25 | 0 | 2 |
 
-The same binary has about 160 tests; the ones outside these 102 closures do not take the lock.
+The first column counts the calls only, not the `reason` text of the `#[allow]` attribute above
+each call, which also names the function. Of the 51 calls, 50 are in `#[test]` functions and one
+is in the helper `load_error_for_announce_policy`, which two tests call. The same binary has 159
+tests (`cargo test --lib -- --list`), so 52 of them run in a jail and 107 run outside one and do
+not take the lock.
 
 What #2907 observed: the two configuration-file tests (`v2_0_0` and `v3_0_0`) write
 `test_config_<uuid>.toml` to `std::env::temp_dir()`. Run alone with a fresh `TMPDIR`, each
 leaves one file there. In a run of the whole package only one file was in the fresh `TMPDIR`;
-the other went to `/tmp`, because `TMPDIR` was unset when the test read it. The #2907 fix does
-not depend on this (a `TempDir` removes its folder by absolute path), so the gap stays.
+the other most likely went to `/tmp`, because `TMPDIR` was unset when the test read it. #2907
+inferred this from the `clear_env()` code: it could not tell the file apart from those of other
+sessions in `/tmp`. That is why AC1 asks for a reproduction. The #2907 fix does not depend on
+this (a `TempDir` removes its folder by absolute path), so the gap stays.
 
 A second concern: in the 2024 edition (stable since Rust 1.85), which this workspace uses,
 `std::env::set_var` and `std::env::remove_var` are `unsafe` functions, because changing the
@@ -111,14 +118,15 @@ with the same question: can a test outside the serialized group read what the gr
 - ADRs to create: none expected.
 - Open, decided by the maintainer in T2. Candidate designs:
 
-| Option | What changes | For | Against |
-| --- | --- | --- | --- |
-| A. Every test that reads the environment or the current directory runs inside a `Jail` | The few non-`Jail` tests that read them move into `Jail::expect_with` | Smallest change; the jail also gives them a temporary directory | Nothing stops a new test from reading the environment outside a jail |
-| B. The `Jail` tests move to their own test binary | An integration-test target where every test uses `Jail` | Process boundary; the unit-test binary never sees a changed environment | The tests reach private items today, so some need public or `pub(crate)` seams; about 100 tests move |
-| C. The tests stop changing the process environment | The loading code takes its environment from a provider that tests replace | No process-global change left | Changes production code, which is out of scope unless the maintainer widens it |
+| Option | What changes | EPIC rule 5 | For | Against |
+| --- | --- | --- | --- | --- |
+| A. Every test that reads the environment or the current directory runs inside a `Jail` | The few non-`Jail` tests that read them move into `Jail::expect_with` | Not met: the jails still change process-global state in a process other tests share. Needs an exception recorded in the EPIC | Smallest change; the jail also gives them a temporary directory | Nothing stops a new test from reading the environment outside a jail |
+| B. The `Jail` tests move to their own test binary | An integration-test target where every test uses `Jail` | Not met to the letter: the jails still change process-global state, but every test of that process takes the jail's lock. Needs a narrower exception | Process boundary; the unit-test binary never sees a changed environment | The tests reach private items today, so some need public or `pub(crate)` seams; about 50 tests move |
+| C. The tests stop changing the process environment | The loading code takes its environment from a provider that tests replace | Met: it is the rule's own remedy ("pass configuration explicitly") | No process-global change left | Changes production code, which is out of scope unless the maintainer widens it |
 
   The coordinator's starting recommendation is A plus a check that fails when a test of the
-  package reads the environment outside a jail, if T2 finds a cheap way to write that check.
+  package reads the environment outside a jail, if T2 finds a cheap way to write that check. A
+keeps the rule 5 violation, so choosing it means recording an exception to that rule in the EPIC.
 
 ## Design and Ownership Review
 
@@ -192,6 +200,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   in `figment` 0.10.19 and `packages/configuration/src`.
 - 2026-11-18 13:23 UTC - Claude Code (Claude Fable 5.2), EPIC #2392 coordinator - The maintainer
   approved the draft. Created #2943 and moved the spec to `docs/issues/open/`.
+- 2026-11-18 14:12 UTC - Claude Code (Claude Fable 5.2), EPIC #2392 coordinator - Review of
+  PR #2944: corrected the `Jail::expect_with` counts, which were doubled (51 calls, not 102),
+  cited EPIC rule 5 instead of rule 1 and added it to the options table, and marked the `/tmp`
+  file as #2907's inference.
 
 ## Acceptance Criteria
 
