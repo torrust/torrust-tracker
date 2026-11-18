@@ -1,0 +1,6 @@
+$ date -u +%FT%TZ; rustc +nightly-2026-11-17 -V; cargo +nightly-2026-11-17 check -p torrust-tracker-udp-protocol
+2026-11-18T07:51:15Z
+rustc 1.102.0-nightly (5df8c02af 2026-11-16)
+    Finished `dev` profile [optimized + debuginfo] target(s) in 3.05s
+exit: 0
+2026-11-18T07:51:18Z

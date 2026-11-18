@@ -1,0 +1,144 @@
+$ date -u +%FT%TZ; rustc +nightly-2026-11-18 -V; cargo +nightly-2026-11-18 check -p torrust-tracker-udp-protocol
+2026-11-18T07:51:18Z
+rustc 1.102.0-nightly (59cbdee2e 2026-11-17)
+error: identifier contains an uncommon character: 'ẕ'
+  --> packages/udp-protocol/src/announce.rs:21:9
+   |
+21 |     pub connection_id: ConnectionId,
+   |         ^^^^^^^^^^^^^
+   |
+   = note: this character is included in the Unicode general security profile
+   = note: `-D uncommon-codepoints` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(uncommon_codepoints)]`
+
+error: identifier contains an uncommon character: 'ẕ'
+  --> packages/udp-protocol/src/announce.rs:22:9
+   |
+22 |     pub action_placeholder: AnnounceActionPlaceholder,
+   |         ^^^^^^^^^^^^^^^^^^
+   |
+   = note: this character is included in the Unicode general security profile
+
+error: identifier contains an uncommon character: 'ẕ'
+  --> packages/udp-protocol/src/announce.rs:23:9
+   |
+23 |     pub transaction_id: TransactionId,
+   |         ^^^^^^^^^^^^^^
+   |
+   = note: this character is included in the Unicode general security profile
+
+error: identifier contains an uncommon character: 'ẕ'
+  --> packages/udp-protocol/src/announce.rs:24:9
+   |
+24 |     pub info_hash: InfoHash,
+   |         ^^^^^^^^^
+   |
+   = note: this character is included in the Unicode general security profile
+
+error: identifier contains an uncommon character: 'ẕ'
+  --> packages/udp-protocol/src/announce.rs:25:9
+   |
+25 |     pub peer_id: PeerId,
+   |         ^^^^^^^
+   |
+   = note: this character is included in the Unicode general security profile
+
+error: identifier contains an uncommon character: 'ẕ'
+  --> packages/udp-protocol/src/announce.rs:26:9
+   |
+26 |     pub bytes_downloaded: NumberOfBytes,
+   |         ^^^^^^^^^^^^^^^^
+   |
+   = note: this character is included in the Unicode general security profile
+
+error: identifier contains an uncommon character: 'ẕ'
+  --> packages/udp-protocol/src/announce.rs:27:9
+   |
+27 |     pub bytes_left: NumberOfBytes,
+   |         ^^^^^^^^^^
+   |
+   = note: this character is included in the Unicode general security profile
+
+error: identifier contains an uncommon character: 'ẕ'
+  --> packages/udp-protocol/src/announce.rs:28:9
+   |
+28 |     pub bytes_uploaded: NumberOfBytes,
+   |         ^^^^^^^^^^^^^^
+   |
+   = note: this character is included in the Unicode general security profile
+
+error: identifier contains an uncommon character: 'ẕ'
+  --> packages/udp-protocol/src/announce.rs:29:9
+   |
+29 |     pub event: AnnounceEventBytes,
+   |         ^^^^^
+   |
+   = note: this character is included in the Unicode general security profile
+
+error: identifier contains an uncommon character: 'ẕ'
+  --> packages/udp-protocol/src/announce.rs:30:9
+   |
+30 |     pub ip_address: Ipv4AddrBytes,
+   |         ^^^^^^^^^^
+   |
+   = note: this character is included in the Unicode general security profile
+
+error: identifier contains an uncommon character: 'ẕ'
+  --> packages/udp-protocol/src/announce.rs:31:9
+   |
+31 |     pub key: PeerKey,
+   |         ^^^
+   |
+   = note: this character is included in the Unicode general security profile
+
+error: identifier contains an uncommon character: 'ẕ'
+  --> packages/udp-protocol/src/announce.rs:32:9
+   |
+32 |     pub peers_wanted: NumberOfPeers,
+   |         ^^^^^^^^^^^^
+   |
+   = note: this character is included in the Unicode general security profile
+
+error: identifier contains an uncommon character: 'ẕ'
+  --> packages/udp-protocol/src/announce.rs:33:9
+   |
+33 |     pub port: Port,
+   |         ^^^^
+   |
+   = note: this character is included in the Unicode general security profile
+
+error: identifier contains an uncommon character: 'ẕ'
+   --> packages/udp-protocol/src/announce.rs:132:9
+    |
+132 |     pub announce_interval: AnnounceInterval,
+    |         ^^^^^^^^^^^^^^^^^
+    |
+    = note: this character is included in the Unicode general security profile
+
+error: identifier contains an uncommon character: 'ẕ'
+   --> packages/udp-protocol/src/announce.rs:133:9
+    |
+133 |     pub leechers: NumberOfPeers,
+    |         ^^^^^^^^
+    |
+    = note: this character is included in the Unicode general security profile
+
+error: identifier contains an uncommon character: 'ẕ'
+   --> packages/udp-protocol/src/announce.rs:134:9
+    |
+134 |     pub seeders: NumberOfPeers,
+    |         ^^^^^^^
+    |
+    = note: this character is included in the Unicode general security profile
+
+error: identifier contains an uncommon character: 'ẕ'
+  --> packages/udp-protocol/src/scrape.rs:60:9
+   |
+60 |     pub completed: NumberOfDownloads,
+   |         ^^^^^^^^^
+   |
+   = note: this character is included in the Unicode general security profile
+
+error: could not compile `torrust-tracker-udp-protocol` (lib) due to 17 previous errors
+exit: 101
+2026-11-18T07:51:18Z

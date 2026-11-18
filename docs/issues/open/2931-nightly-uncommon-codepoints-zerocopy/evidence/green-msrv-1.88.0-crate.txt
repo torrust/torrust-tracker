@@ -1,0 +1,9 @@
+$ cargo +1.88.0 check -p torrust-tracker-udp-protocol
+2026-11-18T07:53:51Z
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Finished `dev` profile [optimized + debuginfo] target(s) in 6.82s
+exit: 0
+2026-11-18T07:53:58Z
