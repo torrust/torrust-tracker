@@ -1,7 +1,7 @@
 ---
 pr-number: 2935
 pr-url: https://github.com/torrust/torrust-tracker/pull/2935
-last-updated-utc: "2026-11-18 10:42"
+last-updated-utc: "2026-11-18 10:55"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -45,6 +45,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 Round 1 covers two reviews of the first commit of the PR, `docs(issues): [#2583] make the #1347 publish prerequisite a per-crate testing gate`, which was the head when both were submitted. Review 5954581202 (da2ce7, APPROVED) has six inline findings (F1 to F6) and one finding in its body (F7, on the PR description, which has no thread). Review 5954617412 (Copilot, COMMENTED, a lite review) has three inline findings (F8 to F10) without a severity bracket. The audit severity scale has no medium level, so this audit maps Copilot's `Medium severity` badge to `Minor (inferred)` and its `Low severity` badge to `Nit (inferred)`, as the PR #2929 audit does.
 Round 2: review 5954958077 (da2ce7, APPROVED) of the head that round 1 pushed has two inline findings on this record and one finding in its body on the PR description. The reviewer numbered them F8, F9 and F10, which this audit already uses, so they are F11, F12 and F13 here, with the reviewer's ID in each detail entry.
+Round 3: review 5955142092 (da2ce7, APPROVED) of the head that round 2 pushed has one inline finding on this record, numbered F11 by the reviewer and F14 here. Copilot review 5955142083 (COMMENTED, of the head that round 1 pushed) reports no open issue and makes no row.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -61,6 +62,7 @@ Round 2: review 5954958077 (da2ce7, APPROVED) of the head that round 1 pushed ha
 | F11 | review-finding:pr-2935-f11 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-2935-f12 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F13 | review-finding:pr-2935-f13 | Human | Nit | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F14 | review-finding:pr-2935-f14 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -233,10 +235,24 @@ Round 2: review 5954958077 (da2ce7, APPROVED) of the head that round 1 pushed ha
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2935#issuecomment-6976144390
 
+### F14 - The F12 verification parenthetical named the wrong lines
+
+- PR number: 2935
+- Source review ID: 5955142092
+- Reviewer finding ID: F11
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2935#discussion_r4612699501
+- Concern: The F12 verification count of 3 was right, but its parenthetical attributed one match to the F12 concern, whose wording differs from the pattern; the third match is the verification line itself, which quotes the pattern.
+- Solution: The parenthetical names the three matching lines: the F7 concern, the F12 solution and the F12 verification line.
+- Current-tree verification: the command quoted in the F12 verification field, run with `-n` at the fix commit, matched lines 151, 217 and 218 of this record: the F7 concern, the F12 solution and the F12 verification line. The round 3 paragraph of the Findings section then added two lines above them, so on the tree with this entry the same command matches lines 153, 219 and 220, the same three lines. This entry does not contain the pattern.
+- Resolution reference: `docs(pr-reviews): [#2583] name the lines the F12 verification matches in the PR 2935 audit`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2935#discussion_r4612736513
+
 ## Processing Log
 
 - 2026-11-18 10:25 UTC - Started audit. Round 1: review 5954581202 (da2ce7, APPROVED, 10:14:16Z) with findings F1 to F7 and review 5954617412 (Copilot, COMMENTED, 10:16:39Z) with findings F8 to F10, both on the first commit of the PR. Committed one fix per finding for F1 to F6 and F8 (10:16Z to 10:21Z) and a progress-log commit in the #2583 spec (10:23Z). Edited the PR description for F7 and answered it in the PR conversation (10:24Z). F9 re-raises F6 and F10 needs no change. Replied on the nine threads (10:23Z) and resolved them (10:24Z), before pushing, so that one push carries the fixes and this record: the fix commits were local when the replies were posted, and each reply says so.
 - 2026-11-18 10:42 UTC - Round 2: review 5954958077 (da2ce7, APPROVED, 10:39:31Z) with findings F11 to F13 (the reviewer's F8 to F10). Ran every command named in the Current-tree verification fields and committed the corrected counts (F11, 10:40:14Z) and the F7 timing (F12, 10:40:59Z). Edited the PR description for F13; afterwards `gh pr view 2935 --json body -q .body | grep -c '#2876'` printed 1 and the same with `'#2914'` printed 2. Replied on the two threads (10:41:35Z and 10:41:38Z), answered F13 in the PR conversation (10:41:41Z) and resolved the two threads (10:42Z), before pushing, as in round 1; each reply says the fix was not pushed yet.
+- 2026-11-18 10:55 UTC - Round 3: review 5955142092 (da2ce7, APPROVED, 10:52:08Z) with finding F14 (the reviewer's F11), and Copilot review 5955142083 (COMMENTED, 10:52:07Z) with no open issue. Committed the F14 fix (10:54:06Z), replied on its thread (10:54:59Z) and resolved it (10:55Z), before pushing, as in the earlier rounds; the reply says the fix was not pushed yet.
 
 <!-- Copied verbatim into each audit record. -->
 
