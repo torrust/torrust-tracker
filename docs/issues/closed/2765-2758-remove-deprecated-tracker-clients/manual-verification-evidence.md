@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2765-2758-remove-deprecated-tracker-clients/ISSUE.md
-last-updated-utc: "2026-11-17 10:46"
+issue-spec: docs/issues/closed/2765-2758-remove-deprecated-tracker-clients/ISSUE.md
+last-updated-utc: "2026-11-17 17:36"
 ---
 
 # Manual Verification Evidence
@@ -97,7 +97,13 @@ Command (ran at 2026-11-17 10:46 UTC):
 git grep -nE -e '--bin (h[t]tp_tracker_client|u[d]p_tracker_client|tracker_che[c]ker)' -e '^[[:space:]]*(h[t]tp_tracker_client|u[d]p_tracker_client|tracker_che[c]ker) ' -e '(run|Run|use) `(h[t]tp_tracker_client|u[d]p_tracker_client|tracker_che[c]ker)' -- . ':!docs/issues/closed' ':!docs/issues/drafts' ':!docs/pr-reviews' ':!docs/adrs' ':!docs/refactor-plans' ':!docs/issues/open/2765-2758-remove-deprecated-tracker-clients/ISSUE.md'
 ```
 
+(The spec was in `docs/issues/open/` when the search ran; the exclusion names that path. The spec has since moved to `docs/issues/closed/`.)
+
 Result: no output, exit code `1`. The same search without the last exclusion matches only line 47
 of this spec's `ISSUE.md` (exit code `0`). The open spec of issue #2594 named `tracker_checker` as a
 command in three places; review finding F3 of PR 2901 found them, and that spec now names
 `tracker_client check`.
+
+### V4 - Runner-level proof of AC4
+
+Proven by the container test job of PR 2901, which runs `e2e_tests_runner`: it passed on the head that carries the commit `docs(pr-reviews): [#2765] audit review round 7 of PR 2901` (job https://github.com/torrust/torrust-tracker/actions/runs/44115063923/job/134153598863), and its log shows the helper running `cargo build -p torrust-tracker-client --bin tracker_client` and then `TORRUST_CHECKER_CONFIG=[config] cargo run -p torrust-tracker-client --bin tracker_client -- check`, which ran `target/debug/tracker_client check`. The job of the head before it (the commit `docs(pr-reviews): [#2765] audit review round 6 of PR 2901`) failed in the image test stage, before the e2e step, on a racy unit test that the round-7 commit `test(e2e): [#2765] drop the racy byte-delta assertion of the receiver-gone test` fixed. Two later commits followed: `fix(e2e): [#2765] retry interrupted reads and bound the output logged on success` changed the reader, its logging and their tests (and added their prose-first rows to this spec), and the audit commit `docs(pr-reviews): [#2765] audit review round 8 of PR 2901` (the head merged) changed only the audit; the Docker job of that final head was still in progress when the PR was merged. `BUILD_ARGS`, `CHECKER_ARGS` and the `TORRUST_CHECKER_CONFIG` variable did not change after the passing head.

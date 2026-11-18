@@ -3,8 +3,8 @@ semantic-links:
   skill-links:
     - write-markdown-docs
   related-artifacts:
-    - docs/issues/open/2765-2758-remove-deprecated-tracker-clients/ISSUE.md
-    - docs/issues/open/2765-2758-remove-deprecated-tracker-clients/manual-verification-evidence.md
+    - docs/issues/closed/2765-2758-remove-deprecated-tracker-clients/ISSUE.md
+    - docs/issues/closed/2765-2758-remove-deprecated-tracker-clients/manual-verification-evidence.md
     - docs/templates/ISSUE.md
 ---
 

@@ -1,7 +1,7 @@
 ---
 pr-number: 2901
 pr-url: https://github.com/torrust/torrust-tracker/pull/2901
-last-updated-utc: "2026-11-17 17:12"
+last-updated-utc: "2026-11-17 17:58"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -15,7 +15,7 @@ Source: pull-request reviews and inline review threads for https://github.com/to
 The PR author owns this tracked audit record. Reviewers, including repository review agents,
 deliver findings through GitHub and have no repository-artifact obligation.
 
-- Post-merge workflow approval: N/A
+- Post-merge workflow approval: N/A for the review rounds before the merge. For the single finding recorded after it (F28, a Nit left on the maintainer's decision), the durable record of that decision is https://github.com/torrust/torrust-tracker/pull/2921#issuecomment-6956412285 (written after the decision, by the contributor session; see its text).
 
 ## Status Values
 
@@ -70,6 +70,7 @@ Round 1, on the head that carries the commit `docs(issues): [#2765] record the i
 | F25 | review-finding:pr-2901-f25 | Copilot | Minor (inferred) | documentation | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F26 | review-finding:pr-2901-f26 | Copilot | Minor (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F27 | review-finding:pr-2901-f27 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F28 | review-finding:pr-2901-f28 | Human | Nit | testing | ORIGINAL | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -425,6 +426,19 @@ Round 1, on the head that carries the commit `docs(issues): [#2765] record the i
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4603107550
 
+### F28 - No test covers the choice between the full log and the 64 KiB excerpt
+
+- PR number: 2901
+- Source review ID: 5943297032
+- Reviewer finding ID: da2ce7 F28
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4603243348
+- Concern: The two excerpt tests check the helper only, so inverting the success check or swapping the two limits would still pass the helper tests; the reviewer suggested a small pure function for the log limit, tested for success, a non-zero exit and a timeout.
+- Solution: None; the maintainer decided (record: https://github.com/torrust/torrust-tracker/pull/2921#issuecomment-6956412285) to leave this non-blocking nit (the PR was already past the fix-round limit and each push restarts about 17 minutes of image-test CI). The reply on the thread says so.
+- Current-tree verification: No change was made, so there is nothing new to verify; the claim of the finding (the policy is not pinned by a test) holds at the merged head.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2921#issuecomment-6956412285
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2901#discussion_r4603267282
+
 ## Processing Log
 
 - 2026-11-17 10:39 UTC - Reviews 5936922508 (da2ce7, submitted 10:38:51) and 5936930487 (Copilot, submitted 10:39:28) arrived on the first head.
@@ -447,6 +461,11 @@ Round 1, on the head that carries the commit `docs(issues): [#2765] record the i
 - 2026-11-17 15:26 UTC - The maintainer asked for the fix; fixed in one commit, replied on the thread (which replaces the earlier `NO_ACTION` reply) and resolved it.
 - 2026-11-17 15:52 UTC - Round 8: Copilot review 5941767986 (COMMENTED, no severity tags, so Minor is inferred) with three threads on the head da2ce7 had approved; the maintainer asked to fix the valid ones.
 - 2026-11-17 17:12 UTC - Fixed F26 and F27 in one commit, replied on all three threads (F25 with no change) and resolved them.
+- 2026-11-17 17:23 UTC - Round 9: da2ce7 review 5943297032 (APPROVED, submitted 17:23:04) with F28 (Nit); the maintainer chose to leave it.
+- 2026-11-17 17:25 UTC - Replied on the thread of F28 (NO_ACTION; the reply was created at 17:25:09) and resolved it in the same command, before the merge.
+- 2026-11-17 17:33 UTC - PR 2901 was merged (merged at 17:33:46 UTC).
+- 2026-11-17 17:36 UTC - Added the F28 row and entry in the close-out PR, because the PR branch was no longer to be changed.
+- 2026-11-17 17:58 UTC - Review of the close-out PR (da2ce7 review 5943744061, APPROVED) found that the F28 row had no durable approval record; the Ownership section and the F28 entry now cite https://github.com/torrust/torrust-tracker/pull/2921#issuecomment-6956412285.
 
 ## Completion Rules
 
