@@ -57,12 +57,15 @@ hold even for a correct location:
 
 ## Agreement
 
-Errors in this workspace do not record or print source locations:
+Errors in this workspace must not record or print source locations. The points below are rules:
+new and changed code follows them now, and the code that predates this ADR is brought in line by
+the sub-issues of EPIC #2912 (see Consequences).
 
-1. **No location field.** Error types have no `location` field and do not call
+1. **No location field.** Error types must not have a `location` field or call
    `Location::caller()`.
-2. **No `torrust-located-error`.** The workspace does not depend on `torrust-located-error`. A source
-   error is kept as a plain `#[source]` field (or `#[from]`), not wrapped in `LocatedError`.
+2. **No `torrust-located-error`.** The workspace must not depend on `torrust-located-error`; the
+   EPIC removes the existing dependency. A source error is kept as a plain `#[source]` field (or
+   `#[from]`), not wrapped in `LocatedError`.
 3. **`Display` states what failed and the offending input.** It names the operation and the value
    that was rejected (the parameter, the key, the info-hash), and holds no source path. A message
    that would lose its only context when the location goes gets new wording, or a new field for the
