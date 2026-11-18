@@ -249,3 +249,32 @@ semantic-links:
     pattern tests cover the projection); a test of the binary's write failure (its path is fixed
     at build time). The ADR table and `docs/schemas/README.md` entries are in the documentation
     commit of T3.
+
+### 2026-11-18 18:01 UTC - Task reviewer (Claude Code subagent, Claude Opus 5.5, `review-task` skill)
+
+- Invocation scope: Read-only review of task T3 as a whole on branch `2904-t3-reply-schema`,
+  before its pull request: the seven commits of the branch (five reviewed test increments of the
+  crate `agent-reply-validator`, the wiring into the pre-commit hook, the Docs Lint workflow and
+  the `run-pre-commit-checks` skill, and the documentation) and the uncommitted specification
+  update (T3 `DONE`, the branch, a Progress Log line). The per-increment test-design reviews
+  above were not redone.
+- Inputs: the T3 rows of the Implementation Plan and of Commit Points, D18, P1 and the
+  Verification Plan of the specification; `.claude/skills/review-task/SKILL.md`;
+  `.claude/skills/add-workspace-member/SKILL.md`.
+- Evidence: `cargo test -p agent-reply-validator` passed; `cargo clippy -p agent-reply-validator
+  --all-targets -- -D warnings` exited 0; `agent-reply-validator --all` exited 0 with
+  `{"kind":"summary","files":0,"problems":0}`; `linter markdown` and `linter cspell` exited 0;
+  `git merge-tree --write-tree torrust/develop HEAD` merged with no conflict. The reviewer
+  checked by reading the commit order against Commit Points, the hook step order, the workspace
+  member and `.dockerignore` entry, the code against D18, and the claims of the documentation
+  (the drift test runs in the pre-push hook and in the `Testing` workflow).
+- Findings:
+  - Minor: the `docs/index.md` row of `schemas/README.md` named only the frontmatter schema.
+  - Minor: no record of `docker build --target recipe --file Containerfile .`, which
+    `add-workspace-member` asks for after adding a member.
+  - Nit: the Progress Log line for T3 did not name this task-level review.
+- Verdict: REVIEW PASSED
+- Follow-up actions:
+  - Author, done before the pull request: the index row names both schemas;
+    `docker build --target recipe --file Containerfile .` exited 0 at 18:01:16Z (`date -u`);
+    this entry records the review, and the Progress Log line names it.

@@ -7,9 +7,9 @@ priority: p1
 epic: 2003
 github-issue: 2904
 spec-path: docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md
-branch: "2904-t2-pointer-claude-md"
+branch: "2904-t3-reply-schema"
 related-pr: null
-last-updated-utc: "2026-11-17 18:34"
+last-updated-utc: "2026-11-18 17:59"
 semantic-links:
   skill-links:
     - create-issue
@@ -518,7 +518,7 @@ on are merged.
 | --- | ------ | ---- | ----------------------- |
 | T1  | DONE   | Specification pull request | This specification in `docs/issues/open/`, and a new row in the EPIC's Subissues table |
 | T2  | DONE   | Pointer `CLAUDE.md` | A root `CLAUDE.md` whose only content is the import of `AGENTS.md` (D11); if scenario M4 shows that a scoped `AGENTS.md` is not loaded, an import-only `CLAUDE.md` beside each of the ten scoped `AGENTS.md` files; scenario M4 recorded |
-| T3  | TODO   | Reply schema and validator | `docs/schemas/agent-reply-v1.schema.json`; the validator with tests, developed in the progressive loop of the `write-unit-test` skill with a recorded design review per increment, and run by the repository checks; `docs/schemas/README.md` updated (D18) |
+| T3  | DONE   | Reply schema and validator | `docs/schemas/agent-reply-v1.schema.json`; the validator with tests, developed in the progressive loop of the `write-unit-test` skill with a recorded design review per increment, and run by the repository checks; `docs/schemas/README.md` updated (D18) |
 | T4  | TODO   | `pr-review-handler` | `.claude/agents/pr-review-handler.md` with the pinned model; `wait-for-pr-review` and `process-pr-review` say which agent runs a round; the inventory `removed-profile-rules.md` created in this folder with the rules of `copilot-suggestions-handler` (AC6); scenarios M1 to M3 recorded |
 | T5  | TODO   | `task-reviewer` | The agent file with the pinned model and the stop hook (D17), with tests of its limit of 3 refusals; the complexity item in `review-task` (D12); the reply rule in `review-task`, which also says that a reply file satisfies the earlier template's checkpoint (D18); scenario M7 recorded |
 | T6  | TODO   | `implementer` | The agent file; the three committer rules in `commit-changes` (D14); the rules that only `planner` held moved into `create-issue` |
@@ -602,6 +602,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - 2026-11-17 17:19 UTC - Claude Code (Claude Fable 5.2) - Independent review of T2 recorded in `agent-review-reports.md` (REVIEW PASSED, two minor findings and four nits). Addressed: the evidence states which probes have recorded tool calls and that the probed files were committed afterwards; `status` is `in-progress` and `branch` names the T2 branch; the T10 row names the ADR line that T2 made untrue; the branch is rebased on `develop`.
 - 2026-11-17 17:45 UTC - Claude Code (Claude Fable 5.2) - Addressed the reviews `5943570147` of `da2ce7` and `5943581377` of Copilot on pull request #2920: `.dockerignore` re-excludes the pointer files; the evidence states what probes 1, 2 and 4 show, names its commands as run, and stores every probe's answer in `evidence/m4-probe-answers.md`; T1 is `DONE` and the EPIC row is `IN_PROGRESS`.
 - 2026-11-17 18:34 UTC - Claude Code (Claude Fable 5.2) - Addressed the approving review `5944190011` of `da2ce7` on pull request #2920 (two nits): the evidence records the correction to the description of checkout P, and the stored answers say which angle-bracket names are the probes' own.
+- 2026-11-18 17:59 UTC - Claude Code (Claude Opus 5.5) - Task T3: added the crate `agent-reply-validator` (an AI-harness workspace member, not a default member) in five test increments, each with an independent test-design review recorded in `agent-review-reports.md` and a mutation check of its rules: the reply file name, the strict content model, the checks of one file (place, name, content, agreement), the command (`--all` over the index for the hook and CI; paths on disk for the stop hook of T5), and the schema `docs/schemas/agent-reply-v1.schema.json` generated from the model with a drift test. The pre-commit hook and the Docs Lint workflow run `agent-reply-validator --all`; `docs/schemas/README.md`, the package catalog and the CLI output contract ADR describe it. Two choices the maintainer did not settle when asked, made with the recommended option: the schema is generated from a Rust model, and the per-increment design review is made by an independent subagent. The independent review of the whole task is recorded in `agent-review-reports.md` (REVIEW PASSED, two minor findings and a nit, all addressed); `docker build --target recipe --file Containerfile .` exited 0 with the new workspace member.
 
 ## Acceptance Criteria
 
