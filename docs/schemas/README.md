@@ -46,3 +46,35 @@ schema in one place the schema cannot express without a parallel model:
 `semantic-links.skill-links` and `semantic-links.related-artifacts` may be
 omitted but may not be an explicit `null`, while the schema types them as
 `array` or `null`.
+
+## Agent Reply V1
+
+`agent-reply-v1.schema.json` is the JSON Schema Draft 2020-12 projection of the reply model in
+`contrib/dev-tools/checks/agent-reply-validator/src/reply.rs`: the content of one reply file that
+an AI agent writes in the `agent-replies/` folder of an issue specification (decision D18 of
+issue #2904). Do not edit the generated JSON directly.
+
+Regenerate the artifact with:
+
+```sh
+cargo run --package agent-reply-validator --bin agent-reply-schema
+```
+
+The test `contrib/dev-tools/checks/agent-reply-validator/tests/schema.rs` fails when the tracked
+artifact differs from the model, so `cargo test`, the pre-push hook and CI catch a stale schema.
+
+Check reply files with:
+
+```sh
+cargo run --package agent-reply-validator --bin agent-reply-validator -- --all
+cargo run --package agent-reply-validator --bin agent-reply-validator -- <reply-file>...
+```
+
+`--all` checks the staged content of every file in an `agent-replies/` folder or named like a
+reply file; the pre-commit hook and the Docs Lint workflow run it. With paths, it checks those
+files on disk. Besides the schema, the validator checks the file's place
+(`docs/issues/<drafts|open|closed>/<specification>/agent-replies/`), its name
+(`<agent>-<subject>-r<round>.json`), and that the name agrees with the `agent`, `subject` and
+`round` fields. It is also stricter than the schema where the schema cannot follow it: a real
+calendar date and time in `created-utc`, no fractional numbers, no repeated keys, and Rust's
+Unicode white space for blank text. The module documentation of `src/schema.rs` lists these.
