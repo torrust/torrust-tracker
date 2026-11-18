@@ -1,6 +1,6 @@
 ---
 name: handle-errors-in-code
-description: "Write Rust error types: thiserror enums over anyhow, with context and actionable messages, located-error for source locations. Use when adding error types or handling a Result."
+description: "Write Rust error types: thiserror enums over anyhow, with context and actionable messages, and no source locations. Use when adding error types or handling a Result."
 metadata:
   author: torrust
   version: "1.0"
@@ -50,7 +50,7 @@ ConfigNotFound { path: PathBuf },
 Each error should answer:
 
 - **What**: What operation was being performed?
-- **Where**: Which component, file, or resource?
+- **Where**: Which component, file, or resource? (A runtime resource such as a config file or an address, not a source location.)
 - **When**: Under what conditions?
 - **Why**: What caused the failure?
 
@@ -63,23 +63,32 @@ SocketBindFailed { addr: SocketAddr, port: u16, source: std::io::Error },
 return Err("bind failed".into());
 ```
 
-## The `located-error` Package
+## No Source Locations in Errors
 
-For errors that benefit from source location tracking, use the `torrust-located-error` crate. It was
-extracted to [torrust/torrust-located-error](https://github.com/torrust/torrust-located-error) and is a
-crates.io dependency, not a workspace path:
+Errors do not record or print source locations. See
+[ADR 20261118045443](../../../docs/adrs/20261118045443_errors_do_not_record_source_locations.md).
 
-```toml
-[dependencies]
-torrust-located-error = "3.0.0"
-```
+- No `location` field and no `Location::caller()` in error types.
+- No `torrust-located-error`: keep a source error as a plain `#[source]` (or `#[from]`) field.
+- `Display` states what failed and the offending input, never a source path.
+- Text sent to a client is the error's own message; do not format a source error from a crate the
+  workspace does not control into client text.
+- For developer diagnostics, emit a `tracing` event at the site; it records file and line on the
+  server only.
+- `#[track_caller]` is allowed only in test helpers and assertion helpers.
 
 ```rust
-use torrust_located_error::Located;
+// ✅ Correct: names what failed and the input
+#[error("invalid authentication key '{key}': expected 32 alphanumeric characters")]
+InvalidKeyFormat { key: String },
 
-// Wraps any error with file and line information
-let err = Located(my_error).into();
+// ❌ Wrong: a location that reaches clients and logs
+#[error("invalid key format, {location}")]
+InvalidKeyFormat { location: &'static Location<'static> },
 ```
+
+Existing `location` fields and `LocatedError` uses are being removed by EPIC #2912; do not add new
+ones.
 
 ## Unwrap and Expect Policy
 
@@ -122,4 +131,4 @@ that a new variant is a deliberate breaking change. See [ADR 20261005145329](../
 - [ ] Prefer `enum` over `Box<dyn Error>` or `anyhow` in library code
 - [ ] No vague messages like "invalid input" or "error occurred"
 - [ ] No `.unwrap()` in production code (tests and doc examples are fine)
-- [ ] Consider `located-error` for diagnostics-rich errors
+- [ ] No `location` field, no `Location::caller()` and no `torrust-located-error` (see the ADR above)
