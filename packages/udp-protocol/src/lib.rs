@@ -11,6 +11,15 @@
     clippy::empty_enums,
     reason = "FromBytes derives generate empty helper enums for inhabited protocol wire structs"
 )]
+// `zerocopy-derive` 0.8.63 generates `ẕ<field>` identifiers with the span of the user's field names.
+// Nightly rustc with Unicode 18 (rust-lang/rust#165289) reports them as `uncommon_codepoints`,
+// and rustc only honours this lint's level at crate level (rust-lang/rust#86824).
+// Remove this allow when a `zerocopy` release no longer generates non-ASCII identifiers.
+// Issue: https://github.com/torrust/torrust-tracker/issues/2931
+#![allow(
+    uncommon_codepoints,
+    reason = "zerocopy-derive generates identifiers with a non-ASCII prefix that nightly rustc flags"
+)]
 
 pub mod announce;
 pub mod common;

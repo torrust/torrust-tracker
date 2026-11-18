@@ -1,0 +1,5 @@
+$ cargo +stable check -p torrust-tracker-udp-protocol
+2026-11-18T07:53:48Z
+    Finished `dev` profile [optimized + debuginfo] target(s) in 3.51s
+exit: 0
+2026-11-18T07:53:51Z
