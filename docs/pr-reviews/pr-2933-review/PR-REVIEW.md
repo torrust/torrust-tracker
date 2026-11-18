@@ -78,8 +78,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - PR number: 2933
 - Source review ID: 5954222633
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2933#discussion_r4611970930
-- Concern: The checkpoint "Folder-style spec drafted in `docs/issues/closed/...`" reads as if the spec was first written under closed/, but it was drafted under `docs/issues/drafts/` and moved to `docs/issues/open/` once the issue existed.
-- Solution: The checkpoint now names `docs/issues/drafts/nightly-uncommon-codepoints-zerocopy/ISSUE.md` and says it moved to `docs/issues/open/2931-nightly-uncommon-codepoints-zerocopy/` once issue #2931 existed.
+- Concern: Copilot reported that the checkpoint "Folder-style spec drafted in `docs/issues/closed/...`" reads as if the spec was originally drafted under `docs/issues/closed/`, when per the PR description it was drafted under `docs/issues/open/` and later archived, and asked to keep the historical drafting location.
+- Solution: The checkpoint now names `docs/issues/drafts/nightly-uncommon-codepoints-zerocopy/ISSUE.md` and says it moved to `docs/issues/open/2931-nightly-uncommon-codepoints-zerocopy/` once issue #2931 existed. This change named a `drafts/` stage that no commit records, and a later review round (F4) replaced it by restoring the recorded `open/` path.
 - Current-tree verification: `sed -n 135p docs/issues/closed/2931-nightly-uncommon-codepoints-zerocopy/ISSUE.md` on the pushed head shows the corrected text.
 - Resolution reference: docs(issues): [#2931] correct the archive paths in the spec checkpoints
 - Follow-up PR URL: N/A
