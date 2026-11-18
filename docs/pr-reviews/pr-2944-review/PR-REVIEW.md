@@ -46,6 +46,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Round 1: Copilot review 5957896114 (COMMENTED) with two findings without reviewer IDs, as audit findings F1 and F2.
 - Round 2: da2ce7 review 5958264981 (CHANGES_REQUESTED, at the round 1 audit head) with the reviewer's findings F1 to F3, as audit findings F3 to F5.
 - Round 3: Copilot review 5958271471 (COMMENTED, at the round 1 fix head) with two findings without reviewer IDs, as audit findings F6 and F7.
+- Round 4: da2ce7 review 5958625555 (posted as an approval at the round 3 audit head; the rebase push then dismissed it) with the reviewer's findings F4 and F5, neither blocking, as audit findings F8 and F9.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -56,6 +57,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F5 | review-finding:pr-2944-f5 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-2944-f6 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F7 | review-finding:pr-2944-f7 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-2944-f8 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F9 | review-finding:pr-2944-f9 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -149,6 +152,32 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Resolution reference: docs(issues): [#2943] record how the Jail usage was counted and require the toolchain version in the evidence
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4615457577
+
+### F8 - A Processing Log entry was rewritten in place
+
+- PR number: 2944
+- Source review ID: 5958625555
+- Reviewer finding ID: F4
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4615597101
+- Concern: A commit changed the 14:17 entry of this record's Processing Log in place to correct its refresh result. The log is append-only: the entry keeps its text and a new entry records the correction.
+- Solution: The 14:17 entry has its first text again, and an appended 14:33 entry records the correction and names the commit that had rewritten it.
+- Current-tree verification: `grep -c 'a GraphQL refresh found no unresolved thread' docs/pr-reviews/pr-2944-review/PR-REVIEW.md` counts the restored 14:17 entry, and `grep -n 'Correction of the 14:17 entry' docs/pr-reviews/pr-2944-review/PR-REVIEW.md` finds the appended entry.
+- Resolution reference: docs(pr-reviews): [#2943] keep the PR 2944 audit log and the spec progress log append-only
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4615673418
+
+### F9 - A spec progress-log entry was extended with a later change
+
+- PR number: 2944
+- Source review ID: 5958625555
+- Reviewer finding ID: F5
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4615597110
+- Concern: The 14:12 progress-log entry of the #2943 spec was extended with the changes of a commit made at 14:19, instead of a new entry stamped after that change.
+- Solution: The 14:12 entry has its first text again, and a separate 14:33 entry records the usage-table and evidence-policy changes and the time of their commit.
+- Current-tree verification: `grep -n '^- 2026-11-18 14:' docs/issues/open/2943-2392-figment-jail-process-environment/ISSUE.md` finds the 14:12 and the 14:33 entries.
+- Resolution reference: docs(pr-reviews): [#2943] keep the PR 2944 audit log and the spec progress log append-only
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4615674076
 
 ## Processing Log
 
