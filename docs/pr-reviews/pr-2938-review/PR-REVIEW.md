@@ -50,6 +50,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F5 | review-finding:pr-2938-f5 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-2938-f6 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F7 | review-finding:pr-2938-f7 | Human | Nit | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-2938-f8 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -61,7 +62,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2938#discussion_r4613402857
 - Concern: `make_rust_tls` reads the PEM files right after `make_temp_file` writes them; Copilot suggests calling `flush()` after `write_all` to avoid buffering edge cases. Copilot's overview marks it medium severity, recorded here as `Minor (inferred)`.
 - Solution: No change. `make_temp_file` returns a `NamedTempFile<File>`, whose `Write` implementation forwards each call to the inner `std::fs::File`. `File` has no user-space buffer: `write_all` hands the bytes to the operating system before it returns, and `File::flush` does nothing. Another open of the path, as `make_rust_tls` does, reads them. A `flush()` call would not change what the test observes.
-- Current-tree verification: `packages/axum-server/src/tls.rs` builds the file with `tempfile::Builder::new().prefix(prefix).suffix(".pem").tempfile()`, which returns `NamedTempFile<File>`, and calls `file.write_all(...)`. `tempfile-3.27.0/src/file/mod.rs:1015` implements `Write for NamedTempFile<F>` by calling `self.as_file_mut().write(buf)` and `self.as_file_mut().flush()`. `cargo +stable test -p torrust-tracker-axum-server --all-features --lib tls::tests` passed 4 tests on 2026-11-18, including `it_should_error_on_bad_tls_config`, which reads the written files.
+- Current-tree verification: `packages/axum-server/src/tls.rs` imports `tempfile::{Builder, NamedTempFile}` and builds the file with `Builder::new().prefix(prefix).suffix(".pem").tempfile()` (line 73), which returns `NamedTempFile<File>`, and calls `file.write_all(...)`. `tempfile-3.27.0/src/file/mod.rs:1015` implements `Write for NamedTempFile<F>` by calling `self.as_file_mut().write(buf)` and `self.as_file_mut().flush()`. `cargo +stable test -p torrust-tracker-axum-server --all-features --lib tls::tests` passed 4 tests on 2026-11-18, including `it_should_error_on_bad_tls_config`, which reads the written files.
 - Resolution reference: https://github.com/torrust/torrust-tracker/pull/2938#discussion_r4613449436
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2938#discussion_r4613449436
@@ -144,6 +145,19 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2938#discussion_r4613560291
 
+### F8 - The F1 verification describes the builder call as it was before the import fix
+
+- PR number: 2938
+- Source review ID: 5956302969
+- Reviewer finding ID: F6
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2938#discussion_r4613696760
+- Concern: F1's current-tree verification says `tls.rs` builds the file with `tempfile::Builder::new()`; after the F7 fix the file imports `tempfile::{Builder, NamedTempFile}` and calls `Builder::new()`. The disposition stands; the line should match the current tree, as `process-pr-review` step 5 asks.
+- Solution: F1's verification names the import and `Builder::new()` at line 73. Sweeping for the same mistake, the T4 "Change" line of the evidence file also quoted `tempfile::Builder::new()`; it now quotes `Builder::new()` and names the import. F7's entries keep the old path on purpose, because they describe the code before that fix.
+- Current-tree verification: `grep -n 'use tempfile' packages/axum-server/src/tls.rs` prints `use tempfile::{Builder, NamedTempFile};` (line 64) and line 73 is `let mut file = Builder::new()`. `grep -rn 'tempfile::Builder' docs/issues/open/2907-2392-remove-leaked-test-temporary-files` prints only the evidence line that names the import.
+- Resolution reference: `docs(pr-reviews): [#2907] describe the current builder call in the F1 verification`
+- Follow-up PR URL: N/A
+- Reply URL: <REPLY_URL_F8>
+
 ## Processing Log
 
 - 2026-11-18 11:51 UTC - Started audit for Copilot review 5955960198 (submitted 2026-11-18 11:48:19 UTC on the head that adds `docs(issues): [#2907] record the passing pre-push checks`). Its body is an overview with no request of its own; its three inline comments are F1 to F3.
@@ -151,6 +165,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-18 11:52 UTC - Found da2ce7's review 5956000792 (`APPROVED`, submitted 2026-11-18 11:50:49 UTC on the same head) with four inline findings while listing the threads to resolve. Its finding IDs F1 to F4 collide with this audit's, so they are F4 to F7 here, with the reviewer's IDs in each detail entry. All four are valid on the current tree.
 - 2026-11-18 11:56 UTC - Fixed F7 in `test(configuration, axum-server): [#2907] import fs and Builder instead of using their full paths` and F4, F5 and F6 in `docs(issues): [#2907] correct the clear_env count and the rebase claim, and add a red run of both TLS tests`; not pushed yet.
 - 2026-11-18 12:00 UTC - Pushed both fix commits to the PR branch at 12:00:08 UTC (the pre-push hook passed). Replied to F4 to F7 at 12:00:23, 12:00:26, 12:00:28 and 12:00:31 UTC, then resolved all seven threads; a GraphQL refresh at 12:00:47 UTC showed 0 unresolved threads.
+- 2026-11-18 12:13 UTC - Round 2: da2ce7's review 5956302969 (`APPROVED`, submitted 2026-11-18 12:11:57 UTC on the head that adds this record) has one inline finding, its F6, recorded here as F8 because F6 is taken. Valid on the current tree; fixed in `docs(pr-reviews): [#2907] describe the current builder call in the F1 verification`, not pushed yet.
 
 ## Completion Rules
 

@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2907-2392-remove-leaked-test-temporary-files/ISSUE.md
-last-updated-utc: "2026-11-18 11:55"
+last-updated-utc: "2026-11-18 12:13"
 ---
 
 # Manual Verification Evidence
@@ -183,7 +183,7 @@ visible. The old test's leftover comments and the `default_configuration` variab
 - Goal: the PEM files of the TLS tests are removed when the test ends, also when it fails (AC2,
   AC3).
 - Change: `make_temp_file` in `packages/axum-server/src/tls.rs` returns a `tempfile::NamedTempFile`
-  (built with `tempfile::Builder::new().prefix(prefix).suffix(".pem")`) instead of a path. The test
+  (built with `Builder::new().prefix(prefix).suffix(".pem")`; `tls.rs` imports `tempfile::Builder` since review finding F7 of PR 2938) instead of a path. The test
   keeps the guard, and the two `fs::remove_file` calls that only ran when `make_rust_tls` returned
   the expected error are gone. `tempfile` is a new dev-dependency of `torrust-tracker-axum-server`.
 - New tests: `it_should_remove_the_temporary_file_when_its_guard_is_dropped` (AC2) and
