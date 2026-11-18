@@ -114,6 +114,10 @@ waits on asynchronous work. Its readiness wait keeps the existing absolute deadl
 covers both values. A timeout fails the test with an explicit message. No resources are created,
 so there is no ownership or drop path to define.
 
+Design-review checkpoint: after the first passing vertical slice (the new wait-helper test green
+with the fixed helper, task T3), stop and record a design review of the changed fixture and the
+new test before the remaining verification. Task T4 owns that review.
+
 ## Bug-Fix Process
 
 Following `.claude/skills/fix-bug/SKILL.md`:
@@ -173,8 +177,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1  | DONE   | Reproduce the race                       | Widened-window probe fails at `integration.rs:253` with `left: 0, right: 1`. Recorded in `manual-verification-evidence.md` V1 and V2.         |
 | T2  | TODO   | Add the wait-helper regression test (red) | New test as described in Regression Test Strategy. It fails against the unchanged helper. The same-branch widened-window probe also fails the integration test. Both recorded in V3. |
 | T3  | TODO   | Fix the wait helper                      | `wait_for_global_downloads_persisted` waits for the database value and the in-memory counter in one bounded loop. Comments updated. The new helper test passes. |
-| T4  | TODO   | Green and like-for-like recheck          | New helper test passes; probe plus fix passes; probe reverted; plain test and whole integration binary pass on repeated runs. Recorded in V4. |
-| T5  | TODO   | Automatic checks and completion review   | `linter all`, `cargo test -p torrust-tracker-core`, pre-push checks; acceptance criteria re-reviewed; completion review recorded.              |
+| T4  | TODO   | Design review of the fixture and test, then maintainer stop | After focused green validation, record the review in V5: the prose-first Arrange-Act-Assert comparison of the new test, the helper's boundary and naming, and its abstraction level. Stop for maintainer review before T5. |
+| T5  | TODO   | Green and like-for-like recheck          | New helper test passes; probe plus fix passes; probe reverted; plain test and whole integration binary pass on repeated runs. Recorded in V4. |
+| T6  | TODO   | Automatic checks and completion review   | `linter all`, `cargo test -p torrust-tracker-core`, pre-push checks; acceptance criteria re-reviewed; completion review recorded.              |
 
 ## Commit Points
 
@@ -182,12 +187,19 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ------ | --------------------------------------------------------------------------- | ------------------------------------------------------------------- |
 | T1     | Issue specification and reproduction evidence                               | Spec-only PR; commit after maintainer approval of the spec.         |
 | T2     | Wait-helper regression test, seen red against the unchanged helper          | Commit after the red run is recorded and the test design is reviewed. |
-| T3     | Fixed wait helper and updated comments                                      | Commit after the new test and the integration tests pass.            |
-| T4, T5 | Red, green and recheck evidence; spec progress and completion review update | One evidence commit, separate from the code change.                 |
+| T3, T4 | Fixed wait helper and updated comments, after the recorded design review    | Commit after the tests pass, the review is recorded and the maintainer has reviewed. |
+| T5, T6 | Red, green and recheck evidence; spec progress and completion review update | One evidence commit, separate from the code change.                 |
 
 Every commit uses a Conventional Commit message with the narrow affected scope and is signed with
-GPG. No new test is written, so the `write-unit-test` per-increment design review does not apply;
-the change to the existing test is limited to its wait helper and comment.
+GPG. Both test-producing tasks (the new wait-helper test in T2 and the changed reusable fixture in
+T3) use the `write-unit-test` skill. After focused green validation, task T4 records an explicit
+design review with the mandatory prose-first Arrange-Act-Assert comparison: write temporary prose
+for each section of the new test, refactor until the code expresses it, remove redundant prose,
+and keep only irreducible context. The review confirms the test exposes the one causal initial-state
+difference (database at `1`, counter at `0`), the fixture owns only incidental mechanics, and the
+Act and the independently specified expected result stay visible. It judges the helper's boundary
+by its named action and abstraction level, not by caller count. Stop for maintainer review after
+this review, before final verification, commit or pull request.
 
 ## Progress Tracking
 
@@ -258,6 +270,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | M2  | Reproduce with a widened window             | Add the 300 ms sleep in `handler.rs`, run the test with `cargo test`, revert the sleep                           | Fails at `integration.rs:253`, `left: 0, right: 1` | DONE   | `manual-verification-evidence.md` section V2 |
 | M3  | Red on the implementation branch            | Run the new helper test before the fix; then the same probe as M2 on that branch, reverted after                 | Helper test fails; probe run fails as in M2     | TODO   | `manual-verification-evidence.md` section V3 |
 | M4  | Green and like-for-like recheck             | Run the new helper test with the fix; the same probe with the fix, reverted after; repeat M1                     | Helper test passes; probe run passes; all plain runs pass | TODO   | `manual-verification-evidence.md` section V4 |
+| M5  | Test-design review                          | Record the prose-first Arrange-Act-Assert comparison and the fixture review after green                          | Review recorded; maintainer reviewed before T5  | TODO   | `manual-verification-evidence.md` section V5 |
 
 ### Disposable Verification Scripts
 
