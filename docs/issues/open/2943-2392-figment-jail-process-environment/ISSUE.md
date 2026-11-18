@@ -9,7 +9,7 @@ github-issue: 2943
 spec-path: docs/issues/open/2943-2392-figment-jail-process-environment/ISSUE.md
 branch: "2943-2392-figment-jail-process-environment-spec"
 related-pr: null
-last-updated-utc: "2026-11-18 14:12"
+last-updated-utc: "2026-11-18 14:33"
 semantic-links:
   skill-links:
     - create-issue
@@ -205,9 +205,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-18 14:12 UTC - Claude Code (Claude Fable 5.2), EPIC #2392 coordinator - Review of
   PR #2944: corrected the `Jail::expect_with` counts, which were doubled (51 calls, not 102),
   cited EPIC rule 5 instead of rule 1 and added it to the options table, and marked the `/tmp`
-  file as #2907's inference. From Copilot's second review: replaced the commit id of the usage
+  file as #2907's inference.
+- 2026-11-18 14:33 UTC - Claude Code (Claude Fable 5.2), EPIC #2392 coordinator - Review of PR #2944,
+  Copilot's second review (change committed at 14:19 UTC): replaced the commit id of the usage
   table with the date and the command, and made the evidence policy ask for the toolchain
-  version.
+  version. The 14:12 entry had carried this text until the review asked for a separate entry.
 
 ## Acceptance Criteria
 
