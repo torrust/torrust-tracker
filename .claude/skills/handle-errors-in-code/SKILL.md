@@ -65,7 +65,7 @@ return Err("bind failed".into());
 
 ## No Source Locations in Errors
 
-Errors do not record or print source locations. See
+Errors must not record or print source locations. See
 [ADR 20261118045443](../../../docs/adrs/20261118045443_errors_do_not_record_source_locations.md).
 
 - No `location` field and no `Location::caller()` in error types.
@@ -79,12 +79,20 @@ Errors do not record or print source locations. See
 
 ```rust
 // ✅ Correct: names what failed and the input
-#[error("invalid authentication key '{key}': expected 32 alphanumeric characters")]
-InvalidKeyFormat { key: String },
+#[derive(Debug, thiserror::Error)]
+pub enum KeyError {
+    #[error("invalid authentication key '{key}': expected 32 alphanumeric characters")]
+    InvalidKeyFormat { key: String },
+}
+```
 
+```rust
 // ❌ Wrong: a location that reaches clients and logs
-#[error("invalid key format, {location}")]
-InvalidKeyFormat { location: &'static Location<'static> },
+#[derive(Debug, thiserror::Error)]
+pub enum KeyError {
+    #[error("invalid key format, {location}")]
+    InvalidKeyFormat { location: &'static Location<'static> },
+}
 ```
 
 Existing `location` fields and `LocatedError` uses are being removed by EPIC #2912; do not add new
