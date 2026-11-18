@@ -27,6 +27,7 @@ approves it. A group of declaration-only files may share one plan.
 | ---: | --- | --- | --- |
 | 1 | [statistics-repository-tests.md](statistics-repository-tests.md) | DONE | Approved 2026-11-17 (D1: test the unused gauge methods); completed file approved 2026-11-17 |
 | 2 | [test-support-ephemeral-database-tests.md](test-support-ephemeral-database-tests.md) | DONE | F5 fix and the SQLite half of checkpoint T2b; shape, scope and guard owner decided and the completed change approved 2026-11-17; merged in #2923 |
+| 3 | [statistics-metrics-tests.md](statistics-metrics-tests.md) | DONE | No change: covered by the repository tests, all six mutants killed; approved 2026-11-18 |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 
