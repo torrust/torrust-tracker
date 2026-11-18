@@ -3,7 +3,7 @@ doc-type: file-test-plan
 issue: 2902
 package: torrust-tracker-core
 target-file: packages/tracker-core/src/statistics/persisted/downloads.rs
-status: approved
+status: done
 semantic-links:
   related-artifacts:
     - packages/tracker-core/src/statistics/persisted/downloads.rs
@@ -70,10 +70,21 @@ overflow belongs to the drivers (S2).
 
 | ID | Status | Work | Completion evidence |
 | --- | --- | --- | --- |
-| D1 | TODO | Add the two tests. | They pass. |
-| D2 | TODO | Rerun P3 and P4. | Both are killed by the new tests in this file. |
-| D3 | TODO | Record the results and ask for the completed-file review. | This record and the ledger. |
+| D1 | DONE | Add the two tests. | They pass. |
+| D2 | DONE | Rerun P3 and P4. | Both are killed by the new tests in this file. |
+| D3 | DONE | Record the results and ask for the completed-file review. | This record and the ledger. |
 
 ## Results
 
-To be filled in after D3.
+- **Mutations:** P3 is now killed by `it_should_save_then_increment_the_global_downloads` and P4 by
+  `it_should_increment_the_stored_downloads_of_a_torrent`, each run against this file's tests only
+  (`statistics::persisted::downloads`); P1, P2, P5 and P6 stay killed as in the probe.
+- **Coverage** (stable Rust 1.100.0, `cargo-llvm-cov 0.9.1`, `--all-features --lib`, clean coverage
+  target directory, 2026-11-18): the file 79 / 79 lines to 112 / 112, regions 114 / 114 to
+  148 / 148, functions 23 / 23 to 27 / 27 (the growth is the new tests). The package's unit-only
+  lines 4,688 / 5,564 (84.26%) to 4,721 / 5,597 (84.35%), regions 5,027 / 6,090 (82.55%),
+  functions 768 / 1,012 (75.89%).
+- **Tests:** two added, three unchanged; 179 unit tests in the package.
+- **Review outcome:** the maintainer approved the completed file on 2026-11-18.
+- **Validation:** `cargo clippy -p torrust-tracker-core --all-targets --all-features` (only the
+  existing `axum::serve` warning) and `cargo +nightly fmt --all -- --check` pass.

@@ -9,7 +9,7 @@ github-issue: 2902
 spec-path: docs/issues/open/2902-1347-add-tests-tracker-core/ISSUE.md
 branch: "2902-1347-add-tests-tracker-core-statistics"
 related-pr: null
-last-updated-utc: "2026-11-18 11:09"
+last-updated-utc: "2026-11-18 13:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -356,7 +356,7 @@ rows are ordered by slice, then by risk.
 | 3 | `statistics/persisted/mod.rs` | S1 | 0 / 11 | Test candidate (`load_persisted_metrics`); 11 / 11 with five tests ([plan](test-refactor-plans/statistics-persisted-mod-tests.md)) | DONE |
 | 4 | `statistics/event/listener.rs` | S1 | 360 / 411 | Test candidate (spawn wrappers); 538 / 542 with four tests ([plan](test-refactor-plans/statistics-event-listener-tests.md)) | DONE |
 | 5 | `statistics/event/handler.rs` | S1 | 175 / 196 | Mostly logging-only; one error arm; 311 / 311 with two event tables and a failure test ([plan](test-refactor-plans/statistics-event-handler-tests.md)) | DONE |
-| 6 | `statistics/persisted/downloads.rs` | S1 | 77 / 77 | Failing-`Database` case (line 133, `increase_global_downloads`) | IN_PROGRESS |
+| 6 | `statistics/persisted/downloads.rs` | S1 | 77 / 77 | Failing-`Database` case (line 133, `increase_global_downloads`), covered by row 5; two increment tests kill a surviving mutant ([plan](test-refactor-plans/statistics-persisted-downloads-tests.md)) | DONE |
 | 7 | `statistics/mod.rs`, `statistics/event/mod.rs` | S1 | 42 / 43, no entries | Test candidate (`statistics/mod.rs:49`, usage statistics disabled); `event/mod.rs` declarations only | PENDING |
 | 8 | `databases/driver/sqlite/auth_key_store.rs` | S2 | 29 / 55 | Test candidate | PENDING |
 | 9 | `databases/driver/sqlite/torrent_metrics_store.rs` | S2 | 27 / 46 | Test candidate | PENDING |
@@ -424,6 +424,7 @@ The first slice's record checks the grouping against `find packages/tracker-core
 - 2026-11-18 09:10 UTC - Claude Code (Opus 5.5) - Every coverage figure re-measured, at the maintainer's request, with stable Rust 1.100.0 and `cargo-llvm-cov 0.9.1`: after `rustup update` moved `stable` from 1.99.1, `cargo-llvm-cov 0.6.16` reported 0% for every file (it read a stale binary from the old `target/debug/deps/` layout), and the maintainer upgraded it for everyone. Same commits as before: the T1 baseline at `5833cdae9` in five scopes (unit-only now 79.32%, was 80.31%; container-gated 92.67%, was 93.80%), and the unit-only run after rows 1 and 3. [coverage-evidence.md](coverage-evidence.md), the ledger, the baseline section and the row records hold the new figures; the entries above keep the old ones. The new toolchain does not count `#[test]` functions and adds a region per `tracing` call, classified as no decision.
 - 2026-11-18 09:37 UTC - Claude Code (Opus 5.5) - Row 4 (`statistics/event/listener.rs`) done: four tests of the public entry points over a real event bus, 538 / 542 lines, all seven named mutants killed; the maintainer approved the plan, the completed file and the listener fixture shape, so checkpoint T2b is done ([plan](test-refactor-plans/statistics-event-listener-tests.md)).
 - 2026-11-18 11:09 UTC - Claude Code (Opus 5.5) - Row 5 (`statistics/event/handler.rs`) done: two table tests over the five events that are not a completed download (replacing the two `PeerAdded`-only tests) and a global-save failure test; 311 / 311 lines, all four named mutants killed, one of which survived the old tests ([plan](test-refactor-plans/statistics-event-handler-tests.md)). Plan and completed file approved by the maintainer.
+- 2026-11-18 13:24 UTC - Claude Code (Opus 5.5) - Row 6 (`statistics/persisted/downloads.rs`) done: coverage was already complete after row 5, but a mutation probe found a stored torrent total could be overwritten with 1 unnoticed; two increment tests kill it ([plan](test-refactor-plans/statistics-persisted-downloads-tests.md)). Plan and completed file approved by the maintainer.
 
 ## Open Design Questions
 
