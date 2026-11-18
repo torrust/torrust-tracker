@@ -1,7 +1,7 @@
 ---
 pr-number: 2926
 pr-url: https://github.com/torrust/torrust-tracker/pull/2926
-last-updated-utc: "2026-11-17 23:12"
+last-updated-utc: "2026-11-18 04:21"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -48,6 +48,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Round 3: Copilot review 5947468225 (COMMENTED) with four findings without reviewer IDs, as audit findings F6 to F9.
 - Round 4: Copilot review 5947772095 (COMMENTED, at the round 3 fix head) with one finding without a reviewer ID, as audit finding F10.
 - Round 5: Copilot review 5948148595 (COMMENTED) with four findings without reviewer IDs, as audit findings F11 to F14.
+- Round 6: Copilot review 5948478908 (COMMENTED) with three findings without reviewer IDs, as audit findings F15 to F17. The maintainer asked for this round after the five-round limit.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -65,6 +66,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F12 | review-finding:pr-2926-f12 | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F13 | review-finding:pr-2926-f13 | Copilot | Nit | other | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F14 | review-finding:pr-2926-f14 | Copilot | Nit | other | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F15 | review-finding:pr-2926-f15 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-2926-f16 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-2926-f17 | Copilot | Nit (inferred) | formatting | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -206,7 +210,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4607020014
 - Concern: AC1 says "no directory that holds a database file", which could be read to include unrelated directories.
 - Solution: AC1 now reads "no `data_*.db` file and no leftover guard directory (a directory with a `data.db` file)".
-- Current-tree verification: `grep -n 'no leftover guard directory (a directory with a' docs/issues/open/2925-*/ISSUE.md` finds AC1 and V2.
+- Current-tree verification: `grep -n 'no leftover guard directory' docs/issues/open/2925-*/ISSUE.md` finds AC1 and V2; the F15 and F16 fix later dropped the parenthesis.
 - Resolution reference: docs(issues): [#2392] name the leftover guard directory in #2925's AC1 and V2
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4607057588
@@ -219,7 +223,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4607020071
 - Concern: V2 says "no directory holding a database file", with the same ambiguity as AC1.
 - Solution: V2 now uses the same wording as AC1.
-- Current-tree verification: `grep -n 'no leftover guard directory (a directory with a' docs/issues/open/2925-*/ISSUE.md` finds AC1 and V2.
+- Current-tree verification: `grep -n 'no leftover guard directory' docs/issues/open/2925-*/ISSUE.md` finds AC1 and V2; the F15 and F16 fix later dropped the parenthesis.
 - Resolution reference: docs(issues): [#2392] name the leftover guard directory in #2925's AC1 and V2
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4607057888
@@ -250,6 +254,45 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4607027321
 
+### F15 - AC1 of #2925 misses a guard directory without its database file
+
+- PR number: 2926
+- Source review ID: 5948478908
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4607271106
+- Concern: AC1 defines the leftover guard directory as one that contains `data.db`, so a directory left before SQLite creates the file would not count.
+- Solution: AC1 now reads "no leftover guard directory, with or without its `data.db` file".
+- Current-tree verification: `grep -n 'no leftover guard directory, with or without its' docs/issues/open/2925-*/ISSUE.md` finds AC1 and V2.
+- Resolution reference: docs(issues): [#2392] exclude any leftover guard directory in #2925 and list the audit rounds
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4609152846
+
+### F16 - V2 of #2925 misses a guard directory without its database file
+
+- PR number: 2926
+- Source review ID: 5948478908
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4607271154
+- Concern: V2 has the same definition as AC1, with the same gap.
+- Solution: V2 now uses the same wording as AC1.
+- Current-tree verification: `grep -n 'no leftover guard directory, with or without its' docs/issues/open/2925-*/ISSUE.md` finds AC1 and V2.
+- Resolution reference: docs(issues): [#2392] exclude any leftover guard directory in #2925 and list the audit rounds
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4609153075
+
+### F17 - Review rounds in one long line in this record
+
+- PR number: 2926
+- Source review ID: 5948478908
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4607271201
+- Concern: The Findings section of this audit record describes all the review rounds in one very long line.
+- Solution: The Findings section now lists the rounds one per line.
+- Current-tree verification: `grep -c '^- Round [0-9]*: ' docs/pr-reviews/pr-2926-review/PR-REVIEW.md` prints 6.
+- Resolution reference: docs(issues): [#2392] exclude any leftover guard directory in #2925 and list the audit rounds
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2926#discussion_r4609153388
+
 ## Processing Log
 
 - 2026-11-17 21:15 UTC - Round 1: Copilot review 5946669412 with F1 to F3. Committed and pushed the fix (`docs(issues): [#2392] align the order 7 title and widen #2925's SQLite leftover check`), then replied to the three threads (21:14:38Z to 21:14:43Z).
@@ -262,6 +305,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-17 22:40 UTC - The validator on the worktree record reported 10 rows, 7 log entries, 0 failures. Resolved the F10 thread (about 22:40:02Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread. Committed these entries.
 - 2026-11-17 23:11 UTC - Round 5: Copilot review 5948148595 with F11 to F14. Replied to F13 and F14 with no change (23:08:24Z and 23:08:27Z). Committed and pushed the fix for F11 and F12 (`docs(issues): [#2392] name the leftover guard directory in #2925's AC1 and V2`), then replied to those two threads (23:11:50Z and 23:11:53Z). Updated F2's verification, because the F11 fix reworded AC1.
 - 2026-11-17 23:12 UTC - The validator on the worktree record reported 14 rows, 9 log entries, 0 failures. Resolved the four round 5 threads (about 23:12:12Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread. Committed these entries. This was the fifth round of fixes; further rounds wait for the maintainer.
+- 2026-11-18 04:21 UTC - Round 6, on the maintainer's instruction: Copilot review 5948478908 with F15 to F17. Committed and pushed the fix (`docs(issues): [#2392] exclude any leftover guard directory in #2925 and list the audit rounds`), then replied to the three threads (04:20:58Z to 04:21:03Z). Updated the verification of F11 and F12, because the fix reworded AC1 and V2.
+- 2026-11-18 04:21 UTC - The validator on the worktree record reported 17 rows, 11 log entries, 0 failures. Resolved the three round 6 threads (about 04:21:20Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread. Committed these entries.
 
 <!-- Copied verbatim into each audit record. -->
 
