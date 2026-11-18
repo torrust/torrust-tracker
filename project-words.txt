@@ -201,6 +201,7 @@ clippy
 cloneable
 codecov
 codegen
+codepoints
 colour
 colours
 commiter
@@ -393,6 +394,7 @@ newtypes
 nextest
 nghttp
 ngtcp
+nightlies
 nmap
 nocapture
 nologin
@@ -643,3 +645,4 @@ zerocopy
 zeroize
 zstd
 ñaca
+ẕfield
