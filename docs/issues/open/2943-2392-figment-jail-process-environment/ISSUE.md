@@ -60,7 +60,9 @@ belong to the process, and `cargo test` runs the tests of one binary on several 
 of the same binary that does not use `Jail` and reads the environment or resolves a relative path
 while a jail is active sees the jail's state.
 
-Where `Jail` is used (`develop` `bc9d0590c`); no other package uses it:
+Where `Jail` was used when this spec was drafted (2026-11-18). T1 repeats the counts:
+`grep -rl 'Jail' --include='*.rs' packages src console contrib tests` printed only these three
+files.
 
 | File | `Jail::expect_with(` calls | `clear_env()` | `set_env()` |
 | --- | --- | --- | --- |
@@ -203,7 +205,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-18 14:12 UTC - Claude Code (Claude Fable 5.2), EPIC #2392 coordinator - Review of
   PR #2944: corrected the `Jail::expect_with` counts, which were doubled (51 calls, not 102),
   cited EPIC rule 5 instead of rule 1 and added it to the options table, and marked the `/tmp`
-  file as #2907's inference.
+  file as #2907's inference. From Copilot's second review: replaced the commit id of the usage
+  table with the date and the command, and made the evidence policy ask for the toolchain
+  version.
 
 ## Acceptance Criteria
 
@@ -233,8 +237,10 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | V1 | Reproduce | `cargo +stable test -p torrust-tracker-configuration --lib` with the probe test, repeated as T1 records | Reads with `PATH` or `TMPDIR` unset, counted per run | TODO | `manual-verification-evidence.md` |
 | V2 | Recheck | Same command and number of runs after T3 | No such read | TODO | `manual-verification-evidence.md` |
 
-Evidence policy: every recorded command result names the toolchain that produced it, and the
-evidence file is created from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`.
+Evidence policy: every recorded command result names the toolchain that produced it, with the
+output of `rustc -Vv` and `cargo -V`, because `+stable` moves. V2 runs on the same toolchain
+version as V1, or records why it could not. The evidence file is created from
+`docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`.
 
 ### Acceptance Verification
 
