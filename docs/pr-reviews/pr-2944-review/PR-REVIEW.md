@@ -126,7 +126,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-18 13:54 UTC - Round 1: Copilot review 5957896114 with F1 and F2. Committed and pushed the fix (`docs(issues): [#2943] count G2 once in the AC4 evidence and cite the edition guide`), then replied to the two threads (13:53:25Z and 13:53:27Z).
 - 2026-11-18 13:54 UTC - The validator on the worktree record reported 2 rows, 1 log entry, 0 failures. Resolved the two round 1 threads (about 13:54:38Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread. Committed these entries.
 - 2026-11-18 14:16 UTC - Round 2: da2ce7 review 5958264981 with F3 to F5 (the reviewer's F1 to F3). Committed and pushed the fix (`docs(issues): [#2943] halve the Jail call counts, cite EPIC rule 5 and mark the /tmp file as inferred`), corrected the counts in the body of issue #2943, then replied to the three threads (14:16:01Z to 14:16:07Z).
-- 2026-11-18 14:17 UTC - The validator on the worktree record reported 5 rows, 3 log entries, 0 failures. Resolved the three round 2 threads (about 14:17:01Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread. Committed these entries.
+- 2026-11-18 14:17 UTC - The validator on the worktree record reported 5 rows, 3 log entries, 0 failures. Resolved the three round 2 threads (about 14:17:01Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh showed two more unresolved threads, from a Copilot review posted at 14:10:52Z that this round had not read; they are round 3. Committed these entries.
 
 <!-- Copied verbatim into each audit record. -->
 
