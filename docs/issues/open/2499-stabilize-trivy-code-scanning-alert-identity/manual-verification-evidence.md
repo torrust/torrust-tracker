@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2499-stabilize-trivy-code-scanning-alert-identity/ISSUE.md
-last-updated-utc: 2026-10-08 18:58
+last-updated-utc: "2026-10-08 18:58"
 ---
 
 <!-- cspell:ignore tojson tostring -->

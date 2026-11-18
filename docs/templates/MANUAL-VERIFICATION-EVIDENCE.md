@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/{number}-{short-description}/ISSUE.md
-last-updated-utc: YYYY-MM-DD HH:MM
+last-updated-utc: "YYYY-MM-DD HH:MM"
 ---
 
 # Manual Verification Evidence

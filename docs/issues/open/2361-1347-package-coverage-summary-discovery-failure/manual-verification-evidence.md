@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2361-1347-package-coverage-summary-discovery-failure/ISSUE.md
-last-updated-utc: 2026-09-28 10:00
+last-updated-utc: "2026-09-28 10:00"
 ---
 
 # Manual Verification Evidence
