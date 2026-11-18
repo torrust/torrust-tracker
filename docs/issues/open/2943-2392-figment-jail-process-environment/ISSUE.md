@@ -9,7 +9,7 @@ github-issue: 2943
 spec-path: docs/issues/open/2943-2392-figment-jail-process-environment/ISSUE.md
 branch: "2943-2392-figment-jail-process-environment-spec"
 related-pr: null
-last-updated-utc: "2026-11-18 14:33"
+last-updated-utc: "2026-11-18 14:40"
 semantic-links:
   skill-links:
     - create-issue
@@ -84,6 +84,11 @@ inferred this from the `clear_env()` code: it could not tell the file apart from
 sessions in `/tmp`. That is why AC1 asks for a reproduction. The #2907 fix does not depend on
 this (a `TempDir` removes its folder by absolute path), so the gap stays.
 
+Reproduced while drafting (2026-11-18, `manual-verification-evidence.md`, V1): a probe test that
+uses no `Jail` and loops for 2 seconds read `PATH` unset, `TMPDIR` unset and a changed current
+directory in 3 of 3 runs of the package's lib tests, each thousands of times in about 2.3 million
+reads.
+
 A second concern: in the 2024 edition (stable since Rust 1.85), which this workspace uses,
 `std::env::set_var` and `std::env::remove_var` are `unsafe` functions, because changing the
 environment while another thread reads it is not safe on every platform (see
@@ -151,10 +156,18 @@ review in `manual-verification-evidence.md` and commit the reviewed increment be
 The defect is in test code. Follow `.claude/skills/fix-bug/SKILL.md`:
 
 1. Real-artifact reproduction: a probe test in the configuration lib binary that does not use
-   `Jail` reads `PATH` and `TMPDIR` in a loop while the suite runs, and reports each read that
-   finds them unset (V1). The probe is evidence, not a permanent test, unless T2 keeps it.
+   `Jail` reads `PATH`, `TMPDIR` and the current directory in a loop while the suite runs, and
+   reports each read that finds a variable unset or the directory changed (V1). The parent
+   environment sets `PATH` and `TMPDIR` before the run, and the probe asserts that at its start,
+   so an absent variable is never counted as interference. It was reproduced while drafting; the
+   probe's code and output are in `manual-verification-evidence.md`. The probe is evidence, not a
+   permanent test, unless T2 keeps it.
 2. Regression boundary: decided with the design in T2.
-3. Red before the change, green after; like-for-like recheck of step 1 (V2).
+3. Red before the change, green after (V2). The recheck depends on the design: the unchanged
+   probe, which stays outside a jail, can pass only when no jail runs in its process (options B
+   and C). Under option A the jails still run there, so the probe would still fail; T2 then
+   defines the recheck at the boundary A relies on (no test outside a jail reads the environment
+   or the current directory).
 
 ## Regression Test Strategy
 
@@ -167,8 +180,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | TODO | Reproduce and recheck G1 | Probe result recorded (V1); list of the non-`Jail` tests that read the environment or the current directory; G1 verdict recorded. |
-| T2 | TODO | Decide the design | Options with the T1 result; the maintainer's decision recorded in this spec. |
+| T1 | TODO | Reproduce and recheck G1 | The drafting baseline of V1 repeated on the implementation base; list of the non-`Jail` tests that read the environment or the current directory; G1 verdict recorded. |
+| T2 | TODO | Decide the design | Options with the T1 result; the maintainer's decision and the V2 recheck for that design recorded in this spec. |
 | T3 | TODO | Isolate the tests | Implemented as decided; test-design review recorded. |
 | T4 | TODO | Correct the audit inventory | G2 (and G1 if needed) corrected with a dated note. |
 | T5 | TODO | Recheck | V2 recorded; `linter all` passes. |
@@ -210,13 +223,18 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   Copilot's second review (change committed at 14:19 UTC): replaced the commit id of the usage
   table with the date and the command, and made the evidence policy ask for the toolchain
   version. The 14:12 entry had carried this text until the review asked for a separate entry.
+- 2026-11-18 14:40 UTC - Claude Code (Claude Fable 5.2), EPIC #2392 coordinator - Review of PR #2944,
+  Copilot's third review: reproduced the bug with a temporary probe test (3 of 3 runs) and
+  recorded it in `manual-verification-evidence.md`; V1 now sets `PATH` and `TMPDIR` first; AC2
+  and V2 use the recheck that T2 defines for the chosen design, because the unchanged probe
+  cannot pass under option A.
 
 ## Acceptance Criteria
 
 - [ ] AC1: The reproduction shows a test outside `Jail` reading an unset `PATH` or `TMPDIR` on
   `develop`, or the spec records why it could not be reproduced.
-- [ ] AC2: After the change, the same reproduction finds no such read in the number of runs T2
-  sets.
+- [ ] AC2: After the change, the recheck T2 defines for the chosen design finds no such read in
+  the number of runs T2 sets. For options B and C it is the unchanged V1 probe.
 - [ ] AC3: No test of the configuration lib binary reads the environment or the current directory
   while another test of that binary can change them.
 - [ ] AC4: The audit inventory no longer classifies G2 as isolated without a pointer to this
@@ -236,8 +254,8 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| V1 | Reproduce | `cargo +stable test -p torrust-tracker-configuration --lib` with the probe test, repeated as T1 records | Reads with `PATH` or `TMPDIR` unset, counted per run | TODO | `manual-verification-evidence.md` |
-| V2 | Recheck | Same command and number of runs after T3 | No such read | TODO | `manual-verification-evidence.md` |
+| V1 | Reproduce | `TMPDIR=<fresh empty dir> cargo +stable test -p torrust-tracker-configuration --lib` with the probe test and `PATH` set, repeated as T1 records | Reads with `PATH` or `TMPDIR` unset or the current directory changed, counted per run | DONE (drafting baseline, 3 of 3 runs; T1 repeats it) | `manual-verification-evidence.md` |
+| V2 | Recheck | The recheck T2 defines for the chosen design, with the same environment setup and number of runs, after T3 | No such read | TODO | `manual-verification-evidence.md` |
 
 Evidence policy: every recorded command result names the toolchain that produced it, with the
 output of `rustc -Vv` and `cargo -V`, because `+stable` moves. V2 runs on the same toolchain
