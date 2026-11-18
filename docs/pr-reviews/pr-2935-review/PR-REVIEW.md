@@ -43,7 +43,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1 covers two reviews of head `ed8a1d72a` (the first commit of the PR; its subject is `docs(issues): [#2583] make the #1347 publish prerequisite a per-crate testing gate`). Review 5954581202 (da2ce7, APPROVED) has six inline findings (F1 to F6) and one finding in its body (F7, on the PR description, which has no thread). Review 5954617412 (Copilot, COMMENTED, a lite review) has three inline findings (F8 to F10) without a severity bracket. The audit severity scale has no medium level, so this audit maps Copilot's `Medium severity` badge to `Minor (inferred)` and its `Low severity` badge to `Nit (inferred)`, as the PR #2929 audit does.
+Round 1 covers two reviews of the first commit of the PR, `docs(issues): [#2583] make the #1347 publish prerequisite a per-crate testing gate`, which was the head when both were submitted. Review 5954581202 (da2ce7, APPROVED) has six inline findings (F1 to F6) and one finding in its body (F7, on the PR description, which has no thread). Review 5954617412 (Copilot, COMMENTED, a lite review) has three inline findings (F8 to F10) without a severity bracket. The audit severity scale has no medium level, so this audit maps Copilot's `Medium severity` badge to `Minor (inferred)` and its `Low severity` badge to `Nit (inferred)`, as the PR #2929 audit does.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
