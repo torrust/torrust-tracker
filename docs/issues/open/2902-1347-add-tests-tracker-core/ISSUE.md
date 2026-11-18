@@ -351,7 +351,7 @@ rows are ordered by slice, then by risk.
 | 1 | `statistics/repository.rs` | S1 | 86 / 140 | Test candidate (four counter/gauge methods and error arms) | DONE |
 | 2 | `statistics/metrics.rs` | S1 | 11 / 45 | Test candidate; no change, covered 45 / 45 by the repository tests ([record](test-refactor-plans/statistics-metrics-tests.md)) | DONE |
 | 3 | `statistics/persisted/mod.rs` | S1 | 0 / 11 | Test candidate (`load_persisted_metrics`); 11 / 11 with five tests ([plan](test-refactor-plans/statistics-persisted-mod-tests.md)) | DONE |
-| 4 | `statistics/event/listener.rs` | S1 | 357 / 406 | Test candidate (spawn wrappers) | PENDING |
+| 4 | `statistics/event/listener.rs` | S1 | 357 / 406 | Test candidate (spawn wrappers) | IN_PROGRESS |
 | 5 | `statistics/event/handler.rs` | S1 | 179 / 203 | Mostly logging-only; one error arm | PENDING |
 | 6 | `statistics/persisted/downloads.rs` | S1 | 77 / 77 | Failing-`Database` case (line 133, `increase_global_downloads`) | PENDING |
 | 7 | `statistics/mod.rs`, `statistics/event/mod.rs` | S1 | 40 / 40, no entries | Test candidate (`statistics/mod.rs:49`, usage statistics disabled); `event/mod.rs` declarations only | PENDING |
