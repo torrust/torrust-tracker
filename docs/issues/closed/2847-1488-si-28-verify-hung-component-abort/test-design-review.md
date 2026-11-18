@@ -1,3 +1,11 @@
+---
+spec-path: docs/issues/closed/2847-1488-si-28-verify-hung-component-abort/ISSUE.md
+last-updated-utc: "2026-11-18 09:31"
+semantic-links:
+  related-artifacts:
+    - docs/issues/closed/2847-1488-si-28-verify-hung-component-abort/ISSUE.md
+---
+
 # Test Design Review
 
 Prose-first Arrange-Act-Assert review of the T2/T3 integration test
