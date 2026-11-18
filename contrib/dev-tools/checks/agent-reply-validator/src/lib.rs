@@ -8,3 +8,4 @@
 pub mod file;
 pub mod name;
 pub mod reply;
+pub mod schema;

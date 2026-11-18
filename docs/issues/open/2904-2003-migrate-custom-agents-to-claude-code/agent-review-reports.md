@@ -207,3 +207,45 @@ semantic-links:
     `develop` only receives checked trees); the stop hook's working directory is for T5 to
     confirm; a path given twice; the copy of `git.rs`, which a shared crate in the
     harness-workspace work of EPIC #2003 can remove.
+
+### 2026-11-18 17:55 UTC - Test-design reviewer (Claude Code subagent, Claude Opus 5.5, `write-unit-test` skill)
+
+- Invocation scope: Read-only review of task T3, increment 5, on branch `2904-t3-reply-schema`
+  before its commit: the JSON Schema `docs/schemas/agent-reply-v1.schema.json` generated from the
+  reply model with `schemars` (`src/schema.rs`), its unit tests, the `agent-reply-schema`
+  binary that writes it, and the drift test `tests/schema.rs`. Two rounds: a review, then a
+  re-review of the fixes.
+- Inputs: D18 of the specification; `docs/schemas/README.md` and the `frontmatter-schema`
+  binary as precedent; the CLI output contract ADR; `.claude/skills/add-rust-dependency/SKILL.md`;
+  `.claude/skills/write-unit-test/SKILL.md`.
+- Evidence: `cargo test -p agent-reply-validator` passed in both rounds. In round 1 the
+  reviewer ran a probe crate against the model: a reply written as a JSON array was accepted,
+  `1.0` and a duplicate key were rejected, a text holding only a byte order mark (U+FEFF) was
+  accepted and one holding only a next-line character (U+0085) rejected.
+- Findings:
+  - Major (round 1): serde reads a struct from an array of its fields, so a reply or a finding
+    written as a JSON array was accepted while the schema says `object`. The gap came from
+    increment 2.
+  - Minor (round 1): the module doc named one difference between the schema and the model;
+    there are four (the calendar, `1.0` as an integer, a duplicate key, and Unicode against
+    ECMA-262 white space for U+0085 and U+FEFF).
+  - Minor (round 1): the pattern tests use the Rust `regex` crate, not ECMA-262.
+  - Minor (round 1): the agent test built its expectation from `Agent::ALL`; the binary had no
+    test and wrote relative to the working directory; neither binary was in the CLI ADR table.
+  - Suggestion (round 1): validate sample replies against the schema with a JSON Schema crate.
+  - Nit (round 1): two tests checked two things each; `docs/schemas/README.md` lacked the
+    entry.
+  - Nit (round 2): bare `unwrap` in the new test.
+  - Suggestion (round 2): say that the second parse of the text is deliberate.
+- Verdict: REVIEW FAILED in round 1; REVIEW PASSED in round 2.
+- Follow-up actions:
+  - Author, done before the commit: `Reply::from_json` rejects a reply or finding written as an
+    array, with a case each and a mutation of each branch failing a test; the four differences
+    are in the module doc, the white-space gap documented rather than changed; literal agent
+    names; the binary writes to a path built from `CARGO_MANIFEST_DIR`, with a test of its
+    refusal of arguments; the tests split, and the reply and finding tests also check
+    `"type": "object"`; the round 2 nit and suggestion applied.
+  - Not changed: a JSON Schema validation crate (a heavy dev-dependency; the drift test and the
+    pattern tests cover the projection); a test of the binary's write failure (its path is fixed
+    at build time). The ADR table and `docs/schemas/README.md` entries are in the documentation
+    commit of T3.

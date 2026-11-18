@@ -10,6 +10,7 @@
 use std::fmt;
 use std::ops::Range;
 
+use schemars::JsonSchema;
 use serde::de::{self, Deserializer, Unexpected, Visitor};
 use serde::{Deserialize, Serialize, Serializer};
 
@@ -19,10 +20,11 @@ use crate::name::{Agent, Round, Subject};
 pub const SCHEMA_VERSION: u8 = 1;
 
 /// One reply of an agent, as stored in its reply file.
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, JsonSchema, PartialEq, Serialize)]
 #[serde(deny_unknown_fields, rename_all = "kebab-case")]
+#[schemars(title = "Torrust Agent Reply V1")]
 pub struct Reply {
-    /// Always [`SCHEMA_VERSION`].
+    /// The version of the reply format: always 1.
     pub schema_version: SchemaVersion,
     /// The agent that wrote the reply.
     pub agent: Agent,
@@ -63,8 +65,30 @@ impl Reply {
             path: ".".to_owned(),
             message: error.to_string(),
         })?;
-        Ok(reply)
+        first_non_object(text).map_or(Ok(reply), |path| {
+            Err(ReplyError {
+                path,
+                message: "expected a JSON object".to_owned(),
+            })
+        })
     }
+}
+
+/// The path of the reply or of the first finding written as a JSON array, if any.
+///
+/// Serde also reads a struct from an array of its fields in order; the format allows only
+/// objects, as the schema says. The text is known to be valid JSON when this runs; parsing it a
+/// second time keeps the typed reading above, with its paths and duplicate-key check, unchanged.
+fn first_non_object(text: &str) -> Option<String> {
+    let value: serde_json::Value = serde_json::from_str(text).ok()?;
+    let Some(reply) = value.as_object() else {
+        return Some(".".to_owned());
+    };
+    let findings = reply.get("findings").and_then(serde_json::Value::as_array)?;
+    findings
+        .iter()
+        .position(|finding| !finding.is_object())
+        .map(|index| format!("findings[{index}]"))
 }
 
 /// Why a text is not a valid reply.
@@ -78,7 +102,7 @@ pub struct ReplyError {
 }
 
 /// The outcome of a reply. The list is closed: the orchestrator reads only this field.
-#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, JsonSchema, PartialEq, Serialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum Verdict {
     /// A review found nothing that blocks the work.
@@ -94,7 +118,7 @@ pub enum Verdict {
 }
 
 /// One problem found by the agent.
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, JsonSchema, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Finding {
     /// How much the problem matters.
@@ -106,7 +130,7 @@ pub struct Finding {
 }
 
 /// The severity of a finding, with the same names as the pull-request review audits.
-#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, JsonSchema, PartialEq, Serialize)]
 pub enum Severity {
     Blocker,
     Major,
@@ -449,6 +473,16 @@ mod tests {
     #[case::blank_question(reply_with("questions", json!(["Which branch?", " "])), "questions[1]", "a text that is not blank")]
     #[case::blank_evidence(reply_with("evidence", json!([""])), "evidence[0]", "a text that is not blank")]
     #[case::evidence_as_text(reply_with("evidence", json!("cargo test")), "evidence", "invalid type: string")]
+    #[case::reply_as_an_array(
+        r#"[1, "task-reviewer", "claude-opus-5-5", "t3", 2, "2026-11-18 17:25", "DONE", "s", [], [], []]"#.to_owned(),
+        ".",
+        "expected a JSON object"
+    )]
+    #[case::finding_as_an_array(
+        reply_with("findings", json!([{ "severity": "Nit", "location": "a", "description": "b" }, ["Nit", "a", "b"]])),
+        "findings[1]",
+        "expected a JSON object"
+    )]
     #[case::truncated_json(r#"{"schema-version": 1, "agent": "#.to_owned(), "agent", "EOF while parsing")]
     #[case::something_after_the_reply(format!("{} {{}}", valid_reply()), ".", "trailing characters")]
     fn it_should_reject_the_reply_with_the_path_and_reason_of_the_value_that_breaks_the_format(

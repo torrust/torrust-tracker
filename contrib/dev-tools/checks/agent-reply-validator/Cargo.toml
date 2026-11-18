@@ -13,7 +13,8 @@ workspace = true
 
 [dependencies]
 # No color or suggestion features: every clap message is rendered into an NDJSON record.
-clap = { version = "4.6.7", default-features = false, features = [ "derive", "error-context", "help", "std", "usage" ] }
+clap = { version = "4.6.8", default-features = false, features = [ "derive", "error-context", "help", "std", "usage" ] }
+schemars = "1.2.3"
 serde = { version = "1", features = [ "derive" ] }
 # Keep field order: the NDJSON key order is part of the output contract.
 serde_json = { version = "1", features = [ "preserve_order" ] }
@@ -21,5 +22,7 @@ serde_path_to_error = "0.1.20"
 thiserror = "2"
 
 [dev-dependencies]
+# Checks that the schema patterns accept and reject the same samples as the Rust checks.
+regex = "1.13.2"
 rstest = "0.28.0"
 tempfile = "3"

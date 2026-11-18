@@ -13,7 +13,9 @@ name = "agent-reply-validator"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "regex",
  "rstest",
+ "schemars 1.2.3",
  "serde",
  "serde_json",
  "serde_path_to_error",
