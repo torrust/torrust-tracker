@@ -26,7 +26,7 @@ semantic-links:
 
 # Issue #2913 - Record the decision that errors do not record source locations
 
-Parent EPIC: [Remove source locations from errors](../2912-remove-source-locations-from-errors/EPIC.md) (#2912). Sub-issue SI-1 of the EPIC.
+Parent EPIC: [Remove source locations from errors](../../open/2912-remove-source-locations-from-errors/EPIC.md) (#2912). Sub-issue SI-1 of the EPIC.
 
 ## Goal
 
