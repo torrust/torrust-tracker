@@ -3,7 +3,7 @@ doc-type: file-test-plan
 issue: 2902
 package: torrust-tracker-core
 target-file: packages/tracker-core/src/statistics/event/listener.rs
-status: approved
+status: done
 semantic-links:
   related-artifacts:
     - packages/tracker-core/src/statistics/event/listener.rs
@@ -23,11 +23,13 @@ event, cancels it and joins it under a deadline.
 
 ## Current State
 
-- **Unit-only coverage:** 357 / 406 lines at the S1 baseline, 362 / 411 after rows 1 to 3
-  (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, `--all-features --lib`, 2026-11-18). Uncovered:
-  19-54 (the spawn wrappers `run_in_memory_event_listener` and
-  `run_persistent_completed_statistics_event_listener`), 62-91 (the public `*_unspawned`
-  functions), and 284-285 (the `Lagged` arm of the test receiver's `try_recv`, test code).
+- **Unit-only coverage:** 360 / 411 lines at the T1 baseline; 365 / 416 at the S1 branch point
+  (the F5 fix changed the test module) and after rows 1 to 3 (stable Rust 1.100.0,
+  `cargo-llvm-cov 0.9.1`, `--all-features --lib`, 2026-11-18). Uncovered: 19-55 (the spawn
+  wrappers `run_in_memory_event_listener` and `run_persistent_completed_statistics_event_listener`),
+  62-67 and 77-83 (the public `*_unspawned` functions), the log-level regions of six `tracing`
+  calls (106, 134, 168, 186, 227, 231), and 284-285 (the `Lagged` arm of the test receiver's
+  `try_recv`, test code).
 - **Callers:** the application runs the two `*_unspawned` functions under its own supervision
   (`src/bootstrap/jobs/tracker_core.rs`) and uses the `Completion` they return. The spawn wrappers
   are used only by the integration test environment (`tests/common/test_env.rs`), which discards
@@ -102,10 +104,36 @@ unhandled (`it_should_leave_the_queued_event_unprocessed_and_return_cancelled_wh
 
 | ID | Status | Work | Completion evidence |
 | --- | --- | --- | --- |
-| L1 | TODO | Add the four tests and the deadline helper. | They pass; lines 19-91 covered. |
-| L2 | TODO | Run M1-M7. | Each is killed by its expected test. |
-| L3 | TODO | Stop for the T2b fixture-shape review and the completed-file review. | The maintainer's decision recorded here. |
+| L1 | DONE | Add the four tests and the deadline helper. | They pass; lines 19-91 covered. |
+| L2 | DONE | Run M1-M7. | Each is killed by its expected test. |
+| L3 | DONE | Stop for the T2b fixture-shape review and the completed-file review. | The maintainer's decision recorded here. |
 
 ## Results
 
-To be filled in after L3.
+- **Coverage** (stable Rust 1.100.0, `cargo-llvm-cov 0.9.1`, `--all-features --lib`, clean
+  coverage target directory, 2026-11-18): the file 365 / 416 lines to 538 / 542, regions 386 / 424
+  to 555 / 568, functions 50 / 56 to 70 / 71 (the counts include the test module's helpers). The
+  package's unit-only lines 4,380 / 5,324 (82.27%) to 4,553 / 5,450 (83.54%), regions 4,932 / 6,016
+  (81.98%), functions 755 / 1,003 (75.27%). Every production line runs. What stays uncovered:
+  - the log-level regions of the `tracing` calls (lines 29, 53, 68, 84, 106, 134, 168, 186, 227 and
+    231): no decision;
+  - the test receiver's `Closed` and `Lagged` arms of `try_recv` (289-290) and the timeout message
+    of `within_deadline` (642), which runs only when a listener misses the deadline: test code.
+- **Tests:** four added, all passing; 176 unit tests in the package. The four passed 20 runs in a
+  row (`cargo test -p torrust-tracker-core --all-features --lib statistics::event::listener`); no
+  test sleeps, and every wait on a listener is bounded by the 5-second deadline.
+- **Mutations** (each applied alone and reverted; the file compared with its copy afterwards):
+
+  | ID | Result |
+  | --- | --- |
+  | M1 | Killed by the spawned in-memory test |
+  | M2 | Killed by the spawned persistent test |
+  | M3 | Killed by the unspawned in-memory test |
+  | M4 | Killed by the unspawned persistent test |
+  | M5 | Killed by both in-memory tests (the spawn wrapper runs the unspawned function) |
+  | M6 | Killed by both persistent tests |
+  | M7 | Killed by the spawned in-memory test |
+
+- **Review outcome:** the maintainer approved the completed file and the fixture shape (checkpoint T2b) on 2026-11-18.
+- **Validation:** `cargo clippy -p torrust-tracker-core --all-targets --all-features` (only the
+  existing `axum::serve` warning) and `cargo +nightly fmt --all -- --check` pass.

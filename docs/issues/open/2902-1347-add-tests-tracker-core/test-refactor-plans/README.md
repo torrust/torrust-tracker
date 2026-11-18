@@ -29,7 +29,7 @@ approves it. A group of declaration-only files may share one plan.
 | 2 | [test-support-ephemeral-database-tests.md](test-support-ephemeral-database-tests.md) | DONE | F5 fix and the SQLite half of checkpoint T2b; shape, scope and guard owner decided and the completed change approved 2026-11-17; merged in #2923 |
 | 3 | [statistics-metrics-tests.md](statistics-metrics-tests.md) | DONE | No change: covered by the repository tests, all six mutants killed; approved 2026-11-18 |
 | 4 | [statistics-persisted-mod-tests.md](statistics-persisted-mod-tests.md) | DONE | Plan approved 2026-11-18 (pins the non-atomic load); completed file approved 2026-11-18 |
-| 5 | [statistics-event-listener-tests.md](statistics-event-listener-tests.md) | IN_PROGRESS | Plan approved 2026-11-18; listener half of checkpoint T2b |
+| 5 | [statistics-event-listener-tests.md](statistics-event-listener-tests.md) | DONE | Plan approved 2026-11-18; completed file and the T2b fixture shape approved 2026-11-18 |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 

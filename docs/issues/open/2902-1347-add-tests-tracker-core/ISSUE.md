@@ -9,7 +9,7 @@ github-issue: 2902
 spec-path: docs/issues/open/2902-1347-add-tests-tracker-core/ISSUE.md
 branch: "2902-1347-add-tests-tracker-core-statistics"
 related-pr: null
-last-updated-utc: "2026-11-18 09:10"
+last-updated-utc: "2026-11-18 09:37"
 semantic-links:
   skill-links:
     - create-issue
@@ -281,7 +281,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 | T1 | DONE | Coverage evidence and complete module inventory | [coverage-evidence.md](coverage-evidence.md): baseline in four scopes, per-file uncovered groups, property candidacy, initial hypothesis for the 62 files. Delivered with this spec (S0). |
 | T1b | DONE | Measure the container-gated scope | The `--all-features` run with `TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST` and `TORRUST_TRACKER_CORE_RUN_POSTGRES_DRIVER_TEST` set (images pulled with the maintainer's permission, 2026-11-17): lines 92.67% (re-measured 2026-11-18 with Rust 1.100.0). Recorded in `coverage-evidence.md`; informs the scope of S3. |
 | T2 | DONE | Shared plan guidance | [`test-refactor-plans/README.md`](test-refactor-plans/README.md): two-phase sequence, guardrails, toolchain-pinned commands. First test slice (S1). |
-| T2b | IN_PROGRESS | Design-review checkpoint | After the first listener test and the first `TempDir`-owned SQLite test pass in S1, the maintainer reviews the fixture shape (see [Asynchronous Work, Cleanup and Test Fixtures](#asynchronous-work-cleanup-and-test-fixtures)) before other files reuse it. The SQLite half is done: the fixture shape of the [temporary-database fix](test-refactor-plans/test-support-ephemeral-database-tests.md) was approved on 2026-11-17; the listener half comes with S1. |
+| T2b | DONE | Design-review checkpoint | After the first listener test and the first `TempDir`-owned SQLite test pass in S1, the maintainer reviews the fixture shape (see [Asynchronous Work, Cleanup and Test Fixtures](#asynchronous-work-cleanup-and-test-fixtures)) before other files reuse it. The SQLite half is done: the fixture shape of the [temporary-database fix](test-refactor-plans/test-support-ephemeral-database-tests.md) was approved on 2026-11-17; the listener half (spawn, handle one event, cancel, join under a deadline) was approved on 2026-11-18 with the [listener tests](test-refactor-plans/statistics-event-listener-tests.md). |
 | T3 | IN_PROGRESS | Process every ledger row through the per-file workflow | Each row ends in exactly one of: test added, no-change with reason, deferred with owner. |
 | T4 | TODO | Bounded mutation assessment | `mutation-evidence.md`: configuration, survivors, reason for each unviable mutant. Last slice. |
 | T5 | TODO | Reconcile evidence and progress state | Ledger, records, slice table, acceptance rows and both EPIC coverage tables agree; grep for `status: proposed` and stray `TODO` labels in finished records. |
@@ -354,7 +354,7 @@ rows are ordered by slice, then by risk.
 | 1 | `statistics/repository.rs` | S1 | 85 / 139 | Test candidate (four counter/gauge methods and error arms) | DONE |
 | 2 | `statistics/metrics.rs` | S1 | 11 / 45 | Test candidate; no change, covered 45 / 45 by the repository tests ([record](test-refactor-plans/statistics-metrics-tests.md)) | DONE |
 | 3 | `statistics/persisted/mod.rs` | S1 | 0 / 11 | Test candidate (`load_persisted_metrics`); 11 / 11 with five tests ([plan](test-refactor-plans/statistics-persisted-mod-tests.md)) | DONE |
-| 4 | `statistics/event/listener.rs` | S1 | 360 / 411 | Test candidate (spawn wrappers) | IN_PROGRESS |
+| 4 | `statistics/event/listener.rs` | S1 | 360 / 411 | Test candidate (spawn wrappers); 538 / 542 with four tests ([plan](test-refactor-plans/statistics-event-listener-tests.md)) | DONE |
 | 5 | `statistics/event/handler.rs` | S1 | 175 / 196 | Mostly logging-only; one error arm | PENDING |
 | 6 | `statistics/persisted/downloads.rs` | S1 | 77 / 77 | Failing-`Database` case (line 133, `increase_global_downloads`) | PENDING |
 | 7 | `statistics/mod.rs`, `statistics/event/mod.rs` | S1 | 42 / 43, no entries | Test candidate (`statistics/mod.rs:49`, usage statistics disabled); `event/mod.rs` declarations only | PENDING |
@@ -422,6 +422,7 @@ The first slice's record checks the grouping against `find packages/tracker-core
 - 2026-11-18 04:16 UTC - Claude Code (Opus 5.5) - Row 2 (`statistics/metrics.rs`) is done as no change, approved by the maintainer: the repository tests cover it 45 / 45 and kill all six hand-made mutants ([record](test-refactor-plans/statistics-metrics-tests.md)).
 - 2026-11-18 04:23 UTC - Claude Code (Opus 5.5) - Row 3 (`statistics/persisted/mod.rs`) done: five tests, 11 / 11 production lines, all eight named mutants killed; they pin that the load is not atomic ([plan](test-refactor-plans/statistics-persisted-mod-tests.md)). Plan and completed file approved by the maintainer.
 - 2026-11-18 09:10 UTC - Claude Code (Opus 5.5) - Every coverage figure re-measured, at the maintainer's request, with stable Rust 1.100.0 and `cargo-llvm-cov 0.9.1`: after `rustup update` moved `stable` from 1.99.1, `cargo-llvm-cov 0.6.16` reported 0% for every file (it read a stale binary from the old `target/debug/deps/` layout), and the maintainer upgraded it for everyone. Same commits as before: the T1 baseline at `5833cdae9` in five scopes (unit-only now 79.32%, was 80.31%; container-gated 92.67%, was 93.80%), and the unit-only run after rows 1 and 3. [coverage-evidence.md](coverage-evidence.md), the ledger, the baseline section and the row records hold the new figures; the entries above keep the old ones. The new toolchain does not count `#[test]` functions and adds a region per `tracing` call, classified as no decision.
+- 2026-11-18 09:37 UTC - Claude Code (Opus 5.5) - Row 4 (`statistics/event/listener.rs`) done: four tests of the public entry points over a real event bus, 538 / 542 lines, all seven named mutants killed; the maintainer approved the plan, the completed file and the listener fixture shape, so checkpoint T2b is done ([plan](test-refactor-plans/statistics-event-listener-tests.md)).
 
 ## Open Design Questions
 
