@@ -1,7 +1,7 @@
 ---
 pr-number: 2945
 pr-url: https://github.com/torrust/torrust-tracker/pull/2945
-last-updated-utc: "2026-11-18 14:28"
+last-updated-utc: "2026-11-18 14:35"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -45,12 +45,15 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 Round 1 is the approving review `5958194168` of `da2ce7` (F1 to F3, reviewer-provided IDs) on the first head; Copilot's
 review `5957852837` on the same head recommends approval with no findings and has no row.
+Round 2 is the approving review `5958423982` of `da2ce7` (F7, reviewer-provided ID) on the head that carried the round 1
+audit.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2945-f1` | Human | Minor | documentation | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F2 | `review-finding:pr-2945-f2` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F3 | `review-finding:pr-2945-f3` | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F7 | `review-finding:pr-2945-f7` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -93,10 +96,24 @@ review `5957852837` on the same head recommends approval with no findings and ha
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2945#discussion_r4615259371
 
+### F7 - Only the first commit's body gives the date reason
+
+- PR number: 2945
+- Source review ID: 5958423982
+- Reviewer finding ID: F7
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2945#discussion_r4615425134
+- Concern: The Solution of F3 and the description said "the commit bodies" give the date reason; only the body of `docs(templates): quote last-updated-utc in the evidence and refactor-plan templates` does.
+- Solution: Both now say the body of the first commit.
+- Current-tree verification: `git log --format=%b` over the two commits shows the date reason only in the first; the description and the Solution of F3 say so.
+- Resolution reference: `docs(pr-reviews): say which commit body gives the date reason in the review audit of PR #2945`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2945#discussion_r4615640781
+
 ## Processing Log
 
 - 2026-11-18 14:08 UTC - Started audit, before the replies of round 1.
 - 2026-11-18 14:08 UTC - Round 1: the approving review `5958194168` of `da2ce7` (submitted 14:06:06Z, forge `submitted_at`) with three findings. No commit was needed: F1 is `NO_ACTION` (no history rewrite), and F2 and F3 are fixed in the description. The conversation response for F2 and F3 and the three replies were posted between 14:08:11Z and 14:08:18Z (forge `created_at`). `validate-audit-record.py --pr-number 2945 --base torrust/develop`, with its `gh` calls made through `gh-bot`, exited 0 (3 rows, 0 failures) at 14:08:33Z (`date -u`); the three threads were then resolved by their thread IDs by 14:08:43Z.
+- 2026-11-18 14:35 UTC - Round 2: the approving review `5958423982` of `da2ce7` (submitted 14:20:14Z, forge `submitted_at`) with one nit, recorded as F7. The description was edited, and the audit fix was committed at 14:28:25Z (`git log --format=%cI`, in UTC). The first push was rejected by the pre-push hook: the test `metrics-fixed-ports` could not bind its fixed UDP port (address in use), unrelated to this documentation change. The retry passed; `git ls-remote` showed the fork branch at the local head at 14:34:47Z (`date -u`). The reply was posted at 14:35:03Z (forge `created_at`), after the push. `validate-audit-record.py --pr-number 2945 --base torrust/develop`, with its `gh` calls made through `gh-bot`, exited 0 (4 rows, 0 failures) at 14:35:17Z; the thread of F7 was then resolved by its thread ID at 14:35:20Z.
 
 <!-- Copied verbatim into each audit record. -->
 
