@@ -1,0 +1,18 @@
+[package]
+description = "Validates the JSON reply files that AI agents write in agent-replies/ folders."
+name = "agent-reply-validator"
+publish = false
+
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+version = "0.1.0"
+
+[lints]
+workspace = true
+
+[dependencies]
+thiserror = "2"
+
+[dev-dependencies]
+rstest = "0.28.0"
