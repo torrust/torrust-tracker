@@ -9,7 +9,7 @@ github-issue: 2902
 spec-path: docs/issues/open/2902-1347-add-tests-tracker-core/ISSUE.md
 branch: "2902-1347-add-tests-tracker-core-statistics"
 related-pr: null
-last-updated-utc: "2026-11-18 13:24"
+last-updated-utc: "2026-11-18 13:48"
 semantic-links:
   skill-links:
     - create-issue
@@ -357,7 +357,7 @@ rows are ordered by slice, then by risk.
 | 4 | `statistics/event/listener.rs` | S1 | 360 / 411 | Test candidate (spawn wrappers); 538 / 542 with four tests ([plan](test-refactor-plans/statistics-event-listener-tests.md)) | DONE |
 | 5 | `statistics/event/handler.rs` | S1 | 175 / 196 | Mostly logging-only; one error arm; 311 / 311 with two event tables and a failure test ([plan](test-refactor-plans/statistics-event-handler-tests.md)) | DONE |
 | 6 | `statistics/persisted/downloads.rs` | S1 | 77 / 77 | Failing-`Database` case (line 133, `increase_global_downloads`), covered by row 5; two increment tests kill a surviving mutant ([plan](test-refactor-plans/statistics-persisted-downloads-tests.md)) | DONE |
-| 7 | `statistics/mod.rs`, `statistics/event/mod.rs` | S1 | 42 / 43, no entries | Test candidate (`statistics/mod.rs:49`, usage statistics disabled); `event/mod.rs` declarations only | IN_PROGRESS |
+| 7 | `statistics/mod.rs`, `statistics/event/mod.rs` | S1 | 42 / 43, no entries | Test candidate (`statistics/mod.rs:49`, usage statistics disabled); `event/mod.rs` declarations only; 60 / 60 with one table test, `event/mod.rs` no change ([plan](test-refactor-plans/statistics-mod-tests.md)) | DONE |
 | 8 | `databases/driver/sqlite/auth_key_store.rs` | S2 | 29 / 55 | Test candidate | PENDING |
 | 9 | `databases/driver/sqlite/torrent_metrics_store.rs` | S2 | 27 / 46 | Test candidate | PENDING |
 | 10 | `databases/driver/sqlite/whitelist_store.rs` | S2 | 17 / 31 | Test candidate | PENDING |
@@ -425,6 +425,7 @@ The first slice's record checks the grouping against `find packages/tracker-core
 - 2026-11-18 09:37 UTC - Claude Code (Opus 5.5) - Row 4 (`statistics/event/listener.rs`) done: four tests of the public entry points over a real event bus, 538 / 542 lines, all seven named mutants killed; the maintainer approved the plan, the completed file and the listener fixture shape, so checkpoint T2b is done ([plan](test-refactor-plans/statistics-event-listener-tests.md)).
 - 2026-11-18 11:09 UTC - Claude Code (Opus 5.5) - Row 5 (`statistics/event/handler.rs`) done: two table tests over the five events that are not a completed download (replacing the two `PeerAdded`-only tests) and a global-save failure test; 311 / 311 lines, all four named mutants killed, one of which survived the old tests ([plan](test-refactor-plans/statistics-event-handler-tests.md)). Plan and completed file approved by the maintainer.
 - 2026-11-18 13:24 UTC - Claude Code (Opus 5.5) - Row 6 (`statistics/persisted/downloads.rs`) done: coverage was already complete after row 5, but a mutation probe found a stored torrent total could be overwritten with 1 unnoticed; two increment tests kill it ([plan](test-refactor-plans/statistics-persisted-downloads-tests.md)). Plan and completed file approved by the maintainer.
+- 2026-11-18 13:48 UTC - Claude Code (Opus 5.5) - Row 7 (`statistics/mod.rs`, `statistics/event/mod.rs`) done: one table test pins which downloads totals each statistics setting registers; 60 / 60 lines, all four named mutants killed; `event/mod.rs` no change ([plan](test-refactor-plans/statistics-mod-tests.md)). Plan and completed file approved by the maintainer. All S1 rows are done.
 
 ## Open Design Questions
 

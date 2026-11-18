@@ -3,7 +3,7 @@ doc-type: file-test-plan
 issue: 2902
 package: torrust-tracker-core
 target-file: packages/tracker-core/src/statistics/mod.rs
-status: approved
+status: done
 semantic-links:
   related-artifacts:
     - packages/tracker-core/src/statistics/mod.rs
@@ -66,10 +66,29 @@ M1 and M2 survive today: no test disables usage statistics.
 
 | ID | Status | Work | Completion evidence |
 | --- | --- | --- | --- |
-| C1 | TODO | Add the table test. | It passes; line 49 runs. |
-| C2 | TODO | Run M1-M4. | Each is killed by the table. |
-| C3 | TODO | Record the results and ask for the completed-file review. | This record and the ledger. |
+| C1 | DONE | Add the table test. | It passes; line 49 runs. |
+| C2 | DONE | Run M1-M4. | Each is killed by the table. |
+| C3 | DONE | Record the results and ask for the completed-file review. | This record and the ledger. |
 
 ## Results
 
-To be filled in after C3.
+- **Mutations** (each applied alone and reverted, run against the `statistics::` tests):
+
+  | ID | Result |
+  | --- | --- |
+  | M1 | Killed by the table |
+  | M2 | Killed by the table and by the row 1 test `it_should_omit_persisted_metric_when_persisted_completed_statistics_are_disabled` |
+  | M3 | Killed by the table |
+  | M4 | Killed by the table, the two row 1 persisted-metric tests and a row 3 test |
+
+  Correction to the plan: only M1 survived before this change; M2 was already killed by the row 1
+  repository test, which builds a repository with usage statistics on and persisted statistics off.
+- **Coverage** (stable Rust 1.100.0, `cargo-llvm-cov 0.9.1`, `--all-features --lib`, clean coverage
+  target directory, 2026-11-18): `statistics/mod.rs` 42 / 43 lines to 60 / 60, regions 32 / 33 to
+  56 / 56, functions 2 / 2 to 5 / 5. The package's unit-only lines 4,721 / 5,597 (84.35%) to
+  4,739 / 5,614 (84.41%), regions 5,051 / 6,113 (82.63%), functions 771 / 1,015 (75.96%).
+- **Tests:** one added; 180 unit tests in the package. `statistics/event/mod.rs`: no change
+  (declarations only).
+- **Review outcome:** the maintainer approved the completed file on 2026-11-18.
+- **Validation:** `cargo clippy -p torrust-tracker-core --all-targets --all-features` (only the
+  existing `axum::serve` warning) and `cargo +nightly fmt --all -- --check` pass.
