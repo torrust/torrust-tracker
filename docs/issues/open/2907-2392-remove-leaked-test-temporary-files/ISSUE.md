@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: in-progress
 priority: p2
 epic: 2392
 github-issue: 2907
 spec-path: docs/issues/open/2907-2392-remove-leaked-test-temporary-files/ISSUE.md
-branch: "2392-audit-follow-up-issues-spec"
+branch: "2907-2392-remove-leaked-test-temporary-files"
 related-pr: null
-last-updated-utc: "2026-11-17 21:35"
+last-updated-utc: "2026-11-18 10:02"
 semantic-links:
   skill-links:
     - create-issue
@@ -92,7 +92,8 @@ and then unrelated tests fail.
 ## Design and Ownership Review
 
 Both files are owned by the test that creates them, following patterns the workspace already
-uses. The designs below are the #2907 session's proposal; the maintainer confirms them in T2.
+uses. The #2907 session proposed the designs below; the maintainer confirmed both in T2 on
+2026-11-18.
 
 - TOML: each test creates a `tempfile::tempdir()` and writes its configuration file inside it, as
   the tests in `src/bootstrap/config.rs` do.
@@ -142,8 +143,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | TODO | Reproduce with a fresh `TMPDIR` | Before-counts recorded (V1). The #2907 session ran it on 2026-11-17 at `develop` `61e3fedcf` and records it in the evidence file. |
-| T2 | TODO | Confirm the two designs | The maintainer confirms the TOML and TLS designs above; recorded in this spec. |
+| T1 | DONE | Reproduce with a fresh `TMPDIR` | Before-counts recorded (V1): 2 `test_config_*.toml`, 0 PEM, 301 `data_*.db` at `develop` `61e3fedcf` (evidence file, "V1 repeated by T1"). |
+| T2 | DONE | Confirm the two designs | The maintainer confirmed the TOML and TLS designs above on 2026-11-18. |
 | T3 | TODO | Configuration-file tests | Files removed when the test ends; test-design review recorded before T4. |
 | T4 | TODO | TLS test files | Files removed on failure too; test-design review recorded before T5. |
 | T5 | TODO | Recheck | No `test_config_*.toml` and no PEM file after the suite (V2); `linter all` passes. |
@@ -185,6 +186,14 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   plan: the old T3 (SQLite) left, T4 to T6 became T3 to T5.
 - 2026-11-17 18:39 UTC - Claude Code (Claude Fable 5.2), EPIC #2392 coordinator - The SQLite issues are
   #2924 and #2925. Updated this issue's title and body on GitHub to the narrowed scope.
+- 2026-11-18 09:50 UTC - Claude Code (Claude Opus 5.5), #2907 session - Started implementation on
+  branch `2907-2392-remove-leaked-test-temporary-files`, rebased on `develop` `90a7c7d3f`. T1 done:
+  recorded the run of 2026-11-17 at `61e3fedcf` (2 TOML files, not 1: the `v2_0_0` and the `v3_0_0`
+  test each leave one). Neither `packages/configuration` nor `packages/axum-server` changed between
+  `61e3fedcf` and `90a7c7d3f`, so the result still holds.
+- 2026-11-18 10:02 UTC - Claude Code (Claude Opus 5.5), #2907 session - T2 done: the maintainer
+  confirmed both designs (TOML: a `tempfile::tempdir()` in each test; TLS: `make_temp_file` returns
+  a `NamedTempFile`).
 
 ## Acceptance Criteria
 

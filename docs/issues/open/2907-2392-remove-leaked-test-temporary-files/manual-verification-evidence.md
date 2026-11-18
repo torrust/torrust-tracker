@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2907-2392-remove-leaked-test-temporary-files/ISSUE.md
-last-updated-utc: "2026-11-17 15:22"
+last-updated-utc: "2026-11-18 09:50"
 ---
 
 # Manual Verification Evidence
@@ -76,6 +76,42 @@ removed after counting. The counts and the summary line a reviewer needs are rec
 
 Reproduced, as the issue's V1 expects: each full run leaves about 300 SQLite files and one TOML
 file. The PEM leak needs a failing TLS test and was not triggered here.
+
+### V1 repeated by T1 - On the `develop` the work starts from
+
+- Goal: repeat V1 on `develop` before changing anything (Bug-Fix Process step 1).
+- Initial state: a fresh, empty `TMPDIR` made with `mktemp -d` in the session's scratch directory
+  (`ls -A` printed 0 entries).
+- Artifact under test: `develop` at `61e3fedcf`. The work was later rebased on `90a7c7d3f`; neither
+  `packages/configuration` nor `packages/axum-server` changed between the two
+  (`git diff --stat 61e3fedcf 90a7c7d3f -- packages/configuration packages/axum-server` is empty).
+- Date and time (UTC): 2026-11-17 17:18:12 to 17:19:54
+- Toolchain: `rustc 1.99.1 (58cf8f9c3 2026-10-13)`, `cargo 1.99.1 (5f94df478 2026-08-27)`, Linux
+  7.0.0-43-generic; the same command built the test binaries.
+- Status: `DONE`
+
+#### Steps Performed
+
+The same commands as V1: create the directory, run
+`TMPDIR=$T cargo +stable test --tests --benches --examples --workspace --all-targets --all-features`,
+count each kind of file with `find "$T" -maxdepth 1`, measure with `du -sh`, then remove it.
+
+#### Observed Result
+
+| Measure | Value |
+| --- | --- |
+| Suite exit status | `0` (4128 tests passed, 0 failed, summed over the `test result:` lines) |
+| `test_config_*.toml` left | 2 |
+| `*.pem` left | 0 (every TLS test passed) |
+| `data_*.db` left (out of scope, #2924 and #2925) | 301 |
+| Other entries left | 0 |
+| Size of the directory | 15 MiB |
+
+#### Conclusion
+
+Reproduced. The run leaves 2 TOML files, not the 1 that V1 counted: both
+`configuration_should_be_saved_in_a_toml_config_file` tests, in `v2_0_0` and in `v3_0_0`, leave one.
+The PEM leak still needs a failing TLS test and was not triggered.
 
 ## Failures and Follow-up
 
