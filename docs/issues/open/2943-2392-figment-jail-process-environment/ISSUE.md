@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: draft
+status: planned
 priority: p2
 epic: 2392
-github-issue: null
-spec-path: docs/issues/drafts/2392-figment-jail-process-environment/ISSUE.md
-branch: "{issue-number}-2392-figment-jail-process-environment"
+github-issue: 2943
+spec-path: docs/issues/open/2943-2392-figment-jail-process-environment/ISSUE.md
+branch: "2943-2392-figment-jail-process-environment-spec"
 related-pr: null
-last-updated-utc: "2026-11-18 11:10"
+last-updated-utc: "2026-11-18 13:23"
 semantic-links:
   skill-links:
     - create-issue
@@ -29,7 +29,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Keep `figment::Jail` Tests From Changing the Environment Other Tests See
+# Issue #2943 - Keep `figment::Jail` Tests From Changing the Environment Other Tests See
 
 Parent EPIC: #2392 - Test Isolation (`docs/issues/open/2392-test-isolation/EPIC.md`)
 
@@ -175,8 +175,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 ### Workflow Checkpoints
 
 - [x] Folder-style spec drafted in `docs/issues/drafts/2392-figment-jail-process-environment/ISSUE.md`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -189,6 +189,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-18 11:10 UTC - Claude Code (Claude Fable 5.2), EPIC #2392 coordinator - Drafted on the
   maintainer's instruction, from the gap the #2907 session reported and the coordinator confirmed
   in `figment` 0.10.19 and `packages/configuration/src`.
+- 2026-11-18 13:23 UTC - Claude Code (Claude Fable 5.2), EPIC #2392 coordinator - The maintainer
+  approved the draft. Created #2943 and moved the spec to `docs/issues/open/`.
 
 ## Acceptance Criteria
 
