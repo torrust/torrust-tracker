@@ -3,7 +3,7 @@ doc-type: file-test-plan
 issue: 2902
 package: torrust-tracker-core
 target-file: packages/tracker-core/src/statistics/persisted/mod.rs
-status: approved
+status: done
 semantic-links:
   related-artifacts:
     - packages/tracker-core/src/statistics/persisted/mod.rs
@@ -80,10 +80,32 @@ a runtime per case for no extra mutant.
 
 | ID | Status | Work | Completion evidence |
 | --- | --- | --- | --- |
-| P1 | TODO | Add the five tests. | They pass; the file is 11 / 11. |
-| P2 | TODO | Run M1-M7 and M6b. | Each is killed by its expected test. |
-| P3 | TODO | Record the results and ask for the completed-file review. | This record and the ledger. |
+| P1 | DONE | Add the five tests. | They pass; the file is 11 / 11. |
+| P2 | DONE | Run M1-M7 and M6b. | Each is killed by its expected test. |
+| P3 | DONE | Record the results and ask for the completed-file review. | This record and the ledger. |
 
 ## Results
 
-To be filled in after P3.
+- **Coverage:** the file's production lines 0 / 11 to 11 / 11 (`--all-features --lib`, stable Rust
+  1.99.1, 2026-11-18); the package's unit-only lines 4,351 / 5,266 (82.62%) to 4,474 / 5,378
+  (83.19%), where the denominator grows with the 112 lines of the new test module. One region stays
+  uncovered: the `?` error arm of the first write (line 34), which cannot be reached because
+  `describe_metrics` always registers the persistent total as a counter.
+- **Tests:** five added, all passing; 172 unit tests in the package.
+- **Mutations** (each applied alone and reverted; a mutant that did not compile was rewritten to
+  keep the lint-required uses, for example `let _ = NAME;` for a removed write):
+
+  | ID | Result |
+  | --- | --- |
+  | M1 | Killed by the `Some(7)`, `u32::MAX` and metrics-error tests |
+  | M2 | Killed by the same three tests |
+  | M3 | Killed by the same three tests |
+  | M4 | Killed by the same three tests |
+  | M5 | Killed by the database-error test |
+  | M6 | Killed by the metrics-error test (written as `drop(...)`: `let _ =` on the `Result` is denied) |
+  | M6b | Killed by the metrics-error test |
+  | M7 | Killed by the same three tests as M1 |
+
+- **Review outcome:** the maintainer approved the completed file on 2026-11-18.
+- **Validation:** `cargo clippy -p torrust-tracker-core --all-targets --all-features` (only the
+  existing `axum::serve` warning) and `cargo +nightly fmt --all -- --check` pass.

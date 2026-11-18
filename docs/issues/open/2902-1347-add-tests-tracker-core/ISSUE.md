@@ -9,7 +9,7 @@ github-issue: 2902
 spec-path: docs/issues/open/2902-1347-add-tests-tracker-core/ISSUE.md
 branch: "2902-1347-add-tests-tracker-core-statistics"
 related-pr: null
-last-updated-utc: "2026-11-18 04:16"
+last-updated-utc: "2026-11-18 04:23"
 semantic-links:
   skill-links:
     - create-issue
@@ -350,7 +350,7 @@ rows are ordered by slice, then by risk.
 | ---: | --- | --- | ---: | --- | --- |
 | 1 | `statistics/repository.rs` | S1 | 86 / 140 | Test candidate (four counter/gauge methods and error arms) | DONE |
 | 2 | `statistics/metrics.rs` | S1 | 11 / 45 | Test candidate; no change, covered 45 / 45 by the repository tests ([record](test-refactor-plans/statistics-metrics-tests.md)) | DONE |
-| 3 | `statistics/persisted/mod.rs` | S1 | 0 / 11 | Test candidate (`load_persisted_metrics`) | IN_PROGRESS |
+| 3 | `statistics/persisted/mod.rs` | S1 | 0 / 11 | Test candidate (`load_persisted_metrics`); 11 / 11 with five tests ([plan](test-refactor-plans/statistics-persisted-mod-tests.md)) | DONE |
 | 4 | `statistics/event/listener.rs` | S1 | 357 / 406 | Test candidate (spawn wrappers) | PENDING |
 | 5 | `statistics/event/handler.rs` | S1 | 179 / 203 | Mostly logging-only; one error arm | PENDING |
 | 6 | `statistics/persisted/downloads.rs` | S1 | 77 / 77 | Failing-`Database` case (line 133, `increase_global_downloads`) | PENDING |
@@ -417,6 +417,7 @@ The first slice's record checks the grouping against `find packages/tracker-core
 - 2026-11-17 18:04 UTC - Claude Code (Opus 5.5) - F5 fixed for this package in its own PR, split from S1 at the maintainer's request because #2907 (EPIC #2392) plans the same fix for the shared helper: a full `cargo test -p torrust-tracker-core --all-features` leaves 0 `data_*.db` files (72 before). The maintainer approved the shape (a struct with a private `TempDir`, owned by the test), the scope (all six sources in the package) and the completed change. S1 continues on its own branch.
 - 2026-11-17 22:27 UTC - Claude Code (Opus 5.5) - #2923 (the F5 fix) merged into `develop`; the S1 branch was rebuilt on it with only its own commits (the F20 fix of #2903, the S1 guidance, the Q2-Q7 and D1 answers, the repository tests). S1 continues with `statistics/metrics.rs`.
 - 2026-11-18 04:16 UTC - Claude Code (Opus 5.5) - Row 2 (`statistics/metrics.rs`) is done as no change, approved by the maintainer: the repository tests cover it 45 / 45 and kill all six hand-made mutants ([record](test-refactor-plans/statistics-metrics-tests.md)).
+- 2026-11-18 04:23 UTC - Claude Code (Opus 5.5) - Row 3 (`statistics/persisted/mod.rs`) done: five tests, 11 / 11 production lines, all eight named mutants killed; they pin that the load is not atomic ([plan](test-refactor-plans/statistics-persisted-mod-tests.md)). Plan and completed file approved by the maintainer.
 
 ## Open Design Questions
 
