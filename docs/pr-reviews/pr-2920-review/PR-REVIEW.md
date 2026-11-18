@@ -1,7 +1,7 @@
 ---
 pr-number: 2920
 pr-url: https://github.com/torrust/torrust-tracker/pull/2920
-last-updated-utc: "2026-11-18 11:52"
+last-updated-utc: "2026-11-18 12:15"
 ---
 
 <!-- skill-link: process-pr-review -->
