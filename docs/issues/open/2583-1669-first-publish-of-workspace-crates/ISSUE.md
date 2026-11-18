@@ -95,7 +95,7 @@ What follows from this decision, without any new decision:
 
 State on 2026-11-18 (EPIC #1347 `Subissues` table and the GitHub state of each sub-issue):
 
-- **Testing gate met** (the crate's #1347 sub-issues are closed): `primitives` (#2824), `udp-core`
+- **Testing gate met** (the crate's #1347 sub-issues are closed): `primitives` (#2824, #2876), `udp-core`
   (#1348), `http-core` (#1349), `axum-http-server` (#2136, #2140), `udp-server` (#2149, #2283) and
   `axum-rest-api-server` (#2637).
 - **Sub-issue open:** `core` (#2902, `TODO`).
@@ -261,13 +261,18 @@ EPIC #1347 [`Subissues` table](../1347-overhaul-packages-testing/EPIC.md#subissu
 - `NONE`: the crate has no #1347 sub-issue. What meets its gate is pending (OQ1; OQ4 for
   `test-helpers`).
 
+How the rows of that table are counted: a crate's sub-issues are the rows about that package's
+own tests, which are its "add tests", test-review and coverage rows and their test-support
+follow-ups (#2876 for `primitives`). A bug found by the test work (#2838) and the coverage-tooling
+rows (#2222, #2301, #2361) belong to no crate and do not count.
+
 A `MET` gate alone does not unblock a row: every crate in its "Depends on" and "Dev-depends on"
 columns must be `PUBLISHED` first, and prerequisites 1, 2, 3, 5 and 6 must hold. Update the column
 when a #1347 sub-issue is created or closed; EPIC #1347 owns the sub-issues themselves.
 
 | Order | Level | Crate | Depends on | Dev-depends on | Testing (#1347) | Version to publish | Pre-publish notes | Status |
 | ----- | ----- | ----- | ---------- | -------------- | --------------- | ------------------ | ----------------- | ------ |
-| 1 | 0 | `torrust-tracker-primitives` | - | - | `MET`: [#2824](../../closed/2824-1347-add-tests-primitives/ISSUE.md) closed | 4.0.0 | Published 3.0.0. Major owed (#2454). EPIC #2912 requires #2914 (SI-2) to land before 4.0.0 is published. | BLOCKED |
+| 1 | 0 | `torrust-tracker-primitives` | - | - | `MET`: [#2824](../../closed/2824-1347-add-tests-primitives/ISSUE.md) and [#2876](../../closed/2876-1347-peer-id-test-helper/ISSUE.md) closed | 4.0.0 | Published 3.0.0. Major owed (#2454). EPIC #2912 requires #2914 (SI-2) to land before 4.0.0 is published. | BLOCKED |
 | 2 | 0 | `torrust-tracker-events` | - | - | `NONE`: no sub-issue (OQ1) | 0.1.0 | `RecvError` stays exhaustive on purpose (#2454 E1). | BLOCKED |
 | 3 | 0 | `torrust-tracker-http-protocol` | - | - | `NONE`: no sub-issue (OQ1) | 0.1.0 | Blocks the client extraction. | BLOCKED |
 | 4 | 0 | `torrust-tracker-udp-protocol` | - | - | `NONE`: no sub-issue (OQ1) | 0.1.0 | `RequestParseError` stays exhaustive on purpose (#2454 E2). Blocks the client extraction. | BLOCKED |
