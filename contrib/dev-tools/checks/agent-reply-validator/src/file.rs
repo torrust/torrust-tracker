@@ -88,6 +88,18 @@ pub fn check_reply_file(path: &str, text: &str) -> Vec<Problem> {
     problems
 }
 
+/// Whether a repository file must pass [`check_reply_file`].
+///
+/// It must when it is in a folder named `agent-replies`, wherever that folder is, or when its name
+/// is a reply file name, wherever the file is. So a reply file in the wrong place, and any other
+/// file in a replies folder, are reported.
+#[must_use]
+pub fn is_reply_file_candidate(path: &str) -> bool {
+    let (folder, file_name) = path.rsplit_once('/').unwrap_or(("", path));
+    let folder_name = folder.rsplit('/').next().unwrap_or(folder);
+    folder_name == REPLIES_FOLDER || file_name.parse::<ReplyFileName>().is_ok()
+}
+
 /// Whether the folder is `docs/issues/<lifecycle>/<specification>/agent-replies`.
 fn is_replies_folder_of_a_specification(folder: &str) -> bool {
     matches!(
@@ -126,7 +138,7 @@ mod tests {
     use rstest::rstest;
     use serde_json::json;
 
-    use super::{Check, Problem, check_reply_file};
+    use super::{Check, Problem, check_reply_file, is_reply_file_candidate};
 
     const FOLDER: &str = "docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/agent-replies";
 
@@ -293,5 +305,26 @@ mod tests {
 
         // Assert
         assert_eq!(checks(&problems), vec![Check::Location, Check::Agreement]);
+    }
+
+    #[rstest]
+    #[case::reply_in_its_folder("docs/issues/open/2904-slug/agent-replies/task-reviewer-t3-r2.json", true)]
+    #[case::other_file_in_a_replies_folder("docs/issues/open/2904-slug/agent-replies/notes.md", true)]
+    #[case::replies_folder_elsewhere("notes/agent-replies/draft.json", true)]
+    #[case::reply_name_outside_a_replies_folder("docs/issues/open/2904-slug/implementer-t3-r1.json", true)]
+    #[case::reply_name_at_the_root("implementer-t3-r1.json", true)]
+    #[case::other_json_file("docs/schemas/agent-reply-v1.schema.json", false)]
+    #[case::the_specification("docs/issues/open/2904-slug/ISSUE.md", false)]
+    #[case::folder_that_only_ends_like_a_replies_folder("docs/old-agent-replies/notes.md", false)]
+    #[case::replies_folder_higher_up("docs/agent-replies/archive/notes.md", false)]
+    fn it_should_select_a_file_for_checking_only_when_it_is_in_a_replies_folder_or_named_like_a_reply(
+        #[case] path: &str,
+        #[case] selected: bool,
+    ) {
+        // Act
+        let candidate = is_reply_file_candidate(path);
+
+        // Assert
+        assert_eq!(candidate, selected);
     }
 }

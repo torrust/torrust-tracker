@@ -159,3 +159,51 @@ semantic-links:
     folder, the content message, the content field path) each made a test fail.
   - For the command increment: build the paths from the repository root with `/`, and choose
     the discovery rule there. The nits are left as they are.
+
+### 2026-11-18 17:48 UTC - Test-design reviewer (Claude Code subagent, Claude Opus 5.5, `write-unit-test` skill)
+
+- Invocation scope: Read-only review of task T3, increment 4, on branch `2904-t3-reply-schema`
+  before its commit: the command `agent-reply-validator` (`src/bin/agent-reply-validator/`),
+  its command-boundary tests `tests/cli.rs`, and `is_reply_file_candidate` in `src/file.rs`.
+  Two rounds: a review, then a re-review of the fixes.
+- Inputs: D18 of the specification; the CLI output contract ADR
+  `20260519000000_define_global_cli_output_contract.md`, sections 1 to 3; the
+  `frontmatter-validator` command as the pattern; `.claude/skills/write-unit-test/SKILL.md`;
+  `AGENTS.md`.
+- Evidence: `cargo test -p agent-reply-validator` passed in both rounds (153 tests in round 2).
+  The reviewer checked the ADR contract (empty stdout, NDJSON records with `kind` on stderr,
+  exit codes 0, 1 and 2) and the git edge cases (a staged file deleted from disk, `git rm
+  --cached`, a relative `GIT_INDEX_FILE`) by reading.
+- Findings:
+  - Major (round 1): no test showed that path mode checks a file whatever its name.
+  - Major (round 1): `fs::canonicalize` followed a symbolic link, so a link was checked under
+    its target's place and name.
+  - Minor (round 1): no unit tests for a failing stderr, `report` and `repository_relative`; no
+    test of the key order of the error records, of `--version`, of non-UTF-8 content, of
+    `GIT_INDEX_FILE` or of an empty index; one non-UTF-8 path anywhere in the index stopped
+    `--all`; a non-UTF-8 path was reported as outside the repository; a merge conflict stops
+    `--all`.
+  - Suggestion (round 1): `--all` checks every reply file, not only those of the pull request;
+    the stop hook must run inside the repository; `git.rs` copies the one of
+    `frontmatter-validator`.
+  - Nit (round 1): a path given twice is checked twice; two tests asserted on one record field
+    by index.
+  - Minor (round 2): no test put a non-UTF-8 path in the index; the author's report named a
+    mutation of the UTF-8 branch in words that read as the non-UTF-8 one.
+  - Minor (round 2): path mode read through a link, while `--all` reads the link's stored target
+    path, so the two modes disagreed on a link.
+  - Nit (round 2): one test kept only the `check` fields; one parsed stderr with `contains`.
+- Verdict: REVIEW FAILED in round 1; REVIEW PASSED in round 2.
+- Follow-up actions:
+  - Author, done before the commit: the tests and fixes above, with `serde_json`
+    `preserve_order` for the key order; the index is read as byte paths and only a candidate
+    path that is not UTF-8 stops the run, with a Unix test for each case; path mode rejects a
+    symbolic link, with a test; the two round 2 nits fixed. 155 tests pass. Mutations of the
+    candidate filter in path mode, of the link check, and of each non-UTF-8 branch each made a
+    test fail. A dedupe of conflicted paths was tried and removed as an equivalent mutant: a
+    conflicted candidate has no staged content, so the run stops with a runtime error either
+    way, as the doc comment says.
+  - Not changed: `--all` checks every reply file (CI runs it on the pull request's tree, and
+    `develop` only receives checked trees); the stop hook's working directory is for T5 to
+    confirm; a path given twice; the copy of `git.rs`, which a shared crate in the
+    harness-workspace work of EPIC #2003 can remove.

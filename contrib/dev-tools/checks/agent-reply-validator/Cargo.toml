@@ -12,10 +12,14 @@ version = "0.1.0"
 workspace = true
 
 [dependencies]
+# No color or suggestion features: every clap message is rendered into an NDJSON record.
+clap = { version = "4.6.7", default-features = false, features = [ "derive", "error-context", "help", "std", "usage" ] }
 serde = { version = "1", features = [ "derive" ] }
-serde_json = "1"
+# Keep field order: the NDJSON key order is part of the output contract.
+serde_json = { version = "1", features = [ "preserve_order" ] }
 serde_path_to_error = "0.1.20"
 thiserror = "2"
 
 [dev-dependencies]
 rstest = "0.28.0"
+tempfile = "3"
