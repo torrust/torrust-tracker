@@ -6,7 +6,7 @@ epic: null
 github-issue: 2392
 spec-path: docs/issues/open/2392-test-isolation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-17 15:22"
+last-updated-utc: "2026-11-17 21:12"
 semantic-links:
   skill-links:
     - create-issue
@@ -20,6 +20,8 @@ semantic-links:
     - docs/issues/open/2906-2392-fixed-port-metrics-test-concurrent-runs/ISSUE.md
     - docs/issues/open/2907-2392-remove-leaked-test-temporary-files/ISSUE.md
     - docs/issues/open/2908-2392-compose-cleanup-after-failed-start/ISSUE.md
+    - docs/issues/open/2924-2392-sqlite-test-database-guard/ISSUE.md
+    - docs/issues/open/2925-2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md
     - docs/issues/open/1840-improve-pr-workflow-performance-epic/EPIC.md
     - docs/issues/closed/2386-1840-self-hosted-runner-minimum-capacity/ISSUE.md
     - docs/issues/closed/2132-add-sigterm-to-main/native-shutdown-test-plan.md
@@ -109,8 +111,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | 4 | #2396 - Use a unique tracker image tag per CI run | `docs/issues/open/2396-2392-e2e-unique-tracker-image-tag/ISSUE.md` | TODO | Task. Prevents one run from testing another run's image. Latent today (one runner instance per server). Independent of order 3. |
 | 5 | #1419 - Allow multiple integration tests at the main app level | `docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md` | BLOCKED | Existing issue, linked as a subissue. Isolation work is done; the remaining AC8a waits on #1488. |
 | 6 | #2906 - Let two runs of the fixed-port metrics test share a machine | `docs/issues/open/2906-2392-fixed-port-metrics-test-concurrent-runs/ISSUE.md` | TODO | Bug (#2394 D1, P2). `tests/metrics/fixed_ports.rs` binds `0.0.0.0:17091`-`17094`, so two runs on one machine collide (20 of 20 paired runs had one failure). The proposed fix uses the loopback helper beyond the 9 #2393 tests, which needs a maintainer decision before implementation starts (the Decisions section limits the helper to those 9 tests). |
-| 7 | #2907 - Remove the temporary files tests leave behind | `docs/issues/open/2907-2392-remove-leaked-test-temporary-files/ISSUE.md` | TODO | Bug (#2394 D2, F2). Three test helpers leave `data_*.db`, `test_config_*.toml` and PEM files in the system temporary directory; they accumulate until the disk fills. Independent of the other orders. |
+| 7 | #2907 - Remove the temporary TOML and PEM files tests leave behind | `docs/issues/open/2907-2392-remove-leaked-test-temporary-files/ISSUE.md` | TODO | Bug (#2394 D2, F2). Narrowed on 2026-11-17 to the `test_config_*.toml` and PEM files that tests leave in the system temporary directory. The `data_*.db` files, 301 of the 303 files one full run leaves, moved to orders 9 and 10. Independent of the other orders. |
 | 8 | #2908 - Tear down the qBittorrent E2E stack when it fails to start | `docs/issues/open/2908-2392-compose-cleanup-after-failed-start/ISSUE.md` | TODO | Bug (#2394 D3, C9). A failed `docker compose up` leaves the stack running on the Docker host. Touches the qBittorrent E2E runner, like order 4. |
+| 9 | #2924 - Add a guard-owned SQLite test database | `docs/issues/open/2924-2392-sqlite-test-database-guard/ISSUE.md` | TODO | Bug, split from order 7. Adds to the test helpers a guard that owns the SQLite database's directory and a factory that returns a configuration with its guard, next to the existing `ephemeral*()` functions; converts the helpers outside `tracker-core` that build the database path themselves. PR #2923 (#2902) fixes `tracker-core` with the same shape, and order 9 starts after it merges. |
+| 10 | #2925 - Move tests to the guard-owned SQLite database and default to no database | `docs/issues/open/2925-2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md` | TODO | Bug, split from order 7. Moves the tests that need persistence to order 9's factory, one pull request per package, then removes the database from `ephemeral*()`. Owns the check that a fresh `TMPDIR` is empty after the suite. Depends on order 9. |
 
 ## Delivery Strategy
 
@@ -119,6 +123,8 @@ its findings may add subissues. Orders 3 and 4 touch only the E2E runners and CI
 proceed in parallel. #1419 closes on its own schedule after #1488. Order 2 added orders 6 to 8:
 orders 6 and 7 make the suite fail on a shared machine and gate AC2; they are independent of each
 other and of the E2E orders. Order 8 touches the qBittorrent E2E runner and belongs to Phase 3.
+Order 7 was split: it keeps the TOML and PEM files, and orders 9 and 10 take the SQLite files, in
+that order (10 depends on 9). Order 7 is independent of both. Orders 9 and 10 gate AC2 as well.
 
 Test isolation rules (apply to every subissue):
 
@@ -203,6 +209,14 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
   returns a random loopback address in `127.0.0.0/8`. It chooses an IP address, not a port, so it
   does not contradict the "no new port helper" decision; only the 9 restored tests use it, and they
   are ignored off Linux. The #2393 spec's Architectural Decisions section has the details.
+- 2026-11-17 (maintainer, #2907 T2): the temporary-file work is split into focused subissues of
+  this EPIC, with no nested EPIC, so that each pull request is easy to review. #2907 keeps the
+  TOML and PEM files; the SQLite files go to two new subissues, #2924 and #2925 (orders 9 and 10).
+- 2026-11-17 (maintainer, #2907 T2): the `ephemeral()` test configuration may default to no
+  database. Where that does not fit, a specialised factory is fine, and the `ephemeral` functions
+  may be renamed; names are open. Tests that need persistence opt in through a factory that
+  returns a guard the test keeps. The guard is a `TempDir`, independent of the test environment,
+  because some tests start a second environment on the same database.
 
 ## Progress Tracking
 
@@ -259,10 +273,19 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
   placed orders 6 to 8 in the Delivery Strategy and order 8 in Phase 3's exit criteria; order 8's
   note now points at order 4; order 2's row records that the close-out PR merged and #2394 waits
   on the maintainer.
+- 2026-11-17 18:05 UTC - Claude Code (Claude Fable 5.2), EPIC coordinator - Split order 7 after
+  #2907's T2: #2907 keeps the TOML and PEM files, and two drafts take the SQLite files as orders
+  9 and 10. Recorded the maintainer's two decisions of 2026-11-17. AC1 is TODO again until the
+  two GitHub issues exist; AC2 now also waits on orders 9 and 10.
+- 2026-11-17 18:10 UTC - Claude Code (Claude Fable 5.2), EPIC coordinator - PR #2923 (#2902) fixes
+  the SQLite leak inside `tracker-core`; orders 9 and 10 skip that package and reuse its shape.
+- 2026-11-17 18:39 UTC - Claude Code (Claude Fable 5.2), EPIC coordinator - The maintainer approved the two
+  drafts. Created #2924 and #2925, moved their specs to `docs/issues/open/`, and updated #2907's
+  title and body on GitHub. AC1 stays TODO until the maintainer links the two sub-issues.
 
 ## Acceptance Criteria
 
-- [x] AC1: All required subissues are created and linked, and #1419 is linked as an existing
+- [ ] AC1: All required subissues are created and linked, and #1419 is linked as an existing
   subissue.
 - [ ] AC2: The full nextest suite runs repeatedly without failures caused by shared resources.
 - [ ] AC3: Two E2E runs on one Docker host run concurrently, and each tests its own image.
@@ -276,8 +299,8 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1 | DONE | GitHub sub-issues of #2392: #2393, #2394, #2395, #2396, #1419; the audit added #2906, #2907 and #2908 |
-| AC2 | TODO | Order 1 `manual-verification-evidence.md` (V6: 150 of 150 full-suite runs passed with no #2393 test ignored, after PR #2874). The order 2 audit found two more shared resources that make the suite fail: fixed ports that collide across concurrent runs (order 6) and leaked temporary files that fill the disk (order 7). Stays TODO until both are done. |
+| AC1 | TODO | GitHub sub-issues of #2392: #2393, #2394, #2395, #2396, #1419; the audit added #2906, #2907 and #2908. The split of #2907 added #2924 and #2925, which are created but not yet linked as sub-issues (the maintainer links them). |
+| AC2 | TODO | Order 1 `manual-verification-evidence.md` (V6: 150 of 150 full-suite runs passed with no #2393 test ignored, after PR #2874). The order 2 audit found two more shared resources that make the suite fail: fixed ports that collide across concurrent runs (order 6) and leaked temporary files that fill the disk (order 7, split into orders 7, 9 and 10). Stays TODO until orders 6, 7, 9 and 10 are done. |
 | AC3 | TODO | Orders 3 and 4 `manual-verification-evidence.md` |
 | AC4 | DONE | Order 2 `inventory.md`: 38 findings, each isolated (29), a deliberate exception (1), or tracked by a subissue (5 covered by orders 1, 3 and 4; 3 new problems, orders 6 to 8) |
 | AC5 | TODO | Documentation PR |
