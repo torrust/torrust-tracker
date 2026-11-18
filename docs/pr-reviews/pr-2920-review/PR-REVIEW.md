@@ -1,7 +1,7 @@
 ---
 pr-number: 2920
 pr-url: https://github.com/torrust/torrust-tracker/pull/2920
-last-updated-utc: "2026-11-18 13:44"
+last-updated-utc: "2026-11-18 14:13"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -286,7 +286,7 @@ that carried the round 5 audit. Their fixes are in the follow-up pull request #2
 - Concern: The Current-tree verification line of F15 spoke of "the four commits whose times the log entries give", but the entries before the rebase entry give six: the round 1 entry also gives 17:48:20Z and 17:51:07Z. The reviewer checked those two and they match, so the claim of the rebase entry holds; the line should say what ran.
 - Solution: The line of F15 says it checked four of the six times and names the other two. Submitted before the merge and unprocessed when it merged: five rounds of fixes were used, the maintainer chose to merge with it open, and approved this follow-up after the merge.
 - Current-tree verification: `git log --format='%aI %s' d8e14450d..68b866938^2` on `develop` prints 17:48:20Z and 17:51:07Z for `build(container): [#2904] keep the pointer CLAUDE.md files out of the build context` and `docs(pr-reviews): [#2904] keep finding F20 of PR #2905 open until its follow-up merges`, and the four times the line names, so all six match.
-- Resolution reference: `docs(pr-reviews): [#2904] reword the verification line of F15 in the review audit of PR #2920`
+- Resolution reference: `docs(pr-reviews): [#2904] record the late review of PR #2920 and correct the verification of F15`; `docs(pr-reviews): [#2904] reword the verification line of F15 in the review audit of PR #2920`
 - Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2942
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2920#discussion_r4614920759
 
@@ -351,6 +351,7 @@ that carried the round 5 audit. Their fixes are in the follow-up pull request #2
 - 2026-11-18 11:33 UTC - Round 6, after the merge. Pull request #2920 merged at 2026-11-18 09:54:45Z (forge `mergedAt`) with four threads open: the approving review `5953969566` of `da2ce7` (submitted 09:37:42Z, forge `submitted_at`) with one nit, recorded as F16, and Copilot's review `5954232676` (09:53:37Z) with three comments, recorded as F17 to F19 (F18 repeats F17). The reply to F16 was posted at 09:53:15Z, before the merge, after the maintainer chose to merge with the nit open. The first replies to F17, F18 and F19 were posted at 09:55:38Z, 09:55:41Z and 09:55:43Z, after the merge and before any durable approval: a slip, because `process-pr-review` (Reviews Submitted After Merge, step 2) allows no reply before the approval comment exists. Those replies only said what the next pull request would do. The maintainer's approval comment was created at 11:26:15Z and is recorded in Ownership. The fixes are in the follow-up pull request #2942, branched from `develop`; its two evidence fixes were pushed (`git ls-remote` showed the fork branch at the local head at 11:32:34Z, `date -u`) before the replies that name it, posted between 11:32:59Z and 11:33:07Z (forge `created_at`). The fix of F16 is in this record, which was not pushed yet when its reply said it was fixed: a second slip, of the order push, then reply. It was pushed right after, with this entry. The rows stay `FOLLOW_UP`/`OPEN` until it merges.
 - 2026-11-18 11:52 UTC - Correction to the round 6 entry, after the review `5956009614` of `da2ce7` on pull request #2942. Its sentence "It was pushed right after, with this entry" was written before the push it states, in the commit that the push carried. The push did happen: `git ls-remote` showed the fork branch at the head `docs(pr-reviews): [#2904] record the late review of PR #2920 and correct the verification of F15` at 11:36:42Z (`date -u`). The entry's last words, "until it merges", mean until pull request #2942 merges.
 - 2026-11-18 13:44 UTC - Pull request #2942, the follow-up of F16 to F19, merged at 2026-11-18 13:43:25Z (forge `mergedAt`, merge commit `fe32c7858`), so their fixes are on `develop`. The four rows are now `FIXED`, each with its fixing commit's subject as resolution reference. The replies that say so were posted between 13:43:55Z and 13:44:03Z (forge `created_at`), after the merge. The four threads are resolved by their thread IDs after this record is pushed.
+- 2026-11-18 14:13 UTC - Correction to the 13:44 entry, after the review `5958211073` of `da2ce7` on pull request #2948. The change F16 asked for was made by `docs(pr-reviews): [#2904] record the late review of PR #2920 and correct the verification of F15`; the reword commit the row cited only reorders that corrected line. The row of F16 now cites both, the correction first, so "each with its fixing commit's subject" in that entry holds.
 
 <!-- Copied verbatim into each audit record. -->
 
