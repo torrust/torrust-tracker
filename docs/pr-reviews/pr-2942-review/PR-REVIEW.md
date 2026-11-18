@@ -1,7 +1,7 @@
 ---
 pr-number: 2942
 pr-url: https://github.com/torrust/torrust-tracker/pull/2942
-last-updated-utc: "2026-11-18 12:31"
+last-updated-utc: "2026-11-18 12:35"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -48,6 +48,8 @@ first audit commit for the late review of pull request 2920, and Copilot's revie
 without IDs, recorded as F7 and F8) on the head before it, with the fix of F20 of pull request 2905.
 Round 2 is the approving review `5956340268` of `da2ce7` (F22 to F25, reviewer-provided IDs) on the head that carried
 the round 1 audit.
+Round 3 is the approving review `5956561462` of `da2ce7` (F29, reviewer-provided ID) on the head that carried the round 2
+audit.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -63,6 +65,7 @@ the round 1 audit.
 | F23 | `review-finding:pr-2942-f23` | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F24 | `review-finding:pr-2942-f24` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F25 | `review-finding:pr-2942-f25` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F29 | `review-finding:pr-2942-f29` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -222,6 +225,19 @@ the round 1 audit.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2942#discussion_r4613792237
 
+### F29 - The stamp is older than this record's own last entry
+
+- PR number: 2942
+- Source review ID: 5956561462
+- Reviewer finding ID: F29
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2942#discussion_r4613916486
+- Concern: `last-updated-utc` read `2026-11-18 12:19`, but the last Processing Log entry was stamped 12:21 and its commit was made at 12:21:35Z.
+- Solution: The stamp was moved to 12:31, the minute of the fix commit; this round's audit commit moves it to the minute of its last entry.
+- Current-tree verification: `sed -n 4p` on this record prints the same minute as the stamp of its last Processing Log entry.
+- Resolution reference: `docs(pr-reviews): [#2904] move the stamp of the review audit of PR #2942`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2942#discussion_r4613967998
+
 ## Processing Log
 
 - 2026-11-18 11:59 UTC - Started audit, late: the six replies of round 1 were posted before this record existed, which the `process-pr-review` workflow asks for the other way round.
@@ -231,6 +247,7 @@ the round 1 audit.
 - 2026-11-18 12:16 UTC - Correction to the entries above, after the review `5956340268` of `da2ce7`. The rows of F6 and F7 were `NO_ACTION`/`RESOLVED` with replies that start "No change"; this record's rules pair a no-change in-PR thread with the reply `Superseded by <FindingId>: <reason>.` and `NO_ACTION`/`SUPERSEDED`, so the rows are now `SUPERSEDED` and each thread gets that reply. The Solution of F7 claimed a notation convention that two lines of the audit of pull request 2905 break; it is narrowed. The six threads of F1 to F6 were resolved at 12:00:41Z, before the only validator run, which covered 8 rows and so ran after the rows of F7 and F8 existed: `process-pr-review` (Validation Script) runs the validator before resolving any thread.
 - 2026-11-18 12:19 UTC - Round 2: the approving review `5956340268` of `da2ce7` (submitted 12:14:25Z, forge `submitted_at`) with four findings, recorded as F22 to F25 under the reviewer's IDs. Their fixes were committed at 12:15:19Z and 12:16:21Z (`git log --format=%cI`, in UTC) and pushed; `git ls-remote` showed the fork branch at the local head at 12:19:16Z (`date -u`). The two `Superseded by` replies on the threads of F6 and F7 and the four replies of round 2 were posted between 12:19:26Z and 12:19:38Z (forge `created_at`), after the push.
 - 2026-11-18 12:21 UTC - `validate-audit-record.py --pr-number 2942 --base torrust/develop`, with its `gh` calls made through `gh-bot`, exited 0 (12 rows, 0 failures) at 12:20:50Z (`date -u`). Then resolved the four threads of F22 to F25 by their thread IDs, by 12:20:58Z; the threads of F6 and F7 stayed resolved. A GraphQL refresh showed 0 unresolved threads.
+- 2026-11-18 12:35 UTC - Round 3: the approving review `5956561462` of `da2ce7` (submitted 12:30:10Z, forge `submitted_at`) with one nit, recorded as F29. Copilot's review `5956514194` (12:26:45Z) on the same head recommends approval with no findings and needs no row. The fix was committed at 12:31:31Z (`git log --format=%cI`, in UTC) and pushed; `git ls-remote` showed the fork branch at the local head at 12:34:21Z (`date -u`). The reply was posted at 12:34:31Z (forge `created_at`), after the push. `validate-audit-record.py --pr-number 2942 --base torrust/develop`, with its `gh` calls made through `gh-bot`, exited 0 (13 rows, 0 failures) at 12:35:11Z; the thread of F29 was then resolved by its thread ID at 12:35:14Z, and a GraphQL refresh showed 0 unresolved threads.
 
 <!-- Copied verbatim into each audit record. -->
 
