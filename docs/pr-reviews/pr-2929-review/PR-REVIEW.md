@@ -1,7 +1,7 @@
 ---
 pr-number: 2929
 pr-url: https://github.com/torrust/torrust-tracker/pull/2929
-last-updated-utc: "2026-11-17 23:37"
+last-updated-utc: "2026-11-18 09:33"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -43,7 +43,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1: Copilot review 5946976502 (COMMENTED, a lite review, since its full agentic review did not start before the timeout) with one inline finding, rated medium by Copilot. The audit severity scale (`Blocker`, `Major`, `Minor`, `Nit`, `Suggestion`) has no medium level, so this audit maps Copilot's `Medium severity` badge to `Minor (inferred)` and its `Low severity` badge to `Nit (inferred)`, as the PR #2397, PR #2421 and PR #2430 audits do; `(inferred)` marks that the comment carries no `[Severity]` bracket. The `F` IDs are this audit's. Round 2: Copilot review 5947779724 (COMMENTED, a lite review again) on the head that fixed F1, with findings F2 to F4. The badges rate F2 and F3 `Medium severity` (`Minor (inferred)`) and F4 `Low severity` (`Nit (inferred)`). F2 asks for the rule above; F3 and F4 describe content the file does not have. Round 3: Copilot review 5948460850 (COMMENTED, a balanced review, on the head that recorded round 2) reported no open issue. Its summary mentions a minor archive-metadata concern omitted from the published review; its content is not retrievable, so it makes no row.
+Round 1: Copilot review 5946976502 (COMMENTED, a lite review, since its full agentic review did not start before the timeout) with one inline finding, rated medium by Copilot. The audit severity scale (`Blocker`, `Major`, `Minor`, `Nit`, `Suggestion`) has no medium level, so this audit maps Copilot's `Medium severity` badge to `Minor (inferred)` and its `Low severity` badge to `Nit (inferred)`, as the PR #2397, PR #2421 and PR #2430 audits do; `(inferred)` marks that the comment carries no `[Severity]` bracket. The `F` IDs are this audit's. Round 2: Copilot review 5947779724 (COMMENTED, a lite review again) on the head that fixed F1, with findings F2 to F4. The badges rate F2 and F3 `Medium severity` (`Minor (inferred)`) and F4 `Low severity` (`Nit (inferred)`). F2 asks for the rule above; F3 and F4 describe content the file does not have. Round 3: Copilot review 5948460850 (COMMENTED, a balanced review, on the head that recorded round 2) reported no open issue. Its summary mentions a minor archive-metadata concern omitted from the published review; its content is not retrievable, so it makes no row. Round 4: da2ce7 review 5953861373 (APPROVED) with findings F1 to F3, all `[Nit]` and none blocking. Those IDs are already used in this audit, so they are recorded as F5 to F7, each with the reviewer's ID in its detail entry.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -51,6 +51,9 @@ Round 1: Copilot review 5946976502 (COMMENTED, a lite review, since its full age
 | F2 | review-finding:pr-2929-f2 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-2929-f3 | Copilot | Minor (inferred) | documentation | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F4 | review-finding:pr-2929-f4 | Copilot | Nit (inferred) | formatting | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F5 | review-finding:pr-2929-f5 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F6 | review-finding:pr-2929-f6 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-2929-f7 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -106,11 +109,53 @@ Round 1: Copilot review 5946976502 (COMMENTED, a lite review, since its full age
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2929#discussion_r4606735442
 
+### F5 - The archived test-design review has no frontmatter
+
+- PR number: 2929
+- Source review ID: 5953861373
+- Reviewer finding ID: F1
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2929#discussion_r4611691532
+- Concern: Step 3 of `cleanup-completed-issues` gives a supplementary document without frontmatter a minimal block linking back to the spec; `test-design-review.md` moved as a pure rename and had none.
+- Solution: Added the minimal block: `spec-path`, `last-updated-utc`, and `semantic-links` with the archived `ISSUE.md`. The four older archived `test-design-review.md` files are outside this close-out and stay unchanged.
+- Current-tree verification: `head -7 docs/issues/closed/2847-1488-si-28-verify-hung-component-abort/test-design-review.md` shows the block; the pre-commit staged-frontmatter validator passed.
+- Resolution reference: `docs(issues): [#2847] add the archive frontmatter to the SI-28 test-design review`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2929#discussion_r4611724062
+
+### F6 - The round-1 reply stamp is a second late
+
+- PR number: 2929
+- Source review ID: 5953861373
+- Reviewer finding ID: F2
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2929#discussion_r4611691540
+- Concern: The round-1 entry gives the reply as `21:35:59Z`; the platform records `2026-11-17T21:35:58Z`.
+- Solution: The `21:35:59Z` came from a `date -u` run after the reply command, not from its output. The round-1 entry stays as logged, since the log is append-only; a correction entry gives `21:35:58Z` and its source.
+- Current-tree verification: `gh-bot api repos/torrust/torrust-tracker/pulls/comments/4606101763 --jq .created_at` prints `2026-11-17T21:35:58Z`; the correction entry in the Processing Log names it.
+- Resolution reference: `docs(pr-reviews): [#2847] record da2ce7's round 4 findings F5 to F7 for PR 2929`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2929#discussion_r4611724563
+
+### F7 - The record's late start is not logged
+
+- PR number: 2929
+- Source review ID: 5953861373
+- Reviewer finding ID: F3
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2929#discussion_r4611691552
+- Concern: `process-pr-review` creates the record before the first reply and logs a late start otherwise; the round-1 entry ends with "Created this record." after the reply, with no late-start note.
+- Solution: The record did not exist before the reply: it was written after the `21:35:58Z` reply and committed at `21:36:28Z`. A correction entry logs the late start.
+- Current-tree verification: `git log -1 --format=%cI` of the commit `docs(pr-reviews): [#2847] add review audit for PR 2929 round 1` prints `2026-11-17T21:36:28Z`, after the reply's `created_at`; the correction entry in the Processing Log states the late start.
+- Resolution reference: `docs(pr-reviews): [#2847] record da2ce7's round 4 findings F5 to F7 for PR 2929`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2929#discussion_r4611725018
+
 ## Processing Log
 
 - 2026-11-17 21:36 UTC - Round 1: Copilot review 5946976502 (COMMENTED, 21:33:38Z) with finding F1. Fixed it, following the maintainer's choice for the non-blocking findings of PR #2911: committed the fix, then, before pushing so that one push carries the fix and this record, replied to the thread (21:35:59Z) naming the commit subject the push brings, and resolved it (21:36:07Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread. Created this record.
 - 2026-11-17 22:37 UTC - Round 2: Copilot review 5947779724 (COMMENTED, 22:35:04Z) with findings F2 to F4. Fixed F2 in a commit; F3 and F4 describe content the file does not have, so they need no change. Replied to the three threads (22:36Z) and resolved them (22:36:45Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread. Recorded F2 to F4.
 - 2026-11-17 23:37 UTC - Round 3: Copilot review 5948460850 (COMMENTED, 23:36:25Z) reported no open issue and listed F2 to F4 as resolved; the omitted archive-metadata concern in its summary has no retrievable content and makes no row. Correction: the round 2 Findings paragraph and the F4 row recorded F4 as medium and `Minor (inferred)`; the review's badge rates it `Low severity`, so the row now reads `Nit (inferred)` and the paragraph states both mappings.
+- 2026-11-18 09:33 UTC - Round 4: da2ce7 review 5953861373 (APPROVED, 09:30:12Z per the platform) with findings F1 to F3, all Nit, recorded as F5 to F7. Fixed all three, following the maintainer's choice for non-blocking findings: committed the F5 fix, replied to the three threads (09:32:54Z, 09:32:57Z and 09:32:59Z, the replies' `created_at`), and resolved them by 09:33:11Z (a `date -u` run after the resolve commands), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread. Recorded F5 to F7.
+- 2026-11-18 09:33 UTC - Correction (F6): the round-1 entry's reply stamp `21:35:59Z` came from a `date -u` run after the reply command; the reply's `created_at` is `2026-11-17T21:35:58Z`. The round-1 resolution stamp `21:36:07Z` and the round-2 resolution stamp `22:36:45Z` came the same way, from a `date -u` run after the resolve commands.
+- 2026-11-18 09:33 UTC - Late start (F7): this record was created after the round-1 reply, not before it as `process-pr-review` asks. The reply was posted at `21:35:58Z`; the record was written after it and committed at `21:36:28Z`. The round-1 entry's closing "Created this record." reflects that order.
 
 <!-- Copied verbatim into each audit record. -->
 
