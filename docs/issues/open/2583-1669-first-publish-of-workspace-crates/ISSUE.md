@@ -9,7 +9,7 @@ github-issue: 2583
 spec-path: docs/issues/open/2583-1669-first-publish-of-workspace-crates/ISSUE.md
 branch: "2583-1669-first-publish-of-workspace-crates-spec"
 related-pr: null
-last-updated-utc: "2026-11-18 09:47"
+last-updated-utc: "2026-11-18 10:22"
 semantic-links:
   skill-links:
     - create-issue
@@ -419,6 +419,12 @@ release branch and a signed tag.
   maintainer decisions (Open Questions OQ1-OQ4). Noted, without fixing them, the "Facts checked on
   2026-10-20" items that are stale on `develop` (T4 owns the update). Spec-only change; no crate's
   status changed.
+- 2026-11-18 10:22 UTC - Claude Code (Claude Fable 5.2) - Review round 1 of PR torrust/torrust-tracker#2935
+  (audit: `docs/pr-reviews/pr-2935-review/PR-REVIEW.md`). "Checklist order" now reads "dependency
+  order (every dependency and dev-dependency first)" in the prerequisites, the scope, the procedure
+  and T5; the `primitives` state line and rows 1 and 6 name the EPIC #2912 constraints (#2914,
+  #2917); row 1 lists #2876 and the column legend says how EPIC #1347 rows are counted; row 12 says
+  six crates and the root crate; the dependency wait is stated in terms of `PUBLISHED`.
 
 ## Acceptance Criteria
 
