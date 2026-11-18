@@ -465,6 +465,7 @@ impl Validator for Configuration {
 mod tests {
 
     use std::convert::TryFrom;
+    use std::fs;
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
     use crate::Info;
@@ -532,26 +533,18 @@ mod tests {
 
     #[test]
     fn configuration_should_be_saved_in_a_toml_config_file() {
-        use std::{env, fs};
+        // Arrange
+        // The directory is removed with the file when the test ends, also when it fails.
+        let directory = tempfile::tempdir().expect("a temporary directory can be created");
+        let path = directory.path().join("tracker.toml").to_string_lossy().into_owned();
 
-        use uuid::Uuid;
-
-        // Build temp config file path
-        let temp_directory = env::temp_dir();
-        let temp_file = temp_directory.join(format!("test_config_{}.toml", Uuid::new_v4()));
-
-        // Convert to argument type for Configuration::save_to_file
-        let config_file_path = temp_file;
-        let path = config_file_path.to_string_lossy().to_string();
-
-        let default_configuration = Configuration::default();
-
-        default_configuration
+        // Act
+        Configuration::default()
             .save_to_file(&path)
             .expect("Could not save configuration to file");
 
+        // Assert
         let contents = fs::read_to_string(&path).expect("Something went wrong reading the file");
-
         assert_eq!(contents, default_config_toml());
     }
 

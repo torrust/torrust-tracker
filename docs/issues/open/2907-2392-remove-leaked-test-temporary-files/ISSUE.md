@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: in-progress
 priority: p2
 epic: 2392
 github-issue: 2907
 spec-path: docs/issues/open/2907-2392-remove-leaked-test-temporary-files/ISSUE.md
-branch: "2392-audit-follow-up-issues-spec"
-related-pr: null
-last-updated-utc: "2026-11-17 21:35"
+branch: "2907-2392-remove-leaked-test-temporary-files"
+related-pr: 2938
+last-updated-utc: "2026-11-18 11:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -92,7 +92,8 @@ and then unrelated tests fail.
 ## Design and Ownership Review
 
 Both files are owned by the test that creates them, following patterns the workspace already
-uses. The designs below are the #2907 session's proposal; the maintainer confirms them in T2.
+uses. The #2907 session proposed the designs below; the maintainer confirmed both in T2 on
+2026-11-18.
 
 - TOML: each test creates a `tempfile::tempdir()` and writes its configuration file inside it, as
   the tests in `src/bootstrap/config.rs` do.
@@ -142,11 +143,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | TODO | Reproduce with a fresh `TMPDIR` | Before-counts recorded (V1). The #2907 session ran it on 2026-11-17 at `develop` `61e3fedcf` and records it in the evidence file. |
-| T2 | TODO | Confirm the two designs | The maintainer confirms the TOML and TLS designs above; recorded in this spec. |
-| T3 | TODO | Configuration-file tests | Files removed when the test ends; test-design review recorded before T4. |
-| T4 | TODO | TLS test files | Files removed on failure too; test-design review recorded before T5. |
-| T5 | TODO | Recheck | No `test_config_*.toml` and no PEM file after the suite (V2); `linter all` passes. |
+| T1 | DONE | Reproduce with a fresh `TMPDIR` | Before-counts recorded (V1): 2 `test_config_*.toml`, 0 PEM, 301 `data_*.db` at `develop` `61e3fedcf` (evidence file, "V1 repeated by T1"). |
+| T2 | DONE | Confirm the two designs | The maintainer confirmed the TOML and TLS designs above on 2026-11-18. |
+| T3 | DONE | Configuration-file tests | Files removed when the test ends (focused run: 1 file before, 0 after); test-design review recorded in the evidence file. |
+| T4 | DONE | TLS test files | Red then green recorded for both maintained tests (the second red run after review finding F5 of PR 2938); test-design review recorded in the evidence file; the maintainer approved the tests of T3 and T4 on 2026-11-18. |
+| T5 | DONE | Recheck | V2: 0 `test_config_*.toml`, 0 PEM, 4152 tests passed; `linter all` exit `0`. |
 
 ## Commit Points
 
@@ -164,11 +165,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Folder-style spec drafted in `docs/issues/drafts/2392-remove-leaked-test-temporary-files/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -185,14 +186,50 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   plan: the old T3 (SQLite) left, T4 to T6 became T3 to T5.
 - 2026-11-17 18:39 UTC - Claude Code (Claude Fable 5.2), EPIC #2392 coordinator - The SQLite issues are
   #2924 and #2925. Updated this issue's title and body on GitHub to the narrowed scope.
+- 2026-11-18 09:50 UTC - Claude Code (Claude Opus 5.5), #2907 session - Started implementation on
+  branch `2907-2392-remove-leaked-test-temporary-files`, rebased on `develop` `90a7c7d3f`. T1 done:
+  recorded the run of 2026-11-17 at `61e3fedcf` (2 TOML files, not 1: the `v2_0_0` and the `v3_0_0`
+  test each leave one). Neither `packages/configuration` nor `packages/axum-server` changed between
+  `61e3fedcf` and `90a7c7d3f`, so the result still holds.
+- 2026-11-18 10:02 UTC - Claude Code (Claude Opus 5.5), #2907 session - T2 done: the maintainer
+  confirmed both designs (TOML: a `tempfile::tempdir()` in each test; TLS: `make_temp_file` returns
+  a `NamedTempFile`).
+- 2026-11-18 10:06 UTC - Claude Code (Claude Opus 5.5), #2907 session - T3 done: both TOML tests
+  write inside a `TempDir`. Found why the leaked-file count varies between runs: five `figment::Jail`
+  tests in `packages/configuration/src/lib.rs` call `clear_env()`, which removes `TMPDIR` from the
+  whole process while they run, so a parallel test can write to `/tmp` instead. Recorded in the
+  evidence file and reported to the EPIC coordinator; out of this issue's scope.
+- 2026-11-18 11:08 UTC - Claude Code (Claude Opus 5.5), #2907 session - T4 done: `make_temp_file`
+  returns a `NamedTempFile`; the AC3 regression test was red against the old helper (it left
+  `failing-test-<nanoseconds>.pem`) and is green now, with a new AC2 drop test. The maintainer
+  reviewed and approved the tests of T3 and T4.
+- 2026-11-18 11:11 UTC - Claude Code (Claude Opus 5.5), #2907 session - T5 done: V2 left 0
+  `test_config_*.toml` and 0 PEM files (4152 tests passed), and `linter all` passed. Acceptance
+  criteria reviewed against the evidence: AC1 to AC3 and the linter criterion pass. Completion
+  review: no retrospective is needed. The design is the one the maintainer confirmed in T2, and the
+  plan ran as written. The one discovery, the `figment::Jail::clear_env()` race that makes the
+  leaked-file count a lower bound, is outside this issue: it is recorded in the evidence file and
+  was reported to the EPIC coordinator, who owns the follow-up decision.
+- 2026-11-18 11:19 UTC - Claude Code (Claude Opus 5.5), #2907 session - Rebased on a newer `develop`
+  whose new commits change only Markdown files, then pushed the branch to the `josecelano-bot` fork.
+  The pre-push hook passed (it ended with `cargo +nightly doc`, `cargo +stable package --workspace`
+  and the full `cargo +stable test` run, 2026-11-18 11:16:22 to 11:18:25 UTC), so the automatic
+  verification is complete. The independent Task Reviewer's report is in `agent-review-reports.md`.
+- 2026-11-18 11:55 UTC - Claude Code (Claude Opus 5.5), #2907 session - Opened PR #2938. Processing
+  its first reviews (audit: `docs/pr-reviews/pr-2938-review/PR-REVIEW.md`). Corrections to two
+  entries above, found by review: the 10:06 entry says five `figment::Jail` tests call `clear_env()`;
+  eighteen do (finding F4). The 11:19 entry says the new `develop` commits change only Markdown
+  files; they also changed `.dockerignore` and `project-words.txt` and renamed six `.txt` evidence
+  files of an archived spec, but no Rust or Cargo file (finding F6). Added a second red run, which
+  covers both maintained TLS tests, to the evidence file (finding F5).
 
 ## Acceptance Criteria
 
-- [ ] AC1: After the full test suite with a fresh `TMPDIR`, no `test_config_*.toml` and no test
+- [x] AC1: After the full test suite with a fresh `TMPDIR`, no `test_config_*.toml` and no test
   PEM file remains.
-- [ ] AC2: `make_temp_file` has a unit test proving its file is removed when the guard is dropped.
-- [ ] AC3: A failing TLS test also removes its files.
-- [ ] `linter all` exits with code `0`
+- [x] AC2: `make_temp_file` has a unit test proving its file is removed when the guard is dropped.
+- [x] AC3: A failing TLS test also removes its files.
+- [x] `linter all` exits with code `0`
 
 ## Verification Plan
 
@@ -208,7 +245,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | V1 | Reproduce | `TMPDIR=$(mktemp -d) cargo +stable test --tests --benches --examples --workspace --all-targets --all-features`, then count the files | Leaked files counted | DONE | `manual-verification-evidence.md` |
-| V2 | Recheck | Same command after the change | No `test_config_*.toml` and no PEM file; `data_*.db` files remain until the SQLite issues are done | TODO | `manual-verification-evidence.md` |
+| V2 | Recheck | Same command after the change | No `test_config_*.toml` and no PEM file; `data_*.db` files remain until the SQLite issues are done | DONE | `manual-verification-evidence.md` |
 
 Evidence policy: every recorded command result names the toolchain that produced it (for example
 `cargo +stable test`), and the evidence file is created from
@@ -218,9 +255,9 @@ Evidence policy: every recorded command result names the toolchain that produced
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | --- | --- | --- |
-| AC1 | TODO | V2 |
-| AC2 | TODO | Unit test |
-| AC3 | TODO | Unit test |
+| AC1 | DONE | V2: 0 `test_config_*.toml` and 0 PEM files after the full suite |
+| AC2 | DONE | `it_should_remove_the_temporary_file_when_its_guard_is_dropped` in `packages/axum-server/src/tls.rs` |
+| AC3 | DONE | `it_should_remove_the_temporary_file_when_the_test_using_it_fails` in `packages/axum-server/src/tls.rs`, red against the old helper and green after (T4) |
 
 ## Risks and Trade-offs
 
@@ -229,7 +266,7 @@ Evidence policy: every recorded command result names the toolchain that produced
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: `Not needed` (see the progress-log entry of 2026-11-18 11:11 UTC)
 - If the work invalidates an assumption of this spec, changes its design materially, or finds
   something reusable, create `implementation-retrospective.md` from
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this folder; otherwise add a progress-log
