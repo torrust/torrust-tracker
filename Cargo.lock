@@ -13,6 +13,9 @@ name = "agent-reply-validator"
 version = "0.1.0"
 dependencies = [
  "rstest",
+ "serde",
+ "serde_json",
+ "serde_path_to_error",
  "thiserror 2.0.21",
 ]
 

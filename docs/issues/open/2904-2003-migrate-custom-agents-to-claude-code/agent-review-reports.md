@@ -90,3 +90,40 @@ semantic-links:
   - Author, after round 2: the spell checker rejected the case name that joins the agent and the
     subject with no separator, so that case now uses `task-reviewer_t2-r1.json`, a wrong separator
     instead. It guards the same clause: removing the `-` check makes it fail.
+
+### 2026-11-18 17:35 UTC - Test-design reviewer (Claude Code subagent, Claude Opus 5.5, `write-unit-test` skill)
+
+- Invocation scope: Read-only review of task T3, increment 2, on branch `2904-t3-reply-schema`
+  before its commit: `src/reply.rs`, the strict serde model of a reply file's JSON content,
+  with its unit tests and the new dependencies `serde`, `serde_json` and
+  `serde_path_to_error`. Two rounds: a review, then a re-review of the fixes.
+- Inputs: D18 of the specification and the author's choices it leaves open (every field
+  required, no unknown field, `schema-version` the number 1, no blank text, `created-utc` as
+  `YYYY-MM-DD HH:MM` with calendar validity, the review-audit severities, no rule joining two
+  fields); `.claude/skills/write-unit-test/SKILL.md`; `AGENTS.md`.
+- Evidence: `cargo test -p agent-reply-validator` passed with 89 tests in round 1 and 96 in
+  round 2; clippy printed nothing. The reviewer checked by reading, and once with `rustc` that
+  `u16::from_str` accepts a leading `+`. The author ran 28 mutations; each made at least one
+  test fail.
+- Findings:
+  - Major (round 1): no test guarded the digit clause of the time layout, which alone rejects
+    `2026-+1-18 17:25`.
+  - Minor (round 1): only April stood for the 30-day months, and no 31-day month but December
+    was tested at day 31.
+  - Minor (round 1): the rejection table asserted only the path, not the reason.
+  - Minor (round 1): no test of malformed JSON.
+  - Suggestion (round 1): a lower bound for the year.
+  - Suggestion (round 1): record that no rule joins two fields; no test of a duplicate key.
+  - Nit (round 1): `std::ops::Range` written in full; a `clone` only for an error message;
+    the serde impls of the name types live in `reply.rs`, and the format mixes three casings.
+  - Nit (round 2): the time cases all assert the same reason, so they do not say which check
+    failed; each is shown to fail under its own mutation.
+- Verdict: REVIEW FAILED in round 1; REVIEW PASSED in round 2.
+- Follow-up actions:
+  - Author, done before the commit: added cases for a `+` in the time, day 31 of June,
+    September and November, an accepted 31 January, a duplicate key and a truncated object;
+    every rejection case asserts a reason; the module doc says no rule joins two fields; one
+    `is_blank` helper; `Range` imported.
+  - Not changed, with the reviewer's agreement in round 2: no year floor (any floor is
+    arbitrary, and the agent writes the time from `date -u`); the serde impls stay with the
+    reply format; the round 2 nit.
