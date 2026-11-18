@@ -1,7 +1,7 @@
 ---
 pr-number: 2944
 pr-url: https://github.com/torrust/torrust-tracker/pull/2944
-last-updated-utc: "2026-11-18 14:33"
+last-updated-utc: "2026-11-18 14:45"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -47,6 +47,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Round 2: da2ce7 review 5958264981 (CHANGES_REQUESTED, at the round 1 audit head) with the reviewer's findings F1 to F3, as audit findings F3 to F5.
 - Round 3: Copilot review 5958271471 (COMMENTED, at the round 1 fix head) with two findings without reviewer IDs, as audit findings F6 and F7.
 - Round 4: da2ce7 review 5958625555 (posted as an approval at the round 3 audit head; the rebase push then dismissed it) with the reviewer's findings F4 and F5, neither blocking, as audit findings F8 and F9.
+- Round 5: Copilot review 5958719165 (COMMENTED, at the rebased head) with three findings, as audit findings F10 to F12. The second comment carries the label `[Minor][F9]` in its own text.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -59,6 +60,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F7 | review-finding:pr-2944-f7 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
 | F8 | review-finding:pr-2944-f8 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F9 | review-finding:pr-2944-f9 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-2944-f10 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-2944-f11 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-2944-f12 | Copilot | Major (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -161,7 +165,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4615597101
 - Concern: A commit changed the 14:17 entry of this record's Processing Log in place to correct its refresh result. The log is append-only: the entry keeps its text and a new entry records the correction.
 - Solution: The 14:17 entry has its first text again, and an appended 14:33 entry records the correction and names the commit that had rewritten it.
-- Current-tree verification: `grep -c 'a GraphQL refresh found no unresolved thread' docs/pr-reviews/pr-2944-review/PR-REVIEW.md` counts the restored 14:17 entry, and `grep -n 'Correction of the 14:17 entry' docs/pr-reviews/pr-2944-review/PR-REVIEW.md` finds the appended entry.
+- Current-tree verification: `grep -n '^- 2026-11-18 14:17' docs/pr-reviews/pr-2944-review/PR-REVIEW.md` prints the entry with "found no unresolved thread" again, and `grep -n 'Correction of the 14:17 entry' docs/pr-reviews/pr-2944-review/PR-REVIEW.md` finds the appended entry.
 - Resolution reference: docs(pr-reviews): [#2943] keep the PR 2944 audit log and the spec progress log append-only
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4615673418
@@ -179,6 +183,45 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4615674076
 
+### F10 - An absent `TMPDIR` would count as interference
+
+- PR number: 2944
+- Source review ID: 5958719165
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4615676812
+- Concern: The probe counts an unset `TMPDIR` as interference, but V1 did not require the variable to be set before the run, so a machine without `TMPDIR` would give a false reproduction and a failing V2.
+- Solution: V1 runs with `TMPDIR` set to a fresh empty directory and `PATH` set, the probe asserts both at its start, and V2 repeats the same environment setup.
+- Current-tree verification: `grep -n 'TMPDIR=<fresh empty dir>\|asserts that at its start' docs/issues/open/2943-2392-figment-jail-process-environment/ISSUE.md` finds V1 and step 1 of the bug-fix process.
+- Resolution reference: docs(issues): [#2943] record the drafting reproduction and make the recheck depend on the design
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4615793881
+
+### F11 - No reproduction attempt was recorded while drafting
+
+- PR number: 2944
+- Source review ID: 5958719165
+- Reviewer finding ID: F9
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4615676913
+- Concern: `fix-bug` asks for a reproduction attempt before the spec review, recorded in the issue folder with one of three outcomes. The folder held only the spec, and the `/tmp` explanation was an inference.
+- Solution: The reproduction was run: a probe test outside `Jail` read `PATH` unset, `TMPDIR` unset and a changed current directory in 3 of 3 runs. `manual-verification-evidence.md` records the probe's code, the commands, the toolchain and the output, with the outcome Reproduced. The spec's Background cites it, and T1 repeats the baseline.
+- Current-tree verification: `grep -n 'Reproduced' docs/issues/open/2943-2392-figment-jail-process-environment/manual-verification-evidence.md` finds the outcome, and `grep -c '^PROBE reads=' docs/issues/open/2943-2392-figment-jail-process-environment/manual-verification-evidence.md` prints 3.
+- Resolution reference: docs(issues): [#2943] record the drafting reproduction and make the recheck depend on the design
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4615794640
+
+### F12 - Under option A the unchanged probe cannot pass V2
+
+- PR number: 2944
+- Source review ID: 5958719165
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4615676986
+- Concern: Option A leaves `clear_env()` running in the probe's process, so the unchanged probe outside `Jail` still reads unset variables after the fix. The recommended design could not meet AC2 and V2 as written.
+- Solution: AC2 and V2 use the recheck that T2 defines for the chosen design. The unchanged V1 probe is that recheck only for options B and C; step 3 of the bug-fix process says what the recheck is under A, and T2's output includes it.
+- Current-tree verification: `grep -in 'the recheck T2 defines for the chosen design' docs/issues/open/2943-2392-figment-jail-process-environment/ISSUE.md` finds AC2 and V2.
+- Resolution reference: docs(issues): [#2943] record the drafting reproduction and make the recheck depend on the design
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2944#discussion_r4615795155
+
 ## Processing Log
 
 - 2026-11-18 13:54 UTC - Round 1: Copilot review 5957896114 with F1 and F2. Committed and pushed the fix (`docs(issues): [#2943] count G2 once in the AC4 evidence and cite the edition guide`), then replied to the two threads (13:53:25Z and 13:53:27Z).
@@ -189,6 +232,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-18 14:22 UTC - Resolved the two round 3 threads (about 14:22:47Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread, and the review list showed no review newer than 5958271471. The validator ran on the worktree record after these entries. Committed these entries.
 - 2026-11-18 14:27 UTC - Rebased the branch onto `develop` after PR #2947 (the #2907 close-out) merged, because both changed `docs/issues/open/2392-test-isolation/EPIC.md`. Kept both progress-log entries and the AC2 row of `develop`, and pointed the #2943 spec's link to the #2907 spec at `docs/issues/closed/`. No finding changes.
 - 2026-11-18 14:33 UTC - Correction of the 14:17 entry. Its statement "a GraphQL refresh found no unresolved thread" was wrong: the refresh showed two more unresolved threads, from Copilot review 5958271471 posted at 14:10:52Z, which round 2 had not read; they became round 3. An earlier commit (`docs(pr-reviews): [#2943] correct the round 2 refresh result in the PR 2944 audit`) had rewritten that entry in place; this commit restores its original text, because the log is append-only, and records the correction here.
+- 2026-11-18 14:37 UTC - Round 4: da2ce7 review 5958625555 with F8 and F9 (the reviewer's F4 and F5). Committed and pushed the fix (`docs(pr-reviews): [#2943] keep the PR 2944 audit log and the spec progress log append-only`), then replied to the two threads (14:37:19Z and 14:37:22Z) and resolved them (about 14:37:43Z). The GraphQL refresh then showed three unresolved threads, from Copilot review 5958719165 posted at 14:37:34Z; they are round 5. The commit `docs(pr-reviews): [#2943] audit review round 4 of PR 2944` added the F8 and F9 rows without this entry, which is written at 14:46 UTC.
+- 2026-11-18 14:45 UTC - Round 5: Copilot review 5958719165 with F10 to F12. Ran the reproduction that F11 asks for (a temporary probe test, reverted, 3 of 3 runs) and recorded it in the spec folder. Committed and pushed the fix (`docs(issues): [#2943] record the drafting reproduction and make the recheck depend on the design`), then replied to the three threads (14:45:24Z to 14:45:29Z).
+- 2026-11-18 14:45 UTC - Resolved the three round 5 threads (about 14:45:55Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh showed 2 unresolved thread(s). The validator ran on the worktree record after these entries. Committed these entries. This was the fifth round of fixes; further rounds wait for the maintainer.
 
 <!-- Copied verbatim into each audit record. -->
 
