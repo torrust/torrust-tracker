@@ -125,28 +125,44 @@ Following `.claude/skills/fix-bug/SKILL.md`:
   increment in `handler.rs` widens the window. With it, the unmodified test fails at
   `integration.rs:253` with `left: 0, right: 1`, which is the exact failure of the merge run. The
   temporary code is recorded verbatim in `manual-verification-evidence.md` and was reverted.
-- **Regression-test boundary.** The existing integration test (see below).
-- **Red evidence.** The run with the widened window above, against the unchanged helper.
+- **Regression-test boundary.** A new maintained test of the wait helper itself, with no running
+  listener (see below). The existing integration test stays as the end-to-end check.
+- **Red evidence.** The new helper test fails against the unchanged helper. The widened-window
+  probe also fails the existing integration test against the unchanged helper.
 - **Fix.** Change the test helper only.
-- **Green and recheck.** Re-run the same widened-window probe against the fixed helper (it must
-  pass), revert the probe, then run the plain test and the whole integration binary repeatedly.
+- **Green and recheck.** The new helper test passes. Re-run the widened-window probe against the
+  fixed helper (it must pass), revert the probe, then run the plain test and the whole integration
+  binary repeatedly.
 
 ## Regression Test Strategy
 
-The defect lives in test support code, not in production code, so the maintained regression test
-is the affected integration test itself:
-`it_should_persist_the_global_number_of_completed_peers_into_the_database` in
-`packages/tracker-core/tests/integration.rs`. It is the only test that combines the background
-listener, the real (ephemeral) database and the in-memory counter.
+The defect is the helper's wait condition, so the maintained regression test sits at that boundary:
+a new test of `TestEnv::wait_for_global_downloads_persisted` in the tracker-core integration test
+crate (`packages/tracker-core/tests/`). It needs no production delay hook and does not depend on
+timing luck, because no listener runs:
 
-A new unit test is not useful here: the handler unit tests already prove the handler increments the
-counter after a successful database write, and the defect is about a test's wait condition, not
-the handler.
+- **Arrange:** build the environment with `TestEnv::new` and persistence enabled, without calling
+  `start`, so no event listener runs. Write the global downloads value `1` straight into the
+  database through the `torrent_metrics_store`. The in-memory persisted counter stays `0`.
+- **Act and assert, part 1:** await the helper under a short outer timeout (for example 500 ms).
+  It must still be pending when that timeout ends, because the counter is `0`.
+- **Act and assert, part 2:** increment the in-memory persisted counter to `1` through the stats
+  repository, then await the helper again. It must return well within its own 5-second timeout.
 
-Red is shown with the mutate-then-restore method: the temporary sleep in `handler.rs` makes the race
-deterministic, the unchanged helper fails, the fixed helper passes, and the sleep is reverted. The
-probe is not kept in the repository, because a maintained test cannot inject a delay into the
-handler without adding a test-only hook to production code.
+Against the unchanged helper, part 1 fails: the helper returns at once because the database
+already holds `1`. That run is the recorded red evidence. The test name and file are chosen when
+it is written, following the `write-unit-test` skill.
+
+The existing integration test,
+`it_should_persist_the_global_number_of_completed_peers_into_the_database`, stays as the
+end-to-end check that combines the background listener, the ephemeral database and the counter.
+It does not guard the defect on its own: it passed 400 plain runs with the faulty helper. The
+temporary widened-window probe in `handler.rs` (mutate-then-restore) shows that the end-to-end
+symptom, the exact merge-run failure, goes away with the fix. The probe is not kept, because a
+maintained test cannot inject that delay without a test-only hook in production code.
+
+The handler unit tests already prove the handler increments the counter after a successful
+database write, so no new handler test is needed.
 
 ## Implementation Plan
 
@@ -155,9 +171,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task                                     | Notes / Expected Output                                                                                                                       |
 | --- | ------ | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | T1  | DONE   | Reproduce the race                       | Widened-window probe fails at `integration.rs:253` with `left: 0, right: 1`. Recorded in `manual-verification-evidence.md` V1 and V2.         |
-| T2  | TODO   | Record red regression-test evidence      | Same probe on the implementation branch, before the fix, fails the regression test. Recorded in V3.                                           |
-| T3  | TODO   | Fix the wait helper                      | `wait_for_global_downloads_persisted` waits for the database value and the in-memory counter in one bounded loop. Comments updated.           |
-| T4  | TODO   | Green and like-for-like recheck          | Probe plus fix passes; probe reverted; plain test and whole integration binary pass on repeated runs. Recorded in V4.                         |
+| T2  | TODO   | Add the wait-helper regression test (red) | New test as described in Regression Test Strategy. It fails against the unchanged helper. The same-branch widened-window probe also fails the integration test. Both recorded in V3. |
+| T3  | TODO   | Fix the wait helper                      | `wait_for_global_downloads_persisted` waits for the database value and the in-memory counter in one bounded loop. Comments updated. The new helper test passes. |
+| T4  | TODO   | Green and like-for-like recheck          | New helper test passes; probe plus fix passes; probe reverted; plain test and whole integration binary pass on repeated runs. Recorded in V4. |
 | T5  | TODO   | Automatic checks and completion review   | `linter all`, `cargo test -p torrust-tracker-core`, pre-push checks; acceptance criteria re-reviewed; completion review recorded.              |
 
 ## Commit Points
@@ -165,7 +181,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | Task   | Coherent change set                                                         | Commit policy                                                       |
 | ------ | --------------------------------------------------------------------------- | ------------------------------------------------------------------- |
 | T1     | Issue specification and reproduction evidence                               | Spec-only PR; commit after maintainer approval of the spec.         |
-| T2, T3 | Fixed wait helper and updated comments                                      | One commit after focused validation (the test has no new test code). |
+| T2     | Wait-helper regression test, seen red against the unchanged helper          | Commit after the red run is recorded and the test design is reviewed. |
+| T3     | Fixed wait helper and updated comments                                      | Commit after the new test and the integration tests pass.            |
 | T4, T5 | Red, green and recheck evidence; spec progress and completion review update | One evidence commit, separate from the code change.                 |
 
 Every commit uses a Conventional Commit message with the narrow affected scope and is signed with
@@ -212,6 +229,10 @@ the change to the existing test is limited to its wait helper and comment.
 - [ ] AC4: No other test reads the persisted downloads counter after waiting only for the
       database; the search result is recorded in this spec.
 - [ ] AC5: No production code changes.
+- [ ] AC6: A maintained test of the wait helper, with no running listener, writes `1` to the
+      database while the in-memory counter is `0`, checks the helper is still pending after a
+      short timeout, then increments the counter and checks the helper returns. It fails against
+      the unchanged helper and passes after the fix.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -235,8 +256,8 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | --- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- | ------ | -------------------------------------------- |
 | M1  | Plain repeated runs on `develop`            | Run the built integration binary 300 times filtered to the test, then 100 times unfiltered                       | Shows how rare the race is without help         | DONE   | `manual-verification-evidence.md` section V1 |
 | M2  | Reproduce with a widened window             | Add the 300 ms sleep in `handler.rs`, run the test with `cargo test`, revert the sleep                           | Fails at `integration.rs:253`, `left: 0, right: 1` | DONE   | `manual-verification-evidence.md` section V2 |
-| M3  | Red on the implementation branch            | Same probe on the implementation branch before the fix                                                           | Fails as in M2                                  | TODO   | `manual-verification-evidence.md` section V3 |
-| M4  | Green and like-for-like recheck             | Same probe with the fix (passes), revert the probe, repeat M1                                                    | Probe run passes; all plain runs pass           | TODO   | `manual-verification-evidence.md` section V4 |
+| M3  | Red on the implementation branch            | Run the new helper test before the fix; then the same probe as M2 on that branch, reverted after                 | Helper test fails; probe run fails as in M2     | TODO   | `manual-verification-evidence.md` section V3 |
+| M4  | Green and like-for-like recheck             | Run the new helper test with the fix; the same probe with the fix, reverted after; repeat M1                     | Helper test passes; probe run passes; all plain runs pass | TODO   | `manual-verification-evidence.md` section V4 |
 
 ### Disposable Verification Scripts
 
@@ -251,12 +272,14 @@ None. The probe is a one-line temporary edit, recorded verbatim in the evidence 
 | AC3   | TODO                   | `manual-verification-evidence.md` V4         |
 | AC4   | TODO                   | Background, "Other callers"                  |
 | AC5   | TODO                   | Implementation PR diff                       |
+| AC6   | TODO                   | `manual-verification-evidence.md` V3 and V4  |
 
 ## Risks and Trade-offs
 
-- **The probe is not maintained.** A future change could reintroduce a similar race without a test
-  catching it at once. Mitigation: the helper doc comment states the write order and why both
-  values are awaited. Adding a delay hook to production code only for tests is not worth it.
+- **The probe is not maintained.** It is the only check of the end-to-end symptom. Mitigation: the
+  new wait-helper test guards the faulty wait condition deterministically, and the helper doc
+  comment states the write order and why both values are awaited. Adding a delay hook to
+  production code only for tests is not worth it.
 - **Slower failure on a real bug.** If the counter is never incremented, the test now fails after
   the 5-second timeout instead of at the assertion. The timeout message names both values, so the
   cause stays clear.
