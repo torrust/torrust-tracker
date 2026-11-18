@@ -150,6 +150,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-18 08:04 UTC - (Exact time not recorded; after the audit start.) The first push of the fixes for F1, F2, F4 and F7 (three commits) was refused by the pre-push hook: `cargo +nightly check` failed in `torrust-tracker-udp-protocol` with `uncommon_codepoints` errors from `zerocopy-derive` on nightly 2026-11-18, unrelated to this PR. The maintainer chose (through the EPIC coordinator) to wait for the fix on `develop` instead of bypassing the hook.
 - 2026-11-18 08:57 UTC - The fix (#2932, issue #2931) was on `develop` (seen by a fetch at 08:57:29Z); rebased the branch onto it and pushed the three fix commits with `--force-with-lease`.
 - 2026-11-18 09:00 UTC - Replied to F1 to F7 (replies created from 09:00:40Z to 09:00:55Z). Threads not yet resolved.
+- 2026-11-18 09:02 UTC - Resolved the seven threads with `resolveReviewThread`; each returned `isResolved: true`.
 
 ## Completion Rules
 
