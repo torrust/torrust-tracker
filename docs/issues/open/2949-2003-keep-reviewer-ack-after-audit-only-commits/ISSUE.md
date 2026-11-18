@@ -84,8 +84,11 @@ repository.
 
 - The rule, stated once and referenced from the other places:
   a reviewer's `ACK <X>` counts on head `H` when `X` is `H`, or when `X` is an ancestor of `H` and
-  `git diff --name-only X..H` lists only files under `docs/pr-reviews/pr-<N>-review/`, where `<N>` is this pull
-  request's number. Any other changed file makes the ACK stale, as today.
+  `git diff --no-renames --name-only X..H` lists only files under `docs/pr-reviews/pr-<N>-review/`, where `<N>` is
+  this pull request's number. Any other changed file makes the ACK stale, as today. `--no-renames` is required:
+  with rename detection, which is on by default, a file moved into the folder from elsewhere is listed only by its
+  new path and would pass; without it, the move is listed as a deletion of the old path and an addition of the new
+  one, so the ACK goes stale (checked with Git 2.53.0 on a throwaway repository).
 - `merge-pull-request`, Merge Readiness: apply the rule to the Reviewer ACK check, with the exact command an
   agent or a person runs to check it.
 - `merge-pull-request`, Merge Readiness: remove "and in the review audit" from the waiver sentence. The durable
@@ -209,7 +212,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T4  | TODO   | Add the sentence to `process-pr-review`        | Authors know an audit-only commit keeps the ACK, and that history is never rewritten to protect one            |
 | T5  | TODO   | Merge tool, as D2 decides                      | (a) the expected message is documented; or (b) the tool lists the ACK and names the ACKed commit, with tests   |
 | T6  | TODO   | Note this issue on the #2363 line of `EPIC.md` | The line names this issue as the fix for the cause; that plan is historical, so nothing else in it changes     |
-| T7  | TODO   | Manual verification and close-out              | M1 to M3 recorded; EPIC row updated                                                                            |
+| T7  | TODO   | Manual verification and close-out              | M1 to M4 recorded; EPIC row updated                                                                            |
 
 ## Commit Points
 
@@ -274,16 +277,17 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                                    | Human-oriented command/steps                                                                           | Expected Result                                                    | Status | Evidence                                     |
-| --- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------ | ------ | -------------------------------------------- |
-| M1  | ACK followed by an audit-only commit        | On PR #2947's history, run the documented command with `X` = `e01212151` and `H` = `1d27a67e9`         | Only files under `docs/pr-reviews/pr-2947-review/`; the ACK counts | TODO   | `manual-verification-evidence.md` section V1 |
-| M2  | ACK followed by a commit outside the folder | Run the documented command on a pull request whose commits after the ACK change another file           | Another path is listed; the ACK is stale                           | TODO   | `manual-verification-evidence.md` section V2 |
-| M3  | Another pull request's audit folder         | Run the documented command where the commits after the ACK change `docs/pr-reviews/pr-<other>-review/` | The ACK is stale                                                   | TODO   | `manual-verification-evidence.md` section V3 |
+| ID  | Scenario                                    | Human-oriented command/steps                                                                                            | Expected Result                                                    | Status | Evidence                                     |
+| --- | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ------ | -------------------------------------------- |
+| M1  | ACK followed by an audit-only commit        | On PR #2947's history, run the documented command with `X` = `e01212151` and `H` = `1d27a67e9`                          | Only files under `docs/pr-reviews/pr-2947-review/`; the ACK counts | TODO   | `manual-verification-evidence.md` section V1 |
+| M2  | ACK followed by a commit outside the folder | Run the documented command on a pull request whose commits after the ACK change another file                            | Another path is listed; the ACK is stale                           | TODO   | `manual-verification-evidence.md` section V2 |
+| M3  | Another pull request's audit folder         | Run the documented command where the commits after the ACK change `docs/pr-reviews/pr-<other>-review/`                  | The ACK is stale                                                   | TODO   | `manual-verification-evidence.md` section V3 |
+| M4  | File moved into the audit folder            | Run the documented command where a commit after the ACK moves a file from outside into `docs/pr-reviews/pr-<N>-review/` | Both the old and the new path are listed; the ACK is stale         | TODO   | `manual-verification-evidence.md` section V4 |
 
 Notes:
 
-- M2 and M3 may use a local throwaway branch; record the commits used.
-- If D2 is (b), repeat M1 to M3 through the merge tool's own tests instead of by hand where a test covers them.
+- M2 to M4 may use a local throwaway branch; record the commits used.
+- If D2 is (b), repeat M1 to M4 through the merge tool's own tests instead of by hand where a test covers them.
 
 ### Disposable Verification Scripts
 
