@@ -9,7 +9,7 @@ github-issue: 2949
 spec-path: docs/issues/open/2949-2003-keep-reviewer-ack-after-audit-only-commits/ISSUE.md
 branch: "2949-keep-reviewer-ack-after-audit-only-commits-spec"
 related-pr: null
-last-updated-utc: "2026-11-19 08:20"
+last-updated-utc: "2026-11-19 13:49"
 semantic-links:
   skill-links:
     - create-issue
@@ -300,6 +300,8 @@ the last increment, before final verification and the pull request. If D2 is (a)
 - 2026-11-18 20:22 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Addressed Copilot review 5964359494 on PR #2950: the checked facts cite skill sections instead of line numbers, and the rule and D3 state the folder match as the exact prefix `docs/pr-reviews/pr-<N>-review/` with its trailing slash.
 - 2026-11-19 07:40 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Addressed da2ce7's review 5970994174 on PR #2950 (Copilot review 5964972845 raised F3 and F7 in its body too): the rule now checks every commit after the ACK with `git log --no-renames --diff-merges=first-parent --name-only --format= X..H`, so a reverted change outside the folder still makes the ACK stale (AC7, M5); the folder-match examples use paths that tell the forms apart (rule, D3, M3); Background and EPIC row 24 say the maintainer's decision of 2026-11-18 to adopt the rule was reopened under D1; and Commit Points carries the test-development loop for T5 when D2 is (b).
 - 2026-11-19 08:20 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Correction: the 2026-11-19 07:40 UTC entry was reworded in place at 2026-11-19 08:06 UTC (commit `docs(issues): [#2949] describe the 2026-11-18 decision one way in the spec and EPIC`) to use the wording "the maintainer's decision of 2026-11-18 to adopt the rule was reopened under D1". When first written it said the rule was proposed, which was the wording of row 24 and Background at that time. da2ce7's F19 on PR #2950 pointed out that a dated entry should not be rewritten in place.
+- 2026-11-19 13:49 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Correction to the 2026-11-19 08:20 UTC entry: it says the first wording of the 07:40 entry "was the wording of row 24 and Background at that time". Only EPIC row 24 said "proposed"; Background already said the maintainer decided on 2026-11-18 and D1 reopened that decision. Pointed out by da2ce7's F22 on PR #2950.
+- 2026-11-19 13:49 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Addressed Copilot review 5972058838 on PR #2950: Design and Ownership Review now specifies, for D2 (b), that the merge tool's `main()` acquires the Git history and that an ACK it cannot check does not count, and the note under the manual scenarios keeps the manual runs of M1 to M5 alongside the merge-tool tests.
 
 ## Acceptance Criteria
 
