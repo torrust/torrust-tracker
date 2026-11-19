@@ -41,8 +41,10 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-All five rows come from da2ce7's review 5971033415 (APPROVED on the first head, with an ACK comment); the
-reviewer's IDs are kept. Copilot's review 5963497070 on the same head had no findings and gets no
+F1 to F5 come from da2ce7's review 5971033415 (APPROVED on the first head, with an ACK comment),
+and F7 and F8 from his review 5971375457 (APPROVED on the round-1 head, with an ACK comment); the
+reviewer's IDs are kept. His F6 was never posted (the review says it was raised against an
+intermediate head and fixed by the next push), so it has no row. Copilot's review 5963497070 on the same head had no findings and gets no
 row.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
@@ -52,6 +54,8 @@ row.
 | F3 | review-finding:pr-2955-f3 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F4 | review-finding:pr-2955-f4 | Human | Suggestion | testing | ORIGINAL | FIXED | RESOLVED |
 | F5 | review-finding:pr-2955-f5 | Human | Suggestion | testing | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-2955-f7 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-2955-f8 | Human | Nit | testing | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -120,11 +124,38 @@ row.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2955#discussion_r4625810980
 
+### F7 - The description still describes the first head
+
+- PR number: 2955
+- Source review ID: 5971375457
+- Reviewer finding ID: F7
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2955#discussion_r4625932008
+- Concern: The PR description still said "128 unit tests and 8 doctests", listed three commits and four files, and did not mention the `develop` merge, the review-fix commits or the audit; the merge tool copies the description into the merge commit.
+- Solution: Edited the PR description (no commit): it lists every non-merge commit, the merge "Merge torrust/develop into 2914-primitives", the audit file, and 129 unit tests and 8 doctests. A first draft wrote "closed #2804", which the closing-keyword scan caught; it was reworded before the edit.
+- Current-tree verification: `gh-bot pr view 2955 --json body` contains "129 unit tests"; the closing-keyword scan of the description matches only `Closes #2914`.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2955#discussion_r4625943446
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2955#discussion_r4625943446
+
+### F8 - An evidence sentence claims more than the recorded command ran
+
+- PR number: 2955
+- Source review ID: 5971375457
+- Reviewer finding ID: F8
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2955#discussion_r4625932015
+- Concern: The F4 mutation's evidence said all three no-source-path tests stayed green, but its command filtered on `peer_role`, which selects 9 tests and only one of the three.
+- Solution: The evidence now says what the filter selected and records the same mutation run over every unit test of the crate (`cargo test -q -p torrust-tracker-primitives --lib`, 2026-11-19 08:10:15 UTC): 128 passed, 1 failed (the new test), so all three no-source-path tests ran and stayed green.
+- Current-tree verification: the run's output was read from its log before the sentence was written; `git diff --quiet HEAD -- packages/primitives/src/peer.rs` exited 0 after the restore.
+- Resolution reference: docs(issues): [#2914] say which tests the F4 mutation run selected and add a full-suite run
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2955#discussion_r4626078892
+
 ## Processing Log
 
 - 2026-11-19 07:44 UTC - Started audit for da2ce7's review 5971033415 (APPROVED, submitted 07:36:51Z on the first head, whose last commit was "docs(issues): [#2914] record the evidence of SI-2 and its breaking change for primitives 4.0.0"). Five findings, F1 to F5 with the reviewer's IDs. The branch had already been rebased onto `develop` at `7a4c16eaf` (F1) before the review arrived. Fixes committed: F5, F4 (test code), F3, F2 (docs). Not pushed yet; replies and thread resolution follow the push, and the Reply URL and Thread state fields are updated then.
 - 2026-11-19 07:51 UTC - Correction to the 07:44 entry: the rebase onto `7a4c16eaf` it mentions was local only and was replaced, on the maintainer's request, by a merge of `develop` at `f212ae33b` into the PR head ("Merge torrust/develop into 2914-primitives"); the later commits were carried over with the same content. F1's Solution, verification and resolution reference now name the merge.
 - 2026-11-19 07:55 UTC - Pushed "docs(issues): [#2914] record that develop was merged into the PR instead of rebased" as the new head (a fast-forward of the PR branch, pre-push hook passed). Replied on the five threads (replies created 07:54:47Z to 07:54:56Z), recorded the reply URLs, ran `validate-audit-record.py --pr-number 2955 --base torrust/develop` through a scratch copy that calls `gh-bot` (status ok, 5 rows, 0 failures), then resolved the five threads by 07:55:31 UTC (a `date -u` run after the resolve commands). GraphQL refresh: zero unresolved threads on PR #2955.
+- 2026-11-19 08:24 UTC - Round 2: da2ce7's review 5971375457 (APPROVED at 08:09:02Z on the round-1 head, "docs(pr-reviews): [#2914] record the replies and resolved threads of PR #2955 round 1"), with F7 (Minor) and F8 (Nit); his F6 was never posted. F7: edited the PR description and replied at 08:10:25Z. On the maintainer's choice to fix in this PR rather than in the close-out, F8 was fixed in "docs(issues): [#2914] say which tests the F4 mutation run selected and add a full-suite run", pushed as the new head, and replied at 08:23:21Z. Ran `validate-audit-record.py --pr-number 2955 --base torrust/develop` through the `gh-bot` scratch copy (status ok, 7 rows, 0 failures), then resolved both threads by 08:23:52 UTC (a `date -u` run after the resolve commands). GraphQL refresh: zero unresolved threads on PR #2955.
 
 ## Completion Rules
 
