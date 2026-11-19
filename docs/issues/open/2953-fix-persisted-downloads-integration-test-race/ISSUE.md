@@ -313,5 +313,6 @@ None. The probe is a one-line temporary edit, recorded verbatim in the evidence 
 ## References
 
 - PR where the failure was observed: torrust/torrust-tracker#2946 (merge-script pre-push run)
-- Similar bounded-retry pattern: `it_should_restore_*` test above the affected test in
-  `packages/tracker-core/tests/integration.rs`
+- Similar bounded-retry pattern: the `restored` timeout loop of
+  `it_should_persist_the_number_of_completed_peers_for_each_torrent_into_the_database`, above the
+  affected test in `packages/tracker-core/tests/integration.rs`
