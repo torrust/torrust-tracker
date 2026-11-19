@@ -12,6 +12,7 @@ use torrust_metrics::metric::MetricName;
 use torrust_tracker_configuration::v3_0_0::core::Core;
 use torrust_tracker_core::announce_handler::PeersWanted;
 use torrust_tracker_core::container::TrackerCoreContainer;
+use torrust_tracker_core::statistics::TRACKER_CORE_PERSISTED_TORRENTS_DOWNLOADS_TOTAL;
 use torrust_tracker_core::statistics::persisted::load_persisted_metrics;
 use torrust_tracker_events::drain::DEFAULT_DRAIN_TIMEOUT;
 use torrust_tracker_primitives::peer::Peer;
@@ -287,6 +288,35 @@ impl TestEnv {
         .expect("Timed out waiting for global downloads to be persisted to the database");
     }
 
+    /// Writes the global downloads count straight into the database, without
+    /// touching the in-memory `tracker_core_persisted_torrents_downloads_total`
+    /// counter.
+    pub async fn persist_global_downloads(&self, downloads: u32) {
+        self.tracker_core_container
+            .persistence
+            .as_ref()
+            .expect("tracker core test environment requires persistence")
+            .database_stores
+            .torrent_metrics_store
+            .save_global_downloads(downloads)
+            .await
+            .unwrap();
+    }
+
+    /// Increments the in-memory `tracker_core_persisted_torrents_downloads_total`
+    /// counter by one, as the event listener does after a successful database write.
+    pub async fn increment_persisted_downloads_counter(&self) {
+        self.tracker_core_container
+            .stats_repository
+            .increment_counter(
+                &MetricName::new(TRACKER_CORE_PERSISTED_TORRENTS_DOWNLOADS_TOTAL),
+                &LabelSet::default(),
+                DurationSinceUnixEpoch::from_secs(0),
+            )
+            .await
+            .unwrap();
+    }
+
     /// Writes a torrent's downloads count straight into the database, as a
     /// previous tracker run would have left it.
     pub async fn persist_torrent_downloads(&self, info_hash: &InfoHash, downloads: u32) {
@@ -320,5 +350,63 @@ impl TestEnv {
                     .value()
             })
             .await
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::time::Duration;
+
+    use tokio::time::timeout;
+
+    use super::TestEnv;
+    use crate::common::fixtures::{EphemeralConfiguration, ephemeral_configuration};
+
+    /// How long each test lets the wait run before it reads whether the wait finished.
+    const WAIT_LIMIT: Duration = Duration::from_millis(500);
+
+    /// Builds an environment with persistence enabled and no listener running, so only the
+    /// test changes the database value and the in-memory persisted downloads counter.
+    async fn test_env_without_listeners() -> (TestEnv, EphemeralConfiguration) {
+        let ephemeral = ephemeral_configuration();
+        let mut core_config = ephemeral.config.clone();
+        core_config.tracker_policy.persistent_torrent_completed_stat = true;
+        (TestEnv::new(core_config).await, ephemeral)
+    }
+
+    #[tokio::test]
+    async fn it_should_keep_waiting_for_the_persisted_global_downloads_when_only_the_database_has_reached_the_expected_value() {
+        // Arrange
+        let (test_env, _ephemeral) = test_env_without_listeners().await;
+        test_env.persist_global_downloads(1).await;
+
+        // Act
+        let wait = timeout(WAIT_LIMIT, test_env.wait_for_global_downloads_persisted(1)).await;
+
+        // Assert
+        assert!(
+            wait.is_err(),
+            "the wait for 1 persisted global download should still be pending after {WAIT_LIMIT:?} \
+             while the database holds 1 and the in-memory persisted downloads counter is still 0"
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_finish_waiting_for_the_persisted_global_downloads_when_the_database_and_the_in_memory_counter_have_reached_the_expected_value()
+     {
+        // Arrange
+        let (test_env, _ephemeral) = test_env_without_listeners().await;
+        test_env.persist_global_downloads(1).await;
+        test_env.increment_persisted_downloads_counter().await;
+
+        // Act
+        let wait = timeout(WAIT_LIMIT, test_env.wait_for_global_downloads_persisted(1)).await;
+
+        // Assert
+        assert!(
+            wait.is_ok(),
+            "the wait for 1 persisted global download should finish within {WAIT_LIMIT:?} \
+             when both the database and the in-memory persisted downloads counter hold 1"
+        );
     }
 }
