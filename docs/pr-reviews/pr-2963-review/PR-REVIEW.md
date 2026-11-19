@@ -42,7 +42,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1 has two reviews at head `7044dcb6726a0babd3eef30363f6e4a736316654`:
+Round 1 has two reviews at the head whose last commit is
+`docs(issues): [#2904] record the task review of T4 and check AC2`:
 
 - `5972182565` by `da2ce7` (APPROVED, 09:11:11 UTC): six inline findings, F1 to F6, with the
   reviewer's own IDs. Its body lists the same six findings and holds no other request, so it adds
@@ -171,19 +172,27 @@ Round 1 has two reviews at head `7044dcb6726a0babd3eef30363f6e4a736316654`:
 ## Processing Log
 
 - 2026-11-19 11:28 UTC - Started the audit for review `5972182565` (`da2ce7`, APPROVED) and the
-  Copilot overview `5972197600`, at head `7044dcb6726a0babd3eef30363f6e4a736316654`. The fixes of
+  Copilot overview `5972197600`, at the head whose last commit is
+  `docs(issues): [#2904] record the task review of T4 and check AC2`. The fixes of
   F1 to F5 were committed at 09:16 to 09:19 UTC by earlier runs of the `pr-review-handler` agent
   on this event, which stopped before pushing; the description edit of F6 was made at 09:24 UTC.
-  The maintainer posted `ACK 7044dcb6726a0babd3eef30363f6e4a736316654` at 09:24:49 UTC; the
+  The maintainer posted an ACK of that head at 09:24:49 UTC; the
   contributor then asked for the fixes to be pushed. The first push attempt failed in the pre-push
   hook (`clippy-allow-reasons` test `it_should_accept_supported_documented_attribute_shapes`:
   `git init` of a fixture reported "File exists"); `cargo test -p clippy-allow-reasons --test cli`
-  then passed (10 of 10), and the second push moved the fork branch to `594b0fba8` at 11:27 UTC
+  then passed (10 of 10), and the second push moved the fork branch at 11:27 UTC to the head whose
+  last commit is `docs(issues): [#2904] update last-updated-utc of the manual verification evidence`
   (`git ls-remote`). The F6 comment was posted at 11:28 UTC.
 - 2026-11-19 11:29 UTC - Replied on the six threads of F1 to F6 (11:28:52 to 11:29:04 UTC, the
   replies' `created_at`), recorded their URLs, and `validate-audit-record.py` exited 0 (6 rows, 0
   failures). Resolved the six threads at 11:29 UTC; each mutation returned `isResolved: true`, and a
   GraphQL refresh counted 0 unresolved threads.
+- 2026-11-19 11:53 UTC - Correction for finding F11 of round 2: rewrote in place the Findings introduction
+  and the first log entry above. They named the round-1 head by its full commit id, quoted the
+  maintainer's ACK with that id, and named the pushed head by its abbreviated id; they now name each
+  head by the subject of its last commit. The six round-1 replies, which cannot be edited, name the
+  pushed head by that abbreviated id: it is the head whose last commit is
+  `docs(issues): [#2904] update last-updated-utc of the manual verification evidence`.
 
 ## Completion Rules
 
