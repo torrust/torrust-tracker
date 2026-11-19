@@ -1,7 +1,7 @@
 ---
 pr-number: 2966
 pr-url: https://github.com/torrust/torrust-tracker/pull/2966
-last-updated-utc: "2026-11-19 11:13"
+last-updated-utc: "2026-11-19 11:24"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -43,7 +43,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1 is da2ce7's review `5973096324` (APPROVED, seven inline findings, F1 to F7) and Copilot's review `5973108503` (COMMENTED, one finding, F8 here, a re-raise of F5), both on the first head `8c6c8f510`.
+Round 1 is da2ce7's review `5973096324` (APPROVED, seven inline findings, F1 to F7) and Copilot's review `5973108503` (COMMENTED, one finding, F8 here, a re-raise of F5), both on the first head, the commit `docs(issues): [#2768] close out the tracker_client JSON-only issue`.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -105,8 +105,8 @@ Round 1 is da2ce7's review `5973096324` (APPROVED, seven inline findings, F1 to 
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2966#discussion_r4627251347
 - Concern: The PR title keeps [#2768] for an already closed issue.
 - Solution: Edited the PR title and wrote `Related to #2768` in the body.
-- Current-tree verification: checked in the tree after the push of the fix commit; see the reply.
-- Resolution reference: `docs(issues): [#2768] correct the close-out after review round 1`
+- Current-tree verification: the title and body were read back after the edit (`gh pr view`); the fix is outside the tree.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2966#discussion_r4627884832
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2966#discussion_r4627884832
 
@@ -166,6 +166,7 @@ Round 1 is da2ce7's review `5973096324` (APPROVED, seven inline findings, F1 to 
 
 - 2026-11-19 11:13 UTC - Started the audit after the replies of round 1, not before them (late start): the record was written once the reply URLs existed.
 - 2026-11-19 11:13 UTC - Round 1: the reviews above (da2ce7 at 10:17:01Z, Copilot at 10:17:52Z). One commit fixed all eight (pushed, `push_exit=0`); the PR title and body were edited; eight replies were posted, then the eight threads were resolved (GraphQL: 0 unresolved). `validate-audit-record.py` was not run (it uses plain gh).
+- 2026-11-19 11:24 UTC - Round 2: da2ce7's APPROVED review `5974080148` on the head with this record, with two inline findings (F10, F11 in his numbering; both Minor, about this record). Fixed in one commit: the first head is cited by subject, and F4 cites the reply that states the title edit. The threads were answered and resolved after the push. Fix round 2 of 5.
 
 <!-- Copied verbatim into each audit record. -->
 
