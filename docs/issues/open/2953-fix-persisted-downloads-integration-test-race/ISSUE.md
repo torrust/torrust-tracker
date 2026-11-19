@@ -9,7 +9,7 @@ github-issue: 2953
 spec-path: docs/issues/open/2953-fix-persisted-downloads-integration-test-race/ISSUE.md
 branch: "2953-fix-persisted-downloads-integration-test-race-spec"
 related-pr: null
-last-updated-utc: "2026-11-18 18:50"
+last-updated-utc: "2026-11-19 07:31"
 semantic-links:
   skill-links:
     - create-issue
@@ -229,6 +229,10 @@ this review, before final verification, commit or pull request.
   `manual-verification-evidence.md` V1 and V2.
 - 2026-11-18 18:50 UTC - Claude Code (Claude Opus 5.5) - Maintainer approved the spec; created issue #2953 and
   moved the spec to `docs/issues/open/2953-fix-persisted-downloads-integration-test-race/`.
+- 2026-11-19 07:31 UTC - Claude Code (Claude Opus 5.5) - Updated the spec for the PR #2954
+  review rounds: added task T2 (maintained wait-helper regression test, red first), task T4
+  (design review and maintainer stop), AC6 and scenario M5, stated the `>= expected` comparison
+  in In Scope, and named the test that holds the similar bounded-retry loop.
 
 ## Acceptance Criteria
 
