@@ -17,7 +17,7 @@ Source: pull-request reviews and inline review threads for https://github.com/to
 The PR author owns this tracked audit record. Reviewers, including repository review agents,
 deliver findings through GitHub and have no repository-artifact obligation.
 
-- Post-merge workflow approval: https://github.com/torrust/torrust-tracker/pull/2951#issuecomment-7003644686 (comment created 2026-11-19 08:18:03 UTC by the maintainer `josecelano`; review 5971150744 was submitted at 07:48 UTC on the final head and the PR merged at 08:07:03 UTC; the maintainer chose in the agent chat, before the merge, to fix its finding after the merge, so that the head with two ACKs did not change)
+- Post-merge workflow approval: https://github.com/torrust/torrust-tracker/pull/2951#issuecomment-7003644686 (comment created 2026-11-19 08:18:03 UTC by the maintainer `josecelano`; review 5971150744 was submitted at 07:48 UTC on the final head and the PR merged at 08:07:03 UTC (`merged_at` of the PR on GitHub; the merge commit carries 07:57:06 UTC as its author and committer time, `git log --format=%cI`); the maintainer chose in the agent chat, before the merge, to fix its finding after the merge, so that the head with two ACKs did not change)
 
 ## Status Values
 
@@ -184,7 +184,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-19 07:38 UTC - Replied on the six threads between 07:36:56Z and 07:37:08Z (`created_at` of the replies) and answered the Nit of the body in a comment on the PR conversation. The replies were posted before the push, so that the fix commit and this record go out in one push; the threads are resolved after it.
 - 2026-11-19 08:23 UTC - Correction to the round 2 entries: the six threads of review 5971000003 were resolved as `josecelano-bot` after the push of 2026-11-19 07:41:38 UTC, and `validate-audit-record.py --pr-number 2951`, run with the token of `josecelano-bot`, exited 0 (8 rows, 0 failures). The push did not carry an entry for this.
 - 2026-11-19 08:23 UTC - Round 3. Review 5971150744 (da2ce7, `APPROVED`, submitted 2026-11-19 07:48:39 UTC on the final head) has one inline thread with the reviewer's id F7, recorded as F9. The maintainer and da2ce7 had posted their ACK comments for that head, so the maintainer chose in the agent chat to fix F9 after the merge. A reply on the thread said so at 08:04:50Z (`created_at`). Review 5971337429 (Copilot, `COMMENTED`, 08:05 UTC) has no finding.
-- 2026-11-19 08:23 UTC - PR #2951 merged at 08:07:03 UTC. The maintainer posted the post-merge approval at 08:18:03 UTC; nothing was branched, committed or posted for F9 between the merge and that comment. Follow-up PR #2960, cut from `develop`, changes the resolution reference of F8. Replied on the thread naming #2960 at 08:23:32Z (`created_at`). F9 is `FOLLOW_UP` / `OPEN` until #2960 merges. GraphQL refresh: the thread of F9 is the only unresolved thread on PR #2951.
+- 2026-11-19 08:23 UTC - PR #2951 merged at 08:07:03 UTC (`merged_at` of the PR on GitHub; the merge commit carries 07:57:06 UTC as its author and committer time, `git log --format=%cI`). The maintainer posted the post-merge approval at 08:18:03 UTC; nothing was branched, committed or posted for F9 between the merge and that comment. Follow-up PR #2960, cut from `develop`, changes the resolution reference of F8. Replied on the thread naming #2960 at 08:23:32Z (`created_at`). F9 is `FOLLOW_UP` / `OPEN` until #2960 merges. GraphQL refresh: the thread of F9 is the only unresolved thread on PR #2951.
 
 ## Completion Rules
 
