@@ -45,16 +45,16 @@ da2ce7's conversation comment 6987829006 is not a review, so, as in the PR #2430
 
 Round 1 is Copilot review `5963231037` (`COMMENTED`, on head `docs(pr-reviews): [#2949] add the PR #2950 review audit record`), with two inline comments, F1 and F2 (audit-local IDs). Copilot labels both "Medium severity" in its overview; the severity `Minor` is inferred from that label, as in the PR #2905 audit. Its body says the full agentic review did not run because it did not start before the timeout.
 
-Round 2 is Copilot review `5963780219` (`COMMENTED`, on head `docs(pr-reviews): [#2949] record PR #2950 review round 1`), with one inline comment, F3. Its overview counts one open issue and two resolved since the last review, and gives no severity label for F3, so the severity `Nit` is inferred from the request (a wording mismatch). Its body carries the same timeout warning.
+Round 2 is Copilot review `5963780219` (`COMMENTED`, on head `docs(pr-reviews): [#2949] record PR #2950 review round 1`), with one inline comment, F3. Its overview counts one open issue and two resolved since the last review, and labels F3 "Medium severity", so the severity `Minor` is inferred from that label, as for F1 and F2. Its body carries the same timeout warning.
 
-Round 3 is Copilot review `5964359494` (`COMMENTED`, on head `docs(pr-reviews): [#2949] record PR #2950 review round 2`), with two inline comments, F4 and F5. Its overview counts two open issues and one resolved since the last review, and gives no severity label, so `Minor` is inferred for F5 (a check that could be implemented wrongly) and `Nit` for F4 (references that go stale). Its body carries the same timeout warning.
+Round 3 is Copilot review `5964359494` (`COMMENTED`, on head `docs(pr-reviews): [#2949] record PR #2950 review round 2`), with two inline comments, F4 and F5. Its overview counts two open issues and one resolved since the last review, and labels both F4 and F5 "Medium severity", so `Minor` is inferred for both. Its body carries the same timeout warning. An earlier version of this record said rounds 2 and 3 gave no severity label and recorded F3 and F4 as `Nit`; da2ce7's F2 in review 5970994174 corrected it.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | F1 | `review-finding:pr-2950-f1` | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 | F2 | `review-finding:pr-2950-f2` | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
-| F3 | `review-finding:pr-2950-f3` | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
-| F4 | `review-finding:pr-2950-f4` | Copilot | Nit (inferred) | link-integrity | ORIGINAL | FIXED | RESOLVED |
+| F3 | `review-finding:pr-2950-f3` | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F4 | `review-finding:pr-2950-f4` | Copilot | Minor (inferred) | link-integrity | ORIGINAL | FIXED | RESOLVED |
 | F5 | `review-finding:pr-2950-f5` | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
