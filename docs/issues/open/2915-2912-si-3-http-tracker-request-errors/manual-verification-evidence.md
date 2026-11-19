@@ -375,8 +375,8 @@ match a substring only, because the wording is pinned once at the unit level.
 
 Run at 11:28:57 to 11:29:16 UTC on the commit
 `test(http-protocol): [#2915] add red tests that HTTP tracker failure reasons name no source path`,
-after `cargo +nightly fmt --all` and the commit (`git diff --quiet HEAD` exited 0 at 11:28:57,
-before the first command). Commands, in order (stable Rust, as above):
+after `cargo +nightly fmt --all` and the commit (`git diff --quiet HEAD` exited 0 just before
+the first command, whose run started at 11:28:57). Commands, in order (stable Rust, as above):
 
 1. `cargo test -q -p torrust-tracker-http-protocol --lib` (no filter: all 82 unit tests ran):
    72 passed, 10 failed, the 10 new tests. Output: `evidence/tests-red-http-protocol.txt`.
@@ -396,7 +396,9 @@ the error message must not hold a source path, but it contains ".rs:": "invalid 
 
 The first attempt to commit these tests was stopped by the pre-commit hook (clippy
 `redundant_pub_crate` on the helper's `pub(crate)`); the helper became `pub` and the commit was
-made at 11:28:51. No test ran on the rejected attempt.
+made on the second attempt. `git log --format=%cI` records 11:27:44 as its author and committer
+date; the `git commit` command, whose pre-commit hook runs in between, returned at 11:28:51 (a
+`date -u` run right after it). No test ran on the rejected attempt.
 
 ### Between T3 and T4
 
