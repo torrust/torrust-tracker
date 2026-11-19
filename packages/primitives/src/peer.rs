@@ -739,6 +739,13 @@ pub mod test {
             );
             assert_names_no_source_path(&message);
         }
+
+        #[test]
+        fn it_should_name_the_accepted_roles_when_it_rejects_a_name() {
+            let message = "x".parse::<PeerRole>().unwrap_err().to_string();
+
+            assert_eq!(message, r#"invalid peer role "x", expected "seeder" or "leecher""#);
+        }
     }
 
     mod peer_state {
