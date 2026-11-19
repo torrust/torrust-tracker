@@ -61,8 +61,8 @@ row.
 | F9 | review-finding:pr-2955-f9 | Copilot | Minor (inferred) | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F10 | review-finding:pr-2955-f10 | Copilot | Minor (inferred) | maintainability | RE_RAISE_OF:F9 | NO_ACTION | SUPERSEDED |
 | F11 | review-finding:pr-2955-f11 | Copilot | Nit (inferred) | testing | ORIGINAL | NO_ACTION | SUPERSEDED |
-| F12 | review-finding:pr-2955-f12 | Human | Minor | link-integrity | ORIGINAL | FIXED | OPEN |
-| F13 | review-finding:pr-2955-f13 | Human | Suggestion | documentation | ORIGINAL | FIXED | OPEN |
+| F12 | review-finding:pr-2955-f12 | Human | Minor | link-integrity | ORIGINAL | FIXED | RESOLVED |
+| F13 | review-finding:pr-2955-f13 | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -207,7 +207,7 @@ row.
 - Current-tree verification: the skill's commit-id check against `develop` prints nothing.
 - Resolution reference: docs(pr-reviews): [#2914] cite the second develop merge by subject and name the reviewer by account
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2955#discussion_r4626395952
 
 ### F13 - Refer to the reviewer by account, not with a pronoun
 
@@ -220,7 +220,7 @@ row.
 - Current-tree verification: `grep -n -wiE "he|his|him|she|her"` over the audit, the SI-2 spec and evidence and the first-publish plan matches only two lines of this audit: this verification line, which spells the pattern, and the round-3 correction entry, which quotes the replaced text.
 - Resolution reference: docs(pr-reviews): [#2914] cite the second develop merge by subject and name the reviewer by account
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2955#discussion_r4626396327
 
 ## Processing Log
 
@@ -230,6 +230,7 @@ row.
 - 2026-11-19 08:24 UTC - Round 2: da2ce7's review 5971375457 (APPROVED at 08:09:02Z on the round-1 head, "docs(pr-reviews): [#2914] record the replies and resolved threads of PR #2955 round 1"), with F7 (Minor) and F8 (Nit); da2ce7's F6 was never posted. F7: edited the PR description and replied at 08:10:25Z. On the maintainer's choice to fix in this PR rather than in the close-out, F8 was fixed in "docs(issues): [#2914] say which tests the F4 mutation run selected and add a full-suite run", pushed as the new head, and replied at 08:23:21Z. Ran `validate-audit-record.py --pr-number 2955 --base torrust/develop` through the `gh-bot` scratch copy (status ok, 7 rows, 0 failures), then resolved both threads by 08:23:52 UTC (a `date -u` run after the resolve commands). GraphQL refresh: zero unresolved threads on PR #2955.
 - 2026-11-19 08:38 UTC - After round 2, `develop` moved and the PR conflicted again on the `last-updated-utc` line of the first-publish plan; merged `develop` at `3aa88bf19` in "Merge torrust/develop into 2914-primitives after the #1488 EPIC close-out" (a distinct subject, so F1's reference stays unique) and pushed it as the new head. Copilot's review 5971580124 (COMMENTED at 08:24:55Z on the round-1 head; its full agentic review timed out) left three comments, recorded as F9 to F11: no change for all three (F10 repeats F9). Replied at 08:37:00Z, 08:37:02Z and 08:37:05Z, ran `validate-audit-record.py --pr-number 2955 --base torrust/develop` through the `gh-bot` scratch copy (status ok, 10 rows, 0 failures), then resolved the three threads by 08:37:52 UTC (a `date -u` run after the resolve commands). GraphQL refresh: zero unresolved threads on PR #2955.
 - 2026-11-19 08:52 UTC - Round 3: da2ce7's review 5971881789 (APPROVED at 08:48:52Z, with an ACK comment) with F12 (Minor) and F13 (Suggestion). Correction, made in place: in the 08:38 entry, "pushed it as head" followed by the merge's commit id became "pushed it as the new head" (F12), and in the 08:24 entry "his F6" became "da2ce7's F6" (F13); the Findings introduction and F9's Current-tree verification were corrected the same way. No other content of earlier entries changed.
+- 2026-11-19 08:57 UTC - Pushed "docs(pr-reviews): [#2914] cite the second develop merge by subject and name the reviewer by account" as the new head after the commit-id check printed nothing. Replied on F12 and F13 (replies created 08:56:08Z and 08:56:10Z), recorded the reply URLs, ran `validate-audit-record.py --pr-number 2955 --base torrust/develop` through the `gh-bot` scratch copy (status ok, 12 rows, 0 failures), then resolved both threads by 08:56:50 UTC (a `date -u` run after the resolve commands). GraphQL refresh: zero unresolved threads on PR #2955.
 
 ## Completion Rules
 
