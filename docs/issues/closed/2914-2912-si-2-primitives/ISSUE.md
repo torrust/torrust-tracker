@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: in-progress
+status: done
 priority: p2
 epic: 2912
 github-issue: 2914
-spec-path: docs/issues/open/2914-2912-si-2-primitives/ISSUE.md
+spec-path: docs/issues/closed/2914-2912-si-2-primitives/ISSUE.md
 branch: "2914-primitives"
 related-pr: 2955
-last-updated-utc: "2026-11-19 08:19"
+last-updated-utc: "2026-11-19 09:36"
 semantic-links:
   skill-links:
     - create-issue
@@ -25,7 +25,7 @@ semantic-links:
 
 # Issue #2914 - Remove source locations from the errors of `torrust-tracker-primitives`
 
-Parent EPIC: [Remove source locations from errors](../2912-remove-source-locations-from-errors/EPIC.md) (#2912). Sub-issue SI-2 of the EPIC.
+Parent EPIC: [Remove source locations from errors](../../open/2912-remove-source-locations-from-errors/EPIC.md) (#2912). Sub-issue SI-2 of the EPIC.
 
 ## Goal
 
@@ -160,10 +160,10 @@ with the narrow affected scope, and sign every commit with GPG.
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
+- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification (not applicable: the reviewers reviewed PR #2955 on GitHub, recorded in `docs/pr-reviews/pr-2955-review/PR-REVIEW.md`)
 - [x] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -179,6 +179,7 @@ the model that produced them.
 - 2026-11-19 07:43 UTC - Claude Code (Claude Opus 5.5) - Review round 1 of PR torrust/torrust-tracker#2955 (da2ce7, approved with five findings; audit `docs/pr-reviews/pr-2955-review/PR-REVIEW.md`). F1 (conflict with `develop`) was resolved by the rebase. F2: the first red run was of the unformatted working tree; the evidence now says so and adds a re-run at the tests-only commit. F3: the publish plan's state line names PR #2955. F4: a new test pins the full peer-role message. F5: the assertion helper is `#[track_caller]`. F4 and F5 change test code only; both were proven by mutation (evidence, "Review fixes of PR #2955").
 - 2026-11-19 07:51 UTC - Claude Code (Claude Opus 5.5) - Correction to the 07:27 entry: the local rebase onto `develop` was never pushed (the force-push was not allowed). On the maintainer's request `develop` at `f212ae33b` was merged into the PR head instead, with the same `last-updated-utc` conflict resolution, and the commits made after the rebase were carried over unchanged in content.
 - 2026-11-19 08:19 UTC - Claude Code (Claude Opus 5.5) - Review round 2 of PR torrust/torrust-tracker#2955 (da2ce7, approved at the round-1 head with two findings). F7: the PR description now lists every commit, the `develop` merge and the audit, with the current counts. F8: the evidence of the F4 mutation said more than its filtered run showed; it now says which tests that run selected and adds a run of the same mutation over every unit test of the crate. No code change.
+- 2026-11-19 09:36 UTC - Claude Code (Claude Opus 5.5) - PR #2955 merged into `develop` (merge commit `f6d2f4df8`, 2026-11-19 09:33 UTC) after three review rounds by da2ce7 (approved at the last head) and two Copilot reviews; issue #2914 closed. Close-out: spec moved to `docs/issues/closed/`, status `done`, the remaining checkpoints ticked, SI-2 marked DONE in the EPIC table, and the first-publish plan's `primitives` state line says the constraint is met.
 
 ## Acceptance Criteria
 

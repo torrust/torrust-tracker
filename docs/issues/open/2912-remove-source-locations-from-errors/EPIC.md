@@ -6,7 +6,7 @@ epic: null
 github-issue: 2912
 spec-path: docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md
 epic-owner: null
-last-updated-utc: "2026-11-18 19:11"
+last-updated-utc: "2026-11-19 09:36"
 semantic-links:
   skill-links:
     - create-issue
@@ -116,7 +116,7 @@ existing issue #384.
 | Order | Issue | Local Spec | Status | Notes |
 | --- | --- | --- | --- | --- |
 | 1 | #2913 - SI-1 Record the decision that errors do not record source locations | `docs/issues/closed/2913-2912-si-1-adr-errors-do-not-record-source-locations/ISSUE.md` | DONE | First. Every code sub-issue waits for it |
-| 2 | #2914 - SI-2 Remove source locations from the errors of `torrust-tracker-primitives` | `docs/issues/open/2914-2912-si-2-primitives/ISSUE.md` | TODO | After SI-1. Closes finding F3 of the primitives test work (EPIC #1347). Must land before `primitives` 4.0.0 is published |
+| 2 | #2914 - SI-2 Remove source locations from the errors of `torrust-tracker-primitives` | `docs/issues/closed/2914-2912-si-2-primitives/ISSUE.md` | DONE | After SI-1. Closes finding F3 of the primitives test work (EPIC #1347). Must land before `primitives` 4.0.0 is published |
 | 3 | #2915 - SI-3 Remove source locations from the HTTP tracker request errors | `docs/issues/open/2915-2912-si-3-http-tracker-request-errors/ISSUE.md` | TODO | After SI-1. `http-protocol` and the `axum-http-server` extractors. Largest client-visible exposure |
 | 4 | #2916 - SI-4 Remove source locations from the errors of `torrust-tracker-core` | `docs/issues/open/2916-2912-si-4-tracker-core/ISSUE.md` | TODO | After SI-1; after SI-3 if not run in parallel, because both touch `http-core` tests. Largest diff |
 | 5 | #2917 - SI-5 Remove source locations from the configuration, TLS and UDP server errors | `docs/issues/open/2917-2912-si-5-startup-and-udp-server-errors/ISSUE.md` | TODO | After SI-1. Must land before `configuration` 4.0.0 is published |
