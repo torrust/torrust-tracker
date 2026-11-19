@@ -1,7 +1,7 @@
 ---
 pr-number: 2966
 pr-url: https://github.com/torrust/torrust-tracker/pull/2966
-last-updated-utc: "2026-11-19 12:13"
+last-updated-utc: "2026-11-19 12:16"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -58,6 +58,7 @@ Round 1 is da2ce7's review `5973096324` (APPROVED, seven inline findings, F1 to 
 | F8 | `review-finding:pr-2966-f8` | Copilot | Nit | formatting | RE_RAISE_OF:F5 | FIXED | RESOLVED |
 | F10 | `review-finding:pr-2966-f10` | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F11 | `review-finding:pr-2966-f11` | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F12 | `review-finding:pr-2966-f12` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -191,12 +192,26 @@ Round 1 is da2ce7's review `5973096324` (APPROVED, seven inline findings, F1 to 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2966#discussion_r4628043578
 
+### F12 - Round 2's two findings have replies and resolved threads but no rows in the record
+
+- PR number: 2966
+- Source review ID: 5974228751
+- Reviewer finding ID: da2ce7 F12
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2966#discussion_r4628114752
+- Concern: F10 and F11 had replies and resolved threads but no rows or detail entries, and the round 2 log line was committed before the replies it reports.
+- Solution: Rows and details for F10 and F11 added with their reply URLs, and a correction note on the round 2 log line.
+- Current-tree verification: the rows and details are in the record at the head after this round; see the reply.
+- Resolution reference: `docs(pr-reviews): [#2768] add the round 2 findings F10 and F11 to the PR 2966 audit`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2966#discussion_r4628553807
+
 ## Processing Log
 
 - 2026-11-19 11:13 UTC - Started the audit after the replies of round 1, not before them (late start): the record was written once the reply URLs existed.
 - 2026-11-19 11:13 UTC - Round 1: the reviews above (da2ce7 at 10:17:01Z, Copilot at 10:17:52Z). One commit fixed all eight (pushed, `push_exit=0`); the PR title and body were edited; eight replies were posted, then the eight threads were resolved (GraphQL: 0 unresolved). `validate-audit-record.py` was not run (it uses plain gh).
 - 2026-11-19 11:24 UTC - Round 2: da2ce7's APPROVED review `5974080148` on the head with this record, with two inline findings (F10, F11 in his numbering; both Minor, about this record). Fixed in one commit: the first head is cited by subject, and F4 cites the reply that states the title edit. The threads were answered and resolved after the push. Fix round 2 of 5. Correction (added later): this line was committed before the two replies existed (they were posted at 11:27Z); F10 and F11 had no rows until the next round.
-- 2026-11-19 12:13 UTC - Round 3: da2ce7's COMMENTED review `5974228751` (11:34:31Z) on head `docs(pr-reviews): [#2768] cite the first head by subject and F4 by its reply in the PR 2966 audit` with one Minor finding (F12 in his numbering): F10 and F11 had replies and resolved threads but no rows. Rows and details for F10 and F11 were added here, after their replies. The row for F12 follows once its reply exists. Fix round 3 of 5.
+- 2026-11-19 12:13 UTC - Round 3: da2ce7's COMMENTED review `5974228751` (11:34:31Z) on head `docs(pr-reviews): [#2768] cite the first head by subject and F4 by its reply in the PR 2966 audit` with one Minor finding (F12 in his numbering): F10 and F11 had replies and resolved threads but no rows. Rows and details for F10 and F11 were added here, after their replies. Fix round 3 of 5.
+- 2026-11-19 12:16 UTC - Round 3, continued: the F12 thread was answered at 12:16Z (after the push of the rows) and resolved; its row was added in this commit, after the reply. GraphQL: 0 unresolved.
 
 <!-- Copied verbatim into each audit record. -->
 
