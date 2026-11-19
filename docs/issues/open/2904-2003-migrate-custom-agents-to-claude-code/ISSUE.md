@@ -9,7 +9,7 @@ github-issue: 2904
 spec-path: docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md
 branch: "2904-t4-pr-review-handler"
 related-pr: null
-last-updated-utc: "2026-11-19 11:50"
+last-updated-utc: "2026-11-19 12:17"
 semantic-links:
   skill-links:
     - create-issue
@@ -606,6 +606,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - 2026-11-19 08:39 UTC - Claude Code (Claude Opus 5.5) - Pull request #2952 merged on 2026-11-19 at 08:28 UTC. Task T4: added the agent `.claude/agents/pr-review-handler.md`, pinned to `claude-opus-5-5`, which runs one review round through the preloaded `process-pr-review` workflow for every reviewer and returns a short report; `wait-for-pr-review` and `process-pr-review` say which agent runs a round and what the session keeps; started the inventory `removed-profile-rules.md` with the rules of `copilot-suggestions-handler` (AC6). Scenarios M1 and M2 ran in one session on `claude-sonnet-5-5`: the agent loaded, its skills, tools and model took effect, and its transcript shows `claude-opus-5-5`; `Grep` and `Glob`, which this build of Claude Code lacks, were dropped silently. Scenario M3 runs on the first review round of this task's pull request.
 - 2026-11-19 09:18 UTC - Claude Code (Claude Opus 5.5) - Independent review of T4 recorded in `agent-review-reports.md` at 08:44 (REVIEW PASSED, two minor findings, three nits and two suggestions). Addressed before the pull request, in four commits: V1 says the agent's transcript holds the four skills right after its task; the `wait-for-pr-review` paragraph and the agent file say the session brings the branch to the event's commit before it delegates; the agent's `description` names open, merged and replaced pull requests; the agent file points to `AGENTS.md` and `commit-changes` for commits and to the skill's list of what the session keeps; AC2 is checked with the evidence of V2. Not changed: `Grep` and `Glob` stay in `tools`. This entry was added in the first review round of pull request #2963, whose finding F2 noted that the log stopped before the review; its words "one commit each" were corrected in the second round (finding F9), since the branch-sync item took two commits and three other items share a commit with another change.
 - 2026-11-19 11:37 UTC - Claude Code (Claude Opus 5.5) - Scenario M3 done on the first review round of pull request #2963 (review `5972182565` of `da2ce7`, findings F1 to F6, all fixed), delegated to `pr-review-handler` by non-interactive sessions; it took three runs. The first was stopped after 10 minutes because the session started the agent in the background; the second stopped at a question, since the maintainer had ACKed the reviewed head during the round; the third, with the contributor's answer "Push the fixes", pushed the fixes and the audit record, replied to and resolved the six threads, and `validate-audit-record.py` exited `0`. Evidence in `manual-verification-evidence.md` section V3; the first round count for AC9 is in section V6. Task T4 is done.
+- 2026-11-19 12:17 UTC - Claude Code (Claude Opus 5.5) - Third review round of pull request #2963 (reviews `5974503813` and `5974634671` of `da2ce7`, findings F14 to F18), processed by `pr-review-handler`: the records of the M3 runs, of round 2 and of round 3 are stored in `evidence/m3-run-records.md`, which V3 and V6 link; V3 quotes the message that names `CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS` and says its effect alone was not observed; V6 counts three rounds with fixes; AC3 is checked with the evidence of V3, and the AC9 row gives the new count.
 
 ## Acceptance Criteria
 
@@ -613,7 +614,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
       ignored frontmatter key.
 - [x] AC2: `pr-review-handler` declares its model in its frontmatter, and a recorded run shows it
       ran on that model.
-- [ ] AC3: One real review round on a real pull request was processed by `pr-review-handler` from
+- [x] AC3: One real review round on a real pull request was processed by `pr-review-handler` from
       fetch to resolved threads, with `validate-audit-record.py` exiting `0`.
 - [ ] AC4: The `orchestrator` started the `implementer` and the `task-reviewer` on a real task, and
       each wrote a valid reply file. The implementer started no agent.
@@ -691,13 +692,13 @@ None planned.
 | ----- | ---------------------- | -------- |
 | AC1   | TODO                   |          |
 | AC2   | DONE                   | `.claude/agents/pr-review-handler.md` declares `model: claude-opus-5-5`; `manual-verification-evidence.md` section V2: started from a session on `claude-sonnet-5-5`, the agent's transcript shows `claude-opus-5-5` |
-| AC3   | TODO                   |          |
+| AC3   | DONE                   | `manual-verification-evidence.md` section V3: the first review round of pull request #2963 (review `5972182565`, F1 to F6) was processed by `pr-review-handler` in three runs, from the fetch of the threads to the six threads replied to and resolved; `validate-audit-record.py` exited `0`, by the agent's report and again when the session checked; the records and reports are in `evidence/m3-run-records.md` |
 | AC4   | TODO                   |          |
 | AC5   | TODO                   |          |
 | AC6   | TODO                   |          |
 | AC7   | TODO                   |          |
 | AC8   | TODO                   |          |
-| AC9   | TODO                   | `manual-verification-evidence.md` section V6: pull request #2963 (T4), the first of three, has 1 round with fixes so far, on `claude-opus-5-5`; final when it merges |
+| AC9   | TODO                   | `manual-verification-evidence.md` section V6: pull request #2963 (T4), the first of three, has 3 rounds with fixes so far, each on `claude-opus-5-5`; final when it merges |
 | AC10  | TODO                   |          |
 | AC11  | TODO                   |          |
 | AC12  | DONE                   | `manual-verification-evidence.md` section V4: probes 5 to 12 quote the root heading and the scoped rule in both checkouts, for the session and a started agent; `git ls-files \| grep -E '(^\|/)CLAUDE\.md$' \| xargs cat \| sort -u` prints only `@AGENTS.md` |
