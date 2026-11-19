@@ -6,6 +6,7 @@ use torrust_tracker_test_helpers::{configuration, logging};
 mod configured_as_private;
 mod configured_as_private_and_whitelisted;
 mod configured_as_whitelisted;
+mod failure_reasons_hold_no_source_path;
 mod for_all_config_modes;
 mod using_ipv6_v6only;
 

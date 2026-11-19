@@ -66,8 +66,6 @@ impl From<PeerIpResolutionError> for Error {
 
 #[cfg(test)]
 mod tests {
-    use std::panic::Location;
-
     use super::Error;
     use crate::v1::responses;
     use crate::v1::services::peer_ip_resolver::PeerIpResolutionError;
@@ -90,9 +88,7 @@ mod tests {
 
     #[test]
     fn it_should_map_a_peer_ip_resolution_error_into_an_error_response() {
-        let response = responses::error::Error::from(PeerIpResolutionError::MissingRightMostXForwardedForIp {
-            location: Location::caller(),
-        });
+        let response = responses::error::Error::from(PeerIpResolutionError::MissingRightMostXForwardedForIp);
 
         assert_error_response(&response, "Error resolving peer IP");
     }

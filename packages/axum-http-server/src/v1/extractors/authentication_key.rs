@@ -23,7 +23,7 @@
 //! When the key param has an **invalid format**:
 //!
 //! ```text
-//! d14:failure reason134:Authentication error: Invalid format for authentication key param. Error in src/servers/http/v1/extractors/authentication_key.rs:73:23e
+//! d14:failure reason110:Tracker authentication error: Invalid format for authentication key param: expected 32 alphanumeric characterse
 //! ```
 //!
 //! When the key is **not found** in the database:
@@ -42,8 +42,8 @@
 //! > Neither [The `BitTorrent` Protocol Specification](https://www.bittorrent.org/beps/bep_0003.html)
 //! > nor [The Private Torrents](https://www.bittorrent.org/beps/bep_0027.html)
 //! > specifications specify any HTTP status code for authentication errors.
+// cspell:ignore characterse
 use std::future::Future;
-use std::panic::Location;
 
 use axum::extract::rejection::PathRejection;
 use axum::extract::{FromRequestParts, Path};
@@ -105,22 +105,16 @@ fn parse_key(key: &str) -> Result<Key, responses::error::Error> {
 
     match key {
         Ok(key) => Ok(key),
-        Err(_parse_key_error) => Err(responses::error::Error::from(auth::Error::InvalidKeyFormat {
-            location: Location::caller(),
-        })),
+        Err(_parse_key_error) => Err(responses::error::Error::from(auth::Error::InvalidKeyFormat)),
     }
 }
 
 fn custom_error(rejection: &PathRejection) -> responses::error::Error {
     match rejection {
         axum::extract::rejection::PathRejection::FailedToDeserializePathParams(_) => {
-            responses::error::Error::from(auth::Error::InvalidKeyFormat {
-                location: Location::caller(),
-            })
+            responses::error::Error::from(auth::Error::InvalidKeyFormat)
         }
-        _ => responses::error::Error::from(auth::Error::CannotExtractKeyParam {
-            location: Location::caller(),
-        }),
+        _ => responses::error::Error::from(auth::Error::CannotExtractKeyParam),
     }
 }
 
@@ -129,6 +123,7 @@ mod tests {
 
     use axum::Router;
     use axum::body::{Body, to_bytes};
+    use axum::extract::FromRequestParts;
     use axum::http::StatusCode;
     use axum::response::{IntoResponse, Response};
     use axum::routing::get;
@@ -136,6 +131,7 @@ mod tests {
     use tower::ServiceExt;
 
     use super::{Extract, Key, parse_key};
+    use crate::tests::helpers::assert_names_no_source_path;
 
     const MAX_RESPONSE_BODY_BYTES: usize = 64 * 1024;
 
@@ -176,6 +172,43 @@ mod tests {
         assert_failure_reason_contains(
             &actual_error_response,
             "Tracker authentication error: Invalid format for authentication key param",
+        );
+    }
+
+    #[test]
+    fn it_should_describe_an_invalid_path_key_by_the_expected_format_and_no_source_path() {
+        // Act
+        let actual_error_response = parse_key("invalid_key").unwrap_err();
+
+        // Assert
+        assert_names_no_source_path(&actual_error_response.failure_reason);
+        assert_eq!(
+            actual_error_response.failure_reason,
+            "Tracker authentication error: Invalid format for authentication key param: expected 32 alphanumeric characters"
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_say_where_the_key_is_expected_and_name_no_source_path_when_the_request_has_no_path_params() {
+        // Arrange
+        let (mut parts, ()) = axum::http::Request::builder()
+            .uri("/announce")
+            .body(())
+            .expect("the test request should be valid")
+            .into_parts();
+
+        // Act
+        let Err(response) = Extract::from_request_parts(&mut parts, &()).await else {
+            panic!("a request without path params should be rejected");
+        };
+        let actual_error_response = decode_bencoded_failure_response(response).await;
+
+        // Assert
+        assert_names_no_source_path(&actual_error_response.failure_reason);
+        assert_eq!(
+            actual_error_response.failure_reason,
+            "Tracker authentication error: Cannot extract authentication key param from URL path: \
+             expected /announce/<key> or /scrape/<key>"
         );
     }
 

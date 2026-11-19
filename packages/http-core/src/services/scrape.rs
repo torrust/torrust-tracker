@@ -893,9 +893,7 @@ mod tests {
     #[test]
     fn it_should_report_a_peer_ip_resolution_error_with_the_protocol_failure_reason() {
         // Arrange
-        let resolution_error = PeerIpResolutionError::MissingClientIp {
-            location: Location::caller(),
-        };
+        let resolution_error = PeerIpResolutionError::MissingClientIp;
         let protocol_response = HttpProtocolErrorResponse::from(resolution_error.clone());
 
         // Act

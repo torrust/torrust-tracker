@@ -19,16 +19,16 @@
 //! Missing query params for `announce` request: <http://0.0.0.0:7070/announce>
 //!
 //! ```text
-//! d14:failure reason149:Bad request. Cannot parse query params for announce request: missing query params for announce request in src/servers/http/v1/extractors/announce_request.rs:54:23e
+//! d14:failure reason131:Bad request. Cannot parse query params for announce request: missing query params for announce request: the URL has no query stringe
 //! ```
 //!
 //! Invalid query param (`info_hash`): <http://0.0.0.0:7070/announce?info_hash=invalid&ip=2.137.87.41&downloaded=0&uploaded=0&peer_id=-qB00000000000000001&port=17548&left=0&event=completed&compact=0>
 //!
 //! ```text
-//! d14:failure reason240:Bad request. Cannot parse query params for announce request: invalid param value invalid for info_hash in not enough bytes for infohash: got 7 bytes, expected 20 src/shared/bit_torrent/info_hash.rs:240:27, src/servers/http/v1/requests/announce.rs:182:42e
+//! d14:failure reason146:Bad request. Cannot parse query params for announce request: invalid param value invalid for info_hash: it must percent-decode to exactly 20 bytese
 //! ```
+// cspell:ignore bytese stringe
 use std::future::Future;
-use std::panic::Location;
 
 use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
@@ -62,9 +62,7 @@ where
 
 fn extract_announce_from(maybe_raw_query: Option<&str>) -> Result<Announce, responses::error::Error> {
     if maybe_raw_query.is_none() {
-        return Err(responses::error::Error::from(ParseAnnounceQueryError::MissingParams {
-            location: Location::caller(),
-        }));
+        return Err(responses::error::Error::from(ParseAnnounceQueryError::MissingParams));
     }
 
     let query = maybe_raw_query.unwrap().parse::<Query>();
@@ -93,6 +91,7 @@ mod tests {
     use torrust_tracker_primitives::PeerId;
 
     use super::extract_announce_from;
+    use crate::tests::helpers::assert_names_no_source_path;
 
     fn assert_error_response(error: &Error, error_message: &str) {
         assert!(
@@ -131,6 +130,18 @@ mod tests {
         assert_error_response(
             &response,
             "Bad request. Cannot parse query params for announce request: missing query params for announce request",
+        );
+    }
+
+    #[test]
+    fn it_should_say_that_a_request_without_query_params_has_no_query_string_and_name_no_source_path() {
+        let response = extract_announce_from(None).unwrap_err();
+
+        assert_names_no_source_path(&response.failure_reason);
+        assert_eq!(
+            response.failure_reason,
+            "Bad request. Cannot parse query params for announce request: \
+             missing query params for announce request: the URL has no query string"
         );
     }
 

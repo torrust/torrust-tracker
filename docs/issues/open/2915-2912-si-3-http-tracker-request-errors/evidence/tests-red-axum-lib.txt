@@ -1,0 +1,45 @@
+start 11:29:10.253
+
+running 53 tests
+......... 9/53
+v1::extractors::announce_request::tests::it_should_say_that_a_request_without_query_params_has_no_query_string_and_name_no_source_path --- FAILED
+. 11/53
+v1::extractors::authentication_key::tests::it_should_describe_an_invalid_path_key_by_the_expected_format_and_no_source_path --- FAILED
+...... 18/53
+v1::extractors::scrape_request::tests::it_should_say_that_a_request_without_query_params_has_no_query_string_and_name_no_source_path --- FAILED
+................. 36/53
+v1::extractors::authentication_key::tests::it_should_say_where_the_key_is_expected_and_name_no_source_path_when_the_request_has_no_path_params --- FAILED
+................
+failures:
+
+---- v1::extractors::announce_request::tests::it_should_say_that_a_request_without_query_params_has_no_query_string_and_name_no_source_path stdout ----
+
+thread 'v1::extractors::announce_request::tests::it_should_say_that_a_request_without_query_params_has_no_query_string_and_name_no_source_path' panicked at packages/axum-http-server/src/v1/extractors/announce_request.rs:142:9:
+the failure reason must not hold a source path, but it contains ".rs:": "Bad request. Cannot parse query params for announce request: missing query params for announce request in packages/axum-http-server/src/v1/extractors/announce_request.rs:66:23"
+
+---- v1::extractors::authentication_key::tests::it_should_describe_an_invalid_path_key_by_the_expected_format_and_no_source_path stdout ----
+
+thread 'v1::extractors::authentication_key::tests::it_should_describe_an_invalid_path_key_by_the_expected_format_and_no_source_path' panicked at packages/axum-http-server/src/v1/extractors/authentication_key.rs:190:9:
+the failure reason must not hold a source path, but it contains ".rs:": "Tracker authentication error: Invalid format for authentication key param. Error in packages/axum-http-server/src/v1/extractors/authentication_key.rs:109:23"
+
+---- v1::extractors::scrape_request::tests::it_should_say_that_a_request_without_query_params_has_no_query_string_and_name_no_source_path stdout ----
+
+thread 'v1::extractors::scrape_request::tests::it_should_say_that_a_request_without_query_params_has_no_query_string_and_name_no_source_path' panicked at packages/axum-http-server/src/v1/extractors/scrape_request.rs:161:9:
+the failure reason must not hold a source path, but it contains ".rs:": "Bad request. Cannot parse query params for scrape request: missing query params for scrape request in packages/axum-http-server/src/v1/extractors/scrape_request.rs:66:23"
+
+---- v1::extractors::authentication_key::tests::it_should_say_where_the_key_is_expected_and_name_no_source_path_when_the_request_has_no_path_params stdout ----
+
+thread 'v1::extractors::authentication_key::tests::it_should_say_where_the_key_is_expected_and_name_no_source_path_when_the_request_has_no_path_params' panicked at packages/axum-http-server/src/v1/extractors/authentication_key.rs:213:9:
+the failure reason must not hold a source path, but it contains ".rs:": "Tracker authentication error: Cannot extract authentication key param from URL path. Error in packages/axum-http-server/src/v1/extractors/authentication_key.rs:122:23"
+
+
+failures:
+    v1::extractors::announce_request::tests::it_should_say_that_a_request_without_query_params_has_no_query_string_and_name_no_source_path
+    v1::extractors::authentication_key::tests::it_should_describe_an_invalid_path_key_by_the_expected_format_and_no_source_path
+    v1::extractors::authentication_key::tests::it_should_say_where_the_key_is_expected_and_name_no_source_path_when_the_request_has_no_path_params
+    v1::extractors::scrape_request::tests::it_should_say_that_a_request_without_query_params_has_no_query_string_and_name_no_source_path
+
+test result: FAILED. 49 passed; 4 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.03s
+
+error: test failed, to rerun pass `-p torrust-tracker-axum-http-server --lib`
+end 11:29:15.485

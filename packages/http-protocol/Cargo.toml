@@ -30,7 +30,6 @@ serde_bytes = "0"
 thiserror = "2"
 torrust-clock = "3.0.0"
 torrust-bencode = "3.0.0"
-torrust-located-error = "3.0.0"
 
 [package.metadata.cargo-machete]
 ignored = [ "serde_bytes" ]

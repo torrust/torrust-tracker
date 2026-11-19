@@ -23,6 +23,40 @@ pub fn assert_bencoded_error(response_text: &String, expected_failure_reason: &s
     );
 }
 
+/// Returns the `failure reason` of a bencoded error response, after checking
+/// that the response uses HTTP 200 as the tracker protocol requires.
+pub async fn failure_reason_of(response: Response) -> String {
+    assert_eq!(response.status(), 200);
+
+    let response_text = response.text().await.unwrap();
+
+    serde_bencode::from_str::<Error>(&response_text)
+        .unwrap_or_else(|_| panic!("response body should be a valid bencoded error, got \"{response_text}\""))
+        .failure_reason
+}
+
+/// Fails when `failure_reason` contains anything that looks like a source
+/// path: a workspace path, a registry checkout, the standard library sources,
+/// or a `file.rs:line` suffix, written with either path separator. It reports a
+/// failure at the caller's line.
+#[track_caller]
+pub fn assert_names_no_source_path(failure_reason: &str) {
+    for fragment in [
+        ".rs:",
+        "packages/",
+        "packages\\",
+        "src/",
+        "src\\",
+        ".cargo/registry",
+        "rustlib/src",
+    ] {
+        assert!(
+            !failure_reason.contains(fragment),
+            "the failure reason must not hold a source path, but it contains {fragment:?}: {failure_reason:?}"
+        );
+    }
+}
+
 #[allow(dead_code)]
 pub async fn assert_empty_announce_response(response: Response) {
     assert_eq!(response.status(), 200);
@@ -119,7 +153,7 @@ pub async fn assert_could_not_find_remote_address_on_x_forwarded_for_header_erro
 
     assert_bencoded_error(
         &response.text().await.unwrap(),
-        "missing or invalid the right most X-Forwarded-For IP (mandatory on reverse proxy tracker configuration)",
+        "missing or invalid right-most IP in the X-Forwarded-For header",
         Location::caller(),
     );
 }

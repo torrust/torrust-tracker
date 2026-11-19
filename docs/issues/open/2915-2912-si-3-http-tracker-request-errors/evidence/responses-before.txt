@@ -1,0 +1,34 @@
+date -u: 2026-11-19 11:22:40
+R1 announce numwant=x
+  GET :17070/announce?info_hash=%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0&peer_id=-qB00000000000000001&port=17548&numwant=x
+  d14:failure reason155:Bad request. Cannot parse query params for announce request: invalid param value x for numwant in packages/http-protocol/src/v1/requests/announce.rs:654:27e
+R2 announce without info_hash
+  GET :17070/announce?peer_id=-qB00000000000000001&port=17548
+  d14:failure reason145:Bad request. Cannot parse query params for announce request: missing param info_hash in packages/http-protocol/src/v1/requests/announce.rs:564:23e
+R3 announce 19-byte peer_id
+  GET :17070/announce?info_hash=%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0&peer_id=-qB0000000000000000&port=17548
+  d14:failure reason219:Bad request. Cannot parse query params for announce request: invalid param value -qB0000000000000000 for peer_id in Peer id too short: expected 20 bytes, got 19, packages/http-protocol/src/v1/requests/announce.rs:576:38e
+R4 announce 10-byte info_hash
+  GET :17070/announce?info_hash=0123456789&peer_id=-qB00000000000000001&port=17548
+  d14:failure reason342:Bad request. Cannot parse query params for announce request: invalid param value 0123456789 for info_hash in not enough bytes for infohash: got 10 bytes, expected 20 <cargo-home>/registry/src/index.crates.io-1949cf8c6b5b557f/torrust-info-hash-0.2.0/src/info_hash.rs:273:27, packages/http-protocol/src/v1/requests/announce.rs:559:42e
+R5 scrape 10-byte info_hash
+  GET :17070/scrape?info_hash=0123456789
+  d14:failure reason337:Bad request. Cannot parse query params for scrape request: invalid param value 0123456789 for info_hash in not enough bytes for infohash: got 10 bytes, expected 20 <cargo-home>/registry/src/index.crates.io-1949cf8c6b5b557f/torrust-info-hash-0.2.0/src/info_hash.rs:273:27, packages/http-protocol/src/v1/requests/scrape.rs:84:46e
+R6 scrape without info_hash
+  GET :17070/scrape?foo=bar
+  d14:failure reason140:Bad request. Cannot parse query params for scrape request: missing param info_hash in packages/http-protocol/src/v1/requests/scrape.rs:93:23e
+R7 announce without query
+  GET :17070/announce
+  d14:failure reason175:Bad request. Cannot parse query params for announce request: missing query params for announce request in packages/axum-http-server/src/v1/extractors/announce_request.rs:66:23e
+R8 scrape without query
+  GET :17070/scrape
+  d14:failure reason169:Bad request. Cannot parse query params for scrape request: missing query params for scrape request in packages/axum-http-server/src/v1/extractors/scrape_request.rs:66:23e
+R9 announce with unparsable query
+  GET :17070/announce?a=b=c
+  d14:failure reason108:Bad request. Cannot parse query params: invalid param a=b=c in packages/http-protocol/src/v1/query.rs:176:27e
+R10 private announce with malformed key
+  GET :17072/announce/invalid_key?info_hash=%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0&peer_id=-qB00000000000000001&port=17548
+  d14:failure reason156:Tracker authentication error: Invalid format for authentication key param. Error in packages/axum-http-server/src/v1/extractors/authentication_key.rs:109:23e
+R11 reverse-proxy announce without X-Forwarded-For
+  GET :17071/announce?info_hash=%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0&peer_id=-qB00000000000000001&port=17548
+  d14:failure reason196:Error resolving peer IP: missing or invalid the right most X-Forwarded-For IP (mandatory on reverse proxy tracker configuration) in packages/http-protocol/src/v1/services/peer_ip_resolver.rs:96:27e

@@ -19,16 +19,16 @@
 //! Missing query params for scrape request: <http://0.0.0.0:7070/scrape>
 //!
 //! ```text
-//! d14:failure reason143:Bad request. Cannot parse query params for scrape request: missing query params for scrape request in src/servers/http/v1/extractors/scrape_request.rs:52:23e
+//! d14:failure reason127:Bad request. Cannot parse query params for scrape request: missing query params for scrape request: the URL has no query stringe
 //! ```
 //!
 //! Invalid query params for scrape request: <http://0.0.0.0:7070/scrape?info_hash=invalid>
 //!
 //! ```text
-//! d14:failure reason235:Bad request. Cannot parse query params for scrape request: invalid param value invalid for info_hash in not enough bytes for infohash: got 7 bytes, expected 20 src/shared/bit_torrent/info_hash.rs:240:27, src/servers/http/v1/requests/scrape.rs:66:46e
+//! d14:failure reason144:Bad request. Cannot parse query params for scrape request: invalid param value invalid for info_hash: it must percent-decode to exactly 20 bytese
 //! ```
+// cspell:ignore bytese stringe
 use std::future::Future;
-use std::panic::Location;
 
 use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
@@ -62,9 +62,7 @@ where
 
 fn extract_scrape_from(maybe_raw_query: Option<&str>) -> Result<Scrape, responses::error::Error> {
     if maybe_raw_query.is_none() {
-        return Err(responses::error::Error::from(ParseScrapeQueryError::MissingParams {
-            location: Location::caller(),
-        }));
+        return Err(responses::error::Error::from(ParseScrapeQueryError::MissingParams));
     }
 
     let query = maybe_raw_query.unwrap().parse::<Query>();
@@ -91,6 +89,7 @@ mod tests {
     use torrust_tracker_http_protocol::v1::responses::error::Error;
 
     use super::extract_scrape_from;
+    use crate::tests::helpers::assert_names_no_source_path;
 
     struct TestInfoHash {
         pub bencoded: String,
@@ -150,6 +149,18 @@ mod tests {
         assert_error_response(
             &response,
             "Bad request. Cannot parse query params for scrape request: missing query params for scrape request",
+        );
+    }
+
+    #[test]
+    fn it_should_say_that_a_request_without_query_params_has_no_query_string_and_name_no_source_path() {
+        let response = extract_scrape_from(None).unwrap_err();
+
+        assert_names_no_source_path(&response.failure_reason);
+        assert_eq!(
+            response.failure_reason,
+            "Bad request. Cannot parse query params for scrape request: \
+             missing query params for scrape request: the URL has no query string"
         );
     }
 

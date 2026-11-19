@@ -1,0 +1,91 @@
+start 11:29:15.487
+
+running 11 tests
+server::v1::contract::failure_reasons_hold_no_source_path::a_scrape_with_a_short_info_hash --- FAILED
+server::v1::contract::failure_reasons_hold_no_source_path::a_scrape_without_query_params --- FAILED
+server::v1::contract::failure_reasons_hold_no_source_path::an_announce_to_a_tracker_behind_a_reverse_proxy_without_the_x_forwarded_for_header --- FAILED
+server::v1::contract::failure_reasons_hold_no_source_path::an_announce_with_an_unparsable_query --- FAILED
+server::v1::contract::failure_reasons_hold_no_source_path::an_announce_with_an_invalid_numwant_param --- FAILED
+server::v1::contract::failure_reasons_hold_no_source_path::an_announce_without_query_params --- FAILED
+server::v1::contract::failure_reasons_hold_no_source_path::an_announce_with_a_short_peer_id --- FAILED
+server::v1::contract::failure_reasons_hold_no_source_path::an_announce_with_a_short_info_hash --- FAILED
+server::v1::contract::failure_reasons_hold_no_source_path::a_scrape_without_the_info_hash_param --- FAILED
+server::v1::contract::failure_reasons_hold_no_source_path::an_announce_to_a_private_tracker_with_a_malformed_key --- FAILED
+server::v1::contract::failure_reasons_hold_no_source_path::an_announce_without_the_info_hash_param --- FAILED
+
+failures:
+
+---- server::v1::contract::failure_reasons_hold_no_source_path::a_scrape_with_a_short_info_hash stdout ----
+
+thread 'server::v1::contract::failure_reasons_hold_no_source_path::a_scrape_with_a_short_info_hash' panicked at packages/axum-http-server/tests/server/v1/contract/failure_reasons_hold_no_source_path.rs:147:5:
+the failure reason must not hold a source path, but it contains ".rs:": "Bad request. Cannot parse query params for scrape request: invalid param value 0123456789 for info_hash in not enough bytes for infohash: got 10 bytes, expected 20 <cargo-home>/registry/src/index.crates.io-1949cf8c6b5b557f/torrust-info-hash-0.2.0/src/info_hash.rs:273:27, packages/http-protocol/src/v1/requests/scrape.rs:84:46"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- server::v1::contract::failure_reasons_hold_no_source_path::a_scrape_without_query_params stdout ----
+
+thread 'server::v1::contract::failure_reasons_hold_no_source_path::a_scrape_without_query_params' panicked at packages/axum-http-server/tests/server/v1/contract/failure_reasons_hold_no_source_path.rs:124:5:
+the failure reason must not hold a source path, but it contains ".rs:": "Bad request. Cannot parse query params for scrape request: missing query params for scrape request in packages/axum-http-server/src/v1/extractors/scrape_request.rs:66:23"
+
+---- server::v1::contract::failure_reasons_hold_no_source_path::an_announce_to_a_tracker_behind_a_reverse_proxy_without_the_x_forwarded_for_header stdout ----
+
+thread 'server::v1::contract::failure_reasons_hold_no_source_path::an_announce_to_a_tracker_behind_a_reverse_proxy_without_the_x_forwarded_for_header' panicked at packages/axum-http-server/tests/server/v1/contract/failure_reasons_hold_no_source_path.rs:177:5:
+the failure reason must not hold a source path, but it contains ".rs:": "Error resolving peer IP: missing or invalid the right most X-Forwarded-For IP (mandatory on reverse proxy tracker configuration) in packages/http-protocol/src/v1/services/peer_ip_resolver.rs:96:27"
+
+---- server::v1::contract::failure_reasons_hold_no_source_path::an_announce_with_an_unparsable_query stdout ----
+
+thread 'server::v1::contract::failure_reasons_hold_no_source_path::an_announce_with_an_unparsable_query' panicked at packages/axum-http-server/tests/server/v1/contract/failure_reasons_hold_no_source_path.rs:48:5:
+the failure reason must not hold a source path, but it contains ".rs:": "Bad request. Cannot parse query params: invalid param a=b=c in packages/http-protocol/src/v1/query.rs:176:27"
+
+---- server::v1::contract::failure_reasons_hold_no_source_path::an_announce_with_an_invalid_numwant_param stdout ----
+
+thread 'server::v1::contract::failure_reasons_hold_no_source_path::an_announce_with_an_invalid_numwant_param' panicked at packages/axum-http-server/tests/server/v1/contract/failure_reasons_hold_no_source_path.rs:83:5:
+the failure reason must not hold a source path, but it contains ".rs:": "Bad request. Cannot parse query params for announce request: invalid param value x for numwant in packages/http-protocol/src/v1/requests/announce.rs:654:27"
+
+---- server::v1::contract::failure_reasons_hold_no_source_path::an_announce_without_query_params stdout ----
+
+thread 'server::v1::contract::failure_reasons_hold_no_source_path::an_announce_without_query_params' panicked at packages/axum-http-server/tests/server/v1/contract/failure_reasons_hold_no_source_path.rs:56:5:
+the failure reason must not hold a source path, but it contains ".rs:": "Bad request. Cannot parse query params for announce request: missing query params for announce request in packages/axum-http-server/src/v1/extractors/announce_request.rs:66:23"
+
+---- server::v1::contract::failure_reasons_hold_no_source_path::an_announce_with_a_short_peer_id stdout ----
+
+thread 'server::v1::contract::failure_reasons_hold_no_source_path::an_announce_with_a_short_peer_id' panicked at packages/axum-http-server/tests/server/v1/contract/failure_reasons_hold_no_source_path.rs:113:5:
+the failure reason must not hold a source path, but it contains ".rs:": "Bad request. Cannot parse query params for announce request: invalid param value -qB0000000000000000 for peer_id in Peer id too short: expected 20 bytes, got 19, packages/http-protocol/src/v1/requests/announce.rs:576:38"
+
+---- server::v1::contract::failure_reasons_hold_no_source_path::an_announce_with_a_short_info_hash stdout ----
+
+thread 'server::v1::contract::failure_reasons_hold_no_source_path::an_announce_with_a_short_info_hash' panicked at packages/axum-http-server/tests/server/v1/contract/failure_reasons_hold_no_source_path.rs:98:5:
+the failure reason must not hold a source path, but it contains ".rs:": "Bad request. Cannot parse query params for announce request: invalid param value 0123456789 for info_hash in not enough bytes for infohash: got 10 bytes, expected 20 <cargo-home>/registry/src/index.crates.io-1949cf8c6b5b557f/torrust-info-hash-0.2.0/src/info_hash.rs:273:27, packages/http-protocol/src/v1/requests/announce.rs:559:42"
+
+---- server::v1::contract::failure_reasons_hold_no_source_path::a_scrape_without_the_info_hash_param stdout ----
+
+thread 'server::v1::contract::failure_reasons_hold_no_source_path::a_scrape_without_the_info_hash_param' panicked at packages/axum-http-server/tests/server/v1/contract/failure_reasons_hold_no_source_path.rs:135:5:
+the failure reason must not hold a source path, but it contains ".rs:": "Bad request. Cannot parse query params for scrape request: missing param info_hash in packages/http-protocol/src/v1/requests/scrape.rs:93:23"
+
+---- server::v1::contract::failure_reasons_hold_no_source_path::an_announce_to_a_private_tracker_with_a_malformed_key stdout ----
+
+thread 'server::v1::contract::failure_reasons_hold_no_source_path::an_announce_to_a_private_tracker_with_a_malformed_key' panicked at packages/axum-http-server/tests/server/v1/contract/failure_reasons_hold_no_source_path.rs:162:5:
+the failure reason must not hold a source path, but it contains ".rs:": "Tracker authentication error: Invalid format for authentication key param. Error in packages/axum-http-server/src/v1/extractors/authentication_key.rs:109:23"
+
+---- server::v1::contract::failure_reasons_hold_no_source_path::an_announce_without_the_info_hash_param stdout ----
+
+thread 'server::v1::contract::failure_reasons_hold_no_source_path::an_announce_without_the_info_hash_param' panicked at packages/axum-http-server/tests/server/v1/contract/failure_reasons_hold_no_source_path.rs:71:5:
+the failure reason must not hold a source path, but it contains ".rs:": "Bad request. Cannot parse query params for announce request: missing param info_hash in packages/http-protocol/src/v1/requests/announce.rs:564:23"
+
+
+failures:
+    server::v1::contract::failure_reasons_hold_no_source_path::a_scrape_with_a_short_info_hash
+    server::v1::contract::failure_reasons_hold_no_source_path::a_scrape_without_query_params
+    server::v1::contract::failure_reasons_hold_no_source_path::a_scrape_without_the_info_hash_param
+    server::v1::contract::failure_reasons_hold_no_source_path::an_announce_to_a_private_tracker_with_a_malformed_key
+    server::v1::contract::failure_reasons_hold_no_source_path::an_announce_to_a_tracker_behind_a_reverse_proxy_without_the_x_forwarded_for_header
+    server::v1::contract::failure_reasons_hold_no_source_path::an_announce_with_a_short_info_hash
+    server::v1::contract::failure_reasons_hold_no_source_path::an_announce_with_a_short_peer_id
+    server::v1::contract::failure_reasons_hold_no_source_path::an_announce_with_an_invalid_numwant_param
+    server::v1::contract::failure_reasons_hold_no_source_path::an_announce_with_an_unparsable_query
+    server::v1::contract::failure_reasons_hold_no_source_path::an_announce_without_query_params
+    server::v1::contract::failure_reasons_hold_no_source_path::an_announce_without_the_info_hash_param
+
+test result: FAILED. 0 passed; 11 failed; 0 ignored; 0 measured; 63 filtered out; finished in 1.07s
+
+error: test failed, to rerun pass `-p torrust-tracker-axum-http-server --test integration`
+end 11:29:16.737

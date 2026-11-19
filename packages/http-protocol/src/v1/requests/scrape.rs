@@ -1,11 +1,8 @@
 //! `Scrape` request for the HTTP tracker.
 //!
 //! Data structures and logic for parsing the `scrape` request.
-use std::panic::Location;
-
 use thiserror::Error;
 use torrust_info_hash::InfoHash;
-use torrust_located_error::{Located, LocatedError};
 
 use crate::percent_encoding::percent_decode_info_hash;
 use crate::v1::query::Query;
@@ -38,18 +35,23 @@ pub struct Scrape {
 #[derive(Error, Debug)]
 #[non_exhaustive]
 pub enum ParseScrapeQueryError {
-    #[error("missing query params for scrape request in {location}")]
-    MissingParams { location: &'static Location<'static> },
-    #[error("missing param {param_name} in {location}")]
-    MissingParam {
-        location: &'static Location<'static>,
-        param_name: String,
-    },
-    #[error("invalid param value {param_value} for {param_name} in {source}")]
+    /// The request has no URL query at all.
+    #[error("missing query params for scrape request: the URL has no query string")]
+    MissingParams,
+    /// The mandatory `info_hash` param is missing.
+    #[error("missing param {param_name}")]
+    MissingParam { param_name: String },
+    /// An `info_hash` is invalid.
+    ///
+    /// The message does not print the source: its text comes from the
+    /// `torrust-info-hash` crate, which this workspace does not control, and
+    /// the message reaches the client.
+    #[error("invalid param value {param_value} for {param_name}: it must percent-decode to exactly 20 bytes")]
     InvalidInfoHashParam {
         param_name: String,
         param_value: String,
-        source: LocatedError<'static, torrust_info_hash::ConversionError>,
+        #[source]
+        source: torrust_info_hash::ConversionError,
     },
 }
 
@@ -81,7 +83,7 @@ fn extract_info_hashes(query: &Query) -> Result<Vec<InfoHash>, ParseScrapeQueryE
                     percent_decode_info_hash(&raw_param).map_err(|err| ParseScrapeQueryError::InvalidInfoHashParam {
                         param_name: INFO_HASH.to_owned(),
                         param_value: raw_param.clone(),
-                        source: Located(err).into(),
+                        source: err,
                     })?;
 
                 info_hashes.push(info_hash);
@@ -90,7 +92,6 @@ fn extract_info_hashes(query: &Query) -> Result<Vec<InfoHash>, ParseScrapeQueryE
             Ok(info_hashes)
         }
         None => Err(ParseScrapeQueryError::MissingParam {
-            location: Location::caller(),
             param_name: INFO_HASH.to_owned(),
         }),
     }
@@ -139,6 +140,39 @@ mod tests {
                 let raw_query = Query::from(vec![(INFO_HASH, "INVALID_INFO_HASH_VALUE")]).to_string();
 
                 assert!(Scrape::try_from(raw_query.parse::<Query>().unwrap()).is_err());
+            }
+        }
+
+        /// The text of a rejected scrape query reaches the client as the
+        /// `failure reason` of the response, so it must name what failed and
+        /// hold no source path (see
+        /// `docs/adrs/20261118045443_errors_do_not_record_source_locations.md`).
+        mod describing_a_rejected_query {
+            use crate::test_helpers::assert_names_no_source_path;
+            use crate::v1::query::Query;
+            use crate::v1::requests::scrape::Scrape;
+
+            fn rejection_message(raw_query: &str) -> String {
+                Scrape::try_from(raw_query.parse::<Query>().unwrap()).unwrap_err().to_string()
+            }
+
+            #[test]
+            fn it_should_name_the_missing_info_hash_param_and_no_source_path() {
+                let message = rejection_message("another_param=NOT_RELEVANT");
+
+                assert_names_no_source_path(&message);
+                assert_eq!(message, "missing param info_hash");
+            }
+
+            #[test]
+            fn it_should_name_a_short_info_hash_and_the_expected_length_and_no_source_path() {
+                let message = rejection_message("info_hash=0123456789");
+
+                assert_names_no_source_path(&message);
+                assert_eq!(
+                    message,
+                    "invalid param value 0123456789 for info_hash: it must percent-decode to exactly 20 bytes"
+                );
             }
         }
 
