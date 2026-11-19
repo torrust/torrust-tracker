@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: enhancement
-status: blocked
+status: in-progress
 priority: p3
 epic: 2392
 github-issue: 1419
 spec-path: docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
 branch: "1419-allow-multiple-integration-tests"
 related-pr: 2189
-last-updated-utc: "2026-09-30 14:58"
+last-updated-utc: "2026-11-19 08:23"
 semantic-links:
   skill-links:
     - write-unit-test
@@ -28,11 +28,22 @@ semantic-links:
     - packages/test-helpers
     - docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/completion-plan.md
     - "issue #1488"
+    - docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md
+    - docs/features/shutdown-process/README.md
+    - tests/common/workspace.rs
 ---
 
 # Issue #1419 - Allow multiple integration tests at the main app level
 
 Parent EPIC: #2392 - Test Isolation (`docs/issues/open/2392-test-isolation/EPIC.md`)
+
+> **Current state (2026-11-19):** the issue is no longer blocked. The shutdown overhaul, EPIC #1488,
+> is closed (its spec is in `docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md`), and the
+> maintainer decided on 2026-11-18 that #1419 continues under EPIC #2392. The remaining work is R8
+> (with AC8a) and R9. The plan for it is in
+> [R8 plan: align the fixture with the final shutdown API](#r8-plan-align-the-fixture-with-the-final-shutdown-api).
+> Text below that says the work "waits on #1488" or is "deferred to #1488" is the historical record
+> of the partial delivery; that plan section replaces it.
 
 ## Goal
 
@@ -263,6 +274,12 @@ completed work and remaining tasks are recorded after the decision pivot.
   frontmatter to v1 (required by the validator for edited open specs): status `open` became
   `blocked`, directory paths lost trailing slashes, and the #1488 and PR #1993 URLs were replaced
   by an `issue #1488` reference (v1 has no pull-request reference; the body still links #1993).
+- 2026-11-19 08:23 UTC - Claude - Unblocked the issue: EPIC #1488 is closed and the maintainer
+  decided on 2026-11-18 that #1419 continues under EPIC #2392. Status `blocked` became
+  `in-progress`. Reviewed `tests/common/workspace.rs` against the final shutdown API and recorded
+  the gaps G1 to G3, the decisions D1 to D5 for the maintainer, the planned change and the evidence
+  for AC8a in the R8 plan. Measured the ten fixture-based targets with no fixture change: each test
+  finished in 0.12 to 2.05 seconds, so the 60 to 81 seconds of 2026-08-24 no longer apply.
 
 ## Acceptance Criteria
 
@@ -285,7 +302,8 @@ completed work and remaining tasks are recorded after the decision pivot.
       `wait_for_all(...)`—before its temporary workspace is released.
 - [ ] AC8a: After shutdown-overhaul #1488 is implemented, review the integration fixture against
       the new production lifecycle and prove server jobs finish cooperatively without consuming the
-      current per-job timeout.
+      current per-job timeout. The evidence that meets it is defined in the
+      [R8 plan](#r8-plan-align-the-fixture-with-the-final-shutdown-api) (E1 to E4).
 - [x] AC9: All current main-level integration-test targets pass with normal parallel scheduling,
       and a representative target passes in serial mode. Current production server jobs can still
       consume the per-job shutdown timeout; cooperative completion is deferred to AC8a.
@@ -448,7 +466,7 @@ be reviewed before implementation begins.
 | R6  | DONE   | Run the full quality gate                     | On 2026-08-24, exit 0: the pre-commit gate passed, including `linter all`.                                                                                                                                                |
 | R6a | DONE   | Remove fixture environment injection          | `TrackerApplicationFixture` now passes its workspace TOML path to `app::start_with_explicit_config_toml_path`, removing its environment lock, restoration guard, and base-source environment mutation.                    |
 | R7  | DONE   | Open partial-improvement PR                   | [PR #2189](https://github.com/torrust/torrust-tracker/pull/2189) merged on 2026-09-10. It delivered explicit workspace-file configuration for the shared fixture; cooperative server shutdown remains owned by #1488.     |
-| R8  | TODO   | Revisit after shutdown overhaul #1488         | After #1488's production shutdown work merges, review this fixture against its finalized API, update it if needed, and complete AC8a. Keep #1419 open until that review is recorded.                                      |
+| R8  | TODO   | Revisit after shutdown overhaul #1488         | #1488 closed on 2026-11-19. The review is recorded in the [R8 plan](#r8-plan-align-the-fixture-with-the-final-shutdown-api); the fixture update and the AC8a evidence follow it once the maintainer approves the plan.          |
 | R9  | TODO   | Perform final closure review                  | After the #1488 follow-up, confirm all acceptance criteria, move the issue specification to `docs/issues/closed/`, and close GitHub issue #1419.                                                                          |
 
 #### Implementation Sequence
@@ -478,6 +496,93 @@ be reviewed before implementation begins.
 - Do not claim temporary directories are cleaned after a forced process interruption; normal
   `TempDir` cleanup is sufficient once jobs stop before the workspace is dropped.
 - Do not close the issue until the normal parallel invocation and `linter all` have both passed.
+
+### R8 Plan: Align the Fixture with the Final Shutdown API
+
+**Status:** proposed on 2026-11-19; it waits for the maintainer's decision on D1 to D5 below. No
+code changes before that.
+
+#### The final production shutdown API
+
+EPIC #1488 delivered this lifecycle boundary (checked in the code at `torrust/develop` commit
+`53916fd2b`):
+
+- `app::begin_shutdown(&app_container, &jobs)` in `src/app.rs` marks the application not ready and
+  then calls `JobManager::cancel()`. It is the production entry point of every shutdown.
+- `app::run_until_shutdown_signal` waits for `SIGINT` or `SIGTERM`, calls `begin_shutdown`, awaits
+  `jobs.wait_for_all(app_container.application_config.shutdown.deadline())`, and maps the outcomes
+  to the process exit code. The fixture cannot call it, because it waits for a process signal.
+- `JobManager::wait_for_all(deadline)` applies one shared deadline to all components
+  (`[application.shutdown].deadline_in_secs`, default 25 seconds). At the deadline it aborts and
+  joins what is left. It returns one `JobOutcome` per component; `JobStatus::is_graceful` is true
+  only for `Completed` and `Cancelled`, and `incomplete_components(&outcomes)` names the rest
+  (`Failed`, `Panicked`, `Aborted`).
+- The legacy halt channels, the token-to-halt bridge and the per-job wait timeout no longer exist.
+
+#### Review findings (R8)
+
+Reading `tests/common/workspace.rs` against that API found three gaps:
+
+| ID  | Gap                                                                                                                                                                              | Consequence                                                                                                         |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| G1  | `shutdown()` and `restart()` call `jobs.cancel()` directly, not `app::begin_shutdown`.                                                                                           | The fixture skips the readiness step, so the suites do not exercise the same shutdown entry point as production.    |
+| G2  | Both wait with a fixture constant, `TRACKER_SHUTDOWN_GRACE_PERIOD` (10 seconds), not the configured process deadline.                                                            | The fixture has its own deadline policy that can drift from the configuration the suite started the tracker with.   |
+| G3  | Both discard the `Vec<JobOutcome>` that `wait_for_all` returns.                                                                                                                  | A component that fails, panics or is aborted at the deadline does not fail the suite. Nothing proves cooperation.   |
+
+The timing evidence of the partial delivery is also stale. On 2026-08-24 each suite took 60 to 81
+seconds because server jobs consumed a per-job wait timeout. On 2026-11-19, with no fixture change,
+the ten fixture-based targets ran in one invocation and each test finished in 0.12 to 2.05 seconds.
+
+A local probe (not committed) applied the change proposed below to the unchanged suites. All ten
+targets passed; every component of every suite reported `Cancelled`; and the awaited shutdown took
+at most 1.01 seconds against the 25-second default deadline. So the proposed assertion holds today
+without any production change.
+
+#### Decisions for the maintainer
+
+| ID  | Decision                                              | Options                                                                                                                                                            | Recommendation                                                                                                                                                                                                                            |
+| --- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D1  | Which call starts the fixture's shutdown?             | (a) `app::begin_shutdown`; (b) keep `jobs.cancel()`.                                                                                                               | (a). It is the production boundary, so a change to it is exercised by every suite, and the fixture stops duplicating production lifecycle steps.                                                                                          |
+| D2  | Which deadline does the fixture pass to `wait_for_all`? | (a) the configured `application_config.shutdown.deadline()`; (b) keep the fixed 10 seconds; (c) a shorter fixture deadline.                                        | (a). It is what production does, and it removes the constant. A hung component then costs up to 25 seconds once, and fails the suite (D3). A suite can still set `[application.shutdown]` in its own TOML.                               |
+| D3  | What does the fixture do with the outcomes?           | (a) panic inside `shutdown()` and `restart()` when any outcome is not graceful, naming the components; (b) return the outcomes to each suite; (c) keep discarding. | (a). Every suite gets the check with no change at its call site, and no suite can forget it. A suite that wants a non-graceful shutdown is an executable-boundary test (`tests/lifecycle/`), not a user of this fixture.                  |
+| D4  | Is an extra negative test needed for the assertion?   | (a) none; (b) add a suite with a hung component to see the fixture fail.                                                                                           | (a). A hung component needs a production-only test hook in this process. The deadline abort is already covered at the executable boundary by `tests/lifecycle/shutdown_policy.rs` with the `hung-component-tracker` crate.                |
+| D5  | What does `Drop` do when a suite panics before `shutdown()`? | (a) call `app::begin_shutdown`; (b) keep `jobs.cancel()`.                                                                                                   | (a), for one shutdown entry point in the fixture. `Drop` still cannot await or assert; that limit stays documented.                                                                                                                       |
+
+#### Planned change
+
+If the recommendations are accepted, the change is small and stays in the test tree:
+
+1. `tests/common/workspace.rs`: add one private async helper that calls `app::begin_shutdown`,
+   awaits `wait_for_all` with the configured deadline, and asserts that
+   `incomplete_components(&outcomes)` is empty, with the component names in the panic message.
+   `shutdown()` and `restart()` call it; `Drop` calls `app::begin_shutdown`. Remove
+   `TRACKER_SHUTDOWN_GRACE_PERIOD`.
+2. `tests/AGENTS.md` (requirement 5 and the restart paragraph), the `tests/scaffold.rs` module
+   documentation and the status line of `completion-plan.md`: describe the new sequence and the
+   outcome assertion.
+3. No suite changes its call site. No production code changes.
+
+#### Evidence for AC8a
+
+| ID  | Evidence                                                                                                                                                                                                                            |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| E1  | The fixture asserts that every component outcome is graceful, so each fixture-based suite proves cooperative completion on every run, with no sleep and no reliance on process exit. An aborted component (deadline reached) fails the suite. |
+| E2  | All ten fixture-based targets pass in one Cargo invocation with the updated fixture (M1 repeated with the current target list).                                                                                                     |
+| E3  | `metrics-port-zero` passes with `--nocapture` and with `--test-threads=1` (M2 and M4 repeated). The recorded duration of each run is far below the 25-second deadline, which replaces the 60 to 81 seconds of 2026-08-24.            |
+| E4  | The pre-commit gate, including `linter all`, passes (M5 repeated).                                                                                                                                                                  |
+
+The current target list for E2 replaces the six-target command of the partial delivery:
+
+```sh
+cargo test --test metrics-fixed-ports --test metrics-port-zero --test metrics-udp-error-enabled-port-zero --test metrics-udp-error-disabled-port-zero --test banning-udp-metrics-disabled-port-zero --test banning-udp-shared-connection-id-error-limit --test banning-udp-shared-connection-id-error-limit-reverse-order --test persistence-completed-downloads-on-shutdown --test persistence-scrape-after-restart --test scaffold
+```
+
+#### Delivery
+
+1. This specification update, in its own pull request, so the plan is reviewed before code.
+2. The fixture change, the documentation updates and the recorded evidence (R8, AC8a).
+3. R9: the closure review of every acceptance criterion, then the specification moves to
+   `docs/issues/closed/`.
 
 ### Relationship to E2E Tests
 
