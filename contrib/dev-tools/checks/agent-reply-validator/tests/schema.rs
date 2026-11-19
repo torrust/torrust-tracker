@@ -27,7 +27,8 @@ fn it_should_track_the_schema_that_the_model_generates() {
 fn it_should_refuse_any_argument_and_write_nothing() {
     // Arrange
     let artifact = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..").join(ARTIFACT_PATH);
-    let before = fs::read_to_string(&artifact).ok();
+    let modified = |path: &Path| fs::metadata(path).and_then(|metadata| metadata.modified()).ok();
+    let before = (fs::read_to_string(&artifact).ok(), modified(&artifact));
 
     // Act
     let output = Command::new(env!("CARGO_BIN_EXE_agent-reply-schema"))
@@ -40,5 +41,5 @@ fn it_should_refuse_any_argument_and_write_nothing() {
     assert_eq!(String::from_utf8_lossy(&output.stdout), "");
     let record: serde_json::Value = serde_json::from_slice(&output.stderr).expect("stderr holds one JSON record");
     assert_eq!(record["kind"], "usage_error");
-    assert_eq!(fs::read_to_string(&artifact).ok(), before);
+    assert_eq!((fs::read_to_string(&artifact).ok(), modified(&artifact)), before);
 }
