@@ -49,13 +49,13 @@ Round 2 is Copilot review `5963780219` (`COMMENTED`, on head `docs(pr-reviews): 
 
 Round 3 is Copilot review `5964359494` (`COMMENTED`, on head `docs(pr-reviews): [#2949] record PR #2950 review round 2`), with two inline comments, F4 and F5. Its overview counts two open issues and one resolved since the last review, and gives no severity label, so `Minor` is inferred for F5 (a check that could be implemented wrongly) and `Nit` for F4 (references that go stale). Its body carries the same timeout warning.
 
-| Finding ID | Review finding reference    | Author class | Severity         | Category       | Relationship | Disposition | Thread state |
-| ---------- | --------------------------- | ------------ | ---------------- | -------------- | ------------ | ----------- | ------------ |
-| F1         | `review-finding:pr-2950-f1` | Copilot      | Minor (inferred) | correctness    | ORIGINAL     | FIXED       | RESOLVED     |
-| F2         | `review-finding:pr-2950-f2` | Copilot      | Minor (inferred) | documentation  | ORIGINAL     | FIXED       | RESOLVED     |
-| F3         | `review-finding:pr-2950-f3` | Copilot      | Nit (inferred)   | documentation  | ORIGINAL     | FIXED       | RESOLVED     |
-| F4         | `review-finding:pr-2950-f4` | Copilot      | Nit (inferred)   | link-integrity | ORIGINAL     | FIXED       | RESOLVED     |
-| F5         | `review-finding:pr-2950-f5` | Copilot      | Minor (inferred) | correctness    | ORIGINAL     | FIXED       | RESOLVED     |
+| Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| F1 | `review-finding:pr-2950-f1` | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F2 | `review-finding:pr-2950-f2` | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F3 | `review-finding:pr-2950-f3` | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F4 | `review-finding:pr-2950-f4` | Copilot | Nit (inferred) | link-integrity | ORIGINAL | FIXED | RESOLVED |
+| F5 | `review-finding:pr-2950-f5` | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
