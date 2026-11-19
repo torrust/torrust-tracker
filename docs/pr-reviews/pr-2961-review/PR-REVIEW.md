@@ -1,7 +1,7 @@
 ---
 pr-number: 2961
 pr-url: https://github.com/torrust/torrust-tracker/pull/2961
-last-updated-utc: "2026-11-19 09:18"
+last-updated-utc: "2026-11-19 09:37"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -41,7 +41,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 Copilot's review 5972177251 has one inline finding, `R1`. The review 5972178096 of `da2ce7` has four
 inline findings, `F1` to `F4`; its body lists the same four and adds no other request. The reviewers'
-own finding IDs are kept.
+own finding IDs are kept. The second review of `da2ce7`, 5972450674 (approved), has four inline
+findings, `F5` to `F8`; its body adds no other request.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -50,6 +51,10 @@ own finding IDs are kept.
 | F2 | review-finding:pr-2961-f2 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-2961-f3 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F4 | review-finding:pr-2961-f4 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F5 | review-finding:pr-2961-f5 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F6 | review-finding:pr-2961-f6 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-2961-f7 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-2961-f8 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -118,6 +123,58 @@ own finding IDs are kept.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2961#discussion_r4626609277
 
+### F5 - The last sentence of D3 contradicts the D4 (b) recommendation
+
+- PR number: 2961
+- Source review ID: 5972450674
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2961#discussion_r4626757329
+- Concern: D3 said a suite that wants a non-graceful shutdown is an executable-boundary test, not a user of this fixture, while D4 now recommends a fixture suite whose shutdown must not be graceful, placed in `tests/lifecycle/`.
+- Solution: D3's sentence now covers suites that test a non-graceful shutdown of the tracker, names the two executable-boundary files, and names the negative suite of D4 option (b) as the one exception.
+- Current-tree verification: `grep -c 'The one exception is the negative suite of D4 option (b)' docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md` printed 1.
+- Resolution reference: `docs(issues): [#1419] carve the D4 negative suite out of the D3 rule about non-graceful suites`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2961#discussion_r4626810042
+
+### F6 - The description still says the pull request touches one file
+
+- PR number: 2961
+- Source review ID: 5972450674
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2961#discussion_r4626757337
+- Concern: The "What changed" section of the PR description opened with "Only" the issue spec, but the head also adds this audit record.
+- Solution: The section now opens with "Two files" and names this audit record. No tree change.
+- Current-tree verification: `gh pr view 2961 --repo torrust/torrust-tracker --json body --jq .body | grep -c '^Two files\.'` printed 1 (run with the bot token).
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2961#discussion_r4626810504
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2961#discussion_r4626810504
+
+### F7 - The Processing Log stops at the record's creation
+
+- PR number: 2961
+- Source review ID: 5972450674
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2961#discussion_r4626757344
+- Concern: The rows said `RESOLVED` but the log recorded no validator run, push, thread resolution or GraphQL refresh, and the 09:19:49Z follow-up reply on the F2 thread came after the audit commit.
+- Solution: The log now has those round 1 events and the round 2 events. The commit that carries this entry is the last of round 2: its own push, and the resolution of the F7 thread after that push, are the events the log cannot carry.
+- Current-tree verification: `grep -c 'r4626637779' docs/pr-reviews/pr-2961-review/PR-REVIEW.md` printed 2 and `grep -c 'validate-audit-record.py' docs/pr-reviews/pr-2961-review/PR-REVIEW.md` printed 2.
+- Resolution reference: `docs(pr-reviews): [#1419] record round 2 in the review audit of PR 2961`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2961#discussion_r4626811052
+
+### F8 - With D4 (b) the planned change also touches the root Cargo.toml
+
+- PR number: 2961
+- Source review ID: 5972450674
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2961#discussion_r4626757350
+- Concern: Nested test targets are registered with `[[test]]` entries in the root `Cargo.toml`, so "stays in the test tree" in the spec and "test tree only" in the description were not exact.
+- Solution: The planned change says it stays in the test tree except for one `[[test]]` entry in the root `Cargo.toml` if D4 is (b), and step 3 names the entry. The PR description says the same.
+- Current-tree verification: `grep -c '\[\[test\]\]' docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md` printed 2.
+- Resolution reference: `docs(issues): [#1419] name the root Cargo.toml entry that the D4 negative target needs`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2961#discussion_r4626811628
+
 ## Processing Log
 
 - 2026-11-19 09:10 UTC - Copilot review 5972177251 (submitted 09:10:48) and the review 5972178096 of `da2ce7` (submitted 09:10:52, changes requested) arrived on the first head.
@@ -126,6 +183,14 @@ own finding IDs are kept.
 - 2026-11-19 09:17 UTC - Replied on the five threads (09:16:51 to 09:17:00). Each reply says its commit is local and goes up in one push with this record.
 - 2026-11-19 09:17 UTC - Committed a sweep that points AC8a at E5 (commit time 09:17:12), part of the F1 change.
 - 2026-11-19 09:18 UTC - Created this audit record. It was created after the replies, not before them as the skill asks, so the reply URLs could be recorded in the same commit.
+- 2026-11-19 09:18 UTC - Ran `validate-audit-record.py --pr-number 2961 --base torrust/develop` with the bot token: 5 rows, 6 log entries, 0 failures. Committed the record (commit time 09:18:42).
+- 2026-11-19 09:19 UTC - Replied again on the F2 thread (https://github.com/torrust/torrust-tracker/pull/2961#discussion_r4626637779, 09:19:49) to cite the coordinator's open pull request 2962, and edited the PR description to cite it.
+- 2026-11-19 09:21 UTC - Pushed round 1 (the "Docs Lint" run of that head was created at 09:21:42), then resolved the five threads; a GraphQL query before the resolutions listed five unresolved threads and each mutation returned `isResolved: true`.
+- 2026-11-19 09:31 UTC - The second review of `da2ce7`, 5972450674 (approved, submitted 09:31:39), arrived with F5 to F8.
+- 2026-11-19 09:33 UTC - Committed the fixes of F5 and F8 (commit times 09:33:18 and 09:33:59) and edited the PR description for F6 and F8.
+- 2026-11-19 09:36 UTC - Pushed the two fixes (the push ended at 09:36:36) and replied on the four threads (09:36:47 to 09:36:54).
+- 2026-11-19 09:37 UTC - Resolved the threads of F5, F6 and F8 (each mutation returned `isResolved: true`); the GraphQL query before them listed four unresolved threads, so one, F7, stays open until this record is pushed.
+- 2026-11-19 09:37 UTC - Added F5 to F8 and these entries. The push of this commit and the resolution of the F7 thread follow it and are not logged.
 
 ## Completion Rules
 
