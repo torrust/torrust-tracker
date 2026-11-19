@@ -297,8 +297,13 @@ Notes for the review:
 
 - The four formats that already printed their input only lose the trailing `in {location}`.
 - The six that printed no input (the two `MissingParams`, the two `PeerIpResolutionError` and the
-  two `auth::Error` variants) are reworded to say what failed. Each new text keeps the old
-  leading words, so a client or test that matched the start of the old text still matches.
+  two `auth::Error` variants) are reworded to say what failed. The two `MissingParams` and the
+  two `auth::Error` texts keep the old leading words, so a client or test that matched the start
+  of the old text still matches. The two `PeerIpResolutionError` texts do not: they keep only
+  "missing or invalid" and "cannot get the client IP". Five `axum-http-server` handler tests and
+  the contract-test helper
+  `assert_could_not_find_remote_address_on_x_forwarded_for_header_error_response` matched the old
+  starts and change with them (see Analysis).
 - The info-hash and peer-id messages no longer print their source: the info-hash source text comes
   from `torrust-info-hash` (ADR rule 4), and the peer-id message uses the same wording so the two
   20-byte params read alike. The byte count the old source text gave ("got 19") is gone; the
