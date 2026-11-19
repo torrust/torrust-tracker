@@ -53,6 +53,8 @@ Round 4 is Copilot review `5964972845` (`COMMENTED`, on head `docs(pr-reviews): 
 
 Round 5 is da2ce7's review `5971317192` (`APPROVED`, on head `docs(pr-reviews): [#2949] record PR #2950 review round 4`), with two inline comments that carry their own finding IDs, F15 and F16, and explicit severity labels. It is followed by Copilot review `5971362548` (`COMMENTED`, on head `docs(pr-reviews): [#2949] record Copilot's Medium label for F3 and F4 as Minor`), with two inline comments, recorded as F20 and F21 because da2ce7's next review uses F17 to F19. Copilot labels F20 "Medium severity" and F21 "Low severity"; the severities `Minor` and `Nit` are inferred from those labels. Its body carries the same timeout warning as rounds 1 to 3.
 
+Round 6 is da2ce7's review `5971496221` (`COMMENTED`, on head `docs(pr-reviews): [#2949] record Copilot's two body findings as non-resolvable rows`), with three inline comments carrying their own finding IDs, F17 to F19, and explicit severity labels.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | F1 | `review-finding:pr-2950-f1` | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -71,6 +73,9 @@ Round 5 is da2ce7's review `5971317192` (`APPROVED`, on head `docs(pr-reviews): 
 | F14 | `review-finding:pr-2950-f14` | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | NON_RESOLVABLE |
 | F15 | `review-finding:pr-2950-f15` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F16 | `review-finding:pr-2950-f16` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F17 | `review-finding:pr-2950-f17` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F18 | `review-finding:pr-2950-f18` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F19 | `review-finding:pr-2950-f19` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F20 | `review-finding:pr-2950-f20` | Copilot | Minor (inferred) | documentation | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F21 | `review-finding:pr-2950-f21` | Copilot | Nit (inferred) | formatting | ORIGINAL | FIXED | RESOLVED |
 
@@ -310,6 +315,45 @@ Round 5 is da2ce7's review `5971317192` (`APPROVED`, on head `docs(pr-reviews): 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4626034520
 
+### F17 - Round-5 threads answered but not recorded
+
+- PR number: 2950
+- Source review ID: 5971496221
+- Reviewer finding ID: F17
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4626029117
+- Concern: da2ce7's F15 and F16 were answered and resolved, but the audit had no row for either and no log entry for review 5971317192.
+- Solution: F15 and F16 are rows with their own finding IDs, source comments and reply URLs, and a round-5 log entry covers the review.
+- Current-tree verification: The validator's own `main()`, run with its gh calls routed through the contributor account, reported 18 rows, 6 log entries and no failures after the fix.
+- Resolution reference: `docs(pr-reviews): [#2949] record PR #2950 review round 5`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4626178697
+
+### F18 - Copilot's two round-5 threads without reply, row or resolution
+
+- PR number: 2950
+- Source review ID: 5971496221
+- Reviewer finding ID: F18
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4626029138
+- Concern: Copilot review 5971362548's two threads had no reply, no row and no resolution.
+- Solution: Both are rows (F20 `NO_ACTION`/`SUPERSEDED`, F21 `FIXED`), each thread has a reply, and both are resolved; the round-5 entry records that they were first resolved before any reply and reopened.
+- Current-tree verification: The GraphQL thread listing shows both threads resolved, each with a reply by the contributor account.
+- Resolution reference: `docs(pr-reviews): [#2949] record PR #2950 review round 5`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4626179113
+
+### F19 - Dated log entries reworded in place
+
+- PR number: 2950
+- Source review ID: 5971496221
+- Reviewer finding ID: F19
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4626029151
+- Concern: The F16 fix reworded the EPIC's 07:39 entry and the specification's 07:40 entry in place, so they described a wording first made at 08:06, and neither log had an 08:06 entry.
+- Solution: Each log has an appended 08:20 entry that says when and in which commit the earlier entry was reworded and what it said before.
+- Current-tree verification: Read both progress logs on the current tree: the 08:20 entry follows the 07:39 entry in the EPIC and the 07:40 entry in the specification.
+- Resolution reference: `docs(issues): [#2949] log the in-place rewording of the 07:39 and 07:40 entries`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4626179554
+
 ## Processing Log
 
 - 2026-11-18 18:34 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Started audit. The poller reported da2ce7's conversation comment [6987829006](https://github.com/torrust/torrust-tracker/pull/2950#issuecomment-6987829006) (2026-11-18 18:31:31 UTC) on head `docs(issues): add issue specification for #2949`; the pull request had no review. The comment does not agree to the rule as written, points to their proposal on #2949 ([issue comment 6987828129](https://github.com/torrust/torrust-tracker/issues/2949#issuecomment-6987828129), 18:31:29 UTC: a metadata branch folded in with a three-parent merge), and asks that the two be compared before deciding. A conversation comment is not a review, so it makes no row. The comparison was added to the specification in `docs(issues): [#2949] compare da2ce7's metadata-branch alternative under D1`; no decision was made, the maintainer decides D1.
@@ -318,6 +362,7 @@ Round 5 is da2ce7's review `5971317192` (`APPROVED`, on head `docs(pr-reviews): 
 - 2026-11-18 20:26 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Round 3: the poller reported Copilot review 5964359494 (submitted 2026-11-18 20:19:07 UTC). Normalized its two inline comments as F4 and F5, fixed each in its own commit, pushed both, replied on both threads, then resolved both threads.
 - 2026-11-19 07:48 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Round 4: the poller reported da2ce7's review 5970994174 (submitted 2026-11-19 07:32:57 UTC, `CHANGES_REQUESTED`). Normalized its seven inline comments as F6 to F12, fixed each in its own commit (F11 in the description, which has no commit), pushed the fixes, replied on all seven threads, then resolved them. Copilot review 5964972845 (2026-11-18 20:55:36 UTC) on the round-3 head was first read as clean; its body raised the concerns of F8 and F12 in prose, which da2ce7's review pointed out. F9 corrects the premise of F5's Concern and of the F5 fix commit's body, which stay as history.
 - 2026-11-19 08:26 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Round 5: the poller reported da2ce7's review 5971317192 (`APPROVED`, submitted 2026-11-19 08:03:58 UTC) and their `ACK` on the round-4 head (08:04:02 UTC); the maintainer posted the same `ACK` at 08:09:20 UTC. Normalized the review's two inline comments as F15 and F16 and fixed each in its own commit; the push at 08:11:49 UTC moved the head, so both `ACK`s became stale and GitHub dismissed the approval. Replied on both threads (08:11:56 and 08:11:59 UTC) and resolved them. The same resolve loop also resolved the two threads of Copilot review 5971362548 (submitted 08:07:51 UTC) before any reply; they were unresolved again at once. That push was the fifth round of fixes, so the maintainer was asked before a sixth and approved it in the working session. F21 was fixed in its own commit; F20 was answered with no change (the reply was edited at 08:20:39 UTC to open with the prescribed `Superseded by` form); both threads were replied to (08:19:28 and 08:19:31 UTC) and then resolved. The fixes for F21 and da2ce7's later F19 were pushed together. This entry and the rows for F15, F16, F20 and F21 address da2ce7's F17 and F18 in review 5971496221.
+- 2026-11-19 08:33 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Round 6: the poller reported da2ce7's review 5971496221 (`COMMENTED`, submitted 2026-11-19 08:19:03 UTC). Normalized its three inline comments as F17 to F19. F19 was fixed in its own commit and pushed with F21's fix; F17 and F18 were fixed by the round-5 record, pushed before the replies. Replied on all three threads (08:33:20 to 08:33:25 UTC) and resolved them.
 
 ## Completion Rules
 
