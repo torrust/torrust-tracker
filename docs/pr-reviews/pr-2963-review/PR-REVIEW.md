@@ -80,7 +80,8 @@ Round 1 has two reviews at the head whose last commit is
   V1 and V2 link the file, and V2's conclusion names the `printenv` command, its time and its exit
   code.
 - Current-tree verification: `git show HEAD:docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/evidence/m1m2-run-records.md`
-  holds the five sections with their commands; `grep -n "m1m2-run-records" manual-verification-evidence.md`
+  holds six sections, each with its command (`grep -c '^## '` prints 6 for the file of the fixing
+  commit; F10 of round 2 added a seventh); `grep -n "m1m2-run-records" manual-verification-evidence.md`
   finds the links in V1 and V2.
 - Resolution reference: docs(issues): [#2904] store the records of the M1 and M2 run in the repository
 - Follow-up PR URL: N/A
