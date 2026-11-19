@@ -303,7 +303,7 @@ completed work and remaining tasks are recorded after the decision pivot.
 - [ ] AC8a: After shutdown-overhaul #1488 is implemented, review the integration fixture against
       the new production lifecycle and prove server jobs finish cooperatively without consuming the
       current per-job timeout. The evidence that meets it is defined in the
-      [R8 plan](#r8-plan-align-the-fixture-with-the-final-shutdown-api) (E1 to E4).
+      [R8 plan](#r8-plan-align-the-fixture-with-the-final-shutdown-api) (E1 to E4, and E5 if D4 is option b).
 - [x] AC9: All current main-level integration-test targets pass with normal parallel scheduling,
       and a representative target passes in serial mode. Current production server jobs can still
       consume the per-job shutdown timeout; cooperative completion is deferred to AC8a.
