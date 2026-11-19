@@ -3,7 +3,6 @@
 /// ```text
 /// URI = scheme ":" ["//" authority] path ["?" query] ["#" fragment]
 /// ```
-use std::panic::Location;
 use std::str::FromStr;
 
 use multimap::MultiMap;
@@ -100,11 +99,8 @@ impl Query {
 pub enum ParseQueryError {
     /// Invalid URL query param. For example: `"name=value=value"`. It contains
     /// an unescaped `=` character.
-    #[error("invalid param {raw_param} in {location}")]
-    InvalidParam {
-        location: &'static Location<'static>,
-        raw_param: String,
-    },
+    #[error("invalid param {raw_param}")]
+    InvalidParam { raw_param: String },
 }
 
 impl FromStr for Query {
@@ -173,7 +169,6 @@ impl FromStr for NameValuePair {
 
         if pair.len() != 2 {
             return Err(ParseQueryError::InvalidParam {
-                location: Location::caller(),
                 raw_param: raw_param.to_owned(),
             });
         }

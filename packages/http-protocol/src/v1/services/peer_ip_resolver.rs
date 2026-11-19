@@ -21,7 +21,6 @@
 //!
 //! Which one to use depends on the `ReverseProxyMode`.
 use std::net::{IpAddr, SocketAddr};
-use std::panic::Location;
 
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -82,9 +81,7 @@ impl ClientIpSources {
         if let Some(socket_addr) = self.connection_info_socket_address {
             Ok(socket_addr.ip())
         } else {
-            Err(PeerIpResolutionError::MissingClientIp {
-                location: Location::caller(),
-            })
+            Err(PeerIpResolutionError::MissingClientIp)
         }
     }
 
@@ -92,9 +89,7 @@ impl ClientIpSources {
         if let Some(ip) = self.right_most_x_forwarded_for {
             Ok(ip)
         } else {
-            Err(PeerIpResolutionError::MissingRightMostXForwardedForIp {
-                location: Location::caller(),
-            })
+            Err(PeerIpResolutionError::MissingRightMostXForwardedForIp)
         }
     }
 
@@ -115,15 +110,16 @@ pub enum PeerIpResolutionError {
     /// reverse proxy but the `X-Forwarded-For` HTTP header is missing or
     /// invalid.
     #[error(
-        "missing or invalid the right most X-Forwarded-For IP (mandatory on reverse proxy tracker configuration) in {location}"
+        "missing or invalid right-most IP in the X-Forwarded-For header, \
+         which is mandatory when the tracker runs behind a reverse proxy"
     )]
-    MissingRightMostXForwardedForIp { location: &'static Location<'static> },
+    MissingRightMostXForwardedForIp,
 
     /// The peer IP cannot be obtained because the tracker is not configured as
     /// a reverse proxy but the connection info was not provided to the Axum
     /// framework via a route extension.
-    #[error("cannot get the client IP from the connection info in {location}")]
-    MissingClientIp { location: &'static Location<'static> },
+    #[error("cannot get the client IP: the server did not provide the socket address of the connection")]
+    MissingClientIp,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone, Copy)]
@@ -207,7 +203,7 @@ mod tests {
             )
             .unwrap_err();
 
-            assert!(matches!(error, PeerIpResolutionError::MissingClientIp { .. }));
+            assert!(matches!(error, PeerIpResolutionError::MissingClientIp));
         }
 
         #[test]
@@ -274,7 +270,7 @@ mod tests {
             )
             .unwrap_err();
 
-            assert!(matches!(error, PeerIpResolutionError::MissingRightMostXForwardedForIp { .. }));
+            assert!(matches!(error, PeerIpResolutionError::MissingRightMostXForwardedForIp));
         }
 
         #[test]

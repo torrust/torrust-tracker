@@ -153,7 +153,7 @@ pub async fn assert_could_not_find_remote_address_on_x_forwarded_for_header_erro
 
     assert_bencoded_error(
         &response.text().await.unwrap(),
-        "missing or invalid the right most X-Forwarded-For IP (mandatory on reverse proxy tracker configuration)",
+        "missing or invalid right-most IP in the X-Forwarded-For header",
         Location::caller(),
     );
 }

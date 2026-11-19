@@ -363,7 +363,7 @@ mod tests {
         // Assert
         assert_failure_reason_contains(
             &actual_error_response,
-            "Error resolving peer IP: missing or invalid the right most X-Forwarded-For IP",
+            "Error resolving peer IP: missing or invalid right-most IP in the X-Forwarded-For header",
         );
     }
 
@@ -489,7 +489,7 @@ mod tests {
 
             assert_failure_reason_contains(
                 &actual_error_response,
-                "Error resolving peer IP: missing or invalid the right most X-Forwarded-For IP",
+                "Error resolving peer IP: missing or invalid right-most IP in the X-Forwarded-For header",
             );
         }
     }
@@ -525,7 +525,7 @@ mod tests {
 
             assert_failure_reason_contains(
                 &actual_error_response,
-                "Error resolving peer IP: cannot get the client IP from the connection info",
+                "Error resolving peer IP: cannot get the client IP: the server did not provide the socket address of the connection",
             );
         }
     }

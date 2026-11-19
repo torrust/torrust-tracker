@@ -23,7 +23,7 @@
 //! When the key param has an **invalid format**:
 //!
 //! ```text
-//! d14:failure reason134:Authentication error: Invalid format for authentication key param. Error in src/servers/http/v1/extractors/authentication_key.rs:73:23e
+//! d14:failure reason110:Tracker authentication error: Invalid format for authentication key param: expected 32 alphanumeric characterse
 //! ```
 //!
 //! When the key is **not found** in the database:
@@ -42,8 +42,8 @@
 //! > Neither [The `BitTorrent` Protocol Specification](https://www.bittorrent.org/beps/bep_0003.html)
 //! > nor [The Private Torrents](https://www.bittorrent.org/beps/bep_0027.html)
 //! > specifications specify any HTTP status code for authentication errors.
+// cspell:ignore characterse
 use std::future::Future;
-use std::panic::Location;
 
 use axum::extract::rejection::PathRejection;
 use axum::extract::{FromRequestParts, Path};
@@ -105,22 +105,16 @@ fn parse_key(key: &str) -> Result<Key, responses::error::Error> {
 
     match key {
         Ok(key) => Ok(key),
-        Err(_parse_key_error) => Err(responses::error::Error::from(auth::Error::InvalidKeyFormat {
-            location: Location::caller(),
-        })),
+        Err(_parse_key_error) => Err(responses::error::Error::from(auth::Error::InvalidKeyFormat)),
     }
 }
 
 fn custom_error(rejection: &PathRejection) -> responses::error::Error {
     match rejection {
         axum::extract::rejection::PathRejection::FailedToDeserializePathParams(_) => {
-            responses::error::Error::from(auth::Error::InvalidKeyFormat {
-                location: Location::caller(),
-            })
+            responses::error::Error::from(auth::Error::InvalidKeyFormat)
         }
-        _ => responses::error::Error::from(auth::Error::CannotExtractKeyParam {
-            location: Location::caller(),
-        }),
+        _ => responses::error::Error::from(auth::Error::CannotExtractKeyParam),
     }
 }
 

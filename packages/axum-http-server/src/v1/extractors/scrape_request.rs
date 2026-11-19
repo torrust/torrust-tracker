@@ -19,7 +19,7 @@
 //! Missing query params for scrape request: <http://0.0.0.0:7070/scrape>
 //!
 //! ```text
-//! d14:failure reason143:Bad request. Cannot parse query params for scrape request: missing query params for scrape request in src/servers/http/v1/extractors/scrape_request.rs:52:23e
+//! d14:failure reason127:Bad request. Cannot parse query params for scrape request: missing query params for scrape request: the URL has no query stringe
 //! ```
 //!
 //! Invalid query params for scrape request: <http://0.0.0.0:7070/scrape?info_hash=invalid>
@@ -27,8 +27,8 @@
 //! ```text
 //! d14:failure reason235:Bad request. Cannot parse query params for scrape request: invalid param value invalid for info_hash in not enough bytes for infohash: got 7 bytes, expected 20 src/shared/bit_torrent/info_hash.rs:240:27, src/servers/http/v1/requests/scrape.rs:66:46e
 //! ```
+// cspell:ignore stringe
 use std::future::Future;
-use std::panic::Location;
 
 use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
@@ -62,9 +62,7 @@ where
 
 fn extract_scrape_from(maybe_raw_query: Option<&str>) -> Result<Scrape, responses::error::Error> {
     if maybe_raw_query.is_none() {
-        return Err(responses::error::Error::from(ParseScrapeQueryError::MissingParams {
-            location: Location::caller(),
-        }));
+        return Err(responses::error::Error::from(ParseScrapeQueryError::MissingParams));
     }
 
     let query = maybe_raw_query.unwrap().parse::<Query>();

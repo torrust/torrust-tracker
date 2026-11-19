@@ -5,7 +5,6 @@
 //! client-side construction (via `AnnounceBuilder` + `Display`).
 use std::fmt;
 use std::net::IpAddr;
-use std::panic::Location;
 use std::str::FromStr;
 
 use thiserror::Error;
@@ -214,21 +213,15 @@ pub struct Announce {
 #[derive(Error, Debug)]
 #[non_exhaustive]
 pub enum ParseAnnounceQueryError {
+    /// The request has no URL query at all.
+    #[error("missing query params for announce request: the URL has no query string")]
+    MissingParams,
     /// A mandatory param is missing.
-    #[error("missing query params for announce request in {location}")]
-    MissingParams { location: &'static Location<'static> },
-    #[error("missing param {param_name} in {location}")]
-    MissingParam {
-        location: &'static Location<'static>,
-        param_name: String,
-    },
+    #[error("missing param {param_name}")]
+    MissingParam { param_name: String },
     /// The param cannot be parsed into the domain type.
-    #[error("invalid param value {param_value} for {param_name} in {location}")]
-    InvalidParam {
-        param_name: String,
-        param_value: String,
-        location: &'static Location<'static>,
-    },
+    #[error("invalid param value {param_value} for {param_name}")]
+    InvalidParam { param_name: String, param_value: String },
     /// The `info_hash` is invalid.
     #[error("invalid param value {param_value} for {param_name} in {source}")]
     InvalidInfoHashParam {
@@ -284,7 +277,6 @@ impl FromStr for Event {
             _ => Err(ParseAnnounceQueryError::InvalidParam {
                 param_name: EVENT.to_owned(),
                 param_value: raw_param.to_owned(),
-                location: Location::caller(),
             }),
         }
     }
@@ -338,7 +330,6 @@ impl FromStr for Compact {
             _ => Err(ParseAnnounceQueryError::InvalidParam {
                 param_name: COMPACT.to_owned(),
                 param_value: raw_param.to_owned(),
-                location: Location::caller(),
             }),
         }
     }
@@ -561,7 +552,6 @@ fn extract_info_hash(query: &Query) -> Result<InfoHash, ParseAnnounceQueryError>
             )
         }
         None => Err(ParseAnnounceQueryError::MissingParam {
-            location: Location::caller(),
             param_name: INFO_HASH.to_owned(),
         }),
     }
@@ -577,7 +567,6 @@ fn extract_peer_id(query: &Query) -> Result<PeerId, ParseAnnounceQueryError> {
             })?,
         ),
         None => Err(ParseAnnounceQueryError::MissingParam {
-            location: Location::caller(),
             param_name: PEER_ID.to_owned(),
         }),
     }
@@ -588,10 +577,8 @@ fn extract_port(query: &Query) -> Result<u16, ParseAnnounceQueryError> {
         Some(raw_param) => Ok(u16::from_str(&raw_param).map_err(|_e| ParseAnnounceQueryError::InvalidParam {
             param_name: PORT.to_owned(),
             param_value: raw_param.clone(),
-            location: Location::caller(),
         })?),
         None => Err(ParseAnnounceQueryError::MissingParam {
-            location: Location::caller(),
             param_name: PORT.to_owned(),
         }),
     }
@@ -617,7 +604,6 @@ fn extract_number_of_bytes_from_param(param_name: &str, query: &Query) -> Result
             let number_of_bytes = u64::from_str(&raw_param).map_err(|_e| ParseAnnounceQueryError::InvalidParam {
                 param_name: param_name.to_owned(),
                 param_value: raw_param.clone(),
-                location: Location::caller(),
             })?;
 
             Ok(Some(NumberOfBytes::new(number_of_bytes)))
@@ -651,7 +637,6 @@ fn extract_numwant(query: &Query) -> Result<Option<u32>, ParseAnnounceQueryError
             .map_err(|_| ParseAnnounceQueryError::InvalidParam {
                 param_name: NUMWANT.to_owned(),
                 param_value: raw_param.clone(),
-                location: Location::caller(),
             })
     })
 }

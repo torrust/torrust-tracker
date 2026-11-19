@@ -1,8 +1,6 @@
 //! `Scrape` request for the HTTP tracker.
 //!
 //! Data structures and logic for parsing the `scrape` request.
-use std::panic::Location;
-
 use thiserror::Error;
 use torrust_info_hash::InfoHash;
 use torrust_located_error::{Located, LocatedError};
@@ -38,13 +36,12 @@ pub struct Scrape {
 #[derive(Error, Debug)]
 #[non_exhaustive]
 pub enum ParseScrapeQueryError {
-    #[error("missing query params for scrape request in {location}")]
-    MissingParams { location: &'static Location<'static> },
-    #[error("missing param {param_name} in {location}")]
-    MissingParam {
-        location: &'static Location<'static>,
-        param_name: String,
-    },
+    /// The request has no URL query at all.
+    #[error("missing query params for scrape request: the URL has no query string")]
+    MissingParams,
+    /// The mandatory `info_hash` param is missing.
+    #[error("missing param {param_name}")]
+    MissingParam { param_name: String },
     #[error("invalid param value {param_value} for {param_name} in {source}")]
     InvalidInfoHashParam {
         param_name: String,
@@ -90,7 +87,6 @@ fn extract_info_hashes(query: &Query) -> Result<Vec<InfoHash>, ParseScrapeQueryE
             Ok(info_hashes)
         }
         None => Err(ParseScrapeQueryError::MissingParam {
-            location: Location::caller(),
             param_name: INFO_HASH.to_owned(),
         }),
     }
