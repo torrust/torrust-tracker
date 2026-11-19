@@ -63,6 +63,8 @@ Round 8 is da2ce7's review `5976843973` (`APPROVED`, on head `docs(pr-reviews): 
 
 Round 9 is da2ce7's review `5981273810` (`CHANGES_REQUESTED`, on head `docs(pr-reviews): [#2949] record PR #2950 review round 8`), with three inline comments carrying their own finding IDs, F28 to F30, and explicit severity labels. F28 is about the pull request description, which is outside the diff, so no commit carries its fix.
 
+Round 10 is Copilot review `5981948345` (`COMMENTED`, on head `docs(pr-reviews): [#2949] record PR #2950 review round 9`), with one inline comment that labels itself `[Nit][F31]`. Copilot review `5981340847` (`COMMENTED`, on the round-8 head) raised nothing: its overview recommends approval and lists no open issue.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | F1 | `review-finding:pr-2950-f1` | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -94,6 +96,7 @@ Round 9 is da2ce7's review `5981273810` (`CHANGES_REQUESTED`, on head `docs(pr-r
 | F28 | `review-finding:pr-2950-f28` | Human | Major | correctness | ORIGINAL | FIXED | RESOLVED |
 | F29 | `review-finding:pr-2950-f29` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F30 | `review-finding:pr-2950-f30` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F31 | `review-finding:pr-2950-f31` | Copilot | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -474,6 +477,19 @@ Round 9 is da2ce7's review `5981273810` (`CHANGES_REQUESTED`, on head `docs(pr-r
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4633630432
 
+### F31 - The F28 row uses a category the schema does not allow
+
+- PR number: 2950
+- Source review ID: 5981948345
+- Reviewer finding ID: F31
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4634011528
+- Concern: The F28 row had the category `workflow`, which is not in the template's list or in this audit's Status Values.
+- Solution: The F28 row has the category `correctness`. `validate-audit-record.py` does not check that column, so the round-9 record passed with the wrong value.
+- Current-tree verification: `awk -F'|' '/^\| F[0-9]+ /{print $6}' docs/pr-reviews/pr-2950-review/PR-REVIEW.md | sort -u` prints only values from the Status Values list.
+- Resolution reference: `docs(pr-reviews): [#2949] use a supported category for F28 in the PR #2950 audit`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4635656705
+
 ## Processing Log
 
 - 2026-11-18 18:34 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Started audit. The poller reported da2ce7's conversation comment [6987829006](https://github.com/torrust/torrust-tracker/pull/2950#issuecomment-6987829006) (2026-11-18 18:31:31 UTC) on head `docs(issues): add issue specification for #2949`; the pull request had no review. The comment does not agree to the rule as written, points to their proposal on #2949 ([issue comment 6987828129](https://github.com/torrust/torrust-tracker/issues/2949#issuecomment-6987828129), 18:31:29 UTC: a metadata branch folded in with a three-parent merge), and asks that the two be compared before deciding. A conversation comment is not a review, so it makes no row. The comparison was added to the specification in `docs(issues): [#2949] compare da2ce7's metadata-branch alternative under D1`; no decision was made, the maintainer decides D1.
@@ -486,6 +502,7 @@ Round 9 is da2ce7's review `5981273810` (`CHANGES_REQUESTED`, on head `docs(pr-r
 - 2026-11-19 13:54 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Round 7: the poller reported da2ce7's review 5971904090 (`APPROVED`, submitted 2026-11-19 08:50:35 UTC) and their `ACK` on the round-6 head (08:50:39 UTC); the maintainer posted the same `ACK` at 08:56:15 UTC. The maintainer chose to leave da2ce7's Nit F22 for the next commit, and a reply deferring it was posted at 08:56:52 UTC with the thread left open. Copilot review 5972058838 (submitted 09:02:26 UTC) then raised two Minor comments; the maintainer pointed to them in the working session. Fixed F23, F24 and the deferred F22 in their own commits, pushed them together (head `docs(issues): [#2949] correct the 08:20 log entries about what said "proposed"`), which made both `ACK`s stale; replied on the three threads (13:53:38 to 13:53:43 UTC) and resolved them.
 - 2026-11-19 18:40 UTC - AI assistant (Claude Code, Claude Fable 5.2, issue #2949 session) - Round 8: da2ce7's review 5976843973 (`APPROVED`, submitted 2026-11-19 14:25:34 UTC) and their `ACK` on the round-7 head (14:25:39 UTC) were read in the working session. Normalized its two inline comments as F26 and F27. The maintainer approved an eighth round and decided D1 in the working session: the strict ACK stays. Rewrote the specification as the decision record and updated EPIC row 24, each in its own commit, and pushed them (head `docs(issues): [#2949] update EPIC row 24 for the strict-ACK decision`), which made da2ce7's `ACK` stale. Updated the titles and descriptions of the pull request and of issue #2949, replied on both threads (18:39:16 and 18:39:19 UTC), posted the comment that tells da2ce7 the decision (issue comment 7018461081, text approved by the maintainer) and resolved both threads.
 - 2026-11-19 19:02 UTC - AI assistant (Claude Code, Claude Fable 5.2, issue #2949 session) - Round 9: the poller reported da2ce7's review 5981273810 (`CHANGES_REQUESTED`, submitted 2026-11-19 18:52:27 UTC) on the round-8 head. Normalized its three inline comments as F28 to F30. F28 was fixed at once by editing the description, with no push, and answered at 18:54:50 UTC; that reply said the thread would stay open until this record was pushed, but the thread was resolved with the other two before this entry, so that the row states what had happened. The maintainer posted `ACK` on the round-8 head at 18:56:06 UTC and approved a ninth round in the working session. Fixed F30 and F29 in their own commits and pushed them (head `docs(pr-reviews): [#2949] say which audit rows verify text the D1 rewrite removed`), which made that `ACK` stale; replied on the two threads (19:01:55 and 19:01:58 UTC) and resolved all three.
+- 2026-11-19 21:58 UTC - AI assistant (Claude Code, Claude Fable 5.2, issue #2949 session) - Round 10: the maintainer posted `ACK` on the round-9 head at 2026-11-19 19:16:50 UTC, and the Docs Lint check passed on it. The poller reported Copilot review 5981948345 (submitted 19:33:07 UTC) with one inline comment, normalized as F31. The poller then waited 60 minutes with no review from da2ce7 on that head. The maintainer approved a tenth round in the working session. Fixed F31 in its own commit and pushed it, which made the maintainer's `ACK` stale; replied on the thread (21:57:58 UTC) and resolved it.
 
 ## Completion Rules
 
