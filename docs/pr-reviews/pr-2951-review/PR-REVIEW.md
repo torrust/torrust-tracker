@@ -51,7 +51,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F6 | `review-finding:pr-2951-f6` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F7 | `review-finding:pr-2951-f7` | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 | F8 | `review-finding:pr-2951-f8` | Human | Nit | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
-| F9 | `review-finding:pr-2951-f9` | Human | Minor | metadata | ORIGINAL | FOLLOW_UP | OPEN |
+| F9 | `review-finding:pr-2951-f9` | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -166,11 +166,11 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Reviewer finding ID: F7
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2951#discussion_r4625760105
 - Concern: F8 was fixed by editing the PR description, which is outside the tree. Its resolution reference was a commit subject, but that commit does not touch the description. `process-pr-review` says that a fix outside the repository tree uses the durable URL of the PR conversation response that states it.
-- Solution: Handled by follow-up PR #2960, because the maintainer chose to merge PR #2951 at the head that had two ACKs. The resolution reference of F8 is now the conversation reply that states the description fix. The commit is `docs(pr-reviews): [#1488] cite the conversation reply as the resolution of F8 in the review audit of PR #2951`.
-- Current-tree verification: `grep -n -A 9 "^### F8 " docs/pr-reviews/pr-2951-review/PR-REVIEW.md` shows `Resolution reference: https://github.com/torrust/torrust-tracker/pull/2951#issuecomment-7002876440` on the follow-up branch. `git show torrust/develop:docs/pr-reviews/pr-2951-review/PR-REVIEW.md` still shows the commit subject until PR #2960 merges.
-- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2951#discussion_r4626080729
+- Solution: Fixed by the follow-up PR #2960, merged into `develop` on 2026-11-19 at 11:02:22 UTC (forge `mergedAt`; merge commit `852286466`, committer time 10:58:03Z). It was a follow-up because the maintainer chose to merge PR #2951 at the head that had two ACKs. The resolution reference of F8 is now the conversation reply that states the description fix. The commit is `docs(pr-reviews): [#1488] cite the conversation reply as the resolution of F8 in the review audit of PR #2951`.
+- Current-tree verification: `grep -n -A 9 "^### F8 " docs/pr-reviews/pr-2951-review/PR-REVIEW.md` shows `Resolution reference: https://github.com/torrust/torrust-tracker/pull/2951#issuecomment-7002876440` on `develop` at the merge commit of PR #2960.
+- Resolution reference: `docs(pr-reviews): [#1488] cite the conversation reply as the resolution of F8 in the review audit of PR #2951`
 - Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2960
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2951#discussion_r4626080729
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2951#discussion_r4627780640
 
 ## Processing Log
 
@@ -204,3 +204,4 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Cite a fix by its unique Conventional Commit subject or durable reply URL, never by a branch SHA
   that can change after a rebase.
 - Refresh review threads using GraphQL and confirm that no unresolved actionable thread remains.
+- 2026-11-19 11:03 UTC - Follow-up PR #2960 merged at 11:02:22 UTC (forge `mergedAt`; merge commit `852286466`). Replied on the thread of F9 with the merged fix (11:02:54Z, the reply's `created_at`) and resolved it by 11:03 UTC (a `date -u` run after the resolve command); F9 is `FIXED` / `RESOLVED`. GraphQL refresh: zero unresolved threads on PR #2951.
