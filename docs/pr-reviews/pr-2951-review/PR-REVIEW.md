@@ -17,7 +17,7 @@ Source: pull-request reviews and inline review threads for https://github.com/to
 The PR author owns this tracked audit record. Reviewers, including repository review agents,
 deliver findings through GitHub and have no repository-artifact obligation.
 
-- Post-merge workflow approval: N/A
+- Post-merge workflow approval: https://github.com/torrust/torrust-tracker/pull/2951#issuecomment-7003644686 (comment created 2026-11-19 08:18:03 UTC by the maintainer `josecelano`; review 5971150744 was submitted at 07:48 UTC on the final head and the PR merged at 08:07:03 UTC (`merged_at` of the PR on GitHub; the merge commit carries 07:57:06 UTC as its author and committer time, `git log --format=%cI`); the maintainer chose in the agent chat, before the merge, to fix its finding after the merge, so that the head with two ACKs did not change)
 
 ## Status Values
 
@@ -51,6 +51,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F6 | `review-finding:pr-2951-f6` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F7 | `review-finding:pr-2951-f7` | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 | F8 | `review-finding:pr-2951-f8` | Human | Nit | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F9 | `review-finding:pr-2951-f9` | Human | Minor | metadata | ORIGINAL | FOLLOW_UP | OPEN |
 
 ## Finding Details
 
@@ -154,9 +155,22 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Concern: The body of the review says that the PR description's "45 closed specs" does not match: the reviewer counts 44 changed files in 30 closed folders outside the EPIC folder. The finding has no line and no thread.
 - Solution: The count was wrong. After the fix of F2 and F3 the PR changes 41 files in 28 closed spec folders, and the description now says so and names the three historical records that keep the old path.
 - Current-tree verification: `git diff --name-only 3a12cd095 HEAD -- docs/issues/closed` without the EPIC folder lists 41 files in 28 folders. The same command at the reviewed head lists 44 files in 30 folders, as the reviewer counted.
-- Resolution reference: `docs(issues): [#1488] address the review of the EPIC close-out`
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2951#issuecomment-7002876440
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2951#issuecomment-7002876440
+
+### F9 - The description fix of F8 is referenced by a commit subject
+
+- PR number: 2951
+- Source review ID: 5971150744
+- Reviewer finding ID: F7
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2951#discussion_r4625760105
+- Concern: F8 was fixed by editing the PR description, which is outside the tree. Its resolution reference was a commit subject, but that commit does not touch the description. `process-pr-review` says that a fix outside the repository tree uses the durable URL of the PR conversation response that states it.
+- Solution: Handled by follow-up PR #2960, because the maintainer chose to merge PR #2951 at the head that had two ACKs. The resolution reference of F8 is now the conversation reply that states the description fix. The commit is `docs(pr-reviews): [#1488] cite the conversation reply as the resolution of F8 in the review audit of PR #2951`.
+- Current-tree verification: `grep -n -A 9 "^### F8 " docs/pr-reviews/pr-2951-review/PR-REVIEW.md` shows `Resolution reference: https://github.com/torrust/torrust-tracker/pull/2951#issuecomment-7002876440` on the follow-up branch. `git show torrust/develop:docs/pr-reviews/pr-2951-review/PR-REVIEW.md` still shows the commit subject until PR #2960 merges.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2951#discussion_r4626080729
+- Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2960
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2951#discussion_r4626080729
 
 ## Processing Log
 
@@ -168,6 +182,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-19 07:38 UTC - Round 2. Review 5971000003 (da2ce7, `APPROVED`, submitted 2026-11-19 07:33 UTC on the same commit) has six inline threads, which carry the reviewer's ids F1 to F6, and one Nit in its body without a thread. They are F2 to F8 of this record. The reviewer says that none of them blocks.
 - 2026-11-19 07:38 UTC - F2, F3, F5, F6, F7 and F8 fixed in `docs(issues): [#1488] address the review of the EPIC close-out`, committed at 07:36:06Z (`git log --format=%cI`). F4 is fixed in the commit that adds this entry. The description of the PR was corrected for F8.
 - 2026-11-19 07:38 UTC - Replied on the six threads between 07:36:56Z and 07:37:08Z (`created_at` of the replies) and answered the Nit of the body in a comment on the PR conversation. The replies were posted before the push, so that the fix commit and this record go out in one push; the threads are resolved after it.
+- 2026-11-19 08:23 UTC - Correction to the round 2 entries: the six threads of review 5971000003 were resolved as `josecelano-bot` after the push of 2026-11-19 07:41:38 UTC, and `validate-audit-record.py --pr-number 2951`, run with the token of `josecelano-bot`, exited 0 (8 rows, 0 failures). The push did not carry an entry for this.
+- 2026-11-19 08:23 UTC - Round 3. Review 5971150744 (da2ce7, `APPROVED`, submitted 2026-11-19 07:48:39 UTC on the final head) has one inline thread with the reviewer's id F7, recorded as F9. The maintainer and da2ce7 had posted their ACK comments for that head, so the maintainer chose in the agent chat to fix F9 after the merge. A reply on the thread said so at 08:04:50Z (`created_at`). Review 5971337429 (Copilot, `COMMENTED`, 08:05 UTC) has no finding.
+- 2026-11-19 08:23 UTC - PR #2951 merged at 08:07:03 UTC (`merged_at` of the PR on GitHub; the merge commit carries 07:57:06 UTC as its author and committer time, `git log --format=%cI`). The maintainer posted the post-merge approval at 08:18:03 UTC; nothing was branched, committed or posted for F9 between the merge and that comment. Follow-up PR #2960, cut from `develop`, changes the resolution reference of F8. Replied on the thread naming #2960 at 08:23:32Z (`created_at`). F9 is `FOLLOW_UP` / `OPEN` until #2960 merges. GraphQL refresh: the thread of F9 is the only unresolved thread on PR #2951.
 
 ## Completion Rules
 
