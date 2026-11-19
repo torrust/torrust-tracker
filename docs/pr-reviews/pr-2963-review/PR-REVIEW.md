@@ -111,8 +111,10 @@ Round 2 has one review at the head whose last commit is
 - Solution: appended a Progress Log entry stamped 09:18 that names the review of 08:44, its
   verdict and findings, the changes made before the pull request, AC2, what was not changed, and
   that the entry was added in this round.
-- Current-tree verification: `grep -n "2026-11-19 09:18 UTC" ISSUE.md` finds the entry as the last
-  line of the Progress Log.
+- Current-tree verification: `grep -n "2026-11-19 09:18 UTC" ISSUE.md` finds the entry. It was the
+  last line of the Progress Log at the fixing commit; later rounds appended the entries of 11:37 and
+  12:17 after it. (Corrected in round 3, in the sweep for finding F18: the first version said the
+  entry is the last line, which stopped holding when the 11:37 entry was added.)
 - Resolution reference: docs(issues): [#2904] log the task review of T4 in the Progress Log
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2963#discussion_r4628055518>
@@ -127,8 +129,12 @@ Round 2 has one review at the head whose last commit is
   file at 08:45.
 - Solution: set `last-updated-utc` to `2026-11-19 09:19`, after the round's other changes to the
   file.
-- Current-tree verification: the file's `last-updated-utc` reads `2026-11-19 09:19`, and
-  `git log -1 --format=%cI` on the file prints `2026-11-19T09:19:07Z`, the commit that sets it.
+- Current-tree verification: `git log --format='%cI %s' -S'last-updated-utc: "2026-11-19 09:19"'`
+  on the file lists the fixing commit at `2026-11-19T09:19:07Z`, which set the value to the time of
+  its own commit. Later commits that changed the file moved it again: at this head it reads
+  `2026-11-19 12:16`, and `git log -1 --format=%cI` on the file prints `2026-11-19T12:16:54Z`.
+  (Corrected in round 3, in the sweep for finding F18: the first version said the file reads
+  `2026-11-19 09:19`, which stopped holding at the next change to the file.)
 - Resolution reference: docs(issues): [#2904] update last-updated-utc of the manual verification evidence
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2963#discussion_r4628055944>
@@ -213,9 +219,12 @@ Round 2 has one review at the head whose last commit is
   but the branch-sync item took two commits and other items share commits.
 - Solution: the entry now says "in four commits" and that the words were corrected in the second
   round, with the reason.
-- Current-tree verification: `grep -c "one commit each" ISSUE.md` prints 0; the entry reads "in
-  four commits"; the four commits are the ones that fix the V1 skills sentence, the agent file,
-  the `wait-for-pr-review` paragraph, and AC2 with the review record.
+- Current-tree verification: `grep -n "one commit each" ISSUE.md` prints one line, the 09:18 entry,
+  where the words are quoted in the sentence that records their correction; no other line uses
+  them. `grep -c "in four commits" ISSUE.md` prints 1, in the same entry. The four commits are the ones that fix the V1 skills sentence, the agent file,
+  the `wait-for-pr-review` paragraph, and AC2 with the review record. The first version of this
+  verification, and the F9 reply, said `grep -c "one commit each" ISSUE.md` prints 0; it prints 1,
+  because the fix itself quotes the old words (finding F18 of round 3, corrected here).
 - Resolution reference: docs(issues): [#2904] say how many commits addressed the review of T4
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2963#discussion_r4628369691>
