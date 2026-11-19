@@ -51,6 +51,8 @@ Round 3 is Copilot review `5964359494` (`COMMENTED`, on head `docs(pr-reviews): 
 
 Round 4 is Copilot review `5964972845` (`COMMENTED`, on head `docs(pr-reviews): [#2949] record PR #2950 review round 3`) and da2ce7's review `5970994174` (`CHANGES_REQUESTED`, on the same head). Copilot's review has no inline comment and its overview counts no open issue, but its body asserts two independently actionable concerns in prose: the acceptance criteria conflict with the endpoint diff (F13), and the test plan omits the required test-design review (F14). Following the template's rule for a review-body finding without a thread, each is a row with the review URL as `Source URL` and `Thread state=NON_RESOLVABLE`; no badge rates them, so the severity `Minor` is inferred from the concern. da2ce7's F3 and F7 later asked for the same changes, so F8 and F12 are `RE_RAISE_OF:F13` and `RE_RAISE_OF:F14`. An earlier version of this record said a body assertion makes no row; da2ce7's F15 in review 5971317192 corrected it. da2ce7's review has seven inline comments with explicit severity labels, recorded as F6 to F12 with their reviewer finding IDs F1 to F7.
 
+Round 5 is da2ce7's review `5971317192` (`APPROVED`, on head `docs(pr-reviews): [#2949] record PR #2950 review round 4`), with two inline comments that carry their own finding IDs, F15 and F16, and explicit severity labels. It is followed by Copilot review `5971362548` (`COMMENTED`, on head `docs(pr-reviews): [#2949] record Copilot's Medium label for F3 and F4 as Minor`), with two inline comments, recorded as F20 and F21 because da2ce7's next review uses F17 to F19. Copilot labels F20 "Medium severity" and F21 "Low severity"; the severities `Minor` and `Nit` are inferred from those labels. Its body carries the same timeout warning as rounds 1 to 3.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | F1 | `review-finding:pr-2950-f1` | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -67,6 +69,10 @@ Round 4 is Copilot review `5964972845` (`COMMENTED`, on head `docs(pr-reviews): 
 | F12 | `review-finding:pr-2950-f12` | Human | Minor | testing | RE_RAISE_OF:F14 | FIXED | RESOLVED |
 | F13 | `review-finding:pr-2950-f13` | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | NON_RESOLVABLE |
 | F14 | `review-finding:pr-2950-f14` | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F15 | `review-finding:pr-2950-f15` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F16 | `review-finding:pr-2950-f16` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F20 | `review-finding:pr-2950-f20` | Copilot | Minor (inferred) | documentation | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F21 | `review-finding:pr-2950-f21` | Copilot | Nit (inferred) | formatting | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -252,6 +258,58 @@ Round 4 is Copilot review `5964972845` (`COMMENTED`, on head `docs(pr-reviews): 
 - Follow-up PR URL: N/A
 - Reply URL: N/A (no thread; F12's reply answers the same concern)
 
+### F15 - A body assertion said to make no row, against the template
+
+- PR number: 2950
+- Source review ID: 5971317192
+- Reviewer finding ID: F15
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4625888791
+- Concern: The round-4 paragraph said "A body assertion is not a thread, so it makes no row", which contradicts `docs/templates/PR-REVIEW-TEMPLATE.md` and `process-pr-review`: an independently actionable review-body finding gets a `NON_RESOLVABLE` row with the review URL as its source.
+- Solution: Copilot review 5964972845's two body concerns are F13 and F14, `NON_RESOLVABLE`, and F8 and F12 are their re-raises; the round-4 paragraph states the template's rule and what the earlier version said.
+- Current-tree verification: The validator's own `main()`, run with its gh calls routed through the contributor account, reported 14 rows and no failures after the fix.
+- Resolution reference: `docs(pr-reviews): [#2949] record Copilot's two body findings as non-resolvable rows`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4625956424
+
+### F16 - The 2026-11-18 event described two ways
+
+- PR number: 2950
+- Source review ID: 5971317192
+- Reviewer finding ID: F16
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4625888803
+- Concern: EPIC row 24 and its log line said the maintainer proposed the rule on 2026-11-18, while Background said the maintainer decided it then and D1 reopened it.
+- Solution: Background, EPIC row 24, both log lines and the description use one wording: the decision of 2026-11-18 was reopened under D1. The log lines were reworded in place; F19 records the correction.
+- Current-tree verification: `grep -n 'was proposed\|proposed by the maintainer'` on the specification and the EPIC prints nothing about the rule.
+- Resolution reference: `docs(issues): [#2949] describe the 2026-11-18 decision one way in the spec and EPIC`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4625956795
+
+### F20 - The empty `--format=` value is easy to misread
+
+- PR number: 2950
+- Source review ID: 5971362548
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4625921959
+- Concern: The command's `--format= X..H` relies on an empty `--format` value followed by a space; Copilot suggests `--pretty=format:`.
+- Solution: No change. `--format=<format>` is Git's documented form and the one the rule was tested with; `--pretty=format:` would change the separator semantics for no benefit.
+- Current-tree verification: On Git 2.53.0, `git log --no-renames --diff-merges=first-parent --name-only --format= e01212151..1d27a67e9` printed only `docs/pr-reviews/pr-2947-review/PR-REVIEW.md`.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4626034114
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4626034114
+
+### F21 - "behaviour" and "behavior" both used in the specification
+
+- PR number: 2950
+- Source review ID: 5971362548
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4625922011
+- Concern: The specification used "behaviour" twice and "behavior" three times.
+- Solution: Both occurrences of "behaviour" are now "behavior", the spelling of the issue template.
+- Current-tree verification: `grep -c behaviour` on the specification prints 0.
+- Resolution reference: `docs(issues): [#2949] spell behavior one way in the specification`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4626034520
+
 ## Processing Log
 
 - 2026-11-18 18:34 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Started audit. The poller reported da2ce7's conversation comment [6987829006](https://github.com/torrust/torrust-tracker/pull/2950#issuecomment-6987829006) (2026-11-18 18:31:31 UTC) on head `docs(issues): add issue specification for #2949`; the pull request had no review. The comment does not agree to the rule as written, points to their proposal on #2949 ([issue comment 6987828129](https://github.com/torrust/torrust-tracker/issues/2949#issuecomment-6987828129), 18:31:29 UTC: a metadata branch folded in with a three-parent merge), and asks that the two be compared before deciding. A conversation comment is not a review, so it makes no row. The comparison was added to the specification in `docs(issues): [#2949] compare da2ce7's metadata-branch alternative under D1`; no decision was made, the maintainer decides D1.
@@ -259,6 +317,7 @@ Round 4 is Copilot review `5964972845` (`COMMENTED`, on head `docs(pr-reviews): 
 - 2026-11-18 19:48 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Round 2: the poller reported Copilot review 5963780219 (submitted 2026-11-18 19:41:53 UTC). Normalized its inline comment as F3, fixed it in its own commit, pushed it, replied on the thread, then resolved the thread.
 - 2026-11-18 20:26 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Round 3: the poller reported Copilot review 5964359494 (submitted 2026-11-18 20:19:07 UTC). Normalized its two inline comments as F4 and F5, fixed each in its own commit, pushed both, replied on both threads, then resolved both threads.
 - 2026-11-19 07:48 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Round 4: the poller reported da2ce7's review 5970994174 (submitted 2026-11-19 07:32:57 UTC, `CHANGES_REQUESTED`). Normalized its seven inline comments as F6 to F12, fixed each in its own commit (F11 in the description, which has no commit), pushed the fixes, replied on all seven threads, then resolved them. Copilot review 5964972845 (2026-11-18 20:55:36 UTC) on the round-3 head was first read as clean; its body raised the concerns of F8 and F12 in prose, which da2ce7's review pointed out. F9 corrects the premise of F5's Concern and of the F5 fix commit's body, which stay as history.
+- 2026-11-19 08:26 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Round 5: the poller reported da2ce7's review 5971317192 (`APPROVED`, submitted 2026-11-19 08:03:58 UTC) and their `ACK` on the round-4 head (08:04:02 UTC); the maintainer posted the same `ACK` at 08:09:20 UTC. Normalized the review's two inline comments as F15 and F16 and fixed each in its own commit; the push at 08:11:49 UTC moved the head, so both `ACK`s became stale and GitHub dismissed the approval. Replied on both threads (08:11:56 and 08:11:59 UTC) and resolved them. The same resolve loop also resolved the two threads of Copilot review 5971362548 (submitted 08:07:51 UTC) before any reply; they were unresolved again at once. That push was the fifth round of fixes, so the maintainer was asked before a sixth and approved it in the working session. F21 was fixed in its own commit; F20 was answered with no change (the reply was edited at 08:20:39 UTC to open with the prescribed `Superseded by` form); both threads were replied to (08:19:28 and 08:19:31 UTC) and then resolved. The fixes for F21 and da2ce7's later F19 were pushed together. This entry and the rows for F15, F16, F20 and F21 address da2ce7's F17 and F18 in review 5971496221.
 
 ## Completion Rules
 
