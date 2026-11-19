@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2914-2912-si-2-primitives/ISSUE.md
-last-updated-utc: "2026-11-19 07:27"
+last-updated-utc: "2026-11-19 07:42"
 ---
 
 # Manual Verification Evidence
@@ -21,12 +21,14 @@ rest of each line is verbatim.
 
 ## Environment and Prerequisites
 
-- Date and time (UTC): 2026-11-18 18:51 to 18:55
+- Date and time (UTC): 2026-11-18 18:51 to 18:55; the red re-run and the mutations of the
+  review of PR #2955 on 2026-11-19 07:39 to 07:42.
 - Artifact under test: `packages/primitives` on branch `2914-primitives`, cut from `develop` at
-  `7e8df95ec`. Before: the tree of `develop` plus the commit
-  `test(primitives): [#2914] add red tests that peer role and peer id errors name no source path`
-  (tests only). After: the working tree that became the commit
-  `fix(primitives): [#2914] remove source locations from peer role and peer id errors`.
+  `7e8df95ec` (rebased onto `develop` at `7a4c16eaf` on 2026-11-19; the rebase changed no file of
+  `packages/primitives`). V1 and V2 "Before" ran on the unchanged tree of `develop` at
+  `7e8df95ec`, before any edit on the branch. "After": the working tree that became the commit
+  `fix(primitives): [#2914] remove source locations from peer role and peer id errors`; the scratch
+  crate builds only the library, so the tests in that tree do not affect its output.
 - Toolchain: stable Rust, `rustc 1.100.0 (0ef1bc386 2026-11-09)`, `cargo 1.100.0
   (3acc79c0c 2026-11-05)`. Formatting with the nightly Rust toolchain, `cargo 1.102.0-nightly
   (f93c676e3 2026-11-15)`.
@@ -179,7 +181,14 @@ contains `peer`. With `uploader` the assertion can only pass on the input.
 ### Red (before the fix)
 
 Command: `cargo test -q -p torrust-tracker-primitives --lib -- no_source_path` (stable Rust, as
-above), at 18:52:30 UTC, on the tests-only commit. Output, with thread ids removed:
+above).
+
+**First run, 2026-11-18 18:52:30 UTC, on the working tree before `cargo +nightly fmt` and before
+the commit.** This run is not of the committed bytes: in it the helper's fragment array was on one
+line, so the panics name `peer.rs:680:13`. `cargo +nightly fmt` then split the array, and the
+commit `test(primitives): [#2914] add red tests that peer role and peer id errors name no source path`
+was made at 18:52:43 UTC (review finding F2 of PR #2955 found the mismatch). Output, with thread ids
+removed:
 
 ```text
 running 3 tests
@@ -199,9 +208,42 @@ the error message must not hold a source path, but it contains ".rs:": "too many
 test result: FAILED. 0 passed; 3 failed; 0 ignored; 0 measured; 125 filtered out; finished in 0.00s
 ```
 
+**Re-run, 2026-11-19 07:39:10.863 to 07:39:11.867 UTC, at the commit itself.** A detached
+temporary worktree checked out
+`test(primitives): [#2914] add red tests that peer role and peer id errors name no source path`
+(the rebased commit; its `packages/primitives` is byte-identical to the one first committed) and
+ran the same command, with the branch's `target` directory. Output, with thread ids removed:
+
+```text
+running 3 tests
+peer::test::peer_role::it_should_describe_a_name_that_is_not_a_role_by_the_rejected_text_and_no_source_path --- FAILED
+peer::test::torrent_peer_id::it_should_describe_a_byte_vector_with_more_than_20_bytes_by_its_length_and_no_source_path --- FAILED
+peer::test::torrent_peer_id::it_should_describe_a_byte_vector_with_less_than_20_bytes_by_its_length_and_no_source_path --- FAILED
+failures:
+---- peer::test::peer_role::it_should_describe_a_name_that_is_not_a_role_by_the_rejected_text_and_no_source_path stdout ----
+thread '...' panicked at packages/primitives/src/peer.rs:688:13:
+the error message must not hold a source path, but it contains ".rs:": "invalid param uploader in packages/primitives/src/peer.rs:73:27"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+---- peer::test::torrent_peer_id::it_should_describe_a_byte_vector_with_more_than_20_bytes_by_its_length_and_no_source_path stdout ----
+thread '...' panicked at packages/primitives/src/peer.rs:688:13:
+the error message must not hold a source path, but it contains ".rs:": "too many bytes for peer id: got 21 bytes, expected 20 packages/primitives/src/peer.rs:401:27"
+---- peer::test::torrent_peer_id::it_should_describe_a_byte_vector_with_less_than_20_bytes_by_its_length_and_no_source_path stdout ----
+thread '...' panicked at packages/primitives/src/peer.rs:688:13:
+the error message must not hold a source path, but it contains ".rs:": "not enough bytes for peer id: got 19 bytes, expected 20 packages/primitives/src/peer.rs:395:27"
+failures:
+    peer::test::peer_role::it_should_describe_a_name_that_is_not_a_role_by_the_rejected_text_and_no_source_path
+    peer::test::torrent_peer_id::it_should_describe_a_byte_vector_with_less_than_20_bytes_by_its_length_and_no_source_path
+    peer::test::torrent_peer_id::it_should_describe_a_byte_vector_with_more_than_20_bytes_by_its_length_and_no_source_path
+test result: FAILED. 0 passed; 3 failed; 0 ignored; 0 measured; 125 filtered out; finished in 0.00s
+error: test failed, to rerun pass `-p torrust-tracker-primitives --lib`
+```
+
+The three tests fail on the committed bytes; the panics name the helper's `assert!` line, 688.
+
 ### Green (after the fix)
 
-Same command at 18:54:52 UTC, on the fixed working tree:
+Same command at 18:54:52 UTC, on the fixed working tree before `cargo +nightly fmt` and the commit
+(formatting changed no test result; the pre-push hook ran all tests on the committed bytes):
 
 ```text
 running 3 tests
@@ -229,6 +271,33 @@ Each test was written with temporary prose and compared with the code:
 - The forbidden-fragment list sits in one named helper, `assert_names_no_source_path`, whose doc
   comment states what counts as a source path; the assertion message prints the fragment found
   and the whole message, so a failure is readable without opening the file.
+
+### Review fixes of PR #2955 (tests only)
+
+Both commits below change only test code; production code is unchanged since the fix commit, so
+V1 and V2 "After" still describe the final library.
+
+- **F5**, `test(primitives): [#2914] report source-path assertion failures at the test line`:
+  `assert_names_no_source_path` is `#[track_caller]`. Mutation, at 07:40:15.494 to 07:40:16.401
+  UTC on that commit: the `NotEnoughBytes` format temporarily became
+  `"not enough bytes for peer id: {message} src/x.rs:1"` (unstaged), and
+  `cargo test -q -p torrust-tracker-primitives --lib -- no_source_path` failed one test with
+  `panicked at packages/primitives/src/peer.rs:1449:13`, the `assert_names_no_source_path(&message);`
+  line of the 19-byte test, not the helper's line. `git checkout -- packages/primitives/src/peer.rs`
+  restored the file, and `git diff --quiet HEAD -- packages/primitives/src/peer.rs` exited 0 at
+  07:40:16.414.
+- **F4**, `test(primitives): [#2914] pin the full message of a rejected peer role`: the new test
+  `peer::test::peer_role::it_should_name_the_accepted_roles_when_it_rejects_a_name` compares the
+  whole `Display` of `"x".parse::<PeerRole>()` with
+  `invalid peer role "x", expected "seeder" or "leecher"`. Mutation, at 07:41:32.980 to
+  07:41:33.311 UTC on that commit: the `InvalidPeerRole` format temporarily became
+  `"invalid param {raw_param}"` (unstaged), and `cargo test -q -p torrust-tracker-primitives --lib
+  -- peer_role` failed only the new test (8 passed, 1 failed) with `left: "invalid param x"`;
+  the three no-source-path tests stayed green, as the finding said. The restore was checked as for
+  F5 (`git diff --quiet` exited 0 at 07:41:33.323). An earlier attempt at 07:41:25 restored with
+  `git checkout` before the test was committed, which also removed the uncommitted test; its
+  timestamps were inconsistent too, so it is discarded and not used here.
+- Afterwards `cargo test -q -p torrust-tracker-primitives` passed: 129 unit tests and 8 doctests.
 
 ## Failures and Follow-up
 

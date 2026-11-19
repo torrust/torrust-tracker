@@ -9,7 +9,7 @@ github-issue: 2914
 spec-path: docs/issues/open/2914-2912-si-2-primitives/ISSUE.md
 branch: "2914-primitives"
 related-pr: 2955
-last-updated-utc: "2026-11-19 07:27"
+last-updated-utc: "2026-11-19 07:43"
 semantic-links:
   skill-links:
     - create-issue
@@ -176,6 +176,7 @@ the model that produced them.
 - 2026-11-18 18:57 UTC - Claude Code (Claude Opus 5.5) - Implemented T1 to T5 on branch `2914-primitives`: reproduced the three messages in a scratch consumer crate, added three red tests through `str::parse` and `try_into`, removed the `location` fields, captures and import, and recorded the breaking change in the publish plan (#2583). The `InvalidPeerRole` message now reads `invalid peer role "x", expected "seeder" or "leecher"`; the peer id messages keep their byte counts. Evidence: `manual-verification-evidence.md`. No retrospective: the work matched the spec; the only discoveries were the shifted line numbers (395/401 for 391/397) and a first test input (`peer`) that matched the path `peer.rs`, both recorded in the evidence.
 - 2026-11-18 19:01 UTC - Claude Code (Claude Opus 5.5) - Opened PR torrust/torrust-tracker#2955. The pre-commit hook (`linter all`, machete, deny bans, nightly fmt) passed for each commit and the pre-push hook (nightly check and docs, packaging, all workspace tests) passed for the first push. Recorded later (2026-11-19): all CI checks then passed, and Copilot's review (2026-11-18 19:22 UTC) had no findings.
 - 2026-11-19 07:27 UTC - Claude Code (Claude Opus 5.5) - Rebased onto `develop` after PR #2957 archived the #2804 spec and handed its scenario M3 to this issue. Added M3 to the scenario table: it is covered by the red and green runs of the `str::parse` regression test and by V1 (evidence section V3 maps them). No production change.
+- 2026-11-19 07:43 UTC - Claude Code (Claude Opus 5.5) - Review round 1 of PR torrust/torrust-tracker#2955 (da2ce7, approved with five findings; audit `docs/pr-reviews/pr-2955-review/PR-REVIEW.md`). F1 (conflict with `develop`) was resolved by the rebase. F2: the first red run was of the unformatted working tree; the evidence now says so and adds a re-run at the tests-only commit. F3: the publish plan's state line names PR #2955. F4: a new test pins the full peer-role message. F5: the assertion helper is `#[track_caller]`. F4 and F5 change test code only; both were proven by mutation (evidence, "Review fixes of PR #2955").
 
 ## Acceptance Criteria
 
