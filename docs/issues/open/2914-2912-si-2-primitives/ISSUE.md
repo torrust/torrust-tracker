@@ -9,7 +9,7 @@ github-issue: 2914
 spec-path: docs/issues/open/2914-2912-si-2-primitives/ISSUE.md
 branch: "2914-primitives"
 related-pr: 2955
-last-updated-utc: "2026-11-19 07:51"
+last-updated-utc: "2026-11-19 08:19"
 semantic-links:
   skill-links:
     - create-issue
@@ -178,6 +178,7 @@ the model that produced them.
 - 2026-11-19 07:27 UTC - Claude Code (Claude Opus 5.5) - Rebased onto `develop` after PR #2957 archived the #2804 spec and handed its scenario M3 to this issue. Added M3 to the scenario table: it is covered by the red and green runs of the `str::parse` regression test and by V1 (evidence section V3 maps them). No production change.
 - 2026-11-19 07:43 UTC - Claude Code (Claude Opus 5.5) - Review round 1 of PR torrust/torrust-tracker#2955 (da2ce7, approved with five findings; audit `docs/pr-reviews/pr-2955-review/PR-REVIEW.md`). F1 (conflict with `develop`) was resolved by the rebase. F2: the first red run was of the unformatted working tree; the evidence now says so and adds a re-run at the tests-only commit. F3: the publish plan's state line names PR #2955. F4: a new test pins the full peer-role message. F5: the assertion helper is `#[track_caller]`. F4 and F5 change test code only; both were proven by mutation (evidence, "Review fixes of PR #2955").
 - 2026-11-19 07:51 UTC - Claude Code (Claude Opus 5.5) - Correction to the 07:27 entry: the local rebase onto `develop` was never pushed (the force-push was not allowed). On the maintainer's request `develop` at `f212ae33b` was merged into the PR head instead, with the same `last-updated-utc` conflict resolution, and the commits made after the rebase were carried over unchanged in content.
+- 2026-11-19 08:19 UTC - Claude Code (Claude Opus 5.5) - Review round 2 of PR torrust/torrust-tracker#2955 (da2ce7, approved at the round-1 head with two findings). F7: the PR description now lists every commit, the `develop` merge and the audit, with the current counts. F8: the evidence of the F4 mutation said more than its filtered run showed; it now says which tests that run selected and adds a run of the same mutation over every unit test of the crate. No code change.
 
 ## Acceptance Criteria
 

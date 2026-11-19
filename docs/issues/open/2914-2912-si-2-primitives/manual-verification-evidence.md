@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2914-2912-si-2-primitives/ISSUE.md
-last-updated-utc: "2026-11-19 07:51"
+last-updated-utc: "2026-11-19 08:19"
 ---
 
 # Manual Verification Evidence
@@ -292,9 +292,18 @@ V1 and V2 "After" still describe the final library.
   `invalid peer role "x", expected "seeder" or "leecher"`. Mutation, at 07:41:32.980 to
   07:41:33.311 UTC on that commit: the `InvalidPeerRole` format temporarily became
   `"invalid param {raw_param}"` (unstaged), and `cargo test -q -p torrust-tracker-primitives --lib
-  -- peer_role` failed only the new test (8 passed, 1 failed) with `left: "invalid param x"`;
-  the three no-source-path tests stayed green, as the finding said. The restore was checked as for
-  F5 (`git diff --quiet` exited 0 at 07:41:33.323). An earlier attempt at 07:41:25 restored with
+  -- peer_role` failed only the new test (8 passed, 1 failed) with `left: "invalid param x"`.
+  That filter selects 9 tests (the 7 of `peer_role` and the 2 of `peer_role_serialization`), so of
+  the three no-source-path tests only the peer-role one ran there, and it stayed green. The restore
+  was checked as for F5 (`git diff --quiet` exited 0 at 07:41:33.323). To show the other two,
+  the same mutation ran again over every unit test of the crate, at 2026-11-19 08:10:15.145 to
+  08:10:15.616 UTC on the commit
+  `docs(pr-reviews): [#2914] record the replies and resolved threads of PR #2955 round 1` (whose
+  `packages/primitives` equals that of the F4 commit), with
+  `cargo test -q -p torrust-tracker-primitives --lib`: 128 passed and 1 failed, the new test, with
+  `left: "invalid param x"`, so all three no-source-path tests ran and stayed green.
+  `git diff --quiet HEAD -- packages/primitives/src/peer.rs` exited 0 at 08:10:15.630 after the
+  restore (review finding F8 of PR #2955). An earlier attempt at 07:41:25 restored with
   `git checkout` before the test was committed, which also removed the uncommitted test; its
   timestamps were inconsistent too, so it is discarded and not used here.
 - Afterwards `cargo test -q -p torrust-tracker-primitives` passed: 129 unit tests and 8 doctests.
