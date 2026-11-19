@@ -70,6 +70,13 @@ Round 3 has two reviews, both shown as DISMISSED because a later push dismissed 
   findings, F17 and F18, with the reviewer's own IDs. Its body lists them and F14 to F16 as still
   open, and a point checked with no finding; it holds no other request, so it adds no row.
 
+Round 4 has one review at the head whose last commit is
+`docs(pr-reviews): [#2904] record the replies and resolutions of PR #2963 review round 3`:
+
+- `5976833863` by `da2ce7` (APPROVED, 14:24:57 UTC): one inline finding, F20, with the
+  reviewer's own ID. Its body says F14 to F18 are fixed and that the reviewer's F19 was drafted
+  and never posted, and holds no other request, so it adds no row and F19 has none.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2963-f1 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
@@ -89,6 +96,7 @@ Round 3 has two reviews, both shown as DISMISSED because a later push dismissed 
 | F16 | review-finding:pr-2963-f16 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F17 | review-finding:pr-2963-f17 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F18 | review-finding:pr-2963-f18 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-2963-f20 | Human | Nit | correctness | ORIGINAL | FIXED | OPEN |
 
 ## Finding Details
 
@@ -416,6 +424,35 @@ Round 3 has two reviews, both shown as DISMISSED because a later push dismissed 
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2963#discussion_r4629653608>
 
+### F20 - V6 counts three rounds where its method and the skill give four
+
+- PR number: 2963
+- Source review ID: 5976833863
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2963#discussion_r4630090559>
+- Concern: V6's method counted "one processed review event that led to fixes", which gives four
+  at the reviewed head, since round 3 answered two reviews, while its table and the AC9 row said
+  three; `wait-for-pr-review` (Round Limit) defines a round both as "one push of fixes made in
+  response to a review event" (three) and as the number of distinct reviews with a `FIXED`
+  finding (four), so the count cannot be recomputed unless V6 names its definition.
+- Solution: V6's method names the first Round Limit definition, one push of fixes per processing
+  round, and shows that the 14 rounds of #2851 were counted that way (its audit has 14 rounds,
+  rounds 1, 5, 6, 8 and 10 answering two reviews each). It also gives the other count, reviews
+  with a `FIXED` finding: 19 for #2851 and 5 for #2963. The table counts 4 rounds for #2963,
+  with round 4 (review `5976833863`) and the runs of rounds 3 and 4; the AC9 row gives both
+  counts; `evidence/m3-run-records.md` adds the second run of round 3, which its run table had
+  left out, and the two runs of round 4. The skill's two sentences are not changed in this pull
+  request.
+- Current-tree verification: `grep -n "one push of fixes" manual-verification-evidence.md` finds
+  the V6 method line; the V6 row reads "4 so far, answering 5 reviews with a `FIXED` finding";
+  `grep -n "AC9   |" ISSUE.md` shows the row with 4 rounds and 14 rounds (19 reviews) for #2851;
+  `git log --format=%s` on `docs/pr-reviews/pr-2851-review/PR-REVIEW.md` lists one
+  "record round N" commit for each of rounds 1 to 14, and its Findings introduction names two
+  reviews for rounds 1, 5, 6, 8 and 10; `linter markdown` and `linter cspell` exited 0.
+- Resolution reference: docs(issues): [#2904] name the round definition of V6 and count review round 4
+- Follow-up PR URL: N/A
+- Reply URL: pending
+
 ## Processing Log
 
 - 2026-11-19 11:28 UTC - Started the audit for review `5972182565` (`da2ce7`, APPROVED) and the
@@ -468,6 +505,14 @@ Round 3 has two reviews, both shown as DISMISSED because a later push dismissed 
   failures). Resolved the five threads at 13:52 UTC; each mutation returned `isResolved: true`, and
   a GraphQL refresh counted 0 unresolved threads. Review `5974788539` (`da2ce7`, 12:14:43 UTC) has
   no inline comment and no new request, so it adds no row.
+- 2026-11-19 17:00 UTC - Round 4: processing review `5976833863` (`da2ce7`, APPROVED, 14:24:57 UTC,
+  F20) with the `pr-review-handler` agent. A first run stopped before changing anything, because
+  the maintainer posted an ACK of the reviewed head at 16:50:46 UTC; the contributor had already
+  asked for round 4 ("Round 4 now"), and a second run made the fix, committed at 16:57:50 UTC
+  (`git log --format=%cI`). The row is committed with this entry before the reply, with the reply
+  URL pending and the thread state `OPEN`. `validate-audit-record.py` exited 1 on this version
+  with one failure, the missing reply URL of F20, and no other; the URL, the validator's result
+  and the resolution follow in a later entry.
 
 ## Completion Rules
 
