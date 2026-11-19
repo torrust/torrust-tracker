@@ -9,7 +9,7 @@ github-issue: 2949
 spec-path: docs/issues/open/2949-2003-keep-reviewer-ack-after-audit-only-commits/ISSUE.md
 branch: "2949-keep-reviewer-ack-after-audit-only-commits-spec"
 related-pr: null
-last-updated-utc: "2026-11-19 18:33"
+last-updated-utc: "2026-11-19 18:40"
 semantic-links:
   skill-links:
     - create-issue
@@ -128,7 +128,9 @@ the folder. All three cases were checked with Git 2.53.0 on a throwaway reposito
 
 **Decision (2026-11-19, the maintainer, josecelano, in a working session with the issue #2949 session):** the
 audit record stays on the pull request branch and the ACK stays strict. An `ACK <hash>` counts only on the commit
-it names. After an audit-only commit, the reviewer and the maintainer ACK the new head.
+it names. After an audit-only commit, the reviewer and the maintainer ACK the new head. The decision was announced on
+the specification pull request in
+[comment 7018461081](https://github.com/torrust/torrust-tracker/pull/2950#issuecomment-7018461081).
 
 The maintainer's reasons:
 
