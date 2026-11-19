@@ -274,7 +274,7 @@ completed work and remaining tasks are recorded after the decision pivot.
   frontmatter to v1 (required by the validator for edited open specs): status `open` became
   `blocked`, directory paths lost trailing slashes, and the #1488 and PR #1993 URLs were replaced
   by an `issue #1488` reference (v1 has no pull-request reference; the body still links #1993).
-- 2026-11-19 08:23 UTC - Claude - Unblocked the issue: EPIC #1488 is closed and the maintainer
+- 2026-11-19 08:23 UTC - Claude Code (Claude Fable 5.2) - Unblocked the issue: EPIC #1488 is closed and the maintainer
   decided on 2026-11-18 that #1419 continues under EPIC #2392. Status `blocked` became
   `in-progress`. Reviewed `tests/common/workspace.rs` against the final shutdown API and recorded
   the gaps G1 to G3, the decisions D1 to D5 for the maintainer, the planned change and the evidence
