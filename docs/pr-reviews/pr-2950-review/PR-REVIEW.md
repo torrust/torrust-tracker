@@ -55,6 +55,8 @@ Round 5 is da2ce7's review `5971317192` (`APPROVED`, on head `docs(pr-reviews): 
 
 Round 6 is da2ce7's review `5971496221` (`COMMENTED`, on head `docs(pr-reviews): [#2949] record Copilot's two body findings as non-resolvable rows`), with three inline comments carrying their own finding IDs, F17 to F19, and explicit severity labels.
 
+Round 7 is da2ce7's review `5971904090` (`APPROVED`, on head `docs(pr-reviews): [#2949] record PR #2950 review round 6`), with one inline comment carrying its own finding ID, F22, and an explicit severity label, and Copilot review `5972058838` (`COMMENTED`, on the same head), with two inline comments that label themselves `[Minor][F22]` and `[Minor][F23]`. Because da2ce7's comment already uses F22, Copilot's two are recorded as F23 and F24, with Copilot's own IDs as their reviewer finding IDs.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | F1 | `review-finding:pr-2950-f1` | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -78,6 +80,9 @@ Round 6 is da2ce7's review `5971496221` (`COMMENTED`, on head `docs(pr-reviews):
 | F19 | `review-finding:pr-2950-f19` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F20 | `review-finding:pr-2950-f20` | Copilot | Minor (inferred) | documentation | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F21 | `review-finding:pr-2950-f21` | Copilot | Nit (inferred) | formatting | ORIGINAL | FIXED | RESOLVED |
+| F22 | `review-finding:pr-2950-f22` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F23 | `review-finding:pr-2950-f23` | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F24 | `review-finding:pr-2950-f24` | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -284,7 +289,7 @@ Round 6 is da2ce7's review `5971496221` (`COMMENTED`, on head `docs(pr-reviews):
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4625888803
 - Concern: EPIC row 24 and its log line said the maintainer proposed the rule on 2026-11-18, while Background said the maintainer decided it then and D1 reopened it.
 - Solution: Background, EPIC row 24, both log lines and the description use one wording: the decision of 2026-11-18 was reopened under D1. The log lines were reworded in place; F19 records the correction.
-- Current-tree verification: `grep -n 'was proposed\|proposed by the maintainer'` on the specification and the EPIC prints nothing about the rule.
+- Current-tree verification: `grep -n 'was proposed\|proposed by the maintainer'` on the specification and the EPIC prints only the two 08:20 correction entries, which quote the old wording; EPIC row 24 and Background do not match. (Scoped in round 7 after da2ce7's F22; it first said the grep prints nothing.)
 - Resolution reference: `docs(issues): [#2949] describe the 2026-11-18 decision one way in the spec and EPIC`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4625956795
@@ -354,6 +359,45 @@ Round 6 is da2ce7's review `5971496221` (`COMMENTED`, on head `docs(pr-reviews):
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4626179554
 
+### F22 - The 08:20 corrections say Background said "proposed"
+
+- PR number: 2950
+- Source review ID: 5971904090
+- Reviewer finding ID: F22
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4626342004
+- Concern: The 08:20 correction entries said the first wording "was the wording of row 24 and Background at that time", but Background never said "proposed"; the same clause made F16's verification line inaccurate.
+- Solution: Each log has an appended correction saying only row 24 said "proposed"; F16's verification line is scoped to what the grep prints. The fix was first deferred (reply of 2026-11-19 08:56:52 UTC) and made in round 7.
+- Current-tree verification: The grep in F16's verification prints only the two 08:20 entries; both logs have the appended correction after them.
+- Resolution reference: `docs(issues): [#2949] correct the 08:20 log entries about what said "proposed"`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4629683773
+
+### F23 - The D2 (b) design leaves the Git-history step unspecified
+
+- PR number: 2950
+- Source review ID: 5972058838
+- Reviewer finding ID: F22
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4626459790
+- Concern: Design and Ownership Review called the work not applicable because D2 (b) changes "one pure function", but `get_acks_from_comments` receives only the head hash and the comments, so ancestry and changed-path data need Git I/O that nothing specifies, including what happens when it fails.
+- Solution: The section is not applicable only for D2 (a). For D2 (b) it says `main()` acquires the history after fetching `refs/pull/<N>/*`, passes it to the pure matching function, and fails closed when a commit is missing, not an ancestor, ambiguous, or a Git command fails.
+- Current-tree verification: Read Design and Ownership Review on the current tree: it has the D2 (a) exemption and the four D2 (b) points.
+- Resolution reference: `docs(issues): [#2949] specify the merge tool's Git-history step and its failures for D2 (b)`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4629684234
+
+### F24 - Unit tests allowed to replace the manual scenarios
+
+- PR number: 2950
+- Source review ID: 5972058838
+- Reviewer finding ID: F23
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4626459836
+- Concern: The note let the merge tool's tests replace M1 to M5 "instead of by hand", which the issue template forbids (running automated tests is not manual verification).
+- Solution: The note says the tests supplement the manual runs; M1 to M5 are still run by hand with the documented command and their output recorded.
+- Current-tree verification: `grep -n 'instead of by hand'` on the specification prints nothing; the note names the template rule.
+- Resolution reference: `docs(issues): [#2949] keep the manual runs of M1 to M5 alongside the merge-tool tests`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4629684802
+
 ## Processing Log
 
 - 2026-11-18 18:34 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Started audit. The poller reported da2ce7's conversation comment [6987829006](https://github.com/torrust/torrust-tracker/pull/2950#issuecomment-6987829006) (2026-11-18 18:31:31 UTC) on head `docs(issues): add issue specification for #2949`; the pull request had no review. The comment does not agree to the rule as written, points to their proposal on #2949 ([issue comment 6987828129](https://github.com/torrust/torrust-tracker/issues/2949#issuecomment-6987828129), 18:31:29 UTC: a metadata branch folded in with a three-parent merge), and asks that the two be compared before deciding. A conversation comment is not a review, so it makes no row. The comparison was added to the specification in `docs(issues): [#2949] compare da2ce7's metadata-branch alternative under D1`; no decision was made, the maintainer decides D1.
@@ -363,6 +407,7 @@ Round 6 is da2ce7's review `5971496221` (`COMMENTED`, on head `docs(pr-reviews):
 - 2026-11-19 07:48 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Round 4: the poller reported da2ce7's review 5970994174 (submitted 2026-11-19 07:32:57 UTC, `CHANGES_REQUESTED`). Normalized its seven inline comments as F6 to F12, fixed each in its own commit (F11 in the description, which has no commit), pushed the fixes, replied on all seven threads, then resolved them. Copilot review 5964972845 (2026-11-18 20:55:36 UTC) on the round-3 head was first read as clean; its body raised the concerns of F8 and F12 in prose, which da2ce7's review pointed out. F9 corrects the premise of F5's Concern and of the F5 fix commit's body, which stay as history.
 - 2026-11-19 08:26 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Round 5: the poller reported da2ce7's review 5971317192 (`APPROVED`, submitted 2026-11-19 08:03:58 UTC) and their `ACK` on the round-4 head (08:04:02 UTC); the maintainer posted the same `ACK` at 08:09:20 UTC. Normalized the review's two inline comments as F15 and F16 and fixed each in its own commit; the push at 08:11:49 UTC moved the head, so both `ACK`s became stale and GitHub dismissed the approval. Replied on both threads (08:11:56 and 08:11:59 UTC) and resolved them. The same resolve loop also resolved the two threads of Copilot review 5971362548 (submitted 08:07:51 UTC) before any reply; they were unresolved again at once. That push was the fifth round of fixes, so the maintainer was asked before a sixth and approved it in the working session. F21 was fixed in its own commit; F20 was answered with no change (the reply was edited at 08:20:39 UTC to open with the prescribed `Superseded by` form); both threads were replied to (08:19:28 and 08:19:31 UTC) and then resolved. The fixes for F21 and da2ce7's later F19 were pushed together. This entry and the rows for F15, F16, F20 and F21 address da2ce7's F17 and F18 in review 5971496221.
 - 2026-11-19 08:33 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Round 6: the poller reported da2ce7's review 5971496221 (`COMMENTED`, submitted 2026-11-19 08:19:03 UTC). Normalized its three inline comments as F17 to F19. F19 was fixed in its own commit and pushed with F21's fix; F17 and F18 were fixed by the round-5 record, pushed before the replies. Replied on all three threads (08:33:20 to 08:33:25 UTC) and resolved them.
+- 2026-11-19 13:54 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Round 7: the poller reported da2ce7's review 5971904090 (`APPROVED`, submitted 2026-11-19 08:50:35 UTC) and their `ACK` on the round-6 head (08:50:39 UTC); the maintainer posted the same `ACK` at 08:56:15 UTC. The maintainer chose to leave da2ce7's Nit F22 for the next commit, and a reply deferring it was posted at 08:56:52 UTC with the thread left open. Copilot review 5972058838 (submitted 09:02:26 UTC) then raised two Minor comments; the maintainer pointed to them in the working session. Fixed F23, F24 and the deferred F22 in their own commits, pushed them together (head `docs(issues): [#2949] correct the 08:20 log entries about what said "proposed"`), which made both `ACK`s stale; replied on the three threads (13:53:38 to 13:53:43 UTC) and resolved them.
 
 ## Completion Rules
 
