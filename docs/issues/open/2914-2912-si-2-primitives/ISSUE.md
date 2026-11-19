@@ -8,8 +8,8 @@ epic: 2912
 github-issue: 2914
 spec-path: docs/issues/open/2914-2912-si-2-primitives/ISSUE.md
 branch: "2914-primitives"
-related-pr: null
-last-updated-utc: "2026-11-18 19:11"
+related-pr: 2955
+last-updated-utc: "2026-11-19 07:27"
 semantic-links:
   skill-links:
     - create-issue
@@ -156,13 +156,13 @@ with the narrow affected scope, and sign every commit with GPG.
 - [x] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [x] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -174,6 +174,8 @@ the model that produced them.
 - 2026-11-11 17:05 UTC - Claude Code (Fable 5.2) - Drafted from the audit of issue #2804 (`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`, `options.md`) as a sub-issue of the EPIC draft. Not yet approved; line numbers are those of `develop` at `4f0af379a` and must be re-checked before implementation.
 - 2026-11-17 17:30 UTC - Claude Code (Claude Opus 5.5) - EPIC coordinator: the maintainer approved the specification on 2026-11-17; issue #2914 created as `josecelano-bot` and the specification moved from `docs/issues/drafts/` to `docs/issues/open/` (SI-2 of EPIC #2912).
 - 2026-11-18 18:57 UTC - Claude Code (Claude Opus 5.5) - Implemented T1 to T5 on branch `2914-primitives`: reproduced the three messages in a scratch consumer crate, added three red tests through `str::parse` and `try_into`, removed the `location` fields, captures and import, and recorded the breaking change in the publish plan (#2583). The `InvalidPeerRole` message now reads `invalid peer role "x", expected "seeder" or "leecher"`; the peer id messages keep their byte counts. Evidence: `manual-verification-evidence.md`. No retrospective: the work matched the spec; the only discoveries were the shifted line numbers (395/401 for 391/397) and a first test input (`peer`) that matched the path `peer.rs`, both recorded in the evidence.
+- 2026-11-18 19:01 UTC - Claude Code (Claude Opus 5.5) - Opened PR torrust/torrust-tracker#2955. The pre-commit hook (`linter all`, machete, deny bans, nightly fmt) passed for each commit and the pre-push hook (nightly check and docs, packaging, all workspace tests) passed for the first push. Recorded later (2026-11-19): all CI checks then passed, and Copilot's review (2026-11-18 19:22 UTC) had no findings.
+- 2026-11-19 07:27 UTC - Claude Code (Claude Opus 5.5) - Rebased onto `develop` after PR #2957 archived the #2804 spec and handed its scenario M3 to this issue. Added M3 to the scenario table: it is covered by the red and green runs of the `str::parse` regression test and by V1 (evidence section V3 maps them). No production change.
 
 ## Acceptance Criteria
 
@@ -181,7 +183,7 @@ the model that produced them.
 - [x] AC2: `Display` of the three variants holds no source path and names the invalid input, proven by tests that go through `str::parse` and `try_into`.
 - [x] AC3: `packages/primitives/src` has no `Location::caller()` outside test code.
 - [x] AC4: The breaking change is recorded for the 4.0.0 release of the crate.
-- [ ] `linter all` exits with code `0`
+- [x] `linter all` exits with code `0`
 - [x] Relevant tests pass
 - [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
@@ -205,6 +207,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | --- | --- | --- | --- | --- | --- |
 | M1 | Parse an invalid peer role as a library consumer | In a scratch crate that depends on the workspace `torrust-tracker-primitives` by path, print `"x".parse::<PeerRole>().unwrap_err()` | The text names `x` and holds no file path or line | DONE | `manual-verification-evidence.md` section V1 |
 | M2 | Convert a short peer id | Same crate: print `peer::Id::try_from(vec![0; 19]).unwrap_err()` | The text states the byte count and holds no file path or line | DONE | `manual-verification-evidence.md` section V2 |
+| M3 | Scenario M3 of the audit #2804, handed over to this issue: `"x".parse::<PeerRole>()` | Run the regression test through `str::parse` against the old and the fixed code | Old: a `peer.rs` path. After: no path, the input echoed | DONE | `manual-verification-evidence.md` section V3 |
 
 Notes:
 

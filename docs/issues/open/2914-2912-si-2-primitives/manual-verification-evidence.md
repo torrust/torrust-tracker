@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2914-2912-si-2-primitives/ISSUE.md
-last-updated-utc: "2026-11-18 18:56"
+last-updated-utc: "2026-11-19 07:27"
 ---
 
 # Manual Verification Evidence
@@ -137,6 +137,24 @@ V2b: too many bytes for peer id: got 21 bytes, expected 20
 #### Conclusion
 
 Met. The byte counts stay; the source path is gone.
+
+### V3 - Scenario M3 of the audit #2804 (`"x".parse::<PeerRole>()` through `str::parse`)
+
+- Goal: scenario M3 of `docs/issues/closed/2804-location-caller-track-caller-audit/ISSUE.md`,
+  handed over to this issue when that spec was closed: run the regression test through
+  `str::parse` against the old and the fixed code; old text holds a `peer.rs` path, the fixed text
+  holds no path and echoes the input.
+- Status: `DONE`, from runs already recorded in this file; no new run was made for V3.
+
+The regression test
+`peer::test::peer_role::it_should_describe_a_name_that_is_not_a_role_by_the_rejected_text_and_no_source_path`
+calls `"uploader".parse::<PeerRole>()`. Against the old code (the tests-only commit) it failed with
+`"invalid param uploader in packages/primitives/src/peer.rs:73:27"` (Red, below); against the fixed
+code it passed (Green, below). The scenario's literal input `"x"` is V1: before the fix the text
+ended in `peer.rs:73:27`, after it the text is `invalid peer role "x", expected "seeder" or
+"leecher"`.
+
+Conclusion: met. The input is echoed and no path remains.
 
 ## Regression Tests
 
