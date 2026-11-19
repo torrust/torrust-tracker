@@ -660,7 +660,8 @@ pub mod test {
 
     /// Fails when `message` contains anything that looks like a source path: a workspace path, a
     /// registry checkout, the standard library sources, or a `file.rs:line` suffix, written with
-    /// either path separator.
+    /// either path separator. It reports a failure at the caller's line.
+    #[track_caller]
     fn assert_names_no_source_path(message: &str) {
         for fragment in [
             ".rs:",
