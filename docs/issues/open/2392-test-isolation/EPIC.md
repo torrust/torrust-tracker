@@ -6,7 +6,7 @@ epic: null
 github-issue: 2392
 spec-path: docs/issues/open/2392-test-isolation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-18 14:27"
+last-updated-utc: "2026-11-19 08:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -110,7 +110,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | 2 | #2394 - Audit shared test resources | `docs/issues/closed/2394-2392-audit-shared-test-resources/ISSUE.md` | DONE | Task. PR #2891 recorded 38 findings in `inventory.md`: 29 isolated, 1 deliberate exception (P3), 5 covered (P1, P9, C1, C2, C3; C3 through order 4, whose scope now includes the local default image tags) and 3 new problems, now orders 6 to 8: D1 (P2) is #2906, D2 (F2) is #2907 and D3 (C9) is #2908. The close-out PR #2898 has merged; GitHub issue #2394 is still open until the maintainer closes it. |
 | 3 | #2395 - Use dynamic host ports in the E2E runner | `docs/issues/open/2395-2392-e2e-runner-dynamic-host-ports/ISSUE.md` | TODO | Task. Removes fixed E2E host ports. Independent of orders 1 and 2. |
 | 4 | #2396 - Use a unique tracker image tag per CI run | `docs/issues/open/2396-2392-e2e-unique-tracker-image-tag/ISSUE.md` | TODO | Task. Prevents one run from testing another run's image. Latent today (one runner instance per server). Independent of order 3. |
-| 5 | #1419 - Allow multiple integration tests at the main app level | `docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md` | BLOCKED | Existing issue, linked as a subissue. Isolation work is done; the remaining AC8a waits on #1488. |
+| 5 | #1419 - Allow multiple integration tests at the main app level | `docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md` | IN_PROGRESS | Existing issue, linked as a subissue. Isolation work is done. EPIC #1488 closed on 2026-11-19, so the remaining AC8a (review the fixture against the final shutdown API) is unblocked and in progress. |
 | 6 | #2906 - Let two runs of the fixed-port metrics test share a machine | `docs/issues/open/2906-2392-fixed-port-metrics-test-concurrent-runs/ISSUE.md` | TODO | Bug (#2394 D1, P2). `tests/metrics/fixed_ports.rs` binds `0.0.0.0:17091`-`17094`, so two runs on one machine collide (20 of 20 paired runs had one failure). The proposed fix uses the loopback helper beyond the 9 #2393 tests, which needs a maintainer decision before implementation starts (the Decisions section limits the helper to those 9 tests). |
 | 7 | #2907 - Remove the temporary TOML and PEM files tests leave behind | `docs/issues/closed/2907-2392-remove-leaked-test-temporary-files/ISSUE.md` | DONE | Bug (#2394 D2, F2). Narrowed on 2026-11-17 to the `test_config_*.toml` and PEM files that tests leave in the system temporary directory. The `data_*.db` files, 301 of the 303 files one full run leaves, moved to orders 9 and 10. PR #2938 moved the two TOML tests into a `TempDir` and made the TLS helper return a `NamedTempFile`; after it, a full run leaves 0 TOML and 0 PEM files (V2). Found during the work: 18 `figment::Jail` tests in `packages/configuration/src/lib.rs` call `clear_env()`, which removes `TMPDIR` from the whole process while they run, so leaked-file counts are lower bounds (no issue yet). |
 | 8 | #2908 - Tear down the qBittorrent E2E stack when it fails to start | `docs/issues/open/2908-2392-compose-cleanup-after-failed-start/ISSUE.md` | TODO | Bug (#2394 D3, C9). A failed `docker compose up` leaves the stack running on the Docker host. Touches the qBittorrent E2E runner, like order 4. |
@@ -122,7 +122,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 Deliver order 1 first: it fixes failures contributors already hit. Start order 2 early, because
 its findings may add subissues. Orders 3 and 4 touch only the E2E runners and CI workflows and can
-proceed in parallel. #1419 closes on its own schedule after #1488. Order 2 added orders 6 to 8:
+proceed in parallel. #1419 waited on #1488, which closed on 2026-11-19; its remaining work is
+independent of the other orders. Order 2 added orders 6 to 8:
 orders 6 and 7 make the suite fail on a shared machine and gate AC2; they are independent of each
 other and of the E2E orders. Order 8 touches the qBittorrent E2E runner and belongs to Phase 3.
 Order 7 was split: it keeps the TOML and PEM files, and orders 9 and 10 take the SQLite files, in
@@ -295,6 +296,9 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
 - 2026-11-18 13:39 UTC - Claude Code (Claude Opus 5.5), #2907 session - Order 7 is DONE: PR #2938 merged
   and GitHub closed #2907. Archived its spec to `docs/issues/closed/`. AC2 now waits on orders 6,
   9 and 10.
+- 2026-11-19 08:25 UTC - Claude Code (Claude Fable 5.2), EPIC coordinator - Order 5 (#1419) is IN_PROGRESS:
+  EPIC #1488 closed on 2026-11-19 (close-out PR #2951), the maintainer decided that #1419
+  continues under this EPIC, and he had its session started. Its remaining work is R8, AC8a and R9.
 
 ## Acceptance Criteria
 
