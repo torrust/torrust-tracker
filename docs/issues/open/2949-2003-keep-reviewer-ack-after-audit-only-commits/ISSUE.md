@@ -9,7 +9,7 @@ github-issue: 2949
 spec-path: docs/issues/open/2949-2003-keep-reviewer-ack-after-audit-only-commits/ISSUE.md
 branch: "2949-keep-reviewer-ack-after-audit-only-commits-spec"
 related-pr: null
-last-updated-utc: "2026-11-19 07:40"
+last-updated-utc: "2026-11-19 08:06"
 semantic-links:
   skill-links:
     - create-issue
@@ -281,7 +281,7 @@ the last increment, before final verification and the pull request. If D2 is (a)
 - 2026-11-18 19:09 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Addressed Copilot review 5963231037 on PR #2950: the rule's command is now `git diff --no-renames --name-only X..H`, with scenario M4 for a file moved into the audit folder (rename detection otherwise lists only the new path; reproduced with Git 2.53.0), and Regression Test Strategy now names the merge-tool tests that apply when D2 is (b).
 - 2026-11-18 19:43 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Addressed Copilot review 5963780219 on PR #2950: Regression Test Strategy now maps four of its five test cases to M1 to M4 one by one and says the ACK-on-head case is the baseline with no manual scenario.
 - 2026-11-18 20:22 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Addressed Copilot review 5964359494 on PR #2950: the checked facts cite skill sections instead of line numbers, and the rule and D3 state the folder match as the exact prefix `docs/pr-reviews/pr-<N>-review/` with its trailing slash.
-- 2026-11-19 07:40 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Addressed da2ce7's review 5970994174 on PR #2950 (Copilot review 5964972845 raised F3 and F7 in its body too): the rule now checks every commit after the ACK with `git log --no-renames --diff-merges=first-parent --name-only --format= X..H`, so a reverted change outside the folder still makes the ACK stale (AC7, M5); the folder-match examples use paths that tell the forms apart (rule, D3, M3); Background and EPIC row 24 say the rule was proposed and reopened under D1; and Commit Points carries the test-development loop for T5 when D2 is (b).
+- 2026-11-19 07:40 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Addressed da2ce7's review 5970994174 on PR #2950 (Copilot review 5964972845 raised F3 and F7 in its body too): the rule now checks every commit after the ACK with `git log --no-renames --diff-merges=first-parent --name-only --format= X..H`, so a reverted change outside the folder still makes the ACK stale (AC7, M5); the folder-match examples use paths that tell the forms apart (rule, D3, M3); Background and EPIC row 24 say the maintainer's decision of 2026-11-18 to adopt the rule was reopened under D1; and Commit Points carries the test-development loop for T5 when D2 is (b).
 
 ## Acceptance Criteria
 
