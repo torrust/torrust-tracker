@@ -9,7 +9,7 @@ github-issue: 2846
 spec-path: docs/issues/closed/2846-1488-si-27-deregister-stopped-services/ISSUE.md
 branch: "2846-deregister-stopped-services"
 related-pr: null
-last-updated-utc: "2026-11-16 17:27"
+last-updated-utc: "2026-11-18 17:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -25,7 +25,7 @@ semantic-links:
     - packages/axum-health-check-api-server/src/handlers.rs
     - docs/issues/closed/2697-1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md
     - docs/issues/closed/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md
-    - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
+    - docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md
     - docs/adrs/20261116172628_keep_registar_registrations_for_the_process_lifetime.md
 ---
 
@@ -37,7 +37,7 @@ semantic-links:
 > Reasons and the reopening trigger are in the
 > [registration lifetime ADR](../../../adrs/20261116172628_keep_registar_registrations_for_the_process_lifetime.md).
 >
-> **EPIC position**: Roadmap row 24, sub-issue SI-27 of [EPIC #1488](../../open/1488-overhaul-tracker-shutdown/ISSUE.md).
+> **EPIC position**: Roadmap row 24, sub-issue SI-27 of [EPIC #1488](../1488-overhaul-tracker-shutdown/EPIC.md).
 > A follow-up of [SI-21](../2697-1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md).
 > Implementation order 3 of 4. Priority p3; was to land before the first publish (#2583, see Dependencies),
 > superseded by the no-go decision above: SI-27 no longer gates #2583.

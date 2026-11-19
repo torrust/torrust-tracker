@@ -11,7 +11,7 @@ semantic-links:
     - packages/udp-server/tests/server/contract.rs
     - packages/axum-health-check-api-server/tests/server/contract.rs
     - docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/test-refactor-plans/launcher-tests.md
-    - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
+    - docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md
     - docs/issues/closed/2283-1347-increase-udp-server-package-coverage/coverage-evidence.md
 ---
 

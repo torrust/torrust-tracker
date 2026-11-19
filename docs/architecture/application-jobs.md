@@ -25,10 +25,9 @@ semantic-links:
 
 This document describes the tracker application's **current implementation** of
 background jobs and task ownership, including the shutdown order of event
-producers and event listeners. It is not the final shutdown architecture: the
-rest of the design is being developed in
-[shutdown-overhaul EPIC #1488](https://github.com/torrust/torrust-tracker/issues/1488)
-and its [draft PR #1993](https://github.com/torrust/torrust-tracker/pull/1993).
+producers and event listeners. This is the shutdown architecture delivered by
+[shutdown-overhaul EPIC #1488](../issues/closed/1488-overhaul-tracker-shutdown/EPIC.md),
+which the maintainer decided on 2026-11-18 to close.
 The decision behind the shutdown order is the
 [shutdown-order ADR](../adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md);
 the event buses are described in [Events Architecture](events.md).
@@ -283,15 +282,30 @@ application-owned `udp_ban_cleanup` job:
 This is a concrete improvement in lifecycle control, but it does not imply that
 all jobs already follow the desired ownership model.
 
-## Current Limitations and Future Work
+## Scope and Limits of the Supervisor
 
-The current `JobManager` directly owns named component futures in a `JoinSet`,
-and all of them share one shutdown deadline.
+The `JobManager` directly owns named component futures in a `JoinSet`. It gives
+each component its own `CancellationToken`, requests cancellation in the declared
+stop order, waits for all components under one shared shutdown deadline, aborts
+and joins what remains at the deadline, and returns one named outcome per
+component (completed, cancelled, failed, panicked or aborted). The process exit
+code is derived from those outcomes.
 
-It is not yet a complete task-supervision system.
+The supervision has two levels, not a general tree. The manager knows only the
+top-level components; each component owns, cancels and joins its own nested
+tasks, and the manager never sees their handles.
 
-In particular, the current architecture does not yet define a complete hierarchy
-of parent and child jobs, uniform cancellation support for every job, state
-reporting, restart policy, or richer parent-child communication. Those concerns
-belong to shutdown-overhaul EPIC #1488 and draft PR #1993. Changes to this
-document should describe verified current behavior until that design is accepted.
+The manager supervises shutdown only. It deliberately does not provide:
+
+- a restart policy: a component that fails or panics while the tracker runs is
+  not restarted, and its outcome is collected at shutdown;
+- runtime state reporting: it can name the components still waiting to be asked
+  to stop, but it does not publish the state of each component while it runs;
+- dynamic lifecycle: components are started during startup and stopped at
+  shutdown, not started or stopped on request; and
+- communication between parent and child beyond the cancellation token and the
+  final outcome.
+
+None of these is planned. Shutdown-overhaul EPIC #1488 placed dynamic job
+lifecycle out of its scope and is closed. Changes to this document should
+describe verified current behavior.

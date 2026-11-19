@@ -8,7 +8,7 @@ github-issue: 2221
 spec-path: docs/issues/closed/2221-1488-si-5-migrate-activity-metrics-updater/ISSUE.md
 branch: 2221-migrate-activity-metrics-updater
 related-pr: 2224
-last-updated-utc: 2026-09-15 11:50
+last-updated-utc: "2026-11-18 17:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -20,7 +20,7 @@ semantic-links:
     - src/bootstrap/jobs/manager.rs
     - src/app.rs
     - src/AGENTS.md
-    - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
+    - docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md
     - docs/issues/closed/2169-1488-si-4-migrate-torrent-cleanup/ISSUE.md
     - docs/issues/closed/1586-evaluate-job-manager-join-set/ISSUE.md
     - docs/issues/closed/1588-review-shutdown-process-for-all-tasks-jobs/verification.md

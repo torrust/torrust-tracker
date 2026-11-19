@@ -9,7 +9,7 @@ github-issue: 2668
 spec-path: docs/issues/closed/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
 branch: "2668-configure-shutdown-policy"
 related-pr: 2678
-last-updated-utc: "2026-10-28 16:38"
+last-updated-utc: "2026-11-18 17:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -45,15 +45,15 @@ semantic-links:
     - docs/adrs/20260723184019_separate_configuration_value_invariants_from_consistency_validation.md
     - docs/issues/closed/1586-evaluate-job-manager-join-set/ISSUE.md
     - docs/issues/closed/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
-    - docs/issues/open/1488-overhaul-tracker-shutdown/discarded-drafts/si-8-configurable-grace-periods/discarded-draft.md
-    - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
+    - docs/issues/closed/1488-overhaul-tracker-shutdown/discarded-drafts/si-8-configurable-grace-periods/discarded-draft.md
+    - docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md
 ---
 
 <!-- skill-link: create-issue -->
 
 # Issue #2668 - Configure Shutdown Policy and Deployment Contract (SI-20)
 
-Parent: [EPIC #1488 - Overhaul: Tracker Shutdown](../1488-overhaul-tracker-shutdown/ISSUE.md)
+Parent: [EPIC #1488 - Overhaul: Tracker Shutdown](../1488-overhaul-tracker-shutdown/EPIC.md)
 
 > **EPIC position**: Roadmap sequence 20 (SI-20). Final policy and configuration task. It applies
 > the approved Q3 and Q4 outcomes to the lifecycle that sequences 0 to 17 and sub-EPIC SI-22

@@ -1,7 +1,7 @@
 ---
 doc-type: analysis
 status: draft
-last-updated-utc: 2026-09-11
+last-updated-utc: "2026-11-18 17:24"
 semantic-links:
   related-artifacts:
     - src/main.rs
@@ -29,7 +29,7 @@ semantic-links:
     - packages/swarm-coordination-registry/src/statistics/activity_metrics_updater.rs
     - packages/axum-server/src/custom_axum_server.rs
     - docs/features/shutdown-process/README.md
-    - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
+    - docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md
     - docs/issues/closed/1588-review-shutdown-process-for-all-tasks-jobs/ISSUE.md
     - docs/research/20260716-console-shutdown-patterns/README.md
     - "issue #1488"

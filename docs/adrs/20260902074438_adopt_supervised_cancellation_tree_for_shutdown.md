@@ -6,7 +6,7 @@ semantic-links:
     - docs/features/shutdown-process/README.md
     - docs/features/shutdown-process/questions.md
     - docs/features/shutdown-process/shutdown-architecture-examples.md
-    - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
+    - docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md
     - docs/issues/closed/1586-evaluate-job-manager-join-set/ISSUE.md
     - src/main.rs
     - src/bootstrap/jobs/manager.rs
@@ -91,7 +91,7 @@ normal cancellation paths and library OS-signal subscriptions.
 
 ## References
 
-- EPIC #1488: [Overhaul Tracker Shutdown](../issues/open/1488-overhaul-tracker-shutdown/ISSUE.md)
+- EPIC #1488: [Overhaul Tracker Shutdown](../issues/closed/1488-overhaul-tracker-shutdown/EPIC.md)
 - Issue #1586: [Evaluate `JoinSet` for `JobManager`](../issues/closed/1586-evaluate-job-manager-join-set/ISSUE.md)
 - Issue #1588: [Review Shutdown Process for All Tasks/Jobs](../issues/closed/1588-review-shutdown-process-for-all-tasks-jobs/ISSUE.md)
 - [Shutdown feature definition](../features/shutdown-process/README.md)

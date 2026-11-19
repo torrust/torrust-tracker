@@ -7,7 +7,7 @@ github-issue: 1588
 spec-path: docs/issues/closed/1588-review-shutdown-process-for-all-tasks-jobs/ISSUE.md
 branch: "1588-review-shutdown-process"
 related-pr: null
-last-updated-utc: 2026-09-11
+last-updated-utc: "2026-11-18 17:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -17,7 +17,7 @@ semantic-links:
     - docs/features/shutdown-process/questions.md
     - docs/features/shutdown-process/task-inventory.md
     - docs/issues/closed/1586-evaluate-job-manager-join-set/ISSUE.md
-    - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
+    - docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md
     - src/bootstrap/jobs/manager.rs
     - src/bootstrap/jobs/torrent_cleanup.rs
     - src/bootstrap/jobs/activity_metrics_updater.rs

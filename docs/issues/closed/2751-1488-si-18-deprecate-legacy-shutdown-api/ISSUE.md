@@ -9,7 +9,7 @@ github-issue: 2751
 spec-path: docs/issues/closed/2751-1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md
 branch: "2751-deprecate-legacy-shutdown-api"
 related-pr: 2793
-last-updated-utc: "2026-11-10 11:28"
+last-updated-utc: "2026-11-18 17:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -26,7 +26,7 @@ semantic-links:
     - docs/features/shutdown-process/questions.md
     - docs/features/shutdown-process/task-inventory.md
     - docs/issues/closed/2234-1488-si-2-remove-global-shutdown-signal/ISSUE.md
-    - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
+    - docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -103,7 +103,7 @@ The crate's removal version is therefore 0.6.0.
 ## Versioning Decisions
 
 Decided by the maintainer on 2026-11-06, using the EPIC #1669 coordinator's facts
-([#2583](../2583-1669-first-publish-of-workspace-crates/ISSUE.md) publishes each unpublished crate at its
+([#2583](../../open/2583-1669-first-publish-of-workspace-crates/ISSUE.md) publishes each unpublished crate at its
 current version at the end of #1669; the root `torrust-tracker` next releases as 4.0.0):
 
 - Deprecate and then remove, even for the unpublished crates, to stay consistent with the EPIC and with the

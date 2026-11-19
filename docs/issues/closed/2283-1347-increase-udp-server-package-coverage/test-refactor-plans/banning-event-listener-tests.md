@@ -8,7 +8,7 @@ semantic-links:
   related-artifacts:
     - packages/udp-server/src/banning/event/listener.rs
     - packages/udp-server/src/banning/event/handler.rs
-    - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
+    - docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md
     - docs/issues/closed/2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md
     - docs/issues/closed/2283-1347-increase-udp-server-package-coverage/coverage-evidence.md
 ---

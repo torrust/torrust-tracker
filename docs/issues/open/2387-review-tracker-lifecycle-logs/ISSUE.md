@@ -9,7 +9,7 @@ github-issue: 2387
 spec-path: docs/issues/open/2387-review-tracker-lifecycle-logs/ISSUE.md
 branch: "2387-review-tracker-lifecycle-logs"
 related-pr: null
-last-updated-utc: "2026-09-30 12:24"
+last-updated-utc: "2026-11-18 17:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -21,7 +21,7 @@ semantic-links:
     - share/default/config/tracker.development.sqlite3.toml
     - docs/features/shutdown-process/task-inventory.md
     - docs/issues/closed/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md
-    - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
+    - docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md
     - "issue #1166"
 ---
 

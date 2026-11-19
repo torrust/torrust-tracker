@@ -9,7 +9,7 @@ github-issue: 2844
 spec-path: docs/issues/closed/2844-1488-si-25-remove-unused-error-variants/ISSUE.md
 branch: "2844-remove-unused-error-variants"
 related-pr: 2858
-last-updated-utc: "2026-11-14 12:38"
+last-updated-utc: "2026-11-18 17:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -19,14 +19,14 @@ semantic-links:
     - packages/udp-server/src/server/mod.rs
     - docs/adrs/20260629000000_adopt_independent_package_versioning.md
     - docs/issues/closed/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md
-    - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
+    - docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md
 ---
 
 <!-- skill-link: create-issue -->
 
 # Issue #2844 - Remove the Unused Public Shutdown Error Variants (SI-25)
 
-> **EPIC position**: Roadmap row 22, sub-issue SI-25 of [EPIC #1488](../../open/1488-overhaul-tracker-shutdown/ISSUE.md).
+> **EPIC position**: Roadmap row 22, sub-issue SI-25 of [EPIC #1488](../1488-overhaul-tracker-shutdown/EPIC.md).
 > A follow-up of [SI-19](../../closed/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md).
 > Implementation order 1 of 4 (SI-25, SI-26, SI-27, SI-28). Priority p3, but it must land before the
 > first publish of the workspace crates (#2583, see Dependencies).

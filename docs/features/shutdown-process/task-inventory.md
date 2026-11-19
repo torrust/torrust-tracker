@@ -1,7 +1,7 @@
 ---
 doc-type: feature-supporting-analysis
 status: verified
-last-updated-utc: "2026-11-17 17:26"
+last-updated-utc: "2026-11-18 17:25"
 semantic-links:
   related-artifacts:
     - docs/features/shutdown-process/README.md
@@ -32,9 +32,11 @@ adopted direct `JoinSet` supervision. It follows the normal `app::start()`
 startup path and excludes tests, benchmarks, the tracker-client application,
 and third-party framework internals whose exact task topology is not exposed.
 
-`main()` is the executable signal boundary: it accepts `SIGINT` and, on Unix,
-`SIGTERM`; it then calls `JobManager::cancel()` and awaits all manager-owned
-work under one shared ten-second deadline. Since issue #2415, every direct
+The executable signal boundary is `app::run_until_shutdown_signal` (`src/app.rs`),
+which `main()` calls: it accepts `SIGINT` and, on Unix, `SIGTERM`; it then marks
+the application not ready, calls `JobManager::cancel()` and awaits all
+manager-owned work under one shared deadline (`application.shutdown.deadline_in_secs`,
+25 seconds by default). Since issue #2415, every direct
 component gets its own cancellation token from `JobManager::reserve`, not a
 child of a shared root token. Since issue #2416 the shutdown is ordered:
 `cancel()` cancels the components that wait for no
@@ -94,7 +96,7 @@ flowchart TD
     direct --> health["Health-check API"]
     health --> healthController["Owned, joined drain controller"]
     direct --> framework["Axum/Hyper framework-owned work"]
-    manager["JobManager shared 10-second deadline"] --> direct
+    manager["JobManager shared deadline (25 s by default)"] --> direct
     direct --> ban["UDP IP-ban cleanup (conditional)"]
 ```
 
@@ -116,7 +118,7 @@ each row.
 | HTTP instances                | N bindings  | Direct `JoinSet` | Own token, before listeners | SI-11, SI-22 complete  |
 | REST API                      | 0–1         | Direct `JoinSet` | Own token                   | SI-12 complete         |
 | Health-check API              | 1           | Direct `JoinSet` | Own token                   | SI-13 complete, SI-21  |
-| HTTP/REST drain controllers   | Per server  | Component-owned  | Component token, 90 s drain | SI-11, SI-12 complete  |
+| HTTP/REST drain controllers   | Per server  | Component-owned  | Component token, configured drain (15 s by default) | SI-11, SI-12 complete  |
 | Health-check drain controller | 1           | Component-owned  | Component token, 5 s drain  | SI-13 complete         |
 | Health-check request work     | Per request | Framework-owned  | Request lifetime            | —                      |
 | Torrent cleanup               | 0–1         | Direct `JoinSet` | Own token, before listeners | SI-4, SI-22 complete   |
@@ -188,9 +190,11 @@ each row.
   [request-concurrency ADR](../../../packages/udp-server/docs/adrs/20260929181216_bound_udp_request_concurrency_with_task_per_request_ring.md)
   records the admission, eviction, and ownership design.
 - **HTTP and REST drain controllers** — each token-aware server spawns a
-  controller that waits for its component token, then drains for up to 90
-  seconds. The component joins it before reporting its outcome; the 90-second
-  budget still exceeds the manager's shared ten-second deadline (SI-20).
+  controller that waits for its component token, then drains for up to
+  `application.shutdown.http_drain_in_secs` (15 seconds by default). The
+  component joins it before reporting its outcome. Since SI-20 (#2668) the
+  startup validation keeps the drain budget below the manager's shared
+  deadline (25 seconds by default).
 - **Health-check request work** — request-scoped aggregation awaits with
   `join_all`; protocol probes are spawned inside service checks. Axum/Hyper
   own connection and request topology, so none of this work is manager-owned.
@@ -373,7 +377,7 @@ and spawn it with its own token, no `child_token` call remains, and since SI-26
 No implementation evidence identified a missing independently releasable
 shutdown slice. The [EPIC #1488 roadmap][issue-1488] records SI-5 as complete.
 
-[issue-1488]: ../../issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
+[issue-1488]: ../../issues/closed/1488-overhaul-tracker-shutdown/EPIC.md
 [issue-1586]: ../../issues/closed/1586-evaluate-job-manager-join-set/ISSUE.md
 [issue-1588]: ../../issues/closed/1588-review-shutdown-process-for-all-tasks-jobs/ISSUE.md
 [events-architecture]: ../../architecture/events.md
