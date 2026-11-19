@@ -25,9 +25,9 @@
 //! Invalid query params for scrape request: <http://0.0.0.0:7070/scrape?info_hash=invalid>
 //!
 //! ```text
-//! d14:failure reason235:Bad request. Cannot parse query params for scrape request: invalid param value invalid for info_hash in not enough bytes for infohash: got 7 bytes, expected 20 src/shared/bit_torrent/info_hash.rs:240:27, src/servers/http/v1/requests/scrape.rs:66:46e
+//! d14:failure reason144:Bad request. Cannot parse query params for scrape request: invalid param value invalid for info_hash: it must percent-decode to exactly 20 bytese
 //! ```
-// cspell:ignore stringe
+// cspell:ignore bytese stringe
 use std::future::Future;
 
 use axum::extract::FromRequestParts;

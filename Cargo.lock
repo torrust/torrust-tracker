@@ -5271,7 +5271,6 @@ dependencies = [
  "torrust-bencode",
  "torrust-clock",
  "torrust-info-hash",
- "torrust-located-error",
  "torrust-peer-id",
 ]
 

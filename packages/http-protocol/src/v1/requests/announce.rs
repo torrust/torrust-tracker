@@ -9,7 +9,6 @@ use std::str::FromStr;
 
 use thiserror::Error;
 use torrust_info_hash::InfoHash;
-use torrust_located_error::{Located, LocatedError};
 use torrust_peer_id::PeerId;
 
 use crate::percent_encoding::{
@@ -223,18 +222,24 @@ pub enum ParseAnnounceQueryError {
     #[error("invalid param value {param_value} for {param_name}")]
     InvalidParam { param_name: String, param_value: String },
     /// The `info_hash` is invalid.
-    #[error("invalid param value {param_value} for {param_name} in {source}")]
+    ///
+    /// The message does not print the source: its text comes from the
+    /// `torrust-info-hash` crate, which this workspace does not control, and
+    /// the message reaches the client.
+    #[error("invalid param value {param_value} for {param_name}: it must percent-decode to exactly 20 bytes")]
     InvalidInfoHashParam {
         param_name: String,
         param_value: String,
-        source: LocatedError<'static, torrust_info_hash::ConversionError>,
+        #[source]
+        source: torrust_info_hash::ConversionError,
     },
     /// The `peer_id` is invalid.
-    #[error("invalid param value {param_value} for {param_name} in {source}")]
+    #[error("invalid param value {param_value} for {param_name}: it must percent-decode to exactly 20 bytes")]
     InvalidPeerIdParam {
         param_name: String,
         param_value: String,
-        source: LocatedError<'static, PeerIdConversionError>,
+        #[source]
+        source: PeerIdConversionError,
     },
     /// The `ip` parameter contains malformed percent encoding or invalid UTF-8.
     #[error("malformed percent encoding or invalid UTF-8 for ip")]
@@ -547,7 +552,7 @@ fn extract_info_hash(query: &Query) -> Result<InfoHash, ParseAnnounceQueryError>
                 percent_decode_info_hash(&raw_param).map_err(|err| ParseAnnounceQueryError::InvalidInfoHashParam {
                     param_name: INFO_HASH.to_owned(),
                     param_value: raw_param.clone(),
-                    source: Located(err).into(),
+                    source: err,
                 })?,
             )
         }
@@ -563,7 +568,7 @@ fn extract_peer_id(query: &Query) -> Result<PeerId, ParseAnnounceQueryError> {
             percent_decode_peer_id(&raw_param).map_err(|err| ParseAnnounceQueryError::InvalidPeerIdParam {
                 param_name: PEER_ID.to_owned(),
                 param_value: raw_param.clone(),
-                source: Located(err).into(),
+                source: err,
             })?,
         ),
         None => Err(ParseAnnounceQueryError::MissingParam {

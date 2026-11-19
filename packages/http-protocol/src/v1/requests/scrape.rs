@@ -3,7 +3,6 @@
 //! Data structures and logic for parsing the `scrape` request.
 use thiserror::Error;
 use torrust_info_hash::InfoHash;
-use torrust_located_error::{Located, LocatedError};
 
 use crate::percent_encoding::percent_decode_info_hash;
 use crate::v1::query::Query;
@@ -42,11 +41,17 @@ pub enum ParseScrapeQueryError {
     /// The mandatory `info_hash` param is missing.
     #[error("missing param {param_name}")]
     MissingParam { param_name: String },
-    #[error("invalid param value {param_value} for {param_name} in {source}")]
+    /// An `info_hash` is invalid.
+    ///
+    /// The message does not print the source: its text comes from the
+    /// `torrust-info-hash` crate, which this workspace does not control, and
+    /// the message reaches the client.
+    #[error("invalid param value {param_value} for {param_name}: it must percent-decode to exactly 20 bytes")]
     InvalidInfoHashParam {
         param_name: String,
         param_value: String,
-        source: LocatedError<'static, torrust_info_hash::ConversionError>,
+        #[source]
+        source: torrust_info_hash::ConversionError,
     },
 }
 
@@ -78,7 +83,7 @@ fn extract_info_hashes(query: &Query) -> Result<Vec<InfoHash>, ParseScrapeQueryE
                     percent_decode_info_hash(&raw_param).map_err(|err| ParseScrapeQueryError::InvalidInfoHashParam {
                         param_name: INFO_HASH.to_owned(),
                         param_value: raw_param.clone(),
-                        source: Located(err).into(),
+                        source: err,
                     })?;
 
                 info_hashes.push(info_hash);

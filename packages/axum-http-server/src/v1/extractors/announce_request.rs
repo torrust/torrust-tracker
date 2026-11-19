@@ -25,9 +25,9 @@
 //! Invalid query param (`info_hash`): <http://0.0.0.0:7070/announce?info_hash=invalid&ip=2.137.87.41&downloaded=0&uploaded=0&peer_id=-qB00000000000000001&port=17548&left=0&event=completed&compact=0>
 //!
 //! ```text
-//! d14:failure reason240:Bad request. Cannot parse query params for announce request: invalid param value invalid for info_hash in not enough bytes for infohash: got 7 bytes, expected 20 src/shared/bit_torrent/info_hash.rs:240:27, src/servers/http/v1/requests/announce.rs:182:42e
+//! d14:failure reason146:Bad request. Cannot parse query params for announce request: invalid param value invalid for info_hash: it must percent-decode to exactly 20 bytese
 //! ```
-// cspell:ignore stringe
+// cspell:ignore bytese stringe
 use std::future::Future;
 
 use axum::extract::FromRequestParts;
