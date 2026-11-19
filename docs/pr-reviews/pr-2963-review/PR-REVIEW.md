@@ -59,6 +59,17 @@ Round 2 has one review at the head whose last commit is
   six inline findings, F8 to F13, with the reviewer's own IDs (the reviewer's F7 was never
   posted). Its body lists the same six findings and holds no other request, so it adds no row.
 
+Round 3 has two reviews, both shown as DISMISSED because a later push dismissed them:
+
+- `5974503813` by `da2ce7` (11:54:19 UTC, at the head whose last commit is
+  `docs(issues): [#2904] record scenario M3 and the first round count of AC9`): three inline
+  findings, F14 to F16, with the reviewer's own IDs. Its body lists the same three findings and
+  holds no other request, so it adds no row.
+- `5974634671` by `da2ce7` (12:03:59 UTC, at the head whose last commit is
+  `docs(pr-reviews): [#2904] count six sections in the F1 verification of PR #2963`): two inline
+  findings, F17 and F18, with the reviewer's own IDs. Its body lists them and F14 to F16 as still
+  open, and a point checked with no finding; it holds no other request, so it adds no row.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2963-f1 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
@@ -73,6 +84,11 @@ Round 2 has one review at the head whose last commit is
 | F11 | review-finding:pr-2963-f11 | Human | Minor | link-integrity | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-2963-f12 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F13 | review-finding:pr-2963-f13 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-2963-f14 | Human | Minor | documentation | ORIGINAL | FIXED | OPEN |
+| F15 | review-finding:pr-2963-f15 | Human | Nit | documentation | ORIGINAL | FIXED | OPEN |
+| F16 | review-finding:pr-2963-f16 | Human | Nit | metadata | ORIGINAL | FIXED | OPEN |
+| F17 | review-finding:pr-2963-f17 | Human | Minor | metadata | ORIGINAL | FIXED | OPEN |
+| F18 | review-finding:pr-2963-f18 | Human | Nit | correctness | ORIGINAL | FIXED | OPEN |
 
 ## Finding Details
 
@@ -300,6 +316,106 @@ Round 2 has one review at the head whose last commit is
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2963#discussion_r4628371374>
 
+### F14 - V3 and V6 rest on run records that are not stored
+
+- PR number: 2963
+- Source review ID: 5974503813
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2963#discussion_r4628319852>
+- Concern: V3 gives each M3 run's `model` count, the `requestShape` metadata, the wind-down debug
+  line, the request-cache tools and the agent's report of run 3 with no stored copy and no
+  command, and V6's model of each round depends on them, while V1's records are stored.
+- Solution: added `evidence/m3-run-records.md` with the `model` lines of the three M3 runs' session
+  and agent transcripts and of rounds 2 and 3, the agents' metadata files and request-cache
+  records, the runs' JSON results and start times, how each run was started, the lines that show
+  how run 1 ended, and the reports of the three runs. Each record has the command that printed it
+  and the time it ran; local path parts and the ids of three branch commits are replaced. V3 and V6
+  link the file, and V6 counts rounds 2 and 3.
+- Current-tree verification: `grep -n "m3-run-records" manual-verification-evidence.md` finds the
+  links in V3 and V6; `grep -c '^## ' evidence/m3-run-records.md` prints 7; `grep -c "/home"` on
+  it prints 0; the PR-branch commit-id check of `open-pull-request` prints nothing.
+- Resolution reference: docs(issues): [#2904] store the records of the M3 runs and count review rounds 2 and 3
+- Follow-up PR URL: N/A
+- Reply URL: pending
+
+### F15 - The wait-ceiling variable has no source and was not tested alone
+
+- PR number: 2963
+- Source review ID: 5974503813
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2963#discussion_r4628319860>
+- Concern: V3 names `CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0` without a source, and offers it as an
+  alternative to the foreground start, although it was only set together with one.
+- Solution: V3 quotes run 1's stderr message, which names the variable, and says it is the only
+  source; the limit now says the effect of the variable alone was not observed, since every run
+  that set it also asked for a foreground start. The records file stores the message (from the
+  working session's transcript, since run 2 overwrote the stderr file; the debug logs do not hold
+  it) and, for each start command, whether it set the variable and asked for the foreground.
+- Current-tree verification: `grep -n "BG_WAIT" manual-verification-evidence.md` finds the quoted
+  message in run 1's result and the limit that says its effect alone was not observed; the
+  records file's section "How each run was started" shows `sets_ceiling_variable` true only with
+  `prompt_says_foreground` true.
+- Resolution reference: docs(issues): [#2904] name the source of the wait-ceiling variable in V3
+- Follow-up PR URL: N/A
+- Reply URL: pending
+
+### F16 - AC3 stays unchecked while M3 is done
+
+- PR number: 2963
+- Source review ID: 5974503813
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2963#discussion_r4628319868>
+- Concern: AC3 and its Acceptance Verification row stayed `TODO` while M3, its evidence, was
+  `DONE`; AC2 was checked when V2 was recorded.
+- Solution: AC3 asks for one real round processed by `pr-review-handler` from fetch to resolved
+  threads, and `validate-audit-record.py` exiting `0`; V3 records both, so AC3 is checked and its
+  row cites V3 and the records file. The AC9 row gives the three rounds V6 now counts, and a
+  Progress Log entry records the round.
+- Current-tree verification: `grep -n "AC3" ISSUE.md` shows `- [x] AC3` and the row `| AC3 | DONE`
+  citing section V3.
+- Resolution reference: docs(issues): [#2904] check AC3 with the evidence of scenario M3
+- Follow-up PR URL: N/A
+- Reply URL: pending
+
+### F17 - The second-round replies cite rows that the reviewed head does not carry
+
+- PR number: 2963
+- Source review ID: 5974634671
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2963#discussion_r4628420714>
+- Concern: the round-2 replies (11:59:19 to 11:59:30 UTC) cite rows F8 to F13, but at the reviewed
+  head the record had rows only for F1 to F6, no log entry for the round, and the six threads
+  were open.
+- Solution: the round-2 run committed the six rows with their reply URLs and a log entry after
+  the review was posted, and resolved the six threads. In this round the rows were committed and
+  pushed before the replies.
+- Current-tree verification: the record has rows and detail entries for F8 to F13, each with its
+  reply URL, and the 12:01 log entry for round 2, from the commit of 12:01:58 UTC
+  (`git log --format=%cI` on the record); a GraphQL query at 12:09 UTC showed the six round-2
+  threads resolved by `josecelano-bot`, each with two comments.
+- Resolution reference: docs(pr-reviews): [#2904] record PR #2963 review round 2 in the audit
+- Follow-up PR URL: N/A
+- Reply URL: pending
+
+### F18 - The F9 reply's check does not hold
+
+- PR number: 2963
+- Source review ID: 5974634671
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2963#discussion_r4628420725>
+- Concern: the F9 reply and verification say `grep -c "one commit each" ISSUE.md` prints 0; it
+  prints 1, because the fixed entry quotes the old words where it records their correction.
+- Solution: the F9 entry's verification says the only match is that quotation and records the
+  correction; the reply cannot be edited. The sweep for the same mistake found that the checks
+  of F2 and F3 had also stopped holding after later changes; both now say what held at the fixing
+  commit and what holds at this head.
+- Current-tree verification: `grep -n "one commit each" ISSUE.md` prints only line 607, the 09:18
+  entry, inside the sentence that records the correction; the F2 and F3 checks were rerun at
+  12:18 UTC and hold as now written.
+- Resolution reference: docs(pr-reviews): [#2904] give the F9 verification of PR #2963 a check that holds
+- Follow-up PR URL: N/A
+- Reply URL: pending
+
 ## Processing Log
 
 - 2026-11-19 11:28 UTC - Started the audit for review `5972182565` (`da2ce7`, APPROVED) and the
@@ -335,6 +451,14 @@ Round 2 has one review at the head whose last commit is
   mutation returned `isResolved: true`. A GraphQL refresh at 12:01:10 UTC counted three
   unresolved threads, all from review `5974503813` (`da2ce7`, 11:54:19 UTC, F14 to F16), which
   belongs to the next round and is not processed here.
+- 2026-11-19 12:20 UTC - Round 3: processing reviews `5974503813` (`da2ce7`, 11:54:19 UTC, F14 to F16) and
+  `5974634671` (`da2ce7`, 12:03:59 UTC, F17 and F18) with the `pr-review-handler` agent. F17 was
+  already fixed by the round-2 audit commit; the fixes of F14, F15, F16 and F18 were committed at
+  12:16:10 to 12:19:43 UTC (`git log --format=%cI`). The five rows are committed with this entry
+  before the replies, with the reply URLs pending and the thread state `OPEN`.
+  `validate-audit-record.py` exited 1 on this version with five failures, one missing reply URL
+  for each of F14 to F18 and no other; the URLs, the validator's result and the resolutions follow
+  in a later entry.
 
 ## Completion Rules
 
