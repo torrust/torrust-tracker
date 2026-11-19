@@ -9,7 +9,7 @@ github-issue: 2281
 spec-path: docs/issues/closed/2281-2264-frontmatter-validator-command/ISSUE.md
 branch: "2281-frontmatter-validator-command"
 related-pr: 2357
-last-updated-utc: "2026-11-18 17:24"
+last-updated-utc: "2026-09-28 10:53"
 semantic-links:
   skill-links:
     - create-issue
@@ -246,7 +246,7 @@ Maintainer decisions recorded on 2026-09-24, before implementation:
   shared document they do not own. This issue therefore migrates the seven legacy open EPIC
   records:
   - `docs/issues/open/1347-overhaul-packages-testing/EPIC.md`;
-  - `docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md`, which declares `doc-type: epic`
+  - `docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md`, which declares `doc-type: epic`
     and is not renamed here;
   - `docs/issues/open/1669-overhaul-packages/EPIC.md`;
   - `docs/issues/open/1840-improve-pr-workflow-performance-epic/EPIC.md`;

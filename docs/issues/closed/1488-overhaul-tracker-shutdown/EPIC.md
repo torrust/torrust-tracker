@@ -6,7 +6,7 @@ epic: null
 github-issue: 1488
 spec-path: docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-18 19:07"
+last-updated-utc: "2026-11-19 07:35"
 semantic-links:
   skill-links:
     - create-issue
@@ -32,7 +32,7 @@ semantic-links:
 
 ## Completion Note
 
-**Completed on 2026-11-18.** All 26 roadmap rows are closed: 25 are done and SI-27 (#2846) is not
+**Completed: the maintainer decided on 2026-11-18 to close this EPIC.** All 26 roadmap rows are closed: 25 are done and SI-27 (#2846) is not
 planned. This spec is kept as the record of the EPIC; the current behaviour is described in
 [Application Jobs](../../../architecture/application-jobs.md) and in the
 [shutdown feature document](../../../features/shutdown-process/README.md).
@@ -95,8 +95,8 @@ root token.
 The shutdown process had several problems identified in the
 [shutdown analysis](../../../analysis/20260716-shutdown-process/README.md).
 The list keeps the problems as originally found, in the present tense of that
-time; each item ends with its final status at the close of the EPIC
-(2026-11-18). All nine are fixed.
+time; each item ends with its final status at the close-out of the EPIC
+(written on 2026-11-18). All nine are fixed.
 
 1. **No `SIGTERM` in `main.rs`** — only `SIGINT` (Ctrl+C) is handled at the top
    level. Container orchestrators (Docker/Podman) send `SIGTERM` by default,
@@ -131,8 +131,8 @@ time; each item ends with its final status at the close of the EPIC
    added concurrent named outcomes, the migrated components log their drains,
    and SI-22.2 (#2414) added the listener drain logs. The manager logs which
    component is asked to stop and what each waiting component waits for, and
-   SI-20 (#2668) made the final log line and the exit code name the components
-   that did not stop gracefully. The periodic "still running" progress report
+   SI-20 (#2668) made the final log line name the components that did not stop
+   gracefully, and the exit code 1 when any did. The periodic "still running" progress report
    sketched in the feature document was not built.
 8. **Double-signal on Ctrl+C** — both `main.rs` and each server's
    `global_shutdown_signal()` catch the same signal, creating a potential race.
@@ -282,8 +282,8 @@ the EPIC stayed open until they were done or dropped. Recommended implementation
 The maintainer decided on 2026-11-12 that SI-25, SI-26 and SI-27 land before the first publish of the
 workspace crates (#2583), which is blocked on this EPIC as a whole. On 2026-11-16 the maintainer
 dropped SI-27 after its go/no-go decision (no-go, recorded in the registration lifetime ADR), so it no
-longer gates #2583. SI-25, SI-26 and SI-28 are done, so the EPIC was closed on 2026-11-18 and no longer
-blocks #2583.
+longer gates #2583. SI-25, SI-26 and SI-28 are done, so the maintainer decided on 2026-11-18 to close the
+EPIC, which no longer blocks #2583.
 
 The four specs were written in one combined spec PR, so their `branch:` frontmatter names the reserved
 implementation branch (`{issue}-{description}`), not the spec branch; the implementing PR uses that name.

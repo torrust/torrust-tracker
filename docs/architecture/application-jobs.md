@@ -27,7 +27,7 @@ This document describes the tracker application's **current implementation** of
 background jobs and task ownership, including the shutdown order of event
 producers and event listeners. This is the shutdown architecture delivered by
 [shutdown-overhaul EPIC #1488](../issues/closed/1488-overhaul-tracker-shutdown/EPIC.md),
-which was closed on 2026-11-18.
+which the maintainer decided on 2026-11-18 to close.
 The decision behind the shutdown order is the
 [shutdown-order ADR](../adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md);
 the event buses are described in [Events Architecture](events.md).

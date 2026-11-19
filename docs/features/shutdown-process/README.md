@@ -1,7 +1,7 @@
 ---
 doc-type: feature
 status: done
-last-updated-utc: "2026-11-18 17:25"
+last-updated-utc: "2026-11-19 07:35"
 semantic-links:
   related-artifacts:
     - docs/analysis/20260716-shutdown-process/README.md
@@ -17,7 +17,7 @@ semantic-links:
 ## Status
 
 Implemented. [EPIC #1488](../../issues/closed/1488-overhaul-tracker-shutdown/EPIC.md) delivered this
-feature and was closed on 2026-11-18; its roadmap records each sub-issue.
+feature; the maintainer decided on 2026-11-18 to close it. Its roadmap records each sub-issue.
 
 How to read this document: it was written before the implementation, as the definition of the feature,
 and it keeps that text as history. The sections that describe a problem ("The Problem in One Sentence",
