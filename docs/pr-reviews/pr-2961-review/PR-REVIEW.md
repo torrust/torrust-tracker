@@ -157,7 +157,7 @@ findings, `F5` to `F8`; its body adds no other request.
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2961#discussion_r4626757344
 - Concern: The rows said `RESOLVED` but the log recorded no validator run, push, thread resolution or GraphQL refresh, and the 09:19:49Z follow-up reply on the F2 thread came after the audit commit.
 - Solution: The log now has those round 1 events and the round 2 events. The commit that carries this entry is the last of round 2: its own push, and the resolution of the F7 thread after that push, are the events the log cannot carry.
-- Current-tree verification: `grep -c 'r4626637779' docs/pr-reviews/pr-2961-review/PR-REVIEW.md` printed 2 and `grep -c 'validate-audit-record.py' docs/pr-reviews/pr-2961-review/PR-REVIEW.md` printed 2.
+- Current-tree verification: `grep -c '^- 2026-11-19 09:18 UTC - Ran' docs/pr-reviews/pr-2961-review/PR-REVIEW.md` printed 1 (the validator run) and `grep -c '^- 2026-11-19 09:19 UTC - Replied again on the F2 thread' docs/pr-reviews/pr-2961-review/PR-REVIEW.md` printed 1 (the follow-up reply). Both patterns are anchored to the start of a Processing Log entry, so they cannot match this line.
 - Resolution reference: `docs(pr-reviews): [#1419] record round 2 in the review audit of PR 2961`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2961#discussion_r4626811052
