@@ -9,7 +9,7 @@ github-issue: 2769
 spec-path: docs/issues/open/2769-2758-e2e-runners-json/ISSUE.md
 branch: "2769-e2e-runners-json"
 related-pr: null
-last-updated-utc: "2026-11-09 16:03"
+last-updated-utc: "2026-11-18 19:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -44,7 +44,7 @@ The global CLI output contract (`docs/adrs/20260519000000_define_global_cli_outp
 - `tracing` to stderr as JSON; nothing on stdout.
 - Failures as one JSON record with a `kind`; usage errors exit `2`.
 - `src/console/ci/e2e/runner.rs` logs the tracker configuration verbatim (`tracing::info!("tracker config:\n{tracker_config}")`), and `src/console/ci/e2e/tracker_checker.rs:13` logs the checker configuration. Only the tracker configuration can carry a secret: the checker's argument is the JSON of `RunningServices` (`runner.rs:117-118`), three lists of addresses that `logs_parser.rs` matches as scheme, IP and port, so it is masked only as a precaution (same helper, no separate test needed). ADR section 7 forbids secrets in output: mask secret values of the tracker configuration before logging and add a test. No tracing macro under `src/console/ci/qbittorrent_e2e/` logs a configuration, so nothing to mask there.
-- Child processes inherit the runner's streams: `src/console/ci/e2e/tracker_checker.rs` runs `cargo run ...` with `.status()`, and `src/console/ci/e2e/docker.rs` (lines 41, 110, 128) and `src/console/ci/compose.rs` (line 104) run `docker` the same way, so the children's stdout and the plain text of `cargo` and `docker` reach the runner's channels, and `AC1`/`AC2` cannot hold. Capture each child's stdout and stderr and report them as JSON records (or discard them), for every runner path, normal and cleanup. Once `tracker_client` refuses a TTY (issue 2768), a checker child that inherits the terminal exits `2` and the runner panics (`runner.rs` calls `.expect` on it, exit status `101`), so capturing the checker's stdout is required; the interactive run itself is verified in M4 of issue 2768.
+- Child processes inherit the runner's streams: `src/console/ci/e2e/tracker_checker.rs` already captures the checker child (merged in PR 2901 for #2765: piped and drained stdout and stderr on reader threads, deadlines, kill and reap on every path, output logged through `tracing`), while `src/console/ci/e2e/docker.rs` (lines 41, 110, 128) and `src/console/ci/compose.rs` (line 104) run `docker` with inherited streams (`.status()`), so the children's stdout and the plain text of `cargo` and `docker` reach the runner's channels, and `AC1`/`AC2` cannot hold. Capture each remaining child's stdout and stderr and report them as JSON records (or discard them), for every runner path, normal and cleanup; the checker child is already captured. Once `tracker_client` refuses a TTY (issue 2768), a checker child that inherits the terminal exits `2` and the runner panics (`runner.rs` calls `.expect` on it, exit status `101`), so capturing the checker's stdout is required (done in PR 2901); the interactive run itself is verified in M4 of issue 2768.
 - Update tests and docs that show the runner output.
 
 ### Out of Scope
@@ -67,7 +67,7 @@ During implementation, stop and create an ADR when a decision affects project ar
 
 This issue changes child-process I/O in the e2e runners (`cargo`, `docker`, `docker compose` and the checker), in the normal and the cleanup paths, so this section applies.
 
-- Responsibilities: one small helper owns running a child command with captured stdout and stderr and reporting them as JSON records on the runner's stderr; the call sites (`docker.rs`, `compose.rs`, `tracker_checker.rs`) only ask it to run a command and use its result. The helper owns the child, its pipes and their reaping; the runner owns the tracker container and compose stack lifetimes (the existing RAII guards).
+- Responsibilities: one small helper owns running a child command (reuse or extract the helper that PR 2901 put in `src/console/ci/e2e/tracker_checker.rs` for the checker child, instead of writing a second one; it already has deadlines, a per-stream byte cap, a drain grace and cleanup on every path) with captured stdout and stderr and reporting them as JSON records on the runner's stderr; the call sites (`docker.rs`, `compose.rs`, `tracker_checker.rs`) only ask it to run a command and use its result. The helper owns the child, its pipes and their reaping; the runner owns the tracker container and compose stack lifetimes (the existing RAII guards).
 - Lifetime invariants: every spawned child is waited for or killed and reaped before the helper returns, on success, on failure and on a panic in the caller; the pipes are drained so a full pipe cannot block the child; cleanup commands (`docker compose down --volumes`, container removal) use the same helper on the drop path and must not panic.
 - Deadlines: every child wait has an absolute deadline (a hung `docker` or checker must not hang the runner); every readiness wait the runners already do keeps its own absolute deadline.
 - Design-review checkpoint: after the first passing vertical slice (one captured child in the normal path), review the helper's ownership and the drop-path behavior before converting the remaining call sites.
@@ -134,6 +134,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-09 12:39 UTC - Claude Code (Claude Sonnet 5.5) - Addressed Copilot's latest review of PR 2771: filled the Design and Ownership Review for the child-process work and corrected the pseudo-terminal check in the evidence.
 - 2026-11-09 13:21 UTC - Claude Code (Claude Sonnet 5.5) - Addressed da2ce7's review 5826238636 of PR 2771 on this spec.
 - 2026-11-09 16:03 UTC - Claude Code (Claude Sonnet 5.5) - Addressed da2ce7's review 5826857760 of PR 2771 on this spec.
+- 2026-11-18 19:25 UTC - Claude Code (Claude Sonnet 5.5) - Updated the child-process facts after PR 2901 (#2765) merged: the checker child is already captured by a helper to reuse; `docker.rs` and `compose.rs` still inherit their streams.
 
 ## Acceptance Criteria
 
