@@ -144,8 +144,9 @@ and nothing in that gap is missed.
 Who runs a round: in Claude Code, the session that owns the pull request can delegate the processing
 of one `review` or `comment` event (step 2, from `process-pr-review` to the push, the replies and the
 resolved threads) to the [`pr-review-handler`](../../agents/pr-review-handler.md) agent, which runs
-on its pinned model and returns a short report. The session keeps the rest: the poller, the checks
-of the new head, the re-request, the round count, the exit condition and the watching after it. A
+on its pinned model and returns a short report. The session keeps the rest: the poller, bringing the
+branch to the commit the event is about before it delegates (the start of step 2), the checks of the
+new head, the re-request, the round count, the exit condition and the watching after it. A
 session that does not delegate, or runs in another tool, runs step 2 itself.
 
 1. Run the poller with `--since-head-sha "$(git rev-parse HEAD)"`. After an event that needed no
