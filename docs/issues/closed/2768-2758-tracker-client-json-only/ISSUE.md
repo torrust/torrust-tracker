@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p2
 epic: 2758
 github-issue: 2768
-spec-path: docs/issues/open/2768-2758-tracker-client-json-only/ISSUE.md
+spec-path: docs/issues/closed/2768-2758-tracker-client-json-only/ISSUE.md
 branch: "2768-tracker-client-json-only"
-related-pr: null
-last-updated-utc: "2026-11-18 19:22"
+related-pr: 2956
+last-updated-utc: "2026-11-19 11:07"
 semantic-links:
   skill-links:
     - create-issue
@@ -117,10 +117,10 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Evidence-based implementation completion review recorded
+- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -131,6 +131,8 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-09 12:12 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the review of PR 2771 (da2ce7 findings F1 to F27 and Copilot's later comments): specs corrected from the code, reproductions recorded where a spec has a bug-fix section.
 - 2026-11-18 19:22 UTC - Claude Code (Claude Sonnet 5.5) - Implemented T1 to T5: TTY refusal at entry (before argument parsing), one output module (`unified/output.rs`) for every write to stdout and stderr, tracing as JSON on stderr, `check` results wrapped in `{"results": [...]}`, `--help` and `--version` and clap usage errors as JSON stderr records, the HTTP unrecognized-response body moved from stdout to an `unrecognized_response` stderr record, the dead legacy entry points (`checker/{app,service,console,printer,logger}`, `http/app`, `udp/app`) deleted instead of converted (nothing used them since #2765), README and contract doc updated. Evidence in `manual-verification-evidence.md`.
 - 2026-11-19 08:19 UTC - Claude Code (Claude Sonnet 5.5) - Round 2 review of PR 2956 (Copilot F2, da2ce7 F1 to F8): fixed the README example, piped the `tracker_client` commands in six live skills and noted the terminal refusal there, documented the panic record and the tracing writer, noted that no schema version exists yet.
+- 2026-11-19 09:45 UTC - Claude Code (Claude Sonnet 5.5) - PR 2956 merged into `develop` (merge commit `1829126a0`) and issue #2768 closed. Archived this spec to `docs/issues/closed/`, ticked the last workflow checkpoints (da2ce7 approved the final head after two review rounds), wrote the implementation retrospective and marked the EPIC row DONE.
+- 2026-11-19 11:07 UTC - Claude Code (Claude Sonnet 5.5) - Review round 1 of PR 2966: corrected the AC2 evidence reference (G1 recorded 71 tests; the 72-test run is in the PR 2956 audit), recorded the missing prose-first test comparison as a deviation, and corrected the retrospective.
 
 ## Acceptance Criteria
 
@@ -170,7 +172,7 @@ Manual verification is mandatory even when automated tests pass. Record actual c
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
 | AC1 | DONE | `manual-verification-evidence.md` V2 (real binary on a pseudo-terminal: exit `2`, one `tty_refusal` record) and G1 (three pty tests in `tests/output_contract.rs`; red in R1) |
-| AC2 | DONE | V1 and V3 (real tracker: one object per command, `check` an object in both formats, empty stdout on failure) and G1 (`tests/output_contract.rs`, 71 crate tests green) |
+| AC2 | DONE | V1 and V3 (real tracker: one object per command, `check` an object in both formats, empty stdout on failure) and G1 (`tests/output_contract.rs`; G1 recorded 71 crate tests, the 72-test run after the panic test is recorded in finding F1 of `docs/pr-reviews/pr-2956-review/PR-REVIEW.md`) |
 | AC3 | DONE | G1 and V3: `stderr_records` in `tests/output_contract.rs` parses every stderr line as a JSON object; tracing, help, usage errors and warnings are JSON records |
 | AC4 | DONE | `grep -rnE -e 'e?print(ln)?!' -e print_stdout -e print_stderr --include=*.rs console/tracker-client` finds nothing (exit `1`); the crate-level `allow` of `lib.rs` is removed and `clippy --workspace --all-targets` is clean |
 
@@ -180,8 +182,8 @@ Manual verification is mandatory even when automated tests pass. Record actual c
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
-- If needed, create `implementation-retrospective.md` from `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this directory; otherwise record in the progress log why none was needed.
+- Retrospective: [implementation-retrospective.md](implementation-retrospective.md)
+- Prose-first Arrange-Act-Assert comparison (`write-unit-test`): not recorded for the ten tests of `tests/output_contract.rs` at the time; this is a deviation, stated in the retrospective, not reconstructed after the review.
 
 ## References
 
