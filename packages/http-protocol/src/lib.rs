@@ -2,6 +2,9 @@
 pub mod percent_encoding;
 pub mod v1;
 
+#[cfg(test)]
+mod test_helpers;
+
 use torrust_clock::clock;
 
 /// This code needs to be copied into each crate.

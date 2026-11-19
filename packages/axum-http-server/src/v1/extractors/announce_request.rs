@@ -93,6 +93,7 @@ mod tests {
     use torrust_tracker_primitives::PeerId;
 
     use super::extract_announce_from;
+    use crate::tests::helpers::assert_names_no_source_path;
 
     fn assert_error_response(error: &Error, error_message: &str) {
         assert!(
@@ -131,6 +132,18 @@ mod tests {
         assert_error_response(
             &response,
             "Bad request. Cannot parse query params for announce request: missing query params for announce request",
+        );
+    }
+
+    #[test]
+    fn it_should_say_that_a_request_without_query_params_has_no_query_string_and_name_no_source_path() {
+        let response = extract_announce_from(None).unwrap_err();
+
+        assert_names_no_source_path(&response.failure_reason);
+        assert_eq!(
+            response.failure_reason,
+            "Bad request. Cannot parse query params for announce request: \
+             missing query params for announce request: the URL has no query string"
         );
     }
 

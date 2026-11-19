@@ -129,6 +129,7 @@ mod tests {
 
     use axum::Router;
     use axum::body::{Body, to_bytes};
+    use axum::extract::FromRequestParts;
     use axum::http::StatusCode;
     use axum::response::{IntoResponse, Response};
     use axum::routing::get;
@@ -136,6 +137,7 @@ mod tests {
     use tower::ServiceExt;
 
     use super::{Extract, Key, parse_key};
+    use crate::tests::helpers::assert_names_no_source_path;
 
     const MAX_RESPONSE_BODY_BYTES: usize = 64 * 1024;
 
@@ -176,6 +178,43 @@ mod tests {
         assert_failure_reason_contains(
             &actual_error_response,
             "Tracker authentication error: Invalid format for authentication key param",
+        );
+    }
+
+    #[test]
+    fn it_should_describe_an_invalid_path_key_by_the_expected_format_and_no_source_path() {
+        // Act
+        let actual_error_response = parse_key("invalid_key").unwrap_err();
+
+        // Assert
+        assert_names_no_source_path(&actual_error_response.failure_reason);
+        assert_eq!(
+            actual_error_response.failure_reason,
+            "Tracker authentication error: Invalid format for authentication key param: expected 32 alphanumeric characters"
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_say_where_the_key_is_expected_and_name_no_source_path_when_the_request_has_no_path_params() {
+        // Arrange
+        let (mut parts, ()) = axum::http::Request::builder()
+            .uri("/announce")
+            .body(())
+            .expect("the test request should be valid")
+            .into_parts();
+
+        // Act
+        let Err(response) = Extract::from_request_parts(&mut parts, &()).await else {
+            panic!("a request without path params should be rejected");
+        };
+        let actual_error_response = decode_bencoded_failure_response(response).await;
+
+        // Assert
+        assert_names_no_source_path(&actual_error_response.failure_reason);
+        assert_eq!(
+            actual_error_response.failure_reason,
+            "Tracker authentication error: Cannot extract authentication key param from URL path: \
+             expected /announce/<key> or /scrape/<key>"
         );
     }
 

@@ -167,6 +167,7 @@ mod tests {
         use std::str::FromStr;
 
         use super::resolve_remote_client_addr;
+        use crate::test_helpers::assert_names_no_source_path;
         use crate::v1::services::peer_ip_resolver::{
             ClientIpSources, PeerIpResolutionError, RemoteClientAddr, ResolvedIp, ReverseProxyMode,
         };
@@ -208,12 +209,32 @@ mod tests {
 
             assert!(matches!(error, PeerIpResolutionError::MissingClientIp { .. }));
         }
+
+        #[test]
+        fn it_should_say_why_it_cannot_get_the_remote_client_ip_without_a_source_path() {
+            let message = resolve_remote_client_addr(
+                &ReverseProxyMode::Disabled,
+                &ClientIpSources {
+                    right_most_x_forwarded_for: None,
+                    connection_info_socket_address: None,
+                },
+            )
+            .unwrap_err()
+            .to_string();
+
+            assert_names_no_source_path(&message);
+            assert_eq!(
+                message,
+                "cannot get the client IP: the server did not provide the socket address of the connection"
+            );
+        }
     }
 
     mod working_on_reverse_proxy_mode {
         use std::net::IpAddr;
         use std::str::FromStr;
 
+        use crate::test_helpers::assert_names_no_source_path;
         use crate::v1::services::peer_ip_resolver::{
             ClientIpSources, PeerIpResolutionError, RemoteClientAddr, ResolvedIp, ReverseProxyMode, resolve_remote_client_addr,
         };
@@ -254,6 +275,26 @@ mod tests {
             .unwrap_err();
 
             assert!(matches!(error, PeerIpResolutionError::MissingRightMostXForwardedForIp { .. }));
+        }
+
+        #[test]
+        fn it_should_name_the_missing_x_forwarded_for_ip_without_a_source_path() {
+            let message = resolve_remote_client_addr(
+                &ReverseProxyMode::Enabled,
+                &ClientIpSources {
+                    right_most_x_forwarded_for: None,
+                    connection_info_socket_address: None,
+                },
+            )
+            .unwrap_err()
+            .to_string();
+
+            assert_names_no_source_path(&message);
+            assert_eq!(
+                message,
+                "missing or invalid right-most IP in the X-Forwarded-For header, \
+                 which is mandatory when the tracker runs behind a reverse proxy"
+            );
         }
     }
 }

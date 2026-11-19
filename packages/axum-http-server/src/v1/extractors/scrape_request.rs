@@ -91,6 +91,7 @@ mod tests {
     use torrust_tracker_http_protocol::v1::responses::error::Error;
 
     use super::extract_scrape_from;
+    use crate::tests::helpers::assert_names_no_source_path;
 
     struct TestInfoHash {
         pub bencoded: String,
@@ -150,6 +151,18 @@ mod tests {
         assert_error_response(
             &response,
             "Bad request. Cannot parse query params for scrape request: missing query params for scrape request",
+        );
+    }
+
+    #[test]
+    fn it_should_say_that_a_request_without_query_params_has_no_query_string_and_name_no_source_path() {
+        let response = extract_scrape_from(None).unwrap_err();
+
+        assert_names_no_source_path(&response.failure_reason);
+        assert_eq!(
+            response.failure_reason,
+            "Bad request. Cannot parse query params for scrape request: \
+             missing query params for scrape request: the URL has no query string"
         );
     }
 

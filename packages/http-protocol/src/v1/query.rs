@@ -225,6 +225,7 @@ impl std::fmt::Display for FieldValuePairSet {
 mod tests {
 
     mod url_query {
+        use crate::test_helpers::assert_names_no_source_path;
         use crate::v1::query::Query;
 
         #[test]
@@ -264,6 +265,14 @@ mod tests {
             let query = invalid_raw_query.parse::<Query>();
 
             assert!(query.is_err());
+        }
+
+        #[test]
+        fn it_should_describe_an_unparsable_param_by_its_raw_text_and_no_source_path() {
+            let message = "name=value=value".parse::<Query>().unwrap_err().to_string();
+
+            assert_names_no_source_path(&message);
+            assert_eq!(message, "invalid param name=value=value");
         }
 
         #[test]

@@ -978,6 +978,73 @@ mod tests {
             }
         }
 
+        /// The text of a rejected announce query reaches the client as the
+        /// `failure reason` of the response, so it must name what failed and
+        /// hold no source path (see
+        /// `docs/adrs/20261118045443_errors_do_not_record_source_locations.md`).
+        mod describing_a_rejected_query {
+            use crate::test_helpers::assert_names_no_source_path;
+            use crate::v1::query::Query;
+            use crate::v1::requests::announce::{Announce, Event};
+
+            const VALID_INFO_HASH: &str = "%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0";
+            const VALID_PEER_ID: &str = "-qB00000000000000001";
+
+            fn rejection_message(raw_query: &str) -> String {
+                Announce::try_from(raw_query.parse::<Query>().unwrap())
+                    .unwrap_err()
+                    .to_string()
+            }
+
+            #[test]
+            fn it_should_name_a_missing_mandatory_param_and_no_source_path() {
+                let message = rejection_message(&format!("peer_id={VALID_PEER_ID}&port=17548"));
+
+                assert_names_no_source_path(&message);
+                assert_eq!(message, "missing param info_hash");
+            }
+
+            #[test]
+            fn it_should_name_an_invalid_param_and_its_value_and_no_source_path() {
+                let message = rejection_message(&format!(
+                    "info_hash={VALID_INFO_HASH}&peer_id={VALID_PEER_ID}&port=17548&numwant=x"
+                ));
+
+                assert_names_no_source_path(&message);
+                assert_eq!(message, "invalid param value x for numwant");
+            }
+
+            #[test]
+            fn it_should_name_an_invalid_event_and_no_source_path_when_the_event_is_parsed_on_its_own() {
+                let message = "x".parse::<Event>().unwrap_err().to_string();
+
+                assert_names_no_source_path(&message);
+                assert_eq!(message, "invalid param value x for event");
+            }
+
+            #[test]
+            fn it_should_name_a_short_info_hash_and_the_expected_length_and_no_source_path() {
+                let message = rejection_message(&format!("info_hash=0123456789&peer_id={VALID_PEER_ID}&port=17548"));
+
+                assert_names_no_source_path(&message);
+                assert_eq!(
+                    message,
+                    "invalid param value 0123456789 for info_hash: it must percent-decode to exactly 20 bytes"
+                );
+            }
+
+            #[test]
+            fn it_should_name_a_short_peer_id_and_the_expected_length_and_no_source_path() {
+                let message = rejection_message(&format!("info_hash={VALID_INFO_HASH}&peer_id=-qB0000000000000000&port=17548"));
+
+                assert_names_no_source_path(&message);
+                assert_eq!(
+                    message,
+                    "invalid param value -qB0000000000000000 for peer_id: it must percent-decode to exactly 20 bytes"
+                );
+            }
+        }
+
         mod when_a_number_of_bytes_param_is_parsed {
 
             use rstest::rstest;

@@ -142,6 +142,39 @@ mod tests {
             }
         }
 
+        /// The text of a rejected scrape query reaches the client as the
+        /// `failure reason` of the response, so it must name what failed and
+        /// hold no source path (see
+        /// `docs/adrs/20261118045443_errors_do_not_record_source_locations.md`).
+        mod describing_a_rejected_query {
+            use crate::test_helpers::assert_names_no_source_path;
+            use crate::v1::query::Query;
+            use crate::v1::requests::scrape::Scrape;
+
+            fn rejection_message(raw_query: &str) -> String {
+                Scrape::try_from(raw_query.parse::<Query>().unwrap()).unwrap_err().to_string()
+            }
+
+            #[test]
+            fn it_should_name_the_missing_info_hash_param_and_no_source_path() {
+                let message = rejection_message("another_param=NOT_RELEVANT");
+
+                assert_names_no_source_path(&message);
+                assert_eq!(message, "missing param info_hash");
+            }
+
+            #[test]
+            fn it_should_name_a_short_info_hash_and_the_expected_length_and_no_source_path() {
+                let message = rejection_message("info_hash=0123456789");
+
+                assert_names_no_source_path(&message);
+                assert_eq!(
+                    message,
+                    "invalid param value 0123456789 for info_hash: it must percent-decode to exactly 20 bytes"
+                );
+            }
+        }
+
         /// HTTP keeps the first 100 `info_hash` params, an abuse-mitigation
         /// policy value with no transport reason (unlike UDP's 74). Counts are
         /// literals so that changing the limit fails here; see
