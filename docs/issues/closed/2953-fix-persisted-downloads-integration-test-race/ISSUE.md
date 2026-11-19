@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: in-review
+status: done
 priority: p2
 epic: null
 github-issue: 2953
-spec-path: docs/issues/open/2953-fix-persisted-downloads-integration-test-race/ISSUE.md
+spec-path: docs/issues/closed/2953-fix-persisted-downloads-integration-test-race/ISSUE.md
 branch: "2953-fix-persisted-downloads-integration-test-race"
-related-pr: null
-last-updated-utc: "2026-11-19 10:32"
+related-pr: 2964
+last-updated-utc: "2026-11-19 18:23"
 semantic-links:
   skill-links:
     - create-issue
@@ -219,8 +219,8 @@ this review, before final verification, commit or pull request.
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -254,6 +254,13 @@ this review, before final verification, commit or pull request.
   now fails at once on a database error instead of waiting for the timeout, and looks up the
   store and repository once before the loop. The tests, clause mutations, probe and plain runs
   were repeated on the final helper (V7).
+- 2026-11-19 18:23 UTC - Claude Code (Claude Opus 5.5) - Implementation PR #2964 merged into `develop`
+  (merge commit `f7e8c4660`) and issue #2953 closed. Moved the spec folder to
+  `docs/issues/closed/`, set `status: done`, `spec-path` and `related-pr: 2964` (the spec-only PR
+  was #2954), and pointed the evidence file's `issue-spec` at the new path. The acceptance
+  criteria and the reviewer checkpoints stay unticked for the maintainer; no
+  `agent-review-reports.md` was recorded, because the reviews are in the PR audits
+  `docs/pr-reviews/pr-2954-review/` and `docs/pr-reviews/pr-2964-review/`.
 
 ## Acceptance Criteria
 
