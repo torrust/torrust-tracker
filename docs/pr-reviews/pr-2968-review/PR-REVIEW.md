@@ -47,8 +47,8 @@ no row.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
-| F1 | review-finding:pr-2968-f1 | Human | Minor | documentation | ORIGINAL | FIXED | OPEN |
-| F2 | review-finding:pr-2968-f2 | Human | Nit | documentation | ORIGINAL | FIXED | OPEN |
+| F1 | review-finding:pr-2968-f1 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F2 | review-finding:pr-2968-f2 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -63,7 +63,7 @@ no row.
 - Current-tree verification: `grep -rn "leading words" docs/issues/open/2915-2912-si-3-http-tracker-request-errors/` finds only the corrected note, which names the `PeerIpResolutionError` exception; the old peer-IP starts ("the right most X-Forwarded-For IP", "from the connection info") appear in no source file (`grep -rn` over `packages` finds only doc comments unrelated to the messages).
 - Resolution reference: docs(issues): [#2915] name the peer-IP messages as exceptions to the kept leading words
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2968#discussion_r4628679002
 
 ### F2 - The stated commit time disagrees with the commit
 
@@ -76,11 +76,12 @@ no row.
 - Current-tree verification: `git log -1 --format=%cI` of `test(http-protocol): [#2915] add red tests that HTTP tracker failure reasons name no source path` prints `2026-11-19T11:27:44Z`, the time the evidence now gives.
 - Resolution reference: docs(issues): [#2915] give the red-test commit time that git records
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2968#discussion_r4628679457
 
 ## Processing Log
 
 - 2026-11-19 12:22 UTC - Started audit for da2ce7's review 5974841608 (APPROVED, submitted 12:18:24Z on the first head, "docs(issues): [#2915] record the reproduction, red and green runs and the wording table", with an ACK comment at 12:18:28Z). Two findings, F1 (Minor) and F2 (Nit), with the reviewer's IDs. Fixes committed in "docs(issues): [#2915] name the peer-IP messages as exceptions to the kept leading words" (F1) and "docs(issues): [#2915] give the red-test commit time that git records" (F2). Not pushed yet; the PR description edit, the replies and thread resolution follow the push, and the Reply URL and Thread state fields are updated then.
+- 2026-11-19 12:26 UTC - Pushed "docs(pr-reviews): [#2915] add the review audit of PR #2968" as the new head after the commit-id check printed nothing (pre-push hook passed), and edited the PR description for F1. Replied on F1 and F2 (replies created 12:26:10Z and 12:26:12Z), recorded the reply URLs, ran `validate-audit-record.py --pr-number 2968 --base torrust/develop` through a scratch copy that calls `gh-bot` (status ok, 2 rows, 0 failures), then resolved both threads by 12:26:41 UTC (a `date -u` run after the resolve commands). GraphQL refresh: zero unresolved threads on PR #2968.
 
 ## Completion Rules
 
