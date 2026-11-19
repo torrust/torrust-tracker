@@ -1,7 +1,7 @@
 ---
 pr-number: 2966
 pr-url: https://github.com/torrust/torrust-tracker/pull/2966
-last-updated-utc: "2026-11-19 11:24"
+last-updated-utc: "2026-11-19 12:13"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -43,6 +43,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
+Round 2 is da2ce7's review `5974080148` (APPROVED, two inline findings, F10 and F11, on the head with the first version of this record).
 Round 1 is da2ce7's review `5973096324` (APPROVED, seven inline findings, F1 to F7) and Copilot's review `5973108503` (COMMENTED, one finding, F8 here, a re-raise of F5), both on the first head, the commit `docs(issues): [#2768] close out the tracker_client JSON-only issue`.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
@@ -55,6 +56,8 @@ Round 1 is da2ce7's review `5973096324` (APPROVED, seven inline findings, F1 to 
 | F6 | `review-finding:pr-2966-f6` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F7 | `review-finding:pr-2966-f7` | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
 | F8 | `review-finding:pr-2966-f8` | Copilot | Nit | formatting | RE_RAISE_OF:F5 | FIXED | RESOLVED |
+| F10 | `review-finding:pr-2966-f10` | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F11 | `review-finding:pr-2966-f11` | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -162,11 +165,38 @@ Round 1 is da2ce7's review `5973096324` (APPROVED, seven inline findings, F1 to 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2966#discussion_r4627885338
 
+### F10 - The record cites the PR-branch commit by id
+
+- PR number: 2966
+- Source review ID: 5974080148
+- Reviewer finding ID: da2ce7 F10
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2966#discussion_r4627996700
+- Concern: The record cites the PR-branch commit by id.
+- Solution: Named the first head by its commit subject.
+- Current-tree verification: checked in the tree after the push of the fix commit; see the reply.
+- Resolution reference: `docs(pr-reviews): [#2768] cite the first head by subject and F4 by its reply in the PR 2966 audit`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2966#discussion_r4628043207
+
+### F11 - F4's Resolution reference names a commit that does not carry the fix (a title and body edit)
+
+- PR number: 2966
+- Source review ID: 5974080148
+- Reviewer finding ID: da2ce7 F11
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2966#discussion_r4627996704
+- Concern: F4's Resolution reference names a commit that does not carry the fix (a title and body edit).
+- Solution: F4's Resolution reference is the URL of the reply that states the edit.
+- Current-tree verification: checked in the tree after the push of the fix commit; see the reply.
+- Resolution reference: `docs(pr-reviews): [#2768] cite the first head by subject and F4 by its reply in the PR 2966 audit`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2966#discussion_r4628043578
+
 ## Processing Log
 
 - 2026-11-19 11:13 UTC - Started the audit after the replies of round 1, not before them (late start): the record was written once the reply URLs existed.
 - 2026-11-19 11:13 UTC - Round 1: the reviews above (da2ce7 at 10:17:01Z, Copilot at 10:17:52Z). One commit fixed all eight (pushed, `push_exit=0`); the PR title and body were edited; eight replies were posted, then the eight threads were resolved (GraphQL: 0 unresolved). `validate-audit-record.py` was not run (it uses plain gh).
-- 2026-11-19 11:24 UTC - Round 2: da2ce7's APPROVED review `5974080148` on the head with this record, with two inline findings (F10, F11 in his numbering; both Minor, about this record). Fixed in one commit: the first head is cited by subject, and F4 cites the reply that states the title edit. The threads were answered and resolved after the push. Fix round 2 of 5.
+- 2026-11-19 11:24 UTC - Round 2: da2ce7's APPROVED review `5974080148` on the head with this record, with two inline findings (F10, F11 in his numbering; both Minor, about this record). Fixed in one commit: the first head is cited by subject, and F4 cites the reply that states the title edit. The threads were answered and resolved after the push. Fix round 2 of 5. Correction (added later): this line was committed before the two replies existed (they were posted at 11:27Z); F10 and F11 had no rows until the next round.
+- 2026-11-19 12:13 UTC - Round 3: da2ce7's COMMENTED review `5974228751` (11:34:31Z) on head `docs(pr-reviews): [#2768] cite the first head by subject and F4 by its reply in the PR 2966 audit` with one Minor finding (F12 in his numbering): F10 and F11 had replies and resolved threads but no rows. Rows and details for F10 and F11 were added here, after their replies. The row for F12 follows once its reply exists. Fix round 3 of 5.
 
 <!-- Copied verbatim into each audit record. -->
 
