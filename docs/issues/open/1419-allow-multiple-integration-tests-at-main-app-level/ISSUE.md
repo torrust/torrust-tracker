@@ -538,6 +538,13 @@ targets passed; every component of every suite reported `Cancelled`; and the awa
 at most 1.01 seconds against the 25-second default deadline. So the proposed assertion holds today
 without any production change.
 
+A second local probe (not committed) added the negative suite of D4 option (b) on top of the first:
+a 3-second deadline with 1-second drain budgets, and one extra component spawned through
+`jobs.reserve` and `jobs.spawn` whose future never completes. The awaited shutdown returned after
+3.00 seconds and the fixture panicked naming `health_check_api` and `hung_component` (the health
+check API stops last, so it was still waiting when the deadline aborted both). The `should_panic`
+test passed in 3.04 seconds.
+
 #### Decisions for the maintainer
 
 | ID  | Decision                                              | Options                                                                                                                                                            | Recommendation                                                                                                                                                                                                                            |
@@ -545,7 +552,7 @@ without any production change.
 | D1  | Which call starts the fixture's shutdown?             | (a) `app::begin_shutdown`; (b) keep `jobs.cancel()`.                                                                                                               | (a). It is the production boundary, so a change to it is exercised by every suite, and the fixture stops duplicating production lifecycle steps.                                                                                          |
 | D2  | Which deadline does the fixture pass to `wait_for_all`? | (a) the configured `application_config.shutdown.deadline()`; (b) keep the fixed 10 seconds; (c) a shorter fixture deadline.                                        | (a). It is what production does, and it removes the constant. A hung component then costs up to 25 seconds once, and fails the suite (D3). A suite can still set `[application.shutdown]` in its own TOML.                               |
 | D3  | What does the fixture do with the outcomes?           | (a) panic inside `shutdown()` and `restart()` when any outcome is not graceful, naming the components; (b) return the outcomes to each suite; (c) keep discarding. | (a). Every suite gets the check with no change at its call site, and no suite can forget it. A suite that wants a non-graceful shutdown is an executable-boundary test (`tests/lifecycle/`), not a user of this fixture.                  |
-| D4  | Is an extra negative test needed for the assertion?   | (a) none; (b) add a suite with a hung component to see the fixture fail.                                                                                           | (a). A hung component needs a production-only test hook in this process. The deadline abort is already covered at the executable boundary by `packages/hung-component-tracker/tests/hung_component_abort.rs`.                |
+| D4  | Is an extra negative test needed for the assertion?   | (a) none; (b) add a suite that injects a component that never stops and expects the fixture's shutdown to panic.                                               | (b). No production hook is needed: `JobManager::reserve` and `JobManager::spawn` are public, and `packages/hung-component-tracker/src/main.rs` injects its hung component with them. The existing executable-boundary test (`packages/hung-component-tracker/tests/hung_component_abort.rs`) covers the supervisor's abort and exit code, not the fixture's assertion; without (b) nothing shows that the assertion can fail. The cost is one more Cargo test target, one small fixture method that only this target uses, and about 3 seconds of configured deadline per run. |
 | D5  | What does `Drop` do when a suite panics before `shutdown()`? | (a) call `app::begin_shutdown`; (b) keep `jobs.cancel()`.                                                                                                   | (a), for one shutdown entry point in the fixture. `Drop` still cannot await or assert; that limit stays documented.                                                                                                                       |
 
 #### Planned change
@@ -560,16 +567,22 @@ If the recommendations are accepted, the change is small and stays in the test t
 2. `tests/AGENTS.md` (requirement 5 and the restart paragraph), the `tests/scaffold.rs` module
    documentation and the status line of `completion-plan.md`: describe the new sequence and the
    outcome assertion.
-3. No suite changes its call site. No production code changes.
+3. If D4 is (b): add a fixture method that reserves and spawns one extra component on the fixture's
+   `JobManager`, and a new target (proposed: `tests/lifecycle/fixture_shutdown_assertion.rs`,
+   registered as `lifecycle-fixture-shutdown-assertion`). Its suite sets a short
+   `[application.shutdown]` deadline, spawns a component that never stops, and uses `should_panic`
+   to require that `shutdown()` names it.
+4. No existing suite changes its call site. No production code changes.
 
 #### Evidence for AC8a
 
 | ID  | Evidence                                                                                                                                                                                                                            |
 | --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| E1  | The fixture asserts that every component outcome is graceful, so each fixture-based suite proves cooperative completion on every run, with no sleep and no reliance on process exit. An aborted component (deadline reached) fails the suite. |
+| E1  | The fixture asserts that every component outcome is graceful, so each fixture-based suite proves cooperative completion on every run, with no sleep and no reliance on process exit. |
 | E2  | All ten fixture-based targets pass in one Cargo invocation with the updated fixture (M1 repeated with the current target list).                                                                                                     |
 | E3  | `metrics-port-zero` passes with `--nocapture` and with `--test-threads=1` (M2 and M4 repeated). The recorded duration of each run is far below the 25-second deadline, which replaces the 60 to 81 seconds of 2026-08-24.            |
 | E4  | The pre-commit gate, including `linter all`, passes (M5 repeated).                                                                                                                                                                  |
+| E5  | If D4 is (b): the new target passes. It shows that a component aborted at the deadline makes the fixture's shutdown panic and that the panic names the component.                                                                       |
 
 The current target list for E2 replaces the six-target command of the partial delivery:
 
