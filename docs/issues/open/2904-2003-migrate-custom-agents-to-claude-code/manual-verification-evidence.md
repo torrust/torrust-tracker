@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md
-last-updated-utc: "2026-11-17 18:34"
+last-updated-utc: "2026-11-19 08:38"
 ---
 
 # Manual Verification Evidence
@@ -16,6 +16,8 @@ Sections are numbered after the scenarios of the specification (V4 is scenario M
 adds the section of the scenario it records.
 
 ## Environment and Prerequisites
+
+This section describes the environment of V4 (task T2). Each later section states its own.
 
 - Date and time (UTC): 2026-11-17, 16:53 to 17:09
 - Artifact under test: the pointer files of task T2, on top of `develop` at the merge of pull
@@ -39,6 +41,86 @@ adds the section of the scenario it records.
     before the probes that need them.
 
 ## Verification Processes
+
+### V1 - The agent files load (scenario M1)
+
+- Goal: show that every agent merged so far is listed, and that no frontmatter key of its file is
+  ignored.
+- Initial state: the T4 branch with the commit
+  `feat(agents): [#2904] add the pr-review-handler agent`; `.claude/agents/` holds only
+  `pr-review-handler.md`, with the keys `name`, `description`, `model`, `tools` and `skills`.
+- Environment: 2026-11-19, 08:37:09 to 08:37:20 UTC (`date -u` before and after); Linux 7.0.0-43-generic; Claude Code 2.1.318
+  (`claude --version`). One run serves V1 and V2 (session ID `e5b1c5f6-53cf-424c-89b3-4f57d0947d34`).
+- Status: `DONE`
+
+#### Steps Performed
+
+One non-interactive session, started at the repository root on a model other than the agent's:
+
+```text
+claude -p --model sonnet --debug-file .tmp/m1m2/debug.log --output-format json "This is a verification probe; change nothing, run no command that writes anything. Step 1: list, one per line, the names of every custom agent (subagent type) that you can start and that is defined in this project's .claude/agents/ folder. Step 2: start the pr-review-handler agent with exactly this task: 'This is a verification probe, not a review round. Do not run any command, read any file or change anything. Reply with one line: READY.' Step 3: print the agent's reply verbatim."
+```
+
+The debug log stays local, since it also holds the contributor's own settings; the lines quoted
+below are copied from it. It was searched with
+`grep -n -i -E "frontmatter|ignored|unknown (field|key)"`, and for the agent with
+`grep -n -i -E "pr-review-handler|agents/|subagent"`.
+
+#### Results
+
+- The session listed `pr-review-handler` as the custom agent of the project, and started it as
+  `subagent_type: "pr-review-handler"`; the agent's metadata file records
+  `"agentType":"pr-review-handler"`.
+- The frontmatter search printed nothing.
+- Each key took effect:
+  - `name`: the agent type above.
+  - `skills`: four debug lines, `[Agent: pr-review-handler] Preloaded skill 'process-pr-review'`,
+    and the same for `fetch-review-threads`, `resolve-review-threads` and `commit-changes`; the
+    agent's transcript holds the four skills' text before its task.
+  - `model`: see V2.
+  - `tools`: the agent's request-cache record lists the tools `Bash`, `Read`, `Edit`, `Write`
+    and `SubagentHandback` (the harness's own tool for returning the report). `Grep` and `Glob`,
+    which the file also lists, are not there: this build of Claude Code offers no tools of those
+    names, and dropped them without a debug line. The file keeps them for the builds that have
+    them; `Bash` covers searching in this one.
+  - `description`: not observable in this run, which named the agent; it is the text Claude Code
+    shows in its agent list and uses to delegate.
+- The agent made one tool call, `SubagentHandback` with the message `READY`, and changed nothing.
+
+#### Conclusion
+
+`pr-review-handler` loads, and every key of its file is read: `name`, `model`, `tools` and
+`skills` show their effect. Claude Code reports no ignored key; its documentation says an unknown
+key is ignored without an error, so the absence of a warning alone would prove little, and the
+effects above are the evidence. A listed tool that the build lacks is dropped silently.
+
+### V2 - The pinned model applies (scenario M2)
+
+- Goal: show that `pr-review-handler`, started from a session on another model, runs on the model
+  of its frontmatter, `claude-opus-5-5`.
+- Initial state, environment and command: the run of V1.
+- Status: `DONE`
+
+#### Results
+
+The model is read from the transcript files, not from what the agents say:
+
+| Transcript | `model` of every assistant message |
+| --- | --- |
+| The session (`<session ID>.jsonl`) | `claude-sonnet-5-5` (three entries, two API responses) |
+| The agent (`<session ID>/subagents/agent-a6239b9d274951d96.jsonl`) | `claude-opus-5-5` (one entry) |
+
+The agent's request-cache record (`agent-a6239b9d274951d96.prefix.json`) also says
+`"model": "claude-opus-5-5"`, and the run's JSON result lists the usage of both models,
+`claude-sonnet-5-5` and `claude-opus-5-5`. The agent's metadata file records
+`"pickedEffortModel":"claude-sonnet-5-5"`, the session's model, from which the agent's effort
+level was taken; it is not the model the agent ran on.
+
+#### Conclusion
+
+The pinned model applied with no fallback. The caller passed no model for the agent, and neither
+`CLAUDE_CODE_SUBAGENT_MODEL` (unset, `printenv` printed nothing) nor an organization allow list overrode it in this environment; any
+of those would, as the specification's Background states.
 
 ### V4 - `AGENTS.md` reaches the agents (scenario M4)
 
