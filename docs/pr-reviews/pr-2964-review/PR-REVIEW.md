@@ -1,7 +1,7 @@
 ---
 pr-number: 2964
 pr-url: https://github.com/torrust/torrust-tracker/pull/2964
-last-updated-utc: "2026-11-19 10:37"
+last-updated-utc: "2026-11-19 11:24"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -47,6 +47,8 @@ Round 1 is da2ce7's review `5973114030` (APPROVED) on the first head. It left si
 
 Round 2 is Copilot's review `5973163140` on the first head, submitted after da2ce7's review and before the round-1 fixes were pushed. It left three inline findings without IDs or severity brackets, recorded as F7 to F9 (audit-local, severity inferred from each finding's effect if it were true).
 
+Round 3 is Copilot's review `5974020256` on the head with the round-2 audit. It left one inline finding with reviewer ID F10, kept as the audit ID; Copilot labelled it "Low severity" and bracketed it `[Nit]`.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2964-f1` | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
@@ -58,6 +60,7 @@ Round 2 is Copilot's review `5973163140` on the first head, submitted after da2c
 | F7 | `review-finding:pr-2964-f7` | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
 | F8 | `review-finding:pr-2964-f8` | Copilot | Nit (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F9 | `review-finding:pr-2964-f9` | Copilot | Nit (inferred) | formatting | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F10 | `review-finding:pr-2964-f10` | Copilot | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -178,12 +181,26 @@ Round 2 is Copilot's review `5973163140` on the first head, submitted after da2c
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2964#discussion_r4627462289
 
+### F10 - V7's probe-removal check did not name the file it covered
+
+- PR number: 2964
+- Source review ID: 5974020256
+- Reviewer finding ID: F10
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2964#discussion_r4627949098
+- Concern: V7 recorded `git diff --quiet HEAD` as exiting 0 while the helper change was uncommitted, which an unscoped diff would not do.
+- Solution: The script that ran V7 limited the check to `handler.rs` (`git diff --quiet HEAD -- packages/tracker-core/src/statistics/event/handler.rs`, after `git checkout --` of that file), as V4 did; V7 now records that command and why it is limited to that file.
+- Current-tree verification: V7 step 3 in `manual-verification-evidence.md` names `git diff --quiet HEAD -- packages/tracker-core/src/statistics/event/handler.rs`; `grep -c 'git diff --quiet HEAD`' manual-verification-evidence.md` prints `0`.
+- Resolution reference: `docs(issues): [#2953] name the file the V7 probe-removal check covers`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2964#discussion_r4628002681
+
 ## Processing Log
 
 - 2026-11-19 10:27 UTC - Started audit. Round 1: da2ce7 review `5973114030` (APPROVED, submitted 10:18:13Z, poller `cursor`) on the first head, with six inline findings. All CI checks on that head passed. The two fix commits were made at 10:19:58Z and 10:22:24Z (`git log --format=%cI`); `git ls-remote` showed the fork branch at the local head at 10:25:49Z (`date -u`). The PR description was edited for F5 at 10:26:04Z, and the six replies were posted from 10:26:17Z to 10:26:29Z (forge `created_at`), after the push.
 - 2026-11-19 10:36 UTC - Round 1, continued: `validate-audit-record.py --pr-number 2964 --base torrust/develop`, with the bot token in `GH_TOKEN`, exited 0 (6 rows, 0 failures) at 10:27:26Z. The resolve step then resolved every unresolved thread by 10:27:45Z, nine instead of six: it also resolved the three threads of Copilot review `5973163140`, which had arrived at 10:21:34Z, before they had a reply or an audit row. Those three were unresolved again at 10:28:02Z, then read and processed as round 2.
 - 2026-11-19 10:36 UTC - Round 2: Copilot review `5973163140` (submitted 10:21:35Z) on the first head, before the round-1 push, with three inline findings (F7 to F9). The fix was committed at 10:31:23Z and the V7 evidence at 10:32:23Z (`git log --format=%cI`); `git ls-remote` showed the fork branch at the local head at 10:36:06Z (`date -u`). The three replies were posted at 10:36:12Z, 10:36:15Z and 10:36:18Z (forge `created_at`), after the push.
 - 2026-11-19 10:37 UTC - Round 2, continued: `validate-audit-record.py --pr-number 2964 --base torrust/develop`, with the bot token in `GH_TOKEN`, exited 0 (9 rows, 0 failures) at 10:37:12Z; the three Copilot threads were then resolved by thread ID, matched by their root comment IDs, by 10:37:17Z, and a GraphQL refresh showed 0 unresolved threads.
+- 2026-11-19 11:24 UTC - Round 3: Copilot review `5974020256` (submitted 11:18:32Z, poller `cursor`) on the head with the round-2 audit, with one inline finding (F10). The fix was committed at 11:20:11Z (`git log --format=%cI`); `git ls-remote` showed the fork branch at the local head at 11:23:42Z (`date -u`). The reply was posted at 11:23:43Z (forge `created_at`), after the push. `validate-audit-record.py --pr-number 2964 --base torrust/develop`, with the bot token in `GH_TOKEN`, exited 0 (10 rows, 0 failures) at 11:24:05Z. A GraphQL query then listed only that thread as unresolved; it was resolved by 11:24:14Z, and a refresh showed 0 unresolved threads.
 
 <!-- Copied verbatim into each audit record. -->
 
