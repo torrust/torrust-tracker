@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: in-review
 priority: p2
 epic: null
 github-issue: 2953
 spec-path: docs/issues/open/2953-fix-persisted-downloads-integration-test-race/ISSUE.md
-branch: "2953-fix-persisted-downloads-integration-test-race-spec"
+branch: "2953-fix-persisted-downloads-integration-test-race"
 related-pr: null
-last-updated-utc: "2026-11-19 07:31"
+last-updated-utc: "2026-11-19 09:28"
 semantic-links:
   skill-links:
     - create-issue
@@ -178,11 +178,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task                                     | Notes / Expected Output                                                                                                                       |
 | --- | ------ | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | T1  | DONE   | Reproduce the race                       | Widened-window probe fails at `integration.rs:253` with `left: 0, right: 1`. Recorded in `manual-verification-evidence.md` V1 and V2.         |
-| T2  | TODO   | Add the wait-helper regression test (red) | New test as described in Regression Test Strategy. It fails against the unchanged helper. The same-branch widened-window probe also fails the integration test. Both recorded in V3. |
-| T3  | TODO   | Fix the wait helper                      | `wait_for_global_downloads_persisted` waits for the database value and the in-memory counter in one bounded loop. Comments updated. The new helper test passes. |
-| T4  | TODO   | Design review of the fixture and test, then maintainer stop | After focused green validation, record the review in V5: the prose-first Arrange-Act-Assert comparison of the new test, the helper's boundary and naming, and its abstraction level. Stop for maintainer review before T5. |
-| T5  | TODO   | Green and like-for-like recheck          | New helper test passes; probe plus fix passes; probe reverted; plain test and whole integration binary pass on repeated runs. Recorded in V4. |
-| T6  | TODO   | Automatic checks and completion review   | `linter all`, `cargo test -p torrust-tracker-core`, pre-push checks; acceptance criteria re-reviewed; completion review recorded.              |
+| T2  | DONE   | Add the wait-helper regression test (red) | New test as described in Regression Test Strategy. It fails against the unchanged helper. The same-branch widened-window probe also fails the integration test. Both recorded in V3. |
+| T3  | DONE   | Fix the wait helper                      | `wait_for_global_downloads_persisted` waits for the database value and the in-memory counter in one bounded loop. Comments updated. The new helper test passes. |
+| T4  | DONE   | Design review of the fixture and test, then maintainer stop | After focused green validation, record the review in V5: the prose-first Arrange-Act-Assert comparison of the new test, the helper's boundary and naming, and its abstraction level. Stop for maintainer review before T5. |
+| T5  | DONE   | Green and like-for-like recheck          | New helper test passes; probe plus fix passes; probe reverted; plain test and whole integration binary pass on repeated runs. Recorded in V4. |
+| T6  | DONE   | Automatic checks and completion review   | `linter all`, `cargo test -p torrust-tracker-core`, pre-push checks; acceptance criteria re-reviewed; completion review recorded.              |
 
 ## Commit Points
 
@@ -211,12 +211,12 @@ this review, before final verification, commit or pull request.
 - [x] Folder-style spec drafted in `docs/issues/drafts/fix-persisted-downloads-integration-test-race/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Spec-only PR merged into `develop` before implementation
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
@@ -233,6 +233,16 @@ this review, before final verification, commit or pull request.
   review rounds: added task T2 (maintained wait-helper regression test, red first), task T4
   (design review and maintainer stop), AC6 and scenario M5, stated the `>= expected` comparison
   in In Scope, and named the test that holds the similar bounded-retry loop.
+- 2026-11-19 09:28 UTC - Claude Code (Claude Opus 5.5) - Implemented the fix on
+  `2953-fix-persisted-downloads-integration-test-race`. T2: the wait-helper tests were seen red
+  against the unchanged helper, and the probe still failed the integration test on the branch
+  (V3). T3: the helper waits for both values. T4: design review recorded (V5) and approved by the
+  maintainer; the planned two-part test became two tests, one reason to fail each. T5: the new
+  tests pass, the probe no longer breaks the integration test, and 300 filtered and 100 whole
+  binary runs pass (V4). T6: `cargo test -p torrust-tracker-core` (187 passed, 0 failed),
+  `linter all` and `cargo machete --with-metadata` exit 0 at 09:28 UTC; the pre-push hook runs on
+  the push. Completion review: no retrospective, because the work matched the spec and found
+  nothing new; the only change from the plan, splitting the test, is recorded in V5.
 
 ## Acceptance Criteria
 
@@ -275,9 +285,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | --- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- | ------ | -------------------------------------------- |
 | M1  | Plain repeated runs on `develop`            | Run the built integration binary 300 times filtered to the test, then 100 times unfiltered                       | Shows how rare the race is without help         | DONE   | `manual-verification-evidence.md` section V1 |
 | M2  | Reproduce with a widened window             | Add the 300 ms sleep in `handler.rs`, run the test with `cargo test`, revert the sleep                           | Fails at `integration.rs:253`, `left: 0, right: 1` | DONE   | `manual-verification-evidence.md` section V2 |
-| M3  | Red on the implementation branch            | Run the new helper test before the fix; then the same probe as M2 on that branch, reverted after                 | Helper test fails; probe run fails as in M2     | TODO   | `manual-verification-evidence.md` section V3 |
-| M4  | Green and like-for-like recheck             | Run the new helper test with the fix; the same probe with the fix, reverted after; repeat M1                     | Helper test passes; probe run passes; all plain runs pass | TODO   | `manual-verification-evidence.md` section V4 |
-| M5  | Test-design review                          | Record the prose-first Arrange-Act-Assert comparison and the fixture review after green                          | Review recorded; maintainer reviewed before T5  | TODO   | `manual-verification-evidence.md` section V5 |
+| M3  | Red on the implementation branch            | Run the new helper test before the fix; then the same probe as M2 on that branch, reverted after                 | Helper test fails; probe run fails as in M2     | DONE   | `manual-verification-evidence.md` section V3 |
+| M4  | Green and like-for-like recheck             | Run the new helper test with the fix; the same probe with the fix, reverted after; repeat M1                     | Helper test passes; probe run passes; all plain runs pass | DONE   | `manual-verification-evidence.md` section V4 |
+| M5  | Test-design review                          | Record the prose-first Arrange-Act-Assert comparison and the fixture review after green                          | Review recorded; maintainer reviewed before T5  | DONE   | `manual-verification-evidence.md` section V5 |
 
 ### Disposable Verification Scripts
 
@@ -287,12 +297,12 @@ None. The probe is a one-line temporary edit, recorded verbatim in the evidence 
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence                                     |
 | ----- | ---------------------- | -------------------------------------------- |
-| AC1   | TODO                   | Implementation PR diff                       |
-| AC2   | TODO                   | `manual-verification-evidence.md` V3 and V4  |
-| AC3   | TODO                   | `manual-verification-evidence.md` V4         |
-| AC4   | TODO                   | Background, "Other callers"                  |
-| AC5   | TODO                   | Implementation PR diff                       |
-| AC6   | TODO                   | `manual-verification-evidence.md` V3 and V4  |
+| AC1   | DONE                   | Implementation PR diff (`tests/common/test_env.rs`); V3 and V4 |
+| AC2   | DONE                   | `manual-verification-evidence.md` V3 and V4  |
+| AC3   | DONE                   | `manual-verification-evidence.md` V4         |
+| AC4   | DONE                   | Background, "Other callers"                  |
+| AC5   | DONE                   | Implementation PR diff: only `packages/tracker-core/tests/` and this issue folder change |
+| AC6   | DONE                   | `manual-verification-evidence.md` V3, V4 and V5; the two parts are two tests (V5) |
 
 ## Risks and Trade-offs
 
@@ -306,7 +316,7 @@ None. The probe is a one-line temporary edit, recorded verbatim in the evidence 
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: not needed; the progress log entry of 2026-11-19 09:28 UTC says why.
 - If needed, create `implementation-retrospective.md` from the repository template at
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this issue specification's directory.
 - If no retrospective is needed, add a concise progress-log entry explaining why the work had no
