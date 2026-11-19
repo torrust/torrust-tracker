@@ -9,7 +9,7 @@ github-issue: 2845
 spec-path: docs/issues/closed/2845-1488-si-26-consolidate-shutdown-supervisor/ISSUE.md
 branch: "2845-consolidate-shutdown-supervisor"
 related-pr: 2870
-last-updated-utc: "2026-11-16 09:50"
+last-updated-utc: "2026-11-18 17:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -28,14 +28,14 @@ semantic-links:
     - docs/architecture/application-jobs.md
     - docs/issues/closed/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md
     - docs/issues/closed/2697-1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md
-    - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
+    - docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md
 ---
 
 <!-- skill-link: create-issue -->
 
 # Issue #2845 - Consolidate the Shutdown Supervisors and Migrate the Last Legacy Job (SI-26)
 
-> **EPIC position**: Roadmap row 23, sub-issue SI-26 of [EPIC #1488](../../open/1488-overhaul-tracker-shutdown/ISSUE.md).
+> **EPIC position**: Roadmap row 23, sub-issue SI-26 of [EPIC #1488](../1488-overhaul-tracker-shutdown/EPIC.md).
 > A follow-up of [SI-19](../../closed/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md) and
 > [SI-21](../../closed/2697-1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md).
 > Implementation order 2 of 4. Priority p3; must land before the first publish (#2583, see Dependencies).

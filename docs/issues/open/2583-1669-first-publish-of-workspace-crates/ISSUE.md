@@ -539,7 +539,7 @@ None planned. The crates.io name check is a `curl` loop recorded in the evidence
 - Prerequisites: #2482
   ([`EPIC.md`](../../closed/2482-1669-reorganize-shared-test-support/EPIC.md)), #2576
   ([`ISSUE.md`](../../closed/2576-1669-update-all-package-readmes/ISSUE.md)), #1488
-  ([`ISSUE.md`](../../open/1488-overhaul-tracker-shutdown/ISSUE.md)), #1347
+  ([`EPIC.md`](../../closed/1488-overhaul-tracker-shutdown/EPIC.md)), #1347
   ([`EPIC.md`](../../open/1347-overhaul-packages-testing/EPIC.md))
 - Semver input: #2454
   ([error enum inventory](../../closed/2454-1669-mark-public-error-enums-non-exhaustive/error-enum-inventory.md))

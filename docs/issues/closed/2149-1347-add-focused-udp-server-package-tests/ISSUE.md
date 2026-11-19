@@ -8,7 +8,7 @@ github-issue: 2149
 spec-path: docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/ISSUE.md
 branch: "2149-add-focused-udp-server-package-tests"
 related-pr: 2174
-last-updated-utc: "2026-09-30 13:03"
+last-updated-utc: "2026-11-18 17:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -18,7 +18,7 @@ semantic-links:
     - .github/skills/dev/testing/write-unit-test/SKILL.md
     - docs/testing/refactoring-patterns/README.md
     - docs/issues/open/1347-overhaul-packages-testing/EPIC.md
-    - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
+    - docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md
     - docs/issues/drafts/1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md
     - docs/issues/closed/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md
     - docs/issues/drafts/1488-si-17-migrate-standalone-udp-environment/ISSUE.md
@@ -129,7 +129,7 @@ must protect current normal-operation behavior without preempting that design.
 
 - Related ADRs: `docs/adrs/20260527175600_keep_protocol_and_domain_types_decoupled.md`
 - Package-local ADR: `packages/udp-server/docs/adrs/20260907152707_keep_oldest_first_udp_request_eviction.md`
-- Related shutdown governance: `docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md`
+- Related shutdown governance: `docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md`
 - ADRs to create: None known. Create one if this work identifies another durable package or
   cross-package ownership/design decision.
 
@@ -486,7 +486,7 @@ material design changes, unexpected verification results, and reusable test-desi
 - Current real-loopback contracts: `packages/udp-server/tests/server/contract.rs`
 - Performance measurement policy: [performance-evidence.md](performance-evidence.md)
 - Canonical benchmarking guide: `docs/benchmarking.md`
-- Shutdown EPIC: `docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md`
+- Shutdown EPIC: `docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md`
 - UDP receive-loop lifecycle draft: `docs/issues/drafts/1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md`
 - Active-request policy draft: `docs/issues/drafts/1488-si-15-define-udp-active-request-policy/ISSUE.md`
 - Standalone environment draft: `docs/issues/drafts/1488-si-17-migrate-standalone-udp-environment/ISSUE.md`

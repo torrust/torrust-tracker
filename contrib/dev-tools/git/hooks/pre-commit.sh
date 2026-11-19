@@ -54,6 +54,7 @@ declare -a STEPS=(
     "Checking staged Markdown frontmatter|cargo run --quiet --package frontmatter-validator --bin frontmatter-validator -- --staged"
     "Checking the agent skill layout|cargo run --quiet --package frontmatter-validator --bin frontmatter-validator -- --skill-layout"
     "Checking the agent skill descriptions|cargo run --quiet --package frontmatter-validator --bin frontmatter-validator -- --skill-descriptions"
+    "Checking agent reply files|cargo run --quiet --package agent-reply-validator --bin agent-reply-validator -- --all"
     "Checking for unused dependencies (cargo machete --with-metadata)|cargo machete --with-metadata"
     "Checking workspace layer boundary bans (cargo deny check bans)|cargo deny check bans"
     "Checking nightly Rust formatting|cargo +nightly fmt --all -- --check"

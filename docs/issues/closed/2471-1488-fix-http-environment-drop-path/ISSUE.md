@@ -9,7 +9,7 @@ github-issue: 2471
 spec-path: docs/issues/closed/2471-1488-fix-http-environment-drop-path/ISSUE.md
 branch: "2471-fix-http-environment-drop-path"
 related-pr: 2544
-last-updated-utc: "2026-10-16 07:09"
+last-updated-utc: "2026-11-18 17:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -23,14 +23,14 @@ semantic-links:
     - docs/issues/closed/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md
     - docs/issues/closed/2448-1488-si-17-migrate-standalone-udp-environment/ISSUE.md
     - docs/pr-reviews/pr-2459-review/PR-REVIEW.md
-    - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
+    - docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md
 ---
 
 <!-- skill-link: create-issue -->
 
 # Issue #2471 - Stop the HTTP Test Environment's Tasks When It Is Dropped Without `stop()`
 
-Parent: [EPIC #1488 - Overhaul: Tracker Shutdown](../../open/1488-overhaul-tracker-shutdown/ISSUE.md)
+Parent: [EPIC #1488 - Overhaul: Tracker Shutdown](../1488-overhaul-tracker-shutdown/EPIC.md)
 
 > A gap found on 2026-10-07 while checking SI-22's specs against what SI-17
 > learned: the HTTP test environment never stopped its server when dropped

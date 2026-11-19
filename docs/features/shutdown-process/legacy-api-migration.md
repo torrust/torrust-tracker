@@ -1,7 +1,7 @@
 ---
 doc-type: feature-supporting-analysis
 status: draft
-last-updated-utc: "2026-11-11 09:40"
+last-updated-utc: "2026-11-18 17:24"
 semantic-links:
   related-artifacts:
     - docs/features/shutdown-process/README.md
@@ -11,7 +11,7 @@ semantic-links:
 
 # Migrating from the Legacy Shutdown API
 
-EPIC [#1488](../../issues/open/1488-overhaul-tracker-shutdown/ISSUE.md) replaces the `Halted` oneshot-channel
+EPIC [#1488](../../issues/closed/1488-overhaul-tracker-shutdown/EPIC.md) replaces the `Halted` oneshot-channel
 shutdown with a `tokio_util::sync::CancellationToken` that the caller injects and cancels. SI-18 (issue #2751)
 deprecated the legacy API at the source, and SI-19 (issue #2801) removed it: the symbols in the first column
 below no longer exist, and `torrust-server-lib` 0.6.0 removes its own. Use this guide to migrate code that still

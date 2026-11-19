@@ -1,12 +1,12 @@
 ---
 doc-type: research
 status: draft
-last-updated-utc: 2026-07-16
+last-updated-utc: "2026-11-18 17:24"
 semantic-links:
   related-artifacts:
     - docs/analysis/20260716-shutdown-process/README.md
     - docs/features/shutdown-process/README.md
-    - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
+    - docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md
 ---
 
 # Console Shutdown Patterns: SIGINT vs SIGTERM

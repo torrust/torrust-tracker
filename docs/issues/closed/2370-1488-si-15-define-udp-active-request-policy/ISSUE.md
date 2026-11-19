@@ -9,7 +9,7 @@ github-issue: 2370
 spec-path: docs/issues/closed/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md
 branch: "2370-1488-si-15-define-udp-active-request-policy"
 related-pr: 2382
-last-updated-utc: "2026-10-28 16:37"
+last-updated-utc: "2026-11-18 17:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -30,16 +30,16 @@ semantic-links:
     - docs/features/shutdown-process/questions.md
     - docs/features/shutdown-process/task-inventory.md
     - docs/issues/closed/2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md
-    - docs/issues/open/1488-overhaul-tracker-shutdown/discarded-drafts/si-9-improve-udp-shutdown/discarded-draft.md
+    - docs/issues/closed/1488-overhaul-tracker-shutdown/discarded-drafts/si-9-improve-udp-shutdown/discarded-draft.md
     - docs/issues/closed/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
-    - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
+    - docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md
 ---
 
 <!-- skill-link: create-issue -->
 
 # Issue #2370 - Define UDP Active-Request Shutdown Policy
 
-Parent: [EPIC #1488 - Overhaul: Tracker Shutdown](../../open/1488-overhaul-tracker-shutdown/ISSUE.md)
+Parent: [EPIC #1488 - Overhaul: Tracker Shutdown](../1488-overhaul-tracker-shutdown/EPIC.md)
 
 > **EPIC position**: Roadmap sequence 11 (SI-15). A focused policy and
 > implementation change after SI-14 (#2342) made UDP receive-loop ownership
@@ -725,4 +725,4 @@ findings, and reusable lessons.
 - Preceding migration: [#2342](https://github.com/torrust/torrust-tracker/issues/2342), PR [#2351](https://github.com/torrust/torrust-tracker/pull/2351)
 - Eviction policy background: [#2149](https://github.com/torrust/torrust-tracker/issues/2149)
 - Decisions: [Q3 and Q4](../../../features/shutdown-process/questions.md)
-- Superseded combined draft: [SI-9](../../open/1488-overhaul-tracker-shutdown/discarded-drafts/si-9-improve-udp-shutdown/discarded-draft.md)
+- Superseded combined draft: [SI-9](../1488-overhaul-tracker-shutdown/discarded-drafts/si-9-improve-udp-shutdown/discarded-draft.md)

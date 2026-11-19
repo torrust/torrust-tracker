@@ -9,7 +9,7 @@ github-issue: 2697
 spec-path: docs/issues/closed/2697-1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md
 branch: "2697-mark-health-unhealthy-during-shutdown"
 related-pr: 2720
-last-updated-utc: "2026-11-04 17:38"
+last-updated-utc: "2026-11-18 17:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -23,7 +23,7 @@ semantic-links:
     - docs/features/shutdown-process/README.md
     - docs/features/shutdown-process/questions.md
     - docs/issues/closed/2324-1488-si-13-migrate-health-check-api-token-lifecycle/ISSUE.md
-    - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
+    - docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md
     - docs/issues/closed/2697-1488-si-21-mark-health-unhealthy-during-shutdown/manual-verification-evidence.md
     - docs/adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md
 ---

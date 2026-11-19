@@ -9,7 +9,7 @@ github-issue: 2847
 spec-path: docs/issues/closed/2847-1488-si-28-verify-hung-component-abort/ISSUE.md
 branch: "2847-verify-hung-component-abort"
 related-pr: 2911
-last-updated-utc: "2026-11-17 21:02"
+last-updated-utc: "2026-11-18 17:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -26,14 +26,14 @@ semantic-links:
     - docs/issues/closed/2697-1488-si-21-mark-health-unhealthy-during-shutdown/manual-verification-evidence.md
     - docs/issues/closed/2845-1488-si-26-consolidate-shutdown-supervisor/manual-verification-evidence.md
     - docs/issues/closed/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
-    - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
+    - docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md
 ---
 
 <!-- skill-link: create-issue -->
 
 # Issue #2847 - Verify the Hung-Component Abort at the Deadline on the Real Binary (SI-28)
 
-> **EPIC position**: Roadmap row 25, sub-issue SI-28 of [EPIC #1488](../../open/1488-overhaul-tracker-shutdown/ISSUE.md).
+> **EPIC position**: Roadmap row 25, sub-issue SI-28 of [EPIC #1488](../1488-overhaul-tracker-shutdown/EPIC.md).
 > A follow-up of [SI-21](../../closed/2697-1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md)
 > (and SI-20). Implementation order 4 of 4, after SI-26. Priority p3. No production behavior changes:
 > the only production edit is a behavior-preserving refactor of `main.rs` (decision D2).

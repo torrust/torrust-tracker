@@ -10,7 +10,7 @@ semantic-links:
     - packages/e2e-tools/src/bin/e2e_tests_runner.rs
     - docs/issues/closed/2132-add-sigterm-to-main/ISSUE.md
     - docs/issues/closed/2132-add-sigterm-to-main/verification.md
-    - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
+    - docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md
 ---
 
 # Native Executable Shutdown Test Plan
@@ -312,7 +312,7 @@ container/deployment graceful-stop testing owned by later work.
 
 - [Issue specification](ISSUE.md)
 - [Manual verification evidence](verification.md)
-- [Shutdown EPIC](../1488-overhaul-tracker-shutdown/ISSUE.md)
+- [Shutdown EPIC](../1488-overhaul-tracker-shutdown/EPIC.md)
 - [Root integration-test guidelines](../../../../tests/AGENTS.md)
 - [Existing in-process fixture](../../../../tests/common/workspace.rs)
 - [Cargo integration-test environment variables](https://doc.rust-lang.org/cargo/reference/environment-variables.html)

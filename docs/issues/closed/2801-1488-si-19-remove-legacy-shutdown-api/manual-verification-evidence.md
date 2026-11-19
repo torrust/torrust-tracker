@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/closed/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md
-last-updated-utc: "2026-11-11 09:40"
+last-updated-utc: "2026-11-18 17:24"
 ---
 
 <!-- cspell:ignore ltnup -->
@@ -23,7 +23,7 @@ last-updated-utc: "2026-11-11 09:40"
 - [x] SI-18 deprecation evidence: issue #2751, PRs 2752, 2793 and close-out 2797;
       `docs/issues/closed/2751-1488-si-18-deprecate-legacy-shutdown-api/manual-verification-evidence.md`.
 - [x] Token-lifecycle migrations: SI-11 to SI-17, SI-23 (#2449) and SI-24 (#2450), all Done in the EPIC table
-      `docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md`.
+      `docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md`.
 - [x] #1588 (closed) final task inventory.
 - [x] The maintainer's approval ending the 0.5.x window (given in chat on 2026-11-10, with no issue or PR comment of
       its own) and the `torrust-server-lib` 0.6.0 release notes: torrust/torrust-server-lib#5, PR

@@ -8,7 +8,7 @@ github-issue: 2169
 spec-path: docs/issues/closed/2169-1488-si-4-migrate-torrent-cleanup/ISSUE.md
 branch: 2169-migrate-torrent-cleanup
 related-pr: 2181
-last-updated-utc: 2026-09-11
+last-updated-utc: "2026-11-18 17:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -16,7 +16,7 @@ semantic-links:
     - src/bootstrap/jobs/torrent_cleanup.rs
     - src/bootstrap/jobs/manager.rs
     - src/app.rs
-    - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
+    - docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md
     - docs/issues/closed/1586-evaluate-job-manager-join-set/ISSUE.md
     - docs/issues/closed/1588-review-shutdown-process-for-all-tasks-jobs/verification.md
     - docs/analysis/20260716-shutdown-process/README.md
@@ -81,7 +81,7 @@ wrapper task that could detach the actual work. Adding a token while retaining
 ## Architectural Decisions
 
 - Related ADR: `docs/adrs/20260902074438_adopt_supervised_cancellation_tree_for_shutdown.md`
-- Related completed supervisor boundary: [issue #1586](../../open/1586-evaluate-job-manager-join-set/ISSUE.md)
+- Related completed supervisor boundary: [issue #1586](../1586-evaluate-job-manager-join-set/ISSUE.md)
 - ADRs to create: None known. This applies the existing supervisor boundary.
 
 The cleanup module must return the generic
@@ -177,7 +177,7 @@ All commits use a narrow Conventional Commit scope and GPG signing.
 ### Progress Log
 
 - 2026-09-11 UTC - Repository maintenance - Archived this closed issue specification in `docs/issues/closed/2169-1488-si-4-migrate-torrent-cleanup/`.
-- 2026-09-08 10:31 UTC — Copilot — Revised the existing SI-4 draft using #1586 direct-supervisor and #1588 inventory evidence. — [#1586](../../open/1586-evaluate-job-manager-join-set/ISSUE.md), [#1588](../../open/1588-review-shutdown-process-for-all-tasks-jobs/verification.md)
+- 2026-09-08 10:31 UTC — Copilot — Revised the existing SI-4 draft using #1586 direct-supervisor and #1588 inventory evidence. — [#1586](../1586-evaluate-job-manager-join-set/ISSUE.md), [#1588](../1588-review-shutdown-process-for-all-tasks-jobs/verification.md)
 - 2026-09-08 11:15 UTC — Jose Celano — Approved the revised specification; GitHub issue #2169 created and linked as an EPIC #1488 sub-issue. — https://github.com/torrust/torrust-tracker/issues/2169
 - 2026-09-08 16:26 UTC — Copilot — Migrated torrent cleanup to direct token-aware supervision; deterministic tests, isolated inactive-peer cleanup, and direct-binary SIGTERM verification passed. — `verification.md`
 - 2026-09-09 08:22 UTC — Copilot — Completion review: no material design change and no invalidated assumption, so no `implementation-retrospective.md` is needed; the only discovery was the `metadata.purpose = "configuration"` schema requirement for the isolated config. Independent Task Reviewer approved AC1–AC9; its low-severity documentation findings were applied. — `agent-review-reports.md`

@@ -1,12 +1,12 @@
 ---
 schema-version: 1
 doc-type: epic
-status: in-progress
+status: done
 epic: null
 github-issue: 1488
-spec-path: docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
+spec-path: docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-17 21:02"
+last-updated-utc: "2026-11-19 07:35"
 semantic-links:
   skill-links:
     - create-issue
@@ -16,6 +16,7 @@ semantic-links:
     - docs/features/shutdown-process/task-inventory.md
     - docs/features/shutdown-process/shutdown-architecture-examples.md
     - src/main.rs
+    - src/app.rs
     - src/bootstrap/jobs/manager.rs
     - src/bootstrap/jobs/torrent_cleanup.rs
     - src/bootstrap/jobs/activity_metrics_updater.rs
@@ -29,6 +30,40 @@ semantic-links:
 
 # EPIC #1488 - Overhaul: Tracker Shutdown
 
+## Completion Note
+
+**Completed: the maintainer decided on 2026-11-18 to close this EPIC.** All 26 roadmap rows are closed: 25 are done and SI-27 (#2846) is not
+planned. This spec is kept as the record of the EPIC; the current behaviour is described in
+[Application Jobs](../../../architecture/application-jobs.md) and in the
+[shutdown feature document](../../../features/shutdown-process/README.md).
+
+What the EPIC delivered:
+
+- **One signal boundary.** `app::run_until_shutdown_signal` (`src/app.rs`, called by `main.rs`) handles
+  `SIGINT` and `SIGTERM`. The server libraries no longer subscribe to OS signals.
+- **One cancellation model.** Every job is a direct `JobManager` component with its own
+  `CancellationToken`. The `Halted` channels, the legacy shutdown API and the legacy registration path
+  are removed.
+- **Ordered, supervised shutdown.** Event producers stop before the listeners of their buses, listeners
+  drain their queues within a budget, and each component joins or deliberately aborts its own tasks.
+- **Configured budgets.** The `[application.shutdown]` section holds the process deadline and the drain
+  budgets, validated at startup, with deployment guidance for Docker, Compose, Kubernetes and systemd.
+- **Reported outcome.** The exit code is 0 only for a fully graceful shutdown, the logs name each
+  component's outcome, and the health check answers not ready during shutdown.
+- **Evidence.** Deterministic lifecycle tests, migrated test environments, and a CI test that shows the
+  real shutdown sequence aborting a hung component at the deadline (SI-28).
+
+Decisions that close the EPIC:
+
+- **SI-27 (#2846) is not planned.** Registrations stay in the `Registar` until the process exits. The
+  reasons and the reopening trigger are in the
+  [registration lifetime ADR](../../../adrs/20261116172628_keep_registar_registrations_for_the_process_lifetime.md).
+- **The EPIC closes without waiting for #1419.** The maintainer decided this on 2026-11-18. Issue #1419
+  continues under EPIC #2392 (Test isolation); see
+  [Completion Follow-up: Issue #1419](#completion-follow-up-issue-1419).
+
+The sections below keep the original goal, problem list and roadmap, with their final status.
+
 ## Goal
 
 Bring the Torrust Tracker into compliance with the **Unix and container process
@@ -41,20 +76,27 @@ mechanism (`kill`, `docker stop`, `systemctl stop`, Kubernetes pod termination)
 should trigger a graceful shutdown, exactly as any operator or automation tool
 would expect.
 
-The secondary goal is **internal consistency**: use a supervised cancellation
-tree. `JobManager` supervises named top-level components; cancellation flows
-from its root token to component child tokens; each component joins or
-deliberately aborts its own children before reporting its outcome upward.
+The secondary goal is **internal consistency**: one supervised shutdown model.
+`JobManager` supervises named top-level components and gives each one its own
+independent `CancellationToken` (`JobManager::reserve`); there is no root token.
+The manager cancels the tokens in a declared order, so that event producers
+complete before the listeners of their buses are asked to stop. Each component
+joins or deliberately aborts its own children before reporting its outcome upward.
 
-The accepted architecture and alternatives are recorded in the
-[supervised cancellation-tree ADR](../../../adrs/20260902074438_adopt_supervised_cancellation_tree_for_shutdown.md).
+The accepted architecture is recorded in the
+[shutdown-order ADR](../../../adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md).
+It supersedes the
+[supervised cancellation-tree ADR](../../../adrs/20260902074438_adopt_supervised_cancellation_tree_for_shutdown.md),
+the first design of this EPIC, in which every component token was a child of one
+root token.
 
 ## Why This Is Needed
 
-The current shutdown process has several problems identified in the
+The shutdown process had several problems identified in the
 [shutdown analysis](../../../analysis/20260716-shutdown-process/README.md).
-The list keeps the problems as originally found; each item ends with its
-status as of 2026-10-07.
+The list keeps the problems as originally found, in the present tense of that
+time; each item ends with its final status at the close-out of the EPIC
+(written on 2026-11-18). All nine are fixed.
 
 1. **No `SIGTERM` in `main.rs`** — only `SIGINT` (Ctrl+C) is handled at the top
    level. Container orchestrators (Docker/Podman) send `SIGTERM` by default,
@@ -64,34 +106,40 @@ status as of 2026-10-07.
    direct `tokio::signal::ctrl_c()`, or oneshot `Halted` channels. Server
    wrappers currently bridge the manager token to `Halted`, leaving two normal
    cancellation layers; periodic jobs still ignore `JobManager` cancellation.
-   **Status: fixed in the application** (sequences 3 to 11) and in the
+   **Status: fixed** in the application (sequences 3 to 11) and in the
    standalone HTTP, UDP, REST API, and health-check API environments (SI-16,
-   SI-17, SI-23, and SI-24); the legacy API is removed by SI-18 and SI-19.
+   SI-17, SI-23, and SI-24). SI-18 (#2751) deprecated the legacy API and SI-19
+   (#2801) removed it; SI-26 (#2845) migrated the last legacy job.
 3. **Torrent cleanup and activity metrics ignore `CancellationToken`** — they
    listen for `ctrl_c` directly instead of using the shared token.
-   **Status: fixed** by SI-4 (#2169) and #2221.
+   **Status: fixed** by SI-4 (#2169) and SI-5 (#2221).
 4. **Grace period mismatch** — `JobManager` waits 10s per job sequentially and
    force-aborts timed-out wrappers, while Axum servers have a 90s graceful
    shutdown with detached drain controllers. **Status: fixed**: #1586
-   made `JobManager` wait concurrently under one deadline, #2274 made the
+   made `JobManager` wait concurrently under one deadline, SI-10 (#2274) made the
    Axum drain joinable, and SI-20 (#2668) replaced the 90s drain and the 10s
    deadline with configured budgets that the startup validation keeps
    consistent (defaults 15s and 25s).
 5. **No graceful UDP shutdown** — the UDP server simply aborts its main loop.
-   **Status: fixed** by #2342 and #2370.
+   **Status: fixed** by SI-14 (#2342) and SI-15 (#2370).
 6. **Hardcoded timeouts** — grace periods are magic numbers with no configuration
    surface. **Status: fixed** by SI-20 (#2668), which adds the
    `[application.shutdown]` configuration section.
 7. **Incomplete shutdown observability** — named per-job waiting and timeout
    logs exist, but the supervisor has no concurrent aggregate outcomes or
-   complete component-level drain progress. **Status: partly fixed**: #1586
-   added concurrent named outcomes, and the migrated components log their
-   drains; listener drain logs were added by SI-22 (#2414).
+   complete component-level drain progress. **Status: fixed**: #1586
+   added concurrent named outcomes, the migrated components log their drains,
+   and SI-22.2 (#2414) added the listener drain logs. The manager logs which
+   component is asked to stop and what each waiting component waits for, and
+   SI-20 (#2668) made the final log line name the components that did not stop
+   gracefully, and the exit code 1 when any did. The periodic "still running" progress report
+   sketched in the feature document was not built.
 8. **Double-signal on Ctrl+C** — both `main.rs` and each server's
    `global_shutdown_signal()` catch the same signal, creating a potential race.
-   **Status: fixed in the application**: production servers use the token
-   lifecycle, and the test environments no longer use the legacy stop path
-   (SI-24 migrated the last one); SI-19 removes the legacy API.
+   **Status: fixed**: production servers use the token lifecycle, the test
+   environments no longer use the legacy stop path (SI-24 migrated the last
+   one), and SI-19 (#2801) removed the legacy API together with the OS-signal
+   subscriptions of the server libraries.
 9. **Event listeners drop events on shutdown** — found on 2026-10-01, after
    the original analysis. Every event listener stops as soon as cancellation is
    requested, even with events still queued, and servers that are still
@@ -104,8 +152,7 @@ status as of 2026-10-07.
 ## The Contracts Being Implemented
 
 These are not new features — they are standard behaviors that every process
-manager, container runtime, and operator already expects. Status as of
-2026-10-02:
+manager, container runtime, and operator already expects. Final status:
 
 ```bash
 # These all trigger coordinated shutdown since SI-1 (#2132):
@@ -123,7 +170,8 @@ kill -9 <pid>            # SIGKILL — force kill ❌
 
 Before SI-1, `SIGTERM` reached the server libraries but bypassed `main`, so
 only the servers stopped. Adding the `SIGTERM` handler in `main.rs` was the
-single most impactful change in this EPIC. SI-22 later added ordered listener
+single most impactful change in this EPIC (SI-28 later moved the signal handling
+to `app::run_until_shutdown_signal` in `src/app.rs`, which `main.rs` calls). SI-22 later added ordered listener
 draining with an explicit admission timeout and failure reporting, not an
 unconditional zero-loss guarantee. SI-20 (#2668) then made the shutdown budget
 configurable and documented how it fits the orchestrator's grace period, and
@@ -149,13 +197,16 @@ and identified the remaining jobs that still handle `ctrl_c` directly.
 
 ### In Scope
 
-- Centralize signal handling in `main.rs` (both `SIGINT` and `SIGTERM`).
+- Centralize signal handling at the executable boundary (both `SIGINT` and
+  `SIGTERM`). It started in `main.rs`; since SI-28 it is in `src/app.rs`
+  (`run_until_shutdown_signal` and `begin_shutdown`), and `main.rs` only calls it.
 - Replace shutdown `Halted` oneshot channels with `CancellationToken` propagation;
   retain the separate `Started` oneshot for startup reporting.
 - Require every component to own and join, or deliberately abort, its child
   tasks before its top-level task completes.
 - Migrate torrent cleanup and activity metrics updater to use `CancellationToken`.
-- Configurable grace periods (add `[shutdown]` configuration section).
+- Configurable grace periods (delivered as the `[application.shutdown]`
+  configuration section).
 - Observable shutdown progress (which jobs are still running).
 - Grace period alignment between `JobManager` and server-level shutdown.
 - Review and align the Axum `graceful_shutdown` timeout with the `JobManager` timeout.
@@ -212,7 +263,7 @@ deterministic tests, and manual evidence.
 | 18       | #2751 | [Deprecate legacy shutdown API](../../closed/2751-1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md)                           | Done       | Compatibility-preserving source deprecation only.                                                    |
 | 19       | #2801 | [Remove legacy shutdown API and library OS signals](../../closed/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md)     | Done       | Removed the legacy API; merged in PR #2807 with `torrust-server-lib` 0.6.0.                  |
 | 20       | #2668 | [Configure shutdown policy and deployment contract](../../closed/2668-1488-si-20-configure-shutdown-policy/ISSUE.md)     | Done       | Apply approved Q3/Q4 outcomes, budgets, configuration, and deployment guidance.                      |
-| 21       | #2697 | [Mark health check unhealthy during shutdown](../../closed/2697-1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md)         | Done       | Set readiness to not ready before root cancellation and component drain.                             |
+| 21       | #2697 | [Mark health check unhealthy during shutdown](../../closed/2697-1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md)         | Done       | Set readiness to not ready before cancellation and component drain.                             |
 | 22       | #2844 | [Remove the unused public error variants](../../closed/2844-1488-si-25-remove-unused-error-variants/ISSUE.md) | Done | Follow-up of SI-19. Removed the shutdown error variants nothing constructs (`Error::Stop`, `StartupNotification`, `StartupNotificationDropped` of the HTTP and REST servers; three `UdpError` variants). Breaking change to public enums of unpublished crates, landed before the first publish (#2583); merged in PR #2858, no version bump. |
 | 23       | #2845 | [Consolidate the shutdown supervisors and migrate the last legacy job](../../closed/2845-1488-si-26-consolidate-shutdown-supervisor/ISSUE.md) | Done | Follow-up of SI-19 and SI-21. One shared token-aware supervisor (`token_aware_server.rs`) with the health-check join order serves the HTTP tracker, REST API and health check; `OwnedReceiveLoop` stays package-local; `udp_ban_cleanup` is a reserved component ordered before the health check; `register_legacy`, `LegacyJob` and the manager's root token are removed. Merged in PR #2870 on 2026-11-16; M1 to M4 are recorded, and M2 to M4 ran on the binary. |
 | 24       | #2846 | [Deregister stopped services from the Registar](../../closed/2846-1488-si-27-deregister-stopped-services/ISSUE.md) | Not planned | Follow-up of SI-21. No-go decided on 2026-11-16: registrations stay until the process exits, because the 503 readiness answer hides the registry during shutdown and a stale entry fails its live probe. Reasons and the reopening trigger are in the [registration lifetime ADR](../../../adrs/20261116172628_keep_registar_registrations_for_the_process_lifetime.md). |
@@ -225,13 +276,14 @@ deterministic tests, and manual evidence.
 
 SI-25 and SI-26 were added on 2026-11-11 as follow-ups split out of SI-19 scope, and SI-27 and SI-28
 on 2026-11-12 from the SI-21 follow-ups, when the maintainer asked for a GitHub issue and a consistent
-spec for every pending item. They do not change the shutdown contract, which is implemented; the EPIC
-stays open until they are done or dropped. Recommended implementation order: SI-25 (#2844), SI-26
+spec for every pending item. They did not change the shutdown contract, which was already implemented;
+the EPIC stayed open until they were done or dropped. Recommended implementation order: SI-25 (#2844), SI-26
 (#2845), SI-27 (#2846), SI-28 (#2847); SI-28 follows SI-26 so its evidence covers the final supervisor.
 The maintainer decided on 2026-11-12 that SI-25, SI-26 and SI-27 land before the first publish of the
 workspace crates (#2583), which is blocked on this EPIC as a whole. On 2026-11-16 the maintainer
 dropped SI-27 after its go/no-go decision (no-go, recorded in the registration lifetime ADR), so it no
-longer gates #2583.
+longer gates #2583. SI-25, SI-26 and SI-28 are done, so the maintainer decided on 2026-11-18 to close the
+EPIC, which no longer blocks #2583.
 
 The four specs were written in one combined spec PR, so their `branch:` frontmatter names the reserved
 implementation branch (`{issue}-{description}`), not the spec branch; the implementing PR uses that name.
@@ -265,8 +317,8 @@ environment.
 The superseded drafts SI-3, SI-6, SI-7, SI-8, and SI-9 were never opened as GitHub issues, so they have
 no closed-issue folder. They record why the original plan was split or replaced, and several closed
 specs link to them. They live in [`discarded-drafts/`](discarded-drafts/) in this EPIC folder as
-artifacts of the EPIC: documented evidence of decisions taken during it. They are not deleted in the
-close-out. Each lost its frontmatter on the move, because the validator treats a file with issue
+artifacts of the EPIC: documented evidence of decisions taken during it. They were not deleted in the
+close-out: they moved to `docs/issues/closed/` with this folder. Each lost its frontmatter on the move, because the validator treats a file with issue
 frontmatter in `docs/issues/open/` as a live spec; git history has the originals.
 
 Policy for drafts that are never opened as issues and are replaced or dropped: a draft that documents a
@@ -301,6 +353,15 @@ later.
   without changing existing consumers.
 
 ### Completion Follow-up: Issue #1419
+
+**Decision (maintainer, 2026-11-18): this EPIC closes without waiting for #1419.** Issue #1419
+continues under EPIC #2392 (Test isolation), which has its own coordinator. Its requirements R8, AC8a
+and R9 review the main-application test fixture against the final shutdown API of this EPIC, so the
+verification described below is done there, not here. The shutdown side of the condition is met: every
+started application instance has a deterministic, awaitable shutdown (`JobManager::wait_for_all` joins
+or aborts every component under one deadline).
+
+The original text of this section follows as the record of the condition that the decision replaced.
 
 Before declaring this EPIC complete, reassess and complete
 [issue #1419](https://github.com/torrust/torrust-tracker/issues/1419), **Allow

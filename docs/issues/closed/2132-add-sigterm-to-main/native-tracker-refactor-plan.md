@@ -468,4 +468,4 @@ split the streams, or add stream-order assertions.
 - [Integration-test guidelines](../../../../tests/AGENTS.md)
 - [Native tracker fixture](../../../../tests/common/native_tracker/mod.rs) (moved to `tests/common/` by #2151)
 - [Lifecycle signal scenarios](../../../../tests/lifecycle/signals.rs)
-- [Shutdown EPIC](../1488-overhaul-tracker-shutdown/ISSUE.md)
+- [Shutdown EPIC](../1488-overhaul-tracker-shutdown/EPIC.md)
