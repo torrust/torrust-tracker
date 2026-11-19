@@ -9,7 +9,7 @@ github-issue: 2583
 spec-path: docs/issues/open/2583-1669-first-publish-of-workspace-crates/ISSUE.md
 branch: "2583-1669-first-publish-of-workspace-crates-spec"
 related-pr: null
-last-updated-utc: "2026-11-19 09:36"
+last-updated-utc: "2026-11-19 10:18"
 semantic-links:
   skill-links:
     - create-issue
@@ -93,7 +93,8 @@ What follows from this decision, without any new decision:
 - The other prerequisites did not change (see [Open Questions](#open-questions) OQ2 and OQ3).
 - T2 (publish procedure check) was never blocked by EPIC #1347 and is still not blocked.
 
-State on 2026-11-18 (EPIC #1347 `Subissues` table and the GitHub state of each sub-issue):
+State on 2026-11-18 (EPIC #1347 `Subissues` table and the GitHub state of each sub-issue); only the
+`primitives` bullet was updated since, on 2026-11-19, for EPIC #2912:
 
 - **Testing gate met** (the crate's #1347 sub-issues are closed): `primitives` (#2824, #2876), `udp-core`
   (#1348), `http-core` (#1349), `axum-http-server` (#2136, #2140), `udp-server` (#2149, #2283) and
@@ -440,6 +441,7 @@ release branch and a signed tag.
   its spec). No crate's status changed.
 - 2026-11-19 07:41 UTC - Claude Code (Claude Opus 5.5) - Review of PR torrust/torrust-tracker#2955 (finding F3): the `primitives` state line no longer gives SI-2 as `TODO`; it and row 1 name PR #2955, which implements #2914.
 - 2026-11-19 09:36 UTC - Claude Code (Claude Opus 5.5) - Close-out of #2914: PR #2955 merged on 2026-11-19, so the `primitives` state line and row 1 say the EPIC #2912 SI-2 constraint is met. No crate's status changed.
+- 2026-11-19 10:18 UTC - Claude Code (Claude Opus 5.5) - Review of PR torrust/torrust-tracker#2965 (finding F1): the introduction of the state list says that only the `primitives` bullet changed since 2026-11-18.
 
 ## Acceptance Criteria
 
