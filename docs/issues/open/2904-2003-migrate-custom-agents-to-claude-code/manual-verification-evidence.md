@@ -49,6 +49,10 @@ This section describes the environment of V4 (task T2). Each later section state
 - Initial state: the T4 branch with the commit
   `feat(agents): [#2904] add the pr-review-handler agent`; `.claude/agents/` holds only
   `pr-review-handler.md`, with the keys `name`, `description`, `model`, `tools` and `skills`.
+  After the run, `docs(agents): [#2904] align pr-review-handler with the review of task T4`
+  changed the file's `description` value and its body. Its keys and the values of `name`, `model`,
+  `tools` and `skills` did not change, and the `description` was not observed by this run (see
+  the results), so the results hold for the file at the pull request's head.
 - Environment: 2026-11-19, 08:37:09 to 08:37:20 UTC (`date -u` before and after); Linux 7.0.0-43-generic; Claude Code 2.1.318
   (`claude --version`). One run serves V1 and V2 (session ID `e5b1c5f6-53cf-424c-89b3-4f57d0947d34`).
 - Status: `DONE`
