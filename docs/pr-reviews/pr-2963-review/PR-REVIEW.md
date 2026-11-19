@@ -52,6 +52,13 @@ Round 1 has two reviews at the head whose last commit is
   with "No open issues" and no inline comment. Its note that scenario M3 is still to run restates
   the pull request's own plan and holds no request, so it adds no row.
 
+Round 2 has one review at the head whose last commit is
+`docs(pr-reviews): [#2904] add the audit record of PR #2963 review round 1`:
+
+- `5974337471` by `da2ce7` (11:42:04 UTC; shown as DISMISSED because a later push dismissed it):
+  six inline findings, F8 to F13, with the reviewer's own IDs (the reviewer's F7 was never
+  posted). Its body lists the same six findings and holds no other request, so it adds no row.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2963-f1 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
@@ -60,6 +67,12 @@ Round 1 has two reviews at the head whose last commit is
 | F4 | review-finding:pr-2963-f4 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F5 | review-finding:pr-2963-f5 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-2963-f6 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-2963-f8 | Human | Nit | metadata | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F9 | review-finding:pr-2963-f9 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-2963-f10 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-2963-f11 | Human | Minor | link-integrity | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-2963-f12 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F13 | review-finding:pr-2963-f13 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -79,10 +92,10 @@ Round 1 has two reviews at the head whose last commit is
   each with the command that printed it, where and when it ran, and local path parts replaced.
   V1 and V2 link the file, and V2's conclusion names the `printenv` command, its time and its exit
   code.
-- Current-tree verification: `git show HEAD:docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/evidence/m1m2-run-records.md`
-  holds six sections, each with its command (`grep -c '^## '` prints 6 for the file of the fixing
-  commit; F10 of round 2 added a seventh); `grep -n "m1m2-run-records" manual-verification-evidence.md`
-  finds the links in V1 and V2.
+- Current-tree verification: the file `evidence/m1m2-run-records.md` of the fixing commit holds six
+  sections, each with its command (`grep -c '^## '` on it prints 6); F10 of round 2 added a
+  seventh. `grep -n "m1m2-run-records" manual-verification-evidence.md` finds the links in V1 and
+  V2.
 - Resolution reference: docs(issues): [#2904] store the records of the M1 and M2 run in the repository
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2963#discussion_r4628055234>
@@ -170,6 +183,114 @@ Round 1 has two reviews at the head whose last commit is
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2963#discussion_r4628057104>
 
+### F8 - A commit message cites a branch commit by id
+
+- PR number: 2963
+- Source review ID: 5974337471
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2963#discussion_r4628195278>
+- Concern: the body of `docs(issues): [#2904] say in V1 that the agent file changed after the run`
+  gives a `git diff` from a commit of this branch by its id, which a rebase rewrites; the
+  reviewer says the message can be reworded if the branch is ever rewritten for another reason.
+- Solution: no change. The message can change only by rewriting the branch's history, which this
+  round does not do; the file already cites the commit by its subject. If the branch is rewritten
+  for another reason, the message should name
+  `docs(issues): [#2904] mark task T4 in progress with M1 and M2 done` instead.
+- Current-tree verification: `git log --format=%B` of that commit shows the id in its body; the
+  evidence file's V1 cites `docs(agents): [#2904] align pr-review-handler with the review of task T4`
+  by subject; the PR-branch commit-id check of `open-pull-request` prints nothing for the files.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2963#discussion_r4628369297>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2963#discussion_r4628369297>
+
+### F9 - The T4 review log entry says "one commit each"
+
+- PR number: 2963
+- Source review ID: 5974337471
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2963#discussion_r4628195298>
+- Concern: the Progress Log entry of 09:18 says the review items were addressed "one commit each",
+  but the branch-sync item took two commits and other items share commits.
+- Solution: the entry now says "in four commits" and that the words were corrected in the second
+  round, with the reason.
+- Current-tree verification: `grep -c "one commit each" ISSUE.md` prints 0; the entry reads "in
+  four commits"; the four commits are the ones that fix the V1 skills sentence, the agent file,
+  the `wait-for-pr-review` paragraph, and AC2 with the review record.
+- Resolution reference: docs(issues): [#2904] say how many commits addressed the review of T4
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2963#discussion_r4628369691>
+
+### F10 - The stored records omit the session's listing
+
+- PR number: 2963
+- Source review ID: 5974337471
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2963#discussion_r4628195310>
+- Concern: V1 relies on the session listing the handler and on the agent's reply, but the stored
+  JSON-result record keeps only `session_id` and the model keys.
+- Solution: added a last section to `evidence/m1m2-run-records.md` with the session transcript's
+  text blocks and tool call, and the output of `jq -r .result .tmp/m1m2/result.json`, each with
+  its command and the time it ran. The result text holds only step 3, so the listing is stored
+  from the transcript.
+- Current-tree verification: the file's last section holds the step 1 text naming
+  `pr-review-handler`, the `Agent` tool call with `subagent_type` `pr-review-handler`, and the
+  step 3 text with `READY`; `linter markdown` and `linter cspell` exited 0.
+- Resolution reference: docs(issues): [#2904] store the session's listing and the agent's reply of the M1 run
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2963#discussion_r4628370081>
+
+### F11 - The audit record cites two commits of this branch by id
+
+- PR number: 2963
+- Source review ID: 5974337471
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2963#discussion_r4628195323>
+- Concern: the Findings introduction and the first Processing Log entry named the round-1 head by
+  its full id and the pushed head by its abbreviated id, both commits of this branch.
+- Solution: both places name each head by the subject of its last commit and describe the ACK
+  without quoting its id. Rewriting the log entry in place is recorded in an appended correction
+  entry, which also maps the id the round-1 replies cite to its subject. The sweep of the
+  branch's other files and of the pull-request description found no other such id.
+- Current-tree verification: the PR-branch commit-id check of `open-pull-request`, run against
+  `torrust/develop`, prints nothing; `gh-bot pr view 2963 --json body` holds no commit id of this branch.
+- Resolution reference: docs(pr-reviews): [#2904] name the heads of PR #2963 round 1 by commit subject
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2963#discussion_r4628370486>
+
+### F12 - The M3 evidence the description promises is not at the reviewed head
+
+- PR number: 2963
+- Source review ID: 5974337471
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2963#discussion_r4628195335>
+- Concern: at the reviewed head the evidence file had no V3, M3 was `TODO`, AC9 was open and T4
+  was `IN_PROGRESS`, although the description said they follow in the commits of the first round.
+- Solution: the two commits pushed after the reviewed head add section V3 (with the run that
+  stopped at a question before pushing and the push after the contributor's answer) and section
+  V6, mark M3 and T4 `DONE`, and add a Progress Log entry. AC9 stays open by design: it covers the
+  first three pull requests handled by the agent.
+- Current-tree verification: `grep -n "^### V3\|^### V6" manual-verification-evidence.md` finds
+  both sections; the M3 row of the scenario table and the T4 row of the task table read `DONE`;
+  the AC9 row cites V6.
+- Resolution reference: docs(issues): [#2904] record scenario M3 and the first round count of AC9
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2963#discussion_r4628370868>
+
+### F13 - F1's verification counts five sections
+
+- PR number: 2963
+- Source review ID: 5974337471
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2963#discussion_r4628195347>
+- Concern: F1's current-tree verification said the records file holds five sections; it has six.
+- Solution: F1's verification says six sections, each with its command, and that F10 added a
+  seventh.
+- Current-tree verification: `git show` of the records file at the F1 fixing commit, piped to
+  `grep -c '^## '`, prints 6; at the current head it prints 7.
+- Resolution reference: docs(pr-reviews): [#2904] count six sections in the F1 verification of PR #2963
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2963#discussion_r4628371374>
+
 ## Processing Log
 
 - 2026-11-19 11:28 UTC - Started the audit for review `5972182565` (`da2ce7`, APPROVED) and the
@@ -194,6 +315,17 @@ Round 1 has two reviews at the head whose last commit is
   head by the subject of its last commit. The six round-1 replies, which cannot be edited, name the
   pushed head by that abbreviated id: it is the head whose last commit is
   `docs(issues): [#2904] update last-updated-utc of the manual verification evidence`.
+- 2026-11-19 12:01 UTC - Round 2: processed review `5974337471` (`da2ce7`, 11:42:04 UTC, F8 to F13) with the
+  `pr-review-handler` agent. F12 was already fixed by the two commits pushed after the reviewed
+  head; F8 needs a history rewrite and is `NO_ACTION`. The fixes of F9, F10, F11 and F13 were
+  committed at 11:50:35 to 11:54:11 UTC (`git log --format=%cI`) and pushed before the replies
+  (`git ls-remote` showed the head whose last commit is
+  `docs(pr-reviews): [#2904] count six sections in the F1 verification of PR #2963`). Replied on
+  the six threads (11:59:19 to 11:59:30 UTC, the replies' `created_at`), recorded their URLs, and
+  `validate-audit-record.py` exited 0 (12 rows, 0 failures). Resolved the six threads; each
+  mutation returned `isResolved: true`. A GraphQL refresh at 12:01:10 UTC counted three
+  unresolved threads, all from review `5974503813` (`da2ce7`, 11:54:19 UTC, F14 to F16), which
+  belongs to the next round and is not processed here.
 
 ## Completion Rules
 
