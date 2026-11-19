@@ -70,7 +70,6 @@ impl FromStr for PeerRole {
             "seeder" => Ok(Self::Seeder),
             "leecher" => Ok(Self::Leecher),
             _ => Err(ParsePeerRoleError::InvalidPeerRole {
-                location: Location::caller(),
                 raw_param: s.to_string(),
             }),
         }
@@ -80,11 +79,8 @@ impl FromStr for PeerRole {
 #[derive(Error, Debug)]
 #[non_exhaustive]
 pub enum ParsePeerRoleError {
-    #[error("invalid param {raw_param} in {location}")]
-    InvalidPeerRole {
-        location: &'static Location<'static>,
-        raw_param: String,
-    },
+    #[error("invalid peer role {raw_param:?}, expected \"seeder\" or \"leecher\"")]
+    InvalidPeerRole { raw_param: String },
 }
 
 /// Peer struct used by the core `Tracker`.
@@ -318,8 +314,6 @@ impl Peer {
     }
 }
 
-use std::panic::Location;
-
 use thiserror::Error;
 
 /// Error returned when trying to convert an invalid peer id from another type.
@@ -328,16 +322,10 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 #[non_exhaustive]
 pub enum IdConversionError {
-    #[error("not enough bytes for peer id: {message} {location}")]
-    NotEnoughBytes {
-        location: &'static Location<'static>,
-        message: String,
-    },
-    #[error("too many bytes for peer id: {message} {location}")]
-    TooManyBytes {
-        location: &'static Location<'static>,
-        message: String,
-    },
+    #[error("not enough bytes for peer id: {message}")]
+    NotEnoughBytes { message: String },
+    #[error("too many bytes for peer id: {message}")]
+    TooManyBytes { message: String },
 }
 
 /// A peer id, with its hex form and the name of the client that made it.
@@ -392,13 +380,11 @@ impl TryFrom<Vec<u8>> for Id {
     fn try_from(bytes: Vec<u8>) -> Result<Self, Self::Error> {
         if bytes.len() < PEER_ID_BYTES_LEN {
             return Err(IdConversionError::NotEnoughBytes {
-                location: Location::caller(),
                 message: format!("got {} bytes, expected {}", bytes.len(), PEER_ID_BYTES_LEN),
             });
         }
         if bytes.len() > PEER_ID_BYTES_LEN {
             return Err(IdConversionError::TooManyBytes {
-                location: Location::caller(),
                 message: format!("got {} bytes, expected {}", bytes.len(), PEER_ID_BYTES_LEN),
             });
         }
@@ -672,6 +658,27 @@ pub mod fixture {
 #[cfg(test)]
 pub mod test {
 
+    /// Fails when `message` contains anything that looks like a source path: a workspace path, a
+    /// registry checkout, the standard library sources, or a `file.rs:line` suffix, written with
+    /// either path separator. It reports a failure at the caller's line.
+    #[track_caller]
+    fn assert_names_no_source_path(message: &str) {
+        for fragment in [
+            ".rs:",
+            "packages/",
+            "packages\\",
+            "src/",
+            "src\\",
+            ".cargo/registry",
+            "rustlib/src",
+        ] {
+            assert!(
+                !message.contains(fragment),
+                "the error message must not hold a source path, but it contains {fragment:?}: {message:?}"
+            );
+        }
+    }
+
     mod peer {
         use crate::peer::fixture::PeerBuilder;
 
@@ -688,6 +695,7 @@ pub mod test {
     }
 
     mod peer_role {
+        use super::assert_names_no_source_path;
         use crate::peer::{ParsePeerRoleError, PeerRole};
 
         #[test]
@@ -719,6 +727,24 @@ pub mod test {
             let ParsePeerRoleError::InvalidPeerRole { raw_param, .. } = error;
 
             assert_eq!(raw_param, "peer");
+        }
+
+        #[test]
+        fn it_should_describe_a_name_that_is_not_a_role_by_the_rejected_text_and_no_source_path() {
+            let message = "uploader".parse::<PeerRole>().unwrap_err().to_string();
+
+            assert!(
+                message.contains("uploader"),
+                "the message must name the rejected text: {message:?}"
+            );
+            assert_names_no_source_path(&message);
+        }
+
+        #[test]
+        fn it_should_name_the_accepted_roles_when_it_rejects_a_name() {
+            let message = "x".parse::<PeerRole>().unwrap_err().to_string();
+
+            assert_eq!(message, r#"invalid peer role "x", expected "seeder" or "leecher""#);
         }
     }
 
@@ -1411,7 +1437,35 @@ pub mod test {
     }
 
     mod torrent_peer_id {
+        use super::assert_names_no_source_path;
         use crate::{PeerId, peer};
+
+        fn conversion_error_message(bytes: Vec<u8>) -> String {
+            let result: Result<peer::Id, peer::IdConversionError> = bytes.try_into();
+            result.err().expect("the conversion should fail").to_string()
+        }
+
+        #[test]
+        fn it_should_describe_a_byte_vector_with_less_than_20_bytes_by_its_length_and_no_source_path() {
+            let message = conversion_error_message(vec![0; 19]);
+
+            assert!(
+                message.contains("got 19 bytes, expected 20"),
+                "the message must state the byte counts: {message:?}"
+            );
+            assert_names_no_source_path(&message);
+        }
+
+        #[test]
+        fn it_should_describe_a_byte_vector_with_more_than_20_bytes_by_its_length_and_no_source_path() {
+            let message = conversion_error_message(vec![0; 21]);
+
+            assert!(
+                message.contains("got 21 bytes, expected 20"),
+                "the message must state the byte counts: {message:?}"
+            );
+            assert_names_no_source_path(&message);
+        }
 
         #[test]
         #[should_panic = "NotEnoughBytes"]
