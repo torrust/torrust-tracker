@@ -9,7 +9,7 @@ github-issue: 2953
 spec-path: docs/issues/open/2953-fix-persisted-downloads-integration-test-race/ISSUE.md
 branch: "2953-fix-persisted-downloads-integration-test-race"
 related-pr: null
-last-updated-utc: "2026-11-19 10:21"
+last-updated-utc: "2026-11-19 10:32"
 semantic-links:
   skill-links:
     - create-issue
@@ -250,6 +250,10 @@ this review, before final verification, commit or pull request.
   reached the expected value, so each clause of the wait condition has a failing test (V6); the
   test that expects the wait to finish got its own 4-second bound. Corrected V3's initial state
   (the red runs were on the uncommitted change) and V4's timing explanation.
+- 2026-11-19 10:32 UTC - Claude Code (Claude Opus 5.5) - PR #2964 review round 2 (Copilot): the helper
+  now fails at once on a database error instead of waiting for the timeout, and looks up the
+  store and repository once before the loop. The tests, clause mutations, probe and plain runs
+  were repeated on the final helper (V7).
 
 ## Acceptance Criteria
 

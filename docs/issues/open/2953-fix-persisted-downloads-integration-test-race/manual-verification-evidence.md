@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2953-fix-persisted-downloads-integration-test-race/ISSUE.md
-last-updated-utc: "2026-11-19 10:21"
+last-updated-utc: "2026-11-19 10:32"
 ---
 
 # Manual Verification Evidence
@@ -337,3 +337,41 @@ mutated run ended `test result: FAILED. 2 passed; 1 failed`; the run without mut
 
 Each clause of the condition has exactly one test that fails when that clause is removed. The
 whole integration binary passed with the committed change (`15 passed; 0 failed`).
+
+### V7 - Recheck after the review-round-2 helper change
+
+- Goal: repeat the green checks after the last change to the helper (PR #2964 review round 2:
+  fail at once on a database error, and look up the store and repository once before the loop).
+- Initial state: the uncommitted helper change on top of
+  `docs(issues): [#2953] record the clause mutations and correct the evidence`, committed right
+  after these runs, unchanged, as
+  `test(tracker-core): [#2953] fail the persisted downloads wait at once on a database error`.
+  Same machine and toolchain as before. This is the last change to the helper.
+- Status: `DONE`
+
+#### Steps Performed
+
+1. 10:28:37 - ran the three helper tests:
+   `cargo test -p torrust-tracker-core --test integration -- common::test_env::tests`.
+2. 10:28:39 and 10:28:40 - repeated the V6 mutations M-a and M-b; restored the file from a copy
+   (`cmp` matched at 10:28:42).
+3. 10:28:42 - added the V2 probe in `handler.rs` and ran
+   `it_should_persist_the_global_number_of_completed_peers_into_the_database`; reverted it
+   (`git diff --quiet HEAD` exited 0 at 10:28:45).
+4. Repeated the V4 plain runs: 300 filtered runs (10:28:47.539 to 10:30:09.395) and 100
+   whole-binary runs (10:30:09.397 to 10:31:03.470).
+
+#### Observed Result
+
+```text
+step 1: test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.51s
+step 2, M-a: only ..._when_only_the_in_memory_counter_has_reached_the_expected_value FAILED (test_env.rs:425:9)
+step 2, M-b: only ..._when_only_the_database_has_reached_the_expected_value FAILED (test_env.rs:406:9)
+step 3: test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 14 filtered out; finished in 0.53s
+step 4: filtered pass=300 fail=0
+step 4: binary pass=100 fail=0
+```
+
+#### Conclusion
+
+The V4 and V6 results hold for the final helper.
