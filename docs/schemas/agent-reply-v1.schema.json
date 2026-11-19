@@ -1,0 +1,179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Torrust Agent Reply V1",
+  "description": "One reply of an agent, as stored in its reply file.",
+  "type": "object",
+  "properties": {
+    "schema-version": {
+      "description": "The version of the reply format: always 1.",
+      "$ref": "#/$defs/SchemaVersion"
+    },
+    "agent": {
+      "description": "The agent that wrote the reply.",
+      "$ref": "#/$defs/Agent"
+    },
+    "model": {
+      "description": "The model the agent ran on, as the harness names it, such as `claude-opus-5-5`.",
+      "$ref": "#/$defs/Text"
+    },
+    "subject": {
+      "description": "What the reply is about: a task (`t2`) or a pull request (`pr2920`).",
+      "$ref": "#/$defs/Subject"
+    },
+    "round": {
+      "description": "The round of this agent on this subject.",
+      "$ref": "#/$defs/Round"
+    },
+    "created-utc": {
+      "description": "When the reply was written, in UTC: `YYYY-MM-DD HH:MM`.",
+      "$ref": "#/$defs/UtcMinute"
+    },
+    "verdict": {
+      "description": "The outcome, from which the orchestrator decides the next step.",
+      "$ref": "#/$defs/Verdict"
+    },
+    "summary": {
+      "description": "A short account of what the agent did or found.",
+      "$ref": "#/$defs/Text"
+    },
+    "findings": {
+      "description": "The problems found; empty when there are none.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Finding"
+      }
+    },
+    "questions": {
+      "description": "The questions for the contributor; empty when there are none.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Text"
+      }
+    },
+    "evidence": {
+      "description": "The commands run and what they printed, or other facts the reply rests on.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Text"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "schema-version",
+    "agent",
+    "model",
+    "subject",
+    "round",
+    "created-utc",
+    "verdict",
+    "summary",
+    "findings",
+    "questions",
+    "evidence"
+  ],
+  "$defs": {
+    "SchemaVersion": {
+      "description": "The version of the reply format.",
+      "type": "integer",
+      "const": 1
+    },
+    "Agent": {
+      "description": "An agent that writes reply files.",
+      "type": "string",
+      "enum": [
+        "orchestrator",
+        "implementer",
+        "task-reviewer",
+        "pr-reviewer",
+        "researcher"
+      ]
+    },
+    "Text": {
+      "description": "A text that is not blank.",
+      "type": "string",
+      "pattern": "\\S"
+    },
+    "Subject": {
+      "description": "A task of the Implementation Plan (`t2`) or a pull request (`pr2920`).",
+      "type": "string",
+      "pattern": "^(t|pr)[1-9][0-9]*$"
+    },
+    "Round": {
+      "description": "The round of the agent on the subject.",
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3
+    },
+    "UtcMinute": {
+      "description": "A UTC time written `YYYY-MM-DD HH:MM`.",
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$"
+    },
+    "Verdict": {
+      "description": "The outcome of a reply. The list is closed: the orchestrator reads only this field.",
+      "oneOf": [
+        {
+          "description": "A review found nothing that blocks the work.",
+          "type": "string",
+          "const": "REVIEW_PASSED"
+        },
+        {
+          "description": "A review found something that must change.",
+          "type": "string",
+          "const": "REVIEW_FAILED"
+        },
+        {
+          "description": "The agent finished the work it was given.",
+          "type": "string",
+          "const": "DONE"
+        },
+        {
+          "description": "The agent cannot go on without something it does not have.",
+          "type": "string",
+          "const": "BLOCKED"
+        },
+        {
+          "description": "The agent needs an answer from the contributor.",
+          "type": "string",
+          "const": "QUESTION"
+        }
+      ]
+    },
+    "Finding": {
+      "description": "One problem found by the agent.",
+      "type": "object",
+      "properties": {
+        "severity": {
+          "description": "How much the problem matters.",
+          "$ref": "#/$defs/Severity"
+        },
+        "location": {
+          "description": "Where it is, such as `src/name.rs:42` or a section of a document.",
+          "$ref": "#/$defs/Text"
+        },
+        "description": {
+          "description": "What is wrong.",
+          "$ref": "#/$defs/Text"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "severity",
+        "location",
+        "description"
+      ]
+    },
+    "Severity": {
+      "description": "The severity of a finding, with the same names as the pull-request review audits.",
+      "type": "string",
+      "enum": [
+        "Blocker",
+        "Major",
+        "Minor",
+        "Nit",
+        "Suggestion"
+      ]
+    }
+  }
+}

@@ -81,3 +81,11 @@ jobs:
       - id: skill-descriptions
         name: Check Agent Skill Descriptions
         run: cargo run --quiet --package frontmatter-validator --bin frontmatter-validator -- --skill-descriptions
+
+      # issue: #2904
+      # Agents write one JSON reply file per reply in `agent-replies/` of an issue specification
+      # (D18). The check validates every such file: its place, its name, its content against the
+      # `agent-reply-v1` schema, and that the name agrees with the content.
+      - id: agent-replies
+        name: Check Agent Reply Files
+        run: cargo run --quiet --package agent-reply-validator --bin agent-reply-validator -- --all

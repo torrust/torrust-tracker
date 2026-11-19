@@ -37,6 +37,7 @@
 # never compiled into container test archives. Remove each entry when the crate
 # leaves the tracker workspace (EPIC #2003 harness-workspace sub-issue).
 !/contrib/dev-tools/analysis/workspace-coupling/
+!/contrib/dev-tools/checks/agent-reply-validator/
 !/contrib/dev-tools/checks/agent-review-report-contract/
 !/contrib/dev-tools/checks/ci-gate/
 !/contrib/dev-tools/checks/clippy-allow-reasons/

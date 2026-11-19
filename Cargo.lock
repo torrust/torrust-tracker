@@ -9,6 +9,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa"
 
 [[package]]
+name = "agent-reply-validator"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "regex",
+ "rstest",
+ "schemars 1.2.3",
+ "serde",
+ "serde_json",
+ "serde_path_to_error",
+ "tempfile",
+ "thiserror 2.0.21",
+]
+
+[[package]]
 name = "agent-review-report-contract"
 version = "0.1.0"
 
