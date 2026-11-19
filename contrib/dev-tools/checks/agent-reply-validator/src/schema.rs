@@ -9,7 +9,11 @@
 //!   one;
 //! - a key given twice is rejected; a JSON Schema validator sees only the parsed value;
 //! - the white space of a blank text is Unicode white space, as Rust's `trim` defines it; the
-//!   pattern `\S` uses the ECMA-262 set, which differs for a few characters (U+0085, U+FEFF).
+//!   pattern `\S` uses the ECMA-262 set, which differs for a few characters: a text of only
+//!   U+0085 passes the schema and fails the validator, and a text of only U+FEFF fails the schema
+//!   and passes the validator;
+//! - the number of a subject must fit in 32 bits: the pattern accepts `t4294967296`, the
+//!   validator rejects it.
 
 use std::borrow::Cow;
 
@@ -260,6 +264,19 @@ mod tests {
             subject.parse::<Subject>().is_ok(),
             "the pattern, read by the Rust `regex` engine, and the parser disagree on `{subject}`"
         );
+    }
+
+    #[test]
+    fn it_should_match_a_subject_number_too_large_for_the_parser() {
+        // Arrange: the pattern has no length bound; the parser reads the number as a `u32`.
+        let subject = "t4294967296";
+
+        // Act
+        let matched = Regex::new(SUBJECT_PATTERN).expect("the pattern compiles").is_match(subject);
+
+        // Assert: a known difference, named in the module doc.
+        assert!(matched);
+        assert!(subject.parse::<Subject>().is_err());
     }
 
     #[rstest]
