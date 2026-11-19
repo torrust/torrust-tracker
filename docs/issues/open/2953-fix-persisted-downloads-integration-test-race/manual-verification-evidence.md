@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2953-fix-persisted-downloads-integration-test-race/ISSUE.md
-last-updated-utc: "2026-11-19 09:27"
+last-updated-utc: "2026-11-19 10:21"
 ---
 
 # Manual Verification Evidence
@@ -114,9 +114,10 @@ helper returns once the database holds `1`, while the counter is still `0`.
 - Goal: see the maintained regression test fail against the unchanged helper, and see the
   widened-window probe fail the integration test on the same branch.
 - Initial state: branch `2953-fix-persisted-downloads-integration-test-race` cut from `develop` at
-  `1f85267e8` (Merge torrust/torrust-tracker#2954), with the commit
-  `test(tracker-core): [#2953] add regression tests for the persisted downloads wait helper` and
-  the helper unchanged. Same machine and toolchain as V1 and V2 (`rustc 1.100.0`).
+  `1f85267e8` (Merge torrust/torrust-tracker#2954), with `HEAD` still at `1f85267e8` and the new
+  tests as an uncommitted change in `packages/tracker-core/tests/common/test_env.rs`, the helper
+  unchanged. That change was committed right after these runs, unchanged, as
+  `test(tracker-core): [#2953] add regression tests for the persisted downloads wait helper`. Same machine and toolchain as V1 and V2 (`rustc 1.100.0`).
 - Status: `DONE`
 - Outcome: **Red**, as planned.
 
@@ -232,7 +233,9 @@ binary pass=100 fail=0
 #### Conclusion
 
 With the fix, the helper waits out the 300 ms window and the integration test passes where it
-failed in V2 and V3 (`0.53s` against `0.16s`: the extra time is the probe's delay). The new tests
+failed in V2 and V3. The run takes `0.53s` against `0.16s` because the failing runs stop at
+line 253, before the restarted environment: the passing run pays the probe's 300 ms, the
+restarted `TestEnv::started`'s 100 ms listener-start sleep, and up to one 50 ms poll. The new tests
 pass, and all 400 plain runs pass.
 
 ### V5 - Test-design review
@@ -287,3 +290,50 @@ counter comment and the doc comments on the helpers and the constant.
   must not finish), so the module adds about 0.5 s; the companion finishes on the first poll.
 - **Smells checked:** no hidden production Act (the wait is visible), no expected value derived
   from production code (`1` is written by the test), no lifecycle change (no listener is started).
+
+### V6 - Each clause of the wait condition has a failing test (review round 1)
+
+- Goal: show that every clause of the helper's condition (database value and in-memory counter,
+  each at least `expected`) is guarded by a test that fails when the clause is removed, as the
+  `write-unit-test` section "Prove a Test Guards Each Clause of a Rule" requires (PR #2964
+  review, finding F1).
+- Initial state: the fix commit plus the uncommitted change that added the third test,
+  `it_should_keep_waiting_for_the_persisted_global_downloads_when_only_the_in_memory_counter_has_reached_the_expected_value`,
+  and gave the finishing test its own 4-second bound. That change was committed right after these
+  runs, unchanged, as
+  `test(tracker-core): [#2953] guard the database clause of the persisted downloads wait`.
+- Status: `DONE`
+
+#### Steps Performed
+
+Each mutation edits the line `if persisted_in_database && persisted_in_memory {` in
+`packages/tracker-core/tests/common/test_env.rs`, without staging it, and runs
+`cargo test -p torrust-tracker-core --test integration -- common::test_env::tests`. The file was
+restored from a copy after each mutation; `cmp` confirmed it matched the copy at 10:19:48.
+
+1. 10:19:33 - no mutation.
+2. 10:19:35 - first attempt: `if persisted_in_memory {` and `if persisted_in_database {`. Neither
+   compiled (`error: unused variable`, turned into an error by the workspace's `-D warnings`), so
+   no test ran; these results are not used.
+3. 10:19:45 - M-a, database clause neutralized: `if (persisted_in_database || true) && persisted_in_memory {`.
+4. 10:19:46 - M-b, in-memory clause neutralized: `if persisted_in_database && (persisted_in_memory || true) {`.
+
+#### Observed Result
+
+| Run | Database only (counter `0`) | Counter only (no database value) | Both at `1` |
+| --- | --------------------------- | -------------------------------- | ----------- |
+| No mutation | ok | ok | ok |
+| M-a, database clause neutralized | ok | **FAILED** (`test_env.rs:427:9`) | ok |
+| M-b, in-memory clause neutralized | **FAILED** (`test_env.rs:408:9`) | ok | ok |
+
+M-a failure message: "the wait for 1 persisted global download should still be pending after
+500ms while the in-memory persisted downloads counter holds 1 and the database holds no value".
+M-b failure message: "the wait for 1 persisted global download should still be pending after
+500ms while the database holds 1 and the in-memory persisted downloads counter is still 0". Each
+mutated run ended `test result: FAILED. 2 passed; 1 failed`; the run without mutation ended
+`test result: ok. 3 passed`.
+
+#### Conclusion
+
+Each clause of the condition has exactly one test that fails when that clause is removed. The
+whole integration binary passed with the committed change (`15 passed; 0 failed`).

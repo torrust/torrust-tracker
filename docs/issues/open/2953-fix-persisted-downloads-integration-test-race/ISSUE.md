@@ -9,7 +9,7 @@ github-issue: 2953
 spec-path: docs/issues/open/2953-fix-persisted-downloads-integration-test-race/ISSUE.md
 branch: "2953-fix-persisted-downloads-integration-test-race"
 related-pr: null
-last-updated-utc: "2026-11-19 09:28"
+last-updated-utc: "2026-11-19 10:21"
 semantic-links:
   skill-links:
     - create-issue
@@ -215,7 +215,7 @@ this review, before final verification, commit or pull request.
 - [x] Implementation completed
 - [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
@@ -243,6 +243,13 @@ this review, before final verification, commit or pull request.
   `linter all` and `cargo machete --with-metadata` exit 0 at 09:28 UTC; the pre-push hook runs on
   the push. Completion review: no retrospective, because the work matched the spec and found
   nothing new; the only change from the plan, splitting the test, is recorded in V5.
+- 2026-11-19 10:21 UTC - Claude Code (Claude Opus 5.5) - PR #2964 review round 1. The pre-push hook
+  passed on the push of the implementation branch (09:29:53 to 09:32:32 UTC, all 7 steps pass),
+  so T6 and the automatic-verification checkpoint now hold, and the acceptance criteria were
+  reviewed against the evidence. Added a third helper test, where only the in-memory counter has
+  reached the expected value, so each clause of the wait condition has a failing test (V6); the
+  test that expects the wait to finish got its own 4-second bound. Corrected V3's initial state
+  (the red runs were on the uncommitted change) and V4's timing explanation.
 
 ## Acceptance Criteria
 
@@ -297,7 +304,7 @@ None. The probe is a one-line temporary edit, recorded verbatim in the evidence 
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence                                     |
 | ----- | ---------------------- | -------------------------------------------- |
-| AC1   | DONE                   | Implementation PR diff (`tests/common/test_env.rs`); V3 and V4 |
+| AC1   | DONE                   | Implementation PR diff (`tests/common/test_env.rs`); V3, V4 and V6 (each clause) |
 | AC2   | DONE                   | `manual-verification-evidence.md` V3 and V4  |
 | AC3   | DONE                   | `manual-verification-evidence.md` V4         |
 | AC4   | DONE                   | Background, "Other callers"                  |
