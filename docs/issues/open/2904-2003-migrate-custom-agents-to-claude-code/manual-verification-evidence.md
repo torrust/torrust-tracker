@@ -76,7 +76,7 @@ below are copied from it. It was searched with
   - `name`: the agent type above.
   - `skills`: four debug lines, `[Agent: pr-review-handler] Preloaded skill 'process-pr-review'`,
     and the same for `fetch-review-threads`, `resolve-review-threads` and `commit-changes`; the
-    agent's transcript holds the four skills' text before its task.
+    agent's transcript holds the four skills' text right after its task.
   - `model`: see V2.
   - `tools`: the agent's request-cache record lists the tools `Bash`, `Read`, `Edit`, `Write`
     and `SubagentHandback` (the harness's own tool for returning the report). `Grep` and `Glob`,
