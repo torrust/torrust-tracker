@@ -1,7 +1,7 @@
 ---
 pr-number: 2961
 pr-url: https://github.com/torrust/torrust-tracker/pull/2961
-last-updated-utc: "2026-11-19 09:49"
+last-updated-utc: "2026-11-19 18:43"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -44,7 +44,8 @@ inline findings, `F1` to `F4`; its body lists the same four and adds no other re
 own finding IDs are kept. The second review of `da2ce7`, 5972450674 (approved), has four inline
 findings, `F5` to `F8`; its body adds no other request.
 Copilot's second review, 5972638002, has one inline finding, `R2`. The third review of `da2ce7`,
-5972648538 (approved), has one inline finding, `F9`.
+5972648538 (approved), has one inline finding, `F9`. The fourth review of `da2ce7`, 5981075592
+(approved), has two inline findings, `F10` and `F11`; its body adds no other request.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -59,6 +60,8 @@ Copilot's second review, 5972638002, has one inline finding, `R2`. The third rev
 | F8 | review-finding:pr-2961-f8 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | R2 | review-finding:pr-2961-r2 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | F9 | review-finding:pr-2961-f9 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-2961-f10 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-2961-f11 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -205,6 +208,32 @@ Copilot's second review, 5972638002, has one inline finding, `R2`. The third rev
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2961#discussion_r4626949769
 
+### F10 - The planned negative suite does not prove which deadline the fixture uses
+
+- PR number: 2961
+- Source review ID: 5981075592
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2961#discussion_r4633365681
+- Concern: The decision record said that the negative suite of D4 proves that the configured deadline of D2 is the one used, but the planned `should_panic` test passes with any finite deadline; the 3-second return was an observation of the probe, not an assertion of the plan.
+- Solution: Step 3 of the planned change and E5 now require that the panic arrives well before 10 seconds, so the suite fails if the fixture ignores the configured deadline. The D4 line of the decision record ties the deadline claim to that bound.
+- Current-tree verification: `grep -c 'well before 10 seconds' docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md` printed 2 (step 3 and E5).
+- Resolution reference: `docs(issues): [#1419] bound the elapsed time of the negative suite so it proves the configured deadline`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2961#discussion_r4633409479
+
+### F11 - `begin_shutdown` cancels one token per component, not one token
+
+- PR number: 2961
+- Source review ID: 5981075592
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2961#discussion_r4633365687
+- Concern: The D5 line of the decision record said that `begin_shutdown` "sets a flag and cancels a token", but `JobManager::cancel()` cancels the token of every component that waits for no other, and each component has its own token.
+- Solution: The D5 line now says that it sets a flag and cancels the tokens of the components that wait for no other.
+- Current-tree verification: `grep -c 'cancels the tokens of the' docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md` printed 1.
+- Resolution reference: `docs(issues): [#1419] say that begin_shutdown cancels one token per component`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2961#discussion_r4633409926
+
 ## Processing Log
 
 - 2026-11-19 09:10 UTC - Copilot review 5972177251 (submitted 09:10:48) and the review 5972178096 of `da2ce7` (submitted 09:10:52, changes requested) arrived on the first head.
@@ -225,6 +254,11 @@ Copilot's second review, 5972638002, has one inline finding, `R2`. The third rev
 - 2026-11-19 09:48 UTC - Committed the fixes of R2 and F9 locally (commit times 09:48:05 and 09:48:57), not pushed yet.
 - 2026-11-19 09:49 UTC - Replied on the two threads (09:49:33 and 09:49:36). Each reply says its commit is local and goes up in one push with this update.
 - 2026-11-19 09:49 UTC - Added R2 and F9 and these entries. One push of the three commits of round 3 and the resolution of the two threads follow this commit and are not logged.
+- 2026-11-19 16:42 UTC - The maintainer decided D1 to D5 in the agent session. Committed the decision record in the specification (commit time 16:43:14), not pushed.
+- 2026-11-19 18:34 UTC - Pushed that commit at the maintainer's request and edited the PR description (its "Decisions" section now lists what was decided); both were done by 18:34:14.
+- 2026-11-19 18:38 UTC - The fourth review of `da2ce7`, 5981075592 (approved, submitted 18:38:58), arrived on that head with F10 and F11.
+- 2026-11-19 18:42 UTC - Committed the fixes of F11 and F10 locally (commit times 18:41:33 and 18:42:07) and replied on the two threads (both replies were posted by 18:42:55). Each reply says its commit is local and goes up in one push with this update.
+- 2026-11-19 18:43 UTC - Added F10 and F11 and these entries. One push of the three commits of round 4 and the resolution of the two threads follow this commit and are not logged.
 
 ## Completion Rules
 
