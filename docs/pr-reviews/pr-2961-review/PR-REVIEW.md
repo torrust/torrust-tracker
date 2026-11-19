@@ -1,7 +1,7 @@
 ---
 pr-number: 2961
 pr-url: https://github.com/torrust/torrust-tracker/pull/2961
-last-updated-utc: "2026-11-19 09:37"
+last-updated-utc: "2026-11-19 09:49"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -43,6 +43,8 @@ Copilot's review 5972177251 has one inline finding, `R1`. The review 5972178096 
 inline findings, `F1` to `F4`; its body lists the same four and adds no other request. The reviewers'
 own finding IDs are kept. The second review of `da2ce7`, 5972450674 (approved), has four inline
 findings, `F5` to `F8`; its body adds no other request.
+Copilot's second review, 5972638002, has one inline finding, `R2`. The third review of `da2ce7`,
+5972648538 (approved), has one inline finding, `F9`.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -55,6 +57,8 @@ findings, `F5` to `F8`; its body adds no other request.
 | F6 | review-finding:pr-2961-f6 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F7 | review-finding:pr-2961-f7 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F8 | review-finding:pr-2961-f8 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| R2 | review-finding:pr-2961-r2 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F9 | review-finding:pr-2961-f9 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -175,6 +179,32 @@ findings, `F5` to `F8`; its body adds no other request.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2961#discussion_r4626811628
 
+### R2 - The plan lacks the required test-design checkpoint
+
+- PR number: 2961
+- Source review ID: 5972638002
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2961#discussion_r4626904228
+- Concern: Step 3 of the planned change adds a test suite, but the R8 plan had no progressive test-development loop, which the `create-issue` skill requires when a plan adds tests: a recorded prose-first Arrange-Act-Assert review after each passing increment and a stop for maintainer review after the last one.
+- Solution: The R8 plan has a new subsection "Test development" with the increment, the prose-first review and what it confirms, where the result is recorded, and the stop for maintainer review before the final verification, the commit and the pull request.
+- Current-tree verification: `grep -c '^#### Test development' docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md` printed 1.
+- Resolution reference: `docs(issues): [#1419] add the test-development loop to the R8 plan`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2961#discussion_r4626949335
+
+### F9 - The verification of F7 counts its own line
+
+- PR number: 2961
+- Source review ID: 5972648538
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2961#discussion_r4626912242
+- Concern: The two greps in F7's `Current-tree verification` printed 2 only because that line contained each pattern, so the output read as two log references each.
+- Solution: F7's verification now uses two patterns anchored to the start of a Processing Log entry; each prints 1 and neither can match the verification line.
+- Current-tree verification: `sed -n '/^### F7/,/^### F8/p' docs/pr-reviews/pr-2961-review/PR-REVIEW.md | grep -c 'cannot match this line'` printed 1; the section it reads does not contain this entry.
+- Resolution reference: `docs(pr-reviews): [#1419] verify finding F7 of PR 2961 with checks that cannot match their own line`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2961#discussion_r4626949769
+
 ## Processing Log
 
 - 2026-11-19 09:10 UTC - Copilot review 5972177251 (submitted 09:10:48) and the review 5972178096 of `da2ce7` (submitted 09:10:52, changes requested) arrived on the first head.
@@ -191,6 +221,10 @@ findings, `F5` to `F8`; its body adds no other request.
 - 2026-11-19 09:36 UTC - Pushed the two fixes (the push ended at 09:36:36) and replied on the four threads (09:36:47 to 09:36:54).
 - 2026-11-19 09:37 UTC - Resolved the threads of F5, F6 and F8 (each mutation returned `isResolved: true`); the GraphQL query before them listed four unresolved threads, so one, F7, stays open until this record is pushed.
 - 2026-11-19 09:37 UTC - Added F5 to F8 and these entries. The push of this commit and the resolution of the F7 thread follow it and are not logged.
+- 2026-11-19 09:45 UTC - After the push of round 2 and the resolution of the F7 thread, Copilot's review 5972638002 (submitted 09:45:35) arrived with R2, and the third review of `da2ce7`, 5972648538 (approved, submitted 09:46:15), with F9.
+- 2026-11-19 09:48 UTC - Committed the fixes of R2 and F9 locally (commit times 09:48:05 and 09:48:57), not pushed yet.
+- 2026-11-19 09:49 UTC - Replied on the two threads (09:49:33 and 09:49:36). Each reply says its commit is local and goes up in one push with this update.
+- 2026-11-19 09:49 UTC - Added R2 and F9 and these entries. One push of the three commits of round 3 and the resolution of the two threads follow this commit and are not logged.
 
 ## Completion Rules
 
