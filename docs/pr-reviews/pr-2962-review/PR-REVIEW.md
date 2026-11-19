@@ -1,7 +1,7 @@
 ---
 pr-number: 2962
 pr-url: https://github.com/torrust/torrust-tracker/pull/2962
-last-updated-utc: "2026-11-19 09:16"
+last-updated-utc: "2026-11-19 11:19"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -44,6 +44,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 ## Findings
 
 - Round 1: da2ce7 review 5972179903 (APPROVED, at the first head) with the reviewer's findings F1 to F4, none blocking, as audit findings F1 to F4. Copilot review 5972120109 (COMMENTED, at the first head) reported no open issue and has no thread.
+- Round 2, on the maintainer's instruction ("Add it now"): da2ce7 review 5972434816 (APPROVED, at the round 1 audit head) with the reviewer's finding F6, a Nit, as audit finding F5. The reviewer's F5 in that review's body (the audit record missing at the round 1 fix head) has no thread and was already met by the round 1 audit commit.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -51,6 +52,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F2 | review-finding:pr-2962-f2 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-2962-f3 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F4 | review-finding:pr-2962-f4 | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
+| F5 | review-finding:pr-2962-f5 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -106,10 +108,25 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2962#discussion_r4626599532
 
+### F5 - The PR description summed up the remaining work as the fixture review alone
+
+- PR number: 2962
+- Source review ID: 5972434816
+- Reviewer finding ID: F6
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2962#discussion_r4626744715
+- Concern: After round 1 the order 5 row said that R8, AC8a and R9 also prove cooperative completion and end in the closure review, but the PR description's first bullet still named the fixture review alone. The merge tool copies the description into the merge commit.
+- Solution: The description's first bullet ends as the row does. The description is outside the tree, so this fix has no commit.
+- Current-tree verification: `gh-bot pr view 2962 --repo torrust/torrust-tracker --json body --jq .body | grep -c 'prove cooperative completion, then the closure review'` prints 1 (the description is not in the tree; this ran at 11:18 UTC on 2026-11-19).
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2962#discussion_r4626767439
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2962#discussion_r4626767439
+
 ## Processing Log
 
 - 2026-11-19 09:16 UTC - Round 1: da2ce7 review 5972179903 (an approval) with F1 to F4. Edited the PR description for F1. Committed and pushed the fix for F2 to F4 (`docs(issues): [#2392] name all remaining #1419 work in order 5 and record the dated decision`); the push dismissed the approval. Replied to the four threads (09:15:55Z to 09:16:03Z). Added rows F1 to F4.
 - 2026-11-19 09:16 UTC - The validator on the worktree record reported 4 rows, 1 log entry and 0 failures. Resolved the four threads (about 09:16:50Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread, and the newest review by a reviewer in the review list was 5972179903. Committed these entries.
+- 2026-11-19 11:19 UTC - Round 2, on the maintainer's instruction ("Add it now"): da2ce7 review 5972434816 (an approval at the round 1 audit head) with F5. Edited the PR description and replied to the thread at 09:32:39Z; the row waited for the maintainer's decision, because its commit moves the head past the approval and both ACKs. Added row F5; the validator on the worktree record reported 5 rows and 0 failures before the thread was resolved.
+- 2026-11-19 11:19 UTC - Resolved the round 2 thread (about 11:19:07Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread, and the newest review by a reviewer in the review list was 5972434816. Committed these entries.
 
 <!-- Copied verbatim into each audit record. -->
 
