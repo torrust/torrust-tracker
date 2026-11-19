@@ -6,7 +6,7 @@ epic: null
 github-issue: 2003
 spec-path: docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-18 17:25"
+last-updated-utc: "2026-11-19 07:39"
 semantic-links:
   skill-links:
     - create-issue
@@ -200,7 +200,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | 21 | #2866 - Move the agent skills to `.claude/skills/` so Claude Code discovers them | `docs/issues/closed/2866-2003-move-skills-to-claude-skills/ISSUE.md` | DONE | Moves the 53 skills to a flat `.claude/skills/<name>/` with an index by area and redirect stubs at the old paths, so Claude Code discovers them. Must merge before the custom-agents migration is implemented, because agent definitions name skills. Selects no shared runner, cache or policy engine. |
 | 22 | #2873 - Shorten the agent skill descriptions so they fit Claude Code's skill listing budget | `docs/issues/closed/2873-2003-shorten-skill-descriptions/ISSUE.md` | DONE | Follow-up of #2866 (its task T1): shortens the 53 skill descriptions to 200 characters or less so the listing fits its 1% budget, fixes the `write-markdown-docs` description that YAML cuts at a `#`, and adds a `frontmatter-validator` rule. Selects no shared runner, cache or policy engine. Spec PR #2875, implemented by PR #2893. |
 | 23 | #2904 - Migrate the custom agents to Claude Code and add an explicit orchestrator | `docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md` | IN_PROGRESS | Replaces the ten Copilot profiles in `.github/agents/` with six Claude Code agents in `.claude/agents/`, led by an `orchestrator` that is the session the contributor talks to. Started agents write JSON reply files validated against a schema; a stop hook holds the task reviewer until its reply is valid. Delivered in small pull requests that merge independently, after #2866. Selects no shared runner, cache or policy engine. |
-| 24 | #2949 - Keep a reviewer's ACK valid when only the pull request's audit record changed after it | `docs/issues/open/2949-2003-keep-reviewer-ack-after-audit-only-commits/ISSUE.md` | TODO | A reviewer's `ACK <X>` still counts on head `H` when the commits after `X` change only this pull request's `docs/pr-reviews/pr-<N>-review/` folder; decided by the maintainer on 2026-11-18, spec first. Changes `merge-pull-request`, `wait-for-pr-review`, `process-pr-review` and possibly the merge tool. Reported on PR #2947; earlier on PR #2363. |
+| 24 | #2949 - Keep a reviewer's ACK valid when only the pull request's audit record changed after it | `docs/issues/open/2949-2003-keep-reviewer-ack-after-audit-only-commits/ISSUE.md` | TODO | A reviewer's `ACK <X>` still counts on head `H` when the commits after `X` change only this pull request's `docs/pr-reviews/pr-<N>-review/` folder; proposed by the maintainer on 2026-11-18, spec first, and reopened under the specification's D1 after da2ce7 disagreed, so adopting it is still open. Changes `merge-pull-request`, `wait-for-pr-review`, `process-pr-review` and possibly the merge tool. Reported on PR #2947; earlier on PR #2363. |
 
 Also linked as GitHub sub-issues, outside the order:
 
@@ -464,6 +464,7 @@ For each completed subissue in this EPIC, the default completion policy is:
 - 2026-11-17 17:45 UTC - AI assistant (Claude Code, Claude Fable 5.2, issue #2904 session) - Marked row 23 (#2904) IN_PROGRESS: its specification pull request #2905 merged on 2026-11-17 at 16:52 UTC and task T2 is in pull request #2920.
 - 2026-11-17 18:39 UTC - AI assistant (Claude Code, Claude Fable 5.2, issue #2360 session) - Late entry for row 13 (#2360), which was marked `BLOCKED` on 2026-11-17 at 18:19 UTC without a log line: on hold by maintainer decision since 2026-11-17. T1 and T2 are done (outcome: Temporary); T3 is deferred until the next maintainer review, when the status of upstream google/zerocopy#3414 is checked again. Recorded by PR #2922.
 - 2026-11-18 17:25 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Added row 24 (#2949, keep a reviewer's ACK valid when only the pull request's audit record changed after it); the maintainer approved the draft on 2026-11-18, and the specification is in its spec-only pull request.
+- 2026-11-19 07:39 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Row 24 no longer says the rule was decided: the maintainer proposed it on 2026-11-18, and the specification's D1 reopened the choice after da2ce7 disagreed on PR #2950.
 
 ## Acceptance Criteria
 

@@ -61,10 +61,10 @@ It has happened at least twice:
 - PR #2363 (2026-09). The EPIC specification's #2347 close-out plan, which it marks as historical, has an
   unticked line to log "the stale-approval dismissal after the round-2 audit push".
 
-The maintainer decided on 2026-11-18 to adopt the rule in this specification and to write it spec-first. Until
-it lands, the audit commit is kept and the maintainer ACKs the new head again (applied to PR #2947). The
-decision was made in a working session, so this specification and its pull request are its record in the
-repository.
+The maintainer decided on 2026-11-18, in a working session, to adopt the rule in this specification and to write
+it spec-first. da2ce7 then disagreed with the rule as written on the specification pull request, so D1 reopened
+that decision: whether to adopt the rule is now D1's open choice. Until a decision lands, the audit commit is
+kept and the maintainer ACKs the new head again (applied to PR #2947).
 
 ### Facts checked on `develop` (`96923f0d2`)
 
