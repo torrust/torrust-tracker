@@ -57,6 +57,8 @@ Round 6 is da2ce7's review `5971496221` (`COMMENTED`, on head `docs(pr-reviews):
 
 Round 7 is da2ce7's review `5971904090` (`APPROVED`, on head `docs(pr-reviews): [#2949] record PR #2950 review round 6`), with one inline comment carrying its own finding ID, F22, and an explicit severity label, and Copilot review `5972058838` (`COMMENTED`, on the same head), with two inline comments that label themselves `[Minor][F22]` and `[Minor][F23]`. Because da2ce7's comment already uses F22, Copilot's two are recorded as F23 and F24, with Copilot's own IDs as their reviewer finding IDs.
 
+Round 8 is da2ce7's review `5976843973` (`APPROVED`, on head `docs(pr-reviews): [#2949] record PR #2950 review round 7`), with two inline comments carrying their own finding IDs, F26 and F27, and explicit severity labels. The review uses no F25, so this record has no F25 row either. The maintainer decided the specification's D1 in the working session before the fixes: the strict ACK stays. The specification was rewritten as the record of that decision, which is why F26 needs no change.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | F1 | `review-finding:pr-2950-f1` | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -83,6 +85,8 @@ Round 7 is da2ce7's review `5971904090` (`APPROVED`, on head `docs(pr-reviews): 
 | F22 | `review-finding:pr-2950-f22` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F23 | `review-finding:pr-2950-f23` | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F24 | `review-finding:pr-2950-f24` | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F26 | `review-finding:pr-2950-f26` | Human | Nit | documentation | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F27 | `review-finding:pr-2950-f27` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -398,6 +402,32 @@ Round 7 is da2ce7's review `5971904090` (`APPROVED`, on head `docs(pr-reviews): 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4629684802
 
+### F26 - The D2 (b) design omits lifetime, deadline and design-review items
+
+- PR number: 2950
+- Source review ID: 5976843973
+- Reviewer finding ID: F26
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4630098689
+- Concern: For D2 (b), Design and Ownership Review covered responsibilities and failure handling but not the template's lifetime invariants, readiness deadline and post-slice design-review checkpoint.
+- Solution: No change. The maintainer decided D1 on 2026-11-19 to keep the strict ACK, so the merge tool does not change and the D2 (b) design was removed with the rewrite of the specification as a decision record.
+- Current-tree verification: `grep -n 'D2 (b)' docs/issues/open/2949-2003-keep-reviewer-ack-after-audit-only-commits/ISSUE.md` prints only Progress Log entries; Design and Ownership Review says "Not applicable".
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4633369542
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4633369542
+
+### F27 - The unverified point under D1 (c) is answered by GitHub's documentation
+
+- PR number: 2950
+- Source review ID: 5976843973
+- Reviewer finding ID: F27
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4630098670
+- Concern: The specification marked as not verified whether GitHub marks a pull request merged through a three-parent merge, and proposed a spike for it; GitHub's documentation on indirect merges answers it, and the point the tree leaves open is ruleset push acceptance.
+- Solution: The maintainer rejected (c) on 2026-11-19. Its record now cites the Indirect merges section (read on 2026-11-19), says the merge tool and Merge Readiness enforce the review and not GitHub, and names ruleset 87085 push acceptance with a third parent as not tested. The "Not verified" sentence and the spike are gone from the specification and the description.
+- Current-tree verification: `grep -n 'Not verified\|spike' docs/issues/open/2949-2003-keep-reviewer-ack-after-audit-only-commits/ISSUE.md` prints only Progress Log entries; the section "D1" has the bullet list "Facts about (c)".
+- Resolution reference: `docs(issues): [#2949] record the decision to keep the strict ACK`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4633369020
+
 ## Processing Log
 
 - 2026-11-18 18:34 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Started audit. The poller reported da2ce7's conversation comment [6987829006](https://github.com/torrust/torrust-tracker/pull/2950#issuecomment-6987829006) (2026-11-18 18:31:31 UTC) on head `docs(issues): add issue specification for #2949`; the pull request had no review. The comment does not agree to the rule as written, points to their proposal on #2949 ([issue comment 6987828129](https://github.com/torrust/torrust-tracker/issues/2949#issuecomment-6987828129), 18:31:29 UTC: a metadata branch folded in with a three-parent merge), and asks that the two be compared before deciding. A conversation comment is not a review, so it makes no row. The comparison was added to the specification in `docs(issues): [#2949] compare da2ce7's metadata-branch alternative under D1`; no decision was made, the maintainer decides D1.
@@ -408,6 +438,7 @@ Round 7 is da2ce7's review `5971904090` (`APPROVED`, on head `docs(pr-reviews): 
 - 2026-11-19 08:26 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Round 5: the poller reported da2ce7's review 5971317192 (`APPROVED`, submitted 2026-11-19 08:03:58 UTC) and their `ACK` on the round-4 head (08:04:02 UTC); the maintainer posted the same `ACK` at 08:09:20 UTC. Normalized the review's two inline comments as F15 and F16 and fixed each in its own commit; the push at 08:11:49 UTC moved the head, so both `ACK`s became stale and GitHub dismissed the approval. Replied on both threads (08:11:56 and 08:11:59 UTC) and resolved them. The same resolve loop also resolved the two threads of Copilot review 5971362548 (submitted 08:07:51 UTC) before any reply; they were unresolved again at once. That push was the fifth round of fixes, so the maintainer was asked before a sixth and approved it in the working session. F21 was fixed in its own commit; F20 was answered with no change (the reply was edited at 08:20:39 UTC to open with the prescribed `Superseded by` form); both threads were replied to (08:19:28 and 08:19:31 UTC) and then resolved. The fixes for F21 and da2ce7's later F19 were pushed together. This entry and the rows for F15, F16, F20 and F21 address da2ce7's F17 and F18 in review 5971496221.
 - 2026-11-19 08:33 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Round 6: the poller reported da2ce7's review 5971496221 (`COMMENTED`, submitted 2026-11-19 08:19:03 UTC). Normalized its three inline comments as F17 to F19. F19 was fixed in its own commit and pushed with F21's fix; F17 and F18 were fixed by the round-5 record, pushed before the replies. Replied on all three threads (08:33:20 to 08:33:25 UTC) and resolved them.
 - 2026-11-19 13:54 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Round 7: the poller reported da2ce7's review 5971904090 (`APPROVED`, submitted 2026-11-19 08:50:35 UTC) and their `ACK` on the round-6 head (08:50:39 UTC); the maintainer posted the same `ACK` at 08:56:15 UTC. The maintainer chose to leave da2ce7's Nit F22 for the next commit, and a reply deferring it was posted at 08:56:52 UTC with the thread left open. Copilot review 5972058838 (submitted 09:02:26 UTC) then raised two Minor comments; the maintainer pointed to them in the working session. Fixed F23, F24 and the deferred F22 in their own commits, pushed them together (head `docs(issues): [#2949] correct the 08:20 log entries about what said "proposed"`), which made both `ACK`s stale; replied on the three threads (13:53:38 to 13:53:43 UTC) and resolved them.
+- 2026-11-19 18:40 UTC - AI assistant (Claude Code, Claude Fable 5.2, issue #2949 session) - Round 8: da2ce7's review 5976843973 (`APPROVED`, submitted 2026-11-19 14:25:34 UTC) and their `ACK` on the round-7 head (14:25:39 UTC) were read in the working session. Normalized its two inline comments as F26 and F27. The maintainer approved an eighth round and decided D1 in the working session: the strict ACK stays. Rewrote the specification as the decision record and updated EPIC row 24, each in its own commit, and pushed them (head `docs(issues): [#2949] update EPIC row 24 for the strict-ACK decision`), which made da2ce7's `ACK` stale. Updated the titles and descriptions of the pull request and of issue #2949, replied on both threads (18:39:16 and 18:39:19 UTC), posted the comment that tells da2ce7 the decision (issue comment 7018461081, text approved by the maintainer) and resolved both threads.
 
 ## Completion Rules
 
