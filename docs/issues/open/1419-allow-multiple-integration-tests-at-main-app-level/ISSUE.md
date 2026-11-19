@@ -7,9 +7,9 @@ priority: p3
 epic: 2392
 github-issue: 1419
 spec-path: docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
-branch: "1419-allow-multiple-integration-tests"
+branch: "1419-align-fixture-with-final-shutdown-api"
 related-pr: 2189
-last-updated-utc: "2026-11-19 16:42"
+last-updated-utc: "2026-11-19 18:56"
 semantic-links:
   skill-links:
     - write-unit-test
@@ -284,6 +284,11 @@ completed work and remaining tasks are recorded after the decision pivot.
   choosing option (a) for D1, D2, D3 and D5 and option (b) for D4. Recorded each option's
   advantages and disadvantages in the decision record of the R8 plan. Option (c) of D2 stays
   available if the suites become too slow.
+- 2026-11-19 18:56 UTC - Claude Code (Claude Fable 5.2) - Completed R8 and met AC8a. The fixture stops the
+  tracker with `app::begin_shutdown`, waits with the configured deadline and panics when a
+  component did not stop gracefully. Added the negative suite
+  `lifecycle-fixture-shutdown-assertion`; the maintainer approved its test after the prose-first
+  review. Recorded the evidence E1 to E5 in the R8 plan. R9 remains.
 
 ## Acceptance Criteria
 
@@ -304,10 +309,11 @@ completed work and remaining tasks are recorded after the decision pivot.
 - [x] AC8: Every current main-level suite uses `TrackerApplicationFixture` to invoke the best
       currently exposed production shutdown sequence—`JobManager::cancel()` followed by
       `wait_for_all(...)`—before its temporary workspace is released.
-- [ ] AC8a: After shutdown-overhaul #1488 is implemented, review the integration fixture against
+- [x] AC8a: After shutdown-overhaul #1488 is implemented, review the integration fixture against
       the new production lifecycle and prove server jobs finish cooperatively without consuming the
       current per-job timeout. The evidence that meets it is defined in the
-      [R8 plan](#r8-plan-align-the-fixture-with-the-final-shutdown-api) (E1 to E5).
+      [R8 plan](#r8-plan-align-the-fixture-with-the-final-shutdown-api) (E1 to E5), with the
+      [recorded results](#recorded-evidence).
 - [x] AC9: All current main-level integration-test targets pass with normal parallel scheduling,
       and a representative target passes in serial mode. Current production server jobs can still
       consume the per-job shutdown timeout; cooperative completion is deferred to AC8a.
@@ -470,7 +476,7 @@ be reviewed before implementation begins.
 | R6  | DONE   | Run the full quality gate                     | On 2026-08-24, exit 0: the pre-commit gate passed, including `linter all`.                                                                                                                                                |
 | R6a | DONE   | Remove fixture environment injection          | `TrackerApplicationFixture` now passes its workspace TOML path to `app::start_with_explicit_config_toml_path`, removing its environment lock, restoration guard, and base-source environment mutation.                    |
 | R7  | DONE   | Open partial-improvement PR                   | [PR #2189](https://github.com/torrust/torrust-tracker/pull/2189) merged on 2026-09-10. It delivered explicit workspace-file configuration for the shared fixture; cooperative server shutdown remains owned by #1488.     |
-| R8  | TODO   | Revisit after shutdown overhaul #1488         | #1488 closed on 2026-11-19. The review is recorded in the [R8 plan](#r8-plan-align-the-fixture-with-the-final-shutdown-api); the maintainer decided D1 to D5 on 2026-11-19 (decision record there); the fixture update and the AC8a evidence follow it.          |
+| R8  | DONE   | Revisit after shutdown overhaul #1488         | #1488 closed on 2026-11-19. The review is recorded in the [R8 plan](#r8-plan-align-the-fixture-with-the-final-shutdown-api); the maintainer decided D1 to D5 on 2026-11-19 (decision record there); the fixture uses the final shutdown API and the AC8a evidence is [recorded](#recorded-evidence).          |
 | R9  | TODO   | Perform final closure review                  | After the #1488 follow-up, confirm all acceptance criteria, move the issue specification to `docs/issues/closed/`, and close GitHub issue #1419.                                                                          |
 
 #### Implementation Sequence
@@ -728,7 +734,8 @@ Two temporary mutations of the fixture, both reverted, show that the test can fa
 - With the outcome assertion removed, the test failed after 3.03 seconds with "test did not panic
   as expected".
 
-The work stops here for the maintainer's review of this test.
+The work stopped here for the maintainer's review of this test. He approved it on 2026-11-19
+with no changes.
 
 #### Evidence for AC8a
 
@@ -745,6 +752,25 @@ The current target list for E2 replaces the six-target command of the partial de
 ```sh
 cargo test --test metrics-fixed-ports --test metrics-port-zero --test metrics-udp-error-enabled-port-zero --test metrics-udp-error-disabled-port-zero --test banning-udp-metrics-disabled-port-zero --test banning-udp-shared-connection-id-error-limit --test banning-udp-shared-connection-id-error-limit-reverse-order --test persistence-completed-downloads-on-shutdown --test persistence-scrape-after-restart --test scaffold
 ```
+
+#### Recorded evidence
+
+Recorded on 2026-11-19 18:56 UTC by Claude Code (Claude Fable 5.2), with the fixture change and the negative
+suite in place. Toolchain of every command: `rustc 1.100.0 (0ef1bc386 2026-11-09)`,
+`cargo 1.100.0 (3acc79c0c 2026-11-05)`, `dev` profile, Linux x86_64. The pre-commit gate also uses
+the nightly Rust toolchain for its formatting step (`cargo +nightly fmt --all -- --check`).
+
+| ID  | Result                                                                                                                                                                                                                                                                                      |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| E1  | Met. `stop_gracefully` in `tests/common/workspace.rs` calls `app::begin_shutdown`, awaits `wait_for_all` with the configured deadline and asserts that `incomplete_components(&outcomes)` is empty. `shutdown()` and `restart()` call it. There is no sleep in the shutdown path.               |
+| E2  | Met. The ten-target command above exited with status 0. Every target ran one test and passed; the tests finished in 0.11 to 2.05 seconds.                                                                                                                                                   |
+| E3  | Met. `cargo test --test metrics-port-zero -- --nocapture` exited with status 0 (1.04 seconds). `cargo test --test metrics-port-zero -- --test-threads=1` exited with status 0 (1.05 seconds). Both are far below the 25-second deadline.                                                    |
+| E4  | Met. `TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-commit.sh` exited with status 0; all 12 steps passed, including `cargo machete`, `linter all` and the documentation tests.                                                                                           |
+| E5  | Met. `cargo test --test lifecycle-fixture-shutdown-assertion` exited with status 0; the `should_panic` test passed in 3.03 seconds, inside its 6-second bound. The two mutations in the review result above show that it fails when the deadline is ignored or the assertion is removed. |
+
+Because the fixture asserts graceful outcomes (E1) and the ten targets pass (E2), every component
+of every suite reported `Completed` or `Cancelled`: no server job was aborted at the deadline, and
+none consumed it.
 
 #### Delivery
 
