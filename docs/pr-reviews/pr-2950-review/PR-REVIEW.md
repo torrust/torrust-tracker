@@ -91,7 +91,7 @@ Round 9 is da2ce7's review `5981273810` (`CHANGES_REQUESTED`, on head `docs(pr-r
 | F24 | `review-finding:pr-2950-f24` | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | F26 | `review-finding:pr-2950-f26` | Human | Nit | documentation | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F27 | `review-finding:pr-2950-f27` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
-| F28 | `review-finding:pr-2950-f28` | Human | Major | workflow | ORIGINAL | FIXED | RESOLVED |
+| F28 | `review-finding:pr-2950-f28` | Human | Major | correctness | ORIGINAL | FIXED | RESOLVED |
 | F29 | `review-finding:pr-2950-f29` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F30 | `review-finding:pr-2950-f30` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
