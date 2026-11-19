@@ -1,12 +1,14 @@
 # Scenario M3 and the round count: the records of the runs
 
-<!-- cspell:ignore adeee ugrep unreplied undercounts a0c065a8ee2b9c6fa a9ae040f376487a31 a0ae236dae7949e2a a6807b4df608e3bea -->
+<!-- cspell:ignore adeee ugrep unreplied undercounts a0c065a8ee2b9c6fa a9ae040f376487a31 a0ae236dae7949e2a a6807b4df608e3bea acde56ffd2910d42e acb3bf96a85615a79 a77947028cb321064 -->
 
 The records that sections V3 and V6 of `../manual-verification-evidence.md` rely on, copied from
 the files of the three runs of scenario M3 (the first review round of pull request #2963), of the
-run that processed its second review round, and of the run that processed its third. The files
-themselves stay local: the transcripts and the debug logs also hold the contributor's own
-instructions and settings. Added in the third review round of pull request #2963 (finding F14).
+run that processed its second review round, of the two runs that processed its third, and of
+the two runs of its fourth. The files themselves stay local: the transcripts and the debug logs also hold the contributor's own
+instructions and settings. Added in the third review round of pull request #2963 (finding F14);
+the second run of round 3 and the runs of round 4 were added in the fourth round (finding F20),
+in the last section.
 
 Each section names the commands and the time they ran (`date -u` before them). They ran at the
 root of the T4 checkout, on the contributor's machine, by the `pr-review-handler` agent that
@@ -18,7 +20,10 @@ processed the third round.
 | M3 run 2 | `d8b24969-44a9-4a20-89ee-3ab7e56f297c` | `agent-a0c065a8ee2b9c6fa` | `.tmp/m3/`: `result-run2.json`, `debug-run2.log`, `start-run2.txt` |
 | M3 run 3 | `1ce4d42b-05a9-4867-bd2d-02282767606f` | `agent-a9ae040f376487a31` | `.tmp/m3/`: `result.json`, `debug.log`, `start-run3.txt` |
 | Round 2 | `03a9e75a-bbcf-42c7-a95f-b97fe6e07ac3` | `agent-a0ae236dae7949e2a` | `.tmp/r2/`: `result.json`, `start.txt` |
-| Round 3 | `46dae3b5-4a1e-4c73-9c86-4a27c978aafc` | `agent-a6807b4df608e3bea` | `.tmp/r3/` |
+| Round 3 | `46dae3b5-4a1e-4c73-9c86-4a27c978aafc` | `agent-a6807b4df608e3bea` | `.tmp/r3/`: `result-run1.json`, `debug-run1.log`, `start.txt` |
+| Round 3, run 2 | `e1bdc48d-6a0a-418d-84a9-2094b26efd82` | `agent-acde56ffd2910d42e` | `.tmp/r3/`: `result.json`, `debug.log`, `start-run2.txt` |
+| Round 4, run 1 | `54a31539-95f8-4b01-848b-703353c239e2` | `agent-acb3bf96a85615a79` | `.tmp/r4/`: `result-run1.json`, `debug-run1.log`, `start.txt` |
+| Round 4, run 2 | `a470b0e6-6f10-460b-9487-f98c56fcde05` | `agent-a77947028cb321064` | `.tmp/r4/`: `result.json`, `debug.log`, `start-run2.txt` |
 
 Every run wrote its debug log to `.tmp/m3/debug.log` or `.tmp/r2/debug.log`; the files of runs 1
 and 2 were renamed afterwards. Run 2 wrote to the same path as run 1 before the rename, so
@@ -314,3 +319,68 @@ Files, in `<checkout>/docs/`:
 - `pr-reviews/pr-2963-review/PR-REVIEW.md`
 - `issues/open/2904-2003-migrate-custom-agents-to-claude-code/evidence/m1m2-run-records.md`
 ```
+
+## The second run of round 3 and the runs of round 4
+
+Round 3 took two runs: the first committed the fixes and the audit rows and stopped before
+pushing, because the maintainer had ACKed the reviewed head; the second, after the contributor's
+answer, pushed, replied and resolved. The table above listed only the first until the fourth
+round. Round 4 (review `5976833863`, F20) also took two runs: the first read the review and
+stopped before changing anything, because the maintainer had ACKed the head at 16:50:46 UTC; it
+made no commit, push or reply. The second, after the contributor's answer, made the changes.
+
+`$R3B`, `$R4A` and `$R4` are the common prefixes of the agents' files of round 3's second run and
+of round 4's first and second runs, named as above. The second run of round 4 ran these commands
+itself, at 2026-11-19 16:56:21 UTC (`date -u` before them):
+
+```text
+for x in "$R3.jsonl" "$R3B.jsonl" "$R4A.jsonl" "$R4.jsonl"; do
+  echo "-- $x"
+  jq -r 'select(.type=="assistant") | .message.model' "$x" | sort | uniq -c
+  jq -r 'select(.type=="assistant") | .timestamp' "$x" | sed -n '1p;$p'
+done
+for a in "$R3" "$R3B" "$R4A" "$R4"; do
+  jq -c '{agentType, description, requestShape, requestNonInteractive, pickedEffortModel, finished}' "$a.meta.json"
+done
+for a in "$R3" "$R3B" "$R4A" "$R4"; do
+  [ -f "$a.prefix.json" ] && jq -c '.state | {toolNames, model, buildVersion}' "$a.prefix.json" || echo "no prefix file"
+done
+```
+
+```text
+-- $R3.jsonl
+    142 claude-opus-5-5
+2026-11-19T12:09:47.670Z
+2026-11-19T12:23:21.083Z
+-- $R3B.jsonl
+     38 claude-opus-5-5
+2026-11-19T13:45:49.825Z
+2026-11-19T13:58:07.162Z
+-- $R4A.jsonl
+     21 claude-opus-5-5
+2026-11-19T16:52:04.783Z
+2026-11-19T16:53:21.363Z
+-- $R4.jsonl
+     32 claude-opus-5-5
+2026-11-19T16:54:47.146Z
+2026-11-19T16:56:14.380Z
+{"agentType":"pr-review-handler","description":"Process PR 2963 review round","requestShape":"foreground","requestNonInteractive":true,"pickedEffortModel":"claude-sonnet-5-5","finished":true}
+{"agentType":"pr-review-handler","description":"Process PR 2963 review round","requestShape":"foreground","requestNonInteractive":true,"pickedEffortModel":"claude-sonnet-5-5","finished":true}
+{"agentType":"pr-review-handler","description":"Process PR 2963 review round","requestShape":"foreground","requestNonInteractive":true,"pickedEffortModel":"claude-sonnet-5-5","finished":true}
+{"agentType":"pr-review-handler","description":"Process PR 2963 review round","requestShape":"foreground","requestNonInteractive":true,"pickedEffortModel":"claude-sonnet-5-5","finished":null}
+{"toolNames":["Bash","Read","Edit","Write","SubagentHandback"],"model":"claude-opus-5-5","buildVersion":"2.1.318"}
+{"toolNames":["Bash","Read","Edit","Write","SubagentHandback"],"model":"claude-opus-5-5","buildVersion":"2.1.318"}
+{"toolNames":["Bash","Read","Edit","Write","SubagentHandback"],"model":"claude-opus-5-5","buildVersion":"2.1.318"}
+no prefix file
+```
+
+The output printed each file's full path; it is shown with the variable's name. Round 3's first
+run now counts 142 entries, against 38 in the first section, which was read while that run was
+still going. Round 4's second run was still running, so its transcript was still growing, its
+metadata file has no `finished`, and its request-cache record did not exist yet. Round 4's first
+run read 16 entries in its own transcript at 16:52:52 UTC, by its report; the 21 above include
+the entries it wrote after that.
+
+The session IDs of round 4 come from `jq -c '{session_id}' .tmp/r4/result-run1.json` for the first
+run and, for the second, from the folder that holds its agent's files; its JSON result was still
+empty when these records were written.

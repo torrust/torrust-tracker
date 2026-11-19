@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md
-last-updated-utc: "2026-11-19 12:16"
+last-updated-utc: "2026-11-19 16:57"
 ---
 
 # Manual Verification Evidence
@@ -389,15 +389,25 @@ mechanism; the behaviour is that of Claude Code 2.1.318.
 - Goal: count the review rounds with fixes of the first three pull requests handled by
   `pr-review-handler`, with the model of each round, next to the baseline of pull request #2851:
   14 rounds (1 to 3 Claude Fable 5.2, 4 to 9 Claude Sonnet, 10 to 14 Claude Opus 5.5).
-- Method: a round is one processed review event that led to fixes; its model is the one in the
-  agent's transcript. The count of a pull request is final when it merges. The `model` lines of
-  each round's agent transcript are stored in
+- Method: a round is one processing round that pushed fixes, the first definition of
+  `wait-for-pr-review` (Round Limit): "A round is one push of fixes made in response to a review
+  event". A round can answer several reviews, when they arrive before its push; a push that
+  carries only the audit record adds no round. This is how the baseline was counted: the 14
+  rounds of pull request #2851 are the 14 rounds of its audit record
+  (`docs/pr-reviews/pr-2851-review/PR-REVIEW.md`, section Findings), each ending in one commit
+  "record round N in the review audit of PR #2851", and rounds 1, 5, 6, 8 and 10 answer two
+  reviews each. The same Round Limit section also counts "the number of distinct reviews in the
+  audit record that have at least one `FIXED` finding"; the two disagree when one round answers
+  two reviews, so that count is given too: 19 for pull request #2851 (all 19 of its reviews
+  have a `FIXED` finding), and the reviews listed below for each pull request. The model of a
+  round is the one in its agent's transcript. The count of a pull request is final when it
+  merges. The `model` lines of each round's agent transcripts are stored in
   [`evidence/m3-run-records.md`](evidence/m3-run-records.md), with the command that printed them.
 - Status: `IN_PROGRESS` (one of three pull requests)
 
 | Pull request | Rounds with fixes | Model of each round | Count final |
 | --- | --- | --- | --- |
-| #2963 (T4) | 3 so far. Round 1: review `5972182565`, F1 to F6, all fixed (see V3). Round 2: review `5974337471`, F8 to F13, five fixed and F8 with no change. Round 3: reviews `5974503813` and `5974634671`, F14 to F18, processed in one run | Round 1: `claude-opus-5-5` (three runs). Round 2: `claude-opus-5-5`. Round 3: `claude-opus-5-5` | No, the pull request is open |
+| #2963 (T4) | 4 so far, answering 5 reviews with a `FIXED` finding. Round 1: review `5972182565`, F1 to F6, all fixed (see V3). Round 2: review `5974337471`, F8 to F13, five fixed and F8 with no change. Round 3: reviews `5974503813` and `5974634671`, F14 to F18, all fixed. Round 4: review `5976833863`, F20, fixed | Round 1: `claude-opus-5-5` (three runs). Round 2: `claude-opus-5-5`. Round 3: `claude-opus-5-5` (two runs). Round 4: `claude-opus-5-5` (two runs) | No, the pull request is open |
 
 ## Failures and Follow-up
 

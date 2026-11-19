@@ -9,7 +9,7 @@ github-issue: 2904
 spec-path: docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md
 branch: "2904-t4-pr-review-handler"
 related-pr: null
-last-updated-utc: "2026-11-19 12:17"
+last-updated-utc: "2026-11-19 16:57"
 semantic-links:
   skill-links:
     - create-issue
@@ -607,6 +607,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - 2026-11-19 09:18 UTC - Claude Code (Claude Opus 5.5) - Independent review of T4 recorded in `agent-review-reports.md` at 08:44 (REVIEW PASSED, two minor findings, three nits and two suggestions). Addressed before the pull request, in four commits: V1 says the agent's transcript holds the four skills right after its task; the `wait-for-pr-review` paragraph and the agent file say the session brings the branch to the event's commit before it delegates; the agent's `description` names open, merged and replaced pull requests; the agent file points to `AGENTS.md` and `commit-changes` for commits and to the skill's list of what the session keeps; AC2 is checked with the evidence of V2. Not changed: `Grep` and `Glob` stay in `tools`. This entry was added in the first review round of pull request #2963, whose finding F2 noted that the log stopped before the review; its words "one commit each" were corrected in the second round (finding F9), since the branch-sync item took two commits and three other items share a commit with another change.
 - 2026-11-19 11:37 UTC - Claude Code (Claude Opus 5.5) - Scenario M3 done on the first review round of pull request #2963 (review `5972182565` of `da2ce7`, findings F1 to F6, all fixed), delegated to `pr-review-handler` by non-interactive sessions; it took three runs. The first was stopped after 10 minutes because the session started the agent in the background; the second stopped at a question, since the maintainer had ACKed the reviewed head during the round; the third, with the contributor's answer "Push the fixes", pushed the fixes and the audit record, replied to and resolved the six threads, and `validate-audit-record.py` exited `0`. Evidence in `manual-verification-evidence.md` section V3; the first round count for AC9 is in section V6. Task T4 is done.
 - 2026-11-19 12:17 UTC - Claude Code (Claude Opus 5.5) - Third review round of pull request #2963 (reviews `5974503813` and `5974634671` of `da2ce7`, findings F14 to F18), processed by `pr-review-handler`: the records of the M3 runs, of round 2 and of round 3 are stored in `evidence/m3-run-records.md`, which V3 and V6 link; V3 quotes the message that names `CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS` and says its effect alone was not observed; V6 counts three rounds with fixes; AC3 is checked with the evidence of V3, and the AC9 row gives the new count.
+- 2026-11-19 16:57 UTC - Claude Code (Claude Opus 5.5) - Fourth review round of pull request #2963 (review `5976833863` of `da2ce7`, finding F20), processed by `pr-review-handler`: V6 names its round definition, one push of fixes per processing round, which is how the 14 rounds of #2851 were counted, and also gives the count of reviews with a `FIXED` finding (19 for #2851, 5 for #2963); #2963 has 4 rounds with this one. The AC9 row gives both counts, and `evidence/m3-run-records.md` records the second run of round 3 and the two runs of round 4.
 
 ## Acceptance Criteria
 
@@ -698,7 +699,7 @@ None planned.
 | AC6   | TODO                   |          |
 | AC7   | TODO                   |          |
 | AC8   | TODO                   |          |
-| AC9   | TODO                   | `manual-verification-evidence.md` section V6: pull request #2963 (T4), the first of three, has 3 rounds with fixes so far, each on `claude-opus-5-5`; final when it merges |
+| AC9   | TODO                   | `manual-verification-evidence.md` section V6: pull request #2963 (T4), the first of three, has 4 rounds with fixes so far (5 reviews with a `FIXED` finding), each on `claude-opus-5-5`, against 14 rounds (19 such reviews) for #2851, both counted as one push of fixes per processing round; final when it merges |
 | AC10  | TODO                   |          |
 | AC11  | TODO                   |          |
 | AC12  | DONE                   | `manual-verification-evidence.md` section V4: probes 5 to 12 quote the root heading and the scoped rule in both checkouts, for the session and a started agent; `git ls-files \| grep -E '(^\|/)CLAUDE\.md$' \| xargs cat \| sort -u` prints only `@AGENTS.md` |
