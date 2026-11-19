@@ -7,8 +7,8 @@ semantic-links:
     - .claude/skills/create-adr/SKILL.md
     - .claude/skills/handle-errors-in-code/SKILL.md
     - docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md
-    - docs/issues/open/2804-location-caller-track-caller-audit/inventory.md
-    - docs/issues/open/2804-location-caller-track-caller-audit/options.md
+    - docs/issues/closed/2804-location-caller-track-caller-audit/inventory.md
+    - docs/issues/closed/2804-location-caller-track-caller-audit/options.md
 ---
 
 <!-- skill-link: create-adr -->
@@ -30,7 +30,7 @@ Many error types in the workspace have a `location: &'static Location<'static>` 
 `Location::caller()`, and several wrap their source in `LocatedError` from the standalone crate
 `torrust-located-error`. The intent was to tell a developer where an error was created.
 
-The audit of issue #2804 (`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`
+The audit of issue #2804 (`docs/issues/closed/2804-location-caller-track-caller-audit/inventory.md`
 and `options.md`) found that the recorded location is never the caller's:
 
 - None of the 38 production `Location::caller()` sites (37 since #2850) is in a `#[track_caller]`
@@ -161,7 +161,7 @@ The four options compared in `options.md`:
 - Issue [#2913](https://github.com/torrust/torrust-tracker/issues/2913) (SI-1), which records this
   ADR.
 - Audit: issue [#2804](https://github.com/torrust/torrust-tracker/issues/2804),
-  `docs/issues/open/2804-location-caller-track-caller-audit/inventory.md` and `options.md`.
+  `docs/issues/closed/2804-location-caller-track-caller-audit/inventory.md` and `options.md`.
 - Issue [#384](https://github.com/torrust/torrust-tracker/issues/384), the 2023 report of locations
   in client responses.
 - `docs/adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md`, the

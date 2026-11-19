@@ -9,7 +9,7 @@ github-issue: 2914
 spec-path: docs/issues/open/2914-2912-si-2-primitives/ISSUE.md
 branch: "2914-primitives"
 related-pr: null
-last-updated-utc: "2026-11-18 18:57"
+last-updated-utc: "2026-11-18 19:11"
 semantic-links:
   skill-links:
     - create-issue
@@ -17,7 +17,7 @@ semantic-links:
     - .claude/skills/fix-bug/SKILL.md
     - .claude/skills/create-issue/SKILL.md
     - docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md
-    - docs/issues/open/2804-location-caller-track-caller-audit/inventory.md
+    - docs/issues/closed/2804-location-caller-track-caller-audit/inventory.md
     - packages/primitives/src/peer.rs
 ---
 
@@ -36,7 +36,7 @@ Remove the `location` field and its text from `ParsePeerRoleError` and `peer::Id
 
 This is the defect that started the audit: finding F3 of the primitives test work under EPIC #1347.
 `"x".parse::<PeerRole>()` returns an error whose text ends in `packages/primitives/src/peer.rs:73:27`,
-the same line for every caller (`docs/issues/open/2804-location-caller-track-caller-audit/manual-verification-evidence.md`, section D1).
+the same line for every caller (`docs/issues/closed/2804-location-caller-track-caller-audit/manual-verification-evidence.md`, section D1).
 
 Sites (inventory rows P1 and P2):
 
@@ -91,7 +91,7 @@ Removing a location that a client can read is substantively a bug fix (misleadin
 issue follows `.claude/skills/fix-bug/SKILL.md`:
 
 - analysis: the call paths and audiences are in the audit inventory
-  (`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`, T2 table); re-check them against the tree before the first change;
+  (`docs/issues/closed/2804-location-caller-track-caller-audit/inventory.md`, T2 table); re-check them against the tree before the first change;
 - real-artifact reproduction: a scratch program or `cargo test` snippet that prints `"x".parse::<PeerRole>().unwrap_err()` and `peer::Id::try_from(vec![0; 19]).unwrap_err()` before the change, like section D1 of the audit evidence;
 - regression-test boundary: see Regression Test Strategy;
 - red regression-test evidence, production fix, green test evidence, and the same reproduction run
@@ -277,6 +277,6 @@ findings, and reusable lessons.
 ## References
 
 - Parent EPIC: #2912, `docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md`
-- Audit: `docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md`, `inventory.md`, `options.md`, `experiments.md` (issue #2804)
+- Audit: `docs/issues/closed/2804-location-caller-track-caller-audit/ISSUE.md`, `inventory.md`, `options.md`, `experiments.md` (issue #2804)
 - Related issues: #2804 (audit), #384 (external report), #2583 (first publish of the workspace crates)
 - Reporting work: `docs/issues/closed/2824-1347-add-tests-primitives/` (EPIC #1347)

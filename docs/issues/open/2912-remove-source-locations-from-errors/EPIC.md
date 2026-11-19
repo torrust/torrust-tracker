@@ -6,16 +6,16 @@ epic: null
 github-issue: 2912
 spec-path: docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md
 epic-owner: null
-last-updated-utc: "2026-11-18 11:08"
+last-updated-utc: "2026-11-18 19:11"
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
     - .claude/skills/create-issue/SKILL.md
     - .claude/skills/handle-errors-in-code/SKILL.md
-    - docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md
-    - docs/issues/open/2804-location-caller-track-caller-audit/inventory.md
-    - docs/issues/open/2804-location-caller-track-caller-audit/options.md
+    - docs/issues/closed/2804-location-caller-track-caller-audit/ISSUE.md
+    - docs/issues/closed/2804-location-caller-track-caller-audit/inventory.md
+    - docs/issues/closed/2804-location-caller-track-caller-audit/options.md
     - docs/issues/open/384-strip-location-from-errors-sent-to-clients/ISSUE.md
 ---
 
@@ -35,7 +35,7 @@ errors.
 ## Why This Is Needed
 
 The feature was meant to point a developer to the origin of an error. The audit of issue #2804
-(`docs/issues/open/2804-location-caller-track-caller-audit/`) shows that it does not do that, and
+(`docs/issues/closed/2804-location-caller-track-caller-audit/`) shows that it does not do that, and
 that it has costs:
 
 - **It is wrong by construction.** None of the 38 production `Location::caller()` sites of the audit (37 since #2850) is in a

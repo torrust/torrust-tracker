@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md
-last-updated-utc: "2026-11-10 14:16"
+issue-spec: docs/issues/closed/2804-location-caller-track-caller-audit/ISSUE.md
+last-updated-utc: "2026-11-18 19:11"
 ---
 
 # Manual Verification Evidence

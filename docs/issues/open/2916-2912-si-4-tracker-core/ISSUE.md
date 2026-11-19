@@ -9,7 +9,7 @@ github-issue: 2916
 spec-path: docs/issues/open/2916-2912-si-4-tracker-core/ISSUE.md
 branch: "2916-tracker-core"
 related-pr: null
-last-updated-utc: "2026-11-17 17:30"
+last-updated-utc: "2026-11-18 19:11"
 semantic-links:
   skill-links:
     - create-issue
@@ -17,7 +17,7 @@ semantic-links:
     - .claude/skills/fix-bug/SKILL.md
     - .claude/skills/create-issue/SKILL.md
     - docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md
-    - docs/issues/open/2804-location-caller-track-caller-audit/inventory.md
+    - docs/issues/closed/2804-location-caller-track-caller-audit/inventory.md
     - packages/tracker-core/src/error.rs
     - packages/tracker-core/src/databases/error.rs
     - packages/tracker-core/src/authentication/key/mod.rs
@@ -41,7 +41,7 @@ error holds a source path.
 
 ## Background
 
-The tracker-core errors reach three kinds of client (`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`, T2 table).
+The tracker-core errors reach three kinds of client (`docs/issues/closed/2804-location-caller-track-caller-audit/inventory.md`, T2 table).
 
 Variants that print `{location}` (7):
 
@@ -123,7 +123,7 @@ Removing a location that a client can read is substantively a bug fix (misleadin
 issue follows `.claude/skills/fix-bug/SKILL.md`:
 
 - analysis: the call paths and audiences are in the audit inventory
-  (`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`, T2 table); re-check them against the tree before the first change;
+  (`docs/issues/closed/2804-location-caller-track-caller-audit/inventory.md`, T2 table); re-check them against the tree before the first change;
 - real-artifact reproduction: run a listed tracker and send a UDP announce for a non-whitelisted info-hash; send the same over HTTP; on a private tracker announce with an expired key; and call the REST API to add a key or whitelist a torrent in a way that fails in the database (for example a duplicate); record each reply;
 - regression-test boundary: see Regression Test Strategy;
 - red regression-test evidence, production fix, green test evidence, and the same reproduction run
@@ -318,5 +318,5 @@ findings, and reusable lessons.
 ## References
 
 - Parent EPIC: #2912, `docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md`
-- Audit: `docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md`, `inventory.md`, `options.md`, `experiments.md` (issue #2804)
+- Audit: `docs/issues/closed/2804-location-caller-track-caller-audit/ISSUE.md`, `inventory.md`, `options.md`, `experiments.md` (issue #2804)
 - Related issues: #2804 (audit), #384 (external report), #2583 (first publish of the workspace crates)

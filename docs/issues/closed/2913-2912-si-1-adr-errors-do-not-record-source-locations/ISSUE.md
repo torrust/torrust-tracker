@@ -9,7 +9,7 @@ github-issue: 2913
 spec-path: docs/issues/closed/2913-2912-si-1-adr-errors-do-not-record-source-locations/ISSUE.md
 branch: "2913-adr-errors-do-not-record-source-locations"
 related-pr: 2930
-last-updated-utc: "2026-11-18 11:08"
+last-updated-utc: "2026-11-18 19:11"
 semantic-links:
   skill-links:
     - create-issue
@@ -17,7 +17,7 @@ semantic-links:
     - .claude/skills/fix-bug/SKILL.md
     - .claude/skills/create-issue/SKILL.md
     - docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md
-    - docs/issues/open/2804-location-caller-track-caller-audit/inventory.md
+    - docs/issues/closed/2804-location-caller-track-caller-audit/inventory.md
     - .claude/skills/handle-errors-in-code/SKILL.md
     - .claude/skills/create-adr/SKILL.md
 ---
@@ -37,7 +37,7 @@ change the `handle-errors-in-code` skill so that it gives that rule instead of r
 ## Background
 
 The audit of issue #2804 found that the source location recorded in errors is never the caller's
-(`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`): none of the 38 production `Location::caller()` sites of the audit (37 since #2850) is in a
+(`docs/issues/closed/2804-location-caller-track-caller-audit/inventory.md`): none of the 38 production `Location::caller()` sites of the audit (37 since #2850) is in a
 `#[track_caller]` function, and `#[track_caller]` cannot fix any of them, because they are reached
 through `str::parse`, `try_into`, closures, `async fn` or `async` blocks (`options.md`, fact 6). The
 location is a fixed library line, and 23 `Display` formats (22 since #2850) print it into text that reaches HTTP, UDP
@@ -269,5 +269,5 @@ findings, and reusable lessons.
 ## References
 
 - Parent EPIC: #2912, `docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md`
-- Audit: `docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md`, `inventory.md`, `options.md`, `experiments.md` (issue #2804)
+- Audit: `docs/issues/closed/2804-location-caller-track-caller-audit/ISSUE.md`, `inventory.md`, `options.md`, `experiments.md` (issue #2804)
 - Related issues: #2804 (audit), #384 (external report), #2583 (first publish of the workspace crates)
