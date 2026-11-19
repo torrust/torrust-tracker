@@ -49,7 +49,7 @@ Round 2 is Copilot review `5963780219` (`COMMENTED`, on head `docs(pr-reviews): 
 
 Round 3 is Copilot review `5964359494` (`COMMENTED`, on head `docs(pr-reviews): [#2949] record PR #2950 review round 2`), with two inline comments, F4 and F5. Its overview counts two open issues and one resolved since the last review, and labels both F4 and F5 "Medium severity", so `Minor` is inferred for both. Its body carries the same timeout warning. An earlier version of this record said rounds 2 and 3 gave no severity label and recorded F3 and F4 as `Nit`; da2ce7's F2 in review 5970994174 corrected it.
 
-Round 4 is Copilot review `5964972845` (`COMMENTED`, on head `docs(pr-reviews): [#2949] record PR #2950 review round 3`) and da2ce7's review `5970994174` (`CHANGES_REQUESTED`, on the same head). Copilot's review has no inline comment and its overview counts no open issue, but its body asserts two concerns in prose: the acceptance criteria conflict with the endpoint diff, and the test plan omits the test-design review. A body assertion is not a thread, so it makes no row; the same two concerns are da2ce7's F3 and F7, recorded as F8 and F12. da2ce7's review has seven inline comments with explicit severity labels, recorded as F6 to F12 with their reviewer finding IDs F1 to F7.
+Round 4 is Copilot review `5964972845` (`COMMENTED`, on head `docs(pr-reviews): [#2949] record PR #2950 review round 3`) and da2ce7's review `5970994174` (`CHANGES_REQUESTED`, on the same head). Copilot's review has no inline comment and its overview counts no open issue, but its body asserts two independently actionable concerns in prose: the acceptance criteria conflict with the endpoint diff (F13), and the test plan omits the required test-design review (F14). Following the template's rule for a review-body finding without a thread, each is a row with the review URL as `Source URL` and `Thread state=NON_RESOLVABLE`; no badge rates them, so the severity `Minor` is inferred from the concern. da2ce7's F3 and F7 later asked for the same changes, so F8 and F12 are `RE_RAISE_OF:F13` and `RE_RAISE_OF:F14`. An earlier version of this record said a body assertion makes no row; da2ce7's F15 in review 5971317192 corrected it. da2ce7's review has seven inline comments with explicit severity labels, recorded as F6 to F12 with their reviewer finding IDs F1 to F7.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -60,11 +60,13 @@ Round 4 is Copilot review `5964972845` (`COMMENTED`, on head `docs(pr-reviews): 
 | F5 | `review-finding:pr-2950-f5` | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 | F6 | `review-finding:pr-2950-f6` | Human | Major | formatting | ORIGINAL | FIXED | RESOLVED |
 | F7 | `review-finding:pr-2950-f7` | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
-| F8 | `review-finding:pr-2950-f8` | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F8 | `review-finding:pr-2950-f8` | Human | Minor | correctness | RE_RAISE_OF:F13 | FIXED | RESOLVED |
 | F9 | `review-finding:pr-2950-f9` | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | F10 | `review-finding:pr-2950-f10` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F11 | `review-finding:pr-2950-f11` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
-| F12 | `review-finding:pr-2950-f12` | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F12 | `review-finding:pr-2950-f12` | Human | Minor | testing | RE_RAISE_OF:F14 | FIXED | RESOLVED |
+| F13 | `review-finding:pr-2950-f13` | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F14 | `review-finding:pr-2950-f14` | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | NON_RESOLVABLE |
 
 ## Finding Details
 
@@ -223,6 +225,32 @@ Round 4 is Copilot review `5964972845` (`COMMENTED`, on head `docs(pr-reviews): 
 - Resolution reference: `docs(issues): [#2949] add the test-development loop to Commit Points for T5`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2950#discussion_r4625750772
+
+### F13 - The acceptance criteria conflict with the endpoint-diff rule
+
+- PR number: 2950
+- Source review ID: 5964972845
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2950#pullrequestreview-5964972845>
+- Concern: The review body says human assessment is needed because the ACK acceptance criteria conflict with the endpoint-diff rule: AC7 and the Goal judge each commit after the ACK, while the command compared only the two ends.
+- Solution: Fixed by the change F8 records: the rule checks every commit after the ACK.
+- Current-tree verification: F8's checks hold at the branch head: the rule under In Scope gives `git log --no-renames --diff-merges=first-parent --name-only --format= X..H`, and AC7 says a reverted change still makes the ACK stale.
+- Resolution reference: `docs(issues): [#2949] check every commit after the ACK, not only the two ends`
+- Follow-up PR URL: N/A
+- Reply URL: N/A (no thread; F8's reply answers the same concern)
+
+### F14 - The test plan omits the required test-design review
+
+- PR number: 2950
+- Source review ID: 5964972845
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2950#pullrequestreview-5964972845>
+- Concern: The review body says the test plan omits the required test-design review gates for the merge-tool tests that T5 adds when D2 is (b).
+- Solution: Fixed by the change F12 records: Commit Points carries the test-development loop for T5.
+- Current-tree verification: F12's check holds at the branch head: the paragraph follows the Commit Points table, conditional on D2 (b).
+- Resolution reference: `docs(issues): [#2949] add the test-development loop to Commit Points for T5`
+- Follow-up PR URL: N/A
+- Reply URL: N/A (no thread; F12's reply answers the same concern)
 
 ## Processing Log
 
