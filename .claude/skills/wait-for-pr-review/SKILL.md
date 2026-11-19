@@ -3,7 +3,7 @@ name: wait-for-pr-review
 description: Wait for Copilot or maintainer reviews with a deterministic Rust poller that spends no tokens, then run the review loop. Use when waiting for a review of an opened or updated PR.
 metadata:
   author: torrust
-  version: "1.2"
+  version: "1.3"
   semantic-links:
     related-artifacts:
       - .claude/skills/wait-for-pr-review/tool/Cargo.toml
@@ -140,6 +140,13 @@ last look is taken one poll interval or less before the budget ends, so rerun wi
 and nothing in that gap is missed.
 
 ## The Review Loop
+
+Who runs a round: in Claude Code, the session that owns the pull request can delegate the processing
+of one `review` or `comment` event (step 2, from `process-pr-review` to the push, the replies and the
+resolved threads) to the [`pr-review-handler`](../../agents/pr-review-handler.md) agent, which runs
+on its pinned model and returns a short report. The session keeps the rest: the poller, the checks
+of the new head, the re-request, the round count, the exit condition and the watching after it. A
+session that does not delegate, or runs in another tool, runs step 2 itself.
 
 1. Run the poller with `--since-head-sha "$(git rev-parse HEAD)"`. After an event that needed no
    push, add `--since <cursor>` from that result.
