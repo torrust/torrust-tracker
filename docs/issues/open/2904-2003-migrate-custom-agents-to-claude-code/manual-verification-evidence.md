@@ -64,7 +64,10 @@ claude -p --model sonnet --debug-file .tmp/m1m2/debug.log --output-format json "
 The debug log stays local, since it also holds the contributor's own settings; the lines quoted
 below are copied from it. It was searched with
 `grep -n -i -E "frontmatter|ignored|unknown (field|key)"`, and for the agent with
-`grep -n -i -E "pr-review-handler|agents/|subagent"`.
+`grep -n -i -E "pr-review-handler|agents/|subagent"`. The run's transcripts, the agent's metadata
+and request-cache files, and the JSON result stay local for the same reason. The records V1 and
+V2 rely on are stored in [`evidence/m1m2-run-records.md`](evidence/m1m2-run-records.md), each
+with the command that printed it.
 
 #### Results
 
@@ -103,7 +106,9 @@ effects above are the evidence. A listed tool that the build lacks is dropped si
 
 #### Results
 
-The model is read from the transcript files, not from what the agents say:
+The model is read from the transcript files, not from what the agents say. The table summarizes
+the `model` lines stored in [`evidence/m1m2-run-records.md`](evidence/m1m2-run-records.md), with
+the `jq` command that printed them:
 
 | Transcript | `model` of every assistant message |
 | --- | --- |
@@ -111,7 +116,7 @@ The model is read from the transcript files, not from what the agents say:
 | The agent (`<session ID>/subagents/agent-a6239b9d274951d96.jsonl`) | `claude-opus-5-5` (one entry) |
 
 The agent's request-cache record (`agent-a6239b9d274951d96.prefix.json`) also says
-`"model": "claude-opus-5-5"`, and the run's JSON result lists the usage of both models,
+`"model": "claude-opus-5-5"` in its `state` object, and the run's JSON result lists the usage of both models,
 `claude-sonnet-5-5` and `claude-opus-5-5`. The agent's metadata file records
 `"pickedEffortModel":"claude-sonnet-5-5"`, the session's model, from which the agent's effort
 level was taken; it is not the model the agent ran on.
@@ -119,8 +124,13 @@ level was taken; it is not the model the agent ran on.
 #### Conclusion
 
 The pinned model applied with no fallback. The caller passed no model for the agent, and neither
-`CLAUDE_CODE_SUBAGENT_MODEL` (unset, `printenv` printed nothing) nor an organization allow list overrode it in this environment; any
-of those would, as the specification's Background states.
+`CLAUDE_CODE_SUBAGENT_MODEL` nor an organization allow list overrode it in this environment; any
+of those would, as the specification's Background states. The first version of this section said
+the variable was unset because `printenv` printed nothing, without naming the command or when it
+ran. `printenv CLAUDE_CODE_SUBAGENT_MODEL` was run again at 09:14:28 UTC, in the shell of the
+session that processed the first review round, and printed nothing (exit 1); the stored records
+give the command and its output. What shows the run's model is the agent's transcript,
+`claude-opus-5-5`; an override naming the same model would not show in it.
 
 ### V4 - `AGENTS.md` reaches the agents (scenario M4)
 
