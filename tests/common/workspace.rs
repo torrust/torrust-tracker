@@ -7,7 +7,7 @@ use std::sync::Arc;
 use tempfile::TempDir;
 use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_lib::app;
-use torrust_tracker_lib::bootstrap::jobs::manager::{JobManager, incomplete_components};
+use torrust_tracker_lib::bootstrap::jobs::manager::{ComponentResult, JobManager, incomplete_components};
 use torrust_tracker_lib::container::AppContainer;
 use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
 use url::Url;
@@ -78,6 +78,8 @@ impl TrackerApplicationFixture {
 
     /// Returns the application container used by suite scenarios.
     #[must_use]
+    // See the per-target compilation note on `EphemeralTrackerWorkspace::path`.
+    #[allow(dead_code)]
     pub const fn app_container(&self) -> &Arc<AppContainer> {
         &self.app_container
     }
@@ -88,6 +90,24 @@ impl TrackerApplicationFixture {
     #[allow(dead_code)]
     pub fn workspace_path(&self) -> PathBuf {
         self.workspace.path().to_path_buf()
+    }
+
+    /// Adds one extra component to the running application.
+    ///
+    /// The application supervises it like its own components: the shutdown
+    /// cancels it, waits for it and reports its outcome. A suite uses this to
+    /// control how one component behaves during the shutdown.
+    // See the per-target compilation note on `EphemeralTrackerWorkspace::path`.
+    #[allow(dead_code)]
+    pub fn spawn_component<F>(&mut self, name: &str, component: F)
+    where
+        F: Future<Output = ComponentResult> + Send + 'static,
+    {
+        let jobs = self.jobs.as_mut().expect("tracker jobs must be available to add a component");
+        let reservation = jobs.reserve(name);
+
+        jobs.spawn(reservation, component)
+            .expect("a component should be added to a running application");
     }
 
     /// Gracefully stops the tracker before releasing the workspace.

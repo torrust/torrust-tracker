@@ -697,6 +697,39 @@ Only the negative suite of D4 adds a test. It follows the progressive test-devel
 3. Stop for maintainer review after that increment, before the final verification (E2 to E5), the
    commit and the pull request.
 
+**Review result of the increment (2026-11-19 18:51 UTC, Claude Code, Claude Fable 5.2).** The test is
+`it_should_panic_naming_a_component_that_does_not_stop_before_the_configured_shutdown_deadline` in
+`tests/lifecycle/fixture_shutdown_assertion.rs`. The temporary prose was:
+
+- Arrange: a tracker whose shutdown may take 3 seconds, with one extra component that never stops.
+- Act: the fixture's `shutdown()`.
+- Assert: it panics and the message names that component; the panic arrives within 6 seconds.
+
+The code now says the same without the prose, so the prose was removed:
+
+- The causal initial-state difference is visible in the test body: the name of the configuration
+  constant (`THREE_SECOND_SHUTDOWN_DEADLINE_CONFIG`) and the line
+  `fixture.spawn_component("hung_component", pending())`.
+- The fixture method `spawn_component` owns only the incidental mechanics (reserve and spawn on
+  the fixture's `JobManager`).
+- The production Act, `fixture.shutdown()`, is in the test body.
+- The expected result is specified independently of the fixture: `should_panic` with the
+  component's name, which the test itself chose, and `SHUTDOWN_TIME_BOUND` (6 seconds: twice the
+  configured deadline and below the 10 seconds of the old constant). The bound's failure message
+  does not contain the component's name, so a late shutdown cannot satisfy `should_panic`.
+
+Focused run: `cargo test --test lifecycle-fixture-shutdown-assertion` exited with status 0; the
+test passed in 3.03 seconds and the panic named `health_check_api` and `hung_component`
+(`rustc 1.100.0 (0ef1bc386 2026-11-09)`, `cargo 1.100.0 (3acc79c0c 2026-11-05)`, `dev` profile).
+Two temporary mutations of the fixture, both reverted, show that the test can fail:
+
+- With `wait_for_all` given a fixed 10 seconds instead of the configured deadline, the test failed
+  after 6.03 seconds with "panic did not contain expected string".
+- With the outcome assertion removed, the test failed after 3.03 seconds with "test did not panic
+  as expected".
+
+The work stops here for the maintainer's review of this test.
+
 #### Evidence for AC8a
 
 | ID  | Evidence                                                                                                                                                                                                                            |
