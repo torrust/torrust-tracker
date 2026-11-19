@@ -580,6 +580,23 @@ one `[[test]]` entry in the root `Cargo.toml` if D4 is (b):
    to require that `shutdown()` names it.
 4. No existing suite changes its call site. No production code changes.
 
+#### Test development
+
+Only D4 option (b) adds a test. It follows the progressive test-development loop of the
+`create-issue` skill, with the `write-unit-test` skill:
+
+1. The negative suite is one test-producing increment, made after the fixture change of step 1
+   passes the ten existing targets.
+2. After the increment passes its focused run, do the prose-first Arrange-Act-Assert review before
+   anything else: write temporary prose for each section, refactor until the code expresses it,
+   and remove the redundant prose. The review confirms that the test exposes the one causal
+   initial-state difference (a component that never stops), that the fixture method owns only
+   incidental mechanics (reserve and spawn), and that the production Act (`shutdown()`) and the
+   independently specified expected result (the panic names the component) stay visible. Record
+   the result in this specification.
+3. Stop for maintainer review after that increment, before the final verification (E2 to E5), the
+   commit and the pull request.
+
 #### Evidence for AC8a
 
 | ID  | Evidence                                                                                                                                                                                                                            |
