@@ -340,7 +340,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 Notes:
 
 - M2 to M5 may use a local throwaway branch; record the commits used.
-- If D2 is (b), repeat M1 to M5 through the merge tool's own tests instead of by hand where a test covers them.
+- If D2 is (b), the merge tool's tests cover the same cases as M1 to M5 in addition to the manual runs, not instead of them: M1 to M5 are still run by hand with the documented command, and their output is recorded in `manual-verification-evidence.md`, because running automated tests is not manual verification (`docs/templates/ISSUE.md`).
 
 ### Disposable Verification Scripts
 
