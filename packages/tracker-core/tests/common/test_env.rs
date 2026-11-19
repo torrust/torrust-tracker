@@ -271,26 +271,24 @@ impl TestEnv {
     /// still reads the old value. Waiting for both avoids a race with assertions on the counter
     /// and with the creation of a new `TestEnv` that reads from that same database.
     pub async fn wait_for_global_downloads_persisted(&self, expected: u64) {
+        let torrent_metrics_store = &self
+            .tracker_core_container
+            .persistence
+            .as_ref()
+            .expect("tracker core test environment requires persistence")
+            .database_stores
+            .torrent_metrics_store;
+        let stats_repository = &self.tracker_core_container.stats_repository;
+
         tokio::time::timeout(std::time::Duration::from_secs(5), async {
             loop {
-                let persisted_in_database = matches!(
-                    self.tracker_core_container
-                        .persistence
-                        .as_ref()
-                        .expect("tracker core test environment requires persistence")
-                        .database_stores
-                        .torrent_metrics_store
-                        .load_global_downloads()
-                        .await,
-                    Ok(Some(downloads)) if u64::from(downloads) >= expected
-                );
-
-                let persisted_in_memory = self
-                    .tracker_core_container
-                    .stats_repository
-                    .get_torrents_downloads_persisted_total()
+                let downloads_in_database = torrent_metrics_store
+                    .load_global_downloads()
                     .await
-                    >= expected;
+                    .expect("loading the global downloads from the database should not fail");
+                let persisted_in_database = downloads_in_database.is_some_and(|downloads| u64::from(downloads) >= expected);
+
+                let persisted_in_memory = stats_repository.get_torrents_downloads_persisted_total().await >= expected;
 
                 if persisted_in_database && persisted_in_memory {
                     break;
