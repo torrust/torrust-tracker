@@ -9,7 +9,7 @@ github-issue: 2904
 spec-path: docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md
 branch: "2904-t4-pr-review-handler"
 related-pr: null
-last-updated-utc: "2026-11-19 08:39"
+last-updated-utc: "2026-11-19 08:44"
 semantic-links:
   skill-links:
     - create-issue
@@ -609,7 +609,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 
 - [ ] AC1: `.claude/agents/` contains the agreed agents, and each loads in Claude Code with no
       ignored frontmatter key.
-- [ ] AC2: `pr-review-handler` declares its model in its frontmatter, and a recorded run shows it
+- [x] AC2: `pr-review-handler` declares its model in its frontmatter, and a recorded run shows it
       ran on that model.
 - [ ] AC3: One real review round on a real pull request was processed by `pr-review-handler` from
       fetch to resolved threads, with `validate-audit-record.py` exiting `0`.
@@ -688,7 +688,7 @@ None planned.
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
 | AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
+| AC2   | DONE                   | `.claude/agents/pr-review-handler.md` declares `model: claude-opus-5-5`; `manual-verification-evidence.md` section V2: started from a session on `claude-sonnet-5-5`, the agent's transcript shows `claude-opus-5-5` |
 | AC3   | TODO                   |          |
 | AC4   | TODO                   |          |
 | AC5   | TODO                   |          |
