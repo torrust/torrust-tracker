@@ -134,7 +134,7 @@ url = { version = "2", features = [ "serde" ] }
 
 [target.'cfg(unix)'.dev-dependencies]
 # `nix` provides typed, safe delivery of POSIX signals to the exact child PID.
-nix = { version = "0.31.3", default-features = false, features = [ "signal" ] }
+nix = { version = "0.32.0", default-features = false, features = [ "signal" ] }
 
 [workspace]
 # skill-link: add-workspace-member
