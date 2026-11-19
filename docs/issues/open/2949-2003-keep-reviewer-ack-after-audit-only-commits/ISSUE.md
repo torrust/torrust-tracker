@@ -9,7 +9,7 @@ github-issue: 2949
 spec-path: docs/issues/open/2949-2003-keep-reviewer-ack-after-audit-only-commits/ISSUE.md
 branch: "2949-keep-reviewer-ack-after-audit-only-commits-spec"
 related-pr: null
-last-updated-utc: "2026-11-19 13:49"
+last-updated-utc: "2026-11-19 18:33"
 semantic-links:
   skill-links:
     - create-issue
@@ -21,21 +21,24 @@ semantic-links:
     - .claude/skills/merge-pull-request/SKILL.md
     - .claude/skills/wait-for-pr-review/SKILL.md
     - .claude/skills/process-pr-review/SKILL.md
-    - .claude/skills/process-pr-review/scripts/validate-audit-record.py
-    - contrib/dev-tools/git/github-merge.py
     - docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
 ---
 
 <!-- skill-link: create-issue -->
 
-# Issue #2949 - Keep a reviewer's ACK valid when only the pull request's audit record changed after it
+# Issue #2949 - Keep the strict ACK and document the re-ACK after an audit-only commit
 
 **Parent EPIC:** #2003 - Overhaul: Automation Tools and AI Agent Guardrails
 
 ## Goal
 
-A reviewer's `ACK <X>` must still count on the current head when the commits after `X` change only the pull
-request's own review audit record. Recording a finding must not cost a new ACK.
+Record the decision that an `ACK <hash>` counts only on the commit it names, also when the commits after it
+change only the pull request's own review audit record, and document the re-ACK that follows such a commit as a
+normal step of the review process.
+
+This issue first proposed the opposite: a rule that keeps an ACK valid after audit-only commits. The maintainer
+decided against it on 2026-11-19 (see Architectural Decisions). The folder name and the branch name still carry
+the first title.
 
 ## Background
 
@@ -47,10 +50,9 @@ ACK to name the head commit:
   the head commit".
 - `wait-for-pr-review`, step 4: the same condition is part of the loop's exit condition.
 
-The two rules work against each other when a finding arrives together with, or after, an ACK. Recording the
-finding is a commit. The commit moves the head. The ACK no longer names the head, and GitHub dismisses the
-approval. The reviewer must review and ACK again, and the maintainer must approve the workflow runs again. A new
-finding at that point starts the same loop.
+When a finding arrives together with, or after, an ACK, recording the finding is a commit. The commit moves the
+head. The ACK no longer names the head, and GitHub dismisses the approval. The reviewer and the maintainer ACK
+again, and the maintainer approves the workflow runs again. A new finding at that point starts the same loop.
 
 It has happened at least twice:
 
@@ -61,10 +63,10 @@ It has happened at least twice:
 - PR #2363 (2026-09). The EPIC specification's #2347 close-out plan, which it marks as historical, has an
   unticked line to log "the stale-approval dismissal after the round-2 audit push".
 
-The maintainer decided on 2026-11-18, in a working session, to adopt the rule in this specification and to write
-it spec-first. da2ce7 then disagreed with the rule as written on the specification pull request, so D1 reopened
-that decision: whether to adopt the rule is now D1's open choice. Until a decision lands, the audit commit is
-kept and the maintainer ACKs the new head again (applied to PR #2947).
+The maintainer decided on 2026-11-18, in a working session, to adopt a rule that keeps the ACK valid in that
+case, and to write it spec-first. da2ce7 disagreed with the rule on the specification pull request and proposed
+an alternative, so the decision was reopened as D1. On 2026-11-19 the maintainer decided D1 the other way: the
+strict ACK stays. The skills do not yet say what to do in this situation; this issue adds that text.
 
 ### Facts checked on `develop` (`96923f0d2`)
 
@@ -74,7 +76,7 @@ kept and the maintainer ACKs the new head again (applied to PR #2947).
 - The merge tool `contrib/dev-tools/git/github-merge.py` computes ACKs itself. `get_acks_from_comments` keeps a
   comment line that contains `ACK` and the first six characters of the head commit. It writes the result in the
   merge commit message ("ACKs for top commit:" or "Top commit has no ACKs.") and prints a warning when there is
-  none. An ACK on an earlier commit is therefore not listed today.
+  none. An ACK on an earlier commit is therefore not listed, which matches the strict ACK.
 - Merge Readiness says to record an ACK waiver "as a durable comment on the pull request before merging, and in
   the review audit". Recording it in the audit is another commit on the branch, which moves the head again.
 
@@ -82,195 +84,143 @@ kept and the maintainer ACKs the new head again (applied to PR #2947).
 
 ### In Scope
 
-- The rule, stated once and referenced from the other places:
-  a reviewer's `ACK <X>` counts on head `H` when `X` is `H`, or when `X` is an ancestor of `H` and every commit
-  after `X` changes only files under `docs/pr-reviews/pr-<N>-review/`, where `<N>` is this pull request's number.
-  Any other changed file makes the ACK stale, as today. The check lists the paths each commit changes, not only the
-  difference between the two ends:
-  `git log --no-renames --diff-merges=first-parent --name-only --format= X..H`. A diff of the two ends
-  (`git diff X..H`) is not enough: a commit that changes `src/lib.rs` followed by one that reverts it and updates the
-  audit leaves only the audit file in the end-to-end diff, although a commit outside the folder came after the ACK.
-  `--diff-merges=first-parent` is required because `git log` shows no paths for a merge commit by default, so a
-  change made in the merge commit itself would be missed. `--no-renames` is required: with rename detection, which
-  is on by default, a file moved into the folder from elsewhere is listed only by its new path and would pass;
-  without it, the move is listed as a deletion of the old path and an addition of the new one, so the ACK goes
-  stale. All three cases were checked with Git 2.53.0 on a throwaway repository.
-- The folder match: a path is under the folder only when it starts with the exact prefix
-  `docs/pr-reviews/pr-<N>-review/`, anchored at the start of the path and with its trailing slash. For `<N>` = 29,
-  a prefix without the slash would also accept a sibling such as `docs/pr-reviews/pr-29-review-old/x` or
-  `docs/pr-reviews/pr-29-reviewer.md`, and a substring test would accept a nested
-  `src/docs/pr-reviews/pr-29-review/x`; the exact prefix rejects all three. (A folder of another pull request,
-  such as `docs/pr-reviews/pr-2947-review/`, fails every one of these forms, so it does not tell them apart.)
-- `merge-pull-request`, Merge Readiness: apply the rule to the Reviewer ACK check, with the exact command an
-  agent or a person runs to check it.
+- The decision and the alternatives that were considered, recorded in this specification.
+- `merge-pull-request`, Merge Readiness, item Reviewer ACK: say that a commit that changes only the pull
+  request's own audit record makes the ACK stale like any other commit, and that the reviewer and the maintainer
+  ACK the new head. Give the command that shows what the commits after the earlier ACK changed, so the second
+  review is short:
+  `git log --no-renames --diff-merges=first-parent --name-only --format= X..H`, where `X` is the commit of the
+  earlier ACK and `H` is the head. When every listed path starts with `docs/pr-reviews/pr-<N>-review/`, the
+  commits after `X` changed only the audit record, and `git diff X..H` is the whole text to read. The command
+  helps the reviewer; it decides nothing, and the new ACK still names `H`.
 - `merge-pull-request`, Merge Readiness: remove "and in the review audit" from the waiver sentence. The durable
-  comment on the pull request is the record.
-- `wait-for-pr-review`, step 4: apply the same rule to the exit condition. Step 6 keeps restarting the loop on a
-  `head_changed` event; the rule only changes how the ACK is judged when the condition is checked again.
-- The merge tool: decide how it treats an ACK that counts under the rule (see Decisions to make), and implement
-  the decision.
-- `process-pr-review`: one sentence saying that an audit-only commit does not make a reviewer's ACK stale, with
-  a link to the rule, and that an author never rewrites history to protect an ACK.
-- da2ce7's agreement to the rule, recorded as a durable comment on the specification pull request, because the
-  rule changes what their ACK covers.
-- A comparison with the alternatives of writing audit records after merge and of keeping them on a separate
-  metadata branch (see Decisions to make).
-- A note on the #2363 line of `EPIC.md` that names this issue as the fix for the cause.
+  comment on the pull request is the record, and a waiver recorded in the audit moves the head once more.
+- `wait-for-pr-review`, step 4: point to that text in `merge-pull-request`, without a second wording of it.
+- `process-pr-review`: one sentence saying that an audit commit pushed after an ACK makes the ACK stale, that
+  the author keeps the commit and tells the maintainer the head needs new ACKs, and that an author never rewrites
+  history or holds back the audit record to protect an ACK.
+- A note on the #2363 line of `EPIC.md` that names this issue as the decision about the dismissal it mentions.
+
+About the command: it lists the paths each commit changes, not only the difference between the two ends, so a
+change outside the folder that a later commit reverts is still listed. `--diff-merges=first-parent` lists the
+paths of a merge commit, which `git log` otherwise omits. `--no-renames` lists both paths of a file moved into
+the folder. All three cases were checked with Git 2.53.0 on a throwaway repository. On PR #2947's history,
+`e01212151..1d27a67e9` lists only `docs/pr-reviews/pr-2947-review/PR-REVIEW.md`.
 
 ### Out of Scope
 
-- Moving audit records off the pull request branch. This specification compares the alternatives and records the
-  reason for the choice; it does not implement them.
+- Any rule that lets an ACK count on a commit it does not name.
+- Any change to the merge tool. It already lists only ACKs on the head.
+- Moving audit records off the pull request branch.
 - Changing how contributors process findings. They keep recording each finding in the audit on the pull request
   branch, as now.
 - Any change to what a reviewer may do. A reviewer may still ACK in the same round as a finding.
 - GitHub's dismissal of stale approvals. It is a repository setting and it blocks nothing.
-- The poller `wait-for-pr-review` (the tool). It returns events and does not decide the exit condition.
 - Workflow-run approval after an audit-only push. The push still needs it.
 
 ## Architectural Decisions
 
-- Related ADRs: none known. The implementer must check `docs/adrs/` for an ADR about the merge process or the
-  vendored merge tool before changing `github-merge.py`.
-- ADRs to create: none expected if the merge tool is left unchanged. If the tool's ACK matching changes, decide
-  in the specification pull request whether that change needs an ADR.
+- Related ADRs: none for the ACK. `docs/adrs/20261013161419_stop_requiring_pull_request_rebases.md` covers how
+  the merge tool's push passes the ruleset; this issue does not change it.
+- ADRs to create: none. The decision changes no tool and no architecture; this specification is its record.
 
-### Decisions to make in the specification pull request
+### D1. Where the audit record lives, and what an ACK covers
 
-These are open. Each has a recommendation; the maintainer decides.
+**Decision (2026-11-19, the maintainer, josecelano, in a working session with the issue #2949 session):** the
+audit record stays on the pull request branch and the ACK stays strict. An `ACK <hash>` counts only on the commit
+it names. After an audit-only commit, the reviewer and the maintainer ACK the new head.
 
-- **D1. Where the audit record lives.** Three options:
-  - (a) On the pull request branch, with the rule in this specification.
-  - (b) After merge. Writing every audit record in a docs change after merge removes the problem at its root, and
-    also removes the extra review round and workflow-run approval that each audit push causes. It is a larger
-    change: `process-pr-review` and `validate-audit-record.py` assume the record is on the branch, Merge Readiness
-    requires the record to pass the validator before merge, and every pull request would need a second docs pull
-    request.
-  - (c) On a separate metadata branch, folded in with a three-parent merge. Proposed by da2ce7 on 2026-11-18 in
-    [issue comment 6987828129](https://github.com/torrust/torrust-tracker/issues/2949#issuecomment-6987828129).
-    Each pull request has two tips: the work branch, which is reviewed and which `ACK <hash>` names, and a
-    metadata branch that changes only `docs/pr-reviews/pr-<N>-review/`. The merge tool makes one commit whose
-    parents are `develop`, the ACKed work tip and the metadata tip, and refuses the merge if the metadata branch
-    changes anything outside that folder.
+The maintainer's reasons:
 
-  The maintainer's backlog items on roles and on a more deterministic review process (outside this repository)
-  bear on the choice. The options compared:
+- The re-ACK after an audit-only commit is cheap: the diff since the earlier ACK is the audit folder, and one
+  command shows that.
+- The history is worth keeping. A finding, the commit that records it, the commit that fixes it and each new ACK
+  stay visible in order on the pull request.
+- Every alternative adds more complexity than the pain it removes.
+- The review process must stay easy for external contributors, who see one branch per pull request.
 
-  | Question                                           | (a) Rule                      | (b) After merge               | (c) Metadata branch                                                          |
-  | -------------------------------------------------- | ----------------------------- | ----------------------------- | ---------------------------------------------------------------------------- |
-  | What an ACK vouches for                            | Widened to audit-only commits | Unchanged                     | Unchanged                                                                    |
-  | Workflow-run approval after recording a finding    | Still needed                  | Not needed                    | Not needed: the work tip does not move                                       |
-  | CI and Copilot see the audit text before `develop` | Yes                           | Yes, in the docs pull request | No: GitHub shows one head per pull request                                   |
-  | Audit history lands with the merge                 | Yes                           | No, in a second pull request  | Yes, through the third parent                                                |
-  | Branches the author keeps per pull request         | One                           | One, plus a docs pull request | Two, with a ref convention for the second                                    |
-  | Changes to the merge tool                          | Only if D2 is (b)             | None                          | Fetch the second tip, check its paths, merge three parents, list its commits |
-  | Changes to skills and the validator                | Small (T2 to T4)              | Large                         | Large: every step that commits the audit                                     |
+Alternatives considered and rejected:
 
-  Facts for (c), read on `develop` at `96923f0d2`: `github-merge.py` fetches only `refs/pull/<N>/*` and the base
-  branch from the upstream repository, so it would need to fetch the metadata tip from the contributor's fork; it
-  merges one head (`git merge --no-ff <head>`); and it builds the commit list and the symbolic-link check from
-  `<base>..<head>`, so both would need the metadata tip too. Not verified: that GitHub marks the pull request
-  merged when its head is reached through a three-parent merge commit pushed by the tool.
+- **(a) A rule that keeps the ACK valid.** `ACK <X>` would count on head `H` when every commit after `X` changes
+  only `docs/pr-reviews/pr-<N>-review/`. Rejected: it widens what an ACK vouches for; it needs an exact folder
+  match, a per-commit check, and either a merge tool that reads Git history and fails closed or a merge message
+  that says "no ACKs" for an ACKed pull request. da2ce7 did not agree to it
+  ([pull request comment 6987829006](https://github.com/torrust/torrust-tracker/pull/2950#issuecomment-6987829006),
+  2026-11-18).
+- **(b) Audit records written after merge**, in a second docs pull request. Rejected: `process-pr-review`,
+  `validate-audit-record.py` and Merge Readiness assume the record is on the branch, and every pull request would
+  need a second one.
+- **(c) A separate metadata branch, folded in with a three-parent merge.** Proposed by da2ce7 on 2026-11-18 in
+  [issue comment 6987828129](https://github.com/torrust/torrust-tracker/issues/2949#issuecomment-6987828129): the
+  work branch is reviewed and ACKed, a second branch changes only the audit folder, and the merge tool makes one
+  commit whose parents are `develop`, the ACKed work tip and the metadata tip. It keeps the ACK strict and needs
+  no workflow-run approval after recording a finding. Rejected: the author keeps two branches per pull request;
+  GitHub shows one head per pull request, so the audit is hidden from the pull request view, from CI and from
+  Copilot; and the merge tool and every skill step that commits the audit would change.
+- **(d) Empty commits that carry the audit text in their messages.** Raised by the maintainer on 2026-11-19.
+  Rejected: an empty commit still moves the head, so the ACK goes stale just the same, and the record would
+  leave the file that `validate-audit-record.py` checks.
 
-  da2ce7's position (comment linked under D5): they do not agree to (a) as written, and ask that (c) be compared
-  before deciding; if (c) turns out impractical, they are open to (a), possibly limited as described under D5.
+Facts about (c), kept for a later reader:
 
-  Recommendation: the maintainer chooses between (a) and (c); (b) stays recorded as the root fix with the largest
-  cost. (a) cannot land without da2ce7's agreement. If (c) is preferred, a short spike settles its unverified
-  point and the merge-tool cost before the specification is rewritten for it.
+- GitHub would mark the pull request merged.
+  [About pull request merges, Indirect merges](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/about-pull-request-merges#indirect-merges)
+  says a pull request can be marked as merged when its head branch commits become reachable from the base
+  branch, and the work tip is a parent of the merge commit. The same section says this happens even when branch
+  protection rules were not satisfied, so under (c), as today, the merge tool and Merge Readiness enforce the
+  review, not GitHub. Read on 2026-11-19; pointed out by da2ce7 on PR #2950.
+- Read on `develop` at `96923f0d2`: `github-merge.py` fetches only `refs/pull/<N>/*` and the base branch from
+  the upstream repository, merges one head (`git merge --no-ff <head>`), and builds the commit list and the
+  symbolic-link check from `<base>..<head>`. All three would need the metadata tip.
+- Not tested: whether ruleset 87085 (`docs/github-rulesets.md`) accepts the tool's push when the merge commit has
+  a third parent that belongs to no pull request.
 
-- **D2. The merge tool.** Options: (a) leave `github-merge.py` unchanged and document that it prints "Top commit
-  has no ACKs" when the ACK counts only under the rule; (b) change `get_acks_from_comments` to also accept an
-  ACK on an ancestor that satisfies the rule, and say in the merge message which commit was ACKed.
-  Recommendation: (b), because the merge commit message is the permanent record of who ACKed what, and (a)
-  makes it say "no ACKs" for a pull request that was ACKed. The tool is repository-owned
-  (`merge-pull-request`: "the repository-local wrapper and `contrib/dev-tools/git/github-merge.py` are
-  authoritative").
-- **D3. Which folder counts.** Only this pull request's own folder, `docs/pr-reviews/pr-<N>-review/`, matched as
-  a whole path segment, that is, by the exact prefix `docs/pr-reviews/pr-<N>-review/` with its trailing slash, anchored at the start of the path (for `<N>` = 29, `docs/pr-reviews/pr-29-review-old/x`, `docs/pr-reviews/pr-29-reviewer.md` and `src/docs/pr-reviews/pr-29-review/x` must not match). Audit records of other pull
-  requests changed in the same branch make the ACK stale. Recommendation: as stated.
-- **D4. A deterministic check.** Whether the rule ships as text with a command, or as a small tool that prints
-  whether a given ACK counts. Recommendation: text with the command in this issue; a tool only if D2 is (b), in
-  which case the same function serves both.
-- **D5. The maintainer's own ACK.** Whether the rule also applies to the ACK the merging maintainer posts.
-  Recommendation: yes, the rule is about what an ACK covers, not about who wrote it. da2ce7, in
-  [pull request comment 6987829006](https://github.com/torrust/torrust-tracker/pull/2950#issuecomment-6987829006)
-  (2026-11-18), does not agree to the rule as written and is open to revisiting it if (c) under D1 turns out
-  impractical, "possibly limited to the reviewer's own ACK (D5 left out)", that is, without applying it to the
-  merging maintainer's ACK.
+### D2 to D5
+
+D2 (the merge tool), D3 (which folder counts) and D4 (a deterministic check) were questions about the rule in
+(a). They no longer apply. D5 asked whether the rule covers the merging maintainer's own ACK; with the strict
+ACK, the reviewer's ACK and the maintainer's ACK both name the head.
 
 ## Design and Ownership Review
 
-Not applicable if D2 is (a): the work then changes only skill text and documentation.
-
-If D2 is (b), the merge tool needs Git history that `get_acks_from_comments(head_commit, comments)` does not
-receive, so the change is not confined to that function. The design keeps the matching pure and puts the Git I/O
-in one place:
-
-- Ownership: `main()` acquires the history, in the tool's local clone, after it has fetched
-  `refs/pull/<N>/*` from the upstream repository, so every commit on the pull request branch is present. For
-  each ACKed commit `X` that is not the head, it runs `git merge-base --is-ancestor X H` and the rule's
-  `git log` command, and passes the result (whether `X` is an ancestor, and the listed paths) to the pure matching
-  function, which decides whether the ACK counts.
-- Failure handling, fail closed: if `X` is not in the fetched history (`git cat-file -e X^{commit}` fails), is not
-  an ancestor of `H`, or any Git command exits non-zero, that ACK does not count. The tool prints which ACK it did
-  not accept and why, and goes on; an ACK it cannot check is never accepted. When no ACK counts, the tool behaves
-  as today ("Top commit has no ACKs." and its warning).
-- An ACK names an abbreviated hash; the tool resolves it to a full commit in the same clone, and an abbreviation
-  that is ambiguous or unknown counts as a failure above.
-- The tests cover the pure function with the ancestry and path data as input, and the Git step with a throwaway
-  repository, including a missing commit and a failing command.
+Not applicable. The work changes only skill text and documentation; no tool or code changes.
 
 ## Bug-Fix Process
 
-Not applicable. The current behavior follows the rules as written; this issue changes the rules.
+Not applicable. The current behavior follows the rules as written; this issue documents it.
 
 ## Regression Test Strategy
 
-Not applicable unless D2 is (b). In that case the merge tool's ACK matching gets unit tests for six cases. An
-ACK on the head (counts) is the baseline the tool handles today and has no manual scenario. The other five match
-M1 to M5: an ACK on an ancestor followed only by audit commits (counts, M1), a later commit outside the folder
-(stale, M2), a later commit in another pull request's folder or in a look-alike path such as a sibling or a nested copy of the folder (stale, M3, D3), a file moved into the folder
-from elsewhere (stale, M4) and a change outside the folder that a later commit reverts (stale, M5).
+Not applicable. No code changes.
 
 ## Implementation Plan
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                           | Notes / Expected Output                                                                                        |
-| --- | ------ | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Settle D1 to D5 and get da2ce7's agreement     | Each decision recorded under Architectural Decisions with its date and who decided; da2ce7's comment linked    |
-| T2  | TODO   | State the rule in `merge-pull-request`         | Merge Readiness carries the rule and the exact check command; the waiver sentence no longer mentions the audit |
-| T3  | TODO   | Apply the rule in `wait-for-pr-review` step 4  | The exit condition refers to the rule in `merge-pull-request`; it does not restate it                          |
-| T4  | TODO   | Add the sentence to `process-pr-review`        | Authors know an audit-only commit keeps the ACK, and that history is never rewritten to protect one            |
-| T5  | TODO   | Merge tool, as D2 decides                      | (a) the expected message is documented; or (b) the tool lists the ACK and names the ACKed commit, with tests   |
-| T6  | TODO   | Note this issue on the #2363 line of `EPIC.md` | The line names this issue as the fix for the cause; that plan is historical, so nothing else in it changes     |
-| T7  | TODO   | Manual verification and close-out              | M1 to M5 recorded; EPIC row updated                                                                            |
+| ID  | Status | Task                                           | Notes / Expected Output                                                                                     |
+| --- | ------ | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| T1  | DONE   | Decide D1                                      | Recorded under Architectural Decisions with its date and who decided, in the specification pull request     |
+| T2  | TODO   | Document the re-ACK in `merge-pull-request`    | Merge Readiness says an audit-only commit needs new ACKs and gives the command; the waiver sentence changes |
+| T3  | TODO   | Point to it from `wait-for-pr-review` step 4   | The exit condition refers to the text in `merge-pull-request`; it does not restate it                       |
+| T4  | TODO   | Add the sentence to `process-pr-review`        | Authors keep the audit commit, tell the maintainer, and never rewrite history to protect an ACK             |
+| T5  | TODO   | Note this issue on the #2363 line of `EPIC.md` | The line names this issue; that plan is historical, so nothing else in it changes                           |
+| T6  | TODO   | Manual verification and close-out              | M1 and M2 recorded; EPIC row updated                                                                        |
 
 ## Commit Points
 
 Each commit point completes one independently reviewable change; unrelated changes are not grouped to reduce the
 commit count.
 
-| Task | Coherent change set                                          | Commit policy                                                                                                      |
-| ---- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
-| T1   | Decisions recorded in this specification                     | Commit in the specification pull request.                                                                          |
-| T2   | `merge-pull-request` rule and waiver sentence                | Commit after `linter all`.                                                                                         |
-| T3   | `wait-for-pr-review` exit condition                          | Commit after `linter all`.                                                                                         |
-| T4   | `process-pr-review` sentence                                 | Commit after `linter all`.                                                                                         |
-| T5   | Merge tool change and its tests, or the documentation of (a) | If D2 is (b), commit each reviewed test increment as the paragraph below says; for (a), commit after `linter all`. |
-| T6   | `EPIC.md` link                                               | Commit with the EPIC progress-log entry.                                                                           |
+| Task | Coherent change set                                  | Commit policy                             |
+| ---- | ---------------------------------------------------- | ----------------------------------------- |
+| T1   | Decision recorded in this specification              | Commit in the specification pull request. |
+| T2   | `merge-pull-request` re-ACK text and waiver sentence | Commit after `linter all`.                |
+| T3   | `wait-for-pr-review` exit condition                  | Commit after `linter all`.                |
+| T4   | `process-pr-review` sentence                         | Commit after `linter all`.                |
+| T5   | `EPIC.md` note                                       | Commit with the EPIC progress-log entry.  |
 
-If D2 is (b), T5 adds tests to the merge tool and follows the progressive test-development loop of `create-issue`.
-Use the `write-unit-test` skill and add the smallest behavior-focused test increment, one per test case under
-Regression Test Strategy. After each increment passes focused validation, complete and record an explicit design
-review before maintainer review and commit: the test exposes the one causal initial-state difference, its fixture
-owns only incidental mechanics, and the production Act and an independently specified expected result stay
-visible. The review uses the mandatory prose-first Arrange-Act-Assert comparison: write temporary prose for each
-section, refactor until the code expresses it, remove redundant prose, and record the result in the task evidence
-or a file-local test plan. Judge helper boundaries by meaningful named actions and abstraction-level alignment, not
-caller count. Commit each reviewed increment before starting the next one, and stop for maintainer review after
-the last increment, before final verification and the pull request. If D2 is (a), T5 adds no tests.
+T2 to T6 land in one small implementation pull request after the specification pull request merges. No task adds
+tests, so the progressive test-development loop of `create-issue` does not apply.
 
 ## Progress Tracking
 
@@ -302,17 +252,17 @@ the last increment, before final verification and the pull request. If D2 is (a)
 - 2026-11-19 08:20 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Correction: the 2026-11-19 07:40 UTC entry was reworded in place at 2026-11-19 08:06 UTC (commit `docs(issues): [#2949] describe the 2026-11-18 decision one way in the spec and EPIC`) to use the wording "the maintainer's decision of 2026-11-18 to adopt the rule was reopened under D1". When first written it said the rule was proposed, which was the wording of row 24 and Background at that time. da2ce7's F19 on PR #2950 pointed out that a dated entry should not be rewritten in place.
 - 2026-11-19 13:49 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Correction to the 2026-11-19 08:20 UTC entry: it says the first wording of the 07:40 entry "was the wording of row 24 and Background at that time". Only EPIC row 24 said "proposed"; Background already said the maintainer decided on 2026-11-18 and D1 reopened that decision. Pointed out by da2ce7's F22 on PR #2950.
 - 2026-11-19 13:49 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Addressed Copilot review 5972058838 on PR #2950: Design and Ownership Review now specifies, for D2 (b), that the merge tool's `main()` acquires the Git history and that an ACK it cannot check does not count, and the note under the manual scenarios keeps the manual runs of M1 to M5 alongside the merge-tool tests.
+- 2026-11-19 18:33 UTC - AI assistant (Claude Code, Claude Fable 5.2, issue #2949 session) - The maintainer decided D1 on 2026-11-19: the strict ACK stays, and an audit-only commit needs new ACKs. He also rejected carrying the audit in empty commits. Rewrote the specification as the record of that decision: the rule, the metadata branch and the audit after merge are kept as rejected alternatives; D2 to D5 no longer apply; the merge tool does not change; and the remaining work is skill text (T2 to T6) in a small implementation pull request. For da2ce7's F27 on PR #2950, the record of alternative (c) cites GitHub's documentation on indirect merges, read on 2026-11-19, and names ruleset push acceptance as the point not tested. Their F26 no longer applies.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `merge-pull-request` Merge Readiness states the rule and the exact command that checks it.
-- [ ] AC2: `wait-for-pr-review` step 4 applies the same rule by reference, with no second wording of it.
+- [ ] AC1: `merge-pull-request` Merge Readiness says that an audit-only commit makes the ACK stale and needs new ACKs, and gives the command that lists what the commits after the earlier ACK changed.
+- [ ] AC2: `wait-for-pr-review` step 4 points to that text, with no second wording of it.
 - [ ] AC3: The waiver sentence in Merge Readiness no longer asks for a record in the review audit.
-- [ ] AC4: `process-pr-review` says that an audit-only commit keeps the ACK and that history is never rewritten to protect an ACK.
-- [ ] AC5: D1 to D5 are recorded with date and decider, and da2ce7's agreement is linked.
-- [ ] AC6: The merge tool behaves as D2 decides, and its behavior for an ACK that counts under the rule is documented in `merge-pull-request`.
-- [ ] AC7: A commit after the ACK that changes any file outside `docs/pr-reviews/pr-<N>-review/` makes the ACK stale under every changed text and tool, even when a later commit reverts the change.
-- [ ] AC8: The #2363 line in `EPIC.md` names this issue.
+- [ ] AC4: `process-pr-review` says that the author keeps the audit commit, tells the maintainer the head needs new ACKs, and never rewrites history or holds back the audit record to protect an ACK.
+- [x] AC5: D1 is recorded with its date and who decided.
+- [ ] AC6: No skill or tool text says that an ACK counts on a commit it does not name.
+- [ ] AC7: The #2363 line in `EPIC.md` names this issue.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -324,25 +274,22 @@ the last increment, before final verification and the pull request. If D2 is (a)
 ### Automatic Checks
 
 - `linter all`
-- The merge tool's tests, if D2 is (b)
 - Pre-push checks
 
 ### Manual Verification Scenarios
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                                            | Human-oriented command/steps                                                                                                                                                                                           | Expected Result                                                    | Status | Evidence                                     |
-| --- | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ------ | -------------------------------------------- |
-| M1  | ACK followed by an audit-only commit                | On PR #2947's history, run the documented command with `X` = `e01212151` and `H` = `1d27a67e9`                                                                                                                         | Only files under `docs/pr-reviews/pr-2947-review/`; the ACK counts | TODO   | `manual-verification-evidence.md` section V1 |
-| M2  | ACK followed by a commit outside the folder         | Run the documented command on a pull request whose commits after the ACK change another file                                                                                                                           | Another path is listed; the ACK is stale                           | TODO   | `manual-verification-evidence.md` section V2 |
-| M3  | Another pull request's folder, or a look-alike path | Run the documented command where the commits after the ACK change `docs/pr-reviews/pr-<other>-review/`; repeat with a sibling `docs/pr-reviews/pr-<N>-review-old/x` and a nested `src/docs/pr-reviews/pr-<N>-review/x` | The ACK is stale in each case                                      | TODO   | `manual-verification-evidence.md` section V3 |
-| M4  | File moved into the audit folder                    | Run the documented command where a commit after the ACK moves a file from outside into `docs/pr-reviews/pr-<N>-review/`                                                                                                | Both the old and the new path are listed; the ACK is stale         | TODO   | `manual-verification-evidence.md` section V4 |
-| M5  | Change outside the folder, reverted later           | Run the documented command where one commit after the ACK changes a file outside the folder and a later commit reverts it and updates the audit                                                                        | The reverted file is listed; the ACK is stale                      | TODO   | `manual-verification-evidence.md` section V5 |
+| ID  | Scenario                                    | Human-oriented command/steps                                                                           | Expected Result                                           | Status | Evidence                                     |
+| --- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------ | --------------------------------------------------------- | ------ | -------------------------------------------- |
+| M1  | ACK followed by an audit-only commit        | On PR #2947's history, run the documented command with `X` = `e01212151` and `H` = `1d27a67e9`         | Only `docs/pr-reviews/pr-2947-review/PR-REVIEW.md` listed | TODO   | `manual-verification-evidence.md` section V1 |
+| M2  | ACK followed by a commit outside the folder | Run the documented command on a range of `develop` whose commits change a file outside an audit folder | The other path is listed                                  | TODO   | `manual-verification-evidence.md` section V2 |
 
 Notes:
 
-- M2 to M5 may use a local throwaway branch; record the commits used.
-- If D2 is (b), the merge tool's tests cover the same cases as M1 to M5 in addition to the manual runs, not instead of them: M1 to M5 are still run by hand with the documented command, and their output is recorded in `manual-verification-evidence.md`, because running automated tests is not manual verification (`docs/templates/ISSUE.md`).
+- Record the commits used for M2.
+- Both scenarios check that the documented command reads as the skill text says. Neither decides whether an ACK
+  counts: an ACK counts only on the commit it names.
 
 ### Disposable Verification Scripts
 
@@ -350,31 +297,29 @@ None planned.
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence |
-| ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
-| AC4   | TODO                   |          |
-| AC5   | TODO                   |          |
-| AC6   | TODO                   |          |
-| AC7   | TODO                   |          |
-| AC8   | TODO                   |          |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                       |
+| ----- | ---------------------- | -------------------------------------------------------------- |
+| AC1   | TODO                   |                                                                |
+| AC2   | TODO                   |                                                                |
+| AC3   | TODO                   |                                                                |
+| AC4   | TODO                   |                                                                |
+| AC5   | DONE                   | Architectural Decisions, D1, in the specification pull request |
+| AC6   | TODO                   |                                                                |
+| AC7   | TODO                   |                                                                |
 
 ## Risks and Trade-offs
 
-- **Unreviewed text enters `develop`.** The audit record changed after the ACK is merged without the reviewer
-  reading it. Mitigation: the rule covers one folder that holds only the record of that pull request's review;
-  the diff after the ACK is one command away; Copilot still reviews the new head.
-- **The folder is used to carry other content.** A file placed under `docs/pr-reviews/pr-<N>-review/` that is
-  not an audit record would pass the rule. Mitigation: decide under D3 whether the rule names the folder or only
-  `PR-REVIEW.md`; `validate-audit-record.py` already checks the record.
-- **The ACK names a commit that is not the merged head.** The merge commit message must say so, or the record
-  misleads. Mitigation: D2 (b).
-- **Two wordings of the rule drift apart.** Mitigation: the rule is stated once, in `merge-pull-request`, and
-  the other skills link to it.
+- **The re-ACK waits for the reviewer.** An audit-only commit holds the merge until the reviewer and the
+  maintainer ACK again. Accepted by the maintainer; the command makes the second review short, and the
+  maintainer may waive the reviewer's ACK as Merge Readiness already allows.
+- **The loop can repeat.** A review of the new head can raise another finding, which needs another audit commit.
+  Accepted; a diff that holds only the audit record rarely raises one.
 - **The workflow-run approval remains.** An audit-only push still needs the maintainer's approval of the runs.
-  Accepted; D1 records it as a cost of keeping the audit on the branch.
+  Accepted as a cost of keeping the audit on the branch.
+- **A second review is skimmed.** A reviewer may ACK the new head without reading what changed. Mitigation: the
+  documented command lists every path the later commits changed, including a change that was reverted.
+- **Two wordings drift apart.** Mitigation: the text is stated once, in `merge-pull-request`, and the other
+  skills link to it.
 
 ## Implementation Completion Review
 
@@ -383,5 +328,5 @@ None planned.
 ## References
 
 - Related issues: #2003 (parent EPIC), #2347 (its historical close-out plan in `EPIC.md` has the #2363 line)
-- Related PRs: #2947 (where the gap was reported), #2363 (earlier occurrence)
-- Related ADRs: none known
+- Related PRs: #2947 (where the gap was reported), #2363 (earlier occurrence), #2950 (the specification pull request, where the alternatives were discussed)
+- Related ADRs: none for the ACK
