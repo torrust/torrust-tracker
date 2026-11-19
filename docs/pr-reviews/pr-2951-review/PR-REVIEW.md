@@ -185,6 +185,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-19 08:23 UTC - Correction to the round 2 entries: the six threads of review 5971000003 were resolved as `josecelano-bot` after the push of 2026-11-19 07:41:38 UTC, and `validate-audit-record.py --pr-number 2951`, run with the token of `josecelano-bot`, exited 0 (8 rows, 0 failures). The push did not carry an entry for this.
 - 2026-11-19 08:23 UTC - Round 3. Review 5971150744 (da2ce7, `APPROVED`, submitted 2026-11-19 07:48:39 UTC on the final head) has one inline thread with the reviewer's id F7, recorded as F9. The maintainer and da2ce7 had posted their ACK comments for that head, so the maintainer chose in the agent chat to fix F9 after the merge. A reply on the thread said so at 08:04:50Z (`created_at`). Review 5971337429 (Copilot, `COMMENTED`, 08:05 UTC) has no finding.
 - 2026-11-19 08:23 UTC - PR #2951 merged at 08:07:03 UTC (`merged_at` of the PR on GitHub; the merge commit carries 07:57:06 UTC as its author and committer time, `git log --format=%cI`). The maintainer posted the post-merge approval at 08:18:03 UTC; nothing was branched, committed or posted for F9 between the merge and that comment. Follow-up PR #2960, cut from `develop`, changes the resolution reference of F8. Replied on the thread naming #2960 at 08:23:32Z (`created_at`). F9 is `FOLLOW_UP` / `OPEN` until #2960 merges. GraphQL refresh: the thread of F9 is the only unresolved thread on PR #2951.
+- 2026-11-19 11:03 UTC - Follow-up PR #2960 merged at 11:02:22 UTC (forge `mergedAt`; merge commit `852286466`). Replied on the thread of F9 with the merged fix (11:02:54Z, the reply's `created_at`) and resolved it by 11:03 UTC (a `date -u` run after the resolve command); F9 is `FIXED` / `RESOLVED`. GraphQL refresh: zero unresolved threads on PR #2951.
 
 ## Completion Rules
 
@@ -204,4 +205,3 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Cite a fix by its unique Conventional Commit subject or durable reply URL, never by a branch SHA
   that can change after a rebase.
 - Refresh review threads using GraphQL and confirm that no unresolved actionable thread remains.
-- 2026-11-19 11:03 UTC - Follow-up PR #2960 merged at 11:02:22 UTC (forge `mergedAt`; merge commit `852286466`). Replied on the thread of F9 with the merged fix (11:02:54Z, the reply's `created_at`) and resolved it by 11:03 UTC (a `date -u` run after the resolve command); F9 is `FIXED` / `RESOLVED`. GraphQL refresh: zero unresolved threads on PR #2951.
