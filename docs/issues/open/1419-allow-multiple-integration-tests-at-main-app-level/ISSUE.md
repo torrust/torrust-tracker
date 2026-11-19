@@ -630,8 +630,8 @@ Option (c) stays available as a later change if the suites become too slow.
   - Against: nothing shows that the D3 assertion can fail. If it were removed, or
     `incomplete_components` stopped reporting aborted components, every suite would still pass.
 - (b) a suite that injects a component that never stops and expects `shutdown()` to panic.
-  - For: it proves the assertion fails when it should, and that the configured deadline of D2 is
-    the one used (the suite returns after its 3-second deadline).
+  - For: it proves the assertion fails when it should. With the bound on the elapsed time (step 3
+    of the planned change) it also proves that the configured deadline of D2 is the one used.
   - For: no production code changes; `JobManager::reserve` and `JobManager::spawn` are public.
   - Against: one more Cargo test target with a `[[test]]` entry in the root `Cargo.toml`, because
     the model is one tracker per test binary.
@@ -675,7 +675,9 @@ The change is small. It stays in the test tree, except for one `[[test]]` entry 
    registered as `lifecycle-fixture-shutdown-assertion` with a `[[test]]` entry in the root
    `Cargo.toml`, like the other nested targets). Its suite sets a short
    `[application.shutdown]` deadline, spawns a component that never stops, and uses `should_panic`
-   to require that `shutdown()` names it.
+   to require that `shutdown()` names it. The suite also bounds the elapsed time of `shutdown()`:
+   the panic must arrive well before 10 seconds (the old constant; the default deadline is 25
+   seconds), so the suite fails if the fixture ignores the configured deadline.
 4. No existing suite changes its call site. No production code changes.
 
 #### Test development
@@ -703,7 +705,7 @@ Only the negative suite of D4 adds a test. It follows the progressive test-devel
 | E2  | All ten fixture-based targets pass in one Cargo invocation with the updated fixture (M1 repeated with the current target list).                                                                                                     |
 | E3  | `metrics-port-zero` passes with `--nocapture` and with `--test-threads=1` (M2 and M4 repeated). The recorded duration of each run is far below the 25-second deadline, which replaces the 60 to 81 seconds of 2026-08-24.            |
 | E4  | The pre-commit gate, including `linter all`, passes (M5 repeated).                                                                                                                                                                  |
-| E5  | The new target of D4 passes. It shows that a component aborted at the deadline makes the fixture's shutdown panic and that the panic names the component.                                                                       |
+| E5  | The new target of D4 passes. It shows that a component aborted at the deadline makes the fixture's shutdown panic, that the panic names the component, and that it arrives within the suite's bound on the elapsed time, well before 10 seconds.                                                                       |
 
 The current target list for E2 replaces the six-target command of the partial delivery:
 
