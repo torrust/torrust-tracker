@@ -3,7 +3,7 @@ name: process-pr-review
 description: "Process every pull-request review finding, from Copilot, a person or a bot: fix, reply, record. Use when addressing PR review feedback, even after merge or on a replaced PR."
 metadata:
   author: torrust
-  version: "1.8"
+  version: "1.9"
   semantic-links:
     related-artifacts:
       - docs/issues/closed/2219-2003-unify-pr-review-processing/ISSUE.md
@@ -22,6 +22,11 @@ The PR author owns one tracked audit record at
 repository review agents, deliver findings through GitHub only and create no
 repository artifact. Process all authors through this workflow; author
 classification adds context but never changes the audit or resolution requirements.
+
+Who runs it: in Claude Code, the [`pr-review-handler`](../../agents/pr-review-handler.md) agent runs
+this workflow for one review round, on a pinned model, when the session that owns the pull request
+delegates the round to it ([`wait-for-pr-review`](../wait-for-pr-review/SKILL.md) says what the
+session keeps). Any session can also run the workflow itself.
 
 ## Purpose
 
