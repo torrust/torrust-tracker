@@ -96,7 +96,7 @@ Round 4 has one review at the head whose last commit is
 | F16 | review-finding:pr-2963-f16 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F17 | review-finding:pr-2963-f17 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F18 | review-finding:pr-2963-f18 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
-| F20 | review-finding:pr-2963-f20 | Human | Nit | correctness | ORIGINAL | FIXED | OPEN |
+| F20 | review-finding:pr-2963-f20 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -451,7 +451,7 @@ Round 4 has one review at the head whose last commit is
   reviews for rounds 1, 5, 6, 8 and 10; `linter markdown` and `linter cspell` exited 0.
 - Resolution reference: docs(issues): [#2904] name the round definition of V6 and count review round 4
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2963#discussion_r4632264434>
 
 ## Processing Log
 
@@ -513,6 +513,12 @@ Round 4 has one review at the head whose last commit is
   URL pending and the thread state `OPEN`. `validate-audit-record.py` exited 1 on this version
   with one failure, the missing reply URL of F20, and no other; the URL, the validator's result
   and the resolution follow in a later entry.
+- 2026-11-19 17:07 UTC - Round 4, continued. The push moved the fork branch to the head whose last commit is
+  `docs(pr-reviews): [#2904] record PR #2963 review round 4 in the audit before replying`
+  (`git ls-remote`). Replied on the thread of F20 (17:06:20 UTC, the reply's `created_at`),
+  recorded its URL, and `validate-audit-record.py` exited 0 (18 rows, 0 failures). Resolved the
+  thread at 17:07 UTC; the mutation returned `isResolved: true`, and a GraphQL refresh counted 0
+  unresolved threads.
 
 ## Completion Rules
 
