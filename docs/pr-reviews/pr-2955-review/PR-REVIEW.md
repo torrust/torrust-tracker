@@ -62,9 +62,9 @@ row.
 - Reviewer finding ID: F1
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2955#discussion_r4625664458
 - Concern: The `last-updated-utc` line of the SI-2 spec conflicts with `develop` at `7a4c16eaf`, where the archive of the #2804 audit set it to `"2026-11-18 19:11"` and moved the spec's audit paths to `docs/issues/closed/`; the open-pull-request skill requires an update when the branch conflicts.
-- Solution: Rebased the branch onto `develop` at `7a4c16eaf`, keeping `develop`'s `"2026-11-18 19:11"` for the conflicting line; the next commit set the field to `"2026-11-19 07:27"`, newer than `develop`'s, and later commits moved it on. The four audit paths are `docs/issues/closed/` from `develop`.
-- Current-tree verification: `git merge-base --is-ancestor 7a4c16eaf HEAD` exits 0; the spec's `last-updated-utc` is later than `"2026-11-18 19:11"`; `grep -n 'open/2804'` on the spec finds only the 2026-11-11 progress-log entry, which is history.
-- Resolution reference: docs(issues): [#2914] cover scenario M3 handed over by the #2804 audit and record the PR
+- Solution: Merged `develop` at `f212ae33b` into the PR head (an earlier local rebase onto `7a4c16eaf` was not pushed), keeping `develop`'s `"2026-11-18 19:11"` for the conflicting line; the next commit set the field to `"2026-11-19 07:27"`, newer than `develop`'s, and later commits moved it on. The four audit paths are `docs/issues/closed/` from `develop`.
+- Current-tree verification: `git merge-base --is-ancestor f212ae33b HEAD` exits 0; the spec's `last-updated-utc` is later than `"2026-11-18 19:11"`; `grep -n 'open/2804'` on the spec finds only the 2026-11-11 progress-log entry, which is history.
+- Resolution reference: Merge torrust/develop into 2914-primitives
 - Follow-up PR URL: N/A
 - Reply URL: N/A
 
@@ -123,6 +123,7 @@ row.
 ## Processing Log
 
 - 2026-11-19 07:44 UTC - Started audit for da2ce7's review 5971033415 (APPROVED, submitted 07:36:51Z on the first head, whose last commit was "docs(issues): [#2914] record the evidence of SI-2 and its breaking change for primitives 4.0.0"). Five findings, F1 to F5 with the reviewer's IDs. The branch had already been rebased onto `develop` at `7a4c16eaf` (F1) before the review arrived. Fixes committed: F5, F4 (test code), F3, F2 (docs). Not pushed yet; replies and thread resolution follow the push, and the Reply URL and Thread state fields are updated then.
+- 2026-11-19 07:51 UTC - Correction to the 07:44 entry: the rebase onto `7a4c16eaf` it mentions was local only and was replaced, on the maintainer's request, by a merge of `develop` at `f212ae33b` into the PR head ("Merge torrust/develop into 2914-primitives"); the later commits were carried over with the same content. F1's Solution, verification and resolution reference now name the merge.
 
 ## Completion Rules
 

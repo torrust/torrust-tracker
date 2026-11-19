@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2914-2912-si-2-primitives/ISSUE.md
-last-updated-utc: "2026-11-19 07:42"
+last-updated-utc: "2026-11-19 07:51"
 ---
 
 # Manual Verification Evidence
@@ -24,8 +24,8 @@ rest of each line is verbatim.
 - Date and time (UTC): 2026-11-18 18:51 to 18:55; the red re-run and the mutations of the
   review of PR #2955 on 2026-11-19 07:39 to 07:42.
 - Artifact under test: `packages/primitives` on branch `2914-primitives`, cut from `develop` at
-  `7e8df95ec` (rebased onto `develop` at `7a4c16eaf` on 2026-11-19; the rebase changed no file of
-  `packages/primitives`). V1 and V2 "Before" ran on the unchanged tree of `develop` at
+  `7e8df95ec`; `develop` at `f212ae33b` was merged into it on 2026-11-19, which changed no file of
+  `packages/primitives`. V1 and V2 "Before" ran on the unchanged tree of `develop` at
   `7e8df95ec`, before any edit on the branch. "After": the working tree that became the commit
   `fix(primitives): [#2914] remove source locations from peer role and peer id errors`; the scratch
   crate builds only the library, so the tests in that tree do not affect its output.
@@ -211,7 +211,7 @@ test result: FAILED. 0 passed; 3 failed; 0 ignored; 0 measured; 125 filtered out
 **Re-run, 2026-11-19 07:39:10.863 to 07:39:11.867 UTC, at the commit itself.** A detached
 temporary worktree checked out
 `test(primitives): [#2914] add red tests that peer role and peer id errors name no source path`
-(the rebased commit; its `packages/primitives` is byte-identical to the one first committed) and
+(a local rebase of that commit onto `7a4c16eaf`, later replaced by a merge of `develop`; `git diff --quiet` shows its `packages/primitives` byte-identical to the commit on the PR branch) and
 ran the same command, with the branch's `target` directory. Output, with thread ids removed:
 
 ```text
