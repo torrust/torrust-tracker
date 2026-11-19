@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: in-progress
+status: done
 priority: p1
 epic: 2912
 github-issue: 2915
-spec-path: docs/issues/open/2915-2912-si-3-http-tracker-request-errors/ISSUE.md
+spec-path: docs/issues/closed/2915-2912-si-3-http-tracker-request-errors/ISSUE.md
 branch: "2915-http-tracker-request-errors"
-related-pr: null
-last-updated-utc: "2026-11-19 11:36"
+related-pr: 2968
+last-updated-utc: "2026-11-19 19:16"
 semantic-links:
   skill-links:
     - create-issue
@@ -32,7 +32,7 @@ semantic-links:
 
 # Issue #2915 - Remove source locations from the HTTP tracker request errors
 
-Parent EPIC: [Remove source locations from errors](../2912-remove-source-locations-from-errors/EPIC.md) (#2912). Sub-issue SI-3 of the EPIC.
+Parent EPIC: [Remove source locations from errors](../../open/2912-remove-source-locations-from-errors/EPIC.md) (#2912). Sub-issue SI-3 of the EPIC.
 
 ## Goal
 
@@ -152,7 +152,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3 | DONE | Remove `location` from the 10 variants | Commit `fix(http-protocol): [#2915] remove source locations from HTTP tracker request errors`; also the `http-core` tests that build `MissingClientIp` and the `axum-http-server` tests that matched the old peer-IP texts. |
 | T4 | DONE | Replace the three `LocatedError` sources | Commit `fix(http-protocol): [#2915] replace LocatedError sources of info-hash and peer-id param errors`. |
 | T5 | DONE | Green and recheck | 25 of 25 green; the eleven requests repeated on the final commit hold no path. `manual-verification-evidence.md` (Green, V1 to V3). |
-| T6 | IN_PROGRESS | Review the reworded messages | Table in `manual-verification-evidence.md` (T6); awaiting the maintainer's wording review in the PR. |
+| T6 | DONE | Review the reworded messages | Table in `manual-verification-evidence.md` (T6). Review of PR #2968 asked for no wording change (round 1 corrected only the notes about which texts keep the old leading words, finding F1); the maintainer merged it with this wording. |
 
 ## Commit Points
 
@@ -190,14 +190,14 @@ with the narrow affected scope, and sign every commit with GPG.
 - [x] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [x] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification (not applicable: the reviewers reviewed PR #2968 on GitHub, recorded in `docs/pr-reviews/pr-2968-review/PR-REVIEW.md`)
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -208,6 +208,7 @@ the model that produced them.
 - 2026-11-11 17:05 UTC - Claude Code (Fable 5.2) - Drafted from the audit of issue #2804 (`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`, `options.md`) as a sub-issue of the EPIC draft. Not yet approved; line numbers are those of `develop` at `4f0af379a` and must be re-checked before implementation.
 - 2026-11-17 17:30 UTC - Claude Code (Claude Opus 5.5) - EPIC coordinator: the maintainer approved the specification on 2026-11-17; issue #2915 created as `josecelano-bot` and the specification moved from `docs/issues/drafts/` to `docs/issues/open/` (SI-3 of EPIC #2912).
 - 2026-11-19 11:36 UTC - Claude Code (Claude Opus 5.5) - Implemented on branch `2915-http-tracker-request-errors` (from `develop` at `36b24a9c5`): T1 reproduction (11 requests, every reason held a path), T2 red tests (25, all red at the committed bytes), T3 `location` removal, T4 `LocatedError` replacement and removal of the `torrust-located-error` dependency, T5 green and like-for-like recheck. T6 wording table recorded for the maintainer. No retrospective: the plan held; the only additions to the spec's file list are test code that builds or matches the changed variants (`http-core` service tests, `axum-http-server` handler tests and one contract-test helper) and the extractor doc samples, all listed in the evidence.
+- 2026-11-19 19:16 UTC - Claude Code (Claude Opus 5.5) - PR #2968 merged into `develop` (merge commit `c29699033`, 2026-11-19 19:14 UTC) after one review round by da2ce7 (F1 Minor and F2 Nit, both in the evidence; approved with an ACK at the last head) and a clean Copilot review; issue #2915 closed. Close-out: spec moved to `docs/issues/closed/`, status `done`, `related-pr` set, T6 marked done, and the checkpoints left unticked at implementation time ticked: automatic verification and `linter all` (the pre-commit hook ran `linter all` on every commit and the pre-push hook passed on every push of PR #2968), documentation (the extractor doc samples), reviewer validation, the not-applicable agent-review-reports item, the committer check and the archive. SI-3 marked DONE in the EPIC table.
 
 ## Acceptance Criteria
 
@@ -216,11 +217,11 @@ the model that produced them.
 - [x] AC3: No `failure reason` produced by request parsing, key extraction or peer-IP resolution holds a source path, proven by HTTP-server tests including the short `info_hash` and short `peer_id` cases.
 - [x] AC4: Each reworded message still names what failed and the offending input where there is one.
 - [x] AC5: `packages/http-protocol/Cargo.toml` no longer depends on `torrust-located-error`.
-- [ ] `linter all` exits with code `0`
+- [x] `linter all` exits with code `0`
 - [x] Relevant tests pass
 - [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior/workflow changes
+- [x] Documentation is updated when behavior/workflow changes
 
 ## Verification Plan
 
@@ -314,6 +315,6 @@ findings, and reusable lessons.
 
 ## References
 
-- Parent EPIC: #2912, `docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md`
+- Parent EPIC: #2912, `docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md` (the EPIC stays open)
 - Audit: `docs/issues/closed/2804-location-caller-track-caller-audit/ISSUE.md`, `inventory.md`, `options.md`, `experiments.md` (issue #2804)
 - Related issues: #2804 (audit), #384 (external report), #2583 (first publish of the workspace crates)

@@ -1,6 +1,6 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2915-2912-si-3-http-tracker-request-errors/ISSUE.md
+issue-spec: docs/issues/closed/2915-2912-si-3-http-tracker-request-errors/ISSUE.md
 last-updated-utc: "2026-11-19 11:35"
 ---
 
