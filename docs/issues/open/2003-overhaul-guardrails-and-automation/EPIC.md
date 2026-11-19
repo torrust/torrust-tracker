@@ -6,7 +6,7 @@ epic: null
 github-issue: 2003
 spec-path: docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-19 13:49"
+last-updated-utc: "2026-11-19 18:34"
 semantic-links:
   skill-links:
     - create-issue
@@ -200,7 +200,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | 21 | #2866 - Move the agent skills to `.claude/skills/` so Claude Code discovers them | `docs/issues/closed/2866-2003-move-skills-to-claude-skills/ISSUE.md` | DONE | Moves the 53 skills to a flat `.claude/skills/<name>/` with an index by area and redirect stubs at the old paths, so Claude Code discovers them. Must merge before the custom-agents migration is implemented, because agent definitions name skills. Selects no shared runner, cache or policy engine. |
 | 22 | #2873 - Shorten the agent skill descriptions so they fit Claude Code's skill listing budget | `docs/issues/closed/2873-2003-shorten-skill-descriptions/ISSUE.md` | DONE | Follow-up of #2866 (its task T1): shortens the 53 skill descriptions to 200 characters or less so the listing fits its 1% budget, fixes the `write-markdown-docs` description that YAML cuts at a `#`, and adds a `frontmatter-validator` rule. Selects no shared runner, cache or policy engine. Spec PR #2875, implemented by PR #2893. |
 | 23 | #2904 - Migrate the custom agents to Claude Code and add an explicit orchestrator | `docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md` | IN_PROGRESS | Replaces the ten Copilot profiles in `.github/agents/` with six Claude Code agents in `.claude/agents/`, led by an `orchestrator` that is the session the contributor talks to. Started agents write JSON reply files validated against a schema; a stop hook holds the task reviewer until its reply is valid. Delivered in small pull requests that merge independently, after #2866. Selects no shared runner, cache or policy engine. |
-| 24 | #2949 - Keep a reviewer's ACK valid when only the pull request's audit record changed after it | `docs/issues/open/2949-2003-keep-reviewer-ack-after-audit-only-commits/ISSUE.md` | TODO | A reviewer's `ACK <X>` still counts on head `H` when the commits after `X` change only this pull request's `docs/pr-reviews/pr-<N>-review/` folder; decided by the maintainer on 2026-11-18, spec first, then reopened under the specification's D1 after da2ce7 disagreed, so adopting it is still open. Changes `merge-pull-request`, `wait-for-pr-review`, `process-pr-review` and possibly the merge tool. Reported on PR #2947; earlier on PR #2363. |
+| 24 | #2949 - Keep the strict ACK and document the re-ACK after an audit-only commit | `docs/issues/open/2949-2003-keep-reviewer-ack-after-audit-only-commits/ISSUE.md` | TODO | The maintainer decided on 2026-11-19 that an `ACK <hash>` counts only on the commit it names: after a commit that changes only the pull request's own audit record, the reviewer and the maintainer ACK the new head. The rule first proposed here (keep the ACK valid) and da2ce7's metadata branch are recorded as rejected alternatives. Remaining work: text in `merge-pull-request`, `wait-for-pr-review` and `process-pr-review`; the merge tool does not change. Reported on PR #2947; earlier on PR #2363. |
 
 Also linked as GitHub sub-issues, outside the order:
 
@@ -467,6 +467,7 @@ For each completed subissue in this EPIC, the default completion policy is:
 - 2026-11-19 07:39 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Row 24 now says the maintainer's decision of 2026-11-18 to adopt the rule was reopened under the specification's D1 after da2ce7 disagreed on PR #2950, so adopting it is still open.
 - 2026-11-19 08:20 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Correction: the 2026-11-19 07:39 UTC entry was reworded in place at 2026-11-19 08:06 UTC (commit `docs(issues): [#2949] describe the 2026-11-18 decision one way in the spec and EPIC`) to use the wording "the maintainer's decision of 2026-11-18 to adopt the rule was reopened under D1". When first written it said the rule was proposed, which was the wording of row 24 and Background at that time. da2ce7's F19 on PR #2950 pointed out that a dated entry should not be rewritten in place.
 - 2026-11-19 13:49 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Correction to the 2026-11-19 08:20 UTC entry: it says the first wording of the 07:39 entry "was the wording of row 24 and Background at that time". Only EPIC row 24 said "proposed"; Background already said the maintainer decided on 2026-11-18 and D1 reopened that decision. Pointed out by da2ce7's F22 on PR #2950.
+- 2026-11-19 18:34 UTC - AI assistant (Claude Code, Claude Fable 5.2, issue #2949 session) - Row 24 changed: the maintainer decided the specification's D1 on 2026-11-19. The strict ACK stays, an audit-only commit needs new ACKs, and #2949 now only documents that in the skills. The row's title follows the specification's new title.
 
 ## Acceptance Criteria
 
