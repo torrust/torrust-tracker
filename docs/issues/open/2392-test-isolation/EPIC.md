@@ -6,7 +6,7 @@ epic: null
 github-issue: 2392
 spec-path: docs/issues/open/2392-test-isolation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-18 13:39"
+last-updated-utc: "2026-11-18 14:27"
 semantic-links:
   skill-links:
     - create-issue
@@ -22,6 +22,7 @@ semantic-links:
     - docs/issues/open/2908-2392-compose-cleanup-after-failed-start/ISSUE.md
     - docs/issues/open/2924-2392-sqlite-test-database-guard/ISSUE.md
     - docs/issues/open/2925-2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md
+    - docs/issues/open/2943-2392-figment-jail-process-environment/ISSUE.md
     - docs/issues/open/1840-improve-pr-workflow-performance-epic/EPIC.md
     - docs/issues/closed/2386-1840-self-hosted-runner-minimum-capacity/ISSUE.md
     - docs/issues/closed/2132-add-sigterm-to-main/native-shutdown-test-plan.md
@@ -115,6 +116,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | 8 | #2908 - Tear down the qBittorrent E2E stack when it fails to start | `docs/issues/open/2908-2392-compose-cleanup-after-failed-start/ISSUE.md` | TODO | Bug (#2394 D3, C9). A failed `docker compose up` leaves the stack running on the Docker host. Touches the qBittorrent E2E runner, like order 4. |
 | 9 | #2924 - Add a guard-owned SQLite test database | `docs/issues/open/2924-2392-sqlite-test-database-guard/ISSUE.md` | TODO | Bug, split from order 7. Adds to the test helpers a guard that owns the SQLite database's directory and a factory that returns a configuration with its guard, next to the existing `ephemeral*()` functions; converts the helpers outside `tracker-core` that build the database path themselves. PR #2923 (#2902) fixes `tracker-core` with the same shape, and order 9 starts after it merges. |
 | 10 | #2925 - Move tests to the guard-owned SQLite database and default to no database | `docs/issues/open/2925-2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md` | TODO | Bug, split from order 7. Moves the tests that need persistence to order 9's factory, one pull request per package, then removes the database from `ephemeral*()`. Owns the check that a fresh `TMPDIR` is empty after the suite. Depends on order 9. |
+| 11 | #2943 - Keep `figment::Jail` tests from changing the environment other tests see | `docs/issues/open/2943-2392-figment-jail-process-environment/ISSUE.md` | TODO | Bug, found by #2907. The `Jail` tests of `packages/configuration` clear and set the process environment and change the current directory while tests of the same binary that do not use `Jail` run. The order 2 audit classified this resource (G2) as isolated; this issue corrects that row and rechecks G1. The maintainer chooses the design in its T2. Independent of the other orders. |
 
 ## Delivery Strategy
 
@@ -125,6 +127,9 @@ orders 6 and 7 make the suite fail on a shared machine and gate AC2; they are in
 other and of the E2E orders. Order 8 touches the qBittorrent E2E runner and belongs to Phase 3.
 Order 7 was split: it keeps the TOML and PEM files, and orders 9 and 10 take the SQLite files, in
 that order (10 depends on 9). Order 7 is independent of both. Orders 9 and 10 gate AC2 as well.
+Order 11 was found while order 7 was implemented. It is independent of every other order. It does
+not gate AC2 today, because no test has been seen to fail from it; if its T1 finds one, this
+section and AC2 are updated.
 
 Test isolation rules (apply to every subissue):
 
@@ -282,6 +287,11 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
 - 2026-11-17 18:39 UTC - Claude Code (Claude Fable 5.2), EPIC coordinator - The maintainer approved the two
   drafts. Created #2924 and #2925, moved their specs to `docs/issues/open/`, and updated #2907's
   title and body on GitHub. AC1 stays TODO until the maintainer links the two sub-issues.
+- 2026-11-18 13:23 UTC - Claude Code (Claude Fable 5.2), EPIC coordinator - Added order 11
+  (#2943), which the maintainer approved as a draft: #2907 found that the `figment::Jail` tests
+  change the environment that other tests of the same binary read, so audit finding G2 is not
+  isolated. AC4 stays DONE because the finding is now tracked by a subissue. AC1 also waits on
+  the link of #2943.
 - 2026-11-18 13:39 UTC - Claude Code (Claude Opus 5.5), #2907 session - Order 7 is DONE: PR #2938 merged
   and GitHub closed #2907. Archived its spec to `docs/issues/closed/`. AC2 now waits on orders 6,
   9 and 10.
@@ -302,10 +312,10 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1 | TODO | GitHub sub-issues of #2392: #2393, #2394, #2395, #2396, #1419; the audit added #2906, #2907 and #2908. The split of #2907 added #2924 and #2925, which are created but not yet linked as sub-issues (the maintainer links them). |
+| AC1 | TODO | GitHub sub-issues of #2392: #2393, #2394, #2395, #2396, #1419; the audit added #2906, #2907 and #2908. The split of #2907 added #2924 and #2925, which are created but not yet linked as sub-issues (the maintainer links them). #2907 then found #2943 (order 11), created and also not yet linked. |
 | AC2 | TODO | Order 1 `manual-verification-evidence.md` (V6: 150 of 150 full-suite runs passed with no #2393 test ignored, after PR #2874). The order 2 audit found two more shared resources that make the suite fail: fixed ports that collide across concurrent runs (order 6) and leaked temporary files that fill the disk (order 7, split into orders 7, 9 and 10). Order 7 is done (PR #2938). Stays TODO until orders 6, 9 and 10 are done. |
 | AC3 | TODO | Orders 3 and 4 `manual-verification-evidence.md` |
-| AC4 | DONE | Order 2 `inventory.md`: 38 findings, each isolated (29), a deliberate exception (1), or tracked by a subissue (5 covered by orders 1, 3 and 4; 3 new problems, orders 6 to 8) |
+| AC4 | DONE | Order 2 `inventory.md`: 38 findings: isolated (28), a deliberate exception (1), or tracked by a subissue (5 covered by orders 1, 3 and 4; 3 new problems, orders 6 to 8; and G2, order 11). The inventory itself still counts G2 as isolated (29) until order 11 corrects its row. |
 | AC5 | TODO | Documentation PR |
 
 ## Risks and Trade-offs
