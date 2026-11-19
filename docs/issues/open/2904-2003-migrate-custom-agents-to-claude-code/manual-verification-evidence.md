@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md
-last-updated-utc: "2026-11-19 11:37"
+last-updated-utc: "2026-11-19 12:16"
 ---
 
 # Manual Verification Evidence
@@ -185,8 +185,11 @@ In every run the agent's request-cache record lists the tools `Bash`, `Read`, `E
 - **Run 1.** The first instruction did not say how to start the agent, and the session started it
   in the background. 10 minutes later, while the agent was still working, Claude Code stopped it:
   the debug log says `print wind-down: killing background local_agent task [...] at the wait
-  ceiling`. A non-interactive session waits that long for its background tasks unless
-  `CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0` is set. The agent had made five local, signed commits
+  ceiling`, and the session's stderr said `Background tasks still running 10m after the last turn
+  (subagent "Process PR 2963 review round"); stopping them. Set
+  CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0 to wait indefinitely.` That message of Claude Code is
+  the only source for the variable and its value `0`; the specification's table of facts does not
+  list it. The agent had made five local, signed commits
   that fix F1 to F5, and had pushed nothing, replied to nothing and created no audit record.
 - **Run 2.** The instruction now asked for a foreground start, the variable above was set to `0`,
   and the task told the agent about the five commits. The agent checked them against the tree and
@@ -220,9 +223,12 @@ returned. In all three runs the agent ran on its pinned model.
 
 Two limits for whoever delegates a round:
 
-- A non-interactive session must start the agent in the foreground, or set
-  `CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0`; otherwise a round longer than 10 minutes is cut off.
-  An interactive session is not affected.
+- A non-interactive session must start the agent in the foreground; otherwise a round longer
+  than 10 minutes is cut off. Claude Code's message names
+  `CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0` as a way to wait without that limit, but its effect
+  alone was not observed: every run that set the variable also asked for a foreground start, and
+  its agent ran in the foreground (`"requestShape":"foreground"`). An interactive session is not
+  affected.
 - A round can take more than one run: the agent stops at a question, and the session starts it
   again with the answer and with what the earlier run left.
 
