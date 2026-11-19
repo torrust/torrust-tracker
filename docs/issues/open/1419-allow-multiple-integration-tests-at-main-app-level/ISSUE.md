@@ -646,8 +646,8 @@ Option (c) stays available as a later change if the suites become too slow.
 - (a) call `app::begin_shutdown`.
   - For: consistent with D1; `jobs.cancel()` no longer appears in the fixture, so there is one way
     to start a shutdown.
-  - For: `begin_shutdown` is synchronous (it sets a flag and cancels a token), so it is safe in
-    `Drop`.
+  - For: `begin_shutdown` is synchronous (it sets a flag and cancels the tokens of the
+    components that wait for no other), so it is safe in `Drop`.
   - Against: almost no practical effect, because the suite has already failed.
 - (b) keep `jobs.cancel()`.
   - For: no change; `Drop` stays the minimal cleanup.
