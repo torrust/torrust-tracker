@@ -75,6 +75,9 @@ reply file; the pre-commit hook and the Docs Lint workflow run it. With paths, i
 files on disk. Besides the schema, the validator checks the file's place
 (`docs/issues/<drafts|open|closed>/<specification>/agent-replies/`), its name
 (`<agent>-<subject>-r<round>.json`), and that the name agrees with the `agent`, `subject` and
-`round` fields. It is also stricter than the schema where the schema cannot follow it: a real
-calendar date and time in `created-utc`, no fractional numbers, no repeated keys, and Rust's
-Unicode white space for blank text. The module documentation of `src/schema.rs` lists these.
+`round` fields. It also differs from the schema where the schema cannot follow it. It is
+stricter on a real calendar date and time in `created-utc`, fractional numbers, repeated keys,
+and a subject number beyond 32 bits. For blank text it uses Rust's Unicode white space, not the
+ECMA-262 set of `\S`: a text of only U+0085 passes the schema and fails the validator, and a text
+of only U+FEFF fails the schema and passes the validator. The module documentation of
+`src/schema.rs` lists these.
