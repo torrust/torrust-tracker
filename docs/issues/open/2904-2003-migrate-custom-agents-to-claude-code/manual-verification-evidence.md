@@ -164,7 +164,12 @@ The task gave the agent what its file names as inputs: the pull request, the pol
 as the contributor (`gh-bot` for GitHub, `git-bot-push` for the push, a wrapper that runs
 `validate-audit-record.py` with the contributor's token), and what the session knew of the round.
 It also forbade merging, the ACK, review requests, the approval of workflow runs and history
-rewrites. The debug logs, transcripts and JSON results stay local, as in V1.
+rewrites. The debug logs, transcripts and JSON results stay local, as in V1. The records V3 relies
+on are stored in [`evidence/m3-run-records.md`](evidence/m3-run-records.md), each with the command
+that printed it: the `model` of every assistant message, each agent's metadata file and
+request-cache record, how each run was started, the lines that show how run 1 ended, and the
+reports of the three runs. That file was added in the third review round of pull request #2963
+(finding F14); before it, this section gave these records without a stored copy.
 
 | Run | Start (UTC) | How the session started the agent | Agent's transcript: `model` of every assistant message | End |
 | --- | --- | --- | --- | --- |
@@ -379,12 +384,14 @@ mechanism; the behaviour is that of Claude Code 2.1.318.
   `pr-review-handler`, with the model of each round, next to the baseline of pull request #2851:
   14 rounds (1 to 3 Claude Fable 5.2, 4 to 9 Claude Sonnet, 10 to 14 Claude Opus 5.5).
 - Method: a round is one processed review event that led to fixes; its model is the one in the
-  agent's transcript. The count of a pull request is final when it merges.
+  agent's transcript. The count of a pull request is final when it merges. The `model` lines of
+  each round's agent transcript are stored in
+  [`evidence/m3-run-records.md`](evidence/m3-run-records.md), with the command that printed them.
 - Status: `IN_PROGRESS` (one of three pull requests)
 
 | Pull request | Rounds with fixes | Model of each round | Count final |
 | --- | --- | --- | --- |
-| #2963 (T4) | 1 so far: review `5972182565`, six findings, all fixed (see V3) | Round 1: `claude-opus-5-5` | No, the pull request is open |
+| #2963 (T4) | 3 so far. Round 1: review `5972182565`, F1 to F6, all fixed (see V3). Round 2: review `5974337471`, F8 to F13, five fixed and F8 with no change. Round 3: reviews `5974503813` and `5974634671`, F14 to F18, processed in one run | Round 1: `claude-opus-5-5` (three runs). Round 2: `claude-opus-5-5`. Round 3: `claude-opus-5-5` | No, the pull request is open |
 
 ## Failures and Follow-up
 
