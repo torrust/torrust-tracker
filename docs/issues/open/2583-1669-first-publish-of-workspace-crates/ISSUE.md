@@ -9,7 +9,7 @@ github-issue: 2583
 spec-path: docs/issues/open/2583-1669-first-publish-of-workspace-crates/ISSUE.md
 branch: "2583-1669-first-publish-of-workspace-crates-spec"
 related-pr: null
-last-updated-utc: "2026-11-18 18:56"
+last-updated-utc: "2026-11-19 07:41"
 semantic-links:
   skill-links:
     - create-issue
@@ -106,8 +106,9 @@ State on 2026-11-18 (EPIC #1347 `Subissues` table and the GitHub state of each s
 - `primitives` (level 0, no workspace dependencies) is the only crate whose testing gate and
   dependency gate are both met. The five other crates with a met testing gate all depend on crates
   without one. `primitives` still waits for prerequisites 3 and 5, and EPIC #2912 (remove source
-  locations from errors) requires its SI-2 (#2914, `TODO`) to land before `primitives` 4.0.0 is
-  published. That constraint comes from EPIC #2912; it is not a prerequisite decided in this issue.
+  locations from errors) requires its SI-2 (#2914) to land before `primitives` 4.0.0 is
+  published. PR #2955 implements SI-2 and closes the issue when it merges; its breaking change is
+  listed under "Semver bumps owed". That constraint comes from EPIC #2912; it is not a prerequisite decided in this issue.
 - The client extraction (#2594) needs `http-protocol`, `udp-protocol` and `client-lib` published
   (rows 3, 4 and 8). None of the three has a #1347 sub-issue, and they depend only on each other,
   so meeting their testing gate is the shortest path to unblock #2594.
@@ -281,7 +282,7 @@ when a #1347 sub-issue is created or closed; EPIC #1347 owns the sub-issues them
 
 | Order | Level | Crate | Depends on | Dev-depends on | Testing (#1347) | Version to publish | Pre-publish notes | Status |
 | ----- | ----- | ----- | ---------- | -------------- | --------------- | ------------------ | ----------------- | ------ |
-| 1 | 0 | `torrust-tracker-primitives` | - | - | `MET`: [#2824](../../closed/2824-1347-add-tests-primitives/ISSUE.md) and [#2876](../../closed/2876-1347-peer-id-test-helper/ISSUE.md) closed | 4.0.0 | Published 3.0.0. Major owed (#2454). EPIC #2912 requires #2914 (SI-2) to land before 4.0.0 is published. | BLOCKED |
+| 1 | 0 | `torrust-tracker-primitives` | - | - | `MET`: [#2824](../../closed/2824-1347-add-tests-primitives/ISSUE.md) and [#2876](../../closed/2876-1347-peer-id-test-helper/ISSUE.md) closed | 4.0.0 | Published 3.0.0. Major owed (#2454). EPIC #2912 requires #2914 (SI-2) to land before 4.0.0 is published: PR #2955 implements it. | BLOCKED |
 | 2 | 0 | `torrust-tracker-events` | - | - | `NONE`: no sub-issue (OQ1) | 0.1.0 | `RecvError` stays exhaustive on purpose (#2454 E1). | BLOCKED |
 | 3 | 0 | `torrust-tracker-http-protocol` | - | - | `NONE`: no sub-issue (OQ1) | 0.1.0 | Blocks the client extraction. | BLOCKED |
 | 4 | 0 | `torrust-tracker-udp-protocol` | - | - | `NONE`: no sub-issue (OQ1) | 0.1.0 | `RequestParseError` stays exhaustive on purpose (#2454 E2). Blocks the client extraction. | BLOCKED |
@@ -437,6 +438,7 @@ release branch and a signed tag.
 - 2026-11-18 18:56 UTC - Claude Code (Claude Opus 5.5) - Issue #2914 (SI-2 of EPIC #2912) recorded
   its breaking change of `primitives` under "Semver bumps owed", for the 4.0.0 release notes (T5 of
   its spec). No crate's status changed.
+- 2026-11-19 07:41 UTC - Claude Code (Claude Opus 5.5) - Review of PR torrust/torrust-tracker#2955 (finding F3): the `primitives` state line no longer gives SI-2 as `TODO`; it and row 1 name PR #2955, which implements #2914.
 
 ## Acceptance Criteria
 
