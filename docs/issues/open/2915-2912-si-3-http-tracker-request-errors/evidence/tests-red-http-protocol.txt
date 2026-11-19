@@ -1,0 +1,89 @@
+start 11:28:57.565
+
+running 82 tests
+........ 8/82
+v1::query::tests::url_query::it_should_describe_an_unparsable_param_by_its_raw_text_and_no_source_path --- FAILED
+........... 20/82
+v1::requests::announce::tests::announce_request::describing_a_rejected_query::it_should_name_a_missing_mandatory_param_and_no_source_path --- FAILED
+v1::requests::announce::tests::announce_request::describing_a_rejected_query::it_should_name_a_short_info_hash_and_the_expected_length_and_no_source_path --- FAILED
+v1::requests::announce::tests::announce_request::describing_a_rejected_query::it_should_name_a_short_peer_id_and_the_expected_length_and_no_source_path --- FAILED
+v1::requests::announce::tests::announce_request::describing_a_rejected_query::it_should_name_an_invalid_event_and_no_source_path_when_the_event_is_parsed_on_its_own --- FAILED
+v1::requests::announce::tests::announce_request::describing_a_rejected_query::it_should_name_an_invalid_param_and_its_value_and_no_source_path --- FAILED
+.................................. 59/82
+v1::requests::scrape::tests::scrape_request::describing_a_rejected_query::it_should_name_a_short_info_hash_and_the_expected_length_and_no_source_path --- FAILED
+v1::requests::scrape::tests::scrape_request::describing_a_rejected_query::it_should_name_the_missing_info_hash_param_and_no_source_path --- FAILED
+................. 78/82
+v1::services::peer_ip_resolver::tests::working_on_reverse_proxy_mode::it_should_name_the_missing_x_forwarded_for_ip_without_a_source_path --- FAILED
+.. 81/82
+v1::services::peer_ip_resolver::tests::working_without_reverse_proxy::it_should_say_why_it_cannot_get_the_remote_client_ip_without_a_source_path --- FAILED
+
+failures:
+
+---- v1::query::tests::url_query::it_should_describe_an_unparsable_param_by_its_raw_text_and_no_source_path stdout ----
+
+thread 'v1::query::tests::url_query::it_should_describe_an_unparsable_param_by_its_raw_text_and_no_source_path' panicked at packages/http-protocol/src/v1/query.rs:274:13:
+the error message must not hold a source path, but it contains ".rs:": "invalid param name=value=value in packages/http-protocol/src/v1/query.rs:176:27"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- v1::requests::announce::tests::announce_request::describing_a_rejected_query::it_should_name_a_missing_mandatory_param_and_no_source_path stdout ----
+
+thread 'v1::requests::announce::tests::announce_request::describing_a_rejected_query::it_should_name_a_missing_mandatory_param_and_no_source_path' panicked at packages/http-protocol/src/v1/requests/announce.rs:1003:17:
+the error message must not hold a source path, but it contains ".rs:": "missing param info_hash in packages/http-protocol/src/v1/requests/announce.rs:564:23"
+
+---- v1::requests::announce::tests::announce_request::describing_a_rejected_query::it_should_name_a_short_info_hash_and_the_expected_length_and_no_source_path stdout ----
+
+thread 'v1::requests::announce::tests::announce_request::describing_a_rejected_query::it_should_name_a_short_info_hash_and_the_expected_length_and_no_source_path' panicked at packages/http-protocol/src/v1/requests/announce.rs:1029:17:
+the error message must not hold a source path, but it contains ".rs:": "invalid param value 0123456789 for info_hash in not enough bytes for infohash: got 10 bytes, expected 20 <cargo-home>/registry/src/index.crates.io-1949cf8c6b5b557f/torrust-info-hash-0.2.0/src/info_hash.rs:273:27, packages/http-protocol/src/v1/requests/announce.rs:559:42"
+
+---- v1::requests::announce::tests::announce_request::describing_a_rejected_query::it_should_name_a_short_peer_id_and_the_expected_length_and_no_source_path stdout ----
+
+thread 'v1::requests::announce::tests::announce_request::describing_a_rejected_query::it_should_name_a_short_peer_id_and_the_expected_length_and_no_source_path' panicked at packages/http-protocol/src/v1/requests/announce.rs:1040:17:
+the error message must not hold a source path, but it contains ".rs:": "invalid param value -qB0000000000000000 for peer_id in Peer id too short: expected 20 bytes, got 19, packages/http-protocol/src/v1/requests/announce.rs:576:38"
+
+---- v1::requests::announce::tests::announce_request::describing_a_rejected_query::it_should_name_an_invalid_event_and_no_source_path_when_the_event_is_parsed_on_its_own stdout ----
+
+thread 'v1::requests::announce::tests::announce_request::describing_a_rejected_query::it_should_name_an_invalid_event_and_no_source_path_when_the_event_is_parsed_on_its_own' panicked at packages/http-protocol/src/v1/requests/announce.rs:1021:17:
+the error message must not hold a source path, but it contains ".rs:": "invalid param value x for event in packages/http-protocol/src/v1/requests/announce.rs:287:27"
+
+---- v1::requests::announce::tests::announce_request::describing_a_rejected_query::it_should_name_an_invalid_param_and_its_value_and_no_source_path stdout ----
+
+thread 'v1::requests::announce::tests::announce_request::describing_a_rejected_query::it_should_name_an_invalid_param_and_its_value_and_no_source_path' panicked at packages/http-protocol/src/v1/requests/announce.rs:1013:17:
+the error message must not hold a source path, but it contains ".rs:": "invalid param value x for numwant in packages/http-protocol/src/v1/requests/announce.rs:654:27"
+
+---- v1::requests::scrape::tests::scrape_request::describing_a_rejected_query::it_should_name_a_short_info_hash_and_the_expected_length_and_no_source_path stdout ----
+
+thread 'v1::requests::scrape::tests::scrape_request::describing_a_rejected_query::it_should_name_a_short_info_hash_and_the_expected_length_and_no_source_path' panicked at packages/http-protocol/src/v1/requests/scrape.rs:170:17:
+the error message must not hold a source path, but it contains ".rs:": "invalid param value 0123456789 for info_hash in not enough bytes for infohash: got 10 bytes, expected 20 <cargo-home>/registry/src/index.crates.io-1949cf8c6b5b557f/torrust-info-hash-0.2.0/src/info_hash.rs:273:27, packages/http-protocol/src/v1/requests/scrape.rs:84:46"
+
+---- v1::requests::scrape::tests::scrape_request::describing_a_rejected_query::it_should_name_the_missing_info_hash_param_and_no_source_path stdout ----
+
+thread 'v1::requests::scrape::tests::scrape_request::describing_a_rejected_query::it_should_name_the_missing_info_hash_param_and_no_source_path' panicked at packages/http-protocol/src/v1/requests/scrape.rs:162:17:
+the error message must not hold a source path, but it contains ".rs:": "missing param info_hash in packages/http-protocol/src/v1/requests/scrape.rs:93:23"
+
+---- v1::services::peer_ip_resolver::tests::working_on_reverse_proxy_mode::it_should_name_the_missing_x_forwarded_for_ip_without_a_source_path stdout ----
+
+thread 'v1::services::peer_ip_resolver::tests::working_on_reverse_proxy_mode::it_should_name_the_missing_x_forwarded_for_ip_without_a_source_path' panicked at packages/http-protocol/src/v1/services/peer_ip_resolver.rs:292:13:
+the error message must not hold a source path, but it contains ".rs:": "missing or invalid the right most X-Forwarded-For IP (mandatory on reverse proxy tracker configuration) in packages/http-protocol/src/v1/services/peer_ip_resolver.rs:96:27"
+
+---- v1::services::peer_ip_resolver::tests::working_without_reverse_proxy::it_should_say_why_it_cannot_get_the_remote_client_ip_without_a_source_path stdout ----
+
+thread 'v1::services::peer_ip_resolver::tests::working_without_reverse_proxy::it_should_say_why_it_cannot_get_the_remote_client_ip_without_a_source_path' panicked at packages/http-protocol/src/v1/services/peer_ip_resolver.rs:225:13:
+the error message must not hold a source path, but it contains ".rs:": "cannot get the client IP from the connection info in packages/http-protocol/src/v1/services/peer_ip_resolver.rs:86:27"
+
+
+failures:
+    v1::query::tests::url_query::it_should_describe_an_unparsable_param_by_its_raw_text_and_no_source_path
+    v1::requests::announce::tests::announce_request::describing_a_rejected_query::it_should_name_a_missing_mandatory_param_and_no_source_path
+    v1::requests::announce::tests::announce_request::describing_a_rejected_query::it_should_name_a_short_info_hash_and_the_expected_length_and_no_source_path
+    v1::requests::announce::tests::announce_request::describing_a_rejected_query::it_should_name_a_short_peer_id_and_the_expected_length_and_no_source_path
+    v1::requests::announce::tests::announce_request::describing_a_rejected_query::it_should_name_an_invalid_event_and_no_source_path_when_the_event_is_parsed_on_its_own
+    v1::requests::announce::tests::announce_request::describing_a_rejected_query::it_should_name_an_invalid_param_and_its_value_and_no_source_path
+    v1::requests::scrape::tests::scrape_request::describing_a_rejected_query::it_should_name_a_short_info_hash_and_the_expected_length_and_no_source_path
+    v1::requests::scrape::tests::scrape_request::describing_a_rejected_query::it_should_name_the_missing_info_hash_param_and_no_source_path
+    v1::services::peer_ip_resolver::tests::working_on_reverse_proxy_mode::it_should_name_the_missing_x_forwarded_for_ip_without_a_source_path
+    v1::services::peer_ip_resolver::tests::working_without_reverse_proxy::it_should_say_why_it_cannot_get_the_remote_client_ip_without_a_source_path
+
+test result: FAILED. 72 passed; 10 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p torrust-tracker-http-protocol --lib`
+end 11:29:00.781

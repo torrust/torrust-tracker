@@ -1,0 +1,17 @@
+start 11:34:24.285
+
+running 82 tests
+..................................................................................
+test result: ok. 82 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 53 tests
+.....................................................
+test result: ok. 53 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.05s
+
+
+running 11 tests
+...........
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 63 filtered out; finished in 1.07s
+
+end 11:34:40.304
