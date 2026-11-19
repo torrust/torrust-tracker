@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2768-2758-tracker-client-json-only/ISSUE.md
-last-updated-utc: "2026-11-18 19:22"
+issue-spec: docs/issues/closed/2768-2758-tracker-client-json-only/ISSUE.md
+last-updated-utc: "2026-11-19 09:45"
 ---
 
 # Manual Verification Evidence
