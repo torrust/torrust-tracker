@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md
-last-updated-utc: "2026-11-19 09:19"
+last-updated-utc: "2026-11-19 11:37"
 ---
 
 # Manual Verification Evidence
@@ -135,6 +135,91 @@ ran. `printenv CLAUDE_CODE_SUBAGENT_MODEL` was run again at 09:14:28 UTC, in the
 session that processed the first review round, and printed nothing (exit 1); the stored records
 give the command and its output. What shows the run's model is the agent's transcript,
 `claude-opus-5-5`; an override naming the same model would not show in it.
+
+### V3 - A real review round (scenario M3)
+
+- Goal: show that a session that owns a pull request can delegate one real review round to
+  `pr-review-handler`, and that the agent takes it from the fetch of the findings to resolved
+  threads.
+- Initial state: pull request #2963 (this task) open at head
+  `docs(issues): [#2904] record the task review of T4 and check AC2`, with the approving review
+  `5972182565` of `da2ce7` (six inline findings, F1 to F6) and an overview of Copilot,
+  `5972197600`, with no inline comment.
+- Environment: 2026-11-19; Linux 7.0.0-43-generic; Claude Code 2.1.318 (`claude --version`). Three
+  runs, described below; the session of each ran on `claude-sonnet-5-5`.
+- Status: `DONE`
+
+#### Steps Performed
+
+A Claude Code session reads agent files when it starts, so each run is a new non-interactive
+session in the branch's checkout. The session was told to start `pr-review-handler` exactly once,
+with a fixed task, and to print the agent's report verbatim:
+
+```text
+claude -p --model sonnet --debug-file <run's debug log> --output-format json "You are the session that owns pull request #2963 and you delegate one review round. Do not process the review yourself and do not change any file. Start the pr-review-handler agent exactly once, [...] with exactly the task between the markers as its prompt, [...] print its report verbatim and add nothing. ---BEGIN TASK--- <task> ---END TASK---"
+```
+
+The task gave the agent what its file names as inputs: the pull request, the poller's event
+(`kind` `review`, review ID `5972182565`, its URL, `head_sha` and `cursor`), the commands that act
+as the contributor (`gh-bot` for GitHub, `git-bot-push` for the push, a wrapper that runs
+`validate-audit-record.py` with the contributor's token), and what the session knew of the round.
+It also forbade merging, the ACK, review requests, the approval of workflow runs and history
+rewrites. The debug logs, transcripts and JSON results stay local, as in V1.
+
+| Run | Start (UTC) | How the session started the agent | Agent's transcript: `model` of every assistant message | End |
+| --- | --- | --- | --- | --- |
+| 1 | 09:12:11 | In the background (metadata `"requestShape":"background"`) | `claude-opus-5-5` (76 entries) | Stopped by the harness at 09:22:27 |
+| 2 | 09:23:02 | In the foreground, as the instruction then said | `claude-opus-5-5` (47 entries) | Returned a question at 09:27:39 |
+| 3 | 11:19:19 | In the foreground | `claude-opus-5-5` (49 entries) | Returned its report at 11:36:01 |
+
+In every run the agent's request-cache record lists the tools `Bash`, `Read`, `Edit`, `Write` and
+`SubagentHandback` and the model `claude-opus-5-5`.
+
+#### Results
+
+- **Run 1.** The first instruction did not say how to start the agent, and the session started it
+  in the background. 10 minutes later, while the agent was still working, Claude Code stopped it:
+  the debug log says `print wind-down: killing background local_agent task [...] at the wait
+  ceiling`. A non-interactive session waits that long for its background tasks unless
+  `CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0` is set. The agent had made five local, signed commits
+  that fix F1 to F5, and had pushed nothing, replied to nothing and created no audit record.
+- **Run 2.** The instruction now asked for a foreground start, the variable above was set to `0`,
+  and the task told the agent about the five commits. The agent checked them against the tree and
+  the review and kept them. It edited the pull request's description for F6. Before its push went
+  out it saw that the maintainer had posted an ACK of the reviewed head at 09:24:49 UTC, so it
+  stopped and returned the question whether to push the fixes or leave that head for the merge. It
+  had pushed nothing and posted no reply. This is the behaviour its file asks for: a decision it
+  cannot make goes back as a question.
+- **Run 3.** The contributor answered "Push the fixes", and the task carried that answer. The
+  agent checked that the pull request was still open, then pushed the five commits. Its first push
+  was refused by the pre-push hook: a test of `clippy-allow-reasons` failed while setting up a
+  `git` fixture ("File exists"), a failure unrelated to this documentation-only branch; the agent
+  ran that package's test target alone (10 of 10 passed, by its report) and pushed again, and `git ls-remote`
+  showed the new head. It created the audit record `docs/pr-reviews/pr-2963-review/PR-REVIEW.md`
+  (F1 to F6, all `FIXED`), posted one reply in each of the six threads, resolved them, ran
+  `validate-audit-record.py` (exit `0`), committed the record as
+  `docs(pr-reviews): [#2904] add the audit record of PR #2963 review round 1` and pushed it. Its
+  report named the reviews, each finding with its disposition and thread state, the commits, the
+  head after the push, the replies, 0 unresolved threads, the validator's exit code and "none" for
+  questions.
+- **Checked by the session afterwards, not taken from the report:** `git ls-remote` showed the
+  audit commit as the branch head; a GraphQL query of the review threads showed the six threads
+  resolved, each with a reply of the contributor's account; `validate-audit-record.py` exited `0`
+  again.
+
+#### Conclusion
+
+The expected result is met: fixes committed and pushed, every thread replied to and then
+resolved, the audit record created, `validate-audit-record.py` exits `0`, and a short report
+returned. In all three runs the agent ran on its pinned model.
+
+Two limits for whoever delegates a round:
+
+- A non-interactive session must start the agent in the foreground, or set
+  `CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0`; otherwise a round longer than 10 minutes is cut off.
+  An interactive session is not affected.
+- A round can take more than one run: the agent stops at a question, and the session starts it
+  again with the answer and with what the earlier run left.
 
 ### V4 - `AGENTS.md` reaches the agents (scenario M4)
 
@@ -287,6 +372,19 @@ probes 1 to 8 no tool calls were recorded, so a quote there could in principle c
 which was not repeated; its answer text is in the stored file. The NOT LOADED answers of probes 1, 2 and 4 do not depend on it. Only
 `packages/configuration/` was probed, and the other eight scoped directories rely on the same
 mechanism; the behaviour is that of Claude Code 2.1.318.
+
+### V6 - Review rounds per pull request (scenario M6)
+
+- Goal: count the review rounds with fixes of the first three pull requests handled by
+  `pr-review-handler`, with the model of each round, next to the baseline of pull request #2851:
+  14 rounds (1 to 3 Claude Fable 5.2, 4 to 9 Claude Sonnet, 10 to 14 Claude Opus 5.5).
+- Method: a round is one processed review event that led to fixes; its model is the one in the
+  agent's transcript. The count of a pull request is final when it merges.
+- Status: `IN_PROGRESS` (one of three pull requests)
+
+| Pull request | Rounds with fixes | Model of each round | Count final |
+| --- | --- | --- | --- |
+| #2963 (T4) | 1 so far: review `5972182565`, six findings, all fixed (see V3) | Round 1: `claude-opus-5-5` | No, the pull request is open |
 
 ## Failures and Follow-up
 
