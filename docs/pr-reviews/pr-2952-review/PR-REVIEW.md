@@ -1,7 +1,7 @@
 ---
 pr-number: 2952
 pr-url: https://github.com/torrust/torrust-tracker/pull/2952
-last-updated-utc: "2026-11-19 07:16"
+last-updated-utc: "2026-11-19 07:49"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -48,6 +48,8 @@ Round 2 is Copilot's review `5964554730` (COMMENTED, two findings in its body wi
 with no row) on the head that carried the round 1 audit.
 Round 3 is Copilot's review `5970792387` (COMMENTED, one inline comment, recorded as F7) on the head that carried the round 2
 audit.
+Round 4 is the approving review `5971081099` of `da2ce7` (APPROVED, four inline comments with its own IDs F1 to F4, which
+collide with rows of round 1, so they are recorded as F8 to F11) on the head that carried the round 3 audit.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -57,6 +59,10 @@ audit.
 | F4 | `review-finding:pr-2952-f4` | Copilot | Major | correctness | ORIGINAL | FIXED | NON_RESOLVABLE |
 | F6 | `review-finding:pr-2952-f6` | Copilot | Minor | correctness | ORIGINAL | FIXED | NON_RESOLVABLE |
 | F7 | `review-finding:pr-2952-f7` | Copilot | Major (inferred) | correctness | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F8 | `review-finding:pr-2952-f8` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F9 | `review-finding:pr-2952-f9` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F10 | `review-finding:pr-2952-f10` | Human | Nit | testing | ORIGINAL | FIXED | RESOLVED |
+| F11 | `review-finding:pr-2952-f11` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -138,12 +144,65 @@ audit.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2952#discussion_r4625490224
 
+### F8 - The README called the validator stricter on blank text
+
+- PR number: 2952
+- Source review ID: 5971081099
+- Reviewer finding ID: F1
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2952#discussion_r4625703462
+- Concern: `docs/schemas/README.md` says the validator is stricter than the schema for blank text; for U+FEFF it is the other way, since ECMA-262 counts U+FEFF as white space and Rust's `trim` does not.
+- Solution: The README now says the validator differs, and gives the direction per character: a text of only U+0085 passes the schema and fails the validator, a text of only U+FEFF fails the schema and passes the validator. The module documentation says the same. The body of the earlier commit that said "stricter" stays as it is, since history is not rewritten.
+- Current-tree verification: `docs/schemas/README.md` and the module documentation of `src/schema.rs` give the same direction per character; `linter all` passed in the pre-commit gate.
+- Resolution reference: `docs(schemas): [#2904] say in which direction the reply validator differs on blank text`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2952#discussion_r4625764634
+
+### F9 - The subject pattern accepts numbers the parser rejects
+
+- PR number: 2952
+- Source review ID: 5971081099
+- Reviewer finding ID: F2
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2952#discussion_r4625703469
+- Concern: `^(t|pr)[1-9][0-9]*$` has no length bound while the parser reads a `u32`, so `t4294967296` passes the schema and fails the validator; the difference is not listed.
+- Solution: The module documentation and the README list the 32-bit limit as a difference, and the test `it_should_match_a_subject_number_too_large_for_the_parser` pins it: the pattern matches `t4294967296` and the parser rejects it.
+- Current-tree verification: `cargo test -q -p agent-reply-validator` passed (157 unit, 6 helper, 23 command and 2 schema tests).
+- Resolution reference: `test(agent-reply-validator): [#2904] name the 32-bit limit of a subject number as a schema difference`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2952#discussion_r4625764944
+
+### F10 - The argument-refusal test could not observe a write
+
+- PR number: 2952
+- Source review ID: 5971081099
+- Reviewer finding ID: F3
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2952#discussion_r4625703474
+- Concern: the test compared only the artifact's content, which a write of the same content leaves unchanged, so its name promised more than it checked.
+- Solution: The test compares the artifact's modification time as well as its content, before and after the run.
+- Current-tree verification: `cargo test -q -p agent-reply-validator --test schema` passed; with the binary changed to write the artifact before it refuses the argument, the test failed on the modification time, and passed again once the change was reverted.
+- Resolution reference: `test(agent-reply-validator): [#2904] observe a write of the schema binary by its modification time`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2952#discussion_r4625765298
+
+### F11 - The description's test counts predated the round 2 fixes
+
+- PR number: 2952
+- Source review ID: 5971081099
+- Reviewer finding ID: F4
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2952#discussion_r4625703481
+- Concern: the Validation list said 154 unit tests and 22 command-boundary tests; the head has more.
+- Solution: The description now gives the counts at the head that carries the round 4 fixes: 157 unit tests, 6 helper tests, 23 command-boundary tests and 2 schema tests.
+- Current-tree verification: `cargo test -q -p agent-reply-validator` printed those counts; the description was edited at 07:45:26Z (`date -u`).
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2952#discussion_r4625765622
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2952#discussion_r4625765622
+
 ## Processing Log
 
 - 2026-11-18 19:13 UTC - Started audit, before the replies of round 1.
 - 2026-11-18 19:17 UTC - Round 1: Copilot's review `5963279729` (submitted 19:09:46Z, forge `submitted_at`) with three comments, recorded as F1 to F3. The fixes of F1 and F3 were committed at 19:11:51Z and 19:12:29Z (`git log --format=%cI`, in UTC) and pushed; `git ls-remote` showed the fork branch at the local head at 19:17:15Z (`date -u`). The three replies were posted between 19:17:27Z and 19:17:32Z (forge `created_at`), after the push. `validate-audit-record.py --pr-number 2952 --base torrust/develop`, with its `gh` calls made through `gh-bot`, exited 0 (3 rows, 0 failures) at 19:17:42Z; the three threads were then resolved by their thread IDs, and a GraphQL refresh showed 0 unresolved threads. No review of `da2ce7`, who was requested, arrived in the first 60 minutes.
 - 2026-11-18 20:40 UTC - Round 2: Copilot's review `5964554730` (submitted 20:31:43Z, forge `submitted_at`) with two findings in its body, recorded as F4 and F6 under its IDs. They have no inline thread, so their rows are `NON_RESOLVABLE`. The fixes were committed at 20:34:01Z and 20:35:06Z (`git log --format=%cI`, in UTC) and pushed; `git ls-remote` showed the fork branch at the local head at 20:39:25Z (`date -u`). One conversation response, naming the review and both findings, was posted at 20:39:36Z (forge `created_at`), after the push, and edited at 20:39:44Z to correct its first line, which had named the round 1 review.
 - 2026-11-19 07:16 UTC - Round 3: Copilot's review `5970792387` (submitted 07:13:39Z, forge `submitted_at`) with one inline comment, recorded as F7. Its body says the full review did not run before a timeout. The claim does not hold on the current tree, so there is no code change; the reply was posted at 07:16:25Z (forge `created_at`). `da2ce7`, who was requested, has still not reviewed, more than 12 hours after the request.
+- 2026-11-19 07:49 UTC - Round 4: the approving review `5971081099` of `da2ce7` (submitted 07:41:52Z, forge `submitted_at`) with four inline comments, recorded as F8 to F11. The fixes of F8 to F10 were committed and pushed; `git ls-remote` showed the fork branch at the local head at 07:49:00Z (`date -u`). The description was edited for F11 at 07:45:26Z (`date -u`). The four replies were posted between 07:49:11Z and 07:49:18Z (forge `created_at`), after the push.
 
 <!-- Copied verbatim into each audit record. -->
 
