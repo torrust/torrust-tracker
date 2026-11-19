@@ -84,11 +84,11 @@ Round 3 has two reviews, both shown as DISMISSED because a later push dismissed 
 | F11 | review-finding:pr-2963-f11 | Human | Minor | link-integrity | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-2963-f12 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F13 | review-finding:pr-2963-f13 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
-| F14 | review-finding:pr-2963-f14 | Human | Minor | documentation | ORIGINAL | FIXED | OPEN |
-| F15 | review-finding:pr-2963-f15 | Human | Nit | documentation | ORIGINAL | FIXED | OPEN |
-| F16 | review-finding:pr-2963-f16 | Human | Nit | metadata | ORIGINAL | FIXED | OPEN |
-| F17 | review-finding:pr-2963-f17 | Human | Minor | metadata | ORIGINAL | FIXED | OPEN |
-| F18 | review-finding:pr-2963-f18 | Human | Nit | correctness | ORIGINAL | FIXED | OPEN |
+| F14 | review-finding:pr-2963-f14 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-2963-f15 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-2963-f16 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-2963-f17 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-2963-f18 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -336,7 +336,7 @@ Round 3 has two reviews, both shown as DISMISSED because a later push dismissed 
   it prints 0; the PR-branch commit-id check of `open-pull-request` prints nothing.
 - Resolution reference: docs(issues): [#2904] store the records of the M3 runs and count review rounds 2 and 3
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2963#discussion_r4629651573>
 
 ### F15 - The wait-ceiling variable has no source and was not tested alone
 
@@ -357,7 +357,7 @@ Round 3 has two reviews, both shown as DISMISSED because a later push dismissed 
   `prompt_says_foreground` true.
 - Resolution reference: docs(issues): [#2904] name the source of the wait-ceiling variable in V3
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2963#discussion_r4629652108>
 
 ### F16 - AC3 stays unchecked while M3 is done
 
@@ -375,7 +375,7 @@ Round 3 has two reviews, both shown as DISMISSED because a later push dismissed 
   citing section V3.
 - Resolution reference: docs(issues): [#2904] check AC3 with the evidence of scenario M3
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2963#discussion_r4629652644>
 
 ### F17 - The second-round replies cite rows that the reviewed head does not carry
 
@@ -395,7 +395,7 @@ Round 3 has two reviews, both shown as DISMISSED because a later push dismissed 
   threads resolved by `josecelano-bot`, each with two comments.
 - Resolution reference: docs(pr-reviews): [#2904] record PR #2963 review round 2 in the audit
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2963#discussion_r4629653148>
 
 ### F18 - The F9 reply's check does not hold
 
@@ -414,7 +414,7 @@ Round 3 has two reviews, both shown as DISMISSED because a later push dismissed 
   12:18 UTC and hold as now written.
 - Resolution reference: docs(pr-reviews): [#2904] give the F9 verification of PR #2963 a check that holds
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2963#discussion_r4629653608>
 
 ## Processing Log
 
@@ -459,6 +459,15 @@ Round 3 has two reviews, both shown as DISMISSED because a later push dismissed 
   `validate-audit-record.py` exited 1 on this version with five failures, one missing reply URL
   for each of F14 to F18 and no other; the URLs, the validator's result and the resolutions follow
   in a later entry.
+- 2026-11-19 13:52 UTC - Round 3, continued. The run stopped before pushing because the maintainer
+  posted an ACK of the reviewed head at 12:13:45 UTC; the contributor then asked for round 3 to be
+  pushed. The push moved the fork branch to the head whose last commit is
+  `docs(pr-reviews): [#2904] record PR #2963 review round 3 in the audit before replying`
+  (`git ls-remote`). Replied on the five threads of F14 to F18 (13:50:54 to 13:51:05 UTC, the
+  replies' `created_at`), recorded their URLs, and `validate-audit-record.py` exited 0 (17 rows, 0
+  failures). Resolved the five threads at 13:52 UTC; each mutation returned `isResolved: true`, and
+  a GraphQL refresh counted 0 unresolved threads. Review `5974788539` (`da2ce7`, 12:14:43 UTC) has
+  no inline comment and no new request, so it adds no row.
 
 ## Completion Rules
 
