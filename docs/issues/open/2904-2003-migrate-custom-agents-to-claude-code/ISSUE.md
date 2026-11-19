@@ -7,9 +7,9 @@ priority: p1
 epic: 2003
 github-issue: 2904
 spec-path: docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md
-branch: "2904-t3-reply-schema"
+branch: "2904-t4-pr-review-handler"
 related-pr: null
-last-updated-utc: "2026-11-18 17:59"
+last-updated-utc: "2026-11-19 16:57"
 semantic-links:
   skill-links:
     - create-issue
@@ -519,7 +519,7 @@ on are merged.
 | T1  | DONE   | Specification pull request | This specification in `docs/issues/open/`, and a new row in the EPIC's Subissues table |
 | T2  | DONE   | Pointer `CLAUDE.md` | A root `CLAUDE.md` whose only content is the import of `AGENTS.md` (D11); if scenario M4 shows that a scoped `AGENTS.md` is not loaded, an import-only `CLAUDE.md` beside each of the ten scoped `AGENTS.md` files; scenario M4 recorded |
 | T3  | DONE   | Reply schema and validator | `docs/schemas/agent-reply-v1.schema.json`; the validator with tests, developed in the progressive loop of the `write-unit-test` skill with a recorded design review per increment, and run by the repository checks; `docs/schemas/README.md` updated (D18) |
-| T4  | TODO   | `pr-review-handler` | `.claude/agents/pr-review-handler.md` with the pinned model; `wait-for-pr-review` and `process-pr-review` say which agent runs a round; the inventory `removed-profile-rules.md` created in this folder with the rules of `copilot-suggestions-handler` (AC6); scenarios M1 to M3 recorded |
+| T4  | DONE | `pr-review-handler` | `.claude/agents/pr-review-handler.md` with the pinned model; `wait-for-pr-review` and `process-pr-review` say which agent runs a round; the inventory `removed-profile-rules.md` created in this folder with the rules of `copilot-suggestions-handler` (AC6); scenarios M1 to M3 recorded |
 | T5  | TODO   | `task-reviewer` | The agent file with the pinned model and the stop hook (D17), with tests of its limit of 3 refusals; the complexity item in `review-task` (D12); the reply rule in `review-task`, which also says that a reply file satisfies the earlier template's checkpoint (D18); scenario M7 recorded |
 | T6  | TODO   | `implementer` | The agent file; the three committer rules in `commit-changes` (D14); the rules that only `planner` held moved into `create-issue` |
 | T7  | TODO   | `pr-reviewer` | The agent file with the pinned model; the reply rule in `review-pr` |
@@ -603,14 +603,19 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - 2026-11-17 17:45 UTC - Claude Code (Claude Fable 5.2) - Addressed the reviews `5943570147` of `da2ce7` and `5943581377` of Copilot on pull request #2920: `.dockerignore` re-excludes the pointer files; the evidence states what probes 1, 2 and 4 show, names its commands as run, and stores every probe's answer in `evidence/m4-probe-answers.md`; T1 is `DONE` and the EPIC row is `IN_PROGRESS`.
 - 2026-11-17 18:34 UTC - Claude Code (Claude Fable 5.2) - Addressed the approving review `5944190011` of `da2ce7` on pull request #2920 (two nits): the evidence records the correction to the description of checkout P, and the stored answers say which angle-bracket names are the probes' own.
 - 2026-11-18 17:59 UTC - Claude Code (Claude Opus 5.5) - Task T3: added the crate `agent-reply-validator` (an AI-harness workspace member, not a default member) in five test increments, each with an independent test-design review recorded in `agent-review-reports.md` and a mutation check of its rules: the reply file name, the strict content model, the checks of one file (place, name, content, agreement), the command (`--all` over the index for the hook and CI; paths on disk for the stop hook of T5), and the schema `docs/schemas/agent-reply-v1.schema.json` generated from the model with a drift test. The pre-commit hook and the Docs Lint workflow run `agent-reply-validator --all`; `docs/schemas/README.md`, the package catalog and the CLI output contract ADR describe it. Two choices the maintainer did not settle when asked, made with the recommended option: the schema is generated from a Rust model, and the per-increment design review is made by an independent subagent. The independent review of the whole task is recorded in `agent-review-reports.md` (REVIEW PASSED, two minor findings and a nit, all addressed); `docker build --target recipe --file Containerfile .` exited 0 with the new workspace member.
+- 2026-11-19 08:39 UTC - Claude Code (Claude Opus 5.5) - Pull request #2952 merged on 2026-11-19 at 08:28 UTC. Task T4: added the agent `.claude/agents/pr-review-handler.md`, pinned to `claude-opus-5-5`, which runs one review round through the preloaded `process-pr-review` workflow for every reviewer and returns a short report; `wait-for-pr-review` and `process-pr-review` say which agent runs a round and what the session keeps; started the inventory `removed-profile-rules.md` with the rules of `copilot-suggestions-handler` (AC6). Scenarios M1 and M2 ran in one session on `claude-sonnet-5-5`: the agent loaded, its skills, tools and model took effect, and its transcript shows `claude-opus-5-5`; `Grep` and `Glob`, which this build of Claude Code lacks, were dropped silently. Scenario M3 runs on the first review round of this task's pull request.
+- 2026-11-19 09:18 UTC - Claude Code (Claude Opus 5.5) - Independent review of T4 recorded in `agent-review-reports.md` at 08:44 (REVIEW PASSED, two minor findings, three nits and two suggestions). Addressed before the pull request, in four commits: V1 says the agent's transcript holds the four skills right after its task; the `wait-for-pr-review` paragraph and the agent file say the session brings the branch to the event's commit before it delegates; the agent's `description` names open, merged and replaced pull requests; the agent file points to `AGENTS.md` and `commit-changes` for commits and to the skill's list of what the session keeps; AC2 is checked with the evidence of V2. Not changed: `Grep` and `Glob` stay in `tools`. This entry was added in the first review round of pull request #2963, whose finding F2 noted that the log stopped before the review; its words "one commit each" were corrected in the second round (finding F9), since the branch-sync item took two commits and three other items share a commit with another change.
+- 2026-11-19 11:37 UTC - Claude Code (Claude Opus 5.5) - Scenario M3 done on the first review round of pull request #2963 (review `5972182565` of `da2ce7`, findings F1 to F6, all fixed), delegated to `pr-review-handler` by non-interactive sessions; it took three runs. The first was stopped after 10 minutes because the session started the agent in the background; the second stopped at a question, since the maintainer had ACKed the reviewed head during the round; the third, with the contributor's answer "Push the fixes", pushed the fixes and the audit record, replied to and resolved the six threads, and `validate-audit-record.py` exited `0`. Evidence in `manual-verification-evidence.md` section V3; the first round count for AC9 is in section V6. Task T4 is done.
+- 2026-11-19 12:17 UTC - Claude Code (Claude Opus 5.5) - Third review round of pull request #2963 (reviews `5974503813` and `5974634671` of `da2ce7`, findings F14 to F18), processed by `pr-review-handler`: the records of the M3 runs, of round 2 and of round 3 are stored in `evidence/m3-run-records.md`, which V3 and V6 link; V3 quotes the message that names `CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS` and says its effect alone was not observed; V6 counts three rounds with fixes; AC3 is checked with the evidence of V3, and the AC9 row gives the new count.
+- 2026-11-19 16:57 UTC - Claude Code (Claude Opus 5.5) - Fourth review round of pull request #2963 (review `5976833863` of `da2ce7`, finding F20), processed by `pr-review-handler`: V6 names its round definition, one push of fixes per processing round, which is how the 14 rounds of #2851 were counted, and also gives the count of reviews with a `FIXED` finding (19 for #2851, 5 for #2963); #2963 has 4 rounds with this one. The AC9 row gives both counts, and `evidence/m3-run-records.md` records the second run of round 3 and the two runs of round 4.
 
 ## Acceptance Criteria
 
 - [ ] AC1: `.claude/agents/` contains the agreed agents, and each loads in Claude Code with no
       ignored frontmatter key.
-- [ ] AC2: `pr-review-handler` declares its model in its frontmatter, and a recorded run shows it
+- [x] AC2: `pr-review-handler` declares its model in its frontmatter, and a recorded run shows it
       ran on that model.
-- [ ] AC3: One real review round on a real pull request was processed by `pr-review-handler` from
+- [x] AC3: One real review round on a real pull request was processed by `pr-review-handler` from
       fetch to resolved threads, with `validate-audit-record.py` exiting `0`.
 - [ ] AC4: The `orchestrator` started the `implementer` and the `task-reviewer` on a real task, and
       each wrote a valid reply file. The implementer started no agent.
@@ -663,12 +668,12 @@ Every scenario records the Claude Code version it ran on.
 
 | ID  | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1  | The agent files load | Start Claude Code with `--debug` in the repository; list the agents; search the debug output for ignored frontmatter | Every agent merged so far is listed; no key is reported as ignored | TODO | `manual-verification-evidence.md` section V1 |
-| M2  | The pinned model applies | Start `pr-review-handler` from a session running on a different model; record the model named in the agent's transcript file, not the one the agent says it is | The agent ran on the model in its frontmatter, with no fallback | TODO | `manual-verification-evidence.md` section V2 |
-| M3  | A real review round | On an open pull request with a submitted review, let the session that owns it delegate the round to `pr-review-handler` | Fixes committed and pushed, every thread replied to and then resolved, the audit record updated, `validate-audit-record.py` exits `0`, a short report returned | TODO | `manual-verification-evidence.md` section V3 |
+| M1  | The agent files load | Start Claude Code with `--debug` in the repository; list the agents; search the debug output for ignored frontmatter | Every agent merged so far is listed; no key is reported as ignored | DONE | `manual-verification-evidence.md` section V1 |
+| M2  | The pinned model applies | Start `pr-review-handler` from a session running on a different model; record the model named in the agent's transcript file, not the one the agent says it is | The agent ran on the model in its frontmatter, with no fallback | DONE | `manual-verification-evidence.md` section V2 |
+| M3  | A real review round | On an open pull request with a submitted review, let the session that owns it delegate the round to `pr-review-handler` | Fixes committed and pushed, every thread replied to and then resolved, the audit record updated, `validate-audit-record.py` exits `0`, a short report returned | DONE | `manual-verification-evidence.md` section V3 |
 | M4  | `AGENTS.md` reaches the agents | In a checkout with a `CLAUDE.md` in a parent folder, and in one without, ask the session and one started agent which repository rules they were given; then make each read a file in `packages/configuration/` and ask for a rule that only `packages/configuration/AGENTS.md` holds | Both the session and the started agent received the root `AGENTS.md` in both cases, and the scoped rule after reading a file in that directory; each `CLAUDE.md` contains only an import | DONE | `manual-verification-evidence.md` section V4 |
 | M5  | The orchestrator leads | Start a session as the orchestrator on a small real task, once with `claude --agent orchestrator` and once by telling a normal session to read the file and take the role | It starts the implementer, then the task reviewer; each writes a valid reply file in `agent-replies/`; the implementer starts no agent; questions come back to the contributor through the orchestrator | TODO | `manual-verification-evidence.md` section V5 |
-| M6  | Review rounds per pull request | For the first three pull requests handled by `pr-review-handler`, count the review rounds with fixes | The counts are recorded with the model of each round, next to the baseline of pull request #2851 (14 rounds, split by model) | TODO | `manual-verification-evidence.md` section V6 |
+| M6  | Review rounds per pull request | For the first three pull requests handled by `pr-review-handler`, count the review rounds with fixes | The counts are recorded with the model of each round, next to the baseline of pull request #2851 (14 rounds, split by model) | IN_PROGRESS | `manual-verification-evidence.md` section V6 |
 | M7  | The stop hook holds the reviewer | Start `task-reviewer` on a task, first with an instruction that makes it try to finish without a reply file, then normally | The hook refuses the first attempt and names what is missing; the agent then writes a valid reply file and finishes; a forced case shows 3 refusals and then the fourth attempt allowed, with the limit reported | TODO | `manual-verification-evidence.md` section V7 |
 
 Notes:
@@ -687,14 +692,14 @@ None planned.
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
 | AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
+| AC2   | DONE                   | `.claude/agents/pr-review-handler.md` declares `model: claude-opus-5-5`; `manual-verification-evidence.md` section V2: started from a session on `claude-sonnet-5-5`, the agent's transcript shows `claude-opus-5-5` |
+| AC3   | DONE                   | `manual-verification-evidence.md` section V3: the first review round of pull request #2963 (review `5972182565`, F1 to F6) was processed by `pr-review-handler` in three runs, from the fetch of the threads to the six threads replied to and resolved; `validate-audit-record.py` exited `0`, by the agent's report and again when the session checked; the records and reports are in `evidence/m3-run-records.md` |
 | AC4   | TODO                   |          |
 | AC5   | TODO                   |          |
 | AC6   | TODO                   |          |
 | AC7   | TODO                   |          |
 | AC8   | TODO                   |          |
-| AC9   | TODO                   |          |
+| AC9   | TODO                   | `manual-verification-evidence.md` section V6: pull request #2963 (T4), the first of three, has 4 rounds with fixes so far (5 reviews with a `FIXED` finding), each on `claude-opus-5-5`, against 14 rounds (19 such reviews) for #2851, both counted as one push of fixes per processing round; final when it merges |
 | AC10  | TODO                   |          |
 | AC11  | TODO                   |          |
 | AC12  | DONE                   | `manual-verification-evidence.md` section V4: probes 5 to 12 quote the root heading and the scoped rule in both checkouts, for the session and a started agent; `git ls-files \| grep -E '(^\|/)CLAUDE\.md$' \| xargs cat \| sort -u` prints only `@AGENTS.md` |

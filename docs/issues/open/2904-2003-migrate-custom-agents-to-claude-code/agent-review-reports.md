@@ -278,3 +278,50 @@ semantic-links:
   - Author, done before the pull request: the index row names both schemas;
     `docker build --target recipe --file Containerfile .` exited 0 at 18:01:16Z (`date -u`);
     this entry records the review, and the Progress Log line names it.
+
+### 2026-11-19 08:44 UTC - Task reviewer (Claude Code subagent, Claude Opus 5.5, `review-task` skill)
+
+- Invocation scope: Read-only review of task T4 on branch `2904-t4-pr-review-handler`, before its
+  pull request: the six commits of the branch (the agent `.claude/agents/pr-review-handler.md`,
+  one paragraph each in `wait-for-pr-review` and `process-pr-review`, the inventory
+  `removed-profile-rules.md`, sections V1 and V2 of `manual-verification-evidence.md`, and the
+  specification's progress). Scenario M3 had not run, by plan: it runs on the first review round of
+  this task's pull request.
+- Inputs: the T4 rows of the Implementation Plan and of Commit Points, D3, D4, D9, D13, D14, D16,
+  D18, P1, P2, the ownership table, AC1 to AC3, AC6 and M1 to M3 of the specification;
+  `.github/agents/copilot-suggestions-handler.agent.md`; `.claude/skills/review-task/SKILL.md`;
+  the probe run's debug log, result and transcript files.
+- Evidence: `linter markdown`, `linter cspell`, `cargo run -q -p agent-review-report-contract`,
+  `frontmatter-validator` on the changed files, `--skill-layout` and `--skill-descriptions`, and
+  `lychee --offline` on the changed Markdown files exited 0. `frontmatter-validator --all` exited 1
+  on 13 diagnostics in specifications that T4 does not touch, which neither the hook nor CI runs.
+  Every claim of V1 and V2 was compared with the transcript, metadata, request-cache and debug
+  files; all matched but one (the first Minor finding). Each "already held it" row of the
+  inventory was compared with the named section of the skill.
+- Findings:
+  - Minor: V1 said the agent's transcript holds the four skills before its task; they come right
+    after it.
+  - Minor: the `wait-for-pr-review` paragraph did not say who brings the branch to the event's
+    commit, the first part of step 2.
+  - Nit: the agent's `description` named only open pull requests, while its body handles merged
+    and replaced ones.
+  - Nit: the agent file restated commit rules (signed, Conventional, the gate) that `AGENTS.md` and
+    `commit-changes` hold.
+  - Nit: the agent file and the `wait-for-pr-review` paragraph listed different parts of what the
+    session keeps.
+  - Suggestion: AC2 is fully evidenced by V2 and its row can say so.
+  - Suggestion: re-check the `Grep` and `Glob` entries of `tools` when the build changes.
+  - The reviewer judged the M3 plan sound, with five cautions: the GPG passphrase must already be
+    cached for a non-interactive session; the session must be allowed the contributor's GitHub
+    and push commands, passed to the agent as inputs; no other session acts on the same event
+    during the run; the model is read from the agent's transcript, with
+    `CLAUDE_CODE_SUBAGENT_MODEL` unset; and the round is the first count of AC9.
+- Verdict: REVIEW PASSED
+- Follow-up actions:
+  - Author, done before the pull request: V1 says "right after its task"; the session brings the
+    branch to the event's commit before it delegates, in the skill paragraph and the agent file;
+    the description names open, merged and replaced pull requests; the agent file points to
+    `AGENTS.md` and `commit-changes` for commits; the agent file points to the skill's list of what
+    the session keeps; AC2 is checked with its evidence.
+  - Not changed: `Grep` and `Glob` stay in `tools`, as V1 records, for the builds that have them. The M3
+    cautions apply to its run.
