@@ -206,7 +206,7 @@ process, asynchronous I/O or shared fixture is involved.
 
 ## Bug-Fix Process
 
-Not applicable. The current behaviour follows the rules as written; this issue changes the rules.
+Not applicable. The current behavior follows the rules as written; this issue changes the rules.
 
 ## Regression Test Strategy
 
@@ -290,7 +290,7 @@ the last increment, before final verification and the pull request. If D2 is (a)
 - [ ] AC3: The waiver sentence in Merge Readiness no longer asks for a record in the review audit.
 - [ ] AC4: `process-pr-review` says that an audit-only commit keeps the ACK and that history is never rewritten to protect an ACK.
 - [ ] AC5: D1 to D5 are recorded with date and decider, and da2ce7's agreement is linked.
-- [ ] AC6: The merge tool behaves as D2 decides, and its behaviour for an ACK that counts under the rule is documented in `merge-pull-request`.
+- [ ] AC6: The merge tool behaves as D2 decides, and its behavior for an ACK that counts under the rule is documented in `merge-pull-request`.
 - [ ] AC7: A commit after the ACK that changes any file outside `docs/pr-reviews/pr-<N>-review/` makes the ACK stale under every changed text and tool, even when a later commit reverts the change.
 - [ ] AC8: The #2363 line in `EPIC.md` names this issue.
 - [ ] `linter all` exits with code `0`
