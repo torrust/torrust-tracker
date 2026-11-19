@@ -45,9 +45,11 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 Round 1 is Copilot's review `5963601478` on the first head, with two inline findings that carry reviewer-provided IDs (F1 and F2). The review body only summarizes them and has no row of its own.
 
-Round 2 is Copilot's review `5964198269` on the head that carried the round-1 fixes. It ran with the "didn't start before the timeout" warning and left two inline findings without IDs or severity brackets (F3 and F4, audit-local, severity inferred).
+Round 2 is Copilot's review `5964198269` on the head that carried the round-1 fixes. It ran with the "didn't start before the timeout" warning and left two inline findings without IDs or severity brackets (F3 and F4, audit-local, severity inferred). Copilot labelled both "Medium severity".
 
-Round 3 is Copilot's review `5964694968` on the head with the round-2 audit, again with the timeout warning, and one inline finding without an ID or severity bracket (F5, audit-local, severity inferred).
+Round 3 is Copilot's review `5964694968` on the head with the round-2 audit, again with the timeout warning, and one inline finding without an ID or severity bracket (F5, audit-local, severity inferred). Copilot labelled it "Medium severity".
+
+Basis of the inferred severities: Copilot's Low/Medium labels are not the audit's five-level scale, and the round-1 findings labelled "Low severity" already carried Copilot's own `[Minor]` brackets, so the labels do not map one-to-one. Each inferred severity therefore rests on the finding's effect if it were true: F3 and F4 claim a table-rendering defect with no effect on meaning (`Nit`), and F5 is a wording inconsistency that could change how the helper's comparison is implemented (`Minor`).
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
