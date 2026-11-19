@@ -43,6 +43,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 da2ce7's conversation comment 6987829006 is not a review, so, as in the PR #2430 audit, it is recorded in the Processing Log, not as a row.
 
+The round-8 rewrite of the specification as a decision record (`docs(issues): [#2949] record the decision to keep the strict ACK`) removed the text that the "Current-tree verification" lines of F2, F3, F5, F9, F12, F13, F14, F23 and F24, and the M4 part of F1's, describe. Those lines were true when written; the rows stay as written.
+
 Round 1 is Copilot review `5963231037` (`COMMENTED`, on head `docs(pr-reviews): [#2949] add the PR #2950 review audit record`), with two inline comments, F1 and F2 (audit-local IDs). Copilot labels both "Medium severity" in its overview; the severity `Minor` is inferred from that label, as in the PR #2905 audit. Its body says the full agentic review did not run because it did not start before the timeout.
 
 Round 2 is Copilot review `5963780219` (`COMMENTED`, on head `docs(pr-reviews): [#2949] record PR #2950 review round 1`), with one inline comment, F3. Its overview counts one open issue and two resolved since the last review, and labels F3 "Medium severity", so the severity `Minor` is inferred from that label, as for F1 and F2. Its body carries the same timeout warning.
