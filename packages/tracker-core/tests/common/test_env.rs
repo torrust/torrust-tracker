@@ -376,8 +376,14 @@ mod tests {
     use super::TestEnv;
     use crate::common::fixtures::{EphemeralConfiguration, ephemeral_configuration};
 
-    /// How long each test lets the wait run before it reads whether the wait finished.
-    const WAIT_LIMIT: Duration = Duration::from_millis(500);
+    /// How long a test that expects the wait to still be pending lets it run. The wait always
+    /// spends this time, so it stays short.
+    const STILL_PENDING_AFTER: Duration = Duration::from_millis(500);
+
+    /// How long the test that expects the wait to finish lets it run. The wait returns on its
+    /// first poll, so this only matters on a loaded host; it stays below the helper's own
+    /// 5-second bound so this test's message is the one reported.
+    const FINISHES_WITHIN: Duration = Duration::from_secs(4);
 
     /// Builds an environment with persistence enabled and no listener running, so only the
     /// test changes the database value and the in-memory persisted downloads counter.
@@ -396,13 +402,32 @@ mod tests {
         // The in-memory persisted downloads counter stays at its initial 0: no listener runs.
 
         // Act
-        let wait = timeout(WAIT_LIMIT, test_env.wait_for_global_downloads_persisted(1)).await;
+        let wait = timeout(STILL_PENDING_AFTER, test_env.wait_for_global_downloads_persisted(1)).await;
 
         // Assert
         assert!(
             wait.is_err(),
-            "the wait for 1 persisted global download should still be pending after {WAIT_LIMIT:?} \
+            "the wait for 1 persisted global download should still be pending after {STILL_PENDING_AFTER:?} \
              while the database holds 1 and the in-memory persisted downloads counter is still 0"
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_keep_waiting_for_the_persisted_global_downloads_when_only_the_in_memory_counter_has_reached_the_expected_value()
+     {
+        // Arrange
+        let (test_env, _ephemeral) = test_env_without_listeners().await;
+        test_env.increment_persisted_downloads_counter().await;
+        // The database holds no global downloads value: nothing has been written to it.
+
+        // Act
+        let wait = timeout(STILL_PENDING_AFTER, test_env.wait_for_global_downloads_persisted(1)).await;
+
+        // Assert
+        assert!(
+            wait.is_err(),
+            "the wait for 1 persisted global download should still be pending after {STILL_PENDING_AFTER:?} \
+             while the in-memory persisted downloads counter holds 1 and the database holds no value"
         );
     }
 
@@ -415,12 +440,12 @@ mod tests {
         test_env.increment_persisted_downloads_counter().await;
 
         // Act
-        let wait = timeout(WAIT_LIMIT, test_env.wait_for_global_downloads_persisted(1)).await;
+        let wait = timeout(FINISHES_WITHIN, test_env.wait_for_global_downloads_persisted(1)).await;
 
         // Assert
         assert!(
             wait.is_ok(),
-            "the wait for 1 persisted global download should finish within {WAIT_LIMIT:?} \
+            "the wait for 1 persisted global download should finish within {FINISHES_WITHIN:?} \
              when both the database and the in-memory persisted downloads counter hold 1"
         );
     }
