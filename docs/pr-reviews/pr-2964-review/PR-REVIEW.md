@@ -189,7 +189,7 @@ Round 3 is Copilot's review `5974020256` on the head with the round-2 audit. It 
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2964#discussion_r4627949098
 - Concern: V7 recorded `git diff --quiet HEAD` as exiting 0 while the helper change was uncommitted, which an unscoped diff would not do.
 - Solution: The script that ran V7 limited the check to `handler.rs` (`git diff --quiet HEAD -- packages/tracker-core/src/statistics/event/handler.rs`, after `git checkout --` of that file), as V4 did; V7 now records that command and why it is limited to that file.
-- Current-tree verification: V7 step 3 in `manual-verification-evidence.md` names `git diff --quiet HEAD -- packages/tracker-core/src/statistics/event/handler.rs`; `grep -c 'git diff --quiet HEAD`' manual-verification-evidence.md` prints `0`.
+- Current-tree verification: V7 step 3 in `manual-verification-evidence.md` names `git diff --quiet HEAD -- packages/tracker-core/src/statistics/event/handler.rs`; ``grep -c 'git diff --quiet HEAD`' manual-verification-evidence.md`` prints `0`.
 - Resolution reference: `docs(issues): [#2953] name the file the V7 probe-removal check covers`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2964#discussion_r4628002681
