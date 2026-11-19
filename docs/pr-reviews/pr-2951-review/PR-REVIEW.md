@@ -17,7 +17,7 @@ Source: pull-request reviews and inline review threads for https://github.com/to
 The PR author owns this tracked audit record. Reviewers, including repository review agents,
 deliver findings through GitHub and have no repository-artifact obligation.
 
-- Post-merge workflow approval: N/A
+- Post-merge workflow approval: https://github.com/torrust/torrust-tracker/pull/2951#issuecomment-7003644686 (comment created 2026-11-19 08:18:03 UTC by the maintainer `josecelano`; review 5971150744 was submitted at 07:48 UTC on the final head and the PR merged at 08:07:03 UTC; the maintainer chose in the agent chat, before the merge, to fix its finding after the merge, so that the head with two ACKs did not change)
 
 ## Status Values
 
@@ -154,7 +154,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Concern: The body of the review says that the PR description's "45 closed specs" does not match: the reviewer counts 44 changed files in 30 closed folders outside the EPIC folder. The finding has no line and no thread.
 - Solution: The count was wrong. After the fix of F2 and F3 the PR changes 41 files in 28 closed spec folders, and the description now says so and names the three historical records that keep the old path.
 - Current-tree verification: `git diff --name-only 3a12cd095 HEAD -- docs/issues/closed` without the EPIC folder lists 41 files in 28 folders. The same command at the reviewed head lists 44 files in 30 folders, as the reviewer counted.
-- Resolution reference: `docs(issues): [#1488] address the review of the EPIC close-out`
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2951#issuecomment-7002876440
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2951#issuecomment-7002876440
 
