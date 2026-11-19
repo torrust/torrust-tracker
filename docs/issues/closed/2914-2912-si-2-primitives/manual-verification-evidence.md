@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2914-2912-si-2-primitives/ISSUE.md
-last-updated-utc: "2026-11-19 08:19"
+issue-spec: docs/issues/closed/2914-2912-si-2-primitives/ISSUE.md
+last-updated-utc: "2026-11-19 09:36"
 ---
 
 # Manual Verification Evidence
