@@ -96,8 +96,11 @@ repository.
   without it, the move is listed as a deletion of the old path and an addition of the new one, so the ACK goes
   stale. All three cases were checked with Git 2.53.0 on a throwaway repository.
 - The folder match: a path is under the folder only when it starts with the exact prefix
-  `docs/pr-reviews/pr-<N>-review/`, trailing slash included; a substring match or a prefix without the slash is
-  not enough (`docs/pr-reviews/pr-29-review/` is not a prefix of `docs/pr-reviews/pr-2947-review/PR-REVIEW.md`).
+  `docs/pr-reviews/pr-<N>-review/`, anchored at the start of the path and with its trailing slash. For `<N>` = 29,
+  a prefix without the slash would also accept a sibling such as `docs/pr-reviews/pr-29-review-old/x` or
+  `docs/pr-reviews/pr-29-reviewer.md`, and a substring test would accept a nested
+  `src/docs/pr-reviews/pr-29-review/x`; the exact prefix rejects all three. (A folder of another pull request,
+  such as `docs/pr-reviews/pr-2947-review/`, fails every one of these forms, so it does not tell them apart.)
 - `merge-pull-request`, Merge Readiness: apply the rule to the Reviewer ACK check, with the exact command an
   agent or a person runs to check it.
 - `merge-pull-request`, Merge Readiness: remove "and in the review audit" from the waiver sentence. The durable
@@ -184,7 +187,7 @@ These are open. Each has a recommendation; the maintainer decides.
   (`merge-pull-request`: "the repository-local wrapper and `contrib/dev-tools/git/github-merge.py` are
   authoritative").
 - **D3. Which folder counts.** Only this pull request's own folder, `docs/pr-reviews/pr-<N>-review/`, matched as
-  a whole path segment, that is, by the exact prefix `docs/pr-reviews/pr-<N>-review/` with its trailing slash (`pr-29-review` must not match pull request 2947 or 294). Audit records of other pull
+  a whole path segment, that is, by the exact prefix `docs/pr-reviews/pr-<N>-review/` with its trailing slash, anchored at the start of the path (for `<N>` = 29, `docs/pr-reviews/pr-29-review-old/x`, `docs/pr-reviews/pr-29-reviewer.md` and `src/docs/pr-reviews/pr-29-review/x` must not match). Audit records of other pull
   requests changed in the same branch make the ACK stale. Recommendation: as stated.
 - **D4. A deterministic check.** Whether the rule ships as text with a command, or as a small tool that prints
   whether a given ACK counts. Recommendation: text with the command in this issue; a tool only if D2 is (b), in
@@ -210,7 +213,7 @@ Not applicable. The current behaviour follows the rules as written; this issue c
 Not applicable unless D2 is (b). In that case the merge tool's ACK matching gets unit tests for six cases. An
 ACK on the head (counts) is the baseline the tool handles today and has no manual scenario. The other five match
 M1 to M5: an ACK on an ancestor followed only by audit commits (counts, M1), a later commit outside the folder
-(stale, M2), a later commit in another pull request's folder (stale, M3, D3), a file moved into the folder
+(stale, M2), a later commit in another pull request's folder or in a look-alike path such as a sibling or a nested copy of the folder (stale, M3, D3), a file moved into the folder
 from elsewhere (stale, M4) and a change outside the folder that a later commit reverts (stale, M5).
 
 ## Implementation Plan
@@ -293,13 +296,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
-| ID  | Scenario                                    | Human-oriented command/steps                                                                                                                    | Expected Result                                                    | Status | Evidence                                     |
-| --- | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ------ | -------------------------------------------- |
-| M1  | ACK followed by an audit-only commit        | On PR #2947's history, run the documented command with `X` = `e01212151` and `H` = `1d27a67e9`                                                  | Only files under `docs/pr-reviews/pr-2947-review/`; the ACK counts | TODO   | `manual-verification-evidence.md` section V1 |
-| M2  | ACK followed by a commit outside the folder | Run the documented command on a pull request whose commits after the ACK change another file                                                    | Another path is listed; the ACK is stale                           | TODO   | `manual-verification-evidence.md` section V2 |
-| M3  | Another pull request's audit folder         | Run the documented command where the commits after the ACK change `docs/pr-reviews/pr-<other>-review/`                                          | The ACK is stale                                                   | TODO   | `manual-verification-evidence.md` section V3 |
-| M4  | File moved into the audit folder            | Run the documented command where a commit after the ACK moves a file from outside into `docs/pr-reviews/pr-<N>-review/`                         | Both the old and the new path are listed; the ACK is stale         | TODO   | `manual-verification-evidence.md` section V4 |
-| M5  | Change outside the folder, reverted later   | Run the documented command where one commit after the ACK changes a file outside the folder and a later commit reverts it and updates the audit | The reverted file is listed; the ACK is stale                      | TODO   | `manual-verification-evidence.md` section V5 |
+| ID  | Scenario                                            | Human-oriented command/steps                                                                                                                                                                                           | Expected Result                                                    | Status | Evidence                                     |
+| --- | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ------ | -------------------------------------------- |
+| M1  | ACK followed by an audit-only commit                | On PR #2947's history, run the documented command with `X` = `e01212151` and `H` = `1d27a67e9`                                                                                                                         | Only files under `docs/pr-reviews/pr-2947-review/`; the ACK counts | TODO   | `manual-verification-evidence.md` section V1 |
+| M2  | ACK followed by a commit outside the folder         | Run the documented command on a pull request whose commits after the ACK change another file                                                                                                                           | Another path is listed; the ACK is stale                           | TODO   | `manual-verification-evidence.md` section V2 |
+| M3  | Another pull request's folder, or a look-alike path | Run the documented command where the commits after the ACK change `docs/pr-reviews/pr-<other>-review/`; repeat with a sibling `docs/pr-reviews/pr-<N>-review-old/x` and a nested `src/docs/pr-reviews/pr-<N>-review/x` | The ACK is stale in each case                                      | TODO   | `manual-verification-evidence.md` section V3 |
+| M4  | File moved into the audit folder                    | Run the documented command where a commit after the ACK moves a file from outside into `docs/pr-reviews/pr-<N>-review/`                                                                                                | Both the old and the new path are listed; the ACK is stale         | TODO   | `manual-verification-evidence.md` section V4 |
+| M5  | Change outside the folder, reverted later           | Run the documented command where one commit after the ACK changes a file outside the folder and a later commit reverts it and updates the audit                                                                        | The reverted file is listed; the ACK is stale                      | TODO   | `manual-verification-evidence.md` section V5 |
 
 Notes:
 
