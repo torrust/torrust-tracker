@@ -8,7 +8,7 @@ the files of the probe run with session ID `e5b1c5f6-53cf-424c-89b3-4f57d0947d34
 hold the contributor's own instructions and settings. The records below are the output of the
 commands named in each section, run on 2026-11-19 at 09:14:28 UTC (`date -u` before them) at the
 root of the T4 checkout, by the agent session that processed the first review round of pull
-request #2963, on the contributor's machine.
+request #2963, on the contributor's machine. The last section gives its own time.
 
 Path names used in the commands, replaced so that the contributor's local folder layout is not
 published:
@@ -104,3 +104,32 @@ exit=1
 
 `printenv` printed nothing and exited 1: the variable was not set in that shell. That shell is
 not the run's own environment, and it ran 37 minutes after the run.
+
+## The session's listing and the agent's reply
+
+Added in the second review round of pull request #2963 (finding F10). The commands ran on
+2026-11-19 at 11:51:19 UTC (`date -u` before them), at the root of the same T4 checkout, by the
+`pr-review-handler` agent that processed that round. The session's listing of step 1 is in its transcript; the run's JSON
+result holds only the text of step 3.
+
+```text
+jq -c 'select(.type=="assistant") | .message.content[] | select(.type=="text" or .type=="tool_use") | if .type=="text" then {text} else {tool_use: .name, input} end' "$S"
+```
+
+```text
+{"text":"Step 1: the custom agent defined in this project's `.claude/agents/` folder is:\n\n- pr-review-handler\n\nI didn't read the folder. I'm going by the agent list I was given, and that list doesn't say which folder each agent comes from. The other agents on it are built in or come from elsewhere.\n\nStep 2: starting the agent now."}
+{"tool_use":"Agent","input":{"description":"Verification probe","subagent_type":"pr-review-handler","prompt":"This is a verification probe, not a review round. Do not run any command, read any file or change anything. Reply with one line: READY.","run_in_background":false}}
+{"text":"Step 3: the agent's reply, verbatim:\n\nREADY\n\nThe probe didn't change anything. The agent made one tool call, which it was told not to do, but it reported no change and I haven't checked what the call was."}
+```
+
+```text
+jq -r .result .tmp/m1m2/result.json
+```
+
+```text
+Step 3: the agent's reply, verbatim:
+
+READY
+
+The probe didn't change anything. The agent made one tool call, which it was told not to do, but it reported no change and I haven't checked what the call was.
+```
