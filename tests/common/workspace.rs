@@ -7,13 +7,10 @@ use std::sync::Arc;
 use tempfile::TempDir;
 use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_lib::app;
-use torrust_tracker_lib::bootstrap::jobs::manager::JobManager;
+use torrust_tracker_lib::bootstrap::jobs::manager::{JobManager, incomplete_components};
 use torrust_tracker_lib::container::AppContainer;
 use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
 use url::Url;
-
-/// Maximum time to await each tracker job after requesting cancellation.
-const TRACKER_SHUTDOWN_GRACE_PERIOD: std::time::Duration = std::time::Duration::from_secs(10);
 
 /// A temporary workspace for an integration test.
 ///
@@ -56,8 +53,10 @@ impl EphemeralTrackerWorkspace {
 /// Owns a tracker application and its isolated test workspace.
 ///
 /// Call [`Self::shutdown`] explicitly after the suite scenarios finish. It
-/// cancels and awaits the tracker jobs before releasing the application and
-/// temporary workspace. Rust `Drop` cannot perform this asynchronous teardown.
+/// stops the tracker as production does and panics when a component did not
+/// stop gracefully, before releasing the application and temporary workspace.
+/// Rust `Drop` cannot perform this asynchronous teardown: it only begins the
+/// shutdown, and it cannot await or check the component outcomes.
 pub struct TrackerApplicationFixture {
     app_container: Arc<AppContainer>,
     jobs: Option<JobManager>,
@@ -91,23 +90,31 @@ impl TrackerApplicationFixture {
         self.workspace.path().to_path_buf()
     }
 
-    /// Gracefully stops tracker jobs before releasing the workspace.
+    /// Gracefully stops the tracker before releasing the workspace.
+    ///
+    /// # Panics
+    ///
+    /// Panics when a component did not stop gracefully before the configured
+    /// `[application.shutdown]` deadline. The message names those components.
     pub async fn shutdown(mut self) {
         let jobs = self.jobs.take().expect("tracker jobs must be available before shutdown");
-        jobs.cancel();
-        jobs.wait_for_all(TRACKER_SHUTDOWN_GRACE_PERIOD).await;
+        stop_gracefully(&self.app_container, jobs).await;
     }
 
     /// Gracefully stops the tracker and starts a new application on the same
     /// workspace, so persisted state survives while in-memory state is lost.
     ///
     /// Port-zero listeners get new ports; rediscover endpoints afterwards.
+    ///
+    /// # Panics
+    ///
+    /// Panics when a component of the stopped application did not stop
+    /// gracefully, as [`Self::shutdown`] does.
     // See the per-target compilation note on `EphemeralTrackerWorkspace::path`.
     #[allow(dead_code)]
     pub async fn restart(&mut self) {
         let jobs = self.jobs.take().expect("tracker jobs must be available before restart");
-        jobs.cancel();
-        jobs.wait_for_all(TRACKER_SHUTDOWN_GRACE_PERIOD).await;
+        stop_gracefully(&self.app_container, jobs).await;
 
         let (app_container, jobs) = start_tracker_with_config(&self.workspace).await;
         self.app_container = app_container;
@@ -118,9 +125,30 @@ impl TrackerApplicationFixture {
 impl Drop for TrackerApplicationFixture {
     fn drop(&mut self) {
         if let Some(jobs) = &self.jobs {
-            jobs.cancel();
+            app::begin_shutdown(&self.app_container, jobs);
         }
     }
+}
+
+/// Stops a started tracker with the production shutdown sequence and requires
+/// that every component stopped gracefully.
+///
+/// It calls [`app::begin_shutdown`] and waits for every component up to the
+/// configured `[application.shutdown]` deadline, as
+/// [`app::run_until_shutdown_signal`] does after a signal.
+///
+/// # Panics
+///
+/// Panics when a component failed, panicked or was aborted at the deadline.
+/// The message names those components.
+async fn stop_gracefully(app_container: &AppContainer, jobs: JobManager) {
+    app::begin_shutdown(app_container, &jobs);
+
+    let outcomes = jobs.wait_for_all(app_container.application_config.shutdown.deadline()).await;
+
+    let incomplete = incomplete_components(&outcomes);
+
+    assert!(incomplete.is_empty(), "components did not stop gracefully: {incomplete:?}");
 }
 
 /// Starts the tracker application with the given workspace config.

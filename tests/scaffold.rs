@@ -33,7 +33,8 @@
 //! - Registration-acknowledgement readiness for every configured service.
 //! - Sequential scenarios that account for accumulated state.
 //! - Explicit awaited shutdown through `TrackerApplicationFixture` before the
-//!   temporary workspace is released.
+//!   temporary workspace is released. The fixture runs the production shutdown
+//!   sequence and panics when a component did not stop gracefully.
 //!
 //! ## Endpoint Discovery
 //!
