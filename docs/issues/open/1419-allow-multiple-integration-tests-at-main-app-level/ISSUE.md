@@ -561,7 +561,8 @@ test passed in 3.04 seconds.
 
 #### Planned change
 
-If the recommendations are accepted, the change is small and stays in the test tree:
+If the recommendations are accepted, the change is small. It stays in the test tree, except for
+one `[[test]]` entry in the root `Cargo.toml` if D4 is (b):
 
 1. `tests/common/workspace.rs`: add one private async helper that calls `app::begin_shutdown`,
    awaits `wait_for_all` with the configured deadline, and asserts that
@@ -573,7 +574,8 @@ If the recommendations are accepted, the change is small and stays in the test t
    outcome assertion.
 3. If D4 is (b): add a fixture method that reserves and spawns one extra component on the fixture's
    `JobManager`, and a new target (proposed: `tests/lifecycle/fixture_shutdown_assertion.rs`,
-   registered as `lifecycle-fixture-shutdown-assertion`). Its suite sets a short
+   registered as `lifecycle-fixture-shutdown-assertion` with a `[[test]]` entry in the root
+   `Cargo.toml`, like the other nested targets). Its suite sets a short
    `[application.shutdown]` deadline, spawns a component that never stops, and uses `should_panic`
    to require that `shutdown()` names it.
 4. No existing suite changes its call site. No production code changes.
