@@ -44,7 +44,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 F1 to F5 come from da2ce7's review 5971033415 (APPROVED on the first head, with an ACK comment),
 and F7 and F8 from his review 5971375457 (APPROVED on the round-1 head, with an ACK comment); the
 reviewer's IDs are kept. His F6 was never posted (the review says it was raised against an
-intermediate head and fixed by the next push), so it has no row. Copilot's review 5963497070 on the same head had no findings and gets no
+intermediate head and fixed by the next push), so it has no row. F9 to F11 come from Copilot's review 5971580124 on the round-1 head; Copilot gives
+no IDs, so they get the next audit-local ordinals after the reviewer's F6 to F8. Copilot's review 5963497070 on the same head had no findings and gets no
 row.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
@@ -56,6 +57,9 @@ row.
 | F5 | review-finding:pr-2955-f5 | Human | Suggestion | testing | ORIGINAL | FIXED | RESOLVED |
 | F7 | review-finding:pr-2955-f7 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F8 | review-finding:pr-2955-f8 | Human | Nit | testing | ORIGINAL | FIXED | RESOLVED |
+| F9 | review-finding:pr-2955-f9 | Copilot | Minor (inferred) | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F10 | review-finding:pr-2955-f10 | Copilot | Minor (inferred) | maintainability | RE_RAISE_OF:F9 | NO_ACTION | SUPERSEDED |
+| F11 | review-finding:pr-2955-f11 | Copilot | Nit (inferred) | testing | ORIGINAL | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -150,12 +154,52 @@ row.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2955#discussion_r4626078892
 
+### F9 - The accepted role names are written in two places
+
+- PR number: 2955
+- Source review ID: 5971580124
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2955#discussion_r4626095741
+- Concern: `"seeder"` and `"leecher"` appear in the `FromStr` match arms and in the new `#[error]` text, so they could drift; Copilot suggests one shared source. Severity inferred from Copilot's "Medium" marker.
+- Solution: No change. Centralizing the names would change how `PeerRole` is parsed, which the SI-2 spec puts out of scope; the duplication between `FromStr` and `Display for PeerRole` predates this PR. `PeerRole` is a closed two-variant enum, and the F4 test pins the full message.
+- Current-tree verification: at `e22c1d2cf`, `grep -n '"seeder"\|"leecher"' packages/primitives/src/peer.rs` shows the names in `Display` (lines 59-60), `FromStr` (lines 70-71) and the tests; the spec's Out of Scope list has "Any other change to `PeerRole` or `peer::Id` parsing behavior" (line 68).
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2955#discussion_r4626211484
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2955#discussion_r4626211484
+
+### F10 - The accepted role names are written in two places (second comment)
+
+- PR number: 2955
+- Source review ID: 5971580124
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2955#discussion_r4626095804
+- Concern: The same suggestion as F9, posted on the `#[error]` line.
+- Solution: No change, for the reasons recorded under F9.
+- Current-tree verification: as for F9.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2955#discussion_r4626211828
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2955#discussion_r4626211828
+
+### F11 - The no-source-path guard matches raw substrings
+
+- PR number: 2955
+- Source review ID: 5971580124
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2955#discussion_r4626095873
+- Concern: Matching `.rs:` and `src/` as substrings could give false positives if a message legitimately contained them, for example from user input; Copilot suggests tighter path patterns. Severity inferred from Copilot's "Low" marker.
+- Solution: No change. The fragment list is the one the SI-2 spec prescribes (Regression Test Strategy, "Portable path check"), and the guard only checks messages built from fixed test inputs, none of which contains a listed fragment.
+- Current-tree verification: line 107 of the SI-2 spec lists the fragments; the three callers of `assert_names_no_source_path` render errors for `"uploader"`, `vec![0; 19]` and `vec![0; 21]`, and the three passing tests show none of the rendered messages contains a fragment.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2955#discussion_r4626212269
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2955#discussion_r4626212269
+
 ## Processing Log
 
 - 2026-11-19 07:44 UTC - Started audit for da2ce7's review 5971033415 (APPROVED, submitted 07:36:51Z on the first head, whose last commit was "docs(issues): [#2914] record the evidence of SI-2 and its breaking change for primitives 4.0.0"). Five findings, F1 to F5 with the reviewer's IDs. The branch had already been rebased onto `develop` at `7a4c16eaf` (F1) before the review arrived. Fixes committed: F5, F4 (test code), F3, F2 (docs). Not pushed yet; replies and thread resolution follow the push, and the Reply URL and Thread state fields are updated then.
 - 2026-11-19 07:51 UTC - Correction to the 07:44 entry: the rebase onto `7a4c16eaf` it mentions was local only and was replaced, on the maintainer's request, by a merge of `develop` at `f212ae33b` into the PR head ("Merge torrust/develop into 2914-primitives"); the later commits were carried over with the same content. F1's Solution, verification and resolution reference now name the merge.
 - 2026-11-19 07:55 UTC - Pushed "docs(issues): [#2914] record that develop was merged into the PR instead of rebased" as the new head (a fast-forward of the PR branch, pre-push hook passed). Replied on the five threads (replies created 07:54:47Z to 07:54:56Z), recorded the reply URLs, ran `validate-audit-record.py --pr-number 2955 --base torrust/develop` through a scratch copy that calls `gh-bot` (status ok, 5 rows, 0 failures), then resolved the five threads by 07:55:31 UTC (a `date -u` run after the resolve commands). GraphQL refresh: zero unresolved threads on PR #2955.
 - 2026-11-19 08:24 UTC - Round 2: da2ce7's review 5971375457 (APPROVED at 08:09:02Z on the round-1 head, "docs(pr-reviews): [#2914] record the replies and resolved threads of PR #2955 round 1"), with F7 (Minor) and F8 (Nit); his F6 was never posted. F7: edited the PR description and replied at 08:10:25Z. On the maintainer's choice to fix in this PR rather than in the close-out, F8 was fixed in "docs(issues): [#2914] say which tests the F4 mutation run selected and add a full-suite run", pushed as the new head, and replied at 08:23:21Z. Ran `validate-audit-record.py --pr-number 2955 --base torrust/develop` through the `gh-bot` scratch copy (status ok, 7 rows, 0 failures), then resolved both threads by 08:23:52 UTC (a `date -u` run after the resolve commands). GraphQL refresh: zero unresolved threads on PR #2955.
+- 2026-11-19 08:38 UTC - After round 2, `develop` moved and the PR conflicted again on the `last-updated-utc` line of the first-publish plan; merged `develop` at `3aa88bf19` in "Merge torrust/develop into 2914-primitives after the #1488 EPIC close-out" (a distinct subject, so F1's reference stays unique) and pushed it as head `e22c1d2cf`. Copilot's review 5971580124 (COMMENTED at 08:24:55Z on the round-1 head; its full agentic review timed out) left three comments, recorded as F9 to F11: no change for all three (F10 repeats F9). Replied at 08:37:00Z, 08:37:02Z and 08:37:05Z, ran `validate-audit-record.py --pr-number 2955 --base torrust/develop` through the `gh-bot` scratch copy (status ok, 10 rows, 0 failures), then resolved the three threads by 08:37:52 UTC (a `date -u` run after the resolve commands). GraphQL refresh: zero unresolved threads on PR #2955.
 
 ## Completion Rules
 
