@@ -9,7 +9,7 @@ github-issue: 2770
 spec-path: docs/issues/open/2770-2758-close-out-adr-and-epic/ISSUE.md
 branch: "2770-close-out-adr-and-epic"
 related-pr: null
-last-updated-utc: "2026-11-18 19:25"
+last-updated-utc: "2026-11-19 06:58"
 semantic-links:
   skill-links:
     - create-issue
@@ -44,7 +44,7 @@ The global CLI output contract (`docs/adrs/20260519000000_define_global_cli_outp
 - Update the EPIC spec: statuses, acceptance verification, progress log; move it to `docs/issues/closed/`.
 - Repair every live reference to the EPIC's old path: the child specs (open or closed) cite `docs/issues/open/2758-cli-output-contract-tools-migration/EPIC.md` in their `semantic-links.related-artifacts`, and the frontmatter validator reports a moved file as missing. Update them in the same PR as the move, and run the frontmatter validator to confirm.
 - Update the `http_health_check` row of the ADR binary table: it is still marked currently non-compliant, but #2764 (PR 2889) made it `no-stdout-result` with NDJSON on stderr. Do the same check for every other row against the merged children (#2761, #2762, #2764, #2765 and the later ones).
-- Record the leftovers of the merged children that the audit must account for: the untested write-failure path of `http_health_check` (exit code kept when the stderr write fails; verified by reading the code only, #2764) and the full-log versus excerpt choice of the e2e checker helper (finding F28 of the PR 2901 audit, left to the maintainer). Each is fixed elsewhere or recorded with an issue; this issue changes no code.
+- Record the leftovers of the merged children that the audit must account for: the untested write-failure path of `http_health_check` (exit code kept when the stderr write fails; verified by reading the code only, #2764) and the missing tests for the e2e checker helper's log-limit selection (full log on a failure, 64 KiB excerpt on success; finding F28 of the PR 2901 audit, `docs/pr-reviews/pr-2901-review/PR-REVIEW.md`). F28 is a non-blocking test gap that the maintainer decided to leave (record: https://github.com/torrust/torrust-tracker/pull/2921#issuecomment-6956412285); the implemented policy is not reopened. Each leftover is covered by a test elsewhere or recorded with an issue; this issue changes no code.
 - Verify with a fresh audit that no in-scope tool is non-compliant, or that the leftover is recorded with an issue.
 
 ### Out of Scope
@@ -119,6 +119,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-09 10:25 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the review rounds on PR 2771 and PR 2774 and fixed the earlier log stamps from the commit and issue creation times.
 - 2026-11-09 12:12 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the review of PR 2771 (da2ce7 findings F1 to F27 and Copilot's later comments): specs corrected from the code, reproductions recorded where a spec has a bug-fix section.
 - 2026-11-18 19:25 UTC - Claude Code (Claude Sonnet 5.5) - Added the ADR `http_health_check` note and the leftovers of #2764 and #2765 to the scope.
+- 2026-11-19 06:58 UTC - Claude Code (Claude Sonnet 5.5) - Named F28 as a missing-test gap with its recorded disposition (Copilot review 5964601313 of PR 2958).
 
 ## Acceptance Criteria
 
