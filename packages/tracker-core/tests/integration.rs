@@ -246,9 +246,12 @@ async fn it_should_persist_the_global_number_of_completed_peers_into_the_databas
         .await;
 
     // Wait for the event listener to persist the download count to the database
-    // before simulating a restart. Without this, the new test environment may
-    // start before the background task has written to the database, causing a
-    // flaky failure under high-concurrency environments such as Docker builds.
+    // and to increment the in-memory persisted counter before asserting on it and
+    // simulating a restart. The listener writes the database first and updates the
+    // counter after, so without this the assertion below may read 0, or the new
+    // test environment may start before the background task has written to the
+    // database. Both are flaky under high-concurrency environments such as Docker
+    // builds or the full pre-push test run.
     test_env.wait_for_global_downloads_persisted(1).await;
     assert_eq!(
         test_env
