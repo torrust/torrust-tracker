@@ -65,6 +65,7 @@ A different initial configuration requires a separate top-level file. For exampl
 | `tests/metrics/udp_error_*.rs`                    | Enabled/disabled UDP cookie-error metric policy             |
 | `tests/banning/udp_metrics_disabled_port_zero.rs` | Disabled-listener banning metric                            |
 | `tests/persistence/scrape_after_restart.rs`       | Persisted scrape downloads survive an application restart  |
+| `tests/lifecycle/fixture_shutdown_assertion.rs`   | The fixture's shutdown fails when a component does not stop |
 | `tests/scaffold.rs`                               | Scaffolding demo — same pattern, isolated process           |
 
 Each binary defines a single `#[tokio::test]` runner that starts the tracker
@@ -187,6 +188,8 @@ tests/
 │   └── statistics.rs                 # Aggregate statistics query helpers
 ├── banning/
 │   └── udp_metrics_disabled_port_zero.rs # Disabled-listener ban statistics
+├── lifecycle/
+│   └── fixture_shutdown_assertion.rs # The fixture's shutdown fails when a component does not stop
 ├── metrics/
 │   ├── fixed_ports.rs                # Fixed-port metrics and routing
 │   ├── port_zero.rs                  # Port-zero metrics and identity
