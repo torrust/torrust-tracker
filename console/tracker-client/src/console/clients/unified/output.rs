@@ -3,7 +3,9 @@
 //! Follows the global CLI output contract
 //! (`docs/adrs/20260519000000_define_global_cli_output_contract.md`): stdout carries the result
 //! object (one JSON value and a newline) and nothing else; stderr carries one JSON object per
-//! line. Nothing else in the crate writes to either channel, so no direct print macro is needed.
+//! line. Nothing else in the crate writes to either channel through a print macro, so none is needed.
+//! The one other writer is the `tracing` subscriber, which `app` points at `std::io::stderr` with
+//! its JSON formatter, so its events are JSON lines on stderr too.
 
 use std::io::{self, IsTerminal as _, Write as _};
 

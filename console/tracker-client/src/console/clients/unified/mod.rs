@@ -2,7 +2,8 @@
 //!
 //! This module is the only command entry point of the crate: the legacy `http`, `udp` and
 //! `checker` app entry points were removed with their binaries (issues #2765 and #2768).
-//! Everything the binary writes goes through [`output`].
+//! Everything the binary writes goes through [`output`], except the `tracing` events, which the
+//! subscriber in `app` writes as JSON lines to stderr.
 //!
 //! Sub-modules are kept as flat files (no per-action nesting). See the design decision in
 //! `docs/issues/open/1771-merge-clients-into-unified-tracker-client-cli.md`.

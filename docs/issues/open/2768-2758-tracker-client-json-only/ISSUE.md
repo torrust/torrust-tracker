@@ -87,7 +87,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
-| T1 | DONE | Wire TTY refusal | Test: exit `2` on a terminal, a pseudo-terminal test (`tests/output_contract.rs`, `rustix::pty`). |
+| T1 | DONE | Wire TTY refusal | Test: exit `2` on a terminal, a pseudo-terminal test (`tests/output_contract.rs`, `rustix::pty`). Dev-dependency `rustix` (features `fs`, `pty`): the workspace denies `unsafe`, so `libc::openpty` is not usable and `rustix` gives a safe pseudo-terminal API; `portable-pty` and `pty-process` would add new packages, while `rustix` 1.1.6 is already in `Cargo.lock`. |
 | T2 | DONE | Move tracing to stderr JSON | stdout only has the result. |
 | T3 | DONE | Remove or convert plain-text output; wrap the `check` array in an object | No `print_*` allow left; `check` writes one object. |
 | T4 | DONE | Update docs and tests | Green. |
@@ -130,6 +130,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-09 11:26 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the round 3 review of PR 2774.
 - 2026-11-09 12:12 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the review of PR 2771 (da2ce7 findings F1 to F27 and Copilot's later comments): specs corrected from the code, reproductions recorded where a spec has a bug-fix section.
 - 2026-11-18 19:22 UTC - Claude Code (Claude Sonnet 5.5) - Implemented T1 to T5: TTY refusal at entry (before argument parsing), one output module (`unified/output.rs`) for every write to stdout and stderr, tracing as JSON on stderr, `check` results wrapped in `{"results": [...]}`, `--help` and `--version` and clap usage errors as JSON stderr records, the HTTP unrecognized-response body moved from stdout to an `unrecognized_response` stderr record, the dead legacy entry points (`checker/{app,service,console,printer,logger}`, `http/app`, `udp/app`) deleted instead of converted (nothing used them since #2765), README and contract doc updated. Evidence in `manual-verification-evidence.md`.
+- 2026-11-19 08:19 UTC - Claude Code (Claude Sonnet 5.5) - Round 2 review of PR 2956 (Copilot F2, da2ce7 F1 to F8): fixed the README example, piped the `tracker_client` commands in six live skills and noted the terminal refusal there, documented the panic record and the tracing writer, noted that no schema version exists yet.
 
 ## Acceptance Criteria
 

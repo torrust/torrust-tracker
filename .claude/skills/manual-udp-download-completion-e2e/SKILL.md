@@ -76,8 +76,10 @@ Example output:
 
 ### 3.2 Torrent-specific stats (scrape)
 
+> `tracker_client` writes JSON to stdout and refuses to run when stdout is a terminal (exit 2, a `tty_refusal` record on stderr), so the commands below pipe the output to `jq`. Pipe or redirect it the same way in your own commands.
+
 ```bash
-cargo run -q -p torrust-tracker-client --bin tracker_client -- udp scrape "$TRACKER" "$INFO_HASH"
+cargo run -q -p torrust-tracker-client --bin tracker_client -- udp scrape "$TRACKER" "$INFO_HASH" | jq .
 ```
 
 Example output:
@@ -109,7 +111,7 @@ cargo run -q -p torrust-tracker-client --bin tracker_client -- udp announce \
   --port 6881 \
   --peer-id "$PEER_ID" \
   --key 1 \
-  --peers-wanted 0
+  --peers-wanted 0 | jq .
 ```
 
 Example output:
@@ -129,7 +131,7 @@ Example output:
 Verify after `started`:
 
 ```bash
-cargo run -q -p torrust-tracker-client --bin tracker_client -- udp scrape "$TRACKER" "$INFO_HASH"
+cargo run -q -p torrust-tracker-client --bin tracker_client -- udp scrape "$TRACKER" "$INFO_HASH" | jq .
 curl -s "$STATS_URL"
 ```
 
@@ -152,7 +154,7 @@ cargo run -q -p torrust-tracker-client --bin tracker_client -- udp announce \
   --port 6881 \
   --peer-id "$PEER_ID" \
   --key 1 \
-  --peers-wanted 0
+  --peers-wanted 0 | jq .
 ```
 
 Example output:
@@ -172,7 +174,7 @@ Example output:
 Verify after `completed`:
 
 ```bash
-cargo run -q -p torrust-tracker-client --bin tracker_client -- udp scrape "$TRACKER" "$INFO_HASH"
+cargo run -q -p torrust-tracker-client --bin tracker_client -- udp scrape "$TRACKER" "$INFO_HASH" | jq .
 curl -s "$STATS_URL"
 ```
 

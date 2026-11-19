@@ -424,6 +424,7 @@ oneshot
 openexr
 openmetrics
 openpt
+openpty
 opentracker
 opentrackers
 optimisation

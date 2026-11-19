@@ -41,7 +41,9 @@ to stdout, and exits `2`:
 No plain text on either channel. `tracing` events are JSON lines on stderr (`level`, `target`,
 `fields`). Every stderr line is one JSON object. A response a tracker returns that the client cannot
 decode is an `unrecognized_response` record on stderr (with the decoded or raw body) followed by the
-runtime-failure record; stdout stays empty and the exit code is `1`.
+runtime-failure record; stdout stays empty and the exit code is `1`. A panic is a
+`{"kind":"panic","message":"...","location":"..."}` record on stderr (the panic hook replaces the
+default plain-text message); the process then ends through the usual runtime-failure path, exit `1`.
 
 ### JSON-first output
 
@@ -111,7 +113,9 @@ Important:
 - New features and subcommands must comply with this contract.
 - Legacy behavior is migrated progressively.
 - Contract changes should remain backward compatible; if a breaking change is required,
-  introduce a schema version and migration note.
+  introduce a schema version and migration note. `tracker_client` has no schema version yet: the
+  `check` result change of issue #2768 is recorded as a documented breaking change here and in the
+  README, and a schema version is left to a later issue of the EPIC.
 
 ## Auditability Requirements
 

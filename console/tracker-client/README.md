@@ -21,7 +21,7 @@ There are currently three console clients available:
 
 - It refuses to run when stdout is a terminal: exit `2` and one `{"kind":"tty_refusal",...}` record on stderr. Pipe the output (`| jq`) or redirect it to a file.
 - On success, stdout holds one JSON object and nothing else. On failure, stdout is empty.
-- Every stderr line is one JSON object: tracing events, monitor probe events, warnings, errors, and the `--help` and `--version` text (records with `kind` `help` and `version`).
+- Every stderr line is one JSON object: tracing events, monitor probe events, warnings, errors, and the `--help` and `--version` text (records with `kind` `help` and `version`), and panics (a record with `kind` `panic`).
 - Exit codes are `0` (done), `1` (runtime failure) and `2` (usage error, invalid configuration or terminal refusal).
 
 **Breaking changes** (issue #2768):
@@ -124,7 +124,7 @@ TORRUST_CHECKER_CONFIG='{
      "udp_trackers": ["127.0.0.1:6969"],
      "http_trackers": ["http://127.0.0.1:7070"],
      "health_checks": ["http://127.0.0.1:1212/api/health_check"]
- }' cargo run --bin tracker_client -- check --format text
+ }' cargo run --bin tracker_client -- check --format text | jq .
 ```
 
 Output (one JSON object; the results are in `results`):
@@ -197,8 +197,8 @@ Output (one JSON object; the results are in `results`):
       }
     }
   ]
-  ]
-}```
+}
+```
 
 ## License
 
