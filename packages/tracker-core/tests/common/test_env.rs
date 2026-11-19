@@ -262,30 +262,44 @@ impl TestEnv {
             .await
     }
 
-    /// Waits until the global download count in the database reaches `expected`, with a 5-second
-    /// timeout. Used in tests to avoid a race between the event listener persisting to the
-    /// database and the creation of a new `TestEnv` that reads from that same database.
+    /// Waits until the global download count reaches `expected` both in the database and in the
+    /// in-memory `tracker_core_persisted_torrents_downloads_total` counter, with a 5-second
+    /// timeout.
+    ///
+    /// The event listener awaits the database write first and increments the in-memory counter
+    /// only after it, so waiting for the database alone leaves a short window where the counter
+    /// still reads the old value. Waiting for both avoids a race with assertions on the counter
+    /// and with the creation of a new `TestEnv` that reads from that same database.
     pub async fn wait_for_global_downloads_persisted(&self, expected: u64) {
         tokio::time::timeout(std::time::Duration::from_secs(5), async {
             loop {
-                if let Ok(Some(downloads)) = self
+                let persisted_in_database = matches!(
+                    self.tracker_core_container
+                        .persistence
+                        .as_ref()
+                        .expect("tracker core test environment requires persistence")
+                        .database_stores
+                        .torrent_metrics_store
+                        .load_global_downloads()
+                        .await,
+                    Ok(Some(downloads)) if u64::from(downloads) >= expected
+                );
+
+                let persisted_in_memory = self
                     .tracker_core_container
-                    .persistence
-                    .as_ref()
-                    .expect("tracker core test environment requires persistence")
-                    .database_stores
-                    .torrent_metrics_store
-                    .load_global_downloads()
+                    .stats_repository
+                    .get_torrents_downloads_persisted_total()
                     .await
-                    && u64::from(downloads) >= expected
-                {
+                    >= expected;
+
+                if persisted_in_database && persisted_in_memory {
                     break;
                 }
                 tokio::time::sleep(std::time::Duration::from_millis(50)).await;
             }
         })
         .await
-        .expect("Timed out waiting for global downloads to be persisted to the database");
+        .expect("Timed out waiting for global downloads to be persisted to the database and the in-memory counter");
     }
 
     /// Writes the global downloads count straight into the database, without
@@ -379,6 +393,7 @@ mod tests {
         // Arrange
         let (test_env, _ephemeral) = test_env_without_listeners().await;
         test_env.persist_global_downloads(1).await;
+        // The in-memory persisted downloads counter stays at its initial 0: no listener runs.
 
         // Act
         let wait = timeout(WAIT_LIMIT, test_env.wait_for_global_downloads_persisted(1)).await;
