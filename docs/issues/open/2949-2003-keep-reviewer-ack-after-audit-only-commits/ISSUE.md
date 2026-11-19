@@ -201,8 +201,25 @@ These are open. Each has a recommendation; the maintainer decides.
 
 ## Design and Ownership Review
 
-Not applicable. The work changes skill text and, if D2 is (b), one pure function of the merge tool. No child
-process, asynchronous I/O or shared fixture is involved.
+Not applicable if D2 is (a): the work then changes only skill text and documentation.
+
+If D2 is (b), the merge tool needs Git history that `get_acks_from_comments(head_commit, comments)` does not
+receive, so the change is not confined to that function. The design keeps the matching pure and puts the Git I/O
+in one place:
+
+- Ownership: `main()` acquires the history, in the tool's local clone, after it has fetched
+  `refs/pull/<N>/*` from the upstream repository, so every commit on the pull request branch is present. For
+  each ACKed commit `X` that is not the head, it runs `git merge-base --is-ancestor X H` and the rule's
+  `git log` command, and passes the result (whether `X` is an ancestor, and the listed paths) to the pure matching
+  function, which decides whether the ACK counts.
+- Failure handling, fail closed: if `X` is not in the fetched history (`git cat-file -e X^{commit}` fails), is not
+  an ancestor of `H`, or any Git command exits non-zero, that ACK does not count. The tool prints which ACK it did
+  not accept and why, and goes on; an ACK it cannot check is never accepted. When no ACK counts, the tool behaves
+  as today ("Top commit has no ACKs." and its warning).
+- An ACK names an abbreviated hash; the tool resolves it to a full commit in the same clone, and an abbreviation
+  that is ambiguous or unknown counts as a failure above.
+- The tests cover the pure function with the ancestry and path data as input, and the Git step with a throwaway
+  repository, including a missing commit and a failing command.
 
 ## Bug-Fix Process
 
