@@ -531,10 +531,13 @@ Reading `tests/common/workspace.rs` against that API found three gaps:
 
 The timing evidence of the partial delivery is also stale. On 2026-08-24 each suite took 60 to 81
 seconds because server jobs consumed a per-job wait timeout. On 2026-11-19, with no fixture change,
-the ten fixture-based targets ran in one invocation and each test finished in 0.12 to 2.05 seconds.
+the E2 command below (the ten fixture-based targets in one invocation) exited with status 0 and each
+test finished in 0.12 to 2.05 seconds. Toolchain and host of this run and of the two probes below:
+`rustc 1.100.0 (0ef1bc386 2026-11-09)`, `cargo 1.100.0`, the `dev` profile, Linux x86_64 with 32
+logical CPUs.
 
-A local probe (not committed) applied the change proposed below to the unchanged suites. All ten
-targets passed; every component of every suite reported `Cancelled`; and the awaited shutdown took
+A local probe (not committed) applied the change proposed below to the unchanged suites and ran the
+E2 command with `-- --nocapture`. It exited with status 0: all ten targets passed; every component of every suite reported `Cancelled`; and the awaited shutdown took
 at most 1.01 seconds against the 25-second default deadline. So the proposed assertion holds today
 without any production change.
 
@@ -542,7 +545,8 @@ A second local probe (not committed) added the negative suite of D4 option (b) o
 a 3-second deadline with 1-second drain budgets, and one extra component spawned through
 `jobs.reserve` and `jobs.spawn` whose future never completes. The awaited shutdown returned after
 3.00 seconds and the fixture panicked naming `health_check_api` and `hung_component` (the health
-check API stops last, so it was still waiting when the deadline aborted both). The `should_panic`
+check API stops last, so it was still waiting when the deadline aborted both). The command was
+`cargo test --test <probe target> -- --nocapture`; it exited with status 0 and the `should_panic`
 test passed in 3.04 seconds.
 
 #### Decisions for the maintainer
