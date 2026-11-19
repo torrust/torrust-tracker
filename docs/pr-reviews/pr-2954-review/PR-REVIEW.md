@@ -1,7 +1,7 @@
 ---
 pr-number: 2954
 pr-url: https://github.com/torrust/torrust-tracker/pull/2954
-last-updated-utc: "2026-11-19 07:38"
+last-updated-utc: "2026-11-19 07:52"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -53,6 +53,8 @@ Basis of the inferred severities: Copilot's Low/Medium labels are not the audit'
 
 Round 4 is da2ce7's review `5970974561` (APPROVED) on the head with the round-3 fix. It left four inline findings with reviewer IDs F1 to F4, which collide with this audit's IDs, so they are recorded as F6 to F9 here; the reviewer IDs stay in each detail. The review body summarizes them and has no row of its own.
 
+Round 5 is da2ce7's review `5971136740` (APPROVED) on the head with the round-4 audit. It left one inline finding with reviewer ID F7, recorded as F10 here.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2954-f1` | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
@@ -64,6 +66,7 @@ Round 4 is da2ce7's review `5970974561` (APPROVED) on the head with the round-3 
 | F7 | `review-finding:pr-2954-f7` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F8 | `review-finding:pr-2954-f8` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F9 | `review-finding:pr-2954-f9` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F10 | `review-finding:pr-2954-f10` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -184,6 +187,19 @@ Round 4 is da2ce7's review `5970974561` (APPROVED) on the head with the round-3 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2954#discussion_r4625669117
 
+### F10 - The round-4 log entry was stamped before the events it reports
+
+- PR number: 2954
+- Source review ID: 5971136740
+- Reviewer finding ID: F7
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2954#discussion_r4625748861
+- Concern: The round-4 Processing Log entry and `last-updated-utc` said `07:37`, but the entry reports the validator run at 07:38:07Z and the resolutions by 07:38:19Z, while rounds 1 to 3 carry the minute of their last reported event.
+- Solution: The round-4 entry is stamped `07:38`, the minute of its last reported event; `last-updated-utc` moved with each later edit of this record.
+- Current-tree verification: the Processing Log has the line starting `- 2026-11-19 07:38 UTC - Round 4:`, and no line starts with `- 2026-11-19 07:37 UTC`.
+- Resolution reference: `docs(pr-reviews): [#2953] stamp the round-4 log entry at its last event`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2954#discussion_r4625786754
+
 ## Processing Log
 
 - 2026-11-18 19:33 UTC - Started audit, before the replies of round 1.
@@ -191,6 +207,7 @@ Round 4 is da2ce7's review `5970974561` (APPROVED) on the head with the round-3 
 - 2026-11-18 20:11 UTC - Round 2: Copilot review `5964198269` (submitted 20:08:41Z, poller `cursor`) on the head with the round-1 fixes, with the "didn't start before the timeout" warning and two inline findings without IDs. Both say table rows start with `||`; `git grep -c -E '^\|\|'` on the reviewed head found no match, so F3 and F4 are `NO_ACTION`. The prescribed `Superseded by F3: ...` and `Superseded by F4: ...` replies were posted at 20:10:52Z and 20:10:54Z and edited at 20:11:04Z and 20:11:06Z (forge `created_at` and `updated_at`) to drop a PR-branch commit id they cited. `validate-audit-record.py --pr-number 2954 --base torrust/develop`, with the bot token in `GH_TOKEN`, exited 0 (4 rows, 0 failures) at 20:11:25Z; the two threads were then resolved by 20:11:33Z, and a GraphQL refresh showed 0 unresolved threads. No spec change was needed in this round.
 - 2026-11-18 20:46 UTC - Round 3: Copilot review `5964694968` (submitted 20:40:20Z, poller `cursor`) on the head with the round-2 audit, with the timeout warning and one inline finding (F5). The fix was committed at 20:42:45Z (`git log --format=%cI`); `git ls-remote` showed the fork branch at the local head at 20:45:36Z (`date -u`). The reply was posted at 20:45:43Z (forge `created_at`), after the push. `validate-audit-record.py --pr-number 2954 --base torrust/develop`, with the bot token in `GH_TOKEN`, exited 0 (5 rows, 0 failures) at 20:46:01Z; the thread was then resolved by 20:46:08Z, and a GraphQL refresh showed 0 unresolved threads.
 - 2026-11-19 07:38 UTC - Round 4: da2ce7 review `5970974561` (APPROVED, submitted 07:30:54Z, poller `cursor`) on the head with the round-3 fix, with four inline findings recorded as F6 to F9. The pre-commit gate exited 0 before the three fix commits; the commits were pushed and `git ls-remote` showed the fork branch at the local head at 07:37:07Z (`date -u`). The PR description was edited for F9 at 07:37Z, and the four replies were posted at 07:37:19Z, 07:37:22Z, 07:37:24Z and 07:37:26Z (forge `created_at`), after the push. `validate-audit-record.py --pr-number 2954 --base torrust/develop`, with the bot token in `GH_TOKEN`, exited 0 (9 rows, 0 failures) at 07:38:07Z; the four threads were then resolved by 07:38:19Z, and a GraphQL refresh showed 0 unresolved threads.
+- 2026-11-19 07:52 UTC - Round 5: da2ce7 review `5971136740` (APPROVED, submitted 07:47:13Z, poller `cursor`) on the head with the round-4 audit, with one inline finding recorded as F10. The fix was committed at 07:48:41Z (`git log --format=%cI`); `git ls-remote` showed the fork branch at the local head at 07:51:51Z (`date -u`). The reply was posted at 07:51:58Z (forge `created_at`), after the push. `validate-audit-record.py --pr-number 2954 --base torrust/develop`, with the bot token in `GH_TOKEN`, exited 0 (10 rows, 0 failures) at 07:52:24Z; the thread was then resolved by 07:52:33Z, and a GraphQL refresh showed 0 unresolved threads.
 
 <!-- Copied verbatim into each audit record. -->
 
