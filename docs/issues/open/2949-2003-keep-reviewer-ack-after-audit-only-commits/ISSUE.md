@@ -9,7 +9,7 @@ github-issue: 2949
 spec-path: docs/issues/open/2949-2003-keep-reviewer-ack-after-audit-only-commits/ISSUE.md
 branch: "2949-keep-reviewer-ack-after-audit-only-commits-spec"
 related-pr: null
-last-updated-utc: "2026-11-19 18:40"
+last-updated-utc: "2026-11-19 18:56"
 semantic-links:
   skill-links:
     - create-issue
@@ -213,13 +213,14 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 Each commit point completes one independently reviewable change; unrelated changes are not grouped to reduce the
 commit count.
 
-| Task | Coherent change set                                  | Commit policy                             |
-| ---- | ---------------------------------------------------- | ----------------------------------------- |
-| T1   | Decision recorded in this specification              | Commit in the specification pull request. |
-| T2   | `merge-pull-request` re-ACK text and waiver sentence | Commit after `linter all`.                |
-| T3   | `wait-for-pr-review` exit condition                  | Commit after `linter all`.                |
-| T4   | `process-pr-review` sentence                         | Commit after `linter all`.                |
-| T5   | `EPIC.md` note                                       | Commit with the EPIC progress-log entry.  |
+| Task | Coherent change set                                  | Commit policy                              |
+| ---- | ---------------------------------------------------- | ------------------------------------------ |
+| T1   | Decision recorded in this specification              | Commit in the specification pull request.  |
+| T2   | `merge-pull-request` re-ACK text and waiver sentence | Commit after `linter all`.                 |
+| T3   | `wait-for-pr-review` exit condition                  | Commit after `linter all`.                 |
+| T4   | `process-pr-review` sentence                         | Commit after `linter all`.                 |
+| T5   | `EPIC.md` note                                       | Commit with the EPIC progress-log entry.   |
+| T6   | `manual-verification-evidence.md` and the EPIC row   | Commit after the manual runs of M1 and M2. |
 
 T2 to T6 land in one small implementation pull request after the specification pull request merges. No task adds
 tests, so the progressive test-development loop of `create-issue` does not apply.
@@ -255,6 +256,7 @@ tests, so the progressive test-development loop of `create-issue` does not apply
 - 2026-11-19 13:49 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Correction to the 2026-11-19 08:20 UTC entry: it says the first wording of the 07:40 entry "was the wording of row 24 and Background at that time". Only EPIC row 24 said "proposed"; Background already said the maintainer decided on 2026-11-18 and D1 reopened that decision. Pointed out by da2ce7's F22 on PR #2950.
 - 2026-11-19 13:49 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Addressed Copilot review 5972058838 on PR #2950: Design and Ownership Review now specifies, for D2 (b), that the merge tool's `main()` acquires the Git history and that an ACK it cannot check does not count, and the note under the manual scenarios keeps the manual runs of M1 to M5 alongside the merge-tool tests.
 - 2026-11-19 18:33 UTC - AI assistant (Claude Code, Claude Fable 5.2, issue #2949 session) - The maintainer decided D1 on 2026-11-19: the strict ACK stays, and an audit-only commit needs new ACKs. He also rejected carrying the audit in empty commits. Rewrote the specification as the record of that decision: the rule, the metadata branch and the audit after merge are kept as rejected alternatives; D2 to D5 no longer apply; the merge tool does not change; and the remaining work is skill text (T2 to T6) in a small implementation pull request. For da2ce7's F27 on PR #2950, the record of alternative (c) cites GitHub's documentation on indirect merges, read on 2026-11-19, and names ruleset push acceptance as the point not tested. Their F26 no longer applies.
+- 2026-11-19 18:56 UTC - AI assistant (Claude Code, Claude Fable 5.2, issue #2949 session) - Addressed da2ce7's review 5981273810 on PR #2950: Commit Points has a row for T6 (F30). Their F28 was a closing keyword before the issue reference in the pull request description, which would have closed this issue when the specification pull request merged; the description was reworded, with no commit.
 
 ## Acceptance Criteria
 
