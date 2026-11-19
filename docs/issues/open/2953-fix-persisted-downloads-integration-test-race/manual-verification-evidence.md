@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2953-fix-persisted-downloads-integration-test-race/ISSUE.md
-last-updated-utc: "2026-11-19 10:32"
+last-updated-utc: "2026-11-19 11:20"
 ---
 
 # Manual Verification Evidence
@@ -356,8 +356,11 @@ whole integration binary passed with the committed change (`15 passed; 0 failed`
 2. 10:28:39 and 10:28:40 - repeated the V6 mutations M-a and M-b; restored the file from a copy
    (`cmp` matched at 10:28:42).
 3. 10:28:42 - added the V2 probe in `handler.rs` and ran
-   `it_should_persist_the_global_number_of_completed_peers_into_the_database`; reverted it
-   (`git diff --quiet HEAD` exited 0 at 10:28:45).
+   `it_should_persist_the_global_number_of_completed_peers_into_the_database`; reverted it with
+   `git checkout -- packages/tracker-core/src/statistics/event/handler.rs`, and
+   `git diff --quiet HEAD -- packages/tracker-core/src/statistics/event/handler.rs` exited 0 at
+   10:28:45. The check is limited to `handler.rs` because the helper change in `test_env.rs` was
+   still uncommitted.
 4. Repeated the V4 plain runs: 300 filtered runs (10:28:47.539 to 10:30:09.395) and 100
    whole-binary runs (10:30:09.397 to 10:31:03.470).
 
