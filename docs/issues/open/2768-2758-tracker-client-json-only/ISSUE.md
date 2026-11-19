@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p2
 epic: 2758
 github-issue: 2768
 spec-path: docs/issues/open/2768-2758-tracker-client-json-only/ISSUE.md
 branch: "2768-tracker-client-json-only"
 related-pr: null
-last-updated-utc: "2026-11-09 12:12"
+last-updated-utc: "2026-11-18 19:22"
 semantic-links:
   skill-links:
     - create-issue
@@ -87,11 +87,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
-| T1 | TODO | Wire TTY refusal | Test: exit `2` on a terminal (pty test or injected check). |
-| T2 | TODO | Move tracing to stderr JSON | stdout only has the result. |
-| T3 | TODO | Remove or convert plain-text output; wrap the `check` array in an object | No `print_*` allow left; `check` writes one object. |
-| T4 | TODO | Update docs and tests | Green. |
-| T5 | TODO | Verify against local UDP and HTTP trackers | Evidence recorded. |
+| T1 | DONE | Wire TTY refusal | Test: exit `2` on a terminal, a pseudo-terminal test (`tests/output_contract.rs`, `rustix::pty`). Dev-dependency `rustix` (features `fs`, `pty`): the workspace denies `unsafe`, so `libc::openpty` is not usable and `rustix` gives a safe pseudo-terminal API; `portable-pty` and `pty-process` would add new packages, while `rustix` 1.1.6 is already in `Cargo.lock`. |
+| T2 | DONE | Move tracing to stderr JSON | stdout only has the result. |
+| T3 | DONE | Remove or convert plain-text output; wrap the `check` array in an object | No `print_*` allow left; `check` writes one object. |
+| T4 | DONE | Update docs and tests | Green. |
+| T5 | DONE | Verify against local UDP and HTTP trackers | Evidence recorded. |
 
 ## Commit Points
 
@@ -112,11 +112,11 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - [x] Folder-style spec drafted in `docs/issues/drafts/2758-tracker-client-json-only/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Spec-only PR merged into `develop` before implementation
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Committer verified spec progress is up to date before commit
@@ -129,18 +129,20 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-09 10:25 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the review rounds on PR 2771 and PR 2774 and fixed the earlier log stamps from the commit and issue creation times.
 - 2026-11-09 11:26 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the round 3 review of PR 2774.
 - 2026-11-09 12:12 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the review of PR 2771 (da2ce7 findings F1 to F27 and Copilot's later comments): specs corrected from the code, reproductions recorded where a spec has a bug-fix section.
+- 2026-11-18 19:22 UTC - Claude Code (Claude Sonnet 5.5) - Implemented T1 to T5: TTY refusal at entry (before argument parsing), one output module (`unified/output.rs`) for every write to stdout and stderr, tracing as JSON on stderr, `check` results wrapped in `{"results": [...]}`, `--help` and `--version` and clap usage errors as JSON stderr records, the HTTP unrecognized-response body moved from stdout to an `unrecognized_response` stderr record, the dead legacy entry points (`checker/{app,service,console,printer,logger}`, `http/app`, `udp/app`) deleted instead of converted (nothing used them since #2765), README and contract doc updated. Evidence in `manual-verification-evidence.md`.
+- 2026-11-19 08:19 UTC - Claude Code (Claude Sonnet 5.5) - Round 2 review of PR 2956 (Copilot F2, da2ce7 F1 to F8): fixed the README example, piped the `tracker_client` commands in six live skills and noted the terminal refusal there, documented the panic record and the tracing writer, noted that no schema version exists yet.
 
 ## Acceptance Criteria
 
-- [ ] AC1: Running `tracker_client` with stdout on a TTY exits `2` with a `tty_refusal` record.
-- [ ] AC2: stdout contains exactly one JSON object on success and nothing on failure.
-- [ ] AC3: Every stderr line is JSON.
-- [ ] AC4: No direct print macro or `allow` for them remains in the crate.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior or workflow changes
+- [x] AC1: Running `tracker_client` with stdout on a TTY exits `2` with a `tty_refusal` record.
+- [x] AC2: stdout contains exactly one JSON object on success and nothing on failure.
+- [x] AC3: Every stderr line is JSON.
+- [x] AC4: No direct print macro or `allow` for them remains in the crate.
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated when behavior or workflow changes
 
 ## Verification Plan
 
@@ -156,10 +158,10 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Announce and scrape | Run `tracker_client http announce ... \| jq .` and the UDP equivalent | One JSON object; stderr JSON | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | TTY refusal | Run in a terminal without piping | Exit `2`, JSON on stderr | TODO | `manual-verification-evidence.md` section V2 |
-| M3 | Check subcommand | `tracker_client check ... > out.json; jq -e 'type=="object"' out.json` | One JSON object (not an array), no plain text | TODO | `manual-verification-evidence.md` section V3 |
-| M4 | E2E caller in a terminal | After issue 2765 migrated the e2e checker helper, run the e2e runner from an interactive terminal | The checker step does not exit `2` and the runner does not panic | TODO | `manual-verification-evidence.md` section V4 |
+| M1 | Announce and scrape | Run `tracker_client http announce ... \| jq .` and the UDP equivalent | One JSON object; stderr JSON | DONE | `manual-verification-evidence.md` section V1 |
+| M2 | TTY refusal | Run in a terminal without piping | Exit `2`, JSON on stderr | DONE | `manual-verification-evidence.md` section V2 |
+| M3 | Check subcommand | `tracker_client check ... > out.json; jq -e 'type=="object"' out.json` | One JSON object (not an array), no plain text | DONE | `manual-verification-evidence.md` section V3 |
+| M4 | E2E caller in a terminal | After issue 2765 migrated the e2e checker helper, run the e2e runner from an interactive terminal | The checker step does not exit `2` and the runner does not panic | DONE | `manual-verification-evidence.md` section V4 |
 
 Manual verification is mandatory even when automated tests pass. Record actual commands, output and the toolchain that produced each result in `manual-verification-evidence.md` (from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`).
 
@@ -167,10 +169,10 @@ Manual verification is mandatory even when automated tests pass. Record actual c
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1 | TODO |  |
-| AC2 | TODO |  |
-| AC3 | TODO |  |
-| AC4 | TODO |  |
+| AC1 | DONE | `manual-verification-evidence.md` V2 (real binary on a pseudo-terminal: exit `2`, one `tty_refusal` record) and G1 (three pty tests in `tests/output_contract.rs`; red in R1) |
+| AC2 | DONE | V1 and V3 (real tracker: one object per command, `check` an object in both formats, empty stdout on failure) and G1 (`tests/output_contract.rs`, 71 crate tests green) |
+| AC3 | DONE | G1 and V3: `stderr_records` in `tests/output_contract.rs` parses every stderr line as a JSON object; tracing, help, usage errors and warnings are JSON records |
+| AC4 | DONE | `grep -rnE -e 'e?print(ln)?!' -e print_stdout -e print_stderr --include=*.rs console/tracker-client` finds nothing (exit `1`); the crate-level `allow` of `lib.rs` is removed and `clippy --workspace --all-targets` is clean |
 
 ## Risks and Trade-offs
 

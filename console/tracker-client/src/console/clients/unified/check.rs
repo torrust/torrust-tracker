@@ -11,6 +11,7 @@ use torrust_info_hash::InfoHash as TorrustInfoHash;
 use url::Url;
 
 use super::app::OutputFormat;
+use super::output;
 use crate::DEFAULT_NETWORK_TIMEOUT;
 use crate::console::clients::checker::checks::{health, http, udp};
 use crate::console::clients::checker::config::{Configuration, parse_from_json};
@@ -92,9 +93,8 @@ fn parse_args(raw_args: Vec<String>) -> Result<Args, AppError> {
     let mut argv = vec!["tracker_client-check".to_string()];
     argv.extend(raw_args);
 
-    // Let clap handle parse errors directly: it prints the message to stderr
-    // and exits with code 2 for usage errors, preserving the CLI I/O contract.
-    Args::try_parse_from(argv).map_err(|e| e.exit())
+    // Clap would print plain text and exit; report the outcome as a JSON record instead.
+    Args::try_parse_from(argv).map_err(|error| AppError::from_clap(&error))
 }
 
 fn setup_config(args: Args) -> Result<Configuration, AppError> {
@@ -144,17 +144,12 @@ async fn run_checks(config: Arc<Configuration>, output_format: OutputFormat) -> 
         check_results.append(&mut results.map_err(|error| AppError::Runtime(error.to_string()))?);
     }
 
-    let json_output = serde_json::json!(check_results);
-    let rendered = if output_format.is_pretty() {
-        serde_json::to_string_pretty(&json_output)
-    } else {
-        serde_json::to_string(&json_output)
-    }
-    .map_err(|e| AppError::Runtime(format!("failed to render check output as JSON: {e}")))?;
+    // The contract asks for one JSON object on stdout, so the results are wrapped in an envelope.
+    let json_output = serde_json::json!({ "results": check_results });
+    let rendered = output::render_json(&json_output, output_format.is_pretty())
+        .map_err(|e| AppError::Runtime(format!("failed to render check output as JSON: {e}")))?;
 
-    println!("{rendered}");
-
-    Ok(())
+    output::write_result(&rendered).map_err(|e| AppError::Runtime(format!("failed to write the check result to stdout: {e}")))
 }
 async fn run_command(command: Command) -> Result<(), AppError> {
     match command {

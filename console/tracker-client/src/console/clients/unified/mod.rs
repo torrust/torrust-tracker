@@ -1,15 +1,15 @@
 //! Unified tracker-client command implementation.
 //!
-//! This module is the migration target for the mechanical copy-port in issue #1771.
-//! It is intentionally isolated from legacy `http`, `udp`, and `checker` app entry points:
-//! - New behavior and tests should be added here.
-//! - Legacy binaries stay frozen except startup deprecation warnings.
-//! - Once legacy binaries are removed, this module can be flattened in a dedicated cleanup.
+//! This module is the only command entry point of the crate: the legacy `http`, `udp` and
+//! `checker` app entry points were removed with their binaries (issues #2765 and #2768).
+//! Everything the binary writes goes through [`output`], except the `tracing` events, which the
+//! subscriber in `app` writes as JSON lines to stderr.
 //!
 //! Sub-modules are kept as flat files (no per-action nesting). See the design decision in
 //! `docs/issues/open/1771-merge-clients-into-unified-tracker-client-cli.md`.
 pub mod app;
 pub mod check;
 pub mod http;
+pub mod output;
 pub mod scrape;
 pub mod udp;

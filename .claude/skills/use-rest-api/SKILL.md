@@ -110,20 +110,22 @@ The `tracker_client` binary can make BitTorrent announce requests to verify the 
 
 ### UDP Announce
 
+> `tracker_client` writes JSON to stdout and refuses to run when stdout is a terminal (exit 2, a `tty_refusal` record on stderr), so the commands below pipe the output to `jq`. Pipe or redirect it the same way in your own commands.
+
 ```bash
-cargo run -p torrust-tracker-client --bin tracker_client -- udp announce udp://localhost:6969/announce 0123456789abcdef0123456789abcdef01234567
+cargo run -p torrust-tracker-client --bin tracker_client -- udp announce udp://localhost:6969/announce 0123456789abcdef0123456789abcdef01234567 | jq .
 ```
 
 ### HTTP Announce
 
 ```bash
-cargo run -p torrust-tracker-client --bin tracker_client -- http announce http://localhost:7070/announce 0123456789abcdef0123456789abcdef01234567
+cargo run -p torrust-tracker-client --bin tracker_client -- http announce http://localhost:7070/announce 0123456789abcdef0123456789abcdef01234567 | jq .
 ```
 
 ### Scrape
 
 ```bash
-cargo run -p torrust-tracker-client --bin tracker_client -- udp scrape udp://localhost:6969/announce 0123456789abcdef0123456789abcdef01234567
+cargo run -p torrust-tracker-client --bin tracker_client -- udp scrape udp://localhost:6969/announce 0123456789abcdef0123456789abcdef01234567 | jq .
 ```
 
 Output defaults to JSON. Use `--format text` for human-readable output.

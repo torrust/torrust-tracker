@@ -9,6 +9,7 @@ use torrust_tracker_udp_protocol::TransactionId;
 
 use crate::console::clients::udp::Error as UdpError;
 use crate::console::clients::udp::checker::{AnnounceParams, Client};
+use crate::console::clients::unified::output::{write_diagnostic, write_result};
 
 pub const DEFAULT_INFO_HASH: &str = "9c38422213e30bff212b30c360d26f9a02136422"; // DevSkim: ignore DS173237
 
@@ -154,9 +155,7 @@ pub async fn run_monitor(config: MonitorUdpConfig) -> Result<(), String> {
     };
 
     let final_json = serde_json::to_string(&output).map_err(|e| format!("final JSON serialization failed: {e}"))?;
-    println!("{final_json}");
-
-    Ok(())
+    write_result(&final_json).map_err(|e| format!("failed to write the monitor summary to stdout: {e}"))
 }
 
 async fn run_probe_loop(config: &MonitorUdpConfig) -> Result<(Stats, bool), String> {
@@ -241,7 +240,7 @@ async fn run_probe_loop(config: &MonitorUdpConfig) -> Result<(Stats, bool), Stri
 
 fn emit_probe_event(event: &ProbeEvent) -> Result<(), String> {
     let json = serde_json::to_string(event).map_err(|e| format!("probe JSON serialization failed: {e}"))?;
-    eprintln!("{json}");
+    write_diagnostic(&json);
     Ok(())
 }
 

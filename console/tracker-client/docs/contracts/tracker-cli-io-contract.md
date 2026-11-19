@@ -17,6 +17,34 @@ This contract is designed for automation-first CLI usage and progressive adoptio
 
 ## Core Rules
 
+### Terminal refusal
+
+`tracker_client` is a `stdout-result-data` command of the [global CLI output
+contract](../../../../docs/adrs/20260519000000_define_global_cli_output_contract.md). When stdout is
+a terminal it refuses to run, before it reads the arguments: it writes one record to stderr, nothing
+to stdout, and exits `2`:
+
+```json
+{ "kind": "tty_refusal", "message": "stdout is a TTY; pipe the output to consume result data" }
+```
+
+### One JSON object on stdout
+
+- On success, stdout holds exactly one JSON object followed by a newline. On failure it is empty.
+- `check` writes `{"results": [...]}` in both `--format` values. `--format text` is the same
+  object pretty-printed. (Before issue #2768 it wrote a top-level array: a breaking change.)
+- `--help` and `--version` do not write to stdout: their text is a stderr record
+  (`{"kind":"help","message":"..."}`, `{"kind":"version","message":"..."}`), exit `0`.
+
+### No plain text
+
+No plain text on either channel. `tracing` events are JSON lines on stderr (`level`, `target`,
+`fields`). Every stderr line is one JSON object. A response a tracker returns that the client cannot
+decode is an `unrecognized_response` record on stderr (with the decoded or raw body) followed by the
+runtime-failure record; stdout stays empty and the exit code is `1`. A panic is a
+`{"kind":"panic","message":"...","location":"..."}` record on stderr (the panic hook replaces the
+default plain-text message); the process then ends through the usual runtime-failure path, exit `1`.
+
 ### JSON-first output
 
 - JSON is the default output format for command results.
@@ -60,7 +88,7 @@ Exit codes represent CLI app execution status.
 
 - 0: command executed successfully (tracker failures can still be present in JSON results)
 - 1: generic application/runtime failure
-- 2: invalid tracker checker configuration/input
+- 2: invalid command line, invalid tracker checker configuration/input, or terminal refusal
 
 Important:
 
@@ -85,7 +113,9 @@ Important:
 - New features and subcommands must comply with this contract.
 - Legacy behavior is migrated progressively.
 - Contract changes should remain backward compatible; if a breaking change is required,
-  introduce a schema version and migration note.
+  introduce a schema version and migration note. `tracker_client` has no schema version yet: the
+  `check` result change of issue #2768 is recorded as a documented breaking change here and in the
+  README, and a schema version is left to a later issue of the EPIC.
 
 ## Auditability Requirements
 
@@ -137,7 +167,7 @@ stdout:
 {"udp_trackers":[{"url":"udp://127.0.0.1:6969","status":{"code":"timeout","message":"announce timeout"}}]}
 
 stderr:
-{"event":"probe","url":"udp://127.0.0.1:6969","status":"timeout","elapsed_ms":null}
+{"event":"probe","sequence":1,"url":"udp://127.0.0.1:6969","status":"timeout","elapsed_ms":null}
 
 exit code: 0
 ```

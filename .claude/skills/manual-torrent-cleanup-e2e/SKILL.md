@@ -94,13 +94,15 @@ health API `11313`.
 
 In terminal B:
 
+> `tracker_client` writes JSON to stdout and refuses to run when stdout is a terminal (exit 2, a `tty_refusal` record on stderr), so the commands below pipe the output to `jq`. Pipe or redirect it the same way in your own commands.
+
 ```bash
 INFO_HASH=2169216921692169216921692169216921692169
 API_URL="http://127.0.0.1:11212/api/v1/torrent/$INFO_HASH"
 TOKEN='TorrentCleanupVerificationToken'
 
 cargo run -p torrust-tracker-client --bin tracker_client -- \
-  udp announce udp://127.0.0.1:16969/announce "$INFO_HASH"
+  udp announce udp://127.0.0.1:16969/announce "$INFO_HASH" | jq .
 
 curl --fail --silent --show-error -H "Authorization: Bearer $TOKEN" "$API_URL" \
   | jq '{info_hash, peers}'

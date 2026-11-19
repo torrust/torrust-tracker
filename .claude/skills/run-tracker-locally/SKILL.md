@@ -206,9 +206,11 @@ Check these logs when debugging tracker behavior.
 
 Once the tracker is running, test it with the UDP tracker client:
 
+> `tracker_client` writes JSON to stdout and refuses to run when stdout is a terminal (exit 2, a `tty_refusal` record on stderr), so the commands below pipe the output to `jq`. Pipe or redirect it the same way in your own commands.
+
 ```bash
 # Default announce (backward compatibility)
-cargo run -p torrust-tracker-client --bin tracker_client udp announce 127.0.0.1:6969 9c38422213e30bff212b30c360d26f9a02136422
+cargo run -p torrust-tracker-client --bin tracker_client udp announce 127.0.0.1:6969 9c38422213e30bff212b30c360d26f9a02136422 | jq .
 
 # Announce with all optional parameters
 # NOTE: Use '--peer-id=VALUE' syntax (with equals and single quotes) when peer-id starts with a dash
@@ -222,7 +224,7 @@ cargo run -p torrust-tracker-client --bin tracker_client udp announce \
   --ip-address 10.0.0.1 \
   '--peer-id=-RC00000000000000001' \
   --key 42 \
-  --peers-wanted 50
+  --peers-wanted 50 | jq .
 ```
 
 **Important**: Peer-id must be exactly 20 bytes. When the peer-id starts with a dash (like `-RC...`), use the `--peer-id='...'` syntax to prevent shell from interpreting it as a flag.
@@ -233,7 +235,7 @@ Test the HTTP tracker:
 
 ```bash
 # Default announce
-cargo run -p torrust-tracker-client --bin tracker_client http announce http://127.0.0.1:7070 9c38422213e30bff212b30c360d26f9a02136422
+cargo run -p torrust-tracker-client --bin tracker_client http announce http://127.0.0.1:7070 9c38422213e30bff212b30c360d26f9a02136422 | jq .
 ```
 
 ## Notes

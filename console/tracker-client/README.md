@@ -15,6 +15,21 @@ There are currently three console clients available:
 - [Tracker CLI I/O Contract](docs/contracts/tracker-cli-io-contract.md)
 - [Tracker Client ADRs](docs/adrs/README.md)
 
+## Output contract
+
+`tracker_client` follows the [global CLI output contract](https://github.com/torrust/torrust-tracker/blob/develop/docs/adrs/20260519000000_define_global_cli_output_contract.md). It is a `stdout-result-data` command:
+
+- It refuses to run when stdout is a terminal: exit `2` and one `{"kind":"tty_refusal",...}` record on stderr. Pipe the output (`| jq`) or redirect it to a file.
+- On success, stdout holds one JSON object and nothing else. On failure, stdout is empty.
+- Every stderr line is one JSON object: tracing events, monitor probe events, warnings, errors, and the `--help` and `--version` text (records with `kind` `help` and `version`), and panics (a record with `kind` `panic`).
+- Exit codes are `0` (done), `1` (runtime failure) and `2` (usage error, invalid configuration or terminal refusal).
+
+**Breaking changes** (issue #2768):
+
+- `check` output: `tracker_client check` now writes one JSON object, `{"results": [...]}`, in both `--format` values. It wrote a top-level array before. `--format text` still means pretty-printed JSON. Read the array from `results`.
+- Terminal: running `tracker_client` with stdout on a terminal is refused. `--help` and `--version` print their text as a JSON record on stderr, not as plain text on stdout.
+- Unrecognized response: when a tracker answers an `http announce` or `http scrape` with a response the client cannot decode, the body is written as an `unrecognized_response` record on stderr and stdout stays empty. It was printed on stdout before. The exit code stays `1`.
+
 > **Breaking change**: The separate `udp_tracker_client`, `http_tracker_client` and `tracker_checker` binaries were removed (issue #2765). Use the unified `tracker_client` binary with the `udp`, `http` and `check` subcommands instead.
 
 ## UDP Client
@@ -109,78 +124,80 @@ TORRUST_CHECKER_CONFIG='{
      "udp_trackers": ["127.0.0.1:6969"],
      "http_trackers": ["http://127.0.0.1:7070"],
      "health_checks": ["http://127.0.0.1:1212/api/health_check"]
- }' cargo run --bin tracker_client -- check --format text
+ }' cargo run --bin tracker_client -- check --format text | jq .
 ```
 
-Output:
+Output (one JSON object; the results are in `results`):
 
 ```json
-[
-  {
-    "Udp": {
-      "Ok": {
-        "remote_addr": "127.0.0.1:6969",
-        "results": [
-          [
-            "Setup",
-            {
-              "Ok": null
-            }
-          ],
-          [
-            "Connect",
-            {
-              "Ok": null
-            }
-          ],
-          [
-            "Announce",
-            {
-              "Ok": null
-            }
-          ],
-          [
-            "Scrape",
-            {
-              "Ok": null
-            }
+{
+  "results": [
+    {
+      "Udp": {
+        "Ok": {
+          "remote_addr": "127.0.0.1:6969",
+          "results": [
+            [
+              "Setup",
+              {
+                "Ok": null
+              }
+            ],
+            [
+              "Connect",
+              {
+                "Ok": null
+              }
+            ],
+            [
+              "Announce",
+              {
+                "Ok": null
+              }
+            ],
+            [
+              "Scrape",
+              {
+                "Ok": null
+              }
+            ]
           ]
-        ]
+        }
       }
-    }
-  },
-  {
-    "Health": {
-      "Ok": {
-        "url": "http://127.0.0.1:1212/api/health_check",
-        "result": {
-          "Ok": "200 OK"
+    },
+    {
+      "Health": {
+        "Ok": {
+          "url": "http://127.0.0.1:1212/api/health_check",
+          "result": {
+            "Ok": "200 OK"
+          }
+        }
+      }
+    },
+    {
+      "Http": {
+        "Ok": {
+          "url": "http://127.0.0.1:7070/",
+          "results": [
+            [
+              "Announce",
+              {
+                "Ok": null
+              }
+            ],
+            [
+              "Scrape",
+              {
+                "Ok": null
+              }
+            ]
+          ]
         }
       }
     }
-  },
-  {
-    "Http": {
-      "Ok": {
-        "url": "http://127.0.0.1:7070/",
-        "results": [
-          [
-            "Announce",
-            {
-              "Ok": null
-            }
-          ],
-          [
-            "Scrape",
-            {
-              "Ok": null
-            }
-          ]
-        ]
-      }
-    }
-  }
-]
+  ]
+}
 ```
 
 ## License

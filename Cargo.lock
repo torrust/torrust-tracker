@@ -5121,6 +5121,7 @@ dependencies = [
  "futures",
  "hyper",
  "reqwest",
+ "rustix",
  "serde",
  "serde_bencode",
  "serde_bytes",

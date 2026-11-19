@@ -46,15 +46,41 @@ pub enum AppError {
     },
     /// An unexpected runtime failure occurred after configuration was accepted.
     Runtime(String),
+    /// The command line is not valid (unknown option, bad value, missing argument).
+    Usage(String),
+    /// A request that is not a failure: `--help` or `--version`. The text goes to stderr as a
+    /// JSON record, because stdout carries result data only.
+    Notice {
+        /// Record kind: `help` or `version`.
+        kind: &'static str,
+        /// The text clap rendered.
+        message: String,
+    },
 }
 
 impl AppError {
+    /// Converts a clap parse outcome into the contract error: usage errors exit `2`, and
+    /// `--help` or `--version` become a notice that exits `0`.
+    #[must_use]
+    pub fn from_clap(error: &clap::Error) -> Self {
+        let message = error.render().to_string();
+        match error.kind() {
+            clap::error::ErrorKind::DisplayHelp => Self::Notice { kind: "help", message },
+            clap::error::ErrorKind::DisplayVersion => Self::Notice {
+                kind: "version",
+                message,
+            },
+            _ => Self::Usage(message),
+        }
+    }
+
     /// Serializes the error to the contract JSON envelope and returns the
     /// appropriate process exit code.
     ///
     /// Exit codes:
-    /// - `2` — configuration error
+    /// - `2` — configuration or usage error
     /// - `1` — generic runtime failure
+    /// - `0` — a `help` or `version` notice
     #[must_use]
     pub fn to_stderr_json_and_exit_code(&self) -> (String, i32) {
         match self {
@@ -80,6 +106,18 @@ impl AppError {
                 .to_string();
                 (json, 1)
             }
+            Self::Usage(message) => {
+                let json = serde_json::json!({
+                    "error": {
+                        "kind": "usage_error",
+                        "source": "arguments",
+                        "message": message,
+                    }
+                })
+                .to_string();
+                (json, 2)
+            }
+            Self::Notice { kind, message } => (serde_json::json!({ "kind": kind, "message": message }).to_string(), 0),
         }
     }
 }
@@ -91,6 +129,7 @@ impl fmt::Display for AppError {
                 write!(f, "invalid configuration from {source}: {message}")
             }
             Self::Runtime(msg) => write!(f, "runtime failure: {msg}"),
+            Self::Usage(msg) | Self::Notice { message: msg, .. } => write!(f, "{msg}"),
         }
     }
 }

@@ -12,8 +12,8 @@ metadata:
 
 This skill depends on these artifacts. If any of them change, review this skill.
 
-- `console/tracker-client/src/console/clients/udp/app.rs`
-- `console/tracker-client/src/console/clients/http/app.rs`
+- `console/tracker-client/src/console/clients/unified/udp.rs`
+- `console/tracker-client/src/console/clients/unified/http.rs`
 - `.claude/skills/run-tracker-locally/SKILL.md`
 
 Use the marker `skill-link: public-trackers-for-testing` in affected artifacts.
@@ -64,11 +64,13 @@ INFO_HASH=000620bbc6c52d5a96d98f6c0f1dfa523a40df82
 
 ### UDP scrape (preferred public demo)
 
+> `tracker_client` writes JSON to stdout and refuses to run when stdout is a terminal (exit 2, a `tty_refusal` record on stderr), so the commands below pipe the output to `jq`. Pipe or redirect it the same way in your own commands.
+
 ```bash
 cargo run -q -p torrust-tracker-client --bin tracker_client udp scrape \
   udp://udp1.torrust-tracker-demo.com:6969/scrape \
   "$INFO_HASH" \
-  --format text
+  --format text | jq .
 ```
 
 ### UDP announce (preferred public demo)
@@ -77,7 +79,7 @@ cargo run -q -p torrust-tracker-client --bin tracker_client udp scrape \
 cargo run -q -p torrust-tracker-client --bin tracker_client udp announce \
   udp://udp1.torrust-tracker-demo.com:6969/announce \
   "$INFO_HASH" \
-  --format json
+  --format json | jq .
 ```
 
 ### HTTP announce (preferred public demo)
@@ -85,7 +87,7 @@ cargo run -q -p torrust-tracker-client --bin tracker_client udp announce \
 ```bash
 cargo run -q -p torrust-tracker-client --bin tracker_client http announce \
   https://http1.torrust-tracker-demo.com:443 \
-  "$INFO_HASH"
+  "$INFO_HASH" | jq .
 ```
 
 ## Timeout Triage

@@ -34,6 +34,8 @@ Use the marker `skill-link: use-tracker-client` in affected artifacts.
 
 The unified `tracker_client` binary is in the `torrust-tracker-client` package:
 
+> `tracker_client` writes JSON to stdout and refuses to run when stdout is a terminal (exit 2, a `tty_refusal` record on stderr), so the commands below pipe the output to `jq`. Pipe or redirect it the same way in your own commands.
+
 ```bash
 cargo run -p torrust-tracker-client --bin tracker_client -- <protocol> <command> <args...>
 ```
@@ -51,13 +53,13 @@ The binary supports three top-level subcommands:
 ### HTTP Announce
 
 ```bash
-cargo run -p torrust-tracker-client --bin tracker_client -- http announce <tracker_url> <info_hash>
+cargo run -p torrust-tracker-client --bin tracker_client -- http announce <tracker_url> <info_hash> | jq .
 ```
 
 **Example**:
 
 ```bash
-cargo run -p torrust-tracker-client --bin tracker_client -- http announce http://127.0.0.1:7070 9c38422213e30bff212b30c360d26f9a02136422
+cargo run -p torrust-tracker-client --bin tracker_client -- http announce http://127.0.0.1:7070 9c38422213e30bff212b30c360d26f9a02136422 | jq .
 ```
 
 **Response** (JSON):
@@ -97,19 +99,19 @@ cargo run -p torrust-tracker-client --bin tracker_client -- http announce \
   --downloaded 0 \
   --left 1000 \
   --port 6881 \
-  --compact 1
+  --compact 1 | jq .
 ```
 
 ### HTTP Scrape
 
 ```bash
-cargo run -p torrust-tracker-client --bin tracker_client -- http scrape <tracker_url> <info_hash> [info_hash...]
+cargo run -p torrust-tracker-client --bin tracker_client -- http scrape <tracker_url> <info_hash> [info_hash...] | jq .
 ```
 
 **Example**:
 
 ```bash
-cargo run -p torrust-tracker-client --bin tracker_client -- http scrape http://127.0.0.1:7070 9c38422213e30bff212b30c360d26f9a02136422
+cargo run -p torrust-tracker-client --bin tracker_client -- http scrape http://127.0.0.1:7070 9c38422213e30bff212b30c360d26f9a02136422 | jq .
 ```
 
 **Response** (JSON):
@@ -136,7 +138,7 @@ Multiple info hashes can be provided (space-separated):
 cargo run -p torrust-tracker-client --bin tracker_client -- http scrape \
   http://127.0.0.1:7070 \
   9c38422213e30bff212b30c360d26f9a02136422 \
-  aabbccddeeff00112233445566778899aabbccdd
+  aabbccddeeff00112233445566778899aabbccdd | jq .
 ```
 
 ## UDP Client
@@ -144,13 +146,13 @@ cargo run -p torrust-tracker-client --bin tracker_client -- http scrape \
 ### UDP Announce
 
 ```bash
-cargo run -p torrust-tracker-client --bin tracker_client -- udp announce <host:port> <info_hash>
+cargo run -p torrust-tracker-client --bin tracker_client -- udp announce <host:port> <info_hash> | jq .
 ```
 
 **Example**:
 
 ```bash
-cargo run -p torrust-tracker-client --bin tracker_client -- udp announce 127.0.0.1:6969 9c38422213e30bff212b30c360d26f9a02136422
+cargo run -p torrust-tracker-client --bin tracker_client -- udp announce 127.0.0.1:6969 9c38422213e30bff212b30c360d26f9a02136422 | jq .
 ```
 
 **Response** (JSON):
@@ -185,13 +187,13 @@ cargo run -p torrust-tracker-client --bin tracker_client -- udp announce 127.0.0
 ### UDP Scrape
 
 ```bash
-cargo run -p torrust-tracker-client --bin tracker_client -- udp scrape <host:port> <info_hash> [info_hash...]
+cargo run -p torrust-tracker-client --bin tracker_client -- udp scrape <host:port> <info_hash> [info_hash...] | jq .
 ```
 
 **Example**:
 
 ```bash
-cargo run -p torrust-tracker-client --bin tracker_client -- udp scrape 127.0.0.1:6969 9c38422213e30bff212b30c360d26f9a02136422
+cargo run -p torrust-tracker-client --bin tracker_client -- udp scrape 127.0.0.1:6969 9c38422213e30bff212b30c360d26f9a02136422 | jq .
 ```
 
 **Response** (JSON):
@@ -223,7 +225,7 @@ TORRUST_CHECKER_CONFIG='{
     "udp_trackers": ["127.0.0.1:6969"],
     "http_trackers": ["http://127.0.0.1:7070"],
     "health_checks": ["http://127.0.0.1:1212/api/health_check"]
-}' cargo run -p torrust-tracker-client --bin tracker_client -- check
+}' cargo run -p torrust-tracker-client --bin tracker_client -- check | jq .
 ```
 
 ## Verification Workflow
@@ -239,7 +241,7 @@ A typical manual verification workflow:
 2. **Send an HTTP announce**:
 
    ```bash
-   cargo run -p torrust-tracker-client --bin tracker_client -- http announce http://127.0.0.1:7070 9c38422213e30bff212b30c360d26f9a02136422
+   cargo run -p torrust-tracker-client --bin tracker_client -- http announce http://127.0.0.1:7070 9c38422213e30bff212b30c360d26f9a02136422 | jq .
    ```
 
    Expected: JSON response with `complete`, `incomplete`, `interval`, `min interval`, `peers`.
@@ -247,7 +249,7 @@ A typical manual verification workflow:
 3. **Send an HTTP scrape**:
 
    ```bash
-   cargo run -p torrust-tracker-client --bin tracker_client -- http scrape http://127.0.0.1:7070 9c38422213e30bff212b30c360d26f9a02136422
+   cargo run -p torrust-tracker-client --bin tracker_client -- http scrape http://127.0.0.1:7070 9c38422213e30bff212b30c360d26f9a02136422 | jq .
    ```
 
    Expected: JSON response with per-infohash stats.
@@ -255,7 +257,7 @@ A typical manual verification workflow:
 4. **Send a UDP announce**:
 
    ```bash
-   cargo run -p torrust-tracker-client --bin tracker_client -- udp announce 127.0.0.1:6969 9c38422213e30bff212b30c360d26f9a02136422
+   cargo run -p torrust-tracker-client --bin tracker_client -- udp announce 127.0.0.1:6969 9c38422213e30bff212b30c360d26f9a02136422 | jq .
    ```
 
    Expected: JSON response with `AnnounceIpv4` containing `transaction_id`, `announce_interval`, `leechers`, `seeders`, `peers`.
@@ -263,7 +265,7 @@ A typical manual verification workflow:
 5. **Send a UDP scrape**:
 
    ```bash
-   cargo run -p torrust-tracker-client --bin tracker_client -- udp scrape 127.0.0.1:6969 9c38422213e30bff212b30c360d26f9a02136422
+   cargo run -p torrust-tracker-client --bin tracker_client -- udp scrape 127.0.0.1:6969 9c38422213e30bff212b30c360d26f9a02136422 | jq .
    ```
 
    Expected: JSON response with `Scrape` containing `transaction_id` and `torrent_stats`.
