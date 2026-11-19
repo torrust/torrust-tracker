@@ -9,7 +9,7 @@ github-issue: 384
 spec-path: docs/issues/open/384-strip-location-from-errors-sent-to-clients/ISSUE.md
 branch: "384-strip-location-from-errors-sent-to-clients"
 related-pr: null
-last-updated-utc: "2026-11-18 11:08"
+last-updated-utc: "2026-11-18 19:11"
 semantic-links:
   skill-links:
     - create-issue
@@ -17,7 +17,7 @@ semantic-links:
     - .claude/skills/fix-bug/SKILL.md
     - .claude/skills/create-issue/SKILL.md
     - docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md
-    - docs/issues/open/2804-location-caller-track-caller-audit/inventory.md
+    - docs/issues/closed/2804-location-caller-track-caller-audit/inventory.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -50,7 +50,7 @@ turn it off.
 
 ### What changed
 
-The audit of issue #2804 (`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`, `options.md`) measured the feature:
+The audit of issue #2804 (`docs/issues/closed/2804-location-caller-track-caller-audit/inventory.md`, `options.md`) measured the feature:
 
 - None of the 38 production `Location::caller()` sites of the audit (37 since #2850) reports a caller. Each reports a fixed
   library line, and `#[track_caller]` cannot fix any of them.
@@ -117,7 +117,7 @@ Removing a location that a client can read is substantively a bug fix (misleadin
 issue follows `.claude/skills/fix-bug/SKILL.md`:
 
 - analysis: the call paths and audiences are in the audit inventory
-  (`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`, T2 table); re-check them against the tree before the first change;
+  (`docs/issues/closed/2804-location-caller-track-caller-audit/inventory.md`, T2 table); re-check them against the tree before the first change;
 - real-artifact reproduction: run the tracker from the current `develop` and send the requests of the manual scenarios below; record each reply with its library path. This is the baseline;
 - regression-test boundary: see Regression Test Strategy;
 - red regression-test evidence, production fix, green test evidence, and the same reproduction run
@@ -307,6 +307,6 @@ findings, and reusable lessons.
 ## References
 
 - Parent EPIC: #2912, `docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md`
-- Audit: `docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md`, `inventory.md`, `options.md`, `experiments.md` (issue #2804)
+- Audit: `docs/issues/closed/2804-location-caller-track-caller-audit/ISSUE.md`, `inventory.md`, `options.md`, `experiments.md` (issue #2804)
 - Related issues: #2804 (audit), #2583 (first publish of the workspace crates)
 - This issue on GitHub: <https://github.com/torrust/torrust-tracker/issues/384>

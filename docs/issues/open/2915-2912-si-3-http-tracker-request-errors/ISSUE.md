@@ -9,7 +9,7 @@ github-issue: 2915
 spec-path: docs/issues/open/2915-2912-si-3-http-tracker-request-errors/ISSUE.md
 branch: "2915-http-tracker-request-errors"
 related-pr: null
-last-updated-utc: "2026-11-17 17:30"
+last-updated-utc: "2026-11-18 19:11"
 semantic-links:
   skill-links:
     - create-issue
@@ -17,7 +17,7 @@ semantic-links:
     - .claude/skills/fix-bug/SKILL.md
     - .claude/skills/create-issue/SKILL.md
     - docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md
-    - docs/issues/open/2804-location-caller-track-caller-audit/inventory.md
+    - docs/issues/closed/2804-location-caller-track-caller-audit/inventory.md
     - packages/http-protocol/src/v1/requests/announce.rs
     - packages/http-protocol/src/v1/requests/scrape.rs
     - packages/http-protocol/src/v1/query.rs
@@ -123,7 +123,7 @@ Removing a location that a client can read is substantively a bug fix (misleadin
 issue follows `.claude/skills/fix-bug/SKILL.md`:
 
 - analysis: the call paths and audiences are in the audit inventory
-  (`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`, T2 table); re-check them against the tree before the first change;
+  (`docs/issues/closed/2804-location-caller-track-caller-audit/inventory.md`, T2 table); re-check them against the tree before the first change;
 - real-artifact reproduction: run the tracker with the default development configuration and send a malformed announce (for example `numwant=x`, a missing `info_hash`, a 19-byte `peer_id`, a short `info_hash`) and a scrape without `info_hash`; record each bencoded response;
 - regression-test boundary: see Regression Test Strategy;
 - red regression-test evidence, production fix, green test evidence, and the same reproduction run
@@ -314,5 +314,5 @@ findings, and reusable lessons.
 ## References
 
 - Parent EPIC: #2912, `docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md`
-- Audit: `docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md`, `inventory.md`, `options.md`, `experiments.md` (issue #2804)
+- Audit: `docs/issues/closed/2804-location-caller-track-caller-audit/ISSUE.md`, `inventory.md`, `options.md`, `experiments.md` (issue #2804)
 - Related issues: #2804 (audit), #384 (external report), #2583 (first publish of the workspace crates)

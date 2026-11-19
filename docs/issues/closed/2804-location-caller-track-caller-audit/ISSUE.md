@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: done
 priority: p2
 epic: null
 github-issue: 2804
-spec-path: docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md
+spec-path: docs/issues/closed/2804-location-caller-track-caller-audit/ISSUE.md
 branch: "2804-location-caller-track-caller-audit-spec"
-related-pr: null
-last-updated-utc: "2026-11-17 17:30"
+related-pr: 2836
+last-updated-utc: "2026-11-18 19:11"
 semantic-links:
   skill-links:
     - create-issue
@@ -284,15 +284,15 @@ with the narrow affected scope, and sign every commit with GPG.
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation (#2805)
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Implementation completed (the audit, T1 to T5; the fix tasks T6 to T9 moved to EPIC #2912)
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks): documentation only, `linter all` on the close-out
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`: the drafting-time reproduction D1 is recorded; M1 and M2 moved to #384 and M3 to #2914 (see Manual Verification Scenarios)
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/` (the close-out PR moves the spec and closes the issue when it merges)
 
 ### Progress Log
 
@@ -308,21 +308,22 @@ with the narrow affected scope, and sign every commit with GPG.
 - 2026-11-11 11:55 UTC - Claude Code (Sonnet 5.5) - Corrected the S3 and S5 slices of T4 after the second review of PR #2821: `MissingTlsConfig` needs no change, version steps per crate, the info-hash paths need source suppression or an upstream fix (`options.md`).
 - 2026-11-11 17:03 UTC - Claude Code (Fable 5.2) - T5 done as a slicing plan: the maintainer proposed to remove the feature, so the fix tasks moved to an EPIC draft with six sub-issue drafts and the specification for #384. The ADR is sub-issue SI-1 of that EPIC. AC1, AC2 and AC6 recorded as done with their evidence.
 - 2026-11-11 17:39 UTC - Claude Code (Fable 5.2) - After review of PR #2836: the moved-tasks table names this specification's own scenarios M1 to M3, and the duplicated `Disposable Verification Scripts` heading is removed from the seven new specifications.
+- 2026-11-18 19:11 UTC - Claude Code (Opus 5.5) - Close-out: EPIC #2912 and its sub-issues #2913 to #2918 exist (PR #2919), so the closing condition is met. AC3 is done by #2913 (ADR, PR #2930); AC4, AC5, the enforcement part of AC7 and the scenarios M1 to M3 are handed over to the EPIC. No retrospective: the audit produced no lesson beyond what `options.md`, the EPIC and the ADR record. Spec moved to `docs/issues/closed/` and live links repaired.
 
 ## Acceptance Criteria
 
 - [x] AC1: `inventory.md` classifies every `Location::caller()` and `#[track_caller]` in the workspace and the dependency-tree standalone crates.
 - [x] AC2: Every wrong site is marked user-visible or developer-only with the output path that proves it.
-- [ ] AC3 (moved to the EPIC draft, SI-1): The chosen approach is recorded (ADR when the convention changes) and the maintainer approved it before fixes.
-- [ ] AC4 (moved to the EPIC draft, SI-2 to SI-5 and #384): No client-visible HTTP or UDP response and no `Display` of a public error contains a library source path, proven by regression tests that go through `str::parse`/`try_into` where relevant.
-- [ ] AC5 (moved to the EPIC draft, SI-6): Remaining `Location::caller()` uses are either in a `#[track_caller]` chain that reaches a meaningful call site or on an allow-list with a reason.
+- [x] AC3 (done by SI-1, #2913): The chosen approach is recorded (ADR when the convention changes) and the maintainer approved it before fixes.
+- [ ] AC4 (handed over to EPIC #2912: SI-2 to SI-5, #2914 to #2917, and #384): No client-visible HTTP or UDP response and no `Display` of a public error contains a library source path, proven by regression tests that go through `str::parse`/`try_into` where relevant.
+- [ ] AC5 (handed over to EPIC #2912: SI-6, #2918; superseded by the ADR, which allows no non-test `Location::caller()` at all): Remaining `Location::caller()` uses are either in a `#[track_caller]` chain that reaches a meaningful call site or on an allow-list with a reason.
 - [x] AC6: Semver impact is documented per published crate and the breaking release per crate is planned.
-- [ ] AC7 (moved to the EPIC draft, SI-1 and SI-6): The `handle-errors-in-code` skill states the rule, and an enforcement check exists or its infeasibility is recorded.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior/workflow changes
+- [ ] AC7 (split: the skill rule is done by SI-1, #2913; the enforcement check is handed over to SI-6, #2918): The `handle-errors-in-code` skill states the rule, and an enforcement check exists or its infeasibility is recorded.
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass (not applicable: this issue changed no code)
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md` (D1 recorded; M1 to M3 handed over, see below)
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated when behavior/workflow changes
 
 ## Verification Plan
 
@@ -336,9 +337,13 @@ with the narrow affected scope, and sign every commit with GPG.
 
 | ID  | Scenario                                  | Human-oriented command/steps                                                                                         | Expected Result                                                           | Status | Evidence                                     |
 | --- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | HTTP announce with an invalid `numwant`   | Run the tracker, `curl` an announce with `numwant=abc`, capture the bencoded failure reason before and after the fix | After: reason names the parameter and value, contains no `packages/` path | TODO   | `manual-verification-evidence.md` section V1 |
-| M2  | UDP request that yields an error response | Run the tracker, send a UDP announce for a non-whitelisted info-hash to a listed tracker, capture the error message  | After: message has no library path                                        | TODO   | `manual-verification-evidence.md` section V2 |
-| M3  | `"x".parse::<PeerRole>()`                 | Run the regression test through `str::parse` against the old and the fixed code                                      | Old: `peer.rs` path or std path. After: no path, input echoed             | TODO   | `manual-verification-evidence.md` section V3 |
+| M1  | HTTP announce with an invalid `numwant`   | Run the tracker, `curl` an announce with `numwant=abc`, capture the bencoded failure reason before and after the fix | After: reason names the parameter and value, contains no `packages/` path | MOVED   | `manual-verification-evidence.md` section V1 |
+| M2  | UDP request that yields an error response | Run the tracker, send a UDP announce for a non-whitelisted info-hash to a listed tracker, capture the error message  | After: message has no library path                                        | MOVED   | `manual-verification-evidence.md` section V2 |
+| M3  | `"x".parse::<PeerRole>()`                 | Run the regression test through `str::parse` against the old and the fixed code                                      | Old: `peer.rs` path or std path. After: no path, input echoed             | MOVED   | `manual-verification-evidence.md` section V3 |
+
+M1 to M3 were not run here: M1 and M2 moved to #384 (SI-7 of EPIC #2912) and M3 to #2914 (SI-2),
+which own the fix they verify. Sections V1 to V3 of `manual-verification-evidence.md` are therefore
+not created.
 
 Notes: use the nightly/stable toolchain label for every recorded command. Add
 the scenarios' sections to the existing `manual-verification-evidence.md` (created from
@@ -355,11 +360,11 @@ issue folder only if they explain a decision.
 | ----- | ------ | ------------------------------------- |
 | AC1   | DONE   | `inventory.md` (PR #2814)             |
 | AC2   | DONE   | `inventory.md`, T2 table (PR #2814)   |
-| AC3   | TODO   | Moved: ADR of SI-1 in the EPIC draft  |
-| AC4   | TODO   | Moved: SI-2 to SI-5 and #384          |
-| AC5   | TODO   | Moved: SI-6                           |
+| AC3   | DONE   | ADR `docs/adrs/20261118045443_errors_do_not_record_source_locations.md` (#2913, PR #2930); the maintainer chose option 4 on 2026-11-17 |
+| AC4   | MOVED  | EPIC #2912: #2914, #2915, #2916, #2917 and #384 |
+| AC5   | MOVED  | EPIC #2912: #2918 |
 | AC6   | DONE   | `options.md`, semver table (PR #2821) |
-| AC7   | TODO   | Moved: SI-1 and SI-6                  |
+| AC7   | MOVED  | Skill rule done in #2913 (PR #2930); enforcement check in #2918 |
 
 ## Risks and Trade-offs
 
@@ -378,7 +383,9 @@ After implementation, compare the result with this specification. Record
 invalidated assumptions, material design changes, unexpected validation
 findings, and reusable lessons.
 
-- Retrospective: `Not yet assessed`
+- Retrospective: not needed. The audit's discoveries (the wrong-by-construction locations, the
+  maintainer's decision to remove the feature) are recorded in `inventory.md`, `options.md`, EPIC
+  #2912 and its ADR; see the 2026-11-18 progress-log entry.
 - If needed, create `implementation-retrospective.md` from the repository
   template at `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this issue
   specification's directory.
@@ -393,7 +400,7 @@ findings, and reusable lessons.
 ## References
 
 - Reporting work: EPIC #1347 (`docs/issues/open/1347-overhaul-packages-testing/EPIC.md`), primitives test session, finding F3.
-- Related issues: #2804, #1894 (`torrust-located-error` extraction).
-- Related ADRs: `docs/adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md`
+- Related issues: #2804, #1894 (`torrust-located-error` extraction), EPIC #2912 (`docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md`), which carries the fix work.
+- Related ADRs: `docs/adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md`, `docs/adrs/20261118045443_errors_do_not_record_source_locations.md`
 - Skill: `.claude/skills/handle-errors-in-code/SKILL.md`
 - Rust reference: `#[track_caller]` (<https://doc.rust-lang.org/reference/attributes/codegen.html#the-track_caller-attribute>)
