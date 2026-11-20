@@ -42,8 +42,11 @@ deliver findings through GitHub and have no repository-artifact obligation.
 The review 5988749356 of `da2ce7` (changes requested) has three inline findings, `F1` to `F3`; its
 body lists the same three and adds no other request. The reviewer's own finding IDs are kept.
 Copilot's review 5988828122, made on the first head, has four inline findings. Copilot labelled
-them `F1`, `R1`, `F1` and `F2`, which collide with the IDs above, so this record names them `R1` to
-`R4` in the order of their comments and keeps Copilot's label in each detail.
+them `F1`, `R1`, `F1` and `F2`. Three of those labels (`F1`, `F1` and `F2`) collide with the IDs
+above; `R1` does not. This record names the four `R1` to `R4` in the order of their comments and
+keeps Copilot's label in each detail. That departs from step 3 of `process-pr-review`, which keeps
+a label that does not collide: Copilot's `R1` is the row `R2` here. A finding reference never
+changes once assigned, so the IDs stay (see `F4`).
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -52,8 +55,8 @@ them `F1`, `R1`, `F1` and `F2`, which collide with the IDs above, so this record
 | F3 | review-finding:pr-2983-f3 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | R1 | review-finding:pr-2983-r1 | Copilot | Major | testing | ORIGINAL | FIXED | RESOLVED |
 | R2 | review-finding:pr-2983-r2 | Copilot | Major | testing | ORIGINAL | FIXED | RESOLVED |
-| R3 | review-finding:pr-2983-r3 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
-| R4 | review-finding:pr-2983-r4 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| R3 | review-finding:pr-2983-r3 | Copilot | Minor | testing | RE_RAISE_OF:R1 | FIXED | RESOLVED |
+| R4 | review-finding:pr-2983-r4 | Copilot | Minor | testing | RE_RAISE_OF:F2 | FIXED | RESOLVED |
 
 ## Finding Details
 
