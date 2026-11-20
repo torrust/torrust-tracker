@@ -1,7 +1,7 @@
 ---
 pr-number: 2983
 pr-url: https://github.com/torrust/torrust-tracker/pull/2983
-last-updated-utc: "2026-11-20 07:14"
+last-updated-utc: "2026-11-20 07:28"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -46,7 +46,8 @@ them `F1`, `R1`, `F1` and `F2`. Three of those labels (`F1`, `F1` and `F2`) coll
 above; `R1` does not. This record names the four `R1` to `R4` in the order of their comments and
 keeps Copilot's label in each detail. That departs from step 3 of `process-pr-review`, which keeps
 a label that does not collide: Copilot's `R1` is the row `R2` here. A finding reference never
-changes once assigned, so the IDs stay (see `F4`).
+changes once assigned, so the IDs stay (see `F4`). The second review of `da2ce7`, 5988957491
+(approved), has two inline findings, `F4` and `F5`; its body adds no other request.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -57,6 +58,8 @@ changes once assigned, so the IDs stay (see `F4`).
 | R2 | review-finding:pr-2983-r2 | Copilot | Major | testing | ORIGINAL | FIXED | RESOLVED |
 | R3 | review-finding:pr-2983-r3 | Copilot | Minor | testing | RE_RAISE_OF:R1 | FIXED | RESOLVED |
 | R4 | review-finding:pr-2983-r4 | Copilot | Minor | testing | RE_RAISE_OF:F2 | FIXED | RESOLVED |
+| F4 | review-finding:pr-2983-f4 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F5 | review-finding:pr-2983-f5 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -151,6 +154,32 @@ changes once assigned, so the IDs stay (see `F4`).
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2983#discussion_r4639549928
 
+### F4 - The IDs and relationships of the four Copilot rows depart from the skill
+
+- PR number: 2983
+- Source review ID: 5988957491
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2983#discussion_r4639630264
+- Concern: Step 3 of `process-pr-review` keeps a reviewer's label that does not collide. Only three of Copilot's four labels collide, yet the record renamed all four and said all four collide. R3 and R4 ask for a change that an earlier finding already asked for, yet their relationship said `ORIGINAL`.
+- Solution: The intro says which three labels collide, that the renaming of Copilot's `R1` departs from the skill, and that the references stay because they never change once assigned. R3 is `RE_RAISE_OF:R1` and R4 is `RE_RAISE_OF:F2`.
+- Current-tree verification: `grep -c '^| R[34] | .* | RE_RAISE_OF:' docs/pr-reviews/pr-2983-review/PR-REVIEW.md` printed 2.
+- Resolution reference: `docs(pr-reviews): [#1419] record which Copilot labels collide and the re-raised findings in the audit of PR 2983`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2983#discussion_r4639655631
+
+### F5 - The health check target does not use the native tracker helper
+
+- PR number: 2983
+- Source review ID: 5988957491
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2983#discussion_r4639630274
+- Concern: The AC8 row said the four child-process targets start an executable through `tests/common/native_tracker/`, but `tests/http_health_check.rs` builds its own command and runs the `http_health_check` tool, not the tracker.
+- Solution: The AC8 row names the three targets that use the helper and says that `tests/http_health_check.rs` runs the tool with its own command.
+- Current-tree verification: `grep -c 'runs the .http_health_check. tool with its own command' docs/issues/closed/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md` printed 1.
+- Resolution reference: `docs(issues): [#1419] say that the health check target runs its tool without the native tracker helper`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2983#discussion_r4639656195
+
 ## Processing Log
 
 - 2026-11-20 07:02 UTC - The review 5988749356 of `da2ce7` (changes requested, submitted 07:02:23) arrived on the first head with F1 to F3.
@@ -163,6 +192,10 @@ changes once assigned, so the IDs stay (see `F4`).
 - 2026-11-20 07:13 UTC - Ran all 15 main-level targets concurrently with nextest, rewrote the AC2 and AC9 rows and committed the fix locally (commit time 07:13:09), not pushed yet.
 - 2026-11-20 07:14 UTC - Replied on the four threads (all posted by 07:14:02). Each reply says its commit is local and goes up in one push with this update.
 - 2026-11-20 07:14 UTC - Added R1 to R4 and these entries. One push of the two commits of round 2 and the resolution of the four threads follow this commit and are not logged.
+- 2026-11-20 07:17 UTC - Pushed round 2 and resolved the four threads (done by 07:17:42); each mutation returned `isResolved: true` and a GraphQL query then listed no unresolved thread.
+- 2026-11-20 07:24 UTC - The second review of `da2ce7`, 5988957491 (approved, submitted 07:24:46), arrived on the round 2 head with F4 and F5.
+- 2026-11-20 07:27 UTC - Committed the fixes of F5 and F4 locally (commit times 07:26:41 and 07:27:14) and replied on the two threads (both posted by 07:27:52). Each reply says its commit is local and goes up in one push with this update.
+- 2026-11-20 07:28 UTC - Added F4 and F5 and these entries. One push of the three commits of round 3 and the resolution of the two threads follow this commit and are not logged.
 
 ## Completion Rules
 
