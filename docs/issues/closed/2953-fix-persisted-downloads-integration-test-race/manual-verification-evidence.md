@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2953-fix-persisted-downloads-integration-test-race/ISSUE.md
-last-updated-utc: "2026-11-19 11:20"
+issue-spec: docs/issues/closed/2953-fix-persisted-downloads-integration-test-race/ISSUE.md
+last-updated-utc: "2026-11-19 18:23"
 ---
 
 # Manual Verification Evidence

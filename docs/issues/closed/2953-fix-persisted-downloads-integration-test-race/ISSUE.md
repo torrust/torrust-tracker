@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: in-review
+status: done
 priority: p2
 epic: null
 github-issue: 2953
-spec-path: docs/issues/open/2953-fix-persisted-downloads-integration-test-race/ISSUE.md
+spec-path: docs/issues/closed/2953-fix-persisted-downloads-integration-test-race/ISSUE.md
 branch: "2953-fix-persisted-downloads-integration-test-race"
-related-pr: null
-last-updated-utc: "2026-11-19 10:32"
+related-pr: 2964
+last-updated-utc: "2026-11-19 18:54"
 semantic-links:
   skill-links:
     - create-issue
@@ -219,8 +219,8 @@ this review, before final verification, commit or pull request.
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -254,30 +254,43 @@ this review, before final verification, commit or pull request.
   now fails at once on a database error instead of waiting for the timeout, and looks up the
   store and repository once before the loop. The tests, clause mutations, probe and plain runs
   were repeated on the final helper (V7).
+- 2026-11-19 18:23 UTC - Claude Code (Claude Opus 5.5) - Implementation PR #2964 merged into `develop`
+  (merge commit `f7e8c4660`) and issue #2953 closed. Moved the spec folder to
+  `docs/issues/closed/`, set `status: done`, `spec-path` and `related-pr: 2964` (the spec-only PR
+  was #2954), and pointed the evidence file's `issue-spec` at the new path. The acceptance
+  criteria and the reviewer checkpoints stay unticked for the maintainer; no
+  `agent-review-reports.md` was recorded, because the reviews are in the PR audits
+  `docs/pr-reviews/pr-2954-review/` and `docs/pr-reviews/pr-2964-review/`.
+- 2026-11-19 18:54 UTC - Claude Code (Claude Opus 5.5) - Correction to the archival entry above, after
+  review of close-out PR #2970: the acceptance criteria are now ticked. AC1 to AC6 follow the
+  Acceptance Verification table (all `DONE`, with V3 to V7 as evidence); `linter all`, the
+  relevant tests and the manual scenarios follow the T6 entry and V1 to V7; the re-review is the
+  10:21 UTC entry; and no documentation needed updating, because no behavior or workflow
+  changed. The reviewer checkpoints stay unticked.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `TestEnv::wait_for_global_downloads_persisted(expected)` returns only when both the
+- [x] AC1: `TestEnv::wait_for_global_downloads_persisted(expected)` returns only when both the
       database global downloads value and the in-memory
       `tracker_core_persisted_torrents_downloads_total` counter are at least `expected`, and fails
       the test with an explicit message after 5 seconds otherwise.
-- [ ] AC2: With the temporary 300 ms delay between the database write and the counter increment,
+- [x] AC2: With the temporary 300 ms delay between the database write and the counter increment,
       `it_should_persist_the_global_number_of_completed_peers_into_the_database` fails before the
       fix and passes after it.
-- [ ] AC3: Without the delay, the test and the whole tracker-core integration binary pass on
+- [x] AC3: Without the delay, the test and the whole tracker-core integration binary pass on
       repeated runs (300 isolated runs of the test, 100 runs of the binary).
-- [ ] AC4: No other test reads the persisted downloads counter after waiting only for the
+- [x] AC4: No other test reads the persisted downloads counter after waiting only for the
       database; the search result is recorded in this spec.
-- [ ] AC5: No production code changes.
-- [ ] AC6: A maintained test of the wait helper, with no running listener, writes `1` to the
+- [x] AC5: No production code changes.
+- [x] AC6: A maintained test of the wait helper, with no running listener, writes `1` to the
       database while the in-memory counter is `0`, checks the helper is still pending after a
       short timeout, then increments the counter and checks the helper returns. It fails against
       the unchanged helper and passes after the fix.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior/workflow changes
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated when behavior/workflow changes
 
 ## Verification Plan
 
