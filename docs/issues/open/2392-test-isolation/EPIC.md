@@ -6,13 +6,13 @@ epic: null
 github-issue: 2392
 spec-path: docs/issues/open/2392-test-isolation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-19 08:25"
+last-updated-utc: "2026-11-20 07:04"
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
     - .claude/skills/create-issue/SKILL.md
-    - docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
+    - docs/issues/closed/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
     - docs/issues/closed/2393-2392-test-port-allocation-races/ISSUE.md
     - docs/issues/closed/2394-2392-audit-shared-test-resources/ISSUE.md
     - docs/issues/open/2395-2392-e2e-runner-dynamic-host-ports/ISSUE.md
@@ -110,7 +110,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | 2 | #2394 - Audit shared test resources | `docs/issues/closed/2394-2392-audit-shared-test-resources/ISSUE.md` | DONE | Task. PR #2891 recorded 38 findings in `inventory.md`: 29 isolated, 1 deliberate exception (P3), 5 covered (P1, P9, C1, C2, C3; C3 through order 4, whose scope now includes the local default image tags) and 3 new problems, now orders 6 to 8: D1 (P2) is #2906, D2 (F2) is #2907 and D3 (C9) is #2908. The close-out PR #2898 has merged; GitHub issue #2394 is still open until the maintainer closes it. |
 | 3 | #2395 - Use dynamic host ports in the E2E runner | `docs/issues/open/2395-2392-e2e-runner-dynamic-host-ports/ISSUE.md` | TODO | Task. Removes fixed E2E host ports. Independent of orders 1 and 2. |
 | 4 | #2396 - Use a unique tracker image tag per CI run | `docs/issues/open/2396-2392-e2e-unique-tracker-image-tag/ISSUE.md` | TODO | Task. Prevents one run from testing another run's image. Latent today (one runner instance per server). Independent of order 3. |
-| 5 | #1419 - Allow multiple integration tests at the main app level | `docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md` | IN_PROGRESS | Existing issue, linked as a subissue. Isolation work is done. EPIC #1488 closed on 2026-11-19, so the remaining R8, AC8a and R9 (review the fixture against the final shutdown API, prove cooperative completion, then the closure review) are unblocked and in progress. |
+| 5 | #1419 - Allow multiple integration tests at the main app level | `docs/issues/closed/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md` | DONE | Existing issue, linked as a subissue. R8, AC8a and R9 completed; PRs #2961, #2971, #2983. |
 | 6 | #2906 - Let two runs of the fixed-port metrics test share a machine | `docs/issues/open/2906-2392-fixed-port-metrics-test-concurrent-runs/ISSUE.md` | TODO | Bug (#2394 D1, P2). `tests/metrics/fixed_ports.rs` binds `0.0.0.0:17091`-`17094`, so two runs on one machine collide (20 of 20 paired runs had one failure). The proposed fix uses the loopback helper beyond the 9 #2393 tests, which needs a maintainer decision before implementation starts (the Decisions section limits the helper to those 9 tests). |
 | 7 | #2907 - Remove the temporary TOML and PEM files tests leave behind | `docs/issues/closed/2907-2392-remove-leaked-test-temporary-files/ISSUE.md` | DONE | Bug (#2394 D2, F2). Narrowed on 2026-11-17 to the `test_config_*.toml` and PEM files that tests leave in the system temporary directory. The `data_*.db` files, 301 of the 303 files one full run leaves, moved to orders 9 and 10. PR #2938 moved the two TOML tests into a `TempDir` and made the TLS helper return a `NamedTempFile`; after it, a full run leaves 0 TOML and 0 PEM files (V2). Found during the work: 18 `figment::Jail` tests in `packages/configuration/src/lib.rs` call `clear_env()`, which removes `TMPDIR` from the whole process while they run, so leaked-file counts are lower bounds (no issue yet). |
 | 8 | #2908 - Tear down the qBittorrent E2E stack when it fails to start | `docs/issues/open/2908-2392-compose-cleanup-after-failed-start/ISSUE.md` | TODO | Bug (#2394 D3, C9). A failed `docker compose up` leaves the stack running on the Docker host. Touches the qBittorrent E2E runner, like order 4. |
@@ -302,6 +302,9 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
   EPIC #1488 closed on 2026-11-19 (close-out PR #2951), the maintainer decided on 2026-11-18
   that #1419 continues under this EPIC, and its session has started. Its remaining work is R8,
   AC8a and R9.
+- 2026-11-20 07:04 UTC - Claude Code (Claude Fable 5.2), #1419 session - Order 5 (#1419) is DONE: R8, AC8a
+  and R9 completed with PRs #2961, #2971 and #2983. Its spec is archived to
+  `docs/issues/closed/`. The EPIC coordinator allowed this edit for the close-out.
 
 ## Acceptance Criteria
 
