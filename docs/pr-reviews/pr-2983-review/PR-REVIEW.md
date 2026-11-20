@@ -1,7 +1,7 @@
 ---
 pr-number: 2983
 pr-url: https://github.com/torrust/torrust-tracker/pull/2983
-last-updated-utc: "2026-11-20 07:06"
+last-updated-utc: "2026-11-20 07:14"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -41,12 +41,19 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 The review 5988749356 of `da2ce7` (changes requested) has three inline findings, `F1` to `F3`; its
 body lists the same three and adds no other request. The reviewer's own finding IDs are kept.
+Copilot's review 5988828122, made on the first head, has four inline findings. Copilot labelled
+them `F1`, `R1`, `F1` and `F2`, which collide with the IDs above, so this record names them `R1` to
+`R4` in the order of their comments and keeps Copilot's label in each detail.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2983-f1 | Human | Major | link-integrity | ORIGINAL | FIXED | RESOLVED |
 | F2 | review-finding:pr-2983-f2 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-2983-f3 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| R1 | review-finding:pr-2983-r1 | Copilot | Major | testing | ORIGINAL | FIXED | RESOLVED |
+| R2 | review-finding:pr-2983-r2 | Copilot | Major | testing | ORIGINAL | FIXED | RESOLVED |
+| R3 | review-finding:pr-2983-r3 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| R4 | review-finding:pr-2983-r4 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -89,6 +96,58 @@ body lists the same three and adds no other request. The reviewer's own finding 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2983#discussion_r4639495789
 
+### R1 - No run shows concurrency between test executables for AC2
+
+- PR number: 2983
+- Source review ID: 5988828122
+- Reviewer finding ID: F1
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2983#discussion_r4639530237
+- Concern: Plain `cargo test` runs the selected test binaries one after another, and each fixture-based target has one test, so the cited invocation shows no overlap between suites.
+- Solution: The AC2 and AC9 rows cite a `cargo nextest run` of all 15 main-level targets, which runs every test in its own process in parallel across binaries, and say that the plain Cargo runs are sequential.
+- Current-tree verification: `grep -c '122 tests across 15 binaries' docs/issues/closed/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md` printed 1. `cargo nextest run -p torrust-tracker` with one `--test` argument for each of the 15 main-level targets exited with status 0 (`cargo-nextest 0.9.88`, `rustc 1.100.0`, `dev` profile).
+- Resolution reference: `docs(issues): [#1419] cite a concurrent nextest run of all 15 main-level targets for AC2 and AC9`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2983#discussion_r4639549090
+
+### R2 - The evidence for AC2 and AC9 is neither concurrent nor complete
+
+- PR number: 2983
+- Source review ID: 5988828122
+- Reviewer finding ID: R1
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2983#discussion_r4639530277
+- Concern: The same sequential-run concern as R1, and the cited command selected only the fixture-based targets although AC9 requires all current main-level targets.
+- Solution: The concurrent nextest run covers the full set of 15 targets, including the four child-process targets.
+- Current-tree verification: `grep -c '122 tests across 15 binaries' docs/issues/closed/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md` printed 1. `cargo nextest run -p torrust-tracker` with one `--test` argument for each of the 15 main-level targets exited with status 0 (`cargo-nextest 0.9.88`, `rustc 1.100.0`, `dev` profile).
+- Resolution reference: `docs(issues): [#1419] cite a concurrent nextest run of all 15 main-level targets for AC2 and AC9`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2983#discussion_r4639549364
+
+### R3 - Cite concurrent execution evidence for the closure review
+
+- PR number: 2983
+- Source review ID: 5988828122
+- Reviewer finding ID: F1
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2983#discussion_r4639530305
+- Concern: The same concern as R1 and R2, with the suggestion to cite the Docker test check of pull request 2971, which uses nextest.
+- Solution: The closure review cites a local concurrent nextest run instead, because a local run records its command, toolchain and result in the specification.
+- Current-tree verification: `grep -c '122 tests across 15 binaries' docs/issues/closed/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md` printed 1. `cargo nextest run -p torrust-tracker` with one `--test` argument for each of the 15 main-level targets exited with status 0 (`cargo-nextest 0.9.88`, `rustc 1.100.0`, `dev` profile).
+- Resolution reference: `docs(issues): [#1419] cite a concurrent nextest run of all 15 main-level targets for AC2 and AC9`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2983#discussion_r4639549625
+
+### R4 - AC9 evidence omits the remaining main-level targets
+
+- PR number: 2983
+- Source review ID: 5988828122
+- Reviewer finding ID: F2
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2983#discussion_r4639530330
+- Concern: The cited command omitted `lifecycle-signals`, `lifecycle-shutdown-policy` and `cli-configuration`, which AC9 covers.
+- Solution: The AC9 row cites a sequential run of the four child-process targets (added with the fix of F2 above) and the concurrent nextest run of all 15 targets. AC9 is not narrowed.
+- Current-tree verification: `grep -c '122 tests across 15 binaries' docs/issues/closed/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md` printed 1. `cargo nextest run -p torrust-tracker` with one `--test` argument for each of the 15 main-level targets exited with status 0 (`cargo-nextest 0.9.88`, `rustc 1.100.0`, `dev` profile).
+- Resolution reference: `docs(issues): [#1419] cite a concurrent nextest run of all 15 main-level targets for AC2 and AC9`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2983#discussion_r4639549928
+
 ## Processing Log
 
 - 2026-11-20 07:02 UTC - The review 5988749356 of `da2ce7` (changes requested, submitted 07:02:23) arrived on the first head with F1 to F3.
@@ -96,6 +155,11 @@ body lists the same three and adds no other request. The reviewer's own finding 
 - 2026-11-20 07:05 UTC - Committed the fix of F1 (commit time 07:05:12) and the fix of F2 and F3 (commit time 07:05:45) locally, not pushed yet.
 - 2026-11-20 07:06 UTC - Replied on the three threads (all posted by 07:06:25). Each reply says its commit is local and goes up in one push with this record.
 - 2026-11-20 07:06 UTC - Created this audit record with F1 to F3. One push of the three commits of round 1 and the resolution of the three threads follow this commit and are not logged.
+- 2026-11-20 07:10 UTC - Pushed round 1 and resolved the three threads (done by 07:10:07); each mutation returned `isResolved: true` and a GraphQL query then listed no unresolved thread.
+- 2026-11-20 07:11 UTC - Copilot's review 5988828122 (submitted 07:11:16) arrived with R1 to R4. It was made on the first head, before round 1.
+- 2026-11-20 07:13 UTC - Ran all 15 main-level targets concurrently with nextest, rewrote the AC2 and AC9 rows and committed the fix locally (commit time 07:13:09), not pushed yet.
+- 2026-11-20 07:14 UTC - Replied on the four threads (all posted by 07:14:02). Each reply says its commit is local and goes up in one push with this update.
+- 2026-11-20 07:14 UTC - Added R1 to R4 and these entries. One push of the two commits of round 2 and the resolution of the four threads follow this commit and are not logged.
 
 ## Completion Rules
 
