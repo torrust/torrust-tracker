@@ -3,7 +3,7 @@ semantic-links:
   skill-links:
     - write-markdown-docs
   related-artifacts:
-    - docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
+    - docs/issues/closed/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
     - tests/common/workspace.rs
     - tests/common/native_tracker/mod.rs
     - src/app.rs
@@ -55,7 +55,7 @@ real executable-boundary need arises.
 
 ## Issue-Spec Evidence
 
-Issue [#1419](../../issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md)
+Issue [#1419](../../issues/closed/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md)
 identifies the original problem directly:
 
 - tests in one process share environment variables;
@@ -237,7 +237,7 @@ the remaining `tracing`, clock, secrets, and lifecycle constraints are resolved.
 
 Reviewed on 2026-09-09 against merged #2151 on `develop`:
 
-- issue [#1419](../../issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md), especially Problem 3 and current execution model;
+- issue [#1419](../../issues/closed/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md), especially Problem 3 and current execution model;
 - `tests/common/workspace.rs` and all `TrackerApplicationFixture::start` call sites;
 - `tests/common/native_tracker/mod.rs` and executable-boundary test targets;
 - `src/app.rs` explicit-path startup boundary;

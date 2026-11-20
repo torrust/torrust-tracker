@@ -12,7 +12,7 @@
 //! against that instance. A different initial configuration belongs to
 //! another top-level binary, which Cargo may run concurrently.
 //!
-//! See `docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md`
+//! See `docs/issues/closed/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md`
 //! for the full decision record.
 mod configuration;
 mod http_requests;

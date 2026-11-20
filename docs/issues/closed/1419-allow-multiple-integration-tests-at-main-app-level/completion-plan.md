@@ -1,3 +1,11 @@
+---
+spec-path: docs/issues/closed/1419-allow-multiple-integration-tests-at-main-app-level/completion-plan.md
+last-updated-utc: "2026-11-20 06:34"
+semantic-links:
+  related-artifacts:
+    - docs/issues/closed/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
+---
+
 # Completion Plan — Issue #1419
 
 > **Issue specification:** [ISSUE.md](ISSUE.md)
