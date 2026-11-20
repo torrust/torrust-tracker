@@ -65,6 +65,7 @@ A different initial configuration requires a separate top-level file. For exampl
 | `tests/metrics/udp_error_*.rs`                    | Enabled/disabled UDP cookie-error metric policy             |
 | `tests/banning/udp_metrics_disabled_port_zero.rs` | Disabled-listener banning metric                            |
 | `tests/persistence/scrape_after_restart.rs`       | Persisted scrape downloads survive an application restart  |
+| `tests/lifecycle/fixture_shutdown_assertion.rs`   | The fixture's shutdown fails when a component does not stop |
 | `tests/scaffold.rs`                               | Scaffolding demo — same pattern, isolated process           |
 
 Each binary defines a single `#[tokio::test]` runner that starts the tracker
@@ -72,9 +73,10 @@ once, then calls scenario functions sequentially. Scenario functions are plain
 async functions that receive the `AppContainer` and assert behavior.
 
 To test state that must survive a restart, call
-`TrackerApplicationFixture::restart`. It gracefully stops the application and
-starts a new one on the same workspace, so persisted data remains and in-memory
-state is lost. Only one tracker instance runs at a time; rediscover port-zero
+`TrackerApplicationFixture::restart`. It gracefully stops the application, with
+the same sequence and the same check of the component outcomes as `shutdown`,
+and starts a new one on the same workspace, so persisted data remains and
+in-memory state is lost. Only one tracker instance runs at a time; rediscover port-zero
 endpoints after the restart.
 
 ### Scenario Design
@@ -164,10 +166,14 @@ All integration tests at this level must:
 4. **Be independent**: Each top-level test binary must be able to run in isolation or concurrently
    with others (it is the binary, not the function, that is the unit of isolation)
 5. **Shut down explicitly**: Start suites with `TrackerApplicationFixture::start`, then call
-   `fixture.shutdown().await` after the final scenario. This cancels and waits for all
-   application jobs before dropping its workspace. `Drop` cannot provide awaited async teardown.
-   If a scenario panics before that call, ordinary Rust drop semantics still release the workspace,
-   but cannot guarantee asynchronous graceful shutdown; keep scenarios small and ensure successful
+   `fixture.shutdown().await` after the final scenario. This runs the production shutdown
+   sequence before dropping the workspace: it calls `app::begin_shutdown` and waits for every
+   component up to the configured `[application.shutdown]` deadline (25 seconds by default; a
+   suite can set its own in its TOML). It then panics when a component did not stop gracefully
+   (it failed, panicked or was aborted at the deadline), and the message names those components.
+   `Drop` cannot provide awaited async teardown. If a scenario panics before that call, `Drop`
+   only begins the shutdown and ordinary Rust drop semantics release the workspace; nothing
+   awaits the components or checks their outcomes. Keep scenarios small and ensure successful
    paths always perform the explicit shutdown.
 
 ## Current Test Structure
@@ -182,6 +188,8 @@ tests/
 │   └── statistics.rs                 # Aggregate statistics query helpers
 ├── banning/
 │   └── udp_metrics_disabled_port_zero.rs # Disabled-listener ban statistics
+├── lifecycle/
+│   └── fixture_shutdown_assertion.rs # The fixture's shutdown fails when a component does not stop
 ├── metrics/
 │   ├── fixed_ports.rs                # Fixed-port metrics and routing
 │   ├── port_zero.rs                  # Port-zero metrics and identity

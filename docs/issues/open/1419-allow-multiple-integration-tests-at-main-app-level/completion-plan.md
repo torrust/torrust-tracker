@@ -2,7 +2,10 @@
 
 > **Issue specification:** [ISSUE.md](ISSUE.md)
 >
-> **Status:** Partial improvement ready for review; cooperative server shutdown deferred to #1488
+> **Status:** Historical record of the partial delivery. #1488 closed on 2026-11-19 and the
+> fixture now uses its final shutdown API; see the
+> [R8 plan](ISSUE.md#r8-plan-align-the-fixture-with-the-final-shutdown-api) in `ISSUE.md`. The
+> text below describes the state before that change.
 > **Scope:** Current-production lifecycle fixture, related test coverage, documentation alignment,
 > and manual plus automated verification
 
