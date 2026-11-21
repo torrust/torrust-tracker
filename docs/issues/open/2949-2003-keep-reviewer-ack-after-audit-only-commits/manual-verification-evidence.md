@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2949-2003-keep-reviewer-ack-after-audit-only-commits/ISSUE.md
-last-updated-utc: "2026-11-21 13:23"
+last-updated-utc: "2026-11-21 15:14"
 ---
 
 # Manual Verification Evidence
@@ -15,8 +15,8 @@ evidence from commands actually performed; nothing here is invented.
 
 - Date and time (UTC): 2026-11-21 13:22
 - Artifact under test: the command documented in `merge-pull-request`, section An ACK Names One
-  Commit, added by `docs(merge-pull-request): [#2949] say an ACK names one commit and how to
-re-check after an audit-only commit`.
+  Commit, added by the commit
+  `docs(merge-pull-request): [#2949] say an ACK names one commit and how to re-check after an audit-only commit`.
 - Operating system / environment: Linux 7.0.0-43-generic, Git 2.53.0.
 - Prerequisites and setup performed: `git fetch torrust`; the implementation branch was cut from
   `develop` at `4be22ee66`. Every commit named below is on `develop`.
