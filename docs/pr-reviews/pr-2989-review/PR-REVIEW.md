@@ -90,7 +90,7 @@ Round 2 is da2ce7's two reviews. Review `6006229600` (`APPROVED` when submitted 
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2989#discussion_r4653335095
 - Concern: Commit Points assigns the EPIC row to T6, but the status change to `IN_PROGRESS` is in the T5 commit, whose subject names only the #2363 line.
 - Solution: No change. The branch history is kept, and the EPIC progress-log line of that commit names both changes. The close-out commit that sets row 24 to `DONE` will name the row change in its subject.
-- Current-tree verification: `git log --format=%s -1 -- docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md` and the EPIC progress-log entry of 2026-11-21 13:22 UTC, which names the row change and the #2363 line.
+- Current-tree verification: `git log --format=%s -- docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md | grep 'name the strict-ACK decision'` prints the subject of the T5 commit, and the EPIC progress-log entry of 2026-11-21 13:22 UTC names the row change and the #2363 line.
 - Resolution reference: https://github.com/torrust/torrust-tracker/pull/2989#discussion_r4653467291
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2989#discussion_r4653467291
@@ -116,7 +116,7 @@ Round 2 is da2ce7's two reviews. Review `6006229600` (`APPROVED` when submitted 
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2989#discussion_r4653440624
 - Concern: Review 6006229600 was submitted on the first head before this record was created, with three inline comments that had no reply, row or resolution, so the record's account of round 1 was incomplete.
 - Solution: The round-2 paragraph names the review, rows F2 to F4 record its comments with the reviewer's IDs, and a Processing Log entry says how round 1 missed it. The round-1 paragraph and entry stay as written.
-- Current-tree verification: `grep -c 6006229600 docs/pr-reviews/pr-2989-review/PR-REVIEW.md` prints a count above zero, and the validator reports no review comment without a row.
+- Current-tree verification: `grep -c 6006229600 docs/pr-reviews/pr-2989-review/PR-REVIEW.md` prints a count above zero, and the six review threads the pull request had at that point, listed with the GraphQL `reviewThreads` query, map one to one to the Source URLs of rows F1 to F6.
 - Resolution reference: `docs(pr-reviews): [#2949] record PR #2989 review round 2 with the review that round 1 missed`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2989#discussion_r4653484912
