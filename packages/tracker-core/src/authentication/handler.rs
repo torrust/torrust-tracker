@@ -11,7 +11,6 @@ use std::time::Duration;
 
 use torrust_clock::DurationSinceUnixEpoch;
 use torrust_clock::clock::Time;
-use torrust_located_error::Located;
 
 use super::key::repository::in_memory::InMemoryKeyRepository;
 use super::key::repository::persisted::DatabaseKeyRepository;
@@ -99,13 +98,11 @@ impl KeysHandler {
                 match key {
                     Ok(key) => match self.add_expiring_peer_key(key, Some(valid_until)).await {
                         Ok(auth_key) => Ok(auth_key),
-                        Err(err) => Err(PeerKeyError::DatabaseError {
-                            source: Located(err).into(),
-                        }),
+                        Err(err) => Err(PeerKeyError::DatabaseError { source: err }),
                     },
                     Err(err) => Err(PeerKeyError::InvalidKey {
                         key: pre_existing_key,
-                        source: Located(err).into(),
+                        source: err,
                     }),
                 }
             } else {
@@ -116,13 +113,11 @@ impl KeysHandler {
                 match key {
                     Ok(key) => match self.add_permanent_peer_key(key).await {
                         Ok(auth_key) => Ok(auth_key),
-                        Err(err) => Err(PeerKeyError::DatabaseError {
-                            source: Located(err).into(),
-                        }),
+                        Err(err) => Err(PeerKeyError::DatabaseError { source: err }),
                     },
                     Err(err) => Err(PeerKeyError::InvalidKey {
                         key: pre_existing_key,
-                        source: Located(err).into(),
+                        source: err,
                     }),
                 }
             }
@@ -137,18 +132,14 @@ impl KeysHandler {
                     .await
                 {
                     Ok(auth_key) => Ok(auth_key),
-                    Err(err) => Err(PeerKeyError::DatabaseError {
-                        source: Located(err).into(),
-                    }),
+                    Err(err) => Err(PeerKeyError::DatabaseError { source: err }),
                 }
             } else {
                 // Permanent key
 
                 match self.generate_permanent_peer_key().await {
                     Ok(auth_key) => Ok(auth_key),
-                    Err(err) => Err(PeerKeyError::DatabaseError {
-                        source: Located(err).into(),
-                    }),
+                    Err(err) => Err(PeerKeyError::DatabaseError { source: err }),
                 }
             }
         }

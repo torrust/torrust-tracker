@@ -49,7 +49,6 @@ use std::time::Duration;
 use thiserror::Error;
 use torrust_clock::DurationSinceUnixEpoch;
 use torrust_clock::clock::Time;
-use torrust_located_error::{DynError, LocatedError};
 
 use crate::CurrentClock;
 
@@ -170,7 +169,7 @@ pub enum Error {
     /// Wraps an underlying error encountered during key verification.
     #[error("Key could not be verified: {source}")]
     KeyVerificationError {
-        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
+        source: Arc<dyn std::error::Error + Send + Sync>,
     },
 
     /// Indicates that the key could not be read or found.
@@ -188,9 +187,7 @@ pub enum Error {
 
 impl From<sqlx::Error> for Error {
     fn from(e: sqlx::Error) -> Self {
-        Self::KeyVerificationError {
-            source: (Arc::new(e) as DynError).into(),
-        }
+        Self::KeyVerificationError { source: Arc::new(e) }
     }
 }
 
@@ -296,6 +293,16 @@ mod tests {
             let err: key::Error = err.into();
 
             assert!(matches!(err, key::Error::KeyVerificationError { .. }));
+        }
+
+        #[test]
+        fn should_render_the_database_error_text_and_no_source_path() {
+            let err: key::Error = sqlx::Error::RowNotFound.into();
+
+            assert_eq!(
+                err.to_string(),
+                "Key could not be verified: no rows returned by a query that expected to return at least one row"
+            );
         }
     }
 }

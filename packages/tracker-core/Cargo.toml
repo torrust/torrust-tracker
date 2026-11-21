@@ -39,7 +39,6 @@ tokio-util = "0.7.15"
 torrust-clock = "3.0.0"
 torrust-tracker-configuration = { version = "3.0.0", path = "../configuration" }
 torrust-tracker-events = { version = "0.1.0", path = "../events" }
-torrust-located-error = "3.0.0"
 torrust-metrics = "0.2.0"
 torrust-tracker-primitives = { version = "3.0.0", path = "../primitives" }
 torrust-tracker-swarm-coordination-registry = { version = "0.1.0", path = "../swarm-coordination-registry" }

@@ -9,7 +9,7 @@ github-issue: 2916
 spec-path: docs/issues/open/2916-2912-si-4-tracker-core/ISSUE.md
 branch: "2916-tracker-core"
 related-pr: null
-last-updated-utc: "2026-11-21 13:37"
+last-updated-utc: "2026-11-21 13:38"
 semantic-links:
   skill-links:
     - create-issue
@@ -151,7 +151,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2 | DONE | Red tests | Unit tests for the 7 variants and the `PeerKeyError`/database sources; protocol tests for UDP, HTTP and REST; red output recorded. |
 | T3 | DONE | Whitelist and key errors | `location` removed from `WhitelistError` and `authentication::key::Error` and their sites, including `http-core`. |
 | T4 | DONE | Database errors | `location` removed from the three variants and 12 driver sites; `LocatedError` sources replaced; `tracing` event added where needed. |
-| T5 | TODO | `PeerKeyError` sources and dependency | Plain sources; six `Located(..).into()` removed; `torrust-located-error` removed from `tracker-core/Cargo.toml`. |
+| T5 | DONE | `PeerKeyError` sources and dependency | Plain sources; six `Located(..).into()` removed; `torrust-located-error` removed from `tracker-core/Cargo.toml`. |
 | T6 | TODO | Consumers | `udp-core`, `udp-server`, `http-core`, `rest-api-runtime-adapter` compile and their tests are updated. |
 | T7 | TODO | Green and recheck | Green output, then the T1 requests repeated against the running tracker. |
 
@@ -213,6 +213,7 @@ the model that produced them.
 - 2026-11-21 13:31 UTC - Claude Code (Claude Opus 5.5) - T1: reproduced on `develop` at `4be22ee66` with a listed and a private tracker (UDP, HTTP and REST replies all hold `packages/...rs:line` paths; a duplicate key over REST holds two, from the driver and from `authentication/handler.rs`). T2: red tests added at the tracker-core seams (whitelist authorization, authentication service, the shared driver tests, the keys handler) and at the protocol servers (UDP contract, HTTP `failure_reasons_hold_no_source_path.rs`, REST `assert_unhandled_rejection`, which now also forbids source paths), and the `ErrorKind::Whitelist` payload tests in `udp-server/src/event.rs` pinned to the full message. Decisions pending for T3 to T5 are recorded when made.
 - 2026-11-21 13:34 UTC - Claude Code (Claude Opus 5.5) - T2: red run at `test(tracker-core): [#2916] add red tests that tracker-core error texts name no source path`, all new and changed tests fail with a `packages/...rs:line` path (output in `evidence/`). T3: `location` removed from `WhitelistError::TorrentNotWhitelisted` and `authentication::key::Error::{UnableToReadKey, KeyExpired, MissingAuthKey}`; `KeyExpired` and `MissingAuthKey` become unit variants; the build sites in `whitelist/authorization.rs`, `authentication/service.rs`, `authentication/key/mod.rs` and `http-core/src/services/announce.rs` and the tests of `http-core` and `udp-server/src/event.rs` follow. The whitelist and key tests turn green; the database and `PeerKeyError` ones stay red until T4 and T5.
 - 2026-11-21 13:37 UTC - Claude Code (Claude Opus 5.5) - T4: `location` removed from `databases::error::Error::{InsertFailed, UpdateFailed, DeleteFailed}` and from the 12 driver sites (an insert and a delete in `whitelist_store.rs` and `auth_key_store.rs` of each of the three drivers). The message names the driver but not the table, so each site now emits a `tracing::warn!` with the driver, the table and, for the whitelist, the info-hash (never the key). The four `LocatedError` sources become a plain `Arc<dyn std::error::Error + Send + Sync>` (still `Clone`), and the two `From` conversions lose `#[track_caller]`. Decision on `UpdateFailed`: kept. No production code builds it (`grep -rn UpdateFailed packages` finds only the variant and the test double in `statistics/event/handler.rs`), but it is a public variant of a `#[non_exhaustive]` enum, removing it is not needed to remove the location, and the test double uses it as a representative persistence failure; removal can be its own change if wanted. Pinned-message unit tests added for the three variants and for a converted `sqlx` error. The driver tests are green; the `PeerKeyError` ones stay red until T5.
+- 2026-11-21 13:38 UTC - Claude Code (Claude Opus 5.5) - T5: `PeerKeyError::InvalidKey` and `DatabaseError` hold the plain `ParseKeyError` and `databases::error::Error` as sources (`ParseKeyError` now derives `Clone`, `PartialEq` and `Eq`, as `PeerKeyError` is `Clone`); the six `Located(err).into()` calls in `authentication/handler.rs` pass the error itself; `authentication::key::Error::KeyVerificationError` holds a plain `Arc<dyn std::error::Error + Send + Sync>`, with a pinned-message test. `torrust-located-error` is removed from `packages/tracker-core/Cargo.toml`. All `torrust-tracker-core` tests pass. `grep -rn "Location::caller\|track_caller\|Located\|located_error" packages/tracker-core/src packages/http-core/src/services/announce.rs` finds only the `#[track_caller]` of the test helper `assert_names_no_source_path`.
 
 ## Acceptance Criteria
 

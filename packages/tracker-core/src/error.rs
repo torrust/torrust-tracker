@@ -9,7 +9,6 @@
 //! `docs/adrs/20261118045443_errors_do_not_record_source_locations.md`).
 
 use torrust_info_hash::InfoHash;
-use torrust_located_error::LocatedError;
 
 use super::authentication::key::ParseKeyError;
 use super::databases;
@@ -123,16 +122,11 @@ pub enum PeerKeyError {
 
     /// Returned when the provided peer key is invalid.
     #[error("Invalid key: {key}")]
-    InvalidKey {
-        key: String,
-        source: LocatedError<'static, ParseKeyError>,
-    },
+    InvalidKey { key: String, source: ParseKeyError },
 
     /// Returned when persisting the peer key to the database fails.
     #[error("Can't persist key: {source}")]
-    DatabaseError {
-        source: LocatedError<'static, databases::error::Error>,
-    },
+    DatabaseError { source: databases::error::Error },
 }
 
 #[cfg(test)]
@@ -156,7 +150,6 @@ mod tests {
     }
 
     mod peer_key_error {
-        use torrust_located_error::Located;
         use torrust_tracker_primitives::Driver;
 
         use crate::error::PeerKeyError;
@@ -182,7 +175,7 @@ mod tests {
 
             let err = PeerKeyError::InvalidKey {
                 key: "INVALID KEY".to_string(),
-                source: Located(err).into(),
+                source: err,
             };
 
             let err_msg = format!("{err}");
@@ -197,9 +190,7 @@ mod tests {
         fn persisting_into_database() {
             let err = databases::error::Error::InsertFailed { driver: Driver::Sqlite3 };
 
-            let err = PeerKeyError::DatabaseError {
-                source: Located(err).into(),
-            };
+            let err = PeerKeyError::DatabaseError { source: err };
 
             let err_msg = format!("{err}");
 
