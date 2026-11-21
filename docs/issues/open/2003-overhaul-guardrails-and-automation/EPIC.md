@@ -6,7 +6,7 @@ epic: null
 github-issue: 2003
 spec-path: docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-21 13:22"
+last-updated-utc: "2026-11-21 15:44"
 semantic-links:
   skill-links:
     - create-issue
@@ -217,7 +217,7 @@ Issue #2347 closes through one close-out PR. PR #2363, which carries the #2347 i
 - [ ] Change the 13 rows fixed in PR #2363 from `FOLLOW_UP`/`OPEN` to `FIXED`, citing their commit subjects.
 - [ ] Post the final replies, and resolve those 13 threads and the 9 `NO_ACTION` threads.
 - [ ] Keep the 9 `FOLLOW_UP` threads open until their owners' fixes merge.
-- [ ] Log PR #2363's later review rounds in its PR-review record. That covers the round-4 approval, the ACK, and the stale-approval dismissal after the round-2 audit push. Issue #2949 decided that this dismissal is expected: an `ACK` counts only on the commit it names, so an audit-only commit needs new ACKs.
+- [ ] Log PR #2363's later review rounds in its PR-review record. That covers the round-4 approval, the ACK, and the stale-approval dismissal after the round-2 audit push. Issue #2949 decided that the audit record stays on the branch, so this dismissal is expected; the ACKs on the earlier head go stale the same way.
 - [ ] Record in the PR-review record the findings and rounds it does not yet carry: F14 (review 5340689822, at the head of `docs(pr-reviews): [#2347] record PR #2363 review round 2`: the audit said Copilot gave no severity while review 5338724829's overview rates one item Medium and three Low; fixed in `docs(pr-reviews): [#2347] record Copilot's severity labels in the PR #2363 audit`) and the processing-log entries for rounds 4 to 6 (review 5341713976, F15).
 - [ ] Run M2, close AC4, then close #2347 and archive its specification.
 
@@ -469,6 +469,7 @@ For each completed subissue in this EPIC, the default completion policy is:
 - 2026-11-19 13:49 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Correction to the 2026-11-19 08:20 UTC entry: it says the first wording of the 07:39 entry "was the wording of row 24 and Background at that time". Only EPIC row 24 said "proposed"; Background already said the maintainer decided on 2026-11-18 and D1 reopened that decision. Pointed out by da2ce7's F22 on PR #2950.
 - 2026-11-19 18:34 UTC - AI assistant (Claude Code, Claude Fable 5.2, issue #2949 session) - Row 24 changed: the maintainer decided the specification's D1 on 2026-11-19. The strict ACK stays, an audit-only commit needs new ACKs, and #2949 now only documents that in the skills. The row's title follows the specification's new title.
 - 2026-11-21 13:22 UTC - AI assistant (Claude Code, Claude Fable 5.2, issue #2949 session) - Row 24 is `IN_PROGRESS`: the specification of #2949 merged with PR #2950 on 2026-11-21, and the implementation branch adds the skill text. The #2363 line of the #2347 close-out plan now names #2949 as the decision about the dismissal it mentions.
+- 2026-11-21 15:44 UTC - AI assistant (Claude Code, Claude Fable 5.2, issue #2949 session) - Reworded the sentence added to the #2363 line of the #2347 close-out plan (da2ce7's F1 on PR #2989): the dismissal comes from the repository's stale-approval setting, and what #2949 decided is that the audit record stays on the branch.
 
 ## Acceptance Criteria
 
