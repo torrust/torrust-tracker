@@ -52,17 +52,19 @@ This bug is not part of EPIC #2758 (CLI output contract migration). It was found
 ### In Scope
 
 - Reject, during configuration validation, a `udp_trackers` entry that has no host, no port, or a non-`udp` scheme, with a new `ConfigurationError` variant that names the entry and reason; surfaces as the existing `invalid_configuration` record with exit `2`.
-- Remove the `unwrap`s in `resolve_socket_addr`: a host that cannot be resolved at run time (DNS failure) becomes a failed check result for that tracker (reported with the other check results), not a panic and not a whole-run failure.
+- Remove the `unwrap`s in `resolve_socket_addr`: a host that cannot be resolved at run time (DNS failure) becomes a failed check result for that tracker, not a panic and not a whole-run failure. The result record needs a way to represent an address that did not resolve, because `udp::Checks` carries `remote_addr: SocketAddr` (`checks/udp.rs:15`); the representation is part of Open Question 1.
 - Regression tests at the configuration seam (unit) and a real-artifact recheck.
 
 ### Out of Scope
 
 - `http_trackers` and `health_checks` URLs: HTTP(S) has default ports, so a missing port is valid. Validating their scheme or host is a separate change, only raised here for the maintainer to decide (see Open Questions).
-- Any other change to the output contract or exit codes.
+- Any other change to the output contract or exit codes, apart from the result-shape change that Open Question 1 may require for an unresolved host.
 
 ## Open Questions (for the maintainer)
 
-1. Is an unresolvable hostname a configuration error (exit `2`, resolved at validation time) or a per-tracker failed check (proposed above: DNS is a network condition, not a syntax error, and the check's purpose is to report on tracker health)?
+1. Is an unresolvable hostname a configuration error or a per-tracker failed check? The options:
+   - **Configuration error** (exit `2`): resolve at validation time. No result-shape change, but validation then needs the network and a typo-free configuration can still fail on a transient DNS error.
+   - **Failed check** (proposed: DNS is a network condition, not a syntax error, and the check's purpose is to report on tracker health): needs a representation for an address that did not resolve in `udp::Checks`, whose `remote_addr: SocketAddr` cannot hold it. Candidates: make `remote_addr` an `Option<SocketAddr>` and add the configured URL to the record, or keep `SocketAddr` and use a placeholder. This is a change to the result record, so this option widens the scope beyond what Out of Scope otherwise allows; the implementation PR must show the new record.
 2. Should the same host/scheme validation apply to `http_trackers` and `health_checks` in this issue, or stay out of scope?
 
 ## Architectural Decisions
