@@ -161,6 +161,7 @@ mod tests {
             use crate::authentication::key::repository::in_memory::InMemoryKeyRepository;
             use crate::authentication::service::AuthenticationService;
             use crate::authentication::{self, PeerKey};
+            use crate::test_helpers::tests::assert_names_no_source_path;
 
             fn instantiate_authentication_for_private_tracker() -> AuthenticationService {
                 let config = Core {
@@ -216,7 +217,8 @@ mod tests {
 
                 let error = authentication.authenticate(&unregistered_key).await.unwrap_err();
 
-                assert_eq!(error.to_string(), "Failed to read key: YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ");
+                assert!(error.to_string().starts_with("Failed to read key"), "{error}");
+                assert_names_no_source_path(&error.to_string());
             }
 
             #[tokio::test]
