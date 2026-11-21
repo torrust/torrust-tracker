@@ -74,7 +74,7 @@ The maintainer decided on 2026-10-20:
 | Console client `torrust-tracker-client` | Not published here. Its first publish comes from its own repository in the client-extraction issue.                                                          |
 | crates.io owners                 | `josecelano` and `da2ce7`, as for the four published workspace crates.                                                                                              |
 | Crates kept unpublished          | None beyond the ten `publish = false` members.                                                                                                                      |
-| Other prerequisites              | EPIC #1488 (shutdown overhaul) closes first (met: it closed on 2026-11-19, see [EPIC #1488 closed](#epic-1488-closed)). The EPIC #1347 (package testing) part of this row was replaced on 2026-11-18 by a per-crate testing gate (see below). |
+| Other prerequisites              | EPIC #1488 (shutdown overhaul) must close first. Met: it closed on 2026-11-19 (see [EPIC #1488 closed](#epic-1488-closed)). The EPIC #1347 (package testing) part of this row was replaced on 2026-11-18 by a per-crate testing gate (see below). |
 | `cargo package` failure          | Fix it in its own sub-issue (P1, #2582), created together with this issue.                                                                                                  |
 | Stale publish docs               | Fix them in this issue before the first publish (T2).                                                                                                                |
 
