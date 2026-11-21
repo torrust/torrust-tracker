@@ -9,7 +9,7 @@ github-issue: 2916
 spec-path: docs/issues/open/2916-2912-si-4-tracker-core/ISSUE.md
 branch: "2916-tracker-core"
 related-pr: 2991
-last-updated-utc: "2026-11-21 15:15"
+last-updated-utc: "2026-11-21 15:42"
 semantic-links:
   skill-links:
     - create-issue
@@ -217,6 +217,7 @@ the model that produced them.
 - 2026-11-21 13:41 UTC - Claude Code (Claude Opus 5.5) - T6: the consumers needed no change beyond the T3 test updates: `cargo clippy --workspace --all-targets --all-features -- -D warnings` (stable Rust toolchain) passes, and the tests of `udp-core`, `udp-server`, `http-core`, `rest-api-runtime-adapter`, `axum-http-server` and `axum-rest-api-server` pass. The module docs of `axum-http-server/src/v1/extractors/authentication_key.rs` showed tracker-core failure reasons with old source paths; they now show the replies recorded in T7. `docs/media/packages/dependencies-workspace-packages.md` still draws `tracker-core --> located-err` (and `http-proto --> located-err` from SI-3): left for SI-6, which redraws that diagram when the crate is dropped.
 - 2026-11-21 13:44 UTC - Claude Code (Claude Opus 5.5) - T7: green run at the T6 commit and the T1 requests repeated against a tracker built from the T5 commit; every reply keeps its text and loses the path, and the driver `tracing` event shows in the tracker log (`manual-verification-evidence.md`, V1 to V3; `evidence/`). M1 to M3 DONE, AC1 to AC5 DONE. Completion review: no retrospective needed. The plan held; the only additions were in scope (the `KeyVerificationError` and `databases::error::Error` `LocatedError` sources, which the spec's "Replace the `LocatedError` sources" item covers), and the one surprise is recorded in V3: duplicate whitelist writes never reach the database, so the REST database case is proven with keys. Open question to the EPIC coordinator: `UnableToReadKey` still prints the peer key ("Failed to read key: {key}"), which ADR rule 3 forbids for changed messages; kept unchanged here, outside the spec's scope.
 - 2026-11-21 15:15 UTC - Claude Code (Claude Opus 5.5) - PR #2991 opened as `josecelano-bot`. Copilot's review: two documentation findings (F1, F2), both fixed; audit in `docs/pr-reviews/pr-2991-review/PR-REVIEW.md`.
+- 2026-11-21 15:42 UTC - Claude Code (Claude Opus 5.5) - da2ce7 approved the round-1 head with six non-blocking findings (audit F3 to F8). Fixed: the REST delete-key doc example still showed a source path; the unregistered-key test now checks only the message prefix, so it does not pin the peer key; the evidence now records the red and green commands and a red run of the three driver steps the first red run did not reach (all three fail on a path); the request count reads twelve; the trailing blank line of `tests-green.txt` is gone. Not changed here: merging the seven copies of `assert_names_no_source_path` into `torrust-tracker-test-helpers`, suggested for SI-6.
 
 ## Acceptance Criteria
 

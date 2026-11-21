@@ -425,4 +425,3 @@ test server::v1::contract::context::torrent::should_fail_getting_torrents_when_t
 test server::v1::contract::context::whitelist::should_fail_removing_a_torrent_from_the_whitelist_when_the_provided_infohash_is_invalid ... ok
 
 test result: ok. 60 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.37s
-

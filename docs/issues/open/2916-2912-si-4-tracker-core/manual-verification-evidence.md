@@ -21,14 +21,16 @@ outside the repository (`<scratch>` below); they are embedded verbatim in this d
 captured replies and the test runs are stored in the [`evidence/`](evidence/) folder of this issue:
 
 - [`evidence/responses-before.txt`](evidence/responses-before.txt) and
-  [`evidence/responses-after.txt`](evidence/responses-after.txt): the eleven requests and their
+  [`evidence/responses-after.txt`](evidence/responses-after.txt): the twelve requests and their
   replies, before and after the fix.
 - Red runs, at the commit `test(tracker-core): [#2916] add red tests that tracker-core error texts name no source path`:
   [`evidence/tests-red-tracker-core.txt`](evidence/tests-red-tracker-core.txt),
   [`evidence/tests-red-udp-server-lib.txt`](evidence/tests-red-udp-server-lib.txt),
   [`evidence/tests-red-udp-server-integration.txt`](evidence/tests-red-udp-server-integration.txt),
   [`evidence/tests-red-axum-http-server.txt`](evidence/tests-red-axum-http-server.txt) and
-  [`evidence/tests-red-axum-rest-api-server.txt`](evidence/tests-red-axum-rest-api-server.txt).
+  [`evidence/tests-red-axum-rest-api-server.txt`](evidence/tests-red-axum-rest-api-server.txt);
+  and the later red runs of three driver steps,
+  [`evidence/tests-red-driver-steps.txt`](evidence/tests-red-driver-steps.txt).
 - Green run, at the commit `docs(axum-http-server): [#2916] show the tracker-core authentication failure reasons without source paths`:
   [`evidence/tests-green.txt`](evidence/tests-green.txt).
 
@@ -345,17 +347,48 @@ Met: the replies name the failed operation and the database's own text, with no 
 
 ### Red and green runs (T2, T7)
 
-Red, at the red-test commit (`git diff --quiet HEAD` exited 0 before the runs): 6 of 160
-`tracker-core` lib tests fail, 4 `udp-server` lib tests, the new `udp-server` integration test, 3 of
-14 selected `axum-http-server` integration tests and 9 of 60 `axum-rest-api-server` integration
-tests, each with a `packages/...rs:line` path in the message. The shared SQLite driver test
-`databases::driver::sqlite::tests::run_sqlite_driver_tests` runs its steps in sequence and stops at
-the first failing one (the duplicate key), so its other three new steps were not reached in the red
-run. Cargo stops at the first failing test target, so the `udp-server` integration target was run
-separately.
+Red, at the red-test commit (`git diff --quiet HEAD` exited 0 before the runs), with the stable Rust
+toolchain, one command after the other:
 
-Green, at the final code commit: the same five commands, all passing (165, 45 selected by
-`event::`, 17, 14 selected, 60).
+```bash
+cargo test -p torrust-tracker-core --lib                                                  # tests-red-tracker-core.txt
+cargo test -p torrust-tracker-udp-server                                                  # tests-red-udp-server-lib.txt
+cargo test -p torrust-tracker-axum-http-server --test integration failure_reasons_hold_no_source_path  # tests-red-axum-http-server.txt
+cargo test -p torrust-tracker-axum-rest-api-server --test integration                    # tests-red-axum-rest-api-server.txt
+cargo test -p torrust-tracker-udp-server --test integration                               # tests-red-udp-server-integration.txt
+```
+
+6 of 160 `tracker-core` lib tests fail, 4 `udp-server` lib tests, the new `udp-server` integration
+test, 3 of 14 selected `axum-http-server` integration tests and 9 of 60 `axum-rest-api-server`
+integration tests, each with a `packages/...rs:line` path in the message. Cargo stops at the first
+failing test target, so the second command ran only the `udp-server` lib tests, and the fifth ran
+its integration target separately.
+
+The shared SQLite driver test `databases::driver::sqlite::tests::run_sqlite_driver_tests` runs its
+steps in sequence and stops at the first failing one (the duplicate key), so the first red run did
+not reach its other three new steps. They were run red later (2026-11-21 15:40 UTC, for finding F3 of
+the PR #2991 audit): `git checkout <red-test commit> -- packages/tracker-core Cargo.lock` restored the
+red bytes of the crate, then, once for each step, `run_tests` was edited to call that step right after
+`database_setup` (the rest of the list unchanged, so dead-code lints still pass) and
+`cargo test -p torrust-tracker-core --lib databases::driver::sqlite::tests::run_sqlite_driver_tests`
+ran. All three fail on a path (`DeleteFailed` for the missing key and the missing info-hash, and the
+`sqlx` conversion for the duplicate info-hash); output in
+[`evidence/tests-red-driver-steps.txt`](evidence/tests-red-driver-steps.txt). Afterwards
+`git checkout HEAD -- packages/tracker-core Cargo.lock` restored the branch, and
+`git diff --quiet HEAD` exited 0.
+
+Green, at the commit
+`docs(axum-http-server): [#2916] show the tracker-core authentication failure reasons without source paths`
+(`git diff --quiet HEAD` exited 0 before the run), all passing, in
+[`evidence/tests-green.txt`](evidence/tests-green.txt):
+
+```bash
+cargo test -p torrust-tracker-core --lib                                                  # 165 passed
+cargo test -p torrust-tracker-udp-server --lib event::                                    # 45 selected, passed
+cargo test -p torrust-tracker-udp-server --test integration                               # 17 passed
+cargo test -p torrust-tracker-axum-http-server --test integration failure_reasons_hold_no_source_path  # 14 selected, passed
+cargo test -p torrust-tracker-axum-rest-api-server --test integration                    # 60 passed
+```
 
 ## Failures and Follow-up
 
