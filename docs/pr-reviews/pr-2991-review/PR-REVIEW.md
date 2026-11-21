@@ -49,12 +49,12 @@ F1 and F2 come from Copilot's review 6006219064 (COMMENTED on the first head, "d
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2991-f1 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F2 | review-finding:pr-2991-f2 | Copilot | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
-| F3 | review-finding:pr-2991-f3 | Human | Minor | documentation | ORIGINAL | FIXED | OPEN |
-| F4 | review-finding:pr-2991-f4 | Human | Minor | security | ORIGINAL | FIXED | OPEN |
-| F5 | review-finding:pr-2991-f5 | Human | Minor | testing | ORIGINAL | FIXED | OPEN |
-| F6 | review-finding:pr-2991-f6 | Human | Nit | formatting | ORIGINAL | FIXED | OPEN |
-| F7 | review-finding:pr-2991-f7 | Human | Suggestion | maintainability | ORIGINAL | NO_ACTION | OPEN |
-| F8 | review-finding:pr-2991-f8 | Human | Nit | documentation | ORIGINAL | FIXED | OPEN |
+| F3 | review-finding:pr-2991-f3 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F4 | review-finding:pr-2991-f4 | Human | Minor | security | ORIGINAL | FIXED | RESOLVED |
+| F5 | review-finding:pr-2991-f5 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F6 | review-finding:pr-2991-f6 | Human | Nit | formatting | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-2991-f7 | Human | Suggestion | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F8 | review-finding:pr-2991-f8 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -95,7 +95,7 @@ F1 and F2 come from Copilot's review 6006219064 (COMMENTED on the first head, "d
 - Current-tree verification: `grep -rn "\.rs:[0-9]" packages/axum-rest-api-server/src packages/axum-http-server/src packages/tracker-core/src packages/http-core/src packages/udp-core/src packages/udp-server/src` finds no doc example with a source path.
 - Resolution reference: docs(axum-rest-api-server): [#2916] show the delete-key error reply without a source path
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2991#discussion_r4653456178
 
 ### F4 - A changed message keeps and prints the peer key
 
@@ -108,7 +108,7 @@ F1 and F2 come from Copilot's review 6006219064 (COMMENTED on the first head, "d
 - Current-tree verification: `sed -n 212,222p packages/tracker-core/src/authentication/service.rs` shows the prefix check; `cargo test -p torrust-tracker-core --lib authentication::service` (stable Rust toolchain) passes 8 tests.
 - Resolution reference: test(tracker-core): [#2916] check only the prefix of the unregistered-key message
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2991#discussion_r4653456297
 
 ### F5 - The red and green commands are not recorded, and three driver steps were never seen red
 
@@ -121,7 +121,7 @@ F1 and F2 come from Copilot's review 6006219064 (COMMENTED on the first head, "d
 - Current-tree verification: `grep -c "^test result: FAILED" docs/issues/open/2916-2912-si-4-tracker-core/evidence/tests-red-driver-steps.txt` counts three failed runs, one per step, each with a `.rs:` path in the panic message.
 - Resolution reference: docs(issues): [#2916] record the red-run commands and the red runs of the three later driver steps
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2991#discussion_r4653456396
 
 ### F6 - A blank line at the end of `tests-green.txt`
 
@@ -134,7 +134,7 @@ F1 and F2 come from Copilot's review 6006219064 (COMMENTED on the first head, "d
 - Current-tree verification: `git diff --check torrust/develop...HEAD` prints nothing.
 - Resolution reference: docs(issues): [#2916] record the red-run commands and the red runs of the three later driver steps
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2991#discussion_r4653456515
 
 ### F7 - `assert_names_no_source_path` now exists in seven copies
 
@@ -145,9 +145,9 @@ F1 and F2 come from Copilot's review 6006219064 (COMMENTED on the first head, "d
 - Concern: This PR adds the tracker-core, REST and UDP copies of the path assertion to those in `http-protocol`, `primitives` and `axum-http-server`. Each placement fits rules C and E of the test-support ADR, but rule B puts a protocol-agnostic utility used by many packages in `torrust-tracker-test-helpers`. The reviewer suggested SI-6, which adds the enforcement check, as the place to merge them.
 - Solution: No change in this PR: merging the copies touches packages outside SI-4's scope (`http-protocol`, `primitives`, `axum-http-server`). The suggestion is passed to the EPIC #2912 coordinator for SI-6.
 - Current-tree verification: `grep -rln "fn assert_names_no_source_path" packages` lists the seven copies.
-- Resolution reference: N/A
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2991#discussion_r4653456652
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2991#discussion_r4653456652
 
 ### F8 - The evidence counts eleven requests; the captures hold twelve
 
@@ -160,13 +160,14 @@ F1 and F2 come from Copilot's review 6006219064 (COMMENTED on the first head, "d
 - Current-tree verification: `grep -c "^[UHWK][0-9]" docs/issues/open/2916-2912-si-4-tracker-core/evidence/responses-after.txt` counts 12.
 - Resolution reference: docs(issues): [#2916] record the red-run commands and the red runs of the three later driver steps
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2991#discussion_r4653456801
 
 ## Processing Log
 
 - 2026-11-21 15:15 UTC - Started audit for Copilot's review 6006219064 (COMMENTED, submitted 2026-11-21 15:12:35Z on the first head). Copilot noted that its full agentic review did not start before its timeout; the review has two inline findings, F1 (Medium, recorded as Minor) and F2 (Low, recorded as Nit). Both fixed in "docs(tracker-core): [#2916] describe the key verification outcomes and the bencode terminator in samples". Not pushed yet; replies and thread resolution follow the push. da2ce7 is a requested reviewer and has not reviewed yet.
 - 2026-11-21 15:19 UTC - Pushed "docs(pr-reviews): [#2916] add the review audit of PR #2991" as the new head after the commit-id check printed nothing (pre-push hook passed). Replied on F1 and F2, recorded the reply URLs, and resolved both threads (`resolveReviewThread` returned `true` for both; `date -u` after the resolve commands: 15:19:50). GraphQL refresh: zero unresolved threads on PR #2991.
 - 2026-11-21 15:43 UTC - Started round 2 for da2ce7's review 6006330368 (APPROVED, submitted 15:38:15Z on the round-1 head, with an ACK comment at 15:38:19Z): six non-blocking findings, recorded as F3 to F8 with the reviewer's F1 to F6. F3 to F6 and F8 fixed in "docs(axum-rest-api-server): [#2916] show the delete-key error reply without a source path", "test(tracker-core): [#2916] check only the prefix of the unregistered-key message" and "docs(issues): [#2916] record the red-run commands and the red runs of the three later driver steps"; F7 answered without change. Not pushed yet; replies and thread resolution follow the push. The ACK names the round-1 head, which this push replaces.
+- 2026-11-21 15:47 UTC - Pushed "docs(pr-reviews): [#2916] record round 2 of the review audit of PR #2991" as the new head after the commit-id check printed nothing (pre-push hook passed). Replied on the six threads, recorded the reply URLs, and resolved all six (`resolveReviewThread` returned `true` for each; `date -u` after the resolve commands: 15:47:43). GraphQL refresh: zero unresolved threads on PR #2991. F7 is answered without change and passed to the EPIC coordinator for SI-6.
 
 ## Completion Rules
 
