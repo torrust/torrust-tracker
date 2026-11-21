@@ -74,10 +74,10 @@ impl AuthenticationService {
 
     /// Verifies the authentication key against the in-memory repository.
     ///
-    /// This function retrieves the key from the repository. If the key is not
-    /// found, it returns an error that names the key. If the key is
-    /// found, the function then checks the key's expiration based on the
-    /// tracker configuration. The behavior differs depending on whether a
+    /// This function retrieves the key from the repository. A key that is not
+    /// found yields [`Error::UnableToReadKey`]. A key that is found is then
+    /// checked for expiration based on the tracker configuration, and the
+    /// function returns `Ok(())` when that check passes or is disabled. The behavior differs depending on whether a
     /// `private` configuration is provided and whether key expiration checking
     /// is enabled.
     ///

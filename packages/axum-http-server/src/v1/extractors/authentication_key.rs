@@ -14,6 +14,9 @@
 //!
 //! **Sample authentication error responses**
 //!
+//! Each sample is the raw bencoded body. The final `e` closes the bencoded
+//! dictionary; it is not part of the `failure reason` text.
+//!
 //! When the key param is **missing**:
 //!
 //! ```text
