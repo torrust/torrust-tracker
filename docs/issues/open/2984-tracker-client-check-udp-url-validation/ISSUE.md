@@ -87,7 +87,7 @@ Follows `.claude/skills/fix-bug/SKILL.md`:
 
 ## Regression Test Strategy
 
-Unit tests at the causal seam, `TryFrom<PlainConfiguration> for Configuration` in `config.rs`, one per case: no port, no host, non-`udp` scheme. A unit test for `resolve_socket_addr` returning an error (not panicking) for an unresolvable host. Unit tests are deterministic (no network: the unresolvable case uses the reserved `.invalid` TLD). Red/green output goes to `manual-verification-evidence.md`.
+Unit tests at the causal seam, `TryFrom<PlainConfiguration> for Configuration` in `config.rs`, one per case: no port, no host, non-`udp` scheme. A unit test for `resolve_socket_addr` returning an error (not panicking) for an unresolvable host. The configuration cases are deterministic and need no network. The unresolvable-host case goes through the system resolver, so it only asserts that an error is returned, not which one; it does not claim to be network-free (a resolver that rewrites "name not found" answers could resolve a `.invalid` name), unless the implementation injects the resolution step, which it may do instead. Red/green output goes to `manual-verification-evidence.md`.
 
 ## Implementation Plan
 
