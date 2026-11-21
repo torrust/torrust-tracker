@@ -51,6 +51,7 @@ Round 2 is da2ce7's two reviews. Review `6006229600` (`APPROVED` when submitted 
 | F2 | `review-finding:pr-2989-f2` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F3 | `review-finding:pr-2989-f3` | Human | Nit | metadata | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F4 | `review-finding:pr-2989-f4` | Human | Suggestion | link-integrity | ORIGINAL | FIXED | RESOLVED |
+| F5 | `review-finding:pr-2989-f5` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F6 | `review-finding:pr-2989-f6` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
@@ -107,6 +108,19 @@ Round 2 is da2ce7's two reviews. Review `6006229600` (`APPROVED` when submitted 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2989#discussion_r4653467423
 
+### F5 - The record leaves out review 6006229600 and its three threads
+
+- PR number: 2989
+- Source review ID: 6006354345
+- Reviewer finding ID: F4
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2989#discussion_r4653440624
+- Concern: Review 6006229600 was submitted on the first head before this record was created, with three inline comments that had no reply, row or resolution, so the record's account of round 1 was incomplete.
+- Solution: The round-2 paragraph names the review, rows F2 to F4 record its comments with the reviewer's IDs, and a Processing Log entry says how round 1 missed it. The round-1 paragraph and entry stay as written.
+- Current-tree verification: `grep -c 6006229600 docs/pr-reviews/pr-2989-review/PR-REVIEW.md` prints a count above zero, and the validator reports no review comment without a row.
+- Resolution reference: `docs(pr-reviews): [#2949] record PR #2989 review round 2 with the review that round 1 missed`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2989#discussion_r4653484912
+
 ### F6 - The description's file list does not name the audit record
 
 - PR number: 2989
@@ -124,6 +138,7 @@ Round 2 is da2ce7's two reviews. Review `6006229600` (`APPROVED` when submitted 
 
 - 2026-11-21 15:20 UTC - AI assistant (Claude Code, Claude Fable 5.2, issue #2949 session) - Started audit. Round 1: the poller reported Copilot review 6006218967 (submitted 2026-11-21 15:12:33 UTC). Normalized its inline comment as F1, fixed it in its own commit, pushed it with the commit that records this pull request in the specification, replied on the thread (15:20:30 UTC), then resolved the thread.
 - 2026-11-21 15:50 UTC - AI assistant (Claude Code, Claude Fable 5.2, issue #2949 session) - Correction to the entry above, and round 2. da2ce7's review 6006229600 (submitted 15:14:41 UTC, with an approval and an `ACK` on the first head at 15:14:45 UTC) arrived before the round-1 push, but the poller had already returned the Copilot review and was restarted from a later cursor, so the review was not seen: round 1 was processed and this record was created without it, and the round-1 push made that `ACK` stale. da2ce7's review 6006354345 (submitted 15:42:44 UTC) pointed this out. Normalized the five inline comments of both reviews as F2 to F6. Fixed F2 and F4 in their own commits and pushed them; fixed F6 in the description; answered F3 with no change. Replied on those four threads (15:50:02 to 15:50:09 UTC) and resolved them. F5, about this record, is answered and recorded after this commit is pushed.
+- 2026-11-21 15:55 UTC - AI assistant (Claude Code, Claude Fable 5.2, issue #2949 session) - Round 2, continued: after the round-2 record was pushed, replied on F5's thread (15:55:29 UTC), resolved it and added its row. All six threads of this pull request now have a row, a reply and a resolution.
 
 ## Completion Rules
 
