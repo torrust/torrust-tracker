@@ -190,7 +190,7 @@ For each subissue implementation in this EPIC, the default completion policy is:
 
 - Outcome: the test isolation rules are documented for contributors (for example in
   `docs/testing.md` and the `write-unit-test` skill). #1419 closed on 2026-11-21 with all its
-  work done under this EPIC, so none is tracked outside it.
+  work done under this EPIC. No #1419 work is tracked outside this EPIC.
 - Exit criteria: all subissues are done or explicitly handed off.
 
 ## Decisions
@@ -306,7 +306,8 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
   and R9 completed with PRs #2961, #2971 and #2983. Its spec is archived to
   `docs/issues/closed/`. The EPIC coordinator allowed this edit for the close-out.
 - 2026-11-21 13:24 UTC - Claude Code (Claude Opus 5.5), EPIC coordinator - Synced the text after #1419
-  closed on 2026-11-21 (close-out PR #2983): the Delivery Strategy and the Phase 4 outcome no
+  closed: PR #2983 merged on 2026-11-21 13:16 UTC and closed #1419. The 2026-11-20 entry was
+  written inside PR #2983 before it merged. The Delivery Strategy and the Phase 4 outcome no
   longer describe #1419 as remaining work.
 
 ## Acceptance Criteria
