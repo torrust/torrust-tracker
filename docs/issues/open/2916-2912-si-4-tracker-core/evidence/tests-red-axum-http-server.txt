@@ -1,0 +1,56 @@
+   Compiling torrust-tracker-primitives v3.1.0 (<worktree>/packages/primitives)
+   Compiling torrust-tracker-client-lib v0.1.0 (<worktree>/packages/tracker-client)
+   Compiling torrust-tracker-configuration v3.0.0 (<worktree>/packages/configuration)
+   Compiling torrust-tracker-swarm-coordination-registry v0.1.0 (<worktree>/packages/swarm-coordination-registry)
+   Compiling torrust-tracker-core v0.1.0 (<worktree>/packages/tracker-core)
+   Compiling torrust-tracker-axum-server v0.1.0 (<worktree>/packages/axum-server)
+   Compiling torrust-tracker-test-helpers v3.0.0 (<worktree>/packages/test-helpers)
+   Compiling torrust-tracker-http-core v0.1.0 (<worktree>/packages/http-core)
+   Compiling torrust-tracker-axum-http-server v0.1.0 (<worktree>/packages/axum-http-server)
+    Finished `test` profile [optimized + debuginfo] target(s) in 2.69s
+     Running tests/integration.rs (target/debug/build/torrust-tracker-axum-http-server/2147d666273a05bb/out/integration-2147d666273a05bb)
+
+running 14 tests
+2026-11-21T13:32:37.933468Z ERROR torrust_tracker_core::whitelist::authorization: error=The torrent: 3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0, is not whitelisted, packages/tracker-core/src/whitelist/authorization.rs:61:23
+test server::v1::contract::failure_reasons_hold_no_source_path::an_announce_with_a_short_peer_id ... ok
+test server::v1::contract::failure_reasons_hold_no_source_path::an_announce_without_the_info_hash_param ... ok
+test server::v1::contract::failure_reasons_hold_no_source_path::an_announce_without_query_params ... ok
+test server::v1::contract::failure_reasons_hold_no_source_path::an_announce_with_an_unparsable_query ... ok
+test server::v1::contract::failure_reasons_hold_no_source_path::a_scrape_without_query_params ... ok
+test server::v1::contract::failure_reasons_hold_no_source_path::an_announce_with_an_invalid_numwant_param ... ok
+test server::v1::contract::failure_reasons_hold_no_source_path::an_announce_to_a_private_tracker_with_a_malformed_key ... ok
+test server::v1::contract::failure_reasons_hold_no_source_path::an_announce_to_a_tracker_behind_a_reverse_proxy_without_the_x_forwarded_for_header ... ok
+test server::v1::contract::failure_reasons_hold_no_source_path::an_announce_to_a_listed_tracker_for_a_torrent_that_is_not_whitelisted ... FAILED
+test server::v1::contract::failure_reasons_hold_no_source_path::a_scrape_with_a_short_info_hash ... ok
+test server::v1::contract::failure_reasons_hold_no_source_path::a_scrape_without_the_info_hash_param ... ok
+test server::v1::contract::failure_reasons_hold_no_source_path::an_announce_with_a_short_info_hash ... ok
+test server::v1::contract::failure_reasons_hold_no_source_path::an_announce_to_a_private_tracker_with_an_unregistered_key ... FAILED
+test server::v1::contract::failure_reasons_hold_no_source_path::an_announce_to_a_private_tracker_without_a_key ... FAILED
+
+failures:
+
+---- server::v1::contract::failure_reasons_hold_no_source_path::an_announce_to_a_listed_tracker_for_a_torrent_that_is_not_whitelisted stdout ----
+
+thread 'server::v1::contract::failure_reasons_hold_no_source_path::an_announce_to_a_listed_tracker_for_a_torrent_that_is_not_whitelisted' panicked at packages/axum-http-server/tests/server/v1/contract/failure_reasons_hold_no_source_path.rs:190:5:
+the failure reason must not hold a source path, but it contains ".rs:": "Tracker whitelist error: The torrent: 3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0, is not whitelisted, packages/tracker-core/src/whitelist/authorization.rs:61:23"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- server::v1::contract::failure_reasons_hold_no_source_path::an_announce_to_a_private_tracker_with_an_unregistered_key stdout ----
+
+thread 'server::v1::contract::failure_reasons_hold_no_source_path::an_announce_to_a_private_tracker_with_an_unregistered_key' panicked at packages/axum-http-server/tests/server/v1/contract/failure_reasons_hold_no_source_path.rs:217:5:
+the failure reason must not hold a source path, but it contains ".rs:": "Tracker authentication error: Failed to read key: YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ, packages/tracker-core/src/authentication/service.rs:98:27"
+
+---- server::v1::contract::failure_reasons_hold_no_source_path::an_announce_to_a_private_tracker_without_a_key stdout ----
+
+thread 'server::v1::contract::failure_reasons_hold_no_source_path::an_announce_to_a_private_tracker_without_a_key' panicked at packages/axum-http-server/tests/server/v1/contract/failure_reasons_hold_no_source_path.rs:205:5:
+the failure reason must not hold a source path, but it contains ".rs:": "Tracker authentication error: Missing authentication key, packages/http-core/src/services/announce.rs:308:27"
+
+
+failures:
+    server::v1::contract::failure_reasons_hold_no_source_path::an_announce_to_a_listed_tracker_for_a_torrent_that_is_not_whitelisted
+    server::v1::contract::failure_reasons_hold_no_source_path::an_announce_to_a_private_tracker_with_an_unregistered_key
+    server::v1::contract::failure_reasons_hold_no_source_path::an_announce_to_a_private_tracker_without_a_key
+
+test result: FAILED. 11 passed; 3 failed; 0 ignored; 0 measured; 63 filtered out; finished in 1.08s
+
+error: test failed, to rerun pass `-p torrust-tracker-axum-http-server --test integration`

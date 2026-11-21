@@ -1,0 +1,24 @@
+=== step moved first: handling_authentication_keys::it_should_fail_without_a_source_path_trying_to_remove_a_missing_key
+started 15:40:31
+$ cargo test -p torrust-tracker-core --lib databases::driver::sqlite::tests::run_sqlite_driver_tests
+test databases::driver::sqlite::tests::run_sqlite_driver_tests ... FAILED
+thread 'databases::driver::sqlite::tests::run_sqlite_driver_tests' panicked at packages/tracker-core/src/databases/driver/mod.rs:290:13:
+the error message must not hold a source path, but it contains ".rs:": "Failed to remove record from Sqlite3 database, error-code: 0, packages/tracker-core/src/databases/driver/sqlite/auth_key_store.rs:108:27"
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 159 filtered out; finished in 0.00s
+ended 15:40:35
+=== step moved first: handling_the_whitelist::it_should_fail_without_a_source_path_trying_to_add_the_same_infohash_twice
+started 15:40:35
+$ cargo test -p torrust-tracker-core --lib databases::driver::sqlite::tests::run_sqlite_driver_tests
+test databases::driver::sqlite::tests::run_sqlite_driver_tests ... FAILED
+thread 'databases::driver::sqlite::tests::run_sqlite_driver_tests' panicked at packages/tracker-core/src/databases/driver/mod.rs:345:13:
+the error message must not hold a source path, but it contains ".rs:": "The Sqlite3 query was malformed: error returned from database: (code: 2067) UNIQUE constraint failed: whitelist.info_hash, packages/tracker-core/src/databases/driver/sqlite/whitelist_store.rs:50:22"
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 159 filtered out; finished in 0.00s
+ended 15:40:36
+=== step moved first: handling_the_whitelist::it_should_fail_without_a_source_path_trying_to_remove_a_missing_infohash
+started 15:40:36
+$ cargo test -p torrust-tracker-core --lib databases::driver::sqlite::tests::run_sqlite_driver_tests
+test databases::driver::sqlite::tests::run_sqlite_driver_tests ... FAILED
+thread 'databases::driver::sqlite::tests::run_sqlite_driver_tests' panicked at packages/tracker-core/src/databases/driver/mod.rs:353:13:
+the error message must not hold a source path, but it contains ".rs:": "Failed to remove record from Sqlite3 database, error-code: 0, packages/tracker-core/src/databases/driver/sqlite/whitelist_store.rs:83:27"
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 159 filtered out; finished in 0.00s
+ended 15:40:38

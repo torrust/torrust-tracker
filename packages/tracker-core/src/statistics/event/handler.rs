@@ -132,7 +132,6 @@ async fn increase_global_downloads(
 
 #[cfg(test)]
 mod tests {
-    use std::panic::Location;
     use std::sync::Arc;
 
     use torrust_clock::DurationSinceUnixEpoch;
@@ -253,12 +252,9 @@ mod tests {
         // Arrange
         let stats_repository = Arc::new(Repository::new(true, true));
         let mut store = MockTorrentMetricsStore::new();
-        store.expect_load_torrent_downloads().returning(|_| {
-            Box::pin(std::future::ready(Err(Error::UpdateFailed {
-                location: Location::caller(),
-                driver: Driver::Sqlite3,
-            })))
-        });
+        store
+            .expect_load_torrent_downloads()
+            .returning(|_| Box::pin(std::future::ready(Err(Error::UpdateFailed { driver: Driver::Sqlite3 }))));
         store
             .expect_load_global_downloads()
             .returning(|| Box::pin(std::future::ready(Ok(None))));

@@ -42,11 +42,15 @@ pub(crate) mod tests {
         handling_authentication_keys::it_should_remove_a_permanent_authentication_key(driver).await;
         handling_authentication_keys::it_should_save_and_load_expiring_authentication_keys(driver).await;
         handling_authentication_keys::it_should_remove_an_expiring_authentication_key(driver).await;
+        handling_authentication_keys::it_should_fail_without_a_source_path_trying_to_add_the_same_key_twice(driver).await;
+        handling_authentication_keys::it_should_fail_without_a_source_path_trying_to_remove_a_missing_key(driver).await;
 
         handling_the_whitelist::it_should_load_the_whitelist(driver).await;
         handling_the_whitelist::it_should_add_and_get_infohashes(driver).await;
         handling_the_whitelist::it_should_remove_an_infohash_from_the_whitelist(driver).await;
         handling_the_whitelist::it_should_fail_trying_to_add_the_same_infohash_twice(driver).await;
+        handling_the_whitelist::it_should_fail_without_a_source_path_trying_to_add_the_same_infohash_twice(driver).await;
+        handling_the_whitelist::it_should_fail_without_a_source_path_trying_to_remove_a_missing_infohash(driver).await;
     }
 
     async fn database_setup(driver: &Arc<Box<dyn Database>>) {
@@ -215,6 +219,7 @@ pub(crate) mod tests {
 
         use crate::authentication::key::{generate_expiring_key, generate_permanent_key};
         use crate::databases::traits::Database;
+        use crate::test_helpers::tests::assert_names_no_source_path;
 
         pub async fn it_should_load_the_keys(driver: &Arc<Box<dyn Database>>) {
             let permanent_peer_key = generate_permanent_key();
@@ -265,6 +270,24 @@ pub(crate) mod tests {
 
             assert!(driver.get_key_from_keys(&peer_key.key()).await.unwrap().is_none());
         }
+
+        pub async fn it_should_fail_without_a_source_path_trying_to_add_the_same_key_twice(driver: &Arc<Box<dyn Database>>) {
+            let peer_key = generate_permanent_key();
+            driver.add_key_to_keys(&peer_key).await.unwrap();
+
+            let error = driver.add_key_to_keys(&peer_key).await.unwrap_err();
+
+            assert_names_no_source_path(&error.to_string());
+        }
+
+        pub async fn it_should_fail_without_a_source_path_trying_to_remove_a_missing_key(driver: &Arc<Box<dyn Database>>) {
+            let missing_key = generate_permanent_key().key();
+
+            let error = driver.remove_key_from_keys(&missing_key).await.unwrap_err();
+
+            assert_names_no_source_path(&error.to_string());
+            assert!(error.to_string().starts_with("Failed to remove record from "), "{error}");
+        }
     }
 
     mod handling_the_whitelist {
@@ -272,7 +295,7 @@ pub(crate) mod tests {
         use std::sync::Arc;
 
         use crate::databases::traits::Database;
-        use crate::test_helpers::tests::random_info_hash;
+        use crate::test_helpers::tests::{assert_names_no_source_path, random_info_hash};
 
         pub async fn it_should_load_the_whitelist(driver: &Arc<Box<dyn Database>>) {
             let infohash = random_info_hash();
@@ -309,6 +332,24 @@ pub(crate) mod tests {
             let result = driver.add_info_hash_to_whitelist(infohash).await;
 
             assert!(result.is_err());
+        }
+
+        pub async fn it_should_fail_without_a_source_path_trying_to_add_the_same_infohash_twice(driver: &Arc<Box<dyn Database>>) {
+            let infohash = random_info_hash();
+            driver.add_info_hash_to_whitelist(infohash).await.unwrap();
+
+            let error = driver.add_info_hash_to_whitelist(infohash).await.unwrap_err();
+
+            assert_names_no_source_path(&error.to_string());
+        }
+
+        pub async fn it_should_fail_without_a_source_path_trying_to_remove_a_missing_infohash(driver: &Arc<Box<dyn Database>>) {
+            let missing_infohash = random_info_hash();
+
+            let error = driver.remove_info_hash_from_whitelist(missing_infohash).await.unwrap_err();
+
+            assert_names_no_source_path(&error.to_string());
+            assert!(error.to_string().starts_with("Failed to remove record from "), "{error}");
         }
     }
 }

@@ -14,10 +14,13 @@
 //!
 //! **Sample authentication error responses**
 //!
+//! Each sample is the raw bencoded body. The final `e` closes the bencoded
+//! dictionary; it is not part of the `failure reason` text.
+//!
 //! When the key param is **missing**:
 //!
 //! ```text
-//! d14:failure reason131:Authentication error: Missing authentication key param for private tracker. Error in src/servers/http/v1/handlers/announce.rs:79:31e
+//! d14:failure reason56:Tracker authentication error: Missing authentication keye
 //! ```
 //!
 //! When the key param has an **invalid format**:
@@ -29,20 +32,20 @@
 //! When the key is **not found** in the database:
 //!
 //! ```text
-//! d14:failure reason101:Authentication error: Failed to read key: YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ, src/tracker/mod.rs:848:27e
+//! d14:failure reason82:Tracker authentication error: Failed to read key: YZSl4lMZupRuOpSRC3krIKR5BPB14nrJe
 //! ```
 //!
 //! When the key is found in the database but it's **expired**:
 //!
 //! ```text
-//! d14:failure reason64:Authentication error: Key has expired, src/tracker/auth.rs:88:23e
+//! d14:failure reason45:Tracker authentication error: Key has expirede
 //! ```
 //!
 //! > **NOTICE**: the returned HTTP status code is always `200` for authentication errors.
 //! > Neither [The `BitTorrent` Protocol Specification](https://www.bittorrent.org/beps/bep_0003.html)
 //! > nor [The Private Torrents](https://www.bittorrent.org/beps/bep_0027.html)
 //! > specifications specify any HTTP status code for authentication errors.
-// cspell:ignore characterse
+// cspell:ignore characterse keye expirede
 use std::future::Future;
 
 use axum::extract::rejection::PathRejection;

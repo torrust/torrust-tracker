@@ -78,10 +78,8 @@ impl AuthKeyStore for Postgres {
             .rows_affected();
 
         if insert == 0 {
-            Err(Error::InsertFailed {
-                location: std::panic::Location::caller(),
-                driver: DRIVER,
-            })
+            tracing::warn!(driver = %DRIVER, table = "keys", "the insert affected no rows");
+            Err(Error::InsertFailed { driver: DRIVER })
         } else {
             usize::try_from(insert).map_err(|e| Error::MalformedDatabaseRecord {
                 message: format!("rows_affected does not fit in usize: {e}"),
@@ -101,8 +99,8 @@ impl AuthKeyStore for Postgres {
         if deleted == 1 {
             Ok(1)
         } else {
+            tracing::warn!(driver = %DRIVER, table = "keys", rows_deleted = deleted, "the delete did not remove exactly one row");
             Err(Error::DeleteFailed {
-                location: std::panic::Location::caller(),
                 error_code: usize::try_from(deleted).unwrap_or(0),
                 driver: DRIVER,
             })

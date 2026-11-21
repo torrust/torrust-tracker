@@ -404,6 +404,40 @@ async fn should_fail_when_the_auth_key_cannot_be_deleted() {
 }
 
 #[tokio::test]
+async fn should_fail_without_a_source_path_when_the_same_auth_key_is_uploaded_twice() {
+    logging::setup();
+    let env = Started::new(&configuration::ephemeral_private().into()).await;
+    let client = ApiHttpClient::new(env.get_connection_info()).unwrap();
+    let upload = || AddKeyForm {
+        opt_key: Some("Xc1L4PbQJSFGlrgSRZl8wxSFAuMa21z5".to_string()),
+        opt_seconds_valid: Some(60),
+    };
+    assert_auth_key_utf8(client.add_auth_key(upload(), None).await.unwrap()).await;
+
+    let response = client.add_auth_key(upload(), None).await.unwrap();
+
+    assert_failed_to_add_key(response).await;
+
+    env.stop().await;
+}
+
+#[tokio::test]
+async fn should_fail_without_a_source_path_when_the_auth_key_to_delete_does_not_exist() {
+    logging::setup();
+    let env = Started::new(&configuration::ephemeral_private().into()).await;
+
+    let response = ApiHttpClient::new(env.get_connection_info())
+        .unwrap()
+        .delete_auth_key("Xc1L4PbQJSFGlrgSRZl8wxSFAuMa21z5", None)
+        .await
+        .unwrap();
+
+    assert_failed_to_delete_key(response).await;
+
+    env.stop().await;
+}
+
+#[tokio::test]
 async fn should_not_allow_deleting_an_auth_key_for_unauthenticated_users() {
     logging::setup();
 

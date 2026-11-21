@@ -7,14 +7,17 @@
 //! the associated database driver and, when applicable, the source error.
 //!
 //! External errors from the `sqlx` database library are converted into this
-//! error type using the provided `From` implementations.
-use std::panic::Location;
+//! error type using the provided `From` implementations. No variant records a
+//! source location (see
+//! `docs/adrs/20261118045443_errors_do_not_record_source_locations.md`).
 use std::sync::Arc;
 
 use sqlx::Error as SqlxError;
 use sqlx::migrate::MigrateError;
-use torrust_located_error::{DynError, LocatedError};
 use torrust_tracker_primitives::Driver;
+
+/// A shareable source error, so that [`Error`] stays `Clone`.
+type DynError = Arc<dyn std::error::Error + Send + Sync>;
 
 /// Database error type that encapsulates various failures encountered during
 /// database operations.
@@ -26,49 +29,33 @@ pub enum Error {
     /// This error variant is used when a query that is expected to return a
     /// result does not.
     #[error("The {driver} query unexpectedly returned nothing: {source}")]
-    QueryReturnedNoRows {
-        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
-        driver: Driver,
-    },
+    QueryReturnedNoRows { source: DynError, driver: Driver },
 
     /// Indicates that the query was malformed.
     ///
     /// This error variant is used when the SQL query itself is invalid or
     /// improperly formatted.
     #[error("The {driver} query was malformed: {source}")]
-    InvalidQuery {
-        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
-        driver: Driver,
-    },
+    InvalidQuery { source: DynError, driver: Driver },
 
     /// Indicates a failure to insert a record into the database.
     ///
     /// This error is raised when an insertion operation fails.
-    #[error("Unable to insert record into {driver} database, {location}")]
-    InsertFailed {
-        location: &'static Location<'static>,
-        driver: Driver,
-    },
+    #[error("Unable to insert record into {driver} database")]
+    InsertFailed { driver: Driver },
 
     /// Indicates a failure to update a record into the database.
     ///
     /// This error is raised when an insertion operation fails.
-    #[error("Unable to update record into {driver} database, {location}")]
-    UpdateFailed {
-        location: &'static Location<'static>,
-        driver: Driver,
-    },
+    #[error("Unable to update record into {driver} database")]
+    UpdateFailed { driver: Driver },
 
     /// Indicates a failure to delete a record from the database.
     ///
     /// This error includes an error code that may be returned by the database
     /// driver.
-    #[error("Failed to remove record from {driver} database, error-code: {error_code}, {location}")]
-    DeleteFailed {
-        location: &'static Location<'static>,
-        error_code: usize,
-        driver: Driver,
-    },
+    #[error("Failed to remove record from {driver} database, error-code: {error_code}")]
+    DeleteFailed { error_code: usize, driver: Driver },
 
     /// Indicates that a row read from the database contains a malformed value
     /// (e.g., a corrupt or manually-edited `info_hash` or key string that
@@ -81,10 +68,7 @@ pub enum Error {
     /// This error variant wraps connection-related errors, such as pool
     /// timeouts, TLS failures, or invalid URL errors.
     #[error("Failed to connect to {driver} database: {source}")]
-    ConnectionError {
-        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
-        driver: Driver,
-    },
+    ConnectionError { source: DynError, driver: Driver },
 
     /// Indicates a failure while applying schema migrations.
     ///
@@ -92,10 +76,7 @@ pub enum Error {
     /// `MIGRATOR.run()` (or by the helpers used to bootstrap the
     /// `_sqlx_migrations` tracking table on legacy databases).
     #[error("Failed to apply {driver} schema migrations: {source}")]
-    MigrationError {
-        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
-        driver: Driver,
-    },
+    MigrationError { source: DynError, driver: Driver },
 
     /// Indicates that a pre-v4 database is in a partially-migrated state and
     /// cannot be auto-bootstrapped into the `sqlx` migration system.
@@ -109,13 +90,12 @@ pub enum Error {
 }
 
 impl From<(SqlxError, Driver)> for Error {
-    #[track_caller]
     fn from(value: (SqlxError, Driver)) -> Self {
         let (err, driver) = value;
 
         match err {
             SqlxError::RowNotFound => Self::QueryReturnedNoRows {
-                source: (Arc::new(SqlxError::RowNotFound) as DynError).into(),
+                source: Arc::new(SqlxError::RowNotFound),
                 driver,
             },
             SqlxError::Io(_)
@@ -124,11 +104,11 @@ impl From<(SqlxError, Driver)> for Error {
             | SqlxError::PoolClosed
             | SqlxError::WorkerCrashed
             | SqlxError::Configuration(_) => Self::ConnectionError {
-                source: (Arc::new(err) as DynError).into(),
+                source: Arc::new(err),
                 driver,
             },
             _ => Self::InvalidQuery {
-                source: (Arc::new(err) as DynError).into(),
+                source: Arc::new(err),
                 driver,
             },
         }
@@ -136,12 +116,11 @@ impl From<(SqlxError, Driver)> for Error {
 }
 
 impl From<(MigrateError, Driver)> for Error {
-    #[track_caller]
     fn from(value: (MigrateError, Driver)) -> Self {
         let (err, driver) = value;
 
         Self::MigrationError {
-            source: (Arc::new(err) as DynError).into(),
+            source: Arc::new(err),
             driver,
         }
     }
@@ -171,5 +150,44 @@ mod tests {
             .into();
 
         assert!(matches!(err, Error::ConnectionError { .. }));
+    }
+
+    #[test]
+    fn it_should_render_a_sqlx_error_with_its_own_text_and_no_source_path() {
+        let err: Error = (sqlx::Error::RowNotFound, Driver::Sqlite3).into();
+
+        assert_eq!(
+            err.to_string(),
+            "The Sqlite3 query unexpectedly returned nothing: no rows returned by a query that expected to return at least one row"
+        );
+    }
+
+    #[test]
+    fn it_should_render_a_failed_insert_naming_the_driver() {
+        let err = Error::InsertFailed { driver: Driver::MySQL };
+
+        assert_eq!(err.to_string(), "Unable to insert record into MySQL database");
+    }
+
+    #[test]
+    fn it_should_render_a_failed_update_naming_the_driver() {
+        let err = Error::UpdateFailed {
+            driver: Driver::PostgreSQL,
+        };
+
+        assert_eq!(err.to_string(), "Unable to update record into PostgreSQL database");
+    }
+
+    #[test]
+    fn it_should_render_a_failed_delete_naming_the_driver_and_the_rows_removed() {
+        let err = Error::DeleteFailed {
+            error_code: 0,
+            driver: Driver::Sqlite3,
+        };
+
+        assert_eq!(
+            err.to_string(),
+            "Failed to remove record from Sqlite3 database, error-code: 0"
+        );
     }
 }

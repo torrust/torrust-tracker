@@ -214,7 +214,6 @@ mod tests {
     use std::collections::BTreeMap;
     use std::future;
     use std::net::{IpAddr, SocketAddr};
-    use std::panic::Location;
     use std::sync::Arc;
 
     use rstest::rstest;
@@ -830,7 +829,6 @@ mod tests {
         // Arrange
         let whitelist_error = WhitelistError::TorrentNotWhitelisted {
             info_hash: sample_info_hash(),
-            location: Location::caller(),
         };
 
         // Act
@@ -851,9 +849,7 @@ mod tests {
     #[test]
     fn it_should_wrap_an_authentication_error_in_the_tracker_core_variant() {
         // Arrange
-        let authentication_error = AuthenticationKeyError::MissingAuthKey {
-            location: Location::caller(),
-        };
+        let authentication_error = AuthenticationKeyError::MissingAuthKey;
 
         // Act
         let error = HttpScrapeError::from(authentication_error);

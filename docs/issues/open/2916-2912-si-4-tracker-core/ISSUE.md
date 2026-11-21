@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: in-progress
 priority: p1
 epic: 2912
 github-issue: 2916
 spec-path: docs/issues/open/2916-2912-si-4-tracker-core/ISSUE.md
 branch: "2916-tracker-core"
-related-pr: null
-last-updated-utc: "2026-11-18 19:11"
+related-pr: 2991
+last-updated-utc: "2026-11-21 15:42"
 semantic-links:
   skill-links:
     - create-issue
@@ -147,13 +147,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | TODO | Reproduce and record | UDP, HTTP and REST replies with a library path, in `manual-verification-evidence.md`. |
-| T2 | TODO | Red tests | Unit tests for the 7 variants and the `PeerKeyError`/database sources; protocol tests for UDP, HTTP and REST; red output recorded. |
-| T3 | TODO | Whitelist and key errors | `location` removed from `WhitelistError` and `authentication::key::Error` and their sites, including `http-core`. |
-| T4 | TODO | Database errors | `location` removed from the three variants and 12 driver sites; `LocatedError` sources replaced; `tracing` event added where needed. |
-| T5 | TODO | `PeerKeyError` sources and dependency | Plain sources; six `Located(..).into()` removed; `torrust-located-error` removed from `tracker-core/Cargo.toml`. |
-| T6 | TODO | Consumers | `udp-core`, `udp-server`, `http-core`, `rest-api-runtime-adapter` compile and their tests are updated. |
-| T7 | TODO | Green and recheck | Green output, then the T1 requests repeated against the running tracker. |
+| T1 | DONE | Reproduce and record | UDP, HTTP and REST replies with a library path, in `manual-verification-evidence.md`. |
+| T2 | DONE | Red tests | Unit tests for the 7 variants and the `PeerKeyError`/database sources; protocol tests for UDP, HTTP and REST; red output recorded. |
+| T3 | DONE | Whitelist and key errors | `location` removed from `WhitelistError` and `authentication::key::Error` and their sites, including `http-core`. |
+| T4 | DONE | Database errors | `location` removed from the three variants and 12 driver sites; `LocatedError` sources replaced; `tracing` event added where needed. |
+| T5 | DONE | `PeerKeyError` sources and dependency | Plain sources; six `Located(..).into()` removed; `torrust-located-error` removed from `tracker-core/Cargo.toml`. |
+| T6 | DONE | Consumers | `udp-core`, `udp-server`, `http-core`, `rest-api-runtime-adapter` compile and their tests are updated. |
+| T7 | DONE | Green and recheck | Green output, then the T1 requests repeated against the running tracker. |
 
 ## Commit Points
 
@@ -192,11 +192,11 @@ with the narrow affected scope, and sign every commit with GPG.
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
+- [x] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
@@ -210,19 +210,27 @@ the model that produced them.
 
 - 2026-11-11 17:05 UTC - Claude Code (Fable 5.2) - Drafted from the audit of issue #2804 (`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`, `options.md`) as a sub-issue of the EPIC draft. Not yet approved; line numbers are those of `develop` at `4f0af379a` and must be re-checked before implementation.
 - 2026-11-17 17:30 UTC - Claude Code (Claude Opus 5.5) - EPIC coordinator: the maintainer approved the specification on 2026-11-17; issue #2916 created as `josecelano-bot` and the specification moved from `docs/issues/drafts/` to `docs/issues/open/` (SI-4 of EPIC #2912).
+- 2026-11-21 13:31 UTC - Claude Code (Claude Opus 5.5) - T1: reproduced on `develop` at `4be22ee66` with a listed and a private tracker (UDP, HTTP and REST replies all hold `packages/...rs:line` paths; a duplicate key over REST holds two, from the driver and from `authentication/handler.rs`). T2: red tests added at the tracker-core seams (whitelist authorization, authentication service, the shared driver tests, the keys handler) and at the protocol servers (UDP contract, HTTP `failure_reasons_hold_no_source_path.rs`, REST `assert_unhandled_rejection`, which now also forbids source paths), and the `ErrorKind::Whitelist` payload tests in `udp-server/src/event.rs` pinned to the full message. Decisions pending for T3 to T5 are recorded when made.
+- 2026-11-21 13:34 UTC - Claude Code (Claude Opus 5.5) - T2: red run at `test(tracker-core): [#2916] add red tests that tracker-core error texts name no source path`, all new and changed tests fail with a `packages/...rs:line` path (output in `evidence/`). T3: `location` removed from `WhitelistError::TorrentNotWhitelisted` and `authentication::key::Error::{UnableToReadKey, KeyExpired, MissingAuthKey}`; `KeyExpired` and `MissingAuthKey` become unit variants; the build sites in `whitelist/authorization.rs`, `authentication/service.rs`, `authentication/key/mod.rs` and `http-core/src/services/announce.rs` and the tests of `http-core` and `udp-server/src/event.rs` follow. The whitelist and key tests turn green; the database and `PeerKeyError` ones stay red until T4 and T5.
+- 2026-11-21 13:37 UTC - Claude Code (Claude Opus 5.5) - T4: `location` removed from `databases::error::Error::{InsertFailed, UpdateFailed, DeleteFailed}` and from the 12 driver sites (an insert and a delete in `whitelist_store.rs` and `auth_key_store.rs` of each of the three drivers). The message names the driver but not the table, so each site now emits a `tracing::warn!` with the driver, the table and, for the whitelist, the info-hash (never the key). The four `LocatedError` sources become a plain `Arc<dyn std::error::Error + Send + Sync>` (still `Clone`), and the two `From` conversions lose `#[track_caller]`. Decision on `UpdateFailed`: kept. No production code builds it (`grep -rn UpdateFailed packages` finds only the variant and the test double in `statistics/event/handler.rs`), but it is a public variant of a `#[non_exhaustive]` enum, removing it is not needed to remove the location, and the test double uses it as a representative persistence failure; removal can be its own change if wanted. Pinned-message unit tests added for the three variants and for a converted `sqlx` error. The driver tests are green; the `PeerKeyError` ones stay red until T5.
+- 2026-11-21 13:38 UTC - Claude Code (Claude Opus 5.5) - T5: `PeerKeyError::InvalidKey` and `DatabaseError` hold the plain `ParseKeyError` and `databases::error::Error` as sources (`ParseKeyError` now derives `Clone`, `PartialEq` and `Eq`, as `PeerKeyError` is `Clone`); the six `Located(err).into()` calls in `authentication/handler.rs` pass the error itself; `authentication::key::Error::KeyVerificationError` holds a plain `Arc<dyn std::error::Error + Send + Sync>`, with a pinned-message test. `torrust-located-error` is removed from `packages/tracker-core/Cargo.toml`. All `torrust-tracker-core` tests pass. `grep -rn "Location::caller\|track_caller\|Located\|located_error" packages/tracker-core/src packages/http-core/src/services/announce.rs` finds only the `#[track_caller]` of the test helper `assert_names_no_source_path`.
+- 2026-11-21 13:41 UTC - Claude Code (Claude Opus 5.5) - T6: the consumers needed no change beyond the T3 test updates: `cargo clippy --workspace --all-targets --all-features -- -D warnings` (stable Rust toolchain) passes, and the tests of `udp-core`, `udp-server`, `http-core`, `rest-api-runtime-adapter`, `axum-http-server` and `axum-rest-api-server` pass. The module docs of `axum-http-server/src/v1/extractors/authentication_key.rs` showed tracker-core failure reasons with old source paths; they now show the replies recorded in T7. `docs/media/packages/dependencies-workspace-packages.md` still draws `tracker-core --> located-err` (and `http-proto --> located-err` from SI-3): left for SI-6, which redraws that diagram when the crate is dropped.
+- 2026-11-21 13:44 UTC - Claude Code (Claude Opus 5.5) - T7: green run at the T6 commit and the T1 requests repeated against a tracker built from the T5 commit; every reply keeps its text and loses the path, and the driver `tracing` event shows in the tracker log (`manual-verification-evidence.md`, V1 to V3; `evidence/`). M1 to M3 DONE, AC1 to AC5 DONE. Completion review: no retrospective needed. The plan held; the only additions were in scope (the `KeyVerificationError` and `databases::error::Error` `LocatedError` sources, which the spec's "Replace the `LocatedError` sources" item covers), and the one surprise is recorded in V3: duplicate whitelist writes never reach the database, so the REST database case is proven with keys. Open question to the EPIC coordinator: `UnableToReadKey` still prints the peer key ("Failed to read key: {key}"), which ADR rule 3 forbids for changed messages; kept unchanged here, outside the spec's scope.
+- 2026-11-21 15:15 UTC - Claude Code (Claude Opus 5.5) - PR #2991 opened as `josecelano-bot`. Copilot's review: two documentation findings (F1, F2), both fixed; audit in `docs/pr-reviews/pr-2991-review/PR-REVIEW.md`.
+- 2026-11-21 15:42 UTC - Claude Code (Claude Opus 5.5) - da2ce7 approved the round-1 head with six non-blocking findings (audit F3 to F8). Fixed: the REST delete-key doc example still showed a source path; the unregistered-key test now checks only the message prefix, so it does not pin the peer key; the evidence now records the red and green commands and a red run of the three driver steps the first red run did not reach (all three fail on a path); the request count reads twelve; the trailing blank line of `tests-green.txt` is gone. Not changed here: merging the seven copies of `assert_names_no_source_path` into `torrust-tracker-test-helpers`, suggested for SI-6.
 
 ## Acceptance Criteria
 
-- [ ] AC1: No error type in `packages/tracker-core` has a `location` field or a `LocatedError` source.
-- [ ] AC2: `packages/tracker-core/src` and `http-core/src/services/announce.rs` have no `Location::caller()`, `#[track_caller]` or `Located(..).into()` outside test code.
-- [ ] AC3: A UDP reply to a non-whitelisted announce, an HTTP failure reason for whitelist and key errors, and a REST API error for a failed key or whitelist write hold no source path, each proven by a test through the protocol server.
-- [ ] AC4: The `ErrorKind::Whitelist` event payload holds no source path.
-- [ ] AC5: `packages/tracker-core/Cargo.toml` no longer depends on `torrust-located-error`.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior/workflow changes
+- [x] AC1: No error type in `packages/tracker-core` has a `location` field or a `LocatedError` source.
+- [x] AC2: `packages/tracker-core/src` and `http-core/src/services/announce.rs` have no `Location::caller()`, `#[track_caller]` or `Located(..).into()` outside test code.
+- [x] AC3: A UDP reply to a non-whitelisted announce, an HTTP failure reason for whitelist and key errors, and a REST API error for a failed key or whitelist write hold no source path, each proven by a test through the protocol server.
+- [x] AC4: The `ErrorKind::Whitelist` event payload holds no source path.
+- [x] AC5: `packages/tracker-core/Cargo.toml` no longer depends on `torrust-located-error`.
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated when behavior/workflow changes
 
 ## Verification Plan
 
@@ -240,9 +248,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | UDP whitelist rejection | Start a listed tracker; send a UDP announce for an info-hash that is not whitelisted (tracker client or a script) | The error message says the torrent is not whitelisted and holds no path | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | HTTP key and whitelist errors | Announce over HTTP for the same info-hash, and on a private tracker with an expired key | The failure reasons hold no path | TODO | `manual-verification-evidence.md` section V2 |
-| M3 | REST database failure | Add the same whitelist entry or key twice through the REST API | The error text names the failed operation and holds no path, including no driver file | TODO | `manual-verification-evidence.md` section V3 |
+| M1 | UDP whitelist rejection | Start a listed tracker; send a UDP announce for an info-hash that is not whitelisted (tracker client or a script) | The error message says the torrent is not whitelisted and holds no path | DONE | `manual-verification-evidence.md` section V1 |
+| M2 | HTTP key and whitelist errors | Announce over HTTP for the same info-hash, and on a private tracker with an expired key | The failure reasons hold no path | DONE | `manual-verification-evidence.md` section V2 |
+| M3 | REST database failure | Add the same whitelist entry or key twice through the REST API | The error text names the failed operation and holds no path, including no driver file | DONE | `manual-verification-evidence.md` section V3 |
 
 Notes:
 
@@ -276,17 +284,24 @@ Keep the script in the issue-specification folder so later reviewers can inspect
 the verification performed. Promote durable product-behavior checks into Rust
 automatic tests when practical, then remove the disposable script.
 
-None planned for this issue.
+One disposable client was used, embedded verbatim in `manual-verification-evidence.md` (not kept as
+a file): `udp_announce.py`, a 20-line BEP 15 connect-and-announce client for scenario M1, run with
+`run.sh` from the agent scratchpad. Why temporary automation: the workspace ships no UDP tracker
+client binary (`torrust-tracker-client` is a library), and the manual scenario needs a real client
+against the release binary. Why Python rather than Rust: a one-off socket script needs no crate and
+no build; the durable check is the Rust UDP contract test
+`should_reject_a_torrent_that_is_not_whitelisted_with_a_message_that_holds_no_source_path`. Owner:
+none; nothing is retained beyond the evidence document.
 
 ### Acceptance Verification
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | --- | --- | --- |
-| AC1 | TODO | {test/log/PR link} |
-| AC2 | TODO | {test/log/PR link} |
-| AC3 | TODO | {test/log/PR link} |
-| AC4 | TODO | {test/log/PR link} |
-| AC5 | TODO | {test/log/PR link} |
+| AC1 | DONE | `grep -rn "location\|LocatedError" packages/tracker-core/src` finds only the two module docs that cite the ADR; T3 to T5 in the progress log |
+| AC2 | DONE | The T5 `grep` finds only the `#[track_caller]` of the test helper `assert_names_no_source_path` |
+| AC3 | DONE | UDP contract test, the three `axum-http-server` `failure_reasons_hold_no_source_path` tests, the REST `auth_key` and `whitelist` failure tests; red and green runs in `evidence/`; V1 to V3 |
+| AC4 | DONE | The four `udp-server` `event::tests::it_should_classify_*whitelist_error` tests pin the full payload |
+| AC5 | DONE | `grep -n located packages/tracker-core/Cargo.toml` finds nothing |
 
 ## Risks and Trade-offs
 
@@ -303,7 +318,7 @@ After implementation, compare the result with this specification. Record
 invalidated assumptions, material design changes, unexpected validation
 findings, and reusable lessons.
 
-- Retrospective: `Not yet assessed`
+- Retrospective: not needed; see the progress-log entry of T7
 - If needed, create `implementation-retrospective.md` from the repository
   template at `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this issue
   specification's directory.
