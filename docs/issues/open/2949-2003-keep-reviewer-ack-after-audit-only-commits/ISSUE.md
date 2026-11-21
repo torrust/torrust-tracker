@@ -8,8 +8,8 @@ epic: 2003
 github-issue: 2949
 spec-path: docs/issues/open/2949-2003-keep-reviewer-ack-after-audit-only-commits/ISSUE.md
 branch: "2949-keep-reviewer-ack-after-audit-only-commits"
-related-pr: null
-last-updated-utc: "2026-11-21 13:23"
+related-pr: 2989
+last-updated-utc: "2026-11-21 15:15"
 semantic-links:
   skill-links:
     - create-issue
@@ -236,7 +236,7 @@ tests, so the progressive test-development loop of `create-issue` does not apply
 - [x] GitHub issue created and issue number added to this spec
 - [x] Spec-only PR merged into `develop` before implementation
 - [x] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
@@ -260,6 +260,7 @@ tests, so the progressive test-development loop of `create-issue` does not apply
 - 2026-11-19 18:33 UTC - AI assistant (Claude Code, Claude Fable 5.2, issue #2949 session) - The maintainer decided D1 on 2026-11-19: the strict ACK stays, and an audit-only commit needs new ACKs. He also rejected carrying the audit in empty commits. Rewrote the specification as the record of that decision: the rule, the metadata branch and the audit after merge are kept as rejected alternatives; D2 to D5 no longer apply; the merge tool does not change; and the remaining work is skill text (T2 to T6) in a small implementation pull request. For da2ce7's F27 on PR #2950, the record of alternative (c) cites GitHub's documentation on indirect merges, read on 2026-11-19, and names ruleset push acceptance as the point not tested. Their F26 no longer applies.
 - 2026-11-19 18:56 UTC - AI assistant (Claude Code, Claude Fable 5.2, issue #2949 session) - Addressed da2ce7's review 5981273810 on PR #2950: Commit Points has a row for T6 (F30). Their F28 was a closing keyword before the issue reference in the pull request description, which would have closed this issue when the specification pull request merged; the description was reworded, with no commit.
 - 2026-11-21 13:23 UTC - AI assistant (Claude Code, Claude Fable 5.2, issue #2949 session) - The specification merged with PR #2950 on 2026-11-21 (13:09 UTC), with ACKs from da2ce7 and the maintainer on its head, and the maintainer asked for the implementation in the same session. On the branch `2949-keep-reviewer-ack-after-audit-only-commits`, cut from `develop` at `4be22ee66`: T2 to T5 are done, each in its own commit, and the three skills' versions are bumped. M1 and M2 were run by hand and recorded in `manual-verification-evidence.md`. D1 now links da2ce7's agreement (comment 7032739700). `linter all` passed in the pre-commit hook of each commit; the pre-push checks run at the push. No retrospective is needed: the change is skill text only and nothing was discovered that the specification did not already say. T6 stays `IN_PROGRESS` until the close-out after the merge.
+- 2026-11-21 15:15 UTC - AI assistant (Claude Code, Claude Fable 5.2, issue #2949 session) - Opened the implementation pull request #2989 on 2026-11-21. The pre-push checks passed at the push of its first head, and its Docs Lint check passed. Addressed Copilot review 6006218967: one line of the evidence file's Environment list fell outside its list item.
 
 ## Acceptance Criteria
 
