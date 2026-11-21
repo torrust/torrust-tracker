@@ -185,6 +185,37 @@ module or in test support). A
 Counts are by line class, not by decision: a "region" group can disappear when its neighbors are
 tested. The grouping above is the T1 hypothesis the decision records revisit.
 
+## Slice Measurements
+
+Each slice closes with the four default scopes, measured at the slice's branch head and at the
+`develop` commit it is based on, so the slice's own change is the difference between the two. Stable
+Rust 1.100.0, `cargo-llvm-cov 0.9.1`, a clean coverage target directory, filtered to
+`packages/tracker-core/src/`.
+
+### S1 (`statistics/`)
+
+Measured on 2026-11-21. Base: `develop` at `44ce734fe`, which also changed the integration tests (15
+instead of 12). Head: the S1 branch at its commit
+`docs(issues): [#2902] record the results of the statistics module tests` (the slice-close commit
+changes documentation only).
+
+| Scope | Tests | Lines | Regions | Functions |
+| --- | ---: | ---: | ---: | ---: |
+| Unit-only, base | 157 unit | 4,032 / 5,075 (79.45%) | 4,352 / 5,530 (78.70%) | 677 / 944 (71.72%) |
+| Unit-only, S1 | 180 unit | 4,739 / 5,614 (84.41%) | 5,051 / 6,113 (82.63%) | 771 / 1,015 (75.96%) |
+| Integration-only, base and S1 | 15 integration | 827 / 1,683 (49.14%) | 712 / 1,711 (41.61%) | 145 / 442 (32.81%) |
+| Aggregate, base | 157 unit + 15 integration | 4,161 / 5,120 (81.27%) | 4,447 / 5,582 (79.67%) | 693 / 948 (73.10%) |
+| Aggregate, S1 | 180 unit + 15 integration | 4,739 / 5,614 (84.41%) | 5,051 / 6,113 (82.63%) | 771 / 1,015 (75.96%) |
+| Unit-only without `db-compatibility-tests`, base | 155 unit | 4,018 / 4,751 (84.57%) | 4,338 / 5,222 (83.07%) | 673 / 906 (74.28%) |
+| Unit-only without `db-compatibility-tests`, S1 | 178 unit | 4,725 / 5,290 (89.32%) | 5,037 / 5,805 (86.77%) | 767 / 977 (78.51%) |
+
+At the S1 head the aggregate equals the unit-only figure line for line: the integration binary no
+longer reaches any line of the package that the unit tests miss. Before S1 it added 129 lines, all
+in the five `statistics/` files (see the baseline above). Every `statistics/` file is now fully
+covered by lines; the regions left are the log-level checks of `tracing` calls, the unreachable
+error arm of `load_persisted_metrics` (line 34) and test code. The per-file decisions are in the
+[test-refactor plans](test-refactor-plans/README.md).
+
 ## Test-Technique Assessment (initial)
 
 | Technique | Applicability | Initial decision |

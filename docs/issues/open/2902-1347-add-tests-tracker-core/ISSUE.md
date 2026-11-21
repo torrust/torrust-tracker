@@ -9,7 +9,7 @@ github-issue: 2902
 spec-path: docs/issues/open/2902-1347-add-tests-tracker-core/ISSUE.md
 branch: "2902-1347-add-tests-tracker-core-statistics"
 related-pr: null
-last-updated-utc: "2026-11-18 13:48"
+last-updated-utc: "2026-11-21 13:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -426,6 +426,7 @@ The first slice's record checks the grouping against `find packages/tracker-core
 - 2026-11-18 11:09 UTC - Claude Code (Opus 5.5) - Row 5 (`statistics/event/handler.rs`) done: two table tests over the five events that are not a completed download (replacing the two `PeerAdded`-only tests) and a global-save failure test; 311 / 311 lines, all four named mutants killed, one of which survived the old tests ([plan](test-refactor-plans/statistics-event-handler-tests.md)). Plan and completed file approved by the maintainer.
 - 2026-11-18 13:24 UTC - Claude Code (Opus 5.5) - Row 6 (`statistics/persisted/downloads.rs`) done: coverage was already complete after row 5, but a mutation probe found a stored torrent total could be overwritten with 1 unnoticed; two increment tests kill it ([plan](test-refactor-plans/statistics-persisted-downloads-tests.md)). Plan and completed file approved by the maintainer.
 - 2026-11-18 13:48 UTC - Claude Code (Opus 5.5) - Row 7 (`statistics/mod.rs`, `statistics/event/mod.rs`) done: one table test pins which downloads totals each statistics setting registers; 60 / 60 lines, all four named mutants killed; `event/mod.rs` no change ([plan](test-refactor-plans/statistics-mod-tests.md)). Plan and completed file approved by the maintainer. All S1 rows are done.
+- 2026-11-21 13:24 UTC - Claude Code (Opus 5.5) - S1 closed: the branch was rebased on `develop` `44ce734fe` (one EPIC log conflict, both entries kept) and measured in the four scopes with the base: unit-only lines 79.45% to 84.41%, aggregate 81.27% to 84.41%, so the integration binary no longer reaches any line the unit tests miss ([slice measurements](coverage-evidence.md#slice-measurements)). The EPIC's #2902 rows hold the latest values. Next: the S1 PR.
 
 ## Open Design Questions
 

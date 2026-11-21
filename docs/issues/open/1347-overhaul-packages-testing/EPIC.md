@@ -6,7 +6,7 @@ epic: null
 github-issue: 1347
 spec-path: docs/issues/open/1347-overhaul-packages-testing/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-18 10:20"
+last-updated-utc: "2026-11-21 13:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -99,7 +99,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | 11    | #2824 - Add tests to the primitives package | `docs/issues/closed/2824-1347-add-tests-primitives/ISSUE.md` | DONE | S0 (the spec, #2828), S1 (the `PeerRole` JSON casing fix, #2834), S2 (the `peer.rs` tests, #2841), S3 (the configuration defaults and bounded values, #2852) and S4 (`swarm_metadata.rs`, the no-change files, the mutation run, the manual checks, #2864) are merged; the issue is closed. Unit-only lines 60.56% → 94.07%. Findings F1 (fixed through #2811), F2 (fixed in S1), F3 (#2804), F4 (#2823), F6 (#2838, #2850) and F5 (#2876, drafted through #2865) have owners. |
 | 12    | #2838 - UDP tracker accepts announces with a negative left, uploaded or downloaded | `docs/issues/closed/2838-1347-udp-reject-negative-announce-bytes/ISSUE.md` | DONE | Bug found by the #2824 primitives tests work. Fixed by the standalone issue #2850 (`docs/issues/closed/2850-non-negative-number-of-bytes/ISSUE.md`): its implementation PR #2872 merged on 2026-11-16 and closed this issue. The patch of PR #2839 was not merged; its tests were taken over by PR #2872. |
 | 13    | #2876 - Move `peer::Id::new` to a realistic test helper and decide whether `peer::fixture` goes behind a `testing` feature | `docs/issues/closed/2876-1347-peer-id-test-helper/ISSUE.md` | DONE | Finding F5 of #2824. Spec through #2878, implementation through #2888: `Id::new` removed, `qbittorrent_peer_id` helper, `peer::fixture` behind the new `testing` feature of `primitives`, test-support ADR amended. Breaking for the published `primitives` 3.0.0; adds to the 4.0.0 it owes (#2583). |
-| 14    | #2902 - Add tests to the tracker-core package | `docs/issues/open/2902-1347-add-tests-tracker-core/ISSUE.md` | TODO | Lowest unit-only lines of the packages in the EPIC coverage table: 79.32% (MySQL/PostgreSQL drivers 0-4%, SQLite failure branches, `statistics/` reached only by the integration binary). Slices S0-S5 proposed; S0 is the spec-only PR. |
+| 14    | #2902 - Add tests to the tracker-core package | `docs/issues/open/2902-1347-add-tests-tracker-core/ISSUE.md` | IN_PROGRESS | Lowest unit-only lines of the packages in the EPIC coverage table: 79.32% (MySQL/PostgreSQL drivers 0-4%, SQLite failure branches, `statistics/` reached only by the integration binary). Slices S0-S5 proposed; S0 is the spec-only PR. |
 | 15    | Additional package-testing subissues              | Create a folder-style spec when a concrete package need is identified             | TODO   | Permitted but not required upfront; retain scope in this EPIC.                                                       |
 
 **Publishing gate (maintainer decision of 2026-11-18).** A workspace crate may be published
@@ -134,7 +134,7 @@ level or determine whether unit coverage is adequate.
 | `torrust-tracker-http-core`        | [#1349](../../closed/1349-1347-add-tests-http-core/ISSUE.md) | Lines: 88.88%; regions: 90.41%; functions: 84.29% | Lines: 99.28%; regions: 99.25%; functions: 99.74% | Lines: +10.40 pp; regions: +8.84 pp; functions: +15.45 pp | [Coverage evidence](../../closed/1349-1347-add-tests-http-core/coverage-evidence.md) |
 | `torrust-tracker-axum-rest-api-server` | [#2637](../../closed/2637-1347-add-tests-axum-rest-api-server/ISSUE.md) | Lines: 87.98%; regions: 84.10%; functions: 83.42% | Lines: 97.67%; regions: 97.13%; functions: 95.48% | Lines: +9.69 pp; regions: +13.03 pp; functions: +12.06 pp | [Coverage evidence](../../closed/2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md) |
 | `torrust-tracker-primitives` | [#2824](../../closed/2824-1347-add-tests-primitives/ISSUE.md) | Lines: 60.56%; regions: 67.94%; functions: 57.23% | Lines: 94.07%; regions: 95.30%; functions: 94.17% | Lines: +33.51 pp; regions: +27.36 pp; functions: +36.94 pp | [Coverage evidence](../../closed/2824-1347-add-tests-primitives/coverage-evidence.md) |
-| `torrust-tracker-core` | [#2902](../2902-1347-add-tests-tracker-core/ISSUE.md) | Lines: 81.15%; regions: 79.59%; functions: 73.35% | Not yet measured | Not yet measured | [Coverage evidence](../2902-1347-add-tests-tracker-core/coverage-evidence.md) |
+| `torrust-tracker-core` | [#2902](../2902-1347-add-tests-tracker-core/ISSUE.md) | Lines: 81.15%; regions: 79.59%; functions: 73.35% | Lines: 84.41%; regions: 82.63%; functions: 75.96% (after S1) | Lines: +3.26 pp; regions: +3.04 pp; functions: +2.61 pp | [Coverage evidence](../2902-1347-add-tests-tracker-core/coverage-evidence.md) |
 
 ### Unit-Only Coverage
 
@@ -150,7 +150,7 @@ weak unit-only result with aggregate, integration, example, or end-to-end covera
 | `torrust-tracker-http-core` | [#1349](../../closed/1349-1347-add-tests-http-core/ISSUE.md) | Lines: 88.88%; regions: 90.41%; functions: 84.29% | Lines: 99.28%; regions: 99.25%; functions: 99.74% | Lines: +10.40 pp; regions: +8.84 pp; functions: +15.45 pp | [Coverage evidence](../../closed/1349-1347-add-tests-http-core/coverage-evidence.md) |
 | `torrust-tracker-axum-rest-api-server` | [#2637](../../closed/2637-1347-add-tests-axum-rest-api-server/ISSUE.md) | Lines: 63.87%; regions: 63.98%; functions: 51.34% | Lines: 96.67%; regions: 96.38%; functions: 93.97% | Lines: +32.80 pp; regions: +32.40 pp; functions: +42.63 pp | [Coverage evidence](../../closed/2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md) |
 | `torrust-tracker-primitives` | [#2824](../../closed/2824-1347-add-tests-primitives/ISSUE.md) | Lines: 60.56%; regions: 67.94%; functions: 57.23% | Lines: 94.07%; regions: 95.30%; functions: 94.17% | Lines: +33.51 pp; regions: +27.36 pp; functions: +36.94 pp | [Coverage evidence](../../closed/2824-1347-add-tests-primitives/coverage-evidence.md) |
-| `torrust-tracker-core` | [#2902](../2902-1347-add-tests-tracker-core/ISSUE.md) | Lines: 79.32%; regions: 78.62%; functions: 71.98% | Not yet measured | Not yet measured | [Coverage evidence](../2902-1347-add-tests-tracker-core/coverage-evidence.md) |
+| `torrust-tracker-core` | [#2902](../2902-1347-add-tests-tracker-core/ISSUE.md) | Lines: 79.32%; regions: 78.62%; functions: 71.98% | Lines: 84.41%; regions: 82.63%; functions: 75.96% (after S1) | Lines: +5.09 pp; regions: +4.01 pp; functions: +3.98 pp | [Coverage evidence](../2902-1347-add-tests-tracker-core/coverage-evidence.md) |
 
 ## Delivery Strategy
 
@@ -411,6 +411,7 @@ For each subissue implementation, the completion policy is:
 - GitHub EPIC: https://github.com/torrust/torrust-tracker/issues/1347
 - Related issues: #1348, #1349, #2136, #2149, #2637, #2824, #2902
 - 2026-11-09 12:10 UTC - Claude Code - #2637 S6 merged through #2772 (2026-11-09 12:08 UTC) and issue #2637 closed: the `axum-rest-api-server` package is DONE. Final figures (unchanged): unit-only lines 96.67%, aggregate 97.67%. The spec was archived to `docs/issues/closed/` and the subissue row is `DONE`.
+- 2026-11-21 13:24 UTC - Claude Code (Opus 5.5) - #2902 S1 (`statistics/`) closed, measured on its `develop` base `44ce734fe`: `tracker-core` unit-only lines 84.41% (79.45% on the base), aggregate 84.41% (81.27% on the base); the aggregate now equals unit-only, so the integration binary covers no line the unit tests miss. Row 14 is `IN_PROGRESS`.
 - Package inventory: `docs/packages.md`
 - Reference package: `packages/tracker-core/`
 - Coverage tooling: `cargo llvm-cov`
