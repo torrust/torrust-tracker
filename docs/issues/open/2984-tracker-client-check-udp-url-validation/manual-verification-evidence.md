@@ -1,16 +1,18 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2984-tracker-client-check-udp-url-validation/ISSUE.md
-last-updated-utc: "2026-11-21 13:15"
+last-updated-utc: "2026-11-21 15:20"
 ---
 
 # Manual Verification Evidence
 
 ## Environment and Prerequisites
 
-- Date and time (UTC): 2026-11-19 16:05
-- Artifact under test: `tracker_client` built from `torrust/develop` at the commit that contains PR #2956 (no patches).
-- Operating system / environment: Linux; `cargo build -p torrust-tracker-client --bin tracker_client` (default toolchain).
+- Date and time (UTC): see Dates below
+- Artifact under test: `tracker_client` built from `develop` commit `7bc30738a` (`Merge torrust/torrust-tracker#2966: docs(issues): close out the tracker_client JSON-only issue`), the merge base of this PR and, per `git diff 7bc30738a -- console packages` (empty), identical to this branch in the code it builds. No patches.
+- Toolchain: `rustc 1.100.0 (0ef1bc386 2026-11-09)`, `cargo 1.100.0 (3acc79c0c 2026-11-05)`, as reported by `rustc --version` and `cargo --version` on 2026-11-21; the binary used was `target/debug/tracker_client` in this worktree (file modification time 2026-11-21 13:19 UTC, built from the code described above).
+- Dates: first run 2026-11-19 16:05 UTC (summarized the stderr); rerun with verbatim capture 2026-11-21 15:15 UTC with the same commands. The rerun printed the same messages as the first run. The toolchain of the first run was not recorded.
+- Operating system / environment: Linux.
 - Setup: none; no tracker is needed because the failure happens before any network traffic. Stdout is piped (`| cat`) because `tracker_client` refuses a terminal.
 
 ## Verification Processes
