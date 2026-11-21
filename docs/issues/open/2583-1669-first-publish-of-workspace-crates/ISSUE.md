@@ -148,7 +148,7 @@ they are, the spec keeps the stricter reading (noted in each question). OQ2 is m
 | ID  | Question | Until decided |
 | --- | -------- | ------------- |
 | OQ1 | Does every publishable crate need its own #1347 testing sub-issue, or can a small crate meet the gate with a recorded coverage review and no new tests? | A crate without a closed #1347 sub-issue does not meet the gate (`NONE` in the checklist). |
-| OQ2 | Does the EPIC #1488 prerequisite also become per crate (only the crates whose API the shutdown overhaul changes), or does it stay EPIC-wide? EPIC #1488 is expected to close soon. **Moot (2026-11-21), not decided:** EPIC #1488 closed on 2026-11-19, so prerequisite 3 is met for every crate under either reading. | Nothing to decide: prerequisite 3 is met. |
+| OQ2 | Does the EPIC #1488 prerequisite also become per crate (only the crates whose API the shutdown overhaul changes), or does it stay EPIC-wide? (Asked on 2026-11-18, when EPIC #1488 was still open.) **Moot (2026-11-21), not decided:** EPIC #1488 closed on 2026-11-19, so prerequisite 3 is met for every crate under either reading. | Nothing to decide: prerequisite 3 is met. |
 | OQ3 | Does prerequisite 5 (the rest of EPIC #1669's API work is done, so this is the last publishing step) stay as it is, or become per crate too? | As written: prerequisite 5 applies to every crate. |
 | OQ4 | `test-helpers` is already published (3.0.0) and is a dev-dependency of six checklist crates and of the root crate. What is its testing gate? | Same as OQ1: not met. This blocks the six checklist crates that dev-depend on it. |
 
