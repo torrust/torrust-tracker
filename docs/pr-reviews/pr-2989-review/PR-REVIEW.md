@@ -45,6 +45,8 @@ Round 1 is Copilot review `6006218967` (`COMMENTED`, on head `docs(issues): [#29
 
 Round 2 is da2ce7's two reviews. Review `6006229600` (`APPROVED` when submitted at 2026-11-21 15:14:41 UTC, on the same head as round 1; GitHub shows it as `DISMISSED` since the round-1 push) has three inline comments that carry the reviewer's IDs F1 to F3 and explicit severity labels. This record's first version left that review out: the round-1 paragraph above and the first Processing Log entry describe round 1 as the Copilot review alone, and stay as written. Review `6006354345` (`COMMENTED`, on head `docs(pr-reviews): [#2949] add the PR #2989 review audit record with round 1`) has two inline comments, the reviewer's F4 and F5. The reviewer's F1 collides with this record's F1, so the five are recorded under the next audit-local IDs, F2 to F6, with the reviewer's IDs as their reviewer finding IDs. The row for the reviewer's F4 (F5 here) is added after this record's round-2 commit is pushed, because its reply cites that commit.
 
+Round 3 is da2ce7's review `6006474506` (`APPROVED` when submitted at 2026-11-21 16:09:51 UTC, on head `docs(pr-reviews): [#2949] add the row for F5 to the PR #2989 audit record`; `DISMISSED` since the round-3 push), with two inline comments, the reviewer's F6 and F7, recorded here as F7 and F8. Both are about verification lines in this record.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | F1 | `review-finding:pr-2989-f1` | Copilot | Nit (inferred) | formatting | ORIGINAL | FIXED | RESOLVED |
@@ -53,6 +55,8 @@ Round 2 is da2ce7's two reviews. Review `6006229600` (`APPROVED` when submitted 
 | F4 | `review-finding:pr-2989-f4` | Human | Suggestion | link-integrity | ORIGINAL | FIXED | RESOLVED |
 | F5 | `review-finding:pr-2989-f5` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F6 | `review-finding:pr-2989-f6` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F7 | `review-finding:pr-2989-f7` | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F8 | `review-finding:pr-2989-f8` | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -134,11 +138,38 @@ Round 2 is da2ce7's two reviews. Review `6006229600` (`APPROVED` when submitted 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2989#discussion_r4653467548
 
+### F7 - The F3 row's verification command prints another commit's subject
+
+- PR number: 2989
+- Source review ID: 6006474506
+- Reviewer finding ID: F6
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2989#discussion_r4653556199
+- Concern: The F3 row's verification used `git log --format=%s -1 -- <EPIC.md>`, which prints the latest commit that touched the EPIC, not the T5 commit the row is about; it was already wrong when written.
+- Solution: The line searches the file's history for the T5 commit's subject, which also works after the merge.
+- Current-tree verification: `git log --format=%s -- docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md | grep 'name the strict-ACK decision'` prints one subject, the T5 commit's.
+- Resolution reference: `docs(pr-reviews): [#2949] correct two verification lines in the PR #2989 audit record`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2989#discussion_r4653617000
+
+### F8 - The F5 row cites a validator check that does not exist
+
+- PR number: 2989
+- Source review ID: 6006474506
+- Reviewer finding ID: F7
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2989#discussion_r4653556207
+- Concern: The F5 row's verification said the validator reports no review comment without a row, but `validate-audit-record.py` checks only the rows a record has and never compares them with the pull request's threads.
+- Solution: The clause about the validator is removed. The line says the six threads the pull request then had, listed with the GraphQL `reviewThreads` query, map one to one to the Source URLs of rows F1 to F6.
+- Current-tree verification: `grep -c 'validator reports no review comment' docs/pr-reviews/pr-2989-review/PR-REVIEW.md` prints 2, this row's Concern and this line; the pull request's eight threads now map one to one to the Source URLs of rows F1 to F8.
+- Resolution reference: `docs(pr-reviews): [#2949] correct two verification lines in the PR #2989 audit record`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2989#discussion_r4653617298
+
 ## Processing Log
 
 - 2026-11-21 15:20 UTC - AI assistant (Claude Code, Claude Fable 5.2, issue #2949 session) - Started audit. Round 1: the poller reported Copilot review 6006218967 (submitted 2026-11-21 15:12:33 UTC). Normalized its inline comment as F1, fixed it in its own commit, pushed it with the commit that records this pull request in the specification, replied on the thread (15:20:30 UTC), then resolved the thread.
 - 2026-11-21 15:50 UTC - AI assistant (Claude Code, Claude Fable 5.2, issue #2949 session) - Correction to the entry above, and round 2. da2ce7's review 6006229600 (submitted 15:14:41 UTC, with an approval and an `ACK` on the first head at 15:14:45 UTC) arrived before the round-1 push, but the poller had already returned the Copilot review and was restarted from a later cursor, so the review was not seen: round 1 was processed and this record was created without it, and the round-1 push made that `ACK` stale. da2ce7's review 6006354345 (submitted 15:42:44 UTC) pointed this out. Normalized the five inline comments of both reviews as F2 to F6. Fixed F2 and F4 in their own commits and pushed them; fixed F6 in the description; answered F3 with no change. Replied on those four threads (15:50:02 to 15:50:09 UTC) and resolved them. F5, about this record, is answered and recorded after this commit is pushed.
 - 2026-11-21 15:55 UTC - AI assistant (Claude Code, Claude Fable 5.2, issue #2949 session) - Round 2, continued: after the round-2 record was pushed, replied on F5's thread (15:55:29 UTC), resolved it and added its row. All six threads of this pull request now have a row, a reply and a resolution.
+- 2026-11-21 16:17 UTC - AI assistant (Claude Code, Claude Fable 5.2, issue #2949 session) - Round 3: the poller reported da2ce7's review 6006474506 (submitted 2026-11-21 16:09:51 UTC, an approval) and their `ACK` on the round-2 head (16:09:55 UTC). Normalized its two inline comments as F7 and F8, fixed both in one commit because both correct verification lines of this record, and pushed it, which made that `ACK` stale. Replied on both threads (16:17:19 and 16:17:21 UTC) and resolved them. Before writing this entry, listed every review and conversation comment of the pull request: none is left without a row or a log line.
 
 ## Completion Rules
 
