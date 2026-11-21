@@ -155,7 +155,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Scenario                                            | Human-oriented command/steps                                                                                                                      | Expected Result                                        | Status | Evidence                                      |
 | --- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ------ | --------------------------------------------- |
-| M1  | UDP URL without port, host, with wrong scheme, DNS miss | `TORRUST_CHECKER_CONFIG='{"udp_trackers":["<url>"],"http_trackers":[],"health_checks":[]}' ./target/debug/tracker_client check \| cat` for each URL | Before: `panic` + `runtime_failure`, exit 1. After: see AC1-AC3 | DONE (before) / TODO (after) | `manual-verification-evidence.md` section V1 |
+| M1  | Reproduce: UDP URL without port, without host, with wrong scheme, unresolvable host | `TORRUST_CHECKER_CONFIG='{"udp_trackers":["<url>"],"http_trackers":[],"health_checks":[]}' ./target/debug/tracker_client check \| cat` for each URL | Panic record and `runtime_failure`, exit 1, empty stdout | DONE | `manual-verification-evidence.md` section V1 |
+| M2  | Final like-for-like recheck of M1 after the last production change | The same commands as M1 | Exit `2` and one `invalid_configuration` record for AC1 and AC2; a failed check, no panic, for AC3 | TODO | `manual-verification-evidence.md` (section to be added) |
 
 Notes:
 
