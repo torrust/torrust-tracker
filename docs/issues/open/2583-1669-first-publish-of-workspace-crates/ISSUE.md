@@ -139,8 +139,9 @@ the EPIC; T4 checks each crate again before its publish:
   each from `axum-http-server` (`Error`), `axum-rest-api-server` (`Error`) and `udp-server`
   (`UdpError`). The maintainer decided on no version bump: the three crates stay `0.1.0` and the
   removal goes into the release notes of their first publish (rows 17, 18 and 20).
-- **No public API change.** SI-26 (#2845, PR #2870) consolidated the shutdown supervisors without
-  changing a public API.
+- **No checklist crate changed.** SI-26 (#2845, PR #2870) consolidated the shutdown supervisors
+  without changing the public API of a checklist crate. Its public changes are in the root crate
+  (out of scope here).
 - **Root crate and one new member.** SI-28 (#2847, PR #2911) added `app::run_until_shutdown_signal`
   to the root crate (out of scope here) and the test-only crate
   `torrust-tracker-hung-component-tracker` (`packages/hung-component-tracker`). It is
