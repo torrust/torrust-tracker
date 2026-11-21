@@ -256,8 +256,8 @@ different times, always in dependency order (every dependency and dev-dependency
 ### In Scope
 
 - Checking the checklist again when the prerequisites are met (crate set, dependency order, names,
-  versions, packaging check, testing gates), because #2482 and #1488 could change them until they closed
-  (both are closed) and #1347 can still change them.
+  versions, packaging check, testing gates). #2482 and #1488 changed some of them while they were open;
+  both are now closed. #1347 can still change them.
 - Bringing the package publish procedure up to date before the first publish (T2).
 - For each crate whose version changes: a small pull request that sets its version and every
   dependent's `version` requirement, right before its publish.
@@ -553,8 +553,8 @@ None planned. The crates.io name check is a `curl` loop recorded in the evidence
 
 - **Irreversible.** A published version cannot be changed or deleted, only yanked. Mitigation: the
   prerequisites, a `cargo package` check per crate, and one crate at a time.
-- **Stale order.** #2482 and #1488 could add crates or change dependencies until they closed (both
-  are closed; #1488 added one `publish = false` crate), and #1347 can still do so. Mitigation: T4 checks the checklist again before the first publish.
+- **Stale order.** The checklist dates from 2026-10-20. #2482 and #1488 are now closed, and #1488
+  added one `publish = false` crate. #1347 can still add crates or change dependencies. Mitigation: T4 checks the checklist again before the first publish.
 - **Publishing spread over time.** With a per-crate testing gate the workspace stays partly
   published for longer, and a crate published early can still change before its dependents are
   published, which costs it a new version. Mitigation: dependency order, and prerequisite 5
