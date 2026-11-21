@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: enhancement
-status: planned
+status: in-progress
 priority: p2
 epic: 2003
 github-issue: 2949
 spec-path: docs/issues/open/2949-2003-keep-reviewer-ack-after-audit-only-commits/ISSUE.md
-branch: "2949-keep-reviewer-ack-after-audit-only-commits-spec"
-related-pr: null
-last-updated-utc: "2026-11-19 18:56"
+branch: "2949-keep-reviewer-ack-after-audit-only-commits"
+related-pr: 2989
+last-updated-utc: "2026-11-21 15:15"
 semantic-links:
   skill-links:
     - create-issue
@@ -130,7 +130,9 @@ the folder. All three cases were checked with Git 2.53.0 on a throwaway reposito
 audit record stays on the pull request branch and the ACK stays strict. An `ACK <hash>` counts only on the commit
 it names. After an audit-only commit, the reviewer and the maintainer ACK the new head. The decision was announced on
 the specification pull request in
-[comment 7018461081](https://github.com/torrust/torrust-tracker/pull/2950#issuecomment-7018461081).
+[comment 7018461081](https://github.com/torrust/torrust-tracker/pull/2950#issuecomment-7018461081), and da2ce7
+agreed on 2026-11-20 in
+[comment 7032739700](https://github.com/torrust/torrust-tracker/pull/2950#issuecomment-7032739700).
 
 The maintainer's reasons:
 
@@ -199,14 +201,14 @@ Not applicable. No code changes.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                           | Notes / Expected Output                                                                                     |
-| --- | ------ | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| T1  | DONE   | Decide D1                                      | Recorded under Architectural Decisions with its date and who decided, in the specification pull request     |
-| T2  | TODO   | Document the re-ACK in `merge-pull-request`    | Merge Readiness says an audit-only commit needs new ACKs and gives the command; the waiver sentence changes |
-| T3  | TODO   | Point to it from `wait-for-pr-review` step 4   | The exit condition refers to the text in `merge-pull-request`; it does not restate it                       |
-| T4  | TODO   | Add the sentence to `process-pr-review`        | Authors keep the audit commit, tell the maintainer, and never rewrite history to protect an ACK             |
-| T5  | TODO   | Note this issue on the #2363 line of `EPIC.md` | The line names this issue; that plan is historical, so nothing else in it changes                           |
-| T6  | TODO   | Manual verification and close-out              | M1 and M2 recorded; EPIC row updated                                                                        |
+| ID  | Status      | Task                                           | Notes / Expected Output                                                                                     |
+| --- | ----------- | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| T1  | DONE        | Decide D1                                      | Recorded under Architectural Decisions with its date and who decided, in the specification pull request     |
+| T2  | DONE        | Document the re-ACK in `merge-pull-request`    | Merge Readiness says an audit-only commit needs new ACKs and gives the command; the waiver sentence changes |
+| T3  | DONE        | Point to it from `wait-for-pr-review` step 4   | The exit condition refers to the text in `merge-pull-request`; it does not restate it                       |
+| T4  | DONE        | Add the sentence to `process-pr-review`        | Authors keep the audit commit, tell the maintainer, and never rewrite history to protect an ACK             |
+| T5  | DONE        | Note this issue on the #2363 line of `EPIC.md` | The line names this issue; that plan is historical, so nothing else in it changes                           |
+| T6  | IN_PROGRESS | Manual verification and close-out              | M1 and M2 recorded; EPIC row `IN_PROGRESS`; the close-out follows the merge                                 |
 
 ## Commit Points
 
@@ -232,15 +234,15 @@ tests, so the progressive test-development loop of `create-issue` does not apply
 - [x] Folder-style spec drafted in `docs/issues/drafts/2003-keep-reviewer-ack-after-audit-only-commits/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Spec-only PR merged into `develop` before implementation
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -257,21 +259,23 @@ tests, so the progressive test-development loop of `create-issue` does not apply
 - 2026-11-19 13:49 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #2949 session) - Addressed Copilot review 5972058838 on PR #2950: Design and Ownership Review now specifies, for D2 (b), that the merge tool's `main()` acquires the Git history and that an ACK it cannot check does not count, and the note under the manual scenarios keeps the manual runs of M1 to M5 alongside the merge-tool tests.
 - 2026-11-19 18:33 UTC - AI assistant (Claude Code, Claude Fable 5.2, issue #2949 session) - The maintainer decided D1 on 2026-11-19: the strict ACK stays, and an audit-only commit needs new ACKs. He also rejected carrying the audit in empty commits. Rewrote the specification as the record of that decision: the rule, the metadata branch and the audit after merge are kept as rejected alternatives; D2 to D5 no longer apply; the merge tool does not change; and the remaining work is skill text (T2 to T6) in a small implementation pull request. For da2ce7's F27 on PR #2950, the record of alternative (c) cites GitHub's documentation on indirect merges, read on 2026-11-19, and names ruleset push acceptance as the point not tested. Their F26 no longer applies.
 - 2026-11-19 18:56 UTC - AI assistant (Claude Code, Claude Fable 5.2, issue #2949 session) - Addressed da2ce7's review 5981273810 on PR #2950: Commit Points has a row for T6 (F30). Their F28 was a closing keyword before the issue reference in the pull request description, which would have closed this issue when the specification pull request merged; the description was reworded, with no commit.
+- 2026-11-21 13:23 UTC - AI assistant (Claude Code, Claude Fable 5.2, issue #2949 session) - The specification merged with PR #2950 on 2026-11-21 (13:09 UTC), with ACKs from da2ce7 and the maintainer on its head, and the maintainer asked for the implementation in the same session. On the branch `2949-keep-reviewer-ack-after-audit-only-commits`, cut from `develop` at `4be22ee66`: T2 to T5 are done, each in its own commit, and the three skills' versions are bumped. M1 and M2 were run by hand and recorded in `manual-verification-evidence.md`. D1 now links da2ce7's agreement (comment 7032739700). `linter all` passed in the pre-commit hook of each commit; the pre-push checks run at the push. No retrospective is needed: the change is skill text only and nothing was discovered that the specification did not already say. T6 stays `IN_PROGRESS` until the close-out after the merge.
+- 2026-11-21 15:15 UTC - AI assistant (Claude Code, Claude Fable 5.2, issue #2949 session) - Opened the implementation pull request #2989 on 2026-11-21. The pre-push checks passed at the push of its first head, and its Docs Lint check passed. Addressed Copilot review 6006218967: one line of the evidence file's Environment list fell outside its list item.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `merge-pull-request` Merge Readiness says that an audit-only commit makes the ACK stale and needs new ACKs, and gives the command that lists what the commits after the earlier ACK changed.
-- [ ] AC2: `wait-for-pr-review` step 4 points to that text, with no second wording of it.
-- [ ] AC3: The waiver sentence in Merge Readiness no longer asks for a record in the review audit.
-- [ ] AC4: `process-pr-review` says that the author keeps the audit commit, tells the maintainer the head needs new ACKs, and never rewrites history or holds back the audit record to protect an ACK.
+- [x] AC1: `merge-pull-request` Merge Readiness says that an audit-only commit makes the ACK stale and needs new ACKs, and gives the command that lists what the commits after the earlier ACK changed.
+- [x] AC2: `wait-for-pr-review` step 4 points to that text, with no second wording of it.
+- [x] AC3: The waiver sentence in Merge Readiness no longer asks for a record in the review audit.
+- [x] AC4: `process-pr-review` says that the author keeps the audit commit, tells the maintainer the head needs new ACKs, and never rewrites history or holds back the audit record to protect an ACK.
 - [x] AC5: D1 is recorded with its date and who decided.
-- [ ] AC6: No skill or tool text says that an ACK counts on a commit it does not name.
-- [ ] AC7: The #2363 line in `EPIC.md` names this issue.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior/workflow changes
+- [x] AC6: No skill or tool text says that an ACK counts on a commit it does not name.
+- [x] AC7: The #2363 line in `EPIC.md` names this issue.
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass (none apply: the change is skill text only)
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated when behavior/workflow changes
 
 ## Verification Plan
 
@@ -286,8 +290,8 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario                                    | Human-oriented command/steps                                                                           | Expected Result                                           | Status | Evidence                                     |
 | --- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------ | --------------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | ACK followed by an audit-only commit        | On PR #2947's history, run the documented command with `X` = `e01212151` and `H` = `1d27a67e9`         | Only `docs/pr-reviews/pr-2947-review/PR-REVIEW.md` listed | TODO   | `manual-verification-evidence.md` section V1 |
-| M2  | ACK followed by a commit outside the folder | Run the documented command on a range of `develop` whose commits change a file outside an audit folder | The other path is listed                                  | TODO   | `manual-verification-evidence.md` section V2 |
+| M1  | ACK followed by an audit-only commit        | On PR #2947's history, run the documented command with `X` = `e01212151` and `H` = `1d27a67e9`         | Only `docs/pr-reviews/pr-2947-review/PR-REVIEW.md` listed | DONE   | `manual-verification-evidence.md` section V1 |
+| M2  | ACK followed by a commit outside the folder | Run the documented command on a range of `develop` whose commits change a file outside an audit folder | The other path is listed                                  | DONE   | `manual-verification-evidence.md` section V2 |
 
 Notes:
 
@@ -301,15 +305,15 @@ None planned.
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence                                                       |
-| ----- | ---------------------- | -------------------------------------------------------------- |
-| AC1   | TODO                   |                                                                |
-| AC2   | TODO                   |                                                                |
-| AC3   | TODO                   |                                                                |
-| AC4   | TODO                   |                                                                |
-| AC5   | DONE                   | Architectural Decisions, D1, in the specification pull request |
-| AC6   | TODO                   |                                                                |
-| AC7   | TODO                   |                                                                |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                                                                           |
+| ----- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AC1   | DONE                   | `merge-pull-request`, section An ACK Names One Commit; `manual-verification-evidence.md` V1 and V2                                                 |
+| AC2   | DONE                   | `wait-for-pr-review`, step 4, last bullet: one sentence that points to Merge Readiness                                                             |
+| AC3   | DONE                   | `merge-pull-request`, Merge Readiness, item Reviewer ACK                                                                                           |
+| AC4   | DONE                   | `process-pr-review`, Workflow, step 9                                                                                                              |
+| AC5   | DONE                   | Architectural Decisions, D1, in the specification pull request                                                                                     |
+| AC6   | DONE                   | A search of the skills and `contrib/dev-tools/git/*.md` for an ACK that counts on another commit finds only the new sentence that says it does not |
+| AC7   | DONE                   | `EPIC.md`, #2347 close-out plan, the line about PR #2363's later review rounds                                                                     |
 
 ## Risks and Trade-offs
 
@@ -327,7 +331,7 @@ None planned.
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: not needed. The change is skill text only and the implementation found nothing the specification did not already say; see the Progress Log entry of 2026-11-21 13:23 UTC.
 
 ## References
 
