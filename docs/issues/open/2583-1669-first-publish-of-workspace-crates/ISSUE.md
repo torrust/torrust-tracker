@@ -9,7 +9,7 @@ github-issue: 2583
 spec-path: docs/issues/open/2583-1669-first-publish-of-workspace-crates/ISSUE.md
 branch: "2583-1669-first-publish-of-workspace-crates-spec"
 related-pr: null
-last-updated-utc: "2026-11-21 13:27"
+last-updated-utc: "2026-11-21 15:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -488,6 +488,12 @@ release branch and a signed tag.
   decided. The stale-facts note gained the 2026-11-21 member count (36, 14 `publish = false`).
   Spec-only change; no crate's status changed and #2583 stays `Blocked` (prerequisite 5, the
   per-crate testing gates, #2917 before `configuration` 4.0.0, and OQ1, OQ3 and OQ4).
+- 2026-11-21 15:24 UTC - Claude Code (Claude Fable 5.2) - Review round 1 of PR torrust/torrust-tracker#2990
+  (audit: `docs/pr-reviews/pr-2990-review/PR-REVIEW.md`). The "EPIC #1488 closed" section also lists
+  SI-20 (`configuration`, breaking) and SI-21 (`primitives`, additive), says it is not a full API
+  diff, and says SI-26 changed the root crate's public API, not a checklist crate's. Row 14 says
+  #2482 is closed. Four sentences were reworded (OQ2, the "Other prerequisites" row, the In Scope
+  bullet and the "Stale order" risk). No crate's status changed.
 
 ## Acceptance Criteria
 
