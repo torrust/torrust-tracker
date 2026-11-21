@@ -47,8 +47,8 @@ F1 and F2 come from Copilot's review 6006219064 (COMMENTED on the first head, "d
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
-| F1 | review-finding:pr-2991-f1 | Copilot | Minor | documentation | ORIGINAL | FIXED | OPEN |
-| F2 | review-finding:pr-2991-f2 | Copilot | Nit | documentation | ORIGINAL | FIXED | OPEN |
+| F1 | review-finding:pr-2991-f1 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F2 | review-finding:pr-2991-f2 | Copilot | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -63,7 +63,7 @@ F1 and F2 come from Copilot's review 6006219064 (COMMENTED on the first head, "d
 - Current-tree verification: `sed -n 74,82p packages/tracker-core/src/authentication/service.rs` shows the new wording; `cargo doc -p torrust-tracker-core --no-deps` (stable Rust toolchain) resolves the `Error::UnableToReadKey` link without a warning.
 - Resolution reference: docs(tracker-core): [#2916] describe the key verification outcomes and the bencode terminator in samples
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2991#discussion_r4653353310
 
 ### F2 - The trailing bencode `e` in the extractor samples reads like a typo
 
@@ -76,11 +76,12 @@ F1 and F2 come from Copilot's review 6006219064 (COMMENTED on the first head, "d
 - Current-tree verification: `sed -n 15,20p packages/axum-http-server/src/v1/extractors/authentication_key.rs` shows the note before the samples.
 - Resolution reference: docs(tracker-core): [#2916] describe the key verification outcomes and the bencode terminator in samples
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2991#discussion_r4653353557
 
 ## Processing Log
 
 - 2026-11-21 15:15 UTC - Started audit for Copilot's review 6006219064 (COMMENTED, submitted 2026-11-21 15:12:35Z on the first head). Copilot noted that its full agentic review did not start before its timeout; the review has two inline findings, F1 (Medium, recorded as Minor) and F2 (Low, recorded as Nit). Both fixed in "docs(tracker-core): [#2916] describe the key verification outcomes and the bencode terminator in samples". Not pushed yet; replies and thread resolution follow the push. da2ce7 is a requested reviewer and has not reviewed yet.
+- 2026-11-21 15:19 UTC - Pushed "docs(pr-reviews): [#2916] add the review audit of PR #2991" as the new head after the commit-id check printed nothing (pre-push hook passed). Replied on F1 and F2, recorded the reply URLs, and resolved both threads (`resolveReviewThread` returned `true` for both; `date -u` after the resolve commands: 15:19:50). GraphQL refresh: zero unresolved threads on PR #2991.
 
 ## Completion Rules
 
