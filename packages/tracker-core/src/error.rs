@@ -195,10 +195,7 @@ mod tests {
 
         #[test]
         fn persisting_into_database() {
-            let err = databases::error::Error::InsertFailed {
-                location: std::panic::Location::caller(),
-                driver: Driver::Sqlite3,
-            };
+            let err = databases::error::Error::InsertFailed { driver: Driver::Sqlite3 };
 
             let err = PeerKeyError::DatabaseError {
                 source: Located(err).into(),

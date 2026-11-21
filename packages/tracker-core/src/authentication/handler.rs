@@ -354,7 +354,6 @@ mod tests {
             }
 
             mod randomly_generated {
-                use std::panic::Location;
                 use std::sync::Arc;
                 use std::time::Duration;
 
@@ -407,12 +406,7 @@ mod tests {
                         }))
                         .times(1)
                         .returning(|_peer_key| {
-                            Box::pin(async move {
-                                Err(databases::error::Error::InsertFailed {
-                                    location: Location::caller(),
-                                    driver: Driver::Sqlite3,
-                                })
-                            })
+                            Box::pin(async move { Err(databases::error::Error::InsertFailed { driver: Driver::Sqlite3 }) })
                         });
                     let auth_key_store: Arc<dyn AuthKeyStore> = Arc::new(database_mock);
 
@@ -430,7 +424,6 @@ mod tests {
             }
 
             mod pre_generated {
-                use std::panic::Location;
                 use std::sync::Arc;
                 use std::time::Duration;
 
@@ -518,12 +511,7 @@ mod tests {
                         .with(predicate::eq(expected_peer_key))
                         .times(1)
                         .returning(|_peer_key| {
-                            Box::pin(async move {
-                                Err(databases::error::Error::InsertFailed {
-                                    location: Location::caller(),
-                                    driver: Driver::Sqlite3,
-                                })
-                            })
+                            Box::pin(async move { Err(databases::error::Error::InsertFailed { driver: Driver::Sqlite3 }) })
                         });
                     let auth_key_store: Arc<dyn AuthKeyStore> = Arc::new(database_mock);
 
@@ -545,7 +533,6 @@ mod tests {
 
             mod randomly_generated {
 
-                use std::panic::Location;
                 use std::sync::Arc;
 
                 use mockall::predicate::function;
@@ -594,12 +581,7 @@ mod tests {
                         .with(function(move |peer_key: &PeerKey| peer_key.valid_until.is_none()))
                         .times(1)
                         .returning(|_peer_key| {
-                            Box::pin(async move {
-                                Err(databases::error::Error::InsertFailed {
-                                    location: Location::caller(),
-                                    driver: Driver::Sqlite3,
-                                })
-                            })
+                            Box::pin(async move { Err(databases::error::Error::InsertFailed { driver: Driver::Sqlite3 }) })
                         });
                     let auth_key_store: Arc<dyn AuthKeyStore> = Arc::new(database_mock);
 
@@ -618,7 +600,6 @@ mod tests {
 
             mod pre_generated_keys {
 
-                use std::panic::Location;
                 use std::sync::Arc;
 
                 use mockall::predicate;
@@ -683,12 +664,7 @@ mod tests {
                         .with(predicate::eq(expected_peer_key))
                         .times(1)
                         .returning(|_peer_key| {
-                            Box::pin(async move {
-                                Err(databases::error::Error::InsertFailed {
-                                    location: Location::caller(),
-                                    driver: Driver::Sqlite3,
-                                })
-                            })
+                            Box::pin(async move { Err(databases::error::Error::InsertFailed { driver: Driver::Sqlite3 }) })
                         });
                     let auth_key_store: Arc<dyn AuthKeyStore> = Arc::new(database_mock);
 
