@@ -87,7 +87,7 @@ Follows `.claude/skills/fix-bug/SKILL.md`:
 
 ## Regression Test Strategy
 
-Unit tests at the causal seam, `TryFrom<PlainConfiguration> for Configuration` in `config.rs`, one per case: no port, no host, non-`udp` scheme. The scheme check reads the raw entry before the `udp://` prefix is added (`config.rs:65`); without that, `ftp://127.0.0.1:6969` becomes `udp://ftp://127.0.0.1:6969`, whose host is `ftp` with no port, and the no-port check would reject it. The scheme test therefore asserts the error reason (wrong scheme), not only that an error is returned. A unit test for `resolve_socket_addr` returning an error (not panicking) for an unresolvable host. The configuration cases are deterministic and need no network. The unresolvable-host case goes through the system resolver, so it only asserts that an error is returned, not which one; it does not claim to be network-free (a resolver that rewrites "name not found" answers could resolve a `.invalid` name), unless the implementation injects the resolution step, which it may do instead. Red/green output goes to `manual-verification-evidence.md`.
+Unit tests at the causal seam, `TryFrom<PlainConfiguration> for Configuration` in `config.rs`, one per case: no port, no host, non-`udp` scheme. The scheme check reads the raw entry before the `udp://` prefix is added (`config.rs:65`) and detects a scheme by the `://` separator, so the forms without a scheme `127.0.0.1:6969` and `localhost:6969` (which a URL parser alone would read as scheme `localhost`) stay valid; without that, `ftp://127.0.0.1:6969` becomes `udp://ftp://127.0.0.1:6969`, whose host is `ftp` with no port, and the no-port check would reject it. The scheme test therefore asserts the error reason (wrong scheme), not only that an error is returned. A unit test for `resolve_socket_addr` returning an error (not panicking) for an unresolvable host. The configuration cases are deterministic and need no network. The unresolvable-host case goes through the system resolver, so it only asserts that an error is returned, not which one; it does not claim to be network-free (a resolver that rewrites "name not found" answers could resolve a `.invalid` name), unless the implementation injects the resolution step, which it may do instead. Red/green output goes to `manual-verification-evidence.md`.
 
 ## Implementation Plan
 
@@ -136,7 +136,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [ ] AC1: `udp://127.0.0.1` (no port) in `udp_trackers` gives exit `2` and one `invalid_configuration` JSON record naming the entry; no `panic` record
 - [ ] AC2: `udp:///` (no host) and `http://127.0.0.1` / `ftp://127.0.0.1:6969` (wrong scheme) in `udp_trackers` give the same outcome
 - [ ] AC3: `udp://nonexistent.invalid:6969` does not panic; it is reported as a failed check for that tracker
-- [ ] AC4: Valid entries (`udp://127.0.0.1:6969`, `127.0.0.1:6969`, `udp://localhost:6969`) behave as before
+- [ ] AC4: Valid entries (`udp://127.0.0.1:6969`, `127.0.0.1:6969`, `udp://localhost:6969`, and `localhost:6969`, which has no scheme) behave as before
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
