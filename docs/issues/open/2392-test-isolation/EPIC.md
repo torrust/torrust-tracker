@@ -6,7 +6,7 @@ epic: null
 github-issue: 2392
 spec-path: docs/issues/open/2392-test-isolation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-20 07:04"
+last-updated-utc: "2026-11-21 13:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -122,8 +122,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 Deliver order 1 first: it fixes failures contributors already hit. Start order 2 early, because
 its findings may add subissues. Orders 3 and 4 touch only the E2E runners and CI workflows and can
-proceed in parallel. #1419 waited on #1488, which closed on 2026-11-19; its remaining work is
-independent of the other orders. Order 2 added orders 6 to 8:
+proceed in parallel. #1419 waited on #1488, which closed on 2026-11-19; #1419 itself closed on
+2026-11-21. Order 2 added orders 6 to 8:
 orders 6 and 7 make the suite fail on a shared machine and gate AC2; they are independent of each
 other and of the E2E orders. Order 8 touches the qBittorrent E2E runner and belongs to Phase 3.
 Order 7 was split: it keeps the TOML and PEM files, and orders 9 and 10 take the SQLite files, in
@@ -189,8 +189,8 @@ For each subissue implementation in this EPIC, the default completion policy is:
 ### Phase 4 - Document and close
 
 - Outcome: the test isolation rules are documented for contributors (for example in
-  `docs/testing.md` and the `write-unit-test` skill), and #1419 is closed or its remaining
-  non-isolation work is tracked outside this EPIC.
+  `docs/testing.md` and the `write-unit-test` skill). #1419 closed on 2026-11-21; its remaining
+  work (R8, AC8a and R9) was done under this EPIC, and none is deferred to another issue.
 - Exit criteria: all subissues are done or explicitly handed off.
 
 ## Decisions
@@ -305,6 +305,10 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
 - 2026-11-20 07:04 UTC - Claude Code (Claude Fable 5.2), #1419 session - Order 5 (#1419) is DONE: R8, AC8a
   and R9 completed with PRs #2961, #2971 and #2983. Its spec is archived to
   `docs/issues/closed/`. The EPIC coordinator allowed this edit for the close-out.
+- 2026-11-21 13:24 UTC - Claude Code (Claude Opus 5.5), EPIC coordinator - Synced the text after #1419
+  closed: PR #2983 merged on 2026-11-21 13:16 UTC and closed #1419. The 2026-11-20 entry was
+  written inside PR #2983 before it merged. The Delivery Strategy and the Phase 4 outcome no
+  longer describe #1419 as remaining work.
 
 ## Acceptance Criteria
 
