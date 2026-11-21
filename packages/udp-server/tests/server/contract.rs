@@ -138,7 +138,7 @@ mod receiving_an_announce_request {
 
     use super::DEFAULT_UDP_TIMEOUT;
     use crate::common::fixtures::{random_info_hash, random_transaction_id};
-    use crate::server::asserts::is_ipv4_announce_response;
+    use crate::server::asserts::{assert_names_no_source_path, get_error_response_message, is_ipv4_announce_response};
     use crate::server::contract::send_connection_request;
 
     pub async fn assert_send_and_get_announce(
@@ -215,6 +215,33 @@ mod receiving_an_announce_request {
         let info_hash = random_info_hash();
 
         assert_send_and_get_announce(tx_id, c_id, info_hash, &client).await;
+
+        env.stop().await;
+    }
+
+    #[tokio::test]
+    async fn should_reject_a_torrent_that_is_not_whitelisted_with_a_message_that_holds_no_source_path() {
+        logging::setup();
+
+        let cfg = configuration::ephemeral_listed();
+        let core_config = Arc::new(cfg.core.clone());
+        let udp_tracker_config = Arc::new(cfg.udp_trackers.unwrap()[0].clone());
+        let env = torrust_tracker_udp_server::testing::environment::Started::new(&core_config, &udp_tracker_config).await;
+        let client = UdpTrackerClient::new(env.bind_address(), DEFAULT_UDP_TIMEOUT)
+            .await
+            .expect("UDP client should connect to the ephemeral tracker");
+        let tx_id = TransactionId::new(123);
+        let c_id = send_connection_request(tx_id, &client).await;
+        let info_hash = random_info_hash();
+
+        let response = send_and_get_announce(tx_id, c_id, info_hash, &client).await;
+
+        let message = get_error_response_message(&response).expect("an error response");
+        assert_names_no_source_path(&message);
+        assert!(
+            message.contains(&format!("The torrent: {info_hash}, is not whitelisted")),
+            "{message:?}"
+        );
 
         env.stop().await;
     }

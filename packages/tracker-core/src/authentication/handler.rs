@@ -705,5 +705,48 @@ mod tests {
                 }
             }
         }
+        mod peer_key_errors {
+            use std::error::Error as _;
+
+            use crate::authentication::handler::AddKeyRequest;
+            use crate::authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::{
+                instantiate_keys_handler, private_tracker_configuration,
+            };
+            use crate::error::PeerKeyError;
+            use crate::test_helpers::tests::assert_names_no_source_path;
+
+            fn add_key_request(key: &str) -> AddKeyRequest {
+                AddKeyRequest {
+                    opt_key: Some(key.to_string()),
+                    opt_seconds_valid: None,
+                }
+            }
+
+            #[tokio::test]
+            async fn it_should_fail_without_a_source_path_when_the_database_rejects_a_duplicate_key() {
+                let ephemeral = private_tracker_configuration();
+                let keys_handler = instantiate_keys_handler(&ephemeral.config).await;
+                let key = "YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ";
+                keys_handler.add_peer_key(add_key_request(key)).await.unwrap();
+
+                let error = keys_handler.add_peer_key(add_key_request(key)).await.unwrap_err();
+
+                assert!(matches!(error, PeerKeyError::DatabaseError { .. }), "{error:?}");
+                assert_names_no_source_path(&error.to_string());
+                assert_names_no_source_path(&error.source().unwrap().to_string());
+            }
+
+            #[tokio::test]
+            async fn it_should_fail_without_a_source_path_when_the_key_is_invalid() {
+                let ephemeral = private_tracker_configuration();
+                let keys_handler = instantiate_keys_handler(&ephemeral.config).await;
+
+                let error = keys_handler.add_peer_key(add_key_request("INVALID KEY")).await.unwrap_err();
+
+                assert!(matches!(error, PeerKeyError::InvalidKey { .. }), "{error:?}");
+                assert_names_no_source_path(&error.to_string());
+                assert_names_no_source_path(&error.source().unwrap().to_string());
+            }
+        }
     }
 }

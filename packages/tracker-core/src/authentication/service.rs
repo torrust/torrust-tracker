@@ -212,6 +212,39 @@ mod tests {
             }
 
             #[tokio::test]
+            async fn it_should_reject_an_unregistered_key_with_a_message_that_holds_no_source_path() {
+                let authentication = instantiate_authentication_for_private_tracker();
+                let unregistered_key = authentication::Key::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
+
+                let error = authentication.authenticate(&unregistered_key).await.unwrap_err();
+
+                assert_eq!(error.to_string(), "Failed to read key: YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ");
+            }
+
+            #[tokio::test]
+            async fn it_should_reject_an_expired_key_with_a_message_that_holds_no_source_path() {
+                let in_memory_key_repository = Arc::new(InMemoryKeyRepository::default());
+                let key = authentication::Key::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
+                in_memory_key_repository
+                    .insert(&PeerKey {
+                        key: key.clone(),
+                        valid_until: Some(Duration::from_secs(0)),
+                    })
+                    .await;
+                let authentication = AuthenticationService::new(
+                    &Core {
+                        private: true,
+                        ..Default::default()
+                    },
+                    &in_memory_key_repository,
+                );
+
+                let error = authentication.authenticate(&key).await.unwrap_err();
+
+                assert_eq!(error.to_string(), "Key has expired");
+            }
+
+            #[tokio::test]
             async fn it_should_not_authenticate_a_registered_but_expired_key_by_default() {
                 let config = Core {
                     private: true,

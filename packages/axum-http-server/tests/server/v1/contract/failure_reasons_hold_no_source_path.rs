@@ -3,8 +3,9 @@
 //! source path of the tracker (see
 //! `docs/adrs/20261118045443_errors_do_not_record_source_locations.md`).
 //!
-//! One test per failure family of request parsing, key extraction and peer-IP
-//! resolution, through a running HTTP tracker.
+//! One test per failure family of request parsing, key extraction, peer-IP
+//! resolution, whitelist authorization and key authentication, through a
+//! running HTTP tracker.
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -176,4 +177,43 @@ async fn an_announce_to_a_tracker_behind_a_reverse_proxy_without_the_x_forwarded
 
     assert_names_no_source_path(&failure_reason);
     assert!(failure_reason.contains("X-Forwarded-For"), "{failure_reason:?}");
+}
+
+#[tokio::test]
+async fn an_announce_to_a_listed_tracker_for_a_torrent_that_is_not_whitelisted() {
+    let failure_reason = failure_reason_for(
+        configuration::ephemeral_listed(),
+        &format!("announce?info_hash={VALID_INFO_HASH}&peer_id={VALID_PEER_ID}&port=17548"),
+    )
+    .await;
+
+    assert_names_no_source_path(&failure_reason);
+    assert!(
+        failure_reason.contains("The torrent: 3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0, is not whitelisted"),
+        "{failure_reason:?}"
+    );
+}
+
+#[tokio::test]
+async fn an_announce_to_a_private_tracker_without_a_key() {
+    let failure_reason = failure_reason_for(
+        configuration::ephemeral_private(),
+        &format!("announce?info_hash={VALID_INFO_HASH}&peer_id={VALID_PEER_ID}&port=17548"),
+    )
+    .await;
+
+    assert_names_no_source_path(&failure_reason);
+    assert!(failure_reason.contains("Missing authentication key"), "{failure_reason:?}");
+}
+
+#[tokio::test]
+async fn an_announce_to_a_private_tracker_with_an_unregistered_key() {
+    let failure_reason = failure_reason_for(
+        configuration::ephemeral_private(),
+        &format!("announce/YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ?info_hash={VALID_INFO_HASH}&peer_id={VALID_PEER_ID}&port=17548"),
+    )
+    .await;
+
+    assert_names_no_source_path(&failure_reason);
+    assert!(failure_reason.contains("Failed to read key"), "{failure_reason:?}");
 }

@@ -288,7 +288,7 @@ mod tests {
 
         // Assert
         assert!(
-            matches!(actual, ErrorKind::Whitelist(message) if message.contains("The torrent: 3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0, is not whitelisted"))
+            matches!(actual, ErrorKind::Whitelist(message) if message == "The torrent: 3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0, is not whitelisted")
         );
     }
 
@@ -306,7 +306,7 @@ mod tests {
 
         // Assert
         assert!(
-            matches!(actual, ErrorKind::Whitelist(message) if message.contains("The torrent: 3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0, is not whitelisted"))
+            matches!(actual, ErrorKind::Whitelist(message) if message == "The torrent: 3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0, is not whitelisted")
         );
     }
 
@@ -346,7 +346,7 @@ mod tests {
 
         // Assert
         assert!(
-            matches!(actual, ErrorKind::Whitelist(message) if message.contains("The torrent: 3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0, is not whitelisted"))
+            matches!(actual, ErrorKind::Whitelist(message) if message == "The torrent: 3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0, is not whitelisted")
         );
     }
 
@@ -364,7 +364,7 @@ mod tests {
 
         // Assert
         assert!(
-            matches!(actual, ErrorKind::Whitelist(message) if message.contains("The torrent: 3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0, is not whitelisted"))
+            matches!(actual, ErrorKind::Whitelist(message) if message == "The torrent: 3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0, is not whitelisted")
         );
     }
 
