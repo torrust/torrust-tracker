@@ -77,7 +77,7 @@ and F19.
 | F17 | review-finding:pr-2903-f17 | Copilot | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F18 | review-finding:pr-2903-f18 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 | F19 | review-finding:pr-2903-f19 | Human | Nit | metadata | RE_RAISE_OF:F17 | NO_ACTION | SUPERSEDED |
-| F20 | review-finding:pr-2903-f20 | Human | Nit | correctness | ORIGINAL | FOLLOW_UP | OPEN |
+| F20 | review-finding:pr-2903-f20 | Human | Nit | correctness | ORIGINAL | FOLLOW_UP | RESOLVED |
 
 ## Finding Details
 
@@ -335,10 +335,10 @@ and F19.
 - Reviewer finding ID: F20
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2903#discussion_r4600527629
 - Concern: the merge commit of #2903 has the same subject as the S0 commit, so `git log --fixed-strings --grep='specify the tracker-core package tests'` lists it first and the verifications that take `-1` compare with the merge commit instead of the S0 commit.
-- Solution: the maintainer merged #2903 with the nit open (2026-11-17); the S1 branch of #2902 adds `--no-merges` to the lookup in `coverage-evidence.md` and in the F8 and F18 verifications.
-- Current-tree verification: on the S1 branch, `git log --no-merges --format=%H --fixed-strings --grep='specify the tracker-core package tests'` prints one id, the S0 commit's, and `git diff --stat 5833cdae9 <that id> -- packages | wc -l` prints 0.
+- Solution: the maintainer merged #2903 with the nit open (2026-11-17); the S1 branch of #2902 adds `--no-merges` to the lookup in the F8 and F18 verifications. It also added it in `coverage-evidence.md`, but the re-measurement of 2026-11-18 removed the lookup from that file: the container-gated scope is now measured at `5833cdae9` itself.
+- Current-tree verification: on the S1 branch, `git log --no-merges --format=%H --fixed-strings --grep='specify the tracker-core package tests'` prints one id, the S0 commit's, and `git diff --stat 5833cdae9 <that id> -- packages | wc -l` prints 0; `grep -c 'specify the tracker-core package tests' docs/issues/open/2902-1347-add-tests-tracker-core/coverage-evidence.md` prints 0.
 - Resolution reference: docs(issues): [#2902] skip merge commits in the S0 commit lookup
-- Follow-up PR URL: pending, the S1 PR of #2902 (branch `2902-1347-add-tests-tracker-core-statistics`)
+- Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2988
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2903#discussion_r4602399913
 
 ## Processing Log
@@ -352,6 +352,7 @@ and F19.
 - 2026-11-17 13:31 UTC - Round 5 (Copilot's review `5939369230`, 13:30:51 UTC, F17) was about the head before the round 4 replies were recorded; replied at 13:31:57 UTC and resolved the thread.
 - 2026-11-17 13:41 UTC - Round 6 (da2ce7's review `5939412622`, 13:33:52 UTC, F18-F19): F18 fixed in its own commit and pushed; replied to both threads at 13:41:03 and 13:41:07 UTC and resolved each after its reply (F19 superseded by F17).
 - 2026-11-17 16:18 UTC - Round 7 (da2ce7's review `5939722814`, 13:55:00 UTC, approval with F20): the maintainer merged #2903 with F20 open. The fix is the first commit of the S1 branch of #2902; replied at 16:18:25 UTC and left the thread open until the S1 PR exists.
+- 2026-11-21 13:33 UTC - F20 follow-up: the S1 PR #2988 is open with the fix; replied on the thread at 13:32:38 UTC (edited at 13:32:56 UTC to say the `coverage-evidence.md` lookup was removed by the re-measurement) and resolved it.
 
 ## Completion Rules
 

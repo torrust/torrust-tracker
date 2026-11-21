@@ -8,8 +8,8 @@ epic: 1347
 github-issue: 2902
 spec-path: docs/issues/open/2902-1347-add-tests-tracker-core/ISSUE.md
 branch: "2902-1347-add-tests-tracker-core-statistics"
-related-pr: null
-last-updated-utc: "2026-11-21 13:24"
+related-pr: 2988
+last-updated-utc: "2026-11-21 13:33"
 semantic-links:
   skill-links:
     - create-issue
@@ -297,7 +297,7 @@ is the proposal for the maintainer's approval (questions Q5, Q6):
 | Slice | Content | Ledger rows | Branch | PR | Status |
 | --- | --- | --- | --- | --- | --- |
 | S0 | This specification, the T1 evidence, and the EPIC registration with the baseline | - | `2902-1347-add-tests-tracker-core-spec` | #2903 | DONE |
-| S1 | T2, then `statistics/`: `repository.rs`, `metrics.rs`, `persisted/mod.rs`, `persisted/downloads.rs`, `event/listener.rs`, `event/handler.rs`, `mod.rs` (the only area reached just by the integration binary) | 1-7 | `2902-1347-add-tests-tracker-core-statistics` | TBD | IN_PROGRESS |
+| S1 | T2, then `statistics/`: `repository.rs`, `metrics.rs`, `persisted/mod.rs`, `persisted/downloads.rs`, `event/listener.rs`, `event/handler.rs`, `mod.rs` (the only area reached just by the integration binary) | 1-7 | `2902-1347-add-tests-tracker-core-statistics` | #2988 | IN_PROGRESS |
 | S2 | The SQLite persistence boundary: `sqlite/{auth_key_store,torrent_metrics_store,whitelist_store,mod,schema_migrator}.rs`, `databases/{error,setup}.rs`, `error.rs`, the extraction of `parse_valid_until` (Q4), plus the `databases/traits` and `driver/mod.rs` no-change decisions | 8-17 | `2902-1347-add-tests-tracker-core-sqlite` | TBD | TODO |
 | S3 | MySQL and PostgreSQL drivers: Docker-free error-path tests if non-flaky, otherwise no-change rows with the `db-compatibility` workflow as owner (Q3); the README and `packages/AGENTS.md` driver-test commands (Q2) | 18-27 | `2902-1347-add-tests-tracker-core-server-drivers` | TBD | TODO |
 | S4 | Authentication and whitelist: failing-`Database` propagation, `Key` property decision (F3, F4 checks) | 28-39 | `2902-1347-add-tests-tracker-core-auth-whitelist` | TBD | TODO |
@@ -427,6 +427,7 @@ The first slice's record checks the grouping against `find packages/tracker-core
 - 2026-11-18 13:24 UTC - Claude Code (Opus 5.5) - Row 6 (`statistics/persisted/downloads.rs`) done: coverage was already complete after row 5, but a mutation probe found a stored torrent total could be overwritten with 1 unnoticed; two increment tests kill it ([plan](test-refactor-plans/statistics-persisted-downloads-tests.md)). Plan and completed file approved by the maintainer.
 - 2026-11-18 13:48 UTC - Claude Code (Opus 5.5) - Row 7 (`statistics/mod.rs`, `statistics/event/mod.rs`) done: one table test pins which downloads totals each statistics setting registers; 60 / 60 lines, all four named mutants killed; `event/mod.rs` no change ([plan](test-refactor-plans/statistics-mod-tests.md)). Plan and completed file approved by the maintainer. All S1 rows are done.
 - 2026-11-21 13:24 UTC - Claude Code (Opus 5.5) - S1 closed: the branch was rebased on `develop` `44ce734fe` (one EPIC log conflict, both entries kept) and measured in the four scopes with the base: unit-only lines 79.45% to 84.41%, aggregate 81.27% to 84.41%, so the integration binary no longer reaches any line the unit tests miss ([slice measurements](coverage-evidence.md#slice-measurements)). The EPIC's #2902 rows hold the latest values. Next: the S1 PR.
+- 2026-11-21 13:33 UTC - Claude Code (Opus 5.5) - Opened the S1 PR #2988 (`Related to #2902`); it also carries the fix of finding F20 of #2903, whose thread is now resolved.
 
 ## Open Design Questions
 
