@@ -3,7 +3,7 @@ semantic-links:
   skill-links:
     - create-adr
   related-artifacts:
-    - docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
+    - docs/issues/closed/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
     - docs/issues/closed/2036-add-runtime-service-registry-metadata/ISSUE.md
     - src/container.rs
     - tests/common/mod.rs
@@ -99,9 +99,9 @@ roles, not generic network or server-library concepts.
 
 ## References
 
-- Issue #1419: [main-application integration tests](../issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md)
+- Issue #1419: [main-application integration tests](../issues/closed/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md)
 - Feature #2036: [add runtime service registry metadata](../issues/closed/2036-add-runtime-service-registry-metadata/ISSUE.md)
-- [Investigation: runtime service registration and health check API](../issues/open/1419-allow-multiple-integration-tests-at-main-app-level/investigation-registar-and-health-check.md)
+- [Investigation: runtime service registration and health check API](../issues/closed/1419-allow-multiple-integration-tests-at-main-app-level/investigation-registar-and-health-check.md)
 - [App container](../../src/container.rs)
 - [Integration-test helpers](../../tests/common/mod.rs)
 - [Health-check handler](../../packages/axum-health-check-api-server/src/handlers.rs)

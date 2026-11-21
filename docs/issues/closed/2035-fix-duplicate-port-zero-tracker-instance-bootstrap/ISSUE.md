@@ -7,7 +7,7 @@ github-issue: 2035
 spec-path: docs/issues/closed/2035-fix-duplicate-port-zero-tracker-instance-bootstrap/ISSUE.md
 branch: 2035-fix-duplicate-port-zero-tracker-instance-bootstrap
 related-pr: null
-last-updated-utc: 2026-09-01 10:27
+last-updated-utc: "2026-11-20 06:34"
 semantic-links:
   skill-links:
     - write-unit-test
@@ -15,7 +15,7 @@ semantic-links:
     - src/container.rs
     - src/app.rs
     - archived-attempt.md
-    - docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
+    - docs/issues/closed/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
     - docs/issues/closed/2036-add-runtime-service-registry-metadata/ISSUE.md
     - docs/issues/closed/2039-normalize-per-instance-event-metrics-policy/ISSUE.md
     - docs/issues/closed/2041-migrate-runtime-service-registry-metadata/ISSUE.md
@@ -202,8 +202,8 @@ evidence.
 
 ## References
 
-- Issue #1419: [main-application integration tests](../../open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md)
-- [Runtime registry investigation](../../open/1419-allow-multiple-integration-tests-at-main-app-level/investigation-registar-and-health-check.md)
+- Issue #1419: [main-application integration tests](../../closed/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md)
+- [Runtime registry investigation](../../closed/1419-allow-multiple-integration-tests-at-main-app-level/investigation-registar-and-health-check.md)
 - Feature #2036: [add runtime service registry metadata](../../closed/2036-add-runtime-service-registry-metadata/ISSUE.md)
 - Bug #2039: [normalize per-instance event metrics policy](../2039-normalize-per-instance-event-metrics-policy/ISSUE.md)
 - Issue #2041: [migrate runtime service registry metadata](../../closed/2041-migrate-runtime-service-registry-metadata/ISSUE.md)

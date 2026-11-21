@@ -7,7 +7,7 @@ semantic-links:
     - tests/metrics/fixed_ports.rs
     - tests/common/mod.rs
     - src/app.rs
-    - docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
+    - docs/issues/closed/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
     - docs/issues/drafts/increase-main-app-integration-test-coverage/ISSUE.md
 ---
 
@@ -201,6 +201,12 @@ tests/
 └── scaffold.rs                       # Scaffolding demo — pattern reference for new binaries
 ```
 
+## Future Test Coverage
+
+The list of valuable integration tests to add at the main application level, ordered by priority,
+is in the draft issue
+[Increase main-application integration test coverage](../docs/issues/drafts/increase-main-app-integration-test-coverage/ISSUE.md).
+
 ## Adding a New Integration-Test Binary
 
 1. **Confirm it belongs here**: Can this test be written at the package level? If yes, write it there.
@@ -222,7 +228,7 @@ tests/
 
 ## References
 
-- [Issue #1419](../docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md) - Infrastructure for parallel integration tests (execution model decision)
+- [Issue #1419](../docs/issues/closed/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md) - Infrastructure for parallel integration tests (execution model decision)
 - [Integration test scaffolding](metrics/port_zero.rs)
 - [Shared test utilities](common/mod.rs)
 - [Scaffolding demo](scaffold.rs)

@@ -1,3 +1,11 @@
+---
+spec-path: docs/issues/closed/1419-allow-multiple-integration-tests-at-main-app-level/investigation-registar-and-health-check.md
+last-updated-utc: "2026-11-20 06:34"
+semantic-links:
+  related-artifacts:
+    - docs/issues/closed/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
+---
+
 # Investigation: Runtime Service Registration and Health Check API
 
 ## Goal

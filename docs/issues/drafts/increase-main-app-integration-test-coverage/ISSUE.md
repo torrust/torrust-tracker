@@ -9,13 +9,13 @@ github-issue: null
 spec-path: docs/issues/drafts/increase-main-app-integration-test-coverage/ISSUE.md
 branch: "{issue-number}-increase-main-app-integration-test-coverage"
 related-pr: null
-last-updated-utc: "2026-07-27 12:00"
+last-updated-utc: "2026-11-20 06:34"
 semantic-links:
   skill-links:
     - write-unit-test
   related-artifacts:
     - tests/AGENTS.md
-    - docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
+    - docs/issues/closed/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
     - "issue #1347"
     - "issue #1419"
 ---
@@ -200,7 +200,7 @@ Suggested approach:
 ## Related Issues
 
 - [Issue #1419 - Allow multiple integration tests at the main app
-  level](../../open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md) - Infrastructure
+  level](../../closed/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md) - Infrastructure
   foundation
 - [EPIC #1347 - Increase unit testing for workspace
   packages](https://github.com/torrust/torrust-tracker/issues/1347) - Package-level unit test

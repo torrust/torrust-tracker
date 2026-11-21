@@ -8,7 +8,7 @@ github-issue: 2151
 spec-path: docs/issues/closed/2151-add-tracker-config-path-argument/ISSUE.md
 branch: "2151-add-tracker-config-path-argument"
 related-pr: 2153
-last-updated-utc: 2026-09-11
+last-updated-utc: "2026-11-20 06:34"
 semantic-links:
   skill-links:
     - create-issue
@@ -505,5 +505,5 @@ and reusable lessons.
   configuration-schema context, not a parent)
 - `tests/AGENTS.md` (in-process and child-process configuration isolation)
 - `tests/lifecycle/native_tracker.rs` (child-specific environment setup)
-- `docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md`
+- `docs/issues/closed/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md`
   (environment-isolation analysis)

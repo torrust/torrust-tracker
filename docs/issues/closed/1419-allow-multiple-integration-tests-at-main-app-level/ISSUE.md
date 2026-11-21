@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: enhancement
-status: in-progress
+status: done
 priority: p3
 epic: 2392
 github-issue: 1419
-spec-path: docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
+spec-path: docs/issues/closed/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
 branch: "1419-align-fixture-with-final-shutdown-api"
-related-pr: 2189
-last-updated-utc: "2026-11-19 18:56"
+related-pr: 2971
+last-updated-utc: "2026-11-20 06:34"
 semantic-links:
   skill-links:
     - write-unit-test
@@ -26,7 +26,7 @@ semantic-links:
     - src/app.rs
     - src/bootstrap/jobs/manager.rs
     - packages/test-helpers
-    - docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/completion-plan.md
+    - docs/issues/closed/1419-allow-multiple-integration-tests-at-main-app-level/completion-plan.md
     - "issue #1488"
     - docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md
     - docs/features/shutdown-process/README.md
@@ -37,6 +37,10 @@ semantic-links:
 
 Parent EPIC: #2392 - Test Isolation (`docs/issues/open/2392-test-isolation/EPIC.md`)
 
+> **Closed (2026-11-20):** every task and acceptance criterion is complete; see the
+> [closure review](#closure-review-r9). The note below is the state of 2026-11-19, kept as the
+> record of how the remaining work was unblocked.
+>
 > **Current state (2026-11-19):** the issue is no longer blocked. The shutdown overhaul, EPIC #1488,
 > is closed (its spec is in `docs/issues/closed/1488-overhaul-tracker-shutdown/EPIC.md`), and the
 > maintainer decided on 2026-11-18 that #1419 continues under EPIC #2392. The remaining work is R8
@@ -215,19 +219,20 @@ completed work and remaining tasks are recorded after the decision pivot.
 | T6  | DONE   | Migrate appropriate suites to port 0 and temporary workspaces | Port-zero metrics, UDP-error, and banning suites use isolated workspaces.                               |
 | T7  | DONE   | Expand global stats test coverage                             | Current suites cover HTTP/UDP announces plus request, connection, response, error, and banning metrics. |
 | T8  | DONE   | Resolve prerequisites for port-zero identity discovery        | #2035 bootstrap behavior and #2036 registry metadata are present and consumed by helpers.               |
-| T9  | TODO   | Run automatic verification                                    | Use the current multi-target command in the revised verification plan.                                  |
+| T9  | DONE   | Run automatic verification                                    | Superseded by R5, R8 and R9 of the completion plan, which ran the current multi-target command.         |
 
 ## Progress Tracking
 
 ### Workflow Checkpoints
 
-- [ ] Specification drafted and approved by user/maintainer
-- [ ] GitHub issue #1419 already exists (created by maintainer)
-- [x] Implementation completed (partial improvement; cooperative server shutdown remains deferred)
+- [x] Specification drafted and approved by user/maintainer (the R8 plan and its decisions D1 to D5 merged with PR [#2961](https://github.com/torrust/torrust-tracker/pull/2961))
+- [x] GitHub issue #1419 already exists (created by maintainer)
+- [x] Implementation completed (the partial improvement first; the follow-up below delivered the cooperative server shutdown check)
 - [x] Automatic verification completed (current main-level integration-test targets)
 - [x] Partial-improvement PR [#2189](https://github.com/torrust/torrust-tracker/pull/2189) merged
-- [ ] Acceptance criteria reviewed after implementation
-- [ ] Issue closed and specification moved to `docs/issues/closed/`
+- [x] Final shutdown API follow-up PR [#2971](https://github.com/torrust/torrust-tracker/pull/2971) merged on 2026-11-20
+- [x] Acceptance criteria reviewed after implementation (see the [closure review](#closure-review-r9))
+- [x] Issue closed and specification moved to `docs/issues/closed/` (the close-out pull request moves the specification and closes the GitHub issue when it merges)
 
 ### Progress Log
 
@@ -289,6 +294,10 @@ completed work and remaining tasks are recorded after the decision pivot.
   component did not stop gracefully. Added the negative suite
   `lifecycle-fixture-shutdown-assertion`; the maintainer approved its test after the prose-first
   review. Recorded the evidence E1 to E5 in the R8 plan. R9 remains.
+- 2026-11-20 06:34 UTC - Claude Code (Claude Fable 5.2) - Completed R9 after PR #2971 merged. Reviewed every
+  acceptance criterion against `develop` and recorded the result in the closure review. Restored
+  the "Future Test Coverage" section of `tests/AGENTS.md`, which AC1 requires. Moved this
+  specification to `docs/issues/closed/` and repaired the references to its old path.
 
 ## Acceptance Criteria
 
@@ -318,6 +327,31 @@ completed work and remaining tasks are recorded after the decision pivot.
       and a representative target passes in serial mode. Current production server jobs can still
       consume the per-job shutdown timeout; cooperative completion is deferred to AC8a.
 - [x] AC10: `linter all` passes.
+
+### Closure Review (R9)
+
+Reviewed on 2026-11-20 06:34 UTC by Claude Code (Claude Fable 5.2) against `develop` after the merge of PR
+[#2971](https://github.com/torrust/torrust-tracker/pull/2971). Toolchain of the commands:
+`rustc 1.100.0 (0ef1bc386 2026-11-09)`, `cargo 1.100.0 (3acc79c0c 2026-11-05)`, `dev` profile,
+Linux x86_64.
+
+| ID   | Result | Evidence from the current tree                                                                                                                                                                                                                                                                                                                                              |
+| ---- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AC1  | Met    | `tests/AGENTS.md` has the sections "What Belongs Here" and "What Does NOT Belong Here". Its pointer to the list of future tests had been removed on 2026-07-28 with the first infrastructure change; this review restored it as the section "Future Test Coverage", which links the draft issue `docs/issues/drafts/increase-main-app-integration-test-coverage/ISSUE.md`. |
+| AC2  | Met    | The root `Cargo.toml` registers the nested targets with `[[test]]` entries, and `tests/scaffold.rs` and `tests/http_health_check.rs` are discovered. Plain `cargo test` runs the selected test binaries one after another, so it does not show concurrency between executables. The concurrent evidence is a `cargo nextest run` of all 15 main-level targets, which runs every test in its own process, in parallel across binaries (see AC9). |
+| AC3  | Met    | `start_tracker_with_config` in `tests/common/workspace.rs` calls `app::start_with_explicit_config_toml_path` with the workspace file. A search of `tests/` for `set_var`, `remove_var` and `env::set` finds nothing.                                                                                                                                                         |
+| AC4  | Met    | `http_tracker_urls`, `udp_tracker_urls`, `http_api_url` and `service_binding_for_identity` in `tests/common/workspace.rs` read the final bindings from the registar of the `AppContainer`.                                                                                                                                                                                  |
+| AC5  | Met    | Every fixture-based suite binds port `0`, except `tests/metrics/fixed_ports.rs`, whose scenario needs four fixed ports.                                                                                                                                                                                                                                                      |
+| AC6  | Met    | `tests/common/statistics.rs` reads eight aggregate metrics, and the metrics suites assert several of them.                                                                                                                                                                                                                                                                   |
+| AC7  | Met    | `EphemeralTrackerWorkspace`, `TrackerApplicationFixture` and the discovery helpers are in `tests/common/` and are documented there and in `tests/AGENTS.md`.                                                                                                                                                                                                                 |
+| AC8  | Met    | Read for the fixture-based suites: all eleven start with `TrackerApplicationFixture::start` and call `shutdown()`, and none of them starts the application another way. Four other targets start an executable as a child process: `lifecycle-signals`, `lifecycle-shutdown-policy` and `cli-configuration` start the tracker through `tests/common/native_tracker/`, and the discovered `tests/http_health_check.rs` runs the `http_health_check` tool with its own command. They are executable-boundary targets, outside the fixture by D3 and by `tests/AGENTS.md`, and outside AC8. The sequence that AC8 names (`JobManager::cancel()` then `wait_for_all`) was the best one available on 2026-08-24; AC8a replaced it with the final one. |
+| AC8a | Met    | The [recorded evidence](#recorded-evidence) E1 to E5, delivered with PR [#2971](https://github.com/torrust/torrust-tracker/pull/2971).                                                                                                                                                                                                                                       |
+| AC9  | Met    | Concurrent run of every main-level target: `cargo nextest run -p torrust-tracker` with one `--test` argument for each of the 15 targets (13 `[[test]]` entries and the two discovered files) exited with status 0: 122 tests across 15 binaries passed in 3.152 seconds of wall time (`cargo-nextest 0.9.88`, 32 CPUs). The eleven fixture-based tests take 0.11 to 3.03 seconds each when run alone, about 14 seconds in sequence, so they overlapped. Sequential runs with plain `cargo test` also exited with status 0: the ten-target command of the R8 plan with `--test lifecycle-fixture-shutdown-assertion` added (eleven fixture-based targets, one test each), and `cargo test --test lifecycle-signals --test lifecycle-shutdown-policy --test cli-configuration --test http_health_check` (30, 35, 35 and 11 tests). Serial mode: `cargo test --test metrics-port-zero -- --test-threads=1` exited with status 0 (1.04 seconds). The sentence about the per-job timeout in AC9 no longer applies (AC8a). |
+| AC10 | Met    | The pre-commit gate, which runs `linter all`, passed on the close-out change.                                                                                                                                                                                                                                                                                                |
+
+The tasks R1 to R9 of the completion plan are all `DONE`. Nothing is deferred to another issue.
+The draft issue for more main-application integration tests stays a draft; it is future work
+outside this issue.
 
 ## Verification Plan
 
@@ -477,7 +511,7 @@ be reviewed before implementation begins.
 | R6a | DONE   | Remove fixture environment injection          | `TrackerApplicationFixture` now passes its workspace TOML path to `app::start_with_explicit_config_toml_path`, removing its environment lock, restoration guard, and base-source environment mutation.                    |
 | R7  | DONE   | Open partial-improvement PR                   | [PR #2189](https://github.com/torrust/torrust-tracker/pull/2189) merged on 2026-09-10. It delivered explicit workspace-file configuration for the shared fixture; cooperative server shutdown remains owned by #1488.     |
 | R8  | DONE   | Revisit after shutdown overhaul #1488         | #1488 closed on 2026-11-19. The review is recorded in the [R8 plan](#r8-plan-align-the-fixture-with-the-final-shutdown-api); the maintainer decided D1 to D5 on 2026-11-19 (decision record there); the fixture uses the final shutdown API and the AC8a evidence is [recorded](#recorded-evidence).          |
-| R9  | TODO   | Perform final closure review                  | After the #1488 follow-up, confirm all acceptance criteria, move the issue specification to `docs/issues/closed/`, and close GitHub issue #1419.                                                                          |
+| R9  | DONE   | Perform final closure review                  | Done on 2026-11-20: the [closure review](#closure-review-r9) confirms every acceptance criterion, and the close-out pull request moves this specification to `docs/issues/closed/` and closes GitHub issue #1419.                                                                          |
 
 #### Implementation Sequence
 

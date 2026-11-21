@@ -7,7 +7,7 @@ github-issue: 2041
 spec-path: docs/issues/closed/2041-migrate-runtime-service-registry-metadata/ISSUE.md
 branch: "2041-migrate-runtime-service-registry-metadata"
 related-pr: null
-last-updated-utc: 2026-08-17
+last-updated-utc: "2026-11-20 06:34"
 semantic-links:
   skill-links:
     - create-issue
@@ -18,7 +18,7 @@ semantic-links:
     - docs/issues/closed/2035-fix-duplicate-port-zero-tracker-instance-bootstrap/ISSUE.md
     - docs/issues/closed/2036-add-runtime-service-registry-metadata/ISSUE.md
     - docs/issues/closed/2039-normalize-per-instance-event-metrics-policy/ISSUE.md
-    - docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
+    - docs/issues/closed/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md
     - src/container.rs
     - "issue #1419"
     - "issue #2035"
