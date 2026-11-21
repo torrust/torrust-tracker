@@ -3,7 +3,7 @@ name: process-pr-review
 description: "Process every pull-request review finding, from Copilot, a person or a bot: fix, reply, record. Use when addressing PR review feedback, even after merge or on a replaced PR."
 metadata:
   author: torrust
-  version: "1.9"
+  version: "1.10"
   semantic-links:
     related-artifacts:
       - docs/issues/closed/2219-2003-unify-pr-review-processing/ISSUE.md
@@ -121,6 +121,10 @@ A row's reply URL exists only after replying: create the record, reply, then fil
    thread data and show no unresolved
    actionable thread. Update the audit progressively and commit it separately
    from product fixes.
+   An audit commit pushed after a reviewer's `ACK` makes that `ACK` stale (see
+   [An ACK Names One Commit](../merge-pull-request/SKILL.md#an-ack-names-one-commit)).
+   Keep the commit and tell the maintainer that the head needs new `ACK`s. Never
+   rewrite history or hold back the audit record to protect an `ACK`.
 
 ## Statements in Your Own Records
 
