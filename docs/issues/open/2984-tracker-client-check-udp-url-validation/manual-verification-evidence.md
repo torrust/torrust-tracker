@@ -33,17 +33,56 @@ TORRUST_CHECKER_CONFIG='{"udp_trackers":["<url>"],"http_trackers":[],"health_che
 
 #### Observed Result
 
-| `<url>`                          | Exit | Stderr (abridged)                                                                                         |
-| -------------------------------- | ---- | --------------------------------------------------------------------------------------------------------- |
-| `udp://127.0.0.1`                | 1    | `panic` at `checks/udp.rs:107`: `No port number in the URL`; then `runtime_failure`                       |
-| `udp:///`                        | 1    | `panic` at `checks/udp.rs:107`: `No host name in the URL`; then `runtime_failure`                         |
-| `ftp://127.0.0.1:6969`           | 1    | `panic` at `checks/udp.rs:107`: `No port number in the URL` (the entry becomes `udp://ftp://...`)         |
-| `http://127.0.0.1`               | 1    | `panic` at `checks/udp.rs:107`: `No port number in the URL`                                               |
-| `udp://nonexistent.invalid:6969` | 1    | `panic` at `checks/udp.rs:107`: `failed to lookup address information: Name or service not known`         |
-| `invalid URL` (control)          | 2    | `{"error":{"kind":"invalid_configuration","source":"TORRUST_CHECKER_CONFIG","message":"Invalid URL: invalid domain character"}}` |
-| `udp://[::1` (control)           | 2    | `{"error":{"kind":"invalid_configuration",...,"message":"Invalid URL: invalid IPv6 address"}}`             |
+Each block below is the exit code, stdout size and stderr of one run, copied verbatim from the rerun at 2026-11-21 15:15:02 UTC (see the environment section). The `panic` record is the first stderr line and the `runtime_failure` record the second.
 
-Stdout was empty in every case.
+`udp://127.0.0.1`:
+
+```text
+exit=1 stdout_bytes=0
+{"kind":"panic","message":"called `Result::unwrap()` on an `Err` value: Custom { kind: InvalidData, error: \"No port number in the URL\" }","location":"console/tracker-client/src/console/clients/checker/checks/udp.rs:107"}
+{"error":{"kind":"runtime_failure","source":"runtime","message":"task 33 panicked with message \"called `Result::unwrap()` on an `Err` value: Custom { kind: InvalidData, error: \\\"No port number in the URL\\\" }\""}}
+```
+
+`udp:///`:
+
+```text
+exit=1 stdout_bytes=0
+{"kind":"panic","message":"called `Result::unwrap()` on an `Err` value: Custom { kind: InvalidData, error: \"No host name in the URL\" }","location":"console/tracker-client/src/console/clients/checker/checks/udp.rs:107"}
+{"error":{"kind":"runtime_failure","source":"runtime","message":"task 33 panicked with message \"called `Result::unwrap()` on an `Err` value: Custom { kind: InvalidData, error: \\\"No host name in the URL\\\" }\""}}
+```
+
+`ftp://127.0.0.1:6969`:
+
+```text
+exit=1 stdout_bytes=0
+{"kind":"panic","message":"called `Result::unwrap()` on an `Err` value: Custom { kind: InvalidData, error: \"No port number in the URL\" }","location":"console/tracker-client/src/console/clients/checker/checks/udp.rs:107"}
+{"error":{"kind":"runtime_failure","source":"runtime","message":"task 33 panicked with message \"called `Result::unwrap()` on an `Err` value: Custom { kind: InvalidData, error: \\\"No port number in the URL\\\" }\""}}
+```
+
+`http://127.0.0.1`:
+
+```text
+exit=1 stdout_bytes=0
+{"kind":"panic","message":"called `Result::unwrap()` on an `Err` value: Custom { kind: InvalidData, error: \"No port number in the URL\" }","location":"console/tracker-client/src/console/clients/checker/checks/udp.rs:107"}
+{"error":{"kind":"runtime_failure","source":"runtime","message":"task 33 panicked with message \"called `Result::unwrap()` on an `Err` value: Custom { kind: InvalidData, error: \\\"No port number in the URL\\\" }\""}}
+```
+
+`udp://nonexistent.invalid:6969`:
+
+```text
+exit=1 stdout_bytes=0
+{"kind":"panic","message":"called `Result::unwrap()` on an `Err` value: Custom { kind: Uncategorized, error: \"failed to lookup address information: Name or service not known\" }","location":"console/tracker-client/src/console/clients/checker/checks/udp.rs:107"}
+{"error":{"kind":"runtime_failure","source":"runtime","message":"task 33 panicked with message \"called `Result::unwrap()` on an `Err` value: Custom { kind: Uncategorized, error: \\\"failed to lookup address information: Name or service not known\\\" }\""}}
+```
+
+Control cases (a URL that fails to parse), recorded at the first run on 2026-11-19 16:05 UTC and not rerun:
+
+| `<url>`                 | Exit | Stderr                                                                                                                              |
+| ----------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `invalid URL`           | 2    | `{"error":{"kind":"invalid_configuration","source":"TORRUST_CHECKER_CONFIG","message":"Invalid URL: invalid domain character"}}` |
+| `udp://[::1`            | 2    | `{"error":{"kind":"invalid_configuration","source":"TORRUST_CHECKER_CONFIG","message":"Invalid URL: invalid IPv6 address"}}`     |
+
+Stdout was empty (0 bytes) in every case.
 
 #### Conclusion
 
