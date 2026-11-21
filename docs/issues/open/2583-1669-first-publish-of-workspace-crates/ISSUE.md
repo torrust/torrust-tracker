@@ -123,8 +123,15 @@ follow-up PRs #2960 and #2967 (review audit of PR #2951) are merged. Prerequisit
 every crate. Checked on GitHub and on `develop` on 2026-11-21. No crate's status changed: every
 row stays `BLOCKED` on the other prerequisites.
 
-What EPIC #1488 changed that matters for publishing:
+What EPIC #1488 changed that is known to matter for publishing. This is not a full API diff of
+the EPIC; T4 checks each crate again before its publish:
 
+- **Published checklist crates.** SI-20 (#2668, PR #2678) added the public field
+  `Configuration::application` to `torrust-tracker-configuration`, with the public
+  `v3_0_0::application` and `v3_0_0::shutdown` modules. Every field of `Configuration` is public
+  and the struct is not `#[non_exhaustive]`, so the new field is a breaking change: for the 4.0.0
+  release notes of row 6. SI-21 (#2697, PR #2720) added the public `Readiness` type to
+  `torrust-tracker-primitives` (row 1; additive).
 - **Legacy shutdown API.** SI-18 (#2751) deprecated the legacy `Halted` shutdown API and SI-19
   (#2801) removed it. They moved the workspace to `torrust-server-lib` 0.5.0 and then 0.6.0 (an
   external crate, not a checklist row).
