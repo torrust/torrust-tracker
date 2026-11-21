@@ -6,7 +6,7 @@ epic: null
 github-issue: 1669
 spec-path: docs/issues/open/1669-overhaul-packages/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-18 09:47"
+last-updated-utc: "2026-11-21 13:27"
 semantic-links:
   skill-links:
     - create-issue
@@ -665,7 +665,7 @@ Status: TODO unless noted.
 
 - [x] [#2446](https://github.com/torrust/torrust-tracker/issues/2446) SI-01: Establish baseline: dependency graph + README audit _(analysis; no blockers; informs all other subissues)_ — **DONE** (2026-10-06 coupling report, refreshed README audit and dependency diagram; three findings drafted as subissues)
 - [x] [#2576](https://github.com/torrust/torrust-tracker/issues/2576) Update all package READMEs and crates.io metadata before the first publish _(documentation; was blocked on #2482, which is done; before the first publish of any unpublished crate)_
-- [ ] [#2583](https://github.com/torrust/torrust-tracker/issues/2583) First publish of the unpublished workspace crates _(publish tracking issue; per-crate checklist in dependency order; blocked on #1488 and, per crate, on that crate's #1347 testing gate; #2482 and #2576 are done; at the end of this EPIC)_
+- [ ] [#2583](https://github.com/torrust/torrust-tracker/issues/2583) First publish of the unpublished workspace crates _(publish tracking issue; per-crate checklist in dependency order; blocked, per crate, on that crate's #1347 testing gate, and on the rest of this EPIC's API work; #2482, #2576 and #1488 are done; at the end of this EPIC)_
 - [x] [#2582](https://github.com/torrust/torrust-tracker/issues/2582) Remove the self dev-dependency that stops the health check API server crate from being packaged _(bug; pre-publish sub-issue P1 of #2583; not blocked)_
 - [x] [#2454](https://github.com/torrust/torrust-tracker/issues/2454) Mark public error enums `#[non_exhaustive]` before first publish _(Pre-publish API checklist; per crate, before its first publish)_ — **DONE** (2026-10-20, PR #2568)
 - [x] [#2482](https://github.com/torrust/torrust-tracker/issues/2482) Reorganize test support code shared between workspace packages _(sub-EPIC; findings 1 and 2 of the 2026-10-06 coupling report; amends DEC-13)_ — **DONE** (all nine subissues merged by 2026-11-09; the maintainer closes the issue)
@@ -702,7 +702,7 @@ Details:
 | Clock rename               | [#1821](https://github.com/torrust/torrust-tracker/issues/1821) — Rename `torrust-tracker-clock` to `torrust-clock`                                                                       | [issue #1821](https://github.com/torrust/torrust-tracker/issues/1821)                                                                                                                          | DONE   | Rule P; published on crates.io; no blockers; prerequisite for clock extraction                                                                |
 | Located error rename       | [#1823](https://github.com/torrust/torrust-tracker/issues/1823) — Rename `torrust-tracker-located-error` to `torrust-located-error`                                                       | [docs/issues/closed/1823-1669-10-rename-torrust-tracker-located-error-to-torrust-located-error/ISSUE.md](../../closed/1823-1669-10-rename-torrust-tracker-located-error-to-torrust-located-error/ISSUE.md) | DONE   | Rule P; completed                                                                                                                             |
 | README refresh             | [#2576](https://github.com/torrust/torrust-tracker/issues/2576) — Update all package READMEs and crates.io metadata before the first publish | [docs/issues/closed/2576-1669-update-all-package-readmes/ISSUE.md](../../closed/2576-1669-update-all-package-readmes/ISSUE.md) | DONE   | Documentation and `Cargo.toml` metadata; was blocked on #2482 (done); must merge before the first publish of any unpublished crate |
-| First publish              | [#2583](https://github.com/torrust/torrust-tracker/issues/2583) — First publish of the unpublished workspace crates | [docs/issues/open/2583-1669-first-publish-of-workspace-crates/ISSUE.md](../2583-1669-first-publish-of-workspace-crates/ISSUE.md) | BLOCKED | 20 library crates, one at a time in dependency order; blocked on #1488 and, per crate, on that crate's #1347 testing gate (#2482 and #2576 are done); root crate and console client published elsewhere |
+| First publish              | [#2583](https://github.com/torrust/torrust-tracker/issues/2583) — First publish of the unpublished workspace crates | [docs/issues/open/2583-1669-first-publish-of-workspace-crates/ISSUE.md](../2583-1669-first-publish-of-workspace-crates/ISSUE.md) | BLOCKED | 20 library crates, one at a time in dependency order; blocked, per crate, on that crate's #1347 testing gate, and on the rest of this EPIC's API work (#2482, #2576 and #1488 are done); root crate and console client published elsewhere |
 | Health check packaging fix | [#2582](https://github.com/torrust/torrust-tracker/issues/2582) — Remove the self dev-dependency that stops the health check API server crate from being packaged | [docs/issues/closed/2582-1669-remove-health-check-self-dev-dependency/ISSUE.md](../../closed/2582-1669-remove-health-check-self-dev-dependency/ISSUE.md) | DONE | Bug; pre-publish sub-issue P1 of #2583; adds a CI `cargo package --workspace --no-verify` check |
 | Bencode migration          | [#1881](https://github.com/torrust/torrust-tracker/issues/1881) SI-16: Migrate `contrib/bencode` to `torrust/torrust-bittorrent` as `torrust-bencode`                                     | [docs/issues/closed/1881-1669-16-migrate-contrib-bencode-to-torrust-bittorrent/ISSUE.md](../../closed/1881-1669-16-migrate-contrib-bencode-to-torrust-bittorrent/ISSUE.md)                     | DONE   | Rule E; torrust-bencode 3.0.0 published; contrib/bencode removed from tracker workspace                                                       |
 | Peer-ID move               | [#1884](https://github.com/torrust/torrust-tracker/issues/1884) — Move `bittorrent-peer-id` to `torrust/torrust-bittorrent` as `torrust-peer-id`                                          | [docs/issues/closed/1884-1669-19-move-bittorrent-peer-id-to-torrust-bittorrent/ISSUE.md](../../closed/1884-1669-19-move-bittorrent-peer-id-to-torrust-bittorrent/ISSUE.md)                                 | DONE   | Rule E; published as torrust-peer-id 0.1.0 on crates.io; 3 tracker consumers migrated; packages/peer-id removed                               |
@@ -1105,6 +1105,12 @@ Previously referenced tools (screenshots from CodeScene already in the issue com
   decisions (its Open Questions OQ1-OQ4, including whether the EPIC #1488 prerequisite also becomes
   per crate). #2594 needs `http-protocol`, `udp-protocol` and `client-lib` published; none has a
   #1347 sub-issue yet. No status changed: #2583 and #2594 stay `BLOCKED`.
+- 2026-11-21 13:27 UTC - Claude Code (Claude Fable 5.2) - EPIC #1488 (shutdown overhaul) closed on
+  2026-11-19 08:07 UTC (close-out PR #2951), so prerequisite 3 of the first publish (#2583) is met.
+  The #2583 spec records it, lists what EPIC #1488 changed for publishing, and marks its open
+  question OQ2 moot (not decided). No status changed: #2583 and #2594 stay `BLOCKED` on the other
+  prerequisites of #2583 (prerequisite 5, the per-crate testing gates and its open questions OQ1,
+  OQ3 and OQ4).
 
 ## Acceptance Criteria
 

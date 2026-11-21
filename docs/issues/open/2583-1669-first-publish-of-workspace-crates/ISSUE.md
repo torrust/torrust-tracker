@@ -9,7 +9,7 @@ github-issue: 2583
 spec-path: docs/issues/open/2583-1669-first-publish-of-workspace-crates/ISSUE.md
 branch: "2583-1669-first-publish-of-workspace-crates-spec"
 related-pr: null
-last-updated-utc: "2026-11-19 10:18"
+last-updated-utc: "2026-11-21 13:27"
 semantic-links:
   skill-links:
     - create-issue
@@ -74,7 +74,7 @@ The maintainer decided on 2026-10-20:
 | Console client `torrust-tracker-client` | Not published here. Its first publish comes from its own repository in the client-extraction issue.                                                          |
 | crates.io owners                 | `josecelano` and `da2ce7`, as for the four published workspace crates.                                                                                              |
 | Crates kept unpublished          | None beyond the ten `publish = false` members.                                                                                                                      |
-| Other prerequisites              | EPIC #1488 (shutdown overhaul) closes first. The EPIC #1347 (package testing) part of this row was replaced on 2026-11-18 by a per-crate testing gate (see below). |
+| Other prerequisites              | EPIC #1488 (shutdown overhaul) closes first (met: it closed on 2026-11-19, see [EPIC #1488 closed](#epic-1488-closed)). The EPIC #1347 (package testing) part of this row was replaced on 2026-11-18 by a per-crate testing gate (see below). |
 | `cargo package` failure          | Fix it in its own sub-issue (P1, #2582), created together with this issue.                                                                                                  |
 | Stale publish docs               | Fix them in this issue before the first publish (T2).                                                                                                                |
 
@@ -94,7 +94,8 @@ What follows from this decision, without any new decision:
 - T2 (publish procedure check) was never blocked by EPIC #1347 and is still not blocked.
 
 State on 2026-11-18 (EPIC #1347 `Subissues` table and the GitHub state of each sub-issue); only the
-`primitives` bullet was updated since, on 2026-11-19, for EPIC #2912:
+`primitives` bullet was updated since: on 2026-11-19 for EPIC #2912, and on 2026-11-21 because
+prerequisite 3 is met:
 
 - **Testing gate met** (the crate's #1347 sub-issues are closed): `primitives` (#2824, #2876), `udp-core`
   (#1348), `http-core` (#1349), `axum-http-server` (#2136, #2140), `udp-server` (#2149, #2283) and
@@ -106,7 +107,8 @@ State on 2026-11-18 (EPIC #1347 `Subissues` table and the GitHub state of each s
   `rest-api-runtime-adapter` and `axum-health-check-api-server`.
 - `primitives` (level 0, no workspace dependencies) is the only crate whose testing gate and
   dependency gate are both met. The five other crates with a met testing gate all depend on crates
-  without one. `primitives` still waits for prerequisites 3 and 5, and EPIC #2912 (remove source
+  without one. `primitives` still waits for prerequisite 5 (prerequisite 3 is met since
+  2026-11-19), and EPIC #2912 (remove source
   locations from errors) requires its SI-2 (#2914) to land before `primitives` 4.0.0 is
   published. PR #2955 implemented SI-2 and was merged on 2026-11-19, so this constraint is met; its breaking change is
   listed under "Semver bumps owed". That constraint comes from EPIC #2912; it is not a prerequisite decided in this issue.
@@ -114,22 +116,48 @@ State on 2026-11-18 (EPIC #1347 `Subissues` table and the GitHub state of each s
   (rows 3, 4 and 8). None of the three has a #1347 sub-issue, and they depend only on each other,
   so meeting their testing gate is the shortest path to unblock #2594.
 
+### EPIC #1488 closed
+
+EPIC #1488 (shutdown overhaul) closed on 2026-11-19 08:07 UTC with its close-out PR #2951; the
+follow-up PRs #2960 and #2967 (review audit of PR #2951) are merged. Prerequisite 3 is met for
+every crate. Checked on GitHub and on `develop` on 2026-11-21. No crate's status changed: every
+row stays `BLOCKED` on the other prerequisites.
+
+What EPIC #1488 changed that matters for publishing:
+
+- **Legacy shutdown API.** SI-18 (#2751) deprecated the legacy `Halted` shutdown API and SI-19
+  (#2801) removed it. They moved the workspace to `torrust-server-lib` 0.5.0 and then 0.6.0 (an
+  external crate, not a checklist row).
+- **Error variants.** SI-25 (#2844, PR #2858) removed nine unused public error variants, three
+  each from `axum-http-server` (`Error`), `axum-rest-api-server` (`Error`) and `udp-server`
+  (`UdpError`). The maintainer decided on no version bump: the three crates stay `0.1.0` and the
+  removal goes into the release notes of their first publish (rows 17, 18 and 20).
+- **No public API change.** SI-26 (#2845, PR #2870) consolidated the shutdown supervisors without
+  changing a public API.
+- **Root crate and one new member.** SI-28 (#2847, PR #2911) added `app::run_until_shutdown_signal`
+  to the root crate (out of scope here) and the test-only crate
+  `torrust-tracker-hung-component-tracker` (`packages/hung-component-tracker`). It is
+  `publish = false`, so it is not a checklist row.
+
 ### Open Questions
 
 Pending maintainer decisions, raised by the 2026-11-18 decision. They are not decided here; until
-they are, the spec keeps the stricter reading (noted in each question).
+they are, the spec keeps the stricter reading (noted in each question). OQ2 is moot since
+2026-11-19 and needs no decision; OQ1, OQ3 and OQ4 are still pending.
 
 | ID  | Question | Until decided |
 | --- | -------- | ------------- |
 | OQ1 | Does every publishable crate need its own #1347 testing sub-issue, or can a small crate meet the gate with a recorded coverage review and no new tests? | A crate without a closed #1347 sub-issue does not meet the gate (`NONE` in the checklist). |
-| OQ2 | Does the EPIC #1488 prerequisite also become per crate (only the crates whose API the shutdown overhaul changes), or does it stay EPIC-wide? EPIC #1488 is expected to close soon. | EPIC-wide: prerequisite 3 as written. |
+| OQ2 | Does the EPIC #1488 prerequisite also become per crate (only the crates whose API the shutdown overhaul changes), or does it stay EPIC-wide? EPIC #1488 is expected to close soon. **Moot (2026-11-21), not decided:** EPIC #1488 closed on 2026-11-19, so prerequisite 3 is met for every crate under either reading. | Nothing to decide: prerequisite 3 is met. |
 | OQ3 | Does prerequisite 5 (the rest of EPIC #1669's API work is done, so this is the last publishing step) stay as it is, or become per crate too? | As written: prerequisite 5 applies to every crate. |
 | OQ4 | `test-helpers` is already published (3.0.0) and is a dev-dependency of six checklist crates and of the root crate. What is its testing gate? | Same as OQ1: not met. This blocks the six checklist crates that dev-depend on it. |
 
 ### Facts checked on 2026-10-20
 
 > **Stale on 2026-11-18; T4 owns the update.** `cargo metadata --no-deps` on `develop` now lists 35
-> workspace members, 13 with `publish = false` (still 22 publishable). `primitives` is `3.1.0`
+> workspace members, 13 with `publish = false` (still 22 publishable). On 2026-11-21 it lists 36
+> and 14 (still 22 publishable). The `publish = false` members added since 2026-10-20 include
+> `torrust-tracker-hung-component-tracker`, a test-only crate from EPIC #1488 (SI-28, #2847). `primitives` is `3.1.0`
 > locally (3.0.0 on crates.io) and `axum-health-check-api-server` is `0.2.0`, while the checklist
 > says `0.1.0`. `test-helpers` now depends only on `configuration`. Six crates list themselves as
 > a path-only dev-dependency (no `version`) to enable their `testing` feature. The facts and the
@@ -209,8 +237,9 @@ different times, always in dependency order (every dependency and dev-dependency
 2. **#2576 is merged.** crates.io shows each published version's README and `Cargo.toml` metadata
    and they cannot be changed without a new release. #2576 states it must merge before the first
    publish of any unpublished crate.
-3. **EPIC #1488 (shutdown overhaul) is closed.** It changes the server environments and shutdown
-   API of the server crates.
+3. **EPIC #1488 (shutdown overhaul) is closed.** It changed the server environments and shutdown
+   API of the server crates. **Met:** it closed on 2026-11-19 (see
+   [EPIC #1488 closed](#epic-1488-closed)).
 4. **Per crate: its EPIC #1347 testing gate is met.** The crate's own unit-testing coverage was
    overhauled in EPIC #1347 (package testing): its #1347 sub-issues are closed. The gate is tracked
    in the "Testing (#1347)" column of the [Per-Crate Checklist](#per-crate-checklist). EPIC #1347
@@ -227,7 +256,8 @@ different times, always in dependency order (every dependency and dev-dependency
 ### In Scope
 
 - Checking the checklist again when the prerequisites are met (crate set, dependency order, names,
-  versions, packaging check, testing gates), because #2482, #1488 and #1347 can change them.
+  versions, packaging check, testing gates), because #2482 and #1488 could change them until they closed
+  (both are closed) and #1347 can still change them.
 - Bringing the package publish procedure up to date before the first publish (T2).
 - For each crate whose version changes: a small pull request that sets its version and every
   dependent's `version` requirement, right before its publish.
@@ -299,10 +329,10 @@ when a #1347 sub-issue is created or closed; EPIC #1347 owns the sub-issues them
 | 14 | 3 | `torrust-tracker-core` | configuration, events, primitives, swarm-coordination-registry | test-helpers | `OPEN`: [#2902](../2902-1347-add-tests-tracker-core/ISSUE.md) open (`TODO`) | 0.1.0 | #2482 may change its `Mock*` types. | BLOCKED |
 | 15 | 4 | `torrust-tracker-http-core` | configuration, core, events, http-protocol, primitives, swarm-coordination-registry | test-helpers | `MET`: [#1349](../../closed/1349-1347-add-tests-http-core/ISSUE.md) closed | 0.1.0 | - | BLOCKED |
 | 16 | 4 | `torrust-tracker-udp-core` | configuration, core, events, primitives, swarm-coordination-registry, udp-protocol | - | `MET`: [#1348](../../closed/1348-1347-add-tests-udp-core/ISSUE.md) closed | 0.1.0 | - | BLOCKED |
-| 17 | 5 | `torrust-tracker-axum-http-server` | axum-server, configuration, core, http-core, http-protocol, primitives, swarm-coordination-registry | client-lib, test-helpers | `MET`: [#2136](../../closed/2136-1347-add-tests-axum-http-server/ISSUE.md) and [#2140](../../closed/2140-1347-review-axum-http-server-integration-tests/ISSUE.md) closed | 0.1.0 | #2482 and #1488 may change its public `testing`/`environment` module. | BLOCKED |
-| 18 | 5 | `torrust-tracker-udp-server` | client-lib, configuration, core, events, primitives, swarm-coordination-registry, udp-core, udp-protocol | test-helpers | `MET`: [#2149](../../closed/2149-1347-add-focused-udp-server-package-tests/ISSUE.md) and [#2283](../../closed/2283-1347-increase-udp-server-package-coverage/ISSUE.md) closed | 0.1.0 | #2482 and #1488 may change its public `testing`/`environment` module. | BLOCKED |
+| 17 | 5 | `torrust-tracker-axum-http-server` | axum-server, configuration, core, http-core, http-protocol, primitives, swarm-coordination-registry | client-lib, test-helpers | `MET`: [#2136](../../closed/2136-1347-add-tests-axum-http-server/ISSUE.md) and [#2140](../../closed/2140-1347-review-axum-http-server-integration-tests/ISSUE.md) closed | 0.1.0 | #2482 and EPIC #1488 changed its public `testing`/`environment` module; both are closed. EPIC #1488 SI-25 (#2844) removed three unused public `Error` variants with no version bump: for the release notes of this first publish. | BLOCKED |
+| 18 | 5 | `torrust-tracker-udp-server` | client-lib, configuration, core, events, primitives, swarm-coordination-registry, udp-core, udp-protocol | test-helpers | `MET`: [#2149](../../closed/2149-1347-add-focused-udp-server-package-tests/ISSUE.md) and [#2283](../../closed/2283-1347-increase-udp-server-package-coverage/ISSUE.md) closed | 0.1.0 | #2482 and EPIC #1488 changed its public `testing`/`environment` module; both are closed. EPIC #1488 SI-25 (#2844) removed three unused public `UdpError` variants with no version bump: for the release notes of this first publish. | BLOCKED |
 | 19 | 6 | `torrust-tracker-rest-api-runtime-adapter` | configuration, core, http-core, primitives, rest-api-application, rest-api-protocol, swarm-coordination-registry, udp-core, udp-server | - | `NONE`: no sub-issue (OQ1) | 0.1.0 | - | BLOCKED |
-| 20 | 7 | `torrust-tracker-axum-rest-api-server` | axum-server, configuration, core, http-core, primitives, rest-api-application, rest-api-client, rest-api-protocol, rest-api-runtime-adapter, swarm-coordination-registry, udp-core, udp-server | rest-api-client, test-helpers | `MET`: [#2637](../../closed/2637-1347-add-tests-axum-rest-api-server/ISSUE.md) closed | 0.1.0 | #2482 and #1488 may change its public `testing`/`environment` module. | BLOCKED |
+| 20 | 7 | `torrust-tracker-axum-rest-api-server` | axum-server, configuration, core, http-core, primitives, rest-api-application, rest-api-client, rest-api-protocol, rest-api-runtime-adapter, swarm-coordination-registry, udp-core, udp-server | rest-api-client, test-helpers | `MET`: [#2637](../../closed/2637-1347-add-tests-axum-rest-api-server/ISSUE.md) closed | 0.1.0 | #2482 and EPIC #1488 changed its public `testing`/`environment` module; both are closed. EPIC #1488 SI-25 (#2844) removed three unused public `Error` variants with no version bump: for the release notes of this first publish. | BLOCKED |
 | 21 | 8 | `torrust-tracker-axum-health-check-api-server` | axum-server, configuration, primitives | axum-http-server, axum-rest-api-server, test-helpers, udp-server | `NONE`: no sub-issue (OQ1) | 0.1.0 | The self dev-dependency is removed (sub-issue P1, #2582, closed). Its four workspace dev-dependencies go first. | BLOCKED |
 
 ### Pre-Publish Sub-Issues
@@ -362,7 +392,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | -- | ------ | ---- | ----------------------- |
 | T1 | DONE | Open pre-publish sub-issue P1 | #2582 created with this issue on 2026-10-20, linked to #1669 and to its checklist row. It does not wait for the prerequisites. |
 | T2 | TODO | Bring the publish procedure up to date | Not blocked. The release-process spec #2808 already fixed the pre-publish defects: the `pkg/...` push from `torrust/main` is gone, the tag is created on the published commit, and the `release-new-version` crate list and every-package version bump are gone. What remains for this issue is to confirm the procedure in `docs/release-process/workspace-packages.md` fits the first publish (publish order, and each crate's version together with its dependents' `version` requirements in one commit), and to fix any gap found there. |
-| T3 | BLOCKED | Wait for the prerequisites | For every crate: #2482 closed (done), #2576 merged (done), #1488 closed, the rest of the EPIC's API work done. Per crate: its "Testing (#1347)" gate `MET` and its dependencies `PUBLISHED`; #2582 closed (done) before row 21. EPIC #1347 does not need to close as a whole. |
+| T3 | BLOCKED | Wait for the prerequisites | For every crate: #2482 closed (done), #2576 merged (done), #1488 closed (done, 2026-11-19), the rest of the EPIC's API work done (pending). Per crate: its "Testing (#1347)" gate `MET` and its dependencies `PUBLISHED`; #2582 closed (done) before row 21. EPIC #1347 does not need to close as a whole. |
 | T4 | BLOCKED | Check the checklist again | Re-run the checks in "Facts checked" (crate set, order, crates.io names, versions, `cargo package --workspace --no-verify`) and update the checklist; record them in `manual-verification-evidence.md`. Decide the `test-helpers` version against its published 3.0.0 API. |
 | T5 | BLOCKED | Publish each crate in dependency order | One crate at a time with the per-crate procedure; each row `PUBLISHED` with date and evidence. Dependency order means every dependency and dev-dependency first, not row or level order. A crate is published when its own gates are met; the task does not wait for every crate's testing gate before the first publish. |
 | T6 | BLOCKED | Hand over | Tell the client-extraction issue (#2594) that `client-lib`, `http-protocol` and `udp-protocol` are published, and the next tracker release that every library crate is published and the root crate owes 4.0.0. |
@@ -390,7 +420,7 @@ release branch and a signed tag.
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [ ] Spec-only PR merged into `develop` before implementation
-- [ ] #2482 and #1488 closed and #2576 merged before the first publish; each crate's #1347 testing gate `MET` before that crate's publish
+- [ ] #2482 and #1488 closed and #2576 merged before the first publish (all three are done; #1488 closed on 2026-11-19); each crate's #1347 testing gate `MET` before that crate's publish (pending, so this box stays open)
 - [ ] Implementation completed (every checklist row `PUBLISHED` or `DEFERRED` with a reason)
 - [ ] Automatic verification completed (`linter all`, `cargo package`, `deployment-packages.yaml` runs)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -442,6 +472,14 @@ release branch and a signed tag.
 - 2026-11-19 07:41 UTC - Claude Code (Claude Opus 5.5) - Review of PR torrust/torrust-tracker#2955 (finding F3): the `primitives` state line no longer gives SI-2 as `TODO`; it and row 1 name PR #2955, which implements #2914.
 - 2026-11-19 09:36 UTC - Claude Code (Claude Opus 5.5) - Close-out of #2914: PR #2955 merged on 2026-11-19, so the `primitives` state line and row 1 say the EPIC #2912 SI-2 constraint is met. No crate's status changed.
 - 2026-11-19 10:18 UTC - Claude Code (Claude Opus 5.5) - Review of PR torrust/torrust-tracker#2965 (finding F1): the introduction of the state list says that only the `primitives` bullet changed since 2026-11-18.
+- 2026-11-21 13:27 UTC - Claude Code (Claude Fable 5.2) - Recorded that EPIC #1488 closed on 2026-11-19
+  08:07 UTC (close-out PR #2951; follow-ups #2960 and #2967 merged), checked on GitHub and
+  `develop`. Prerequisite 3 is met; the decision row, T3, the workflow checkpoint, AC7, the
+  `primitives` state line, two risks and the notes of rows 17, 18 and 20 say so, and a new
+  "EPIC #1488 closed" section lists what the EPIC changed for publishing. OQ2 is marked moot, not
+  decided. The stale-facts note gained the 2026-11-21 member count (36, 14 `publish = false`).
+  Spec-only change; no crate's status changed and #2583 stays `Blocked` (prerequisite 5, the
+  per-crate testing gates, #2917 before `configuration` 4.0.0, and OQ1, OQ3 and OQ4).
 
 ## Acceptance Criteria
 
@@ -457,7 +495,9 @@ release branch and a signed tag.
       build succeeded, and its README's docs.rs link resolves.
 - [ ] AC6: Each newly published crate is owned on crates.io by `josecelano` and `da2ce7`.
 - [ ] AC7: No crate was published before #2482 and #1488 closed and #2576 merged, nor before its
-      own #1347 testing gate was `MET`.
+      own #1347 testing gate was `MET`. (The first part holds: all three are done, #1488 since
+      2026-11-19, and this issue has published no crate yet. The testing-gate part is checked per
+      crate.)
 - [ ] AC8: The package publish procedure in `docs/release-process/workspace-packages.md` and the
       `release-new-version` skill match the ADR and both workflows before the first publish (T2).
 - [ ] `linter all` exits with code `0`
@@ -513,12 +553,12 @@ None planned. The crates.io name check is a `curl` loop recorded in the evidence
 
 - **Irreversible.** A published version cannot be changed or deleted, only yanked. Mitigation: the
   prerequisites, a `cargo package` check per crate, and one crate at a time.
-- **Stale order.** #2482, #1488 and #1347 can add crates or change dependencies. Mitigation: T4
-  checks the checklist again before the first publish.
+- **Stale order.** #2482 and #1488 could add crates or change dependencies until they closed (both
+  are closed; #1488 added one `publish = false` crate), and #1347 can still do so. Mitigation: T4 checks the checklist again before the first publish.
 - **Publishing spread over time.** With a per-crate testing gate the workspace stays partly
   published for longer, and a crate published early can still change before its dependents are
-  published, which costs it a new version. Mitigation: dependency order, and prerequisites 3 and 5
-  still apply to every crate (OQ2 and OQ3 decide whether that stays).
+  published, which costs it a new version. Mitigation: dependency order, and prerequisite 5
+  still applies to every crate (OQ3 decides whether that stays). Prerequisite 3 is met.
 - **Long tail.** 20 publishes, one at a time, can take days; crates.io also rate-limits how many new
   crates one account can publish in a short time. Mitigation: nothing depends on publishing fast;
   the checklist records where the work stopped.
