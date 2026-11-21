@@ -1,5 +1,4 @@
 //! Authentication service.
-use std::panic::Location;
 use std::sync::Arc;
 
 use torrust_tracker_configuration::v3_0_0::core::Core;
@@ -76,7 +75,7 @@ impl AuthenticationService {
     /// Verifies the authentication key against the in-memory repository.
     ///
     /// This function retrieves the key from the repository. If the key is not
-    /// found, it returns an error with the caller's location. If the key is
+    /// found, it returns an error that names the key. If the key is
     /// found, the function then checks the key's expiration based on the
     /// tracker configuration. The behavior differs depending on whether a
     /// `private` configuration is provided and whether key expiration checking
@@ -95,7 +94,6 @@ impl AuthenticationService {
     async fn verify_auth_key(&self, key: &Key) -> Result<(), Error> {
         match self.in_memory_key_repository.get(key).await {
             None => Err(Error::UnableToReadKey {
-                location: Location::caller(),
                 key: Box::new(key.clone()),
             }),
             Some(key) => match self.config.private_mode {

@@ -1,5 +1,4 @@
 //! Whitelist authorization.
-use std::panic::Location;
 use std::sync::Arc;
 
 use torrust_info_hash::InfoHash;
@@ -56,10 +55,7 @@ impl WhitelistAuthorization {
             return Ok(());
         }
 
-        Err(WhitelistError::TorrentNotWhitelisted {
-            info_hash: *info_hash,
-            location: Location::caller(),
-        })
+        Err(WhitelistError::TorrentNotWhitelisted { info_hash: *info_hash })
     }
 
     /// Checks if the tracker is running in "listed" mode.

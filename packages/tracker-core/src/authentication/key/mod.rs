@@ -43,7 +43,6 @@
 pub mod peer_key;
 pub mod repository;
 
-use std::panic::Location;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -154,9 +153,7 @@ pub fn verify_key_expiration(auth_key: &PeerKey) -> Result<(), Error> {
         || Ok(()),
         |valid_until| {
             if valid_until < current_time {
-                Err(Error::KeyExpired {
-                    location: Location::caller(),
-                })
+                Err(Error::KeyExpired)
             } else {
                 Ok(())
             }
@@ -177,19 +174,16 @@ pub enum Error {
     },
 
     /// Indicates that the key could not be read or found.
-    #[error("Failed to read key: {key}, {location}")]
-    UnableToReadKey {
-        location: &'static Location<'static>,
-        key: Box<Key>,
-    },
+    #[error("Failed to read key: {key}")]
+    UnableToReadKey { key: Box<Key> },
 
     /// Indicates that the key has expired.
-    #[error("Key has expired, {location}")]
-    KeyExpired { location: &'static Location<'static> },
+    #[error("Key has expired")]
+    KeyExpired,
 
     /// Indicates that the required key for authentication was not provided.
-    #[error("Missing authentication key, {location}")]
-    MissingAuthKey { location: &'static Location<'static> },
+    #[error("Missing authentication key")]
+    MissingAuthKey,
 }
 
 impl From<sqlx::Error> for Error {
