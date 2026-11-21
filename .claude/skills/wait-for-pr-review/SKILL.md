@@ -185,7 +185,8 @@ session that does not delegate, or runs in another tool, runs step 2 itself.
      earlier commits. Count them over the whole pull request with `fetch-review-threads`.
    - The other maintainer has commented `ACK <full head commit hash>` on the head commit, or the
      maintainer has recorded a waiver, as the Merge Readiness section of
-     [`merge-pull-request`](../merge-pull-request/SKILL.md) describes. That section also says what
+     [`merge-pull-request`](../merge-pull-request/SKILL.md) describes. Its subsection
+     [An ACK Names One Commit](../merge-pull-request/SKILL.md#an-ack-names-one-commit) says what
      happens to an `ACK` after a commit that changes only the audit record.
 5. When the exit condition holds, print the maintainer merge command from `merge-pull-request`. Do
    not merge, approve, or post `ACK` yourself; an agent never waives a check.
