@@ -1,0 +1,428 @@
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.13s
+     Running unittests src/lib.rs (target/debug/build/torrust-tracker-core/0b706dc5248b0fe7/out/torrust_tracker_core-0b706dc5248b0fe7)
+
+running 165 tests
+test announce_handler::tests::the_announce_handler::for_all_tracker_config_modes::handling_an_announce_request::should_assign_the_ip_to_the_peer::and_when_client_ip_is_a_ipv6_loopback_ip::it_should_use_the_external_ip_in_the_tracker_configuration_if_it_is_defined_even_if_the_external_ip_is_an_ipv4_ip ... ok
+test announce_handler::tests::the_announce_handler::for_all_tracker_config_modes::handling_an_announce_request::should_assign_the_ip_to_the_peer::and_when_client_ip_is_a_ipv6_loopback_ip::it_should_use_the_external_ip_in_tracker_configuration_if_it_is_defined ... ok
+test announce_handler::tests::the_announce_handler::for_all_tracker_config_modes::handling_an_announce_request::should_assign_the_ip_to_the_peer::and_when_the_client_ip_is_a_ipv4_loopback_ip::it_should_use_the_loopback_ip_if_the_tracker_does_not_have_the_external_ip_configuration ... ok
+test announce_handler::tests::the_announce_handler::for_all_tracker_config_modes::handling_an_announce_request::should_assign_the_ip_to_the_peer::and_when_client_ip_is_a_ipv6_loopback_ip::it_should_use_the_loopback_ip_if_the_tracker_does_not_have_the_external_ip_configuration ... ok
+test announce_handler::tests::the_announce_handler::for_all_tracker_config_modes::handling_an_announce_request::should_assign_the_ip_to_the_peer::and_when_the_client_ip_is_a_ipv4_loopback_ip::it_should_use_the_external_ip_in_the_tracker_configuration_if_it_is_defined_even_if_the_external_ip_is_an_ipv6_ip ... ok
+test announce_handler::tests::the_announce_handler::for_all_tracker_config_modes::handling_an_announce_request::should_assign_the_ip_to_the_peer::and_when_the_external_ip_is_unspecified::it_should_keep_the_ipv6_loopback_ip_when_the_external_ip_is_the_unspecified_ipv4_address ... ok
+test announce_handler::tests::the_announce_handler::for_all_tracker_config_modes::handling_an_announce_request::should_assign_the_ip_to_the_peer::and_when_the_external_ip_is_unspecified::it_should_keep_the_ipv6_loopback_ip_when_the_external_ip_is_the_unspecified_ipv6_address ... ok
+test announce_handler::tests::the_announce_handler::for_all_tracker_config_modes::handling_an_announce_request::should_assign_the_ip_to_the_peer::and_when_the_external_ip_is_unspecified::it_should_keep_the_ipv4_loopback_ip_when_the_external_ip_is_the_unspecified_ipv6_address ... ok
+test announce_handler::tests::the_announce_handler::for_all_tracker_config_modes::handling_an_announce_request::should_assign_the_ip_to_the_peer::and_when_the_external_ip_is_unspecified::it_should_keep_the_non_loopback_ip_when_the_external_ip_is_unspecified_ipv6 ... ok
+test announce_handler::tests::the_announce_handler::for_all_tracker_config_modes::handling_an_announce_request::should_assign_the_ip_to_the_peer::and_when_the_client_ip_is_a_ipv4_loopback_ip::it_should_use_the_external_tracker_ip_in_tracker_configuration_if_it_is_defined ... ok
+test announce_handler::tests::the_announce_handler::for_all_tracker_config_modes::handling_an_announce_request::should_assign_the_ip_to_the_peer::using_the_source_ip_instead_of_the_ip_in_the_announce_request ... ok
+test announce_handler::tests::the_announce_handler::for_all_tracker_config_modes::handling_an_announce_request::should_assign_the_ip_to_the_peer::and_when_the_external_ip_is_unspecified::it_should_keep_the_ipv4_loopback_ip_when_the_external_ip_is_the_unspecified_ipv4_address ... ok
+test announce_handler::tests::the_announce_handler::should_allow_the_client_peers_to_specified_the_number_of_peers_wanted::it_should_allow_limiting_the_peer_list ... ok
+test announce_handler::tests::the_announce_handler::should_allow_the_client_peers_to_specified_the_number_of_peers_wanted::it_should_cap_only_peers_wanted_at_limit_time ... ok
+test announce_handler::tests::the_announce_handler::for_all_tracker_config_modes::handling_an_announce_request::should_assign_the_ip_to_the_peer::and_when_the_external_ip_is_unspecified::it_should_keep_the_non_loopback_ip_when_the_external_ip_is_unspecified_ipv4 ... ok
+test announce_handler::tests::the_announce_handler::should_allow_the_client_peers_to_specified_the_number_of_peers_wanted::it_should_convert_the_peers_wanted_number_from_i32_via_from_client_request ... ok
+test announce_handler::tests::the_announce_handler::should_allow_the_client_peers_to_specified_the_number_of_peers_wanted::it_should_return_74_at_the_most_if_the_client_wants_them_all ... ok
+test announce_handler::tests::the_announce_handler::should_allow_the_client_peers_to_specified_the_number_of_peers_wanted::it_should_return_the_maximin_number_of_peers_by_default ... ok
+test announce_handler::tests::the_announce_handler::should_allow_the_client_peers_to_specified_the_number_of_peers_wanted::it_should_return_the_maximum_when_wanting_more_than_the_maximum ... ok
+test announce_handler::tests::the_announce_handler::should_allow_the_client_peers_to_specified_the_number_of_peers_wanted::it_should_return_zero_when_wanting_only_zero ... ok
+test authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::handling_expiring_peer_keys::pre_generated::it_should_fail_adding_a_pre_generated_key_when_there_is_a_database_error ... ok
+test authentication::key::peer_key::tests::key::should_be_generated_randomly ... ok
+test authentication::key::peer_key::tests::key::should_be_parsed_from_an_string ... ok
+test authentication::key::peer_key::tests::key::should_only_include_alphanumeric_chars ... ok
+test authentication::key::peer_key::tests::peer_key::could_be_permanent ... ok
+test authentication::key::peer_key::tests::key::length_should_be_32 ... ok
+test authentication::key::peer_key::tests::key::should_return_a_reference_to_the_inner_string ... ok
+test authentication::key::peer_key::tests::peer_key::could_have_an_expiration_time ... ok
+test authentication::key::tests::the_expiring_peer_key::should_be_displayed ... ok
+test authentication::key::peer_key::tests::peer_key::expiring::should_be_displayed_when_it_is_expiring ... ok
+test authentication::key::peer_key::tests::peer_key::permanent::should_be_displayed_when_it_is_permanent ... ok
+test authentication::key::tests::the_expiring_peer_key::should_be_generated_with_a_expiration_time ... ok
+test authentication::key::tests::the_expiring_peer_key::expiration_verification_should_fail_when_the_key_has_expired ... ok
+test authentication::key::tests::the_key_verification_error::could_be_a_database_error ... ok
+test authentication::key::tests::the_key_verification_error::should_render_the_database_error_text_and_no_source_path ... ok
+test authentication::key::tests::the_permanent_peer_key::expiration_verification_should_always_succeed ... ok
+test authentication::key::tests::the_permanent_peer_key::should_be_displayed ... ok
+test authentication::key::tests::the_permanent_peer_key::should_be_generated_without_expiration_time ... ok
+test authentication::key::repository::in_memory::tests::the_in_memory_key_repository_should::reset_the_peer_keys_with_a_new_list_of_keys ... ok
+test authentication::key::repository::in_memory::tests::the_in_memory_key_repository_should::insert_a_new_peer_key ... ok
+test authentication::service::tests::the_authentication_service::when_the_tracker_is_private::it_should_not_authenticate_an_unregistered_key ... ok
+test authentication::service::tests::the_authentication_service::when_the_tracker_is_private::it_should_reject_an_expired_key_with_a_message_that_holds_no_source_path ... ok
+test authentication::service::tests::the_authentication_service::when_the_tracker_is_private::it_should_reject_an_unregistered_key_with_a_message_that_holds_no_source_path ... ok
+test authentication::service::tests::the_authentication_service::when_the_tracker_is_public::it_should_always_authenticate_when_the_tracker_is_public ... ok
+test authentication::key::repository::in_memory::tests::the_in_memory_key_repository_should::remove_a_new_peer_key ... ok
+test authentication::key::repository::in_memory::tests::the_in_memory_key_repository_should::clear_all_peer_keys ... ok
+test authentication::service::tests::the_authentication_service::when_the_tracker_is_private::but_the_key_expiration_check_is_disabled_by_configuration::it_should_authenticate_an_expired_registered_key ... ok
+test authentication::service::tests::the_authentication_service::when_the_tracker_is_private::it_should_not_authenticate_a_registered_but_expired_key_by_default ... ok
+test authentication::service::tests::the_authentication_service::when_the_tracker_is_private::it_should_authenticate_a_registered_key ... ok
+test authentication::service::tests::the_authentication_service::when_the_tracker_is_private::it_should_not_authenticate_a_registered_but_expired_key_when_the_tracker_is_explicitly_configured_to_check_keys_expiration ... ok
+test authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::handling_permanent_peer_keys::pre_generated_keys::it_should_fail_adding_a_pre_generated_key_when_there_is_a_database_error ... ok
+test authentication::key::repository::in_memory::tests::the_in_memory_key_repository_should::get_a_new_peer_key_by_its_internal_key ... ok
+test authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::handling_expiring_peer_keys::randomly_generated::it_should_fail_adding_a_randomly_generated_key_when_there_is_a_database_error ... ok
+test authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::handling_permanent_peer_keys::randomly_generated::it_should_fail_adding_a_randomly_generated_key_when_there_is_a_database_error ... ok
+test container::tests::it_should_return_a_typed_error_when_persistent_statistics_lack_persistence ... ok
+test container::tests::it_should_construct_a_tracker_core_container_without_persistence ... ok
+test databases::driver::sqlite::schema_migrator::tests::bootstrap_legacy_schema_should_be_a_noop_on_a_fresh_database ... ok
+test announce_handler::tests::the_announce_handler::for_all_tracker_config_modes::handling_an_announce_request::it_should_update_the_swarm_stats_for_the_torrent::when_the_peer_is_a_leecher ... ok
+test databases::driver::sqlite::schema_migrator::tests::bootstrap_legacy_schema_should_reject_partial_legacy_state ... ok
+test announce_handler::tests::the_announce_handler::for_all_tracker_config_modes::handling_an_announce_request::it_should_return_the_announce_data_with_an_empty_peer_list_when_it_is_the_first_announced_peer ... ok
+test databases::error::tests::it_should_build_a_database_error_from_a_sqlx_io_error ... ok
+test databases::error::tests::it_should_build_a_database_error_from_a_sqlx_row_not_found_error ... ok
+test databases::error::tests::it_should_render_a_failed_delete_naming_the_driver_and_the_rows_removed ... ok
+test databases::error::tests::it_should_render_a_failed_insert_naming_the_driver ... ok
+test databases::error::tests::it_should_render_a_failed_update_naming_the_driver ... ok
+test databases::error::tests::it_should_render_a_sqlx_error_with_its_own_text_and_no_source_path ... ok
+test announce_handler::tests::the_announce_handler::for_all_tracker_config_modes::handling_an_announce_request::it_should_return_the_announce_data_with_the_previously_announced_peers ... ok
+test error::tests::peer_key_error::duration_overflow ... ok
+test error::tests::peer_key_error::parsing_from_string ... ok
+test error::tests::peer_key_error::persisting_into_database ... ok
+test error::tests::whitelist_error::torrent_not_whitelisted ... ok
+test peer_tests::it_should_be_serializable ... ok
+test scrape_handler::tests::it_should_allow_scraping_for_multiple_torrents ... ok
+test scrape_handler::tests::it_should_fail_when_loading_the_persisted_downloads_fails ... ok
+test scrape_handler::tests::it_should_load_the_persisted_downloads_of_all_torrents_absent_from_memory_in_one_query ... ok
+test scrape_handler::tests::it_should_look_up_a_repeated_info_hash_absent_from_memory_only_once ... ok
+test scrape_handler::tests::it_should_report_an_in_memory_swarm_without_reading_the_persisted_downloads ... ok
+test scrape_handler::tests::it_should_report_every_requested_torrent_without_a_limit_on_the_number_of_info_hashes ... ok
+test scrape_handler::tests::it_should_return_a_zeroed_swarm_metadata_for_the_requested_file_if_the_tracker_does_not_have_that_torrent ... ok
+test statistics::event::handler::tests::it_should_increment_in_memory_completion_metrics_when_a_peer_download_is_completed ... ok
+test statistics::event::handler::tests::it_should_not_increment_in_memory_completion_metrics_when_an_event_is_not_a_completion ... ok
+test announce_handler::tests::the_announce_handler::for_all_tracker_config_modes::handling_an_announce_request::it_should_allow_peers_to_get_only_a_subset_of_the_peers_in_the_swarm ... ok
+test announce_handler::tests::the_announce_handler::for_all_tracker_config_modes::handling_an_announce_request::it_should_update_the_swarm_stats_for_the_torrent::when_the_peer_is_a_seeder ... ok
+test statistics::event::handler::tests::it_should_persist_global_completion_statistics_when_torrent_persistence_fails ... ok
+test statistics::event::listener::tests::it_should_continue_after_lag_then_handle_an_event_then_stop_when_the_in_memory_receiver_is_closed ... ok
+test authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::handling_expiring_peer_keys::pre_generated::it_should_fail_adding_a_pre_generated_key_when_the_key_duration_exceeds_the_maximum_duration ... ok
+test statistics::event::listener::tests::it_should_handle_a_queued_event_then_return_cancelled_when_cancellation_is_already_pending ... ok
+test statistics::event::listener::tests::it_should_handle_an_event_then_stop_when_the_in_memory_receiver_is_closed ... ok
+test authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::handling_expiring_peer_keys::it_should_generate_the_key ... ok
+test statistics::event::listener::tests::it_should_leave_the_queued_event_unprocessed_and_return_cancelled_when_the_drain_timeout_has_expired ... ok
+test announce_handler::tests::the_announce_handler::for_all_tracker_config_modes::handling_an_announce_request::it_should_update_the_swarm_stats_for_the_torrent::when_a_previously_announced_started_peer_has_completed_downloading ... ok
+test authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::handling_expiring_peer_keys::pre_generated::it_should_fail_adding_a_pre_generated_key_when_the_key_is_invalid ... ok
+test authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::handling_permanent_peer_keys::pre_generated_keys::it_should_fail_adding_a_pre_generated_key_when_the_key_is_invalid ... ok
+test statistics::event::listener::tests::it_should_stop_when_the_in_memory_receiver_is_closed ... ok
+test authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::handling_expiring_peer_keys::pre_generated::it_should_add_a_pre_generated_key ... ok
+test authentication::tests::the_tracker_configured_as_private::it_should_load_authentication_keys_from_the_database ... ok
+test authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::peer_key_errors::it_should_fail_without_a_source_path_when_the_key_is_invalid ... ok
+test authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::handling_expiring_peer_keys::randomly_generated::it_should_add_a_randomly_generated_key ... ok
+test statistics::repository::tests::it_should_export_persisted_metric_with_zero_value_when_persisted_completed_statistics_are_enabled ... ok
+test statistics::repository::tests::it_should_omit_persisted_metric_when_persisted_completed_statistics_are_disabled ... ok
+test authentication::key::repository::persisted::tests::the_persisted_key_repository_should::persist_a_new_peer_key ... ok
+test authentication::tests::the_tracker_configured_as_private::it_should_remove_an_authentication_key ... ok
+test authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::handling_permanent_peer_keys::randomly_generated::it_should_generate_the_key ... ok
+test authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::handling_permanent_peer_keys::pre_generated_keys::it_should_add_a_pre_generated_key ... ok
+test authentication::tests::the_tracker_configured_as_private::with_expiring_and::pre_generated_keys::it_should_authenticate_a_peer_with_the_key ... ok
+test authentication::tests::the_tracker_configured_as_private::with_expiring_and::randomly_generated_keys::it_should_authenticate_a_peer_with_the_key ... ok
+test authentication::tests::the_tracker_configured_as_private::with_permanent_and::randomly_generated_keys::it_should_authenticate_a_peer_with_the_key ... ok
+test authentication::tests::the_tracker_configured_as_private::with_expiring_and::randomly_generated_keys::it_should_accept_an_expired_key_when_checking_expiration_is_disabled_in_configuration ... ok
+test authentication::tests::the_tracker_configured_as_private::with_permanent_and::pre_generated_keys::it_should_authenticate_a_peer_with_the_key ... ok
+test torrent::services::tests::getting_a_torrent_info::it_should_return_none_if_the_tracker_does_not_have_the_torrent ... ok
+test torrent::services::tests::getting_a_torrent_info::it_should_return_the_torrent_info_if_the_tracker_has_the_torrent ... ok
+test torrent::services::tests::getting_basic_torrent_info_for_multiple_torrents_at_once::it_should_return_an_empty_list_if_none_of_the_requested_torrents_is_found ... ok
+test torrent::services::tests::getting_basic_torrent_info_for_multiple_torrents_at_once::it_should_return_a_list_with_basic_info_about_the_requested_torrents ... ok
+test torrent::services::tests::searching_for_torrents::it_should_allow_limiting_the_number_of_torrents_in_the_result ... ok
+test torrent::services::tests::searching_for_torrents::it_should_allow_using_pagination_in_the_result ... ok
+test torrent::services::tests::searching_for_torrents::it_should_return_a_summarized_info_for_all_torrents ... ok
+test torrent::services::tests::searching_for_torrents::it_should_return_an_empty_result_if_the_tracker_does_not_have_any_torrent ... ok
+test torrent::services::tests::searching_for_torrents::it_should_return_torrents_ordered_by_info_hash ... ok
+test whitelist::authorization::tests::the_whitelist_authorization_for_announce_and_scrape_actions::when_the_tacker_is_configured_as_listed::should_not_authorize_a_non_whitelisted_infohash ... ok
+test whitelist::authorization::tests::the_whitelist_authorization_for_announce_and_scrape_actions::when_the_tacker_is_configured_as_listed::should_authorize_a_whitelisted_infohash ... ok
+test whitelist::authorization::tests::the_whitelist_authorization_for_announce_and_scrape_actions::when_the_tacker_is_configured_as_listed::should_reject_a_non_whitelisted_infohash_with_a_message_that_names_it_and_holds_no_source_path ... ok
+test whitelist::authorization::tests::the_whitelist_authorization_for_announce_and_scrape_actions::when_the_tacker_is_not_configured_as_listed::should_also_authorize_a_non_whitelisted_infohash ... ok
+test whitelist::authorization::tests::the_whitelist_authorization_for_announce_and_scrape_actions::when_the_tacker_is_not_configured_as_listed::should_authorize_a_whitelisted_infohash ... ok
+test whitelist::repository::in_memory::tests::should_allow_adding_a_new_torrent_to_the_whitelist ... ok
+test whitelist::repository::in_memory::tests::should_allow_checking_if_an_infohash_is_whitelisted ... ok
+test whitelist::repository::in_memory::tests::should_allow_clearing_the_whitelist ... ok
+test whitelist::repository::in_memory::tests::should_allow_removing_a_new_torrent_to_the_whitelist ... ok
+test authentication::tests::the_tracker_configured_as_private::with_expiring_and::pre_generated_keys::it_should_accept_an_expired_key_when_checking_expiration_is_disabled_in_configuration ... ok
+test authentication::key::repository::persisted::tests::the_persisted_key_repository_should::remove_a_persisted_peer_key ... ok
+test authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::handling_permanent_peer_keys::randomly_generated::it_should_add_a_randomly_generated_key ... ok
+test authentication::key::repository::persisted::tests::the_persisted_key_repository_should::load_all_persisted_peer_keys ... ok
+test authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::peer_key_errors::it_should_fail_without_a_source_path_when_the_database_rejects_a_duplicate_key ... ok
+test container::tests::it_should_construct_a_tracker_core_container_with_supplied_persistence ... ok
+test container::tests::it_should_load_persistent_completed_statistics_when_a_torrent_is_first_announced ... ok
+test databases::setup::tests::it_should_initialize_the_sqlite_database ... ok
+test statistics::event::handler::tests::it_should_not_persist_completion_statistics_when_an_event_is_not_a_completion ... ok
+test statistics::event::listener::tests::it_should_continue_after_lag_then_handle_an_event_then_stop_when_the_persistent_receiver_is_closed ... ok
+test databases::driver::sqlite::schema_migrator::tests::bootstrap_legacy_schema_should_seed_history_when_all_legacy_tables_exist ... ok
+test statistics::event::handler::tests::it_should_persist_completion_statistics_when_a_peer_download_is_completed ... ok
+test databases::driver::sqlite::tests::create_database_tables_should_be_idempotent_on_a_fresh_database ... ok
+test torrent::manager::tests::cleaning_torrents::it_should_retain_peerless_torrents_when_it_is_configured_to_do_so ... ok
+test statistics::event::listener::tests::it_should_leave_the_queued_events_unprocessed_and_return_cancelled_when_the_drain_timeout_has_expired ... ok
+test statistics::event::listener::tests::it_should_stop_when_the_persistent_receiver_is_closed ... ok
+test torrent::manager::tests::cleaning_torrents::it_should_remove_torrents_that_have_no_peers_when_it_is_configured_to_do_so ... ok
+test torrent::manager::tests::cleaning_torrents::it_should_remove_peers_that_have_not_been_updated_after_a_cutoff_time ... ok
+test tests::the_tracker::for_all_config_modes::handling_a_scrape_request::it_should_return_the_swarm_metadata_for_the_requested_file_if_the_tracker_has_that_torrent ... ok
+test statistics::event::listener::tests::it_should_persist_every_queued_event_then_return_cancelled_when_cancellation_is_already_pending ... ok
+test statistics::event::listener::tests::it_should_handle_an_event_then_stop_when_the_persistent_receiver_is_closed ... ok
+test tests::the_tracker::configured_as_whitelisted::handling_a_scrape_request::it_should_return_the_zeroed_swarm_metadata_for_the_requested_file_if_it_is_not_whitelisted ... ok
+test statistics::persisted::downloads::tests::it_loads_the_numbers_of_downloads_for_all_torrents_from_the_database ... ok
+test statistics::event::listener::tests::it_should_persist_a_queued_completed_download_when_cancellation_is_already_pending ... ok
+test statistics::persisted::downloads::tests::it_saves_the_numbers_of_downloads_for_a_torrent_into_the_database ... ok
+test statistics::persisted::downloads::tests::it_increases_the_numbers_of_downloads_for_a_torrent_into_the_database ... ok
+test whitelist::tests::configured_as_whitelisted::handling_authorization::it_should_not_authorize_the_announce_and_scrape_actions_on_not_whitelisted_torrents ... ok
+test whitelist::manager::tests::configured_as_whitelisted::handling_the_torrent_whitelist::it_should_remove_a_torrent_from_the_whitelist ... ok
+test whitelist::manager::tests::configured_as_whitelisted::handling_the_torrent_whitelist::it_should_add_a_torrent_to_the_whitelist ... ok
+test whitelist::repository::persisted::tests::the_persisted_whitelist_repository::should_add_a_new_infohash_to_the_list ... ok
+test whitelist::repository::persisted::tests::the_persisted_whitelist_repository::should_load_all_infohashes_from_the_database ... ok
+test whitelist::repository::persisted::tests::the_persisted_whitelist_repository::should_remove_a_infohash_from_the_list ... ok
+test whitelist::manager::tests::configured_as_whitelisted::handling_the_torrent_whitelist::persistence::it_should_load_the_whitelist_from_the_database ... ok
+test torrent::manager::tests::it_should_load_the_numbers_of_downloads_for_all_torrents_from_the_database ... ok
+test whitelist::tests::configured_as_whitelisted::handling_authorization::it_should_authorize_the_announce_and_scrape_actions_on_whitelisted_torrents ... ok
+test whitelist::repository::persisted::tests::the_persisted_whitelist_repository::should_not_fail_removing_an_infohash_that_is_not_in_the_list ... ok
+test whitelist::repository::persisted::tests::the_persisted_whitelist_repository::should_not_add_the_same_infohash_to_the_list_twice ... ok
+test databases::driver::sqlite::tests::run_sqlite_driver_tests ... ok
+
+test result: ok. 165 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.14s
+     Running unittests src/lib.rs (target/debug/build/torrust-tracker-udp-server/5b1150e2043e54ce/out/torrust_tracker_udp_server-5b1150e2043e54ce)
+
+running 45 tests
+test banning::event::listener::tests::it_should_ignore_non_connection_cookie_errors ... ok
+test banning::event::listener::tests::it_should_process_connection_cookie_errors_after_lagging ... ok
+test banning::event::handler::tests::it_should_hold_the_publication_order_until_it_has_published_the_banned_ip_total ... ok
+test banning::event::handler::tests::it_should_record_the_connection_cookie_error_for_its_client_ip ... ok
+test banning::event::handler::tests::it_should_not_hold_the_ban_service_lock_while_waiting_to_publish_the_banned_ip_total ... ok
+test banning::event::handler::tests::it_should_publish_the_banned_ip_total_after_a_connection_cookie_error ... ok
+test banning::event::listener::tests::it_should_handle_a_queued_event_then_return_cancelled_when_cancellation_is_already_pending ... ok
+test banning::event::listener::tests::it_should_leave_the_queued_event_unprocessed_and_return_cancelled_when_the_drain_timeout_has_expired ... ok
+test event::tests::it_should_classify_a_negative_number_of_bytes_in_an_announce_as_a_bad_request ... ok
+test banning::event::listener::tests::it_should_stop_when_the_receiver_is_closed ... ok
+test event::tests::it_should_classify_a_nested_announce_whitelist_error ... ok
+test event::tests::it_should_classify_a_direct_scrape_whitelist_error ... ok
+test event::tests::it_should_classify_a_database_error ... ok
+test event::tests::it_should_classify_a_scrape_connection_cookie_error ... ok
+test event::tests::it_should_classify_a_connection_cookie_error ... ok
+test event::tests::it_should_classify_a_nested_scrape_whitelist_error ... ok
+test event::tests::it_should_classify_a_whitelist_error ... ok
+test event::tests::it_should_classify_a_scrape_database_error ... ok
+test event::tests::it_should_classify_an_authentication_error ... ok
+test event::tests::it_should_classify_an_internal_error ... ok
+test event::tests::it_should_classify_an_invalid_request_as_a_request_parse_error ... ok
+test event::tests::it_should_convert_request_kinds_to_metric_labels ... ok
+test event::tests::it_should_render_request_kinds ... ok
+test statistics::event::handler::error::tests::it_should_increase_the_udp4_errors_counter_when_it_receives_a_udp4_error_event ... ok
+test statistics::event::handler::error::tests::it_should_label_a_general_error_metric_with_connect_request_kind ... ok
+test statistics::event::handler::request_aborted::tests::it_should_increase_the_number_of_aborted_requests_when_it_receives_a_udp_request_aborted_event ... ok
+test statistics::event::handler::request_accepted::tests::it_should_increase_the_udp4_connect_requests_counter_when_it_receives_a_udp4_request_event_of_connect_kind ... ok
+test statistics::event::handler::request_accepted::tests::it_should_increase_the_udp4_scrape_requests_counter_when_it_receives_a_udp4_request_event_of_scrape_kind ... ok
+test statistics::event::handler::request_accepted::tests::it_should_increase_the_udp6_connect_requests_counter_when_it_receives_a_udp6_request_event_of_connect_kind ... ok
+test statistics::event::handler::request_accepted::tests::it_should_increase_the_udp6_announce_requests_counter_when_it_receives_a_udp6_request_event_of_announce_kind ... ok
+test statistics::event::handler::request_accepted::tests::it_should_increase_the_udp6_scrape_requests_counter_when_it_receives_a_udp6_request_event_of_scrape_kind ... ok
+test statistics::event::handler::request_banned::tests::it_should_increase_the_number_of_banned_requests_when_it_receives_a_udp_request_banned_event ... ok
+test statistics::event::handler::request_discarded::tests::it_should_increase_the_number_of_discarded_requests_when_it_receives_a_udp_request_discarded_event ... ok
+test statistics::event::handler::request_received::tests::it_should_increase_the_number_of_incoming_requests_when_it_receives_a_udp4_incoming_request_event ... ok
+test statistics::event::handler::response_sent::tests::it_should_increase_the_udp4_responses_counter_when_it_receives_a_udp4_response_event ... ok
+test statistics::event::handler::response_sent::tests::it_should_increase_the_udp6_response_counter_when_it_receives_a_udp6_response_event ... ok
+test statistics::event::handler::error::tests::it_should_label_a_connection_id_error_metric_with_qbittorrent_client_software ... ok
+test statistics::event::handler::response_sent::tests::it_should_update_the_connect_processing_time_average_for_a_successful_connect_response ... ok
+test statistics::event::listener::tests::it_should_apply_the_metrics_policy_to_a_drained_event ... ok
+test statistics::event::listener::tests::it_should_leave_the_queued_event_unprocessed_and_return_cancelled_when_the_drain_timeout_has_expired ... ok
+test statistics::event::listener::tests::it_should_handle_a_queued_event_then_return_cancelled_when_cancellation_is_already_pending ... ok
+test statistics::event::handler::request_accepted::tests::it_should_increase_the_udp4_announce_requests_counter_when_it_receives_a_udp4_request_event_of_announce_kind ... ok
+test statistics::event::listener::tests::it_should_process_enabled_events_after_lagging ... ok
+test statistics::event::listener::tests::it_should_stop_when_the_receiver_is_closed ... ok
+test statistics::event::listener::tests::it_should_update_metrics_only_for_an_enabled_configuration_instance ... ok
+
+test result: ok. 45 passed; 0 failed; 0 ignored; 0 measured; 179 filtered out; finished in 0.00s
+
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.14s
+     Running tests/integration.rs (target/debug/build/torrust-tracker-udp-server/bd8a94e9b983c121/out/integration-bd8a94e9b983c121)
+
+running 17 tests
+2026-11-21T13:42:28.229079Z  WARN UDP TRACKER: UDP connection ID validation is DISABLED for this listener. Anti-spoofing and replay protection are reduced. Ensure this listener is isolated through external network controls. bind_to=127.0.0.1:53434
+2026-11-21T13:42:28.233043Z  WARN UDP TRACKER: UDP connection ID validation is DISABLED for this listener. Anti-spoofing and replay protection are reduced. Ensure this listener is isolated through external network controls. bind_to=127.0.0.1:53521
+2026-11-21T13:42:28.234281Z  WARN UDP TRACKER: UDP connection ID validation is DISABLED for this listener. Anti-spoofing and replay protection are reduced. Ensure this listener is isolated through external network controls. bind_to=127.0.0.1:44597
+2026-11-21T13:42:28.234426Z  WARN UDP TRACKER: UDP connection ID validation is DISABLED for this listener. Anti-spoofing and replay protection are reduced. Ensure this listener is isolated through external network controls. bind_to=127.0.0.1:45113
+2026-11-21T13:42:28.234955Z  WARN UDP TRACKER: UDP connection ID validation is DISABLED for this listener. Anti-spoofing and replay protection are reduced. Ensure this listener is isolated through external network controls. bind_to=127.0.0.1:47840
+2026-11-21T13:42:28.235998Z  WARN UDP TRACKER: response error error=tracker announce error: Connection cookie error: cookie value is expired: -3884683641874992000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000, expected > 1795268427.2359886 client_socket_addr=127.0.0.1:40306 server_socket_addr=127.0.0.1:46147 service_binding=udp://127.0.0.1:46147 request_id=28837d98-fede-47c6-8412-c00accb74940 transaction_id=0
+2026-11-21T13:42:28.236016Z ERROR UDP TRACKER: response error error=error parsing request: SendableRequestParseError { message: "Protocol identifier missing", opt_connection_id: None, opt_transaction_id: None } client_socket_addr=127.0.0.1:51528 server_socket_addr=127.0.0.1:38342 service_binding=udp://127.0.0.1:38342 request_id=cbada432-e788-4520-9e47-bdb43358b5e5
+2026-11-21T13:42:28.237138Z  WARN UDP TRACKER: response error error=tracker announce error: Connection cookie error: cookie value is expired: -2715048903937551000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000, expected > 1795268427.2371294 client_socket_addr=127.0.0.1:35172 server_socket_addr=127.0.0.1:38822 service_binding=udp://127.0.0.1:38822 request_id=1e14acef-c362-449f-a4f4-db5145f698fe transaction_id=0
+test server::contract::receiving_an_scrape_request::should_return_a_scrape_response ... ok
+test server::contract::receiving_a_connection_request::should_return_a_connect_response ... ok
+2026-11-21T13:42:28.245509Z ERROR torrust_tracker_core::whitelist::authorization: error=The torrent: a5164e55859ef48a4ccd5ac92352402f78c081ed, is not whitelisted
+2026-11-21T13:42:28.245515Z ERROR UDP TRACKER: response error error=tracker announce error: Tracker core whitelist error: The torrent: a5164e55859ef48a4ccd5ac92352402f78c081ed, is not whitelisted client_socket_addr=127.0.0.1:46352 server_socket_addr=127.0.0.1:41099 service_binding=udp://127.0.0.1:41099 request_id=636dea15-51f3-42b3-81b5-acd946da243f transaction_id=123
+test server::contract::publishing_the_banned_ips_total::with_disabled_connection_id_validation::should_not_publish_a_client_as_banned_before_it_exceeds_the_connection_id_error_limit ... ok
+2026-11-21T13:42:28.247921Z  WARN UDP TRACKER: UDP connection ID validation is DISABLED for this listener. Anti-spoofing and replay protection are reduced. Ensure this listener is isolated through external network controls. bind_to=127.0.0.1:37144
+2026-11-21T13:42:28.248657Z  WARN UDP TRACKER: response error error=tracker announce error: Connection cookie error: cookie value is expired: -3884683641874992000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000, expected > 1795268427.2486534 client_socket_addr=127.0.0.1:40306 server_socket_addr=127.0.0.1:46147 service_binding=udp://127.0.0.1:46147 request_id=13288e17-008e-45ef-8362-463f1e7f2f22 transaction_id=1
+2026-11-21T13:42:28.248672Z  WARN UDP TRACKER: response error error=tracker announce error: Connection cookie error: cookie value is expired: -2715048903937551000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000, expected > 1795268427.248666 client_socket_addr=127.0.0.1:35172 server_socket_addr=127.0.0.1:38822 service_binding=udp://127.0.0.1:38822 request_id=d6db1760-539c-4fd3-96a5-e99e0bf6d8cb transaction_id=1
+2026-11-21T13:42:28.248737Z  WARN UDP TRACKER: response error error=tracker announce error: Connection cookie error: cookie value is expired: -3884683641874992000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000, expected > 1795268427.2487354 client_socket_addr=127.0.0.1:40306 server_socket_addr=127.0.0.1:46147 service_binding=udp://127.0.0.1:46147 request_id=671ba0f2-aace-4ac1-94e0-53a24bc16877 transaction_id=2
+2026-11-21T13:42:28.263355Z  WARN UDP TRACKER: response error error=tracker announce error: Connection cookie error: cookie value is expired: 0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007370314121822049, expected > 1795268427.263348 client_socket_addr=127.0.0.1:59261 server_socket_addr=127.0.0.1:34871 service_binding=udp://127.0.0.1:34871 request_id=50c1d213-ea6b-4c87-b8ee-ce50a4ac34bc transaction_id=-1072220902
+test server::contract::using_ipv6_v6only::should_accept_ipv6_connections_with_ipv6_v6only_enabled ... ok
+test server::contract::should_return_a_bad_request_response_when_the_client_sends_an_empty_request ... ok
+test server::contract::using_disabled_connection_id_validation::connect_still_issues_a_valid_connection_id ... ok
+test server::contract::using_disabled_connection_id_validation::scrape_succeeds_with_an_arbitrary_connection_id ... ok
+2026-11-21T13:42:28.280019Z  WARN UDP TRACKER: response error error=tracker announce error: Connection cookie error: cookie value is expired: 0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007370314121822049, expected > 1795268427.280014 client_socket_addr=127.0.0.1:59261 server_socket_addr=127.0.0.1:34871 service_binding=udp://127.0.0.1:34871 request_id=a4236dca-1104-44cf-b85f-01d4bece9354 transaction_id=714273134
+2026-11-21T13:42:28.280100Z  WARN UDP TRACKER: response error error=tracker announce error: Connection cookie error: cookie value is expired: 0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007370314121822049, expected > 1795268427.2800977 client_socket_addr=127.0.0.1:59261 server_socket_addr=127.0.0.1:34871 service_binding=udp://127.0.0.1:34871 request_id=1f632dfd-9fa6-4b95-909c-7ffd18a5ddd7 transaction_id=-304773688
+2026-11-21T13:42:28.280148Z  WARN UDP TRACKER: response error error=tracker announce error: Connection cookie error: cookie value is expired: 0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007370314121822049, expected > 1795268427.2801473 client_socket_addr=127.0.0.1:59261 server_socket_addr=127.0.0.1:34871 service_binding=udp://127.0.0.1:34871 request_id=e5a80418-a1ca-4826-b8b5-54005677dbb0 transaction_id=-1328187140
+2026-11-21T13:42:28.280198Z  WARN UDP TRACKER: response error error=tracker announce error: Connection cookie error: cookie value is expired: 0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007370314121822049, expected > 1795268427.280197 client_socket_addr=127.0.0.1:59261 server_socket_addr=127.0.0.1:34871 service_binding=udp://127.0.0.1:34871 request_id=72e3168d-080f-47ae-897d-3e217fbef424 transaction_id=-768014602
+2026-11-21T13:42:28.280239Z  WARN UDP TRACKER: response error error=tracker announce error: Connection cookie error: cookie value is expired: 0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007370314121822049, expected > 1795268427.2802384 client_socket_addr=127.0.0.1:59261 server_socket_addr=127.0.0.1:34871 service_binding=udp://127.0.0.1:34871 request_id=92526fa4-a3c2-4603-8a29-a361b9f16910 transaction_id=357071643
+2026-11-21T13:42:28.280280Z  WARN UDP TRACKER: response error error=tracker announce error: Connection cookie error: cookie value is expired: 0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007370314121822049, expected > 1795268427.2802792 client_socket_addr=127.0.0.1:59261 server_socket_addr=127.0.0.1:34871 service_binding=udp://127.0.0.1:34871 request_id=6cd12b75-5835-43b8-b452-97fb086449a4 transaction_id=683899386
+2026-11-21T13:42:28.280321Z  WARN UDP TRACKER: response error error=tracker announce error: Connection cookie error: cookie value is expired: 0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007370314121822049, expected > 1795268427.28032 client_socket_addr=127.0.0.1:59261 server_socket_addr=127.0.0.1:34871 service_binding=udp://127.0.0.1:34871 request_id=0b14a8e2-7e2f-4269-a8ee-730e08a50968 transaction_id=1185375477
+2026-11-21T13:42:28.280362Z  WARN UDP TRACKER: response error error=tracker announce error: Connection cookie error: cookie value is expired: 0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007370314121822049, expected > 1795268427.2803614 client_socket_addr=127.0.0.1:59261 server_socket_addr=127.0.0.1:34871 service_binding=udp://127.0.0.1:34871 request_id=8a4acf43-7487-492d-b071-ecd083dd6bb5 transaction_id=699017026
+2026-11-21T13:42:28.280407Z  WARN UDP TRACKER: response error error=tracker announce error: Connection cookie error: cookie value is expired: 0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007370314121822049, expected > 1795268427.2804065 client_socket_addr=127.0.0.1:59261 server_socket_addr=127.0.0.1:34871 service_binding=udp://127.0.0.1:34871 request_id=d957579e-7f14-4883-bd52-8311920d072c transaction_id=1203721691
+2026-11-21T13:42:28.280452Z  WARN UDP TRACKER: response error error=tracker announce error: Connection cookie error: cookie value is expired: 0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007370314121822049, expected > 1795268427.280451 client_socket_addr=127.0.0.1:59261 server_socket_addr=127.0.0.1:34871 service_binding=udp://127.0.0.1:34871 request_id=559251ad-30af-4052-bc79-3e8a58910f05 transaction_id=-1922578197
+test server::contract::receiving_an_announce_request::should_return_an_announce_response ... ok
+test server::contract::receiving_an_scrape_request::should_return_only_the_first_74_torrent_stats_when_the_request_has_75_info_hashes ... ok
+test server::contract::receiving_an_announce_request::should_reject_a_torrent_that_is_not_whitelisted_with_a_message_that_holds_no_source_path ... ok
+test server::contract::publishing_the_banned_ips_total::with_strict_connection_id_validation::should_not_publish_a_client_as_banned_before_it_exceeds_the_connection_id_error_limit ... ok
+test server::contract::publishing_the_banned_ips_total::with_strict_connection_id_validation::should_publish_a_client_as_banned_once_it_exceeds_the_connection_id_error_limit ... ok
+test server::contract::publishing_the_banned_ips_total::with_disabled_connection_id_validation::should_publish_a_client_that_exceeds_the_connection_id_error_limit_as_would_be_banned ... ok
+test server::contract::using_disabled_connection_id_validation::many_invalid_connection_ids_do_not_cause_ban_in_disabled_mode ... ok
+test server::contract::using_disabled_connection_id_validation::announce_succeeds_with_an_arbitrary_connection_id ... ok
+test server::contract::receiving_an_announce_request::should_return_many_announce_response ... ok
+test server::contract::receiving_an_announce_request::should_ban_the_client_ip_if_it_sends_more_than_10_requests_with_a_cookie_value_not_normal ... ok
+
+test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.11s
+
+   Compiling torrust-tracker-axum-http-server v0.1.0 (<worktree>/packages/axum-http-server)
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.81s
+     Running tests/integration.rs (target/debug/build/torrust-tracker-axum-http-server/8be83a73e2eb672f/out/integration-8be83a73e2eb672f)
+
+running 14 tests
+2026-11-21T13:42:34.190901Z ERROR torrust_tracker_core::whitelist::authorization: error=The torrent: 3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0, is not whitelisted
+test server::v1::contract::failure_reasons_hold_no_source_path::an_announce_to_a_private_tracker_without_a_key ... ok
+test server::v1::contract::failure_reasons_hold_no_source_path::an_announce_with_a_short_peer_id ... ok
+test server::v1::contract::failure_reasons_hold_no_source_path::an_announce_to_a_private_tracker_with_a_malformed_key ... ok
+test server::v1::contract::failure_reasons_hold_no_source_path::an_announce_without_the_info_hash_param ... ok
+test server::v1::contract::failure_reasons_hold_no_source_path::an_announce_to_a_listed_tracker_for_a_torrent_that_is_not_whitelisted ... ok
+test server::v1::contract::failure_reasons_hold_no_source_path::an_announce_with_a_short_info_hash ... ok
+test server::v1::contract::failure_reasons_hold_no_source_path::an_announce_to_a_tracker_behind_a_reverse_proxy_without_the_x_forwarded_for_header ... ok
+test server::v1::contract::failure_reasons_hold_no_source_path::a_scrape_with_a_short_info_hash ... ok
+test server::v1::contract::failure_reasons_hold_no_source_path::an_announce_to_a_private_tracker_with_an_unregistered_key ... ok
+test server::v1::contract::failure_reasons_hold_no_source_path::a_scrape_without_query_params ... ok
+test server::v1::contract::failure_reasons_hold_no_source_path::a_scrape_without_the_info_hash_param ... ok
+test server::v1::contract::failure_reasons_hold_no_source_path::an_announce_without_query_params ... ok
+test server::v1::contract::failure_reasons_hold_no_source_path::an_announce_with_an_invalid_numwant_param ... ok
+test server::v1::contract::failure_reasons_hold_no_source_path::an_announce_with_an_unparsable_query ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 63 filtered out; finished in 1.09s
+
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.14s
+     Running tests/integration.rs (target/debug/build/torrust-tracker-axum-rest-api-server/19e3c26806ff5d31/out/integration-19e3c26806ff5d31)
+
+running 60 tests
+2026-11-21T13:42:35.592276Z  WARN torrust_tracker_core::databases::driver::sqlite::auth_key_store: the delete did not remove exactly one row driver=Sqlite3 table="keys" rows_deleted=0
+2026-11-21T13:42:35.592298Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:39415 service_binding=http://127.0.0.1:39415/ request_id=fb3861e3-b1d4-4303-8dbc-57f22beef0a0
+2026-11-21T13:42:35.592306Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:39415 service_binding=http://127.0.0.1:39415/
+2026-11-21T13:42:35.598414Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:41127 service_binding=http://127.0.0.1:41127/ request_id=a18f9287-d216-4dee-88c9-801a6d8cc0d2
+2026-11-21T13:42:35.598425Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:41127 service_binding=http://127.0.0.1:41127/
+2026-11-21T13:42:35.600986Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:41127 service_binding=http://127.0.0.1:41127/ request_id=2f880168-de2b-4190-acd9-ed9d271cf753
+2026-11-21T13:42:35.600996Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:41127 service_binding=http://127.0.0.1:41127/
+2026-11-21T13:42:35.611568Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:43599 service_binding=http://127.0.0.1:43599/ request_id=8add51b1-a10b-4d90-9f59-71ea3da7be63
+2026-11-21T13:42:35.611579Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:43599 service_binding=http://127.0.0.1:43599/
+2026-11-21T13:42:35.619227Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:34285 service_binding=http://127.0.0.1:34285/ request_id=546548ff-26b4-49dc-a1a5-a14203d06885
+2026-11-21T13:42:35.619238Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:34285 service_binding=http://127.0.0.1:34285/
+2026-11-21T13:42:35.621858Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:34285 service_binding=http://127.0.0.1:34285/ request_id=334924b1-c755-4523-ab59-442c2ca2d9d7
+2026-11-21T13:42:35.621867Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:34285 service_binding=http://127.0.0.1:34285/
+2026-11-21T13:42:35.622036Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:41987 service_binding=http://127.0.0.1:41987/ request_id=75cdbb87-ce51-4b6d-b89e-02e11753cdf7
+2026-11-21T13:42:35.622046Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:41987 service_binding=http://127.0.0.1:41987/
+2026-11-21T13:42:35.623752Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:35671 service_binding=http://127.0.0.1:35671/ request_id=78df89d3-050e-47d8-aa3e-229b0e640ad9
+2026-11-21T13:42:35.623761Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:35671 service_binding=http://127.0.0.1:35671/
+2026-11-21T13:42:35.624017Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:35621 service_binding=http://127.0.0.1:35621/ request_id=bd87849d-602b-4de1-98eb-06100fb284ec
+2026-11-21T13:42:35.624027Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:45617 service_binding=http://127.0.0.1:45617/ request_id=60f52f24-8b6a-4ab8-9926-b8f3eeb813aa
+2026-11-21T13:42:35.624031Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:35621 service_binding=http://127.0.0.1:35621/
+2026-11-21T13:42:35.624038Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:45617 service_binding=http://127.0.0.1:45617/
+2026-11-21T13:42:35.625100Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:41987 service_binding=http://127.0.0.1:41987/ request_id=40ee1040-99f7-49ba-829a-3980ee2ec7ee
+2026-11-21T13:42:35.625109Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:41987 service_binding=http://127.0.0.1:41987/
+2026-11-21T13:42:35.625325Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:42119 service_binding=http://127.0.0.1:42119/ request_id=753db5ea-5486-4963-a8c9-4ff02be6fe6a
+2026-11-21T13:42:35.625338Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:42119 service_binding=http://127.0.0.1:42119/
+2026-11-21T13:42:35.625356Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:42541 service_binding=http://127.0.0.1:42541/ request_id=69d953be-243b-4b4d-983d-ea440b0d6422
+2026-11-21T13:42:35.625369Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:42541 service_binding=http://127.0.0.1:42541/
+2026-11-21T13:42:35.626543Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:39017 service_binding=http://127.0.0.1:39017/ request_id=eec179c8-098d-4cc9-a6a5-f63516866847
+2026-11-21T13:42:35.626554Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:39017 service_binding=http://127.0.0.1:39017/
+2026-11-21T13:42:35.643746Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:40271 service_binding=http://127.0.0.1:40271/ request_id=6903df7f-77a0-4e50-90d4-c931050974a0
+2026-11-21T13:42:35.643756Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:40271 service_binding=http://127.0.0.1:40271/
+2026-11-21T13:42:35.646618Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:39025 service_binding=http://127.0.0.1:39025/ request_id=a15ee6d9-3928-482e-9391-020a5521bc06
+2026-11-21T13:42:35.646628Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:39025 service_binding=http://127.0.0.1:39025/
+2026-11-21T13:42:35.647081Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:33255 service_binding=http://127.0.0.1:33255/ request_id=5ce872c7-f148-44e8-a037-1f18b4f4e56a
+2026-11-21T13:42:35.647091Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:33255 service_binding=http://127.0.0.1:33255/
+2026-11-21T13:42:35.648135Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:36363 service_binding=http://127.0.0.1:36363/ request_id=b953a334-848f-4cef-94e3-22c79f4c4518
+2026-11-21T13:42:35.648149Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:36363 service_binding=http://127.0.0.1:36363/
+2026-11-21T13:42:35.651552Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:33255 service_binding=http://127.0.0.1:33255/ request_id=7eaa1fde-b5fa-405a-b9ab-398793c13453
+2026-11-21T13:42:35.651562Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:33255 service_binding=http://127.0.0.1:33255/
+test server::v1::contract::authentication::given_that_the_token_is_only_provided_in_the_query_param::it_should_authenticate_requests_when_the_token_is_provided_as_a_query_param ... ok
+test server::v1::contract::context::auth_key::should_fail_without_a_source_path_when_the_auth_key_to_delete_does_not_exist ... ok
+test server::v1::contract::context::auth_key::should_fail_generating_a_new_auth_key_when_the_provided_key_is_invalid ... ok
+test server::v1::contract::context::auth_key::should_not_allow_generating_a_new_auth_key_for_unauthenticated_users ... ok
+test server::v1::contract::context::auth_key::should_fail_deleting_an_auth_key_when_the_key_id_is_invalid ... ok
+test server::v1::contract::authentication::given_that_not_token_is_provided::it_should_not_authenticate_requests_when_the_token_is_missing ... ok
+test server::v1::contract::context::stats::should_allow_getting_tracker_statistics ... ok
+2026-11-21T13:42:36.626636Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:33987 service_binding=http://127.0.0.1:33987/ request_id=8b4b387f-3fe2-4b1d-8c7a-84f4a2fcfc24
+2026-11-21T13:42:36.626653Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:33987 service_binding=http://127.0.0.1:33987/
+test server::v1::contract::context::auth_key::should_not_allow_deleting_an_auth_key_for_unauthenticated_users ... ok
+2026-11-21T13:42:36.630814Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:33987 service_binding=http://127.0.0.1:33987/ request_id=0b608d06-b2c0-4782-a000-df794d26ce1d
+2026-11-21T13:42:36.630824Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:33987 service_binding=http://127.0.0.1:33987/
+test server::v1::contract::context::auth_key::should_allow_generating_a_new_random_auth_key ... ok
+test server::v1::contract::context::auth_key::should_allow_reloading_keys ... ok
+test server::v1::contract::context::auth_key::should_allow_uploading_a_preexisting_auth_key ... ok
+test server::v1::contract::context::auth_key::deprecated_generate_key_endpoint::should_fail_when_the_auth_key_cannot_be_generated ... ok
+test server::v1::contract::authentication::given_that_the_token_is_only_provided_in_the_authentication_header::it_should_not_authenticate_requests_when_the_token_is_empty ... ok
+test server::v1::contract::context::auth_key::should_fail_when_the_auth_key_cannot_be_generated ... ok
+test server::v1::contract::context::auth_key::deprecated_generate_key_endpoint::should_not_allow_generating_a_new_auth_key_for_unauthenticated_users ... ok
+test server::v1::contract::authentication::given_that_token_is_provided_via_get_param_and_authentication_header::it_should_authenticate_requests_using_the_token_provided_in_the_authentication_header ... ok
+test server::v1::contract::authentication::given_that_the_token_is_only_provided_in_the_authentication_header::it_should_authenticate_requests_when_the_token_is_provided_in_the_authentication_header ... ok
+test server::v1::contract::context::auth_key::should_reject_auth_key_requests_when_private_mode_is_disabled_without_database_access ... ok
+test server::v1::contract::authentication::given_that_the_token_is_only_provided_in_the_query_param::it_should_not_authenticate_requests_when_the_token_is_empty ... ok
+test server::v1::contract::context::auth_key::should_fail_when_the_auth_key_cannot_be_deleted ... ok
+test server::v1::contract::context::auth_key::should_fail_when_keys_cannot_be_reloaded ... ok
+test server::v1::contract::context::stats::should_expose_an_enabled_zero_value_persisted_metric ... ok
+test server::v1::contract::authentication::given_that_the_token_is_only_provided_in_the_query_param::it_should_allow_the_token_query_param_to_be_at_any_position_in_the_url_query ... ok
+test server::v1::contract::context::auth_key::should_fail_without_a_source_path_when_the_same_auth_key_is_uploaded_twice ... ok
+test server::v1::contract::context::auth_key::should_allow_deleting_an_auth_key ... ok
+test server::v1::contract::context::auth_key::deprecated_generate_key_endpoint::should_allow_generating_a_new_auth_key ... ok
+test server::v1::contract::context::health_check::health_check_endpoint_should_return_status_ok_if_api_is_running ... ok
+test server::v1::contract::authentication::given_that_the_token_is_only_provided_in_the_authentication_header::it_should_not_authenticate_requests_when_the_token_is_invalid ... ok
+test server::v1::contract::context::auth_key::deprecated_generate_key_endpoint::should_fail_generating_a_new_auth_key_when_the_key_duration_is_invalid ... ok
+test server::v1::contract::context::auth_key::should_fail_generating_a_new_auth_key_when_the_key_duration_is_invalid ... ok
+test server::v1::contract::authentication::given_that_the_token_is_only_provided_in_the_query_param::it_should_not_authenticate_requests_when_the_token_is_invalid ... ok
+test server::v1::contract::context::auth_key::should_not_allow_reloading_keys_for_unauthenticated_users ... ok
+2026-11-21T13:42:36.725069Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:39589 service_binding=http://127.0.0.1:39589/ request_id=ca953f54-7a46-4f3b-b82a-67b966dc6202
+2026-11-21T13:42:36.725092Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:39589 service_binding=http://127.0.0.1:39589/
+2026-11-21T13:42:36.728142Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:39589 service_binding=http://127.0.0.1:39589/ request_id=65159290-30ec-4c40-9edc-05c6e6b5c268
+2026-11-21T13:42:36.728160Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:39589 service_binding=http://127.0.0.1:39589/
+2026-11-21T13:42:36.732938Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:45459 service_binding=http://127.0.0.1:45459/ request_id=96c0d6a6-f060-4316-afc4-7d3a0dfc7295
+2026-11-21T13:42:36.732953Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:45459 service_binding=http://127.0.0.1:45459/
+2026-11-21T13:42:36.734358Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:33927 service_binding=http://127.0.0.1:33927/ request_id=3b65cdfb-7743-4cf3-9eac-f900daded0ac
+2026-11-21T13:42:36.734374Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:33927 service_binding=http://127.0.0.1:33927/
+2026-11-21T13:42:36.734747Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:34379 service_binding=http://127.0.0.1:34379/ request_id=25785e60-bc60-4cb8-8d1a-c21aebf60ec3
+2026-11-21T13:42:36.734759Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:34379 service_binding=http://127.0.0.1:34379/
+2026-11-21T13:42:36.736567Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:43259 service_binding=http://127.0.0.1:43259/ request_id=f13839d7-2d05-4a32-961e-120a90601c6d
+2026-11-21T13:42:36.736580Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:43259 service_binding=http://127.0.0.1:43259/
+2026-11-21T13:42:36.736750Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:39929 service_binding=http://127.0.0.1:39929/ request_id=a24ee927-8fd0-4a09-a0c6-e88f783efd0a
+2026-11-21T13:42:36.736762Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:39929 service_binding=http://127.0.0.1:39929/
+2026-11-21T13:42:36.738819Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:39233 service_binding=http://127.0.0.1:39233/ request_id=aa3c8ea3-5658-4c2e-84e8-0228f71ffa8e
+2026-11-21T13:42:36.738829Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:39233 service_binding=http://127.0.0.1:39233/
+2026-11-21T13:42:36.739672Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:33927 service_binding=http://127.0.0.1:33927/ request_id=041fc5f9-b701-43a3-aa94-946826e63353
+2026-11-21T13:42:36.739681Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:33927 service_binding=http://127.0.0.1:33927/
+2026-11-21T13:42:36.740327Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:39929 service_binding=http://127.0.0.1:39929/ request_id=c27d0b0b-38f3-4be9-861a-09408eff5790
+2026-11-21T13:42:36.740341Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:39929 service_binding=http://127.0.0.1:39929/
+2026-11-21T13:42:36.743397Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:39233 service_binding=http://127.0.0.1:39233/ request_id=084c398f-c176-4fed-b078-b2fa39c2d581
+2026-11-21T13:42:36.743407Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:39233 service_binding=http://127.0.0.1:39233/
+test server::v1::contract::context::stats::should_expose_completed_download_availability_and_omit_the_persisted_metric_when_disabled ... ok
+test server::v1::contract::context::torrent::should_allow_getting_a_list_of_torrents_providing_infohashes ... ok
+test server::v1::contract::context::stats::should_not_allow_getting_tracker_statistics_for_unauthenticated_users ... ok
+test server::v1::contract::context::torrent::should_allow_getting_a_torrent_info ... ok
+test server::v1::contract::context::torrent::should_allow_getting_all_torrents ... ok
+test server::v1::contract::context::torrent::should_allow_limiting_the_torrents_in_the_result ... ok
+test server::v1::contract::context::torrent::should_allow_the_torrents_result_pagination ... ok
+test server::v1::contract::context::torrent::should_fail_getting_a_torrent_info_when_the_provided_infohash_is_invalid ... ok
+test server::v1::contract::context::torrent::should_fail_while_getting_a_torrent_info_when_the_torrent_does_not_exist ... ok
+test server::v1::contract::context::whitelist::should_allow_whitelisting_a_torrent_that_has_been_already_whitelisted ... ok
+test server::v1::contract::context::whitelist::should_allow_removing_a_torrent_from_the_whitelist ... ok
+test server::v1::contract::context::whitelist::should_not_allow_whitelisting_a_torrent_for_unauthenticated_users ... ok
+test server::v1::contract::context::torrent::should_include_equal_v1_peer_timestamp_fields_in_the_raw_torrent_json_response ... ok
+test server::v1::contract::context::whitelist::should_fail_when_the_torrent_cannot_be_whitelisted ... ok
+test server::v1::contract::context::whitelist::should_reject_whitelist_requests_when_listed_mode_is_disabled_without_database_access ... ok
+test server::v1::contract::context::whitelist::should_fail_when_the_whitelist_cannot_be_reloaded_from_the_database ... ok
+test server::v1::contract::context::whitelist::should_allow_reload_the_whitelist_from_the_database ... ok
+test server::v1::contract::context::whitelist::should_allow_whitelisting_a_torrent ... ok
+test server::v1::contract::context::whitelist::should_not_fail_trying_to_remove_a_non_whitelisted_torrent_from_the_whitelist ... ok
+test server::v1::contract::context::torrent::should_fail_getting_torrents_when_the_offset_query_parameter_cannot_be_parsed ... ok
+test server::v1::contract::context::whitelist::should_fail_when_the_torrent_cannot_be_removed_from_the_whitelist ... ok
+test server::v1::contract::context::torrent::should_fail_getting_torrents_when_the_limit_query_parameter_cannot_be_parsed ... ok
+test server::v1::contract::context::torrent::should_not_allow_getting_a_torrent_info_for_unauthenticated_users ... ok
+test server::v1::contract::context::whitelist::should_not_allow_removing_a_torrent_from_the_whitelist_for_unauthenticated_users ... ok
+test server::v1::contract::context::torrent::should_not_allow_getting_torrents_for_unauthenticated_users ... ok
+test server::v1::contract::context::whitelist::should_fail_whitelisting_a_torrent_when_the_provided_infohash_is_invalid ... ok
+test server::v1::contract::context::torrent::should_fail_getting_torrents_when_the_info_hash_parameter_is_invalid ... ok
+test server::v1::contract::context::whitelist::should_fail_removing_a_torrent_from_the_whitelist_when_the_provided_infohash_is_invalid ... ok
+
+test result: ok. 60 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.37s
+

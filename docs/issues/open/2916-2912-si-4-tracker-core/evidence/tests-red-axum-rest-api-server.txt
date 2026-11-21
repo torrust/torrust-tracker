@@ -1,0 +1,218 @@
+   Compiling tokio-rustls v0.26.6
+   Compiling sqlx-core v0.8.6
+   Compiling tower-http v0.6.11
+   Compiling torrust-tracker-primitives v3.1.0 (<worktree>/packages/primitives)
+   Compiling axum-extra v0.12.6
+   Compiling torrust-server-lib v0.6.0
+   Compiling hyper-rustls v0.27.10
+   Compiling axum-server v0.9.2
+   Compiling reqwest v0.13.5
+   Compiling torrust-tracker-configuration v3.0.0 (<worktree>/packages/configuration)
+   Compiling torrust-tracker-swarm-coordination-registry v0.1.0 (<worktree>/packages/swarm-coordination-registry)
+   Compiling torrust-tracker-rest-api-application v0.1.0 (<worktree>/packages/rest-api-application)
+   Compiling torrust-tracker-client-lib v0.1.0 (<worktree>/packages/tracker-client)
+   Compiling torrust-tracker-rest-api-client v0.1.0 (<worktree>/packages/rest-api-client)
+   Compiling sqlx-sqlite v0.8.6
+   Compiling sqlx-mysql v0.8.6
+   Compiling sqlx-postgres v0.8.6
+   Compiling torrust-tracker-axum-server v0.1.0 (<worktree>/packages/axum-server)
+   Compiling torrust-tracker-test-helpers v3.0.0 (<worktree>/packages/test-helpers)
+   Compiling sqlx v0.8.6
+   Compiling torrust-tracker-core v0.1.0 (<worktree>/packages/tracker-core)
+   Compiling torrust-tracker-udp-core v0.1.0 (<worktree>/packages/udp-core)
+   Compiling torrust-tracker-http-core v0.1.0 (<worktree>/packages/http-core)
+   Compiling torrust-tracker-udp-server v0.1.0 (<worktree>/packages/udp-server)
+   Compiling torrust-tracker-rest-api-runtime-adapter v0.1.0 (<worktree>/packages/rest-api-runtime-adapter)
+   Compiling torrust-tracker-axum-rest-api-server v0.1.0 (<worktree>/packages/axum-rest-api-server)
+    Finished `test` profile [optimized + debuginfo] target(s) in 11.06s
+     Running tests/integration.rs (target/debug/build/torrust-tracker-axum-rest-api-server/7bee9a1d877ebe10/out/integration-7bee9a1d877ebe10)
+
+running 60 tests
+2026-11-21T13:32:50.346153Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:34819 service_binding=http://127.0.0.1:34819/ request_id=caac26d9-9ae9-46a3-a816-690b396b1b68
+2026-11-21T13:32:50.346171Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:34819 service_binding=http://127.0.0.1:34819/
+2026-11-21T13:32:50.361044Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:45759 service_binding=http://127.0.0.1:45759/ request_id=81344616-900c-4c86-bc70-47eb6ec8abba
+2026-11-21T13:32:50.361056Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:45759 service_binding=http://127.0.0.1:45759/
+2026-11-21T13:32:50.362985Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:42579 service_binding=http://127.0.0.1:42579/ request_id=68e0752c-7ee5-43d2-bd56-5d5a3223fa93
+2026-11-21T13:32:50.362999Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:42579 service_binding=http://127.0.0.1:42579/
+test server::v1::contract::context::auth_key::should_fail_without_a_source_path_when_the_same_auth_key_is_uploaded_twice ... FAILED
+2026-11-21T13:32:50.366472Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:34699 service_binding=http://127.0.0.1:34699/ request_id=328c127e-6640-4402-bc77-fec8822153cf
+2026-11-21T13:32:50.366484Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:34699 service_binding=http://127.0.0.1:34699/
+test server::v1::contract::context::auth_key::deprecated_generate_key_endpoint::should_fail_when_the_auth_key_cannot_be_generated ... FAILED
+2026-11-21T13:32:50.369930Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:38107 service_binding=http://127.0.0.1:38107/ request_id=cf1af031-4fb1-49c6-98cb-1607e359f4e4
+2026-11-21T13:32:50.369945Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:38107 service_binding=http://127.0.0.1:38107/
+2026-11-21T13:32:50.374599Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:38107 service_binding=http://127.0.0.1:38107/ request_id=ed0a5b48-e419-4c76-8598-ca11c81874b7
+2026-11-21T13:32:50.374611Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:38107 service_binding=http://127.0.0.1:38107/
+2026-11-21T13:32:50.383800Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:45759 service_binding=http://127.0.0.1:45759/ request_id=45b961e2-bb20-4413-9636-10ed0def7baa
+2026-11-21T13:32:50.383817Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:45759 service_binding=http://127.0.0.1:45759/
+2026-11-21T13:32:50.385378Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:46195 service_binding=http://127.0.0.1:46195/ request_id=2187f69a-29f4-4a89-84dc-de04fa828f05
+2026-11-21T13:32:50.385391Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:46195 service_binding=http://127.0.0.1:46195/
+2026-11-21T13:32:50.385562Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:41279 service_binding=http://127.0.0.1:41279/ request_id=f76ed38f-fcb9-482a-b034-9570c1a1fa17
+2026-11-21T13:32:50.385577Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:41279 service_binding=http://127.0.0.1:41279/
+2026-11-21T13:32:50.386194Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:39121 service_binding=http://127.0.0.1:39121/ request_id=5456a353-0e67-4c39-abaf-0bca2ec4ad54
+2026-11-21T13:32:50.386204Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:39121 service_binding=http://127.0.0.1:39121/
+test server::v1::contract::context::auth_key::should_fail_without_a_source_path_when_the_auth_key_to_delete_does_not_exist ... FAILED
+2026-11-21T13:32:50.389005Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:33407 service_binding=http://127.0.0.1:33407/ request_id=72c1314e-9a44-4a7a-aa00-ad39bb5360cc
+2026-11-21T13:32:50.389017Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:33407 service_binding=http://127.0.0.1:33407/
+2026-11-21T13:32:50.389501Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:41279 service_binding=http://127.0.0.1:41279/ request_id=bf68cb1d-2e5c-43a9-98b4-bae1085e262a
+2026-11-21T13:32:50.389509Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:41279 service_binding=http://127.0.0.1:41279/
+2026-11-21T13:32:50.389725Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:36681 service_binding=http://127.0.0.1:36681/ request_id=d7bc5ef3-882d-4f2b-96ae-676b7d7b9ea2
+2026-11-21T13:32:50.389734Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:36681 service_binding=http://127.0.0.1:36681/
+test server::v1::contract::context::auth_key::should_fail_when_the_auth_key_cannot_be_generated ... FAILED
+2026-11-21T13:32:50.390955Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:38579 service_binding=http://127.0.0.1:38579/ request_id=738ecda9-822e-4175-8a0a-209e1915b41b
+2026-11-21T13:32:50.390971Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:38579 service_binding=http://127.0.0.1:38579/
+test server::v1::contract::context::auth_key::should_fail_when_keys_cannot_be_reloaded ... FAILED
+2026-11-21T13:32:50.392950Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:46201 service_binding=http://127.0.0.1:46201/ request_id=4fd6c266-a284-4cd6-9e50-df4570ce7952
+2026-11-21T13:32:50.392964Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:46201 service_binding=http://127.0.0.1:46201/
+2026-11-21T13:32:50.393105Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:35981 service_binding=http://127.0.0.1:35981/ request_id=9efee100-25d0-4de1-adb4-15542f211bd4
+2026-11-21T13:32:50.393117Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:35981 service_binding=http://127.0.0.1:35981/
+2026-11-21T13:32:50.393201Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:44467 service_binding=http://127.0.0.1:44467/ request_id=4e97c713-7056-44ac-8f3e-b9afb696b214
+2026-11-21T13:32:50.393215Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:44467 service_binding=http://127.0.0.1:44467/
+2026-11-21T13:32:50.393300Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:46195 service_binding=http://127.0.0.1:46195/ request_id=f0d27054-58e4-4d9f-af6f-3d7caf62f1ac
+2026-11-21T13:32:50.393312Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:46195 service_binding=http://127.0.0.1:46195/
+2026-11-21T13:32:50.393838Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:41501 service_binding=http://127.0.0.1:41501/ request_id=74ce0f0b-9487-43d1-a76c-9785e41849ca
+2026-11-21T13:32:50.393848Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:41501 service_binding=http://127.0.0.1:41501/
+test server::v1::contract::context::auth_key::should_fail_when_the_auth_key_cannot_be_deleted ... FAILED
+2026-11-21T13:32:50.401561Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:39749 service_binding=http://127.0.0.1:39749/ request_id=a1bcbaeb-0704-46f4-87c5-68610a7438bf
+2026-11-21T13:32:50.401586Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:39749 service_binding=http://127.0.0.1:39749/
+2026-11-21T13:32:50.406326Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:39749 service_binding=http://127.0.0.1:39749/ request_id=4e8d9f5e-eb14-469a-a9bf-1dccd8c4ce03
+2026-11-21T13:32:50.406344Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:39749 service_binding=http://127.0.0.1:39749/
+test server::v1::contract::authentication::given_that_not_token_is_provided::it_should_not_authenticate_requests_when_the_token_is_missing ... ok
+test server::v1::contract::context::auth_key::should_allow_uploading_a_preexisting_auth_key ... ok
+test server::v1::contract::context::auth_key::deprecated_generate_key_endpoint::should_allow_generating_a_new_auth_key ... ok
+test server::v1::contract::context::auth_key::should_not_allow_reloading_keys_for_unauthenticated_users ... ok
+test server::v1::contract::context::auth_key::deprecated_generate_key_endpoint::should_not_allow_generating_a_new_auth_key_for_unauthenticated_users ... ok
+test server::v1::contract::context::auth_key::should_allow_deleting_an_auth_key ... ok
+test server::v1::contract::context::health_check::health_check_endpoint_should_return_status_ok_if_api_is_running ... ok
+test server::v1::contract::context::auth_key::should_allow_generating_a_new_random_auth_key ... ok
+test server::v1::contract::context::auth_key::should_not_allow_deleting_an_auth_key_for_unauthenticated_users ... ok
+test server::v1::contract::context::auth_key::deprecated_generate_key_endpoint::should_fail_generating_a_new_auth_key_when_the_key_duration_is_invalid ... ok
+test server::v1::contract::authentication::given_that_the_token_is_only_provided_in_the_authentication_header::it_should_not_authenticate_requests_when_the_token_is_invalid ... ok
+test server::v1::contract::context::stats::should_expose_completed_download_availability_and_omit_the_persisted_metric_when_disabled ... ok
+test server::v1::contract::authentication::given_that_the_token_is_only_provided_in_the_query_param::it_should_authenticate_requests_when_the_token_is_provided_as_a_query_param ... ok
+test server::v1::contract::context::auth_key::should_fail_generating_a_new_auth_key_when_the_key_duration_is_invalid ... ok
+test server::v1::contract::authentication::given_that_the_token_is_only_provided_in_the_authentication_header::it_should_authenticate_requests_when_the_token_is_provided_in_the_authentication_header ... ok
+test server::v1::contract::context::stats::should_allow_getting_tracker_statistics ... ok
+test server::v1::contract::context::auth_key::should_allow_reloading_keys ... ok
+test server::v1::contract::authentication::given_that_token_is_provided_via_get_param_and_authentication_header::it_should_authenticate_requests_using_the_token_provided_in_the_authentication_header ... ok
+test server::v1::contract::authentication::given_that_the_token_is_only_provided_in_the_query_param::it_should_not_authenticate_requests_when_the_token_is_invalid ... ok
+test server::v1::contract::authentication::given_that_the_token_is_only_provided_in_the_query_param::it_should_not_authenticate_requests_when_the_token_is_empty ... ok
+test server::v1::contract::context::stats::should_not_allow_getting_tracker_statistics_for_unauthenticated_users ... ok
+test server::v1::contract::context::auth_key::should_not_allow_generating_a_new_auth_key_for_unauthenticated_users ... ok
+test server::v1::contract::context::auth_key::should_reject_auth_key_requests_when_private_mode_is_disabled_without_database_access ... ok
+test server::v1::contract::authentication::given_that_the_token_is_only_provided_in_the_authentication_header::it_should_not_authenticate_requests_when_the_token_is_empty ... ok
+test server::v1::contract::context::auth_key::should_fail_generating_a_new_auth_key_when_the_provided_key_is_invalid ... ok
+test server::v1::contract::context::stats::should_expose_an_enabled_zero_value_persisted_metric ... ok
+test server::v1::contract::authentication::given_that_the_token_is_only_provided_in_the_query_param::it_should_allow_the_token_query_param_to_be_at_any_position_in_the_url_query ... ok
+test server::v1::contract::context::auth_key::should_fail_deleting_an_auth_key_when_the_key_id_is_invalid ... ok
+test server::v1::contract::context::torrent::should_allow_getting_a_list_of_torrents_providing_infohashes ... ok
+test server::v1::contract::context::torrent::should_allow_getting_a_torrent_info ... ok
+test server::v1::contract::context::torrent::should_allow_getting_all_torrents ... ok
+test server::v1::contract::context::torrent::should_allow_limiting_the_torrents_in_the_result ... ok
+2026-11-21T13:32:51.481974Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:35385 service_binding=http://127.0.0.1:35385/ request_id=110b8b66-ed6c-4864-ba43-2e689a0ec2fe
+2026-11-21T13:32:51.482010Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:35385 service_binding=http://127.0.0.1:35385/
+2026-11-21T13:32:51.482519Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:44221 service_binding=http://127.0.0.1:44221/ request_id=470b56ca-37da-4882-b6f1-269a1750c2ac
+2026-11-21T13:32:51.482530Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:44221 service_binding=http://127.0.0.1:44221/
+2026-11-21T13:32:51.488155Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:35385 service_binding=http://127.0.0.1:35385/ request_id=0d7ed52e-942f-412a-9916-a2ec38bf6303
+2026-11-21T13:32:51.488183Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:35385 service_binding=http://127.0.0.1:35385/
+2026-11-21T13:32:51.488155Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:44221 service_binding=http://127.0.0.1:44221/ request_id=92b5f27d-82f7-4aa2-a568-269c65725c24
+2026-11-21T13:32:51.488196Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:44221 service_binding=http://127.0.0.1:44221/
+2026-11-21T13:32:51.492676Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:43187 service_binding=http://127.0.0.1:43187/ request_id=3ff265b7-febb-477c-ac8f-a24f980cd157
+2026-11-21T13:32:51.492694Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:43187 service_binding=http://127.0.0.1:43187/
+2026-11-21T13:32:51.493439Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:34031 service_binding=http://127.0.0.1:34031/ request_id=94c49fa7-b4a5-4090-8a5c-6a7a7f04ee49
+2026-11-21T13:32:51.493449Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:34031 service_binding=http://127.0.0.1:34031/
+test server::v1::contract::context::whitelist::should_fail_when_the_torrent_cannot_be_removed_from_the_whitelist ... FAILED
+2026-11-21T13:32:51.495003Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:36209 service_binding=http://127.0.0.1:36209/ request_id=941803b4-6c34-4c5d-9700-58764680718e
+2026-11-21T13:32:51.495015Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:36209 service_binding=http://127.0.0.1:36209/
+2026-11-21T13:32:51.495213Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:43187 service_binding=http://127.0.0.1:43187/ request_id=8805e430-0b81-4684-9b2d-2fe3931440cb
+2026-11-21T13:32:51.495222Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:43187 service_binding=http://127.0.0.1:43187/
+2026-11-21T13:32:51.498375Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:36209 service_binding=http://127.0.0.1:36209/ request_id=36e256c2-be2b-46f8-ba4d-83697aff30ee
+2026-11-21T13:32:51.498385Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:36209 service_binding=http://127.0.0.1:36209/
+2026-11-21T13:32:51.499267Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:41209 service_binding=http://127.0.0.1:41209/ request_id=0fdfd869-4616-4bf7-9e77-8f2c71969072
+2026-11-21T13:32:51.499282Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:41209 service_binding=http://127.0.0.1:41209/
+2026-11-21T13:32:51.500281Z ERROR API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:38057 service_binding=http://127.0.0.1:38057/ request_id=9c87fbfe-55d3-4170-9b54-7d87c409a2fa
+2026-11-21T13:32:51.500294Z ERROR API: response failed failure_classification=Status code: 500 Internal Server Error latency=0 ms server_socket_addr=127.0.0.1:38057 service_binding=http://127.0.0.1:38057/
+test server::v1::contract::context::whitelist::should_fail_when_the_torrent_cannot_be_whitelisted ... FAILED
+test server::v1::contract::context::whitelist::should_fail_when_the_whitelist_cannot_be_reloaded_from_the_database ... FAILED
+test server::v1::contract::context::torrent::should_allow_the_torrents_result_pagination ... ok
+test server::v1::contract::context::torrent::should_fail_getting_torrents_when_the_info_hash_parameter_is_invalid ... ok
+test server::v1::contract::context::torrent::should_fail_getting_torrents_when_the_limit_query_parameter_cannot_be_parsed ... ok
+test server::v1::contract::context::torrent::should_fail_getting_a_torrent_info_when_the_provided_infohash_is_invalid ... ok
+test server::v1::contract::context::torrent::should_fail_getting_torrents_when_the_offset_query_parameter_cannot_be_parsed ... ok
+test server::v1::contract::context::whitelist::should_allow_reload_the_whitelist_from_the_database ... ok
+test server::v1::contract::context::torrent::should_fail_while_getting_a_torrent_info_when_the_torrent_does_not_exist ... ok
+test server::v1::contract::context::torrent::should_not_allow_getting_torrents_for_unauthenticated_users ... ok
+test server::v1::contract::context::torrent::should_include_equal_v1_peer_timestamp_fields_in_the_raw_torrent_json_response ... ok
+test server::v1::contract::context::torrent::should_not_allow_getting_a_torrent_info_for_unauthenticated_users ... ok
+test server::v1::contract::context::whitelist::should_reject_whitelist_requests_when_listed_mode_is_disabled_without_database_access ... ok
+test server::v1::contract::context::whitelist::should_allow_whitelisting_a_torrent_that_has_been_already_whitelisted ... ok
+test server::v1::contract::context::whitelist::should_not_allow_whitelisting_a_torrent_for_unauthenticated_users ... ok
+test server::v1::contract::context::whitelist::should_allow_removing_a_torrent_from_the_whitelist ... ok
+test server::v1::contract::context::whitelist::should_allow_whitelisting_a_torrent ... ok
+test server::v1::contract::context::whitelist::should_not_fail_trying_to_remove_a_non_whitelisted_torrent_from_the_whitelist ... ok
+test server::v1::contract::context::whitelist::should_not_allow_removing_a_torrent_from_the_whitelist_for_unauthenticated_users ... ok
+test server::v1::contract::context::whitelist::should_fail_removing_a_torrent_from_the_whitelist_when_the_provided_infohash_is_invalid ... ok
+test server::v1::contract::context::whitelist::should_fail_whitelisting_a_torrent_when_the_provided_infohash_is_invalid ... ok
+
+failures:
+
+---- server::v1::contract::context::auth_key::should_fail_without_a_source_path_when_the_same_auth_key_is_uploaded_twice stdout ----
+
+thread 'server::v1::contract::context::auth_key::should_fail_without_a_source_path_when_the_same_auth_key_is_uploaded_twice' panicked at packages/axum-rest-api-server/tests/server/v1/asserts.rs:180:5:
+the error message must not hold a source path, but it contains ".rs:": "Unhandled rejection: Err { reason: \"failed to add key: The Sqlite3 query was malformed: error returned from database: (code: 2067) UNIQUE constraint failed: keys.key, packages/tracker-core/src/databases/driver/sqlite/auth_key_store.rs:74:22, packages/tracker-core/src/authentication/handler.rs:103:50\" }"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- server::v1::contract::context::auth_key::deprecated_generate_key_endpoint::should_fail_when_the_auth_key_cannot_be_generated stdout ----
+
+thread 'server::v1::contract::context::auth_key::deprecated_generate_key_endpoint::should_fail_when_the_auth_key_cannot_be_generated' panicked at packages/axum-rest-api-server/tests/server/v1/asserts.rs:180:5:
+the error message must not hold a source path, but it contains ".rs:": "Unhandled rejection: Err { reason: \"failed to generate key: The Sqlite3 query was malformed: error returned from database: (code: 1) no such table: keys, packages/tracker-core/src/databases/driver/sqlite/auth_key_store.rs:74:22\" }"
+
+---- server::v1::contract::context::auth_key::should_fail_without_a_source_path_when_the_auth_key_to_delete_does_not_exist stdout ----
+
+thread 'server::v1::contract::context::auth_key::should_fail_without_a_source_path_when_the_auth_key_to_delete_does_not_exist' panicked at packages/axum-rest-api-server/tests/server/v1/asserts.rs:180:5:
+the error message must not hold a source path, but it contains ".rs:": "Unhandled rejection: Err { reason: \"failed to delete key: Failed to remove record from Sqlite3 database, error-code: 0, packages/tracker-core/src/databases/driver/sqlite/auth_key_store.rs:108:27\" }"
+
+---- server::v1::contract::context::auth_key::should_fail_when_the_auth_key_cannot_be_generated stdout ----
+
+thread 'server::v1::contract::context::auth_key::should_fail_when_the_auth_key_cannot_be_generated' panicked at packages/axum-rest-api-server/tests/server/v1/asserts.rs:180:5:
+the error message must not hold a source path, but it contains ".rs:": "Unhandled rejection: Err { reason: \"failed to add key: The Sqlite3 query was malformed: error returned from database: (code: 1) no such table: keys, packages/tracker-core/src/databases/driver/sqlite/auth_key_store.rs:74:22, packages/tracker-core/src/authentication/handler.rs:141:46\" }"
+
+---- server::v1::contract::context::auth_key::should_fail_when_keys_cannot_be_reloaded stdout ----
+
+thread 'server::v1::contract::context::auth_key::should_fail_when_keys_cannot_be_reloaded' panicked at packages/axum-rest-api-server/tests/server/v1/asserts.rs:180:5:
+the error message must not hold a source path, but it contains ".rs:": "Unhandled rejection: Err { reason: \"failed to reload keys: The Sqlite3 query was malformed: error returned from database: (code: 1) no such table: keys, packages/tracker-core/src/databases/driver/sqlite/auth_key_store.rs:15:20\" }"
+
+---- server::v1::contract::context::auth_key::should_fail_when_the_auth_key_cannot_be_deleted stdout ----
+
+thread 'server::v1::contract::context::auth_key::should_fail_when_the_auth_key_cannot_be_deleted' panicked at packages/axum-rest-api-server/tests/server/v1/asserts.rs:180:5:
+the error message must not hold a source path, but it contains ".rs:": "Unhandled rejection: Err { reason: \"failed to delete key: The Sqlite3 query was malformed: error returned from database: (code: 1) no such table: keys, packages/tracker-core/src/databases/driver/sqlite/auth_key_store.rs:96:23\" }"
+
+---- server::v1::contract::context::whitelist::should_fail_when_the_torrent_cannot_be_removed_from_the_whitelist stdout ----
+
+thread 'server::v1::contract::context::whitelist::should_fail_when_the_torrent_cannot_be_removed_from_the_whitelist' panicked at packages/axum-rest-api-server/tests/server/v1/asserts.rs:180:5:
+the error message must not hold a source path, but it contains ".rs:": "Unhandled rejection: Err { reason: \"failed to remove torrent from whitelist: The Sqlite3 query was malformed: error returned from database: (code: 1) no such table: whitelist, packages/tracker-core/src/databases/driver/sqlite/whitelist_store.rs:32:25\" }"
+
+---- server::v1::contract::context::whitelist::should_fail_when_the_torrent_cannot_be_whitelisted stdout ----
+
+thread 'server::v1::contract::context::whitelist::should_fail_when_the_torrent_cannot_be_whitelisted' panicked at packages/axum-rest-api-server/tests/server/v1/asserts.rs:180:5:
+the error message must not hold a source path, but it contains ".rs:": "Unhandled rejection: Err { reason: \"failed to whitelist torrent: The Sqlite3 query was malformed: error returned from database: (code: 1) no such table: whitelist, packages/tracker-core/src/databases/driver/sqlite/whitelist_store.rs:32:25\" }"
+
+---- server::v1::contract::context::whitelist::should_fail_when_the_whitelist_cannot_be_reloaded_from_the_database stdout ----
+
+thread 'server::v1::contract::context::whitelist::should_fail_when_the_whitelist_cannot_be_reloaded_from_the_database' panicked at packages/axum-rest-api-server/tests/server/v1/asserts.rs:180:5:
+the error message must not hold a source path, but it contains ".rs:": "Unhandled rejection: Err { reason: \"failed to reload whitelist: The Sqlite3 query was malformed: error returned from database: (code: 1) no such table: whitelist, packages/tracker-core/src/databases/driver/sqlite/whitelist_store.rs:15:20\" }"
+
+
+failures:
+    server::v1::contract::context::auth_key::deprecated_generate_key_endpoint::should_fail_when_the_auth_key_cannot_be_generated
+    server::v1::contract::context::auth_key::should_fail_when_keys_cannot_be_reloaded
+    server::v1::contract::context::auth_key::should_fail_when_the_auth_key_cannot_be_deleted
+    server::v1::contract::context::auth_key::should_fail_when_the_auth_key_cannot_be_generated
+    server::v1::contract::context::auth_key::should_fail_without_a_source_path_when_the_auth_key_to_delete_does_not_exist
+    server::v1::contract::context::auth_key::should_fail_without_a_source_path_when_the_same_auth_key_is_uploaded_twice
+    server::v1::contract::context::whitelist::should_fail_when_the_torrent_cannot_be_removed_from_the_whitelist
+    server::v1::contract::context::whitelist::should_fail_when_the_torrent_cannot_be_whitelisted
+    server::v1::contract::context::whitelist::should_fail_when_the_whitelist_cannot_be_reloaded_from_the_database
+
+test result: FAILED. 51 passed; 9 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.45s
+
+error: test failed, to rerun pass `-p torrust-tracker-axum-rest-api-server --test integration`
