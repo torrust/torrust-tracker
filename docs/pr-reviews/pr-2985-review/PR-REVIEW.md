@@ -1,7 +1,7 @@
 ---
 pr-number: 2985
 pr-url: https://github.com/torrust/torrust-tracker/pull/2985
-last-updated-utc: "2026-11-21 15:25"
+last-updated-utc: "2026-11-21 16:03"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -43,6 +43,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
+Round 2 is da2ce7's APPROVED review `6006401735` (three inline findings, F9 to F11 in his numbering, kept here) on the head `docs(pr-reviews): [#2984] add the PR 2985 review audit`.
+
 Round 1 is da2ce7's APPROVED review `6006228624` (six inline findings, F1 to F6 in his numbering) and Copilot's COMMENTED review `6006218464` (two inline findings, F7 and F8 here: his IDs F1 to F6 were kept, so Copilot's take the next ordinals), both on the first head, the commit `docs(issues): add issue specification for #2984`.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
@@ -55,6 +57,9 @@ Round 1 is da2ce7's APPROVED review `6006228624` (six inline findings, F1 to F6 
 | F6 | `review-finding:pr-2985-f6` | Human | Suggestion | testing | ORIGINAL | FIXED | RESOLVED |
 | F7 | `review-finding:pr-2985-f7` | Copilot | Minor (inferred) | formatting | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F8 | `review-finding:pr-2985-f8` | Copilot | Minor (inferred) | formatting | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F9 | `review-finding:pr-2985-f9` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F10 | `review-finding:pr-2985-f10` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F11 | `review-finding:pr-2985-f11` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -162,10 +167,50 @@ Round 1 is da2ce7's APPROVED review `6006228624` (six inline findings, F1 to F6 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4653368912
 
+### F9 - Reading the raw entry's scheme would reject the domain form without a scheme
+
+- PR number: 2985
+- Source review ID: 6006401735
+- Reviewer finding ID: da2ce7 F9
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4653484238
+- Concern: `localhost:6969` parses as a URL with scheme `localhost`, so a scheme check on the raw entry would break that allowed form, and AC4 named only `udp://localhost:6969`.
+- Solution: The spec says the scheme is detected by the `://` separator, and AC4 lists `localhost:6969`.
+- Current-tree verification: Read the Regression Test Strategy sentence and the AC4 line of `ISSUE.md`.
+- Resolution reference: `docs(issues): [#2984] say how the scheme is detected and cover localhost:6969 in AC4`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4653507315
+
+### F10 - This control row now shows a field that the first run's record left out
+
+- PR number: 2985
+- Source review ID: 6006401735
+- Reviewer finding ID: da2ce7 F10
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4653484242
+- Concern: The `source` field in the control row was restored without a rerun, while the file said the controls were not rerun.
+- Solution: Both controls were rerun with the same binary at 2026-11-21 15:57 UTC and recorded verbatim; the environment section says so.
+- Current-tree verification: Read the controls section and the Dates line of the evidence file.
+- Resolution reference: `docs(issues): [#2984] rerun the two control cases and record them verbatim`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4653507638
+
+### F11 - The spec's `last-updated-utc` and Progress Log did not move with the round-1 fixes
+
+- PR number: 2985
+- Source review ID: 6006401735
+- Reviewer finding ID: da2ce7 F11
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4653484247
+- Concern: The frontmatter still read 13:15 and the Progress Log had no entry for the edits or the rerun.
+- Solution: `last-updated-utc` is the update time and the Progress Log has entries for the 15:15 rerun, the round 1 fixes and the round 2 fixes.
+- Current-tree verification: Read frontmatter line 12 and the Progress Log of `ISSUE.md`.
+- Resolution reference: `docs(issues): [#2984] bring the spec progress log and last-updated up to date`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4653507842
+
 ## Processing Log
 
 - 2026-11-21 15:23 UTC - Round 1: da2ce7's APPROVED review `6006228624` (15:14:29Z, six findings) and Copilot's COMMENTED review `6006218464` (15:12:25Z, two findings, both about a `||` row prefix that is not in the files). Six commits fixed F1 to F6, one per finding (pushed, exit 0, head on GitHub then `docs(issues): [#2984] identify the build and toolchain of the reproduction`). Eight replies were posted between 15:23:24Z and 15:23:40Z (after the push), and this record was written after them, not before (late start).
 - 2026-11-21 15:25 UTC - Round 1, continued: the eight threads were resolved after the validator run (`failures: 0`). GraphQL: 0 unresolved.
+- 2026-11-21 16:03 UTC - Round 2: da2ce7's APPROVED review `6006401735` (15:55:15Z, three findings F9 to F11). Three commits fixed them, one per finding (pushed, exit 0). Three replies were posted after the push, between 16:02:20Z and 16:02:24Z, and this record was updated after them. Threads resolved at 16:03Z after the validator run (`failures: 0`). GraphQL: 0 unresolved.
 
 <!-- Copied verbatim into each audit record. -->
 
