@@ -189,8 +189,8 @@ For each subissue implementation in this EPIC, the default completion policy is:
 ### Phase 4 - Document and close
 
 - Outcome: the test isolation rules are documented for contributors (for example in
-  `docs/testing.md` and the `write-unit-test` skill). #1419 closed on 2026-11-21 with all its
-  work done under this EPIC. No #1419 work is tracked outside this EPIC.
+  `docs/testing.md` and the `write-unit-test` skill). #1419 closed on 2026-11-21; its remaining
+  work (R8, AC8a and R9) was done under this EPIC, and none is deferred to another issue.
 - Exit criteria: all subissues are done or explicitly handed off.
 
 ## Decisions
