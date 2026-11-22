@@ -1,7 +1,7 @@
 ---
 pr-number: 2985
 pr-url: https://github.com/torrust/torrust-tracker/pull/2985
-last-updated-utc: "2026-11-22 10:20"
+last-updated-utc: "2026-11-22 10:24"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -43,6 +43,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
+Round 6 is da2ce7's COMMENTED review `6011655297` (four inline findings, F20 to F23, numbered after the record's F19) on the head `docs(pr-reviews): [#2984] add round 5 findings F18 and F19 to the PR 2985 audit`. Copilot's COMMENTED review `6011678308` (10:20:41Z, same head) has no inline comment and no open issue; its summary mentions omitted findings about test-design review checkpoints and exit-code verification evidence that are not retrievable, so it gets no row.
+
 Round 5 is Copilot's COMMENTED review `6011585846` (09:54:58Z, two inline findings, F18 and F19 here; F19 re-raises F16) on the head `docs(pr-reviews): [#2984] correct the reply times in the PR 2985 audit round 3 entry`; it was submitted during round 4 and found when the threads were listed before resolving.
 
 Round 4 is da2ce7's COMMENTED review `6011571146` (three inline findings, F15 to F17 in his numbering, kept here) on the head `docs(pr-reviews): [#2984] correct the reply times in the PR 2985 audit round 3 entry`.
@@ -74,6 +76,10 @@ Round 1 is da2ce7's APPROVED review `6006228624` (six inline findings, F1 to F6 
 | F17 | `review-finding:pr-2985-f17` | Human | Nit | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F18 | `review-finding:pr-2985-f18` | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
 | F19 | `review-finding:pr-2985-f19` | Copilot | Minor (inferred) | correctness | RE_RAISE_OF:F16 | NO_ACTION | SUPERSEDED |
+| F20 | `review-finding:pr-2985-f20` | Human | Minor | link-integrity | ORIGINAL | FIXED | RESOLVED |
+| F21 | `review-finding:pr-2985-f21` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F22 | `review-finding:pr-2985-f22` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F23 | `review-finding:pr-2985-f23` | Human | Suggestion | maintainability | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -324,6 +330,58 @@ Round 1 is da2ce7's APPROVED review `6006228624` (six inline findings, F1 to F6 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657638201
 
+### F20 - The audit cites the PR-branch commit 4cf09d58e by id
+
+- PR number: 2985
+- Source review ID: 6011655297
+- Reviewer finding ID: da2ce7 F20
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657671572
+- Concern: Line 320 of the audit and the F19 reply cited a PR-branch commit by id; durable references must cite the Conventional Commit subject because a rebase orphans ids.
+- Solution: Both now name the head by its subject.
+- Current-tree verification: The skill's commit-id check against `torrust/develop` prints nothing at the head after the fix.
+- Resolution reference: `docs(pr-reviews): [#2984] cite the reviewed head by subject in finding F19`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657695990
+
+### F21 - T2 cites a probe of the binary that the evidence file does not record
+
+- PR number: 2985
+- Source review ID: 6011655297
+- Reviewer finding ID: da2ce7 F21
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657671577
+- Concern: T2, the F15 reply and its row cited a run that `manual-verification-evidence.md` did not hold.
+- Solution: The HTTP cases were run again for both lists and recorded as V2 with the commands and verbatim output; T2 and M2 are done and cite V2.
+- Current-tree verification: Read V2 in the evidence file and T2 in `ISSUE.md`.
+- Resolution reference: `docs(issues): [#2984] record the HTTP reproduction as V2 with its verbatim output`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657696142
+
+### F22 - The round-4 entry puts the replies at about 09:58Z; the capture has them at 09:59:24Z to 09:59:29Z
+
+- PR number: 2985
+- Source review ID: 6011655297
+- Reviewer finding ID: da2ce7 F22
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657671579
+- Concern: The round 4 Processing Log entry gave an approximate reply time that disagrees with the captured `created_at` values.
+- Solution: A correction entry is appended with the captured times; the round 4 entry is not rewritten.
+- Current-tree verification: Read the Processing Log of this record.
+- Resolution reference: `docs(pr-reviews): [#2984] append the correction for the round 4 reply times`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657696253
+
+### F23 - Say where the replacement panic-hook trigger may live
+
+- PR number: 2985
+- Source review ID: 6011655297
+- Reviewer finding ID: da2ce7 F23
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657671584
+- Concern: A separate controlled trigger in the binary would be a production path that panics on demand; the Regression Test Strategy did not mention the test change.
+- Solution: T3 and the Regression Test Strategy place the coverage in a unit test of a seam inside `output.rs` and rule out a binary path that panics on demand.
+- Current-tree verification: Read T3 and the Regression Test Strategy in `ISSUE.md`.
+- Resolution reference: `docs(issues): [#2984] say where the replacement panic-hook coverage may live`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657696360
+
 ## Processing Log
 
 - 2026-11-21 15:23 UTC - Round 1: da2ce7's APPROVED review `6006228624` (15:14:29Z, six findings) and Copilot's COMMENTED review `6006218464` (15:12:25Z, two findings, both about a `||` row prefix that is not in the files). Six commits fixed F1 to F6, one per finding (pushed, exit 0, head on GitHub then `docs(issues): [#2984] identify the build and toolchain of the reproduction`). Eight replies were posted between 15:23:24Z and 15:23:40Z (after the push), and this record was written after them, not before (late start).
@@ -334,6 +392,7 @@ Round 1 is da2ce7's APPROVED review `6006228624` (six inline findings, F1 to F6 
 - 2026-11-22 09:59 UTC - Round 4: da2ce7's COMMENTED review `6011571146` (09:50:29Z, three findings F15 to F17; no ACK while the F12 thread is open). Three commits fixed them (pushed, exit 0), a probe of the current binary checked the F15 claim, and three replies were posted after the push at about 09:58Z (the F16 reply was edited once at 09:59Z to fix row names). Threads resolved after the validator run. F12 remains FOLLOW_UP/OPEN, waiting for the maintainer's PR comment.
 - 2026-11-22 10:05 UTC - Round 5: Copilot's COMMENTED review `6011585846` (09:54:58Z, two findings F18 and F19), found while resolving round 4 threads (it arrived while round 4 was processed, so I should have listed all reviews before recording round 4). One commit fixed F18 (pushed, exit 0); F19 re-raises F16, already fixed. Replies were posted after the push; the two threads are resolved after the validator run. F12 remains FOLLOW_UP/OPEN.
 - 2026-11-22 10:20 UTC - Correction (round 4 entry): that entry says the three replies were posted "at about 09:58Z". The capture has them at 09:59:24Z, 09:59:27Z and 09:59:29Z (the F16 edit at 09:59:51Z is as logged). The entry is not rewritten; these are the correct times.
+- 2026-11-22 10:24 UTC - Round 6: da2ce7's COMMENTED review `6011655297` (10:16:30Z, four findings F20 to F23; no ACK while the F12 thread is open) and Copilot's COMMENTED review `6011678308` (10:20:41Z, no inline finding, no row). Six commits fixed F20 to F23 (pushed, exit 0); four replies were posted after the push; the four threads are resolved after the validator run. F12 remains FOLLOW_UP/OPEN, waiting for the maintainer's PR comment.
 
 <!-- Copied verbatim into each audit record. -->
 
