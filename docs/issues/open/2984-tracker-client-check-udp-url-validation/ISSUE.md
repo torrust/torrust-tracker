@@ -63,7 +63,7 @@ This bug is not part of EPIC #2758 (CLI output contract migration). It was found
 
 ## Decisions (maintainer)
 
-Both questions raised by the first draft were answered by the maintainer in the session that created this issue, on 2026-11-22 (chat; not a durable GitHub comment, so the review thread of this pull request is the record to cite).
+The maintainer answered both questions raised by the first draft in chat, on 2026-11-22, one day after this issue was created (2026-11-21). The chat is not a durable record: the maintainer is asked to restate both decisions in a comment on this pull request, and the comment URL will be cited here. Until then the decisions below are the author's record of that chat, not a quotation.
 
 1. **An unresolvable hostname is a failed check for that tracker**, not a configuration error: DNS is a network condition, and the check exists to report on tracker health. `udp::Checks` carries `remote_addr: SocketAddr` (`checks/udp.rs:15`), which cannot hold an address that did not resolve, so the implementation changes the result record: candidates are `remote_addr: Option<SocketAddr>` plus the configured URL, or a placeholder. The implementation PR shows the new record and this is the one allowed change to the output contract's result shape.
 2. **The same host and scheme validation also applies to `http_trackers` and `health_checks`.** The rule is in In Scope. The first draft only assumed that a missing port is valid there and that nothing panics for those lists; the implementation must reproduce with a real run whether any HTTP URL form also panics or fails wrongly today, and record it in `manual-verification-evidence.md` before the fix.
