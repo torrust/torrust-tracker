@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2993-secrets-and-client-error-text/EPIC.md
-last-updated-utc: "2026-11-22 14:50"
+last-updated-utc: "2026-11-22 15:05"
 ---
 
 # Manual Verification Evidence
@@ -227,6 +227,37 @@ and its log held 0 lines with the key.
 Conclusion: the server message names the database user and the client address (A11). On MySQL the
 duplicate-key message holds the peer key, in the reply and in a DEBUG log line; on PostgreSQL and
 SQLite (V5) it does not (A12). An authentication failure is labelled "query was malformed".
+
+### V9 - After SI-4 of EPIC #2912 merged
+
+SI-4 (#2916) merged into `develop` as `4fa49ec9c` while this pull request was in review. The key
+cases were sent again at 2026-11-22 15:00 UTC to a debug build of the tree that includes it
+(`develop` at `6f62cc107` plus this branch's documentation), with the same configuration files and
+by hand, not with the script:
+
+- `GET /announce/TestPeerKey000000000000000000001?...`:
+
+  ```text
+  d14:failure reason82:Tracker authentication error: Failed to read key: TestPeerKey000000000000000000001e
+  ```
+
+- `POST /api/v1/keys` with `{"key":"ShortTestKey01","seconds_valid":100}`:
+
+  ```text
+  Invalid URL: invalid auth key: string "ShortTestKey01", Invalid key length. Key must be have 32 chars
+  ```
+
+- The same key added twice on MySQL; the second reply:
+
+  ```text
+  Unhandled rejection: Err { reason: "failed to add key: The MySQL query was malformed: error returned from database: 1062 (23000): Duplicate entry 'TestPeerKey000000000000000000003' for key 'keys.key'" } [500]
+  ```
+
+  The MySQL tracker's log held 0 lines with the key.
+
+Conclusion: SI-4 removed the source locations and, with `LocatedError`, the DEBUG line that held
+the key. The key is still echoed in the HTTP failure reason, in the REST reply for an uploaded key
+and in the MySQL duplicate-key reply. The other processes were not repeated on this build.
 
 ## Not Reproduced
 

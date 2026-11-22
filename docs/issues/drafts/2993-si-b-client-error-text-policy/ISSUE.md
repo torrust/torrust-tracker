@@ -206,7 +206,7 @@ A short UDP probe (connect, announce, raw packet) is needed for M2 and M3, becau
 - **Clients that match on text.** Mitigation: list old and new texts; the ADR says whether any text is a contract.
 - **Divergence from API v2.** Mitigation: the ADR names how the v2 error model (EPIC #144) relates to the policy.
 - **Over-generic messages that help nobody.** Mitigation: the maintainer's principle; a known client mistake keeps a specific message.
-- **Conflict with SI-A and SI-4.** All three touch the tracker-core errors. Mitigation: run them one after the other: SI-4, then SI-A, then this issue's code.
+- **Conflict with SI-A and SI-4.** All three touch the tracker-core errors. Mitigation: SI-4 has merged; run SI-A before this issue's code.
 
 ## Implementation Completion Review
 

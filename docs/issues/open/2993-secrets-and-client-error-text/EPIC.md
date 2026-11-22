@@ -46,24 +46,26 @@ The two problems differ in kind. SI-A is a bug class with concrete, listed cases
 
 ## Inventory (verified against the tree at `develop` commit `bcca9764c`, 2026-11-22)
 
+SI-4 of EPIC #2912 (#2916, pull request #2991) merged into `develop` on 2026-11-22 as `4fa49ec9c`, after this inventory was made. It removed the source locations from the tracker-core errors and nothing else that matters here: a re-run on a build that includes it (evidence file, section V9) shows the same replies without the location suffix, the key still echoed, and the MySQL duplicate-key reply still holding the key. The `tracker-core` line numbers below were refreshed against the tree that includes SI-4; the quoted reply texts in "Verified by running experiments" are from the run before it and still show locations.
+
 Paths are relative to the repository root. Every item was read in the code, and the leaks were reproduced on a running tracker (see "Verified by running experiments"). The one thing not checked is how a source location prints in a release build; the debug build prints the workspace-relative path (`packages/tracker-core/src/authentication/service.rs:98:27`), and that is EPIC #2912's concern.
 
 ### A. Secrets held by errors or written to output
 
 | ID | Location | What leaks | Seen by |
 | --- | --- | --- | --- |
-| A1 | `packages/tracker-core/src/authentication/key/mod.rs:180` (`UnableToReadKey { key: Box<Key> }`, built in `authentication/service.rs:97`) | the full 32-character peer key, kept and printed (`Failed to read key: {key}`) | the HTTP client that sent the key |
-| A2 | `packages/tracker-core/src/error.rs:128` (`PeerKeyError::InvalidKey { key: String }`, built in `authentication/handler.rs:106`, `:123`) and `packages/rest-api-protocol/src/v1/context/auth_key/resources/auth_key.rs:31` (`InvalidKey { key, reason }`, Display `invalid key: "{key}"`) | the key an administrator uploaded, echoed back | the REST API administrator; REST handlers `auth_key/handlers.rs:38-46` and `invalid_auth_key_response` (`responses.rs:53-55`) |
+| A1 | `packages/tracker-core/src/authentication/key/mod.rs:176` (`UnableToReadKey { key: Box<Key> }`, built in `authentication/service.rs:96`) | the full 32-character peer key, kept and printed (`Failed to read key: {key}`) | the HTTP client that sent the key |
+| A2 | `packages/tracker-core/src/error.rs:124` (`PeerKeyError::InvalidKey { key: String }`, built in `authentication/handler.rs:103`, `:118`) and `packages/rest-api-protocol/src/v1/context/auth_key/resources/auth_key.rs:31` (`InvalidKey { key, reason }`, Display `invalid key: "{key}"`) | the key an administrator uploaded, echoed back | the REST API administrator; REST handlers `auth_key/handlers.rs:38-46` and `invalid_auth_key_response` (`responses.rs:53-55`) |
 | A3 | `packages/axum-http-server/src/v1/routes.rs:82-104` (`TraceLayer`, `DefaultMakeSpan` at INFO plus `on_request` with `%uri`) | the peer key in `/announce/<key>` and `/scrape/<key>`, plus the whole query string, in the request event and in the span of every event inside it | server log reader |
 | A4 | `packages/axum-rest-api-server/src/routes.rs:76-98` (same pattern; the auth middleware is inside the trace layer, so wrong tokens are logged too) | the admin token in `?token=<token>` and the key in `/api/v1/key/<key>` | server log reader |
-| A5 | `packages/tracker-core/src/authentication/key/mod.rs:113`, `:120` (`tracing::debug!("Generated key: {}...")`) | a newly generated peer key, in clear, at DEBUG | server log reader |
+| A5 | `packages/tracker-core/src/authentication/key/mod.rs:111`, `:118` (`tracing::debug!("Generated key: {}...")`) | a newly generated peer key, in clear, at DEBUG | server log reader |
 | A6 | `packages/rest-api-client/src/v1/client.rs:30` (`TransportError(reqwest::Error)`) and `:369-370` (token added to the query string); `without_url` is never called | reqwest prints the URL, so a transport error on a GET contains `?token=<token>` | users of the client library and console tools |
 | A7 | `packages/tracker-core/src/authentication/key/peer_key.rs:127-128`, `:46-47`, `:71-75` (`Key` and `PeerKey` derive `Debug`, `Display`, `Serialize`) | the peer key prints in clear wherever the value is formatted | any log or error that formats a `Key` |
 | A8 | `packages/axum-rest-api-server/src/v1/middlewares/auth.rs:62-65` (`QueryParams { token: Option<String> }` derives `Debug`); `packages/rest-api-client/src/connection_info.rs:7-9` (`api_token: Option<String>`) | plain `String` tokens; no log of them was found | none today; a latent risk |
 | A9 | `docs/containers.md` (lines about 492-562) | the documentation teaches `?token=` URLs and a `mysql://user:password@host` URL in config and environment | readers; the request log then records the token. The MySQL example (`path = "mysql://db_user:...@mysql:3306/torrust_tracker"`) is also stale: the v3 schema refuses `path` for a network database (`packages/configuration/src/v3_0_0/database.rs:203-204`) |
 | A10 | `packages/configuration/src/v3_0_0/mod.rs:409` (`figment.extract()`), wrapped by `Error::ConfigError` (`packages/configuration/src/lib.rs:335`) | a configuration error prints the offending value, so a numeric database password or access token is printed (details below) | the operator: stderr and the server log |
-| A11 | `packages/tracker-core/src/databases/error.rs:111-135` (`From<(SqlxError, Driver)>` keeps the `sqlx` text) | a database server message names the database user and the client address (details below). Not a secret; owned by SI-B | the operator today; a client wherever driver text is forwarded |
-| A12 | `packages/tracker-core/src/databases/error.rs:111-135` (the `sqlx` source is kept and printed), reached from `packages/tracker-core/src/databases/driver/mysql/auth_key_store.rs` | a database server message can contain a secret: adding a peer key that already exists makes MySQL answer `Duplicate entry '<peer key>' for key 'keys.key'`, and the error keeps and prints it. PostgreSQL (`duplicate key value violates unique constraint "keys_key_key"`) and SQLite (`UNIQUE constraint failed: keys.key`) do not print the value | the REST administrator (500 reply), and the server log at DEBUG through the `torrust_located_error` event |
+| A11 | `packages/tracker-core/src/databases/error.rs:92-116` (`From<(SqlxError, Driver)>` keeps the `sqlx` text) | a database server message names the database user and the client address (details below). Not a secret; owned by SI-B | the operator today; a client wherever driver text is forwarded |
+| A12 | `packages/tracker-core/src/databases/error.rs:92-116` (the `sqlx` source is kept and printed), reached from `packages/tracker-core/src/databases/driver/mysql/auth_key_store.rs` | a database server message can contain a secret: adding a peer key that already exists makes MySQL answer `Duplicate entry '<peer key>' for key 'keys.key'`, and the error keeps and prints it. PostgreSQL (`duplicate key value violates unique constraint "keys_key_key"`) and SQLite (`UNIQUE constraint failed: keys.key`) do not print the value | the REST administrator (500 reply). Before SI-4 of EPIC #2912 also the server log at DEBUG, through the `torrust_located_error` event; that line is gone since SI-4 |
 
 Checked and found safe, so that the spec does not redo it:
 
@@ -93,9 +95,9 @@ HTTP tracker (a bencoded `failure reason`, always HTTP 200; wrapper `packages/ht
 
 | Error family | Client text (shape) | Source |
 | --- | --- | --- |
-| authentication | `Tracker authentication error: Failed to read key: <key>[, <location>]`, `Missing authentication key`, `Key has expired` | `packages/http-core/src/services/error_mapping.rs:4-21`, `packages/tracker-core/src/authentication/key/mod.rs:180-191` |
-| whitelist | `Tracker whitelist error: The torrent: <info-hash>, is not whitelisted` | `packages/tracker-core/src/error.rs:104` |
-| database (announce and scrape) | `Tracker announce error: Database error: <sqlx text>` | `packages/tracker-core/src/error.rs:79`, `:92`; `databases/error.rs` |
+| authentication | `Tracker authentication error: Failed to read key: <key>[, <location>]`, `Missing authentication key`, `Key has expired` | `packages/http-core/src/services/error_mapping.rs:4-21`, `packages/tracker-core/src/authentication/key/mod.rs:176-185` |
+| whitelist | `Tracker whitelist error: The torrent: <info-hash>, is not whitelisted` | `packages/tracker-core/src/error.rs:102` |
+| database (announce and scrape) | `Tracker announce error: Database error: <sqlx text>` | `packages/tracker-core/src/error.rs:77`, `:90`; `databases/error.rs` |
 | query parse | `Bad request. Cannot parse query params: invalid param <raw param>` and per-parameter texts that echo the client's own values | `packages/http-protocol/src/v1/requests/announce.rs:216-245`, `:346-354`, `query.rs:102` |
 | client IP | `Error resolving peer IP: missing or invalid right-most IP in the X-Forwarded-For header, which is mandatory when the tracker runs behind a reverse proxy` | `peer_ip_resolver.rs:112-121` |
 
@@ -106,7 +108,7 @@ UDP tracker (the error packet message is `error.to_string()` of `udp_server::err
 | request parse | `error parsing request: {request_parse_error:?}` (Debug of a struct) | `packages/udp-server/src/error.rs:24` |
 | connection cookie | `... Connection cookie error: cookie value is expired: <f64>, expected > <f64>` (server timing values) | `packages/udp-core/src/connection_cookie.rs:112-118` |
 | whitelist | `tracker announce error: Tracker core whitelist error: The torrent: <info-hash>, is not whitelisted` | `packages/udp-core/src/services/announce.rs:190-204` |
-| database | `tracker announce error: Tracker core announce error: Database error: Failed to connect to <driver> database: error communicating with database: <io error>` | `databases/error.rs:111-135` |
+| database | `tracker announce error: Tracker core announce error: Database error: Failed to connect to <driver> database: error communicating with database: <io error>` | `packages/tracker-core/src/databases/error.rs:92-116` |
 | internal | `internal server error: {message}` | `packages/udp-server/src/error.rs:36` |
 
 REST API (`packages/axum-rest-api-server/src/v1/responses.rs`):
@@ -170,11 +172,11 @@ SI-B, client error text (a design question):
 
 Decided by the maintainer on 2026-11-22: this EPIC is standalone and linked. It is not a sub-issue of #2912, so #2912 keeps its single scope (source locations). Effects on #2912:
 
-- SI-4 (#2916, PR #2991) does not fix A1 or A2; it links this EPIC for the standing review finding.
+- SI-4 (#2916, PR #2991) merged on 2026-11-22. It did not fix A1 or A2; it links this EPIC for the standing review finding.
 - SI-5 (#2917): one interaction. Its AC2 says the startup error for a bad configuration file "names the file and the invalid key or value". For a secret option (the database password, an access token) the value must not be printed (A10). SI-5 should name the option and the expected type only for those options, or leave the value to SI-A; the maintainer decides which issue owns it.
 - SI-6 (#2918) is unchanged.
 - SI-7 (#384) is unchanged: it checks that no client reply holds a source path. Its out-of-scope note about other information in a reply (for example database error codes) points to SI-B.
-- Order: nothing here blocks #2912. Any change to the text of the tracker-core errors lands after SI-4 merges, to avoid conflicting edits.
+- Order: nothing here blocks #2912. SI-4 has merged, so SI-A can start on the tracker-core errors.
 
 ## Subissues
 
@@ -182,7 +184,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | Order | Issue | Local Spec | Status | Notes |
 | --- | --- | --- | --- | --- |
-| 1 | #[To be assigned] - SI-A Keep secrets out of errors, logs and output | `docs/issues/drafts/2993-si-a-keep-secrets-out-of-errors-and-logs/ISSUE.md` | TODO | After SI-4 (#2916) merges. A bug class with the listed cases A1 to A9 |
+| 1 | #[To be assigned] - SI-A Keep secrets out of errors, logs and output | `docs/issues/drafts/2993-si-a-keep-secrets-out-of-errors-and-logs/ISSUE.md` | TODO | SI-4 (#2916) has merged, so it can start. A bug class with the listed cases A1 to A9 |
 | 2 | #[To be assigned] - SI-B Define and apply the client error text policy | `docs/issues/drafts/2993-si-b-client-error-text-policy/ISSUE.md` | TODO | Starts with an ADR; implementation after the maintainer accepts the ADR. May start in parallel with SI-A, but it touches the same error types, so run them one after the other |
 
 Both sub-issue specifications are drafts until the maintainer approves them; their GitHub issues are created then.
@@ -296,7 +298,7 @@ The REST API messages for an uploaded key (A2) follow the same pattern: the leng
 - **Redacting the URI loses debugging value.** An operator can no longer see which key a client used. Mitigation: log a stable short fingerprint if the maintainer wants correlation; SI-A decides.
 - **Hiding database detail from clients hides it from administrators.** The REST admin loses the driver text. Mitigation: the detail goes to a `tracing` event on the server, and the reply may carry a request id.
 - **Changing client text breaks clients that match on it.** Today's text is unstable and unspecified, but a client may still match it. Mitigation: each sub-issue lists old and new texts for approval, and the ADR says whether any text is a contract.
-- **Conflict with EPIC #2912.** Both touch tracker-core error types. Mitigation: SI-A and SI-B start after SI-4 merges.
+- **Conflict with EPIC #2912.** Both touch tracker-core error types. SI-4 has merged; SI-5 and SI-6 touch other packages and the `LocatedError` dependency. Mitigation: re-check the inventory lines against the tree before the first change.
 - **Scope growth.** Mitigation: the Out of Scope list; API v2 status codes stay in EPIC #144.
 
 ## References
