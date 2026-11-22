@@ -233,6 +233,10 @@ impl Repository {
 
 #[cfg(test)]
 mod tests {
+    use torrust_clock::DurationSinceUnixEpoch;
+    use torrust_metrics::gauge::Gauge;
+    use torrust_metrics::label::LabelSet;
+    use torrust_metrics::metric_collection::Error;
     use torrust_metrics::metric_name;
 
     use super::Repository;
@@ -241,13 +245,41 @@ mod tests {
         TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL,
     };
 
+    /// A gauge name the package does not describe, created by the tests that need a gauge.
+    const A_GAUGE: &str = "test_gauge";
+
+    const NOW: DurationSinceUnixEpoch = DurationSinceUnixEpoch::from_secs(0);
+
+    fn no_labels() -> LabelSet {
+        LabelSet::default()
+    }
+
+    async fn repository_with_a_gauge_set_to(value: f64) -> Repository {
+        let repository = Repository::new(true, true);
+        repository
+            .set_gauge(&metric_name!(A_GAUGE), &no_labels(), value, NOW)
+            .await
+            .expect("setting a new gauge should succeed");
+        repository
+    }
+
+    async fn gauge(repository: &Repository, name: &str) -> Option<Gauge> {
+        repository
+            .read_metrics(|metrics| metrics.metric_collection().get_gauge_value(&metric_name!(name), &no_labels()))
+            .await
+    }
+
+    fn is_a_name_collision_on(result: &Result<(), Error>, name: &str) -> bool {
+        matches!(result, Err(Error::MetricNameCollisionAdding { metric_name }) if *metric_name == metric_name!(name))
+    }
+
     #[tokio::test]
     async fn it_should_omit_persisted_metric_when_persisted_completed_statistics_are_disabled() {
         // Arrange
         let repository = Repository::new(true, false);
 
         // Act
-        let (has_persistent, has_in_session, has_persisted) = repository
+        let described_counters = repository
             .read_metrics(|metrics| {
                 let collection = metrics.metric_collection();
                 (
@@ -258,10 +290,8 @@ mod tests {
             })
             .await;
 
-        // Assert
-        assert!(has_persistent);
-        assert!(has_in_session);
-        assert!(!has_persisted);
+        // Assert: (persistent, in-session, persisted)
+        assert_eq!(described_counters, (true, true, false));
     }
 
     #[tokio::test]
@@ -281,5 +311,169 @@ mod tests {
         // Assert
         assert!(has_persisted);
         assert_eq!(repository.get_torrents_downloads_persisted_total().await, 0);
+    }
+
+    #[tokio::test]
+    async fn it_should_read_a_counter_that_is_not_in_the_collection_as_zero() {
+        // Arrange: persisted statistics disabled, so the persisted counter is not described
+        let repository = Repository::new(true, false);
+
+        // Act
+        let total = repository.get_torrents_downloads_persisted_total().await;
+
+        // Assert
+        assert_eq!(total, 0);
+    }
+
+    #[tokio::test]
+    async fn it_should_set_a_counter_to_the_given_value() {
+        // Arrange
+        let repository = Repository::new(true, true);
+
+        // Act
+        let result = repository
+            .set_counter(
+                &metric_name!(TRACKER_CORE_PERSISTED_TORRENTS_DOWNLOADS_TOTAL),
+                &no_labels(),
+                7,
+                NOW,
+            )
+            .await;
+
+        // Assert
+        assert!(result.is_ok(), "{result:?}");
+        assert_eq!(repository.get_torrents_downloads_persisted_total().await, 7);
+    }
+
+    #[tokio::test]
+    async fn it_should_refuse_to_set_a_counter_that_has_the_name_of_a_gauge() {
+        // Arrange
+        let repository = repository_with_a_gauge_set_to(2.5).await;
+
+        // Act
+        let result = repository.set_counter(&metric_name!(A_GAUGE), &no_labels(), 7, NOW).await;
+
+        // Assert
+        assert!(is_a_name_collision_on(&result, A_GAUGE), "{result:?}");
+        assert_eq!(gauge(&repository, A_GAUGE).await, Some(Gauge::from(2.5)));
+    }
+
+    #[tokio::test]
+    async fn it_should_refuse_to_increment_a_counter_that_has_the_name_of_a_gauge() {
+        // Arrange
+        let repository = repository_with_a_gauge_set_to(2.5).await;
+
+        // Act
+        let result = repository.increment_counter(&metric_name!(A_GAUGE), &no_labels(), NOW).await;
+
+        // Assert
+        assert!(is_a_name_collision_on(&result, A_GAUGE), "{result:?}");
+        assert_eq!(gauge(&repository, A_GAUGE).await, Some(Gauge::from(2.5)));
+    }
+
+    #[tokio::test]
+    async fn it_should_set_a_gauge_to_the_given_value() {
+        // Arrange
+        let repository = Repository::new(true, true);
+
+        // Act
+        let result = repository.set_gauge(&metric_name!(A_GAUGE), &no_labels(), 2.5, NOW).await;
+
+        // Assert
+        assert!(result.is_ok(), "{result:?}");
+        assert_eq!(gauge(&repository, A_GAUGE).await, Some(Gauge::from(2.5)));
+    }
+
+    #[tokio::test]
+    async fn it_should_refuse_to_set_a_gauge_that_has_the_name_of_a_counter() {
+        // Arrange
+        let repository = Repository::new(true, true);
+
+        // Act
+        let result = repository
+            .set_gauge(
+                &metric_name!(TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL),
+                &no_labels(),
+                2.5,
+                NOW,
+            )
+            .await;
+
+        // Assert
+        assert!(
+            is_a_name_collision_on(&result, TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL),
+            "{result:?}"
+        );
+        assert_eq!(repository.get_torrents_downloads_total().await, 0);
+    }
+
+    #[tokio::test]
+    async fn it_should_increment_a_gauge_by_one() {
+        // Arrange
+        let repository = repository_with_a_gauge_set_to(2.5).await;
+
+        // Act
+        let result = repository.increment_gauge(&metric_name!(A_GAUGE), &no_labels(), NOW).await;
+
+        // Assert
+        assert!(result.is_ok(), "{result:?}");
+        assert_eq!(gauge(&repository, A_GAUGE).await, Some(Gauge::from(3.5)));
+    }
+
+    #[tokio::test]
+    async fn it_should_refuse_to_increment_a_gauge_that_has_the_name_of_a_counter() {
+        // Arrange
+        let repository = Repository::new(true, true);
+
+        // Act
+        let result = repository
+            .increment_gauge(
+                &metric_name!(TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL),
+                &no_labels(),
+                NOW,
+            )
+            .await;
+
+        // Assert
+        assert!(
+            is_a_name_collision_on(&result, TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL),
+            "{result:?}"
+        );
+        assert_eq!(repository.get_torrents_downloads_total().await, 0);
+    }
+
+    #[tokio::test]
+    async fn it_should_decrement_a_gauge_by_one() {
+        // Arrange
+        let repository = repository_with_a_gauge_set_to(2.5).await;
+
+        // Act
+        let result = repository.decrement_gauge(&metric_name!(A_GAUGE), &no_labels(), NOW).await;
+
+        // Assert
+        assert!(result.is_ok(), "{result:?}");
+        assert_eq!(gauge(&repository, A_GAUGE).await, Some(Gauge::from(1.5)));
+    }
+
+    #[tokio::test]
+    async fn it_should_refuse_to_decrement_a_gauge_that_has_the_name_of_a_counter() {
+        // Arrange
+        let repository = Repository::new(true, true);
+
+        // Act
+        let result = repository
+            .decrement_gauge(
+                &metric_name!(TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL),
+                &no_labels(),
+                NOW,
+            )
+            .await;
+
+        // Assert
+        assert!(
+            is_a_name_collision_on(&result, TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL),
+            "{result:?}"
+        );
+        assert_eq!(repository.get_torrents_downloads_total().await, 0);
     }
 }

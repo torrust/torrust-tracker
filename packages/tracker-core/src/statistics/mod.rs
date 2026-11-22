@@ -73,3 +73,48 @@ fn set_counter_to_zero(metrics: &mut Metrics, metric_name: &str) {
         )
         .expect("described counters accept an initial zero value");
 }
+
+#[cfg(test)]
+mod tests {
+    use rstest::rstest;
+    use torrust_metrics::label::LabelSet;
+    use torrust_metrics::metric_name;
+
+    use super::metrics::Metrics;
+    use super::{
+        TRACKER_CORE_IN_SESSION_TORRENTS_DOWNLOADS_TOTAL, TRACKER_CORE_PERSISTED_TORRENTS_DOWNLOADS_TOTAL,
+        TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL, describe_metrics,
+    };
+
+    /// The value of an unlabeled counter, or `None` when it is not registered.
+    fn counter(metrics: &Metrics, name: &str) -> Option<u64> {
+        metrics
+            .metric_collection()
+            .get_counter_value(&metric_name!(name), &LabelSet::default())
+            .map(|counter| counter.value())
+    }
+
+    #[rstest]
+    #[case::both_disabled(false, false)]
+    #[case::only_persisted_statistics(false, true)]
+    #[case::only_usage_statistics(true, false)]
+    #[case::both_enabled(true, true)]
+    fn it_should_register_each_downloads_total_only_when_its_statistics_are_enabled(
+        #[case] usage: bool,
+        #[case] persisted: bool,
+    ) {
+        // Act
+        let metrics = describe_metrics(usage, persisted);
+
+        // Assert
+        assert_eq!(
+            (
+                counter(&metrics, TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL),
+                counter(&metrics, TRACKER_CORE_IN_SESSION_TORRENTS_DOWNLOADS_TOTAL),
+                counter(&metrics, TRACKER_CORE_PERSISTED_TORRENTS_DOWNLOADS_TOTAL)
+            ),
+            (Some(0), usage.then_some(0), persisted.then_some(0)),
+            "(persistent, in-session, persisted) totals with usage statistics {usage} and persisted statistics {persisted}"
+        );
+    }
+}

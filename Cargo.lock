@@ -5188,6 +5188,7 @@ dependencies = [
  "derive_more 2.1.1",
  "mockall",
  "rand 0.9.5",
+ "rstest",
  "secrecy",
  "serde",
  "serde_json",
