@@ -1,7 +1,7 @@
 ---
 pr-number: 2985
 pr-url: https://github.com/torrust/torrust-tracker/pull/2985
-last-updated-utc: "2026-11-22 10:05"
+last-updated-utc: "2026-11-22 10:20"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -333,6 +333,7 @@ Round 1 is da2ce7's APPROVED review `6006228624` (six inline findings, F1 to F6 
 - 2026-11-22 09:56 UTC - Correction: the round 3 entry stamped 2026-11-22 09:40 UTC was rewritten in place by an earlier commit (`docs(pr-reviews): [#2984] correct the reply times in the PR 2985 audit round 3 entry`), which replaced "at 09:39Z" with "between 09:38:33Z and 09:38:37Z". That entry is restored to its first wording above. The reply times are the second wording: the three round 3 replies were posted between 09:38:33Z and 09:38:37Z, by the capture of the review comments.
 - 2026-11-22 09:59 UTC - Round 4: da2ce7's COMMENTED review `6011571146` (09:50:29Z, three findings F15 to F17; no ACK while the F12 thread is open). Three commits fixed them (pushed, exit 0), a probe of the current binary checked the F15 claim, and three replies were posted after the push at about 09:58Z (the F16 reply was edited once at 09:59Z to fix row names). Threads resolved after the validator run. F12 remains FOLLOW_UP/OPEN, waiting for the maintainer's PR comment.
 - 2026-11-22 10:05 UTC - Round 5: Copilot's COMMENTED review `6011585846` (09:54:58Z, two findings F18 and F19), found while resolving round 4 threads (it arrived while round 4 was processed, so I should have listed all reviews before recording round 4). One commit fixed F18 (pushed, exit 0); F19 re-raises F16, already fixed. Replies were posted after the push; the two threads are resolved after the validator run. F12 remains FOLLOW_UP/OPEN.
+- 2026-11-22 10:20 UTC - Correction (round 4 entry): that entry says the three replies were posted "at about 09:58Z". The capture has them at 09:59:24Z, 09:59:27Z and 09:59:29Z (the F16 edit at 09:59:51Z is as logged). The entry is not rewritten; these are the correct times.
 
 <!-- Copied verbatim into each audit record. -->
 
