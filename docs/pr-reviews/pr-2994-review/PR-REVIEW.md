@@ -43,6 +43,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 Round 1 covers review 6012624473 (Copilot, COMMENTED, submitted 2026-11-22T14:05:07Z, a lite review) with seven inline comments on `docs/issues/open/2993-secrets-and-client-error-text/EPIC.md`. Its body is an overview with no finding beyond the inline comments; its warning that the full agentic review did not start is context and makes no row. The comments carry no `[Severity]` bracket. The audit severity scale has no medium or low level, so this audit maps the overview's `Medium severity` badge (F1 to F3) to `Minor (inferred)` and its `Low severity` badge (F4 to F7) to `Nit (inferred)`, as the PR #2990 audit does. The seven comments are three texts: F2 and F3 repeat F1 on other lines, and F6 and F7 repeat F5, so they are re-raises with their own rows.
 
+Round 2 covers review 6012831750 (Copilot, COMMENTED, submitted 2026-11-22T14:40:22Z, a balanced review) with five inline comments, each with a `[Severity][FindingId]` first line. Its body is a verdict ("Changes recommended") and a list that repeats the five inline findings and the seven threads resolved since round 1; it makes no row. Copilot's IDs F8, F9 and F13 do not collide with F1 to F7 and are kept. Copilot used `F12` for two different findings: the first in source order (comment 4658541296, the SI-A draft) keeps F12, and the other (comment 4658541369, the EPIC evidence) is F14 here, the first number after the highest ID in use, with Copilot's ID in its detail entry. The rows are in source order. Severities are the comments' brackets. The overview's badges (Medium for F8, Low for the other four) differ from the brackets and are not used.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2994-f1 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
@@ -52,6 +54,11 @@ Round 1 covers review 6012624473 (Copilot, COMMENTED, submitted 2026-11-22T14:05
 | F5 | review-finding:pr-2994-f5 | Copilot | Nit (inferred) | documentation | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F6 | review-finding:pr-2994-f6 | Copilot | Nit (inferred) | documentation | RE_RAISE_OF:F5 | NO_ACTION | SUPERSEDED |
 | F7 | review-finding:pr-2994-f7 | Copilot | Nit (inferred) | documentation | RE_RAISE_OF:F5 | NO_ACTION | SUPERSEDED |
+| F8 | review-finding:pr-2994-f8 | Copilot | Major | security | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-2994-f12 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F9 | review-finding:pr-2994-f9 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F13 | review-finding:pr-2994-f13 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-2994-f14 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -146,11 +153,79 @@ Round 1 covers review 6012624473 (Copilot, COMMENTED, submitted 2026-11-22T14:05
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2994#discussion_r4658464189
 
+### F8 - A database error can hold a secret and no sub-issue owns its removal
+
+- PR number: 2994
+- Source review ID: 6012831750
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2994#discussion_r4658541274
+- Concern: Driver diagnostics can contain secrets: adding an existing peer key to MySQL's unique `keys.key` column produces `Duplicate entry '<peer key>' ...`, and `databases/error.rs:130-133` keeps that source. Copilot asks to assign the sanitization of secret-bearing database errors to SI-A, to add a MySQL duplicate-key regression that covers retained errors, replies and logs, and to make SI-B's Out of Scope item and T4 keep only non-secret driver detail.
+- Solution: The case is inventory item A12, owned by SI-A. It was reproduced on MySQL 8.0 (section V8 of `docs/issues/open/2993-secrets-and-client-error-text/manual-verification-evidence.md`): the 500 reply and one DEBUG `torrust_located_error` log line hold the key; the PostgreSQL reply and log do not, and the SQLite reply of V5 does not. EPIC: row A12 in the A table, the In Scope item of SI-A, the acceptance criterion and a sentence in maintainer decision 4. SI-A draft: In Scope item 8, a MySQL regression test in the Regression Test Strategy, task T7b, AC9 and manual scenario M7. SI-B draft: the Out of Scope bullet and T4 say that non-secret driver text stays and that SI-A removes messages that hold a secret. The same commit also holds lines of F12 and F13 (see those entries). The background paragraph of the SI-A draft still opens with "items A1 to A11" while it names A12 two sentences later; this was seen during this audit and is not changed in this round.
+- Current-tree verification: `git show HEAD:docs/issues/open/2993-secrets-and-client-error-text/EPIC.md | grep -n 'A12'` finds lines 66 (table row), 151 (In Scope), 242 (decision 4) and 271 (acceptance criterion); the same grep on the SI-A draft finds lines 40, 60 (In Scope item 8) and 114 (T7b), with the regression test on line 95, AC9 on line 162 and M7 on line 189; on the SI-B draft, lines 75 (Out of Scope) and 110 (T4) say "non-secret driver text". The evidence file's V8 quotes the MySQL reply and the DEBUG log line with `Duplicate entry 'TestPeerKey000000000000000000003' for key 'keys.key'` and says the PostgreSQL log held 0 lines with the key.
+- Resolution reference: `docs(issues): [#2993] assign database errors that hold a secret to SI-A as inventory item A12`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2994#discussion_r4658603687
+
+### F12 - The SI-A draft does not require the incremental test-design review
+
+- PR number: 2994
+- Source review ID: 6012831750
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2994#discussion_r4658541296
+- Concern: T2 of the SI-A draft batches every regression test and records only red output; nothing requires the recorded prose-first Arrange-Act-Assert review after each passing increment, which `docs/templates/ISSUE.md:119-128` and `create-issue/SKILL.md:180-189` require. Copilot asks for incremental red/green work, the design-review evidence and an explicit maintainer checkpoint.
+- Solution: The Implementation Plan of the SI-A draft has a "Test-development loop" paragraph (the `write-unit-test` skill, one behavior area at a time, a recorded test-design review before the next area, a commit per reviewed increment, a stop for maintainer review after the last increment). T2 is a test plan, T8b is the maintainer checkpoint, and AC10 requires the recorded reviews and the checkpoint. Not every line of this fix is in the commit named below. When the round's changes were split into commits by hunk, these lines of the SI-A draft landed in `docs(issues): [#2993] assign database errors that hold a secret to SI-A as inventory item A12` because they are next to A12 lines: the AC10 line, the AC10 row of the Acceptance Verification table, and the reworded cells of the Commit Points table (with the removal of its T2 row).
+- Current-tree verification: `git show HEAD:docs/issues/drafts/2993-si-a-keep-secrets-out-of-errors-and-logs/ISSUE.md` has the paragraph on line 101, T2 "Test plan" on line 108, T8b on line 116, AC10 on line 163 and its Acceptance Verification row on line 210. `git show -U0` of the commit named below shows the paragraph, the T2 row and the T8b row for this file; `git show -U0` of the A12 commit shows the AC10 line, the AC10 row and the Commit Points cells.
+- Resolution reference: `docs(issues): [#2993] require the incremental test-design review and maintainer checkpoint in both sub-issue drafts`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2994#discussion_r4658603862
+
+### F9 - A duplicate insert cannot reach the database-error reply of the HTTP and UDP trackers
+
+- PR number: 2994
+- Source review ID: 6012831750
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2994#discussion_r4658541332
+- Concern: The announce handlers of the HTTP and UDP trackers update the in-memory repository and only read persisted download counts (`announce_handler.rs:184-204`); a duplicate-key insert is a REST operation. Copilot asks the SI-B draft to specify a failing persisted-downloads read for the two tracker protocols, with persistence enabled and a torrent absent from memory.
+- Solution: The Regression Test Strategy of the SI-B draft has one item for the REST boundary (a duplicate key insert) and one for the HTTP and UDP trackers: `core.tracker_policy.persistent_torrent_completed_stat = true`, an info-hash that is not in memory, and a read that fails in `load_downloads_metric_if_needed` (announce) or `persisted_downloads.load_many` (scrape). Manual scenario M4 names the same setting and an info-hash that is not in memory.
+- Current-tree verification: `git show HEAD:docs/issues/drafts/2993-si-b-client-error-text-policy/ISSUE.md` has the two items on lines 94 and 95 and M4 on line 182; `git show HEAD:packages/tracker-core/src/announce_handler.rs | grep -n load_downloads_metric_if_needed` finds the call on line 189 and the function on line 196.
+- Resolution reference: `docs(issues): [#2993] reach the tracker database error through a failing persisted-downloads read in SI-B`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2994#discussion_r4658603993
+
+### F13 - The SI-B draft does not require the incremental test-design review
+
+- PR number: 2994
+- Source review ID: 6012831750
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2994#discussion_r4658541352
+- Concern: The SI-B plan records baseline and red evidence and then goes through the production changes, without the prose-first Arrange-Act-Assert design review after each passing test increment that `docs/templates/ISSUE.md:119-128` and `create-issue/SKILL.md:180-189` require. Copilot asks for the incremental red/green loop, the recorded design review before the next behavior area and a final maintainer checkpoint.
+- Solution: The Implementation Plan of the SI-B draft has the same "Test-development loop" paragraph as the SI-A draft, for areas T4 to T7. T3 is "Baseline reproduction and test plan", T8b is the maintainer checkpoint, the Commit Points cells name the red and green runs and the recorded review, and AC7 requires the recorded reviews and the checkpoint. Not every line of this fix is in the commit named below. When the round's changes were split into commits by hunk, the reworded T3 row of the SI-B task table ("Baseline reproduction and test plan") landed in `docs(issues): [#2993] assign database errors that hold a secret to SI-A as inventory item A12`, because it is next to the T4 row that the A12 change touches.
+- Current-tree verification: `git show HEAD:docs/issues/drafts/2993-si-b-client-error-text-policy/ISSUE.md` has the paragraph on line 101, T3 on line 109, T8b on line 115, AC7 on line 159 and its Acceptance Verification row on line 201. `git show -U0` of the commit named below shows the paragraph, T8b, the Commit Points rows, AC7 and its row for this file; `git show -U0` of the A12 commit shows the T3 row.
+- Resolution reference: `docs(issues): [#2993] require the incremental test-design review and maintainer checkpoint in both sub-issue drafts`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2994#discussion_r4658604115
+
+### F14 - The reproductions have no issue-local manual verification evidence file
+
+- PR number: 2994
+- Source review ID: 6012831750
+- Reviewer finding ID: F12
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2994#discussion_r4658541369
+- Concern: The claimed reproductions have example output but no issue-local `manual-verification-evidence.md` with the commands, configuration and relevant logs, although SI-A relies on this session as its baseline. Copilot asks to keep the runtime and backend details, commands, redacted results and outcomes in the EPIC's evidence file and to link both drafts to it.
+- Solution: `docs/issues/open/2993-secrets-and-client-error-text/manual-verification-evidence.md` records a new run of the reproductions on a fresh debug build whose code equals `develop` at `98fa27df2`, with `evidence/reproduce.sh`, `evidence/udp_probe.py` and `evidence/output.txt`. The EPIC and both drafts link it. The commit also adds the EPIC's `evidence/*.txt` to `ignorePaths` in `cspell.json`. Limits, as the evidence file states them: A6, A7 and A8 were confirmed by reading the code, not run; the expired-key reply was not requested; the script was edited for ShellCheck after the run and the edited script was not run again. The link in the background paragraph of the SI-A draft is in `docs(issues): [#2993] assign database errors that hold a secret to SI-A as inventory item A12`; the commit named below links the file from the SI-A Regression Test Strategy, the SI-B background and the EPIC.
+- Current-tree verification: `git ls-tree -r --name-only HEAD docs/issues/open/2993-secrets-and-client-error-text` lists `EPIC.md`, the three `evidence/` files and `manual-verification-evidence.md`. `git merge-base --is-ancestor 98fa27df2 torrust/develop` succeeds. The evidence file names the build on lines 44 and 45, the script edit on lines 21 to 23 and the two limits under "Not Reproduced" (lines 233 to 236). `git show HEAD:cspell.json | grep -n 2993` finds line 28. `grep -c 'manual-verification-evidence.md'` on `git show HEAD:` of the EPIC, the SI-A draft and the SI-B draft prints 1, 13 and 10.
+- Resolution reference: `docs(issues): [#2993] record the reproductions of the EPIC inventory as manual verification evidence`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2994#discussion_r4658604272
+
 ## Processing Log
 
 - 2026-11-22 14:16 UTC - Started audit. Round 1: review 6012624473 (Copilot, COMMENTED, submitted 14:05:07Z) with seven inline comments, F1 to F7. Fetched the seven review threads with GraphQL as `josecelano-bot`: all unresolved, `viewerCanResolve` true for each. The fixes of F1 and F4 were already committed (committer times 14:09:00Z and 14:10:03Z) and on the pull request head. Checked each disposition against the current tree with the commands in the detail entries.
 - 2026-11-22 14:17 UTC - Replied on the seven threads as `josecelano-bot` (reply `created_at` 14:17:20Z to 14:17:34Z) and recorded the reply URLs.
 - 2026-11-22 14:18 UTC - A copy of the audit validator that calls `gh-bot` exits 0 (7 rows, 0 failures). After it, `github-review-threads reply-status` reported `all_replied` (7 of 7) and the seven threads were resolved as `josecelano-bot`. A new GraphQL fetch shows 7 threads, 0 unresolved. This record is not committed yet.
+- 2026-11-22 14:55 UTC - Round 2: review 6012831750 (Copilot, COMMENTED, submitted 14:40:22Z) with five inline comments, recorded as F8, F12, F9, F13 and F14. Fetched the twelve review threads with GraphQL as `josecelano-bot`: the seven of round 1 resolved, the five new ones unresolved with `viewerCanResolve` true. The four fix commits were already on the pull request head (committer times 14:47:25Z to 14:49:05Z). Checked each disposition against the head commit with `git show HEAD:<path>`, because the working tree held an unfinished merge of `develop` that this audit did not start.
+- 2026-11-22 14:56 UTC - Replied on the five threads of round 2 as `josecelano-bot` (reply `created_at` 14:56:46Z to 14:56:55Z) and recorded the reply URLs.
+- 2026-11-22 14:57 UTC - The copy of the audit validator that calls `gh-bot` exits 0 (12 rows, 0 failures). After it, `github-review-threads reply-status` reported `all_replied` (5 of 5) and the five threads were resolved as `josecelano-bot`. A new GraphQL fetch shows 12 threads, 0 unresolved. The round 2 additions to this record are not committed yet: the working tree holds an unfinished merge of `develop` with a conflict in `cspell.json`.
 
 ## Completion Rules
 
