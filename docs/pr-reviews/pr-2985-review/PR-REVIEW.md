@@ -1,7 +1,7 @@
 ---
 pr-number: 2985
 pr-url: https://github.com/torrust/torrust-tracker/pull/2985
-last-updated-utc: "2026-11-22 13:29"
+last-updated-utc: "2026-11-22 14:05"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -72,7 +72,7 @@ Round 1 is da2ce7's APPROVED review `6006228624` (six inline findings, F1 to F6 
 | F9 | `review-finding:pr-2985-f9` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F10 | `review-finding:pr-2985-f10` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F11 | `review-finding:pr-2985-f11` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
-| F12 | `review-finding:pr-2985-f12` | Human | Minor | documentation | ORIGINAL | FOLLOW_UP | OPEN |
+| F12 | `review-finding:pr-2985-f12` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F13 | `review-finding:pr-2985-f13` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F14 | `review-finding:pr-2985-f14` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F15 | `review-finding:pr-2985-f15` | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -240,11 +240,11 @@ Round 1 is da2ce7's APPROVED review `6006228624` (six inline findings, F1 to F6 
 - Reviewer finding ID: da2ce7 F12
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657538043
 - Concern: The decisions section attributed both answers to a chat session dated 2026-11-22 as 'the session that created this issue' and named this PR's review thread as the record, but the thread held no such statement and the issue was created on 2026-11-21; `fix-bug` asks for evidence that does not rely on chat history.
-- Solution: The date and source wording is corrected (answered in chat on 2026-11-22, one day after the issue was created; the chat is not a durable record; the decisions are the author's record). The durable record, a PR comment in which the maintainer restates both decisions, is the maintainer's to write; the spec will cite its URL when it exists. The thread stays open until then.
-- Current-tree verification: Read the Decisions section of `ISSUE.md`: the wording is corrected and says the maintainer comment is still to be cited.
-- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657554361
+- Solution: The date and source wording was corrected first (round 3). The maintainer then chose to make the specification the durable record of his two decisions, confirmed by his ACK or merge, and posted the decisions in his own words as a PR comment (https://github.com/torrust/torrust-tracker/pull/2985#issuecomment-7080197804, 2026-11-22 13:58 UTC), which the Decisions section cites. The first reply (round 3, https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657554361) said the thread stayed open until the maintainer's comment; the final reply is the Reply URL below.
+- Current-tree verification: Read the Decisions section of `ISSUE.md`: it names the date, says the specification is the durable record and cites the comment; `gh api repos/torrust/torrust-tracker/issues/comments/7080197804` shows the comment by the maintainer.
+- Resolution reference: `docs(issues): [#2984] cite the maintainer's decisions comment in the specification`
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657554361
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4658420524
 
 ### F13 - Decision 2 is not carried through the rest of the spec
 
@@ -442,6 +442,7 @@ Round 1 is da2ce7's APPROVED review `6006228624` (six inline findings, F1 to F6 
 - 2026-11-22 10:36 UTC - Correction (round 6 entry): that entry says "Six commits fixed F20 to F23". Before the first reply there were five commits: four fixes, `docs(issues): [#2984] record the HTTP reproduction as V2 with its verbatim output` (F21), `docs(issues): [#2984] say where the replacement panic-hook coverage may live` (F23), `docs(pr-reviews): [#2984] cite the reviewed head by subject in finding F19` (F20) and `docs(pr-reviews): [#2984] append the correction for the round 4 reply times` (F22), and one commit that only logs the spec changes, `docs(issues): [#2984] log the round 6 spec changes`. The audit commit for the round followed the replies. The entry is not rewritten; this is the correct count.
 - 2026-11-22 10:40 UTC - Round 7: da2ce7's COMMENTED review `6011770812` (10:34:47Z, two findings F24 and F25; no ACK while the F12 thread is open). Two commits fixed them, one each (pushed, exit 0); two replies were posted after the push; the two threads are resolved after the validator run. F12 remains FOLLOW_UP/OPEN, waiting for the maintainer's PR comment.
 - 2026-11-22 13:29 UTC - Round 8: da2ce7's COMMENTED review `6011840506` (10:49:46Z, one finding F26; no ACK while the F12 thread is open). One commit fixed it (pushed, exit 0); the reply was posted after the push; the thread is resolved after the validator run. F12 remains FOLLOW_UP/OPEN, waiting for the maintainer's PR comment.
+- 2026-11-22 14:05 UTC - F12 closed: the maintainer posted his decisions comment (2026-11-22 13:58 UTC) and chose to make the specification the durable record; two spec commits followed (pushed, exit 0), the final reply was posted after the push, and the thread is resolved after the validator run. F12 is now FIXED/RESOLVED. This updates the row, which round 3 to round 8 entries above state as FOLLOW_UP/OPEN at their time.
 
 <!-- Copied verbatim into each audit record. -->
 
