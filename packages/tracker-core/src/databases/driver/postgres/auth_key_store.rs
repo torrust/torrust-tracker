@@ -1,10 +1,10 @@
 use ::sqlx::Row;
 use async_trait::async_trait;
-use torrust_clock::DurationSinceUnixEpoch;
 
 use super::{DRIVER, Postgres};
 use crate::authentication::{self, Key};
 use crate::databases::AuthKeyStore;
+use crate::databases::driver::peer_key_from_row;
 use crate::databases::error::Error;
 
 #[async_trait]
@@ -20,15 +20,7 @@ impl AuthKeyStore for Postgres {
                 let key_value: String = row.try_get("key").map_err(|e| (e, DRIVER))?;
                 let valid_until: Option<i64> = row.try_get("valid_until").map_err(|e| (e, DRIVER))?;
 
-                let parsed_key = key_value.parse::<Key>().map_err(|e| Error::MalformedDatabaseRecord {
-                    message: e.to_string(),
-                    driver: DRIVER,
-                })?;
-
-                Ok(authentication::PeerKey {
-                    key: parsed_key,
-                    valid_until: valid_until.map(parse_valid_until).transpose()?,
-                })
+                peer_key_from_row(&key_value, valid_until, &DRIVER)
             })
             .collect()
     }
@@ -45,15 +37,7 @@ impl AuthKeyStore for Postgres {
                 let key_value: String = row.try_get("key").map_err(|e| (e, DRIVER))?;
                 let valid_until: Option<i64> = row.try_get("valid_until").map_err(|e| (e, DRIVER))?;
 
-                let parsed_key = key_value.parse::<Key>().map_err(|e| Error::MalformedDatabaseRecord {
-                    message: e.to_string(),
-                    driver: DRIVER,
-                })?;
-
-                Ok(authentication::PeerKey {
-                    key: parsed_key,
-                    valid_until: valid_until.map(parse_valid_until).transpose()?,
-                })
+                peer_key_from_row(&key_value, valid_until, &DRIVER)
             })
             .transpose()
     }
@@ -106,18 +90,4 @@ impl AuthKeyStore for Postgres {
             })
         }
     }
-}
-
-/// Convert a signed seconds value loaded from the database into a
-/// [`DurationSinceUnixEpoch`].
-///
-/// Negative values indicate a corrupted record (timestamps before the Unix
-/// epoch are not representable) and are rejected as
-/// [`Error::MalformedDatabaseRecord`].
-fn parse_valid_until(value: i64) -> Result<DurationSinceUnixEpoch, Error> {
-    let secs = u64::try_from(value).map_err(|_| Error::MalformedDatabaseRecord {
-        message: format!("negative valid_until timestamp: {value}"),
-        driver: DRIVER,
-    })?;
-    Ok(DurationSinceUnixEpoch::from_secs(secs))
 }

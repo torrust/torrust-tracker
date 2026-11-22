@@ -1,8 +1,10 @@
 //! Database driver factory.
 
+use torrust_clock::DurationSinceUnixEpoch;
 use torrust_tracker_primitives::Driver;
 
 use super::error::Error;
+use crate::authentication::{Key, PeerKey};
 
 /// Metric name in DB for the total number of downloads across all torrents.
 pub(super) const TORRENTS_DOWNLOADS_TOTAL: &str = "torrents_downloads_total";
@@ -17,6 +19,38 @@ pub(super) const MAX_INFO_HASHES_PER_QUERY: usize = 100;
 pub mod mysql;
 pub mod postgres;
 pub mod sqlite;
+
+/// Converts a signed seconds value loaded from the database into a
+/// [`DurationSinceUnixEpoch`].
+///
+/// Negative values indicate a corrupted record (timestamps before the Unix
+/// epoch are not representable) and are rejected as
+/// [`Error::MalformedDatabaseRecord`] for the given `driver`.
+pub(super) fn parse_valid_until(value: i64, driver: &Driver) -> Result<DurationSinceUnixEpoch, Error> {
+    let secs = u64::try_from(value).map_err(|_| Error::MalformedDatabaseRecord {
+        message: format!("negative valid_until timestamp: {value}"),
+        driver: driver.clone(),
+    })?;
+    Ok(DurationSinceUnixEpoch::from_secs(secs))
+}
+
+/// Builds a [`PeerKey`] from the two columns of a stored authentication key.
+///
+/// `key_value` is the stored key text and `valid_until` the stored expiry in
+/// seconds since the Unix epoch, or `None` for a permanent key. A key that does
+/// not parse and an expiry that [`parse_valid_until`] rejects are corrupted
+/// records, reported as [`Error::MalformedDatabaseRecord`] for the given `driver`.
+pub(super) fn peer_key_from_row(key_value: &str, valid_until: Option<i64>, driver: &Driver) -> Result<PeerKey, Error> {
+    let key = key_value.parse::<Key>().map_err(|e| Error::MalformedDatabaseRecord {
+        message: e.to_string(),
+        driver: driver.clone(),
+    })?;
+
+    Ok(PeerKey {
+        key,
+        valid_until: valid_until.map(|value| parse_valid_until(value, driver)).transpose()?,
+    })
+}
 
 #[cfg(test)]
 pub(crate) mod tests {
