@@ -1,7 +1,7 @@
 ---
 pr-number: 2985
 pr-url: https://github.com/torrust/torrust-tracker/pull/2985
-last-updated-utc: "2026-11-22 14:05"
+last-updated-utc: "2026-11-22 14:27"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -42,6 +42,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
   author resolves it; permission says nothing about whether the concern was fixed.
 
 ## Findings
+
+Round 9 is Copilot's COMMENTED review `6012705403` (14:21:15Z, one inline finding, F27) on the head `docs(pr-reviews): [#2984] close finding F12 in the PR 2985 audit`.
 
 Round 8 is da2ce7's COMMENTED review `6011840506` (one inline finding, F26, numbered after the record's F25) on the head `docs(pr-reviews): [#2984] add round 7 findings F24 and F25 to the PR 2985 audit`.
 
@@ -87,6 +89,7 @@ Round 1 is da2ce7's APPROVED review `6006228624` (six inline findings, F1 to F6 
 | F24 | `review-finding:pr-2985-f24` | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | F25 | `review-finding:pr-2985-f25` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F26 | `review-finding:pr-2985-f26` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F27 | `review-finding:pr-2985-f27` | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -428,6 +431,19 @@ Round 1 is da2ce7's APPROVED review `6006228624` (six inline findings, F1 to F6 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4658298629
 
+### F27 - The reproduction steps do not record how the exit code and stdout were captured
+
+- PR number: 2985
+- Source review ID: 6012705403
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4658476773
+- Concern: The V1 and V2 steps show `| cat` without `pipefail` or `PIPESTATUS`, so they would report `cat`'s status, and they do not say how the exit code, stdout byte count and separate streams were captured.
+- Solution: V1 and V2 record the actual capture procedure (stderr to a file, stdout through `cat` into a file, the client's exit code saved from `${PIPESTATUS[0]}` right after the pipeline, stdout measured with `wc -c`) and say that the pipeline status alone would be `cat`'s; the scenarios name `${PIPESTATUS[0]}`.
+- Current-tree verification: Read the Steps Performed of V1 and V2 in the evidence file and the scenarios table in `ISSUE.md`.
+- Resolution reference: `docs(issues): [#2984] record the capture procedure for the reproduction runs`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4658491876
+
 ## Processing Log
 
 - 2026-11-21 15:23 UTC - Round 1: da2ce7's APPROVED review `6006228624` (15:14:29Z, six findings) and Copilot's COMMENTED review `6006218464` (15:12:25Z, two findings, both about a `||` row prefix that is not in the files). Six commits fixed F1 to F6, one per finding (pushed, exit 0, head on GitHub then `docs(issues): [#2984] identify the build and toolchain of the reproduction`). Eight replies were posted between 15:23:24Z and 15:23:40Z (after the push), and this record was written after them, not before (late start).
@@ -443,6 +459,7 @@ Round 1 is da2ce7's APPROVED review `6006228624` (six inline findings, F1 to F6 
 - 2026-11-22 10:40 UTC - Round 7: da2ce7's COMMENTED review `6011770812` (10:34:47Z, two findings F24 and F25; no ACK while the F12 thread is open). Two commits fixed them, one each (pushed, exit 0); two replies were posted after the push; the two threads are resolved after the validator run. F12 remains FOLLOW_UP/OPEN, waiting for the maintainer's PR comment.
 - 2026-11-22 13:29 UTC - Round 8: da2ce7's COMMENTED review `6011840506` (10:49:46Z, one finding F26; no ACK while the F12 thread is open). One commit fixed it (pushed, exit 0); the reply was posted after the push; the thread is resolved after the validator run. F12 remains FOLLOW_UP/OPEN, waiting for the maintainer's PR comment.
 - 2026-11-22 14:05 UTC - F12 closed: the maintainer posted his decisions comment (2026-11-22 13:58 UTC) and chose to make the specification the durable record; two spec commits followed (pushed, exit 0), the final reply was posted after the push, and the thread is resolved after the validator run. F12 is now FIXED/RESOLVED. This updates the row, which round 3 to round 8 entries above state as FOLLOW_UP/OPEN at their time.
+- 2026-11-22 14:27 UTC - Round 9: Copilot's COMMENTED review `6012705403` (14:21:15Z, one finding F27). One commit fixed it (pushed, exit 0); the reply was posted after the push; the thread was resolved before this row was written (the first attempt to write it failed on a script error), and the validator was run after. The maintainer's ACK lines at 14:06:46Z and 14:17:01Z name earlier heads.
 
 <!-- Copied verbatim into each audit record. -->
 
