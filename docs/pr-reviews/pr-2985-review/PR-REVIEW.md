@@ -1,7 +1,7 @@
 ---
 pr-number: 2985
 pr-url: https://github.com/torrust/torrust-tracker/pull/2985
-last-updated-utc: "2026-11-22 10:24"
+last-updated-utc: "2026-11-22 10:36"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -393,6 +393,7 @@ Round 1 is da2ce7's APPROVED review `6006228624` (six inline findings, F1 to F6 
 - 2026-11-22 10:05 UTC - Round 5: Copilot's COMMENTED review `6011585846` (09:54:58Z, two findings F18 and F19), found while resolving round 4 threads (it arrived while round 4 was processed, so I should have listed all reviews before recording round 4). One commit fixed F18 (pushed, exit 0); F19 re-raises F16, already fixed. Replies were posted after the push; the two threads are resolved after the validator run. F12 remains FOLLOW_UP/OPEN.
 - 2026-11-22 10:20 UTC - Correction (round 4 entry): that entry says the three replies were posted "at about 09:58Z". The capture has them at 09:59:24Z, 09:59:27Z and 09:59:29Z (the F16 edit at 09:59:51Z is as logged). The entry is not rewritten; these are the correct times.
 - 2026-11-22 10:24 UTC - Round 6: da2ce7's COMMENTED review `6011655297` (10:16:30Z, four findings F20 to F23; no ACK while the F12 thread is open) and Copilot's COMMENTED review `6011678308` (10:20:41Z, no inline finding, no row). Six commits fixed F20 to F23 (pushed, exit 0); four replies were posted after the push; the four threads are resolved after the validator run. F12 remains FOLLOW_UP/OPEN, waiting for the maintainer's PR comment.
+- 2026-11-22 10:36 UTC - Correction (round 6 entry): that entry says "Six commits fixed F20 to F23". Before the first reply there were five commits: four fixes, `docs(issues): [#2984] record the HTTP reproduction as V2 with its verbatim output` (F21), `docs(issues): [#2984] say where the replacement panic-hook coverage may live` (F23), `docs(pr-reviews): [#2984] cite the reviewed head by subject in finding F19` (F20) and `docs(pr-reviews): [#2984] append the correction for the round 4 reply times` (F22), and one commit that only logs the spec changes, `docs(issues): [#2984] log the round 6 spec changes`. The audit commit for the round followed the replies. The entry is not rewritten; this is the correct count.
 
 <!-- Copied verbatim into each audit record. -->
 
