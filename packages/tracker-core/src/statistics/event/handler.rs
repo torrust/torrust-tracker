@@ -336,6 +336,7 @@ mod tests {
         let mut store = MockTorrentMetricsStore::new();
         store
             .expect_load_torrent_downloads()
+            .times(1)
             .returning(|_| Box::pin(std::future::ready(Ok(None))));
         store
             .expect_save_torrent_downloads()
