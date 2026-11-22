@@ -135,6 +135,7 @@ mod tests {
     use std::panic::Location;
     use std::sync::Arc;
 
+    use rstest::rstest;
     use torrust_clock::DurationSinceUnixEpoch;
     use torrust_tracker_configuration::v3_0_0::core::Core;
     use torrust_tracker_primitives::Driver;
@@ -148,45 +149,39 @@ mod tests {
     use crate::statistics::repository::Repository;
     use crate::test_helpers::tests::{ephemeral_configuration, sample_info_hash, sample_peer};
 
-    /// Every event kind except `PeerDownloadCompleted`, named for the assertion messages.
-    fn events_other_than_a_completed_download() -> [(&'static str, Event); 5] {
-        [
-            (
-                "TorrentAdded",
-                Event::TorrentAdded {
-                    info_hash: sample_info_hash(),
-                    announcement: sample_peer(),
-                },
-            ),
-            (
-                "TorrentRemoved",
-                Event::TorrentRemoved {
-                    info_hash: sample_info_hash(),
-                },
-            ),
-            (
-                "PeerAdded",
-                Event::PeerAdded {
-                    info_hash: sample_info_hash(),
-                    peer: sample_peer(),
-                },
-            ),
-            (
-                "PeerRemoved",
-                Event::PeerRemoved {
-                    info_hash: sample_info_hash(),
-                    peer: sample_peer(),
-                },
-            ),
-            (
-                "PeerUpdated",
-                Event::PeerUpdated {
-                    info_hash: sample_info_hash(),
-                    old_peer: sample_peer(),
-                    new_peer: sample_peer(),
-                },
-            ),
-        ]
+    fn torrent_added_event() -> Event {
+        Event::TorrentAdded {
+            info_hash: sample_info_hash(),
+            announcement: sample_peer(),
+        }
+    }
+
+    fn torrent_removed_event() -> Event {
+        Event::TorrentRemoved {
+            info_hash: sample_info_hash(),
+        }
+    }
+
+    fn peer_added_event() -> Event {
+        Event::PeerAdded {
+            info_hash: sample_info_hash(),
+            peer: sample_peer(),
+        }
+    }
+
+    fn peer_removed_event() -> Event {
+        Event::PeerRemoved {
+            info_hash: sample_info_hash(),
+            peer: sample_peer(),
+        }
+    }
+
+    fn peer_updated_event() -> Event {
+        Event::PeerUpdated {
+            info_hash: sample_info_hash(),
+            old_peer: sample_peer(),
+            new_peer: sample_peer(),
+        }
     }
 
     fn peer_download_completed_event() -> Event {
@@ -216,26 +211,30 @@ mod tests {
         assert_eq!(stats_repository.get_torrents_downloads_in_session_total().await, 1);
     }
 
+    #[rstest]
+    #[case::torrent_added(torrent_added_event())]
+    #[case::torrent_removed(torrent_removed_event())]
+    #[case::peer_added(peer_added_event())]
+    #[case::peer_removed(peer_removed_event())]
+    #[case::peer_updated(peer_updated_event())]
     #[tokio::test]
-    async fn it_should_change_no_in_memory_total_for_an_event_other_than_a_completed_download() {
-        for (name, event) in events_other_than_a_completed_download() {
-            // Arrange
-            let stats_repository = Arc::new(Repository::default());
-            let now = DurationSinceUnixEpoch::new(1, 0);
+    async fn it_should_change_no_in_memory_total_for_an_event_other_than_a_completed_download(#[case] event: Event) {
+        // Arrange
+        let stats_repository = Arc::new(Repository::default());
+        let now = DurationSinceUnixEpoch::new(1, 0);
 
-            // Act
-            handle_in_memory_event(event, &stats_repository, now).await;
+        // Act
+        handle_in_memory_event(event, &stats_repository, now).await;
 
-            // Assert
-            assert_eq!(
-                (
-                    stats_repository.get_torrents_downloads_total().await,
-                    stats_repository.get_torrents_downloads_in_session_total().await
-                ),
-                (0, 0),
-                "{name} must not count as a completed download"
-            );
-        }
+        // Assert
+        assert_eq!(
+            (
+                stats_repository.get_torrents_downloads_total().await,
+                stats_repository.get_torrents_downloads_in_session_total().await
+            ),
+            (0, 0),
+            "an event other than a completed download must not change the persistent or in-session total"
+        );
     }
 
     #[tokio::test]
@@ -267,32 +266,36 @@ mod tests {
         assert_eq!(stats_repository.get_torrents_downloads_persisted_total().await, 1);
     }
 
+    #[rstest]
+    #[case::torrent_added(torrent_added_event())]
+    #[case::torrent_removed(torrent_removed_event())]
+    #[case::peer_added(peer_added_event())]
+    #[case::peer_removed(peer_removed_event())]
+    #[case::peer_updated(peer_updated_event())]
     #[tokio::test]
-    async fn it_should_persist_nothing_for_an_event_other_than_a_completed_download() {
-        for (name, event) in events_other_than_a_completed_download() {
-            // Arrange
-            let stats_repository = Arc::new(Repository::new(true, true));
-            let ephemeral = ephemeral_configuration();
-            let downloads_repository = database_downloads_repository(&ephemeral.config).await;
-            let now = DurationSinceUnixEpoch::new(1, 0);
+    async fn it_should_persist_nothing_for_an_event_other_than_a_completed_download(#[case] event: Event) {
+        // Arrange
+        let stats_repository = Arc::new(Repository::new(true, true));
+        let ephemeral = ephemeral_configuration();
+        let downloads_repository = database_downloads_repository(&ephemeral.config).await;
+        let now = DurationSinceUnixEpoch::new(1, 0);
 
-            // Act
-            handle_persistent_completed_statistics_event(event, &downloads_repository, &stats_repository, now).await;
+        // Act
+        handle_persistent_completed_statistics_event(event, &downloads_repository, &stats_repository, now).await;
 
-            // Assert
-            assert_eq!(
-                (
-                    downloads_repository
-                        .load_torrent_downloads(&sample_info_hash())
-                        .await
-                        .unwrap(),
-                    downloads_repository.load_global_downloads().await.unwrap(),
-                    stats_repository.get_torrents_downloads_persisted_total().await
-                ),
-                (None, None, 0),
-                "{name} must not persist a completed download"
-            );
-        }
+        // Assert
+        assert_eq!(
+            (
+                downloads_repository
+                    .load_torrent_downloads(&sample_info_hash())
+                    .await
+                    .unwrap(),
+                downloads_repository.load_global_downloads().await.unwrap(),
+                stats_repository.get_torrents_downloads_persisted_total().await
+            ),
+            (None, None, 0),
+            "an event other than a completed download must not persist a download"
+        );
     }
 
     #[tokio::test]
