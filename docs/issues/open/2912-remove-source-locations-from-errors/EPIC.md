@@ -111,7 +111,7 @@ Recorded 2026-11-17 by the EPIC coordinator session:
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 SI-1 to SI-6 are issues #2913 to #2918, created by `josecelano-bot` on 2026-11-17. SI-7 is the
-existing issue #384.
+existing issue #384. SI-8 is issue #2996, created by `josecelano-bot` on 2026-11-22.
 
 | Order | Issue | Local Spec | Status | Notes |
 | --- | --- | --- | --- | --- |
@@ -122,6 +122,7 @@ existing issue #384.
 | 5 | #2917 - SI-5 Remove source locations from the configuration, TLS and UDP server errors | `docs/issues/open/2917-2912-si-5-startup-and-udp-server-errors/ISSUE.md` | TODO | After SI-1. Must land before `configuration` 4.0.0 is published |
 | 6 | #2918 - SI-6 Drop `torrust-located-error` from the workspace and enforce the rule | `docs/issues/open/2918-2912-si-6-drop-located-error-and-enforce-the-rule/ISSUE.md` | TODO | After SI-2 to SI-5 |
 | 7 | #384 - Make Option to Strip Location from Errors sent to Clients | `docs/issues/open/384-strip-location-from-errors-sent-to-clients/ISSUE.md` | TODO | Existing issue. Its baseline reproduction can start at once; its recheck waits for SI-2 to SI-6 |
+| 8 | #2996 - SI-8 Share the `assert_names_no_source_path` test helper | `docs/issues/open/2996-2912-si-8-share-assert-names-no-source-path/ISSUE.md` | TODO | Independent of SI-6; implement after SI-4 (PR #2991), which adds the last copies. Reduces the seven copies to three |
 
 ### External follow-ups (other repositories)
 
@@ -196,6 +197,7 @@ the model that produced them.
 - 2026-11-11 17:03 UTC - Claude Code (Fable 5.2) - Drafted the EPIC, six sub-issue drafts and the specification for #384 from the audit of issue #2804, after the maintainer proposed to remove the feature. Not approved; no GitHub issue created.
 - 2026-11-17 16:45 UTC - Claude Code (Claude Opus 5.5) - EPIC coordinator recorded the maintainer's decisions (remove the field; keep #384's title; one session at a time; Opus 5.5 for sub-issue sessions).
 - 2026-11-17 17:01 UTC - Claude Code (Claude Opus 5.5) - Maintainer approved the specification. Created EPIC #2912 and sub-issues #2913 to #2918 as `josecelano-bot`, commented on #384, and moved the specification and the six sub-issue specifications from `docs/issues/drafts/` to `docs/issues/open/`. GitHub sub-issue links wait for the maintainer (the bot account cannot add them).
+- 2026-11-22 14:24 UTC - Claude Code (Claude Sonnet 5.5) - Added SI-8 (#2996, share the `assert_names_no_source_path` test helper, finding F5 of PR #2991) as row 8 of the `Subissues` table with its specification; the maintainer approved the specification on 2026-11-22.
 
 ## Acceptance Criteria
 
