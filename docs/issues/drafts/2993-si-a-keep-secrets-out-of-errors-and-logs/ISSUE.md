@@ -81,7 +81,7 @@ Not applicable: the work changes error types, a log formatting function, a type'
 This is substantively a bug (a secret printed to a client and to logs), so it follows `.claude/skills/fix-bug/SKILL.md`:
 
 - analysis: the call paths and audiences are in the EPIC inventory; re-check them against the tree before the first change, because SI-4 (#2916) rewrites the tracker-core errors first;
-- real-artifact reproduction: run a tracker and send the requests of the manual scenarios below; record each reply and the log lines. The EPIC's session already reproduced them on a debug build, so the baseline exists in the EPIC's progress log; repeat it on the commit this issue starts from;
+- real-artifact reproduction: run a tracker and send the requests of the manual scenarios below; record each reply and the log lines. The EPIC's session reproduced them, and the commands, configuration and output are in the EPIC's `manual-verification-evidence.md`; repeat that baseline on the commit this issue starts from, because SI-4 changes the texts first;
 - regression-test boundary: see Regression Test Strategy;
 - red regression-test evidence, production fix, green test evidence, and the same reproduction run again after the last production change, all recorded in `manual-verification-evidence.md`.
 

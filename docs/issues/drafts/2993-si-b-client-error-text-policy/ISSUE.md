@@ -36,7 +36,7 @@ An accepted ADR says what an error reply may tell a client of the HTTP tracker, 
 
 ## Background
 
-Section B of the EPIC inventory lists what each protocol sends today, reproduced on a running tracker:
+Section B of the EPIC inventory lists what each protocol sends today, reproduced on a running tracker (commands and output in the EPIC's [`manual-verification-evidence.md`](../../open/2993-secrets-and-client-error-text/manual-verification-evidence.md)):
 
 - HTTP tracker: `Tracker announce error: Database error: <sqlx text>`; nested prefixes that mirror the Rust error tree; query parse texts that echo the client's own values.
 - UDP tracker: the full `Display` chain of the server error. A wrong connection id returns `cookie value is expired: <value>, expected > 1795353220.6572893` (the server clock and the decoded cookie); a short packet returns `error parsing request: SendableRequestParseError { message: "Couldn't parse action", ... }` (a Rust type name).

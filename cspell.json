@@ -25,6 +25,7 @@
         "packages/tracker-core/docs/benchmarking/machine/*.txt",
         "docs/issues/*/2850-non-negative-number-of-bytes/evidence/*.txt",
         "docs/issues/*/2915-2912-si-3-http-tracker-request-errors/evidence/*.txt",
+        "docs/issues/*/2993-secrets-and-client-error-text/evidence/*.txt",
         ".github/labels.json",
         "/project-words.txt",
         "repomix-output.xml",
