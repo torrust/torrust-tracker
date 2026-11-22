@@ -1,7 +1,7 @@
 ---
 pr-number: 2985
 pr-url: https://github.com/torrust/torrust-tracker/pull/2985
-last-updated-utc: "2026-11-22 09:59"
+last-updated-utc: "2026-11-22 10:05"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -43,6 +43,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
+Round 5 is Copilot's COMMENTED review `6011585846` (09:54:58Z, two inline findings, F18 and F19 here; F19 re-raises F16) on the head `docs(pr-reviews): [#2984] correct the reply times in the PR 2985 audit round 3 entry`; it was submitted during round 4 and found when the threads were listed before resolving.
+
 Round 4 is da2ce7's COMMENTED review `6011571146` (three inline findings, F15 to F17 in his numbering, kept here) on the head `docs(pr-reviews): [#2984] correct the reply times in the PR 2985 audit round 3 entry`.
 
 Round 3 is da2ce7's APPROVED review `6011512347` (three inline findings, F12 to F14 in his numbering, kept here) on the head `docs(issues): [#2984] record the maintainer decisions on the open questions`.
@@ -70,6 +72,8 @@ Round 1 is da2ce7's APPROVED review `6006228624` (six inline findings, F1 to F6 
 | F15 | `review-finding:pr-2985-f15` | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F16 | `review-finding:pr-2985-f16` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F17 | `review-finding:pr-2985-f17` | Human | Nit | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F18 | `review-finding:pr-2985-f18` | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F19 | `review-finding:pr-2985-f19` | Copilot | Minor (inferred) | correctness | RE_RAISE_OF:F16 | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -294,6 +298,32 @@ Round 1 is da2ce7's APPROVED review `6006228624` (six inline findings, F1 to F6 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657620646
 
+### F18 - The test plan omits an existing test that fails after the fix
+
+- PR number: 2985
+- Source review ID: 6011585846
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657607015
+- Concern: `console/tracker-client/tests/output_contract.rs:161-179` uses `udp://127.0.0.1` and requires exit 1 with `panic` and `runtime_failure` records, so it fails once the fix lands, and the plan had no task for it.
+- Solution: T3 and its commit point now update that test to the configuration-error expectations (exit 2, `invalid_configuration`) and keep the panic-hook coverage through a separate, controlled trigger chosen in the implementation.
+- Current-tree verification: Read T3 and the Commit Points in `ISSUE.md`; `sed -n 150,185p console/tracker-client/tests/output_contract.rs` shows the test as described.
+- Resolution reference: `docs(issues): [#2984] plan the update of the existing panic-contract test`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657638058
+
+### F19 - T5 requires every M1 command to exit 2 although the unresolvable host is a failed check
+
+- PR number: 2985
+- Source review ID: 6011585846
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657607029
+- Concern: Copilot, reviewing head `4cf09d58e`, said T5 expected exit 2 for every M1 command although AC3 is a failed check with exit 0.
+- Solution: No new change: the same concern was raised as F16 and fixed in `docs(issues): [#2984] align the recheck expectations with the cases they recheck`, pushed after the head Copilot reviewed. The reply is `Superseded by F16: ...`.
+- Current-tree verification: Read T5 and the scenarios table in `ISSUE.md`: AC3 is carved out of the exit 2 expectation.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657638201
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657638201
+
 ## Processing Log
 
 - 2026-11-21 15:23 UTC - Round 1: da2ce7's APPROVED review `6006228624` (15:14:29Z, six findings) and Copilot's COMMENTED review `6006218464` (15:12:25Z, two findings, both about a `||` row prefix that is not in the files). Six commits fixed F1 to F6, one per finding (pushed, exit 0, head on GitHub then `docs(issues): [#2984] identify the build and toolchain of the reproduction`). Eight replies were posted between 15:23:24Z and 15:23:40Z (after the push), and this record was written after them, not before (late start).
@@ -302,6 +332,7 @@ Round 1 is da2ce7's APPROVED review `6006228624` (six inline findings, F1 to F6 
 - 2026-11-22 09:40 UTC - Round 3: da2ce7's APPROVED review `6011512347` (09:33:14Z, three findings F12 to F14) on the head with the maintainer decisions. Two commits fixed F12's wording and F13 (pushed, exit 0); the PR description was edited for F14; three replies were posted after that, at 09:39Z. F12 is only partly fixed: the maintainer has to restate the decisions in a PR comment, so its thread stays open (FOLLOW_UP/OPEN). F13 and F14 threads are resolved after the validator run.
 - 2026-11-22 09:56 UTC - Correction: the round 3 entry stamped 2026-11-22 09:40 UTC was rewritten in place by an earlier commit (`docs(pr-reviews): [#2984] correct the reply times in the PR 2985 audit round 3 entry`), which replaced "at 09:39Z" with "between 09:38:33Z and 09:38:37Z". That entry is restored to its first wording above. The reply times are the second wording: the three round 3 replies were posted between 09:38:33Z and 09:38:37Z, by the capture of the review comments.
 - 2026-11-22 09:59 UTC - Round 4: da2ce7's COMMENTED review `6011571146` (09:50:29Z, three findings F15 to F17; no ACK while the F12 thread is open). Three commits fixed them (pushed, exit 0), a probe of the current binary checked the F15 claim, and three replies were posted after the push at about 09:58Z (the F16 reply was edited once at 09:59Z to fix row names). Threads resolved after the validator run. F12 remains FOLLOW_UP/OPEN, waiting for the maintainer's PR comment.
+- 2026-11-22 10:05 UTC - Round 5: Copilot's COMMENTED review `6011585846` (09:54:58Z, two findings F18 and F19), found while resolving round 4 threads (it arrived while round 4 was processed, so I should have listed all reviews before recording round 4). One commit fixed F18 (pushed, exit 0); F19 re-raises F16, already fixed. Replies were posted after the push; the two threads are resolved after the validator run. F12 remains FOLLOW_UP/OPEN.
 
 <!-- Copied verbatim into each audit record. -->
 
