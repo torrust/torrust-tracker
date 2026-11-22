@@ -317,7 +317,7 @@ Round 1 is da2ce7's APPROVED review `6006228624` (six inline findings, F1 to F6 
 - Source review ID: 6011585846
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657607029
-- Concern: Copilot, reviewing head `4cf09d58e`, said T5 expected exit 2 for every M1 command although AC3 is a failed check with exit 0.
+- Concern: Copilot, reviewing the head `docs(pr-reviews): [#2984] correct the reply times in the PR 2985 audit round 3 entry`, said T5 expected exit 2 for every M1 command although AC3 is a failed check with exit 0.
 - Solution: No new change: the same concern was raised as F16 and fixed in `docs(issues): [#2984] align the recheck expectations with the cases they recheck`, pushed after the head Copilot reviewed. The reply is `Superseded by F16: ...`.
 - Current-tree verification: Read T5 and the scenarios table in `ISSUE.md`: AC3 is carved out of the exit 2 expectation.
 - Resolution reference: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657638201
