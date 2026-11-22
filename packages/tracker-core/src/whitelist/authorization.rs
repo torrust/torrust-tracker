@@ -1,5 +1,4 @@
 //! Whitelist authorization.
-use std::panic::Location;
 use std::sync::Arc;
 
 use torrust_info_hash::InfoHash;
@@ -56,10 +55,7 @@ impl WhitelistAuthorization {
             return Ok(());
         }
 
-        Err(WhitelistError::TorrentNotWhitelisted {
-            info_hash: *info_hash,
-            location: Location::caller(),
-        })
+        Err(WhitelistError::TorrentNotWhitelisted { info_hash: *info_hash })
     }
 
     /// Checks if the tracker is running in "listed" mode.
@@ -137,6 +133,18 @@ mod tests {
                 let result = whitelist_authorization.authorize(&sample_info_hash()).await;
 
                 assert!(matches!(result.unwrap_err(), WhitelistError::TorrentNotWhitelisted { .. }));
+            }
+
+            #[tokio::test]
+            async fn should_reject_a_non_whitelisted_infohash_with_a_message_that_names_it_and_holds_no_source_path() {
+                let whitelist_authorization = initialize_whitelist_authorization_with(&configuration_for_listed_tracker());
+
+                let error = whitelist_authorization.authorize(&sample_info_hash()).await.unwrap_err();
+
+                assert_eq!(
+                    error.to_string(),
+                    format!("The torrent: {}, is not whitelisted", sample_info_hash())
+                );
             }
         }
 

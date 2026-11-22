@@ -1,4 +1,3 @@
-use std::panic::Location;
 use std::str::FromStr;
 
 use ::sqlx::Row;
@@ -55,10 +54,8 @@ impl WhitelistStore for Mysql {
             .rows_affected();
 
         if insert == 0 {
-            Err(Error::InsertFailed {
-                location: Location::caller(),
-                driver: DRIVER,
-            })
+            tracing::warn!(driver = %DRIVER, table = "whitelist", %info_hash, "the insert affected no rows");
+            Err(Error::InsertFailed { driver: DRIVER })
         } else {
             usize::try_from(insert).map_err(|e| Error::MalformedDatabaseRecord {
                 message: format!("rows_affected does not fit in usize: {e}"),
@@ -78,8 +75,8 @@ impl WhitelistStore for Mysql {
         if deleted == 1 {
             Ok(1)
         } else {
+            tracing::warn!(driver = %DRIVER, table = "whitelist", %info_hash, rows_deleted = deleted, "the delete did not remove exactly one row");
             Err(Error::DeleteFailed {
-                location: Location::caller(),
                 error_code: usize::try_from(deleted).unwrap_or(0),
                 driver: DRIVER,
             })

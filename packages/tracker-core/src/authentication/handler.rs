@@ -11,7 +11,6 @@ use std::time::Duration;
 
 use torrust_clock::DurationSinceUnixEpoch;
 use torrust_clock::clock::Time;
-use torrust_located_error::Located;
 
 use super::key::repository::in_memory::InMemoryKeyRepository;
 use super::key::repository::persisted::DatabaseKeyRepository;
@@ -99,13 +98,11 @@ impl KeysHandler {
                 match key {
                     Ok(key) => match self.add_expiring_peer_key(key, Some(valid_until)).await {
                         Ok(auth_key) => Ok(auth_key),
-                        Err(err) => Err(PeerKeyError::DatabaseError {
-                            source: Located(err).into(),
-                        }),
+                        Err(err) => Err(PeerKeyError::DatabaseError { source: err }),
                     },
                     Err(err) => Err(PeerKeyError::InvalidKey {
                         key: pre_existing_key,
-                        source: Located(err).into(),
+                        source: err,
                     }),
                 }
             } else {
@@ -116,13 +113,11 @@ impl KeysHandler {
                 match key {
                     Ok(key) => match self.add_permanent_peer_key(key).await {
                         Ok(auth_key) => Ok(auth_key),
-                        Err(err) => Err(PeerKeyError::DatabaseError {
-                            source: Located(err).into(),
-                        }),
+                        Err(err) => Err(PeerKeyError::DatabaseError { source: err }),
                     },
                     Err(err) => Err(PeerKeyError::InvalidKey {
                         key: pre_existing_key,
-                        source: Located(err).into(),
+                        source: err,
                     }),
                 }
             }
@@ -137,18 +132,14 @@ impl KeysHandler {
                     .await
                 {
                     Ok(auth_key) => Ok(auth_key),
-                    Err(err) => Err(PeerKeyError::DatabaseError {
-                        source: Located(err).into(),
-                    }),
+                    Err(err) => Err(PeerKeyError::DatabaseError { source: err }),
                 }
             } else {
                 // Permanent key
 
                 match self.generate_permanent_peer_key().await {
                     Ok(auth_key) => Ok(auth_key),
-                    Err(err) => Err(PeerKeyError::DatabaseError {
-                        source: Located(err).into(),
-                    }),
+                    Err(err) => Err(PeerKeyError::DatabaseError { source: err }),
                 }
             }
         }
@@ -354,7 +345,6 @@ mod tests {
             }
 
             mod randomly_generated {
-                use std::panic::Location;
                 use std::sync::Arc;
                 use std::time::Duration;
 
@@ -407,12 +397,7 @@ mod tests {
                         }))
                         .times(1)
                         .returning(|_peer_key| {
-                            Box::pin(async move {
-                                Err(databases::error::Error::InsertFailed {
-                                    location: Location::caller(),
-                                    driver: Driver::Sqlite3,
-                                })
-                            })
+                            Box::pin(async move { Err(databases::error::Error::InsertFailed { driver: Driver::Sqlite3 }) })
                         });
                     let auth_key_store: Arc<dyn AuthKeyStore> = Arc::new(database_mock);
 
@@ -430,7 +415,6 @@ mod tests {
             }
 
             mod pre_generated {
-                use std::panic::Location;
                 use std::sync::Arc;
                 use std::time::Duration;
 
@@ -518,12 +502,7 @@ mod tests {
                         .with(predicate::eq(expected_peer_key))
                         .times(1)
                         .returning(|_peer_key| {
-                            Box::pin(async move {
-                                Err(databases::error::Error::InsertFailed {
-                                    location: Location::caller(),
-                                    driver: Driver::Sqlite3,
-                                })
-                            })
+                            Box::pin(async move { Err(databases::error::Error::InsertFailed { driver: Driver::Sqlite3 }) })
                         });
                     let auth_key_store: Arc<dyn AuthKeyStore> = Arc::new(database_mock);
 
@@ -545,7 +524,6 @@ mod tests {
 
             mod randomly_generated {
 
-                use std::panic::Location;
                 use std::sync::Arc;
 
                 use mockall::predicate::function;
@@ -594,12 +572,7 @@ mod tests {
                         .with(function(move |peer_key: &PeerKey| peer_key.valid_until.is_none()))
                         .times(1)
                         .returning(|_peer_key| {
-                            Box::pin(async move {
-                                Err(databases::error::Error::InsertFailed {
-                                    location: Location::caller(),
-                                    driver: Driver::Sqlite3,
-                                })
-                            })
+                            Box::pin(async move { Err(databases::error::Error::InsertFailed { driver: Driver::Sqlite3 }) })
                         });
                     let auth_key_store: Arc<dyn AuthKeyStore> = Arc::new(database_mock);
 
@@ -618,7 +591,6 @@ mod tests {
 
             mod pre_generated_keys {
 
-                use std::panic::Location;
                 use std::sync::Arc;
 
                 use mockall::predicate;
@@ -683,12 +655,7 @@ mod tests {
                         .with(predicate::eq(expected_peer_key))
                         .times(1)
                         .returning(|_peer_key| {
-                            Box::pin(async move {
-                                Err(databases::error::Error::InsertFailed {
-                                    location: Location::caller(),
-                                    driver: Driver::Sqlite3,
-                                })
-                            })
+                            Box::pin(async move { Err(databases::error::Error::InsertFailed { driver: Driver::Sqlite3 }) })
                         });
                     let auth_key_store: Arc<dyn AuthKeyStore> = Arc::new(database_mock);
 
@@ -703,6 +670,49 @@ mod tests {
 
                     assert!(matches!(result.unwrap_err(), PeerKeyError::DatabaseError { .. }));
                 }
+            }
+        }
+        mod peer_key_errors {
+            use std::error::Error as _;
+
+            use crate::authentication::handler::AddKeyRequest;
+            use crate::authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::{
+                instantiate_keys_handler, private_tracker_configuration,
+            };
+            use crate::error::PeerKeyError;
+            use crate::test_helpers::tests::assert_names_no_source_path;
+
+            fn add_key_request(key: &str) -> AddKeyRequest {
+                AddKeyRequest {
+                    opt_key: Some(key.to_string()),
+                    opt_seconds_valid: None,
+                }
+            }
+
+            #[tokio::test]
+            async fn it_should_fail_without_a_source_path_when_the_database_rejects_a_duplicate_key() {
+                let ephemeral = private_tracker_configuration();
+                let keys_handler = instantiate_keys_handler(&ephemeral.config).await;
+                let key = "YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ";
+                keys_handler.add_peer_key(add_key_request(key)).await.unwrap();
+
+                let error = keys_handler.add_peer_key(add_key_request(key)).await.unwrap_err();
+
+                assert!(matches!(error, PeerKeyError::DatabaseError { .. }), "{error:?}");
+                assert_names_no_source_path(&error.to_string());
+                assert_names_no_source_path(&error.source().unwrap().to_string());
+            }
+
+            #[tokio::test]
+            async fn it_should_fail_without_a_source_path_when_the_key_is_invalid() {
+                let ephemeral = private_tracker_configuration();
+                let keys_handler = instantiate_keys_handler(&ephemeral.config).await;
+
+                let error = keys_handler.add_peer_key(add_key_request("INVALID KEY")).await.unwrap_err();
+
+                assert!(matches!(error, PeerKeyError::InvalidKey { .. }), "{error:?}");
+                assert_names_no_source_path(&error.to_string());
+                assert_names_no_source_path(&error.source().unwrap().to_string());
             }
         }
     }

@@ -7,7 +7,6 @@
 //!
 //! It also sends an [`Event`]
 //! because events are specific for the HTTP tracker.
-use std::panic::Location;
 use std::sync::Arc;
 
 use torrust_info_hash::InfoHash;
@@ -304,9 +303,7 @@ impl AnnounceService {
 
     async fn authenticate(&self, maybe_key: Option<Key>) -> Result<(), authentication::key::Error> {
         if self.core_config.private {
-            let key = maybe_key.ok_or(authentication::key::Error::MissingAuthKey {
-                location: Location::caller(),
-            })?;
+            let key = maybe_key.ok_or(authentication::key::Error::MissingAuthKey)?;
 
             self.authentication_service.authenticate(&key).await?;
         }
@@ -434,7 +431,6 @@ impl From<HttpAnnounceError> for HttpProtocolErrorResponse {
 mod tests {
     use std::future;
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-    use std::panic::Location;
     use std::sync::Arc;
 
     use rstest::rstest;
@@ -1019,7 +1015,7 @@ mod tests {
                 result,
                 Err(HttpAnnounceError::TrackerCoreError {
                     source: TrackerCoreError::AuthenticationError {
-                        source: AuthenticationKeyError::MissingAuthKey { .. }
+                        source: AuthenticationKeyError::MissingAuthKey
                     }
                 })
             ),
@@ -1514,7 +1510,6 @@ mod tests {
         // Arrange
         let tracker_core_error = TrackerCoreError::from(WhitelistError::TorrentNotWhitelisted {
             info_hash: sample_info_hash(),
-            location: Location::caller(),
         });
         let tracker_core_response = protocol_error_from_tracker_core_error(tracker_core_error.clone());
 
@@ -1530,7 +1525,6 @@ mod tests {
         // Arrange
         let tracker_core_error = TrackerCoreError::from(WhitelistError::TorrentNotWhitelisted {
             info_hash: sample_info_hash(),
-            location: Location::caller(),
         });
 
         // Act

@@ -5200,7 +5200,6 @@ dependencies = [
  "tokio-util",
  "torrust-clock",
  "torrust-info-hash",
- "torrust-located-error",
  "torrust-metrics",
  "torrust-tracker-configuration",
  "torrust-tracker-core",

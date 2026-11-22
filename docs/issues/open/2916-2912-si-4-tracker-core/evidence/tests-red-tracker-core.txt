@@ -1,0 +1,216 @@
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.18s
+     Running unittests src/lib.rs (target/debug/build/torrust-tracker-core/d6b78cd3a90cd77f/out/torrust_tracker_core-d6b78cd3a90cd77f)
+
+running 160 tests
+test announce_handler::tests::the_announce_handler::for_all_tracker_config_modes::handling_an_announce_request::should_assign_the_ip_to_the_peer::and_when_client_ip_is_a_ipv6_loopback_ip::it_should_use_the_loopback_ip_if_the_tracker_does_not_have_the_external_ip_configuration ... ok
+test announce_handler::tests::the_announce_handler::for_all_tracker_config_modes::handling_an_announce_request::should_assign_the_ip_to_the_peer::and_when_client_ip_is_a_ipv6_loopback_ip::it_should_use_the_external_ip_in_tracker_configuration_if_it_is_defined ... ok
+test announce_handler::tests::the_announce_handler::for_all_tracker_config_modes::handling_an_announce_request::should_assign_the_ip_to_the_peer::and_when_the_client_ip_is_a_ipv4_loopback_ip::it_should_use_the_external_ip_in_the_tracker_configuration_if_it_is_defined_even_if_the_external_ip_is_an_ipv6_ip ... ok
+test announce_handler::tests::the_announce_handler::for_all_tracker_config_modes::handling_an_announce_request::should_assign_the_ip_to_the_peer::and_when_client_ip_is_a_ipv6_loopback_ip::it_should_use_the_external_ip_in_the_tracker_configuration_if_it_is_defined_even_if_the_external_ip_is_an_ipv4_ip ... ok
+test announce_handler::tests::the_announce_handler::for_all_tracker_config_modes::handling_an_announce_request::should_assign_the_ip_to_the_peer::and_when_the_client_ip_is_a_ipv4_loopback_ip::it_should_use_the_external_tracker_ip_in_tracker_configuration_if_it_is_defined ... ok
+test announce_handler::tests::the_announce_handler::for_all_tracker_config_modes::handling_an_announce_request::should_assign_the_ip_to_the_peer::and_when_the_client_ip_is_a_ipv4_loopback_ip::it_should_use_the_loopback_ip_if_the_tracker_does_not_have_the_external_ip_configuration ... ok
+test announce_handler::tests::the_announce_handler::for_all_tracker_config_modes::handling_an_announce_request::should_assign_the_ip_to_the_peer::and_when_the_external_ip_is_unspecified::it_should_keep_the_ipv4_loopback_ip_when_the_external_ip_is_the_unspecified_ipv4_address ... ok
+test announce_handler::tests::the_announce_handler::for_all_tracker_config_modes::handling_an_announce_request::should_assign_the_ip_to_the_peer::and_when_the_external_ip_is_unspecified::it_should_keep_the_ipv6_loopback_ip_when_the_external_ip_is_the_unspecified_ipv4_address ... ok
+test announce_handler::tests::the_announce_handler::for_all_tracker_config_modes::handling_an_announce_request::should_assign_the_ip_to_the_peer::and_when_the_external_ip_is_unspecified::it_should_keep_the_ipv4_loopback_ip_when_the_external_ip_is_the_unspecified_ipv6_address ... ok
+test announce_handler::tests::the_announce_handler::for_all_tracker_config_modes::handling_an_announce_request::should_assign_the_ip_to_the_peer::and_when_the_external_ip_is_unspecified::it_should_keep_the_ipv6_loopback_ip_when_the_external_ip_is_the_unspecified_ipv6_address ... ok
+test announce_handler::tests::the_announce_handler::for_all_tracker_config_modes::handling_an_announce_request::should_assign_the_ip_to_the_peer::and_when_the_external_ip_is_unspecified::it_should_keep_the_non_loopback_ip_when_the_external_ip_is_unspecified_ipv4 ... ok
+test announce_handler::tests::the_announce_handler::for_all_tracker_config_modes::handling_an_announce_request::should_assign_the_ip_to_the_peer::and_when_the_external_ip_is_unspecified::it_should_keep_the_non_loopback_ip_when_the_external_ip_is_unspecified_ipv6 ... ok
+test announce_handler::tests::the_announce_handler::should_allow_the_client_peers_to_specified_the_number_of_peers_wanted::it_should_allow_limiting_the_peer_list ... ok
+test announce_handler::tests::the_announce_handler::should_allow_the_client_peers_to_specified_the_number_of_peers_wanted::it_should_cap_only_peers_wanted_at_limit_time ... ok
+test announce_handler::tests::the_announce_handler::for_all_tracker_config_modes::handling_an_announce_request::should_assign_the_ip_to_the_peer::using_the_source_ip_instead_of_the_ip_in_the_announce_request ... ok
+test announce_handler::tests::the_announce_handler::should_allow_the_client_peers_to_specified_the_number_of_peers_wanted::it_should_convert_the_peers_wanted_number_from_i32_via_from_client_request ... ok
+test announce_handler::tests::the_announce_handler::should_allow_the_client_peers_to_specified_the_number_of_peers_wanted::it_should_return_74_at_the_most_if_the_client_wants_them_all ... ok
+test announce_handler::tests::the_announce_handler::should_allow_the_client_peers_to_specified_the_number_of_peers_wanted::it_should_return_the_maximin_number_of_peers_by_default ... ok
+test announce_handler::tests::the_announce_handler::should_allow_the_client_peers_to_specified_the_number_of_peers_wanted::it_should_return_the_maximum_when_wanting_more_than_the_maximum ... ok
+test announce_handler::tests::the_announce_handler::should_allow_the_client_peers_to_specified_the_number_of_peers_wanted::it_should_return_zero_when_wanting_only_zero ... ok
+test authentication::key::peer_key::tests::key::length_should_be_32 ... ok
+test authentication::key::peer_key::tests::key::should_only_include_alphanumeric_chars ... ok
+test authentication::key::peer_key::tests::key::should_be_parsed_from_an_string ... ok
+test authentication::key::peer_key::tests::key::should_return_a_reference_to_the_inner_string ... ok
+test authentication::key::peer_key::tests::key::should_be_generated_randomly ... ok
+test authentication::key::peer_key::tests::peer_key::could_be_permanent ... ok
+test authentication::key::peer_key::tests::peer_key::could_have_an_expiration_time ... ok
+test authentication::key::peer_key::tests::peer_key::expiring::should_be_displayed_when_it_is_expiring ... ok
+test authentication::key::peer_key::tests::peer_key::permanent::should_be_displayed_when_it_is_permanent ... ok
+test authentication::key::tests::the_expiring_peer_key::expiration_verification_should_fail_when_the_key_has_expired ... ok
+test authentication::key::tests::the_expiring_peer_key::should_be_displayed ... ok
+test authentication::key::tests::the_expiring_peer_key::should_be_generated_with_a_expiration_time ... ok
+test authentication::key::tests::the_key_verification_error::could_be_a_database_error ... ok
+test authentication::key::tests::the_permanent_peer_key::expiration_verification_should_always_succeed ... ok
+test authentication::key::tests::the_permanent_peer_key::should_be_displayed ... ok
+test authentication::key::tests::the_permanent_peer_key::should_be_generated_without_expiration_time ... ok
+test authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::handling_expiring_peer_keys::randomly_generated::it_should_fail_adding_a_randomly_generated_key_when_there_is_a_database_error ... ok
+test authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::handling_expiring_peer_keys::pre_generated::it_should_fail_adding_a_pre_generated_key_when_there_is_a_database_error ... ok
+test authentication::service::tests::the_authentication_service::when_the_tracker_is_private::it_should_not_authenticate_a_registered_but_expired_key_by_default ... ok
+test authentication::service::tests::the_authentication_service::when_the_tracker_is_private::it_should_authenticate_a_registered_key ... ok
+test authentication::service::tests::the_authentication_service::when_the_tracker_is_private::it_should_reject_an_unregistered_key_with_a_message_that_holds_no_source_path ... FAILED
+test authentication::service::tests::the_authentication_service::when_the_tracker_is_private::it_should_reject_an_expired_key_with_a_message_that_holds_no_source_path ... FAILED
+test authentication::service::tests::the_authentication_service::when_the_tracker_is_public::it_should_always_authenticate_when_the_tracker_is_public ... ok
+test authentication::service::tests::the_authentication_service::when_the_tracker_is_private::it_should_not_authenticate_an_unregistered_key ... ok
+test authentication::service::tests::the_authentication_service::when_the_tracker_is_private::it_should_not_authenticate_a_registered_but_expired_key_when_the_tracker_is_explicitly_configured_to_check_keys_expiration ... ok
+test authentication::key::repository::in_memory::tests::the_in_memory_key_repository_should::remove_a_new_peer_key ... ok
+test authentication::key::repository::in_memory::tests::the_in_memory_key_repository_should::reset_the_peer_keys_with_a_new_list_of_keys ... ok
+test authentication::key::repository::in_memory::tests::the_in_memory_key_repository_should::clear_all_peer_keys ... ok
+test authentication::key::repository::in_memory::tests::the_in_memory_key_repository_should::insert_a_new_peer_key ... ok
+test authentication::service::tests::the_authentication_service::when_the_tracker_is_private::but_the_key_expiration_check_is_disabled_by_configuration::it_should_authenticate_an_expired_registered_key ... ok
+test authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::handling_permanent_peer_keys::pre_generated_keys::it_should_fail_adding_a_pre_generated_key_when_there_is_a_database_error ... ok
+test authentication::key::repository::in_memory::tests::the_in_memory_key_repository_should::get_a_new_peer_key_by_its_internal_key ... ok
+test authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::handling_permanent_peer_keys::randomly_generated::it_should_fail_adding_a_randomly_generated_key_when_there_is_a_database_error ... ok
+test container::tests::it_should_return_a_typed_error_when_persistent_statistics_lack_persistence ... ok
+test container::tests::it_should_construct_a_tracker_core_container_without_persistence ... ok
+test databases::driver::sqlite::schema_migrator::tests::bootstrap_legacy_schema_should_be_a_noop_on_a_fresh_database ... ok
+test databases::driver::sqlite::schema_migrator::tests::bootstrap_legacy_schema_should_reject_partial_legacy_state ... ok
+test announce_handler::tests::the_announce_handler::for_all_tracker_config_modes::handling_an_announce_request::it_should_allow_peers_to_get_only_a_subset_of_the_peers_in_the_swarm ... ok
+test authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::handling_permanent_peer_keys::pre_generated_keys::it_should_fail_adding_a_pre_generated_key_when_the_key_is_invalid ... ok
+test databases::error::tests::it_should_build_a_database_error_from_a_sqlx_io_error ... ok
+test databases::error::tests::it_should_build_a_database_error_from_a_sqlx_row_not_found_error ... ok
+test announce_handler::tests::the_announce_handler::for_all_tracker_config_modes::handling_an_announce_request::it_should_update_the_swarm_stats_for_the_torrent::when_the_peer_is_a_leecher ... ok
+test announce_handler::tests::the_announce_handler::for_all_tracker_config_modes::handling_an_announce_request::it_should_return_the_announce_data_with_an_empty_peer_list_when_it_is_the_first_announced_peer ... ok
+test error::tests::peer_key_error::duration_overflow ... ok
+test error::tests::peer_key_error::parsing_from_string ... ok
+test error::tests::peer_key_error::persisting_into_database ... ok
+test error::tests::whitelist_error::torrent_not_whitelisted ... ok
+test peer_tests::it_should_be_serializable ... ok
+test scrape_handler::tests::it_should_allow_scraping_for_multiple_torrents ... ok
+test authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::handling_expiring_peer_keys::pre_generated::it_should_fail_adding_a_pre_generated_key_when_the_key_duration_exceeds_the_maximum_duration ... ok
+test scrape_handler::tests::it_should_fail_when_loading_the_persisted_downloads_fails ... ok
+test authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::peer_key_errors::it_should_fail_without_a_source_path_when_the_key_is_invalid ... FAILED
+test scrape_handler::tests::it_should_report_an_in_memory_swarm_without_reading_the_persisted_downloads ... ok
+test scrape_handler::tests::it_should_load_the_persisted_downloads_of_all_torrents_absent_from_memory_in_one_query ... ok
+test scrape_handler::tests::it_should_look_up_a_repeated_info_hash_absent_from_memory_only_once ... ok
+test scrape_handler::tests::it_should_report_every_requested_torrent_without_a_limit_on_the_number_of_info_hashes ... ok
+test statistics::event::handler::tests::it_should_increment_in_memory_completion_metrics_when_a_peer_download_is_completed ... ok
+test announce_handler::tests::the_announce_handler::for_all_tracker_config_modes::handling_an_announce_request::it_should_update_the_swarm_stats_for_the_torrent::when_a_previously_announced_started_peer_has_completed_downloading ... ok
+test scrape_handler::tests::it_should_return_a_zeroed_swarm_metadata_for_the_requested_file_if_the_tracker_does_not_have_that_torrent ... ok
+test statistics::event::handler::tests::it_should_persist_global_completion_statistics_when_torrent_persistence_fails ... ok
+test statistics::event::listener::tests::it_should_continue_after_lag_then_handle_an_event_then_stop_when_the_in_memory_receiver_is_closed ... ok
+test statistics::event::handler::tests::it_should_not_increment_in_memory_completion_metrics_when_an_event_is_not_a_completion ... ok
+test statistics::event::listener::tests::it_should_handle_a_queued_event_then_return_cancelled_when_cancellation_is_already_pending ... ok
+test statistics::event::listener::tests::it_should_handle_an_event_then_stop_when_the_in_memory_receiver_is_closed ... ok
+test announce_handler::tests::the_announce_handler::for_all_tracker_config_modes::handling_an_announce_request::it_should_update_the_swarm_stats_for_the_torrent::when_the_peer_is_a_seeder ... ok
+test statistics::event::listener::tests::it_should_leave_the_queued_event_unprocessed_and_return_cancelled_when_the_drain_timeout_has_expired ... ok
+test announce_handler::tests::the_announce_handler::for_all_tracker_config_modes::handling_an_announce_request::it_should_return_the_announce_data_with_the_previously_announced_peers ... ok
+test authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::handling_expiring_peer_keys::it_should_generate_the_key ... ok
+test statistics::event::listener::tests::it_should_stop_when_the_in_memory_receiver_is_closed ... ok
+test authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::handling_permanent_peer_keys::randomly_generated::it_should_generate_the_key ... ok
+test authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::handling_permanent_peer_keys::pre_generated_keys::it_should_add_a_pre_generated_key ... ok
+test authentication::key::repository::persisted::tests::the_persisted_key_repository_should::load_all_persisted_peer_keys ... ok
+test authentication::key::repository::persisted::tests::the_persisted_key_repository_should::remove_a_persisted_peer_key ... ok
+test authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::handling_expiring_peer_keys::pre_generated::it_should_fail_adding_a_pre_generated_key_when_the_key_is_invalid ... ok
+test statistics::repository::tests::it_should_export_persisted_metric_with_zero_value_when_persisted_completed_statistics_are_enabled ... ok
+test statistics::repository::tests::it_should_omit_persisted_metric_when_persisted_completed_statistics_are_disabled ... ok
+test authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::handling_expiring_peer_keys::pre_generated::it_should_add_a_pre_generated_key ... ok
+test authentication::tests::the_tracker_configured_as_private::with_expiring_and::randomly_generated_keys::it_should_authenticate_a_peer_with_the_key ... ok
+test authentication::tests::the_tracker_configured_as_private::with_permanent_and::pre_generated_keys::it_should_authenticate_a_peer_with_the_key ... ok
+test authentication::tests::the_tracker_configured_as_private::it_should_remove_an_authentication_key ... ok
+test authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::peer_key_errors::it_should_fail_without_a_source_path_when_the_database_rejects_a_duplicate_key ... FAILED
+test authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::handling_expiring_peer_keys::randomly_generated::it_should_add_a_randomly_generated_key ... ok
+test torrent::services::tests::getting_a_torrent_info::it_should_return_none_if_the_tracker_does_not_have_the_torrent ... ok
+test authentication::tests::the_tracker_configured_as_private::with_expiring_and::randomly_generated_keys::it_should_accept_an_expired_key_when_checking_expiration_is_disabled_in_configuration ... ok
+test torrent::services::tests::getting_a_torrent_info::it_should_return_the_torrent_info_if_the_tracker_has_the_torrent ... ok
+test torrent::services::tests::getting_basic_torrent_info_for_multiple_torrents_at_once::it_should_return_a_list_with_basic_info_about_the_requested_torrents ... ok
+test torrent::services::tests::getting_basic_torrent_info_for_multiple_torrents_at_once::it_should_return_an_empty_list_if_none_of_the_requested_torrents_is_found ... ok
+test torrent::services::tests::searching_for_torrents::it_should_allow_limiting_the_number_of_torrents_in_the_result ... ok
+test torrent::services::tests::searching_for_torrents::it_should_allow_using_pagination_in_the_result ... ok
+test torrent::services::tests::searching_for_torrents::it_should_return_a_summarized_info_for_all_torrents ... ok
+test torrent::services::tests::searching_for_torrents::it_should_return_an_empty_result_if_the_tracker_does_not_have_any_torrent ... ok
+test torrent::services::tests::searching_for_torrents::it_should_return_torrents_ordered_by_info_hash ... ok
+test whitelist::authorization::tests::the_whitelist_authorization_for_announce_and_scrape_actions::when_the_tacker_is_configured_as_listed::should_authorize_a_whitelisted_infohash ... ok
+test whitelist::authorization::tests::the_whitelist_authorization_for_announce_and_scrape_actions::when_the_tacker_is_configured_as_listed::should_not_authorize_a_non_whitelisted_infohash ... ok
+test whitelist::authorization::tests::the_whitelist_authorization_for_announce_and_scrape_actions::when_the_tacker_is_not_configured_as_listed::should_also_authorize_a_non_whitelisted_infohash ... ok
+test whitelist::authorization::tests::the_whitelist_authorization_for_announce_and_scrape_actions::when_the_tacker_is_not_configured_as_listed::should_authorize_a_whitelisted_infohash ... ok
+test authentication::tests::the_tracker_configured_as_private::with_expiring_and::pre_generated_keys::it_should_authenticate_a_peer_with_the_key ... ok
+test authentication::tests::the_tracker_configured_as_private::it_should_load_authentication_keys_from_the_database ... ok
+test whitelist::authorization::tests::the_whitelist_authorization_for_announce_and_scrape_actions::when_the_tacker_is_configured_as_listed::should_reject_a_non_whitelisted_infohash_with_a_message_that_names_it_and_holds_no_source_path ... FAILED
+test whitelist::repository::in_memory::tests::should_allow_adding_a_new_torrent_to_the_whitelist ... ok
+test whitelist::repository::in_memory::tests::should_allow_checking_if_an_infohash_is_whitelisted ... ok
+test whitelist::repository::in_memory::tests::should_allow_clearing_the_whitelist ... ok
+test whitelist::repository::in_memory::tests::should_allow_removing_a_new_torrent_to_the_whitelist ... ok
+test authentication::tests::the_tracker_configured_as_private::with_expiring_and::pre_generated_keys::it_should_accept_an_expired_key_when_checking_expiration_is_disabled_in_configuration ... ok
+test authentication::tests::the_tracker_configured_as_private::with_permanent_and::randomly_generated_keys::it_should_authenticate_a_peer_with_the_key ... ok
+test authentication::key::repository::persisted::tests::the_persisted_key_repository_should::persist_a_new_peer_key ... ok
+test authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::handling_permanent_peer_keys::randomly_generated::it_should_add_a_randomly_generated_key ... ok
+test container::tests::it_should_construct_a_tracker_core_container_with_supplied_persistence ... ok
+test container::tests::it_should_load_persistent_completed_statistics_when_a_torrent_is_first_announced ... ok
+test databases::setup::tests::it_should_initialize_the_sqlite_database ... ok
+test databases::driver::sqlite::schema_migrator::tests::bootstrap_legacy_schema_should_seed_history_when_all_legacy_tables_exist ... ok
+test statistics::event::handler::tests::it_should_not_persist_completion_statistics_when_an_event_is_not_a_completion ... ok
+test torrent::manager::tests::cleaning_torrents::it_should_retain_peerless_torrents_when_it_is_configured_to_do_so ... ok
+test tests::the_tracker::for_all_config_modes::handling_a_scrape_request::it_should_return_the_swarm_metadata_for_the_requested_file_if_the_tracker_has_that_torrent ... ok
+test statistics::event::listener::tests::it_should_handle_an_event_then_stop_when_the_persistent_receiver_is_closed ... ok
+test torrent::manager::tests::cleaning_torrents::it_should_remove_peers_that_have_not_been_updated_after_a_cutoff_time ... ok
+test tests::the_tracker::configured_as_whitelisted::handling_a_scrape_request::it_should_return_the_zeroed_swarm_metadata_for_the_requested_file_if_it_is_not_whitelisted ... ok
+test statistics::event::listener::tests::it_should_stop_when_the_persistent_receiver_is_closed ... ok
+test torrent::manager::tests::cleaning_torrents::it_should_remove_torrents_that_have_no_peers_when_it_is_configured_to_do_so ... ok
+test statistics::event::listener::tests::it_should_leave_the_queued_events_unprocessed_and_return_cancelled_when_the_drain_timeout_has_expired ... ok
+test databases::driver::sqlite::tests::create_database_tables_should_be_idempotent_on_a_fresh_database ... ok
+test statistics::event::listener::tests::it_should_continue_after_lag_then_handle_an_event_then_stop_when_the_persistent_receiver_is_closed ... ok
+test statistics::persisted::downloads::tests::it_increases_the_numbers_of_downloads_for_a_torrent_into_the_database ... ok
+test statistics::persisted::downloads::tests::it_loads_the_numbers_of_downloads_for_all_torrents_from_the_database ... ok
+test statistics::event::listener::tests::it_should_persist_a_queued_completed_download_when_cancellation_is_already_pending ... ok
+test statistics::persisted::downloads::tests::it_saves_the_numbers_of_downloads_for_a_torrent_into_the_database ... ok
+test statistics::event::handler::tests::it_should_persist_completion_statistics_when_a_peer_download_is_completed ... ok
+test whitelist::repository::persisted::tests::the_persisted_whitelist_repository::should_load_all_infohashes_from_the_database ... ok
+test statistics::event::listener::tests::it_should_persist_every_queued_event_then_return_cancelled_when_cancellation_is_already_pending ... ok
+test whitelist::repository::persisted::tests::the_persisted_whitelist_repository::should_not_fail_removing_an_infohash_that_is_not_in_the_list ... ok
+test whitelist::repository::persisted::tests::the_persisted_whitelist_repository::should_not_add_the_same_infohash_to_the_list_twice ... ok
+test whitelist::repository::persisted::tests::the_persisted_whitelist_repository::should_add_a_new_infohash_to_the_list ... ok
+test torrent::manager::tests::it_should_load_the_numbers_of_downloads_for_all_torrents_from_the_database ... ok
+test whitelist::repository::persisted::tests::the_persisted_whitelist_repository::should_remove_a_infohash_from_the_list ... ok
+test whitelist::tests::configured_as_whitelisted::handling_authorization::it_should_not_authorize_the_announce_and_scrape_actions_on_not_whitelisted_torrents ... ok
+test whitelist::manager::tests::configured_as_whitelisted::handling_the_torrent_whitelist::persistence::it_should_load_the_whitelist_from_the_database ... ok
+test whitelist::manager::tests::configured_as_whitelisted::handling_the_torrent_whitelist::it_should_add_a_torrent_to_the_whitelist ... ok
+test whitelist::tests::configured_as_whitelisted::handling_authorization::it_should_authorize_the_announce_and_scrape_actions_on_whitelisted_torrents ... ok
+test whitelist::manager::tests::configured_as_whitelisted::handling_the_torrent_whitelist::it_should_remove_a_torrent_from_the_whitelist ... ok
+test databases::driver::sqlite::tests::run_sqlite_driver_tests ... FAILED
+
+failures:
+
+---- authentication::service::tests::the_authentication_service::when_the_tracker_is_private::it_should_reject_an_unregistered_key_with_a_message_that_holds_no_source_path stdout ----
+
+thread 'authentication::service::tests::the_authentication_service::when_the_tracker_is_private::it_should_reject_an_unregistered_key_with_a_message_that_holds_no_source_path' panicked at packages/tracker-core/src/authentication/service.rs:221:17:
+assertion `left == right` failed
+  left: "Failed to read key: YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ, packages/tracker-core/src/authentication/service.rs:98:27"
+ right: "Failed to read key: YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ"
+
+---- authentication::service::tests::the_authentication_service::when_the_tracker_is_private::it_should_reject_an_expired_key_with_a_message_that_holds_no_source_path stdout ----
+
+thread 'authentication::service::tests::the_authentication_service::when_the_tracker_is_private::it_should_reject_an_expired_key_with_a_message_that_holds_no_source_path' panicked at packages/tracker-core/src/authentication/service.rs:244:17:
+assertion `left == right` failed
+  left: "Key has expired, packages/tracker-core/src/authentication/key/mod.rs:158:31"
+ right: "Key has expired"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::peer_key_errors::it_should_fail_without_a_source_path_when_the_key_is_invalid stdout ----
+
+thread 'authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::peer_key_errors::it_should_fail_without_a_source_path_when_the_key_is_invalid' panicked at packages/tracker-core/src/authentication/handler.rs:748:17:
+the error message must not hold a source path, but it contains ".rs:": "Invalid key length. Key must be have 32 chars, packages/tracker-core/src/authentication/handler.rs:125:46"
+
+---- authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::peer_key_errors::it_should_fail_without_a_source_path_when_the_database_rejects_a_duplicate_key stdout ----
+
+thread 'authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::peer_key_errors::it_should_fail_without_a_source_path_when_the_database_rejects_a_duplicate_key' panicked at packages/tracker-core/src/authentication/handler.rs:735:17:
+the error message must not hold a source path, but it contains ".rs:": "Can't persist key: The Sqlite3 query was malformed: error returned from database: (code: 2067) UNIQUE constraint failed: keys.key, packages/tracker-core/src/databases/driver/sqlite/auth_key_store.rs:74:22, packages/tracker-core/src/authentication/handler.rs:120:50"
+
+---- whitelist::authorization::tests::the_whitelist_authorization_for_announce_and_scrape_actions::when_the_tacker_is_configured_as_listed::should_reject_a_non_whitelisted_infohash_with_a_message_that_names_it_and_holds_no_source_path stdout ----
+
+thread 'whitelist::authorization::tests::the_whitelist_authorization_for_announce_and_scrape_actions::when_the_tacker_is_configured_as_listed::should_reject_a_non_whitelisted_infohash_with_a_message_that_names_it_and_holds_no_source_path' panicked at packages/tracker-core/src/whitelist/authorization.rs:148:17:
+assertion `left == right` failed
+  left: "The torrent: 3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0, is not whitelisted, packages/tracker-core/src/whitelist/authorization.rs:61:23"
+ right: "The torrent: 3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0, is not whitelisted"
+
+---- databases::driver::sqlite::tests::run_sqlite_driver_tests stdout ----
+
+thread 'databases::driver::sqlite::tests::run_sqlite_driver_tests' panicked at packages/tracker-core/src/databases/driver/mod.rs:280:13:
+the error message must not hold a source path, but it contains ".rs:": "The Sqlite3 query was malformed: error returned from database: (code: 2067) UNIQUE constraint failed: keys.key, packages/tracker-core/src/databases/driver/sqlite/auth_key_store.rs:74:22"
+
+
+failures:
+    authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::peer_key_errors::it_should_fail_without_a_source_path_when_the_database_rejects_a_duplicate_key
+    authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::peer_key_errors::it_should_fail_without_a_source_path_when_the_key_is_invalid
+    authentication::service::tests::the_authentication_service::when_the_tracker_is_private::it_should_reject_an_expired_key_with_a_message_that_holds_no_source_path
+    authentication::service::tests::the_authentication_service::when_the_tracker_is_private::it_should_reject_an_unregistered_key_with_a_message_that_holds_no_source_path
+    databases::driver::sqlite::tests::run_sqlite_driver_tests
+    whitelist::authorization::tests::the_whitelist_authorization_for_announce_and_scrape_actions::when_the_tacker_is_configured_as_listed::should_reject_a_non_whitelisted_infohash_with_a_message_that_names_it_and_holds_no_source_path
+
+test result: FAILED. 154 passed; 6 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+
+error: test failed, to rerun pass `-p torrust-tracker-core --lib`
