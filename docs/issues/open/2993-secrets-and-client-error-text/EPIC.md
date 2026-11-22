@@ -63,6 +63,7 @@ Paths are relative to the repository root. Every item was read in the code, and 
 | A9 | `docs/containers.md` (lines about 492-562) | the documentation teaches `?token=` URLs and a `mysql://user:password@host` URL in config and environment | readers; the request log then records the token. The MySQL example (`path = "mysql://db_user:...@mysql:3306/torrust_tracker"`) is also stale: the v3 schema refuses `path` for a network database (`packages/configuration/src/v3_0_0/database.rs:203-204`) |
 | A10 | `packages/configuration/src/v3_0_0/mod.rs:409` (`figment.extract()`), wrapped by `Error::ConfigError` (`packages/configuration/src/lib.rs:335`) | a configuration error prints the offending value, so a numeric database password or access token is printed (details below) | the operator: stderr and the server log |
 | A11 | `packages/tracker-core/src/databases/error.rs:111-135` (`From<(SqlxError, Driver)>` keeps the `sqlx` text) | a database server message names the database user and the client address (details below). Not a secret; owned by SI-B | the operator today; a client wherever driver text is forwarded |
+| A12 | `packages/tracker-core/src/databases/error.rs:111-135` (the `sqlx` source is kept and printed), reached from `packages/tracker-core/src/databases/driver/mysql/auth_key_store.rs` | a database server message can contain a secret: adding a peer key that already exists makes MySQL answer `Duplicate entry '<peer key>' for key 'keys.key'`, and the error keeps and prints it. PostgreSQL (`duplicate key value violates unique constraint "keys_key_key"`) and SQLite (`UNIQUE constraint failed: keys.key`) do not print the value | the REST administrator (500 reply), and the server log at DEBUG through the `torrust_located_error` event |
 
 Checked and found safe, so that the spec does not redo it:
 
@@ -147,7 +148,7 @@ There is no ADR on peer-key handling, request-log redaction or client-facing err
 
 SI-A, secrets (a bug class):
 
-- Remove every cluster of A1 to A8 and A10 (a configuration error must not echo a secret value, for example by building the figment error message without the offending value or by rejecting a non-string secret with a fixed message): no error keeps or prints a key or token; request logging of both servers redacts the key path segment and the `token` query parameter (the maintainer's decision, 2026-11-22); the generated key is not logged in clear; the REST client strips the URL from transport errors; `Key` gets redacting `Debug` and no clear `Display` where a clear value is not needed.
+- Remove every cluster of A1 to A8, A10 and A12 (A12: a database error must not keep or print a driver message that holds a secret) (a configuration error must not echo a secret value, for example by building the figment error message without the offending value or by rejecting a non-string secret with a fixed message): no error keeps or prints a key or token; request logging of both servers redacts the key path segment and the `token` query parameter (the maintainer's decision, 2026-11-22); the generated key is not logged in clear; the REST client strips the URL from transport errors; `Key` gets redacting `Debug` and no clear `Display` where a clear value is not needed.
 - A rule for the peer key in the `handle-secrets` skill (and an ADR or an update of the secrecy ADR, decided in SI-A), and a fix of the `docs/containers.md` examples (A9).
 - Tests that assert redaction without printing the secret, and a regression test per leak.
 
@@ -238,7 +239,7 @@ Recorded 2026-11-22 in the session that drafted this specification:
 1. The work is an EPIC with two sub-issues (SI-A secrets, SI-B client text), because the first is a bug class and the second a design question that needs an ADR.
 2. Request-URI logging is in scope: redact the peer key and the `token` query parameter in both the HTTP tracker and the REST API.
 3. The EPIC is standalone, linked from EPIC #2912 and SI-4, not a sub-issue of it.
-4. What a client receives for database failures is decided in the SI-B ADR, not fixed in this specification. The user and host in database server messages (A11) are an operator-side exposure and a client-text question, so SI-B owns them.
+4. What a client receives for database failures is decided in the SI-B ADR, not fixed in this specification. The user and host in database server messages (A11) are an operator-side exposure and a client-text question, so SI-B owns them. A database server message that holds a secret (A12) is a secret leak, so SI-A owns it: SI-A makes the retained error, the reply and the log free of the secret, and SI-B then decides what non-secret detail a client may see.
 
 5. Principle for client text about a secret: help the legitimate user as much as possible without revealing the secret. The project is public, so an attacker can read the source, and security must not rely on hiding how the tracker works. A message may therefore state any fact about the client's own input (its length, that it holds a character outside the allowed set) and the state of the credential (not registered, expired), but never the secret itself. SI-B applies the same principle to the other error families.
 
@@ -267,7 +268,7 @@ The REST API messages for an uploaded key (A2) follow the same pattern: the leng
 - [ ] Every completed subissue includes post-implementation acceptance criteria review.
 - [ ] Every completed subissue includes an implementation completion review.
 - [ ] Documentation and governance updates are included when required.
-- [ ] No error value keeps a peer key or an admin token, and no message prints one (A1, A2, A6, A10).
+- [ ] No error value keeps a peer key or an admin token, and no message prints one (A1, A2, A6, A10, A12).
 - [ ] No log line written for a real request on the HTTP tracker or the REST API holds a peer key or an admin token, shown on a running tracker (A3, A4, A5).
 - [ ] The `handle-secrets` skill, and an ADR, state how the peer key is handled (A7), and `docs/containers.md` no longer teaches a pattern that logs a secret (A9).
 - [ ] An accepted ADR defines the client text policy, and the replies of the HTTP tracker, the UDP tracker and the REST API follow it, shown on a running tracker.

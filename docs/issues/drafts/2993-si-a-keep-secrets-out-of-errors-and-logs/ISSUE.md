@@ -37,7 +37,7 @@ No error value keeps a peer authentication key or a REST API admin token, no err
 
 ## Background
 
-The inventory of the EPIC (section "Inventory", items A1 to A11) lists every case found in the tree and reproduced on a running tracker. This issue owns the cases that are secrets: A1 to A8 and A10. A9 is a documentation fix that belongs here too. A11 (database server messages that name the user and host) is owned by SI-B.
+The inventory of the EPIC (section "Inventory", items A1 to A11) lists every case found in the tree and reproduced on a running tracker. This issue owns the cases that are secrets: A1 to A8, A10 and A12. A9 is a documentation fix that belongs here too, and so is A12 (a database server message that holds the key). A11 (database server messages that name the user and host) is owned by SI-B. The commands and output of the reproductions are in the EPIC's [`manual-verification-evidence.md`](../../open/2993-secrets-and-client-error-text/manual-verification-evidence.md).
 
 The rule already exists: rule 3 of the errors ADR (`docs/adrs/20261118045443_errors_do_not_record_source_locations.md`) says a secret is never the offending input in a message and the error does not keep it, and the `handle-secrets` skill forbids secrets in logs and error text. The code predates both for the peer key, which is not a `SecretString` and prints in clear wherever it is formatted. The skill and the secrecy ADR cover configuration secrets only; they do not name the peer key or secrets carried in URLs.
 
@@ -57,7 +57,8 @@ The maintainer's principle (2026-11-22): help the legitimate user as much as pos
 5. **The type (A7).** `Key` gets a redacting `Debug` (`Key([REDACTED])`). Its `Display` stays only where the key is deliberately handed to its owner or persisted (the generate and add responses, the database store), and each remaining use is listed in the issue's evidence. `PeerKey`'s manual `Display` is checked the same way. Tests assert the redacted text without printing a test secret (`handle-secrets` skill).
 6. **The REST client (A6).** The client strips the URL from `reqwest` errors (`without_url`) before it wraps them, and sends the token in the `Authorization: Bearer` header instead of the query string, which the server already accepts. The plain `String` token fields (A8) become `SecretString` where that is practical; if a field cannot change without a breaking change, record why.
 7. **Configuration errors (A10).** A configuration error does not print the value of a secret option. For the `figment` error of a secret field (the database password, an access token), the loader reports the option path and the expected type with a fixed message and no value. How it is detected (the key path of the `figment` error against a list of secret paths, or reading the secret fields as strings and rejecting other types with a fixed message) is decided at implementation and recorded.
-8. **Documentation (A9 and the gap).** Update the `handle-secrets` skill and the secrecy ADR (or add an ADR if the review prefers) with the rule for the peer key and for secrets carried in URLs; fix `docs/containers.md` so the examples use the `Authorization` header and the v3 network database fields instead of `?token=` and a `mysql://` `path`.
+8. **Database errors that hold a secret (A12).** A database server message can contain the value that was written: adding a peer key that already exists makes MySQL answer `Duplicate entry '<peer key>' for key 'keys.key'` (reproduced; see the EPIC evidence file, section V8). `databases::error::Error` keeps the `sqlx` source and prints it, so the key is in the retained error, in the REST reply and in a DEBUG log line. For the key store operations the error must not keep or print the driver message: map a unique-constraint violation to a variant of its own with a fixed message (for example "the key already exists"), using the driver's error kind (`sqlx::error::ErrorKind::UniqueViolation`), not its text; for any other driver error raised by a statement that binds a secret, keep the error kind and code and drop the message. Record at implementation which statements bind a secret (the `keys` table writes). What non-secret driver detail a client may see is SI-B.
+9. **Documentation (A9 and the gap).** Update the `handle-secrets` skill and the secrecy ADR (or add an ADR if the review prefers) with the rule for the peer key and for secrets carried in URLs; fix `docs/containers.md` so the examples use the `Authorization` header and the v3 network database fields instead of `?token=` and a `mysql://` `path`.
 
 ### Out of Scope
 
@@ -91,6 +92,7 @@ This is substantively a bug (a secret printed to a client and to logs), so it fo
 - **Log redaction**: a unit test of the shared redaction function over the URI shapes (`/announce/<key>?...`, `/scrape/<key>`, `/api/v1/key/<key>?token=<t>`, a bare `?token=`, a URI with no secret, a percent-encoded key). A test through each server captures the tracing output with a unique test key and token and asserts neither appears in it.
 - **Generated key**: a test that captures the debug output of key generation.
 - **Configuration**: a test that loads a configuration with a numeric database password and a numeric access token and asserts the error contains the option path and not the value.
+- **Database errors**: a test that adds the same key twice and asserts that the retained error (`Display`, `Debug` and its source chain), the REST reply and the captured log hold no key. It must run against MySQL, the driver that prints the value, so it belongs with the database-backed driver tests; the SQLite and PostgreSQL runs assert the same thing and guard against a future driver message change.
 - **REST client**: a test that forces a transport error and asserts the text holds neither the URL query nor the token.
 - **Real boundary**: the existing protocol tests (`packages/axum-http-server/tests`, the REST API server tests) get assertions that a failure reason and a REST error hold no key.
 
@@ -109,18 +111,19 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T7 | TODO | Configuration errors | A10: no secret value in a configuration error. |
 | T8 | TODO | Documentation | `handle-secrets` skill, the ADR change, `docs/containers.md`. |
 | T9 | TODO | Final recheck | The baseline reproduction repeated after the last production change. |
+| T7b | TODO | Database errors | A12: the key store errors keep and print no driver message that holds a key; MySQL duplicate-key regression test. |
 
 ## Commit Points
 
 | Task | Coherent change set | Commit policy |
 | --- | --- | --- |
-| T2 | The red tests | Commit after focused validation and required review. |
-| T3 | Key errors, messages and REST responses | Commit after focused validation and required review. |
-| T4 | `Key` and `PeerKey` formatting | Commit after focused validation and required review. |
-| T5 | Redaction function and the three servers | Commit after focused validation and required review. |
-| T6 | REST client | Commit after focused validation and required review. |
-| T7 | Configuration errors | Commit after focused validation and required review. |
-| T8 | Skill, ADR and documentation | Commit after focused validation and required review. |
+| T3 | Key errors, messages and REST responses, with their tests | Commit after the red and green runs and the recorded test-design review. |
+| T4 | `Key` and `PeerKey` formatting | Commit after the red and green runs and the recorded test-design review. |
+| T5 | Redaction function and the three servers | Commit after the red and green runs and the recorded test-design review. |
+| T6 | REST client | Commit after the red and green runs and the recorded test-design review. |
+| T7 | Configuration errors, with their tests | Commit after the red and green runs and the recorded test-design review. |
+| T7b | Database errors that hold a key, with the MySQL regression test | Commit after the red and green runs and the recorded test-design review. |
+| T8 | Skill, ADR and documentation | Commit after the red and green runs and the recorded test-design review. |
 
 ## Progress Tracking
 
@@ -156,6 +159,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [ ] AC9: Adding a peer key that already exists leaves no key in the retained error, the REST reply or the log, on MySQL, PostgreSQL and SQLite.
+- [ ] AC10: Each test increment has a recorded test-design review, and the maintainer checkpoint after the last increment is recorded in the progress log.
 - [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 
 ## Verification Plan
@@ -181,6 +186,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 Notes: manual verification is mandatory even when automated tests pass. Record the toolchain for every command, and create `manual-verification-evidence.md` from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`.
 
+| M7 | Duplicate key on MySQL | On a tracker with a MySQL database and `trace_filter = "debug"`, add the same key twice through the REST API; read the reply and the log | Neither holds the key | TODO | `manual-verification-evidence.md` section V7 |
 ### Disposable Verification Scripts
 
 None planned. The UDP and HTTP probes of the EPIC session were ad-hoc commands; promote any durable check to a Rust test.
@@ -200,6 +206,8 @@ None planned. The UDP and HTTP probes of the EPIC session were ad-hoc commands; 
 
 ## Risks and Trade-offs
 
+| AC9 | TODO | {test/log/PR link} |
+| AC10 | TODO | {test/log/PR link} |
 - **Redacting the URI loses debugging value.** An operator cannot see which key a client used. Mitigation: if correlation is needed, log a short stable fingerprint (a truncated hash) instead of the key; decide in review.
 - **Conflict with SI-4 (#2916).** Both rewrite the tracker-core key errors. Mitigation: start after SI-4 merges.
 - **A breaking change in a public error enum.** `UnableToReadKey` loses a field. Mitigation: tracker-core is not published yet, and the enum is `#[non_exhaustive]`.

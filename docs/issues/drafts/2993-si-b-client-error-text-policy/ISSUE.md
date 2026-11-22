@@ -72,7 +72,7 @@ The maintainer's decisions (2026-11-22): the text for database failures is decid
 - Source locations (EPIC #2912).
 - REST status codes and the response shape of API v1: v1 is additive-only, and correct codes and a structured error body are API v2 (EPIC #144). This issue changes v1 text only. The ADR should say how the v2 error model relates to this policy so the two do not diverge.
 - The general error-event contract (draft `docs/issues/drafts/generalize-error-events/`). This issue changes only what the existing UDP error event carries, if the ADR decides it must change.
-- Server-side log content: driver text in a server log is correct and stays.
+- Server-side log content: non-secret driver text in a server log is correct and stays. A driver message that holds a secret (EPIC item A12, the MySQL duplicate-key message) is removed from the error, the reply and the log by SI-A.
 - Log levels for client errors (#1166).
 
 ## Architectural Decisions
@@ -104,8 +104,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | --- | --- | --- |
 | T1 | TODO | Draft the ADR | The decisions listed in the scope, with the options and the reasons; a table of every current client text and its proposed text. Its own pull request. |
 | T2 | TODO | Maintainer accepts the ADR | No code before this. Update this specification with the approved texts. |
-| T3 | TODO | Baseline reproduction and red tests | Evidence recorded; red output recorded. |
-| T4 | TODO | Database errors and the server-side event | Driver text stays in the source and the log; the `tracing` event exists; the `InvalidQuery` label is right. |
+| T3 | TODO | Baseline reproduction and test plan | Evidence recorded; the list of tests per behavior area (T4 to T7) written. The tests are written red-then-green inside each area, with a recorded test-design review after each passing increment. |
+| T4 | TODO | Database errors and the server-side event | Non-secret driver text stays in the source and the log (SI-A has already removed driver messages that hold a secret); the `tracing` event exists; the `InvalidQuery` label is right. |
 | T5 | TODO | HTTP tracker text | As the ADR decides. |
 | T6 | TODO | UDP tracker text and the error event | As the ADR decides. |
 | T7 | TODO | REST API text | As the ADR decides, within v1's additive-only rule. |
