@@ -39,7 +39,7 @@ Plan approved on 2026-11-18, with the four-case table.
 
 ## Test Design
 
-One table test in a new `tests` module of `statistics/mod.rs`:
+One table test in a new `tests` module of `statistics/mod.rs` (now one `rstest` case per combination; see Changes After Review):
 
 | Test | Cases | Assert |
 | --- | --- | --- |

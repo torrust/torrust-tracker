@@ -45,8 +45,8 @@ Plan approved on 2026-11-18, including replacing the two `PeerAdded`-only tests 
 
 | Test | Arrange | Assert |
 | --- | --- | --- |
-| `it_should_change_no_in_memory_total_for_an_event_other_than_a_completed_download` | each of `TorrentAdded`, `TorrentRemoved`, `PeerAdded`, `PeerRemoved` and `PeerUpdated`, in a table, on a fresh repository | the persistent and in-session totals read 0, with the event's name in the message |
-| `it_should_persist_nothing_for_an_event_other_than_a_completed_download` | the same table, on a fresh `TempDir` database | no torrent row, no global row, persisted total 0 |
+| `it_should_change_no_in_memory_total_for_an_event_other_than_a_completed_download` | each of `TorrentAdded`, `TorrentRemoved`, `PeerAdded`, `PeerRemoved` and `PeerUpdated`, one `rstest` case each (see Changes After Review), on a fresh repository | the persistent and in-session totals read 0; the case name names the event |
+| `it_should_persist_nothing_for_an_event_other_than_a_completed_download` | the same five `rstest` cases, on a fresh `TempDir` database | no torrent row for any info-hash, no global row, persisted total 0 |
 | `it_should_not_increment_the_persisted_total_when_the_global_downloads_cannot_be_increased` | `MockTorrentMetricsStore`: the torrent write succeeds (`load_torrent_downloads` → `None`, `save_torrent_downloads` → `Ok`), `load_global_downloads` fails | the persisted total reads 0 |
 
 The two table tests replace the two existing `PeerAdded`-only tests
