@@ -26,7 +26,7 @@ semantic-links:
 
 ## Goal
 
-`tracker_client check` rejects a UDP tracker URL that has no host or no port as a usage/configuration error (exit `2`, one JSON error record), and never panics on a UDP tracker address it cannot resolve.
+`tracker_client check` rejects a UDP tracker URL that has no host or no port, and a tracker or health-check URL with no host or a wrong scheme, as a usage/configuration error (exit `2`, one JSON error record), and never panics on a UDP tracker address it cannot resolve.
 
 ## Background
 
@@ -96,18 +96,20 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                                                        | Notes / Expected Output                                           |
 | --- | ------ | --------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| T1  | DONE   | Reproduce on a real artifact and classify                                   | V1 recorded: Reproduced                                           |
-| T2  | TODO   | Add regression tests (config validation cases, unresolvable-host case)      | Tests fail on current code; red output recorded                   |
-| T3  | TODO   | Fix: validate UDP URLs in config; make `resolve_socket_addr` fallible       | Regression tests pass; no `unwrap` on user input in `udp.rs`     |
-| T4  | TODO   | Green run and like-for-like recheck of V1 after the last production change  | V1 commands give exit `2` + `invalid_configuration`, no panic     |
+| T1  | DONE   | Reproduce the UDP forms on a real artifact and classify                     | V1 recorded: Reproduced                                           |
+| T2  | TODO   | Reproduce the HTTP forms (wrong scheme, no host in `http_trackers` and `health_checks`) on a real artifact and classify | V2 recorded in `manual-verification-evidence.md`: the outcome (today a failed check, exit `0`, per review) is observed, not assumed |
+| T3  | TODO   | Add regression tests (UDP and HTTP config validation cases, unresolvable-host case) | Tests fail on current code; red output recorded           |
+| T4  | TODO   | Fix: validate tracker URLs in config; make `resolve_socket_addr` fallible   | Regression tests pass; no `unwrap` on user input in `udp.rs`      |
+| T5  | TODO   | Green run and like-for-like recheck of V1 and V2 after the last production change | M1 and M3 commands give exit `2` + `invalid_configuration`, no panic |
 
 ## Commit Points
 
 | Task | Coherent change set                                   | Commit policy                                        |
 | ---- | ----------------------------------------------------- | ---------------------------------------------------- |
-| T2   | Regression tests (red)                                | Commit after focused validation and required review. |
-| T3   | Validation in config and fallible resolution          | Commit after focused validation and required review. |
-| T4   | Evidence update                                       | Commit after focused validation and required review. |
+| T2   | Reproduction evidence for the HTTP forms (V2)         | Commit after focused validation and required review. |
+| T3   | Regression tests (red)                                | Commit after focused validation and required review. |
+| T4   | Validation in config and fallible resolution          | Commit after focused validation and required review. |
+| T5   | Evidence update                                       | Commit after focused validation and required review. |
 
 ## Progress Tracking
 
@@ -162,7 +164,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Scenario                                            | Human-oriented command/steps                                                                                                                      | Expected Result                                        | Status | Evidence                                      |
 | --- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ------ | --------------------------------------------- |
 | M1  | Reproduce: UDP URL without port, without host, with wrong scheme, unresolvable host | `TORRUST_CHECKER_CONFIG='{"udp_trackers":["<url>"],"http_trackers":[],"health_checks":[]}' ./target/debug/tracker_client check \| cat` for each URL | Panic record and `runtime_failure`, exit 1, empty stdout | DONE | `manual-verification-evidence.md` section V1 |
-| M2  | Final like-for-like recheck of M1 after the last production change | The same commands as M1 | Exit `2` and one `invalid_configuration` record for AC1 and AC2; a failed check, no panic, for AC3 | TODO | `manual-verification-evidence.md` (section to be added) |
+| M3  | Reproduce: HTTP forms (wrong scheme, no host) in `http_trackers` and `health_checks` | `TORRUST_CHECKER_CONFIG='{"udp_trackers":[],"http_trackers":["<url>"],"health_checks":[]}' ./target/debug/tracker_client check \| cat`, and the same with the URL in `health_checks`, for `ftp://127.0.0.1`, `udp://127.0.0.1:6969` and `http:///` | Observed outcome recorded (a failed check with exit 0 is expected today) | TODO | `manual-verification-evidence.md` section V2 |
+| M2  | Final like-for-like recheck of M1 and M3 after the last production change | The same commands as M1 and M3 | Exit `2` and one `invalid_configuration` record for AC1 and AC2; a failed check, no panic, for AC3 | TODO | `manual-verification-evidence.md` (section to be added) |
 
 Notes:
 
@@ -182,6 +185,7 @@ Notes:
 ## Risks and Trade-offs
 
 - Rejecting a non-`udp` scheme in `udp_trackers` could break a configuration that worked by accident; no such entry can work today, because every one panics.
+- Decision 2 changes working configurations: a wrong-scheme entry or an entry with no host in `http_trackers` or `health_checks` is a failed check with exit `0` today (`http.rs`, `health.rs`), and AC5 makes it exit `2`. An operator who ran such a configuration for monitoring would see it fail at startup. Mitigation: the error names the entry and the reason, and the change is called out in the implementation PR.
 
 ## Implementation Completion Review
 
