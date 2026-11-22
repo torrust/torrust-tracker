@@ -91,7 +91,8 @@ The driver text in client replies and the wrong `InvalidQuery` label are bugs ag
 ## Regression Test Strategy
 
 - **Unit**: for each error family, a test at the mapping seam (`error_mapping.rs`, the REST adapters, the UDP `From` conversions) that builds the error with a source carrying a unique marker string and asserts the client text does not contain it.
-- **Real boundary**: one test per protocol with the existing test servers asserting the reply for a forced database failure (a duplicate insert) holds no driver text, and that the server log holds the detail.
+- **Real boundary, REST API**: a test with the existing REST test server asserting that the reply for a forced database failure (a duplicate key insert) holds no driver text, and that the server log holds the detail.
+- **Real boundary, HTTP and UDP trackers**: a duplicate insert cannot reach them. An announce updates the in-memory repository and touches the database only in `load_downloads_metric_if_needed` (`packages/tracker-core/src/announce_handler.rs:196-205`), which reads the persisted download count when the torrent is not in memory; scrape reads it in `persisted_downloads.load_many`. So the test needs `core.tracker_policy.persistent_torrent_completed_stat = true`, an info-hash that is not in memory, and a read that fails (a database that was dropped or closed after start, or a test double of the persisted-downloads store that returns a database error). It asserts that the announce and scrape replies of each tracker hold no driver text.
 - **UDP**: tests that the connection-id error holds no clock value and the parse error holds no type name.
 - A helper that forbids known driver markers (`sqlx`, `error returned from database`, `constraint failed`, `Access denied`) in client text, used by the protocol tests.
 
@@ -175,7 +176,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | M1 | REST database failure | Add the same key twice through the REST API; read the reply and the server log | The reply follows the ADR and holds no driver text; the log holds the detail | TODO | `manual-verification-evidence.md` section V1 |
 | M2 | HTTP and UDP whitelist rejection | Announce a non-whitelisted info-hash over HTTP and over UDP | One clear sentence each, no nesting beyond what the ADR allows | TODO | `manual-verification-evidence.md` section V2 |
 | M3 | UDP connection id and short packet | Announce with a wrong connection id; send a 3-byte packet | No clock value; no type name | TODO | `manual-verification-evidence.md` section V3 |
-| M4 | Database down | Stop the database of a MySQL or PostgreSQL tracker and send an announce that needs it, and a REST key request | The client text follows the ADR and names neither the user nor the host; the log holds them | TODO | `manual-verification-evidence.md` section V4 |
+| M4 | Database down | On a MySQL or PostgreSQL tracker with `persistent_torrent_completed_stat = true`, stop the database and send an HTTP and a UDP announce for an info-hash that is not in memory, a scrape, and a REST key request | The client text follows the ADR and names neither the user nor the host; the log holds them | TODO | `manual-verification-evidence.md` section V4 |
 | M5 | REST bad token and bad JSON | Call the API with a wrong token and with a malformed JSON body | Text as the ADR decides, within v1's rules | TODO | `manual-verification-evidence.md` section V5 |
 
 Notes: manual verification is mandatory even when automated tests pass. Record the toolchain for every command, and create `manual-verification-evidence.md` from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`.
