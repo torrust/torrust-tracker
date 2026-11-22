@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: in-progress
+status: done
 priority: p1
 epic: 2912
 github-issue: 2916
-spec-path: docs/issues/open/2916-2912-si-4-tracker-core/ISSUE.md
+spec-path: docs/issues/closed/2916-2912-si-4-tracker-core/ISSUE.md
 branch: "2916-tracker-core"
 related-pr: 2991
-last-updated-utc: "2026-11-21 15:42"
+last-updated-utc: "2026-11-22 14:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -30,7 +30,7 @@ semantic-links:
 
 # Issue #2916 - Remove source locations from the errors of `torrust-tracker-core`
 
-Parent EPIC: [Remove source locations from errors](../2912-remove-source-locations-from-errors/EPIC.md) (#2912). Sub-issue SI-4 of the EPIC.
+Parent EPIC: [Remove source locations from errors](../../open/2912-remove-source-locations-from-errors/EPIC.md) (#2912). Sub-issue SI-4 of the EPIC.
 
 ## Goal
 
@@ -193,14 +193,14 @@ with the narrow affected scope, and sign every commit with GPG.
 - [x] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [x] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification (not applicable: the reviewers reviewed PR #2991 on GitHub, recorded in `docs/pr-reviews/pr-2991-review/PR-REVIEW.md`)
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -218,6 +218,7 @@ the model that produced them.
 - 2026-11-21 13:44 UTC - Claude Code (Claude Opus 5.5) - T7: green run at the T6 commit and the T1 requests repeated against a tracker built from the T5 commit; every reply keeps its text and loses the path, and the driver `tracing` event shows in the tracker log (`manual-verification-evidence.md`, V1 to V3; `evidence/`). M1 to M3 DONE, AC1 to AC5 DONE. Completion review: no retrospective needed. The plan held; the only additions were in scope (the `KeyVerificationError` and `databases::error::Error` `LocatedError` sources, which the spec's "Replace the `LocatedError` sources" item covers), and the one surprise is recorded in V3: duplicate whitelist writes never reach the database, so the REST database case is proven with keys. Open question to the EPIC coordinator: `UnableToReadKey` still prints the peer key ("Failed to read key: {key}"), which ADR rule 3 forbids for changed messages; kept unchanged here, outside the spec's scope.
 - 2026-11-21 15:15 UTC - Claude Code (Claude Opus 5.5) - PR #2991 opened as `josecelano-bot`. Copilot's review: two documentation findings (F1, F2), both fixed; audit in `docs/pr-reviews/pr-2991-review/PR-REVIEW.md`.
 - 2026-11-21 15:42 UTC - Claude Code (Claude Opus 5.5) - da2ce7 approved the round-1 head with six non-blocking findings (audit F3 to F8). Fixed: the REST delete-key doc example still showed a source path; the unregistered-key test now checks only the message prefix, so it does not pin the peer key; the evidence now records the red and green commands and a red run of the three driver steps the first red run did not reach (all three fail on a path); the request count reads twelve; the trailing blank line of `tests-green.txt` is gone. Not changed here: merging the seven copies of `assert_names_no_source_path` into `torrust-tracker-test-helpers`, suggested for SI-6.
+- 2026-11-22 14:25 UTC - Claude Code (Claude Opus 5.5) - PR #2991 merged into `develop` (merge commit `4fa49ec9c`, 2026-11-22 14:22 UTC) after two review rounds: Copilot (F1 Minor, F2 Nit, both documentation) and da2ce7 (F3 to F8: five fixed, one answered without change), approved with an ACK at the last head and the maintainer's own ACK; issue #2916 closed. Close-out: spec moved to `docs/issues/closed/`, status `done`, the checkpoints left unticked at implementation time ticked (automatic verification: the pre-commit hook ran `linter all` on every commit and the pre-push hook passed on every push of PR #2991; reviewer validation; the not-applicable agent-review-reports item; the committer check; the archive), and SI-4 marked DONE in the EPIC table. Two follow-ups left this issue: the peer key printed by `UnableToReadKey` went to the standalone EPIC #2993, and the seven copies of `assert_names_no_source_path` are being specified as sub-issue SI-8 of EPIC #2912 in a spec-only PR of their own.
 
 ## Acceptance Criteria
 
@@ -333,5 +334,6 @@ findings, and reusable lessons.
 ## References
 
 - Parent EPIC: #2912, `docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md`
+- Standing finding F4 of the PR #2991 audit (`UnableToReadKey` keeps and prints the peer key): moved to the standalone EPIC [#2993](https://github.com/torrust/torrust-tracker/issues/2993), "Keep secrets out of errors, logs and client replies, and make client error text safe"
 - Audit: `docs/issues/closed/2804-location-caller-track-caller-audit/ISSUE.md`, `inventory.md`, `options.md`, `experiments.md` (issue #2804)
 - Related issues: #2804 (audit), #384 (external report), #2583 (first publish of the workspace crates)

@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2916-2912-si-4-tracker-core/ISSUE.md
-last-updated-utc: "2026-11-21 13:43"
+issue-spec: docs/issues/closed/2916-2912-si-4-tracker-core/ISSUE.md
+last-updated-utc: "2026-11-22 14:25"
 ---
 
 <!-- cspell:ignore fromhex getrandbits QQQII EXPKEY -->
