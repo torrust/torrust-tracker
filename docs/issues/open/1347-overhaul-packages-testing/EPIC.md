@@ -356,6 +356,7 @@ For each subissue implementation, the completion policy is:
 - 2026-11-06 09:06 UTC - Claude Code - #2637 S5 (the `server.rs` lifecycle) pull request #2744 opened.
 - 2026-11-06 10:31 UTC - Claude Code - #2637 S5 merged through #2744 (2026-11-06 10:26 UTC). S6 (rows 19-31, then the final tasks) started; its baseline is the S5 re-measurement (unit-only lines 96.71%, aggregate 97.71%).
 - 2026-11-06 16:37 UTC - Claude Code - #2637 S6 (crate root, wiring and final tasks) finished: ledger rows 19-31 done, one test added (`authenticate` with a duplicated token value, found by the mutation run), manual scenarios M1-M5 passed. Final figures: unit-only lines 96.67% (170 unit tests), aggregate 97.67%; both "Latest" tables carry them.
+- 2026-11-09 12:10 UTC - Claude Code - #2637 S6 merged through #2772 (2026-11-09 12:08 UTC) and issue #2637 closed: the `axum-rest-api-server` package is DONE. Final figures (unchanged): unit-only lines 96.67%, aggregate 97.67%. The spec was archived to `docs/issues/closed/` and the subissue row is `DONE`.
 - 2026-11-11 11:22 UTC - Claude Code - Created #2824 (`primitives`) as a subissue of this EPIC (the link under #1347 is set by the maintainer). Clean baseline at `eaae0e487`, filtered to the package source: unit-only = aggregate lines 60.56% (453/748), regions 67.94% (712/1,048), functions 57.23% (91/159), 47 unit tests, no integration tests. Delivered in slices S0-S4; the row stays `TODO` until the first implementation slice starts.
 - 2026-11-11 14:32 UTC - Claude Code - #2824 S1 (PR #2834) re-measured `primitives` unit-only (= aggregate) at lines 62.73% (468 / 746), regions 70.29%, functions 59.49%, 49 unit tests. The figures include the changes merged to `develop` since the baseline (`Peer` lost `Ord`, the unused `AddAssign` was deleted), not only the slice. Both "Latest" tables carry them; the row is `IN_PROGRESS`.
 - 2026-11-12 13:40 UTC - Claude Code - #2824 S2 (`peer.rs` tests, 31 added) re-measured `primitives` unit-only (= aggregate) at lines 84.86% (824 / 971), regions 88.93%, functions 82.90%, 80 unit tests; the figures include the added in-file test code. Both "Latest" tables carry them; the row stays `IN_PROGRESS`.
@@ -411,7 +412,6 @@ For each subissue implementation, the completion policy is:
 
 - GitHub EPIC: https://github.com/torrust/torrust-tracker/issues/1347
 - Related issues: #1348, #1349, #2136, #2149, #2637, #2824, #2902
-- 2026-11-09 12:10 UTC - Claude Code - #2637 S6 merged through #2772 (2026-11-09 12:08 UTC) and issue #2637 closed: the `axum-rest-api-server` package is DONE. Final figures (unchanged): unit-only lines 96.67%, aggregate 97.67%. The spec was archived to `docs/issues/closed/` and the subissue row is `DONE`.
 - Package inventory: `docs/packages.md`
 - Reference package: `packages/tracker-core/`
 - Coverage tooling: `cargo llvm-cov`
