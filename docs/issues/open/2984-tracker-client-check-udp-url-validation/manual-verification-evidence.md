@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2984-tracker-client-check-udp-url-validation/ISSUE.md
-last-updated-utc: "2026-11-22 10:18"
+last-updated-utc: "2026-11-22 14:21"
 ---
 
 # Manual Verification Evidence
@@ -29,9 +29,15 @@ last-updated-utc: "2026-11-22 10:18"
 For each `<url>`:
 
 ```bash
+# stdout goes to a pipe (the client refuses a terminal), stderr to a file
 TORRUST_CHECKER_CONFIG='{"udp_trackers":["<url>"],"http_trackers":[],"health_checks":[]}' \
-  ./target/debug/tracker_client check | cat
+  timeout 60 ./target/debug/tracker_client check 2>stderr.txt | cat >stdout.txt
+code=${PIPESTATUS[0]}   # the client's exit code, saved immediately after the pipeline
+echo "exit=$code stdout_bytes=$(wc -c <stdout.txt)"
+cat stdout.txt stderr.txt
 ```
+
+Without `${PIPESTATUS[0]}`, the pipeline's status is `cat`'s, normally `0`, whatever the client returned, so the exit codes below come from `PIPESTATUS`, not from `$?`. `stdout.txt` and `stderr.txt` are scratch files in a temporary directory; the blocks below show their content. The first run (2026-11-19) summarized stderr by hand; the reruns recorded below used this procedure.
 
 #### Observed Result
 
@@ -111,9 +117,15 @@ Reproduced. The `unwrap` at `checks/udp.rs:107` is reached for every UDP URL wit
 For each list (`http_trackers`, `health_checks`) and each `<url>` below, with the URL in that list and the other two lists empty:
 
 ```bash
+# stdout goes to a pipe (the client refuses a terminal), stderr to a file
 TORRUST_CHECKER_CONFIG='{"udp_trackers":[],"http_trackers":["<url>"],"health_checks":[]}' \
-  ./target/debug/tracker_client check | cat
+  timeout 60 ./target/debug/tracker_client check 2>stderr.txt | cat >stdout.txt
+code=${PIPESTATUS[0]}   # the client's exit code, saved immediately after the pipeline
+echo "exit=$code stdout_bytes=$(wc -c <stdout.txt)"
+cat stdout.txt stderr.txt
 ```
+
+Same capture procedure as V1 (`${PIPESTATUS[0]}` for the exit code, stdout measured with `wc -c`, stderr kept separate), with the URL in `http_trackers` and, for the second list, in `health_checks`.
 
 #### Observed Result
 

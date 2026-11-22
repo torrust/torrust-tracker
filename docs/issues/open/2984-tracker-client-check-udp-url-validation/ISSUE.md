@@ -9,7 +9,7 @@ github-issue: 2984
 spec-path: docs/issues/open/2984-tracker-client-check-udp-url-validation/ISSUE.md
 branch: "2984-tracker-client-check-udp-url-validation-spec"
 related-pr: null
-last-updated-utc: "2026-11-22 14:00"
+last-updated-utc: "2026-11-22 14:21"
 semantic-links:
   skill-links:
     - create-issue
@@ -146,6 +146,7 @@ Test-development loop (T3), as `create-issue` requires for a plan that adds or c
 - 2026-11-22 13:25 UTC - Claude Code (Claude Sonnet 5.5) - Round 8 review fix (F26): the pattern-catalog pointer and the helper-boundary rule are added to the test-development loop - PR 2985 audit
 - 2026-11-22 13:57 UTC - Claude Code (Claude Sonnet 5.5) - Decisions section: the maintainer chose to make this specification the durable record of his two decisions, confirmed by his ACK or merge, instead of a separate PR comment (finding F12) - PR 2985 audit
 - 2026-11-22 14:00 UTC - Claude Code (Claude Sonnet 5.5) - Decisions section cites the maintainer's own comment on the pull request (finding F12) - PR 2985 audit
+- 2026-11-22 14:21 UTC - Claude Code (Claude Sonnet 5.5) - Round 9 review fix (Copilot F27): the evidence records the actual capture procedure (`${PIPESTATUS[0]}`, stdout measured, stderr separate) for V1 and V2, and the scenarios name it - PR 2985 audit
 
 ## Acceptance Criteria
 
@@ -172,8 +173,8 @@ Test-development loop (T3), as `create-issue` requires for a plan that adds or c
 
 | ID  | Scenario                                            | Human-oriented command/steps                                                                                                                      | Expected Result                                        | Status | Evidence                                      |
 | --- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ------ | --------------------------------------------- |
-| M1  | Reproduce: UDP URL without port, without host, with wrong scheme, unresolvable host | `TORRUST_CHECKER_CONFIG='{"udp_trackers":["<url>"],"http_trackers":[],"health_checks":[]}' ./target/debug/tracker_client check \| cat` for each URL | Panic record and `runtime_failure`, exit 1, empty stdout | DONE | `manual-verification-evidence.md` section V1 |
-| M2  | Reproduce: HTTP forms (wrong scheme, no host) in `http_trackers` and `health_checks` | `TORRUST_CHECKER_CONFIG='{"udp_trackers":[],"http_trackers":["<url>"],"health_checks":[]}' ./target/debug/tracker_client check \| cat`, and the same with the URL in `health_checks`, for `ftp://127.0.0.1`, `udp://127.0.0.1:6969` and `http:///` | Observed outcome recorded: a failed check with exit 0 for the first two, exit 2 with `invalid_configuration` for `http:///` | DONE | `manual-verification-evidence.md` section V2 |
+| M1  | Reproduce: UDP URL without port, without host, with wrong scheme, unresolvable host | `TORRUST_CHECKER_CONFIG='{"udp_trackers":["<url>"],"http_trackers":[],"health_checks":[]}' ./target/debug/tracker_client check \| cat` for each URL, capturing the exit code with `${PIPESTATUS[0]}` as in the evidence file | Panic record and `runtime_failure`, exit 1, empty stdout | DONE | `manual-verification-evidence.md` section V1 |
+| M2  | Reproduce: HTTP forms (wrong scheme, no host) in `http_trackers` and `health_checks` | `TORRUST_CHECKER_CONFIG='{"udp_trackers":[],"http_trackers":["<url>"],"health_checks":[]}' ./target/debug/tracker_client check \| cat` (exit code captured with `${PIPESTATUS[0]}`), and the same with the URL in `health_checks`, for `ftp://127.0.0.1`, `udp://127.0.0.1:6969` and `http:///` | Observed outcome recorded: a failed check with exit 0 for the first two, exit 2 with `invalid_configuration` for `http:///` | DONE | `manual-verification-evidence.md` section V2 |
 | M3  | Final like-for-like recheck of M1 and M2 after the last production change | The same commands as M1 and M2 | Exit `2` and one `invalid_configuration` record for AC1, AC2 and AC5; a failed check and no panic for AC3 | TODO | `manual-verification-evidence.md` (section to be added) |
 
 Notes:
