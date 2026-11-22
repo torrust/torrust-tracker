@@ -8,7 +8,7 @@
 //! information about the returned structure.
 //!
 //! It returns a bencoded [`Error`](torrust_tracker_http_protocol::v1::responses::error)
-//! response (`500`) if the query parameters are missing or invalid.
+//! response with HTTP status `200 OK` if the query parameters are missing or invalid.
 //!
 //! **Sample announce request**
 //!
