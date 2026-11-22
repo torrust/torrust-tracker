@@ -72,7 +72,8 @@ Plan approved on 2026-11-18, with all four tests (the spawned pair keeps the T2b
 
 The tests reuse the module's existing helpers (`peer_download_completed_event`,
 `database_downloads_repository`, `expect_in_memory_download_metrics_to_be`,
-`expect_persisted_download_metrics_to_be`) and add one: a 5-second `join_within_deadline` helper.
+`expect_persisted_download_metrics_to_be`) and add three: the 5-second `LISTENER_DEADLINE`, `send` (one event on the bus) and
+`within_deadline` (awaits a listener under the deadline, with a message naming it).
 
 ## Property-Test Decision
 

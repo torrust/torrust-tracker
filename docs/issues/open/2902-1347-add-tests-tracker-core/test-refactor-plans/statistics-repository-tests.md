@@ -92,7 +92,7 @@ on the tuple against `(true, true, false)`, which prints all three values on fai
   Arrange with its own message instead of pretending to be a counter failure.
 - **Fixed time:** `DurationSinceUnixEpoch::from_secs(0)`, a literal; no clock.
 - **Reading back:** the counter readers for counters; `read_metrics` with
-  `metric_collection().get_gauge_value(...)` for gauges, compared as `Option<f64>`.
+  `metric_collection().get_gauge_value(...)` for gauges, compared as `Option<Gauge>` (see below).
 - **Error assertion:** `matches!(result, Err(Error::MetricNameCollisionAdding { metric_name }) if
   metric_name == metric_name!("..."))`, the pattern of the `torrust-metrics` tests.
 - **Shape:** one test per operation and outcome, about ten small tests, no loops and no table
