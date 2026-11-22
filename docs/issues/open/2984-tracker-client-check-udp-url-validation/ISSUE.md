@@ -9,7 +9,7 @@ github-issue: 2984
 spec-path: docs/issues/open/2984-tracker-client-check-udp-url-validation/ISSUE.md
 branch: "2984-tracker-client-check-udp-url-validation-spec"
 related-pr: null
-last-updated-utc: "2026-11-22 13:57"
+last-updated-utc: "2026-11-22 14:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -63,7 +63,7 @@ This bug is not part of EPIC #2758 (CLI output contract migration). It was found
 
 ## Decisions (maintainer)
 
-The maintainer (josecelano) decided both questions raised by the first draft on 2026-11-22, one day after this issue was created (2026-11-21). The decisions are recorded here, in this specification, which is the durable record: the maintainer's ACK or merge of the pull request that carries it is the confirmation, and the decisions need no other source. They were given in chat and entered here by the author, so this text is the author's wording of them.
+The maintainer (josecelano) decided both questions raised by the first draft on 2026-11-22, one day after this issue was created (2026-11-21). The decisions are recorded here, in this specification, which is the durable record: the maintainer's ACK or merge of the pull request that carries it is the confirmation, and the decisions need no other source. They were given in chat and entered here by the author, so this text is the author's wording of them. The maintainer also restated both decisions in his own words in a comment on pull request 2985: https://github.com/torrust/torrust-tracker/pull/2985#issuecomment-7080197804.
 
 1. **An unresolvable hostname is a failed check for that tracker**, not a configuration error: DNS is a network condition, and the check exists to report on tracker health. `udp::Checks` carries `remote_addr: SocketAddr` (`checks/udp.rs:15`), which cannot hold an address that did not resolve, so the implementation changes the result record: candidates are `remote_addr: Option<SocketAddr>` plus the configured URL, or a placeholder. The implementation PR shows the new record and this is the one allowed change to the output contract's result shape.
 2. **The same host and scheme validation also applies to `http_trackers` and `health_checks`.** The rule is in In Scope. The first draft only assumed that a missing port is valid there and that nothing panics for those lists; the implementation must reproduce with a real run whether any HTTP URL form also panics or fails wrongly today, and record it in `manual-verification-evidence.md` before the fix.
@@ -145,6 +145,7 @@ Test-development loop (T3), as `create-issue` requires for a plan that adds or c
 - 2026-11-22 10:36 UTC - Claude Code (Claude Sonnet 5.5) - Round 7 review fix (F24): the test-development loop and design-review checkpoints are added to the Commit Points - PR 2985 audit
 - 2026-11-22 13:25 UTC - Claude Code (Claude Sonnet 5.5) - Round 8 review fix (F26): the pattern-catalog pointer and the helper-boundary rule are added to the test-development loop - PR 2985 audit
 - 2026-11-22 13:57 UTC - Claude Code (Claude Sonnet 5.5) - Decisions section: the maintainer chose to make this specification the durable record of his two decisions, confirmed by his ACK or merge, instead of a separate PR comment (finding F12) - PR 2985 audit
+- 2026-11-22 14:00 UTC - Claude Code (Claude Sonnet 5.5) - Decisions section cites the maintainer's own comment on the pull request (finding F12) - PR 2985 audit
 
 ## Acceptance Criteria
 
