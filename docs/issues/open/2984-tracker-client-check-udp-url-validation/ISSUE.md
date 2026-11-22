@@ -9,7 +9,7 @@ github-issue: 2984
 spec-path: docs/issues/open/2984-tracker-client-check-udp-url-validation/ISSUE.md
 branch: "2984-tracker-client-check-udp-url-validation-spec"
 related-pr: null
-last-updated-utc: "2026-11-21 15:59"
+last-updated-utc: "2026-11-22 09:22"
 semantic-links:
   skill-links:
     - create-issue
@@ -52,20 +52,21 @@ This bug is not part of EPIC #2758 (CLI output contract migration). It was found
 ### In Scope
 
 - Reject, during configuration validation, a `udp_trackers` entry that has no host, no port, or a non-`udp` scheme, with a new `ConfigurationError` variant that names the entry and reason; surfaces as the existing `invalid_configuration` record with exit `2`.
-- Remove the `unwrap`s in `resolve_socket_addr`: a host that cannot be resolved at run time (DNS failure) becomes a failed check result for that tracker, not a panic and not a whole-run failure. The result record needs a way to represent an address that did not resolve, because `udp::Checks` carries `remote_addr: SocketAddr` (`checks/udp.rs:15`); the representation is part of Open Question 1.
+- Remove the `unwrap`s in `resolve_socket_addr`: a host that cannot be resolved at run time (DNS failure) becomes a failed check result for that tracker, not a panic and not a whole-run failure. The result record needs a way to represent an address that did not resolve, because `udp::Checks` carries `remote_addr: SocketAddr` (`checks/udp.rs:15`); the representation is decision 1.
+- Apply the same host and scheme validation to `http_trackers` and `health_checks` (decision 2 below): an entry must have a host and the scheme `http` or `https`; a missing port is valid because HTTP(S) has default ports. A rejected entry is an `invalid_configuration` error, exit `2`.
 - Regression tests at the configuration seam (unit) and a real-artifact recheck.
 
 ### Out of Scope
 
-- `http_trackers` and `health_checks` URLs: HTTP(S) has default ports, so a missing port is valid. Validating their scheme or host is a separate change, only raised here for the maintainer to decide (see Open Questions).
-- Any other change to the output contract or exit codes, apart from the result-shape change that Open Question 1 may require for an unresolved host.
+- Any other validation of tracker URLs beyond a host and an allowed scheme (for example reachability or path rules).
+- Any other change to the output contract or exit codes, apart from the result-shape change of decision 1.
 
-## Open Questions (for the maintainer)
+## Decisions (maintainer)
 
-1. Is an unresolvable hostname a configuration error or a per-tracker failed check? The options:
-   - **Configuration error** (exit `2`): resolve at validation time. No result-shape change, but validation then needs the network and a typo-free configuration can still fail on a transient DNS error.
-   - **Failed check** (proposed: DNS is a network condition, not a syntax error, and the check's purpose is to report on tracker health): needs a representation for an address that did not resolve in `udp::Checks`, whose `remote_addr: SocketAddr` cannot hold it. Candidates: make `remote_addr` an `Option<SocketAddr>` and add the configured URL to the record, or keep `SocketAddr` and use a placeholder. This is a change to the result record, so this option widens the scope beyond what Out of Scope otherwise allows; the implementation PR must show the new record.
-2. Should the same host/scheme validation apply to `http_trackers` and `health_checks` in this issue, or stay out of scope?
+Both questions raised by the first draft were answered by the maintainer in the session that created this issue, on 2026-11-22 (chat; not a durable GitHub comment, so the review thread of this pull request is the record to cite).
+
+1. **An unresolvable hostname is a failed check for that tracker**, not a configuration error: DNS is a network condition, and the check exists to report on tracker health. `udp::Checks` carries `remote_addr: SocketAddr` (`checks/udp.rs:15`), which cannot hold an address that did not resolve, so the implementation changes the result record: candidates are `remote_addr: Option<SocketAddr>` plus the configured URL, or a placeholder. The implementation PR shows the new record and this is the one allowed change to the output contract's result shape.
+2. **The same host and scheme validation also applies to `http_trackers` and `health_checks`.** The rule is in In Scope. The first draft only assumed that a missing port is valid there and that nothing panics for those lists; the implementation must reproduce with a real run whether any HTTP URL form also panics or fails wrongly today, and record it in `manual-verification-evidence.md` before the fix.
 
 ## Architectural Decisions
 
@@ -87,7 +88,7 @@ Follows `.claude/skills/fix-bug/SKILL.md`:
 
 ## Regression Test Strategy
 
-Unit tests at the causal seam, `TryFrom<PlainConfiguration> for Configuration` in `config.rs`, one per case: no port, no host, non-`udp` scheme. The scheme check reads the raw entry before the `udp://` prefix is added (`config.rs:65`) and detects a scheme by the `://` separator, so the forms without a scheme `127.0.0.1:6969` and `localhost:6969` (which a URL parser alone would read as scheme `localhost`) stay valid; without that, `ftp://127.0.0.1:6969` becomes `udp://ftp://127.0.0.1:6969`, whose host is `ftp` with no port, and the no-port check would reject it. The scheme test therefore asserts the error reason (wrong scheme), not only that an error is returned. A unit test for `resolve_socket_addr` returning an error (not panicking) for an unresolvable host. The configuration cases are deterministic and need no network. The unresolvable-host case goes through the system resolver, so it only asserts that an error is returned, not which one; it does not claim to be network-free (a resolver that rewrites "name not found" answers could resolve a `.invalid` name), unless the implementation injects the resolution step, which it may do instead. Red/green output goes to `manual-verification-evidence.md`.
+Unit tests at the causal seam, `TryFrom<PlainConfiguration> for Configuration` in `config.rs`, one per case: no port, no host, non-`udp` scheme, plus the same host and scheme cases for `http_trackers` and `health_checks`. The scheme check reads the raw entry before the `udp://` prefix is added (`config.rs:65`) and detects a scheme by the `://` separator, so the forms without a scheme `127.0.0.1:6969` and `localhost:6969` (which a URL parser alone would read as scheme `localhost`) stay valid; without that, `ftp://127.0.0.1:6969` becomes `udp://ftp://127.0.0.1:6969`, whose host is `ftp` with no port, and the no-port check would reject it. The scheme test therefore asserts the error reason (wrong scheme), not only that an error is returned. A unit test for `resolve_socket_addr` returning an error (not panicking) for an unresolvable host. The configuration cases are deterministic and need no network. The unresolvable-host case goes through the system resolver, so it only asserts that an error is returned, not which one; it does not claim to be network-free (a resolver that rewrites "name not found" answers could resolve a `.invalid` name), unless the implementation injects the resolution step, which it may do instead. Red/green output goes to `manual-verification-evidence.md`.
 
 ## Implementation Plan
 
@@ -133,6 +134,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-21 15:15 UTC - Claude Code (Claude Sonnet 5.5) - Reran the reproduction (V1) with verbatim capture - `manual-verification-evidence.md`
 - 2026-11-21 15:20 UTC - Claude Code (Claude Sonnet 5.5) - Round 1 review fixes (F1 to F6): result representation, no network-free claim, verbatim stderr, build and toolchain, M1/M2 split, raw-entry scheme check - PR 2985 audit
 - 2026-11-21 15:59 UTC - Claude Code (Claude Sonnet 5.5) - Round 2 review fixes (F9 to F11): scheme detection by `://` and `localhost:6969` in AC4, controls rerun verbatim, this log and `last-updated-utc` - PR 2985 audit
+- 2026-11-22 09:22 UTC - Claude Code (Claude Sonnet 5.5) - Recorded the maintainer's answers to both open questions as decisions: DNS failure is a failed check; the host and scheme validation also covers `http_trackers` and `health_checks` (new AC5) - PR 2985
 
 ## Acceptance Criteria
 
@@ -140,6 +142,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [ ] AC2: `udp:///` (no host) and `http://127.0.0.1` / `ftp://127.0.0.1:6969` (wrong scheme) in `udp_trackers` give the same outcome
 - [ ] AC3: `udp://nonexistent.invalid:6969` does not panic; it is reported as a failed check for that tracker
 - [ ] AC4: Valid entries (`udp://127.0.0.1:6969`, `127.0.0.1:6969`, `udp://localhost:6969`, and `localhost:6969`, which has no scheme) behave as before
+- [ ] AC5: In `http_trackers` and `health_checks`, an entry with no host or with a scheme other than `http` or `https` (for example `udp://127.0.0.1:6969`, `ftp://127.0.0.1`, `http:///`) gives exit `2` and one `invalid_configuration` record, and valid entries (`http://127.0.0.1:7070/announce`, `https://tracker.example.com`) behave as before
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -174,6 +177,7 @@ Notes:
 | AC2   | TODO                   |          |
 | AC3   | TODO                   |          |
 | AC4   | TODO                   |          |
+| AC5   | TODO                   |          |
 
 ## Risks and Trade-offs
 
