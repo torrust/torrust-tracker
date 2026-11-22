@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2949-2003-keep-reviewer-ack-after-audit-only-commits/ISSUE.md
-last-updated-utc: "2026-11-21 15:14"
+issue-spec: docs/issues/closed/2949-2003-keep-reviewer-ack-after-audit-only-commits/ISSUE.md
+last-updated-utc: "2026-11-22 09:36"
 ---
 
 # Manual Verification Evidence
