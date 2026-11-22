@@ -52,6 +52,9 @@ keep the reviewer's IDs F21 and F22.
 Round 3 is Copilot's review `6011613619` (2026-11-22 10:03:41 UTC, comment) of the head whose last
 commit is `docs(pr-reviews): [#2902] record the first review round of #2988`; its two inline comments
 have no IDs and are recorded as F23 and F24 with the severity of its overview (F23 Medium, F24 Low).
+Round 4 is da2ce7's review `6011697342` (2026-11-22 10:23:39 UTC, approval) of the head whose last
+commit is `docs(pr-reviews): [#2902] record the third review round of #2988`; its inline finding keeps
+the reviewer's ID F25.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -66,6 +69,7 @@ have no IDs and are recorded as F23 and F24 with the severity of its overview (F
 | F22 | review-finding:pr-2988-f22 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F23 | review-finding:pr-2988-f23 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
 | F24 | review-finding:pr-2988-f24 | Copilot | Nit (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F25 | review-finding:pr-2988-f25 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -212,12 +216,26 @@ have no IDs and are recorded as F23 and F24 with the severity of its overview (F
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2988#discussion_r4657642714
 
+### F25 - The F23 severity did not follow the overview mapping
+
+- PR number: 2988
+- Source review ID: 6011697342
+- Reviewer finding ID: F25
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2988#discussion_r4657693257
+- Concern: The record maps the automated reviewer's Medium to `Minor (inferred)` (F5, F6), but the F23 row, whose overview severity is Medium, read `Nit (inferred)`; the round 3 sentence did not name the overview severities.
+- Solution: The F23 row reads `Minor (inferred)`, and the round 3 sentence names both overview severities (F23 Medium, F24 Low).
+- Current-tree verification: `grep -n '^| F23 ' docs/pr-reviews/pr-2988-review/PR-REVIEW.md` shows `Minor (inferred)`.
+- Resolution reference: docs(pr-reviews): [#2902] map the F23 severity from the Copilot overview
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2988#discussion_r4657701374
+
 ## Processing Log
 
 - 2026-11-22 09:22 UTC - Read both round 1 reviews; the maintainer chose `rstest` cases for F2. Fixed F2, F5, F3, F1 (and the stray #2637 line) and F4 in their own commits, then recorded the review changes in the row 5 and row 7 plans.
 - 2026-11-22 09:34 UTC - Replied on all seven threads (09:34:44 to 09:34:57 UTC), before pushing the fixes and this record together; the threads are resolved after the push.
 - 2026-11-22 09:58 UTC - Round 2 (approval with F21 and F22): F21 fixed in the description, F22 in its own commit; replied at 09:58:21 and 09:58:23 UTC, before pushing the fix and this record together; the threads are resolved after the push.
 - 2026-11-22 10:06 UTC - Round 3 (Copilot comment with F23 and F24): each fixed in its own commit, F24 keeping the version and turning off the default features; replied at 10:06:48 and 10:06:51 UTC, before pushing the fixes and this record together; the threads are resolved after the push.
+- 2026-11-22 10:26 UTC - Round 4 (approval with the Nit F25): fixed in its own commit; replied at 10:26:21 UTC, before pushing the fix and this record together; the thread is resolved after the push.
 
 ## Completion Rules
 
