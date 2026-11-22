@@ -51,7 +51,7 @@ commit is `docs(pr-reviews): [#2902] record the first review round of #2988`; it
 keep the reviewer's IDs F21 and F22.
 Round 3 is Copilot's review `6011613619` (2026-11-22 10:03:41 UTC, comment) of the head whose last
 commit is `docs(pr-reviews): [#2902] record the first review round of #2988`; its two inline comments
-have no IDs and are recorded as F23 and F24.
+have no IDs and are recorded as F23 and F24 with the severity of its overview (F23 Medium, F24 Low).
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -64,7 +64,7 @@ have no IDs and are recorded as F23 and F24.
 | F7 | review-finding:pr-2988-f7 | Copilot | Nit (inferred) | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F21 | review-finding:pr-2988-f21 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F22 | review-finding:pr-2988-f22 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
-| F23 | review-finding:pr-2988-f23 | Copilot | Nit (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F23 | review-finding:pr-2988-f23 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
 | F24 | review-finding:pr-2988-f24 | Copilot | Nit (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
