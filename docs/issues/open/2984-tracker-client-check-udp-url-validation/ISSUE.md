@@ -9,7 +9,7 @@ github-issue: 2984
 spec-path: docs/issues/open/2984-tracker-client-check-udp-url-validation/ISSUE.md
 branch: "2984-tracker-client-check-udp-url-validation-spec"
 related-pr: null
-last-updated-utc: "2026-11-22 10:36"
+last-updated-utc: "2026-11-22 13:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -111,7 +111,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T4   | Validation in config and fallible resolution          | Commit after focused validation and required review. |
 | T5   | Evidence update                                       | Commit after focused validation and required review. |
 
-Test-development loop (T3), as `create-issue` requires for a plan that adds or changes tests: use the `write-unit-test` skill and make the smallest behaviour-focused increment; after each increment passes its focused validation, record an explicit design review before maintainer review and commit. The review is the prose-first Arrange-Act-Assert comparison: write temporary prose for each section, refactor until the code expresses it, remove redundant prose, and confirm the test exposes the one causal initial-state difference, its fixture owns only incidental mechanics, and the production Act plus the independently specified expected result stay visible. Record it in the task evidence. Complete it for every test-producing increment (the UDP cases, the HTTP cases, the unresolvable-host case, the rewritten end-to-end test and the panic-hook unit test) before starting the next, and stop for maintainer review after the final increment, before final verification, commit or pull request. The independent Task Reviewer does the final pre-PR review of the whole issue.
+Test-development loop (T3), as `create-issue` requires for a plan that adds or changes tests: use the `write-unit-test` skill and make the smallest behaviour-focused increment; after each increment passes its focused validation, record an explicit design review before maintainer review and commit. The review is the prose-first Arrange-Act-Assert comparison: write temporary prose for each section, refactor until the code expresses it, remove redundant prose, and confirm the test exposes the one causal initial-state difference, its fixture owns only incidental mechanics, and the production Act plus the independently specified expected result stay visible. Record it in the task evidence. Complete it for every test-producing increment (the UDP cases, the HTTP cases, the unresolvable-host case, the rewritten end-to-end test and the panic-hook unit test) before starting the next, and stop for maintainer review after the final increment, before final verification, commit or pull request. Test authors consult the test refactoring-pattern catalog in `docs/testing/refactoring-patterns/` when a pattern applies. The design review judges helper boundaries by meaningful named actions and abstraction-level alignment, not by caller count: a single-use helper is valid when it hides only incidental mechanics. The independent Task Reviewer does the final pre-PR review of the whole issue.
 
 ## Progress Tracking
 
@@ -143,6 +143,7 @@ Test-development loop (T3), as `create-issue` requires for a plan that adds or c
 - 2026-11-22 10:00 UTC - Claude Code (Claude Sonnet 5.5) - Round 5 review fix (Copilot F18): the plan now updates the existing panic-contract test and keeps panic-hook coverage by another trigger - PR 2985 audit
 - 2026-11-22 10:21 UTC - Claude Code (Claude Sonnet 5.5) - Round 6 review fixes (F21, F23): the HTTP reproduction is recorded as V2 with its verbatim output (T2 and M2 done) and the replacement panic-hook coverage is placed in a seam inside `output.rs` - PR 2985 audit
 - 2026-11-22 10:36 UTC - Claude Code (Claude Sonnet 5.5) - Round 7 review fix (F24): the test-development loop and design-review checkpoints are added to the Commit Points - PR 2985 audit
+- 2026-11-22 13:25 UTC - Claude Code (Claude Sonnet 5.5) - Round 8 review fix (F26): the pattern-catalog pointer and the helper-boundary rule are added to the test-development loop - PR 2985 audit
 
 ## Acceptance Criteria
 
