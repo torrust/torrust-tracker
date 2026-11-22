@@ -9,7 +9,7 @@ github-issue: 2984
 spec-path: docs/issues/open/2984-tracker-client-check-udp-url-validation/ISSUE.md
 branch: "2984-tracker-client-check-udp-url-validation-spec"
 related-pr: null
-last-updated-utc: "2026-11-22 09:22"
+last-updated-utc: "2026-11-22 09:53"
 semantic-links:
   skill-links:
     - create-issue
@@ -137,6 +137,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-21 15:20 UTC - Claude Code (Claude Sonnet 5.5) - Round 1 review fixes (F1 to F6): result representation, no network-free claim, verbatim stderr, build and toolchain, M1/M2 split, raw-entry scheme check - PR 2985 audit
 - 2026-11-21 15:59 UTC - Claude Code (Claude Sonnet 5.5) - Round 2 review fixes (F9 to F11): scheme detection by `://` and `localhost:6969` in AC4, controls rerun verbatim, this log and `last-updated-utc` - PR 2985 audit
 - 2026-11-22 09:22 UTC - Claude Code (Claude Sonnet 5.5) - Recorded the maintainer's answers to both open questions as decisions: DNS failure is a failed check; the host and scheme validation also covers `http_trackers` and `health_checks` (new AC5) - PR 2985
+- 2026-11-22 09:53 UTC - Claude Code (Claude Sonnet 5.5) - Round 5 review fixes (F15, F16): HTTP expectations split by case (wrong scheme versus no host), recheck expectations aligned and the recheck row moved last - PR 2985 audit
 
 ## Acceptance Criteria
 
