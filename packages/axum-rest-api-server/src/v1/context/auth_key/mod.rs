@@ -99,7 +99,7 @@
 //! **Example error response** `500`
 //!
 //! ```text
-//! Unhandled rejection: Err { reason: "failed to delete key: Failed to remove record from Sqlite3 database, error-code: 0, src/tracker/databases/sqlite.rs:267:27" }
+//! Unhandled rejection: Err { reason: "failed to delete key: Failed to remove record from Sqlite3 database, error-code: 0" }
 //! ```
 //!
 //! > **NOTICE**: a `500` status code will be returned and the body is not a

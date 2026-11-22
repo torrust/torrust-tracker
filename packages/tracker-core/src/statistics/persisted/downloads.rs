@@ -210,4 +210,43 @@ mod tests {
 
         assert_eq!(torrents, expected_torrents);
     }
+
+    #[tokio::test]
+    async fn it_should_increment_the_stored_downloads_of_a_torrent() {
+        // Arrange
+        let ephemeral = ephemeral_configuration();
+        let repository = initialize_db_persistent_torrent_repository(&ephemeral.config).await;
+        let infohash = sample_info_hash();
+        repository.increase_downloads_for_torrent(&infohash).await.unwrap();
+
+        // Act
+        repository.increase_downloads_for_torrent(&infohash).await.unwrap();
+
+        // Assert
+        assert_eq!(
+            repository.load_torrent_downloads(&infohash).await.unwrap(),
+            Some(2),
+            "a second download of the same torrent should add to the stored total"
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_save_then_increment_the_global_downloads() {
+        // Arrange
+        let ephemeral = ephemeral_configuration();
+        let repository = initialize_db_persistent_torrent_repository(&ephemeral.config).await;
+
+        // Act
+        repository.increase_global_downloads().await.unwrap();
+        let after_the_first = repository.load_global_downloads().await.unwrap();
+        repository.increase_global_downloads().await.unwrap();
+        let after_the_second = repository.load_global_downloads().await.unwrap();
+
+        // Assert
+        assert_eq!(
+            (after_the_first, after_the_second),
+            (Some(1), Some(2)),
+            "the first download should save 1 and the next should add to it"
+        );
+    }
 }

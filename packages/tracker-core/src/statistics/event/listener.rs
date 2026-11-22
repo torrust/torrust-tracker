@@ -250,8 +250,13 @@ mod tests {
     use torrust_tracker_events::receiver::{RecvError, TryRecvError};
     use torrust_tracker_events::shutdown::Completion;
     use torrust_tracker_swarm_coordination_registry::event::Event;
+    use torrust_tracker_swarm_coordination_registry::event::bus::EventBus;
 
-    use super::{dispatch_in_memory_events, dispatch_persistent_completed_statistics_events};
+    use super::{
+        dispatch_in_memory_events, dispatch_persistent_completed_statistics_events, run_in_memory_event_listener,
+        run_in_memory_event_listener_unspawned, run_persistent_completed_statistics_event_listener,
+        run_persistent_completed_statistics_event_listener_unspawned,
+    };
     use crate::databases::setup::initialize_database;
     use crate::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
     use crate::statistics::repository::Repository;
@@ -615,5 +620,137 @@ mod tests {
             Completion::Cancelled,
             "an expired drain must still return Cancelled"
         );
+    }
+
+    /// The deadline for every wait on a listener (spec: Asynchronous Work, Cleanup and Test Fixtures).
+    const LISTENER_DEADLINE: Duration = Duration::from_secs(5);
+
+    /// Sends `event` on the bus; every receiver subscribed before the call queues it.
+    async fn send(event_bus: &EventBus, event: Event) {
+        let sender = event_bus.sender().expect("the default event bus has an enabled sender");
+        sender
+            .send(event)
+            .await
+            .expect("an enabled sender returns a result")
+            .expect("the listener's receiver is subscribed, so the event is queued");
+    }
+
+    /// Awaits `listener` within [`LISTENER_DEADLINE`], failing with a message naming it.
+    async fn within_deadline<T>(listener: impl Future<Output = T>, name: &str) -> T {
+        tokio::time::timeout(LISTENER_DEADLINE, listener)
+            .await
+            .unwrap_or_else(|_| panic!("{name} did not finish within {LISTENER_DEADLINE:?}"))
+    }
+
+    #[tokio::test]
+    async fn it_should_handle_a_queued_event_and_return_cancelled_when_the_unspawned_in_memory_listener_is_cancelled() {
+        // Arrange
+        clock::Stopped::local_set_to_unix_epoch();
+        let stats_repository = Arc::new(Repository::default());
+        let event_bus = EventBus::default();
+        let cancellation_token = CancellationToken::new();
+        let listener = run_in_memory_event_listener_unspawned(
+            event_bus.receiver(),
+            cancellation_token.clone(),
+            stats_repository.clone(),
+            DEFAULT_DRAIN_TIMEOUT,
+        );
+        send(&event_bus, peer_download_completed_event()).await;
+
+        // Act
+        cancellation_token.cancel();
+        let completion = within_deadline(listener, "the unspawned in-memory listener").await;
+
+        // Assert
+        expect_in_memory_download_metrics_to_be(&stats_repository, 1).await;
+        assert_eq!(
+            completion,
+            Completion::Cancelled,
+            "a cancelled listener must return Cancelled"
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_persist_a_queued_event_and_return_cancelled_when_the_unspawned_persistent_listener_is_cancelled() {
+        // Arrange
+        clock::Stopped::local_set_to_unix_epoch();
+        let stats_repository = Arc::new(Repository::new(true, true));
+        let ephemeral = ephemeral_configuration();
+        let downloads_repository = database_downloads_repository(&ephemeral.config).await;
+        let event_bus = EventBus::default();
+        let cancellation_token = CancellationToken::new();
+        let listener = run_persistent_completed_statistics_event_listener_unspawned(
+            event_bus.receiver(),
+            cancellation_token.clone(),
+            downloads_repository.clone(),
+            stats_repository.clone(),
+            DEFAULT_DRAIN_TIMEOUT,
+        );
+        send(&event_bus, peer_download_completed_event()).await;
+
+        // Act
+        cancellation_token.cancel();
+        let completion = within_deadline(listener, "the unspawned persistent listener").await;
+
+        // Assert
+        expect_persisted_download_metrics_to_be(&downloads_repository, &stats_repository, Some(1)).await;
+        assert_eq!(
+            completion,
+            Completion::Cancelled,
+            "a cancelled listener must return Cancelled"
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_handle_a_queued_event_then_finish_when_the_spawned_in_memory_listener_is_cancelled() {
+        // Arrange
+        clock::Stopped::local_set_to_unix_epoch();
+        let stats_repository = Arc::new(Repository::default());
+        let event_bus = EventBus::default();
+        let cancellation_token = CancellationToken::new();
+        let listener = run_in_memory_event_listener(
+            event_bus.receiver(),
+            cancellation_token.clone(),
+            &stats_repository,
+            DEFAULT_DRAIN_TIMEOUT,
+        );
+        send(&event_bus, peer_download_completed_event()).await;
+
+        // Act
+        cancellation_token.cancel();
+        within_deadline(listener, "the spawned in-memory listener")
+            .await
+            .expect("the listener task must not panic");
+
+        // Assert
+        expect_in_memory_download_metrics_to_be(&stats_repository, 1).await;
+    }
+
+    #[tokio::test]
+    async fn it_should_persist_a_queued_event_then_finish_when_the_spawned_persistent_listener_is_cancelled() {
+        // Arrange
+        clock::Stopped::local_set_to_unix_epoch();
+        let stats_repository = Arc::new(Repository::new(true, true));
+        let ephemeral = ephemeral_configuration();
+        let downloads_repository = database_downloads_repository(&ephemeral.config).await;
+        let event_bus = EventBus::default();
+        let cancellation_token = CancellationToken::new();
+        let listener = run_persistent_completed_statistics_event_listener(
+            event_bus.receiver(),
+            cancellation_token.clone(),
+            &downloads_repository,
+            &stats_repository,
+            DEFAULT_DRAIN_TIMEOUT,
+        );
+        send(&event_bus, peer_download_completed_event()).await;
+
+        // Act
+        cancellation_token.cancel();
+        within_deadline(listener, "the spawned persistent listener")
+            .await
+            .expect("the listener task must not panic");
+
+        // Assert
+        expect_persisted_download_metrics_to_be(&downloads_repository, &stats_repository, Some(1)).await;
     }
 }

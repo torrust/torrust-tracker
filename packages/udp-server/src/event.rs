@@ -223,10 +223,7 @@ mod tests {
         let info_hash = InfoHash::from_str("3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0") // DevSkim: ignore DS173237
             .expect("test info hash should be valid");
 
-        WhitelistError::TorrentNotWhitelisted {
-            info_hash,
-            location: Location::caller(),
-        }
+        WhitelistError::TorrentNotWhitelisted { info_hash }
     }
 
     #[test]
@@ -288,7 +285,7 @@ mod tests {
 
         // Assert
         assert!(
-            matches!(actual, ErrorKind::Whitelist(message) if message.contains("The torrent: 3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0, is not whitelisted"))
+            matches!(actual, ErrorKind::Whitelist(message) if message == "The torrent: 3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0, is not whitelisted")
         );
     }
 
@@ -306,7 +303,7 @@ mod tests {
 
         // Assert
         assert!(
-            matches!(actual, ErrorKind::Whitelist(message) if message.contains("The torrent: 3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0, is not whitelisted"))
+            matches!(actual, ErrorKind::Whitelist(message) if message == "The torrent: 3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0, is not whitelisted")
         );
     }
 
@@ -346,7 +343,7 @@ mod tests {
 
         // Assert
         assert!(
-            matches!(actual, ErrorKind::Whitelist(message) if message.contains("The torrent: 3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0, is not whitelisted"))
+            matches!(actual, ErrorKind::Whitelist(message) if message == "The torrent: 3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0, is not whitelisted")
         );
     }
 
@@ -364,7 +361,7 @@ mod tests {
 
         // Assert
         assert!(
-            matches!(actual, ErrorKind::Whitelist(message) if message.contains("The torrent: 3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0, is not whitelisted"))
+            matches!(actual, ErrorKind::Whitelist(message) if message == "The torrent: 3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0, is not whitelisted")
         );
     }
 

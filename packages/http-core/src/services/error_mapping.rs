@@ -23,8 +23,6 @@ pub fn protocol_error_from_tracker_core_error(error: TrackerCoreError) -> HttpPr
 
 #[cfg(test)]
 mod tests {
-    use std::panic::Location;
-
     use rstest::rstest;
     use torrust_tracker_core::authentication::key::Error as AuthenticationKeyError;
     use torrust_tracker_core::error::{AnnounceError, ScrapeError, TrackerCoreError, WhitelistError};
@@ -32,20 +30,16 @@ mod tests {
     use super::protocol_error_from_tracker_core_error;
     use crate::tests::sample_info_hash;
 
-    // Each helper returns an equal error on every call, because `Location::caller()`
-    // names the call site inside the helper. A test builds the error under test and
-    // the text it expects from two separate calls.
+    // A test builds the error under test and the text it expects from two
+    // separate calls of the same helper.
     fn not_whitelisted() -> WhitelistError {
         WhitelistError::TorrentNotWhitelisted {
             info_hash: sample_info_hash(),
-            location: Location::caller(),
         }
     }
 
-    fn missing_key() -> AuthenticationKeyError {
-        AuthenticationKeyError::MissingAuthKey {
-            location: Location::caller(),
-        }
+    const fn missing_key() -> AuthenticationKeyError {
+        AuthenticationKeyError::MissingAuthKey
     }
 
     #[rstest]

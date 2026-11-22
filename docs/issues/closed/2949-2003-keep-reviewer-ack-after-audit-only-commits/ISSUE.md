@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: enhancement
-status: in-progress
+status: done
 priority: p2
 epic: 2003
 github-issue: 2949
-spec-path: docs/issues/open/2949-2003-keep-reviewer-ack-after-audit-only-commits/ISSUE.md
+spec-path: docs/issues/closed/2949-2003-keep-reviewer-ack-after-audit-only-commits/ISSUE.md
 branch: "2949-keep-reviewer-ack-after-audit-only-commits"
 related-pr: 2989
-last-updated-utc: "2026-11-21 15:15"
+last-updated-utc: "2026-11-22 09:36"
 semantic-links:
   skill-links:
     - create-issue
@@ -201,14 +201,14 @@ Not applicable. No code changes.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status      | Task                                           | Notes / Expected Output                                                                                     |
-| --- | ----------- | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| T1  | DONE        | Decide D1                                      | Recorded under Architectural Decisions with its date and who decided, in the specification pull request     |
-| T2  | DONE        | Document the re-ACK in `merge-pull-request`    | Merge Readiness says an audit-only commit needs new ACKs and gives the command; the waiver sentence changes |
-| T3  | DONE        | Point to it from `wait-for-pr-review` step 4   | The exit condition refers to the text in `merge-pull-request`; it does not restate it                       |
-| T4  | DONE        | Add the sentence to `process-pr-review`        | Authors keep the audit commit, tell the maintainer, and never rewrite history to protect an ACK             |
-| T5  | DONE        | Note this issue on the #2363 line of `EPIC.md` | The line names this issue; that plan is historical, so nothing else in it changes                           |
-| T6  | IN_PROGRESS | Manual verification and close-out              | M1 and M2 recorded; EPIC row `IN_PROGRESS`; the close-out follows the merge                                 |
+| ID  | Status | Task                                           | Notes / Expected Output                                                                                     |
+| --- | ------ | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| T1  | DONE   | Decide D1                                      | Recorded under Architectural Decisions with its date and who decided, in the specification pull request     |
+| T2  | DONE   | Document the re-ACK in `merge-pull-request`    | Merge Readiness says an audit-only commit needs new ACKs and gives the command; the waiver sentence changes |
+| T3  | DONE   | Point to it from `wait-for-pr-review` step 4   | The exit condition refers to the text in `merge-pull-request`; it does not restate it                       |
+| T4  | DONE   | Add the sentence to `process-pr-review`        | Authors keep the audit commit, tell the maintainer, and never rewrite history to protect an ACK             |
+| T5  | DONE   | Note this issue on the #2363 line of `EPIC.md` | The line names this issue; that plan is historical, so nothing else in it changes                           |
+| T6  | DONE   | Manual verification and close-out              | M1 and M2 recorded; EPIC row `DONE`; the specification is archived                                          |
 
 ## Commit Points
 
@@ -243,7 +243,7 @@ tests, so the progressive test-development loop of `create-issue` does not apply
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [x] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -261,6 +261,7 @@ tests, so the progressive test-development loop of `create-issue` does not apply
 - 2026-11-19 18:56 UTC - AI assistant (Claude Code, Claude Fable 5.2, issue #2949 session) - Addressed da2ce7's review 5981273810 on PR #2950: Commit Points has a row for T6 (F30). Their F28 was a closing keyword before the issue reference in the pull request description, which would have closed this issue when the specification pull request merged; the description was reworded, with no commit.
 - 2026-11-21 13:23 UTC - AI assistant (Claude Code, Claude Fable 5.2, issue #2949 session) - The specification merged with PR #2950 on 2026-11-21 (13:09 UTC), with ACKs from da2ce7 and the maintainer on its head, and the maintainer asked for the implementation in the same session. On the branch `2949-keep-reviewer-ack-after-audit-only-commits`, cut from `develop` at `4be22ee66`: T2 to T5 are done, each in its own commit, and the three skills' versions are bumped. M1 and M2 were run by hand and recorded in `manual-verification-evidence.md`. D1 now links da2ce7's agreement (comment 7032739700). `linter all` passed in the pre-commit hook of each commit; the pre-push checks run at the push. No retrospective is needed: the change is skill text only and nothing was discovered that the specification did not already say. T6 stays `IN_PROGRESS` until the close-out after the merge.
 - 2026-11-21 15:15 UTC - AI assistant (Claude Code, Claude Fable 5.2, issue #2949 session) - Opened the implementation pull request #2989 on 2026-11-21. The pre-push checks passed at the push of its first head, and its Docs Lint check passed. Addressed Copilot review 6006218967: one line of the evidence file's Environment list fell outside its list item.
+- 2026-11-22 09:36 UTC - AI assistant (Claude Code, Claude Fable 5.2, issue #2949 session) - PR #2989 merged on 2026-11-22 (09:33 UTC) with ACKs from da2ce7 and the maintainer on its head, and GitHub closed issue #2949. Archived this specification to `docs/issues/closed/`, set its status to `done`, and set EPIC row 24 to `DONE`. T6 is done. The checkpoints for reviewer-updated checkboxes and for agent review reports stay unticked: da2ce7 reviewed the acceptance evidence on the pull request and no reviewer report file was produced.
 
 ## Acceptance Criteria
 

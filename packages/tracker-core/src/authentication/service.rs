@@ -1,5 +1,4 @@
 //! Authentication service.
-use std::panic::Location;
 use std::sync::Arc;
 
 use torrust_tracker_configuration::v3_0_0::core::Core;
@@ -75,10 +74,10 @@ impl AuthenticationService {
 
     /// Verifies the authentication key against the in-memory repository.
     ///
-    /// This function retrieves the key from the repository. If the key is not
-    /// found, it returns an error with the caller's location. If the key is
-    /// found, the function then checks the key's expiration based on the
-    /// tracker configuration. The behavior differs depending on whether a
+    /// This function retrieves the key from the repository. A key that is not
+    /// found yields [`Error::UnableToReadKey`]. A key that is found is then
+    /// checked for expiration based on the tracker configuration, and the
+    /// function returns `Ok(())` when that check passes or is disabled. The behavior differs depending on whether a
     /// `private` configuration is provided and whether key expiration checking
     /// is enabled.
     ///
@@ -95,7 +94,6 @@ impl AuthenticationService {
     async fn verify_auth_key(&self, key: &Key) -> Result<(), Error> {
         match self.in_memory_key_repository.get(key).await {
             None => Err(Error::UnableToReadKey {
-                location: Location::caller(),
                 key: Box::new(key.clone()),
             }),
             Some(key) => match self.config.private_mode {
@@ -163,6 +161,7 @@ mod tests {
             use crate::authentication::key::repository::in_memory::InMemoryKeyRepository;
             use crate::authentication::service::AuthenticationService;
             use crate::authentication::{self, PeerKey};
+            use crate::test_helpers::tests::assert_names_no_source_path;
 
             fn instantiate_authentication_for_private_tracker() -> AuthenticationService {
                 let config = Core {
@@ -209,6 +208,40 @@ mod tests {
                 let result = authentication.authenticate(&unregistered_key).await;
 
                 assert!(result.is_err());
+            }
+
+            #[tokio::test]
+            async fn it_should_reject_an_unregistered_key_with_a_message_that_holds_no_source_path() {
+                let authentication = instantiate_authentication_for_private_tracker();
+                let unregistered_key = authentication::Key::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
+
+                let error = authentication.authenticate(&unregistered_key).await.unwrap_err();
+
+                assert!(error.to_string().starts_with("Failed to read key"), "{error}");
+                assert_names_no_source_path(&error.to_string());
+            }
+
+            #[tokio::test]
+            async fn it_should_reject_an_expired_key_with_a_message_that_holds_no_source_path() {
+                let in_memory_key_repository = Arc::new(InMemoryKeyRepository::default());
+                let key = authentication::Key::from_str("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap();
+                in_memory_key_repository
+                    .insert(&PeerKey {
+                        key: key.clone(),
+                        valid_until: Some(Duration::from_secs(0)),
+                    })
+                    .await;
+                let authentication = AuthenticationService::new(
+                    &Core {
+                        private: true,
+                        ..Default::default()
+                    },
+                    &in_memory_key_repository,
+                );
+
+                let error = authentication.authenticate(&key).await.unwrap_err();
+
+                assert_eq!(error.to_string(), "Key has expired");
             }
 
             #[tokio::test]

@@ -1,0 +1,340 @@
+   Compiling tokio v1.54.1
+   Compiling digest v0.10.7
+   Compiling smallvec v1.16.6
+   Compiling torrust-peer-id v0.1.0
+   Compiling openssl v0.10.82
+   Compiling rustls v0.23.46
+   Compiling torrust-metrics v0.2.0
+   Compiling sha2 v0.10.9
+   Compiling hmac v0.12.1
+   Compiling signature v2.2.0
+   Compiling md-5 v0.10.6
+   Compiling sha1 v0.10.7
+   Compiling icu_normalizer v2.4.0
+   Compiling parking_lot_core v0.9.12
+   Compiling num-bigint-dig v0.8.6
+   Compiling tracing-subscriber v0.3.23
+   Compiling torrust-tracker-udp-protocol v0.1.0 (<worktree>/packages/udp-protocol)
+   Compiling torrust-tracker-http-protocol v0.1.0 (<worktree>/packages/http-protocol)
+   Compiling hkdf v0.12.4
+   Compiling parking_lot v0.12.5
+   Compiling futures-intrusive v0.5.0
+   Compiling figment v0.10.19
+   Compiling idna_adapter v1.2.2
+   Compiling idna v1.1.0
+   Compiling url v2.5.8
+   Compiling rsa v0.9.10
+   Compiling torrust-net-primitives v0.1.0
+   Compiling torrust-tracker-primitives v3.1.0 (<worktree>/packages/primitives)
+   Compiling torrust-tracker-configuration v3.0.0 (<worktree>/packages/configuration)
+   Compiling native-tls v0.2.18
+   Compiling rustls-platform-verifier v0.7.1
+   Compiling torrust-tracker-test-helpers v3.0.0 (<worktree>/packages/test-helpers)
+   Compiling tokio-util v0.7.20
+   Compiling tokio-stream v0.1.19
+   Compiling torrust-tracker-events v0.1.0 (<worktree>/packages/events)
+   Compiling tokio-rustls v0.26.6
+   Compiling tower v0.5.3
+   Compiling async-compression v0.4.52
+   Compiling criterion v0.5.1
+   Compiling sqlx-core v0.8.6
+   Compiling tower-http v0.6.11
+   Compiling h2 v0.4.20
+   Compiling torrust-tracker-swarm-coordination-registry v0.1.0 (<worktree>/packages/swarm-coordination-registry)
+   Compiling tower-http v0.7.1
+   Compiling torrust-server-lib v0.6.0
+   Compiling sqlx-mysql v0.8.6
+   Compiling sqlx-postgres v0.8.6
+   Compiling sqlx-sqlite v0.8.6
+   Compiling hyper v1.12.0
+   Compiling hyper-util v0.1.21
+   Compiling sqlx v0.8.6
+   Compiling torrust-tracker-core v0.1.0 (<worktree>/packages/tracker-core)
+   Compiling hyper-rustls v0.27.10
+   Compiling reqwest v0.13.5
+   Compiling torrust-tracker-client-lib v0.1.0 (<worktree>/packages/tracker-client)
+   Compiling torrust-tracker-udp-core v0.1.0 (<worktree>/packages/udp-core)
+   Compiling torrust-tracker-udp-server v0.1.0 (<worktree>/packages/udp-server)
+    Finished `test` profile [optimized + debuginfo] target(s) in 15.85s
+     Running unittests src/lib.rs (target/debug/build/torrust-tracker-udp-server/4684096654e40990/out/torrust_tracker_udp_server-4684096654e40990)
+
+running 224 tests
+test banning::event::listener::tests::it_should_ignore_non_connection_cookie_errors ... ok
+test banning::event::listener::tests::it_should_leave_the_queued_event_unprocessed_and_return_cancelled_when_the_drain_timeout_has_expired ... ok
+test banning::event::handler::tests::it_should_publish_the_banned_ip_total_after_a_connection_cookie_error ... ok
+test banning::event::handler::tests::it_should_record_the_connection_cookie_error_for_its_client_ip ... ok
+test banning::event::handler::tests::it_should_not_hold_the_ban_service_lock_while_waiting_to_publish_the_banned_ip_total ... ok
+test banning::event::listener::tests::it_should_handle_a_queued_event_then_return_cancelled_when_cancellation_is_already_pending ... ok
+test banning::event::handler::tests::it_should_hold_the_publication_order_until_it_has_published_the_banned_ip_total ... ok
+test banning::event::listener::tests::it_should_process_connection_cookie_errors_after_lagging ... ok
+test banning::tests::it_should_not_hold_the_ban_service_lock_while_waiting_to_publish_the_reset_total ... ok
+test banning::event::listener::tests::it_should_stop_when_the_receiver_is_closed ... ok
+test error::tests::it_should_preserve_response_routing_identifiers_for_a_sendable_parse_error ... ok
+test error::tests::it_should_clear_response_routing_identifiers_for_an_unsendable_parse_error ... ok
+test banning::tests::it_should_publish_the_new_banned_ips_total_after_resetting_the_bans ... ok
+test error::tests::it_should_wrap_a_sendable_parse_error_as_an_invalid_request ... ok
+test error::tests::it_should_wrap_a_scrape_service_error_as_a_scrape_failure ... ok
+test banning::tests::it_should_hold_the_publication_order_until_it_has_published_the_reset_total ... ok
+test error::tests::it_should_wrap_an_announce_service_error_as_an_announce_failure ... ok
+test event::tests::it_should_classify_a_connection_cookie_error ... ok
+test event::tests::it_should_classify_a_database_error ... ok
+test event::tests::it_should_classify_a_negative_number_of_bytes_in_an_announce_as_a_bad_request ... ok
+test event::tests::it_should_classify_a_nested_scrape_whitelist_error ... FAILED
+test event::tests::it_should_classify_a_direct_scrape_whitelist_error ... FAILED
+test event::tests::it_should_classify_a_nested_announce_whitelist_error ... FAILED
+test event::tests::it_should_classify_a_scrape_connection_cookie_error ... ok
+test event::tests::it_should_classify_a_scrape_database_error ... ok
+test event::tests::it_should_classify_a_whitelist_error ... FAILED
+test event::tests::it_should_classify_an_authentication_error ... ok
+test event::tests::it_should_classify_an_internal_error ... ok
+test event::tests::it_should_classify_an_invalid_request_as_a_request_parse_error ... ok
+test event::tests::it_should_convert_request_kinds_to_metric_labels ... ok
+test event::tests::it_should_render_request_kinds ... ok
+test handlers::announce::tests::announce_request::it_should_convey_the_largest_interval_and_clamp_out_of_range_peer_counts_for_both_address_families ... ok
+test handlers::connect::tests::connect_request::it_should_send_the_udp6_connect_event_when_a_client_tries_to_connect_using_an_ipv6_socket_address ... ok
+test handlers::error::tests::it_should_not_classify_an_internal_failure_as_a_connection_cookie_error ... ok
+test handlers::error::tests::it_should_classify_announce_and_scrape_cookie_failures_as_connection_cookie_errors ... ok
+test handlers::scrape::tests::scrape_request::it_should_return_zeroed_statistics_when_scrape_data_does_not_contain_a_requested_hash ... ok
+test container::tests::it_should_publish_events_through_the_enabled_server_event_bus ... ok
+test handlers::error::tests::it_should_answer_with_the_error_message_and_the_request_transaction_id ... ok
+test handlers::connect::tests::connect_request::it_should_send_the_udp4_connect_event_when_a_client_tries_to_connect_using_an_ipv4_socket_address ... ok
+test handlers::announce::tests::announce_request::using_ipv6::from_a_loopback_ip::the_peer_ip_should_be_changed_to_the_external_ip_in_the_tracker_configuration ... ok
+test handlers::tests::it_should_build_a_cookie_validation_range_around_the_issue_time ... ok
+test handlers::error::tests::it_should_publish_an_error_event_naming_the_connection_request_kind_and_error ... ok
+test handlers::tests::wire_i32_conversion::it_should_clamp_instead_of_wrapping_a_value_beyond_the_signed_wire_field ... ok
+test handlers::tests::wire_i32_conversion::it_should_keep_a_value_that_fits_in_the_signed_wire_field ... ok
+test handlers::tests::wire_i32_conversion::it_should_keep_the_largest_value_that_fits_in_the_signed_wire_field ... ok
+test handlers::connect::tests::connect_request::a_connect_response_should_contain_the_same_transaction_id_as_the_connect_request ... ok
+test server::bound_socket::tests::it_should_report_consistent_udp_endpoint_metadata ... ok
+test handlers::error::tests::it_should_answer_with_a_zero_transaction_id_when_the_request_has_no_transaction_id ... ok
+test server::bound_socket::tests::it_should_bind_to_a_non_zero_port_when_port_zero_is_requested ... ok
+test server::bound_socket::tests::it_should_restrict_an_ipv6_socket_to_ipv6_when_ipv6_v6only_is_requested ... ok
+test server::bound_socket::tests::it_should_return_an_error_when_the_address_is_already_in_use ... ok
+test handlers::connect::tests::connect_request::a_connect_response_should_contain_a_new_connection_id_ipv6 ... ok
+test handlers::announce::tests::announce_request::using_ipv6::should_send_the_udp6_announce_event ... ok
+test server::launcher::tests::it_should_admit_a_request_from_a_client_that_is_not_banned ... ok
+test handlers::announce::tests::announce_request::using_ipv4::should_send_the_udp4_announce_event ... ok
+test handlers::announce::tests::announce_request::using_ipv4::an_announced_peer_should_be_added_to_the_tracker ... ok
+test server::launcher::tests::receive_loop_admission::it_should_admit_a_received_datagram ... ok
+test server::launcher::tests::it_should_discard_a_request_from_a_banned_client_in_strict_mode ... ok
+test server::launcher::tests::receive_loop_admission::it_should_stop_with_the_receive_error_when_receiving_fails ... ok
+test server::launcher::tests::receive_loop_admission::it_should_stop_with_an_unexpected_end_error_when_the_receive_stream_ends ... ok
+test server::launcher::tests::receive_loop_admission::it_should_stop_with_the_receive_error_when_receiving_is_interrupted ... ok
+test handlers::scrape::tests::scrape_request::it_should_publish_a_cookie_error_and_answer_when_cookie_validation_is_disabled ... ok
+test handlers::announce::tests::announce_request::using_ipv4::the_announced_peer_should_not_be_included_in_the_response ... ok
+test handlers::announce::tests::announce_request::it_should_encode_only_peer_addresses_matching_the_request_family ... ok
+test server::launcher::tests::request_drain::it_should_abort_and_join_processors_still_running_at_the_deadline ... ok
+test handlers::announce::tests::announce_request::using_ipv4::the_tracker_should_always_use_the_remote_client_ip_but_not_the_port_in_the_udp_request_header_instead_of_the_peer_address_in_the_announce_request ... ok
+test server::launcher::tests::request_drain::it_should_count_a_processor_aborted_before_the_drain_as_evicted ... ok
+test handlers::tests::it_should_preserve_the_transaction_id_for_a_sendable_parse_error_without_a_request_kind ... ok
+test server::launcher::tests::it_should_admit_a_request_from_a_banned_client_when_connection_id_validation_is_disabled ... ok
+2026-11-21T13:32:34.896711Z  WARN UDP TRACKER: UDP request drain deadline reached: aborting remaining request processors service_binding="udp://192.0.2.15:2382" remaining=1 deadline=5s
+test server::launcher::tests::request_drain::it_should_count_failed_processors_and_keep_draining_the_rest ... ok
+test server::launcher::tests::request_drain::it_should_count_processors_that_finish_before_the_deadline_as_completed ... ok
+test server::launcher::tests::request_drain::it_should_name_the_listener_in_the_deadline_warning ... ok
+test server::launcher::tests::request_drain::it_should_join_every_processor_before_returning_the_receive_error ... ok
+test server::launcher::tests::request_drain::it_should_return_immediately_when_there_are_no_processors ... ok
+test handlers::scrape::tests::scrape_request::it_should_publish_an_accepted_scrape_event_for_an_ipv4_client ... ok
+test server::request_buffer::tests::it_should_abort_a_pending_task_when_the_request_buffer_is_dropped ... ok
+2026-11-21T13:32:34.897470Z  WARN UDP TRACKER: Udp::run_udp_server::loop aborting request: (no finished tasks) local_addr="127.0.0.1:6969"
+test server::request_buffer::tests::it_should_evict_the_oldest_pending_task_when_the_buffer_is_full ... ok
+test server::request_buffer::tests::it_should_not_evict_a_pending_task_when_the_buffer_has_available_capacity ... ok
+test handlers::tests::it_should_scrape_only_the_first_74_info_hashes_of_a_payload_with_75 ... ok
+test handlers::announce::tests::announce_request::using_ipv6::an_announced_peer_should_be_added_to_the_tracker ... ok
+test handlers::tests::it_should_dispatch_a_connect_request ... ok
+test server::receiver::tests::it_should_yield_a_raw_request_with_the_received_datagram_and_sender_address ... ok
+test handlers::announce::tests::announce_request::using_ipv6::the_announced_peer_should_not_be_included_in_the_response ... ok
+test handlers::announce::tests::announce_request::using_ipv4::it_should_reject_an_announce_with_a_negative_number_of_bytes_left ... ok
+test handlers::scrape::tests::scrape_request::it_should_preserve_a_scrape_service_failure_for_packet_error_routing ... ok
+test server::launcher::tests::it_should_discard_a_request_whose_source_port_is_zero ... ok
+2026-11-21T13:32:34.916805Z ERROR torrust_tracker_core::whitelist::authorization: error=The torrent: 0000000000000000000000000000000000000000, is not whitelisted, packages/tracker-core/src/whitelist/authorization.rs:61:23
+test handlers::announce::tests::announce_request::using_ipv6::the_tracker_should_always_use_the_remote_client_ip_but_not_the_port_in_the_udp_request_header_instead_of_the_peer_address_in_the_announce_request ... ok
+test statistics::event::handler::error::tests::it_should_label_a_general_error_metric_with_connect_request_kind ... ok
+test handlers::scrape::tests::scrape_request::it_should_return_zeroed_statistics_when_the_tracker_does_not_have_the_requested_torrent ... ok
+test statistics::event::handler::error::tests::it_should_label_a_connection_id_error_metric_with_qbittorrent_client_software ... ok
+test statistics::event::handler::request_aborted::tests::it_should_increase_the_number_of_aborted_requests_when_it_receives_a_udp_request_aborted_event ... ok
+test statistics::event::handler::request_accepted::tests::it_should_increase_the_udp4_announce_requests_counter_when_it_receives_a_udp4_request_event_of_announce_kind ... ok
+test statistics::event::handler::request_accepted::tests::it_should_increase_the_udp4_connect_requests_counter_when_it_receives_a_udp4_request_event_of_connect_kind ... ok
+test handlers::scrape::tests::scrape_request::with_a_public_tracker::it_should_return_statistics_when_the_public_tracker_has_the_requested_torrent ... ok
+test statistics::event::handler::error::tests::it_should_increase_the_udp4_errors_counter_when_it_receives_a_udp4_error_event ... ok
+test handlers::announce::tests::announce_request::using_ipv4::when_the_announce_request_comes_from_a_client_using_ipv4_the_response_should_not_include_peers_using_ipv6 ... ok
+test handlers::announce::tests::announce_request::using_ipv6::when_the_announce_request_comes_from_a_client_using_ipv6_the_response_should_not_include_peers_using_ipv4 ... ok
+test handlers::scrape::tests::scrape_request::it_should_return_an_entry_for_each_duplicate_requested_info_hash ... ok
+2026-11-21T13:32:34.920750Z  WARN UDP TRACKER: Ignoring UDP server event from an unknown or metrics-disabled listener configuration_instance_id=ConfigurationInstanceId { service_role: UdpTracker, instance_index: 1 }
+test handlers::announce::tests::announce_request::using_ipv4::it_should_preserve_an_announce_service_failure_for_packet_error_routing ... ok
+test handlers::scrape::tests::scrape_request::with_a_whitelisted_tracker::it_should_return_zeroed_statistics_when_the_listed_tracker_has_not_whitelisted_the_torrent ... ok
+test statistics::event::handler::request_accepted::tests::it_should_increase_the_udp4_scrape_requests_counter_when_it_receives_a_udp4_request_event_of_scrape_kind ... ok
+test statistics::event::handler::request_accepted::tests::it_should_increase_the_udp6_announce_requests_counter_when_it_receives_a_udp6_request_event_of_announce_kind ... ok
+2026-11-21T13:32:34.920892Z  WARN UDP TRACKER: Udp tracker server statistics receiver lagged by 2 events.
+test statistics::event::handler::request_accepted::tests::it_should_increase_the_udp6_connect_requests_counter_when_it_receives_a_udp6_request_event_of_connect_kind ... ok
+test statistics::event::handler::request_accepted::tests::it_should_increase_the_udp6_scrape_requests_counter_when_it_receives_a_udp6_request_event_of_scrape_kind ... ok
+test statistics::event::handler::request_banned::tests::it_should_increase_the_number_of_banned_requests_when_it_receives_a_udp_request_banned_event ... ok
+test statistics::event::handler::request_discarded::tests::it_should_increase_the_number_of_discarded_requests_when_it_receives_a_udp_request_discarded_event ... ok
+2026-11-21T13:32:34.920996Z  WARN UDP TRACKER: Ignoring UDP server event from an unknown or metrics-disabled listener configuration_instance_id=ConfigurationInstanceId { service_role: UdpTracker, instance_index: 1 }
+2026-11-21T13:32:34.921005Z  WARN UDP TRACKER: Ignoring UDP server event from an unknown or metrics-disabled listener configuration_instance_id=ConfigurationInstanceId { service_role: UdpTracker, instance_index: 2 }
+test statistics::event::handler::response_sent::tests::it_should_update_the_connect_processing_time_average_for_a_successful_connect_response ... ok
+test statistics::event::handler::request_received::tests::it_should_increase_the_number_of_incoming_requests_when_it_receives_a_udp4_incoming_request_event ... ok
+test statistics::event::handler::response_sent::tests::it_should_increase_the_udp4_responses_counter_when_it_receives_a_udp4_response_event ... ok
+test statistics::event::handler::response_sent::tests::it_should_increase_the_udp6_response_counter_when_it_receives_a_udp6_response_event ... ok
+2026-11-21T13:32:34.921116Z  WARN UDP TRACKER: Event listener drain lost events after cancellation listener="udp_tracker_server_statistics" outcome="timed_out" processed=0 lost_to_lag=0 unread_when_timed_out=1
+test handlers::scrape::tests::scrape_request::it_should_publish_an_accepted_scrape_event_for_an_ipv6_client ... ok
+test handlers::scrape::tests::scrape_request::it_should_preserve_the_order_of_eight_requested_info_hashes ... ok
+test statistics::event::listener::tests::it_should_apply_the_metrics_policy_to_a_drained_event ... ok
+test statistics::event::listener::tests::it_should_handle_a_queued_event_then_return_cancelled_when_cancellation_is_already_pending ... ok
+test statistics::event::listener::tests::it_should_process_enabled_events_after_lagging ... ok
+test statistics::event::listener::tests::it_should_stop_when_the_receiver_is_closed ... ok
+test statistics::metrics::tests::averaged_processing_time_metrics::it_should_handle_fractional_averages_with_truncation ... ok
+test statistics::event::listener::tests::it_should_update_metrics_only_for_an_enabled_configuration_instance ... ok
+test statistics::metrics::tests::averaged_processing_time_metrics::it_should_handle_single_server_averaged_metrics ... ok
+test statistics::metrics::tests::averaged_processing_time_metrics::it_should_only_average_matching_request_kinds ... ok
+test statistics::metrics::tests::averaged_processing_time_metrics::it_should_return_averaged_value_for_udp_avg_announce_processing_time_ns_averaged ... ok
+test handlers::announce::tests::announce_request::using_ipv4::from_a_loopback_ip::each_listener_should_use_its_own_configured_external_ip ... ok
+test statistics::metrics::tests::averaged_processing_time_metrics::it_should_return_zero_for_udp_avg_announce_processing_time_ns_averaged_when_no_data ... ok
+test statistics::event::listener::tests::it_should_leave_the_queued_event_unprocessed_and_return_cancelled_when_the_drain_timeout_has_expired ... ok
+test statistics::metrics::tests::combined_metrics::it_should_distinguish_between_different_request_kinds ... ok
+test statistics::metrics::tests::combined_metrics::it_should_handle_mixed_ipv4_and_ipv6_for_different_request_kinds ... ok
+test statistics::metrics::tests::combined_metrics::it_should_distinguish_between_ipv4_and_ipv6_metrics ... ok
+test statistics::metrics::tests::averaged_processing_time_metrics::it_should_return_averaged_value_for_udp_avg_connect_processing_time_ns_averaged ... ok
+test statistics::metrics::tests::averaged_processing_time_metrics::it_should_return_averaged_value_for_udp_avg_scrape_processing_time_ns_averaged ... ok
+test statistics::metrics::tests::edge_cases::it_should_handle_large_counter_values ... ok
+test statistics::metrics::tests::averaged_processing_time_metrics::it_should_return_zero_for_udp_avg_connect_processing_time_ns_averaged_when_no_data ... ok
+test statistics::metrics::tests::error_handling::it_should_return_ok_result_for_valid_counter_operations ... ok
+test statistics::metrics::tests::it_should_implement_default ... ok
+test statistics::metrics::tests::edge_cases::it_should_handle_large_gauge_values ... ok
+test statistics::metrics::tests::edge_cases::it_should_handle_zero_gauge_values ... ok
+test statistics::metrics::tests::edge_cases::it_should_handle_multiple_labels_on_same_metric ... ok
+test statistics::metrics::tests::edge_cases::it_should_handle_empty_label_sets ... ok
+test statistics::metrics::tests::it_should_implement_debug ... ok
+test server::launcher::tests::it_should_publish_a_request_discarded_event_when_its_source_port_is_zero ... ok
+test statistics::metrics::tests::edge_cases::it_should_overwrite_gauge_values_when_set_multiple_times ... ok
+test statistics::metrics::tests::error_handling::it_should_handle_unknown_metric_names_gracefully ... ok
+test statistics::metrics::tests::it_should_increase_counter_metric_with_labels ... ok
+test statistics::metrics::tests::it_should_increment_processed_requests_total ... ok
+test statistics::metrics::tests::error_handling::it_should_return_ok_result_for_valid_gauge_operations ... ok
+test statistics::metrics::tests::it_should_set_gauge_metric ... ok
+test statistics::metrics::tests::averaged_processing_time_metrics::it_should_return_zero_for_udp_avg_scrape_processing_time_ns_averaged_when_no_data ... ok
+test handlers::scrape::tests::scrape_request::with_a_whitelisted_tracker::it_should_return_statistics_when_the_listed_tracker_has_a_whitelisted_torrent ... ok
+test statistics::metrics::tests::it_should_set_gauge_metric_with_labels ... ok
+test statistics::metrics::tests::it_should_implement_partial_eq ... ok
+test statistics::metrics::tests::udp_general_metrics::it_should_return_gauge_value_for_udp_banned_ips_total ... ok
+test statistics::metrics::tests::udp_general_metrics::it_should_return_sum_of_udp_requests_aborted ... ok
+test statistics::metrics::tests::udp_general_metrics::it_should_return_sum_of_udp_requests_banned ... ok
+test statistics::metrics::tests::udp_general_metrics::it_should_return_zero_for_udp_banned_ips_total_when_no_data ... ok
+test statistics::metrics::tests::it_should_increase_counter_metric ... ok
+test statistics::metrics::tests::udp_general_metrics::it_should_return_zero_for_udp_requests_aborted_when_no_data ... ok
+test statistics::metrics::tests::udpv4_metrics::it_should_return_sum_of_udp4_announces_handled ... ok
+test statistics::metrics::tests::udp_general_metrics::it_should_return_zero_for_udp_requests_banned_when_no_data ... ok
+test statistics::metrics::tests::udpv4_metrics::it_should_return_sum_of_udp4_connections_handled ... ok
+test statistics::metrics::tests::processing_time_moving_average::it_should_keep_the_fractional_part_of_the_previous_average ... ok
+test statistics::metrics::tests::udp_general_metrics::it_should_return_exactly_a_udp_requests_aborted_total_that_an_f64_cannot_represent ... ok
+test statistics::metrics::tests::it_should_return_zero_for_udp_processed_requests_total_when_no_data ... ok
+test statistics::metrics::tests::udpv4_metrics::it_should_return_sum_of_udp4_errors_handled ... ok
+test statistics::metrics::tests::udpv4_metrics::it_should_return_sum_of_udp4_responses ... ok
+test statistics::metrics::tests::udpv4_metrics::it_should_return_zero_for_udp4_connections_handled_when_no_data ... ok
+test statistics::metrics::tests::udpv4_metrics::it_should_return_zero_for_udp4_responses_when_no_data ... ok
+test statistics::metrics::tests::udpv4_metrics::it_should_return_sum_of_udp4_scrapes_handled ... ok
+test statistics::metrics::tests::udpv4_metrics::it_should_return_sum_of_udp4_requests ... ok
+test statistics::metrics::tests::udpv4_metrics::it_should_return_zero_for_udp4_requests_when_no_data ... ok
+test statistics::metrics::tests::udpv4_metrics::it_should_return_zero_for_udp4_scrapes_handled_when_no_data ... ok
+test statistics::metrics::tests::udpv6_metrics::it_should_return_sum_of_udp6_connections_handled ... ok
+test statistics::metrics::tests::udpv6_metrics::it_should_return_sum_of_udp6_errors_handled ... ok
+test statistics::metrics::tests::udpv4_metrics::it_should_return_zero_for_udp4_errors_handled_when_no_data ... ok
+test statistics::metrics::tests::udpv6_metrics::it_should_return_zero_for_udp6_connections_handled_when_no_data ... ok
+test statistics::metrics::tests::udpv6_metrics::it_should_return_zero_for_udp6_errors_handled_when_no_data ... ok
+test statistics::metrics::tests::udpv6_metrics::it_should_return_zero_for_udp6_requests_when_no_data ... ok
+test statistics::metrics::tests::udpv6_metrics::it_should_return_zero_for_udp6_responses_when_no_data ... ok
+test statistics::metrics::tests::udpv6_metrics::it_should_return_zero_for_udp6_scrapes_handled_when_no_data ... ok
+test statistics::metrics::tests::udpv6_metrics::it_should_return_sum_of_udp6_scrapes_handled ... ok
+test statistics::repository::tests::it_should_allow_increasing_a_counter_metric_successfully ... ok
+test statistics::metrics::tests::udpv6_metrics::it_should_return_sum_of_udp6_announces_handled ... ok
+test statistics::metrics::tests::udpv6_metrics::it_should_return_zero_for_udp6_announces_handled_when_no_data ... ok
+test statistics::metrics::tests::udpv6_metrics::it_should_return_sum_of_udp6_responses ... ok
+test statistics::metrics::tests::udpv6_metrics::it_should_return_sum_of_udp6_requests ... ok
+test statistics::metrics::tests::udpv4_metrics::it_should_return_zero_for_udp4_announces_handled_when_no_data ... ok
+test statistics::repository::tests::it_should_allow_setting_a_gauge_with_different_labels ... ok
+test statistics::repository::tests::it_should_be_initialized_with_described_metrics ... ok
+test statistics::repository::tests::it_should_allow_increasing_a_counter_multiple_times ... ok
+test statistics::repository::tests::it_should_allow_increasing_a_counter_with_different_labels ... ok
+test statistics::repository::tests::it_should_handle_error_cases_gracefully ... ok
+test statistics::repository::tests::it_should_handle_concurrent_access ... ok
+test statistics::repository::tests::it_should_handle_large_processing_times ... ok
+test statistics::repository::tests::it_should_initialize_metrics_when_constructed_with_default ... ok
+test statistics::repository::tests::it_should_overwrite_previous_value_when_setting_a_gauge_with_a_previous_value ... ok
+test statistics::repository::tests::it_should_maintain_consistency_across_operations ... ok
+test statistics::repository::tests::it_should_run_the_closure_on_the_metrics_and_return_its_result ... ok
+test statistics::repository::tests::it_should_recalculate_separate_moving_averages_for_each_request_kind ... ok
+test statistics::repository::tests::it_should_set_a_gauge_metric_successfully ... ok
+test statistics::repository::tests::recalculate_average_methods_should_handle_zero_connections_gracefully ... ok
+test testing::environment::tests::it_should_cancel_the_event_listeners_only_after_the_receive_loop_has_finished ... ok
+test testing::environment::tests::it_should_map_disabled_connection_id_validation_policy ... ok
+test testing::environment::tests::it_should_join_every_event_listener_before_reporting_a_receive_loop_failure ... ok
+test testing::environment::tests::it_should_map_strict_connection_id_validation_policy ... ok
+test statistics::repository::tests::race_conditions::it_should_handle_race_conditions_when_updating_udp_performance_metrics_in_parallel ... ok
+test handlers::scrape::tests::scrape_request::it_should_return_the_persisted_downloads_of_torrents_absent_from_memory_in_request_order ... ok
+test statistics::metrics::tests::processing_time_moving_average::it_should_not_drift_toward_the_fastest_requests_over_many_requests ... ok
+test server::launcher::tests::receive_loop_shutdown::it_should_let_an_accepted_request_finish_and_answer_before_returning_on_cancellation ... ok
+test testing::environment::tests::it_should_cancel_the_event_listeners_when_the_join_is_abandoned_while_the_receive_loop_runs ... ok
+test server::processor::tests::it_should_publish_a_discard_event_when_a_client_uses_port_zero ... ok
+test server::processor::tests::it_should_publish_a_response_sent_event_when_it_answers_a_connect_request ... ok
+2026-11-21T13:32:34.952694Z ERROR torrust_tracker_udp_server::server::states: error=could not register UDP tracker service: a service is already registered for binding udp://127.136.185.221:56532
+test server::tests::token_aware_start::it_should_release_the_socket_when_registration_fails ... ok
+test server::launcher::tests::it_should_publish_a_request_banned_event_when_its_client_ip_is_banned_in_strict_mode ... ok
+test testing::environment::tests::it_should_count_the_statistics_events_of_a_request_answered_just_before_stop ... ok
+2026-11-21T13:32:34.956787Z  WARN torrust_tracker_udp_server::server::processor: failed to send bytes_count=16 error=Address family not supported by protocol (os error 97) payload=[0, 0, 0, 0, 0, 0, 0, 0, 16, 159, 105, 29, 5, 250, 145, 11]
+2026-11-21T13:32:34.960742Z  WARN UDP TRACKER: response error error=tracker scrape error: Connection cookie error: cookie value is expired: 0.0000000000000000000000000000000000000000000005714696852536039, expected > 1795267833.7769034 client_socket_addr=127.0.0.1:50068 server_socket_addr=0.0.0.0:47993 service_binding=udp://0.0.0.0:47993 request_id=68d6cdfc-cf23-4bb8-af16-aac23449da5d transaction_id=0
+2026-11-21T13:32:34.963689Z ERROR torrust_tracker_udp_server::server::states: error=could not bind UDP tracker listener: Address already in use (os error 98)
+2026-11-21T13:32:34.963683Z ERROR UDP TRACKER: response error error=error parsing request: SendableRequestParseError { message: "Couldn't parse action", opt_connection_id: None, opt_transaction_id: None } client_socket_addr=127.0.0.1:39738 server_socket_addr=0.0.0.0:58196 service_binding=udp://0.0.0.0:58196 request_id=2ae50a68-3345-4c74-9be4-8659c576ddd3
+test server::processor::tests::it_should_keep_the_request_kind_in_the_error_response_event_when_a_parsed_request_fails ... ok
+test server::processor::tests::it_should_return_a_send_error_when_the_response_cannot_be_sent ... ok
+test server::tests::token_aware_start::it_should_register_the_service_with_a_health_check_that_reaches_the_running_server ... ok
+test testing::environment::tests::it_should_stop_the_event_listeners_when_dropped_without_being_stopped ... ok
+test testing::environment::tests::it_should_not_leave_event_listeners_running_when_the_udp_server_fails_to_start ... ok
+test server::tests::token_aware_start::it_should_stop_the_receive_loop_and_release_the_socket_when_its_cancellation_token_is_cancelled ... ok
+test testing::environment::tests::it_should_stop_without_a_join_failure_when_every_owned_task_finishes_through_cancellation ... ok
+test testing::environment::tests::it_should_count_the_statistics_event_of_a_request_that_is_published_while_stop_drains_the_receive_loop ... ok
+test testing::environment::tests::it_should_serve_requests_after_being_stopped_and_started_again ... ok
+test server::processor::tests::it_should_publish_an_error_response_event_without_a_request_kind_when_the_payload_is_unparsable ... ok
+2026-11-21T13:32:35.055149Z  WARN UDP TRACKER: UDP request drain deadline reached: aborting remaining request processors service_binding="udp://127.0.0.1:37539" remaining=50 deadline=100ms
+2026-11-21T13:32:35.055223Z  WARN UDP TRACKER: UDP request processors drained service_binding="udp://127.0.0.1:37539" completed=0 failed=0 aborted=50 evicted=0 elapsed=100.244298ms
+test server::launcher::tests::receive_loop_shutdown::it_should_not_return_while_processors_orphaned_by_the_request_ring_are_still_running ... ok
+2026-11-21T13:32:35.064343Z  WARN UDP TRACKER: UDP request drain deadline reached: aborting remaining request processors service_binding="udp://127.161.141.253:43664" remaining=50 deadline=100ms
+2026-11-21T13:32:35.064396Z  WARN UDP TRACKER: UDP request processors drained service_binding="udp://127.161.141.253:43664" completed=0 failed=0 aborted=50 evicted=0 elapsed=101.204115ms
+test server::launcher::tests::receive_loop_shutdown::it_should_release_the_socket_once_the_processors_orphaned_by_the_request_ring_are_joined ... ok
+
+failures:
+
+---- event::tests::it_should_classify_a_nested_scrape_whitelist_error stdout ----
+
+thread 'event::tests::it_should_classify_a_nested_scrape_whitelist_error' panicked at packages/udp-server/src/event.rs:348:9:
+assertion failed: matches!(actual, ErrorKind::Whitelist(message) if message ==
+    "The torrent: 3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0, is not whitelisted")
+
+---- event::tests::it_should_classify_a_direct_scrape_whitelist_error stdout ----
+
+thread 'event::tests::it_should_classify_a_direct_scrape_whitelist_error' panicked at packages/udp-server/src/event.rs:366:9:
+assertion failed: matches!(actual, ErrorKind::Whitelist(message) if message ==
+    "The torrent: 3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0, is not whitelisted")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- event::tests::it_should_classify_a_nested_announce_whitelist_error stdout ----
+
+thread 'event::tests::it_should_classify_a_nested_announce_whitelist_error' panicked at packages/udp-server/src/event.rs:308:9:
+assertion failed: matches!(actual, ErrorKind::Whitelist(message) if message ==
+    "The torrent: 3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0, is not whitelisted")
+
+---- event::tests::it_should_classify_a_whitelist_error stdout ----
+
+thread 'event::tests::it_should_classify_a_whitelist_error' panicked at packages/udp-server/src/event.rs:290:9:
+assertion failed: matches!(actual, ErrorKind::Whitelist(message) if message ==
+    "The torrent: 3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0, is not whitelisted")
+
+
+failures:
+    event::tests::it_should_classify_a_direct_scrape_whitelist_error
+    event::tests::it_should_classify_a_nested_announce_whitelist_error
+    event::tests::it_should_classify_a_nested_scrape_whitelist_error
+    event::tests::it_should_classify_a_whitelist_error
+
+test result: FAILED. 220 passed; 4 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.29s
+
+error: test failed, to rerun pass `-p torrust-tracker-udp-server --lib`

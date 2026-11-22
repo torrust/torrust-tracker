@@ -43,14 +43,12 @@
 pub mod peer_key;
 pub mod repository;
 
-use std::panic::Location;
 use std::sync::Arc;
 use std::time::Duration;
 
 use thiserror::Error;
 use torrust_clock::DurationSinceUnixEpoch;
 use torrust_clock::clock::Time;
-use torrust_located_error::{DynError, LocatedError};
 
 use crate::CurrentClock;
 
@@ -154,9 +152,7 @@ pub fn verify_key_expiration(auth_key: &PeerKey) -> Result<(), Error> {
         || Ok(()),
         |valid_until| {
             if valid_until < current_time {
-                Err(Error::KeyExpired {
-                    location: Location::caller(),
-                })
+                Err(Error::KeyExpired)
             } else {
                 Ok(())
             }
@@ -173,30 +169,25 @@ pub enum Error {
     /// Wraps an underlying error encountered during key verification.
     #[error("Key could not be verified: {source}")]
     KeyVerificationError {
-        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
+        source: Arc<dyn std::error::Error + Send + Sync>,
     },
 
     /// Indicates that the key could not be read or found.
-    #[error("Failed to read key: {key}, {location}")]
-    UnableToReadKey {
-        location: &'static Location<'static>,
-        key: Box<Key>,
-    },
+    #[error("Failed to read key: {key}")]
+    UnableToReadKey { key: Box<Key> },
 
     /// Indicates that the key has expired.
-    #[error("Key has expired, {location}")]
-    KeyExpired { location: &'static Location<'static> },
+    #[error("Key has expired")]
+    KeyExpired,
 
     /// Indicates that the required key for authentication was not provided.
-    #[error("Missing authentication key, {location}")]
-    MissingAuthKey { location: &'static Location<'static> },
+    #[error("Missing authentication key")]
+    MissingAuthKey,
 }
 
 impl From<sqlx::Error> for Error {
     fn from(e: sqlx::Error) -> Self {
-        Self::KeyVerificationError {
-            source: (Arc::new(e) as DynError).into(),
-        }
+        Self::KeyVerificationError { source: Arc::new(e) }
     }
 }
 
@@ -302,6 +293,16 @@ mod tests {
             let err: key::Error = err.into();
 
             assert!(matches!(err, key::Error::KeyVerificationError { .. }));
+        }
+
+        #[test]
+        fn should_render_the_database_error_text_and_no_source_path() {
+            let err: key::Error = sqlx::Error::RowNotFound.into();
+
+            assert_eq!(
+                err.to_string(),
+                "Key could not be verified: no rows returned by a query that expected to return at least one row"
+            );
         }
     }
 }

@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p2
 epic: 1347
 github-issue: 2902
 spec-path: docs/issues/open/2902-1347-add-tests-tracker-core/ISSUE.md
-branch: "2902-1347-add-tests-tracker-core-spec"
-related-pr: null
-last-updated-utc: "2026-11-17 18:04"
+branch: "2902-1347-add-tests-tracker-core-statistics"
+related-pr: 2988
+last-updated-utc: "2026-11-21 13:33"
 semantic-links:
   skill-links:
     - create-issue
@@ -62,28 +62,31 @@ executable lines are at or above 98% unit-only coverage. The remaining gap is co
   the integration binary.
 - Many `?` regions (a failing `Database` or whitelist) are untested in the handlers and repositories.
 
-Its unit-only lines (80.31%) are the lowest of the packages with a unit-only figure in the EPIC
+Its unit-only lines (79.32%) are the lowest of the packages with a unit-only figure in the EPIC
 coverage table: the latest figures there are `primitives` 94.07%, `axum-rest-api-server` 96.67%,
 `udp-core` 98.04%, `udp-server` 98.18% and `http-core` 99.28%. Since the integration binary reaches only the `statistics/` files that no unit test
 reaches, the aggregate and unit-only numbers differ in exactly that area.
 
 ## Baseline Coverage
 
-Measured 2026-11-17 at `develop` commit `5833cdae9` with `cargo-llvm-cov 0.6.16` and stable Rust
-1.99.1 from a clean workspace; totals include only `packages/tracker-core/src/` (in-file test
-modules and `src/test_helpers.rs` included).
+Measured at `develop` commit `5833cdae9` with `cargo-llvm-cov 0.9.1` and stable Rust 1.100.0 from
+a clean workspace (re-measured on 2026-11-18, after `stable` moved from Rust 1.99.1 and
+`cargo-llvm-cov 0.6.16` stopped reading Cargo's new test-binary layout; see
+[coverage-evidence.md](coverage-evidence.md)); totals include only `packages/tracker-core/src/`
+(the helpers of in-file test modules and `src/test_helpers.rs` included; `#[test]` functions are
+not counted).
 
 | Scope | Tests | Lines | Regions | Functions |
 | --- | ---: | ---: | ---: | ---: |
-| Unit-only (`--all-features --lib`) | 157 unit | 4,099 / 5,104 (80.31%) | 5,716 / 7,127 (80.20%) | 687 / 954 (72.01%) |
-| Integration-only (`--all-features --test integration`) | 12 integration | 841 / 1,909 (44.05%) | 936 / 2,506 (37.35%) | 145 / 484 (29.96%) |
-| Aggregate (`--all-features`) | 157 unit + 12 integration | 4,230 / 5,149 (82.15%) | 5,834 / 7,182 (81.23%) | 703 / 958 (73.38%) |
-| Unit-only without `db-compatibility-tests` (`--lib`) | 155 unit (the two driver tests are not compiled) | 4,085 / 4,780 (85.46%) | 5,700 / 6,691 (85.19%) | 683 / 916 (74.56%) |
+| Unit-only (`--all-features --lib`) | 157 unit | 4,009 / 5,054 (79.32%) | 4,338 / 5,518 (78.62%) | 686 / 953 (71.98%) |
+| Integration-only (`--all-features --test integration`) | 12 integration | 827 / 1,931 (42.83%) | 712 / 2,033 (35.02%) | 145 / 484 (29.96%) |
+| Aggregate (`--all-features`) | 157 unit + 12 integration | 4,138 / 5,099 (81.15%) | 4,433 / 5,570 (79.59%) | 702 / 957 (73.35%) |
+| Unit-only without `db-compatibility-tests` (`--lib`) | 155 unit (the two driver tests are not compiled) | 3,995 / 4,730 (84.46%) | 4,324 / 5,210 (82.99%) | 682 / 915 (74.54%) |
 
 With the MySQL and PostgreSQL suites actually running (Docker `mysql:8.0` and `postgres:16`, both
-`TORRUST_TRACKER_CORE_RUN_*_DRIVER_TEST=true`, measured 2026-11-17 with the maintainer's permission)
-the aggregate is lines 4,830 / 5,149 (93.80%), regions 93.61%, functions 84.45%: the server drivers
-reach 58-96% per file, and what stays uncovered there are the failure branches (F2). The default
+`TORRUST_TRACKER_CORE_RUN_*_DRIVER_TEST=true`, images pulled with the maintainer's permission)
+the aggregate is lines 4,725 / 5,099 (92.67%), regions 89.39%, functions 84.43%: the server drivers
+reach 53-94% per file, and what stays uncovered there are the failure branches (F2). The default
 runs above do not include them (F1).
 The per-file inventory and the uncovered-line groups are in [coverage-evidence.md](coverage-evidence.md).
 Indirect coverage from other packages' tests is not accepted as evidence.
@@ -262,11 +265,12 @@ proposal for the maintainer unless its status says otherwise.
 
 | ID | Finding | Evidence | Proposed owner | Status |
 | --- | --- | --- | --- | --- |
-| F1 | `run_mysql_driver_tests` and `run_postgres_driver_tests` return `Ok(())` immediately when `TORRUST_TRACKER_CORE_RUN_*_DRIVER_TEST` is unset, so `cargo test --all-features` reports them as passed without running anything, and the coverage runs count both drivers as 0-4% covered. A reader of a green run cannot tell. | `databases/driver/mysql/mod.rs:204-207`, `postgres/mod.rs:185-188`; the unit-only coverage log reports both tests `ok` in a 157-test run that finished in 0.13 s, and the run with the variables set took 9.32 s | A separate test-design issue: make the skip visible (`#[ignore = "..."]`, or a loud skip message) and keep the `db-compatibility` workflow as it is. Not part of this issue (Q2). | OPEN (proposed) |
-| F2 | The row-to-`PeerKey` mapping and `parse_valid_until` (negative timestamp to `MalformedDatabaseRecord`) are copied in the SQLite, MySQL and PostgreSQL `auth_key_store.rs`; the `u32` conversion of the aggregate metric is copied likewise. A test of the SQLite copy protects none of the others, and Docker-less tests cannot reach the MySQL and PostgreSQL copies. | `parse_valid_until` is identical in the three files (MySQL and PostgreSQL lines 119-125, SQLite lines 122-128) | A refactor issue extracting one helper (Q4); until then each driver's copy is assessed in its own record. | OPEN (proposed) |
+| F1 | `run_mysql_driver_tests` and `run_postgres_driver_tests` return `Ok(())` immediately when `TORRUST_TRACKER_CORE_RUN_*_DRIVER_TEST` is unset, so a local `cargo test --all-features` (and the Testing, coverage and container-build runs) reports them as `ok` without running anything; the skip notice is only a `tracing::info!` line. **This is by design, not a gap in CI:** `.github/workflows/db-compatibility.yaml` sets the variables and runs both suites on every change under `packages/tracker-core/`, against MySQL 8.0 and 8.4 and PostgreSQL 14 to 17; the gate keeps Docker out of the container-image build, which runs the unit tests (`packages/tracker-core/README.md`). What remains: (1) the README and `packages/AGENTS.md` commands omit `--features db-compatibility-tests` (without it the test module is not compiled, so they run nothing) and name only MySQL; (2) a skipped run reads as passed; (3) the published coverage (`coverage.yaml`) leaves the drivers out. | `databases/driver/mysql/mod.rs:204-207`, `postgres/mod.rs:185-188`, `.github/workflows/db-compatibility.yaml`, `packages/tracker-core/README.md` (Testing), `packages/AGENTS.md` (Testing Packages); the unit-only coverage log reports both tests `ok` in a 157-test run that finished in 0.13 s, and the run with the variables set took 9.32 s | Q2 answered: (1) fixed in S3 (documentation only); (2) and (3) handed to a separate issue (visible skip, for example `#[ignore = "..."]` with the workflow running `-- --ignored`, and the driver coverage in the published report). | DECIDED: (1) S3, (2)-(3) separate issue (to open) |
+| F2 | The row-to-`PeerKey` mapping and `parse_valid_until` (negative timestamp to `MalformedDatabaseRecord`) are copied in the SQLite, MySQL and PostgreSQL `auth_key_store.rs`; the `u32` conversion of the aggregate metric is copied likewise. A test of the SQLite copy protects none of the others, and Docker-less tests cannot reach the MySQL and PostgreSQL copies. | `parse_valid_until` is identical in the three files (MySQL and PostgreSQL lines 119-125, SQLite lines 122-128) | Q4 answered: extract `parse_valid_until` into one shared function (taking the driver) in S2 and test it once; the plan of `sqlite/auth_key_store.rs` decides whether the row mapping follows. | DECIDED: S2 |
 | F3 | `authentication::key::Key` derives `Deserialize` over its inner `String`, so deserializing a key skips the 32-character, ASCII-alphanumeric validation of `Key::new`. To confirm in the `peer_key.rs` record: where (if anywhere) a `Key` is deserialized from untrusted input (REST path and JSON are the candidates). | `authentication/key/peer_key.rs:127` | Confirm first; if reachable, a bug issue under `fix-bug`. | TO CONFIRM |
 | F4 | `PersistedWhitelist::add` and `remove` read `is_info_hash_whitelisted` and then write, without a transaction; two concurrent adds of the same hash can reach the driver's duplicate-insert error that `it_should_fail_trying_to_add_the_same_infohash_twice` shows is an error. Probably benign (the in-memory whitelist is the read path), but the behavior is unspecified. | `whitelist/repository/persisted.rs:29-54` | Confirm with a throwaway test in the whitelist record; at most a documentation or small fix issue. | TO CONFIRM |
 | F5 | `ephemeral_sqlite_database()` (`packages/test-helpers/src/configuration.rs:85`) returns a bare `PathBuf` under `env::temp_dir()` with no cleanup owner. In this package it is called directly by `src/test_helpers.rs`, three other source files (`databases/driver/sqlite/mod.rs`, `sqlite/schema_migrator.rs`, `authentication/key/repository/persisted.rs`) and `tests/common/fixtures.rs`, and indirectly through `test_helpers::ephemeral_configuration` by most test modules that open a database, so every run leaves `data_*.db` files behind, the leak #2637 fixed for its own package in its S5. | Code reading, 2026-11-17 (review finding F1 of #2903); `grep -rn ephemeral_sqlite_database packages/tracker-core` | Q7 answered: fixed in this package with a `TempDir` guard owned by the test, in its own PR (split from S1 because #2907 planned the shared fix, which #2924 and #2925 (EPIC #2392) now take for the shared helper and the other packages). New tests never use the helper without a cleanup owner. | FIXED ([plan](test-refactor-plans/test-support-ephemeral-database-tests.md)): 0 files after a run, 72 before |
+| F6 | `statistics::repository::Repository::set_gauge`, `increment_gauge` and `decrement_gauge` (and the `Metrics` wrappers they call) are public but unused: `describe_metrics` describes no gauge and no code in the workspace calls them. | `grep -rn` over `packages/` and `src/`, 2026-11-17 ([repository plan](test-refactor-plans/statistics-repository-tests.md)) | D1 answered: tested as public API in S1 while they exist; removing them is a breaking change for a separate issue if wanted. | DECIDED: tested in S1 |
 
 ## Implementation Plan
 
@@ -275,10 +279,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 | ID | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
 | T1 | DONE | Coverage evidence and complete module inventory | [coverage-evidence.md](coverage-evidence.md): baseline in four scopes, per-file uncovered groups, property candidacy, initial hypothesis for the 62 files. Delivered with this spec (S0). |
-| T1b | DONE | Measure the container-gated scope | The `--all-features` run with `TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST` and `TORRUST_TRACKER_CORE_RUN_POSTGRES_DRIVER_TEST` set (images pulled with the maintainer's permission, 2026-11-17): lines 93.80%. Recorded in `coverage-evidence.md`; informs the scope of S3. |
-| T2 | TODO | Shared plan guidance | `test-refactor-plans/README.md`: two-phase sequence, guardrails, toolchain-pinned commands. First test slice (S1). |
-| T2b | IN_PROGRESS | Design-review checkpoint | After the first listener test and the first `TempDir`-owned SQLite test pass in S1, the maintainer reviews the fixture shape (see [Asynchronous Work, Cleanup and Test Fixtures](#asynchronous-work-cleanup-and-test-fixtures)) before other files reuse it. The SQLite half is done: the fixture shape of the [temporary-database fix](test-refactor-plans/test-support-ephemeral-database-tests.md) was approved on 2026-11-17; the listener half comes with S1. |
-| T3 | TODO | Process every ledger row through the per-file workflow | Each row ends in exactly one of: test added, no-change with reason, deferred with owner. |
+| T1b | DONE | Measure the container-gated scope | The `--all-features` run with `TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST` and `TORRUST_TRACKER_CORE_RUN_POSTGRES_DRIVER_TEST` set (images pulled with the maintainer's permission, 2026-11-17): lines 92.67% (re-measured 2026-11-18 with Rust 1.100.0). Recorded in `coverage-evidence.md`; informs the scope of S3. |
+| T2 | DONE | Shared plan guidance | [`test-refactor-plans/README.md`](test-refactor-plans/README.md): two-phase sequence, guardrails, toolchain-pinned commands. First test slice (S1). |
+| T2b | DONE | Design-review checkpoint | After the first listener test and the first `TempDir`-owned SQLite test pass in S1, the maintainer reviews the fixture shape (see [Asynchronous Work, Cleanup and Test Fixtures](#asynchronous-work-cleanup-and-test-fixtures)) before other files reuse it. The SQLite half is done: the fixture shape of the [temporary-database fix](test-refactor-plans/test-support-ephemeral-database-tests.md) was approved on 2026-11-17; the listener half (spawn, handle one event, cancel, join under a deadline) was approved on 2026-11-18 with the [listener tests](test-refactor-plans/statistics-event-listener-tests.md). |
+| T3 | IN_PROGRESS | Process every ledger row through the per-file workflow | Each row ends in exactly one of: test added, no-change with reason, deferred with owner. |
 | T4 | TODO | Bounded mutation assessment | `mutation-evidence.md`: configuration, survivors, reason for each unviable mutant. Last slice. |
 | T5 | TODO | Reconcile evidence and progress state | Ledger, records, slice table, acceptance rows and both EPIC coverage tables agree; grep for `status: proposed` and stray `TODO` labels in finished records. |
 | T6 | TODO | Final verification, acceptance review, retrospective | Automatic checks, manual verification, acceptance review, `implementation-retrospective.md` (or a log entry saying none was needed). |
@@ -292,10 +296,10 @@ is the proposal for the maintainer's approval (questions Q5, Q6):
 
 | Slice | Content | Ledger rows | Branch | PR | Status |
 | --- | --- | --- | --- | --- | --- |
-| S0 | This specification, the T1 evidence, and the EPIC registration with the baseline | - | `2902-1347-add-tests-tracker-core-spec` | TBD | IN_PROGRESS |
-| S1 | T2, then `statistics/`: `repository.rs`, `metrics.rs`, `persisted/mod.rs`, `persisted/downloads.rs`, `event/listener.rs`, `event/handler.rs`, `mod.rs` (the only area reached just by the integration binary) | 1-7 | `2902-1347-add-tests-tracker-core-statistics` | TBD | TODO |
-| S2 | The SQLite persistence boundary: `sqlite/{auth_key_store,torrent_metrics_store,whitelist_store,mod,schema_migrator}.rs`, `databases/{error,setup}.rs`, `error.rs`, plus the `databases/traits` and `driver/mod.rs` no-change decisions | 8-17 | `2902-1347-add-tests-tracker-core-sqlite` | TBD | TODO |
-| S3 | MySQL and PostgreSQL drivers: assess after T1b; Docker-free error-path tests if non-flaky, otherwise no-change rows with the `db-compatibility` workflow as owner | 18-27 | `2902-1347-add-tests-tracker-core-server-drivers` | TBD | TODO |
+| S0 | This specification, the T1 evidence, and the EPIC registration with the baseline | - | `2902-1347-add-tests-tracker-core-spec` | #2903 | DONE |
+| S1 | T2, then `statistics/`: `repository.rs`, `metrics.rs`, `persisted/mod.rs`, `persisted/downloads.rs`, `event/listener.rs`, `event/handler.rs`, `mod.rs` (the only area reached just by the integration binary) | 1-7 | `2902-1347-add-tests-tracker-core-statistics` | #2988 | IN_PROGRESS |
+| S2 | The SQLite persistence boundary: `sqlite/{auth_key_store,torrent_metrics_store,whitelist_store,mod,schema_migrator}.rs`, `databases/{error,setup}.rs`, `error.rs`, the extraction of `parse_valid_until` (Q4), plus the `databases/traits` and `driver/mod.rs` no-change decisions | 8-17 | `2902-1347-add-tests-tracker-core-sqlite` | TBD | TODO |
+| S3 | MySQL and PostgreSQL drivers: Docker-free error-path tests if non-flaky, otherwise no-change rows with the `db-compatibility` workflow as owner (Q3); the README and `packages/AGENTS.md` driver-test commands (Q2) | 18-27 | `2902-1347-add-tests-tracker-core-server-drivers` | TBD | TODO |
 | S4 | Authentication and whitelist: failing-`Database` propagation, `Key` property decision (F3, F4 checks) | 28-39 | `2902-1347-add-tests-tracker-core-auth-whitelist` | TBD | TODO |
 | S5 | `torrent/`, `announce_handler.rs`, `scrape_handler.rs`, `container.rs`, `lib.rs`, `test_helpers.rs`, `peer_tests.rs`, then T4-T6; updates the EPIC tables; the spec moves to `docs/issues/closed/` in a separate `cleanup-completed-issues` PR after the issue closes | 40-45 | `2902-1347-add-tests-tracker-core-final` | TBD | TODO |
 
@@ -347,43 +351,43 @@ rows are ordered by slice, then by risk.
 
 | Order | Source module | Slice | Unit-only lines | Initial hypothesis | State |
 | ---: | --- | --- | ---: | --- | --- |
-| 1 | `statistics/repository.rs` | S1 | 86 / 140 | Test candidate (four counter/gauge methods and error arms) | PENDING |
-| 2 | `statistics/metrics.rs` | S1 | 11 / 45 | Test candidate | PENDING |
-| 3 | `statistics/persisted/mod.rs` | S1 | 0 / 11 | Test candidate (`load_persisted_metrics`) | PENDING |
-| 4 | `statistics/event/listener.rs` | S1 | 357 / 406 | Test candidate (spawn wrappers) | PENDING |
-| 5 | `statistics/event/handler.rs` | S1 | 179 / 203 | Mostly logging-only; one error arm | PENDING |
-| 6 | `statistics/persisted/downloads.rs` | S1 | 77 / 77 | Failing-`Database` case (line 133, `increase_global_downloads`) | PENDING |
-| 7 | `statistics/mod.rs`, `statistics/event/mod.rs` | S1 | 40 / 40, no entries | Test candidate (`statistics/mod.rs:49`, usage statistics disabled); `event/mod.rs` declarations only | PENDING |
-| 8 | `databases/driver/sqlite/auth_key_store.rs` | S2 | 29 / 50 | Test candidate | PENDING |
-| 9 | `databases/driver/sqlite/torrent_metrics_store.rs` | S2 | 29 / 45 | Test candidate | PENDING |
-| 10 | `databases/driver/sqlite/whitelist_store.rs` | S2 | 17 / 28 | Test candidate | PENDING |
-| 11 | `databases/driver/sqlite/mod.rs` | S2 | 85 / 92 | Test candidate (aggregate-metric error branches) | PENDING |
-| 12 | `databases/driver/sqlite/schema_migrator.rs` | S2 | 145 / 155 | No change likely; challenge each `?` | PENDING |
+| 1 | `statistics/repository.rs` | S1 | 85 / 139 | Test candidate (four counter/gauge methods and error arms) | DONE |
+| 2 | `statistics/metrics.rs` | S1 | 11 / 45 | Test candidate; no change, covered 45 / 45 by the repository tests ([record](test-refactor-plans/statistics-metrics-tests.md)) | DONE |
+| 3 | `statistics/persisted/mod.rs` | S1 | 0 / 11 | Test candidate (`load_persisted_metrics`); 11 / 11 with five tests ([plan](test-refactor-plans/statistics-persisted-mod-tests.md)) | DONE |
+| 4 | `statistics/event/listener.rs` | S1 | 360 / 411 | Test candidate (spawn wrappers); 538 / 542 with four tests ([plan](test-refactor-plans/statistics-event-listener-tests.md)) | DONE |
+| 5 | `statistics/event/handler.rs` | S1 | 175 / 196 | Mostly logging-only; one error arm; 311 / 311 with two event tables and a failure test ([plan](test-refactor-plans/statistics-event-handler-tests.md)) | DONE |
+| 6 | `statistics/persisted/downloads.rs` | S1 | 77 / 77 | Failing-`Database` case (line 133, `increase_global_downloads`), covered by row 5; two increment tests kill a surviving mutant ([plan](test-refactor-plans/statistics-persisted-downloads-tests.md)) | DONE |
+| 7 | `statistics/mod.rs`, `statistics/event/mod.rs` | S1 | 42 / 43, no entries | Test candidate (`statistics/mod.rs:49`, usage statistics disabled); `event/mod.rs` declarations only; 60 / 60 with one table test, `event/mod.rs` no change ([plan](test-refactor-plans/statistics-mod-tests.md)) | DONE |
+| 8 | `databases/driver/sqlite/auth_key_store.rs` | S2 | 29 / 55 | Test candidate | PENDING |
+| 9 | `databases/driver/sqlite/torrent_metrics_store.rs` | S2 | 27 / 46 | Test candidate | PENDING |
+| 10 | `databases/driver/sqlite/whitelist_store.rs` | S2 | 17 / 31 | Test candidate | PENDING |
+| 11 | `databases/driver/sqlite/mod.rs` | S2 | 81 / 91 | Test candidate (aggregate-metric error branches) | PENDING |
+| 12 | `databases/driver/sqlite/schema_migrator.rs` | S2 | 136 / 149 | No change likely; challenge each `?` | PENDING |
 | 13 | `databases/error.rs` | S2 | 28 / 35 | Test candidate (migration-error mapping) | PENDING |
-| 14 | `databases/setup.rs` | S2 | 34 / 44 | Test candidate (SQLite arm and unreachable endpoint); server arms to S3 | PENDING |
+| 14 | `databases/setup.rs` | S2 | 33 / 41 | Test candidate (SQLite arm and unreachable endpoint); server arms to S3 | PENDING |
 | 15 | `error.rs` | S2 | 38 / 50 | Test candidate (`From` conversions) | PENDING |
-| 16 | `databases/driver/mod.rs` | S2 | 185 / 188 | No change (test-only retry helper) | PENDING |
+| 16 | `databases/driver/mod.rs` | S2 | 186 / 189 | No change (test-only retry helper) | PENDING |
 | 17 | `databases/mod.rs`, `databases/traits/*` (6 files) | S2 | 2 / 2, no entries | No change (declarations and the mock) | PENDING |
-| 18-22 | `databases/driver/mysql/{mod,auth_key_store,schema_migrator,torrent_metrics_store,whitelist_store}.rs` | S3 | 7 / 212, 0 / 50, 0 / 75, 0 / 45, 0 / 28 | Container-gated; assess after T1b | PENDING |
-| 23-27 | `databases/driver/postgres/{mod,auth_key_store,schema_migrator,torrent_metrics_store,whitelist_store}.rs` | S3 | 7 / 189, 0 / 50, 0 / 6, 0 / 45, 0 / 28 | Container-gated; assess after T1b | PENDING |
-| 28 | `authentication/handler.rs` | S4 | 371 / 371 | Failing-`Database` cases (two production `?` regions; seven assertion lines) | PENDING |
-| 29 | `authentication/key/peer_key.rs` | S4 | 100 / 101 | `PartialEq` mixed-expiry arm; property candidate (`Key`); finding F3 check | PENDING |
+| 18-22 | `databases/driver/mysql/{mod,auth_key_store,schema_migrator,torrent_metrics_store,whitelist_store}.rs` | S3 | 7 / 211, 0 / 55, 0 / 77, 0 / 46, 0 / 31 | Container-gated; assess after T1b | PENDING |
+| 23-27 | `databases/driver/postgres/{mod,auth_key_store,schema_migrator,torrent_metrics_store,whitelist_store}.rs` | S3 | 7 / 188, 0 / 55, 0 / 6, 0 / 46, 0 / 31 | Container-gated; assess after T1b | PENDING |
+| 28 | `authentication/handler.rs` | S4 | 366 / 366 | Failing-`Database` cases (two production `?` regions; seven assertion lines) | PENDING |
+| 29 | `authentication/key/peer_key.rs` | S4 | 99 / 100 | `PartialEq` mixed-expiry arm; property candidate (`Key`); finding F3 check | PENDING |
 | 30 | `authentication/key/mod.rs` | S4 | 77 / 77 | Property candidate (expiry bounds) | PENDING |
 | 31 | `authentication/key/repository/persisted.rs` | S4 | 73 / 74 | Failing-`Database` cases | PENDING |
-| 32 | `authentication/key/repository/in_memory.rs` | S4 | 92 / 92 | No change | PENDING |
-| 33 | `authentication/service.rs` | S4 | 144 / 144 | No change; review breadth | PENDING |
-| 34 | `authentication/mod.rs`, `authentication/key/repository/mod.rs` | S4 | 123 / 123, no entries | No change | PENDING |
+| 32 | `authentication/key/repository/in_memory.rs` | S4 | 91 / 91 | No change | PENDING |
+| 33 | `authentication/service.rs` | S4 | 143 / 143 | No change; review breadth | PENDING |
+| 34 | `authentication/mod.rs`, `authentication/key/repository/mod.rs` | S4 | 114 / 114, no entries | No change | PENDING |
 | 35 | `whitelist/repository/persisted.rs` | S4 | 74 / 74 | Failing-`Database` cases; finding F4 check | PENDING |
-| 36 | `whitelist/manager.rs` | S4 | 99 / 99 | Failing-`Database` cases | PENDING |
-| 37 | `whitelist/authorization.rs` | S4 | 74 / 74 | No change (one test assertion line) | PENDING |
+| 36 | `whitelist/manager.rs` | S4 | 97 / 97 | Failing-`Database` cases | PENDING |
+| 37 | `whitelist/authorization.rs` | S4 | 71 / 71 | No change (one test assertion line) | PENDING |
 | 38 | `whitelist/repository/in_memory.rs` | S4 | 51 / 51 | No change | PENDING |
 | 39 | `whitelist/{mod,setup,test_helpers}.rs`, `whitelist/repository/mod.rs` | S4 | 18 / 18, 7 / 7, 12 / 12, no entries | No change | PENDING |
 | 40 | `torrent/repository/in_memory.rs` | S5 | 56 / 60 | Delegation of `get_torrent_peers` (owned by the registry) | PENDING |
-| 41 | `torrent/manager.rs`, `torrent/services.rs`, `torrent/persisted_downloads.rs`, `torrent/mod.rs`, `torrent/repository/mod.rs` | S5 | 153 / 153, 267 / 267, 22 / 22, no entries | `manager.rs`: failing-`Database` case (line 66); the others no change, review breadth | PENDING |
-| 42 | `announce_handler.rs` | S5 | 400 / 401 | Challenge the two `?` regions (one assertion line) | PENDING |
-| 43 | `scrape_handler.rs` | S5 | 190 / 190 | No change (one assertion line) | PENDING |
-| 44 | `container.rs` | S5 | 143 / 144 | Test candidate (`Persistence` error mapping) | PENDING |
-| 45 | `lib.rs`, `peer_tests.rs`, `test_helpers.rs` | S5 | 58 / 58, 30 / 30, 109 / 123 | No change; test support classified | PENDING |
+| 41 | `torrent/manager.rs`, `torrent/services.rs`, `torrent/persisted_downloads.rs`, `torrent/mod.rs`, `torrent/repository/mod.rs` | S5 | 150 / 156, 272 / 272, 22 / 22, no entries | `manager.rs`: failing-`Database` case (line 66); the others no change, review breadth | PENDING |
+| 42 | `announce_handler.rs` | S5 | 388 / 389 | Challenge the two `?` regions (one assertion line) | PENDING |
+| 43 | `scrape_handler.rs` | S5 | 184 / 184 | No change (one assertion line) | PENDING |
+| 44 | `container.rs` | S5 | 136 / 138 | Test candidate (`Persistence` error mapping) | PENDING |
+| 45 | `lib.rs`, `peer_tests.rs`, `test_helpers.rs` | S5 | 57 / 57, no entries (only `#[test]` functions), 110 / 124 | No change; test support classified | PENDING |
 
 The first slice's record checks the grouping against `find packages/tracker-core/src -name '*.rs'`.
 
@@ -394,9 +398,9 @@ The first slice's record checks the grouping against `find packages/tracker-core
 - [x] Read EPIC #1347, the subissue guidelines, the `create-issue` workflow and the closed specs of
       #1348, #1349, #2637 and #2824.
 - [x] Clean baseline coverage measured in four scopes and the complete module inventory recorded (T1).
-- [ ] Specification and slicing reviewed and approved by the maintainer.
-- [x] GitHub issue #2902 created. Linking it as a subissue of #1347 needs the maintainer (the bot account gets 404 from the sub-issues API).
-- [ ] Spec-only PR (S0) merged before implementation.
+- [x] Specification and slicing reviewed and approved by the maintainer (#2903 merged, 2026-11-17).
+- [x] GitHub issue #2902 created and linked as a subissue of #1347 by the maintainer.
+- [x] Spec-only PR (S0) merged before implementation (#2903).
 - [x] Container-gated scope measured (T1b) with the maintainer's permission.
 - [ ] Every ledger row `DONE` with a decision record, merged through its slice.
 - [ ] Maintainer review after the final test-producing increment.
@@ -412,7 +416,18 @@ The first slice's record checks the grouping against `find packages/tracker-core
 - 2026-11-17 10:57 UTC - Claude Code (Sonnet 5.5) - Created issue #2902; measured the baseline at `5833cdae9` in four scopes; drafted this specification and the coverage evidence; registered the subissue in EPIC #1347 (row 14). Open questions Q1-Q6 are for the maintainer.
 - 2026-11-17 12:16 UTC - Claude Code (Sonnet 5.5) - The maintainer allowed the Docker image pull (Q1); T1b measured the container-gated scope: lines 93.80% (server drivers 58-96% per file). No review of #2903 arrived within 60 minutes.
 - 2026-11-17 12:45 UTC - Claude Code (Opus 5.5) - Correction of the 12:16 UTC entry above: its last sentence is wrong as written. The poller I started right after the PR opened (11:05:26 UTC) timed out after its 60-minute wait with no review, but Cameron (`da2ce7`) had submitted a review of `690cfb5f5` with findings F1-F6 at 12:08:23 UTC, before that entry was written, and the six threads had no reply. A second review of `2b0c3fe36` (F7-F10) followed at 12:28:40 UTC. The ten findings are processed in `docs/pr-reviews/pr-2903-review/PR-REVIEW.md` (review finding F7 of #2903).
+- 2026-11-17 16:16 UTC - Claude Code (Opus 5.5) - S0 merged (#2903); the maintainer linked #2902 to #1347 and said to start S1. S1 baseline: no file under `packages/` changed since the measured commit and the unit-only run gives the same 80.31% (4,099 / 5,104 lines). T2 done ([guidance](test-refactor-plans/README.md)). First plan proposed: [`statistics/repository.rs`](test-refactor-plans/statistics-repository-tests.md), which proposes finding F6 (unused public gauge methods) and asks decision D1. Questions Q2-Q7 still wait for the maintainer; Q7 decides the first S1 commit.
 - 2026-11-17 18:04 UTC - Claude Code (Opus 5.5) - F5 fixed for this package in its own PR, split from S1 at the maintainer's request because #2907 (EPIC #2392) plans the same fix for the shared helper: a full `cargo test -p torrust-tracker-core --all-features` leaves 0 `data_*.db` files (72 before). The maintainer approved the shape (a struct with a private `TempDir`, owned by the test), the scope (all six sources in the package) and the completed change. S1 continues on its own branch.
+- 2026-11-17 22:27 UTC - Claude Code (Opus 5.5) - #2923 (the F5 fix) merged into `develop`; the S1 branch was rebuilt on it with only its own commits (the F20 fix of #2903, the S1 guidance, the Q2-Q7 and D1 answers, the repository tests). S1 continues with `statistics/metrics.rs`.
+- 2026-11-18 04:16 UTC - Claude Code (Opus 5.5) - Row 2 (`statistics/metrics.rs`) is done as no change, approved by the maintainer: the repository tests cover it 45 / 45 and kill all six hand-made mutants ([record](test-refactor-plans/statistics-metrics-tests.md)).
+- 2026-11-18 04:23 UTC - Claude Code (Opus 5.5) - Row 3 (`statistics/persisted/mod.rs`) done: five tests, 11 / 11 production lines, all eight named mutants killed; they pin that the load is not atomic ([plan](test-refactor-plans/statistics-persisted-mod-tests.md)). Plan and completed file approved by the maintainer.
+- 2026-11-18 09:10 UTC - Claude Code (Opus 5.5) - Every coverage figure re-measured, at the maintainer's request, with stable Rust 1.100.0 and `cargo-llvm-cov 0.9.1`: after `rustup update` moved `stable` from 1.99.1, `cargo-llvm-cov 0.6.16` reported 0% for every file (it read a stale binary from the old `target/debug/deps/` layout), and the maintainer upgraded it for everyone. Same commits as before: the T1 baseline at `5833cdae9` in five scopes (unit-only now 79.32%, was 80.31%; container-gated 92.67%, was 93.80%), and the unit-only run after rows 1 and 3. [coverage-evidence.md](coverage-evidence.md), the ledger, the baseline section and the row records hold the new figures; the entries above keep the old ones. The new toolchain does not count `#[test]` functions and adds a region per `tracing` call, classified as no decision.
+- 2026-11-18 09:37 UTC - Claude Code (Opus 5.5) - Row 4 (`statistics/event/listener.rs`) done: four tests of the public entry points over a real event bus, 538 / 542 lines, all seven named mutants killed; the maintainer approved the plan, the completed file and the listener fixture shape, so checkpoint T2b is done ([plan](test-refactor-plans/statistics-event-listener-tests.md)).
+- 2026-11-18 11:09 UTC - Claude Code (Opus 5.5) - Row 5 (`statistics/event/handler.rs`) done: two table tests over the five events that are not a completed download (replacing the two `PeerAdded`-only tests) and a global-save failure test; 311 / 311 lines, all four named mutants killed, one of which survived the old tests ([plan](test-refactor-plans/statistics-event-handler-tests.md)). Plan and completed file approved by the maintainer.
+- 2026-11-18 13:24 UTC - Claude Code (Opus 5.5) - Row 6 (`statistics/persisted/downloads.rs`) done: coverage was already complete after row 5, but a mutation probe found a stored torrent total could be overwritten with 1 unnoticed; two increment tests kill it ([plan](test-refactor-plans/statistics-persisted-downloads-tests.md)). Plan and completed file approved by the maintainer.
+- 2026-11-18 13:48 UTC - Claude Code (Opus 5.5) - Row 7 (`statistics/mod.rs`, `statistics/event/mod.rs`) done: one table test pins which downloads totals each statistics setting registers; 60 / 60 lines, all four named mutants killed; `event/mod.rs` no change ([plan](test-refactor-plans/statistics-mod-tests.md)). Plan and completed file approved by the maintainer. All S1 rows are done.
+- 2026-11-21 13:24 UTC - Claude Code (Opus 5.5) - S1 closed: the branch was rebased on `develop` `44ce734fe` (one EPIC log conflict, both entries kept) and measured in the four scopes with the base: unit-only lines 79.45% to 84.41%, aggregate 81.27% to 84.41%, so the integration binary no longer reaches any line the unit tests miss ([slice measurements](coverage-evidence.md#slice-measurements)). The EPIC's #2902 rows hold the latest values. Next: the S1 PR.
+- 2026-11-21 13:33 UTC - Claude Code (Opus 5.5) - Opened the S1 PR #2988 (`Related to #2902`); it also carries the fix of finding F20 of #2903, whose thread is now resolved.
 
 ## Open Design Questions
 
@@ -421,14 +436,14 @@ Each has a recommendation; the maintainer decides.
 | ID | Question | Recommendation |
 | --- | --- | --- |
 | Q1 | May the agent pull the `mysql` and `postgres` Docker images (hundreds of MB) to measure the container-gated scope (T1b)? | ANSWERED: yes (maintainer, 2026-11-17); measured. |
-| Q2 | The two database suites skip themselves silently (F1). Is the visible-skip fix in scope here? | No: separate issue; this one only records the scope separately. |
-| Q3 | Scope of S3 for the MySQL and PostgreSQL drivers? | Docker-free unit tests only for what needs no server (an unreachable endpoint gives `ConnectionError`), if they are not flaky or slow; the happy path stays with the `db-compatibility` workflow, recorded as owner. |
-| Q4 | Extract the duplicated `parse_valid_until` and row mapping (F2)? | Separate refactor issue after this one; tests per driver meanwhile. |
-| Q5 | Is `quickcheck` acceptable for `Key` and the expiry bounds, as in #2824 and #1348? | Decide in the `peer_key.rs` and `key/mod.rs` records; add only if examples leave a surviving mutant. |
-| Q6 | Is the six-slice plan (S0-S5) right, or should S4 and S5 merge? | Keep six: S4 and S5 are mostly failing-fake cases and no-change decisions; merging them mixes a risky area with the closing tasks. |
+| Q2 | The two database suites skip themselves when their variables are unset (F1). Is a fix in scope here? | ANSWERED (maintainer, 2026-11-17), after reading the code: the skip is by design and `db-compatibility.yaml` runs both suites. Fix the README and `packages/AGENTS.md` commands in S3; open a separate issue for the visible skip and the driver coverage in the published report. |
+| Q3 | Scope of S3 for the MySQL and PostgreSQL drivers? | ANSWERED (maintainer, 2026-11-17): Docker-free unit tests only for what needs no server (configuration mapping, an unreachable endpoint gives `ConnectionError`), kept only if fast and not flaky; the happy path stays with `db-compatibility.yaml`, recorded as owner. |
+| Q4 | Extract the duplicated `parse_valid_until` and row mapping (F2)? | ANSWERED (maintainer, 2026-11-17): extract `parse_valid_until` in this issue, in S2, and test the shared function once (recommendation was a separate refactor issue). |
+| Q5 | Is `quickcheck` acceptable for `Key` and the expiry bounds, as in #2824 and #1348? | ANSWERED (maintainer, 2026-11-17): use it wherever a file has a natural property (for example `parse_valid_until`, the `Key` round trip, the expiry bounds), next to the examples; the dev-dependency is added by the first plan that needs it (recommendation was only when examples leave a surviving mutant). |
+| Q6 | Is the six-slice plan (S0-S5) right, or should S4 and S5 merge? | ANSWERED (maintainer, 2026-11-17): keep six. |
 | Q7 | The temporary SQLite files the existing tests leave behind (F5): fix them here or hand them off? | ANSWERED (maintainer, 2026-11-17): fix here, package-local, with the package's helpers returning a `TempDir` guard with the configuration; the shared `test-helpers` function and the other packages are #2924 and #2925. Delivered in its own PR, split from S1 on the maintainer's request. |
 
-Which EPIC row is the "unit-only" baseline? Recommendation: `--all-features --lib` (80.31%), the same
+Which EPIC row is the "unit-only" baseline? Recommendation: `--all-features --lib` (79.32%), the same
 command as the other packages, with the container-gated figure reported separately in
 `coverage-evidence.md` and not in the EPIC tables.
 
