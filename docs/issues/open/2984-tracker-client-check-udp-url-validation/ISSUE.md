@@ -9,7 +9,7 @@ github-issue: 2984
 spec-path: docs/issues/open/2984-tracker-client-check-udp-url-validation/ISSUE.md
 branch: "2984-tracker-client-check-udp-url-validation-spec"
 related-pr: null
-last-updated-utc: "2026-11-22 09:53"
+last-updated-utc: "2026-11-22 10:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -98,7 +98,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | ------ | --------------------------------------------------------------------------- | ----------------------------------------------------------------- |
 | T1  | DONE   | Reproduce the UDP forms on a real artifact and classify                     | V1 recorded: Reproduced                                           |
 | T2  | TODO   | Reproduce the HTTP forms (wrong scheme, no host in `http_trackers` and `health_checks`) on a real artifact and classify | V2 recorded in `manual-verification-evidence.md`: each case is observed, not assumed. Known from a probe of the current binary on 2026-11-22: an entry that parses with a wrong scheme (`ftp://127.0.0.1`, `udp://127.0.0.1:6969`) is a failed check with exit `0`; `http:///` already fails to parse and exits `2` with `invalid_configuration` ("Invalid URL: empty host"), as does any `http` or `https` entry without a host |
-| T3  | TODO   | Add regression tests (UDP and HTTP config validation cases, unresolvable-host case) | Tests fail on current code; red output recorded           |
+| T3  | TODO   | Add regression tests (UDP and HTTP config validation cases, unresolvable-host case) and update the existing test that relies on the bug | Tests fail on current code; red output recorded. The existing test `it_should_report_a_panic_as_a_json_record_and_leave_stdout_empty` (`console/tracker-client/tests/output_contract.rs:161-179`) uses `udp://127.0.0.1` and requires exit `1` with `panic` and `runtime_failure` records; it fails after the fix, so it is changed to the configuration-error expectations (exit `2`, `invalid_configuration`) and the panic-hook coverage it gave is kept by a separate, controlled trigger chosen in the implementation (a missing-port URL or an unresolvable host can no longer be the trigger) |
 | T4  | TODO   | Fix: validate tracker URLs in config; make `resolve_socket_addr` fallible   | Regression tests pass; no `unwrap` on user input in `udp.rs`      |
 | T5  | TODO   | Green run and like-for-like recheck of V1 and V2 after the last production change | M1 and M2 commands give exit `2` + `invalid_configuration` and no panic, except AC3's unresolvable host, which is a failed check and no panic |
 
@@ -107,7 +107,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | Task | Coherent change set                                   | Commit policy                                        |
 | ---- | ----------------------------------------------------- | ---------------------------------------------------- |
 | T2   | Reproduction evidence for the HTTP forms (V2)         | Commit after focused validation and required review. |
-| T3   | Regression tests (red)                                | Commit after focused validation and required review. |
+| T3   | Regression tests (red) and the update of the existing panic-contract test | Commit after focused validation and required review. |
 | T4   | Validation in config and fallible resolution          | Commit after focused validation and required review. |
 | T5   | Evidence update                                       | Commit after focused validation and required review. |
 
@@ -138,6 +138,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-21 15:59 UTC - Claude Code (Claude Sonnet 5.5) - Round 2 review fixes (F9 to F11): scheme detection by `://` and `localhost:6969` in AC4, controls rerun verbatim, this log and `last-updated-utc` - PR 2985 audit
 - 2026-11-22 09:22 UTC - Claude Code (Claude Sonnet 5.5) - Recorded the maintainer's answers to both open questions as decisions: DNS failure is a failed check; the host and scheme validation also covers `http_trackers` and `health_checks` (new AC5) - PR 2985
 - 2026-11-22 09:53 UTC - Claude Code (Claude Sonnet 5.5) - Round 5 review fixes (F15, F16): HTTP expectations split by case (wrong scheme versus no host), recheck expectations aligned and the recheck row moved last - PR 2985 audit
+- 2026-11-22 10:00 UTC - Claude Code (Claude Sonnet 5.5) - Round 5 review fix (Copilot F18): the plan now updates the existing panic-contract test and keeps panic-hook coverage by another trigger - PR 2985 audit
 
 ## Acceptance Criteria
 
