@@ -46,6 +46,9 @@ Round 1 is two reviews of the head whose last commit is
 `6006223766` (2026-11-21 15:13:36 UTC, comment, three inline comments without IDs, recorded as F5
 to F7 with the severity of its overview, two Medium and one Low) and da2ce7's review `6006307330`
 (2026-11-21 15:32:08 UTC, approval, inline findings F1 to F4 with the reviewer's IDs).
+Round 2 is da2ce7's review `6011586262` (2026-11-22 09:55:05 UTC, approval) of the head whose last
+commit is `docs(pr-reviews): [#2902] record the first review round of #2988`; its inline findings
+keep the reviewer's IDs F21 and F22.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -56,6 +59,8 @@ to F7 with the severity of its overview, two Medium and one Low) and da2ce7's re
 | F5 | review-finding:pr-2988-f5 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-2988-f6 | Copilot | Minor (inferred) | testing | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F7 | review-finding:pr-2988-f7 | Copilot | Nit (inferred) | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F21 | review-finding:pr-2988-f21 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F22 | review-finding:pr-2988-f22 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -150,10 +155,37 @@ to F7 with the severity of its overview, two Medium and one Low) and da2ce7's re
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2988#discussion_r4657542783
 
+### F21 - The description reported the round 1 test count
+
+- PR number: 2988
+- Source review ID: 6011586262
+- Reviewer finding ID: F21
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2988#discussion_r4657607454
+- Concern: The description still said 180 unit tests and "Test code and documentation only", without the `rstest` dev-dependency that round 1 added; the merge commit copies the description.
+- Solution: The Validation line gives 191 unit test cases at the head after round 1, the summary names the `rstest` dev-dependency, rows 5 and 7 say `rstest` tables, and a bullet lists round 1; the coverage sentence keeps 180 "at the measured commit".
+- Current-tree verification: `gh pr view 2988 --json body --jq .body | grep -c '191 unit test cases'` prints 1.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2988#discussion_r4657617124
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2988#discussion_r4657617124
+
+### F22 - A Test Design row still promised the event's name in the message
+
+- PR number: 2988
+- Source review ID: 6011586262
+- Reviewer finding ID: F22
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2988#discussion_r4657607460
+- Concern: The handler plan's Test Design rows still said "in a table" and "with the event's name in the message", although each event is now an `rstest` case sharing one message.
+- Solution: Both rows say one `rstest` case per event, with the case name naming the event; the module plan got the same pointer.
+- Current-tree verification: `grep -c "the event's name in the message" docs/issues/open/2902-1347-add-tests-tracker-core/test-refactor-plans/statistics-event-handler-tests.md` prints 0.
+- Resolution reference: docs(issues): [#2902] point the table test designs at their rstest cases
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2988#discussion_r4657617254
+
 ## Processing Log
 
 - 2026-11-22 09:22 UTC - Read both round 1 reviews; the maintainer chose `rstest` cases for F2. Fixed F2, F5, F3, F1 (and the stray #2637 line) and F4 in their own commits, then recorded the review changes in the row 5 and row 7 plans.
 - 2026-11-22 09:34 UTC - Replied on all seven threads (09:34:44 to 09:34:57 UTC), before pushing the fixes and this record together; the threads are resolved after the push.
+- 2026-11-22 09:58 UTC - Round 2 (approval with F21 and F22): F21 fixed in the description, F22 in its own commit; replied at 09:58:21 and 09:58:23 UTC, before pushing the fix and this record together; the threads are resolved after the push.
 
 ## Completion Rules
 
