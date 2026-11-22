@@ -1,7 +1,7 @@
 ---
 pr-number: 2985
 pr-url: https://github.com/torrust/torrust-tracker/pull/2985
-last-updated-utc: "2026-11-21 16:03"
+last-updated-utc: "2026-11-22 09:39"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -43,6 +43,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
+Round 3 is da2ce7's APPROVED review `6011512347` (three inline findings, F12 to F14 in his numbering, kept here) on the head `docs(issues): [#2984] record the maintainer decisions on the open questions`.
+
 Round 2 is da2ce7's APPROVED review `6006401735` (three inline findings, F9 to F11 in his numbering, kept here) on the head `docs(pr-reviews): [#2984] add the PR 2985 review audit`.
 
 Round 1 is da2ce7's APPROVED review `6006228624` (six inline findings, F1 to F6 in his numbering) and Copilot's COMMENTED review `6006218464` (two inline findings, F7 and F8 here: his IDs F1 to F6 were kept, so Copilot's take the next ordinals), both on the first head, the commit `docs(issues): add issue specification for #2984`.
@@ -60,6 +62,9 @@ Round 1 is da2ce7's APPROVED review `6006228624` (six inline findings, F1 to F6 
 | F9 | `review-finding:pr-2985-f9` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F10 | `review-finding:pr-2985-f10` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F11 | `review-finding:pr-2985-f11` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F12 | `review-finding:pr-2985-f12` | Human | Minor | documentation | ORIGINAL | FOLLOW_UP | OPEN |
+| F13 | `review-finding:pr-2985-f13` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F14 | `review-finding:pr-2985-f14` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -206,11 +211,51 @@ Round 1 is da2ce7's APPROVED review `6006228624` (six inline findings, F1 to F6 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4653507842
 
+### F12 - The decisions cite a record that does not exist, and a session date that disagrees with the log
+
+- PR number: 2985
+- Source review ID: 6011512347
+- Reviewer finding ID: da2ce7 F12
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657538043
+- Concern: The decisions section attributed both answers to a chat session dated 2026-11-22 as 'the session that created this issue' and named this PR's review thread as the record, but the thread held no such statement and the issue was created on 2026-11-21; `fix-bug` asks for evidence that does not rely on chat history.
+- Solution: The date and source wording is corrected (answered in chat on 2026-11-22, one day after the issue was created; the chat is not a durable record; the decisions are the author's record). The durable record, a PR comment in which the maintainer restates both decisions, is the maintainer's to write; the spec will cite its URL when it exists. The thread stays open until then.
+- Current-tree verification: Read the Decisions section of `ISSUE.md`: the wording is corrected and says the maintainer comment is still to be cited.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657554361
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657554361
+
+### F13 - Decision 2 is not carried through the rest of the spec
+
+- PR number: 2985
+- Source review ID: 6011512347
+- Reviewer finding ID: da2ce7 F13
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657538044
+- Concern: The Goal, T1, the manual scenarios and Risks still covered only UDP, although decision 2 needs a new HTTP reproduction before the fix and changes working configurations to exit 2.
+- Solution: The Goal covers HTTP and health-check URLs; T2 plans the HTTP reproduction; tasks and commit points are renumbered with T5 rechecking V1 and V2; M3 is the HTTP reproduction scenario and M2 rechecks both; Risks names the change to working configurations.
+- Current-tree verification: Read the Goal, Implementation Plan, Commit Points, Manual Verification Scenarios and Risks sections of `ISSUE.md`.
+- Resolution reference: `docs(issues): [#2984] carry decision 2 through the goal, plan, scenarios and risks`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657554482
+
+### F14 - The PR description still describes the spec as open questions
+
+- PR number: 2985
+- Source review ID: 6011512347
+- Reviewer finding ID: da2ce7 F14
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657538047
+- Concern: The PR description said the spec lists two open questions and covered only UDP entries, while the spec records both decisions and adds HTTP and health-check validation.
+- Solution: The PR description was edited on 2026-11-22 at 09:38 UTC; its summary records the two decisions, AC5 and that the HTTP reproduction is planned.
+- Current-tree verification: `gh pr view 2985 --json body` after the edit shows the new summary.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657554587
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657554587
+
 ## Processing Log
 
 - 2026-11-21 15:23 UTC - Round 1: da2ce7's APPROVED review `6006228624` (15:14:29Z, six findings) and Copilot's COMMENTED review `6006218464` (15:12:25Z, two findings, both about a `||` row prefix that is not in the files). Six commits fixed F1 to F6, one per finding (pushed, exit 0, head on GitHub then `docs(issues): [#2984] identify the build and toolchain of the reproduction`). Eight replies were posted between 15:23:24Z and 15:23:40Z (after the push), and this record was written after them, not before (late start).
 - 2026-11-21 15:25 UTC - Round 1, continued: the eight threads were resolved after the validator run (`failures: 0`). GraphQL: 0 unresolved.
 - 2026-11-21 16:03 UTC - Round 2: da2ce7's APPROVED review `6006401735` (15:55:15Z, three findings F9 to F11). Three commits fixed them, one per finding (pushed, exit 0). Three replies were posted after the push, between 16:02:20Z and 16:02:24Z, and this record was updated after them. Threads resolved at 16:03Z after the validator run (`failures: 0`). GraphQL: 0 unresolved.
+- 2026-11-22 09:40 UTC - Round 3: da2ce7's APPROVED review `6011512347` (09:33:14Z, three findings F12 to F14) on the head with the maintainer decisions. Two commits fixed F12's wording and F13 (pushed, exit 0); the PR description was edited for F14; three replies were posted after that, at 09:39Z. F12 is only partly fixed: the maintainer has to restate the decisions in a PR comment, so its thread stays open (FOLLOW_UP/OPEN). F13 and F14 threads are resolved after the validator run.
 
 <!-- Copied verbatim into each audit record. -->
 
