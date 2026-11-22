@@ -1,7 +1,7 @@
 ---
 pr-number: 2985
 pr-url: https://github.com/torrust/torrust-tracker/pull/2985
-last-updated-utc: "2026-11-22 09:56"
+last-updated-utc: "2026-11-22 09:59"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -43,6 +43,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
+Round 4 is da2ce7's COMMENTED review `6011571146` (three inline findings, F15 to F17 in his numbering, kept here) on the head `docs(pr-reviews): [#2984] correct the reply times in the PR 2985 audit round 3 entry`.
+
 Round 3 is da2ce7's APPROVED review `6011512347` (three inline findings, F12 to F14 in his numbering, kept here) on the head `docs(issues): [#2984] record the maintainer decisions on the open questions`.
 
 Round 2 is da2ce7's APPROVED review `6006401735` (three inline findings, F9 to F11 in his numbering, kept here) on the head `docs(pr-reviews): [#2984] add the PR 2985 review audit`.
@@ -65,6 +67,9 @@ Round 1 is da2ce7's APPROVED review `6006228624` (six inline findings, F1 to F6 
 | F12 | `review-finding:pr-2985-f12` | Human | Minor | documentation | ORIGINAL | FOLLOW_UP | OPEN |
 | F13 | `review-finding:pr-2985-f13` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F14 | `review-finding:pr-2985-f14` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F15 | `review-finding:pr-2985-f15` | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F16 | `review-finding:pr-2985-f16` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F17 | `review-finding:pr-2985-f17` | Human | Nit | maintainability | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -250,6 +255,45 @@ Round 1 is da2ce7's APPROVED review `6006228624` (six inline findings, F1 to F6 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657554587
 
+### F15 - Entries without a host already fail with exit 2 today, not as a failed check
+
+- PR number: 2985
+- Source review ID: 6011571146
+- Reviewer finding ID: da2ce7 F15
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657593099
+- Concern: The spec said a no-host entry in http_trackers or health_checks is a failed check with exit 0 today, but `http:///` and other http or https entries without a host fail to parse and already exit 2; only parsing entries with a wrong scheme reach a failed check.
+- Solution: T2, AC5, scenario M2 and the Risks bullet split the cases: wrong scheme that parses is a failed check with exit 0 today; no-host http or https entries already exit 2 and must keep doing so.
+- Current-tree verification: Ran the current binary with `http:///` (exit 2, `invalid_configuration`, empty host), `ftp://127.0.0.1` and `udp://127.0.0.1:6969` (failed checks, exit 0) in `http_trackers`; read the four places in `ISSUE.md`.
+- Resolution reference: `docs(issues): [#2984] split the HTTP expectations by case: wrong scheme versus no host`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657620398
+
+### F16 - The recheck expectations do not match the cases they recheck
+
+- PR number: 2985
+- Source review ID: 6011571146
+- Reviewer finding ID: da2ce7 F16
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657593103
+- Concern: The recheck row named only AC1 to AC3 although it also rechecked the HTTP cases, T5 expected exit 2 for every UDP command although AC3 is a failed check, and the recheck row was not last.
+- Solution: The recheck row names AC1, AC2 and AC5 as exit 2 and AC3 as a failed check; T5 carves out AC3; the HTTP reproduction is M2 and the recheck M3.
+- Current-tree verification: Read the scenarios table and T5 in `ISSUE.md`.
+- Resolution reference: `docs(issues): [#2984] align the recheck expectations with the cases they recheck`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657620519
+
+### F17 - The reply-time correction rewrote this Processing Log entry in place
+
+- PR number: 2985
+- Source review ID: 6011571146
+- Reviewer finding ID: da2ce7 F17
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657593105
+- Concern: A commit changed a reply time inside an existing Processing Log entry, which is append-only.
+- Solution: The round 3 entry is restored to its first wording and a correction entry names the rewritten content, the commit that rewrote it and the correct reply times.
+- Current-tree verification: Read the Processing Log of this record.
+- Resolution reference: `docs(pr-reviews): [#2984] restore the round 3 log entry and append the correction`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657620646
+
 ## Processing Log
 
 - 2026-11-21 15:23 UTC - Round 1: da2ce7's APPROVED review `6006228624` (15:14:29Z, six findings) and Copilot's COMMENTED review `6006218464` (15:12:25Z, two findings, both about a `||` row prefix that is not in the files). Six commits fixed F1 to F6, one per finding (pushed, exit 0, head on GitHub then `docs(issues): [#2984] identify the build and toolchain of the reproduction`). Eight replies were posted between 15:23:24Z and 15:23:40Z (after the push), and this record was written after them, not before (late start).
@@ -257,6 +301,7 @@ Round 1 is da2ce7's APPROVED review `6006228624` (six inline findings, F1 to F6 
 - 2026-11-21 16:03 UTC - Round 2: da2ce7's APPROVED review `6006401735` (15:55:15Z, three findings F9 to F11). Three commits fixed them, one per finding (pushed, exit 0). Three replies were posted after the push, between 16:02:20Z and 16:02:24Z, and this record was updated after them. Threads resolved at 16:03Z after the validator run (`failures: 0`). GraphQL: 0 unresolved.
 - 2026-11-22 09:40 UTC - Round 3: da2ce7's APPROVED review `6011512347` (09:33:14Z, three findings F12 to F14) on the head with the maintainer decisions. Two commits fixed F12's wording and F13 (pushed, exit 0); the PR description was edited for F14; three replies were posted after that, at 09:39Z. F12 is only partly fixed: the maintainer has to restate the decisions in a PR comment, so its thread stays open (FOLLOW_UP/OPEN). F13 and F14 threads are resolved after the validator run.
 - 2026-11-22 09:56 UTC - Correction: the round 3 entry stamped 2026-11-22 09:40 UTC was rewritten in place by an earlier commit (`docs(pr-reviews): [#2984] correct the reply times in the PR 2985 audit round 3 entry`), which replaced "at 09:39Z" with "between 09:38:33Z and 09:38:37Z". That entry is restored to its first wording above. The reply times are the second wording: the three round 3 replies were posted between 09:38:33Z and 09:38:37Z, by the capture of the review comments.
+- 2026-11-22 09:59 UTC - Round 4: da2ce7's COMMENTED review `6011571146` (09:50:29Z, three findings F15 to F17; no ACK while the F12 thread is open). Three commits fixed them (pushed, exit 0), a probe of the current binary checked the F15 claim, and three replies were posted after the push at about 09:58Z (the F16 reply was edited once at 09:59Z to fix row names). Threads resolved after the validator run. F12 remains FOLLOW_UP/OPEN, waiting for the maintainer's PR comment.
 
 <!-- Copied verbatim into each audit record. -->
 
