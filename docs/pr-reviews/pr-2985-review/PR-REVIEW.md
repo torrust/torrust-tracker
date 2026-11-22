@@ -1,7 +1,7 @@
 ---
 pr-number: 2985
 pr-url: https://github.com/torrust/torrust-tracker/pull/2985
-last-updated-utc: "2026-11-22 10:36"
+last-updated-utc: "2026-11-22 10:40"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -43,6 +43,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
+Round 7 is da2ce7's COMMENTED review `6011770812` (two inline findings, F24 and F25, numbered after the record's F23) on the head `docs(pr-reviews): [#2984] drop the commit id from the F20 title`.
+
 Round 6 is da2ce7's COMMENTED review `6011655297` (four inline findings, F20 to F23, numbered after the record's F19) on the head `docs(pr-reviews): [#2984] add round 5 findings F18 and F19 to the PR 2985 audit`. Copilot's COMMENTED review `6011678308` (10:20:41Z, same head) has no inline comment and no open issue; its summary mentions omitted findings about test-design review checkpoints and exit-code verification evidence that are not retrievable, so it gets no row.
 
 Round 5 is Copilot's COMMENTED review `6011585846` (09:54:58Z, two inline findings, F18 and F19 here; F19 re-raises F16) on the head `docs(pr-reviews): [#2984] correct the reply times in the PR 2985 audit round 3 entry`; it was submitted during round 4 and found when the threads were listed before resolving.
@@ -80,6 +82,8 @@ Round 1 is da2ce7's APPROVED review `6006228624` (six inline findings, F1 to F6 
 | F21 | `review-finding:pr-2985-f21` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F22 | `review-finding:pr-2985-f22` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F23 | `review-finding:pr-2985-f23` | Human | Suggestion | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F24 | `review-finding:pr-2985-f24` | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F25 | `review-finding:pr-2985-f25` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -382,6 +386,32 @@ Round 1 is da2ce7's APPROVED review `6006228624` (six inline findings, F1 to F6 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657696360
 
+### F24 - The plan adds and changes tests but has no test-development loop or design-review checkpoint
+
+- PR number: 2985
+- Source review ID: 6011770812
+- Reviewer finding ID: da2ce7 F24
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657727063
+- Concern: T3 adds and rewrites tests and the panic-hook coverage moves to a new unit test, but the spec dropped the `create-issue` requirement for the `write-unit-test` skill, the smallest increment and an explicit design review after each passing increment.
+- Solution: The Commit Points section now carries the loop, the prose-first Arrange-Act-Assert design review for each test-producing increment and the stop for maintainer review after the final increment.
+- Current-tree verification: Read the Commit Points section of `ISSUE.md`.
+- Resolution reference: `docs(issues): [#2984] add the test-development loop to the commit points`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657743411
+
+### F25 - The round-6 entry says six commits fixed F20 to F23; five commits came before the replies
+
+- PR number: 2985
+- Source review ID: 6011770812
+- Reviewer finding ID: da2ce7 F25
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657727065
+- Concern: The round 6 Processing Log entry overstated the commit count.
+- Solution: A correction entry lists the five commits by subject and gives the right count; the round 6 entry is not rewritten.
+- Current-tree verification: Read the Processing Log of this record.
+- Resolution reference: `docs(pr-reviews): [#2984] append the correction for the round 6 commit count`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657743561
+
 ## Processing Log
 
 - 2026-11-21 15:23 UTC - Round 1: da2ce7's APPROVED review `6006228624` (15:14:29Z, six findings) and Copilot's COMMENTED review `6006218464` (15:12:25Z, two findings, both about a `||` row prefix that is not in the files). Six commits fixed F1 to F6, one per finding (pushed, exit 0, head on GitHub then `docs(issues): [#2984] identify the build and toolchain of the reproduction`). Eight replies were posted between 15:23:24Z and 15:23:40Z (after the push), and this record was written after them, not before (late start).
@@ -394,6 +424,7 @@ Round 1 is da2ce7's APPROVED review `6006228624` (six inline findings, F1 to F6 
 - 2026-11-22 10:20 UTC - Correction (round 4 entry): that entry says the three replies were posted "at about 09:58Z". The capture has them at 09:59:24Z, 09:59:27Z and 09:59:29Z (the F16 edit at 09:59:51Z is as logged). The entry is not rewritten; these are the correct times.
 - 2026-11-22 10:24 UTC - Round 6: da2ce7's COMMENTED review `6011655297` (10:16:30Z, four findings F20 to F23; no ACK while the F12 thread is open) and Copilot's COMMENTED review `6011678308` (10:20:41Z, no inline finding, no row). Six commits fixed F20 to F23 (pushed, exit 0); four replies were posted after the push; the four threads are resolved after the validator run. F12 remains FOLLOW_UP/OPEN, waiting for the maintainer's PR comment.
 - 2026-11-22 10:36 UTC - Correction (round 6 entry): that entry says "Six commits fixed F20 to F23". Before the first reply there were five commits: four fixes, `docs(issues): [#2984] record the HTTP reproduction as V2 with its verbatim output` (F21), `docs(issues): [#2984] say where the replacement panic-hook coverage may live` (F23), `docs(pr-reviews): [#2984] cite the reviewed head by subject in finding F19` (F20) and `docs(pr-reviews): [#2984] append the correction for the round 4 reply times` (F22), and one commit that only logs the spec changes, `docs(issues): [#2984] log the round 6 spec changes`. The audit commit for the round followed the replies. The entry is not rewritten; this is the correct count.
+- 2026-11-22 10:40 UTC - Round 7: da2ce7's COMMENTED review `6011770812` (10:34:47Z, two findings F24 and F25; no ACK while the F12 thread is open). Two commits fixed them, one each (pushed, exit 0); two replies were posted after the push; the two threads are resolved after the validator run. F12 remains FOLLOW_UP/OPEN, waiting for the maintainer's PR comment.
 
 <!-- Copied verbatim into each audit record. -->
 
