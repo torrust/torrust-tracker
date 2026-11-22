@@ -9,7 +9,7 @@ github-issue: 2984
 spec-path: docs/issues/open/2984-tracker-client-check-udp-url-validation/ISSUE.md
 branch: "2984-tracker-client-check-udp-url-validation-spec"
 related-pr: null
-last-updated-utc: "2026-11-22 10:19"
+last-updated-utc: "2026-11-22 10:21"
 semantic-links:
   skill-links:
     - create-issue
@@ -139,6 +139,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-22 09:22 UTC - Claude Code (Claude Sonnet 5.5) - Recorded the maintainer's answers to both open questions as decisions: DNS failure is a failed check; the host and scheme validation also covers `http_trackers` and `health_checks` (new AC5) - PR 2985
 - 2026-11-22 09:53 UTC - Claude Code (Claude Sonnet 5.5) - Round 5 review fixes (F15, F16): HTTP expectations split by case (wrong scheme versus no host), recheck expectations aligned and the recheck row moved last - PR 2985 audit
 - 2026-11-22 10:00 UTC - Claude Code (Claude Sonnet 5.5) - Round 5 review fix (Copilot F18): the plan now updates the existing panic-contract test and keeps panic-hook coverage by another trigger - PR 2985 audit
+- 2026-11-22 10:21 UTC - Claude Code (Claude Sonnet 5.5) - Round 6 review fixes (F21, F23): the HTTP reproduction is recorded as V2 with its verbatim output (T2 and M2 done) and the replacement panic-hook coverage is placed in a seam inside `output.rs` - PR 2985 audit
 
 ## Acceptance Criteria
 
