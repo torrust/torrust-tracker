@@ -97,7 +97,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task                                                                        | Notes / Expected Output                                           |
 | --- | ------ | --------------------------------------------------------------------------- | ----------------------------------------------------------------- |
 | T1  | DONE   | Reproduce the UDP forms on a real artifact and classify                     | V1 recorded: Reproduced                                           |
-| T2  | TODO   | Reproduce the HTTP forms (wrong scheme, no host in `http_trackers` and `health_checks`) on a real artifact and classify | V2 recorded in `manual-verification-evidence.md`: the outcome (today a failed check, exit `0`, per review) is observed, not assumed |
+| T2  | TODO   | Reproduce the HTTP forms (wrong scheme, no host in `http_trackers` and `health_checks`) on a real artifact and classify | V2 recorded in `manual-verification-evidence.md`: each case is observed, not assumed. Known from a probe of the current binary on 2026-11-22: an entry that parses with a wrong scheme (`ftp://127.0.0.1`, `udp://127.0.0.1:6969`) is a failed check with exit `0`; `http:///` already fails to parse and exits `2` with `invalid_configuration` ("Invalid URL: empty host"), as does any `http` or `https` entry without a host |
 | T3  | TODO   | Add regression tests (UDP and HTTP config validation cases, unresolvable-host case) | Tests fail on current code; red output recorded           |
 | T4  | TODO   | Fix: validate tracker URLs in config; make `resolve_socket_addr` fallible   | Regression tests pass; no `unwrap` on user input in `udp.rs`      |
 | T5  | TODO   | Green run and like-for-like recheck of V1 and V2 after the last production change | M1 and M3 commands give exit `2` + `invalid_configuration`, no panic |
@@ -144,7 +144,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [ ] AC2: `udp:///` (no host) and `http://127.0.0.1` / `ftp://127.0.0.1:6969` (wrong scheme) in `udp_trackers` give the same outcome
 - [ ] AC3: `udp://nonexistent.invalid:6969` does not panic; it is reported as a failed check for that tracker
 - [ ] AC4: Valid entries (`udp://127.0.0.1:6969`, `127.0.0.1:6969`, `udp://localhost:6969`, and `localhost:6969`, which has no scheme) behave as before
-- [ ] AC5: In `http_trackers` and `health_checks`, an entry with no host or with a scheme other than `http` or `https` (for example `udp://127.0.0.1:6969`, `ftp://127.0.0.1`, `http:///`) gives exit `2` and one `invalid_configuration` record, and valid entries (`http://127.0.0.1:7070/announce`, `https://tracker.example.com`) behave as before
+- [ ] AC5: In `http_trackers` and `health_checks`, an entry with no host or with a scheme other than `http` or `https` (for example `udp://127.0.0.1:6969` and `ftp://127.0.0.1`; `http:///` and other `http` or `https` entries without a host already give exit `2` from the URL parser and must keep doing so) gives exit `2` and one `invalid_configuration` record, and valid entries (`http://127.0.0.1:7070/announce`, `https://tracker.example.com`) behave as before
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -164,7 +164,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Scenario                                            | Human-oriented command/steps                                                                                                                      | Expected Result                                        | Status | Evidence                                      |
 | --- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ------ | --------------------------------------------- |
 | M1  | Reproduce: UDP URL without port, without host, with wrong scheme, unresolvable host | `TORRUST_CHECKER_CONFIG='{"udp_trackers":["<url>"],"http_trackers":[],"health_checks":[]}' ./target/debug/tracker_client check \| cat` for each URL | Panic record and `runtime_failure`, exit 1, empty stdout | DONE | `manual-verification-evidence.md` section V1 |
-| M3  | Reproduce: HTTP forms (wrong scheme, no host) in `http_trackers` and `health_checks` | `TORRUST_CHECKER_CONFIG='{"udp_trackers":[],"http_trackers":["<url>"],"health_checks":[]}' ./target/debug/tracker_client check \| cat`, and the same with the URL in `health_checks`, for `ftp://127.0.0.1`, `udp://127.0.0.1:6969` and `http:///` | Observed outcome recorded (a failed check with exit 0 is expected today) | TODO | `manual-verification-evidence.md` section V2 |
+| M3  | Reproduce: HTTP forms (wrong scheme, no host) in `http_trackers` and `health_checks` | `TORRUST_CHECKER_CONFIG='{"udp_trackers":[],"http_trackers":["<url>"],"health_checks":[]}' ./target/debug/tracker_client check \| cat`, and the same with the URL in `health_checks`, for `ftp://127.0.0.1`, `udp://127.0.0.1:6969` and `http:///` | Observed outcome recorded: a failed check with exit 0 for the first two, exit 2 with `invalid_configuration` for `http:///` | TODO | `manual-verification-evidence.md` section V2 |
 | M2  | Final like-for-like recheck of M1 and M3 after the last production change | The same commands as M1 and M3 | Exit `2` and one `invalid_configuration` record for AC1 and AC2; a failed check, no panic, for AC3 | TODO | `manual-verification-evidence.md` (section to be added) |
 
 Notes:
@@ -185,7 +185,7 @@ Notes:
 ## Risks and Trade-offs
 
 - Rejecting a non-`udp` scheme in `udp_trackers` could break a configuration that worked by accident; no such entry can work today, because every one panics.
-- Decision 2 changes working configurations: a wrong-scheme entry or an entry with no host in `http_trackers` or `health_checks` is a failed check with exit `0` today (`http.rs`, `health.rs`), and AC5 makes it exit `2`. An operator who ran such a configuration for monitoring would see it fail at startup. Mitigation: the error names the entry and the reason, and the change is called out in the implementation PR.
+- Decision 2 changes working configurations: a wrong-scheme entry that parses (for example `ftp://127.0.0.1`) in `http_trackers` or `health_checks` is a failed check with exit `0` today (`http.rs`, `health.rs`), and AC5 makes it exit `2`; entries without a host already exit `2`. An operator who ran such a configuration for monitoring would see it fail at startup. Mitigation: the error names the entry and the reason, and the change is called out in the implementation PR.
 
 ## Implementation Completion Review
 
