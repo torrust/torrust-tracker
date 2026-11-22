@@ -286,15 +286,12 @@ mod tests {
         // Assert
         assert_eq!(
             (
-                downloads_repository
-                    .load_torrent_downloads(&sample_info_hash())
-                    .await
-                    .unwrap(),
+                downloads_repository.load_all_torrents_downloads().await.unwrap().len(),
                 downloads_repository.load_global_downloads().await.unwrap(),
                 stats_repository.get_torrents_downloads_persisted_total().await
             ),
-            (None, None, 0),
-            "an event other than a completed download must not persist a download"
+            (0, None, 0),
+            "an event other than a completed download must not persist a download for any torrent"
         );
     }
 
