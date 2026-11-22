@@ -34,7 +34,7 @@ Follow the shared [guidance](README.md). This plan covers only
 - **Module-owned decisions not yet tested:**
   - Only `PeerDownloadCompleted` changes a total: the other five event kinds only log. One of the
     five is tested, for each handler.
-  - The persisted total follows the database: when the global write fails, the in-memory persisted
+  - The persisted total follows the database: when the global downloads cannot be increased (the test fails their read), the in-memory persisted
     total is not incremented (line 129), even though the torrent row was written.
 
 ## Maintainer Decision
@@ -47,7 +47,7 @@ Plan approved on 2026-11-18, including replacing the two `PeerAdded`-only tests 
 | --- | --- | --- |
 | `it_should_change_no_in_memory_total_for_an_event_other_than_a_completed_download` | each of `TorrentAdded`, `TorrentRemoved`, `PeerAdded`, `PeerRemoved` and `PeerUpdated`, in a table, on a fresh repository | the persistent and in-session totals read 0, with the event's name in the message |
 | `it_should_persist_nothing_for_an_event_other_than_a_completed_download` | the same table, on a fresh `TempDir` database | no torrent row, no global row, persisted total 0 |
-| `it_should_not_increment_the_persisted_total_when_the_global_downloads_cannot_be_saved` | `MockTorrentMetricsStore`: the torrent write succeeds (`load_torrent_downloads` → `None`, `save_torrent_downloads` → `Ok`), `load_global_downloads` fails | the persisted total reads 0 |
+| `it_should_not_increment_the_persisted_total_when_the_global_downloads_cannot_be_increased` | `MockTorrentMetricsStore`: the torrent write succeeds (`load_torrent_downloads` → `None`, `save_torrent_downloads` → `Ok`), `load_global_downloads` fails | the persisted total reads 0 |
 
 The two table tests replace the two existing `PeerAdded`-only tests
 (`it_should_not_increment_in_memory_completion_metrics_when_an_event_is_not_a_completion` and

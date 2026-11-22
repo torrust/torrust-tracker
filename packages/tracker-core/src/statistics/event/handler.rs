@@ -330,7 +330,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn it_should_not_increment_the_persisted_total_when_the_global_downloads_cannot_be_saved() {
+    async fn it_should_not_increment_the_persisted_total_when_the_global_downloads_cannot_be_increased() {
         // Arrange
         let stats_repository = Arc::new(Repository::new(true, true));
         let mut store = MockTorrentMetricsStore::new();
@@ -364,7 +364,7 @@ mod tests {
         assert_eq!(
             stats_repository.get_torrents_downloads_persisted_total().await,
             0,
-            "the persisted total must follow the database, which did not save the global downloads"
+            "the persisted total must follow the database, which could not read the global downloads to increase them"
         );
     }
 }
