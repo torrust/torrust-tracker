@@ -371,6 +371,7 @@ For each subissue implementation, the completion policy is:
 - 2026-11-17 12:43 UTC - Claude Code (Opus 5.5) - #2902 T1b, measured on 2026-11-17 after the maintainer allowed pulling the `mysql:8.0` and `postgres:16` images: with both driver suites running, the `tracker-core` aggregate is lines 93.80% (4,830 / 5,149). Correction: the commit that recorded T1b edited the 10:57 entry above in place; its original text is restored (review finding F9 of #2903).
 - 2026-11-18 09:10 UTC - Claude Code (Opus 5.5) - #2902 re-measured its baseline with stable Rust 1.100.0 and `cargo-llvm-cov 0.9.1` (Rust 1.99.1 with `cargo-llvm-cov 0.6.16` cannot measure after the Cargo 1.100.0 test-binary layout change): `tracker-core` unit-only lines 79.32% (was 80.31%), aggregate 81.15% (was 82.15%), container-gated 92.67% (was 93.80%), at the same commit. The other packages' rows keep their own toolchains.
 - 2026-11-18 10:20 UTC - Claude Code (Claude Fable 5.2) - Added the "Publishing gate" paragraph under the `Subissues` table through PR torrust/torrust-tracker#2935 (issue #2583): by the maintainer's decision of 2026-11-18, a crate may be published under #2583 once its own package-testing subissues are closed, and EPIC #1669 no longer waits for this EPIC to close as a whole. No subissue was created or changed.
+- 2026-11-21 13:24 UTC - Claude Code (Opus 5.5) - #2902 S1 (`statistics/`) closed, measured on its `develop` base `44ce734fe`: `tracker-core` unit-only lines 84.41% (79.45% on the base), aggregate 84.41% (81.27% on the base); the aggregate now equals unit-only, so the integration binary covers no line the unit tests miss. Row 14 is `IN_PROGRESS`.
 
 ## Acceptance Criteria
 
@@ -411,7 +412,6 @@ For each subissue implementation, the completion policy is:
 - GitHub EPIC: https://github.com/torrust/torrust-tracker/issues/1347
 - Related issues: #1348, #1349, #2136, #2149, #2637, #2824, #2902
 - 2026-11-09 12:10 UTC - Claude Code - #2637 S6 merged through #2772 (2026-11-09 12:08 UTC) and issue #2637 closed: the `axum-rest-api-server` package is DONE. Final figures (unchanged): unit-only lines 96.67%, aggregate 97.67%. The spec was archived to `docs/issues/closed/` and the subissue row is `DONE`.
-- 2026-11-21 13:24 UTC - Claude Code (Opus 5.5) - #2902 S1 (`statistics/`) closed, measured on its `develop` base `44ce734fe`: `tracker-core` unit-only lines 84.41% (79.45% on the base), aggregate 84.41% (81.27% on the base); the aggregate now equals unit-only, so the integration binary covers no line the unit tests miss. Row 14 is `IN_PROGRESS`.
 - Package inventory: `docs/packages.md`
 - Reference package: `packages/tracker-core/`
 - Coverage tooling: `cargo llvm-cov`
