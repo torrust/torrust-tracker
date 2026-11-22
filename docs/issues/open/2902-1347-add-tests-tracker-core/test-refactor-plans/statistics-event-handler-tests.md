@@ -105,3 +105,18 @@ M1 and M2 survive today: the only non-completion event under test is `PeerAdded`
 - **Review outcome:** the maintainer approved the completed file on 2026-11-18.
 - **Validation:** `cargo clippy -p torrust-tracker-core --all-targets --all-features` (only the
   existing `axum::serve` warning) and `cargo +nightly fmt --all -- --check` pass.
+
+## Changes After Review (#2988)
+
+- **`rstest` cases (finding F2 of #2988, maintainer decision of 2026-11-22):** the two tables loop
+  no longer. Each event kind is an `rstest` case with its own name (`case_1_torrent_added` to
+  `case_5_peer_updated`), as the `write-unit-test` skill prescribes, so each broken event kind fails
+  under its own name: with M1 applied, only `case_4_peer_removed` fails. `rstest` 0.28.0, already in
+  the lock file, became a dev-dependency of the package. The ten cases replace the two table tests:
+  191 unit test cases in the package.
+- **Any torrent row (Copilot, #2988):** the persistence cases expect no torrent row at all
+  (`load_all_torrents_downloads()` is empty), not only no row for the sample info-hash; a mutant
+  that writes a row under another info-hash fails all five cases.
+- **Name (finding F3 of #2988):** the global failure test is
+  `it_should_not_increment_the_persisted_total_when_the_global_downloads_cannot_be_increased`: its
+  mock fails the read of the global downloads, before any save.

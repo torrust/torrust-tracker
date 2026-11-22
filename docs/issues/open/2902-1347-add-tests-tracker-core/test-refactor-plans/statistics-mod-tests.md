@@ -92,3 +92,10 @@ M1 and M2 survive today: no test disables usage statistics.
 - **Review outcome:** the maintainer approved the completed file on 2026-11-18.
 - **Validation:** `cargo clippy -p torrust-tracker-core --all-targets --all-features` (only the
   existing `axum::serve` warning) and `cargo +nightly fmt --all -- --check` pass.
+
+## Changes After Review (#2988)
+
+- **`rstest` cases (finding F2 of #2988, maintainer decision of 2026-11-22):** the table loops no
+  longer. Each `(usage, persisted)` combination is an `rstest` case with its own name
+  (`case_1_both_disabled` to `case_4_both_enabled`), as the `write-unit-test` skill prescribes, so
+  each broken combination fails under its own name.
