@@ -68,7 +68,7 @@ Checked and found safe, so that the spec does not redo it:
 - No `databases::error::Error` variant has a URL, DSN or password field; the connection URL goes only to `from_str`.
 - No event payload, metric label or health-check output carries a key, token or credential.
 - The `Authorization: Bearer` header is not logged (`include_headers` is off).
-- The health-check API server has no `TraceLayer`.
+- The health-check API server has the same `TraceLayer` and logs `%uri` (`packages/axum-health-check-api-server/src/server.rs:151-167`), but its routes (`/`, `/health_check`) carry no secret. SI-A gives it the same redaction function so that the three servers behave alike.
 - No `#[instrument]` takes a key, token or database URL without skipping it.
 
 Verified by running experiments (2026-11-22, a debug build of the tracker; MySQL 8.0 and PostgreSQL 16 in local containers):
@@ -179,10 +179,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | Order | Issue | Local Spec | Status | Notes |
 | --- | --- | --- | --- | --- |
-| 1 | #[To be assigned] - SI-A Keep secrets out of errors, logs and output | Not created | TODO | After SI-4 (#2916) merges. A bug class with the listed cases A1 to A9 |
-| 2 | #[To be assigned] - SI-B Define and apply the client error text policy | Not created | TODO | Starts with an ADR; implementation after the maintainer accepts the ADR. May start in parallel with SI-A, but it touches the same error types, so run them one after the other |
+| 1 | #[To be assigned] - SI-A Keep secrets out of errors, logs and output | `docs/issues/drafts/2993-si-a-keep-secrets-out-of-errors-and-logs/ISSUE.md` | TODO | After SI-4 (#2916) merges. A bug class with the listed cases A1 to A9 |
+| 2 | #[To be assigned] - SI-B Define and apply the client error text policy | `docs/issues/drafts/2993-si-b-client-error-text-policy/ISSUE.md` | TODO | Starts with an ADR; implementation after the maintainer accepts the ADR. May start in parallel with SI-A, but it touches the same error types, so run them one after the other |
 
-Both sub-issue specifications are drafted after this EPIC specification is merged.
+Both sub-issue specifications are drafts until the maintainer approves them; their GitHub issues are created then.
 
 ## Delivery Strategy
 
