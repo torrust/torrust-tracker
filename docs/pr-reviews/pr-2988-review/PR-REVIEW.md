@@ -49,6 +49,9 @@ to F7 with the severity of its overview, two Medium and one Low) and da2ce7's re
 Round 2 is da2ce7's review `6011586262` (2026-11-22 09:55:05 UTC, approval) of the head whose last
 commit is `docs(pr-reviews): [#2902] record the first review round of #2988`; its inline findings
 keep the reviewer's IDs F21 and F22.
+Round 3 is Copilot's review `6011613619` (2026-11-22 10:03:41 UTC, comment) of the head whose last
+commit is `docs(pr-reviews): [#2902] record the first review round of #2988`; its two inline comments
+have no IDs and are recorded as F23 and F24.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -61,6 +64,8 @@ keep the reviewer's IDs F21 and F22.
 | F7 | review-finding:pr-2988-f7 | Copilot | Nit (inferred) | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F21 | review-finding:pr-2988-f21 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F22 | review-finding:pr-2988-f22 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F23 | review-finding:pr-2988-f23 | Copilot | Nit (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F24 | review-finding:pr-2988-f24 | Copilot | Nit (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -181,11 +186,38 @@ keep the reviewer's IDs F21 and F22.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2988#discussion_r4657617254
 
+### F23 - The torrent read of the failure test had no call count
+
+- PR number: 2988
+- Source review ID: 6011613619
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2988#discussion_r4657632841
+- Concern: `expect_load_torrent_downloads()` in the global downloads failure test allowed any number of calls, so a redundant read would pass.
+- Solution: It now has `.times(1)`, like the test's other two expectations.
+- Current-tree verification: `grep -n -A1 'expect_load_torrent_downloads()' packages/tracker-core/src/statistics/event/handler.rs` shows `.times(1)` after the last occurrence.
+- Resolution reference: test(tracker-core): [#2902] expect one torrent read in the global downloads failure test
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2988#discussion_r4657642560
+
+### F24 - The rstest requirement style
+
+- PR number: 2988
+- Source review ID: 6011613619
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2988#discussion_r4657632867
+- Concern: `rstest = "0.28.0"` differs from the `"0"` style of nearby dev-dependencies.
+- Solution: The requirement stays `0.28.0`: the `add-rust-dependency` skill starts from the latest stable version, which `"0"` does not select, and three sibling packages use the same requirement. The skill's other rule, `default-features = false`, had been missed and is applied; `Cargo.lock` is unchanged.
+- Current-tree verification: `grep -n '^rstest' packages/tracker-core/Cargo.toml` shows `rstest = { version = "0.28.0", default-features = false }`.
+- Resolution reference: chore(tracker-core): [#2902] build rstest without its default features
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2988#discussion_r4657642714
+
 ## Processing Log
 
 - 2026-11-22 09:22 UTC - Read both round 1 reviews; the maintainer chose `rstest` cases for F2. Fixed F2, F5, F3, F1 (and the stray #2637 line) and F4 in their own commits, then recorded the review changes in the row 5 and row 7 plans.
 - 2026-11-22 09:34 UTC - Replied on all seven threads (09:34:44 to 09:34:57 UTC), before pushing the fixes and this record together; the threads are resolved after the push.
 - 2026-11-22 09:58 UTC - Round 2 (approval with F21 and F22): F21 fixed in the description, F22 in its own commit; replied at 09:58:21 and 09:58:23 UTC, before pushing the fix and this record together; the threads are resolved after the push.
+- 2026-11-22 10:06 UTC - Round 3 (Copilot comment with F23 and F24): each fixed in its own commit, F24 keeping the version and turning off the default features; replied at 10:06:48 and 10:06:51 UTC, before pushing the fixes and this record together; the threads are resolved after the push.
 
 ## Completion Rules
 
