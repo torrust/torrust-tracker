@@ -3,7 +3,7 @@ name: wait-for-pr-review
 description: Wait for Copilot or maintainer reviews with a deterministic Rust poller that spends no tokens, then run the review loop. Use when waiting for a review of an opened or updated PR.
 metadata:
   author: torrust
-  version: "1.3"
+  version: "1.4"
   semantic-links:
     related-artifacts:
       - .claude/skills/wait-for-pr-review/tool/Cargo.toml
@@ -185,7 +185,9 @@ session that does not delegate, or runs in another tool, runs step 2 itself.
      earlier commits. Count them over the whole pull request with `fetch-review-threads`.
    - The other maintainer has commented `ACK <full head commit hash>` on the head commit, or the
      maintainer has recorded a waiver, as the Merge Readiness section of
-     [`merge-pull-request`](../merge-pull-request/SKILL.md) describes.
+     [`merge-pull-request`](../merge-pull-request/SKILL.md) describes. Its subsection
+     [An ACK Names One Commit](../merge-pull-request/SKILL.md#an-ack-names-one-commit) says what
+     happens to an `ACK` after a commit that changes only the audit record.
 5. When the exit condition holds, print the maintainer merge command from `merge-pull-request`. Do
    not merge, approve, or post `ACK` yourself; an agent never waives a check.
 6. Keep watching until the pull request is merged or closed; do not end the session when the exit

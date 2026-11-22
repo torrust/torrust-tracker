@@ -3,7 +3,7 @@ name: merge-pull-request
 description: Build, inspect, sign and optionally push a maintainer merge of a pull request with the vendored merge tool. Use when asked to merge a pull request.
 metadata:
   author: torrust
-  version: "1.2"
+  version: "1.3"
 ---
 
 # Merging a Pull Request
@@ -62,11 +62,34 @@ these checks are repository convention rather than technical enforcement.
   not wait for an approval state.
 - **Reviewer ACK:** the other maintainer has commented `ACK <full head commit hash>` on the head
   commit. This is recommended, not mandatory: the maintainer may waive it. Record a waiver as a
-  durable comment on the pull request before merging, and in the review audit.
+  durable comment on the pull request before merging. An `ACK` on an earlier commit does not count
+  (see [An ACK Names One Commit](#an-ack-names-one-commit)).
 - **Review audit:** the audit record passes `validate-audit-record.py` (see the
   [`process-pr-review`](../process-pr-review/SKILL.md) skill).
 
 An agent never waives a check itself. When one is unmet, state which and ask the maintainer.
+
+### An ACK Names One Commit
+
+An `ACK <hash>` counts only on the commit it names. Every later commit makes it stale, including a
+commit that changes only the pull request's own audit record under
+`docs/pr-reviews/pr-<N>-review/`. The reviewer and the maintainer then `ACK` the new head. The
+maintainer decided this in issue #2949, and rejected a rule that would keep the earlier `ACK` valid.
+
+To keep the second review short, list what the commits after the earlier `ACK` changed. `<X>` is the
+commit the earlier `ACK` names and `<H>` is the head:
+
+```bash
+git log --no-renames --diff-merges=first-parent --name-only --format= <X>..<H>
+```
+
+When every listed path starts with `docs/pr-reviews/pr-<N>-review/`, the commits after `<X>` changed
+only the audit record, and `git diff <X>..<H>` is the whole text to read. The command lists the paths
+of each commit, not only the difference between the two ends, so a change outside the folder that a
+later commit reverts is still listed. `--diff-merges=first-parent` lists the paths of a merge commit,
+and `--no-renames` lists both paths of a file moved into the folder.
+
+The command helps the reviewer; it decides nothing. The new `ACK` names `<H>`.
 
 ## Prerequisites
 
