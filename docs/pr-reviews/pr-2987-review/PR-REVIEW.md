@@ -1,7 +1,7 @@
 ---
 pr-number: 2987
 pr-url: https://github.com/torrust/torrust-tracker/pull/2987
-last-updated-utc: "2026-11-21 15:27"
+last-updated-utc: "2026-11-22 09:25"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -127,6 +127,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-21 15:27 UTC - The validator on the worktree record reported 2 rows, 1 log entry and 0 failures. Resolved the two round 1 threads (about 15:20:09Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply. A GraphQL refresh then found 3 unresolved threads: da2ce7 review 6006228043 had arrived at 15:14:22Z.
 - 2026-11-21 15:27 UTC - Round 2: da2ce7 review 6006228043 (CHANGES_REQUESTED) with F3 to F5. Committed and pushed the fix for F3 (`docs(issues): [#2392] say only the remaining #1419 work was done under this EPIC`), which also replaced the round 1 wording of F2. Edited the PR description for F3 to F5 at 15:21:31Z. Replied to the three threads (about 15:26:42Z). Added rows F3 to F5 and updated the F2 verification to the current tree.
 - 2026-11-21 15:27 UTC - The validator on the worktree record reported 5 rows and 0 failures. Resolved the three round 2 threads (about 15:27:23Z) with the same selection; a GraphQL refresh found no unresolved thread, and the newest review by a reviewer in the review list was 6006228043. Committed these entries.
+- 2026-11-22 09:25 UTC - Correction for the record's start: this record did not exist before the first reply. It was created in the worktree right after the round 1 replies (about 15:20Z on 2026-11-21) and first committed in `docs(pr-reviews): [#2392] audit review rounds 1 and 2 of PR 2987` (about 15:28Z). The second entry is stamped 15:27, when it was written; the round 1 resolutions it records happened at about 15:20:09Z.
 
 <!-- Copied verbatim into each audit record. -->
 

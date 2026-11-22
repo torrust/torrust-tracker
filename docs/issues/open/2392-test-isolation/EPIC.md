@@ -6,7 +6,7 @@ epic: null
 github-issue: 2392
 spec-path: docs/issues/open/2392-test-isolation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-21 13:24"
+last-updated-utc: "2026-11-22 09:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -309,6 +309,10 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
   closed: PR #2983 merged on 2026-11-21 13:16 UTC and closed #1419. The 2026-11-20 entry was
   written inside PR #2983 before it merged. The Delivery Strategy and the Phase 4 outcome no
   longer describe #1419 as remaining work.
+- 2026-11-22 09:25 UTC - Claude Code (Claude Opus 5.5), EPIC coordinator - Review rounds of PR #2987 changed the
+  sync on 2026-11-21: the 13:24 entry now says when PR #2983 merged (about 15:14 UTC), and the
+  Phase 4 outcome now says only #1419's remaining R8, AC8a and R9 were done under this EPIC
+  (about 15:20 UTC).
 
 ## Acceptance Criteria
 
