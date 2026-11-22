@@ -45,12 +45,12 @@ da2ce7's review `6011641355` (`APPROVED` when submitted at 2026-11-22 10:12:09 U
 
 Round 1 is Copilot review `6011656162` (`COMMENTED`, on the same head), with one inline comment, F1 (an audit-local ID). The comment carries no severity label; `Suggestion` is inferred from its wording ("consider formatting"). The review body says the full agentic review did not run because it did not start before the timeout, and raises nothing else.
 
-Round 2 is da2ce7's review `6011725447` (`COMMENTED`, on head `docs(issues): [#2949] quote the section title in EPIC row 24`), with one inline comment that carries the reviewer's ID F4 and an explicit severity label. It is recorded here as F2, the next audit-local ID, with F4 as its reviewer finding ID. The review was submitted after the round-1 fix was pushed and before this record's first commit reached the branch.
+Round 2 is da2ce7's review `6011725447` (`COMMENTED`, on head `docs(issues): [#2949] quote the section title in EPIC row 24`), with one inline comment that carries the reviewer's ID F4 and an explicit severity label. F4 collides with no ID in this record, so the row keeps it and the record has no F2 or F3. The review was submitted after the round-1 fix was pushed and before this record's first commit reached the branch. da2ce7's review `6011764970` (`COMMENTED`, on head `docs(pr-reviews): [#2949] add the PR #2992 review audit record with round 1`) has no inline comment: it says F4 was partly addressed at that head and that its row keeps the reviewer's ID.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | F1 | `review-finding:pr-2992-f1` | Copilot | Suggestion (inferred) | formatting | ORIGINAL | FIXED | RESOLVED |
-| F2 | `review-finding:pr-2992-f2` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F4 | `review-finding:pr-2992-f4` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -67,7 +67,7 @@ Round 2 is da2ce7's review `6011725447` (`COMMENTED`, on head `docs(issues): [#2
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2992#discussion_r4657692217
 
-### F2 - The thread was answered and resolved before the audit record existed
+### F4 - The thread was answered and resolved before the audit record existed
 
 - PR number: 2992
 - Source review ID: 6011725447
@@ -75,7 +75,7 @@ Round 2 is da2ce7's review `6011725447` (`COMMENTED`, on head `docs(issues): [#2
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2992#discussion_r4657706285
 - Concern: The automated review's comment received a fix, a reply and a resolution, but at that head the branch had no `docs/pr-reviews/pr-2992-review/`; `process-pr-review` creates the record before the first reply.
 - Solution: The record was added in the next commit, with the row for F1. The late start is logged in the Processing Log.
-- Current-tree verification: `test -f docs/pr-reviews/pr-2992-review/PR-REVIEW.md` exits 0, and the pull request's two review threads map one to one to the Source URLs of rows F1 and F2.
+- Current-tree verification: `test -f docs/pr-reviews/pr-2992-review/PR-REVIEW.md` exits 0, and the pull request's two review threads map one to one to the Source URLs of rows F1 and F4.
 - Resolution reference: `docs(pr-reviews): [#2949] add the PR #2992 review audit record with round 1`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2992#discussion_r4657709157
@@ -84,6 +84,7 @@ Round 2 is da2ce7's review `6011725447` (`COMMENTED`, on head `docs(issues): [#2
 
 - 2026-11-22 10:23 UTC - AI assistant (Claude Code, Claude Fable 5.2, issue #2949 session) - Started audit. The poller reported da2ce7's review 6011641355 (an approval with no finding) and their `ACK` on the first head (2026-11-22 10:12:12 UTC), then Copilot review 6011656162 (submitted 10:16:48 UTC). Round 1: normalized Copilot's inline comment as F1, fixed it in its own commit and pushed it, which made da2ce7's `ACK` stale; replied on the thread (10:23:18 UTC), then resolved it. Before writing this entry, listed every review and conversation comment of the pull request: none is left out.
 - 2026-11-22 10:29 UTC - AI assistant (Claude Code, Claude Fable 5.2, issue #2949 session) - Late start, and round 2. The reply on F1's thread (10:23:18 UTC) and its resolution came before this record existed; the record's first commit was pushed about five minutes later. `process-pr-review` says to create the record before the first reply. da2ce7's review 6011725447 (submitted 2026-11-22 10:28:04 UTC, on the head between the two pushes) pointed this out. Normalized its inline comment as F2; the record's first commit already fixed it. Replied on the thread (10:29:01 UTC) and resolved it. Listed every review and conversation comment of the pull request before writing this entry: none is left out.
+- 2026-11-22 10:34 UTC - AI assistant (Claude Code, Claude Fable 5.2, issue #2949 session) - Correction to the entry above: it says the comment was normalized as F2. da2ce7's review 6011764970 (submitted 2026-11-22 10:33:56 UTC) pointed out that `process-pr-review` step 3 keeps a reviewer's ID that collides with nothing, so the row is renamed F4, with the reference `review-finding:pr-2992-f4`. The first reply on the thread also said F2; a second reply (10:34:24 UTC, edited once to name a commit subject instead of a time) corrects it. The entry above stays as written.
 
 ## Completion Rules
 
