@@ -98,20 +98,23 @@ This is substantively a bug (a secret printed to a client and to logs), so it fo
 
 ## Implementation Plan
 
+Test-development loop (required by `docs/templates/ISSUE.md`, "Commit Points", and the `create-issue` skill): the red tests are not written as one batch. Use the `write-unit-test` skill and work one behavior area at a time, in the order of the commit points below. For each area: write the smallest behavior-focused test, record its red output, make the production change, record the green output, then perform and record an explicit test-design review before starting the next area. The review uses the prose-first Arrange-Act-Assert comparison (write temporary prose for each section, refactor until the code expresses it, remove redundant prose) and confirms that the test exposes the one causal initial-state difference, that its fixture owns only incidental mechanics, and that the production Act and the independently specified expected result stay visible. Record each review in the task's evidence. Commit each reviewed increment before the next one. After the last increment, stop for maintainer review before final verification, the final commit and the pull request.
+
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
 | T1 | TODO | Baseline reproduction | The EPIC cases A1 to A6 and A10 reproduced on the starting commit; evidence recorded. Starts after SI-4 (#2916) merges. |
-| T2 | TODO | Red tests | Unit tests for the errors, the redaction function, the generated key, the configuration error and the REST client; protocol assertions; red output recorded. |
+| T2 | TODO | Test plan | The list of tests per behavior area (T3 to T8), written before the first one. The tests themselves are written red-then-green inside each area, with a recorded test-design review after each passing increment. |
 | T3 | TODO | Key errors and messages | A1, A2 and the new peer-key messages; the REST responses stop echoing the key. |
 | T4 | TODO | `Key` type | Redacting `Debug`; remaining `Display` uses listed and justified. |
 | T5 | TODO | Request logging | The shared redaction function; custom `MakeSpan` and `on_request` in the three servers; the generated-key log lines removed. |
 | T6 | TODO | REST client | `without_url`, header token, `SecretString` where practical. |
 | T7 | TODO | Configuration errors | A10: no secret value in a configuration error. |
-| T8 | TODO | Documentation | `handle-secrets` skill, the ADR change, `docs/containers.md`. |
-| T9 | TODO | Final recheck | The baseline reproduction repeated after the last production change. |
 | T7b | TODO | Database errors | A12: the key store errors keep and print no driver message that holds a key; MySQL duplicate-key regression test. |
+| T8 | TODO | Documentation | `handle-secrets` skill, the ADR change, `docs/containers.md`. |
+| T8b | TODO | Maintainer checkpoint | Stop for maintainer review after the last test increment, before final verification, the final commit and the pull request. |
+| T9 | TODO | Final recheck | The baseline reproduction repeated after the last production change. |
 
 ## Commit Points
 
@@ -156,11 +159,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [ ] AC6: A transport error of the REST client holds neither the token nor the URL query.
 - [ ] AC7: A configuration error for a secret option names the option and the expected type and does not print the value.
 - [ ] AC8: The `handle-secrets` skill and an ADR state how the peer key and URL-borne secrets are handled, and `docs/containers.md` no longer teaches `?token=` or a `mysql://` `path`.
+- [ ] AC9: Adding a peer key that already exists leaves no key in the retained error, the REST reply or the log, on MySQL, PostgreSQL and SQLite.
+- [ ] AC10: Each test increment has a recorded test-design review, and the maintainer checkpoint after the last increment is recorded in the progress log.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] AC9: Adding a peer key that already exists leaves no key in the retained error, the REST reply or the log, on MySQL, PostgreSQL and SQLite.
-- [ ] AC10: Each test increment has a recorded test-design review, and the maintainer checkpoint after the last increment is recorded in the progress log.
 - [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 
 ## Verification Plan
@@ -183,10 +186,10 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | M4 | Generated key | `POST /api/v1/key/3600` with `trace_filter = "debug"` | The log has no `Generated key` line with the key | TODO | `manual-verification-evidence.md` section V4 |
 | M5 | Configuration error | Start the tracker with `password = 987654321` and with a numeric access token | The error names the option and the expected type, not the number | TODO | `manual-verification-evidence.md` section V5 |
 | M6 | REST client | Point the client at a closed port with a token | The error text holds no token | TODO | `manual-verification-evidence.md` section V6 |
+| M7 | Duplicate key on MySQL | On a tracker with a MySQL database and `trace_filter = "debug"`, add the same key twice through the REST API; read the reply and the log | Neither holds the key | TODO | `manual-verification-evidence.md` section V7 |
 
 Notes: manual verification is mandatory even when automated tests pass. Record the toolchain for every command, and create `manual-verification-evidence.md` from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`.
 
-| M7 | Duplicate key on MySQL | On a tracker with a MySQL database and `trace_filter = "debug"`, add the same key twice through the REST API; read the reply and the log | Neither holds the key | TODO | `manual-verification-evidence.md` section V7 |
 ### Disposable Verification Scripts
 
 None planned. The UDP and HTTP probes of the EPIC session were ad-hoc commands; promote any durable check to a Rust test.
@@ -203,11 +206,11 @@ None planned. The UDP and HTTP probes of the EPIC session were ad-hoc commands; 
 | AC6 | TODO | {test/log/PR link} |
 | AC7 | TODO | {test/log/PR link} |
 | AC8 | TODO | {test/log/PR link} |
+| AC9 | TODO | {test/log/PR link} |
+| AC10 | TODO | {test/log/PR link} |
 
 ## Risks and Trade-offs
 
-| AC9 | TODO | {test/log/PR link} |
-| AC10 | TODO | {test/log/PR link} |
 - **Redacting the URI loses debugging value.** An operator cannot see which key a client used. Mitigation: if correlation is needed, log a short stable fingerprint (a truncated hash) instead of the key; decide in review.
 - **Conflict with SI-4 (#2916).** Both rewrite the tracker-core key errors. Mitigation: start after SI-4 merges.
 - **A breaking change in a public error enum.** `UnableToReadKey` loses a field. Mitigation: tracker-core is not published yet, and the enum is `#[non_exhaustive]`.

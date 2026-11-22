@@ -98,6 +98,8 @@ The driver text in client replies and the wrong `InvalidQuery` label are bugs ag
 
 ## Implementation Plan
 
+Test-development loop (required by `docs/templates/ISSUE.md`, "Commit Points", and the `create-issue` skill): the red tests are not written as one batch. Use the `write-unit-test` skill and work one behavior area at a time, in the order of the commit points below (T4 to T7). For each area: write the smallest behavior-focused test, record its red output, make the production change, record the green output, then perform and record an explicit test-design review before starting the next area. The review uses the prose-first Arrange-Act-Assert comparison (write temporary prose for each section, refactor until the code expresses it, remove redundant prose) and confirms that the test exposes the one causal initial-state difference, that its fixture owns only incidental mechanics, and that the production Act and the independently specified expected result stay visible. Record each review in the task's evidence. Commit each reviewed increment before the next one. After the last increment, stop for maintainer review before final verification, the final commit and the pull request.
+
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
@@ -110,6 +112,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T6 | TODO | UDP tracker text and the error event | As the ADR decides. |
 | T7 | TODO | REST API text | As the ADR decides, within v1's additive-only rule. |
 | T8 | TODO | Skill and documentation | `handle-errors-in-code`; any documented example reply. |
+| T8b | TODO | Maintainer checkpoint | Stop for maintainer review after the last test increment, before final verification, the final commit and the pull request. |
 | T9 | TODO | Final recheck | The baseline reproduction repeated after the last production change. |
 
 ## Commit Points
@@ -117,11 +120,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | Task | Coherent change set | Commit policy |
 | --- | --- | --- |
 | T1 | The ADR and the index entry | Commit after focused validation and required review. |
-| T3 | The red tests | Commit after focused validation and required review. |
-| T4 | Database error mapping and the tracing event | Commit after focused validation and required review. |
-| T5 | HTTP tracker text | Commit after focused validation and required review. |
-| T6 | UDP tracker text and event | Commit after focused validation and required review. |
-| T7 | REST API text | Commit after focused validation and required review. |
+| T4 | Database error mapping and the tracing event | Commit after the red and green runs and the recorded test-design review. |
+| T5 | HTTP tracker text | Commit after the red and green runs and the recorded test-design review. |
+| T6 | UDP tracker text and event | Commit after the red and green runs and the recorded test-design review. |
+| T7 | REST API text | Commit after the red and green runs and the recorded test-design review. |
 | T8 | Skill and documentation | Commit after focused validation and required review. |
 
 ## Progress Tracking
@@ -154,6 +156,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [ ] AC4: The UDP connection-id error holds no server clock value, and the UDP parse error holds no Rust type name.
 - [ ] AC5: Every changed client text is listed, old and new, in this specification and was approved before the change.
 - [ ] AC6: The `handle-errors-in-code` skill states the policy.
+- [ ] AC7: Each test increment has a recorded test-design review, and the maintainer checkpoint after the last increment is recorded in the progress log.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -195,6 +198,7 @@ A short UDP probe (connect, announce, raw packet) is needed for M2 and M3, becau
 | AC4 | TODO | {test/log/PR link} |
 | AC5 | TODO | {test/log/PR link} |
 | AC6 | TODO | {test/log/PR link} |
+| AC7 | TODO | {test/log/PR link} |
 
 ## Risks and Trade-offs
 
