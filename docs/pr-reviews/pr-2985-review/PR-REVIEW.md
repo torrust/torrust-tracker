@@ -330,7 +330,7 @@ Round 1 is da2ce7's APPROVED review `6006228624` (six inline findings, F1 to F6 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2985#discussion_r4657638201
 
-### F20 - The audit cites the PR-branch commit 4cf09d58e by id
+### F20 - The audit cites a PR-branch commit by id
 
 - PR number: 2985
 - Source review ID: 6011655297
