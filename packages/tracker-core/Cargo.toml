@@ -47,7 +47,7 @@ tracing = "0"
 
 [dev-dependencies]
 mockall = "0"
-rstest = "0.28.0"
+rstest = { version = "0.28.0", default-features = false }
 secrecy = "0.10.3"
 testcontainers = "0"
 tempfile = "3.27.0"
