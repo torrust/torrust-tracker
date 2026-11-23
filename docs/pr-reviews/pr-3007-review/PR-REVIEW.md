@@ -1,7 +1,7 @@
 ---
 pr-number: 3007
 pr-url: https://github.com/torrust/torrust-tracker/pull/3007
-last-updated-utc: "2026-11-23 16:41"
+last-updated-utc: "2026-11-23 16:48"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -47,7 +47,7 @@ Round 2, on the head that carries the audit commit: Greptile review 6023502560 a
 
 Round 3, on the head that carries the round 2 audit: Copilot review 6025006260 (COMMENTED, with its "didn't start before the timeout" warning) left four threads. Three ask for the same change on lines 98, 107 and 114 of the EPIC, so F14 and F15 are re-raises of F13. F16 is not a defect and gets the prescribed `Superseded by` reply.
 
-Round 4, on the head that carries the round 3 audit: da2ce7 review 6025458205 (APPROVED) with one Nit, recorded as F17 (his ID F13 is taken here).
+Round 4, on the head that carries the round 3 audit: da2ce7 review 6025458205 (APPROVED) with one Nit, recorded as F17 (his ID F13 is taken here). Copilot review 6025604829 then reviewed the fix head, one commit before the round 4 audit, and asked for the row that F17 already is; it is recorded as F18 with the prescribed `Superseded by` reply.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -68,6 +68,7 @@ Round 4, on the head that carries the round 3 audit: da2ce7 review 6025458205 (A
 | F15 | review-finding:pr-3007-f15 | Copilot | Minor (inferred) | documentation | RE_RAISE_OF:F13 | FIXED | RESOLVED |
 | F16 | review-finding:pr-3007-f16 | Copilot | Nit (inferred) | formatting | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F17 | review-finding:pr-3007-f17 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-3007-f18 | Copilot | Minor | metadata | ORIGINAL | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -292,6 +293,19 @@ Round 4, on the head that carries the round 3 audit: da2ce7 review 6025458205 (A
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4668845107
 
+### F18 - The count correction has no audit row
+
+- PR number: 3007
+- Source review ID: 6025604829
+- Reviewer finding ID: F17
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4668922122
+- Concern: The audit ends at round 3 with no row for da2ce7's finding on the stale "of 11" totals.
+- Solution: None: the reviewed head `e5aa7579c` was one commit before the audit commit; row F17 and its detail entry already record that finding.
+- Current-tree verification: `grep -c '^| F17 | review-finding' docs/pr-reviews/pr-3007-review/PR-REVIEW.md` printed 1 at the head after the round 4 audit commit.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4668927443
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4668927443
+
 ## Processing Log
 
 - 2026-11-23 14:24 UTC - Reviews arrived on the first head: Greptile (14:10:28), CodeRabbit (14:11:52) and da2ce7 (14:24:56).
@@ -306,6 +320,8 @@ Round 4, on the head that carries the round 3 audit: da2ce7 review 6025458205 (A
 - 2026-11-23 16:23 UTC - Added rows F13 to F16 after the replies and the resolution.
 - 2026-11-23 16:41 UTC - Round 4: da2ce7 review 6025458205 (16:37:55, APPROVED, one Nit); pushed the fix, replied (16:41:33) and resolved the thread (16:41:35).
 - 2026-11-23 16:41 UTC - Added row F17 after the reply and the resolution.
+- 2026-11-23 16:47 UTC - Copilot review 6025604829 (16:47:22) on the fix head asked for row F17, which the round 4 audit commit had already added; replied with `Superseded by F17` (16:47:48) and resolved (16:47:50). No change to the specs.
+- 2026-11-23 16:48 UTC - Added row F18 after the reply and the resolution.
 
 ## Completion Rules
 
