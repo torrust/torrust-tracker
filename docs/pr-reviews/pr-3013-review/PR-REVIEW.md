@@ -1,7 +1,7 @@
 ---
 pr-number: 3013
 pr-url: https://github.com/torrust/torrust-tracker/pull/3013
-last-updated-utc: "2026-11-23 18:36"
+last-updated-utc: "2026-11-23 18:57"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -43,6 +43,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
+Round 2 is Copilot's COMMENTED review `6027526242` (18:50:43Z, two inline findings, F5 and F6; the review says its full agentic review did not start before the timeout) on the head `docs(issues): [#2984] record the test design reviews of the implementation`.
+
 Round 1 is Copilot's COMMENTED review `6026885441` (18:05:27Z, three inline findings, F1 to F3) on the head `docs(issues): [#2984] record the red and green evidence and mark the implementation tasks done`. Greptile's COMMENTED review `6026494247` (17:40:51Z, one inline finding, F4) came earlier on the same head, but it is not on the poller's reviewer list, so it was found only when the threads were listed before resolving; it is numbered after Copilot's findings for that reason and re-raises F2.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
@@ -51,6 +53,8 @@ Round 1 is Copilot's COMMENTED review `6026885441` (18:05:27Z, three inline find
 | F2 | `review-finding:pr-3013-f2` | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | F3 | `review-finding:pr-3013-f3` | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F4 | `review-finding:pr-3013-f4` | Unknown | Minor (inferred) | testing | RE_RAISE_OF:F2 | NO_ACTION | SUPERSEDED |
+| F5 | `review-finding:pr-3013-f5` | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F6 | `review-finding:pr-3013-f6` | Copilot | Minor (inferred) | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -106,10 +110,37 @@ Round 1 is Copilot's COMMENTED review `6026885441` (18:05:27Z, three inline find
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3013#discussion_r4670019997
 
+### F5 - The IP-literal resolution test parses a hostname
+
+- PR number: 3013
+- Source review ID: 6027526242
+- Reviewer finding ID: Copilot summary, no ID
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3013#discussion_r4670430277
+- Concern: `it_should_resolve_the_socket_address_for_udp_scheme_urls_containing_an_ip` parsed `udp://localhost:8080`, a hostname, so it duplicated the domain test and left IP-literal resolution untested.
+- Solution: The test already duplicated the domain test on `develop`; it is now two tests, one for `udp://127.0.0.1:8080` and one for `udp://[::1]:8080`, each asserting the exact socket address.
+- Current-tree verification: `cargo test -p torrust-tracker-client --lib checks::udp` passes (5 tests) and `grep -n "ipv4_address\|ipv6_address" console/tracker-client/src/console/clients/checker/checks/udp.rs` finds both tests.
+- Resolution reference: `test(tracker-client): [#2984] resolve real IP literals in the socket-address tests`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3013#discussion_r4670505999
+
+### F6 - `&"boom"` is said to rely on deref coercion in the panic-record test
+
+- PR number: 3013
+- Source review ID: 6027526242
+- Reviewer finding ID: Copilot summary, no ID
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3013#discussion_r4670430355
+- Concern: Passing `&"boom"` is said to rely on deref coercions to match `&(dyn Any + Send)`, and Copilot asks for a `&str` to be passed directly.
+- Solution: No change. `&"boom"` is a `&&'static str` and the coercion to a trait object keeps the concrete type `&'static str`, the type of a real panic payload, so `downcast_ref::<&str>()` is correct; a bare `"boom"` has the unsized type `str` and cannot be a `dyn Any`.
+- Current-tree verification: `cargo test -p torrust-tracker-client --lib unified::output` passes; the str-payload test asserts the message equals `boom`, which fails when the `&str` downcast does not succeed.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3013#discussion_r4670506435
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3013#discussion_r4670506435
+
 ## Processing Log
 
 - 2026-11-23 18:20 UTC - Round 1: Copilot's COMMENTED review `6026885441` (18:05:27Z, three findings F1 to F3). Three commits fixed them, one per finding (pushed, exit 0). Three replies were posted after the push, between 18:14:13Z and 18:14:19Z, and this record was written after them, not before (late start). Greptile's review `6026494247` (17:40:51Z, one finding F4, a re-raise of F2) was found at 18:14Z while listing the threads, because the poller does not watch Greptile; its reply (`Superseded by F2`) was posted at 18:14Z. All four threads were resolved at 18:14Z. The poller's reviewer list has no Greptile entry; later rounds pass it with `--reviewer` so a Greptile review wakes the loop.
 - 2026-11-23 18:36 UTC - Correction: the round 1 entry stamped 2026-11-23 18:20 UTC (and the record's `last-updated-utc`) carry a time that was typed, not read from the clock. The entry was written after the replies (18:14:13Z to 18:14:19Z) and before the validator run; the exact minute is not known. The first commit of this record failed the spell check and was redone with the reviewer's name added to the project dictionary.
+- 2026-11-23 18:57 UTC - Round 2: Copilot's COMMENTED review `6027526242` (18:50:43Z, two findings F5 and F6). One commit fixed F5 (pushed, exit 0); F6 needs no change. Two replies were posted after the push, at 18:57:01Z and 18:57:03Z, and the threads were resolved at 18:57Z. This entry and the two detail entries were written after them, at 2026-11-23 18:57 UTC (the clock read). Copilot's review overview lists the three round 1 findings as resolved.
 
 ## Completion Rules
 
