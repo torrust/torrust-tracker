@@ -43,11 +43,14 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 Round 1 covers review 6022881456 (da2ce7, CHANGES_REQUESTED, submitted 2026-11-23T13:54:50Z) with three inline threads on `Cargo.lock`, each with a `[Severity][FindingId]` first line. Its body repeats the three findings and adds none. Copilot's review 6022670775 (COMMENTED) reviewed no files and has no finding. The reviewer's IDs F1 to F3 do not collide and are kept. All three concern the pull request description, which becomes the merge commit message, and not the repository tree.
 
+Round 2 covers review 6023020444 (CodeRabbit, COMMENTED, submitted 2026-11-23T14:04:23Z) with one inline thread on this audit record, F4. CodeRabbit is classified `Unknown`. Its comment carries a `Minor` badge in its first line, not a `[Severity][FindingId]` bracket, so the severity is `Minor (inferred)`.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3003-f1 | Human | Major | documentation | ORIGINAL | FIXED | RESOLVED |
 | F2 | review-finding:pr-3003-f2 | Human | Major | documentation | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-3003-f3 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F4 | review-finding:pr-3003-f4 | Unknown | Minor (inferred) | documentation | ORIGINAL | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -90,11 +93,26 @@ Round 1 covers review 6022881456 (da2ce7, CHANGES_REQUESTED, submitted 2026-11-2
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3003#discussion_r4666785579
 
+### F4 - Add `jiff` to the project dictionary
+
+- PR number: 3003
+- Source review ID: 6023020444
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3003#discussion_r4666864936
+- Concern: This audit record introduces the crate name `jiff`, and CodeRabbit asked for it to be added to `project-words.txt` for the spell checker.
+- Solution: No change: the spell checker already accepts the word, so a dictionary entry is not needed.
+- Current-tree verification: `linter cspell` prints "All files passed spell checking!" at head `b5f1ad75d`, and `cspell --no-progress docs/pr-reviews/pr-3003-review/PR-REVIEW.md` reports 0 issues; `grep -n -i '^jiff' project-words.txt` prints nothing.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3003#discussion_r4666945484
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3003#discussion_r4666945484
+
 ## Processing Log
 
 - 2026-11-23 13:54 UTC - Round 1 review 6022881456 submitted by da2ce7 (the poller reported it at 13:54:50Z).
 - 2026-11-23 13:57 UTC - Edited the pull request description and replied on the three threads (replies created 13:57:28Z to 13:57:34Z). The audit record was not created first, so this is a late start.
 - 2026-11-23 13:58 UTC - Created this audit record after the replies, as the late start the skill prescribes, before resolving the threads.
+- 2026-11-23 14:04 UTC - Round 2 review 6023020444 submitted by CodeRabbit (inline comment created 14:04:23Z).
+- 2026-11-23 14:11 UTC - Replied on the F4 thread (https://github.com/torrust/torrust-tracker/pull/3003#discussion_r4666945484), then recorded F4 in this audit, before resolving the thread.
 
 ## Completion Rules
 
