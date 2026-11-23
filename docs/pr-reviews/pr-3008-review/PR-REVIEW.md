@@ -53,6 +53,10 @@ Round 4 covers review 6025551279 (Copilot, COMMENTED, submitted 2026-11-23T16:44
 
 Round 5 covers review 6025811357 (da2ce7, CHANGES_REQUESTED, submitted 2026-11-23T17:00:35Z, of the head whose last commit is `docs(issues): [#3006] say that agent-reply-validator uses a schema version`) with three inline comments that carry the reviewer IDs F12, F13 and F14. They collide with the audit's F12 to F14, so they are recorded in source order as F16 (their F13), F17 (their F12) and F18 (their F14), with the reviewer's ID in each detail entry. Its body summarizes them and makes no row.
 
+Round 6 covers review 6025861610 (Copilot, COMMENTED, submitted 2026-11-23T17:04:02Z, of the head whose last commit is `docs(issues): [#3006] say that agent-reply-validator uses a schema version`) with three inline comments without IDs or severity brackets, recorded as F19, F20 and F21; severities are inferred. F21 asks for the same F15 entry as F18 and is a re-raise.
+
+Round 7 covers review 6025926288 (da2ce7, submitted 2026-11-23T17:08:10Z, of the head whose last commit is `docs(pr-reviews): [#3006] record review round 4 of PR #3008`; GitHub shows its state as DISMISSED) with one inline comment carrying the reviewer ID F16, which collides with the audit's F16, so it is recorded as F22. Its body restates F12 (audit F17) as standing and makes no other row; da2ce7 posted an ACK of that head at 17:08:14Z.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3008-f1 | Human | Major | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -73,6 +77,10 @@ Round 5 covers review 6025811357 (da2ce7, CHANGES_REQUESTED, submitted 2026-11-2
 | F16 | review-finding:pr-3008-f16 | Human | Major | documentation | ORIGINAL | FIXED | RESOLVED |
 | F17 | review-finding:pr-3008-f17 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F18 | review-finding:pr-3008-f18 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F19 | review-finding:pr-3008-f19 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-3008-f20 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F21 | review-finding:pr-3008-f21 | Copilot | Minor (inferred) | documentation | RE_RAISE_OF:F18 | NO_ACTION | SUPERSEDED |
+| F22 | review-finding:pr-3008-f22 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -310,6 +318,58 @@ Round 5 covers review 6025811357 (da2ce7, CHANGES_REQUESTED, submitted 2026-11-2
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669109801
 
+### F19 - The test loop did not state when the design review is recorded or when the maintainer reviews
+
+- PR number: 3008
+- Source review ID: 6025861610
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669125450
+- Concern: The plan asked for a design review after each passing increment but did not require recording it before the next test-producing subtask, nor a maintainer review after the final increment, as `create-issue` requires.
+- Solution: The commit-points section states the `write-unit-test` loop for T2: the smallest increment, the prose-first Arrange-Act-Assert design review recorded in the task evidence before the next test-producing increment, and a stop for maintainer review after the final increment.
+- Current-tree verification: `grep -c 'Record the result in the task evidence before the next test-producing increment' docs/issues/open/3006-2758-tracker-client-schema-version/ISSUE.md` prints 1; `grep -c 'stop for maintainer review before final verification' docs/issues/open/3006-2758-tracker-client-schema-version/ISSUE.md` prints 1.
+- Resolution reference: `docs(issues): [#3006] state the test-loop gates and the completion-review rule`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669252579
+
+### F20 - The Implementation Completion Review had only a placeholder
+
+- PR number: 3008
+- Source review ID: 6025861610
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669125529
+- Concern: The section did not say when to create the retrospective or how to close the review without one.
+- Solution: The section says to compare the result with the spec, create `implementation-retrospective.md` from the template when there are material discoveries, and otherwise add a progress-log entry explaining why there were none.
+- Current-tree verification: `grep -c 'Otherwise add a progress-log entry explaining why the work had no material discovery' docs/issues/open/3006-2758-tracker-client-schema-version/ISSUE.md` prints 1.
+- Resolution reference: `docs(issues): [#3006] state the test-loop gates and the completion-review rule`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669253063
+
+### F21 - The audit ended at F14 while a reply cited audit F15
+
+- PR number: 3008
+- Source review ID: 6025861610
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669125616
+- Concern: Same request as F18: add the F15 row and detail entry that reply discussion_r4669009621 cites.
+- Solution: No separate change: F18's fix covers it.
+- Current-tree verification: Same as F18.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669253697
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669253697
+
+### F22 - The round-5 threads awaited rows, one reply and resolutions
+
+- PR number: 3008
+- Source review ID: 6025926288
+- Reviewer finding ID: F16
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669179002
+- Concern: At the reviewed head the record had no rows for the three round-5 threads, the F12 thread had no reply and none was resolved.
+- Solution: The round-5 audit commit added F16 to F18 with their reply URLs; the F12 thread was answered and the three threads resolved.
+- Current-tree verification: `grep -cE '^\| F1[678] \|' docs/pr-reviews/pr-3008-review/PR-REVIEW.md` prints 3.
+- Resolution reference: `docs(pr-reviews): [#3006] record review round 5 of PR #3008 and drop branch commit ids`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669259608
+
 ## Processing Log
 
 - 2026-11-23 16:10 UTC - Started audit. Round 1: review 6024919812 (da2ce7, CHANGES_REQUESTED, submitted 16:03:08Z) with seven inline comments, F1 to F7. F1 needed a maintainer decision: he chose D4 (the `http scrape` entries under `files`) and D5 (the UDP field beside the tag). The fixes of F1 and F3 to F7 were committed and pushed as `josecelano-bot` (`docs(issues): [#3006] move http scrape entries under files and name all consumers`).
@@ -322,6 +382,8 @@ Round 5 covers review 6025811357 (da2ce7, CHANGES_REQUESTED, submitted 2026-11-2
 - 2026-11-23 16:54 UTC - Round 4: review 6025551279 (Copilot, 16:44:16Z) recorded as F15. The fix was committed and pushed as `josecelano-bot` (`docs(issues): [#3006] say that agent-reply-validator uses a schema version`). Replied on the thread (16:54:30Z) and resolved it (the mutation returned `isResolved` true).
 - 2026-11-23 16:55 UTC - The audit validator, run with the bot token, exits 0 (15 rows, 0 failures). A GraphQL fetch that ran before this entry shows 14 threads, 0 unresolved.
 - 2026-11-23 17:03 UTC - Round 5: review 6025811357 (da2ce7, CHANGES_REQUESTED, 17:00:35Z) recorded as F16 to F18. F16: edited the PR description with `gh-bot pr edit`. F17: replaced the three branch commit ids in this record with commit subjects; the `open-pull-request` commit-id check prints nothing. F18 was already fixed by the round-4 audit commit. Replied on the three threads (17:01Z to 17:03:39Z) and resolved them (each mutation returned `isResolved` true). `linter all` exits 0.
+- 2026-11-23 17:15 UTC - Rounds 6 and 7: review 6025861610 (Copilot, 17:04:02Z) recorded as F19 to F21 and review 6025926288 (da2ce7, 17:08:10Z) as F22. The fix of F19 and F20 and the round-5 audit commit were pushed as `josecelano-bot` (`git-bot-push` exit 0). Replied on the four threads (17:14:17Z to 17:14:49Z) and resolved them (each mutation returned `isResolved` true).
+- 2026-11-23 17:16 UTC - The audit validator, run with the bot token, exits 0 (22 rows, 0 failures), and the `open-pull-request` commit-id check prints nothing. A GraphQL fetch that ran before this entry shows 21 threads, 0 unresolved.
 
 ## Completion Rules
 
