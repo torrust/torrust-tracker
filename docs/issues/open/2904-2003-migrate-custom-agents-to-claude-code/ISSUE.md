@@ -374,8 +374,11 @@ Decided by the maintainer on 2026-11-15:
   - **A continuation without a line.** A caller that continues a reviewer for a task with no
     folder-style specification has no `Reply file:` line to write, and no other marker is added.
     The latest line found is then the earlier request's. This is harmless: the earlier run could
-    only have finished with that file valid or with its 3 refusals used, so the hook lets the
-    agent finish, and its message names the earlier file.
+    only have finished with that file valid or with its 3 refusals used. If the earlier file's
+    specification folder is still in place, the hook therefore lets the agent finish, and its
+    message names the earlier file. If that folder no longer exists, for example because
+    close-out moved the specification to `docs/issues/closed/` after the earlier request, the
+    case of a missing specification folder below applies, and the agent also finishes.
   - **The count of refusals.** One file per request, keyed by the run's `agent_id` together with
     the reply file (for example a file named from the `agent_id` and the reply file's name), in
     `.agents/issues/<issue-number>/reply-guard/`. A continued run keeps its `agent_id`, but its
@@ -398,6 +401,14 @@ Decided by the maintainer on 2026-11-15:
     change the path the caller wrote, so the hook lets it finish, as for a draft, with a message
     that names the path and says it is outside the places D18 allows. It keeps no count. The
     caller then finds no valid reply file and stops, as the Requirements above say.
+  - **A missing specification folder.** For a `Reply file:` path under `docs/issues/open/` or
+    `docs/issues/closed/` whose specification folder does not exist, because close-out moved the
+    specification to `closed/` after an earlier request or because the caller mistyped the path,
+    the hook lets the agent finish with a message that names the path and says that its
+    specification folder does not exist. It keeps no count. Reason: the agent cannot create a
+    specification folder legitimately, and must not recreate a folder under `open/` to write a
+    reply. The caller then finds no valid reply file and stops, as for a path outside the
+    specification folders.
   - **The program.** A binary `agent-reply-guard` in the crate `agent-reply-validator` (T3), so
     the hook runs the same checks as the validator and needs no new crate.
 - **D18 - The trace is one JSON reply file per reply, validated against a schema.** Only replies
@@ -577,7 +588,7 @@ on are merged.
 | T2  | DONE   | Pointer `CLAUDE.md` | A root `CLAUDE.md` whose only content is the import of `AGENTS.md` (D11); if scenario M4 shows that a scoped `AGENTS.md` is not loaded, an import-only `CLAUDE.md` beside each of the ten scoped `AGENTS.md` files; scenario M4 recorded |
 | T3  | DONE   | Reply schema and validator | `docs/schemas/agent-reply-v1.schema.json`; the validator with tests, developed in the progressive loop of the `write-unit-test` skill with a recorded design review per increment, and run by the repository checks; `docs/schemas/README.md` updated (D18) |
 | T4  | DONE | `pr-review-handler` | `.claude/agents/pr-review-handler.md` with the pinned model; `wait-for-pr-review` and `process-pr-review` say which agent runs a round; the inventory `removed-profile-rules.md` created in this folder with the rules of `copilot-suggestions-handler` (AC6); scenarios M1 to M3 recorded |
-| T5  | TODO   | `task-reviewer` | The agent file with the pinned model and the stop hook (D17): the binary `agent-reply-guard` with tests of its limit of 3 refusals, of reading the latest `Reply file:` line from a transcript (including a continued run, a continued run whose last request has no line, and preloaded skill text that follows the task), and of the branches that let the agent finish without a line, for a draft path and for a path outside the specification folders, and the ignore and linter rules for `.agents/issues/`; the complexity item in `review-task` (D12); the reply rule in `review-task`, which refers to the reply-file line of D17 without showing it literally and also says that a reply file satisfies the earlier template's checkpoint (D18); scenario M7 recorded, including its continued-run step |
+| T5  | TODO   | `task-reviewer` | The agent file with the pinned model and the stop hook (D17): the binary `agent-reply-guard` with tests of its limit of 3 refusals, of reading the latest `Reply file:` line from a transcript (including a continued run, a continued run whose last request has no line, and preloaded skill text that follows the task), and of the branches that let the agent finish without a line, for a draft path, for a path outside the specification folders and for a path whose specification folder does not exist, and the ignore and linter rules for `.agents/issues/`; the complexity item in `review-task` (D12); the reply rule in `review-task`, which refers to the reply-file line of D17 without showing it literally and also says that a reply file satisfies the earlier template's checkpoint (D18); scenario M7 recorded, including its continued-run step |
 | T6  | TODO   | `implementer` | The agent file; the three committer rules in `commit-changes` (D14); the rules that only `planner` held moved into `create-issue` |
 | T7  | TODO   | `pr-reviewer` | The agent file with the pinned model; the reply rule in `review-pr` |
 | T8  | TODO   | `researcher` | The agent file |
@@ -609,7 +620,7 @@ T10 completes it before removing the profiles.
 | T11  | The measurement evidence | One commit per recorded pull request |
 | T12  | The completion review; the move to `closed/`; the EPIC row | One commit each |
 
-Tests are added in T3 (the reply validator) and in T5 (the stop hook: its limit of 3 refusals, reading the latest `Reply file:` line from a transcript including a continued run, a continued run whose last request has no line, and preloaded skill text that follows the task, and letting the agent finish without a line, for a draft path and for a path outside the specification folders). For
+Tests are added in T3 (the reply validator) and in T5 (the stop hook: its limit of 3 refusals, reading the latest `Reply file:` line from a transcript including a continued run, a continued run whose last request has no line, and preloaded skill text that follows the task, and letting the agent finish without a line, for a draft path, for a path outside the specification folders and for a path whose specification folder does not exist). For
 this test-producing work, use the `write-unit-test` skill and complete an explicit design review
 after each passing test increment, before maintainer review and commit. Confirm that the test
 exposes the one causal initial-state difference; its fixture owns only incidental mechanics; and
@@ -716,8 +727,8 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - The reply validator's tests, and a run of the validator on every reply file
 - The tests of the stop hook (T5): its limit of 3 refusals, reading the latest `Reply file:` line from a
   transcript including a continued run, a continued run whose last request has no line, and preloaded
-  skill text that follows the task, and letting the agent finish without a line, for a draft path and for a
-  path outside the specification folders
+  skill text that follows the task, and letting the agent finish without a line, for a draft path, for a
+  path outside the specification folders and for a path whose specification folder does not exist
 - `cargo test -p agent-review-report-contract` and a run of the check itself, in every task that
   touches a file it reads, including T9 (`docs/agents/orchestration.md`) and T10
 - `cargo test -p frontmatter-validator` in the task that changes its `.agent.md` rule
