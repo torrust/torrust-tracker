@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/3004-2758-tracker-client-mask-tracker-key/ISSUE.md
-last-updated-utc: "2026-11-23 17:09"
+last-updated-utc: "2026-11-23 18:03"
 ---
 
 <!-- cspell:ignore SECRETKEY OTHERKEY nothex Abcdefghijklmnopqrstuv -->
@@ -120,10 +120,11 @@ Full outputs are in `evidence/`.
 
 - Library, 2026-11-23 16:56 UTC, `cargo test -q -p torrust-tracker-client-lib --lib http::client`,
   with the masking functions as identity stubs and the library error unchanged:
-  10 failed, 11 passed (the 11 are the URL-building tests that existed before).
-  `evidence/t2-red-library.txt`. Each seam test failed on the key in the text, for example
-  `Failed to get a response: reqwest::Error { kind: Request, url: "http://127.0.0.1:46321/announce/SECRETKEYabc123?...`.
-- Console, 2026-11-23 16:56 UTC, the new tests run against the unchanged binary built from
+  10 failed, 11 passed. The 11 are the 8 URL-building tests that existed before and 3 new
+  no-change tests of the masking functions, which pass against identity stubs; 13 tests were added
+  in all. `evidence/t2-red-library.txt`. Each seam test failed on the key in the text, for example
+  `Failed to get a response: reqwest::Error { kind: Request, url: "http://127.0.0.1:37803/announce/SECRETKEYabc123?...`.
+- Console, 2026-11-23 16:57 UTC, the new tests run against the unchanged binary built from
   `develop` `6bc417424` (a copy kept before the branch changed any code):
   `NEXTEST_BIN_EXE_tracker_client=<copy> cargo test -q -p torrust-tracker-client --test key_redaction`.
   `cargo test` does not set `NEXTEST_BIN_EXE_*`, so the copy is the binary under test (the
@@ -337,10 +338,100 @@ $ target/debug/tracker_client http announce http://127.0.0.1:1/announce/SECRETKE
 exit=2 {"error":{"kind":"usage_error","source":"arguments","message":"error: unexpected argument 'http://x/announce/****' found\n\nUsage: tracker_client http announce [OPTIONS] <TRACKER_URL> <INFO_HASH>\n\nFor more information, try '--help'.\n"}}
 ```
 
+## Review round 1 of PR 3012: regression tests, fix and recheck
+
+The review found that the text masker missed an echoed URL with a scheme in upper or mixed case, a
+URL cut at a `)` or `'` inside it, and a URL that does not parse; that an authenticated library
+client did not mask its own key outside `/announce/` and `/scrape/`; and that the kind-only error
+text dropped the transport cause.
+
+### Red run
+
+2026-11-23 17:58 UTC, with the new tests added and the production code as in the reviewed head
+(`docs(issues): [#3004] record the regression tests, the recheck and the retrospective`),
+`evidence/r1-red.txt`:
+
+- `cargo test -q -p torrust-tracker-client-lib --lib http::client`: 8 failed (four text-masker
+  tests: upper-case scheme, `)` before the endpoint, a URL that does not parse, an apostrophe in
+  the user info; three client-key tests: custom path with no response, custom path with a `404`,
+  health check; and the transport-cause test), 23 passed. The two text tests for "one keyed URL"
+  and "no URL", added for the spec's planned cases, pass before the fix too.
+- `cargo test -q -p torrust-tracker-client --test key_redaction`: the four new echo tests (upper-case
+  scheme and a URL that does not parse, for the configuration error and the usage error) failed,
+  8 passed.
+
+### Green run
+
+2026-11-23 18:02 UTC on
+`test(tracker-client): [#3004] cover upper-case and malformed URLs in the echo paths`:
+`cargo test -p torrust-tracker-client -p torrust-tracker-client-lib` exit `0`; `key_redaction` 12
+passed, the library unit tests 35 passed. `cargo clippy -p torrust-tracker-client -p torrust-tracker-client-lib --all-targets -- -D clippy::pedantic`
+is clean.
+
+### Recheck after the round 1 fix
+
+2026-11-23 18:02 UTC, `tracker_client` and `torrust-tracker` built on
+`test(tracker-client): [#3004] cover upper-case and malformed URLs in the echo paths`, the last
+commit with code. The commands of V1 to V5, unchanged, with the same tracker configuration (a
+fresh database). This recheck replaces V1 to V5 as the final one; the texts now end with the chain
+of causes.
+
+```console
+$ target/debug/tracker_client http announce http://127.0.0.1:1/announce/SECRETKEYabc123 9c38422213e30bff212b30c360d26f9a02136422 > out.txt 2> err.txt
+exit=1
+stdout:
+stderr: {"error":{"kind":"runtime_failure","source":"runtime","message":"Failed to get a response: connection error for url (http://127.0.0.1:1/announce/****?info_hash=%9C8B%22%13%E3%0B%FF%21%2B0%C3%60%D2o%9A%02%13d%22&peer_id=%2DqB00000000000000001&port=17548&event=started&compact=0): client error (Connect): tcp connect error: Connection refused (os error 111)"}}
+grep -cF SECRETKEYabc123 err.txt -> 0
+
+$ target/debug/tracker_client http scrape http://127.0.0.1:1/scrape/SECRETKEYabc123 9c38422213e30bff212b30c360d26f9a02136422 > out.txt 2> err.txt
+exit=1
+stdout:
+stderr: {"error":{"kind":"runtime_failure","source":"runtime","message":"Failed to get a response: connection error for url (http://127.0.0.1:1/scrape/****?info_hash=%9C8B%22%13%E3%0B%FF%21%2B0%C3%60%D2o%9A%02%13d%22): client error (Connect): tcp connect error: Connection refused (os error 111)"}}
+grep -cF SECRETKEYabc123 err.txt -> 0
+
+$ TORRUST_CHECKER_CONFIG='{"udp_trackers":[],"http_trackers":["http://127.0.0.1:1/announce/SECRETKEYabc123"],"health_checks":[]}' target/debug/tracker_client check > out.txt 2> err.txt
+exit=0
+stdout: {"results":[{"Http":{"Err":{"url":"http://127.0.0.1:1/announce/****","results":[["Announce",{"Err":"Http request did not receive a response within the timeout: Failed to get a response: connection error for url (http://127.0.0.1:1/announce?info_hash=%9C8B%22%13%E3%0B%FF%21%2B0%C3%60%D2o%9A%02%13d%22&peer_id=%2DqB00000000000000001&port=17548&event=started&compact=0): client error (Connect): tcp connect error: Connection refused (os error 111)"}],["Scrape",{"Err":"Http request did not receive a response within the timeout: Failed to get a response: connection error for url (http://127.0.0.1:1/scrape?info_hash=%9C8B%22%13%E3%0B%FF%21%2B0%C3%60%D2o%9A%02%13d%22): client error (Connect): tcp connect error: Connection refused (os error 111)"}]]}}}]}
+stderr:
+matches in stdout: 0, in stderr: 0
+
+$ curl -s -X POST "http://127.0.0.1:11212/api/v1/keys?token=M4LocalAccessToken" -H "Content-Type: application/json" -d '{"key":"M4ValidKeyAbcdefghijklmnopqrstuv","seconds_valid":3600}'
+{"key":"M4ValidKeyAbcdefghijklmnopqrstuv","valid_until":1795460566,"expiry_time":"2026-11-23 19:02:46 UTC"}
+
+$ target/debug/tracker_client http announce http://127.0.0.1:17070/announce/M4ValidKeyAbcdefghijklmnopqrstuv 9c38422213e30bff212b30c360d26f9a02136422 > out.txt 2> err.txt
+exit=0
+stdout: {"complete":1,"incomplete":0,"interval":120,"min interval":120,"peers":[]}
+stderr:
+matches in stdout: 0, in stderr: 0
+
+$ target/debug/tracker_client http scrape http://127.0.0.1:17070/scrape/M4ValidKeyAbcdefghijklmnopqrstuv 9c38422213e30bff212b30c360d26f9a02136422 > out.txt 2> err.txt
+exit=0
+stdout: {"9c38422213e30bff212b30c360d26f9a02136422":{"complete":1,"downloaded":0,"incomplete":0}}
+stderr:
+matches in stdout: 0, in stderr: 0
+```
+
+The two echoes, each with a lowercase scheme, an upper-case scheme and a URL that does not parse
+(`$U` is the URL in each line):
+
+```console
+$ TORRUST_CHECKER_CONFIG="{\"udp_trackers\":[],\"http_trackers\":\"$U\",\"health_checks\":[]}" target/debug/tracker_client check > /dev/null 2> e.txt
+$ target/debug/tracker_client http announce http://127.0.0.1:1/announce 9c38422213e30bff212b30c360d26f9a02136422 "$U" > /dev/null 2> e.txt
+exit=2 {"error":{"kind":"invalid_configuration","source":"TORRUST_CHECKER_CONFIG","message":"JSON parse error: invalid type: string \"http://127.0.0.1:1/announce/****\", expected a sequence at line 1 column 80"}}
+exit=2 {"error":{"kind":"usage_error","source":"arguments","message":"error: unexpected argument 'http://127.0.0.1:1/announce/****' found\n\nUsage: tracker_client http announce [OPTIONS] <TRACKER_URL> <INFO_HASH>\n\nFor more information, try '--help'.\n"}}
+exit=2 {"error":{"kind":"invalid_configuration","source":"TORRUST_CHECKER_CONFIG","message":"JSON parse error: invalid type: string \"HTTP://127.0.0.1:1/announce/****\", expected a sequence at line 1 column 80"}}
+exit=2 {"error":{"kind":"usage_error","source":"arguments","message":"error: unexpected argument 'HTTP://127.0.0.1:1/announce/****' found\n\nUsage: tracker_client http announce [OPTIONS] <TRACKER_URL> <INFO_HASH>\n\nFor more information, try '--help'.\n"}}
+exit=2 {"error":{"kind":"invalid_configuration","source":"TORRUST_CHECKER_CONFIG","message":"JSON parse error: invalid type: string \"http://127.0.0.1:bad/announce/****\", expected a sequence at line 1 column 82"}}
+exit=2 {"error":{"kind":"usage_error","source":"arguments","message":"error: unexpected argument 'http://127.0.0.1:bad/announce/****' found\n\nUsage: tracker_client http announce [OPTIONS] <TRACKER_URL> <INFO_HASH>\n\nFor more information, try '--help'.\n"}}
+```
+
+No output contains a key. The tracker was stopped with `SIGINT` afterwards.
+
 ## Outcome
 
 Reproduced. R0 confirms the defect on `develop`: the key appears on stderr for `http announce` and
 `http scrape`, and on stdout for `check`.
 
 Fixed. After the fix, the like-for-like recheck (V1 to V3), the success case (V4) and the two
-echoes (V5) write no key; every tracker URL in the output shows `****`.
+echoes (V5) write no key; every tracker URL in the output shows `****`. The recheck was repeated
+after the review round 1 fix, on the last commit with code, with the same result.

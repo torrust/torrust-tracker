@@ -9,7 +9,7 @@ github-issue: 3004
 spec-path: docs/issues/open/3004-2758-tracker-client-mask-tracker-key/ISSUE.md
 branch: "3004-tracker-client-mask-tracker-key"
 related-pr: null
-last-updated-utc: "2026-11-23 17:09"
+last-updated-utc: "2026-11-23 18:03"
 semantic-links:
   skill-links:
     - create-issue
@@ -179,9 +179,11 @@ Checked and not leaking:
 P8 and P9 echo text the caller typed, at the place where it was wrong, through a third-party
 formatter (`serde_json`, `clap`). The URL is inside free text, so the URL-masking function cannot
 reach them alone. The maintainer decided, when shown the audit, to fix them in this issue: a second
-small function masks the key of every HTTP tracker URL it finds in a text, using the URL-masking
-function for each one, and the usage-error and configuration-error records go through it. Each gets
-a red regression test.
+small function masks the key of every tracker URL it finds in a text, and the usage-error and
+configuration-error records go through it. Each gets a red regression test. Review round 1 of the
+implementation PR (3012) showed that the first version, which parsed each URL it found, missed a
+scheme in upper or mixed case, a URL cut at a `)` or `'` inside it, and a URL that does not parse;
+the function now finds the text after `/announce/` and `/scrape/` without parsing.
 
 ## Architectural Decisions
 
@@ -193,9 +195,11 @@ a red regression test.
 
 Interface: one small pure function owns the masking of a URL (input: a URL; output: the same URL
 with the key segment replaced). Every output path calls it; no output path builds its own masked
-text. A second pure function (input: a text; output: the same text with the key of every HTTP
-tracker URL in it masked by the first function) covers the records whose text comes from a
-third-party formatter (P8, P9 in the audit).
+text. A second pure function (input: a text; output: the same text with the key after every
+`/announce/` and `/scrape/` and the password of every URL user info masked, without parsing the
+URLs) covers the records whose text comes from a third-party formatter (P8, P9 in the audit). An
+authenticated library client also masks its own key wherever its path puts it (a custom endpoint
+path, the health-check path).
 
 The production change has no child process, readiness wait or shared fixture.
 
@@ -342,7 +346,8 @@ commit.
 - 2026-11-23 14:41 UTC - Claude Code (Claude Opus 5.5) - Addressed review round 2 of PR 3005 (da2ce7): the body-read test is a black-box test of the console client against the existing fake HTTP tracker, and the URL in a body-read error is confirmed in the reqwest 0.13.5 source (`response.rs:435`).
 - 2026-11-23 14:55 UTC - Claude Code (Claude Opus 5.5) - Addressed review round 3 of PR 3005 (da2ce7): the body-read test also runs `check` against the fake, the only way to reach the checker's `bytes()` calls, and asserts no `Debug` text (AC2).
 - 2026-11-23 16:52 UTC - Claude Code (Claude Opus 5.5) - Spec PR 3005 merged. Repeated R0 on the implementation branch (same output) and did the T1 audit: two more leaks found, the `serde_json` echo of a wrong-typed checker configuration value (P8) and the `clap` echo of a misplaced argument (P9). The maintainer decided to fix both here; added a text-masking function and their tests to the spec.
-- 2026-11-23 17:09 UTC - Claude Code (Claude Opus 5.5) - Implemented T2 to T7: masking functions in the library, the library error and every console output path fixed; 10 library tests and 8 black-box tests, red before the fix and green after; each console fix guarded by a mutation; the maintainer reviewed the work at the T5 stop. Docs updated; M1 to M4 rechecked. Material discoveries are in `implementation-retrospective.md`.
+- 2026-11-23 17:09 UTC - Claude Code (Claude Opus 5.5) - Implemented T2 to T7: masking functions in the library, the library error and every console output path fixed; 13 library tests (10 of them red before the fix) and 8 black-box tests, red before the fix and green after; each console fix guarded by a mutation; the maintainer reviewed the work at the T5 stop. Docs updated; M1 to M4 rechecked. Material discoveries are in `implementation-retrospective.md`.
+- 2026-11-23 18:03 UTC - Claude Code (Claude Opus 5.5) - Addressed review round 1 of PR 3012 (da2ce7 F1 to F6, Copilot, Greptile): the text masker no longer parses URLs, so it masks echoed URLs with an upper-case scheme, a `)` or `'` inside, or that do not parse; an authenticated client masks its own key; the error text keeps the chain of causes; contract, README and evidence counts corrected. New tests were red first; the recheck was repeated on the last commit with code.
 
 ## Acceptance Criteria
 
