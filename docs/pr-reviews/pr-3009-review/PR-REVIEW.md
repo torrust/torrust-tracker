@@ -55,7 +55,11 @@ F12; they were added after the first push of the fixes. Greptile's second review
 Round 2 is da2ce7's review `6026108273` (17:18:45 UTC, comment, no approval) of the head whose last
 commit is `docs(pr-reviews): [#2902] record the first review round of #3009`. Its three inline findings
 carry the IDs F9, F10 and F11, which collide with rows of this record, and are recorded as F13, F14 and
-F15.
+F15. Round 3 is two reviews of the head whose last commit is `docs(pr-reviews): [#2902] record the
+Copilot findings of the first review round of #3009`: da2ce7's review `6026265498` (17:27:00 UTC), whose
+one inline finding carries his ID F12 (it collides with Copilot's F12) and is recorded as F16, and
+Greptile's review `6026192696` (17:23:10 UTC), whose one inline comment on the F10 row is recorded as
+F17 with the severity of its `P2` badge.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -68,12 +72,14 @@ F15.
 | F7 | review-finding:pr-3009-f7 | Human | Nit | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F8 | review-finding:pr-3009-f8 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F9 | review-finding:pr-3009-f9 | Unknown | Minor (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
-| F10 | review-finding:pr-3009-f10 | Copilot | Minor | testing | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F10 | review-finding:pr-3009-f10 | Copilot | Minor | testing | RE_RAISE_OF:F1 | NO_ACTION | SUPERSEDED |
 | F11 | review-finding:pr-3009-f11 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-3009-f12 | Copilot | Nit | testing | ORIGINAL | FIXED | RESOLVED |
 | F13 | review-finding:pr-3009-f13 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F14 | review-finding:pr-3009-f14 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F15 | review-finding:pr-3009-f15 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-3009-f16 | Human | Nit | testing | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-3009-f17 | Unknown | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -203,7 +209,7 @@ F15.
 - Concern: The same as F1: after the drop only the whitelist store was checked, so a key or metrics store on another migrated database would pass.
 - Solution: Superseded by F1: the test also asserts that `load_keys` and `load_global_downloads` fail after the drop.
 - Current-tree verification: `grep -c 'must share one database' packages/tracker-core/src/databases/setup.rs` prints 3.
-- Resolution reference: test(tracker-core): [#2902] check that all four stores lose their tables when the migrator drops them
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669260082
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669260082
 
@@ -272,11 +278,38 @@ F15.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669379034
 
+### F16 - The reason for keeping the assertion-less setup test was false
+
+- PR number: 3009
+- Source review ID: 6026265498
+- Reviewer finding ID: F12
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669426580
+- Concern: The setup plan said the assertion-less `it_should_initialize_the_sqlite_database` was kept because the other tests use it as their fixture; nothing does, so the reason was untrue.
+- Solution: The test now has Arrange, Act and Assert and asserts that a freshly initialized database has its tables and an empty whitelist; alone it kills the mutant that skips the table creation. The plan says the reason was untrue and records the change.
+- Current-tree verification: `grep -c 'kept unchanged because' docs/issues/open/2902-1347-add-tests-tracker-core/test-refactor-plans/databases-setup-tests.md` prints 0, and the plan's Changes After Review section describes the new assertion.
+- Resolution reference: test(tracker-core): [#2902] give the database setup smoke test an assertion
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669504647
+
+### F17 - The audit's duplicate finding was mislabeled (Greptile)
+
+- PR number: 3009
+- Source review ID: 6026192696
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669375929
+- Concern: The F10 row, a repeat of F1, was marked `ORIGINAL`, and its resolution reference was the fixing commit subject where a `NO_ACTION` resolution needs a durable reply URL.
+- Solution: The F10 row is `RE_RAISE_OF:F1`, and its resolution reference is its reply URL.
+- Current-tree verification: `grep -n '^| F10 ' docs/pr-reviews/pr-3009-review/PR-REVIEW.md` shows `RE_RAISE_OF:F1`.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669505166
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669505166
+
 ## Processing Log
 
 - 2026-11-23 17:01 UTC - Read both round 1 reviews. The `OS Compatibility` check of the reviewed head failed only because its `macos-latest (nightly)` build was cancelled (the other five builds pass), not because of a test; re-running it is the maintainer's. Fixed F1, F7 (with F9), F2, F3, F4 and F8 in their own commits and F5 in the PR description; replied on all nine threads at 17:01:31 to 17:01:51 UTC, before pushing the fixes and this record together; the threads are resolved after the push.
 - 2026-11-23 17:14 UTC - Copilot's review of the same head (F10 to F12) was read after that push: F10 duplicates F1 and is superseded by it; F11 and F12 fixed in their own commits; replied at 17:14:51 to 17:14:56 UTC, before pushing the fixes and this update together; the threads are resolved after the push.
 - 2026-11-23 17:23 UTC - Round 2 (da2ce7's comment without approval, findings recorded as F13 to F15): F14 and F15 fixed in their own commits, F13 by correcting this record; replied at 17:23:18 to 17:23:23 UTC, before pushing the fixes and this update together; the threads are resolved after the push.
+- 2026-11-23 17:32 UTC - Round 3 (da2ce7's review of the Copilot-findings head and Greptile's comment on the F10 row, recorded as F16 and F17): F16 fixed in its own commits, F17 by correcting the F10 row; replied at 17:32:47 and 17:32:50 UTC, before pushing the fixes and this update together; the threads are resolved after the push.
 
 ## Completion Rules
 
