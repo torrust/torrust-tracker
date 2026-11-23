@@ -63,6 +63,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F11 | review-finding:pr-3014-f11 | Copilot | Minor (inferred) | security | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-3014-f12 | Copilot | Minor (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
 | F13 | review-finding:pr-3014-f13 | Copilot | Minor (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-3014-f14 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-3014-f15 | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-3014-f16 | Copilot | Minor (inferred) | formatting | ORIGINAL | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -326,6 +329,45 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4671825094
 
+### F14 - The draft guessed the DSN constants were unused
+
+- PR number: 3014
+- Source review ID: 6029667183
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4672141729
+- Concern: Copilot: the draft said it was not checked whether the `config_builder.rs` database URL constants are still used, reasoning from the v3 refusal of `path`; that does not show the constants are unused.
+- Solution: Checked: they are in use. The draft now says how (the qBittorrent E2E runner parses them into v3 database fields), and its scope and T4 replace the URL constants with field constants.
+- Current-tree verification: `src/console/ci/qbittorrent_e2e/runner.rs:108` calls `TrackerConfig::for_database_driver`; `config_builder.rs:136-150` calls `connection_info_from_url` on the constant.
+- Resolution reference: docs(issues): say how the CI tools use their database URL constants
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4672240047
+
+### F15 - SI-A named A12 twice in one sentence
+
+- PR number: 3014
+- Source review ID: 6029667183
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4672141802
+- Concern: Copilot: the SI-A ownership sentence listed A12 in the owned set and again in the next clause.
+- Solution: The sentence now names A12 once, with its explanation, then A9.
+- Current-tree verification: Read the Background paragraph of `docs/issues/open/2999-2993-si-a-keep-secrets-out-of-errors-and-logs/ISSUE.md`.
+- Resolution reference: docs(issues): [#2999] name A12 once in the SI-A ownership sentence
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4672240495
+
+### F16 - Audit table rows said to start with a double pipe
+
+- PR number: 3014
+- Source review ID: 6029667183
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4672141874
+- Concern: Copilot: the audit tables were said to start each row with `||`, which renders an extra column.
+- Solution: No change: no row starts with `||`.
+- Current-tree verification: `grep -c "^||" docs/pr-reviews/pr-3014-review/PR-REVIEW.md` returns 0.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4672240897
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4672240897
+
 ## Processing Log
 
 - 2026-11-23 18:58 UTC - Started audit after the Copilot review 6027563286 (18:53 UTC); the two Greptile reviews 6027255837 (18:30 UTC) and 6027369330 (18:39 UTC) had arrived before it. Five findings, all checked against the branch.
@@ -340,6 +382,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-23 20:03 UTC - The F10 fix was pushed, then replied in the F8 thread (reply 4671273059) and answered the validator request in the F5 thread (reply 4671273542).
 - 2026-11-23 20:17 UTC - Round 4: Copilot review 6028703592 (20:10 UTC) raised R6 (on head `dc8ac4473`, already fixed by head `1f00028c2`, pushed by 20:11:10 UTC at the latest) and R8 (no R7 was posted). R8 was fixed and pushed (head `06eb49131`, by 20:17:08 UTC at the latest), then both threads were answered (replies 4671450945 and 4671451408).
 - 2026-11-23 20:49 UTC - Round 5: Copilot review 6029159032 (20:40 UTC, a "Lite" review) raised F11 to F13. Fixed and pushed (head `eaf83008a`, by 20:49:03 UTC at the latest), then replied (replies 4671824253, 4671824671, 4671825094).
+- 2026-11-23 21:26 UTC - Round 6 (after the maintainer said to keep fixing past five rounds): Copilot review 6029667183 (21:17 UTC, "Lite") raised F14 to F16. F14 and F15 were fixed and pushed (head `8cd01f5a9`, by 21:25:49 UTC at the latest), then all three threads were answered (replies 4672240047, 4672240495, 4672240897); F16 needed no change.
 
 ## Completion Rules
 
