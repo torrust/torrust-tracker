@@ -9,7 +9,7 @@ github-issue: 2902
 spec-path: docs/issues/open/2902-1347-add-tests-tracker-core/ISSUE.md
 branch: "2902-1347-add-tests-tracker-core-statistics"
 related-pr: 2988
-last-updated-utc: "2026-11-23 14:00"
+last-updated-utc: "2026-11-23 14:05"
 semantic-links:
   skill-links:
     - create-issue
@@ -363,7 +363,7 @@ rows are ordered by slice, then by risk.
 | 10 | `databases/driver/sqlite/whitelist_store.rs` | S2 | 17 / 31 | Test candidate; 47 / 54 with 5 tests ([plan](test-refactor-plans/sqlite-whitelist-store-tests.md)) | DONE |
 | 11 | `databases/driver/sqlite/mod.rs` | S2 | 81 / 91 | Test candidate (aggregate-metric error branches); 137 / 139 with 8 tests ([plan](test-refactor-plans/sqlite-mod-tests.md)) | DONE |
 | 12 | `databases/driver/sqlite/schema_migrator.rs` | S2 | 136 / 149 | No change likely; challenge each `?`: three tests, 175 / 184, the rest left with reasons ([plan](test-refactor-plans/sqlite-schema-migrator-tests.md)) | DONE |
-| 13 | `databases/error.rs` | S2 | 28 / 35 | Test candidate (migration-error mapping) | PENDING |
+| 13 | `databases/error.rs` | S2 | 28 / 35 | Test candidate (migration-error mapping); 35 / 35 since rows 8-12, classification still untested ([plan](test-refactor-plans/databases-error-tests.md)) | IN_PROGRESS |
 | 14 | `databases/setup.rs` | S2 | 33 / 41 | Test candidate (SQLite arm and unreachable endpoint); server arms to S3 | PENDING |
 | 15 | `error.rs` | S2 | 38 / 50 | Test candidate (`From` conversions) | PENDING |
 | 16 | `databases/driver/mod.rs` | S2 | 186 / 189 | No change to the test-only retry helper; receives the shared functions of row 8, tested there | PENDING |

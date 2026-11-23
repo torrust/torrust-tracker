@@ -38,6 +38,7 @@ approves it. A group of declaration-only files may share one plan.
 | 11 | [sqlite-whitelist-store-tests.md](sqlite-whitelist-store-tests.md) | DONE | Plan approved 2026-11-23; completed file approved 2026-11-23 |
 | 12 | [sqlite-mod-tests.md](sqlite-mod-tests.md) | DONE | Plan approved 2026-11-23; completed file approved 2026-11-23 |
 | 13 | [sqlite-schema-migrator-tests.md](sqlite-schema-migrator-tests.md) | DONE | Plan approved 2026-11-23; challenges each uncovered line; completed file approved 2026-11-23 |
+| 14 | [databases-error-tests.md](databases-error-tests.md) | IN_PROGRESS | Plan approved 2026-11-23; classification and driver of every conversion |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 
