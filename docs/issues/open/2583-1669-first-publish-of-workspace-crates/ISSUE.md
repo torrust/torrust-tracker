@@ -9,7 +9,7 @@ github-issue: 2583
 spec-path: docs/issues/open/2583-1669-first-publish-of-workspace-crates/ISSUE.md
 branch: "2583-1669-first-publish-of-workspace-crates-spec"
 related-pr: null
-last-updated-utc: "2026-11-21 15:24"
+last-updated-utc: "2026-11-23 13:32"
 semantic-links:
   skill-links:
     - create-issue
@@ -233,7 +233,9 @@ the `#[non_exhaustive]` marks of #2454:
   "leecher"`.
 
 Breaking changes in `torrust-tracker-configuration` for its 4.0.0 release notes, besides the
-`#[non_exhaustive]` marks of #2454 and the removal of `Error::Infallible`:
+`#[non_exhaustive]` marks of #2454, the removal of `Error::Infallible` and the public field
+`Configuration::application` that SI-20 (#2668) added (see
+[EPIC #1488 closed](#epic-1488-closed)):
 
 - #2917 (SI-5 of EPIC #2912): the `source` of `Error::{UnableToProcessExplicitConfigFile,
   UnableToLoadFromEnvironmentVariable, UnableToLoadFromConfigFile, ConfigError}` changes type from
@@ -504,6 +506,7 @@ release branch and a signed tag.
   diff, and says SI-26 changed the root crate's public API, not a checklist crate's. Row 14 says
   #2482 is closed. Four sentences were reworded (OQ2, the "Other prerequisites" row, the In Scope
   bullet and the "Stale order" risk). No crate's status changed.
+- 2026-11-23 13:32 UTC - Claude Code (Claude Sonnet 5.5) - Issue #2917 (SI-5 of EPIC #2912, PR torrust/torrust-tracker#3001) recorded its breaking change of `configuration` under "Semver bumps owed", for the 4.0.0 release notes (T3 of its spec), and the list now also names the SI-20 field `Configuration::application`. No crate's status changed.
 
 ## Acceptance Criteria
 
