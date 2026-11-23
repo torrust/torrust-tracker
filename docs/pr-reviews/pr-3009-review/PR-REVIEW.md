@@ -41,14 +41,21 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1 is two reviews of the head whose last commit is
-`docs(issues): [#2902] record the S2 pull request`: the review `6025339962` of the automated
-reviewer Greptile (2026-11-23 16:30:18 UTC, comment; one inline comment without an ID, recorded as F9
-with the severity of its `P2` badge) and da2ce7's review `6025674705` (2026-11-23 16:51:51 UTC,
-approval; inline findings F1 to F8 with the reviewer's IDs). F6 asks for the reply to the Greptile
-thread and for this record. Copilot's review `6025721446` (2026-11-23 16:54:40 UTC, comment) is of the
-same head and arrived while the fixes were being made; its three inline comments carry the IDs R1,
-R2 and F3 (which collides with da2ce7's F3) and are recorded as F10, F11 and F12.
+Round 1 is three reviews. The review `6025339962` of the automated reviewer Greptile (2026-11-23
+16:30:18 UTC, comment) is of the previous head, whose last commit is
+`docs(issues): [#2902] close slice S2 with its coverage measurement`; its one inline comment has no ID
+and is recorded as F9 with the severity of its `P2` badge. da2ce7's review `6025674705` (16:51:51 UTC,
+approval; inline findings F1 to F8 with the reviewer's IDs) and Copilot's review `6025721446`
+(16:54:40 UTC, comment) are of the head whose last commit is `docs(issues): [#2902] record the S2 pull
+request`. F6 asks for the reply to the Greptile thread and for this record. Copilot's three inline
+comments carry the IDs R1, R2 and F3 (which collides with da2ce7's F3) and are recorded as F10, F11 and
+F12; they were added after the first push of the fixes. Greptile's second review `6025835445`
+(17:02:13 UTC) only answers the F9 thread, accepting the reply, and has no finding, so it needs no row.
+
+Round 2 is da2ce7's review `6026108273` (17:18:45 UTC, comment, no approval) of the head whose last
+commit is `docs(pr-reviews): [#2902] record the first review round of #3009`. Its three inline findings
+carry the IDs F9, F10 and F11, which collide with rows of this record, and are recorded as F13, F14 and
+F15.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -64,6 +71,9 @@ R2 and F3 (which collides with da2ce7's F3) and are recorded as F10, F11 and F12
 | F10 | review-finding:pr-3009-f10 | Copilot | Minor | testing | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F11 | review-finding:pr-3009-f11 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-3009-f12 | Copilot | Nit | testing | ORIGINAL | FIXED | RESOLVED |
+| F13 | review-finding:pr-3009-f13 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-3009-f14 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-3009-f15 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -139,7 +149,7 @@ R2 and F3 (which collides with da2ce7's F3) and are recorded as F10, F11 and F12
 - Reviewer finding ID: F6
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4668977699
 - Concern: The Greptile thread on `setup.rs` had no reply and the pull request had no review audit record.
-- Solution: The thread has a reply (F9), and this record has a row for every finding of the round, the automated one included.
+- Solution: The thread has a reply (F9), and this record has a row for each finding of da2ce7's review and for Greptile's comment. The three comments of Copilot's review of the same head were missed and added later as F10 to F12 (see F13).
 - Current-tree verification: `docs/pr-reviews/pr-3009-review/PR-REVIEW.md` exists and its checker passes.
 - Resolution reference: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669099455
 - Follow-up PR URL: N/A
@@ -223,10 +233,50 @@ R2 and F3 (which collides with da2ce7's F3) and are recorded as F10, F11 and F12
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669261412
 
+### F13 - The record missed the Copilot review
+
+- PR number: 3009
+- Source review ID: 6026108273
+- Reviewer finding ID: F9
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669318465
+- Concern: The round 1 head had three reviews, not two: the three threads of the Copilot review had no reply and no row, and the round 1 sentence, the processing log and F6 said otherwise.
+- Solution: The three threads were answered and recorded as F10 to F12; the round 1 sentence names the three reviews, says Greptile's first review was of the previous head, and notes Greptile's second review has no finding; F6's solution no longer claims a row for every finding. The processing log is append-only, so a new entry records the Copilot findings.
+- Current-tree verification: `grep -c '6025721446' docs/pr-reviews/pr-3009-review/PR-REVIEW.md` is at least 4, and the table has rows F10 to F12.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669377876
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669377876
+
+### F14 - A plan bullet in the baseline numbering
+
+- PR number: 3009
+- Source review ID: 6026108273
+- Reviewer finding ID: F10
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669318484
+- Concern: The F4 refresh left one bullet of the key store plan in the baseline numbering while the next gave head numbers.
+- Solution: The bullet gives lines 68-71 at the S2 head and names 89-91 as the baseline's.
+- Current-tree verification: `grep -c '89-91 at the S2 baseline' docs/issues/open/2902-1347-add-tests-tracker-core/test-refactor-plans/sqlite-auth-key-store-tests.md` prints 1.
+- Resolution reference: docs(issues): [#2902] give the key store plan's untested lines in one numbering
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669378494
+
+### F15 - The spec's last-updated stamp
+
+- PR number: 3009
+- Source review ID: 6026108273
+- Reviewer finding ID: F11
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669318497
+- Concern: `last-updated-utc` still read 16:27 although the spec was edited at 16:56 and 16:57.
+- Solution: The stamp reads 17:22, the time of the edit that moved it.
+- Current-tree verification: `grep -n '^last-updated-utc' docs/issues/open/2902-1347-add-tests-tracker-core/ISSUE.md` shows 17:22.
+- Resolution reference: docs(issues): [#2902] bring the spec's last-updated stamp up to date
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669379034
+
 ## Processing Log
 
 - 2026-11-23 17:01 UTC - Read both round 1 reviews. The `OS Compatibility` check of the reviewed head failed only because its `macos-latest (nightly)` build was cancelled (the other five builds pass), not because of a test; re-running it is the maintainer's. Fixed F1, F7 (with F9), F2, F3, F4 and F8 in their own commits and F5 in the PR description; replied on all nine threads at 17:01:31 to 17:01:51 UTC, before pushing the fixes and this record together; the threads are resolved after the push.
 - 2026-11-23 17:14 UTC - Copilot's review of the same head (F10 to F12) was read after that push: F10 duplicates F1 and is superseded by it; F11 and F12 fixed in their own commits; replied at 17:14:51 to 17:14:56 UTC, before pushing the fixes and this update together; the threads are resolved after the push.
+- 2026-11-23 17:23 UTC - Round 2 (da2ce7's comment without approval, findings recorded as F13 to F15): F14 and F15 fixed in their own commits, F13 by correcting this record; replied at 17:23:18 to 17:23:23 UTC, before pushing the fixes and this update together; the threads are resolved after the push.
 
 ## Completion Rules
 
