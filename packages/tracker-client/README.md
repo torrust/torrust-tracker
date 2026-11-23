@@ -8,7 +8,7 @@ Client package. Workspace dependencies: `torrust-tracker-http-protocol`, `torrus
 
 ## Main API
 
-`udp` and `http` hold the clients for each protocol and `peer_id` builds peer ids.
+`udp` and `http` hold the clients for each protocol and `peer_id` builds peer ids. `http::client::redaction` masks the key of a private tracker URL (`/announce/<key>`, `/scrape/<key>`) as `****`; the HTTP client error texts use it, so they never carry the key.
 
 ## Stability
 

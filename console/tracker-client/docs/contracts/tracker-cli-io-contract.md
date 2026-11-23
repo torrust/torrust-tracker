@@ -45,6 +45,24 @@ runtime-failure record; stdout stays empty and the exit code is `1`. A panic is 
 `{"kind":"panic","message":"...","location":"..."}` record on stderr (the panic hook replaces the
 default plain-text message); the process then ends through the usual runtime-failure path, exit `1`.
 
+### No secrets
+
+No output carries a secret (section 7 of the global CLI output contract,
+`docs/adrs/20260519000000_define_global_cli_output_contract.md`). A private HTTP tracker takes its
+key in the URL path (`/announce/<key>`, `/scrape/<key>`), so wherever a tracker URL is written, on
+stdout or stderr, the key segment is written as `****`; the password of a URL user info is masked
+the same way. The rest of the URL (scheme, host, port, path prefix, query) is kept, so a reader can
+tell which tracker it was:
+
+```text
+{"error":{"kind":"runtime_failure","source":"runtime","message":"Failed to get a response: connection error for url (http://127.0.0.1:7070/announce/****?info_hash=...)"}}
+```
+
+A failed HTTP request is described by its kind (`connection`, `timeout`, `status`, `decode`,
+`body`) and the masked URL, never by the `Debug` text of the HTTP library error. The same masking
+applies to configuration and usage errors that echo a keyed URL the caller typed. The masking
+functions live in `packages/tracker-client/src/http/client/redaction.rs`.
+
 ### JSON-first output
 
 - JSON is the default output format for command results.
