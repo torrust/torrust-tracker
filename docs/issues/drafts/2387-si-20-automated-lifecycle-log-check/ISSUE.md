@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2387-si-20-automated-lifecycle-log-check/ISSUE.md
 branch: "{issue-number}-2387-si-20-automated-lifecycle-log-check-spec"
 related-pr: null
-last-updated-utc: "2026-11-23 17:29"
+last-updated-utc: "2026-11-23 18:32"
 semantic-links:
   skill-links:
     - create-issue
@@ -47,7 +47,7 @@ Without a check, the next change adds a `local_addr` again. The convention has r
 
 ### In Scope
 
-- A maintained Rust test (not a shell script) that runs the tracker binary with every service enabled, waits for `Tracker started`, sends `SIGTERM`, and reads the whole log.
+- A maintained Rust test (not a shell script) that runs the tracker binary with every service enabled, waits until it is safe to stop it, sends `SIGTERM`, and reads the whole log. Safe means that the shutdown signal handlers are installed: SI-17 logs `Tracker started` only after that, so the test waits for that line. It keeps the fixture's existing wait for health readiness and for the signal-handler line if SI-17 did not land with that order.
 - It asserts: no `WARN` and no `ERROR` on a clean run, except the listed deliberate-configuration warnings; no `Debug` pattern in a lifecycle line (`Some(`, `None`, a struct dump `Name { … }`); every lifecycle line has a target from the list in `docs/logging.md`, with no module path; no removed field name (`local_addr`, `address`, `bind_addr`, `timeout_seconds`, `latency_ms`); no `service_binding` value with a trailing slash; no duration value with a unit suffix.
 - The same run with usage statistics disabled.
 - The list of targets and of removed names is in one place that the test and `docs/logging.md` share, or the test checks that they agree.

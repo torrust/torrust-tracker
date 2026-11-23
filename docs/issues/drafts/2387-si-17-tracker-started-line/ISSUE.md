@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2387-si-17-tracker-started-line/ISSUE.md
 branch: "{issue-number}-2387-si-17-tracker-started-line-spec"
 related-pr: null
-last-updated-utc: "2026-11-23 17:29"
+last-updated-utc: "2026-11-23 18:32"
 semantic-links:
   skill-links:
     - create-issue
@@ -47,7 +47,7 @@ Today the last line of a start is `Tracker shutdown signal handlers installed.`,
 ### In Scope
 
 - The line, logged once, after every job has started and every service is registered. `services` is the number of registered services, `jobs` the number of jobs the job manager owns, `elapsed_in_ms` the time since the start line of SI-16.
-- Decide its order with the signal-handler line and whether that line stays, in the specification pull request.
+- Log the line after the shutdown signal handlers are installed, so that a reader who sees it can send a stop signal and get a cooperative shutdown. Today the handlers are installed after the jobs start (`src/app.rs`), and the native tracker fixture waits for the signal-handler line for that reason (`tests/common/native_tracker/mod.rs`). Decide in the specification pull request whether the signal-handler line stays.
 - On a failed start the line is not logged; the existing startup failure report stays.
 - A test of the line and of its absence on a failed start.
 - Update the catalogue of lifecycle lines and the section "Changes in 4.0.0" in `docs/logging.md` for every line this issue changes.
@@ -126,7 +126,7 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 
 ## Acceptance Criteria
 
-- [ ] AC1: A successful start logs the line once, after the last `Started <service>` line.
+- [ ] AC1: A successful start logs the line once, after the last `Started <service>` line and after the shutdown signal handlers are installed.
 - [ ] AC2: `services` and `jobs` equal the real counts.
 - [ ] AC3: A failed start does not log it.
 - [ ] AC4: The line is in the catalogue of `docs/logging.md`.
