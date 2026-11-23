@@ -3,6 +3,7 @@ use std::fmt;
 
 use reqwest::Url as ServiceUrl;
 use serde::Deserialize;
+use torrust_tracker_client::http::client::redaction::mask_tracker_keys_in_text;
 
 /// It parses the configuration from a JSON format.
 ///
@@ -48,7 +49,8 @@ impl Error for ConfigurationError {}
 impl fmt::Display for ConfigurationError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::JsonParseError(e) => write!(f, "JSON parse error: {e}"),
+            // The JSON parser echoes a value of the wrong type, which can be a keyed tracker URL.
+            Self::JsonParseError(e) => write!(f, "JSON parse error: {}", mask_tracker_keys_in_text(&e.to_string())),
             Self::InvalidUdpAddress(e) => write!(f, "Invalid UDP address: {e}"),
             Self::InvalidUrl(e) => write!(f, "Invalid URL: {e}"),
         }

@@ -9,6 +9,7 @@ use reqwest::Url;
 use torrust_info_hash::InfoHash;
 use torrust_peer_id::PeerId;
 use torrust_tracker_client::http::client::Client;
+use torrust_tracker_client::http::client::redaction::request_error_text;
 use torrust_tracker_http_protocol::v1::requests::announce::{AnnounceBuilder, Compact, Event};
 use torrust_tracker_http_protocol::v1::requests::scrape_builder;
 use torrust_tracker_http_protocol::v1::responses::announce::deserialization::{DeserializedCompact, DeserializedNormal};
@@ -184,7 +185,7 @@ async fn announce_command(options: AnnounceOptions, timeout: Duration) -> anyhow
 
     let response = Client::new(base_url, timeout)?.announce(&query_builder.query()).await?;
 
-    let body = response.bytes().await?;
+    let body = read_body(response).await?;
 
     let json = if let Ok(announce_response) = serde_bencode::from_bytes::<DeserializedNormal>(&body) {
         serialize_json(&announce_response, options.output_format).context("failed to serialize announce response into JSON")?
@@ -212,7 +213,7 @@ async fn scrape_command(
 
     let response = Client::new(base_url, timeout)?.scrape(&query).await?;
 
-    let body = response.bytes().await?;
+    let body = read_body(response).await?;
 
     let Ok(scrape_response) = deserialization::Response::try_from_bencoded(&body) else {
         output::write_diagnostic(&unrecognized_response_record("scrape", &body));
@@ -227,6 +228,15 @@ async fn scrape_command(
     }
 
     output::write_result(&json).context("failed to write the scrape result to stdout")
+}
+
+/// Reads the whole response body. A failed read is reported without the `reqwest` error text,
+/// which carries the request URL with the tracker key.
+async fn read_body(response: reqwest::Response) -> anyhow::Result<hyper::body::Bytes> {
+    response
+        .bytes()
+        .await
+        .map_err(|err| anyhow::anyhow!("Failed to read the response body: {}", request_error_text(&err)))
 }
 
 fn parse_peer_id(peer_id_str: &str) -> anyhow::Result<PeerId> {

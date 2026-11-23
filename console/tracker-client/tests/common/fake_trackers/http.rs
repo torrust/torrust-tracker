@@ -1,4 +1,5 @@
-//! A fake HTTP tracker that answers scrape requests (BEP 48), one per connection.
+//! A fake HTTP tracker that answers scrape requests (BEP 48), one per connection, or, in its
+//! cut-short mode, answers every request with a body shorter than its headers promise.
 use std::collections::BTreeSet;
 use std::io::{BufRead, BufReader, ErrorKind, Write};
 use std::net::{SocketAddr, TcpListener, TcpStream};
@@ -20,6 +21,16 @@ pub struct FakeHttpTracker {
     _server: ServerThread,
 }
 
+/// How the fake answers a request.
+#[derive(Clone, Copy)]
+enum Reply {
+    /// A scrape response with a file for each of the first `max_info_hashes` info hashes.
+    Scrape { max_info_hashes: usize },
+    /// `200 OK` with a `Content-Length` larger than the body it sends before it closes, so the
+    /// client fails while it reads the body.
+    CutShortBody,
+}
+
 impl FakeHttpTracker {
     /// Starts a fake tracker that answers every scrape with a file per requested info hash.
     pub fn start() -> Self {
@@ -29,13 +40,23 @@ impl FakeHttpTracker {
     /// Like [`Self::start`], but scrapes get files for only the first
     /// `max_info_hashes` `info_hash` params.
     pub fn start_with_scrape_limit(max_info_hashes: usize) -> Self {
+        Self::start_replying(Reply::Scrape { max_info_hashes })
+    }
+
+    /// Starts a fake tracker that answers every request with a body cut short: its headers promise
+    /// more bytes than it sends before it closes the connection.
+    pub fn start_with_cut_short_body() -> Self {
+        Self::start_replying(Reply::CutShortBody)
+    }
+
+    fn start_replying(reply: Reply) -> Self {
         let listener = TcpListener::bind("127.0.0.1:0").expect("fake HTTP tracker should bind");
         listener
             .set_nonblocking(true)
             .expect("fake HTTP tracker should poll for connections");
         let address = listener.local_addr().expect("fake HTTP tracker should have an address");
 
-        let server = ServerThread::spawn(move |stop| serve(&listener, max_info_hashes, stop));
+        let server = ServerThread::spawn(move |stop| serve(&listener, reply, stop));
 
         Self {
             address,
@@ -48,17 +69,17 @@ impl FakeHttpTracker {
     }
 }
 
-fn serve(listener: &TcpListener, max_info_hashes: usize, stop: &AtomicBool) {
+fn serve(listener: &TcpListener, reply: Reply, stop: &AtomicBool) {
     while !stop.load(Ordering::Relaxed) {
         match listener.accept() {
-            Ok((stream, _)) => answer_scrape(&stream, max_info_hashes),
+            Ok((stream, _)) => answer(&stream, reply),
             Err(error) if error.kind() == ErrorKind::WouldBlock => thread::sleep(POLL_INTERVAL),
             Err(error) => panic!("fake HTTP tracker failed to accept: {error}"),
         }
     }
 }
 
-fn answer_scrape(stream: &TcpStream, max_info_hashes: usize) {
+fn answer(stream: &TcpStream, reply: Reply) {
     stream
         .set_nonblocking(false)
         .expect("fake HTTP tracker should read the request blocking");
@@ -73,13 +94,19 @@ fn answer_scrape(stream: &TcpStream, max_info_hashes: usize) {
         .expect("fake HTTP tracker should read the request line");
     skip_headers(&mut reader);
 
-    let body = bencoded_scrape_response(&requested_info_hashes(&request_line, max_info_hashes));
+    let (body, promised_length) = match reply {
+        Reply::Scrape { max_info_hashes } => {
+            let body = bencoded_scrape_response(&requested_info_hashes(&request_line, max_info_hashes));
+            let length = body.len();
+            (body, length)
+        }
+        Reply::CutShortBody => (b"d8:intervali".to_vec(), 1024),
+    };
 
     let mut writer = stream;
     write!(
         writer,
-        "HTTP/1.1 200 OK\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
-        body.len()
+        "HTTP/1.1 200 OK\r\nContent-Length: {promised_length}\r\nConnection: close\r\n\r\n"
     )
     .and_then(|()| writer.write_all(&body))
     .expect("fake HTTP tracker should send its response");

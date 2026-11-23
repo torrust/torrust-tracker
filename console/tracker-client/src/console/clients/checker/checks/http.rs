@@ -4,6 +4,7 @@ use std::time::Duration;
 use serde::Serialize;
 use torrust_info_hash::InfoHash;
 use torrust_tracker_client::http::client::Client;
+use torrust_tracker_client::http::client::redaction::mask_tracker_key;
 use torrust_tracker_http_protocol::v1::requests::announce::AnnounceBuilder;
 use torrust_tracker_http_protocol::v1::requests::scrape_builder;
 use torrust_tracker_http_protocol::v1::responses::announce::deserialization::DeserializedNormal;
@@ -34,7 +35,7 @@ pub async fn run(http_trackers: Vec<Url>, timeout: Duration) -> Vec<Result<Check
         base_url.set_path("");
 
         let mut checks = Checks {
-            url: url.clone(),
+            url: mask_tracker_key(url),
             results: Vec::default(),
         };
 
