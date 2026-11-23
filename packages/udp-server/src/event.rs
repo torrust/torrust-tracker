@@ -149,7 +149,7 @@ impl From<Error> for ErrorKind {
                 unknown => Self::InternalServer(unknown.to_string()),
             },
             Error::Internal { message } => Self::InternalServer(message),
-            error @ Error::AuthRequired => Self::TrackerAuthentication(error.to_string()),
+            Error::AuthRequired => Self::TrackerAuthentication(Error::AuthRequired.to_string()),
         }
     }
 }
