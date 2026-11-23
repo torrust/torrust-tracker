@@ -36,7 +36,7 @@ tracing = "0"
 zerocopy = "0.8"
 
 [dev-dependencies]
-tokio = { version = "1", features = [ "io-util", "time" ] }
+tokio = { version = "1", features = [ "io-util", "macros", "net", "rt-multi-thread", "time" ] }
 
 [package.metadata.cargo-machete]
 ignored = [ "serde_bytes" ]
