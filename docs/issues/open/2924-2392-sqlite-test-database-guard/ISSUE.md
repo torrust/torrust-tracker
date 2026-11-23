@@ -9,7 +9,7 @@ github-issue: 2924
 spec-path: docs/issues/open/2924-2392-sqlite-test-database-guard/ISSUE.md
 branch: "2924-2392-sqlite-test-database-guard"
 related-pr: null
-last-updated-utc: "2026-11-23 16:15"
+last-updated-utc: "2026-11-23 16:50"
 semantic-links:
   skill-links:
     - create-issue
@@ -146,10 +146,13 @@ review in `manual-verification-evidence.md` and commit the reviewed increment be
 - Factory: `ephemeral_with_sqlite_database() -> (Configuration, SqliteDatabaseGuard)`. The tuple
   makes the test bind the guard visibly (`let (config, _guard) = ...`, never a bare `_`).
 - Existing `ephemeral*()` functions keep their signatures (AC4).
-- `tracker-core` keeps its own wrappers; adopting the shared type is left to #2925.
-- The `http-core` helper converts to a guard-owned directory with a missing sub-directory, so the
-  test still gets a path whose parent does not exist.
-- T2 finding: that `http-core` helper creates no file today, so the conversion cannot lower the
+- `tracker-core` keeps its own wrappers. No issue owns their adoption of the shared type yet: the
+  spec of #2925 skips `tracker-core` and does not list it, so the maintainer decides later whether
+  to add it to #2925 or open an issue.
+- The `http-core` caller is the test `it_should_panic_when_the_configured_database_cannot_be_initialized`
+  (`packages/http-core/src/container.rs`). It converts to a guard-owned directory with a missing
+  sub-directory, so the test still gets a path whose parent does not exist.
+- T2 finding: that `http-core` test creates no file today, so the conversion cannot lower the
   leak count; it removes the last outside caller of `ephemeral_sqlite_database()` (AC3).
 
 ## Bug-Fix Process
@@ -173,7 +176,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | DONE | Decide the names and the return shape | Recorded in the T1 Decision section below; approved by the maintainer. |
+| T1 | DONE | Decide the names and the return shape | Recorded in the T1 Decision section above; approved by the maintainer. |
 | T2 | DONE | Reproduce for the direct users | Before-count recorded (V1): 6 files; the `http-core` direct caller creates none. |
 | T3 | TODO | Guard type and factory | Unit tests red then green; design review recorded. |
 | T4 | TODO | Convert the direct users | The direct users outside `tracker-core` use the guard; test-design review recorded. |
@@ -214,7 +217,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   the draft. Created GitHub issue #2924 and moved the spec from `docs/issues/drafts/` to
   `docs/issues/open/`. The names and the return shape stay open until T1.
 
-- 2026-11-23 16:15 UTC - Claude Code (Claude Sonnet 5.5), #2924 implementation session - T1 approved by
+- 2026-11-23 16:50 UTC - Claude Code (Claude Sonnet 5.5), #2924 implementation session - T1 approved by
   the maintainer (names, tuple return shape, `tracker-core` unchanged). T2: V1 counted 6 leaked files
   for `http-core`, none from the direct caller. Evidence in `manual-verification-evidence.md`.
 
