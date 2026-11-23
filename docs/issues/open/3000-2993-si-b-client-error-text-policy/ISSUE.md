@@ -9,7 +9,7 @@ github-issue: 3000
 spec-path: docs/issues/open/3000-2993-si-b-client-error-text-policy/ISSUE.md
 branch: "3000-si-b-client-error-text-policy"
 related-pr: null
-last-updated-utc: "2026-11-23 18:55"
+last-updated-utc: "2026-11-23 19:29"
 semantic-links:
   skill-links:
     - create-issue
@@ -165,11 +165,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-22 13:50 UTC - Claude Code (Claude Fable 5.2) - Drafted from the EPIC inventory after the maintainer asked that the sub-issue specifications be part of the EPIC pull request. Not approved; no GitHub issue created.
 - 2026-11-23 11:06 UTC - Claude Code (Claude Sonnet 5.5) - The maintainer approved the specification; created #3000 and moved it to `docs/issues/open/`. Merged with the EPIC by pull request #2994.
 - 2026-11-23 18:08 UTC - Claude Code (Claude Opus 5.5), EPIC coordinator session - Rechecked against `develop` `6bc417424`: nothing fixed. Listed the client texts section B of the EPIC missed, and recorded the maintainer's answers of 2026-11-23: the health-check API joins the scope, and the implementation session runs after SI-A with Claude Fable 5.2 at high effort.
+- 2026-11-23 19:29 UTC - Claude Code (Claude Opus 5.5), EPIC coordinator session - Review of PR 3014: limited AC2 to the three servers that can reach the database and added AC2b for the health-check API.
 
 ## Acceptance Criteria
 
 - [ ] AC1: An accepted ADR defines the client error text policy and answers each question listed in the scope.
-- [ ] AC2: No reply of the HTTP tracker, the UDP tracker, the REST API or the health-check API holds database driver text, shown by a test through each protocol server and on a running tracker.
+- [ ] AC2: No reply of the HTTP tracker, the UDP tracker or the REST API holds database driver text, shown by a test through each protocol server and on a running tracker. (The health-check API does not reach the database: its probes call the tracker services, and `packages/axum-health-check-api-server/src/` has no database code.)
+- [ ] AC2b: The health-check API's failed-probe reply holds no `reqwest` or join-error text, and its statuses are unchanged (200 for a failed probe, 503 while shutting down), shown by the health-check regression test and scenario M6.
 - [ ] AC3: A database failure leaves a `tracing` event on the server with the detail, and the operator can relate it to the client's reply.
 - [ ] AC4: The UDP connection-id error holds no server clock value, and the UDP parse error holds no Rust type name.
 - [ ] AC5: Every changed client text is listed, old and new, in this specification and was approved before the change.
@@ -213,6 +215,7 @@ A short UDP probe (connect, announce, raw packet) is needed for M2 and M3, becau
 | --- | --- | --- |
 | AC1 | TODO | {test/log/PR link} |
 | AC2 | TODO | {test/log/PR link} |
+| AC2b | TODO | {test/log/PR link} |
 | AC3 | TODO | {test/log/PR link} |
 | AC4 | TODO | {test/log/PR link} |
 | AC5 | TODO | {test/log/PR link} |
