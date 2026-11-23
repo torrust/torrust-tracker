@@ -1,7 +1,7 @@
 ---
 doc-type: decision-record
 issue-spec: docs/issues/open/2387-review-tracker-lifecycle-logs/EPIC.md
-last-updated-utc: "2026-11-23 17:32"
+last-updated-utc: "2026-11-23 17:33"
 ---
 
 # Decisions of EPIC #2387
@@ -83,7 +83,7 @@ Issue #2766 (EPIC #2758) changes the daemon's log output to JSON lines on stderr
 | B. #2766 first, then this EPIC | The parsers are rewritten once for JSON | The convention is reviewed in JSON, which is harder to read. #2766 has to keep parsing `Started on:` message text inside JSON, which is the worst mix |
 | C. Do both together | One change | Too large to review. Mixes a format decision with content decisions |
 
-**Decision:** A. This EPIC goes first. The specification of #2766 and its row in EPIC #2758 say so.
+**Decision:** A. This EPIC goes first: #2766 starts after SI-1 to SI-20 are merged. It does not wait for the EPIC to close, because SI-22 stays in the EPIC and itself waits for #2766. The specification of #2766 and its row in EPIC #2758 say so.
 
 **Reason:** the convention is independent of the output format, so it can be decided and reviewed first. After SI-11 the readers depend on fields, which survive the move to JSON.
 

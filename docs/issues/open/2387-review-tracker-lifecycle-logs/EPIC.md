@@ -6,7 +6,7 @@ epic: null
 github-issue: 2387
 spec-path: docs/issues/open/2387-review-tracker-lifecycle-logs/EPIC.md
 epic-owner: null
-last-updated-utc: "2026-11-23 17:30"
+last-updated-utc: "2026-11-23 17:33"
 semantic-links:
   skill-links:
     - create-issue
@@ -107,7 +107,7 @@ Process decisions (2026-11-23):
 ### Out of Scope
 
 - Levels of request-handling logs (announce, scrape, connect). Issue #1166 covers them.
-- The log output format and stream (JSON on stderr). Issue #2766 covers them, after this EPIC.
+- The log output format and stream (JSON on stderr). Issue #2766 covers them. It starts after SI-1 to SI-20 are merged, not after this EPIC closes: SI-22 stays in this EPIC and waits for #2766.
 - Metrics and domain events as such; only their startup log lines are in scope.
 - Changing shutdown behavior or deadlines. EPIC #1488 did that and is closed.
 - Changes inside `torrust-net-primitives` and `torrust-metrics`. They are other repositories; this EPIC files an issue in each and adapts when they release.
@@ -301,7 +301,7 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 ## References
 
 - Origin: PR #2382 Copilot review finding F4; issue #2370 (EPIC #1488 SI-15)
-- Related issues: #1166 (tracing level usage in request handling), #2766 (daemon JSON logs, after this EPIC), #2758 (EPIC of #2766), #1488 (shutdown overhaul, closed), closed #387 (syslog format)
+- Related issues: #1166 (tracing level usage in request handling), #2766 (daemon JSON logs, after SI-1 to SI-20 of this EPIC), #2758 (EPIC of #2766), #1488 (shutdown overhaul, closed), closed #387 (syslog format)
 - Decisions: [decisions.md](decisions.md)
 - Baseline: [baseline-lifecycle-logs.md](baseline-lifecycle-logs.md), [baseline-lifecycle-logs-debug.md](baseline-lifecycle-logs-debug.md), [baseline-lifecycle-logs-statistics-disabled.md](baseline-lifecycle-logs-statistics-disabled.md)
 - Related ADRs: the logging ADR created by SI-2; the private-mode ADR created by SI-3
