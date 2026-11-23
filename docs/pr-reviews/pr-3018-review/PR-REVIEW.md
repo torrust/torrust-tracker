@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-F1 to F5 come from CodeRabbit's review 6030014294 (COMMENTED, submitted 21:44:49Z on the first head, "test(source-location-check): [#2918] ignore the GIT_* variables of a running Git hook in the CLI tests"), in source order of its inline threads. F6 and F7 come from Copilot's review 6030466922 (COMMENTED, submitted 22:22:53Z on the same head); Copilot noted that its full agentic review did not start before its timeout, and the two inline findings are all it reported. F8 to F11 come from CodeRabbit's review 6030628364 (COMMENTED, submitted 22:37:45Z on the round-1 head `0cade8030`'s tree, before the audit push) and F12 from a reply of CodeRabbit on the F4 thread (review 6030752681, 22:49:00Z), a re-raise of F4. CodeRabbit also replied on the F1, F2 and F3 threads (22:39Z) that the current code addresses them; those replies hold no new finding. Copilot rates findings Medium and Low; they are recorded as Minor and Nit, as in the audits of PRs #2991 and #3001.
+F1 to F5 come from CodeRabbit's review 6030014294 (COMMENTED, submitted 21:44:49Z on the first head, "test(source-location-check): [#2918] ignore the GIT_* variables of a running Git hook in the CLI tests"), in source order of its inline threads. F6 and F7 come from Copilot's review 6030466922 (COMMENTED, submitted 22:22:53Z on the same head); Copilot noted that its full agentic review did not start before its timeout, and the two inline findings are all it reported. F8 to F11 come from CodeRabbit's review 6030628364 (COMMENTED, submitted 22:37:45Z on the round-1 head `0cade8030`'s tree, before the audit push) and F12 from a reply of CodeRabbit on the F4 thread (review 6030752681, 22:49:00Z), a re-raise of F4. F13 and F14 come from CodeRabbit's review 6031363636 (COMMENTED, 23:47:54Z, on the round-2 head) and F15 from its reply on the F9 thread (review 6031381794, 23:49:54Z). CodeRabbit also replied on the F1, F2 and F3 threads (22:39Z) that the current code addresses them; those replies hold no new finding. Copilot rates findings Medium and Low; they are recorded as Minor and Nit, as in the audits of PRs #2991 and #3001.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -57,6 +57,9 @@ F1 to F5 come from CodeRabbit's review 6030014294 (COMMENTED, submitted 21:44:49
 | F10 | review-finding:pr-3018-f10 | Unknown | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F11 | review-finding:pr-3018-f11 | Unknown | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-3018-f12 | Unknown | Minor | correctness | RE_RAISE_OF:F4 | FIXED | RESOLVED |
+| F13 | review-finding:pr-3018-f13 | Unknown | Minor | correctness | ORIGINAL | FIXED | OPEN |
+| F14 | review-finding:pr-3018-f14 | Unknown | Minor | correctness | ORIGINAL | FIXED | OPEN |
+| F15 | review-finding:pr-3018-f15 | Unknown | Minor | testing | ORIGINAL | FIXED | OPEN |
 
 ## Finding Details
 
@@ -216,9 +219,49 @@ F1 to F5 come from CodeRabbit's review 6030014294 (COMMENTED, submitted 21:44:49
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3018#discussion_r4673533475
 
+### F13 - The rest of a line after an excluded item is dropped
+
+- PR number: 3018
+- Source review ID: 6031363636
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3018#discussion_r4673579305
+- Concern: CodeRabbit (rated Minor) noted that `skip_test_item` returned at the closing brace of an excluded helper and the caller then dropped the rest of that line, so a `#[track_caller]` item that follows the helper on the same line passed the check.
+- Solution: `skip_test_item` returns the line on which the item ended and the text after it; `violations_in` scans that remainder with the original line number and keeps looking for further `#[cfg(test)]` items in it. Attributes inside the excluded helper stay exempt. `it_should_resume_scanning_after_an_excluded_item_that_ends_mid_line` pins both; it fails on the previous code.
+- Current-tree verification: `cargo test -p source-location-check` (stable Rust toolchain) passes 23 library tests and 4 CLI tests, including the named test; `cargo run -q -p source-location-check` exits 0 on the tree.
+- Resolution reference: fix(source-location-check): [#2918] scan the rest of a line after an excluded item and inherit test-only status through module files
+- Follow-up PR URL: N/A
+- Reply URL: pending
+
+### F14 - Modules of a test-only file are classified as production
+
+- PR number: 3018
+- Source review ID: 6031363636
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3018#discussion_r4673579311
+- Concern: CodeRabbit (rated Minor) noted that a module declared with a plain `mod nested;` inside a test-only file (`helpers.rs`, declared `#[cfg(test)] mod helpers;`) got a production entry, and that entry overrode the test-only `helpers/` prefix, so the check rejected permitted test code.
+- Solution: `test_only_paths` classifies a declaration as test-only when it is `#[cfg(test)]` or when the file that declares it is test code, repeating until the classification is stable. `it_should_treat_modules_declared_in_a_test_only_file_as_test_only` pins `helpers/nested.rs`; it fails on the previous code.
+- Current-tree verification: `cargo test -p source-location-check` (stable Rust toolchain) passes 23 library tests and 4 CLI tests, including the named test; `cargo run -q -p source-location-check` exits 0 on the tree.
+- Resolution reference: fix(source-location-check): [#2918] scan the rest of a line after an excluded item and inherit test-only status through module files
+- Follow-up PR URL: N/A
+- Reply URL: pending
+
+### F15 - The F9 regression test does not run inside a test-only function
+
+- PR number: 3018
+- Source review ID: 6031381794
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3018#pullrequestreview-6031381794
+- Concern: CodeRabbit (rated Minor), in its reply https://github.com/torrust/torrust-tracker/pull/3018#discussion_r4673594879 on the F9 thread (the review is the source here, as for F12), noted that the test added for F9 did not put the escaped apostrophe inside a `#[cfg(test)]` function, so it did not exercise the reported failure of `skip_test_item`, and asked for adjacent character literals in a test-only function followed by a production violation.
+- Solution: `it_should_keep_the_delimiter_depth_across_adjacent_character_literals_in_a_test_only_function` covers `['\'','{']` in a `#[cfg(test)]` function followed by a `#[track_caller]` function; with the character literal length of the previous revision restored by hand it fails, with the fix it passes.
+- Current-tree verification: `cargo test -p source-location-check` (stable Rust toolchain) passes 23 library tests and 4 CLI tests, including the named test; `cargo run -q -p source-location-check` exits 0 on the tree.
+- Resolution reference: test(source-location-check): [#2918] cover adjacent character literals in a test-only function
+- Follow-up PR URL: N/A
+- Reply URL: pending
+
 ## Processing Log
 
 - 2026-11-23 22:27 UTC - Copilot's review 6030466922 (COMMENTED, submitted 22:22:53Z) reached the poller; listing the reviews through the REST API also showed CodeRabbit's review 6030014294 (submitted 21:44:49Z), which the poller does not watch. Seven inline findings, F1 to F7. The audit was started before the first reply. F1 to F4, F6 and F7 are fixed in "fix(source-location-check): [#2918] mask comments and strings, balance delimiters and track module ancestry" and F5 in this audit's commit.
 - 2026-11-23 22:31 UTC - Pushed the fixes (pre-push hook passed, push finished 22:30:26 UTC by `date -u`), replied on the seven threads (replies posted 22:30:57 UTC) and resolved them (`resolveReviewThread` returned `true` for each; `date -u` after the resolve commands: 22:31:10). GraphQL refresh: zero unresolved threads on PR #3018. This entry is committed and pushed after the replies.
 - 2026-11-23 23:38 UTC - The poller (watching da2ce7 and Copilot only) timed out after an hour with no event, but listing the reviews showed CodeRabbit's round 2: review 6030628364 with four new inline findings (F8 to F11) and a reply on the F4 thread (F12). F8 to F11 fixed in "fix(source-location-check): [#2918] mask raw byte strings and escaped apostrophes and parse attributes on the item's line" and F12 in "fix(source-location-check): [#2918] let a production module declaration override a test-only directory prefix". The poller is restarted with the CodeRabbit login added as a watched reviewer.
 - 2026-11-23 23:43 UTC - Pushed the round-2 fixes and audit (pre-push hook passed, push finished 23:41:42 UTC by `date -u`), replied on the five threads (replies posted 23:42:06 UTC) and resolved them (`resolveReviewThread` returned `true` for each, including the F4 thread that CodeRabbit's reply had left resolved; `date -u` after the resolve commands: 23:42:22). GraphQL refresh: zero unresolved threads on PR #3018. This entry is committed and pushed after the replies.
+- 2026-11-23 23:52 UTC - The poller, now watching CodeRabbit too, returned CodeRabbit's round 3 (review 6031363636, 23:47:54Z, two inline findings F13 and F14) and a reply on the F9 thread asking for a stronger regression test (F15, 23:49:54Z); another CodeRabbit reply on the F4 thread (23:49:12Z) says the code and tests cover F12 and holds no finding. This is round 3 of at most 5. F13 and F14 fixed in "fix(source-location-check): [#2918] scan the rest of a line after an excluded item and inherit test-only status through module files" and F15 in "test(source-location-check): [#2918] cover adjacent character literals in a test-only function", which was run red against the previous character literal length by hand before the fix state was restored.
