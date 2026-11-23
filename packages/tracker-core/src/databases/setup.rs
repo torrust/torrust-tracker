@@ -194,6 +194,14 @@ mod tests {
             stores.whitelist_store.load_whitelist().await.is_err(),
             "the schema migrator and the whitelist store must share one database"
         );
+        assert!(
+            stores.auth_key_store.load_keys().await.is_err(),
+            "the schema migrator and the key store must share one database"
+        );
+        assert!(
+            stores.torrent_metrics_store.load_global_downloads().await.is_err(),
+            "the schema migrator and the torrent metrics store must share one database"
+        );
     }
 
     #[tokio::test]
