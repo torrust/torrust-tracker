@@ -8,8 +8,8 @@ epic: 2758
 github-issue: 3006
 spec-path: docs/issues/open/3006-2758-tracker-client-schema-version/ISSUE.md
 branch: 3006-tracker-client-schema-version-spec
-related-pr: null
-last-updated-utc: "2026-11-23 14:02"
+related-pr: 3008
+last-updated-utc: "2026-11-23 14:18"
 semantic-links:
   skill-links:
     - create-issue
@@ -172,6 +172,7 @@ commit.
 - 2026-11-23 13:46 UTC - Claude Code (Claude Opus 5.5) - Re-read the draft against `develop` (`ff3600f10`): named the four render paths and the string-only writer, `--format` on every result subcommand, the `check monitor udp` summary, the consumers, and the kebab-case key of `agent-reply-validator`.
 - 2026-11-23 14:02 UTC - Claude Code (Claude Opus 5.5) - Recorded the maintainer's answers (D1 global ADR rule, D2 top-level integer `schema_version`, D3 first value `1`) and fitted Scope, ADR, tasks, ACs and risks to them.
 - 2026-11-23 14:02 UTC - Claude Code (Claude Opus 5.5) - Created issue #3006 as josecelano-bot, moved the spec to `docs/issues/open/`, branch `3006-tracker-client-schema-version-spec` for the spec-only PR.
+- 2026-11-23 14:18 UTC - Claude Code (Claude Opus 5.5) - Opened spec-only PR #3008.
 
 ## Acceptance Criteria
 
