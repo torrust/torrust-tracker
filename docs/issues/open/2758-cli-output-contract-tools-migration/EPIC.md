@@ -6,7 +6,7 @@ epic: null
 github-issue: 2758
 spec-path: docs/issues/open/2758-cli-output-contract-tools-migration/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-23 14:03"
+last-updated-utc: "2026-11-23 14:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -92,7 +92,7 @@ parallel; the maintainer sets how many sessions run at once.
 
 | Order | Issue | Local Spec | Status | Files it touches / notes |
 | ----- | ----- | ---------- | ------ | ------------------------ |
-| 1 | #2760 - Align the ADR binary table with the audit | `docs/issues/closed/2760-2758-adr-binary-table/ISSUE.md` | DONE | Wave 0, docs only: `docs/adrs/20260519000000_define_global_cli_output_contract.md`. Must land first; no other issue edits it. |
+| 1 | #2760 - Align the ADR binary table with the audit | `docs/issues/closed/2760-2758-adr-binary-table/ISSUE.md` | DONE | Wave 0, docs only: `docs/adrs/20260519000000_define_global_cli_output_contract.md`. Must land first; no other issue edits its table (issue 13 amends its text, and issue 11 updates the notes). |
 | 2 | #2761 - `github-review-threads reply-status`: a missing reply is a result | `docs/issues/closed/2761-2758-reply-status-result/ISSUE.md` | DONE | Implemented in PR #2775. Wave 1: `contrib/dev-tools/github/github-review-threads/**`, `.claude/skills/resolve-review-threads/SKILL.md`, `.claude/skills/fetch-review-threads/SKILL.md` |
 | 3 | #2762 - `package-coverage-check`: NDJSON errors, usage exit 2, TTY refusal, JSON `summary` | `docs/issues/closed/2762-2758-package-coverage-check-contract/ISSUE.md` | DONE | Implemented in PR #2810. Wave 1: `contrib/dev-tools/checks/package-coverage-check/**`, `.github/workflows/generate_coverage_pr.yaml` |
 | 4 | #2763 - Make `agent-review-report-contract` and `frontmatter-schema` emit NDJSON; classify `workspace-coupling` | `docs/issues/open/2763-2758-dev-tool-checks-ndjson/ISSUE.md` | TODO | Wave 1: `contrib/dev-tools/checks/agent-review-report-contract/**`, `contrib/dev-tools/checks/frontmatter-validator/src/bin/frontmatter-schema.rs`, `contrib/dev-tools/analysis/workspace-coupling/**` |
@@ -104,13 +104,15 @@ parallel; the maintainer sets how many sessions run at once.
 | 10 | #2769 - `e2e_tests_runner` and `qbittorrent_e2e_runner`: JSON diagnostics | `docs/issues/open/2769-2758-e2e-runners-json/ISSUE.md` | TODO | Wave 2, after 6 and 7: `src/console/ci/**`, `packages/e2e-tools/src/bin/` |
 | 11 | #2770 - Close the migration: update the ADR notes and the EPIC | `docs/issues/open/2770-2758-close-out-adr-and-epic/ISSUE.md` | TODO | Wave 3 (last): ADR "currently non-compliant" notes, `docs/issues/` bookkeeping. The only close-out PR for the EPIC. |
 | 12 | #3004 - `tracker_client`: do not write the tracker key in diagnostics or results (bug) | `docs/issues/open/3004-2758-tracker-client-mask-tracker-key/ISSUE.md` (spec PR #3005) | IN_PROGRESS | Found while closing #2768. Runs before #2766: the maintainer puts bugs and security fixes first, with no implementation overlapping it. Files: `console/tracker-client/**`, `packages/tracker-client/src/http/client/**`. |
-| 13 | #3006 - `tracker_client`: add a schema version to the results | `docs/issues/open/3006-2758-tracker-client-schema-version/ISSUE.md` | IN_PROGRESS | Spec only for now (maintainer decisions: a global ADR rule, top-level integer `schema_version`, first value `1`). Implementation after issue 10 and before issue 11: it amends the text of `docs/adrs/20260519000000_define_global_cli_output_contract.md`, which issue 11 also edits. Files: `console/tracker-client/**` and that ADR. |
+| 13 | #3006 - `tracker_client`: add a schema version to the results | `docs/issues/open/3006-2758-tracker-client-schema-version/ISSUE.md` (spec PR #3008) | IN_PROGRESS | Spec only for now (maintainer decisions: a global ADR rule, top-level integer `schema_version`, first value `1`). Implementation after issue 10 and before issue 11: it amends the text of `docs/adrs/20260519000000_define_global_cli_output_contract.md`, which issue 11 also edits. Files: `console/tracker-client/**` and that ADR. |
 
 ## Delivery Strategy
 
 Wave 0 first (the table the others cite). Wave 1 issues touch disjoint files and may run in parallel. Wave 2 waits
 for its predecessors because it shares files with them (`console/tracker-client/**` with issue 6 for issue 9; for issue 10,
 `src/console/ci/e2e/tracker_checker.rs` with issue 6 and the e2e log parser and `docker.rs` with issue 7). Issue 11 runs last, as wave 3. Issues 2 to 5 do not depend on the operator-visible changes. Issue 9 runs after issue 6, a breaking removal, and itself changes the output shape of `check` (a top-level array becomes an object), which is also breaking.
+
+Issues 12 and 13 were added after the #2768 leftovers, and the maintainer set the order of the remaining work: issue 12 (#3004, a bug) first, because bugs and security fixes go before other work and no other implementation overlaps it; then issue 7 (#2766), issue 10 (#2769), issue 13 (#3006), issues 4 (#2763) and 8 (#2767), and issue 11 (#2770) last. Issue 13 must merge before issue 11, because both edit the contract ADR.
 
 For each subissue, the default completion policy is:
 
@@ -150,6 +152,7 @@ consumes the old behavior (named in its spec). No issue edits the ADR table exce
 - 2026-11-09 12:12 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the review of PR 2771 (da2ce7 findings F1 to F27 and Copilot's later comments): specs corrected from the code, reproductions recorded where a spec has a bug-fix section.
 - 2026-11-09 13:21 UTC - Claude Code (Claude Sonnet 5.5) - Addressed da2ce7's review 5826238636 of PR 2771 on this spec.
 - 2026-11-23 14:03 UTC - Claude Code (Claude Opus 5.5) - Added issues 12 (#3004, bug) and 13 (#3006) from the #2768 leftovers; the maintainer set the order: #3004, #2766, #2769, #3006, then #2763 and #2767, and #2770 last.
+- 2026-11-23 14:25 UTC - Claude Code (Claude Opus 5.5) - Addressed da2ce7's review 6023338079 of PR 3007: named the #3006 spec PR, refreshed the counts and the row 1 note, and put the maintainer's order in the Delivery Strategy.
 
 ## Acceptance Criteria
 
@@ -178,7 +181,7 @@ consumes the old behavior (named in its spec). No issue edits the ADR table exce
 - **The `check` output shape changes.** `tracker_client check` emits a top-level array today and the contract requires one object; issue 9 wraps it in an envelope, which breaks consumers of the array (the README documents it). Mitigation: release note and the tracker-client contract doc.
 - **Health check semantics.** The container `HEALTHCHECK` must keep failing on an unhealthy service. Mitigation: the
   `no-stdout-result` reclassification, and a manual verification that `docker inspect` reports `unhealthy`.
-- **Review load.** Eleven issues is a lot for one reviewer. Mitigation: the maintainer sets the parallelism; waves are
+- **Review load.** Thirteen issues is a lot for one reviewer. Mitigation: the maintainer sets the parallelism; waves are
   a limit, not a target.
 - **The ADRs came from PR #2748, now merged.** Specs cite the ADR paths on `develop`; if the ADRs are amended, the close-out issue re-checks the citations.
 

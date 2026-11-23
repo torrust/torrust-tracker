@@ -9,7 +9,7 @@ github-issue: 2770
 spec-path: docs/issues/open/2770-2758-close-out-adr-and-epic/ISSUE.md
 branch: "2770-close-out-adr-and-epic"
 related-pr: null
-last-updated-utc: "2026-11-23 14:03"
+last-updated-utc: "2026-11-23 14:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -24,7 +24,7 @@ semantic-links:
 
 # Issue #2770 - Close the CLI contract migration: update the ADR notes and the EPIC
 
-**Parent EPIC:** #2758 - Migrate the CLI tools to the global output contract. Order 11 of 11, wave 3 (the close-out, after all the others).
+**Parent EPIC:** #2758 - Migrate the CLI tools to the global output contract. Order 11 of 13, wave 3 (the close-out, after all the others, including issues 12 and 13).
 
 ## Goal
 
@@ -56,7 +56,7 @@ Files this issue may touch (a sibling issue in the same wave must not touch them
 
 - `docs/adrs/20260519000000_define_global_cli_output_contract.md`
 - `docs/issues/open/2758-cli-output-contract-tools-migration/EPIC.md` (moved to `docs/issues/closed/2758-cli-output-contract-tools-migration/EPIC.md`)
-- `docs/issues/{open,closed}/27*-2758-*/ISSUE.md` (only the references to the EPIC path)
+- `docs/issues/{open,closed}/*-2758-*/ISSUE.md` (only the references to the EPIC path)
 
 ## Architectural Decisions
 
@@ -122,6 +122,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-18 19:25 UTC - Claude Code (Claude Sonnet 5.5) - Added the ADR `http_health_check` note and the leftovers of #2764 and #2765 to the scope.
 - 2026-11-19 06:58 UTC - Claude Code (Claude Sonnet 5.5) - Named F28 as a missing-test gap with its recorded disposition (Copilot review 5964601313 of PR 2958).
 - 2026-11-23 14:03 UTC - Claude Code (Claude Opus 5.5) - Added #3004 and #3006 to the scope; #3006 merges before this issue.
+- 2026-11-23 14:25 UTC - Claude Code (Claude Opus 5.5) - Widened the child-spec glob to `*-2758-*` so #3004 and #3006 are covered, and updated the order line (PR 3007 review).
 
 ## Acceptance Criteria
 
