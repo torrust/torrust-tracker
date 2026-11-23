@@ -9,7 +9,7 @@ github-issue: 3006
 spec-path: docs/issues/open/3006-2758-tracker-client-schema-version/ISSUE.md
 branch: 3006-tracker-client-schema-version-spec
 related-pr: 3008
-last-updated-utc: "2026-11-23 16:34"
+last-updated-utc: "2026-11-23 16:48"
 semantic-links:
   skill-links:
     - create-issue
@@ -45,7 +45,7 @@ later issue of the EPIC. No open sub-issue of #2758 owns it; this issue does.
 
 No `stdout-result-data` tool of the global contract has a version field today. The global ADR
 (`docs/adrs/20260519000000_define_global_cli_output_contract.md`) does not define one. Outside the
-contract, `contrib/dev-tools/checks/agent-reply-validator` already fixes a schema version of 1 for
+contract, `contrib/dev-tools/checks/agent-reply-validator` already uses a schema version of 1 for
 its own JSON reply files, under the kebab-case key `schema-version` (its format uses kebab-case
 keys and rejects unknown fields).
 
@@ -214,6 +214,7 @@ commit.
 - 2026-11-23 16:10 UTC - Claude Code (Claude Opus 5.5) - Addressed da2ce7's review of PR #3008: recorded the maintainer's answers D4 (`http scrape` entries under `files`) and D5 (UDP field beside the tag) for F1, named the skills and the README among the consumers and in the file set and stated why the e2e helper needs no change (F3), asked for toolchain-qualified evidence (F4), fixed the snake_case claim (F6) and the tense of D3 (F7). F5: the maintainer answered D1 to D3 before the issue was created; the approval of the whole spec, now with D4 and D5, is the review and merge of PR #3008, so that checkpoint stays open until then. F2 (EPIC row and order before #2770) is in the coordinator's PR #3007.
 - 2026-11-23 16:18 UTC - Claude Code (Claude Opus 5.5) - Addressed Copilot's review of PR #3008: stated that `--format text` is pretty-printed JSON, so `jq` reads both formats, and named da2ce7 as a GitHub user.
 - 2026-11-23 16:34 UTC - Claude Code (Claude Opus 5.5) - Addressed da2ce7's second review of PR #3008: D4 and D5 name where the maintainer answered and the F1 thread reply that records it, and D4, D5 and AC5 now follow D3 and AC4.
+- 2026-11-23 16:48 UTC - Claude Code (Claude Opus 5.5) - Addressed Copilot's second review of PR #3008: `agent-reply-validator` "uses" a schema version, not "fixes" one.
 
 ## Acceptance Criteria
 
