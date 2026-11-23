@@ -676,6 +676,13 @@ mod tests {
     }
 
     #[test]
+    fn it_should_keep_the_delimiter_depth_across_adjacent_character_literals_in_a_test_only_function() {
+        let source = format!("#[cfg(test)]\nfn t() {{ let _ = ['\\'','{{']; }}\n{ATTRIBUTE}\nfn production() {{}}\n");
+
+        assert_eq!(violations_in(&source).iter().map(|v| v.line).collect::<Vec<_>>(), vec![3]);
+    }
+
+    #[test]
     fn it_should_normalize_backslashes_of_allow_list_paths() {
         assert!(parse_allow_list("a\\b.rs: reason\n").unwrap().contains("a/b.rs"));
     }
