@@ -70,7 +70,7 @@ Round 1 covers three reviews of head `03b8e27fb`, all COMMENTED. Review 60226101
 - Current-tree verification: `grep -c` on `docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md` finds "last message from the caller that carries one" in D17 (and in the new Progress Log entry), "refusal text never contains `Reply file:`" once, and "first message of the agent" 0 times.
 - Resolution reference: `docs(issues): [#2904] hold a continued task reviewer to its latest reply file`
 - Follow-up PR URL: N/A
-- Reply URL: Pending: the reply is posted after the push.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4666976606
 
 ### F2 - A continued run inherits the earlier run's refusal count
 
@@ -83,7 +83,7 @@ Round 1 covers three reviews of head `03b8e27fb`, all COMMENTED. Review 60226101
 - Current-tree verification: `grep -c` on `docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md` finds "keyed by the run's `agent_id` together with" once and "3 refusals per request" once.
 - Resolution reference: `docs(issues): [#2904] hold a continued task reviewer to its latest reply file`
 - Follow-up PR URL: N/A
-- Reply URL: Pending: the reply is posted after the push.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4666977020
 
 ### F3 - A refused draft reply path has no counter location
 
@@ -96,7 +96,7 @@ Round 1 covers three reviews of head `03b8e27fb`, all COMMENTED. Review 60226101
 - Current-tree verification: `grep -c` on `docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md` finds the bullet "A draft specification" once, "taken only from a path under" once, and "so the hook refuses it" 0 times.
 - Resolution reference: `docs(issues): [#2904] let the task reviewer finish on a draft reply path`
 - Follow-up PR URL: N/A
-- Reply URL: Pending: the reply is posted after the push.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4666977377
 
 ### F4 - A continued reviewer keeps the first task's reply file and refusal count
 
@@ -109,7 +109,7 @@ Round 1 covers three reviews of head `03b8e27fb`, all COMMENTED. Review 60226101
 - Current-tree verification: As for F1 and F2.
 - Resolution reference: `docs(issues): [#2904] hold a continued task reviewer to its latest reply file`
 - Follow-up PR URL: N/A
-- Reply URL: Pending: the reply is posted after the push.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4666977884
 
 ### F5 - A refused draft path has no counter, and the draft folder number is unreliable
 
@@ -122,7 +122,7 @@ Round 1 covers three reviews of head `03b8e27fb`, all COMMENTED. Review 60226101
 - Current-tree verification: Before writing the count, `ls -d docs/issues/drafts/*/ | wc -l` printed 18 and `ls -d docs/issues/drafts/[0-9]*/ | wc -l` printed 11; `docs/issues/drafts/2003-separate-ai-harness-cargo-workspace` exists. `grep -c` on the spec finds "never taken" once.
 - Resolution reference: `docs(issues): [#2904] let the task reviewer finish on a draft reply path`
 - Follow-up PR URL: N/A
-- Reply URL: Pending: the reply is posted after the push.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4666978395
 
 ### F6 - The plan does not carry the verification D17 promises
 
@@ -135,7 +135,7 @@ Round 1 covers three reviews of head `03b8e27fb`, all COMMENTED. Review 60226101
 - Current-tree verification: `grep -c` on `docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md` finds "carries the `Reply file:` line (D17)" once (M7), "letting the agent finish without a line" twice (Commit Points, Automatic Checks), and "including a continued run" 4 times (D17, the T5 row, Commit Points, Automatic Checks).
 - Resolution reference: `docs(issues): [#2904] name the stop hook's tests in the plan and checks`
 - Follow-up PR URL: N/A
-- Reply URL: Pending: the reply is posted after the push.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4666978919
 
 ### F7 - The cap of eight is stated for stop hooks in general
 
@@ -148,7 +148,7 @@ Round 1 covers three reviews of head `03b8e27fb`, all COMMENTED. Review 60226101
 - Current-tree verification: `grep -c` on `docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md` finds "documents for stop hooks" 0 times and "does not rely on Claude Code's cap" once.
 - Resolution reference: `docs(issues): [#2904] state the cap of eight continuations only for Stop hooks`
 - Follow-up PR URL: N/A
-- Reply URL: Pending: the reply is posted after the push.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4666979362
 
 ### F8 - The facts introduction dates every row 2026-11-15
 
@@ -161,7 +161,7 @@ Round 1 covers three reviews of head `03b8e27fb`, all COMMENTED. Review 60226101
 - Current-tree verification: `claude --version` run at 13:58 UTC on 2026-11-23 printed `2.1.318 (Claude Code)`. `grep -c` on the spec finds "Checked on 2026-11-23", which" once and "still printed" once.
 - Resolution reference: `docs(issues): [#2904] date the two facts rows of 2026-11-23 in the table's introduction`
 - Follow-up PR URL: N/A
-- Reply URL: Pending: the reply is posted after the push.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4666979916
 
 ### F9 - Same cap-of-eight wording comment, anchored on the facts row
 
@@ -172,9 +172,9 @@ Round 1 covers three reviews of head `03b8e27fb`, all COMMENTED. Review 60226101
 - Concern: Copilot notes that the facts row states the cap only for `Stop` while D17 treats it as applying to stop hooks generally, and asks to reword D17. The same request as F7.
 - Solution: No separate change: the D17 sentence was reworded under F7.
 - Current-tree verification: As for F7.
-- Resolution reference: Pending: the reply URL is recorded after the push.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4666980445
 - Follow-up PR URL: N/A
-- Reply URL: Pending: the reply is posted after the push.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4666980445
 
 ### F10 - `agent_transcript_path` reads as the transcript content, not a path
 
@@ -187,7 +187,7 @@ Round 1 covers three reviews of head `03b8e27fb`, all COMMENTED. Review 60226101
 - Current-tree verification: `grep -c` on `docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md` finds "opens the transcript file at `agent_transcript_path`" once.
 - Resolution reference: `docs(issues): [#2904] hold a continued task reviewer to its latest reply file`
 - Follow-up PR URL: N/A
-- Reply URL: Pending: the reply is posted after the push.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4666980835
 
 ### F11 - Same cap-of-eight wording comment, on the D17 sentence
 
@@ -198,13 +198,15 @@ Round 1 covers three reviews of head `03b8e27fb`, all COMMENTED. Review 60226101
 - Concern: The same text as F9, anchored on the D17 sentence itself. The same request as F7.
 - Solution: No separate change: the D17 sentence was reworded under F7.
 - Current-tree verification: As for F7.
-- Resolution reference: Pending: the reply URL is recorded after the push.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4666981257
 - Follow-up PR URL: N/A
-- Reply URL: Pending: the reply is posted after the push.
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4666981257
 
 ## Processing Log
 
 - 2026-11-23 14:05 UTC - Started audit. Round 1: reviews 6022610166 (CodeRabbit), 6022825332 (`da2ce7`) and 6022913275 (Copilot) on head `03b8e27fb`, eleven inline comments recorded as F1 to F11. Fetched the eleven review threads with GraphQL as `josecelano-bot`: all unresolved, `viewerCanResolve` true for each. Applied the maintainer's two design answers of 2026-11-23 (F1, F2, F4; F3, F5) and the mechanical fixes in five signed commits (committer times 13:59:23Z to 14:03:03Z) and logged the round in the spec (14:03:55Z); each commit's pre-commit hook passed. Checked each disposition against the current tree with the commands in the detail entries. Not pushed yet.
+- 2026-11-23 14:14 UTC - Pushed the seven commits with `git-bot-push` (pre-push hook passed); `git ls-remote josecelano-bot refs/heads/2904-t5-task-reviewer-spec` shows `92dbb7d9a`. Replied on the eleven threads as `josecelano-bot` (reply `created_at` 14:13:28Z to 14:13:52Z) and recorded the reply URLs.
+- 2026-11-23 14:14 UTC - The copy of the audit validator that calls `gh-bot` exits 0 (11 rows, 0 failures). A GraphQL fetch showed every unresolved thread with one reply of `josecelano-bot` and `viewerCanResolve` true; the F3 thread had already been resolved by the CodeRabbit bot after the reply. The other ten threads were then resolved as `josecelano-bot`. A new GraphQL fetch shows 11 threads, 0 unresolved.
 
 ## Completion Rules
 
