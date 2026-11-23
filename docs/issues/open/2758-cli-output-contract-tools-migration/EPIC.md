@@ -6,7 +6,7 @@ epic: null
 github-issue: 2758
 spec-path: docs/issues/open/2758-cli-output-contract-tools-migration/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-19 09:45"
+last-updated-utc: "2026-11-23 14:03"
 semantic-links:
   skill-links:
     - create-issue
@@ -103,6 +103,8 @@ parallel; the maintainer sets how many sessions run at once.
 | 9 | #2768 - `tracker_client`: TTY refusal, JSON-only output | `docs/issues/closed/2768-2758-tracker-client-json-only/ISSUE.md` | DONE | Implemented in PR #2956. Wave 2, after 6: `console/tracker-client/**` |
 | 10 | #2769 - `e2e_tests_runner` and `qbittorrent_e2e_runner`: JSON diagnostics | `docs/issues/open/2769-2758-e2e-runners-json/ISSUE.md` | TODO | Wave 2, after 6 and 7: `src/console/ci/**`, `packages/e2e-tools/src/bin/` |
 | 11 | #2770 - Close the migration: update the ADR notes and the EPIC | `docs/issues/open/2770-2758-close-out-adr-and-epic/ISSUE.md` | TODO | Wave 3 (last): ADR "currently non-compliant" notes, `docs/issues/` bookkeeping. The only close-out PR for the EPIC. |
+| 12 | #3004 - `tracker_client`: do not write the tracker key in diagnostics or results (bug) | `docs/issues/open/3004-2758-tracker-client-mask-tracker-key/ISSUE.md` (spec PR #3005) | IN_PROGRESS | Found while closing #2768. Runs before #2766: the maintainer puts bugs and security fixes first, with no implementation overlapping it. Files: `console/tracker-client/**`, `packages/tracker-client/src/http/client/**`. |
+| 13 | #3006 - `tracker_client`: add a schema version to the results | `docs/issues/open/3006-2758-tracker-client-schema-version/ISSUE.md` | IN_PROGRESS | Spec only for now (maintainer decisions: a global ADR rule, top-level integer `schema_version`, first value `1`). Implementation after issue 10 and before issue 11: it amends the text of `docs/adrs/20260519000000_define_global_cli_output_contract.md`, which issue 11 also edits. Files: `console/tracker-client/**` and that ADR. |
 
 ## Delivery Strategy
 
@@ -120,7 +122,7 @@ For each subissue, the default completion policy is:
    unnecessary in the issue progress log.
 
 Every issue that changes a tool also changes, in the same PR, each skill, workflow, script or doc that describes or
-consumes the old behavior (named in its spec). No issue edits the ADR table except issue 1 and issue 11.
+consumes the old behavior (named in its spec). No issue edits the ADR table except issue 1 and issue 11; issue 13 amends the ADR text (the schema version rule), not the table, and merges before issue 11.
 
 ## Progress Tracking
 
@@ -147,6 +149,7 @@ consumes the old behavior (named in its spec). No issue edits the ADR table exce
 - 2026-11-09 11:26 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the round 3 review of PR 2774.
 - 2026-11-09 12:12 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the review of PR 2771 (da2ce7 findings F1 to F27 and Copilot's later comments): specs corrected from the code, reproductions recorded where a spec has a bug-fix section.
 - 2026-11-09 13:21 UTC - Claude Code (Claude Sonnet 5.5) - Addressed da2ce7's review 5826238636 of PR 2771 on this spec.
+- 2026-11-23 14:03 UTC - Claude Code (Claude Opus 5.5) - Added issues 12 (#3004, bug) and 13 (#3006) from the #2768 leftovers; the maintainer set the order: #3004, #2766, #2769, #3006, then #2763 and #2767, and #2770 last.
 
 ## Acceptance Criteria
 
