@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-F1 and F2 come from Copilot's review 6021313664 (COMMENTED on the first head, "docs(issues): [#2917] record the SI-5 verification evidence and the configuration 4.0.0 breaking change"), in source order. Copilot noted that its full agentic review did not start before its timeout; the two findings are its inline threads. F3 to F6 come from Copilot's review 6022021456 (COMMENTED on the round-1 head, "docs(pr-reviews): [#2917] add the review audit of PR #3001", with ACK comments of the maintainer on the first head and on that head), in source order; its overview lists F1 and F2 as resolved. F7 to F13 come from da2ce7's review 6022459738 (APPROVED on the round-2 head, "docs(pr-reviews): [#2917] record round 2 of the review audit of PR #3001"), in source order; the reviewer numbered them F1 to F7 and each entry's "Reviewer finding ID" keeps that number. F16 comes from CodeRabbit's review 6022628130 (COMMENTED on the head "docs(issues): [#2917] repeat the recheck after the last production change and align the spec rows and metadata"), whose poller did not watch it. F16 comes from CodeRabbit's review 6022628130 (COMMENTED on the head "docs(issues): [#2917] repeat the recheck after the last production change and align the spec rows and metadata"), which the poller does not watch; it is placed last because I found it late. F14 and F15 come from Copilot's review 6022662894 (COMMENTED on the round-2 head, with no ACK of its own), in source order; Copilot's overview there lists the earlier findings as resolved.
+F1 and F2 come from Copilot's review 6021313664 (COMMENTED on the first head, "docs(issues): [#2917] record the SI-5 verification evidence and the configuration 4.0.0 breaking change"), in source order. Copilot noted that its full agentic review did not start before its timeout; the two findings are its inline threads. F3 to F6 come from Copilot's review 6022021456 (COMMENTED on the round-1 head, "docs(pr-reviews): [#2917] add the review audit of PR #3001", with ACK comments of the maintainer on the first head and on that head), in source order; its overview lists F1 and F2 as resolved. F7 to F13 come from da2ce7's review 6022459738 (APPROVED on the round-2 head, "docs(pr-reviews): [#2917] record round 2 of the review audit of PR #3001"), in source order; the reviewer numbered them F1 to F7 and each entry's "Reviewer finding ID" keeps that number. F14 and F15 come from Copilot's review 6022662894 (COMMENTED on the round-2 head, with no ACK of its own), in source order; Copilot's overview there lists the earlier findings as resolved. F16 comes from CodeRabbit's review 6022628130 (COMMENTED on the head "docs(issues): [#2917] repeat the recheck after the last production change and align the spec rows and metadata"), which the poller does not watch; it is placed after F14 and F15 because I found it late.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -58,9 +58,14 @@ F1 and F2 come from Copilot's review 6021313664 (COMMENTED on the first head, "d
 | F11 | review-finding:pr-3001-f11 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-3001-f12 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F13 | review-finding:pr-3001-f13 | Human | Nit | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
-| F14 | review-finding:pr-3001-f14 | Copilot | Nit | testing | ORIGINAL | FIXED | RESOLVED |
-| F15 | review-finding:pr-3001-f15 | Copilot | Nit | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F14 | review-finding:pr-3001-f14 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-3001-f15 | Copilot | Minor | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F16 | review-finding:pr-3001-f16 | Unknown | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-3001-f17 | Copilot | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-3001-f18 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F19 | review-finding:pr-3001-f19 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-3001-f20 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F21 | review-finding:pr-3001-f21 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -239,7 +244,7 @@ F1 and F2 come from Copilot's review 6021313664 (COMMENTED on the first head, "d
 - Source review ID: 6022662894
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4666579091
-- Concern: Copilot (rated Low, recorded as Nit) noted that `it_should_error_on_missing_cert_or_key_paths` does not assert that `MissingTlsConfig`'s message holds no source path, although the variant previously carried a caller location, and asked for the same check as in `it_should_error_on_bad_tls_config`.
+- Concern: Copilot (rated Medium, recorded as Minor) noted that `it_should_error_on_missing_cert_or_key_paths` does not assert that `MissingTlsConfig`'s message holds no source path, although the variant previously carried a caller location, and asked for the same check as in `it_should_error_on_bad_tls_config`.
 - Solution: The test now also calls `assert_names_no_source_path(&err.to_string())`. The message had no location before either (its format never printed the field), so the assertion guards against a regression and was not a red test.
 - Current-tree verification: `grep -n "assert_names_no_source_path(&err.to_string())" packages/axum-server/src/tls.rs` shows both uses; `cargo test -p torrust-tracker-axum-server --lib` (stable Rust toolchain) passes 9 tests.
 - Resolution reference: test(axum-server): [#2917] check that the missing TLS files message holds no source path
@@ -252,7 +257,7 @@ F1 and F2 come from Copilot's review 6021313664 (COMMENTED on the first head, "d
 - Source review ID: 6022662894
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4666579162
-- Concern: Copilot (rated Low, recorded as Nit) noted that `ErrorKind::TrackerAuthentication` is now built from `Error`'s `Display` text and suggested a stable message constant, or a stable code plus a human message, so that wording changes cannot break a client-visible surface.
+- Concern: Copilot (rated Medium, recorded as Minor) noted that `ErrorKind::TrackerAuthentication` is now built from `Error`'s `Display` text and suggested a stable message constant, or a stable code plus a human message, so that wording changes cannot break a client-visible surface.
 - Solution: No change. `AuthRequired` is built only in `#[cfg(test)]` code, so no production event carries it today. The payload was `location.to_string()` before this PR, a source path that is less stable than the message; the other `ErrorKind` arms (`BadRequest`, `Whitelist`, `Database` and the rest) carry their error's `Display` text in the same way. A stable code and message for error events is the work of the general error-events EPIC that the module's own doc comment names, not of this sub-issue; the two test-only variants are the subject of the follow-up the spec lists as out of scope.
 - Current-tree verification: `grep -n "TrackerAuthentication\|BadRequest(\|Whitelist(" packages/udp-server/src/event.rs` shows the sibling arms built from `to_string()`; `grep -rn "AuthRequired" packages --include=*.rs` finds no use outside `error.rs` and `event.rs` tests and conversion.
 - Resolution reference: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4666636634
@@ -272,6 +277,71 @@ F1 and F2 come from Copilot's review 6021313664 (COMMENTED on the first head, "d
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4666716838
 
+### F17 - The SI-8 option row and rationale still say two copies
+
+- PR number: 3001
+- Source review ID: 6023246827
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4667040607
+- Concern: Copilot (rated Low, recorded as Nit) noted that the chosen option row and its rationale still describe two copies, while the scope and AC3 require four.
+- Solution: The row now says "cross-link the four that cannot" and "the four copies"; the rationale says "the last four copies". Same text as F19.
+- Current-tree verification: `grep -n "two copies\|last two\|the two that" docs/issues/open/2996-2912-si-8-share-assert-names-no-source-path/ISSUE.md` finds nothing.
+- Resolution reference: docs(issues): [#2917] fix the SI-8 option rationale, dates and provenance wording after review round 5
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4668280193
+
+### F18 - F14 and F15 record the wrong source severity
+
+- PR number: 3001
+- Source review ID: 6023021299
+- Reviewer finding ID: F12
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4666865659
+- Concern: da2ce7 (Minor) noted that F14 and F15 were recorded as Nit with "rated Low", while the overview of Copilot review 6022662894 marks both Medium.
+- Solution: Both rows are now Minor and both Concern lines say "rated Medium, recorded as Minor".
+- Current-tree verification: `grep -n "^| F14 \|^| F15 " docs/pr-reviews/pr-3001-review/PR-REVIEW.md` shows Minor.
+- Resolution reference: docs(issues): [#2917] fix the SI-8 option rationale, dates and provenance wording after review round 5
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4668280696
+
+### F19 - The option-E rationale still says two, and "18 files" is stale
+
+- PR number: 3001
+- Source review ID: 6023021299
+- Reviewer finding ID: F9
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4666865668
+- Concern: da2ce7 (Nit) noted that the option-E row and the sentence after the table still say two, and that line 69 says 18 files while 21 files call or define the helper.
+- Solution: The row and the sentence say four, and line 69 says 21 files (`grep -rln assert_names_no_source_path packages | wc -l` gives 21). The earlier sweep missed these phrases; the new sweep greps "two" in the whole spec.
+- Current-tree verification: `grep -n "two copies\|last two\|18 files" docs/issues/open/2996-2912-si-8-share-assert-names-no-source-path/ISSUE.md` finds nothing.
+- Resolution reference: docs(issues): [#2917] fix the SI-8 option rationale, dates and provenance wording after review round 5
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4668281256
+
+### F20 - The F16 sentence is duplicated, and one log time is off
+
+- PR number: 3001
+- Source review ID: 6023021299
+- Reviewer finding ID: F13
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4666865681
+- Concern: da2ce7 (Nit) noted that the origin of F16 is stated twice in the intro paragraph and placed before the F14 and F15 sentence although it says it is last, and that the 13:51 correction gives 13:44:52 for the batch resolve while the 13:45 entry gives 13:45:33.
+- Solution: The duplicate sentence is removed, the remaining one is moved after the F14 and F15 sentence and says it is placed after them; the correction now says the resolve ran at 13:45:33 and 13:44:52 was the time of the replies.
+- Current-tree verification: `grep -o "F16 comes fro[m]" docs/pr-reviews/pr-3001-review/PR-REVIEW.md | wc -l` prints 1.
+- Resolution reference: docs(issues): [#2917] fix the SI-8 option rationale, dates and provenance wording after review round 5
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4668281799
+
+### F21 - A few dates and provenance lines do not match the record
+
+- PR number: 3001
+- Source review ID: 6023021299
+- Reviewer finding ID: F10
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4666865693
+- Concern: da2ce7 (Nit) noted that the evidence says the first after captures were taken at a commit build that did not yet exist, that three `last-updated-utc` values were stale, that the 11:21 progress-log entry was rewritten instead of appended to, and that the 13:26 audit entry ends in a double period.
+- Solution: The evidence says "a working tree matching" the commit; the evidence file, the SI-5 and SI-8 specs and the EPIC carry the current `last-updated-utc`; the 11:21 entry is restored to its first text and the SI-8 record is a new 15:55 line; the double period is removed.
+- Current-tree verification: `grep -n "last-updated-utc" docs/issues/open/2996*/ISSUE.md docs/issues/open/2912*/EPIC.md` shows 2026-11-23 15:55.
+- Resolution reference: docs(issues): [#2917] fix the SI-8 option rationale, dates and provenance wording after review round 5
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4668282221
+
 ## Processing Log
 
 - 2026-11-23 12:00 UTC - Copilot's review 6021313664 (COMMENTED, submitted 12:00:15Z on the first head) arrived with two inline findings, F1 (Medium, recorded as Minor) and F2 (Low, recorded as Nit). The audit was started before the first reply. F1 fixed in "test(udp-server): [#2917] compare the authentication classification with the error's own message", pushed at 12:04 UTC (pre-push hook passed). F2 declined with a reason (the spec `status` becomes `done` at close-out).
@@ -279,10 +349,11 @@ F1 and F2 come from Copilot's review 6021313664 (COMMENTED on the first head, "d
 - 2026-11-23 12:53 UTC - Copilot's review 6022021456 (COMMENTED, submitted 12:53:25Z on the round-1 head) arrived with four inline findings, recorded as F3 to F6; its overview lists F1 and F2 as resolved. All CI checks of that head passed. F6 fixed in "refactor(udp-server): [#2917] match the unit variant AuthRequired directly", pushed at 12:58 UTC (pre-push hook passed). F3 fixed in this audit's round-2 commit; F4 and F5 declined with a reason.
 - 2026-11-23 13:00 UTC - Replied on the four threads (replies posted 12:59:28 UTC by `date -u`). The threads are resolved after the audit commit is pushed.
 - 2026-11-23 13:03 UTC - Resolved the four round-2 threads after the audit commit was pushed (`resolveReviewThread` returned `true` for each; `date -u` after the resolve commands: 13:03:21). GraphQL refresh: zero unresolved threads. This entry completes the round-2 entry above, which said the threads were resolved after the push.
-- 2026-11-23 13:26 UTC - da2ce7's review 6022459738 (APPROVED, submitted on the round-2 head) arrived with seven findings, recorded as F7 to F13 with the reviewer's F1 to F7. F7 to F12 fixed in "docs(axum-server): [#2917] drop the README bullet on torrust-located-error", "docs(issues): [#2917] record the SI-5 copies of the path helper in the SI-8 spec and the EPIC", "docs(issues): [#2917] name the SI-20 break in the configuration 4.0.0 list of the publish plan" and "docs(issues): [#2917] repeat the recheck after the last production change and align the spec rows and metadata" (pushed at 13:31 UTC, pre-push hook passed); the PR body was edited for F7. F13 declined with a reason (intermediate commits are kept)..
+- 2026-11-23 13:26 UTC - da2ce7's review 6022459738 (APPROVED, submitted on the round-2 head) arrived with seven findings, recorded as F7 to F13 with the reviewer's F1 to F7. F7 to F12 fixed in "docs(axum-server): [#2917] drop the README bullet on torrust-located-error", "docs(issues): [#2917] record the SI-5 copies of the path helper in the SI-8 spec and the EPIC", "docs(issues): [#2917] name the SI-20 break in the configuration 4.0.0 list of the publish plan" and "docs(issues): [#2917] repeat the recheck after the last production change and align the spec rows and metadata" (pushed at 13:31 UTC, pre-push hook passed); the PR body was edited for F7. F13 declined with a reason (intermediate commits are kept).
 - 2026-11-23 13:35 UTC - Replied on the seven threads (replies posted 13:34:05 UTC by `date -u`).
 - 2026-11-23 13:35 UTC - Resolved the seven round-3 threads (`resolveReviewThread` returned `true` for each; `date -u` after the resolve commands: 13:34:57). GraphQL refresh: zero unresolved threads on PR #3001.
 - 2026-11-23 13:39 UTC - Copilot's review 6022662894 (COMMENTED, submitted 13:39:42Z on the round-2 head) arrived with two inline findings, recorded as F14 and F15. F14 fixed in "test(axum-server): [#2917] check that the missing TLS files message holds no source path", pushed before 13:44 UTC (pre-push hook passed). F15 declined with a reason.
 - 2026-11-23 13:45 UTC - Replied on both threads (replies posted 13:44:52 UTC by `date -u`) and resolved both (`resolveReviewThread` returned `true` for each; `date -u` after the resolve commands: 13:45:33). GraphQL refresh: zero unresolved threads on PR #3001.
-- 2026-11-23 13:51 UTC - Correction to the round-4 entry above: its batch resolve at 13:44:52 UTC also resolved a third thread, CodeRabbit's thread on the SI-8 spec (review 6022628130, not watched by the poller), which had not been read or replied to, so "zero unresolved threads" there was wrong. The thread was reopened shortly after (`unresolveReviewThread` returned `isResolved` false; its time was not stamped) and is recorded as F16.
+- 2026-11-23 13:51 UTC - Correction to the round-4 entry above: its batch resolve (run at 13:45:33 UTC by `date -u`; 13:44:52 was the time of the replies) also resolved a third thread, CodeRabbit's thread on the SI-8 spec (review 6022628130, not watched by the poller), which had not been read or replied to, so "zero unresolved threads" there was wrong. The thread was reopened shortly after (`unresolveReviewThread` returned `isResolved` false; its time was not stamped) and is recorded as F16.
 - 2026-11-23 13:52 UTC - F16 fixed in "docs(issues): [#2917] extend tasks T1 and T5 of the SI-8 spec to all five definitions" (the first pushed before 13:51 UTC, pre-push hook passed; the second is pushed with this audit) and "docs(issues): [#2917] name the four other definitions in the In Scope bullet of the SI-8 spec"; replied at 13:51:42 UTC by `date -u`. A GraphQL query at 13:52:02 UTC shows the thread resolved and zero unresolved threads on PR #3001; no resolve command was run for it after the reply.
+- 2026-11-23 15:58 UTC - Copilot's review 6023246827 (COMMENTED, submitted 14:18:50Z on the round-5 head) arrived with one inline finding, F17 (Low, recorded as Nit), the same defect as da2ce7's F19; da2ce7's review 6023021299 (APPROVED on the same head) had four findings, F18 to F21 (his F12, F9, F13 and F10). This is round 6, beyond the limit of five, done on the maintainer's message in the session. All five fixed in "docs(issues): [#2917] fix the SI-8 option rationale, dates and provenance wording after review round 5", "docs(issues): [#2917] use the real time in the updated metadata" and this audit commit; the first two pushed 15:55 UTC (pre-push hook passed). Replies posted 15:56:46 UTC by `date -u`; the threads are resolved after this commit is pushed.
