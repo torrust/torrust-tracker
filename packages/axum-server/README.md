@@ -34,11 +34,11 @@ cohesive.
 
 The TLS helper in `tls.rs` currently depends on:
 
-- `TslConfig` from `torrust-tracker-configuration` — the tracker supervisor's public
+- `TlsConfig` from `torrust-tracker-configuration` — the tracker supervisor's public
   TLS configuration DTO
 
 If this package is reused outside the tracker in the future, the package
-boundary can be revisited and a more generic home for `TslConfig` can be evaluated
+boundary can be revisited and a more generic home for `TlsConfig` can be evaluated
 then.
 
 ## License
