@@ -620,18 +620,22 @@ T10 completes it before removing the profiles.
 | T11  | The measurement evidence | One commit per recorded pull request |
 | T12  | The completion review; the move to `closed/`; the EPIC row | One commit each |
 
-Tests are added in T3 (the reply validator) and in T5 (the stop hook: its limit of 3 refusals, reading the latest `Reply file:` line from a transcript including a continued run, a continued run whose last request has no line, and preloaded skill text that follows the task, and letting the agent finish without a line, for a draft path, for a path outside the specification folders and for a path whose specification folder does not exist). For
-this test-producing work, use the `write-unit-test` skill and complete an explicit design review
-after each passing test increment, before maintainer review and commit. Confirm that the test
-exposes the one causal initial-state difference; its fixture owns only incidental mechanics; and
-the production Act plus independently specified expected result remain visible. The review must
-use the mandatory prose-first Arrange-Act-Assert comparison: write temporary prose for each
-section, refactor until the code expresses it, remove redundant prose, and retain only irreducible
-context. Record this review in task evidence or a file-local test plan. Assess helper boundaries
-by meaningful named actions and abstraction-level alignment, not caller count: a single-use helper
-is valid when it keeps the test readable and hides only incidental mechanics. Commit each reviewed
-test-design increment before starting the next planned file or behavior area. Keep final
-verification and completion evidence separate when it improves reviewability.
+Tests are added in T3 (the reply validator) and in T5 (the stop hook: its limit of 3 refusals,
+reading the latest `Reply file:` line from a transcript including a continued run, a continued run
+whose last request has no line, and preloaded skill text that follows the task, and letting the
+agent finish without a line, for a draft path, for a path outside the specification folders and for
+a path whose specification folder does not exist). For this test-producing work, use the
+`write-unit-test` skill and complete an explicit design review after each passing test increment,
+before maintainer review and commit. Confirm that the test exposes the one causal initial-state
+difference; its fixture owns only incidental mechanics; and the production Act plus independently
+specified expected result remain visible. The review must use the mandatory prose-first
+Arrange-Act-Assert comparison: write temporary prose for each section, refactor until the code
+expresses it, remove redundant prose, and retain only irreducible context. Record this review in
+task evidence or a file-local test plan. Assess helper boundaries by meaningful named actions and
+abstraction-level alignment, not caller count: a single-use helper is valid when it keeps the test
+readable and hides only incidental mechanics. Commit each reviewed test-design increment before
+starting the next planned file or behavior area. Keep final verification and completion evidence
+separate when it improves reviewability.
 
 Record a justified no-change decision in the task's evidence without creating an empty commit. Use
 a Conventional Commit message with the narrow affected scope, and sign every commit with GPG.
