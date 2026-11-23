@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/3004-2758-tracker-client-mask-tracker-key/ISSUE.md
-last-updated-utc: "2026-11-23 19:03"
+last-updated-utc: "2026-11-23 19:42"
 ---
 
 <!-- cspell:ignore SECRETKEY OTHERKEY nothex Abcdefghijklmnopqrstuv Greptile -->
@@ -502,6 +502,34 @@ matches in stdout: 0, in stderr: 0
 The same commit adds a test that masking keeps the percent encoding of the other segments and the
 query; it passed when it was added (the masker uses the serialized, percent-encoded segments).
 
+## Review round 5 of PR 3012: the whole path after the endpoint
+
+CodeRabbit found that a dot segment (`/announce/./<key>`, `/announce/%2e/<key>`) moved the key past
+the one segment the text masker hid; URL parsers remove such segments, so the URL still reaches the
+key. Since rounds 2 to 5 each found another such form, the text masker now hides the whole rest of
+the path after the endpoint, up to the query, the fragment or the end of the quoted value
+(`fix(tracker-client): [#3004] mask the whole path after the endpoint in echoed text`).
+
+- Red, 2026-11-23 19:40 UTC on `docs(pr-reviews): [#3012] record review round 4`,
+  `evidence/r5-red.txt`: the dot-segment test (`./` and `%2E/`) and the test of a `../x/<key>` path
+  with a query failed; the other 21 redaction tests passed.
+- Green after the fix: `cargo test -q -p torrust-tracker-client-lib --lib` 43 passed,
+  `cargo test -q -p torrust-tracker-client` all binaries `ok`, clippy with `-D clippy::pedantic`
+  clean. The nested-endpoint test now expects `/announce/****` for `/announce/scrape/<key>`.
+- Recheck, 2026-11-23 19:41 UTC, on that commit, the last commit with code, with the round 2
+  commands plus a dot-segment URL. It replaces the round 3 recheck as the final one. Every
+  non-empty `exit=`, `stdout:` and `stderr:` line equals a line recorded above (`grep -qxF`),
+  except the configuration echo of the new URL:
+
+```console
+$ U='http://127.0.0.1:1/announce/./SECRETKEYabc123'
+$ TORRUST_CHECKER_CONFIG="{\"udp_trackers\":[],\"http_trackers\":\"$U\",\"health_checks\":[]}" target/debug/tracker_client check > /dev/null 2> e.txt
+exit=2 {"error":{"kind":"invalid_configuration","source":"TORRUST_CHECKER_CONFIG","message":"JSON parse error: invalid type: string \"http://127.0.0.1:1/announce/****\", expected a sequence at line 1 column 82"}}
+```
+
+Its usage-error echo equals the recorded `'http://127.0.0.1:1/announce/****'` line.
+`SECRETKEYabc123` appears only in the input lines and the `grep -cF` commands, which print `0`.
+
 ## Outcome
 
 Reproduced. R0 confirms the defect on `develop`: the key appears on stderr for `http announce` and
@@ -509,4 +537,4 @@ Reproduced. R0 confirms the defect on `develop`: the key appears on stderr for `
 
 Fixed. After the fix, the like-for-like recheck (V1 to V3), the success case (V4) and the two
 echoes (V5) write no key; every tracker URL in the output shows `****`. The recheck was repeated
-after the review round 1, 2 and 3 fixes, on the last commit with code, with the same result.
+after the review round 1, 2, 3 and 5 fixes (round 4 changed only test configuration), on the last commit with code, with the same result.

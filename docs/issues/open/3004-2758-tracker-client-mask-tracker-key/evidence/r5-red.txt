@@ -1,0 +1,34 @@
+2026-11-23 19:40
+state: round 5 tests added on docs(pr-reviews): [#3012] record review round 4
+
+running 23 tests
+.. 2/23
+http::client::redaction::tests::it_should_mask_the_key_after_a_dot_segment --- FAILED
+............... 18/23
+http::client::redaction::tests::it_should_mask_the_whole_path_after_the_endpoint_but_keep_the_query --- FAILED
+....
+failures:
+
+---- http::client::redaction::tests::it_should_mask_the_key_after_a_dot_segment stdout ----
+
+thread 'http::client::redaction::tests::it_should_mask_the_key_after_a_dot_segment' (722363) panicked at packages/tracker-client/src/http/client/redaction.rs:444:9:
+assertion `left == right` failed
+  left: "unexpected argument 'http://tracker.example.com/announce/****/SECRET' found"
+ right: "unexpected argument 'http://tracker.example.com/announce/****' found"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- http::client::redaction::tests::it_should_mask_the_whole_path_after_the_endpoint_but_keep_the_query stdout ----
+
+thread 'http::client::redaction::tests::it_should_mask_the_whole_path_after_the_endpoint_but_keep_the_query' (722376) panicked at packages/tracker-client/src/http/client/redaction.rs:456:9:
+assertion `left == right` failed
+  left: "\"http://tracker.example.com/announce/****/x/SECRET?info_hash=%9C8B\", expected"
+ right: "\"http://tracker.example.com/announce/****?info_hash=%9C8B\", expected"
+
+
+failures:
+    http::client::redaction::tests::it_should_mask_the_key_after_a_dot_segment
+    http::client::redaction::tests::it_should_mask_the_whole_path_after_the_endpoint_but_keep_the_query
+
+test result: FAILED. 21 passed; 2 failed; 0 ignored; 0 measured; 20 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p torrust-tracker-client-lib --lib`

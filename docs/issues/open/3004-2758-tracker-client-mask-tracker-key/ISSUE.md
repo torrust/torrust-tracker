@@ -9,7 +9,7 @@ github-issue: 3004
 spec-path: docs/issues/open/3004-2758-tracker-client-mask-tracker-key/ISSUE.md
 branch: "3004-tracker-client-mask-tracker-key"
 related-pr: null
-last-updated-utc: "2026-11-23 19:03"
+last-updated-utc: "2026-11-23 19:42"
 semantic-links:
   skill-links:
     - create-issue
@@ -183,7 +183,10 @@ small function masks the key of every tracker URL it finds in a text, and the us
 configuration-error records go through it. Each gets a red regression test. Review round 1 of the
 implementation PR (3012) showed that the first version, which parsed each URL it found, missed a
 scheme in upper or mixed case, a URL cut at a `)` or `'` inside it, and a URL that does not parse;
-the function now finds the text after `/announce/` and `/scrape/` without parsing.
+the function now finds the text after `/announce/` and `/scrape/` without parsing. Rounds 2 to 5
+found more forms a URL parser normalizes to the same key (a `\` separator, a delimiter at the start
+of the segment, a nested endpoint, a dot segment); since round 5 the function masks the whole rest
+of the path after the endpoint, up to the query, so no such form moves the key out of the mask.
 
 ## Architectural Decisions
 
@@ -195,8 +198,8 @@ the function now finds the text after `/announce/` and `/scrape/` without parsin
 
 Interface: one small pure function owns the masking of a URL (input: a URL; output: the same URL
 with the key segment replaced). Every output path calls it; no output path builds its own masked
-text. A second pure function (input: a text; output: the same text with the key after every
-`/announce/` and `/scrape/` and the password of every URL user info masked, without parsing the
+text. A second pure function (input: a text; output: the same text with the rest of the path
+after every `/announce/` and `/scrape/` and the password of every URL user info masked, without parsing the
 URLs) covers the records whose text comes from a third-party formatter (P8, P9 in the audit). An
 authenticated library client also masks its own key wherever its path puts it (a custom endpoint
 path, the health-check path).
@@ -350,6 +353,7 @@ commit.
 - 2026-11-23 18:03 UTC - Claude Code (Claude Opus 5.5) - Addressed review round 1 of PR 3012 (da2ce7 F1 to F6, Copilot, Greptile): the text masker no longer parses URLs, so it masks echoed URLs with an upper-case scheme, a `)` or `'` inside, or that do not parse; an authenticated client masks its own key; the error text keeps the chain of causes; contract, README and evidence counts corrected. New tests were red first; the recheck was repeated on the last commit with code.
 - 2026-11-23 18:43 UTC - Claude Code (Claude Opus 5.5) - Addressed review round 2 of PR 3012 (Greptile, CodeRabbit): the text masker takes `\` as a separator, masks the whole segment after an endpoint and the first non-empty one after extra separators, finds nested endpoints, and masks every password; an `http scrape` body-read test. The recheck found the `serde_json`-escaped backslash leak, fixed with its own red tests; the final recheck ran on the last commit with code.
 - 2026-11-23 19:03 UTC - Claude Code (Claude Opus 5.5) - Addressed review round 3 of PR 3012 (Copilot): `HTTP` in upper case in the checker errors, a percent-encoding test, the library README paragraph wrapped; the recheck repeated on the last commit with code.
+- 2026-11-23 19:42 UTC - Claude Code (Claude Opus 5.5) - Review round 4 of PR 3012 (Copilot): the tokio test features are listed. Round 5 (CodeRabbit): a dot segment moved the key past the masked segment; the text masker now hides the whole rest of the path after the endpoint; red tests first, the recheck repeated on the last commit with code.
 
 ## Acceptance Criteria
 
