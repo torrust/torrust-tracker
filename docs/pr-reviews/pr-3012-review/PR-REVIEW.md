@@ -67,6 +67,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F20 | review-finding:pr-3012-f20 | Copilot | Nit (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F21 | review-finding:pr-3012-f21 | Copilot | Nit (inferred) | formatting | ORIGINAL | FIXED | RESOLVED |
 | F22 | review-finding:pr-3012-f22 | Copilot | Nit (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F23 | review-finding:pr-3012-f23 | Unknown | Minor | security | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -356,12 +357,26 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3012#discussion_r4670918979
 
+### F23 - A dot segment moves the key past the masked segment
+
+- PR number: 3012
+- Source review ID: 6028220359
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3012#discussion_r4670983182
+- Concern: CodeRabbit: the text masker masks only the first non-empty segment after the endpoint, so `/announce/./<key>` (or `%2e`) masks the `.` and prints the key, although URL parsing removes the dot segment and reaches the same key. Skip `.` and `%2e` segments and add tests.
+- Solution: The text masker hides the whole rest of the path after the endpoint, up to the query, the fragment, a character that cannot appear in a URL, or the closing quote; this covers dot segments, `../`, nested endpoints and separators in one rule. The contract and the spec state it. Tests for `./`, `%2E/` and `../x/<key>?...` were red first.
+- Current-tree verification: `cargo test -q -p torrust-tracker-client-lib --lib dot_segment` and `cargo test -q -p torrust-tracker-client-lib --lib whole_path_after_the_endpoint` pass 1 test each.
+- Resolution reference: `fix(tracker-client): [#3004] mask the whole path after the endpoint in echoed text`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3012#discussion_r4671078323
+
 ## Processing Log
 
 - 2026-11-23 18:10 UTC - Round 1 had three reviews of the head `docs(issues): [#3004] record the regression tests, the recheck and the retrospective`: Greptile 6026091763 (COMMENTED, 17:17:59Z, two inline comments, F7 and F8), da2ce7 6026720101 (COMMENTED, 17:54:49Z, six inline comments, F1 to F6) and Copilot 6026728662 (COMMENTED, 17:55:20Z, three inline comments with IDs R1 to R3, recorded as F9 to F11 because the audit IDs F1 to F3 were taken). The new tests were run red at 17:58Z (`evidence/r1-red.txt`); fix commits made at 18:00:56Z, 18:01:42Z and 18:03:44Z (committer times) and pushed before the replies. Replied on the 11 threads as `josecelano-bot` (reply `created_at` 18:07:56Z to 18:08:21Z), edited the PR description (counts and the round 1 changes, F5), and resolved each thread with GraphQL; every `resolveReviewThread` returned `isResolved` true. The audit was written after the replies.
 - 2026-11-23 18:49 UTC - Round 2 had two reviews: Greptile 6026959633 (COMMENTED, 18:10:24Z, on the round 1 fix head, one inline comment, F12) and CodeRabbit 6027173167 (COMMENTED, 18:24:53Z, on the round 1 audit head, three inline comments, F13 to F15, and one nitpick in its body, F16). The poller watched only da2ce7 and Copilot, so it did not report them; they were found when the maintainer asked. Red runs at 18:39Z and 18:41Z, the scrape mutation at 18:40Z; fix commits at 18:40:23Z and 18:42:20Z, the evidence commit at 18:44:47Z, after the final recheck at 18:43Z; pushed before the replies. Replied on the four threads (`created_at` 18:48:36Z to 18:48:43Z) and on F16 with a PR comment (18:48:46Z), all as `josecelano-bot`. Resolved F12 and F13 with GraphQL (`isResolved` true); CodeRabbit had already resolved the F14 and F15 threads itself after the push (`resolvedBy` `coderabbitai[bot]`). F16 has no thread.
 - 2026-11-23 19:08 UTC - Round 3: Copilot 6027631676 (COMMENTED, 18:58:04Z, on the round 1 audit head; its overview warns the full agentic review did not start before a timeout) with five inline comments, F17 to F21; its overview severities are not shown per comment, so they are inferred. The fix commit at 19:02:00Z changed message text, so the recheck was repeated at 19:03Z and recorded (evidence commit at 19:03Z); pushed before the replies. Replied on the five threads as `josecelano-bot` (`created_at` 19:07:28Z to 19:07:38Z) and resolved each with GraphQL; every `resolveReviewThread` returned `isResolved` true. The two CodeRabbit reviews of 18:50Z (6027521172, 6027522667) only reply on the F13 and F15 threads that the fixes cover their cases; they raise no finding.
 - 2026-11-23 19:32 UTC - Round 4: Copilot 6028078922 (COMMENTED, 19:27:45Z, on the round 3 recheck head) with one inline comment, F22. Earlier, at 19:07:27Z, Greptile posted only that the organization ran out of review credits, which is not a finding. Fix commit at 19:28:30Z, test configuration only (no recheck needed: the binary does not change); pushed before the reply. Replied as `josecelano-bot` (19:32:21Z) and resolved the thread with GraphQL (`isResolved` true).
+- 2026-11-23 19:46 UTC - Round 5: CodeRabbit 6028220359 (COMMENTED, 19:38:07Z, on the round 4 audit head) with one inline comment, F23. Red run at 19:40Z; fix commit at 19:40:56Z, recheck at 19:41Z and the evidence commit after it; pushed before the reply. Replied as `josecelano-bot` (19:46:17Z) and resolved the thread with GraphQL (`isResolved` true). This is the fifth round of fixes, the limit after which the maintainer is asked before more fixes.
 
 ## Completion Rules
 
