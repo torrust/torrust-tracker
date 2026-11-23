@@ -9,7 +9,7 @@ github-issue: 2902
 spec-path: docs/issues/open/2902-1347-add-tests-tracker-core/ISSUE.md
 branch: "2902-1347-add-tests-tracker-core-sqlite"
 related-pr: 3009
-last-updated-utc: "2026-11-23 16:27"
+last-updated-utc: "2026-11-23 17:22"
 semantic-links:
   skill-links:
     - create-issue
