@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/ci-tools-keep-secrets-out-of-logs/ISSUE.md
 branch: "{issue-number}-ci-tools-keep-secrets-out-of-logs"
 related-pr: null
-last-updated-utc: "2026-11-23 19:47"
+last-updated-utc: "2026-11-23 19:45"
 semantic-links:
   skill-links:
     - create-issue
