@@ -88,7 +88,7 @@ Process decisions (2026-11-23):
 2. **One pull request merges this specification**: the EPIC, the decisions, the baseline and the sub-issue drafts.
 3. **A coordinator session runs the EPIC**, started by the `project-liaison` session at the maintainer's request.
 4. **One sub-issue at a time.** The coordinator starts one session for one sub-issue and waits for it to finish before starting the next. Sub-issues do not run in parallel.
-5. **Each sub-issue session**, in this order: completes its draft, creates its GitHub issue, moves the specification to `docs/issues/open/`, opens a specification-only pull request, and after that is merged implements the issue, opens the implementation pull request and does the close-out.
+5. **Each sub-issue session**, in this order: completes its draft, stops for the maintainer to review and approve it, creates its GitHub issue only after that approval (the `create-issue` skill forbids creating it earlier), moves the specification to `docs/issues/open/`, opens a specification-only pull request, and after that is merged implements the issue, opens the implementation pull request and does the close-out.
 
 ## Scope
 
