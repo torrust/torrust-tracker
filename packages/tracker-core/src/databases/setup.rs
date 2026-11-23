@@ -216,7 +216,7 @@ mod tests {
 
     #[tokio::test]
     #[should_panic(expected = "database configuration is required")]
-    async fn the_legacy_factory_should_panic_when_the_configuration_has_no_database() {
+    async fn it_should_panic_when_the_legacy_factory_gets_a_configuration_without_a_database() {
         let config = Core {
             database: None,
             ..ephemeral_configuration().config
@@ -227,7 +227,7 @@ mod tests {
 
     #[tokio::test]
     #[should_panic(expected = "database initialization requested")]
-    async fn the_legacy_factory_should_panic_when_the_database_cannot_be_opened() {
+    async fn it_should_panic_when_the_legacy_factory_cannot_open_the_database() {
         let (database, _directory) = sqlite_database_in_a_missing_directory();
         let config = Core {
             database: Some(database),
