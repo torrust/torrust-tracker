@@ -45,13 +45,13 @@ F1 to F5 come from CodeRabbit's review 6030014294 (COMMENTED, submitted 21:44:49
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
-| F1 | review-finding:pr-3018-f1 | Unknown | Major | correctness | ORIGINAL | FIXED | OPEN |
-| F2 | review-finding:pr-3018-f2 | Unknown | Minor | correctness | ORIGINAL | FIXED | OPEN |
-| F3 | review-finding:pr-3018-f3 | Unknown | Minor | correctness | ORIGINAL | FIXED | OPEN |
-| F4 | review-finding:pr-3018-f4 | Unknown | Minor | correctness | ORIGINAL | FIXED | OPEN |
-| F5 | review-finding:pr-3018-f5 | Unknown | Minor | testing | ORIGINAL | FIXED | OPEN |
-| F6 | review-finding:pr-3018-f6 | Copilot | Minor | correctness | ORIGINAL | FIXED | OPEN |
-| F7 | review-finding:pr-3018-f7 | Copilot | Minor | correctness | ORIGINAL | FIXED | OPEN |
+| F1 | review-finding:pr-3018-f1 | Unknown | Major | correctness | ORIGINAL | FIXED | RESOLVED |
+| F2 | review-finding:pr-3018-f2 | Unknown | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F3 | review-finding:pr-3018-f3 | Unknown | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F4 | review-finding:pr-3018-f4 | Unknown | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F5 | review-finding:pr-3018-f5 | Unknown | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F6 | review-finding:pr-3018-f6 | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-3018-f7 | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -66,7 +66,7 @@ F1 to F5 come from CodeRabbit's review 6030014294 (COMMENTED, submitted 21:44:49
 - Current-tree verification: `cargo test -p source-location-check` (stable Rust toolchain) passes 16 library tests and 4 CLI tests; `cargo run -q -p source-location-check` exits 0 on the tree.
 - Resolution reference: fix(source-location-check): [#2918] mask comments and strings, balance delimiters and track module ancestry
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3018#discussion_r4672899188
 
 ### F2 - A comment line clears the pending `#[cfg(test)]`
 
@@ -79,7 +79,7 @@ F1 to F5 come from CodeRabbit's review 6030014294 (COMMENTED, submitted 21:44:49
 - Current-tree verification: `cargo test -p source-location-check` (stable Rust toolchain) passes, including that test.
 - Resolution reference: fix(source-location-check): [#2918] mask comments and strings, balance delimiters and track module ancestry
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3018#discussion_r4672899659
 
 ### F3 - Test module files ignore the inline-module ancestry
 
@@ -92,7 +92,7 @@ F1 to F5 come from CodeRabbit's review 6030014294 (COMMENTED, submitted 21:44:49
 - Current-tree verification: `cargo test -p source-location-check` (stable Rust toolchain) passes, including those tests.
 - Resolution reference: fix(source-location-check): [#2918] mask comments and strings, balance delimiters and track module ancestry
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3018#discussion_r4672900052
 
 ### F4 - A file with a production declaration is exempted as test code
 
@@ -105,7 +105,7 @@ F1 to F5 come from CodeRabbit's review 6030014294 (COMMENTED, submitted 21:44:49
 - Current-tree verification: `cargo test -p source-location-check` (stable Rust toolchain) passes, including that test.
 - Resolution reference: fix(source-location-check): [#2918] mask comments and strings, balance delimiters and track module ancestry
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3018#discussion_r4672900486
 
 ### F5 - M1 is marked DONE without a commit rejected by the hook
 
@@ -118,7 +118,7 @@ F1 to F5 come from CodeRabbit's review 6030014294 (COMMENTED, submitted 21:44:49
 - Current-tree verification: `grep -n "step 4\|22:25:45" docs/issues/open/2918-2912-si-6-drop-located-error-and-enforce-the-rule/manual-verification-evidence.md` shows the record; `git status --short` was empty after the revert.
 - Resolution reference: docs(issues): [#2918] record the hook run of M1 and round 1 of the review audit of PR #3018
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3018#discussion_r4672900878
 
 ### F6 - Trailing and block comments are still scanned
 
@@ -131,7 +131,7 @@ F1 to F5 come from CodeRabbit's review 6030014294 (COMMENTED, submitted 21:44:49
 - Current-tree verification: `cargo test -p source-location-check` (stable Rust toolchain) passes, including that test; the old comment-line test `it_should_ignore_comment_lines` still passes.
 - Resolution reference: fix(source-location-check): [#2918] mask comments and strings, balance delimiters and track module ancestry
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3018#discussion_r4672901227
 
 ### F7 - Allow-list paths are not normalized to `/`
 
@@ -144,8 +144,9 @@ F1 to F5 come from CodeRabbit's review 6030014294 (COMMENTED, submitted 21:44:49
 - Current-tree verification: `cargo test -p source-location-check` (stable Rust toolchain) passes, including that test.
 - Resolution reference: fix(source-location-check): [#2918] mask comments and strings, balance delimiters and track module ancestry
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3018#discussion_r4672901583
 
 ## Processing Log
 
 - 2026-11-23 22:27 UTC - Copilot's review 6030466922 (COMMENTED, submitted 22:22:53Z) reached the poller; listing the reviews through the REST API also showed CodeRabbit's review 6030014294 (submitted 21:44:49Z), which the poller does not watch. Seven inline findings, F1 to F7. The audit was started before the first reply. F1 to F4, F6 and F7 are fixed in "fix(source-location-check): [#2918] mask comments and strings, balance delimiters and track module ancestry" and F5 in this audit's commit.
+- 2026-11-23 22:31 UTC - Pushed the fixes (pre-push hook passed, push finished 22:30:26 UTC by `date -u`), replied on the seven threads (replies posted 22:30:57 UTC) and resolved them (`resolveReviewThread` returned `true` for each; `date -u` after the resolve commands: 22:31:10). GraphQL refresh: zero unresolved threads on PR #3018. This entry is committed and pushed after the replies.
