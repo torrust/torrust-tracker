@@ -66,6 +66,13 @@ F1 and F2 come from Copilot's review 6021313664 (COMMENTED on the first head, "d
 | F19 | review-finding:pr-3001-f19 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F20 | review-finding:pr-3001-f20 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F21 | review-finding:pr-3001-f21 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F22 | review-finding:pr-3001-f22 | Unknown | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F23 | review-finding:pr-3001-f23 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F24 | review-finding:pr-3001-f24 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F25 | review-finding:pr-3001-f25 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F26 | review-finding:pr-3001-f26 | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
+| F27 | review-finding:pr-3001-f27 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F28 | review-finding:pr-3001-f28 | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -342,6 +349,97 @@ F1 and F2 come from Copilot's review 6021313664 (COMMENTED on the first head, "d
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4668282221
 
+### F22 - Row F21 and the audit say 15:55 where the files read 15:53
+
+- PR number: 3001
+- Source review ID: 6024928625
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4668369792
+- Concern: Greptile (P2, recorded as Minor) noted that row F21 and the audit say 15:55 where the files read 15:53.
+- Solution: The Solution and the verification of row F21 now say 15:53.
+- Current-tree verification: `grep -n "15:55" docs/pr-reviews/pr-3001-review/PR-REVIEW.md` finds only text that quotes the old value.
+- Resolution reference: docs(pr-reviews): [#2917] cite the commits that fixed rows F18, F20 and F21 and correct the times in row F21
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4668814828
+
+### F23 - Rows F17 to F21 cite a resolution commit that did not touch this record
+
+- PR number: 3001
+- Source review ID: 6024983512
+- Reviewer finding ID: F20
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4668414012
+- Concern: da2ce7 (Minor) noted that rows F17 to F21 cite as their resolution a commit that did not touch this record.
+- Solution: Rows F18 and F20 cite the round 6 audit commit; row F21 cites the three commits, separated by semicolons; rows F17 and F19 cite the SI-8 spec commit, which is right.
+- Current-tree verification: The five `Resolution reference` lines of rows F17 to F21 show the subjects.
+- Resolution reference: docs(pr-reviews): [#2917] cite the commits that fixed rows F18, F20 and F21 and correct the times in row F21
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4668815383
+
+### F24 - Three replies still cite branch commits by id
+
+- PR number: 3001
+- Source review ID: 6024983512
+- Reviewer finding ID: F18
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4668414018
+- Concern: da2ce7 (Nit) noted that three replies cite branch commits by id.
+- Solution: The three replies were edited (GitHub allows the author to edit a reply) and now name the commits by subject.
+- Current-tree verification: `gh-bot api repos/torrust/torrust-tracker/pulls/comments/4668282221 --jq .body` shows no id.
+- Resolution reference: docs(pr-reviews): [#2917] record round 7 of the review audit of PR #3001
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4668815930
+
+### F25 - Row F21 and the newest log entry carry times the head does not match
+
+- PR number: 3001
+- Source review ID: 6024983512
+- Reviewer finding ID: F21
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4668414021
+- Concern: da2ce7 (Nit) noted that row F21 says 15:55 where the head has 15:53, that the 15:58 log entry is stamped after the commit that adds it, and that the 13:26 and 13:51 entries were edited in place instead of corrected by an appended entry.
+- Solution: Row F21 says 15:53. The appended entry of this round names the 15:58 stamp (the commit is 15:57:04) and the in-place edits of the 13:26 and 13:51 entries, which are left as they are.
+- Current-tree verification: The last entry of the Processing Log.
+- Resolution reference: docs(pr-reviews): [#2917] cite the commits that fixed rows F18, F20 and F21 and correct the times in row F21; docs(pr-reviews): [#2917] record round 7 of the review audit of PR #3001
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4668816541
+
+### F26 - Say that the 15:53 line corrects the 11:21 claim
+
+- PR number: 3001
+- Source review ID: 6024983512
+- Reviewer finding ID: F19
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4668414029
+- Concern: da2ce7 (Suggestion, recorded as Nit) asked that the 15:53 progress-log line say that it corrects the 11:21 claim and name the commit that recorded the SI-8 copies.
+- Solution: A new 16:40 progress-log line says so, naming that commit by subject.
+- Current-tree verification: `grep -n "supersedes the claim" docs/issues/open/2917-2912-si-5-startup-and-udp-server-errors/ISSUE.md` shows the line.
+- Resolution reference: docs(issues): [#2917] note that the 15:53 line corrects the 11:21 one and name SI-A for secret values
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4668817068
+
+### F27 - The five threads of the last round are unanswered
+
+- PR number: 3001
+- Source review ID: 6025316233
+- Reviewer finding ID: F22
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4668686764
+- Concern: da2ce7 (Minor) noted that the five threads of the last round had no reply, row or resolution, which holds his verdict at COMMENT.
+- Solution: All five threads and the two of review 6025316233 now have rows F22 to F28, replies and resolutions.
+- Current-tree verification: This table lists rows F22 to F28; the validator reports every thread covered.
+- Resolution reference: docs(pr-reviews): [#2917] record round 7 of the review audit of PR #3001
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4668817676
+
+### F28 - Record the EPIC #2993 interaction with AC2
+
+- PR number: 3001
+- Source review ID: 6025316233
+- Reviewer finding ID: F23
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4668686785
+- Concern: da2ce7 (Suggestion, recorded as Nit) asked that the spec name SI-A as the owner of the secret-value case of AC2, and noted that line 86 of EPIC #2993 becomes stale.
+- Solution: A Risks bullet names SI-A (#2999). EPIC #2993 line 86 belongs to that EPIC's owner, who refreshes the inventory after this merge; it is not edited here.
+- Current-tree verification: `grep -n "AC2 and secret values" docs/issues/open/2917-2912-si-5-startup-and-udp-server-errors/ISSUE.md` shows the bullet.
+- Resolution reference: docs(issues): [#2917] note that the 15:53 line corrects the 11:21 one and name SI-A for secret values
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4668818262
+
 ## Processing Log
 
 - 2026-11-23 12:00 UTC - Copilot's review 6021313664 (COMMENTED, submitted 12:00:15Z on the first head) arrived with two inline findings, F1 (Medium, recorded as Minor) and F2 (Low, recorded as Nit). The audit was started before the first reply. F1 fixed in "test(udp-server): [#2917] compare the authentication classification with the error's own message", pushed at 12:04 UTC (pre-push hook passed). F2 declined with a reason (the spec `status` becomes `done` at close-out).
@@ -357,3 +455,5 @@ F1 and F2 come from Copilot's review 6021313664 (COMMENTED on the first head, "d
 - 2026-11-23 13:51 UTC - Correction to the round-4 entry above: its batch resolve (run at 13:45:33 UTC by `date -u`; 13:44:52 was the time of the replies) also resolved a third thread, CodeRabbit's thread on the SI-8 spec (review 6022628130, not watched by the poller), which had not been read or replied to, so "zero unresolved threads" there was wrong. The thread was reopened shortly after (`unresolveReviewThread` returned `isResolved` false; its time was not stamped) and is recorded as F16.
 - 2026-11-23 13:52 UTC - F16 fixed in "docs(issues): [#2917] extend tasks T1 and T5 of the SI-8 spec to all five definitions" (the first pushed before 13:51 UTC, pre-push hook passed; the second is pushed with this audit) and "docs(issues): [#2917] name the four other definitions in the In Scope bullet of the SI-8 spec"; replied at 13:51:42 UTC by `date -u`. A GraphQL query at 13:52:02 UTC shows the thread resolved and zero unresolved threads on PR #3001; no resolve command was run for it after the reply.
 - 2026-11-23 15:58 UTC - Copilot's review 6023246827 (COMMENTED, submitted 14:18:50Z on the round-5 head) arrived with one inline finding, F17 (Low, recorded as Nit), the same defect as da2ce7's F19; da2ce7's review 6023021299 (APPROVED on the same head) had four findings, F18 to F21 (his F12, F9, F13 and F10). This is round 6, beyond the limit of five, done on the maintainer's message in the session. All five fixed in "docs(issues): [#2917] fix the SI-8 option rationale, dates and provenance wording after review round 5", "docs(issues): [#2917] use the real time in the updated metadata" and this audit commit; the first two pushed 15:55 UTC (pre-push hook passed). Replies posted 15:56:46 UTC by `date -u`; the threads are resolved after this commit is pushed.
+- 2026-11-23 16:39 UTC - Review round 7 (beyond the limit of five, done at the maintainer's request): Greptile's thread 4668369792 (review 6024928625) and da2ce7's review 6024983512 (four findings) were opened before the round-6 push; da2ce7's review 6025316233 (COMMENTED on the merge of `develop`) added two more and noted that those five threads had no reply. Recorded as F22 to F28; all fixed in "docs(issues): [#2917] note that the 15:53 line corrects the 11:21 one and name SI-A for secret values", "docs(pr-reviews): [#2917] cite the commits that fixed rows F18, F20 and F21 and correct the times in row F21" and "docs(pr-reviews): [#2917] record round 7 of the review audit of PR #3001". Replies posted 16:39:22 UTC by `date -u`; the three older replies that cited commits by id were edited. The threads are resolved after this commit is pushed.
+- 2026-11-23 16:39 UTC - Correction to earlier entries (da2ce7's F21, row F25): the 15:58 entry above was stamped 15:58 but its commit is dated 15:57:04; and the 13:26 entry (double period removed) and the 13:51 entry (the resolve time changed to 13:45:33) were edited in place in round 6, not corrected by an appended entry. They stay as they are, this entry names the edits.
