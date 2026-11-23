@@ -57,9 +57,9 @@ F1 to F5 come from CodeRabbit's review 6030014294 (COMMENTED, submitted 21:44:49
 | F10 | review-finding:pr-3018-f10 | Unknown | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F11 | review-finding:pr-3018-f11 | Unknown | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-3018-f12 | Unknown | Minor | correctness | RE_RAISE_OF:F4 | FIXED | RESOLVED |
-| F13 | review-finding:pr-3018-f13 | Unknown | Minor | correctness | ORIGINAL | FIXED | OPEN |
-| F14 | review-finding:pr-3018-f14 | Unknown | Minor | correctness | ORIGINAL | FIXED | OPEN |
-| F15 | review-finding:pr-3018-f15 | Unknown | Minor | testing | ORIGINAL | FIXED | OPEN |
+| F13 | review-finding:pr-3018-f13 | Unknown | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-3018-f14 | Unknown | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-3018-f15 | Unknown | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -230,7 +230,7 @@ F1 to F5 come from CodeRabbit's review 6030014294 (COMMENTED, submitted 21:44:49
 - Current-tree verification: `cargo test -p source-location-check` (stable Rust toolchain) passes 23 library tests and 4 CLI tests, including the named test; `cargo run -q -p source-location-check` exits 0 on the tree.
 - Resolution reference: fix(source-location-check): [#2918] scan the rest of a line after an excluded item and inherit test-only status through module files
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3018#discussion_r4673642520
 
 ### F14 - Modules of a test-only file are classified as production
 
@@ -243,7 +243,7 @@ F1 to F5 come from CodeRabbit's review 6030014294 (COMMENTED, submitted 21:44:49
 - Current-tree verification: `cargo test -p source-location-check` (stable Rust toolchain) passes 23 library tests and 4 CLI tests, including the named test; `cargo run -q -p source-location-check` exits 0 on the tree.
 - Resolution reference: fix(source-location-check): [#2918] scan the rest of a line after an excluded item and inherit test-only status through module files
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3018#discussion_r4673642773
 
 ### F15 - The F9 regression test does not run inside a test-only function
 
@@ -256,7 +256,7 @@ F1 to F5 come from CodeRabbit's review 6030014294 (COMMENTED, submitted 21:44:49
 - Current-tree verification: `cargo test -p source-location-check` (stable Rust toolchain) passes 23 library tests and 4 CLI tests, including the named test; `cargo run -q -p source-location-check` exits 0 on the tree.
 - Resolution reference: test(source-location-check): [#2918] cover adjacent character literals in a test-only function
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3018#discussion_r4673643164
 
 ## Processing Log
 
@@ -265,3 +265,4 @@ F1 to F5 come from CodeRabbit's review 6030014294 (COMMENTED, submitted 21:44:49
 - 2026-11-23 23:38 UTC - The poller (watching da2ce7 and Copilot only) timed out after an hour with no event, but listing the reviews showed CodeRabbit's round 2: review 6030628364 with four new inline findings (F8 to F11) and a reply on the F4 thread (F12). F8 to F11 fixed in "fix(source-location-check): [#2918] mask raw byte strings and escaped apostrophes and parse attributes on the item's line" and F12 in "fix(source-location-check): [#2918] let a production module declaration override a test-only directory prefix". The poller is restarted with the CodeRabbit login added as a watched reviewer.
 - 2026-11-23 23:43 UTC - Pushed the round-2 fixes and audit (pre-push hook passed, push finished 23:41:42 UTC by `date -u`), replied on the five threads (replies posted 23:42:06 UTC) and resolved them (`resolveReviewThread` returned `true` for each, including the F4 thread that CodeRabbit's reply had left resolved; `date -u` after the resolve commands: 23:42:22). GraphQL refresh: zero unresolved threads on PR #3018. This entry is committed and pushed after the replies.
 - 2026-11-23 23:52 UTC - The poller, now watching CodeRabbit too, returned CodeRabbit's round 3 (review 6031363636, 23:47:54Z, two inline findings F13 and F14) and a reply on the F9 thread asking for a stronger regression test (F15, 23:49:54Z); another CodeRabbit reply on the F4 thread (23:49:12Z) says the code and tests cover F12 and holds no finding. This is round 3 of at most 5. F13 and F14 fixed in "fix(source-location-check): [#2918] scan the rest of a line after an excluded item and inherit test-only status through module files" and F15 in "test(source-location-check): [#2918] cover adjacent character literals in a test-only function", which was run red against the previous character literal length by hand before the fix state was restored.
+- 2026-11-23 23:56 UTC - Pushed the round-3 fixes and audit (pre-push hook passed, push finished 23:55:36 UTC by `date -u`), replied on the three threads (replies posted 23:55:56 UTC) and resolved them (`resolveReviewThread` returned `true` for each, including the F9 thread that CodeRabbit's reply had left resolved; `date -u` after the resolve commands: 23:56:08). GraphQL refresh: zero unresolved threads on PR #3018. This entry is committed and pushed after the replies.
