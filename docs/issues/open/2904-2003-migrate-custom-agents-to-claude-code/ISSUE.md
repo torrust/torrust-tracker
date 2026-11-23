@@ -339,7 +339,8 @@ Decided by the maintainer on 2026-11-15:
   the one that stopped being written (25 of 48 archived folders in October, 2 of 32 in the first
   half of November; see Background for the method). Requirements: the hook cannot loop forever,
   and it lets the agent finish when the reviewer was given no folder-style specification, because
-  then there is no place for a reply file. The bound is 3 refusals per request, that is per run of
+  then there is no place for a reply file, or a draft one, which has no implemented task to
+  review. The bound is 3 refusals per request, that is per run of
   the agent and reply file (see How the hook works), the same
   number as the round limit of D18: the fourth attempt to finish is allowed, and the hook reports
   that the limit was reached. The orchestrator then finds no valid reply file, stops, and asks the
@@ -368,13 +369,18 @@ Decided by the maintainer on 2026-11-15:
     the reply file (for example a file named from the `agent_id` and the reply file's name), in
     `.agents/issues/<issue-number>/reply-guard/`. A continued run keeps its `agent_id`, but its
     request names a new round file under D18, so it gets its own 3 refusals and does not inherit
-    the count of the earlier request. The issue number is the first number of the
-    specification's folder name. The `.agents/issues/` subtree holds only local workflow
+    the count of the earlier request. The issue number is taken only from a path under
+    `docs/issues/open/` or `docs/issues/closed/`: the first number of the specification's folder
+    name there. The `.agents/issues/` subtree holds only local workflow
     state: it is ignored by Git and excluded from every linter, which do not read `.gitignore`,
     and nothing committed goes there. `.tmp/` is not used, because agents clean it as scratch
-    space. A `Reply file:` path in `docs/issues/drafts/` has no issue number, so the hook refuses
-    it and says that the reviewed specification needs one. The bound of 3 is below the cap of
+    space. The bound of 3 is below the cap of
     eight continuations that Claude Code documents for stop hooks.
+  - **A draft specification.** For a `Reply file:` path under `docs/issues/drafts/` the hook
+    lets the reviewer finish, with a message saying that the reply was not enforced and why: a
+    draft has no implemented task to review. It keeps no count. The issue number is never taken
+    from a draft path, because draft folders often start with their EPIC's number (11 of the 18
+    draft folders on 2026-11-23, for example `2003-separate-ai-harness-cargo-workspace`).
   - **The program.** A binary `agent-reply-guard` in the crate `agent-reply-validator` (T3), so
     the hook runs the same checks as the validator and needs no new crate.
 - **D18 - The trace is one JSON reply file per reply, validated against a schema.** Only replies
