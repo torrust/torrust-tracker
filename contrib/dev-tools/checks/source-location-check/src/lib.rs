@@ -170,13 +170,18 @@ pub fn violations_in(source: &str) -> Vec<Violation> {
     let mut violations = Vec::new();
     let mut lines = masked.iter().enumerate();
 
-    while let Some((index, line)) = lines.next() {
-        if let Some(after_attribute) = line.trim_start().strip_prefix(CFG_TEST) {
-            skip_test_item(after_attribute, &mut lines);
-            continue;
+    while let Some((first_index, first_line)) = lines.next() {
+        let (mut index, mut text) = (first_index, first_line.as_str());
+        // An excluded item can end in the middle of a line; the rest of that line is scanned too.
+        while let Some(after_attribute) = text.trim_start().strip_prefix(CFG_TEST) {
+            let Some((end_index, rest)) = skip_test_item(index, after_attribute, &mut lines) else {
+                text = "";
+                break;
+            };
+            (index, text) = (end_index, rest);
         }
         for (pattern, reason) in FORBIDDEN {
-            if line.contains(pattern) {
+            if text.contains(pattern) {
                 violations.push(Violation {
                     line: index + 1,
                     pattern,
@@ -224,40 +229,47 @@ fn skip_attributes<'a>(text: &'a str, depth: &mut usize) -> &'a str {
 }
 
 /// Consumes the item that follows a `#[cfg(test)]` attribute: `first` is the text after the attribute on
-/// its line, then further attributes (also on the item's line, or over several lines), then everything up to
-/// the `;` or the closing delimiter that ends the item, found by balancing `{}`, `()` and `[]`.
-fn skip_test_item<'a>(first: &str, lines: &mut impl Iterator<Item = (usize, &'a String)>) {
+/// line `index`, then further attributes (also on the item's line, or over several lines), then everything up
+/// to the `;` or the closing delimiter that ends the item, found by balancing `{}`, `()` and `[]`.
+///
+/// Returns the line on which the item ends and the text of that line after the item, or `None` when the
+/// source ends first.
+fn skip_test_item<'a>(
+    index: usize,
+    first: &'a str,
+    lines: &mut impl Iterator<Item = (usize, &'a String)>,
+) -> Option<(usize, &'a str)> {
     let mut depth = 0_usize;
     let mut attribute_depth = 0_usize;
     let mut started = false;
 
-    let mut next = Some(first);
-    while let Some(text) = next {
+    let mut next = Some((index, first));
+    while let Some((line_index, text)) = next {
         let item = if started {
             text
         } else {
             skip_attributes(text, &mut attribute_depth)
         };
-        if !started && item.trim().is_empty() {
-            next = lines.next().map(|(_, line)| line.as_str());
-            continue;
-        }
-        started = true;
-        for c in item.chars() {
-            match c {
-                '{' | '(' | '[' => depth += 1,
-                '}' | ')' | ']' => {
-                    depth = depth.saturating_sub(1);
-                    if depth == 0 && c == '}' {
-                        return;
+        if started || !item.trim().is_empty() {
+            started = true;
+            for (offset, c) in item.char_indices() {
+                match c {
+                    '{' | '(' | '[' => depth += 1,
+                    '}' | ')' | ']' => {
+                        depth = depth.saturating_sub(1);
+                        if depth == 0 && c == '}' {
+                            return Some((line_index, &item[offset + 1..]));
+                        }
                     }
+                    ';' if depth == 0 => return Some((line_index, &item[offset + 1..])),
+                    _ => {}
                 }
-                ';' if depth == 0 => return,
-                _ => {}
             }
         }
-        next = lines.next().map(|(_, line)| line.as_str());
+        next = lines.next().map(|(next_index, line)| (next_index, line.as_str()));
     }
+
+    None
 }
 
 /// A `mod name;` declaration found in a source file.
@@ -356,30 +368,52 @@ pub struct ModulePaths {
 
 /// Collects the module paths of every `.rs` file, given as `(path, source)`.
 ///
-/// A file counts as test code only when every declaration that includes it is `#[cfg(test)]`: one
-/// production declaration (for example in `main.rs` next to a test-only one in `lib.rs`) keeps it checked,
-/// and a production declaration below a test-only directory prefix overrides that prefix (see
-/// [`is_test_file`]).
+/// A file counts as test code only when every declaration that includes it is test-only: a `#[cfg(test)]`
+/// declaration, or any declaration inside a file that is itself test code (so the modules of a test-only
+/// file are test-only). One production declaration (for example in `main.rs` next to a test-only one in
+/// `lib.rs`) keeps a file checked, and a production declaration below a test-only directory prefix
+/// overrides that prefix (see [`is_test_file`]).
 #[must_use]
 pub fn test_only_paths<'a>(files: impl IntoIterator<Item = (&'a Path, &'a str)>) -> ModulePaths {
-    let mut paths = ModulePaths::default();
+    struct Declared {
+        declaring_file: String,
+        module: PathBuf,
+        test_only: bool,
+    }
 
+    let mut declared = Vec::new();
     for (path, source) in files {
         let directory = module_directory(path);
         for declaration in module_declarations(source) {
-            let module = directory.join(declaration.path.join("/"));
-            let target = if declaration.test_only {
-                &mut paths.test_only
-            } else {
-                &mut paths.production
-            };
-            target.insert(slash(&module.with_extension("rs")));
-            target.insert(slash(&module) + "/");
+            declared.push(Declared {
+                declaring_file: slash(path),
+                module: directory.join(declaration.path.join("/")),
+                test_only: declaration.test_only,
+            });
         }
     }
 
-    paths.test_only.retain(|entry| !paths.production.contains(entry));
-    paths
+    // Declarations in test code are test-only; which files are test code depends on the declarations, so
+    // repeat until nothing changes. The test-only set only grows, so this ends.
+    let mut paths = ModulePaths::default();
+    loop {
+        let mut next = ModulePaths::default();
+        for declaration in &declared {
+            let test_only = declaration.test_only || is_test_file(Path::new(&declaration.declaring_file), &paths);
+            let target = if test_only {
+                &mut next.test_only
+            } else {
+                &mut next.production
+            };
+            target.insert(slash(&declaration.module.with_extension("rs")));
+            target.insert(slash(&declaration.module) + "/");
+        }
+        next.test_only.retain(|entry| !next.production.contains(entry));
+        if next == paths {
+            return paths;
+        }
+        paths = next;
+    }
 }
 
 fn slash(path: &Path) -> String {
@@ -621,6 +655,24 @@ mod tests {
 
         assert!(!is_test_file(Path::new("packages/x/src/shared/child.rs"), &paths));
         assert!(!is_test_file(Path::new("packages/x/src/shared/child/deeper.rs"), &paths));
+    }
+
+    #[test]
+    fn it_should_resume_scanning_after_an_excluded_item_that_ends_mid_line() {
+        let source = format!(
+            "#[cfg(test)]\n#[allow(dead_code)] fn helper() {{ {ATTRIBUTE} fn inner() {{}} }} {ATTRIBUTE} fn production() {{}}\n"
+        );
+
+        assert_eq!(violations_in(&source).iter().map(|v| v.line).collect::<Vec<_>>(), vec![2]);
+    }
+
+    #[test]
+    fn it_should_treat_modules_declared_in_a_test_only_file_as_test_only() {
+        let lib = Path::new("packages/x/src/lib.rs");
+        let helpers = Path::new("packages/x/src/helpers.rs");
+        let paths = test_only_paths([(lib, "#[cfg(test)]\nmod helpers;\n"), (helpers, "mod nested;\n")]);
+
+        assert!(is_test_file(Path::new("packages/x/src/helpers/nested.rs"), &paths));
     }
 
     #[test]
