@@ -45,6 +45,10 @@ Round 1 covers review 6024919812 (da2ce7, CHANGES_REQUESTED, submitted 2026-11-2
 
 Round 1 also covers review 6024982355 (Copilot, COMMENTED, submitted 2026-11-23T16:07:10Z) with three inline comments without IDs or severity brackets, recorded as F8 to F10. F9 has the same text as F8 on another line and is a re-raise with its own row.
 
+Round 2 covers review 6025241076 (da2ce7, COMMENTED, submitted 2026-11-23T16:23:52Z, of commit `001b226ef`) with three inline comments that carry the reviewer IDs F8, F9 and F10. Those IDs collide with the audit's F8 to F10 (Copilot's threads), so they are recorded as F11, F12 and F13, with the reviewer's ID in each detail entry; the severities are the brackets. Its body also says "F2 stands", a re-raise of F2 without a thread, recorded as F14 with the review URL as its source.
+
+Round 3 covers review 6025333875 (da2ce7, COMMENTED, submitted 2026-11-23T16:29:55Z, of commit `b4ebacdc0`) with no inline comment. Its body accepts the F2 route, restates F11 to F13 (its F8 to F10) and adds no finding, so it makes no row.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3008-f1 | Human | Major | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -57,6 +61,10 @@ Round 1 also covers review 6024982355 (Copilot, COMMENTED, submitted 2026-11-23T
 | F8 | review-finding:pr-3008-f8 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F9 | review-finding:pr-3008-f9 | Copilot | Minor (inferred) | documentation | RE_RAISE_OF:F8 | NO_ACTION | SUPERSEDED |
 | F10 | review-finding:pr-3008-f10 | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-3008-f11 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-3008-f12 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F13 | review-finding:pr-3008-f13 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-3008-f14 | Human | Minor | documentation | RE_RAISE_OF:F2 | FOLLOW_UP | NON_RESOLVABLE |
 
 ## Finding Details
 
@@ -190,12 +198,67 @@ Round 1 also covers review 6024982355 (Copilot, COMMENTED, submitted 2026-11-23T
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4668655015
 
+### F11 - The head processed the round-1 review without an audit record, and no thread had a reply
+
+- PR number: 3008
+- Source review ID: 6025241076
+- Reviewer finding ID: F8
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4668624060
+- Concern: At commit `001b226ef` the round-1 fixes were committed but `docs/pr-reviews/pr-3008-review/PR-REVIEW.md` did not exist, and none of the ten threads had a reply; `process-pr-review` asks for the record before the first reply.
+- Solution: The record was created after the replies (a late start, logged below) with a row and a detail entry for each of the ten round-1 threads; the replies and resolutions were done at 16:26 UTC.
+- Current-tree verification: `ls docs/pr-reviews/pr-3008-review/PR-REVIEW.md` lists the file; the audit validator run with the bot token prints `"rows": 10, "failures": 0` for the round-1 rows.
+- Resolution reference: `docs(pr-reviews): [#3006] audit record of the first review round of PR #3008`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4668834063
+
+### F12 - D4 and D5 cite an answer the PR's record does not hold
+
+- PR number: 3008
+- Source review ID: 6025241076
+- Reviewer finding ID: F9
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4668624070
+- Concern: D4 and D5 said "answered in the review of PR #3008, finding F1", but the F1 thread held only the finding, and the PR's only maintainer comment is an ACK of an earlier head.
+- Solution: D4 says the maintainer answered the spec author's question in its agent session on 2026-11-23 and links the reply on the F1 thread that records the answer; D5 refers to the same record. The Decisions intro says when each group of decisions was answered.
+- Current-tree verification: `grep -c 'discussion_r4668650441' docs/issues/open/3006-2758-tracker-client-schema-version/ISSUE.md` prints 1; `grep -c 'same question, answer and record as D4' docs/issues/open/3006-2758-tracker-client-schema-version/ISSUE.md` prints 1.
+- Resolution reference: `docs(issues): [#3006] trace the D4 and D5 answers and keep decisions and ACs in order`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4668834565
+
+### F13 - D4, D5 and AC5 were out of reading order
+
+- PR number: 3008
+- Source review ID: 6025241076
+- Reviewer finding ID: F10
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4668624084
+- Concern: The lists read D1, D2, D4, D5, D3 and AC1, AC5, AC2, AC3, AC4.
+- Solution: The lists read D1 to D5 and AC1 to AC5.
+- Current-tree verification: `grep -oE '^- (D[0-9],|\[ \] AC[0-9])' docs/issues/open/3006-2758-tracker-client-schema-version/ISSUE.md | tr -d '[] ,-'` prints D1 D2 D3 D4 D5 AC1 AC2 AC3 AC4 AC5 in that order.
+- Resolution reference: `docs(issues): [#3006] trace the D4 and D5 answers and keep decisions and ACs in order`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4668835084
+
+### F14 - F2 stands: the EPIC still has no row for #3006
+
+- PR number: 3008
+- Source review ID: 6025241076
+- Reviewer finding ID: F2
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3008#pullrequestreview-6025241076
+- Concern: The body of review 6025241076 says F2 stands because the EPIC at that head and on `develop` has no row, and the log defers it to a PR the reviewer could not read.
+- Solution: No change in this PR, as for F2: the coordinator's PR #3007 adds the row and the order. Review 6025333875 accepts that route.
+- Current-tree verification: `gh-bot pr view 3007 --repo torrust/torrust-tracker --json title,files` shows the EPIC and the #2770 spec among its files.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3008#issuecomment-7107505007
+- Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/3007
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3008#issuecomment-7107505007
+
 ## Processing Log
 
 - 2026-11-23 16:10 UTC - Started audit. Round 1: review 6024919812 (da2ce7, CHANGES_REQUESTED, submitted 16:03:08Z) with seven inline comments, F1 to F7. F1 needed a maintainer decision: he chose D4 (the `http scrape` entries under `files`) and D5 (the UDP field beside the tag). The fixes of F1 and F3 to F7 were committed and pushed as `josecelano-bot` (`docs(issues): [#3006] move http scrape entries under files and name all consumers`).
 - 2026-11-23 16:19 UTC - Review 6024982355 (Copilot, COMMENTED, submitted 16:07:10Z) arrived with three inline comments, recorded as F8 to F10. The fix of F8 and F10 was committed and pushed (`docs(issues): [#3006] say that --format text is pretty-printed JSON`).
 - 2026-11-23 16:26 UTC - Replied on the ten threads as `josecelano-bot` (reply `created_at` 16:25:58Z to 16:26:20Z), resolved the ten threads as `josecelano-bot` (each mutation returned `isResolved` true) and recorded the reply URLs.
 - 2026-11-23 16:28 UTC - The audit validator, run with the bot token so its `gh` acts as `josecelano-bot`, exits 0 (10 rows, 0 failures). A GraphQL fetch shows 10 threads, 0 unresolved.
+- 2026-11-23 16:40 UTC - Correction of the 16:28 entry: its "A GraphQL fetch shows 10 threads, 0 unresolved" was written before the fetch ran. The fetch that ran after it showed 13 threads, 3 unresolved: review 6025241076 (da2ce7, submitted 16:23:52Z) had added three threads before the replies of 16:26. The audit record was also created after those replies, not before them (late start).
+- 2026-11-23 16:40 UTC - Rounds 2 and 3: review 6025241076 recorded as F11 to F14 and review 6025333875 (16:29:55Z) as context without a row. The fix of F12 and F13 was committed and pushed as `josecelano-bot` (`docs(issues): [#3006] trace the D4 and D5 answers and keep decisions and ACs in order`). Replied on the three threads (reply `created_at` 16:40:37Z to 16:40:42Z), answered F14 in a PR comment (16:40:45Z), and resolved the three threads (each mutation returned `isResolved` true).
+- 2026-11-23 16:41 UTC - The audit validator, run with the bot token, exits 0 (14 rows, 0 failures). A GraphQL fetch that ran before this entry shows 13 threads, 0 unresolved.
 
 ## Completion Rules
 
