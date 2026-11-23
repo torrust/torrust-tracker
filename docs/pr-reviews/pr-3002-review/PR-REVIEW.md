@@ -43,6 +43,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 Round 1 covers three reviews of head `03b8e27fb`, all COMMENTED. Review 6022610166 (CodeRabbit, submitted 2026-11-23T13:35:49Z) has three inline comments, F1 to F3; its body is a summary and a prompt that repeats them, and makes no row. Its comments carry a "Major" or "Minor" label, not a `[Severity]` bracket; the labels are recorded as severities. Review 6022825332 (`da2ce7`, submitted 13:50:57Z) has five inline comments with `[Severity][FindingId]` first lines, F1 to F5; its body is a verdict and a checks summary and makes no row. Its IDs collide with F1 to F3, so they are F4 to F8 here, in source order, with the reviewer's ID in each detail entry; its F1 and F2 corroborate the CodeRabbit threads and are re-raises of F1 and F3 that add evidence, fixed by the same commits. Review 6022913275 (`copilot-pull-request-reviewer`, submitted 13:57:02Z, a lite review) has three inline comments, F9 to F11; its body is an overview that repeats them, with a warning that the full agentic review did not start before the timeout, and makes no row. The overview marks all three Medium; they are recorded as `Minor (inferred)`. F9 and F11 are the same text on two lines and ask for the change of F7.
 
+Round 2 covers review 6023199677 (Greptile, submitted 2026-11-23T14:15:50Z, COMMENTED) on the intermediate head `92dbb7d9a`, whose audit record still had placeholder Reply URLs. It has one inline comment, F12, marked P2 and recorded as `Minor (inferred)`; its body repeats it and makes no row. The next commit had already filled the URLs, so F12 needed no change.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3002-f1 | Unknown | Major | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -56,6 +58,7 @@ Round 1 covers three reviews of head `03b8e27fb`, all COMMENTED. Review 60226101
 | F9 | review-finding:pr-3002-f9 | Copilot | Minor (inferred) | documentation | RE_RAISE_OF:F7 | NO_ACTION | SUPERSEDED |
 | F10 | review-finding:pr-3002-f10 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F11 | review-finding:pr-3002-f11 | Copilot | Minor (inferred) | documentation | RE_RAISE_OF:F7 | NO_ACTION | SUPERSEDED |
+| F12 | review-finding:pr-3002-f12 | Unknown | Minor (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -202,11 +205,25 @@ Round 1 covers three reviews of head `03b8e27fb`, all COMMENTED. Review 60226101
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4666981257
 
+### F12 - The committed audit record has placeholder Reply URLs
+
+- PR number: 3002
+- Source review ID: 6023199677
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4667004905
+- Concern: At head `92dbb7d9a` every `Reply URL` field of F1 to F11 held a placeholder, so `validate-audit-record.py` could not pass.
+- Solution: No further change: the rows were committed before the replies, as the workflow orders, and the next commit filled the eleven URLs after the replies were posted.
+- Current-tree verification: `grep -c "^- Reply URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r"` on this file printed 11 before this row was added, and `grep -i pending` printed nothing; the validator exited 0 (11 rows, 0 failures).
+- Resolution reference: `docs(pr-reviews): [#3002] record the replies and resolutions of review round 1`
+- Follow-up PR URL: N/A
+- Reply URL: PENDING
+
 ## Processing Log
 
 - 2026-11-23 14:05 UTC - Started audit. Round 1: reviews 6022610166 (CodeRabbit), 6022825332 (`da2ce7`) and 6022913275 (Copilot) on head `03b8e27fb`, eleven inline comments recorded as F1 to F11. Fetched the eleven review threads with GraphQL as `josecelano-bot`: all unresolved, `viewerCanResolve` true for each. Applied the maintainer's two design answers of 2026-11-23 (F1, F2, F4; F3, F5) and the mechanical fixes in five signed commits (committer times 13:59:23Z to 14:03:03Z) and logged the round in the spec (14:03:55Z); each commit's pre-commit hook passed. Checked each disposition against the current tree with the commands in the detail entries. Not pushed yet.
 - 2026-11-23 14:14 UTC - Pushed the seven commits with `git-bot-push` (pre-push hook passed); `git ls-remote josecelano-bot refs/heads/2904-t5-task-reviewer-spec` shows `92dbb7d9a`. Replied on the eleven threads as `josecelano-bot` (reply `created_at` 14:13:28Z to 14:13:52Z) and recorded the reply URLs.
 - 2026-11-23 14:14 UTC - The copy of the audit validator that calls `gh-bot` exits 0 (11 rows, 0 failures). A GraphQL fetch showed every unresolved thread with one reply of `josecelano-bot` and `viewerCanResolve` true; the F3 thread had already been resolved by the CodeRabbit bot after the reply. The other ten threads were then resolved as `josecelano-bot`. A new GraphQL fetch shows 11 threads, 0 unresolved.
+- 2026-11-23 14:22 UTC - Round 2: review 6023199677 (Greptile) on head `92dbb7d9a`, one inline comment recorded as F12. Checked against the current tree: the Reply URLs it asks for were filled by the next commit, so no change. Row committed before the reply.
 
 ## Completion Rules
 
