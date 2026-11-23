@@ -154,7 +154,7 @@ Round 2 covers review 6026001901 (Copilot, COMMENTED, submitted 2026-11-23T17:13
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4668946068
 - Concern: Decision D2 said three targets already use uppercase with underscores. Two do: `TRACKER_CORE` and `SWARM_COORDINATION_REGISTRY`.
 - Solution: The decision says two and names them.
-- Current-tree verification: `grep -rn 'pub const .*TARGET.*=' --include=*.rs src packages` lists eight target constants; the two with an underscore in the value are `TRACKER_CORE` and `SWARM_COORDINATION_REGISTRY`. `grep -n 'two targets already use it' docs/issues/open/2387-review-tracker-lifecycle-logs/decisions.md` shows the corrected sentence.
+- Current-tree verification: `grep -rn 'pub const .*TARGET.*=' --include=*.rs src packages` lists nine target constants with eight distinct values (`HTTP TRACKER` is defined in two packages); the two with an underscore in the value are `TRACKER_CORE` and `SWARM_COORDINATION_REGISTRY`. `grep -n 'two targets already use it' docs/issues/open/2387-review-tracker-lifecycle-logs/decisions.md` shows the corrected sentence.
 - Resolution reference: docs(issues): [#2387] say that two targets, not three, already use the underscore style
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4669104067
