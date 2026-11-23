@@ -9,7 +9,7 @@ github-issue: 2902
 spec-path: docs/issues/open/2902-1347-add-tests-tracker-core/ISSUE.md
 branch: "2902-1347-add-tests-tracker-core-statistics"
 related-pr: 2988
-last-updated-utc: "2026-11-23 16:10"
+last-updated-utc: "2026-11-23 16:21"
 semantic-links:
   skill-links:
     - create-issue
@@ -438,6 +438,7 @@ The first slice's record checks the grouping against `find packages/tracker-core
 - 2026-11-23 15:51 UTC - Claude Code (Sonnet 5.5) - Row 14 (`databases/setup.rs`) done: four tests (the four stores share one migrated database, a database that cannot be opened, the two panics of the legacy factory), 96 / 104 lines, all four named mutants killed; the MySQL and PostgreSQL arms stay with S3 ([plan](test-refactor-plans/databases-setup-tests.md)). Plan and completed file approved by the maintainer.
 - 2026-11-23 16:03 UTC - Claude Code (Sonnet 5.5) - Row 15 (`error.rs`) done: a four-case table pins the variant and the message of each `From` conversion into `TrackerCoreError`, 69 / 69 lines, all four message mutants killed; the conversions themselves cannot be mutated without breaking the build ([plan](test-refactor-plans/tracker-core-error-tests.md)). Plan and completed file approved by the maintainer.
 - 2026-11-23 16:10 UTC - Claude Code (Sonnet 5.5) - Rows 16 and 17 (`databases/driver/mod.rs`, `databases/mod.rs` and the traits) done as no change, approved by the maintainer: the retry loop of a test-only helper waits on Docker, and the traits hold declarations and generated mocks ([record](test-refactor-plans/databases-driver-mod-and-traits-no-change.md)). All S2 ledger rows are done.
+- 2026-11-23 16:21 UTC - Claude Code (Sonnet 5.5) - S2 closed: the branch was rebased on `develop` `f73a359f8` (#2916 had removed the source locations of the errors; one test of row 15 was adapted in its own commit) and measured in the four scopes with its base: unit-only lines 84.47% to 87.11%, aggregate 84.47% to 87.11% ([slice measurements](coverage-evidence.md#slice-measurements)). The EPIC's #2902 rows hold the latest values. Next: the S2 PR.
 
 ## Open Design Questions
 
