@@ -9,7 +9,7 @@ github-issue: 3000
 spec-path: docs/issues/open/3000-2993-si-b-client-error-text-policy/ISSUE.md
 branch: "3000-si-b-client-error-text-policy"
 related-pr: null
-last-updated-utc: "2026-11-23 20:42"
+last-updated-utc: "2026-11-23 21:56"
 semantic-links:
   skill-links:
     - create-issue
@@ -42,7 +42,7 @@ Section B of the EPIC inventory lists what each protocol sends today, reproduced
 - UDP tracker: the full `Display` chain of the server error. A wrong connection id returns `cookie value is expired: <value>, expected > 1795353220.6572893` (the server clock and the decoded cookie); a short packet returns `error parsing request: SendableRequestParseError { message: "Couldn't parse action", ... }` (a Rust type name).
 - REST API: every key, whitelist and reload failure, and a missing or wrong token, is a 500 with `Unhandled rejection: Err { reason: "..." }`; database failures put `e.to_string()` of the driver error in it (`UNIQUE constraint failed: keys.key`); a malformed JSON body returns serde's own text.
 - A database server message can name the database user and the client address (`Access denied for user 'db_user'@'172.17.0.1'`). Today it reaches the operator only; it would reach a client wherever driver text is forwarded (EPIC item A11).
-- The UDP error event payload (`packages/udp-server/src/event.rs:114-153`) holds the same strings, including the type name of a parse error (`ErrorKind::RequestParse`).
+- The UDP error event payload (`packages/udp-server/src/event.rs:114-153`) holds the same errors as text, but not always in the same format as the reply. For a parse error the reply is the `Debug` of the struct (`error parsing request: SendableRequestParseError { message: ..., opt_connection_id: ..., opt_transaction_id: ... }`, `packages/udp-server/src/error.rs:23`), while `ErrorKind::RequestParse` holds its own `Display` (`SendableRequestParseError: message: ..., connection_id: ..., transaction_id: ...`, `error.rs:74-82`, `event.rs:127`). Both carry the type name; the ADR's table lists the reply text and the event text separately.
 - The health-check API (added to the scope on 2026-11-23) has two kinds of failure reply, with different statuses. While the application is shutting down it returns 503 with the report `shutting down` and probes nothing (`packages/axum-health-check-api-server/src/handlers.rs:28-33`, `responses.rs:19`). When a probe fails or its job panics it returns 200 with the report `health check failed` and, per service, `Err(<reqwest error or status text>)` for an HTTP service, `Err(<receive error Display>)` or `Err(<client construction error Debug>)` for a UDP service (`packages/tracker-client/src/udp/client.rs:245-286`, the UDP check), or `the health check job failed: <join error>` (`handlers.rs:66`, `:82`; `packages/axum-http-server/src/server.rs:331-332`; pinned in `packages/axum-health-check-api-server/tests/server/contract.rs:147-188`, `:711-741`). This issue changes the text only; the statuses stay.
 
 ### More client texts found by the recheck
