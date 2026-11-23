@@ -7,9 +7,9 @@ priority: p2
 epic: null
 github-issue: 2984
 spec-path: docs/issues/open/2984-tracker-client-check-udp-url-validation/ISSUE.md
-branch: "2984-tracker-client-check-udp-url-validation-spec"
+branch: "2984-tracker-client-check-udp-url-validation"
 related-pr: null
-last-updated-utc: "2026-11-22 14:21"
+last-updated-utc: "2026-11-23 17:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -98,9 +98,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | ------ | --------------------------------------------------------------------------- | ----------------------------------------------------------------- |
 | T1  | DONE   | Reproduce the UDP forms on a real artifact and classify                     | V1 recorded: Reproduced                                           |
 | T2  | DONE   | Reproduce the HTTP forms (wrong scheme, no host in `http_trackers` and `health_checks`) on a real artifact and classify | V2 recorded in `manual-verification-evidence.md`, outcome Reproduced: an entry that parses with a wrong scheme (`ftp://127.0.0.1`, `udp://127.0.0.1:6969`) is a failed check with exit `0`; `http:///` already fails to parse and exits `2` with `invalid_configuration` ("Invalid URL: empty host"), as does any `http` or `https` entry without a host (same for `health_checks`) |
-| T3  | TODO   | Add regression tests (UDP and HTTP config validation cases, unresolvable-host case) and update the existing test that relies on the bug | Tests fail on current code; red output recorded. The existing test `it_should_report_a_panic_as_a_json_record_and_leave_stdout_empty` (`console/tracker-client/tests/output_contract.rs:161-179`) uses `udp://127.0.0.1` and requires exit `1` with `panic` and `runtime_failure` records; it fails after the fix, so it is changed to the configuration-error expectations (exit `2`, `invalid_configuration`) and the panic-hook coverage it gave is kept through a seam inside `console/tracker-client/src/console/clients/unified/output.rs` (`install_panic_hook`, lines 61-74), such as a record-building function that the hook calls and a unit test exercises, not through a production path that panics on demand (a missing-port URL or an unresolvable host can no longer be the trigger) |
-| T4  | TODO   | Fix: validate tracker URLs in config; make `resolve_socket_addr` fallible   | Regression tests pass; no `unwrap` on user input in `udp.rs`      |
-| T5  | TODO   | Green run and like-for-like recheck of V1 and V2 after the last production change | M1 and M2 commands give exit `2` + `invalid_configuration` and no panic, except AC3's unresolvable host, which is a failed check and no panic |
+| T3  | DONE   | Add regression tests (UDP and HTTP config validation cases, unresolvable-host case) and update the existing test that relies on the bug | Tests fail on current code; red output recorded. The existing test `it_should_report_a_panic_as_a_json_record_and_leave_stdout_empty` (`console/tracker-client/tests/output_contract.rs:161-179`) uses `udp://127.0.0.1` and requires exit `1` with `panic` and `runtime_failure` records; it fails after the fix, so it is changed to the configuration-error expectations (exit `2`, `invalid_configuration`) and the panic-hook coverage it gave is kept through a seam inside `console/tracker-client/src/console/clients/unified/output.rs` (`install_panic_hook`, lines 61-74), such as a record-building function that the hook calls and a unit test exercises, not through a production path that panics on demand (a missing-port URL or an unresolvable host can no longer be the trigger) |
+| T4  | DONE   | Fix: validate tracker URLs in config; make `resolve_socket_addr` fallible   | Regression tests pass; no `unwrap` on user input in `udp.rs`      |
+| T5  | DONE   | Green run and like-for-like recheck of V1 and V2 after the last production change | M1 and M2 commands give exit `2` + `invalid_configuration` and no panic, except AC3's unresolvable host, which is a failed check and no panic |
 
 ## Commit Points
 
@@ -120,10 +120,10 @@ Test-development loop (T3), as `create-issue` requires for a plan that adds or c
 - [x] Folder-style spec drafted in `docs/issues/open/2984-tracker-client-check-udp-url-validation/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
@@ -148,16 +148,18 @@ Test-development loop (T3), as `create-issue` requires for a plan that adds or c
 - 2026-11-22 14:00 UTC - Claude Code (Claude Sonnet 5.5) - Decisions section cites the maintainer's own comment on the pull request (finding F12) - PR 2985 audit
 - 2026-11-22 14:21 UTC - Claude Code (Claude Sonnet 5.5) - Round 9 review fix (Copilot F27): the evidence records the actual capture procedure (`${PIPESTATUS[0]}`, stdout measured, stderr separate) for V1 and V2, and the scenarios name it - PR 2985 audit
 
+- 2026-11-23 17:30 UTC - Claude Code (Claude Sonnet 5.5) - Implemented T3 to T5: red tests (V3), validation in config, fallible resolution with a failed `Setup` check, `panic_record` seam, and the recheck (V4) - implementation PR
+
 ## Acceptance Criteria
 
-- [ ] AC1: `udp://127.0.0.1` (no port) in `udp_trackers` gives exit `2` and one `invalid_configuration` JSON record naming the entry; no `panic` record
-- [ ] AC2: `udp:///` (no host) and `http://127.0.0.1` / `ftp://127.0.0.1:6969` (wrong scheme) in `udp_trackers` give the same outcome
-- [ ] AC3: `udp://nonexistent.invalid:6969` does not panic; it is reported as a failed check for that tracker
-- [ ] AC4: Valid entries (`udp://127.0.0.1:6969`, `127.0.0.1:6969`, `udp://localhost:6969`, and `localhost:6969`, which has no scheme) behave as before
-- [ ] AC5: In `http_trackers` and `health_checks`, an entry with no host or with a scheme other than `http` or `https` (for example `udp://127.0.0.1:6969` and `ftp://127.0.0.1`; `http:///` and other `http` or `https` entries without a host already give exit `2` from the URL parser and must keep doing so) gives exit `2` and one `invalid_configuration` record, and valid entries (`http://127.0.0.1:7070/announce`, `https://tracker.example.com`) behave as before
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] AC1: `udp://127.0.0.1` (no port) in `udp_trackers` gives exit `2` and one `invalid_configuration` JSON record naming the entry; no `panic` record
+- [x] AC2: `udp:///` (no host) and `http://127.0.0.1` / `ftp://127.0.0.1:6969` (wrong scheme) in `udp_trackers` give the same outcome
+- [x] AC3: `udp://nonexistent.invalid:6969` does not panic; it is reported as a failed check for that tracker
+- [x] AC4: Valid entries (`udp://127.0.0.1:6969`, `127.0.0.1:6969`, `udp://localhost:6969`, and `localhost:6969`, which has no scheme) behave as before
+- [x] AC5: In `http_trackers` and `health_checks`, an entry with no host or with a scheme other than `http` or `https` (for example `udp://127.0.0.1:6969` and `ftp://127.0.0.1`; `http:///` and other `http` or `https` entries without a host already give exit `2` from the URL parser and must keep doing so) gives exit `2` and one `invalid_configuration` record, and valid entries (`http://127.0.0.1:7070/announce`, `https://tracker.example.com`) behave as before
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 - [ ] Documentation is updated when behavior/workflow changes
 
@@ -175,7 +177,7 @@ Test-development loop (T3), as `create-issue` requires for a plan that adds or c
 | --- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ------ | --------------------------------------------- |
 | M1  | Reproduce: UDP URL without port, without host, with wrong scheme, unresolvable host | `TORRUST_CHECKER_CONFIG='{"udp_trackers":["<url>"],"http_trackers":[],"health_checks":[]}' ./target/debug/tracker_client check \| cat` for each URL, capturing the exit code with `${PIPESTATUS[0]}` as in the evidence file | Panic record and `runtime_failure`, exit 1, empty stdout | DONE | `manual-verification-evidence.md` section V1 |
 | M2  | Reproduce: HTTP forms (wrong scheme, no host) in `http_trackers` and `health_checks` | `TORRUST_CHECKER_CONFIG='{"udp_trackers":[],"http_trackers":["<url>"],"health_checks":[]}' ./target/debug/tracker_client check \| cat` (exit code captured with `${PIPESTATUS[0]}`), and the same with the URL in `health_checks`, for `ftp://127.0.0.1`, `udp://127.0.0.1:6969` and `http:///` | Observed outcome recorded: a failed check with exit 0 for the first two, exit 2 with `invalid_configuration` for `http:///` | DONE | `manual-verification-evidence.md` section V2 |
-| M3  | Final like-for-like recheck of M1 and M2 after the last production change | The same commands as M1 and M2 | Exit `2` and one `invalid_configuration` record for AC1, AC2 and AC5; a failed check and no panic for AC3 | TODO | `manual-verification-evidence.md` (section to be added) |
+| M3  | Final like-for-like recheck of M1 and M2 after the last production change | The same commands as M1 and M2 | Exit `2` and one `invalid_configuration` record for AC1, AC2 and AC5; a failed check and no panic for AC3 | DONE | `manual-verification-evidence.md` section V4 |
 
 Notes:
 
@@ -186,11 +188,11 @@ Notes:
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
-| AC4   | TODO                   |          |
-| AC5   | TODO                   |          |
+| AC1   | DONE                   | `manual-verification-evidence.md` V3 (red) and V4 (recheck) |
+| AC2   | DONE                   | `manual-verification-evidence.md` V3 (red) and V4 (recheck) |
+| AC3   | DONE                   | `manual-verification-evidence.md` V3 (red) and V4 (recheck) |
+| AC4   | DONE                   | `manual-verification-evidence.md` V3 (red) and V4 (recheck) |
+| AC5   | DONE                   | `manual-verification-evidence.md` V3 (red) and V4 (recheck) |
 
 ## Risks and Trade-offs
 

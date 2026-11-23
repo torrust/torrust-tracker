@@ -188,3 +188,48 @@ exit=2 stdout_bytes=0
 #### Conclusion
 
 Wrong-scheme entries that parse (`ftp://`, `udp://`) are checked as if they were HTTP and fail at run time with exit `0`; `http:///` is already a configuration error with exit `2` (`Invalid URL: empty host`). AC5 therefore changes the first case and must keep the second.
+
+### V3 - Red regression tests (before the fix)
+
+Run on `torrust/develop` at `6bc417424` with the new tests and only the test-enabling production changes (`resolve_socket_addr` returning a `Result` whose body still unwraps, the `ConfigurationError::InvalidTrackerUrl` type unused, and `panic_record` extracted). Command: `cargo test -p torrust-tracker-client --lib`, then `cargo test -p torrust-tracker-client --test output_contract`.
+
+```text
+test result: FAILED. 49 passed; 11 failed; 0 ignored
+FAILED (all panicked with "the configuration should be rejected", except the last):
+  health_checks::it_should_fail_when_a_health_check_url_has_the_ftp_scheme
+  health_checks::it_should_fail_when_a_health_check_url_has_the_udp_scheme
+  http_trackers::it_should_fail_when_a_tracker_http_url_has_the_ftp_scheme
+  http_trackers::it_should_fail_when_a_tracker_http_url_has_the_udp_scheme
+  udp_trackers::it_should_fail_when_a_tracker_udp_url_has_a_path_but_no_port
+  udp_trackers::it_should_fail_when_a_tracker_udp_url_has_no_host
+  udp_trackers::it_should_fail_when_a_tracker_udp_url_has_no_port
+  udp_trackers::it_should_fail_when_a_tracker_udp_url_has_no_scheme_and_no_port
+  udp_trackers::it_should_fail_when_a_tracker_udp_url_has_the_ftp_scheme
+  udp_trackers::it_should_fail_when_a_tracker_udp_url_has_the_http_scheme
+  checks::udp::tests::it_should_return_an_error_instead_of_panicking_when_the_host_cannot_be_resolved (panicked at udp.rs:111)
+
+test it_should_report_a_udp_tracker_url_without_a_port_as_a_configuration_error_and_leave_stdout_empty ... FAILED
+  left: Some(1)
+ right: Some(2)
+test result: FAILED. 9 passed; 1 failed
+```
+
+The tests that must keep passing (`localhost:6969`, `https://tracker.example.com` for the HTTP lists, the existing valid cases) passed in the same run. The three `panic_record` unit tests pass on the red tree because the extraction does not change behaviour; they are characterization tests of the panic-hook seam.
+
+### V4 - Green run and like-for-like recheck (after the last production change)
+
+Build: commit `fix(tracker-client): [#2984] reject unusable tracker URLs and fail the check on a DNS error`, `cargo build -p torrust-tracker-client --bin tracker_client`. `cargo test -p torrust-tracker-client` passes (60 unit tests, the integration tests, all green) and `linter all` passes in the pre-commit gate. The commands are those of V1 and V2, with the capture procedure described in V1.
+
+| Section | Entry | Exit | stdout bytes | stderr / result |
+| ------- | ----- | ---- | ------------ | --------------- |
+| `udp_trackers` | `udp://127.0.0.1` | 2 | 0 | `invalid_configuration`: "Invalid URL `udp://127.0.0.1`: the URL has no port" |
+| `udp_trackers` | `udp:///` | 2 | 0 | `invalid_configuration`: "Invalid URL `udp:///`: the URL has no host" |
+| `udp_trackers` | `http://127.0.0.1` | 2 | 0 | `invalid_configuration`: "...: the URL scheme is not supported here" |
+| `udp_trackers` | `ftp://127.0.0.1:6969` | 2 | 0 | `invalid_configuration`: "...: the URL scheme is not supported here" |
+| `udp_trackers` | `udp://nonexistent.invalid:6969` | 0 | 258 | one `Udp` `Err` result, `remote_addr` null, `Setup` failed: "Failed to resolve the tracker address ...: failed to lookup address information: Name or service not known"; no panic |
+| `udp_trackers` | `udp://127.0.0.1:6969`, `127.0.0.1:6969`, `udp://localhost:6969`, `localhost:6969` | 0 | 205 | checked as before (`Setup` ok, `Connect` timeout because nothing listens) |
+| `http_trackers` and `health_checks` | `ftp://127.0.0.1` | 2 | 0 | `invalid_configuration`: "...: the URL scheme is not supported here" |
+| `http_trackers` and `health_checks` | `udp://127.0.0.1:6969` | 2 | 0 | `invalid_configuration`: "...: the URL scheme is not supported here" |
+| `http_trackers` and `health_checks` | `http:///` | 2 | 0 | `invalid_configuration`: "Invalid URL: empty host" (unchanged) |
+
+Outcome: AC1 to AC5 hold on the real artifact. The result record now has `url` and `remote_addr: Option<SocketAddr>` (`null` when the host did not resolve); for a resolved tracker it carries the same address as before plus the new `url` field.
