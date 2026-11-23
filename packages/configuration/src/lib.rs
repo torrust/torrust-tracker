@@ -12,7 +12,6 @@ pub mod validator;
 
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
-use std::sync::Arc;
 use std::{env, fs, io};
 
 use camino::Utf8PathBuf;
@@ -21,7 +20,6 @@ use secrecy::SecretString;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use thiserror::Error;
-use torrust_located_error::{DynError, LocatedError};
 use tracing::info;
 
 // Environment variables
@@ -255,7 +253,7 @@ impl Info {
         match self.config_toml_source() {
             ConfigTomlSource::Explicit { path, .. } => Error::UnableToProcessExplicitConfigFile {
                 path: path.to_path_buf(),
-                source: (Arc::new(source) as DynError).into(),
+                source: Box::new(source),
             },
             ConfigTomlSource::Inline(_) | ConfigTomlSource::File(_) => source,
         }
@@ -315,7 +313,7 @@ pub enum Error {
         path: PathBuf,
         /// The preserved configuration diagnostic.
         #[source]
-        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
+        source: Box<dyn std::error::Error + Send + Sync>,
     },
 
     /// Unable to load the configuration from the environment variable.
@@ -323,18 +321,18 @@ pub enum Error {
     /// `TORRUST_TRACKER_CONFIG_TOML` environment variable is not set.
     #[error("Unable to load from Environmental Variable: {source}")]
     UnableToLoadFromEnvironmentVariable {
-        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
+        source: Box<dyn std::error::Error + Send + Sync>,
     },
 
     #[error("Unable to load from Config File: {source}")]
     UnableToLoadFromConfigFile {
-        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
+        source: Box<dyn std::error::Error + Send + Sync>,
     },
 
     /// Unable to load the configuration from the configuration file.
     #[error("Failed processing the configuration: {source}")]
     ConfigError {
-        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
+        source: Box<dyn std::error::Error + Send + Sync>,
     },
 
     #[error("Unsupported configuration version: {version}")]
@@ -345,11 +343,8 @@ pub enum Error {
 }
 
 impl From<figment::Error> for Error {
-    #[track_caller]
     fn from(err: figment::Error) -> Self {
-        Self::ConfigError {
-            source: (Arc::new(err) as DynError).into(),
-        }
+        Self::ConfigError { source: Box::new(err) }
     }
 }
 
