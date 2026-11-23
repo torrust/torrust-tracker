@@ -6,7 +6,7 @@ epic: null
 github-issue: 2993
 spec-path: docs/issues/open/2993-secrets-and-client-error-text/EPIC.md
 epic-owner: null
-last-updated-utc: "2026-11-22 13:24"
+last-updated-utc: "2026-11-23 11:06"
 semantic-links:
   skill-links:
     - create-issue
@@ -184,10 +184,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | Order | Issue | Local Spec | Status | Notes |
 | --- | --- | --- | --- | --- |
-| 1 | #[To be assigned] - SI-A Keep secrets out of errors, logs and output | `docs/issues/drafts/2993-si-a-keep-secrets-out-of-errors-and-logs/ISSUE.md` | TODO | SI-4 (#2916) has merged, so it can start. A bug class with the listed cases A1 to A9 |
-| 2 | #[To be assigned] - SI-B Define and apply the client error text policy | `docs/issues/drafts/2993-si-b-client-error-text-policy/ISSUE.md` | TODO | Starts with an ADR; implementation after the maintainer accepts the ADR. May start in parallel with SI-A, but it touches the same error types, so run them one after the other |
+| 1 | #2999 - SI-A Keep secrets out of errors, logs and output | [`2999-2993-si-a-keep-secrets-out-of-errors-and-logs/ISSUE.md`](../2999-2993-si-a-keep-secrets-out-of-errors-and-logs/ISSUE.md) | TODO | SI-4 (#2916) has merged, so it can start. A bug class with the listed cases A1 to A9 |
+| 2 | #3000 - SI-B Define and apply the client error text policy | [`3000-2993-si-b-client-error-text-policy/ISSUE.md`](../3000-2993-si-b-client-error-text-policy/ISSUE.md) | TODO | Starts with an ADR; implementation after the maintainer accepts the ADR. May start in parallel with SI-A, but it touches the same error types, so run them one after the other |
 
-Both sub-issue specifications are drafts until the maintainer approves them; their GitHub issues are created then.
+Both sub-issue specifications were approved by the maintainer on 2026-11-23 and their GitHub issues created, #2999 (SI-A) and #3000 (SI-B).
 
 ## Delivery Strategy
 
@@ -220,7 +220,7 @@ For each subissue implementation in this EPIC, the default completion policy is:
 - [x] Epic spec drafted in `docs/issues/drafts/` and moved to `docs/issues/open/`
 - [x] Epic spec reviewed and approved by user/maintainer
 - [x] GitHub epic issue created and issue number added to this spec
-- [ ] Subissues created and linked in this spec
+- [x] Subissues created and linked in this spec (GitHub sub-issue links wait for the maintainer; the bot account cannot add them)
 - [ ] Subissue statuses kept up to date in the `Subissues` table
 - [ ] For each implemented subissue: automatic checks completed and recorded
 - [ ] For each implemented subissue: manual verification completed and recorded
@@ -233,6 +233,7 @@ For each subissue implementation in this EPIC, the default completion policy is:
 
 - 2026-11-22 10:28 UTC - Claude Code (Claude Fable 5.2) - Drafted the EPIC from the inventory of the tree and the maintainer's decisions of 2026-11-22: an EPIC with two sub-issues, request-URI logging in scope (redact in both servers), standalone and linked to EPIC #2912, database text for clients decided in the SI-B ADR. Not approved; no GitHub issue created.
 - 2026-11-22 13:24 UTC - Claude Code (Claude Fable 5.2) - The maintainer approved the specification. Created EPIC #2993 as `josecelano-bot` (labels `EPIC`, `Security`) and moved the specification to `docs/issues/open/`. GitHub sub-issue links wait for the maintainer (the bot account cannot add them).
+- 2026-11-23 11:06 UTC - Claude Code (Claude Sonnet 5.5) - The maintainer approved both sub-issue specifications. Created #2999 (SI-A) and #3000 (SI-B) as `josecelano-bot`, moved the specifications from `docs/issues/drafts/` to `docs/issues/open/`, set their `github-issue`, `spec-path`, `branch` and status, and linked them in the Subissues table. The GitHub sub-issue links of #2993 wait for the maintainer.
 
 ## Maintainer Decisions
 

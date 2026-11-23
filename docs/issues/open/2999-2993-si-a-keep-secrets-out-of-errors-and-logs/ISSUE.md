@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: draft
+status: planned
 priority: p1
 epic: 2993
-github-issue: null
-spec-path: docs/issues/drafts/2993-si-a-keep-secrets-out-of-errors-and-logs/ISSUE.md
-branch: "{issue-number}-2993-si-a-keep-secrets-out-of-errors-and-logs"
+github-issue: 2999
+spec-path: docs/issues/open/2999-2993-si-a-keep-secrets-out-of-errors-and-logs/ISSUE.md
+branch: "2999-si-a-keep-secrets-out-of-errors-and-logs"
 related-pr: null
-last-updated-utc: "2026-11-22 13:50"
+last-updated-utc: "2026-11-23 11:05"
 semantic-links:
   skill-links:
     - create-issue
@@ -27,9 +27,9 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - SI-A Keep secrets out of errors, logs and output
+# Issue #2999 - SI-A Keep secrets out of errors, logs and output
 
-Parent EPIC: [Keep secrets out of errors, logs and client replies, and make client error text safe](../../open/2993-secrets-and-client-error-text/EPIC.md) (#2993). Sub-issue SI-A.
+Parent EPIC: [Keep secrets out of errors, logs and client replies, and make client error text safe](../2993-secrets-and-client-error-text/EPIC.md) (#2993). Sub-issue SI-A.
 
 ## Goal
 
@@ -37,7 +37,7 @@ No error value keeps a peer authentication key or a REST API admin token, no err
 
 ## Background
 
-The inventory of the EPIC (section "Inventory", items A1 to A12) lists every case found in the tree and reproduced on a running tracker. This issue owns the cases that are secrets: A1 to A8, A10 and A12. A9 is a documentation fix that belongs here too, and so is A12 (a database server message that holds the key). A11 (database server messages that name the user and host) is owned by SI-B. The commands and output of the reproductions are in the EPIC's [`manual-verification-evidence.md`](../../open/2993-secrets-and-client-error-text/manual-verification-evidence.md).
+The inventory of the EPIC (section "Inventory", items A1 to A12) lists every case found in the tree and reproduced on a running tracker. This issue owns the cases that are secrets: A1 to A8, A10 and A12. A9 is a documentation fix that belongs here too, and so is A12 (a database server message that holds the key). A11 (database server messages that name the user and host) is owned by SI-B. The commands and output of the reproductions are in the EPIC's [`manual-verification-evidence.md`](../2993-secrets-and-client-error-text/manual-verification-evidence.md).
 
 The rule already exists: rule 3 of the errors ADR (`docs/adrs/20261118045443_errors_do_not_record_source_locations.md`) says a secret is never the offending input in a message and the error does not keep it, and the `handle-secrets` skill forbids secrets in logs and error text. The code predates both for the peer key, which is not a `SecretString` and prints in clear wherever it is formatted. The skill and the secrecy ADR cover configuration secrets only; they do not name the peer key or secrets carried in URLs.
 
@@ -133,8 +133,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 ### Workflow Checkpoints
 
 - [x] Folder-style spec drafted in `docs/issues/drafts/`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
 - [ ] Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)

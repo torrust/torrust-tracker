@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: enhancement
-status: draft
+status: planned
 priority: p2
 epic: 2993
-github-issue: null
-spec-path: docs/issues/drafts/2993-si-b-client-error-text-policy/ISSUE.md
-branch: "{issue-number}-2993-si-b-client-error-text-policy"
+github-issue: 3000
+spec-path: docs/issues/open/3000-2993-si-b-client-error-text-policy/ISSUE.md
+branch: "3000-si-b-client-error-text-policy"
 related-pr: null
-last-updated-utc: "2026-11-22 13:50"
+last-updated-utc: "2026-11-23 11:05"
 semantic-links:
   skill-links:
     - create-issue
@@ -26,9 +26,9 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - SI-B Define and apply the client error text policy
+# Issue #3000 - SI-B Define and apply the client error text policy
 
-Parent EPIC: [Keep secrets out of errors, logs and client replies, and make client error text safe](../../open/2993-secrets-and-client-error-text/EPIC.md) (#2993). Sub-issue SI-B.
+Parent EPIC: [Keep secrets out of errors, logs and client replies, and make client error text safe](../2993-secrets-and-client-error-text/EPIC.md) (#2993). Sub-issue SI-B.
 
 ## Goal
 
@@ -36,7 +36,7 @@ An accepted ADR says what an error reply may tell a client of the HTTP tracker, 
 
 ## Background
 
-Section B of the EPIC inventory lists what each protocol sends today, reproduced on a running tracker (commands and output in the EPIC's [`manual-verification-evidence.md`](../../open/2993-secrets-and-client-error-text/manual-verification-evidence.md)):
+Section B of the EPIC inventory lists what each protocol sends today, reproduced on a running tracker (commands and output in the EPIC's [`manual-verification-evidence.md`](../2993-secrets-and-client-error-text/manual-verification-evidence.md)):
 
 - HTTP tracker: `Tracker announce error: Database error: <sqlx text>`; nested prefixes that mirror the Rust error tree; query parse texts that echo the client's own values.
 - UDP tracker: the full `Display` chain of the server error. A wrong connection id returns `cookie value is expired: <value>, expected > 1795353220.6572893` (the server clock and the decoded cookie); a short packet returns `error parsing request: SendableRequestParseError { message: "Couldn't parse action", ... }` (a Rust type name).
@@ -131,8 +131,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 ### Workflow Checkpoints
 
 - [x] Folder-style spec drafted in `docs/issues/drafts/`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
 - [ ] Spec-only PR merged into `develop` before implementation
 - [ ] ADR accepted
 - [ ] Implementation completed
