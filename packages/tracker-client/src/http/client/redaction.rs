@@ -430,4 +430,12 @@ mod tests {
             r#"invalid type: string "http://tracker.example.com/announce\\****", expected a sequence"#
         );
     }
+
+    #[test]
+    fn it_should_keep_the_percent_encoding_of_the_other_segments_and_the_query() {
+        assert_eq!(
+            masked("http://tracker.example.com/a%7Eb/announce/SECRET?info_hash=%9C8B&x=%2F"),
+            "http://tracker.example.com/a%7Eb/announce/****?info_hash=%9C8B&x=%2F"
+        );
+    }
 }

@@ -17,7 +17,7 @@ pub enum Error {
     ClientBuildingError { err: Arc<reqwest::Error> },
     #[error("Health check failed to get a response: {}", request_error_text(err))]
     ResponseError { err: Arc<reqwest::Error> },
-    #[error("Http check returned a non-success code: \"{code}\" for url ({})", mask_tracker_key(response.url()))]
+    #[error("HTTP check returned a non-success code: \"{code}\" for url ({})", mask_tracker_key(response.url()))]
     UnsuccessfulResponse { code: StatusCode, response: Arc<Response> },
 }
 
