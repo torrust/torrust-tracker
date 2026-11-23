@@ -1,7 +1,7 @@
 ---
 pr-number: 3007
 pr-url: https://github.com/torrust/torrust-tracker/pull/3007
-last-updated-utc: "2026-11-23 16:23"
+last-updated-utc: "2026-11-23 16:41"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -47,6 +47,8 @@ Round 2, on the head that carries the audit commit: Greptile review 6023502560 a
 
 Round 3, on the head that carries the round 2 audit: Copilot review 6025006260 (COMMENTED, with its "didn't start before the timeout" warning) left four threads. Three ask for the same change on lines 98, 107 and 114 of the EPIC, so F14 and F15 are re-raises of F13. F16 is not a defect and gets the prescribed `Superseded by` reply.
 
+Round 4, on the head that carries the round 3 audit: da2ce7 review 6025458205 (APPROVED) with one Nit, recorded as F17 (his ID F13 is taken here).
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3007-f1 | Human | Minor | correctness | RE_RAISE_OF:F5 | FIXED | RESOLVED |
@@ -65,6 +67,7 @@ Round 3, on the head that carries the round 2 audit: Copilot review 6025006260 (
 | F14 | review-finding:pr-3007-f14 | Copilot | Minor (inferred) | documentation | RE_RAISE_OF:F13 | FIXED | RESOLVED |
 | F15 | review-finding:pr-3007-f15 | Copilot | Minor (inferred) | documentation | RE_RAISE_OF:F13 | FIXED | RESOLVED |
 | F16 | review-finding:pr-3007-f16 | Copilot | Nit (inferred) | formatting | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F17 | review-finding:pr-3007-f17 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -276,6 +279,19 @@ Round 3, on the head that carries the round 2 audit: Copilot review 6025006260 (
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4668613568
 
+### F17 - The open child specs still give a total of 11
+
+- PR number: 3007
+- Source review ID: 6025458205
+- Reviewer finding ID: da2ce7 F13
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4668801169
+- Concern: The EPIC cites "Order 11 of 13" as the form the specs use, but the open specs of #2763, #2766, #2767 and #2769 still say "of 11".
+- Solution: Those four specs now say "Order N of 13"; the closed specs stay as history.
+- Current-tree verification: `cat docs/issues/open/*-2758-*/ISSUE.md | grep -c 'Order [0-9]* of 11'` printed 0 at the fix head.
+- Resolution reference: `docs(issues): [#2758] update the EPIC total in the open child specs to 13`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4668845107
+
 ## Processing Log
 
 - 2026-11-23 14:24 UTC - Reviews arrived on the first head: Greptile (14:10:28), CodeRabbit (14:11:52) and da2ce7 (14:24:56).
@@ -288,6 +304,8 @@ Round 3, on the head that carries the round 2 audit: Copilot review 6025006260 (
 - 2026-11-23 16:08 UTC - Round 3: Copilot review 6025006260 (16:08:45) on the round 2 audit head, with four threads.
 - 2026-11-23 16:23 UTC - The first commit of the fix failed when the `/tmp` volume ran out of disk quota; after space came back, pushed the fix, replied on the four threads (16:23:03 and before) and resolved them (16:23:09).
 - 2026-11-23 16:23 UTC - Added rows F13 to F16 after the replies and the resolution.
+- 2026-11-23 16:41 UTC - Round 4: da2ce7 review 6025458205 (16:37:55, APPROVED, one Nit); pushed the fix, replied (16:41:33) and resolved the thread (16:41:35).
+- 2026-11-23 16:41 UTC - Added row F17 after the reply and the resolution.
 
 ## Completion Rules
 
