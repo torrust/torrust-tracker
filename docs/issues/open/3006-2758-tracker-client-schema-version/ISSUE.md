@@ -9,7 +9,7 @@ github-issue: 3006
 spec-path: docs/issues/open/3006-2758-tracker-client-schema-version/ISSUE.md
 branch: 3006-tracker-client-schema-version-spec
 related-pr: 3008
-last-updated-utc: "2026-11-23 14:18"
+last-updated-utc: "2026-11-23 16:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -53,9 +53,22 @@ Today `tracker_client` has four render paths and one writer: `output::render_jso
 `serialize_json` in `unified/http.rs` (`http announce`, `http scrape`), `to_json_string` of the UDP
 response DTO (`udp announce`, `udp scrape`) and a plain `serde_json::to_string` in
 `checker/monitor/udp.rs` (`check monitor udp`). All of them pass an already rendered string to
-`output::write_result(&str)`, so that writer cannot add a field. Every result is a JSON object (the
-UDP response is an externally tagged enum, such as `{"AnnounceIpv4": {...}}`), so a top-level
-field fits each of them.
+`output::write_result(&str)`, so that writer cannot add a field.
+
+Every result is a JSON object, but two shapes do not take a top-level field as they are:
+
+- `http scrape` writes the scrape response through its own `Serialize` impl
+  (`packages/http-protocol/src/v1/responses/scrape/deserialization.rs`), which makes the `files`
+  map the top-level object: every key is a 40-hex info-hash (`{"<info-hash>": {...}}`). A
+  `schema_version` key there would sit among the data keys, and a consumer that reads each key as
+  an info-hash would break; the package test helper `returned_files` in
+  `console/tracker-client/tests/tracker_client/scrape.rs` counts the top-level keys as files.
+- The UDP response is an externally tagged enum with one top-level key, the variant tag
+  (`{"AnnounceIpv4": {...}}`, `{"Scrape": {...}}`). The repository's consumers index it by key
+  (`.Scrape.torrent_stats`); none deserializes it as a typed enum, which expects exactly one key.
+
+The HTTP announce result, the `check` result and the monitor summary are objects with named
+keys.
 
 ## Decisions
 
@@ -68,10 +81,20 @@ The maintainer answered these in the spec review (2026-11-23):
   have it. A tool-specific rule in the `tracker_client` contract doc was rejected because it could
   diverge from the other tools.
 - D2, the field: `schema_version`, an integer, at the top level of every stdout result object
-  (`{"schema_version": 1, ...}`), not on stderr diagnostics. It is snake_case like every other
-  `tracker_client` key, unlike the kebab-case `schema-version` of `agent-reply-validator`.
-- D3, the first value: `1`, for the shape after #2768. The contract doc names the `check`
-  array-to-object change as the change that `1` marks.
+  (`{"schema_version": 1, ...}`), not on stderr diagnostics. It is snake_case like the keys that
+  `tracker_client` defines itself (`results`, `udp_trackers`), unlike the kebab-case
+  `schema-version` of `agent-reply-validator`.
+- D4, the `http scrape` shape (answered in the review of PR #3008, finding F1): the info-hash map
+  moves under a named key, `{"schema_version": 1, "files": {"<info-hash>": {...}}}`, the same key
+  as in the bencoded tracker response. The ADR rule adds that a result object never uses data as
+  its top-level keys, so the version field cannot collide with data.
+- D5, the UDP shape (same review): the field goes beside the variant tag,
+  `{"schema_version": 1, "Scrape": {...}}`. The tag is a name, not data, and no repository
+  consumer reads the result as a typed enum; the risk for an outside typed reader is recorded
+  under Risks.
+- D3, the first value: `1`, for the shape after #2768 and this issue. The contract doc will name
+  the two changes that `1` marks: the `check` array-to-object change of #2768 and the `http scrape`
+  move under `files` of D4.
 
 ## Scope
 
@@ -80,25 +103,34 @@ The maintainer answered these in the spec review (2026-11-23):
 - Apply D1 to D3 to every subcommand that writes a result: `http announce`, `http scrape`,
   `udp announce`, `udp scrape` and `check`, each in both `--format` values (`json`, `text`), and
   the `check monitor udp` summary (always compact JSON).
+- Move the `http scrape` result under `files` (D4), in `tracker_client`'s own result type; the
+  `Serialize` impl of the protocol package stays as it is.
 - Replace the string writer with one function in `unified/output.rs` that takes the result value,
   adds the field, renders it (compact or pretty) and writes it; every result path calls it.
 - Update the contract doc (Stability and Migration, Auditability, examples) and the README.
 - A short amendment of the global contract ADR with the rule (D1).
-- Check every consumer of the `tracker_client` stdout and update any that parses the result or
-  compares it whole: the package tests in `console/tracker-client/tests/` (`output_contract.rs`,
-  `tracker_client/`, `tracker_checker/`), the e2e checker helper
-  (`src/console/ci/e2e/tracker_checker.rs`, which today only logs the stdout), and the skills that
-  pipe it to `jq` (`use-tracker-client`, `run-tracker-locally`, the manual e2e skills).
+- Check every consumer of the `tracker_client` stdout and update any that parses the result, shows
+  a whole result sample or compares it whole:
+  - the package tests in `console/tracker-client/tests/` (`output_contract.rs`, `tracker_client/`
+    including the `returned_files` helper of `scrape.rs`, `tracker_checker/`);
+  - the skills that pipe the result to `jq` or show result samples: `use-tracker-client` (its
+    whole result samples gain the field, and its `http scrape` samples and `jq` paths move under
+    `files`), `run-tracker-locally`, `use-rest-api`, `public-trackers-for-testing`,
+    `manual-udp-download-completion-e2e` and `manual-torrent-cleanup-e2e`;
+  - the README.
+- The e2e checker helper `src/console/ci/e2e/tracker_checker.rs` needs no change: it only logs the
+  checker's stdout and never parses it. It stays out of this issue's file set (it is in #2769's).
 
 ### Out of Scope
 
 - Versions for other tools (they adopt the rule of D1 when they next change shape).
 - Masking the tracker key (separate bug issue of this EPIC).
-- Any other change to the output shape.
+- Any other change to the output shape than the field and D4.
 
 Files this issue may touch (a sibling issue in the same wave must not touch them):
 
 - `console/tracker-client/**`
+- `.claude/skills/{use-tracker-client,run-tracker-locally,use-rest-api,public-trackers-for-testing,manual-udp-download-completion-e2e,manual-torrent-cleanup-e2e}/SKILL.md`
 - `docs/adrs/20260519000000_define_global_cli_output_contract.md` (the amendment). #2770 also
   edits that ADR, so this issue must merge before #2770 starts.
 
@@ -129,11 +161,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
-| T1  | TODO   | ADR rule | The amendment of the global contract ADR with the rule of D1 to D3. |
-| T2  | TODO   | Tests first | Each result-writing subcommand: a test that the result has `schema_version` equal to `1`; failing before T3. |
-| T3  | TODO   | Add the field in the result writer | `output.rs` takes the value, adds the field, renders and writes; the four render paths call it. Every stdout result carries it. |
-| T4  | TODO   | Consumers | The e2e checker helper, tests and skills still work; any parser updated. |
-| T5  | TODO   | Docs | Contract doc and README examples show the field and the bump rule. |
+| T1  | TODO   | ADR rule | The amendment of the global contract ADR with the rule of D1 to D3 and the no-data-keys rule of D4. |
+| T2  | TODO   | Tests first | Each result-writing subcommand: a test that the result has `schema_version` equal to `1`, and an `http scrape` test that the entries are under `files`; failing before T3. |
+| T3  | TODO   | Add the field in the result writer | `output.rs` takes the value, adds the field, renders and writes; the four render paths call it. Every stdout result carries it; `http scrape` writes `{"files": ...}` (D4) and UDP results keep their tag beside the field (D5). |
+| T4  | TODO   | Consumers | The package tests (`returned_files` reads `files`) and the skills named in Scope updated; their commands still work. |
+| T5  | TODO   | Docs | Contract doc and README examples show the field, the `files` key of `http scrape` and the bump rule, and name the two changes that `1` marks. |
 
 ## Commit Points
 
@@ -142,7 +174,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1 | ADR amendment | Commit after focused validation and required review. |
 | T2 | Tests | Commit after focused validation and required review. |
 | T3 | Result writer | Commit after focused validation and required review. |
-| T4 | Consumers | Commit after focused validation and required review. |
+| T4 | Tests and skills that consume the result | Commit after focused validation and required review. |
 | T5 | Docs | Commit after focused validation and required review. |
 
 Use the `write-unit-test` skill and the design review after each passing test increment. Sign every
@@ -173,13 +205,16 @@ commit.
 - 2026-11-23 14:02 UTC - Claude Code (Claude Opus 5.5) - Recorded the maintainer's answers (D1 global ADR rule, D2 top-level integer `schema_version`, D3 first value `1`) and fitted Scope, ADR, tasks, ACs and risks to them.
 - 2026-11-23 14:02 UTC - Claude Code (Claude Opus 5.5) - Created issue #3006 as josecelano-bot, moved the spec to `docs/issues/open/`, branch `3006-tracker-client-schema-version-spec` for the spec-only PR.
 - 2026-11-23 14:18 UTC - Claude Code (Claude Opus 5.5) - Opened spec-only PR #3008.
+- 2026-11-23 16:10 UTC - Claude Code (Claude Opus 5.5) - Addressed da2ce7's review of PR #3008: recorded the maintainer's answers D4 (`http scrape` entries under `files`) and D5 (UDP field beside the tag) for F1, named the skills and the README among the consumers and in the file set and stated why the e2e helper needs no change (F3), asked for toolchain-qualified evidence (F4), fixed the snake_case claim (F6) and the tense of D3 (F7). F5: the maintainer answered D1 to D3 before the issue was created; the approval of the whole spec, now with D4 and D5, is the review and merge of PR #3008, so that checkpoint stays open until then. F2 (EPIC row and order before #2770) is in the coordinator's PR #3007.
 
 ## Acceptance Criteria
 
 - [ ] AC1: Every stdout result of `tracker_client` has a top-level integer `schema_version` equal to
   `1`.
-- [ ] AC2: The contract doc states when the version is bumped and lists the change that the
-  current value marks.
+- [ ] AC5: The `http scrape` result holds its info-hash entries under `files`, and no result uses
+  data as a top-level key.
+- [ ] AC2: The contract doc states when the version is bumped and lists the changes that the
+  current value marks (#2768's `check` change and D4).
 - [ ] AC3: The global contract ADR states the rule for all `stdout-result-data` tools.
 - [ ] AC4: Every consumer of the `tracker_client` stdout in the repository still works.
 - [ ] `linter all` exits with code `0`
@@ -206,6 +241,11 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | M2 | `check` and monitor | `tracker_client check ... \| jq .schema_version` in both `--format` values, and a short `check monitor udp` run | `1` | TODO | `manual-verification-evidence.md` section V2 |
 | M3 | E2E runner | Run the e2e runner | The checker step passes | TODO | `manual-verification-evidence.md` section V3 |
 
+Manual verification is mandatory even when automated tests pass. Record the actual commands, output
+and the toolchain that produced each result (for example the `stable Rust toolchain` for
+`cargo test -p torrust-tracker-client`, the `nightly Rust toolchain` for `cargo +nightly fmt`) in
+`manual-verification-evidence.md` (from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`).
+
 ### Acceptance Verification
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
@@ -214,12 +254,19 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | AC2 | TODO |  |
 | AC3 | TODO |  |
 | AC4 | TODO |  |
+| AC5 | TODO |  |
 
 ## Risks and Trade-offs
 
 - Adding a field breaks a strict consumer that rejects unknown fields. Neither the contract doc nor
   the ADR says consumers must ignore unknown fields today; the contract doc should say so in this
   issue, and T4 checks the repository's own consumers.
+- D4 is a second breaking shape change: a consumer of `http scrape` that reads the info-hash keys
+  at the top level must read them under `files`. Version `1` marks it, and the contract doc and
+  README name it as a migration note.
+- D5 leaves the UDP result with two top-level keys. An outside consumer that deserializes it as an
+  externally tagged enum, which expects exactly one key, must drop `schema_version` first. No
+  consumer in the repository does.
 - The global rule costs an ADR change and orders this issue before #2770; a tool-specific rule
   would have avoided that but could diverge from the other tools.
 
