@@ -1,7 +1,7 @@
 ---
 pr-number: 3007
 pr-url: https://github.com/torrust/torrust-tracker/pull/3007
-last-updated-utc: "2026-11-23 14:48"
+last-updated-utc: "2026-11-23 16:23"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -45,6 +45,8 @@ Round 1, on the first head: Greptile review 6023114012 (one thread), CodeRabbit 
 
 Round 2, on the head that carries the audit commit: Greptile review 6023502560 and CodeRabbit review 6023522118 (one thread each), and da2ce7 review 6023616767 (APPROVED, findings F5 to F7, recorded here as F10 to F12 because those IDs are taken). da2ce7's F6 asks for the change of the Greptile thread (F8), and his F7 asks for the change of the CodeRabbit thread (F9), so F11 and F12 are re-raises. CodeRabbit resolved its own thread after the reply.
 
+Round 3, on the head that carries the round 2 audit: Copilot review 6025006260 (COMMENTED, with its "didn't start before the timeout" warning) left four threads. Three ask for the same change on lines 98, 107 and 114 of the EPIC, so F14 and F15 are re-raises of F13. F16 is not a defect and gets the prescribed `Superseded by` reply.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3007-f1 | Human | Minor | correctness | RE_RAISE_OF:F5 | FIXED | RESOLVED |
@@ -59,6 +61,10 @@ Round 2, on the head that carries the audit commit: Greptile review 6023502560 a
 | F10 | review-finding:pr-3007-f10 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F11 | review-finding:pr-3007-f11 | Human | Minor | metadata | RE_RAISE_OF:F8 | FIXED | RESOLVED |
 | F12 | review-finding:pr-3007-f12 | Human | Minor | documentation | RE_RAISE_OF:F9 | FIXED | RESOLVED |
+| F13 | review-finding:pr-3007-f13 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-3007-f14 | Copilot | Minor (inferred) | documentation | RE_RAISE_OF:F13 | FIXED | RESOLVED |
+| F15 | review-finding:pr-3007-f15 | Copilot | Minor (inferred) | documentation | RE_RAISE_OF:F13 | FIXED | RESOLVED |
+| F16 | review-finding:pr-3007-f16 | Copilot | Nit (inferred) | formatting | ORIGINAL | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -218,6 +224,58 @@ Round 2, on the head that carries the audit commit: Greptile review 6023502560 a
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4667396693
 
+### F13 - The Order column reads as the execution order
+
+- PR number: 3007
+- Source review ID: 6025006260
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4668432634
+- Concern: The Subissues table's column is labeled `Order`, but the schedule in the Delivery Strategy runs issue 12 first and issue 11 last, so a reader may take `Order` for the execution order.
+- Solution: The Subissues intro now says `Order` is a stable row number that the specs cite, not the execution order, and that the Delivery Strategy schedule sets it. The rows are not renumbered, because the child specs and #2770 refer to them by number.
+- Current-tree verification: `grep -c 'is a stable row number that the specs cite' docs/issues/open/2758-cli-output-contract-tools-migration/EPIC.md` printed 1 at the fix head.
+- Resolution reference: `docs(issues): [#2758] say the EPIC Order column is a row number, not the schedule`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4668611959
+
+### F14 - The Order column reads as the execution order (row 13)
+
+- PR number: 3007
+- Source review ID: 6025006260
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4668432723
+- Concern: The Subissues table's column is labeled `Order`, but the schedule in the Delivery Strategy runs issue 12 first and issue 11 last, so a reader may take `Order` for the execution order.
+- Solution: The Subissues intro now says `Order` is a stable row number that the specs cite, not the execution order, and that the Delivery Strategy schedule sets it. The rows are not renumbered, because the child specs and #2770 refer to them by number.
+- Current-tree verification: `grep -c 'is a stable row number that the specs cite' docs/issues/open/2758-cli-output-contract-tools-migration/EPIC.md` printed 1 at the fix head.
+- Resolution reference: `docs(issues): [#2758] say the EPIC Order column is a row number, not the schedule`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4668612602
+
+### F15 - The Order column reads as the execution order (schedule)
+
+- PR number: 3007
+- Source review ID: 6025006260
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4668432781
+- Concern: The Subissues table's column is labeled `Order`, but the schedule in the Delivery Strategy runs issue 12 first and issue 11 last, so a reader may take `Order` for the execution order.
+- Solution: The Subissues intro now says `Order` is a stable row number that the specs cite, not the execution order, and that the Delivery Strategy schedule sets it. The rows are not renumbered, because the child specs and #2770 refer to them by number.
+- Current-tree verification: `grep -c 'is a stable row number that the specs cite' docs/issues/open/2758-cli-output-contract-tools-migration/EPIC.md` printed 1 at the fix head.
+- Resolution reference: `docs(issues): [#2758] say the EPIC Order column is a row number, not the schedule`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4668613086
+
+### F16 - The findings table rows start with a double pipe
+
+- PR number: 3007
+- Source review ID: 6025006260
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4668432871
+- Concern: The findings table of this audit was said to start each row with `||`, which would add an empty column.
+- Solution: None: every row of the findings table, including the header and the separator, starts with a single `|`; the `||` is likely the diff view's `+` prefix next to the pipe.
+- Current-tree verification: `grep -c '^||' docs/pr-reviews/pr-3007-review/PR-REVIEW.md` printed 0 at the reviewed head.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4668613568
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4668613568
+
 ## Processing Log
 
 - 2026-11-23 14:24 UTC - Reviews arrived on the first head: Greptile (14:10:28), CodeRabbit (14:11:52) and da2ce7 (14:24:56).
@@ -227,6 +285,9 @@ Round 2, on the head that carries the audit commit: Greptile review 6023502560 a
 - 2026-11-23 14:42 UTC - Round 2: Greptile (14:35:39), CodeRabbit (14:36:56) and da2ce7 (14:42:55, APPROVED with F5 to F7) reviewed the audit head.
 - 2026-11-23 14:48 UTC - Pushed the round 2 fix, listed the threads again, replied on the five threads (14:48:03 and before) and resolved the four left open (14:48:18); CodeRabbit had resolved its own.
 - 2026-11-23 14:48 UTC - Added rows F8 to F12 after the replies and the resolution.
+- 2026-11-23 16:08 UTC - Round 3: Copilot review 6025006260 (16:08:45) on the round 2 audit head, with four threads.
+- 2026-11-23 16:23 UTC - The first commit of the fix failed when the `/tmp` volume ran out of disk quota; after space came back, pushed the fix, replied on the four threads (16:23:03 and before) and resolved them (16:23:09).
+- 2026-11-23 16:23 UTC - Added rows F13 to F16 after the replies and the resolution.
 
 ## Completion Rules
 
