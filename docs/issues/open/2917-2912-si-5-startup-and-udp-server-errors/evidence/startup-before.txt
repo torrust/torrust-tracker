@@ -1,0 +1,11 @@
+== V1 bad config
+Tracker startup failed: Tracker setup failed. Correct the reported configuration or dependency problem and restart: Tracker configuration could not be loaded. Correct the configuration source and restart: Could not load the tracker configuration. Fix the configured TOML source and try again: Failed processing the configuration: invalid type: found string "yes", expected a boolean for key "default.core.listed" in bad.toml TOML file, packages/configuration/src/v3_0_0/mod.rs:409:28
+== V2 bad PEM
+2026-11-23T11:12:46.430740Z  INFO complete_startup: torrust_tracker_lib::bootstrap::jobs::manager: Job completed after cooperative cancellation job=http_core_event_listener
+2026-11-23T11:12:46.430741Z  INFO UDP TRACKER: Received cancellation request, draining UDP tracker core event listener.
+2026-11-23T11:12:46.430744Z  INFO UDP TRACKER: Event listener drained its queue after cancellation listener="udp_tracker_core_statistics" outcome="emptied" processed=0 lost_to_lag=0
+2026-11-23T11:12:46.430738Z  INFO TRACKER_CORE: Event listener drained its queue after cancellation listener="tracker_core_in_memory_statistics" outcome="emptied" processed=0 lost_to_lag=0
+2026-11-23T11:12:46.430752Z  INFO complete_startup: torrust_tracker_lib::bootstrap::jobs::manager: Job completed after cooperative cancellation job=udp_core_event_listener
+2026-11-23T11:12:46.430755Z  INFO complete_startup: torrust_tracker_lib::bootstrap::jobs::manager: Job completed after cooperative cancellation job=tracker_core_in_memory_event_listener
+2026-11-23T11:12:46.434942Z ERROR torrust_tracker: Tracker startup failed error=Configured HTTP tracker startup failed. Correct its configuration or make its listener address available: Could not load TLS material for the HTTP tracker. Verify the configured certificate and key paths: bad tls config: The private key file contained no keys, packages/axum-server/src/tls.rs:53:49
+Tracker startup failed: Configured HTTP tracker startup failed. Correct its configuration or make its listener address available: Could not load TLS material for the HTTP tracker. Verify the configured certificate and key paths: bad tls config: The private key file contained no keys, packages/axum-server/src/tls.rs:53:49

@@ -232,6 +232,16 @@ the `#[non_exhaustive]` marks of #2454:
   `invalid param x in <path>:<line>:<column>` to `invalid peer role "x", expected "seeder" or
   "leecher"`.
 
+Breaking changes in `torrust-tracker-configuration` for its 4.0.0 release notes, besides the
+`#[non_exhaustive]` marks of #2454 and the removal of `Error::Infallible`:
+
+- #2917 (SI-5 of EPIC #2912): the `source` of `Error::{UnableToProcessExplicitConfigFile,
+  UnableToLoadFromEnvironmentVariable, UnableToLoadFromConfigFile, ConfigError}` changes type from
+  `LocatedError<'static, dyn std::error::Error + Send + Sync>` to
+  `Box<dyn std::error::Error + Send + Sync>`, and the messages no longer end in a source path
+  (`<path>:<line>:<column>`). The crate no longer depends on `torrust-located-error`, and
+  `From<figment::Error> for Error` no longer captures the caller location.
+
 ## Prerequisites
 
 The first publish of a crate starts only when all of these hold. Prerequisites 1, 2, 3 and 5
