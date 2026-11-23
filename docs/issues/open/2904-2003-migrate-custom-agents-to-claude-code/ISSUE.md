@@ -374,8 +374,9 @@ Decided by the maintainer on 2026-11-15:
     name there. The `.agents/issues/` subtree holds only local workflow
     state: it is ignored by Git and excluded from every linter, which do not read `.gitignore`,
     and nothing committed goes there. `.tmp/` is not used, because agents clean it as scratch
-    space. The bound of 3 is below the cap of
-    eight continuations that Claude Code documents for stop hooks.
+    space. The bound of 3 does not rely on Claude Code's cap of eight continuations: the hooks
+    page states that cap for `Stop` and does not say whether it applies to `SubagentStop` (see
+    What Claude Code supports). The bound is below that cap in either case.
   - **A draft specification.** For a `Reply file:` path under `docs/issues/drafts/` the hook
     lets the reviewer finish, with a message saying that the reply was not enforced and why: a
     draft has no implemented task to review. It keeps no count. The issue number is never taken
