@@ -115,13 +115,18 @@ mod tests {
 
     use std::sync::Arc;
 
+    use rstest::rstest;
     use torrust_tracker_configuration::v3_0_0::core::Core;
     use torrust_tracker_configuration::v3_0_0::database::Database as DatabaseConfig;
 
     use crate::databases::driver::sqlite::Sqlite;
+    use crate::databases::driver::sqlite::fixture::{execute, migrated_store};
     use crate::databases::driver::tests::run_tests;
+    use crate::databases::error::Error;
     use crate::databases::traits::Database;
-    use crate::test_helpers::tests::ephemeral_configuration;
+    use crate::test_helpers::tests::{EphemeralConfiguration, ephemeral_configuration};
+
+    const A_METRIC: &str = "a_metric";
 
     fn initialize_driver(config: &Core) -> Arc<Box<dyn Database>> {
         Arc::new(Box::new(Sqlite::new(sqlite_path(config)).unwrap()))
@@ -181,5 +186,100 @@ mod tests {
             .await
             .expect("count _sqlx_migrations");
         assert_eq!(recorded, 4, "all four migrations should be recorded");
+    }
+
+    /// A store whose `torrent_aggregate_metrics` table holds one row for `A_METRIC`, with the SQL
+    /// literal `value_sql` as its value, or no table at all when `value_sql` is `None`.
+    async fn store_with_aggregate_metric(value_sql: Option<&str>) -> (Sqlite, EphemeralConfiguration) {
+        let (store, ephemeral) = migrated_store().await;
+
+        let statement = value_sql.map_or_else(
+            || "DROP TABLE torrent_aggregate_metrics".to_string(),
+            |value| format!("INSERT INTO torrent_aggregate_metrics (metric_name, value) VALUES ('{A_METRIC}', {value})"),
+        );
+        execute(&store, &statement).await;
+
+        (store, ephemeral)
+    }
+
+    #[rstest]
+    #[case::a_value_below_zero("-1")]
+    #[case::a_value_above_u32("4294967296")]
+    #[tokio::test]
+    async fn it_should_report_a_corrupted_aggregate_value_as_a_malformed_record(#[case] value_sql: &str) {
+        let (store, _ephemeral) = store_with_aggregate_metric(Some(value_sql)).await;
+
+        let result = store.load_torrent_aggregate_metric(A_METRIC).await;
+
+        assert!(matches!(result, Err(Error::MalformedDatabaseRecord { .. })), "got {result:?}");
+    }
+
+    #[rstest]
+    #[case::a_value_that_is_not_an_integer(Some("'many'"))]
+    #[case::a_missing_aggregate_metrics_table(None)]
+    #[tokio::test]
+    async fn it_should_report_an_unreadable_aggregate_value_or_a_failed_query_as_an_invalid_query(
+        #[case] value_sql: Option<&str>,
+    ) {
+        let (store, _ephemeral) = store_with_aggregate_metric(value_sql).await;
+
+        let result = store.load_torrent_aggregate_metric(A_METRIC).await;
+
+        assert!(matches!(result, Err(Error::InvalidQuery { .. })), "got {result:?}");
+    }
+
+    #[tokio::test]
+    async fn it_should_report_a_failed_save_of_an_aggregate_metric_as_an_invalid_query() {
+        // Arrange
+        let (store, _ephemeral) = store_with_aggregate_metric(None).await;
+
+        // Act
+        let result = store.save_torrent_aggregate_metric(A_METRIC, 1).await;
+
+        // Assert
+        assert!(matches!(result, Err(Error::InvalidQuery { .. })), "got {result:?}");
+    }
+
+    #[tokio::test]
+    async fn it_should_keep_each_aggregate_metric_separate_when_several_are_stored() {
+        // Arrange
+        let (store, _ephemeral) = migrated_store().await;
+        store.save_torrent_aggregate_metric("a", 1).await.unwrap();
+        store.save_torrent_aggregate_metric("b", 2).await.unwrap();
+
+        // Act
+        let loaded = (
+            store.load_torrent_aggregate_metric("a").await.unwrap(),
+            store.load_torrent_aggregate_metric("b").await.unwrap(),
+            store.load_torrent_aggregate_metric("c").await.unwrap(),
+        );
+
+        // Assert
+        assert_eq!(loaded, (Some(1), Some(2), None));
+    }
+
+    #[tokio::test]
+    async fn it_should_overwrite_an_aggregate_metric_that_is_saved_again() {
+        // Arrange
+        let (store, _ephemeral) = migrated_store().await;
+        store.save_torrent_aggregate_metric(A_METRIC, 1).await.unwrap();
+
+        // Act
+        store.save_torrent_aggregate_metric(A_METRIC, 7).await.unwrap();
+
+        // Assert
+        assert_eq!(store.load_torrent_aggregate_metric(A_METRIC).await.unwrap(), Some(7));
+    }
+
+    #[tokio::test]
+    async fn it_should_store_and_load_back_the_largest_aggregate_value() {
+        // Arrange
+        let (store, _ephemeral) = migrated_store().await;
+
+        // Act
+        store.save_torrent_aggregate_metric(A_METRIC, u32::MAX).await.unwrap();
+
+        // Assert
+        assert_eq!(store.load_torrent_aggregate_metric(A_METRIC).await.unwrap(), Some(u32::MAX));
     }
 }
