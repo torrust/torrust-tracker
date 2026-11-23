@@ -47,7 +47,7 @@ A service binding has one text form in every log line: `<protocol>://<socket add
 
 - A small display helper in the workspace that prints a `ServiceBinding` as `<protocol>://<socket address>`, with rustdoc that says why it exists and when it is deleted, and unit tests for UDP, HTTP, HTTPS, IPv4 and IPv6.
 - Use the helper at every log site that prints a service binding, request-handling lines included (about 25 sites; the specification pull request lists them).
-- The issue on `torrust/torrust-net-primitives` for `Display`. It is filed with the EPIC specification; this issue links it.
+- The issue on `torrust/torrust-net-primitives` for `Display`. It is filed: <https://github.com/torrust/torrust-net-primitives/issues/1>.
 - A recorded follow-up: when the fixed crate is used here, delete the helper and print the type directly.
 - Update the catalogue of lifecycle lines and the section "Changes in 4.0.0" in `docs/logging.md` for every line this issue changes.
 

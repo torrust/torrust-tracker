@@ -40,7 +40,7 @@ Starting the tracker logs one `INFO` line for metrics registration, with the num
 
 ## Background
 
-The crate `torrust-metrics` 0.2.0 logs one `INFO` line under the target `METRICS` in `describe_counter` and `describe_gauge`, with `unit` and `description` as `Debug` of an `Option`. The baseline has 28 such lines, more than a tenth of a start. The cause is in that crate, so the fix is there: `DEBUG` level, `Display` values, no `Option` wrapper. This issue is blocked until that crate releases the fix.
+The crate `torrust-metrics` 0.2.0 logs one `INFO` line under the target `METRICS` in `describe_counter` and `describe_gauge`, with `unit` and `description` as `Debug` of an `Option`. The baseline has 28 such lines, more than a tenth of a start. The cause is in that crate, so the fix is there: `DEBUG` level, `Display` values, no `Option` wrapper. The upstream issue is <https://github.com/torrust/torrust-metrics/issues/4>. This issue is blocked until that crate releases the fix.
 
 ## Scope
 

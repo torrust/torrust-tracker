@@ -6,7 +6,7 @@ epic: null
 github-issue: 2387
 spec-path: docs/issues/open/2387-review-tracker-lifecycle-logs/EPIC.md
 epic-owner: null
-last-updated-utc: "2026-11-23 16:20"
+last-updated-utc: "2026-11-23 16:22"
 semantic-links:
   skill-links:
     - create-issue
@@ -149,8 +149,8 @@ The sub-issues are drafts. Each gets its GitHub issue number when its session st
 
 | Repository | Change | Used by | Status |
 | --- | --- | --- | --- |
-| `torrust/torrust-net-primitives` | `ServiceBinding`'s `Display` prints no trailing slash for any protocol | SI-5 deletes its helper when the fixed crate is used | TODO: issue to be filed |
-| `torrust/torrust-metrics` | `describe_counter` and `describe_gauge` log at `DEBUG`, with `Display` values and no `Option` wrapper | SI-16 | TODO: issue to be filed |
+| `torrust/torrust-net-primitives` | `ServiceBinding`'s `Display` prints no trailing slash for any protocol | SI-5 deletes its helper when the fixed crate is used | Filed: [torrust-net-primitives issue 1](https://github.com/torrust/torrust-net-primitives/issues/1) |
+| `torrust/torrust-metrics` | `describe_counter` and `describe_gauge` log at `DEBUG`, with `Display` values and no `Option` wrapper | SI-16 | Filed: [torrust-metrics issue 4](https://github.com/torrust/torrust-metrics/issues/4) |
 
 ## Delivery Strategy
 
@@ -242,6 +242,7 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 - 2026-11-21 13:29 UTC - Claude Code (Fable 5.2) - EPIC #1488 closed on 2026-11-19 and the maintainer removed the `Postponed` label. Captured the lifecycle logs at `develop` commit `4be22ee66` at `info`, at `debug` and with statistics disabled, and found the programs that parse log text.
 - 2026-11-23 16:05 UTC - Claude Code (Fable 5.2) - The maintainer answered the twelve open questions (2026-11-21 and 2026-11-23); recorded them in `decisions.md` with alternatives, pros, cons and reasons. Recaptured the three logs at `develop` commit `ff3600f10` (same line counts as on 2026-11-21) and replaced the 2026-09-30 baseline.
 - 2026-11-23 16:20 UTC - Claude Code (Fable 5.2) - The maintainer approved the split into 23 sub-issues and the process (issue #2387 is the EPIC; drafts only for the sub-issues; a coordinator runs one sub-issue session at a time). Converted the specification from `ISSUE.md` to `EPIC.md`, set the status from `blocked` to `planned`, and wrote the 23 drafts. Updated the specification of #2766 and its row in EPIC #2758 to say that #2766 starts after this EPIC.
+- 2026-11-23 16:22 UTC - Claude Code (Fable 5.2) - Filed the two external issues as `josecelano-bot`: `torrust/torrust-net-primitives` issue 1 (`ServiceBinding` display without trailing slash) and `torrust/torrust-metrics` issue 4 (level and format of the metric description logs).
 
 ## Acceptance Criteria
 
