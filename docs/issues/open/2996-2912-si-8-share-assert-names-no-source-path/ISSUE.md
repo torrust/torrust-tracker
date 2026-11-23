@@ -100,7 +100,7 @@ SI-6 is a separate issue and does not depend on this one. Its enforcement check 
 
 ### In Scope
 
-- Add `assert_names_no_source_path` to `torrust-tracker-test-helpers` (a small module such as `assertions`), `#[track_caller]`, with a doc comment that names the two other definitions.
+- Add `assert_names_no_source_path` to `torrust-tracker-test-helpers` (a small module such as `assertions`), `#[track_caller]`, with a doc comment that names the four other definitions by path.
 - Replace copies 3 to 7 by uses of the shared function and delete them. Update the roughly 50 call sites (imports only where the path changes).
 - Keep copies 1, 2, 8 and 9. Give each of the five remaining definitions (the shared one, `http-protocol`, `primitives`, `configuration`, `axum-server`) a doc comment that names the other four by path, says why this one is separate, and says to change all five together.
 - Unify the panic wording on the one already used by four copies: `the error message must not hold a source path, but it contains {fragment:?}: {message:?}`. The two `axum-http-server` copies currently say "the failure reason"; that wording goes away.
