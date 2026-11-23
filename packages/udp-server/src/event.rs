@@ -453,12 +453,7 @@ mod tests {
         let actual = ErrorKind::from(error);
 
         // Assert
-        assert_eq!(
-            actual,
-            ErrorKind::TrackerAuthentication(
-                "domain tracker requires authentication but is not supported in current UDP implementation".to_string()
-            )
-        );
+        assert_eq!(actual, ErrorKind::TrackerAuthentication(Error::AuthRequired.to_string()));
     }
 
     #[test]
