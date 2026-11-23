@@ -42,20 +42,131 @@ pub struct Violation {
     pub reason: &'static str,
 }
 
+/// Returns `source` split into lines, with comments and the content of string and character literals
+/// replaced by spaces, so that text in them is never scanned and never counted as a delimiter.
+///
+/// Handles line comments, nested block comments, strings with escapes (also across lines), raw strings
+/// and character literals; a lifetime such as `'a` is left alone.
+#[must_use]
+pub fn mask(source: &str) -> Vec<String> {
+    #[derive(Clone, Copy)]
+    enum State {
+        Code,
+        Block(usize),
+        Str,
+        Raw(usize),
+    }
+
+    let mut state = State::Code;
+    let mut lines = Vec::new();
+
+    for line in source.lines() {
+        let chars: Vec<char> = line.chars().collect();
+        let mut out = String::with_capacity(line.len());
+        let mut i = 0;
+        while i < chars.len() {
+            let c = chars[i];
+            let next = chars.get(i + 1).copied();
+            match state {
+                State::Block(depth) => {
+                    out.push(' ');
+                    if c == '*' && next == Some('/') {
+                        out.push(' ');
+                        i += 1;
+                        state = if depth == 1 { State::Code } else { State::Block(depth - 1) };
+                    } else if c == '/' && next == Some('*') {
+                        out.push(' ');
+                        i += 1;
+                        state = State::Block(depth + 1);
+                    }
+                }
+                State::Str => {
+                    out.push(' ');
+                    if c == '\\' && next.is_some() {
+                        out.push(' ');
+                        i += 1;
+                    } else if c == '"' {
+                        state = State::Code;
+                    }
+                }
+                State::Raw(hashes) => {
+                    out.push(' ');
+                    if c == '"' && (0..hashes).all(|k| chars.get(i + 1 + k) == Some(&'#')) {
+                        for _ in 0..hashes {
+                            out.push(' ');
+                        }
+                        i += hashes;
+                        state = State::Code;
+                    }
+                }
+                State::Code => {
+                    if c == '/' && next == Some('/') {
+                        out.extend(std::iter::repeat_n(' ', chars.len() - i));
+                        break;
+                    } else if c == '/' && next == Some('*') {
+                        out.push_str("  ");
+                        i += 1;
+                        state = State::Block(1);
+                    } else if c == '"' {
+                        out.push(' ');
+                        state = State::Str;
+                    } else if c == 'r' && raw_string_hashes(&chars, i).is_some() && !preceded_by_identifier(&chars, i) {
+                        let hashes = raw_string_hashes(&chars, i).unwrap_or(0);
+                        out.extend(std::iter::repeat_n(' ', hashes + 2));
+                        i += hashes + 1;
+                        state = State::Raw(hashes);
+                    } else if c == '\'' {
+                        if let Some(length) = char_literal_length(&chars, i) {
+                            out.extend(std::iter::repeat_n(' ', length));
+                            i += length - 1;
+                        } else {
+                            out.push(c);
+                        }
+                    } else {
+                        out.push(c);
+                    }
+                }
+            }
+            i += 1;
+        }
+        lines.push(out);
+    }
+
+    lines
+}
+
+/// The number of `#` of a raw string opening (`r"`, `r#"`, ...) at `i`, if there is one.
+fn raw_string_hashes(chars: &[char], i: usize) -> Option<usize> {
+    let hashes = chars[i + 1..].iter().take_while(|c| **c == '#').count();
+    (chars.get(i + 1 + hashes) == Some(&'"')).then_some(hashes)
+}
+
+fn preceded_by_identifier(chars: &[char], i: usize) -> bool {
+    i > 0 && (chars[i - 1].is_alphanumeric() || chars[i - 1] == '_')
+}
+
+/// The length of the character literal that starts at `i`, or `None` for a lifetime.
+fn char_literal_length(chars: &[char], i: usize) -> Option<usize> {
+    match (chars.get(i + 1), chars.get(i + 2)) {
+        (Some('\\'), _) => {
+            let close = chars[i + 2..].iter().position(|c| *c == '\'')?;
+            Some(close + 3)
+        }
+        (Some(_), Some('\'')) => Some(3),
+        _ => None,
+    }
+}
+
 /// Returns the forbidden uses in the non-test part of `source`.
 #[must_use]
 pub fn violations_in(source: &str) -> Vec<Violation> {
+    let masked = mask(source);
     let mut violations = Vec::new();
-    let mut lines = source.lines().enumerate().peekable();
+    let mut lines = masked.iter().enumerate();
 
     while let Some((index, line)) = lines.next() {
-        let trimmed = line.trim_start();
-
-        if trimmed == "#[cfg(test)]" {
-            skip_test_item(&mut lines, indentation(line));
-            continue;
-        }
-        if trimmed.starts_with("//") {
+        if line.trim() == "#[cfg(test)]" {
+            skip_test_item(&mut lines);
             continue;
         }
         for (pattern, reason) in FORBIDDEN {
@@ -72,61 +183,111 @@ pub fn violations_in(source: &str) -> Vec<Violation> {
     violations
 }
 
-fn indentation(line: &str) -> usize {
-    line.len() - line.trim_start().len()
-}
+/// Consumes the item that follows a `#[cfg(test)]` attribute: further attributes, then everything up to
+/// the `;` or the closing delimiter that ends the item, found by balancing `{}`, `()` and `[]`.
+fn skip_test_item<'a>(lines: &mut impl Iterator<Item = (usize, &'a String)>) {
+    let mut depth = 0_usize;
+    let mut started = false;
 
-/// Consumes the item that follows a `#[cfg(test)]` attribute of the given indentation.
-fn skip_test_item<'a>(lines: &mut std::iter::Peekable<impl Iterator<Item = (usize, &'a str)>>, indent: usize) {
-    // Further attributes and doc comments belong to the same item.
-    while let Some((_, line)) = lines.peek() {
-        let trimmed = line.trim_start();
-        if trimmed.starts_with("#[") || trimmed.starts_with("//") {
-            lines.next();
-        } else {
-            break;
-        }
-    }
-    let Some((_, first)) = lines.next() else { return };
-    let ends_here = first.trim_end().ends_with(';') && !first.contains('{');
-    let one_liner = first.contains('{') && first.contains('}') && first.trim_end().ends_with('}');
-    if ends_here || one_liner {
-        return;
-    }
     for (_, line) in lines.by_ref() {
-        if indentation(line) == indent && line.trim_start().starts_with('}') {
-            return;
+        let trimmed = line.trim();
+        if !started && (trimmed.is_empty() || trimmed.starts_with("#[")) {
+            continue;
+        }
+        started = true;
+        for c in line.chars() {
+            match c {
+                '{' | '(' | '[' => depth += 1,
+                '}' | ')' | ']' => {
+                    depth = depth.saturating_sub(1);
+                    if depth == 0 && c == '}' {
+                        return;
+                    }
+                }
+                ';' if depth == 0 => return,
+                _ => {}
+            }
         }
     }
 }
 
-/// Names declared as `#[cfg(test)] mod name;` in `source`.
+/// A `mod name;` declaration found in a source file.
+#[derive(Debug, PartialEq, Eq)]
+pub struct ModuleDeclaration {
+    /// The inline modules that enclose the declaration, outermost first, then the module itself.
+    pub path: Vec<String>,
+    /// Whether the declaration is `#[cfg(test)]`, directly or through an enclosing `#[cfg(test)]` module.
+    pub test_only: bool,
+}
+
+/// The `mod name;` declarations of `source`, each with its inline-module ancestry.
 #[must_use]
-pub fn test_only_modules(source: &str) -> Vec<String> {
-    let mut modules = Vec::new();
+pub fn module_declarations(source: &str) -> Vec<ModuleDeclaration> {
+    let mut declarations = Vec::new();
+    // (name, brace depth outside the module, under cfg(test))
+    let mut stack: Vec<(String, usize, bool)> = Vec::new();
+    let mut depth = 0_usize;
     let mut after_cfg_test = false;
 
-    for line in source.lines() {
+    for line in mask(source) {
         let trimmed = line.trim();
+        if trimmed.is_empty() {
+            continue;
+        }
         if trimmed == "#[cfg(test)]" {
             after_cfg_test = true;
-        } else if trimmed.starts_with("#[") {
-            // another attribute of the same item
-        } else {
-            if after_cfg_test {
-                let declaration = trimmed
-                    .strip_prefix("pub(crate) ")
-                    .or_else(|| trimmed.strip_prefix("pub "))
-                    .unwrap_or(trimmed);
-                if let Some(name) = declaration.strip_prefix("mod ").and_then(|rest| rest.strip_suffix(';')) {
-                    modules.push(name.trim().to_owned());
-                }
+            continue;
+        }
+        if trimmed.starts_with("#[") {
+            continue;
+        }
+
+        if let Some((name, inline)) = module_item(trimmed) {
+            let test_only = after_cfg_test || stack.iter().any(|entry| entry.2);
+            if inline {
+                stack.push((name, depth, test_only));
+            } else {
+                let mut path: Vec<String> = stack.iter().map(|entry| entry.0.clone()).collect();
+                path.push(name);
+                declarations.push(ModuleDeclaration { path, test_only });
             }
-            after_cfg_test = false;
+        }
+        after_cfg_test = false;
+
+        for c in line.chars() {
+            match c {
+                '{' => depth += 1,
+                '}' => {
+                    depth = depth.saturating_sub(1);
+                    while stack.last().is_some_and(|entry| entry.1 >= depth) {
+                        stack.pop();
+                    }
+                }
+                _ => {}
+            }
         }
     }
 
-    modules
+    declarations
+}
+
+/// Parses `[pub ...] mod name;` or `[pub ...] mod name {` and returns the name and whether it is inline.
+fn module_item(trimmed: &str) -> Option<(String, bool)> {
+    let mut rest = trimmed;
+    if let Some(after) = rest.strip_prefix("pub") {
+        rest = after.trim_start();
+        if rest.starts_with('(') {
+            rest = rest[rest.find(')')? + 1..].trim_start();
+        }
+    }
+    let rest = rest.strip_prefix("mod ")?.trim_start();
+    let name_end = rest.find(|c: char| !(c.is_alphanumeric() || c == '_'))?;
+    let (name, after) = rest.split_at(name_end);
+    match after.trim_start().chars().next()? {
+        ';' => Some((name.to_owned(), false)),
+        '{' => Some((name.to_owned(), true)),
+        _ => None,
+    }
 }
 
 /// The directory in which the child modules of the file at `path` live.
@@ -138,19 +299,34 @@ fn module_directory(path: &Path) -> PathBuf {
     }
 }
 
-/// Repo-relative `/`-separated path prefixes and files that are test code, given every `.rs` file as
-/// `(path, source)`.
+/// Repo-relative `/`-separated files and directory prefixes (ending in `/`) that are test code, given
+/// every `.rs` file as `(path, source)`.
+///
+/// A module file counts only when every declaration that includes it is `#[cfg(test)]`: one production
+/// declaration (for example in `main.rs` next to a test-only one in `lib.rs`) keeps it checked.
 #[must_use]
 pub fn test_only_paths<'a>(files: impl IntoIterator<Item = (&'a Path, &'a str)>) -> BTreeSet<String> {
-    let mut paths = BTreeSet::new();
+    let mut test_only = BTreeSet::new();
+    let mut production = BTreeSet::new();
+
     for (path, source) in files {
         let directory = module_directory(path);
-        for module in test_only_modules(source) {
-            paths.insert(slash(&directory.join(format!("{module}.rs"))));
-            paths.insert(slash(&directory.join(&module)) + "/");
+        for declaration in module_declarations(source) {
+            let module = directory.join(declaration.path.join("/"));
+            let file = slash(&module.with_extension("rs"));
+            let prefix = slash(&module) + "/";
+            let target = if declaration.test_only {
+                &mut test_only
+            } else {
+                &mut production
+            };
+            target.insert(file);
+            target.insert(prefix);
         }
     }
-    paths
+
+    test_only.retain(|entry| !production.contains(entry));
+    test_only
 }
 
 fn slash(path: &Path) -> String {
@@ -183,7 +359,7 @@ pub fn parse_allow_list(text: &str) -> Result<BTreeSet<String>, String> {
         }
         match line.split_once(':') {
             Some((path, reason)) if !path.trim().is_empty() && !reason.trim().is_empty() => {
-                allowed.insert(path.trim().to_owned());
+                allowed.insert(path.trim().replace('\\', "/"));
             }
             _ => {
                 return Err(format!(
@@ -251,22 +427,99 @@ mod tests {
     }
 
     #[test]
+    fn it_should_ignore_trailing_line_comments_block_comments_and_string_literals() {
+        let source = format!(
+            "fn f() {{ let a = 1; // {CALLER}\n    /* {ATTRIBUTE}\n    {CALLER} */ let b = \"{CALLER}\";\n    let c = r#\"{CALLER}\"#; let d = '{{';\n}}\n"
+        );
+
+        assert_eq!(violations_in(&source), vec![]);
+    }
+
+    #[test]
+    fn it_should_stop_skipping_at_the_end_of_a_test_only_import() {
+        let source = format!("#[cfg(test)]\nuse std::{{fmt, io}};\n\n{ATTRIBUTE}\nfn f() {{}}\n");
+
+        assert_eq!(violations_in(&source).iter().map(|v| v.line).collect::<Vec<_>>(), vec![4]);
+    }
+
+    #[test]
+    fn it_should_skip_a_test_only_item_whose_braces_are_not_on_their_own_lines() {
+        let source = format!("#[cfg(test)]\nfn t() -> Vec<u8> {{ vec![{CALLER}] }}\n{ATTRIBUTE}\nfn f() {{}}\n");
+
+        assert_eq!(violations_in(&source).iter().map(|v| v.line).collect::<Vec<_>>(), vec![3]);
+    }
+
+    #[test]
     fn it_should_find_modules_declared_for_tests_only() {
         let source = "#[cfg(test)]\nmod a;\nmod b;\n#[cfg(test)]\n#[allow(unused)]\npub mod c;\n";
 
-        assert_eq!(test_only_modules(source), vec!["a", "c"]);
+        let declarations = module_declarations(source);
+
+        assert_eq!(
+            declarations
+                .iter()
+                .map(|d| (d.path.join("/"), d.test_only))
+                .collect::<Vec<_>>(),
+            vec![("a".to_owned(), true), ("b".to_owned(), false), ("c".to_owned(), true)]
+        );
+    }
+
+    #[test]
+    fn it_should_keep_the_cfg_test_attribute_across_comment_lines() {
+        let source = "#[cfg(test)]\n// Test helpers.\n/* more */\nmod helpers;\n";
+
+        assert!(module_declarations(source)[0].test_only);
+    }
+
+    #[test]
+    fn it_should_keep_the_inline_module_ancestry_of_a_declaration() {
+        let source = "mod inner {\n    #[cfg(test)]\n    mod helpers;\n    mod other;\n}\n#[cfg(test)]\nmod outer {\n    mod nested;\n}\nmod last;\n";
+
+        let declarations = module_declarations(source);
+
+        assert_eq!(
+            declarations
+                .iter()
+                .map(|d| (d.path.join("/"), d.test_only))
+                .collect::<Vec<_>>(),
+            vec![
+                ("inner/helpers".to_owned(), true),
+                ("inner/other".to_owned(), false),
+                ("outer/nested".to_owned(), true),
+                ("last".to_owned(), false),
+            ]
+        );
     }
 
     #[test]
     fn it_should_treat_declared_test_modules_and_tests_directories_as_test_code() {
         let lib = Path::new("packages/x/src/lib.rs");
-        let paths = test_only_paths([(lib, "#[cfg(test)]\nmod helpers;\n")]);
+        let paths = test_only_paths([(
+            lib,
+            "#[cfg(test)]\nmod helpers;\nmod inner {\n    #[cfg(test)]\n    mod deep;\n}\n",
+        )]);
 
         assert!(is_test_file(Path::new("packages/x/src/helpers.rs"), &paths));
-        assert!(is_test_file(Path::new("packages/x/src/helpers/deep.rs"), &paths));
+        assert!(is_test_file(Path::new("packages/x/src/helpers/deeper.rs"), &paths));
+        assert!(is_test_file(Path::new("packages/x/src/inner/deep.rs"), &paths));
+        assert!(!is_test_file(Path::new("packages/x/src/deep.rs"), &paths));
         assert!(is_test_file(Path::new("packages/x/tests/server/asserts.rs"), &paths));
         assert!(is_test_file(Path::new("packages/test-helpers/src/lib.rs"), &paths));
         assert!(!is_test_file(Path::new("packages/x/src/other.rs"), &paths));
+    }
+
+    #[test]
+    fn it_should_keep_checking_a_file_that_a_production_declaration_also_includes() {
+        let lib = Path::new("packages/x/src/lib.rs");
+        let main = Path::new("packages/x/src/main.rs");
+        let paths = test_only_paths([(lib, "#[cfg(test)]\nmod shared;\n"), (main, "mod shared;\n")]);
+
+        assert!(!is_test_file(Path::new("packages/x/src/shared.rs"), &paths));
+    }
+
+    #[test]
+    fn it_should_normalize_backslashes_of_allow_list_paths() {
+        assert!(parse_allow_list("a\\b.rs: reason\n").unwrap().contains("a/b.rs"));
     }
 
     #[test]
