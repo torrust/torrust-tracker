@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-F1 and F2 come from Copilot's review 6021313664 (COMMENTED on the first head, "docs(issues): [#2917] record the SI-5 verification evidence and the configuration 4.0.0 breaking change"), in source order. Copilot noted that its full agentic review did not start before its timeout; the two findings are its inline threads. F3 to F6 come from Copilot's review 6022021456 (COMMENTED on the round-1 head, "docs(pr-reviews): [#2917] add the review audit of PR #3001", with ACK comments of the maintainer on the first head and on that head), in source order; its overview lists F1 and F2 as resolved.
+F1 and F2 come from Copilot's review 6021313664 (COMMENTED on the first head, "docs(issues): [#2917] record the SI-5 verification evidence and the configuration 4.0.0 breaking change"), in source order. Copilot noted that its full agentic review did not start before its timeout; the two findings are its inline threads. F3 to F6 come from Copilot's review 6022021456 (COMMENTED on the round-1 head, "docs(pr-reviews): [#2917] add the review audit of PR #3001", with ACK comments of the maintainer on the first head and on that head), in source order; its overview lists F1 and F2 as resolved. F7 to F13 come from da2ce7's review 6022459738 (APPROVED on the round-2 head, "docs(pr-reviews): [#2917] record round 2 of the review audit of PR #3001"), in source order; the reviewer numbered them F1 to F7 and each entry's "Reviewer finding ID" keeps that number.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -51,6 +51,13 @@ F1 and F2 come from Copilot's review 6021313664 (COMMENTED on the first head, "d
 | F4 | review-finding:pr-3001-f4 | Copilot | Minor | testing | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F5 | review-finding:pr-3001-f5 | Copilot | Minor | testing | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F6 | review-finding:pr-3001-f6 | Copilot | Nit | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-3001-f7 | Human | Minor | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-3001-f8 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F9 | review-finding:pr-3001-f9 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-3001-f10 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-3001-f11 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-3001-f12 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F13 | review-finding:pr-3001-f13 | Human | Nit | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -132,9 +139,104 @@ F1 and F2 come from Copilot's review 6021313664 (COMMENTED on the first head, "d
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4666137078
 
+### F7 - SI-8 as specified will not share the two helper copies of this PR
+
+- PR number: 3001
+- Source review ID: 6022459738
+- Reviewer finding ID: F1
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4666416864
+- Concern: da2ce7 (Minor) noted that the progress log and the PR body said each crate keeps its copy of `assert_names_no_source_path` "until SI-8 (#2996) shares it", although the SI-8 spec lists seven copies (none in `configuration` or `axum-server`), adds no dependency edge, and `torrust-tracker-test-helpers` depends on `torrust-tracker-configuration` (a cycle for the `configuration` copy) while `axum-server` has no `test-helpers` dev-dependency. There are nine copies at this head, so SI-8's counts, cross-link plan and EPIC row 8 were stale. He suggested recording copies 8 and 9 in the SI-8 spec and the EPIC row (as cross-linked copies) and rewording the line and the PR body.
+- Solution: The SI-8 spec lists copies 8 (`configuration`) and 9 (`axum-server`) as staying and cross-linked, and its goal, scope, acceptance criteria and risks read nine copies to five definitions; EPIC row 8 says the same and names SI-5 among the sub-issues that add copies; the progress-log line of the SI-5 spec and the PR body no longer promise that SI-8 shares them.
+- Current-tree verification: `grep -n "| 8 \|| 9 " docs/issues/open/2996-2912-si-8-share-assert-names-no-source-path/ISSUE.md` shows both rows; `grep -n "nine copies" docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md` shows row 8; `gh pr view 3001` body carries the new sentence.
+- Resolution reference: docs(issues): [#2917] record the SI-5 copies of the path helper in the SI-8 spec and the EPIC
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4666514765
+
+### F8 - The 4.0.0 list for `configuration` leaves out the SI-20 break
+
+- PR number: 3001
+- Source review ID: 6022459738
+- Reviewer finding ID: F2
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4666416878
+- Concern: da2ce7 (Minor) noted that the lead-in listed the breaking changes of `configuration` for 4.0.0 besides the #2454 marks and the `Error::Infallible` removal, while the same file records that SI-20 (#2668) added the public field `Configuration::application`, a breaking change for the 4.0.0 notes; a reader compiling the notes would miss it.
+- Solution: The lead-in now also names the SI-20 field and links the section that records it. The publish plan also gained the progress-log line it lacked, and its `last-updated-utc` moved (the same commit).
+- Current-tree verification: `grep -n "Configuration::application" docs/issues/open/2583-1669-first-publish-of-workspace-crates/ISSUE.md` shows the lead-in and the original record.
+- Resolution reference: docs(issues): [#2917] name the SI-20 break in the configuration 4.0.0 list of the publish plan
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4666515277
+
+### F9 - The recheck and the green run predate the last production change, and no build is named
+
+- PR number: 3001
+- Source review ID: 6022459738
+- Reviewer finding ID: F3
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4666416886
+- Concern: da2ce7 (Minor) noted that the "after" captures and `tests-green.txt` were taken before two later commits that changed code (the test comparison and the `AuthRequired` arm), and that the `fix-bug` skill asks for both runs to be repeated and for the evidence to name the build.
+- Solution: V1, V2 and the tests of `configuration`, `axum-server` and `udp-server` were run again after the last production change (`evidence/startup-after-final.txt`, `evidence/tests-green-final.txt`), and `manual-verification-evidence.md` now has an "Artifact under test" paragraph naming the builds by commit subject. The messages and test results are unchanged.
+- Current-tree verification: `grep -c "\.rs:" docs/issues/open/2917-2912-si-5-startup-and-udp-server-errors/evidence/startup-after-final.txt` prints 0, and `evidence/tests-green-final.txt` has only `test result: ok` lines.
+- Resolution reference: docs(issues): [#2917] repeat the recheck after the last production change and align the spec rows and metadata
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4666515752
+
+### F10 - The `axum-server` README still lists `torrust-located-error` as a dependency of `tls.rs`
+
+- PR number: 3001
+- Source review ID: 6022459738
+- Reviewer finding ID: F4
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4666416897
+- Concern: da2ce7 (Minor; outside the diff) noted that `packages/axum-server/README.md` lines 39-40 said the TLS helper depends on `LocatedError` / `DynError` from `torrust-located-error`, which neither `tls.rs` nor the manifest uses any more.
+- Solution: The bullet is removed. A sweep for the same statement found no other mention of the crate in the READMEs of `configuration` and `axum-server`.
+- Current-tree verification: `grep -rn "located" packages/axum-server/README.md packages/configuration/README.md` finds nothing.
+- Resolution reference: docs(axum-server): [#2917] drop the README bullet on torrust-located-error
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4666516247
+
+### F11 - Two DONE rows describe tests that were not written
+
+- PR number: 3001
+- Source review ID: 6022459738
+- Reviewer finding ID: F5
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4666416903
+- Concern: da2ce7 (Nit) noted that the acceptance-verification row for AC1 cited tests `it_should_not_hold_a_source_path_*` in `tls.rs` and `event.rs`, which do not exist there, and that T2 promised tests for the four configuration variants while two were written.
+- Solution: T2 now lists the tests that were written (two `configuration` tests, the path check in `it_should_error_on_bad_tls_config`, two UDP `Display` tests, the pinned message in `it_should_classify_an_authentication_error`) and says that `UnableToLoadFromEnvironmentVariable` and `UnableToLoadFromConfigFile` are never built and have none; the AC1 row names the actual tests.
+- Current-tree verification: `grep -n "^| T2 \|^| AC1 " docs/issues/open/2917-2912-si-5-startup-and-udp-server-errors/ISSUE.md` shows the new text.
+- Resolution reference: docs(issues): [#2917] repeat the recheck after the last production change and align the spec rows and metadata
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4666516699
+
+### F12 - The spec metadata and the publish plan's log were not updated
+
+- PR number: 3001
+- Source review ID: 6022459738
+- Reviewer finding ID: F6
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4666416906
+- Concern: da2ce7 (Nit) noted that `related-pr` was `null` and `last-updated-utc` still read 2026-11-18, and that the publish plan had gained its 4.0.0 entry with no progress-log line and no date change.
+- Solution: `related-pr` is `3001` and `last-updated-utc` is current in the SI-5 spec; the publish plan has its progress-log line and a new `last-updated-utc` (in the commit cited under F8).
+- Current-tree verification: `sed -n 11,12p docs/issues/open/2917-2912-si-5-startup-and-udp-server-errors/ISSUE.md` shows both; `grep -n "Issue #2917" docs/issues/open/2583-1669-first-publish-of-workspace-crates/ISSUE.md` shows the log line.
+- Resolution reference: docs(issues): [#2917] repeat the recheck after the last production change and align the spec rows and metadata
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4666517224
+
+### F13 - Two commits do not match their scope
+
+- PR number: 3001
+- Source review ID: 6022459738
+- Reviewer finding ID: F7
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4666416914
+- Concern: da2ce7 (Nit) noted that the commit "fix(configuration): [#2917] remove source locations from configuration errors" drops the dependency from the manifest but leaves its `Cargo.lock` entry (removed only in "fix(axum-server): [#2917] remove source locations from TLS errors"), so a `--locked` build of that commit stops on the stale lockfile, and that the red-test commit also adds the `axum-server` and `udp-server` red tests. The final tree is right; only bisecting is affected.
+- Solution: No change. The repository keeps intermediate commits and does not rewrite a pull request's history (`open-pull-request`, "Keep intermediate commits"), and the final tree is correct. The two commits stay as they are.
+- Current-tree verification: `git diff --stat torrust/develop...HEAD -- Cargo.lock` shows the lockfile change that the final tree carries.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4666517629
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4666517629
+
 ## Processing Log
 
 - 2026-11-23 12:00 UTC - Copilot's review 6021313664 (COMMENTED, submitted 12:00:15Z on the first head) arrived with two inline findings, F1 (Medium, recorded as Minor) and F2 (Low, recorded as Nit). The audit was started before the first reply. F1 fixed in "test(udp-server): [#2917] compare the authentication classification with the error's own message", pushed at 12:04 UTC (pre-push hook passed). F2 declined with a reason (the spec `status` becomes `done` at close-out).
 - 2026-11-23 12:06 UTC - Replied on both threads (replies posted 12:05:34 UTC by `date -u`) and resolved both (`resolveReviewThread` returned `true` for each; `date -u` after the resolve commands: 12:06:00). GraphQL refresh: zero unresolved threads on PR #3001.
 - 2026-11-23 12:53 UTC - Copilot's review 6022021456 (COMMENTED, submitted 12:53:25Z on the round-1 head) arrived with four inline findings, recorded as F3 to F6; its overview lists F1 and F2 as resolved. All CI checks of that head passed. F6 fixed in "refactor(udp-server): [#2917] match the unit variant AuthRequired directly", pushed at 12:58 UTC (pre-push hook passed). F3 fixed in this audit's round-2 commit; F4 and F5 declined with a reason.
 - 2026-11-23 13:00 UTC - Replied on the four threads (replies posted 12:59:28 UTC by `date -u`). The threads are resolved after the audit commit is pushed.
+- 2026-11-23 13:03 UTC - Resolved the four round-2 threads after the audit commit was pushed (`resolveReviewThread` returned `true` for each; `date -u` after the resolve commands: 13:03:21). GraphQL refresh: zero unresolved threads. This entry completes the round-2 entry above, which said the threads were resolved after the push.
+- 2026-11-23 13:26 UTC - da2ce7's review 6022459738 (APPROVED, submitted on the round-2 head) arrived with seven findings, recorded as F7 to F13 with the reviewer's F1 to F7. F7 to F12 fixed in "docs(axum-server): [#2917] drop the README bullet on torrust-located-error", "docs(issues): [#2917] record the SI-5 copies of the path helper in the SI-8 spec and the EPIC", "docs(issues): [#2917] name the SI-20 break in the configuration 4.0.0 list of the publish plan" and "docs(issues): [#2917] repeat the recheck after the last production change and align the spec rows and metadata" (pushed at 13:31 UTC, pre-push hook passed); the PR body was edited for F7. F13 declined with a reason (intermediate commits are kept)..
+- 2026-11-23 13:35 UTC - Replied on the seven threads (replies posted 13:34:05 UTC by `date -u`).
+- 2026-11-23 13:35 UTC - Resolved the seven round-3 threads (`resolveReviewThread` returned `true` for each; `date -u` after the resolve commands: 13:34:57). GraphQL refresh: zero unresolved threads on PR #3001.
