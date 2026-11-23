@@ -9,7 +9,7 @@ github-issue: 3004
 spec-path: docs/issues/open/3004-2758-tracker-client-mask-tracker-key/ISSUE.md
 branch: "3004-tracker-client-mask-tracker-key-spec"
 related-pr: null
-last-updated-utc: "2026-11-23 13:47"
+last-updated-utc: "2026-11-23 14:19"
 semantic-links:
   skill-links:
     - create-issue
@@ -24,7 +24,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-<!-- cspell:ignore SECRETKEY -->
+<!-- cspell:ignore SECRETKEY Greptile -->
 
 # Issue #3004 - `tracker_client`: do not write the tracker key in diagnostics or results
 
@@ -78,10 +78,13 @@ Known sources, to confirm and complete during analysis:
   `Debug` text still must not be written (AC2).
 - `console/tracker-client/src/bin/tracker_client.rs`: `report_runtime_failure` writes the error
   text unchanged.
-- `console/tracker-client/src/console/clients/checker/`: `check` results carry the tracker URL
-  (`CheckerOutput.url` in `checks/structs.rs`) and a status message that may carry the same
-  `reqwest` text. The monitor records carry a `url` field (`monitor/udp.rs`, UDP only, which has no
-  key).
+- `console/tracker-client/src/console/clients/checker/`: `check` results carry the tracker URL in
+  `Checks.url` (`checks/http.rs:17`, filled from the configured URL at `:37`); the per-request
+  `Err` texts of `Checks.results` come from the errors of `clients/http/mod.rs:11,15`, which carry
+  the same `reqwest` text. The health-check results carry their URL in `Checks.url`
+  (`checks/health.rs:31`). The monitor records carry a `url` field (`monitor/udp.rs`, UDP only,
+  which has no key). `CheckerOutput` in `checks/structs.rs` is not used anywhere and does not
+  reach the output.
 
 Why it matters: stderr and stdout of `tracker_client` are captured by CI and by AI agents (the e2e
 runner logs the checker output), so a key written there can end up in shared logs.
@@ -115,13 +118,18 @@ different outputs (server logs versus CLI output); aligning them is not in this 
 
 ### Out of Scope
 
-- The panic of `check` for a `udp://` URL without a port (`checker/checks/udp.rs:107`); a separate
-  bug issue outside this EPIC covers it.
-- A schema version for the results (separate issue of this EPIC).
+- The panic of `check` for a `udp://` URL without a port (`checker/checks/udp.rs:107`); #2984, a
+  bug issue outside this EPIC, covers it.
+- A schema version for the results; #3006 of this EPIC covers it.
 - Two behaviors seen in R0c: the checker drops the key from the request path, so it cannot check a
   private tracker, and it reports a refused connection as a timeout. Record them as separate
   issues if the maintainer wants them fixed.
 - Other tools of the EPIC; UDP has no key in the URL.
+- The e2e runner logs the whole checker configuration before it runs the checker
+  (`src/console/ci/e2e/tracker_checker.rs:88`, `Tracker Checker config:`). A keyed HTTP URL there
+  would reach the same logs, but the runner builds that configuration from the running services,
+  which carry no key (`src/console/ci/e2e/runner.rs:117-118`), and the file is not part of
+  `tracker_client`. The T1 audit records it as checked and out of scope.
 
 Files this issue may touch (a sibling issue in the same wave must not touch them):
 
@@ -147,8 +155,9 @@ Follow `.claude/skills/fix-bug/SKILL.md`:
 1. Analysis: list every output path that can write a URL or `reqwest` error text (In Scope).
 2. Reproduction: R0 is recorded in this folder; repeat it on the implementation branch before the
    fix.
-3. Regression boundary: a unit test of the masking function, and a unit test at the library error
-   seam that formats a failed request (the error text must not contain the key).
+3. Regression boundary: a unit test of the masking function, a unit test at the library error
+   seam that formats a failed request (the error text must not contain the key), and black-box
+   tests of `http announce`, `http scrape` and `check` (see Regression Test Strategy).
 4. Red: run the tests against the unchanged code and record the failure.
 5. Fix.
 6. Green: record the passing tests and repeat R0 like for like (expected: the key is masked).
@@ -160,9 +169,27 @@ Follow `.claude/skills/fix-bug/SKILL.md`:
   URL.
 - Unit test at the library error seam in `packages/tracker-client`: a request to a closed local
   port with a URL that carries a key; the error's `Display` text does not contain the key.
-- A black-box test of `tracker_client http announce` against a closed local port, asserting that
-  stderr is one JSON record and does not contain the key. Tests that run the binary look up
-  `NEXTEST_BIN_EXE_tracker_client` before `CARGO_BIN_EXE_tracker_client`.
+- Black-box tests of `tracker_client http announce` and `tracker_client http scrape` against a
+  closed local port with a keyed URL (R0a and R0b), asserting that stderr is one JSON record, that
+  it does not contain the key, and that the URL shows `****`. Announce and scrape build their URLs
+  and errors on separate paths (`build_announce_url`, `build_scrape_url`), so each gets its own
+  test.
+- A black-box test of `tracker_client check` with a keyed HTTP URL on a closed local port (R0c),
+  asserting that neither stdout nor stderr contains the key, and that the result's `url` field
+  shows `****`. This path copies the configured URL into `Checks.url` and never goes through the
+  library error, so the tests above do not cover it.
+- Tests that run the binary look up `NEXTEST_BIN_EXE_tracker_client` before
+  `CARGO_BIN_EXE_tracker_client`.
+
+Progressive test development: use the `write-unit-test` skill and add one behavior-focused test
+increment at a time. After each increment passes focused validation, and before the next one
+starts, do the design review and record it in the evidence file: the prose-first
+Arrange-Act-Assert comparison (write temporary prose for each section, refactor until the code says
+it, remove the redundant prose), confirming that the test shows the one causal difference (a keyed
+URL), that its fixture owns only incidental mechanics, and that the production Act and the
+independently stated expected result stay visible. Judge helpers by named actions and abstraction
+level, not caller count. After the final increment, stop for maintainer review before the final
+verification, the commit of the fix and the pull request.
 
 ## Implementation Plan
 
@@ -171,11 +198,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
 | T1  | TODO   | Audit the output paths | The list of paths that write a URL or request error text, recorded in this spec. |
-| T2  | TODO   | Red regression tests | The tests of the Regression Test Strategy, failing on the unchanged code; output in the evidence file. |
+| T2  | TODO   | Red regression tests | The tests of the Regression Test Strategy, failing on the unchanged code; output and the design review of each increment in the evidence file. |
 | T3  | TODO   | Masking function and library error text | The key segment is masked; no `Debug` text of `reqwest::Error` is written. |
 | T4  | TODO   | Apply it on every output path | Every path from T1 writes masked URLs only. |
-| T5  | TODO   | Docs | Contract doc redaction rule for tracker URLs; README examples checked. |
-| T6  | TODO   | Recheck | R0 repeated like for like; the key does not appear. |
+| T5  | TODO   | Maintainer stop | After the final test increment is green and reviewed, report to the maintainer and wait for his review before T6, T7 and the pull request. |
+| T6  | TODO   | Docs | Contract doc redaction rule for tracker URLs; README examples checked. |
+| T7  | TODO   | Green run and recheck | The regression tests pass (output in the evidence file) and R0 is repeated like for like as M1 to M4; the key does not appear. |
 
 ## Commit Points
 
@@ -185,10 +213,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2 | Red tests | Commit after focused validation and required review. |
 | T3 | Masking function and library error text | Commit after focused validation and required review. |
 | T4 | Output paths | Commit after focused validation and required review. |
-| T5 | Docs | Commit after focused validation and required review. |
-| T6 | Evidence | Commit after focused validation and required review. |
+| T5 | No change: a checkpoint | No commit. |
+| T6 | Docs | Commit after focused validation and required review. |
+| T7 | Green run and recheck evidence | Commit after focused validation and required review. |
 
-Use the `write-unit-test` skill and the design review after each passing test increment. Sign every
+Each test-producing task (T2, T3, T4) follows the progressive test development of the Regression
+Test Strategy: one increment, focused validation, recorded design review, then the next. Sign every
 commit.
 
 ## Progress Tracking
@@ -212,6 +242,7 @@ commit.
 
 - 2026-11-19 16:09 UTC - Claude Code (Claude Opus 5.5) - Drafted this spec as the EPIC #2758 coordinator from the #2768 leftover; reproduced the leak (R0).
 - 2026-11-23 13:47 UTC - Claude Code (Claude Opus 5.5) - Re-read the draft against `develop` `ff3600f10`: added the `Display` text of `reqwest::Error` (it also carries the URL), the `Debug` of `reqwest::Response` in `UnsuccessfulResponse`, the body-read error in `unified/http.rs` and the `{err:?}` texts in `http/mod.rs` and `health.rs`; recorded the relation to EPIC #2993. Created issue #3004 (maintainer approved the spec content and a public issue) and moved the spec to `docs/issues/open/`.
+- 2026-11-23 14:19 UTC - Claude Code (Claude Opus 5.5) - Addressed review round 1 of PR 3005 (da2ce7 F1 to F10, Greptile): `Checks.url` named as the `check` source, black-box tests for `http scrape` and `check`, M1 keeps the exit status, the progressive test loop and the maintainer stop (new T5), #2984 and #3006 named, the e2e runner configuration log recorded as out of scope, the public-issue decision stated. The EPIC row is added by the coordinator in PR 3007.
 
 ## Acceptance Criteria
 
@@ -242,7 +273,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Failed announce with a key | `tracker_client http announce http://127.0.0.1:1/announce/SECRETKEYabc123 <infohash> 2>err.txt \| cat`, then search `err.txt` for `SECRETKEYabc123` | Exit `1`; one JSON record; no match; the URL shows `/announce/****` | TODO | `manual-verification-evidence.md` section V1 |
+| M1 | Failed announce with a key | `tracker_client http announce http://127.0.0.1:1/announce/SECRETKEYabc123 <infohash> > out.txt 2> err.txt; echo "exit=$?"` (stdout to a file, as R0 does: it keeps the exit status and avoids the terminal refusal), then search `err.txt` for `SECRETKEYabc123` | Exit `1`; one JSON record; no match; the URL shows `/announce/****` | TODO | `manual-verification-evidence.md` section V1 |
 | M2 | Failed scrape with a key | The same with `http scrape` and `/scrape/<key>` | As M1 | TODO | `manual-verification-evidence.md` section V2 |
 | M3 | `check` with a keyed HTTP tracker | A `check` configuration with a keyed URL on a closed port | The result and stderr contain no key | TODO | `manual-verification-evidence.md` section V3 |
 | M4 | Success with a key | Announce to a local private tracker with a valid key | The result contains no key | TODO | `manual-verification-evidence.md` section V4 |
@@ -262,8 +293,8 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
   path prefix.
 - Changing the library error text can break callers that match it; search the workspace for the
   old text before changing it.
-- Public issue: the defect exposes a caller's own key in its own output, not a server
-  vulnerability. The maintainer decides whether it must go through `SECURITY.md` instead.
+- Public issue: decided by the maintainer (a public issue, not `SECURITY.md`). The key is the
+  caller's own and is written to the caller's own output; it is not a server vulnerability.
 
 ## Implementation Completion Review
 

@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/3004-2758-tracker-client-mask-tracker-key/ISSUE.md
-last-updated-utc: "2026-11-19 16:12"
+last-updated-utc: "2026-11-23 14:19"
 ---
 
 <!-- cspell:ignore SECRETKEY -->
@@ -68,6 +68,6 @@ receive a response within the timeout".
 
 ## Outcome
 
-R0 confirms the defect on `develop`: the key appears on stderr for `http announce` and
+Reproduced. R0 confirms the defect on `develop`: the key appears on stderr for `http announce` and
 `http scrape`, and on stdout for `check`. After the fix, repeat R0a to R0c like for like as
 scenarios M1 to M3 of the spec and record them below.
