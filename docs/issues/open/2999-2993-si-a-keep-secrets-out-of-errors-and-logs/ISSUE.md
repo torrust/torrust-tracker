@@ -9,7 +9,7 @@ github-issue: 2999
 spec-path: docs/issues/open/2999-2993-si-a-keep-secrets-out-of-errors-and-logs/ISSUE.md
 branch: "2999-si-a-keep-secrets-out-of-errors-and-logs"
 related-pr: null
-last-updated-utc: "2026-11-23 20:42"
+last-updated-utc: "2026-11-23 21:19"
 semantic-links:
   skill-links:
     - create-issue
@@ -37,7 +37,7 @@ No error value keeps a peer authentication key or a REST API admin token, no err
 
 ## Background
 
-The inventory of the EPIC (section "Inventory", items A1 to A12) lists every case found in the tree and reproduced on a running tracker. This issue owns the cases that are secrets: A1 to A8, A10 and A12. A9 is a documentation fix that belongs here too, and so is A12 (a database server message that holds the key). A11 (database server messages that name the user and host) is owned by SI-B. The commands and output of the reproductions are in the EPIC's [`manual-verification-evidence.md`](../2993-secrets-and-client-error-text/manual-verification-evidence.md). The inventory was rechecked against `develop` `6bc417424` on 2026-11-23 (nothing fixed; corrections and missed cases folded into this specification and the EPIC rows).
+The inventory of the EPIC (section "Inventory", items A1 to A12) lists every case found in the tree and reproduced on a running tracker. This issue owns the cases that are secrets: A1 to A8, A10 and A12 (a database server message that holds the key). A9, a documentation fix, belongs here too. A11 (database server messages that name the user and host) is owned by SI-B. The commands and output of the reproductions are in the EPIC's [`manual-verification-evidence.md`](../2993-secrets-and-client-error-text/manual-verification-evidence.md). The inventory was rechecked against `develop` `6bc417424` on 2026-11-23 (nothing fixed; corrections and missed cases folded into this specification and the EPIC rows).
 
 Start condition (maintainer, 2026-11-23): this issue starts after SI-5 of EPIC #2912 (#3001) merges, because both change `packages/configuration/src/lib.rs`. #3001 merged on 2026-11-23. Implementation session: Claude Fable 5.2 at high effort; no other implementation session of this EPIC runs at the same time.
 
