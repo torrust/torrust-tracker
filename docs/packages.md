@@ -304,6 +304,7 @@ Under `contrib/dev-tools/`, all _(unpublished)_.
 | `checks/frontmatter-validator`        | `frontmatter-validator`        | Validates Markdown frontmatter                             |
 | `checks/package-coverage-check`       | `package-coverage-check`       | Checks changed workspace packages for coverage regressions |
 | `checks/shipped-features-check`       | `shipped-features-check`       | Fails if a `testing` feature reaches a shipped binary      |
+| `checks/source-location-check`        | `source-location-check`        | Fails if non-test code records a source location           |
 | `github/github-review-threads`        | `github-review-threads`        | Fetches pull-request review threads through the GitHub CLI |
 
 ### Skill-owned tools

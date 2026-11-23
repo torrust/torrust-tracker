@@ -51,6 +51,7 @@ ensure_cargo_on_path
 declare -a STEPS=(
     "Formatting project dictionary|./contrib/dev-tools/checks/format-project-words.sh"
     "Checking documented Clippy allows|cargo run --quiet --package clippy-allow-reasons -- --staged"
+    "Checking that errors record no source locations|cargo run --quiet --package source-location-check"
     "Checking staged Markdown frontmatter|cargo run --quiet --package frontmatter-validator --bin frontmatter-validator -- --staged"
     "Checking the agent skill layout|cargo run --quiet --package frontmatter-validator --bin frontmatter-validator -- --skill-layout"
     "Checking the agent skill descriptions|cargo run --quiet --package frontmatter-validator --bin frontmatter-validator -- --skill-descriptions"

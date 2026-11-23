@@ -189,6 +189,28 @@ jobs:
         name: Check Shipped Features
         run: cargo run --quiet --package shipped-features-check -- --package torrust-tracker
 
+  # issue: #2918
+  # ADR 20261118045443: non-test code does not use `Location::caller()`, `#[track_caller]` or
+  # `torrust-located-error`. The check reads the `.rs` files of the checkout; it compiles no workspace code.
+  source-locations:
+    name: Source Locations
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - id: checkout
+        name: Checkout Repository
+        uses: actions/checkout@v7.0.1
+
+      - id: setup
+        name: Setup Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - id: check
+        name: Check Source Locations
+        run: cargo run --quiet --package source-location-check
+
   # issue: #2582
   # Packages every workspace member so a crate that cannot be published (for example a versioned
   # dependency that crates.io cannot resolve) fails here instead of at publish time. `--no-verify`
