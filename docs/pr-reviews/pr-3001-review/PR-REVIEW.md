@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-F1 and F2 come from Copilot's review 6021313664 (COMMENTED on the first head, "docs(issues): [#2917] record the SI-5 verification evidence and the configuration 4.0.0 breaking change"), in source order. Copilot noted that its full agentic review did not start before its timeout; the two findings are its inline threads. F3 to F6 come from Copilot's review 6022021456 (COMMENTED on the round-1 head, "docs(pr-reviews): [#2917] add the review audit of PR #3001", with ACK comments of the maintainer on the first head and on that head), in source order; its overview lists F1 and F2 as resolved. F7 to F13 come from da2ce7's review 6022459738 (APPROVED on the round-2 head, "docs(pr-reviews): [#2917] record round 2 of the review audit of PR #3001"), in source order; the reviewer numbered them F1 to F7 and each entry's "Reviewer finding ID" keeps that number. F14 and F15 come from Copilot's review 6022662894 (COMMENTED on the round-2 head, with no ACK of its own), in source order; Copilot's overview there lists the earlier findings as resolved.
+F1 and F2 come from Copilot's review 6021313664 (COMMENTED on the first head, "docs(issues): [#2917] record the SI-5 verification evidence and the configuration 4.0.0 breaking change"), in source order. Copilot noted that its full agentic review did not start before its timeout; the two findings are its inline threads. F3 to F6 come from Copilot's review 6022021456 (COMMENTED on the round-1 head, "docs(pr-reviews): [#2917] add the review audit of PR #3001", with ACK comments of the maintainer on the first head and on that head), in source order; its overview lists F1 and F2 as resolved. F7 to F13 come from da2ce7's review 6022459738 (APPROVED on the round-2 head, "docs(pr-reviews): [#2917] record round 2 of the review audit of PR #3001"), in source order; the reviewer numbered them F1 to F7 and each entry's "Reviewer finding ID" keeps that number. F16 comes from CodeRabbit's review 6022628130 (COMMENTED on the head "docs(issues): [#2917] repeat the recheck after the last production change and align the spec rows and metadata"), whose poller did not watch it. F16 comes from CodeRabbit's review 6022628130 (COMMENTED on the head "docs(issues): [#2917] repeat the recheck after the last production change and align the spec rows and metadata"), which the poller does not watch; it is placed last because I found it late. F14 and F15 come from Copilot's review 6022662894 (COMMENTED on the round-2 head, with no ACK of its own), in source order; Copilot's overview there lists the earlier findings as resolved.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -60,6 +60,7 @@ F1 and F2 come from Copilot's review 6021313664 (COMMENTED on the first head, "d
 | F13 | review-finding:pr-3001-f13 | Human | Nit | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F14 | review-finding:pr-3001-f14 | Copilot | Nit | testing | ORIGINAL | FIXED | RESOLVED |
 | F15 | review-finding:pr-3001-f15 | Copilot | Nit | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F16 | review-finding:pr-3001-f16 | Unknown | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -258,6 +259,19 @@ F1 and F2 come from Copilot's review 6021313664 (COMMENTED on the first head, "d
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4666636634
 
+### F16 - Tasks T1 and T5 of the SI-8 spec name only copies 1 and 2
+
+- PR number: 3001
+- Source review ID: 6022628130
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4666550639
+- Concern: CodeRabbit (rated Minor) noted that the SI-8 spec's scope now requires each of the five definitions to name the other four, but tasks T1 and T5 still named only copies 1 and 2, so following them would leave copies 8 and 9 without cross-links and fail AC3.
+- Solution: Resolved by mistake in a batch resolve before this reply and reopened, then handled; GitHub shows the thread resolved after the reply (not by a resolve command of this session). T1 and T5 now cover the other four definitions (copies 1, 2, 8 and 9) and say to change all five together. A sweep of the spec for other leftovers of the old counts (`grep -n "seven\|three\|two other\|two other definitions" docs/issues/open/2996-2912-si-8-share-assert-names-no-source-path/ISSUE.md`) found the sentence of the In Scope bullet that said the shared function's doc comment names "the two other definitions", which now says the four other definitions by path; only the seven fragments of the helper remain.
+- Current-tree verification: `grep -n "^| T1 \|^| T5 " docs/issues/open/2996-2912-si-8-share-assert-names-no-source-path/ISSUE.md` shows the new rows.
+- Resolution reference: docs(issues): [#2917] extend tasks T1 and T5 of the SI-8 spec to all five definitions
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4666716838
+
 ## Processing Log
 
 - 2026-11-23 12:00 UTC - Copilot's review 6021313664 (COMMENTED, submitted 12:00:15Z on the first head) arrived with two inline findings, F1 (Medium, recorded as Minor) and F2 (Low, recorded as Nit). The audit was started before the first reply. F1 fixed in "test(udp-server): [#2917] compare the authentication classification with the error's own message", pushed at 12:04 UTC (pre-push hook passed). F2 declined with a reason (the spec `status` becomes `done` at close-out).
@@ -270,3 +284,5 @@ F1 and F2 come from Copilot's review 6021313664 (COMMENTED on the first head, "d
 - 2026-11-23 13:35 UTC - Resolved the seven round-3 threads (`resolveReviewThread` returned `true` for each; `date -u` after the resolve commands: 13:34:57). GraphQL refresh: zero unresolved threads on PR #3001.
 - 2026-11-23 13:39 UTC - Copilot's review 6022662894 (COMMENTED, submitted 13:39:42Z on the round-2 head) arrived with two inline findings, recorded as F14 and F15. F14 fixed in "test(axum-server): [#2917] check that the missing TLS files message holds no source path", pushed before 13:44 UTC (pre-push hook passed). F15 declined with a reason.
 - 2026-11-23 13:45 UTC - Replied on both threads (replies posted 13:44:52 UTC by `date -u`) and resolved both (`resolveReviewThread` returned `true` for each; `date -u` after the resolve commands: 13:45:33). GraphQL refresh: zero unresolved threads on PR #3001.
+- 2026-11-23 13:51 UTC - Correction to the round-4 entry above: its batch resolve at 13:44:52 UTC also resolved a third thread, CodeRabbit's thread on the SI-8 spec (review 6022628130, not watched by the poller), which had not been read or replied to, so "zero unresolved threads" there was wrong. The thread was reopened shortly after (`unresolveReviewThread` returned `isResolved` false; its time was not stamped) and is recorded as F16.
+- 2026-11-23 13:52 UTC - F16 fixed in "docs(issues): [#2917] extend tasks T1 and T5 of the SI-8 spec to all five definitions" (the first pushed before 13:51 UTC, pre-push hook passed; the second is pushed with this audit) and "docs(issues): [#2917] name the four other definitions in the In Scope bullet of the SI-8 spec"; replied at 13:51:42 UTC by `date -u`. A GraphQL query at 13:52:02 UTC shows the thread resolved and zero unresolved threads on PR #3001; no resolve command was run for it after the reply.
