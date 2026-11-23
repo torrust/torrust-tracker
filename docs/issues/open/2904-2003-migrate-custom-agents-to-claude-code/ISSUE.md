@@ -560,7 +560,7 @@ on are merged.
 | T2  | DONE   | Pointer `CLAUDE.md` | A root `CLAUDE.md` whose only content is the import of `AGENTS.md` (D11); if scenario M4 shows that a scoped `AGENTS.md` is not loaded, an import-only `CLAUDE.md` beside each of the ten scoped `AGENTS.md` files; scenario M4 recorded |
 | T3  | DONE   | Reply schema and validator | `docs/schemas/agent-reply-v1.schema.json`; the validator with tests, developed in the progressive loop of the `write-unit-test` skill with a recorded design review per increment, and run by the repository checks; `docs/schemas/README.md` updated (D18) |
 | T4  | DONE | `pr-review-handler` | `.claude/agents/pr-review-handler.md` with the pinned model; `wait-for-pr-review` and `process-pr-review` say which agent runs a round; the inventory `removed-profile-rules.md` created in this folder with the rules of `copilot-suggestions-handler` (AC6); scenarios M1 to M3 recorded |
-| T5  | TODO   | `task-reviewer` | The agent file with the pinned model and the stop hook (D17): the binary `agent-reply-guard` with tests of its limit of 3 refusals, and the ignore and linter rules for `.agents/issues/`; the complexity item in `review-task` (D12); the reply rule in `review-task`, which also says that a reply file satisfies the earlier template's checkpoint (D18); scenario M7 recorded |
+| T5  | TODO   | `task-reviewer` | The agent file with the pinned model and the stop hook (D17): the binary `agent-reply-guard` with tests of its limit of 3 refusals, of reading the latest `Reply file:` line from a transcript (including a continued run), and of the branches that let the agent finish without a line and for a draft path, and the ignore and linter rules for `.agents/issues/`; the complexity item in `review-task` (D12); the reply rule in `review-task`, which also says that a reply file satisfies the earlier template's checkpoint (D18); scenario M7 recorded |
 | T6  | TODO   | `implementer` | The agent file; the three committer rules in `commit-changes` (D14); the rules that only `planner` held moved into `create-issue` |
 | T7  | TODO   | `pr-reviewer` | The agent file with the pinned model; the reply rule in `review-pr` |
 | T8  | TODO   | `researcher` | The agent file |
@@ -592,7 +592,7 @@ T10 completes it before removing the profiles.
 | T11  | The measurement evidence | One commit per recorded pull request |
 | T12  | The completion review; the move to `closed/`; the EPIC row | One commit each |
 
-Tests are added in T3 (the reply validator) and in T5 (the limit of 3 refusals of the stop hook). For
+Tests are added in T3 (the reply validator) and in T5 (the stop hook: its limit of 3 refusals, reading the latest `Reply file:` line from a transcript including a continued run, and letting the agent finish without a line and for a draft path). For
 this test-producing work, use the `write-unit-test` skill and complete an explicit design review
 after each passing test increment, before maintainer review and commit. Confirm that the test
 exposes the one causal initial-state difference; its fixture owns only incidental mechanics; and
@@ -695,7 +695,8 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 
 - `linter all`
 - The reply validator's tests, and a run of the validator on every reply file
-- The tests of the stop hook's limit of 3 refusals (T5)
+- The tests of the stop hook (T5): its limit of 3 refusals, reading the latest `Reply file:` line from a
+  transcript including a continued run, and letting the agent finish without a line and for a draft path
 - `cargo test -p agent-review-report-contract` and a run of the check itself, in every task that
   touches a file it reads, including T9 (`docs/agents/orchestration.md`) and T10
 - `cargo test -p frontmatter-validator` in the task that changes its `.agent.md` rule
@@ -715,7 +716,7 @@ Every scenario records the Claude Code version it ran on.
 | M4  | `AGENTS.md` reaches the agents | In a checkout with a `CLAUDE.md` in a parent folder, and in one without, ask the session and one started agent which repository rules they were given; then make each read a file in `packages/configuration/` and ask for a rule that only `packages/configuration/AGENTS.md` holds | Both the session and the started agent received the root `AGENTS.md` in both cases, and the scoped rule after reading a file in that directory; each `CLAUDE.md` contains only an import | DONE | `manual-verification-evidence.md` section V4 |
 | M5  | The orchestrator leads | Start a session as the orchestrator on a small real task, once with `claude --agent orchestrator` and once by telling a normal session to read the file and take the role | It starts the implementer, then the task reviewer; each writes a valid reply file in `agent-replies/`; the implementer starts no agent; questions come back to the contributor through the orchestrator | TODO | `manual-verification-evidence.md` section V5 |
 | M6  | Review rounds per pull request | For the first three pull requests handled by `pr-review-handler`, count the review rounds with fixes | The counts are recorded with the model of each round, next to the baseline of pull request #2851 (14 rounds, split by model) | IN_PROGRESS | `manual-verification-evidence.md` section V6 |
-| M7  | The stop hook holds the reviewer | Start `task-reviewer` on a task, first with an instruction that makes it try to finish without a reply file, then normally | The hook refuses the first attempt and names what is missing; the agent then writes a valid reply file and finishes; a forced case shows 3 refusals and then the fourth attempt allowed, with the limit reported | TODO | `manual-verification-evidence.md` section V7 |
+| M7  | The stop hook holds the reviewer | Start `task-reviewer` on a task whose text carries the `Reply file:` line (D17), first with an instruction that makes it try to finish without a reply file, then normally | The hook refuses the first attempt and names what is missing; the agent then writes a valid reply file and finishes; a forced case shows 3 refusals and then the fourth attempt allowed, with the limit reported | TODO | `manual-verification-evidence.md` section V7 |
 
 Notes:
 
