@@ -4199,6 +4199,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "source-location-check"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "tempfile",
+]
+
+[[package]]
 name = "spin"
 version = "0.9.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4939,15 +4948,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "torrust-located-error"
-version = "3.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a88c4200ee6f75ef290f0fc36b8717f2748fa850d9bf3c51c26253e5a566de74"
-dependencies = [
- "tracing",
-]
-
-[[package]]
 name = "torrust-metrics"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5230,7 +5230,6 @@ dependencies = [
  "serde",
  "thiserror 2.0.21",
  "tokio",
- "torrust-located-error",
  "torrust-net-primitives",
  "torrust-peer-id",
  "torrust-tracker-http-protocol",
