@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2993-secrets-and-client-error-text/EPIC.md
-last-updated-utc: "2026-11-22 15:05"
+last-updated-utc: "2026-11-23 11:22"
 ---
 
 # Manual Verification Evidence
