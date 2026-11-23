@@ -3,7 +3,7 @@ doc-type: file-test-plan
 issue: 2902
 package: torrust-tracker-core
 target-file: packages/tracker-core/src/databases/setup.rs
-status: approved
+status: done
 semantic-links:
   related-artifacts:
     - packages/tracker-core/src/databases/setup.rs
@@ -73,10 +73,30 @@ No `quickcheck`: the input is a configuration enum and one path.
 
 | ID | Status | Work | Completion evidence |
 | --- | --- | --- | --- |
-| S1 | TODO | The four tests. | They pass; lines 114-115 run. |
-| S2 | TODO | Run M1-M4. | Each is killed by its expected test. |
-| S3 | TODO | Record the results and ask for the completed-file review. | This record and the ledger. |
+| S1 | DONE | The four tests. | They pass; lines 114-115 run. |
+| S2 | DONE | Run M1-M4. | Each is killed by its expected test. |
+| S3 | DONE | Record the results and ask for the completed-file review. | This record and the ledger. |
 
 ## Results
 
-To be filled in after S3.
+- **Coverage** (stable Rust 1.100.0, `cargo-llvm-cov 0.9.1`, `--all-features --lib`, clean coverage
+  target directory, 2026-11-23): the file 33 / 41 lines to 96 / 104, regions 28 / 46 to 91 / 108,
+  functions 7 / 7 to 16 / 16 (the counts include the test module). Line 115, the table creation of
+  the SQLite arm, now runs. Left uncovered: 114 (`Sqlite::new(path)?`: the constructor opens a lazy
+  pool and cannot fail, so its error arm has no decision) and 119-128 (the MySQL and PostgreSQL
+  arms, assigned to S3). The package's unit-only lines 4,951 / 5,724 (86.50%) to 5,014 / 5,787
+  (86.64%), regions 5,503 / 6,428 (85.61%), functions 869 / 1,069 (81.29%).
+- **Tests:** 4 added, 1 unchanged: 263 to 267 unit tests in the package.
+- **Mutations** (each applied alone and reverted, the file compared with its copy afterwards):
+
+  | ID | Result |
+  | --- | --- |
+  | M1 | Killed by the shared-database test and by every test of the package that builds its stores through the factory |
+  | M2 | Killed by the two tests of a database that cannot be opened |
+  | M3 | Killed by the shared-database test |
+  | M4 | Killed by the legacy factory test of a database that cannot be opened |
+
+- **Review outcome:** the maintainer approved the completed file on 2026-11-23.
+- **Validation:** `cargo clippy -p torrust-tracker-core --all-targets --all-features` (only the
+  existing `axum::serve` warning), `cargo +nightly fmt --all -- --check` and
+  `cargo machete --with-metadata` pass.

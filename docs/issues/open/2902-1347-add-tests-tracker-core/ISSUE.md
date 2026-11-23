@@ -9,7 +9,7 @@ github-issue: 2902
 spec-path: docs/issues/open/2902-1347-add-tests-tracker-core/ISSUE.md
 branch: "2902-1347-add-tests-tracker-core-statistics"
 related-pr: 2988
-last-updated-utc: "2026-11-23 14:16"
+last-updated-utc: "2026-11-23 15:51"
 semantic-links:
   skill-links:
     - create-issue
@@ -364,7 +364,7 @@ rows are ordered by slice, then by risk.
 | 11 | `databases/driver/sqlite/mod.rs` | S2 | 81 / 91 | Test candidate (aggregate-metric error branches); 137 / 139 with 8 tests ([plan](test-refactor-plans/sqlite-mod-tests.md)) | DONE |
 | 12 | `databases/driver/sqlite/schema_migrator.rs` | S2 | 136 / 149 | No change likely; challenge each `?`: three tests, 175 / 184, the rest left with reasons ([plan](test-refactor-plans/sqlite-schema-migrator-tests.md)) | DONE |
 | 13 | `databases/error.rs` | S2 | 28 / 35 | Test candidate (migration-error mapping); 35 / 35 since rows 8-12; classification and driver pinned by 15 cases, five mutants that survived line coverage now killed ([plan](test-refactor-plans/databases-error-tests.md)) | DONE |
-| 14 | `databases/setup.rs` | S2 | 33 / 41 | Test candidate (SQLite arm and unreachable endpoint); server arms to S3 ([plan](test-refactor-plans/databases-setup-tests.md)) | IN_PROGRESS |
+| 14 | `databases/setup.rs` | S2 | 33 / 41 | Test candidate (SQLite arm and unreachable endpoint); server arms to S3 96 / 104 with 4 tests, server arms left to S3 ([plan](test-refactor-plans/databases-setup-tests.md)) | DONE |
 | 15 | `error.rs` | S2 | 38 / 50 | Test candidate (`From` conversions) | PENDING |
 | 16 | `databases/driver/mod.rs` | S2 | 186 / 189 | No change to the test-only retry helper; receives the shared functions of row 8, tested there | PENDING |
 | 17 | `databases/mod.rs`, `databases/traits/*` (6 files) | S2 | 2 / 2, no entries | No change (declarations and the mock) | PENDING |
@@ -435,6 +435,7 @@ The first slice's record checks the grouping against `find packages/tracker-core
 - 2026-11-23 13:46 UTC - Claude Code (Sonnet 5.5) - Row 11 (`sqlite/mod.rs`) done: 8 tests of the aggregate-metric helpers, 137 / 139 lines, all six named mutants killed ([plan](test-refactor-plans/sqlite-mod-tests.md)). Plan and completed file approved by the maintainer.
 - 2026-11-23 14:00 UTC - Claude Code (Sonnet 5.5) - Row 12 (`sqlite/schema_migrator.rs`) done after challenging each uncovered line: three tests (a tampered migration history, a closed pool when creating and when dropping), 175 / 184 lines; one mutant survives as equivalent and the mid-function `?` lines are left with reasons ([plan](test-refactor-plans/sqlite-schema-migrator-tests.md)). The tampered-history test also covers the migration-error conversion planned for row 13. Plan and completed file approved by the maintainer.
 - 2026-11-23 14:13 UTC - Claude Code (Sonnet 5.5) - Row 13 (`databases/error.rs`) done: the file was already 35 / 35 by line coverage after rows 8-12, but five of eight hand-made mutants survived every test; tables over the `sqlx` error variants, the migration error and the driver now kill all eight ([plan](test-refactor-plans/databases-error-tests.md)). Plan and completed file approved by the maintainer.
+- 2026-11-23 15:51 UTC - Claude Code (Sonnet 5.5) - Row 14 (`databases/setup.rs`) done: four tests (the four stores share one migrated database, a database that cannot be opened, the two panics of the legacy factory), 96 / 104 lines, all four named mutants killed; the MySQL and PostgreSQL arms stay with S3 ([plan](test-refactor-plans/databases-setup-tests.md)). Plan and completed file approved by the maintainer.
 
 ## Open Design Questions
 
