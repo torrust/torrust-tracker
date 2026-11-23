@@ -49,6 +49,8 @@ Round 2 covers review 6012831750 (Copilot, COMMENTED, submitted 2026-11-22T14:40
 
 Round 3 covers review 6018472413 (Copilot, COMMENTED, submitted 2026-11-23T08:24:06Z, a lite review of the head that held the round 2 fixes, the merge of SI-4 and the inventory refresh) with six inline comments, which are four distinct findings: F15 (two threads, F19 is the second), F16, F17 and F18 (two threads, F20 is the second). Its body is an overview that repeats them, with a warning that the full agentic review did not start before the timeout. The overview marks F15 Medium and the others Low; they are recorded as Major and Minor.
 
+Round 4 covers review 6020791615 (Copilot, COMMENTED, submitted 2026-11-23T11:21:07Z, a lite review of the head that held the round 3 fixes) with three inline comments, which are two distinct findings: F21 (two threads, F22 is the second) and F23. Its body is an overview that repeats them, with the same warning as round 3 that the full agentic review did not start before the timeout. All three are Low in the overview and are recorded as Minor.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2994-f1 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
@@ -69,6 +71,9 @@ Round 3 covers review 6018472413 (Copilot, COMMENTED, submitted 2026-11-23T08:24
 | F17 | review-finding:pr-2994-f17 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F18 | review-finding:pr-2994-f18 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F20 | review-finding:pr-2994-f20 | Copilot | Minor | documentation | RE_RAISE_OF:F18 | NO_ACTION | SUPERSEDED |
+| F21 | review-finding:pr-2994-f21 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F22 | review-finding:pr-2994-f22 | Copilot | Minor | documentation | RE_RAISE_OF:F21 | NO_ACTION | SUPERSEDED |
+| F23 | review-finding:pr-2994-f23 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -306,6 +311,45 @@ Round 3 covers review 6018472413 (Copilot, COMMENTED, submitted 2026-11-23T08:24
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2994#discussion_r4663416793
 
+### F21 - The evidence file's last-updated-utc is older than its latest edit
+
+- PR number: 2994
+- Source review ID: 6020791615
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2994#discussion_r4665103196
+- Concern: `last-updated-utc` in the frontmatter of `manual-verification-evidence.md` is older than the edits the document describes (the 2026-11-23 re-run note of `udp_probe.py`). Copilot asks for the timestamp to match the latest modification.
+- Solution: The frontmatter timestamp is the time of the fix commit (2026-11-23 11:22 UTC, read from the clock).
+- Current-tree verification: `sed -n 4p docs/issues/open/2993-secrets-and-client-error-text/manual-verification-evidence.md` prints `last-updated-utc: "2026-11-23 11:22"`.
+- Resolution reference: `docs(issues): [#2993] fix the review round 4 findings in the EPIC and the evidence frontmatter`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2994#discussion_r4665168699
+
+### F22 - Same last-updated-utc comment on the second thread
+
+- PR number: 2994
+- Source review ID: 6020791615
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2994#discussion_r4665103259
+- Concern: Same text as F21, posted a second time on the same line.
+- Solution: No separate change: F21's fix covers it.
+- Current-tree verification: Same as F21.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2994#discussion_r4665169122
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2994#discussion_r4665169122
+
+### F23 - The cross-reference list names A10 and A11 but A12 is also reproduced
+
+- PR number: 2994
+- Source review ID: 6020791615
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2994#discussion_r4665103290
+- Concern: The EPIC verification bullet says "A10 and A11 below", but A12 is also reproduced, in the database-message section. Copilot asks to add A12 or to point at the sections.
+- Solution: The bullet reads "A10 and A11 below, A12 in section V8 of the evidence file".
+- Current-tree verification: `grep -c 'A12 in section V8 of the evidence file' docs/issues/open/2993-secrets-and-client-error-text/EPIC.md` prints 1; `grep -n '^### V8' docs/issues/open/2993-secrets-and-client-error-text/manual-verification-evidence.md` finds "Database server messages (inventory A11, A12)".
+- Resolution reference: `docs(issues): [#2993] fix the review round 4 findings in the EPIC and the evidence frontmatter`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2994#discussion_r4665169556
+
 ## Processing Log
 
 - 2026-11-22 14:16 UTC - Started audit. Round 1: review 6012624473 (Copilot, COMMENTED, submitted 14:05:07Z) with seven inline comments, F1 to F7. Fetched the seven review threads with GraphQL as `josecelano-bot`: all unresolved, `viewerCanResolve` true for each. The fixes of F1 and F4 were already committed (committer times 14:09:00Z and 14:10:03Z) and on the pull request head. Checked each disposition against the current tree with the commands in the detail entries.
@@ -317,6 +361,9 @@ Round 3 covers review 6018472413 (Copilot, COMMENTED, submitted 2026-11-23T08:24
 - 2026-11-23 08:26 UTC - Round 3: review 6018472413 (Copilot, COMMENTED, submitted 08:24:06Z) with six inline comments, recorded as F15, F19, F16, F17, F18 and F20. Fetched the 18 review threads with GraphQL as `josecelano-bot`: the twelve of rounds 1 and 2 resolved, the six new ones unresolved. The same head ran its workflow checks after approval: 14 passed, 5 skipped and `Test (Docker) (release)` failed in the qBittorrent MySQL end-to-end test (the tracker container was unhealthy); this pull request changes only documentation, so the cause was not found here and a new run of the head will show whether it repeats.
 - 2026-11-23 08:33 UTC - Merged `torrust/develop` (four commits, including the archive move of the #2916 spec), fixed the findings in one signed commit, ran the pre-commit gate (exit 0) and pushed with `git-bot-push`. Replied on the six threads as `josecelano-bot` (reply `created_at` 08:33:33Z to 08:33:45Z) and recorded the reply URLs.
 - 2026-11-23 08:35 UTC - The copy of the audit validator that calls `gh-bot` exits 0 (18 rows, 0 failures). The six threads were then resolved as `josecelano-bot`. A new GraphQL fetch shows 18 threads, 0 unresolved.
+- 2026-11-23 11:24 UTC - Round 4: review 6020791615 (Copilot, COMMENTED, submitted 11:21:07Z, on the head of round 3) with three inline comments, recorded as F21, F22 and F23. The poller reported it after the specifications of #2999 and #3000 had been pushed. Fetched the 21 review threads with GraphQL as `josecelano-bot`: the eighteen of rounds 1 to 3 resolved, the three new ones unresolved. Fixed the findings in one signed commit, ran the pre-commit gate (exit 0) and pushed with `git-bot-push`.
+- 2026-11-23 11:27 UTC - Replied on the three threads as `josecelano-bot` (reply `created_at` 11:27:36Z to 11:27:41Z) and recorded the reply URLs. The reply on F22 first named F22 as the finding to supersede it; it was edited to name F21.
+- 2026-11-23 11:28 UTC - The copy of the audit validator that calls `gh-bot` exits 0 (21 rows, 0 failures). The three threads were then resolved as `josecelano-bot`. A new GraphQL fetch shows 21 threads, 0 unresolved.
 
 ## Completion Rules
 
