@@ -1,7 +1,7 @@
 ---
 doc-type: decision-record
 issue-spec: docs/issues/open/2387-review-tracker-lifecycle-logs/EPIC.md
-last-updated-utc: "2026-11-23 17:33"
+last-updated-utc: "2026-11-23 17:58"
 ---
 
 # Decisions of EPIC #2387
@@ -122,7 +122,7 @@ Details decided:
 **Decision:** A.
 
 - `service_binding` is the only name for a bound listener. Its value is the URL, not quoted, in one form. It is an event field on every line about a bound listener, never only words in the message.
-- `bind_address` appears only on the `Starting` line, before the bind, with the configured value (which may have port `0`).
+- `bind_address` appears only on lines logged before the bind, with the configured value (which may have port `0`). The `Starting` line is the one every service has; a `DEBUG` line of the bind call itself, such as the UDP `UdpSocket::bind (binding)` line, is another.
 - `local_addr`, `address` and `bind_addr` are removed.
 - `public_url` is added to the `Started` line when it is configured.
 - The bound socket address has no field of its own.
