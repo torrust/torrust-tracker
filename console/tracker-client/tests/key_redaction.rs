@@ -163,42 +163,80 @@ fn it_should_mask_the_tracker_key_in_the_check_result_when_the_tracker_gets_no_r
     assert_no_reqwest_debug_text(&output);
 }
 
-#[test]
-fn it_should_mask_the_tracker_key_when_the_check_configuration_echoes_a_wrong_typed_url() {
-    // `http_trackers` must be a list; a single string makes the JSON parser echo it.
-    let config = format!(r#"{{"udp_trackers":[],"http_trackers":"http://127.0.0.1:7070/announce/{KEY}","health_checks":[]}}"#); // DevSkim: ignore DS137138
-
-    let output = run(tracker_client_check(&config));
-
-    assert_eq!(output.status.code(), Some(2), "an invalid configuration should exit with 2");
-    assert_key_not_written(&output);
-    let message = error_message(&only_stderr_record(&output)).to_owned();
-    assert!(
-        message.contains("/announce/****"),
-        "the message should show the masked URL: {message}"
-    );
+/// Runs `check` with `url` as the value of `http_trackers`. The value must be a list, so a single
+/// string makes the JSON parser echo it in the error.
+fn check_with_wrong_typed_http_trackers(url: &str) -> Output {
+    run(tracker_client_check(&format!(
+        r#"{{"udp_trackers":[],"http_trackers":"{url}","health_checks":[]}}"#
+    )))
 }
 
-#[test]
-fn it_should_mask_the_tracker_key_when_a_usage_error_echoes_a_misplaced_url() {
-    // `http announce` takes one tracker URL; the parser echoes the extra one.
-    let misplaced_url = format!("http://127.0.0.1:7070/announce/{KEY}"); // DevSkim: ignore DS137138
-
-    let output = run(tracker_client(&[
+/// Runs `http announce` with `url` as an extra argument. The command takes one tracker URL, so the
+/// argument parser echoes the extra one in the usage error.
+fn announce_with_misplaced_argument(url: &str) -> Output {
+    run(tracker_client(&[
         "http",
         "announce",
         "http://127.0.0.1:7070/announce", // DevSkim: ignore DS137138
         INFO_HASH,
-        &misplaced_url,
-    ]));
+        url,
+    ]))
+}
 
-    assert_eq!(output.status.code(), Some(2), "a usage error should exit with 2");
-    assert_key_not_written(&output);
-    let message = error_message(&only_stderr_record(&output)).to_owned();
-    assert!(
-        message.contains("/announce/****"),
-        "the message should show the masked URL: {message}"
+fn assert_echo_is_masked(output: &Output, expected_exit_code: i32, expected_masked_url: &str) {
+    assert_eq!(
+        output.status.code(),
+        Some(expected_exit_code),
+        "an echo error should exit with {expected_exit_code}"
     );
+    assert_key_not_written(output);
+    let message = error_message(&only_stderr_record(output)).to_owned();
+    assert!(
+        message.contains(expected_masked_url),
+        "the message should show the masked URL {expected_masked_url}: {message}"
+    );
+}
+
+#[test]
+fn it_should_mask_the_tracker_key_when_the_check_configuration_echoes_a_wrong_typed_url() {
+    let output = check_with_wrong_typed_http_trackers(&format!("http://127.0.0.1:7070/announce/{KEY}")); // DevSkim: ignore DS137138
+
+    assert_echo_is_masked(&output, 2, "http://127.0.0.1:7070/announce/****");
+}
+
+#[test]
+fn it_should_mask_the_tracker_key_when_the_check_configuration_echoes_a_url_with_an_uppercase_scheme() {
+    let output = check_with_wrong_typed_http_trackers(&format!("HTTP://127.0.0.1:7070/announce/{KEY}"));
+
+    assert_echo_is_masked(&output, 2, "HTTP://127.0.0.1:7070/announce/****");
+}
+
+#[test]
+fn it_should_mask_the_tracker_key_when_the_check_configuration_echoes_a_url_that_does_not_parse() {
+    let output = check_with_wrong_typed_http_trackers(&format!("http://127.0.0.1:bad/announce/{KEY}")); // DevSkim: ignore DS137138
+
+    assert_echo_is_masked(&output, 2, "http://127.0.0.1:bad/announce/****");
+}
+
+#[test]
+fn it_should_mask_the_tracker_key_when_a_usage_error_echoes_a_misplaced_url() {
+    let output = announce_with_misplaced_argument(&format!("http://127.0.0.1:7070/announce/{KEY}")); // DevSkim: ignore DS137138
+
+    assert_echo_is_masked(&output, 2, "http://127.0.0.1:7070/announce/****");
+}
+
+#[test]
+fn it_should_mask_the_tracker_key_when_a_usage_error_echoes_a_misplaced_url_with_an_uppercase_scheme() {
+    let output = announce_with_misplaced_argument(&format!("HTTP://127.0.0.1:7070/announce/{KEY}"));
+
+    assert_echo_is_masked(&output, 2, "HTTP://127.0.0.1:7070/announce/****");
+}
+
+#[test]
+fn it_should_mask_the_tracker_key_when_a_usage_error_echoes_a_misplaced_url_that_does_not_parse() {
+    let output = announce_with_misplaced_argument(&format!("http://127.0.0.1:bad/announce/{KEY}")); // DevSkim: ignore DS137138
+
+    assert_echo_is_masked(&output, 2, "http://127.0.0.1:bad/announce/****");
 }
 
 #[test]

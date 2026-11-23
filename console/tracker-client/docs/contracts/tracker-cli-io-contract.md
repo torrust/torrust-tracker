@@ -55,13 +55,15 @@ the same way. The rest of the URL (scheme, host, port, path prefix, query) is ke
 tell which tracker it was:
 
 ```text
-{"error":{"kind":"runtime_failure","source":"runtime","message":"Failed to get a response: connection error for url (http://127.0.0.1:7070/announce/****?info_hash=...)"}}
+{"error":{"kind":"runtime_failure","source":"runtime","message":"Failed to get a response: connection error for url (http://127.0.0.1:7070/announce/****?info_hash=...): client error (Connect): tcp connect error: Connection refused (os error 111)"}}
 ```
 
-A failed HTTP request is described by its kind (`connection`, `timeout`, `status`, `decode`,
-`body`) and the masked URL, never by the `Debug` text of the HTTP library error. The same masking
-applies to configuration and usage errors that echo a keyed URL the caller typed. The masking
-functions live in `packages/tracker-client/src/http/client/redaction.rs`.
+A failed HTTP request is described by its kind (one of `timeout`, `connection`, `status`,
+`decode`, `body`, `redirect`, `builder`, `request` and `unknown`), the masked URL and the chain of
+causes, never by the `Debug` text of the HTTP library error. The same masking applies to
+configuration and usage errors that echo a keyed URL the caller typed, in any scheme case and even
+when the URL does not parse. The masking functions live in
+`packages/tracker-client/src/http/client/redaction.rs`.
 
 ### JSON-first output
 
