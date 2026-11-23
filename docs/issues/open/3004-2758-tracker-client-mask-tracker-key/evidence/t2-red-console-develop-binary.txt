@@ -1,0 +1,89 @@
+2026-11-23 16:57
+
+running 7 tests
+it_should_mask_the_tracker_key_when_the_check_configuration_echoes_a_wrong_typed_url --- FAILED
+it_should_mask_the_tracker_key_when_a_usage_error_echoes_a_misplaced_url --- FAILED
+it_should_mask_the_tracker_key_when_an_http_announce_gets_no_response --- FAILED
+it_should_mask_the_tracker_key_when_an_http_scrape_gets_no_response --- FAILED
+it_should_mask_the_tracker_key_in_the_check_result_when_the_tracker_gets_no_response --- FAILED
+it_should_mask_the_tracker_key_when_an_http_announce_response_body_is_cut_short --- FAILED
+it_should_not_write_reqwest_debug_text_when_a_check_response_body_is_cut_short --- FAILED
+
+failures:
+
+---- it_should_mask_the_tracker_key_when_the_check_configuration_echoes_a_wrong_typed_url stdout ----
+
+thread 'it_should_mask_the_tracker_key_when_the_check_configuration_echoes_a_wrong_typed_url' (2988832) panicked at console/tracker-client/tests/key_redaction.rs:66:5:
+stderr should not contain the tracker key: {"error":{"kind":"invalid_configuration","source":"TORRUST_CHECKER_CONFIG","message":"JSON parse error: invalid type: string \"http://127.0.0.1:7070/announce/SECRETKEYabc123\", expected a sequence at line 1 column 83"}}
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- it_should_mask_the_tracker_key_when_a_usage_error_echoes_a_misplaced_url stdout ----
+
+thread 'it_should_mask_the_tracker_key_when_a_usage_error_echoes_a_misplaced_url' (2988828) panicked at console/tracker-client/tests/key_redaction.rs:66:5:
+stderr should not contain the tracker key: {"error":{"kind":"usage_error","source":"arguments","message":"error: unexpected argument 'http://127.0.0.1:7070/announce/SECRETKEYabc123' found\n\nUsage: tracker_client-develop-6bc417424 http announce [OPTIONS] <TRACKER_URL> <INFO_HASH>\n\nFor more information, try '--help'.\n"}}
+
+
+---- it_should_mask_the_tracker_key_when_an_http_announce_gets_no_response stdout ----
+
+thread 'it_should_mask_the_tracker_key_when_an_http_announce_gets_no_response' (2988829) panicked at console/tracker-client/tests/key_redaction.rs:66:5:
+stderr should not contain the tracker key: {"error":{"kind":"runtime_failure","source":"runtime","message":"Failed to get a response: reqwest::Error { kind: Request, url: \"http://127.0.0.1:35711/announce/SECRETKEYabc123?info_hash=%9C8B%22%13%E3%0B%FF%21%2B0%C3%60%D2o%9A%02%13d%22&peer_id=%2DqB00000000000000001&port=17548&event=started&compact=0\", source: hyper_util::client::legacy::Error(Connect, ConnectError(\"tcp connect error\", 127.0.0.1:35711, Os { code: 111, kind: ConnectionRefused, message: \"Connection refused\" })) }"}}
+
+
+---- it_should_mask_the_tracker_key_when_an_http_scrape_gets_no_response stdout ----
+
+thread 'it_should_mask_the_tracker_key_when_an_http_scrape_gets_no_response' (2988831) panicked at console/tracker-client/tests/key_redaction.rs:66:5:
+stderr should not contain the tracker key: {"error":{"kind":"runtime_failure","source":"runtime","message":"Failed to get a response: reqwest::Error { kind: Request, url: \"http://127.0.0.1:39403/scrape/SECRETKEYabc123?info_hash=%9C8B%22%13%E3%0B%FF%21%2B0%C3%60%D2o%9A%02%13d%22\", source: hyper_util::client::legacy::Error(Connect, ConnectError(\"tcp connect error\", 127.0.0.1:39403, Os { code: 111, kind: ConnectionRefused, message: \"Connection refused\" })) }"}}
+
+
+---- it_should_mask_the_tracker_key_in_the_check_result_when_the_tracker_gets_no_response stdout ----
+
+thread 'it_should_mask_the_tracker_key_in_the_check_result_when_the_tracker_gets_no_response' (2988827) panicked at console/tracker-client/tests/key_redaction.rs:65:5:
+stdout should not contain the tracker key: {"results":[{"Http":{"Err":{"url":"http://127.0.0.1:39547/announce/SECRETKEYabc123","results":[["Announce",{"Err":"Http request did not receive a response within the timeout: ResponseError { err: reqwest::Error { kind: Request, url: \"http://127.0.0.1:39547/announce?info_hash=%9C8B%22%13%E3%0B%FF%21%2B0%C3%60%D2o%9A%02%13d%22&peer_id=%2DqB00000000000000001&port=17548&event=started&compact=0\", source: hyper_util::client::legacy::Error(Connect, ConnectError(\"tcp connect error\", 127.0.0.1:39547, Os { code: 111, kind: ConnectionRefused, message: \"Connection refused\" })) } }"}],["Scrape",{"Err":"Http request did not receive a response within the timeout: ResponseError { err: reqwest::Error { kind: Request, url: \"http://127.0.0.1:39547/scrape?info_hash=%9C8B%22%13%E3%0B%FF%21%2B0%C3%60%D2o%9A%02%13d%22\", source: hyper_util::client::legacy::Error(Connect, ConnectError(\"tcp connect error\", 127.0.0.1:39547, Os { code: 111, kind: ConnectionRefused, message: \"Connection refused\" })) } }"}]]}}}]}
+
+
+---- it_should_mask_the_tracker_key_when_an_http_announce_response_body_is_cut_short stdout ----
+
+thread 'it_should_mask_the_tracker_key_when_an_http_announce_response_body_is_cut_short' (2988830) panicked at console/tracker-client/tests/key_redaction.rs:66:5:
+stderr should not contain the tracker key: {"error":{"kind":"runtime_failure","source":"runtime","message":"error decoding response body for url (http://127.0.0.1:41237/announce/SECRETKEYabc123?info_hash=%9C8B%22%13%E3%0B%FF%21%2B0%C3%60%D2o%9A%02%13d%22&peer_id=%2DqB00000000000000001&port=17548&event=started&compact=0)"}}
+
+
+---- it_should_not_write_reqwest_debug_text_when_a_check_response_body_is_cut_short stdout ----
+
+thread 'it_should_not_write_reqwest_debug_text_when_a_check_response_body_is_cut_short' (2988833) panicked at console/tracker-client/tests/key_redaction.rs:72:5:
+stdout should not contain reqwest Debug text: {"results":[{"Http":{"Err":{"url":"http://127.0.0.1:33079/announce/SECRETKEYabc123","results":[["Announce",{"Err":"Http failed to get a response at all: reqwest::Error { kind: Decode, url: \"http://127.0.0.1:33079/announce?info_hash=%9C8B%22%13%E3%0B%FF%21%2B0%C3%60%D2o%9A%02%13d%22&peer_id=%2DqB00000000000000001&port=17548&event=started&compact=0\", source: reqwest::Error { kind: Body, source: hyper::Error(Body, Custom { kind: UnexpectedEof, error: IncompleteBody }) } }"}],["Scrape",{"Err":"Http failed to get a response at all: reqwest::Error { kind: Decode, url: \"http://127.0.0.1:33079/scrape?info_hash=%9C8B%22%13%E3%0B%FF%21%2B0%C3%60%D2o%9A%02%13d%22\", source: reqwest::Error { kind: Body, source: hyper::Error(Body, Custom { kind: UnexpectedEof, error: IncompleteBody }) } }"}]]}}}]}
+
+
+
+failures:
+    it_should_mask_the_tracker_key_in_the_check_result_when_the_tracker_gets_no_response
+    it_should_mask_the_tracker_key_when_a_usage_error_echoes_a_misplaced_url
+    it_should_mask_the_tracker_key_when_an_http_announce_gets_no_response
+    it_should_mask_the_tracker_key_when_an_http_announce_response_body_is_cut_short
+    it_should_mask_the_tracker_key_when_an_http_scrape_gets_no_response
+    it_should_mask_the_tracker_key_when_the_check_configuration_echoes_a_wrong_typed_url
+    it_should_not_write_reqwest_debug_text_when_a_check_response_body_is_cut_short
+
+test result: FAILED. 0 passed; 7 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+error: test failed, to rerun pass `-p torrust-tracker-client --test key_redaction`
+
+running 1 test
+it_should_not_write_reqwest_debug_text_when_a_health_check_gets_no_response --- FAILED
+
+failures:
+
+---- it_should_not_write_reqwest_debug_text_when_a_health_check_gets_no_response stdout ----
+
+thread 'it_should_not_write_reqwest_debug_text_when_a_health_check_gets_no_response' (3002641) panicked at console/tracker-client/tests/key_redaction.rs:72:5:
+stdout should not contain reqwest Debug text: {"results":[{"Health":{"Err":{"url":"http://127.0.0.1:40833/health_check","result":{"Err":"Heath check failed to get a response: reqwest::Error { kind: Request, url: \"http://127.0.0.1:40833/health_check\", source: hyper_util::client::legacy::Error(Connect, ConnectError(\"tcp connect error\", 127.0.0.1:40833, Os { code: 111, kind: ConnectionRefused, message: \"Connection refused\" })) }"}}}}]}
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    it_should_not_write_reqwest_debug_text_when_a_health_check_gets_no_response
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p torrust-tracker-client --test key_redaction`

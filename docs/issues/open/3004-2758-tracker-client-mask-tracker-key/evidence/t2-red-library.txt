@@ -1,0 +1,97 @@
+2026-11-23 16:56
+
+running 21 tests
+http::client::redaction::tests::it_should_keep_a_path_prefix_before_the_endpoint_when_masking_the_key --- FAILED
+http::client::redaction::tests::it_should_mask_the_key_of_a_scrape_url --- FAILED
+http::client::redaction::tests::it_should_keep_the_trailing_slash_and_the_query_when_masking_the_key --- FAILED
+http::client::redaction::tests::it_should_mask_the_key_of_an_announce_url --- FAILED
+. 5/21
+http::client::redaction::tests::it_should_mask_the_key_of_every_tracker_url_in_a_text --- FAILED
+http::client::redaction::tests::it_should_mask_the_password_of_the_url_user_info --- FAILED
+........ 15/21
+http::client::tests::error_text::it_should_not_write_the_tracker_key_in_the_debug_text_of_the_error --- FAILED
+http::client::tests::error_text::it_should_mask_the_tracker_key_when_a_scrape_gets_no_response --- FAILED
+http::client::tests::error_text::it_should_mask_the_tracker_key_when_an_announce_gets_no_response --- FAILED
+http::client::tests::error_text::it_should_mask_the_tracker_key_when_an_announce_gets_a_non_success_status --- FAILED
+..
+failures:
+
+---- http::client::redaction::tests::it_should_keep_a_path_prefix_before_the_endpoint_when_masking_the_key stdout ----
+
+thread 'http::client::redaction::tests::it_should_keep_a_path_prefix_before_the_endpoint_when_masking_the_key' (2978955) panicked at packages/tracker-client/src/http/client/redaction.rs:57:9:
+assertion `left == right` failed
+  left: "https://tracker.example.com/tracker/announce/SECRET"
+ right: "https://tracker.example.com/tracker/announce/****"
+
+---- http::client::redaction::tests::it_should_mask_the_key_of_a_scrape_url stdout ----
+
+thread 'http::client::redaction::tests::it_should_mask_the_key_of_a_scrape_url' (2978957) panicked at packages/tracker-client/src/http/client/redaction.rs:44:9:
+assertion `left == right` failed
+  left: "http://tracker.example.com:7070/scrape/SECRET"
+ right: "http://tracker.example.com:7070/scrape/****"
+
+---- http::client::redaction::tests::it_should_keep_the_trailing_slash_and_the_query_when_masking_the_key stdout ----
+
+thread 'http::client::redaction::tests::it_should_keep_the_trailing_slash_and_the_query_when_masking_the_key' (2978956) panicked at packages/tracker-client/src/http/client/redaction.rs:49:9:
+assertion `left == right` failed
+  left: "http://tracker.example.com/announce/SECRET/?info_hash=%9C8B"
+ right: "http://tracker.example.com/announce/****/?info_hash=%9C8B"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- http::client::redaction::tests::it_should_mask_the_key_of_an_announce_url stdout ----
+
+thread 'http::client::redaction::tests::it_should_mask_the_key_of_an_announce_url' (2978958) panicked at packages/tracker-client/src/http/client/redaction.rs:39:9:
+assertion `left == right` failed
+  left: "http://tracker.example.com:7070/announce/SECRET"
+ right: "http://tracker.example.com:7070/announce/****"
+
+---- http::client::redaction::tests::it_should_mask_the_key_of_every_tracker_url_in_a_text stdout ----
+
+thread 'http::client::redaction::tests::it_should_mask_the_key_of_every_tracker_url_in_a_text' (2978959) panicked at packages/tracker-client/src/http/client/redaction.rs:89:9:
+assertion `left == right` failed
+  left: "unexpected argument 'http://a.example.com/announce/SECRET1' found, also \"https://b.example.com/scrape/SECRET2\""
+ right: "unexpected argument 'http://a.example.com/announce/****' found, also \"https://b.example.com/scrape/****\""
+
+---- http::client::redaction::tests::it_should_mask_the_password_of_the_url_user_info stdout ----
+
+thread 'http::client::redaction::tests::it_should_mask_the_password_of_the_url_user_info' (2978960) panicked at packages/tracker-client/src/http/client/redaction.rs:65:9:
+assertion `left == right` failed
+  left: "http://user:SECRET@tracker.example.com/announce"
+ right: "http://user:****@tracker.example.com/announce"
+
+---- http::client::tests::error_text::it_should_not_write_the_tracker_key_in_the_debug_text_of_the_error stdout ----
+
+thread 'http::client::tests::error_text::it_should_not_write_the_tracker_key_in_the_debug_text_of_the_error' (2978967) panicked at packages/tracker-client/src/http/client/mod.rs:505:13:
+the Debug text should not contain the key: ResponseError { err: reqwest::Error { kind: Request, url: "http://127.0.0.1:45101/announce/SECRETKEYabc123?info_hash=%9C8B%22%13%E3%0B%FF%21%2B0%C3%60%D2o%9A%02%13d%22&peer_id=%2DqB00000000000000001&port=17548&event=started&compact=0", source: hyper_util::client::legacy::Error(Connect, ConnectError("tcp connect error", 127.0.0.1:45101, Os { code: 111, kind: ConnectionRefused, message: "Connection refused" })) } }
+
+---- http::client::tests::error_text::it_should_mask_the_tracker_key_when_a_scrape_gets_no_response stdout ----
+
+thread 'http::client::tests::error_text::it_should_mask_the_tracker_key_when_a_scrape_gets_no_response' (2978964) panicked at packages/tracker-client/src/http/client/mod.rs:475:13:
+the error text should not contain the key: Failed to get a response: reqwest::Error { kind: Request, url: "http://127.0.0.1:36219/scrape/SECRETKEYabc123?info_hash=%9C8B%22%13%E3%0B%FF%21%2B0%C3%60%D2o%9A%02%13d%22", source: hyper_util::client::legacy::Error(Connect, ConnectError("tcp connect error", 127.0.0.1:36219, Os { code: 111, kind: ConnectionRefused, message: "Connection refused" })) }
+
+---- http::client::tests::error_text::it_should_mask_the_tracker_key_when_an_announce_gets_no_response stdout ----
+
+thread 'http::client::tests::error_text::it_should_mask_the_tracker_key_when_an_announce_gets_no_response' (2978966) panicked at packages/tracker-client/src/http/client/mod.rs:460:13:
+the error text should not contain the key: Failed to get a response: reqwest::Error { kind: Request, url: "http://127.0.0.1:37803/announce/SECRETKEYabc123?info_hash=%9C8B%22%13%E3%0B%FF%21%2B0%C3%60%D2o%9A%02%13d%22&peer_id=%2DqB00000000000000001&port=17548&event=started&compact=0", source: hyper_util::client::legacy::Error(Connect, ConnectError("tcp connect error", 127.0.0.1:37803, Os { code: 111, kind: ConnectionRefused, message: "Connection refused" })) }
+
+---- http::client::tests::error_text::it_should_mask_the_tracker_key_when_an_announce_gets_a_non_success_status stdout ----
+
+thread 'http::client::tests::error_text::it_should_mask_the_tracker_key_when_an_announce_gets_a_non_success_status' (2978965) panicked at packages/tracker-client/src/http/client/mod.rs:490:13:
+the error text should not contain the key: Returned a non-success code: "404 Not Found" with the response: "Response { url: "http://127.0.0.1:33589/announce/SECRETKEYabc123?info_hash=%9C8B%22%13%E3%0B%FF%21%2B0%C3%60%D2o%9A%02%13d%22&peer_id=%2DqB00000000000000001&port=17548&event=started&compact=0", status: 404, headers: {"content-length": "0", "connection": "close"} }"
+
+
+failures:
+    http::client::redaction::tests::it_should_keep_a_path_prefix_before_the_endpoint_when_masking_the_key
+    http::client::redaction::tests::it_should_keep_the_trailing_slash_and_the_query_when_masking_the_key
+    http::client::redaction::tests::it_should_mask_the_key_of_a_scrape_url
+    http::client::redaction::tests::it_should_mask_the_key_of_an_announce_url
+    http::client::redaction::tests::it_should_mask_the_key_of_every_tracker_url_in_a_text
+    http::client::redaction::tests::it_should_mask_the_password_of_the_url_user_info
+    http::client::tests::error_text::it_should_mask_the_tracker_key_when_a_scrape_gets_no_response
+    http::client::tests::error_text::it_should_mask_the_tracker_key_when_an_announce_gets_a_non_success_status
+    http::client::tests::error_text::it_should_mask_the_tracker_key_when_an_announce_gets_no_response
+    http::client::tests::error_text::it_should_not_write_the_tracker_key_in_the_debug_text_of_the_error
+
+test result: FAILED. 11 passed; 10 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p torrust-tracker-client-lib --lib`

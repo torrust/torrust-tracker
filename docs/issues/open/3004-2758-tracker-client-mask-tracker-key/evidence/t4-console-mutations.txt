@@ -1,0 +1,26 @@
+2026-11-23 16:59
+== mutation: unified/http.rs restored to develop
+error: test failed, to rerun pass `-p torrust-tracker-client --test key_redaction`
+it_should_mask_the_tracker_key_when_an_http_announce_response_body_is_cut_short --- FAILED
+test result: FAILED. 7 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+== mutation: checker/checks/http.rs restored to develop
+error: test failed, to rerun pass `-p torrust-tracker-client --test key_redaction`
+it_should_mask_the_tracker_key_in_the_check_result_when_the_tracker_gets_no_response --- FAILED
+it_should_not_write_reqwest_debug_text_when_a_check_response_body_is_cut_short --- FAILED
+test result: FAILED. 6 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+== mutation: http/mod.rs restored to develop
+error: test failed, to rerun pass `-p torrust-tracker-client --test key_redaction`
+it_should_not_write_reqwest_debug_text_when_a_check_response_body_is_cut_short --- FAILED
+test result: FAILED. 7 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+== mutation: checker/checks/health.rs restored to develop
+error: test failed, to rerun pass `-p torrust-tracker-client --test key_redaction`
+it_should_not_write_reqwest_debug_text_when_a_health_check_gets_no_response --- FAILED
+test result: FAILED. 7 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+== mutation: checker/config.rs restored to develop
+error: test failed, to rerun pass `-p torrust-tracker-client --test key_redaction`
+it_should_mask_the_tracker_key_when_the_check_configuration_echoes_a_wrong_typed_url --- FAILED
+test result: FAILED. 7 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+== mutation: checker/error.rs restored to develop
+error: test failed, to rerun pass `-p torrust-tracker-client --test key_redaction`
+it_should_mask_the_tracker_key_when_a_usage_error_echoes_a_misplaced_url --- FAILED
+test result: FAILED. 7 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s

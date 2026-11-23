@@ -1,10 +1,10 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/3004-2758-tracker-client-mask-tracker-key/ISSUE.md
-last-updated-utc: "2026-11-23 16:52"
+last-updated-utc: "2026-11-23 17:09"
 ---
 
-<!-- cspell:ignore SECRETKEY OTHERKEY nothex -->
+<!-- cspell:ignore SECRETKEY OTHERKEY nothex Abcdefghijklmnopqrstuv -->
 
 # Manual Verification Evidence
 
@@ -102,8 +102,245 @@ exit=2 {"error":{"kind":"usage_error","source":"arguments","message":"error: une
 
 The first and the last record carry a key (P8 and P9 of the audit). The others do not echo the URL.
 
+## Regression Tests (T2 to T4)
+
+### Boundary
+
+- Library seam (`packages/tracker-client/src/http/client/mod.rs`, module `tests::error_text`): the
+  smallest boundary where the error text of a failed request is built (P1, P2 of the audit). It
+  runs the real `reqwest` client against a closed local port or a local `404` responder.
+- Masking functions (`packages/tracker-client/src/http/client/redaction.rs`): pure unit tests.
+- Black-box tests (`console/tracker-client/tests/key_redaction.rs`): the console paths P3 to P9
+  build their text in the binary (body read, checker result, health check, configuration and usage
+  errors), and the contract is about what reaches stdout and stderr, so they run the real binary.
+
+### Red runs
+
+Full outputs are in `evidence/`.
+
+- Library, 2026-11-23 16:56 UTC, `cargo test -q -p torrust-tracker-client-lib --lib http::client`,
+  with the masking functions as identity stubs and the library error unchanged:
+  10 failed, 11 passed (the 11 are the URL-building tests that existed before).
+  `evidence/t2-red-library.txt`. Each seam test failed on the key in the text, for example
+  `Failed to get a response: reqwest::Error { kind: Request, url: "http://127.0.0.1:46321/announce/SECRETKEYabc123?...`.
+- Console, 2026-11-23 16:56 UTC, the new tests run against the unchanged binary built from
+  `develop` `6bc417424` (a copy kept before the branch changed any code):
+  `NEXTEST_BIN_EXE_tracker_client=<copy> cargo test -q -p torrust-tracker-client --test key_redaction`.
+  `cargo test` does not set `NEXTEST_BIN_EXE_*`, so the copy is the binary under test (the
+  usage-error output names it: `Usage: tracker_client-develop-6bc417424 http announce`). 7 of 7
+  failed; the health-check test, added after the first run, failed alone against the same copy at
+  16:59. `evidence/t2-red-console-develop-binary.txt`.
+
+### Green run
+
+2026-11-23 16:59 UTC, after the fix: `cargo test -q -p torrust-tracker-client-lib --lib http::client`
+21 passed; `cargo test -q -p torrust-tracker-client` all passed, `key_redaction` 8 passed.
+`cargo clippy -p torrust-tracker-client -p torrust-tracker-client-lib --all-targets -- -D clippy::pedantic`
+is clean.
+
+The red runs used the key `SECRETKEYabc123`. The constant was then renamed to
+`SecretTrackerKey123` in both test files, because the spell checker of the pre-commit gate does not
+accept the first one in Rust sources; the tests are otherwise unchanged.
+
+### T7 green run
+
+2026-11-23 17:07 UTC, on `docs(tracker-client): [#3004] document the masking of the tracker key`
+(the last commit with code is `fix(tracker-client): [#3004] do not write the tracker key in tracker_client output`):
+`cargo test -p torrust-tracker-client -p torrust-tracker-client-lib` exit `0`, every test binary
+`ok` (`key_redaction` 8 passed).
+
+### Mutations of the console fixes
+
+Each console file changed by the fix was restored to its `develop` content in turn, with the library
+fix kept, and `key_redaction` was run (2026-11-23 16:59 UTC, `evidence/t4-console-mutations.txt`):
+
+| Restored file | Failing tests |
+| ------------- | ------------- |
+| `unified/http.rs` (body read, P3) | `..._http_announce_response_body_is_cut_short` |
+| `checker/checks/http.rs` (`Checks.url`, P4) | `..._in_the_check_result_when_the_tracker_gets_no_response`, `..._check_response_body_is_cut_short` |
+| `clients/http/mod.rs` (checker errors, P5) | `..._check_response_body_is_cut_short` |
+| `checker/checks/health.rs` (P6) | `..._health_check_gets_no_response` |
+| `checker/config.rs` (P8) | `..._check_configuration_echoes_a_wrong_typed_url` |
+| `checker/error.rs` (P9) | `..._usage_error_echoes_a_misplaced_url` |
+
+Every run compiled; the failures are assertion failures. Not covered by a console test: the
+`UnsuccessfulResponse` text of `health.rs` (a non-2xx health check); its library twin is covered by
+the seam test with the `404` responder.
+
+### Design review of each increment
+
+Prose-first Arrange-Act-Assert comparison, done after each increment passed, before the next one.
+
+1. Masking function tests (`redaction.rs`). Arrange: a URL whose key position is the one
+   difference (announce, scrape, trailing slash with query, path prefix, password, no key, not a
+   tracker endpoint). Act: `mask_tracker_key`. Assert: the expected URL written as a literal, not
+   computed. The helper `masked` parses, masks and prints; it was kept because its name reads as the
+   Act and it hides only parsing and printing. Prose removed: the test names and literals say it.
+2. Text masking tests. Arrange: a text in the shape the third-party formatters write (a quoted URL
+   after `unexpected argument`, a JSON-quoted URL). Act: `mask_tracker_keys_in_text`. Assert:
+   the literal expected text. The no-key case keeps the formatter's real message, so it shows a URL
+   without a key is left alone.
+3. Library seam, failed request (announce, scrape). Arrange: a client for a keyed URL on a closed
+   port; `closed_local_address` names the incidental mechanics (bind, read the port, drop). Act:
+   `client.announce` or `client.scrape`, visible, inside a `TEST_DEADLINE` timeout. Assert: the
+   key is absent and `/announce/****` (or `/scrape/****`) is present: the masked URL is stated
+   independently, not derived from the production masker.
+4. Library seam, non-2xx reply. Arrange: the local responder answers `404`; the test owns it
+   through `AbortOnDrop`, which aborts the task when the test ends, also on a failed assertion.
+   Assert: the key is absent, the status and the masked URL are present.
+5. Library seam, `Debug` text. One causal difference from 3: the error is printed with `{:?}`.
+6. Black-box, `http announce` and `http scrape` against a closed port. Arrange: a keyed URL on a
+   closed port. Act: the command, visible as its arguments. Assert: exit `1`, no key on either
+   stream, one stderr record whose message shows the masked URL, no `reqwest::Error` text. The
+   assertions together state one observable result (the failure record), so they stay in one test.
+7. Black-box, body cut short. Arrange: the fake tracker in its cut-short mode (extended with a
+   `Reply` mode, not a second fake). The spec planned one test that runs `http announce` and
+   `check`; the review split it in two, one Act each, because they guard different paths (P3 and
+   P5) and different criteria (AC1 and AC2).
+8. Black-box, `check` against a closed port. Assert: the result's `url` equals the keyed URL with
+   the key replaced, written with `str::replace` in the test, not with the production masker.
+9. Black-box, configuration and usage echoes (P8, P9). The comment above each Arrange says why the
+   input is wrong, because that is the causal state and the code alone does not show it.
+10. Black-box, health check (P6). Arrange: a health-check URL on a closed port. Assert: no
+    `reqwest::Error` text. Added after the mutation plan showed `health.rs` had no guarding test.
+
+### Ownership checkpoint
+
+Reviewed against the code after the library slice was green, and again at the end:
+
+- Closed port: as designed; no shared fixture.
+- Local HTTP responder: the `JoinHandle` is held by `AbortOnDrop`, so the task is aborted when the
+  test ends, also on a panic.
+- Fake HTTP tracker: reused, with a `Reply` mode; it keeps its bounded reads and stop-and-join.
+- Child process: `Command::output()` in every black-box test.
+- Deadlines: the library tests use a 2 s client timeout and a 10 s `tokio::time::timeout`; the
+  binary uses its 5 s network timeout; the fake bounds its request read at 5 s.
+
+### Deviations from the spec
+
+- The spec's commit table has a commit of the red tests (T2). The pre-commit gate runs the tests,
+  so red tests cannot be committed; they are committed with the fix that makes them green, and the
+  red runs are recorded here.
+- The body-read test was split in two (see 7 above).
+- Added beyond the spec: `mask_tracker_key` also masks the password of the URL user info (a
+  credential in the same URL), and a test for the health-check path (10 above).
+
+## After the fix: like-for-like recheck (M1 to M4)
+
+- Date and time (UTC): 2026-11-23 17:08
+- Artifact under test: `tracker_client` and `torrust-tracker` built with
+  `cargo build -p torrust-tracker-client --bin tracker_client` and
+  `cargo build --bin torrust-tracker` (`dev` profile) on
+  `docs(tracker-client): [#3004] document the masking of the tracker key`,
+  `rustc 1.100.0 (0ef1bc386 2026-11-09)`.
+- Commands: the R0 commands, unchanged (stdout and stderr redirected to files).
+
+### V1 - M1, `http announce`, failed request
+
+```console
+$ target/debug/tracker_client http announce http://127.0.0.1:1/announce/SECRETKEYabc123 9c38422213e30bff212b30c360d26f9a02136422 > out.txt 2> err.txt
+exit=1
+stdout:
+stderr: {"error":{"kind":"runtime_failure","source":"runtime","message":"Failed to get a response: connection error for url (http://127.0.0.1:1/announce/****?info_hash=%9C8B%22%13%E3%0B%FF%21%2B0%C3%60%D2o%9A%02%13d%22&peer_id=%2DqB00000000000000001&port=17548&event=started&compact=0)"}}
+grep -cF SECRETKEYabc123 err.txt -> 0
+```
+
+### V2 - M2, `http scrape`, failed request
+
+```console
+$ target/debug/tracker_client http scrape http://127.0.0.1:1/scrape/SECRETKEYabc123 9c38422213e30bff212b30c360d26f9a02136422 > out.txt 2> err.txt
+exit=1
+stdout:
+stderr: {"error":{"kind":"runtime_failure","source":"runtime","message":"Failed to get a response: connection error for url (http://127.0.0.1:1/scrape/****?info_hash=%9C8B%22%13%E3%0B%FF%21%2B0%C3%60%D2o%9A%02%13d%22)"}}
+grep -cF SECRETKEYabc123 err.txt -> 0
+```
+
+### V3 - M3, `check` with a keyed HTTP tracker
+
+```console
+$ TORRUST_CHECKER_CONFIG='{"udp_trackers":[],"http_trackers":["http://127.0.0.1:1/announce/SECRETKEYabc123"],"health_checks":[]}' target/debug/tracker_client check > out.txt 2> err.txt
+exit=0
+stdout: {"results":[{"Http":{"Err":{"url":"http://127.0.0.1:1/announce/****","results":[["Announce",{"Err":"Http request did not receive a response within the timeout: Failed to get a response: connection error for url (http://127.0.0.1:1/announce?info_hash=%9C8B%22%13%E3%0B%FF%21%2B0%C3%60%D2o%9A%02%13d%22&peer_id=%2DqB00000000000000001&port=17548&event=started&compact=0)"}],["Scrape",{"Err":"Http request did not receive a response within the timeout: Failed to get a response: connection error for url (http://127.0.0.1:1/scrape?info_hash=%9C8B%22%13%E3%0B%FF%21%2B0%C3%60%D2o%9A%02%13d%22)"}]]}}}]}
+stderr:
+matches in stdout: 0, in stderr: 0
+```
+
+The `url` field shows `****`, and the per-request texts carry no `reqwest::Error` text. The two side
+observations of R0c are unchanged, as expected (out of scope).
+
+### V4 - M4, success with a valid key
+
+A private tracker on local ports, started with this configuration (`.tmp/m4/tracker.toml`):
+
+```toml
+[metadata]
+app = "torrust-tracker"
+purpose = "configuration"
+schema_version = "3.0.0"
+
+[logging]
+trace_filter = "info"
+
+[core]
+listed = false
+private = true
+
+[core.database]
+driver = "sqlite3"
+path = "./.tmp/m4/sqlite3.db"
+
+[[http_trackers]]
+bind_address = "127.0.0.1:17070"
+
+[http_api]
+bind_address = "127.0.0.1:11212"
+
+[http_api.access_tokens]
+admin = "M4LocalAccessToken"
+
+[health_check_api]
+bind_address = "127.0.0.1:11313"
+```
+
+```console
+$ target/debug/torrust-tracker --config-toml-path ./.tmp/m4/tracker.toml > .tmp/m4/tracker.log 2>&1 &
+$ curl -s -X POST "http://127.0.0.1:11212/api/v1/keys?token=M4LocalAccessToken" -H "Content-Type: application/json" -d '{"key":"M4ValidKeyAbcdefghijklmnopqrstuv","seconds_valid":3600}'
+{"key":"M4ValidKeyAbcdefghijklmnopqrstuv","valid_until":1795457303,"expiry_time":"2026-11-23 18:08:23 UTC"}
+
+$ target/debug/tracker_client http announce http://127.0.0.1:17070/announce/M4ValidKeyAbcdefghijklmnopqrstuv 9c38422213e30bff212b30c360d26f9a02136422 > out.txt 2> err.txt
+exit=0
+stdout: {"complete":1,"incomplete":0,"interval":120,"min interval":120,"peers":[]}
+stderr:
+matches in stdout: 0, in stderr: 0
+
+$ target/debug/tracker_client http scrape http://127.0.0.1:17070/scrape/M4ValidKeyAbcdefghijklmnopqrstuv 9c38422213e30bff212b30c360d26f9a02136422 > out.txt 2> err.txt
+exit=0
+stdout: {"9c38422213e30bff212b30c360d26f9a02136422":{"complete":1,"downloaded":0,"incomplete":0}}
+stderr:
+matches in stdout: 0, in stderr: 0
+```
+
+The keyed requests still reach the tracker and succeed (the key is masked only in output, not in
+the request). The tracker was stopped with `SIGINT` afterwards. Its own request log holds the key
+(`uri=/announce/<key>?...` at `INFO`); that is the server side, finding A3 of EPIC #2993, not
+`tracker_client`.
+
+### V5 - the configuration and usage echoes (P8, P9)
+
+The T1 probes, repeated on the same build:
+
+```console
+$ TORRUST_CHECKER_CONFIG='{"udp_trackers":[],"http_trackers":"http://127.0.0.1:1/announce/SECRETKEYabc123","health_checks":[]}' target/debug/tracker_client check > /dev/null 2> e.txt
+exit=2 {"error":{"kind":"invalid_configuration","source":"TORRUST_CHECKER_CONFIG","message":"JSON parse error: invalid type: string \"http://127.0.0.1:1/announce/****\", expected a sequence at line 1 column 80"}}
+
+$ target/debug/tracker_client http announce http://127.0.0.1:1/announce/SECRETKEYabc123 9c38422213e30bff212b30c360d26f9a02136422 http://x/announce/OTHERKEY > /dev/null 2> e.txt
+exit=2 {"error":{"kind":"usage_error","source":"arguments","message":"error: unexpected argument 'http://x/announce/****' found\n\nUsage: tracker_client http announce [OPTIONS] <TRACKER_URL> <INFO_HASH>\n\nFor more information, try '--help'.\n"}}
+```
+
 ## Outcome
 
 Reproduced. R0 confirms the defect on `develop`: the key appears on stderr for `http announce` and
-`http scrape`, and on stdout for `check`. After the fix, repeat R0a to R0c like for like as
-scenarios M1 to M3 of the spec and record them below.
+`http scrape`, and on stdout for `check`.
+
+Fixed. After the fix, the like-for-like recheck (V1 to V3), the success case (V4) and the two
+echoes (V5) write no key; every tracker URL in the output shows `****`.
