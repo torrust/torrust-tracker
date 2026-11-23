@@ -8,8 +8,8 @@ epic: 2912
 github-issue: 2917
 spec-path: docs/issues/open/2917-2912-si-5-startup-and-udp-server-errors/ISSUE.md
 branch: "2917-startup-and-udp-server-errors"
-related-pr: null
-last-updated-utc: "2026-11-18 19:11"
+related-pr: 3001
+last-updated-utc: "2026-11-23 13:35"
 semantic-links:
   skill-links:
     - create-issue
@@ -124,7 +124,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
 | T1 | DONE | Reproduce and record | Startup error text for a bad configuration file and for invalid PEM files, in `manual-verification-evidence.md`. |
-| T2 | DONE | Red tests | `to_string()` tests for the four configuration variants, `BadTlsConfig` and the two UDP variants; red output recorded. |
+| T2 | DONE | Red tests | Red tests written: two for the `configuration` variants that are built (`ConfigError` through `From<figment::Error>`, and `UnableToProcessExplicitConfigFile` through an explicit file; `UnableToLoadFromEnvironmentVariable` and `UnableToLoadFromConfigFile` are never built and have none), a path check added to `it_should_error_on_bad_tls_config` for `BadTlsConfig`, two `Display` tests for the UDP variants and the pinned message in `it_should_classify_an_authentication_error`; red output recorded. |
 | T3 | DONE | `configuration` | Plain sources, no location capture, dependency removed, 4.0.0 note recorded. |
 | T4 | DONE | `axum-server` | Plain `BadTlsConfig` source, `MissingTlsConfig` without `location`, dependency removed. |
 | T5 | DONE | `udp-server` | The two variants and their tests without `location`. |
@@ -185,7 +185,7 @@ the model that produced them.
 - 2026-11-11 17:05 UTC - Claude Code (Fable 5.2) - Drafted from the audit of issue #2804 (`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`, `options.md`) as a sub-issue of the EPIC draft. Not yet approved; line numbers are those of `develop` at `4f0af379a` and must be re-checked before implementation.
 - 2026-11-17 17:30 UTC - Claude Code (Claude Opus 5.5) - EPIC coordinator: the maintainer approved the specification on 2026-11-17; issue #2917 created as `josecelano-bot` and the specification moved from `docs/issues/drafts/` to `docs/issues/open/` (SI-5 of EPIC #2912).
 
-- 2026-11-23 11:21 UTC - Claude Code (Claude Sonnet 5.5) - T1 to T6 on branch `2917-startup-and-udp-server-errors`: reproduced both startup errors (each ended in a `packages/...rs:line` path), added red tests and committed them, then removed the locations. The four `configuration` sources and `BadTlsConfig` hold a plain `Box<dyn std::error::Error + Send + Sync>`; `MissingTlsConfig` lost `location`; `udp-server` `AuthRequired` became a unit variant and `Internal` lost `location`; `ErrorKind::TrackerAuthentication` now carries the error's message. `torrust-located-error` is removed from `configuration` and `axum-server`; `tracker-client` still uses it (SI-6). `UnableToLoadFromEnvironmentVariable` and `UnableToLoadFromConfigFile` are never built, so they have no red test. Each crate keeps a local copy of the path-check helper until SI-8 (#2996) shares it. 4.0.0 note recorded in #2583. No retrospective: the work matched the spec.
+- 2026-11-23 11:21 UTC - Claude Code (Claude Sonnet 5.5) - T1 to T6 on branch `2917-startup-and-udp-server-errors`: reproduced both startup errors (each ended in a `packages/...rs:line` path), added red tests and committed them, then removed the locations. The four `configuration` sources and `BadTlsConfig` hold a plain `Box<dyn std::error::Error + Send + Sync>`; `MissingTlsConfig` lost `location`; `udp-server` `AuthRequired` became a unit variant and `Internal` lost `location`; `ErrorKind::TrackerAuthentication` now carries the error's message. `torrust-located-error` is removed from `configuration` and `axum-server`; `tracker-client` still uses it (SI-6). `UnableToLoadFromEnvironmentVariable` and `UnableToLoadFromConfigFile` are never built, so they have no red test. `configuration` and `axum-server` each add a local copy of the path-check helper (copies 8 and 9 of `assert_names_no_source_path`): SI-8 (#2996) cannot move them, because `torrust-tracker-test-helpers` depends on `configuration` and `axum-server` has no such dev-dependency, so they are recorded in the SI-8 spec and the EPIC row to be cross-linked. 4.0.0 note recorded in #2583. No retrospective: the work matched the spec.
 
 ## Acceptance Criteria
 
@@ -257,7 +257,7 @@ None planned for this issue.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | --- | --- | --- |
-| AC1 | DONE | Tests `it_should_not_hold_a_source_path_*` (configuration, axum-server `tls.rs`, udp-server `error.rs`, `event.rs`); red and green in `evidence/` |
+| AC1 | DONE | Tests `it_should_not_hold_a_source_path_*` in `configuration/src/lib.rs` and `udp-server/src/error.rs`, the path check in `it_should_error_on_bad_tls_config` (`axum-server/src/tls.rs`) and `it_should_classify_an_authentication_error` (`udp-server/src/event.rs`); red and green in `evidence/` |
 | AC2 | DONE | V1; `it_should_not_hold_a_source_path_when_an_explicit_config_file_is_invalid` (names file and `core.listed`) |
 | AC3 | DONE | V2; `it_should_error_on_bad_tls_config` |
 | AC4 | DONE | `grep located packages/configuration/Cargo.toml packages/axum-server/Cargo.toml` finds nothing; `cargo machete` clean |

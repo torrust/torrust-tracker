@@ -10,6 +10,17 @@ Run on branch `2917-startup-and-udp-server-errors` with the stable Rust toolchai
 `torrust-tracker` binary (`cargo build`) before the fix (develop at `ea1ff9fcd` plus the red tests)
 and after it.
 
+Artifact under test: the first "after" captures (`evidence/startup-after.txt`,
+`evidence/tests-green.txt`) were taken at the build of the commit "fix(udp-server): [#2917] remove
+source locations from the UDP server errors". Two production-affecting commits followed:
+"test(udp-server): [#2917] compare the authentication classification with the error's own message"
+and "refactor(udp-server): [#2917] match the unit variant AuthRequired directly" (it changes
+`From<Error> for ErrorKind`). After them both runs were repeated at the build of the last of these
+(the commits after it change documentation only): `evidence/startup-after-final.txt` (V1 and V2, no
+`.rs:` in either message) and `evidence/tests-green-final.txt` (the three packages' tests, all
+green). The observed outcome is unchanged; V1 and V2 do not reach the changed arm, which handles a
+variant production never builds.
+
 ## V1 - Bad configuration file (M1)
 
 `bad.toml` is the mandatory configuration with `[core] listed = "yes"` (a string where a boolean is
