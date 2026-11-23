@@ -149,5 +149,6 @@ mod tests {
         .expect_err("missing_config");
 
         assert!(matches!(err, Error::MissingTlsConfig { cert: _, key: _ }));
+        assert_names_no_source_path(&err.to_string());
     }
 }
