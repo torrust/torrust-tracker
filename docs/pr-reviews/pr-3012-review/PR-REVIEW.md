@@ -61,6 +61,11 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F14 | review-finding:pr-3012-f14 | Unknown | Minor | security | ORIGINAL | FIXED | RESOLVED |
 | F15 | review-finding:pr-3012-f15 | Unknown | Minor | security | ORIGINAL | FIXED | RESOLVED |
 | F16 | review-finding:pr-3012-f16 | Unknown | Nit | testing | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F17 | review-finding:pr-3012-f17 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-3012-f18 | Copilot | Nit (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F19 | review-finding:pr-3012-f19 | Copilot | Nit (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-3012-f20 | Copilot | Nit (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F21 | review-finding:pr-3012-f21 | Copilot | Nit (inferred) | formatting | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -272,10 +277,76 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3012#issuecomment-7110688881
 
+### F17 - Rebuilding the path could change the percent encoding of other segments
+
+- PR number: 3012
+- Source review ID: 6027631676
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3012#discussion_r4670516852
+- Concern: Copilot: `mask_path_segments` rebuilds the path from `path_segments()`, which it takes to be percent-decoded, so masking could change the encoding of other segments; use `path_segments_mut()` or at least add a test that non-secret percent-encoded segments stay stable.
+- Solution: Added the test. It passed when added: `path_segments()` yields the serialized, percent-encoded segments and `set_path` keeps percent sequences, so the code is unchanged and the test guards it.
+- Current-tree verification: `cargo test -q -p torrust-tracker-client-lib --lib percent_encoding` passes 1 test.
+- Resolution reference: `fix(tracker-client): [#3004] spell HTTP in upper case in the checker errors`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3012#discussion_r4670622764
+
+### F18 - `Http` in a health-check error message
+
+- PR number: 3012
+- Source review ID: 6027631676
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3012#discussion_r4670516909
+- Concern: Copilot: the health-check message uses `Http` while others use `HTTP`; standardize on `HTTP`.
+- Solution: The message reads `HTTP check returned a non-success code: ...`.
+- Current-tree verification: `grep -c '"HTTP check returned' console/tracker-client/src/console/clients/checker/checks/health.rs` prints 1.
+- Resolution reference: `fix(tracker-client): [#3004] spell HTTP in upper case in the checker errors`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3012#discussion_r4670623296
+
+### F19 - `Http` in the checker timeout message
+
+- PR number: 3012
+- Source review ID: 6027631676
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3012#discussion_r4670516953
+- Concern: Copilot: `Http request did not receive a response within the timeout` uses `Http`; standardize on `HTTP`.
+- Solution: The message reads `HTTP request did not receive a response within the timeout: ...`; no test or doc matched the old text.
+- Current-tree verification: `grep -c '"HTTP request did not receive' console/tracker-client/src/console/clients/http/mod.rs` prints 1.
+- Resolution reference: `fix(tracker-client): [#3004] spell HTTP in upper case in the checker errors`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3012#discussion_r4670623807
+
+### F20 - `Http` in the checker response message
+
+- PR number: 3012
+- Source review ID: 6027631676
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3012#discussion_r4670516999
+- Concern: Copilot: `Http failed to get a response at all` uses `Http`; standardize on `HTTP`.
+- Solution: The message reads `HTTP failed to get a response at all: ...`.
+- Current-tree verification: `grep -c '"HTTP failed to get a response' console/tracker-client/src/console/clients/http/mod.rs` prints 1.
+- Resolution reference: `fix(tracker-client): [#3004] spell HTTP in upper case in the checker errors`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3012#discussion_r4670624265
+
+### F21 - A long single line in the library README
+
+- PR number: 3012
+- Source review ID: 6027631676
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3012#discussion_r4670517062
+- Concern: Copilot: the README change adds a very long single line; wrap it.
+- Solution: The redaction text is its own paragraph, wrapped at 100 columns.
+- Current-tree verification: `grep -n "^masks its own key wherever its path puts it" packages/tracker-client/README.md` matches one line of the wrapped paragraph.
+- Resolution reference: `fix(tracker-client): [#3004] spell HTTP in upper case in the checker errors`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3012#discussion_r4670624711
+
 ## Processing Log
 
 - 2026-11-23 18:10 UTC - Round 1 had three reviews of the head `docs(issues): [#3004] record the regression tests, the recheck and the retrospective`: Greptile 6026091763 (COMMENTED, 17:17:59Z, two inline comments, F7 and F8), da2ce7 6026720101 (COMMENTED, 17:54:49Z, six inline comments, F1 to F6) and Copilot 6026728662 (COMMENTED, 17:55:20Z, three inline comments with IDs R1 to R3, recorded as F9 to F11 because the audit IDs F1 to F3 were taken). The new tests were run red at 17:58Z (`evidence/r1-red.txt`); fix commits made at 18:00:56Z, 18:01:42Z and 18:03:44Z (committer times) and pushed before the replies. Replied on the 11 threads as `josecelano-bot` (reply `created_at` 18:07:56Z to 18:08:21Z), edited the PR description (counts and the round 1 changes, F5), and resolved each thread with GraphQL; every `resolveReviewThread` returned `isResolved` true. The audit was written after the replies.
 - 2026-11-23 18:49 UTC - Round 2 had two reviews: Greptile 6026959633 (COMMENTED, 18:10:24Z, on the round 1 fix head, one inline comment, F12) and CodeRabbit 6027173167 (COMMENTED, 18:24:53Z, on the round 1 audit head, three inline comments, F13 to F15, and one nitpick in its body, F16). The poller watched only da2ce7 and Copilot, so it did not report them; they were found when the maintainer asked. Red runs at 18:39Z and 18:41Z, the scrape mutation at 18:40Z; fix commits at 18:40:23Z and 18:42:20Z, the evidence commit at 18:44:47Z, after the final recheck at 18:43Z; pushed before the replies. Replied on the four threads (`created_at` 18:48:36Z to 18:48:43Z) and on F16 with a PR comment (18:48:46Z), all as `josecelano-bot`. Resolved F12 and F13 with GraphQL (`isResolved` true); CodeRabbit had already resolved the F14 and F15 threads itself after the push (`resolvedBy` `coderabbitai[bot]`). F16 has no thread.
+- 2026-11-23 19:08 UTC - Round 3: Copilot 6027631676 (COMMENTED, 18:58:04Z, on the round 1 audit head; its overview warns the full agentic review did not start before a timeout) with five inline comments, F17 to F21; its overview severities are not shown per comment, so they are inferred. The fix commit at 19:02:00Z changed message text, so the recheck was repeated at 19:03Z and recorded (evidence commit at 19:03Z); pushed before the replies. Replied on the five threads as `josecelano-bot` (`created_at` 19:07:28Z to 19:07:38Z) and resolved each with GraphQL; every `resolveReviewThread` returned `isResolved` true. The two CodeRabbit reviews of 18:50Z (6027521172, 6027522667) only reply on the F13 and F15 threads that the fixes cover their cases; they raise no finding.
 
 ## Completion Rules
 
