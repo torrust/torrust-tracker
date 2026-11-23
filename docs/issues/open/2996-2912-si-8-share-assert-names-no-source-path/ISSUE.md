@@ -36,7 +36,7 @@ Parent EPIC: [Remove source locations from errors](../2912-remove-source-locatio
 
 ## Goal
 
-Reduce the seven copies of the test helper `assert_names_no_source_path` to three, by defining it once in `torrust-tracker-test-helpers` for the four packages that already depend on that package in tests, and by linking the three remaining definitions to each other so they do not drift. No package gains a dependency, and no behavior changes.
+Reduce the nine copies of the test helper `assert_names_no_source_path` to five, by defining it once in `torrust-tracker-test-helpers` for the four packages that already depend on that package in tests, and by linking the five remaining definitions to each other so they do not drift. No package gains a dependency, and no behavior changes.
 
 ## Background
 
@@ -52,7 +52,7 @@ fn assert_names_no_source_path(message: &str) {
 }
 ```
 
-Copies, verified on the branch of PR #2991 (`2916-tracker-core`; the SI-4 copies reach `develop` with that PR):
+Copies, verified on the branch of PR #2991 (`2916-tracker-core`; the SI-4 copies reached `develop` with that PR). Copies 8 and 9 were added by SI-5 (#2917, PR #3001):
 
 | # | File | Kind | Becomes |
 | --- | --- | --- | --- |
@@ -63,6 +63,8 @@ Copies, verified on the branch of PR #2991 (`2916-tracker-core`; the SI-4 copies
 | 5 | `packages/tracker-core/src/test_helpers.rs` | `pub fn` in `#[cfg(test)] pub mod tests` | Removed; uses the shared one |
 | 6 | `packages/axum-rest-api-server/tests/server/v1/asserts.rs` | integration tests, `pub fn` | Removed; uses the shared one |
 | 7 | `packages/udp-server/tests/server/asserts.rs` | integration tests, `pub fn` | Removed; uses the shared one |
+| 8 | `packages/configuration/src/lib.rs` | private fn in the unit-test module | Stays; cross-linked (`test-helpers` depends on `configuration`, a dev-dependency would be a cycle, as for copy 2) |
+| 9 | `packages/axum-server/src/tls.rs` | private fn in the unit-test module | Stays; cross-linked (`axum-server` has no `test-helpers` dev-dependency, and none is added) |
 
 About 50 call sites in 18 files call the helper (`grep -rn assert_names_no_source_path packages`).
 
@@ -76,11 +78,11 @@ Dependency facts that decide the design (re-verified):
 
 | Option | Pros | Cons |
 | --- | --- | --- |
-| A. Merge all seven into `test-helpers` | One definition, no drift | The `primitives` dev-dependency cycle. `http-protocol` gains a dev-dependency on a package that configures and logs trackers |
+| A. Merge all nine into `test-helpers` | One definition, no drift | The `primitives` dev-dependency cycle. `http-protocol` gains a dev-dependency on a package that configures and logs trackers |
 | B. A new dependency-free dev-only crate | One definition usable everywhere, no cycle | One more workspace package (`docs/packages.md` and `deny.toml` change) for a ten-line function |
-| C. Leave all seven | No change, no risk | Seven copies of the fragment list that drift if it ever changes |
+| C. Leave all nine | No change, no risk | Nine copies of the fragment list that drift if it ever changes |
 | D. Put it in `torrust-info-hash` or `torrust-clock` | `primitives` and `http-protocol` already depend on them | Ties an external crate's API to this workspace's test needs |
-| **E (chosen).** Merge for the four packages that already use `test-helpers`; cross-link the two that cannot | Duplication 7 to 3, no new coupling, a small mechanical change, follows rule B, easy to undo or to finish later | Drift between the shared function and the two copies is still possible, and comments enforce nothing. A small test comparing the fragment lists is a possible later step if drift happens |
+| **E (chosen).** Merge for the four packages that already use `test-helpers`; cross-link the two that cannot | Duplication 9 to 5, no new coupling, a small mechanical change, follows rule B, easy to undo or to finish later | Drift between the shared function and the two copies is still possible, and comments enforce nothing. A small test comparing the fragment lists is a possible later step if drift happens |
 
 E is chosen because it removes most of the duplication at no coupling cost, while A and B pay a structural price (a cycle, a new package) for the last two copies and C does not address the finding.
 
@@ -100,13 +102,13 @@ SI-6 is a separate issue and does not depend on this one. Its enforcement check 
 
 - Add `assert_names_no_source_path` to `torrust-tracker-test-helpers` (a small module such as `assertions`), `#[track_caller]`, with a doc comment that names the two other definitions.
 - Replace copies 3 to 7 by uses of the shared function and delete them. Update the roughly 50 call sites (imports only where the path changes).
-- Keep copies 1 and 2. Give each of the three remaining definitions (the shared one, `http-protocol`, `primitives`) a doc comment that names the other two by path, says why this one is separate, and says to change all three together.
+- Keep copies 1, 2, 8 and 9. Give each of the five remaining definitions (the shared one, `http-protocol`, `primitives`, `configuration`, `axum-server`) a doc comment that names the other four by path, says why this one is separate, and says to change all five together.
 - Unify the panic wording on the one already used by four copies: `the error message must not hold a source path, but it contains {fragment:?}: {message:?}`. The two `axum-http-server` copies currently say "the failure reason"; that wording goes away.
 
 ### Out of Scope
 
-- Removing copies 1 and 2 (they stay because of the dependency cycle and the coupling cost of option A). This may be reconsidered later, for example with a new dependency-free crate (option B) if more helpers need it.
-- A test that compares the fragment lists of the three definitions. Add it only if drift happens.
+- Removing copies 1, 2, 8 and 9 (they stay because of the dependency cycle and the coupling cost of option A). This may be reconsidered later, for example with a new dependency-free crate (option B) if more helpers need it.
+- A test that compares the fragment lists of the five definitions. Add it only if drift happens.
 - Changing the fragment list, the helper's behavior or any production code.
 - SI-6 itself (#2918): the check, the removal of `torrust-located-error` and the exemption of `packages/test-helpers/` (carried by the SI-6 brief).
 
@@ -144,7 +146,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3 | TODO | Switch `axum-http-server` (copies 3 and 4) | Unit tests and integration tests use the shared function; copies deleted |
 | T4 | TODO | Switch `axum-rest-api-server` and `udp-server` (copies 6 and 7) | Copies deleted |
 | T5 | TODO | Cross-link the remaining copies | Doc comments on copies 1 and 2 name the other two |
-| T6 | TODO | Verify | `grep -rn "fn assert_names_no_source_path" packages` finds exactly three definitions; no `Cargo.toml` or `deny.toml` change |
+| T6 | TODO | Verify | `grep -rn "fn assert_names_no_source_path" packages` finds exactly five definitions; no `Cargo.toml` or `deny.toml` change |
 
 ## Commit Points
 
@@ -199,13 +201,14 @@ the model that produced them.
 
 - 2026-11-22 14:06 UTC - Claude Code (Claude Sonnet 5.5) - Drafted from finding F5 of PR #2991 and the maintainer's decision of 2026-11-22 (option E). Not yet approved; no GitHub issue created.
 - 2026-11-22 14:24 UTC - Claude Code (Claude Sonnet 5.5) - The maintainer approved the specification; issue #2996 created as `josecelano-bot`; the specification moved from `docs/issues/drafts/` to `docs/issues/open/`; row 8 added to the EPIC table.
+- 2026-11-23 13:31 UTC - Claude Code (Claude Sonnet 5.5) - Recorded copies 8 and 9, added by SI-5 (#2917, PR #3001) in `configuration` and `axum-server`: neither can use the shared function (`test-helpers` depends on `configuration`; `axum-server` has no `test-helpers` dev-dependency), so both stay and are cross-linked. Counts now read nine copies to five definitions (review finding F1 of PR #3001).
 
 ## Acceptance Criteria
 
 - [ ] AC1: `torrust-tracker-test-helpers` defines `assert_names_no_source_path` once, with a unit test for each of the seven fragments and for a clean message.
 - [ ] AC2: `tracker-core`, `axum-http-server`, `axum-rest-api-server` and `udp-server` use the shared function and hold no local definition.
-- [ ] AC3: Exactly three definitions remain (`test-helpers`, `http-protocol`, `primitives`), each with a doc comment that names the other two and says to change them together.
-- [ ] AC4: The panic wording is the same in the three definitions.
+- [ ] AC3: Exactly five definitions remain (`test-helpers`, `http-protocol`, `primitives`, `configuration`, `axum-server`), each with a doc comment that names the other four and says to change them together.
+- [ ] AC4: The panic wording is the same in the five definitions.
 - [ ] AC5: No `Cargo.toml`, `Cargo.lock` or `deny.toml` changes, and no behavior change besides the unified failure wording.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
@@ -230,7 +233,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | Count the definitions | `grep -rn "fn assert_names_no_source_path" packages` | Exactly three definitions, in `test-helpers`, `http-protocol` and `primitives` | TODO | `manual-verification-evidence.md` section V1 |
+| M1 | Count the definitions | `grep -rn "fn assert_names_no_source_path" packages` | Exactly five definitions, in `test-helpers`, `http-protocol`, `primitives`, `configuration` and `axum-server` | TODO | `manual-verification-evidence.md` section V1 |
 | M2 | The shared helper still catches a path | On a scratch change, make one test in a switched package pass a message containing `packages/x.rs:1` to the helper | The test fails with the unified message at the test line (`#[track_caller]`); the scratch change is reverted | TODO | `manual-verification-evidence.md` section V2 |
 
 Notes:
@@ -264,8 +267,8 @@ None planned for this issue.
 
 ## Risks and Trade-offs
 
-- **Drift between the three remaining definitions.** The doc comments only ask readers to change them together. Mitigation: a test that compares the fragment lists is a possible later step if drift happens.
-- **SI-4 not merged yet.** Copies 5 to 7 reach `develop` with PR #2991. Mitigation: implementation starts after that PR merges.
+- **Drift between the five remaining definitions.** The doc comments only ask readers to change them together. Mitigation: a test that compares the fragment lists is a possible later step if drift happens.
+- **SI-5 not merged yet.** Copies 8 and 9 reach `develop` with PR #3001 (SI-4's copies 5 to 7 are already there). Mitigation: implementation starts after that PR merges.
 - **Failure wording changes in four copies' consumers.** Only text of failing assertions changes; no test pins it (checked: no `should_panic(expected = ...)` uses it).
 - **`test-helpers` carries a `#[track_caller]` function outside test code.** Mitigation: the SI-6 brief carries the exemption of `packages/test-helpers/`.
 
