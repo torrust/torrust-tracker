@@ -57,6 +57,10 @@ Round 6 covers review 6025861610 (Copilot, COMMENTED, submitted 2026-11-23T17:04
 
 Round 7 covers review 6025926288 (da2ce7, submitted 2026-11-23T17:08:10Z, of the head whose last commit is `docs(pr-reviews): [#3006] record review round 4 of PR #3008`; GitHub shows its state as DISMISSED) with one inline comment carrying the reviewer ID F16, which collides with the audit's F16, so it is recorded as F22. Its body restates F12 (audit F17) as standing and makes no other row; da2ce7 posted an ACK of that head at 17:08:14Z.
 
+Round 8 covers review 6026068748 (CodeRabbit, COMMENTED, submitted 2026-11-23T17:16:52Z, of the head whose last commit is `docs(pr-reviews): [#3006] record review round 5 of PR #3008 and drop branch commit ids`) with one inline comment marked Minor, recorded as F23 (author class `Unknown`, a bot that is not Copilot). Its body counts the one actionable comment and makes no row. It also covers review 6026144266 (da2ce7, COMMENTED, submitted 2026-11-23T17:20:32Z, same head) with two inline comments carrying the reviewer IDs F19 and F20, which collide with the audit's F19 and F20, so they are recorded as F24 and F25; F25 asks for the same T2 change as F23 and is a re-raise.
+
+Round 9 covers review 6026332138 (da2ce7, APPROVED, submitted 2026-11-23T17:31:06Z, of the head whose last commit is `docs(pr-reviews): [#3006] record review rounds 6 and 7 of PR #3008`) with one inline comment carrying the reviewer ID F23, which collides with the audit's F23, so it is recorded as F26.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3008-f1 | Human | Major | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -81,6 +85,10 @@ Round 7 covers review 6025926288 (da2ce7, submitted 2026-11-23T17:08:10Z, of the
 | F20 | review-finding:pr-3008-f20 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F21 | review-finding:pr-3008-f21 | Copilot | Minor (inferred) | documentation | RE_RAISE_OF:F18 | NO_ACTION | SUPERSEDED |
 | F22 | review-finding:pr-3008-f22 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F23 | review-finding:pr-3008-f23 | Unknown | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F24 | review-finding:pr-3008-f24 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F25 | review-finding:pr-3008-f25 | Human | Minor | testing | RE_RAISE_OF:F23 | NO_ACTION | SUPERSEDED |
+| F26 | review-finding:pr-3008-f26 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -370,6 +378,58 @@ Round 7 covers review 6025926288 (da2ce7, submitted 2026-11-23T17:08:10Z, of the
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669259608
 
+### F23 - The red-first T2 tests conflicted with the loop's pass gate
+
+- PR number: 3008
+- Source review ID: 6026068748
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669288470
+- Concern: T2 asked for tests that fail before T3, while the `write-unit-test` loop moves on only after an increment passes focused validation, so an implementer could not satisfy both.
+- Solution: T2 and T3 run as red-green increments: each test runs red first (recorded in the task evidence, not committed), the T3 change in the same increment turns it green, and the gate and design review apply to the increment as a whole. The T2 row and the commit points agree.
+- Current-tree verification: `grep -c 'red-green increment at a time' docs/issues/open/3006-2758-tracker-client-schema-version/ISSUE.md` prints 1; `grep -c 'The loop.s gate applies to the increment as a whole' docs/issues/open/3006-2758-tracker-client-schema-version/ISSUE.md` prints 1; `grep -c '^| T2 and T3 |' docs/issues/open/3006-2758-tracker-client-schema-version/ISSUE.md` prints 1.
+- Resolution reference: `docs(issues): [#3006] make T2 red-green increments agree with the test loop`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669613832
+
+### F24 - Three round-6 threads had no rows, and a log entry gave a wrong reply time
+
+- PR number: 3008
+- Source review ID: 6026144266
+- Reviewer finding ID: F19
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669343526
+- Concern: The round-6 threads were answered and resolved but had no rows at the reviewed head, and the 17:03 log entry gave the first round-5 reply as 17:01Z, while it was 17:02:40Z.
+- Solution: The rounds 6 and 7 audit commit added F19 to F22; an appended log entry corrects the reply time.
+- Current-tree verification: `grep -cE '^\| F(19|2[012]) \|' docs/pr-reviews/pr-3008-review/PR-REVIEW.md` prints 4; `grep -c '^- 2026.* - Correction of the 17:03 entry' docs/pr-reviews/pr-3008-review/PR-REVIEW.md` prints 1.
+- Resolution reference: `docs(pr-reviews): [#3006] record review rounds 8 and 9 of PR #3008`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669614458
+
+### F25 - The CodeRabbit thread on the T2 loop awaited a reply, a row and a resolution
+
+- PR number: 3008
+- Source review ID: 6026144266
+- Reviewer finding ID: F20
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669343558
+- Concern: Same T2 change as F23, and a reply, row and resolution for that thread.
+- Solution: No separate change: F23's fix and reply cover it.
+- Current-tree verification: Same as F23.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669614985
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669614985
+
+### F26 - The round-8 threads awaited replies, rows and resolutions
+
+- PR number: 3008
+- Source review ID: 6026332138
+- Reviewer finding ID: F23
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669481576
+- Concern: The two round-8 threads of da2ce7 and the CodeRabbit thread had no reply, row or resolution; the T2 gate still conflicted; the 17:01Z time still stood.
+- Solution: The T2 gate is fixed (F23), the four threads have replies and are resolved, and this record holds F23 to F26 and the time correction.
+- Current-tree verification: `grep -cE '^\| F2[3-6] \|' docs/pr-reviews/pr-3008-review/PR-REVIEW.md` prints 4.
+- Resolution reference: `docs(pr-reviews): [#3006] record review rounds 8 and 9 of PR #3008`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669615728
+
 ## Processing Log
 
 - 2026-11-23 16:10 UTC - Started audit. Round 1: review 6024919812 (da2ce7, CHANGES_REQUESTED, submitted 16:03:08Z) with seven inline comments, F1 to F7. F1 needed a maintainer decision: he chose D4 (the `http scrape` entries under `files`) and D5 (the UDP field beside the tag). The fixes of F1 and F3 to F7 were committed and pushed as `josecelano-bot` (`docs(issues): [#3006] move http scrape entries under files and name all consumers`).
@@ -384,6 +444,8 @@ Round 7 covers review 6025926288 (da2ce7, submitted 2026-11-23T17:08:10Z, of the
 - 2026-11-23 17:03 UTC - Round 5: review 6025811357 (da2ce7, CHANGES_REQUESTED, 17:00:35Z) recorded as F16 to F18. F16: edited the PR description with `gh-bot pr edit`. F17: replaced the three branch commit ids in this record with commit subjects; the `open-pull-request` commit-id check prints nothing. F18 was already fixed by the round-4 audit commit. Replied on the three threads (17:01Z to 17:03:39Z) and resolved them (each mutation returned `isResolved` true). `linter all` exits 0.
 - 2026-11-23 17:15 UTC - Rounds 6 and 7: review 6025861610 (Copilot, 17:04:02Z) recorded as F19 to F21 and review 6025926288 (da2ce7, 17:08:10Z) as F22. The fix of F19 and F20 and the round-5 audit commit were pushed as `josecelano-bot` (`git-bot-push` exit 0). Replied on the four threads (17:14:17Z to 17:14:49Z) and resolved them (each mutation returned `isResolved` true).
 - 2026-11-23 17:16 UTC - The audit validator, run with the bot token, exits 0 (22 rows, 0 failures), and the `open-pull-request` commit-id check prints nothing. A GraphQL fetch that ran before this entry shows 21 threads, 0 unresolved.
+- 2026-11-23 17:41 UTC - Correction of the 17:03 entry: it gives the first round-5 reply as 17:01Z; that reply (to the F16 thread) was created at 17:02:40Z.
+- 2026-11-23 17:41 UTC - Rounds 8 and 9: reviews 6026068748 (CodeRabbit, 17:16:52Z), 6026144266 (da2ce7, 17:20:32Z) and 6026332138 (da2ce7, APPROVED, 17:31:06Z) recorded as F23 to F26. The fix of F23 was committed and pushed as `josecelano-bot` (`git-bot-push` exit 0). Replied on the four threads (17:41:15Z to 17:41:23Z) and resolved them (each mutation returned `isResolved` true).
 
 ## Completion Rules
 
