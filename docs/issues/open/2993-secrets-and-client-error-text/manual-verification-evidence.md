@@ -21,7 +21,10 @@ they change anything. Nothing here is a fix; every result shows current behavior
   After the run it was edited to satisfy ShellCheck (`cd ... || exit 1`, loop variables renamed to
   `_`, one `shellcheck disable` comment) and the private-mode UDP line it printed empty was dropped
   from the output; the edited script was not run again.
-- [`evidence/udp_probe.py`](evidence/udp_probe.py): the UDP requests of V6.
+- [`evidence/udp_probe.py`](evidence/udp_probe.py): the UDP requests of V6. After the run it was
+  edited to stop with a clear message when no connect response arrives, instead of failing on an
+  unpack. The edited probe was run again on 2026-11-23 08:27 UTC against a local public tracker
+  and printed the same three replies as V6; `evidence/output.txt` is still the original run.
 - [`evidence/output.txt`](evidence/output.txt): the complete output of the run. Two edits were made
   to it: the scratch work directory is shown as `<work-dir>`, and the long run of zeros in the UDP
   cookie value is shortened to `-0.0…0<digits>`. The generated key of V4 was replaced by
@@ -84,6 +87,10 @@ Each process lists the request and the observed result, copied from `evidence/ou
   ```text
   d14:failure reason110:Tracker authentication error: Invalid format for authentication key param: expected 32 alphanumeric characterse
   ```
+
+  The output is verbatim. The final `e` is not a typo: it is the bencode terminator of the
+  dictionary, placed right after the 110-byte message that ends in "characters" (the other replies
+  end in `e` for the same reason).
 
 Conclusion: only the "not registered" case echoes the key. The malformed case already omits it and
 does not say what is wrong with it (the length).

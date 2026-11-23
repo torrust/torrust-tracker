@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Usage: run.sh <tracker-binary> <work-dir>. Reproduces the EPIC #2993 inventory cases. Test values only.
+# Usage: reproduce.sh <tracker-binary> <work-dir>. Reproduces the EPIC #2993 inventory cases. Test values only.
 set -u
 BIN=$1; W=$2; mkdir -p "$W"; cd "$W" || exit 1
 strip(){ sed 's/\x1b\[[0-9;]*m//g'; }

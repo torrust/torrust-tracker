@@ -19,7 +19,7 @@ semantic-links:
     - docs/adrs/20260822094338_adopt_secrecy_for_sensitive_values.md
     - docs/adrs/20261118045443_errors_do_not_record_source_locations.md
     - docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md
-    - docs/issues/open/2916-2912-si-4-tracker-core/ISSUE.md
+    - docs/issues/closed/2916-2912-si-4-tracker-core/ISSUE.md
     - docs/issues/open/384-strip-location-from-errors-sent-to-clients/ISSUE.md
 ---
 
@@ -252,7 +252,7 @@ The key can be wrong for four different reasons, and each gets its own message. 
 | Case | Today | Proposed | What it tells an attacker |
 | --- | --- | --- | --- |
 | No key in the URL | `Missing authentication key` | `Missing authentication key: this tracker is private, use /announce/<key>` | nothing new: the tracker is private |
-| Malformed, wrong length | `Invalid format for authentication key param: expected 32 alphanumeric characters` (already without the key) | `Invalid authentication key: expected 32 characters, got 40` | the length of the client's own input, and the format, which is public in the source and the documentation |
+| Malformed, wrong length | `Invalid format for authentication key param: expected 32 alphanumeric characters` (already without the key) | `Invalid authentication key: expected 32 characters, got <n>` | the length of the client's own input, and the format, which is public in the source and the documentation |
 | Malformed, wrong characters | the same text as above | `Invalid authentication key: only the characters 0-9, a-z and A-Z are allowed` (no position and no character) | the format, which is public |
 | Well formed, not registered | `Failed to read key: <key>` | `Authentication key not registered` (or `Unknown authentication key`) | that this guess failed, which any reply reveals |
 | Registered, expired | `Key has expired` | `Authentication key expired` (the expiry time may be added; SI-A decides) | that the key existed. It no longer works, and guessing a key by trial is not practical: 62^32 values |
