@@ -156,8 +156,17 @@ mod tests {
 
     #[tokio::test]
     async fn it_should_initialize_the_sqlite_database() {
+        // Arrange
         let ephemeral = ephemeral_configuration();
-        let _database = initialize_database(&ephemeral.config).await;
+
+        // Act
+        let stores = initialize_database(&ephemeral.config).await;
+
+        // Assert
+        assert!(
+            stores.whitelist_store.load_whitelist().await.unwrap().is_empty(),
+            "a freshly initialized database has its tables and an empty whitelist"
+        );
     }
 
     #[tokio::test]
