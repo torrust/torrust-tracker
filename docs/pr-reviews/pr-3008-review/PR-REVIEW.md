@@ -65,6 +65,8 @@ Round 10 covers review 6026521422 (CodeRabbit, COMMENTED, submitted 2026-11-23T1
 
 Round 11 covers review 6026749477 (da2ce7, APPROVED, submitted 2026-11-23T17:56:39Z, of the head whose last commit is `docs(pr-reviews): [#3006] record review rounds 8 and 9 of PR #3008`) with two inline comments carrying the reviewer IDs F27 and F28, recorded as F30 and F31.
 
+Round 12 covers review 6027138634 (Copilot, COMMENTED, submitted 2026-11-23T18:22:27Z, of the head whose last commit is `docs(issues): [#3006] name the first-run-green exception in the T2 row and the loop`) with two inline comments without IDs or severity brackets, recorded as F32 and F33 with inferred severities. Both report table rows that start with `||`; neither file has one, so both are recorded as no-change findings, as PR 2237's audit records the same report.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3008-f1 | Human | Major | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -98,6 +100,8 @@ Round 11 covers review 6026749477 (da2ce7, APPROVED, submitted 2026-11-23T17:56:
 | F29 | review-finding:pr-3008-f29 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F30 | review-finding:pr-3008-f30 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F31 | review-finding:pr-3008-f31 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F32 | review-finding:pr-3008-f32 | Copilot | Minor (inferred) | formatting | ORIGINAL | NO_ACTION | RESOLVED |
+| F33 | review-finding:pr-3008-f33 | Copilot | Minor (inferred) | formatting | ORIGINAL | NO_ACTION | RESOLVED |
 
 ## Finding Details
 
@@ -504,6 +508,32 @@ Round 11 covers review 6026749477 (da2ce7, APPROVED, submitted 2026-11-23T17:56:
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669904297
 
+### F32 - The spec's tables were reported to start rows with `||`
+
+- PR number: 3008
+- Source review ID: 6027138634
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4670109460
+- Concern: Copilot reported that table rows in `docs/issues/open/3006-2758-tracker-client-schema-version/ISSUE.md` start with `||`, which would add an empty column, and suggested single leading pipes.
+- Solution: No change: every table row in the file starts with a single `|`, at the reviewed head and at the current head.
+- Current-tree verification: `grep -c '^||' docs/issues/open/3006-2758-tracker-client-schema-version/ISSUE.md` prints 0, and `git show <head>:docs/issues/open/3006-2758-tracker-client-schema-version/ISSUE.md | grep -c '^||'` prints 0 for the reviewed head and the current head; `linter markdown` passes.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4670117002
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4670117002
+
+### F33 - The audit's findings table was reported to start rows with `||`
+
+- PR number: 3008
+- Source review ID: 6027138634
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4670109602
+- Concern: Copilot reported that table rows in `docs/pr-reviews/pr-3008-review/PR-REVIEW.md` start with `||`, which would add an empty column, and suggested single leading pipes.
+- Solution: No change: every table row in the file starts with a single `|`, at the reviewed head and at the current head.
+- Current-tree verification: `grep -c '^||' docs/pr-reviews/pr-3008-review/PR-REVIEW.md` prints 0, and `git show <head>:docs/pr-reviews/pr-3008-review/PR-REVIEW.md | grep -c '^||'` prints 0 for the reviewed head and the current head; `linter markdown` passes.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4670117477
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4670117477
+
 ## Processing Log
 
 - 2026-11-23 16:10 UTC - Started audit. Round 1: review 6024919812 (da2ce7, CHANGES_REQUESTED, submitted 16:03:08Z) with seven inline comments, F1 to F7. F1 needed a maintainer decision: he chose D4 (the `http scrape` entries under `files`) and D5 (the UDP field beside the tag). The fixes of F1 and F3 to F7 were committed and pushed as `josecelano-bot` (`docs(issues): [#3006] move http scrape entries under files and name all consumers`).
@@ -522,6 +552,7 @@ Round 11 covers review 6026749477 (da2ce7, APPROVED, submitted 2026-11-23T17:56:
 - 2026-11-23 17:41 UTC - Rounds 8 and 9: reviews 6026068748 (CodeRabbit, 17:16:52Z), 6026144266 (da2ce7, 17:20:32Z) and 6026332138 (da2ce7, APPROVED, 17:31:06Z) recorded as F23 to F26. The fix of F23 was committed and pushed as `josecelano-bot` (`git-bot-push` exit 0). Replied on the four threads (17:41:15Z to 17:41:23Z) and resolved them (each mutation returned `isResolved` true).
 - 2026-11-23 18:05 UTC - Correction of the 17:41 entry: review 6026332138 was submitted as APPROVED and is now shown as DISMISSED.
 - 2026-11-23 18:05 UTC - Rounds 10 and 11: reviews 6026521422 (CodeRabbit, 17:42:25Z), 6026616249 (da2ce7, 17:48:17Z) and 6026749477 (da2ce7, APPROVED, 17:56:39Z) recorded as F27 to F31. The fix of F27 was committed and pushed as `josecelano-bot` (`git-bot-push` exit 0). Replied on the five threads (18:04:34Z to 18:04:44Z) and resolved the four open ones (each mutation returned `isResolved` true; the F27 reply is in the already resolved F23 thread).
+- 2026-11-23 18:23 UTC - Round 12: review 6027138634 (Copilot, 18:22:27Z) recorded as F32 and F33, both no-change. Replied on the two threads (18:23:07Z and 18:23:09Z) and resolved them (each mutation returned `isResolved` true).
 
 ## Completion Rules
 
