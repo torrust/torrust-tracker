@@ -9,7 +9,7 @@ github-issue: 3004
 spec-path: docs/issues/open/3004-2758-tracker-client-mask-tracker-key/ISSUE.md
 branch: "3004-tracker-client-mask-tracker-key-spec"
 related-pr: null
-last-updated-utc: "2026-11-23 14:19"
+last-updated-utc: "2026-11-23 14:22"
 semantic-links:
   skill-links:
     - create-issue
@@ -144,9 +144,32 @@ Files this issue may touch (a sibling issue in the same wave must not touch them
 
 ## Design and Ownership Review
 
-Not applicable: no child processes, readiness waits or fixtures. One small pure function owns the
-masking of a URL (input: a URL; output: the same URL with the key segment replaced). Every output
-path calls it; no output path builds its own masked text.
+Interface: one small pure function owns the masking of a URL (input: a URL; output: the same URL
+with the key segment replaced). Every output path calls it; no output path builds its own masked
+text. The production change has no child process, readiness wait or shared fixture.
+
+The regression tests do, so they follow these rules:
+
+- **Closed port.** A test that needs a refused connection binds a listener to `127.0.0.1:0`, reads
+  its port and drops the listener before the request, so nothing listens there. The test owns the
+  port only for that moment; no shared fixture.
+- **Local HTTP responder** (the non-2xx and body-read cases at the library seam). The test binds a
+  `tokio` listener to `127.0.0.1:0` and spawns one task that accepts one connection, writes a fixed
+  reply and closes it. The test owns the task's `JoinHandle` and aborts it at the end, so a failing
+  assertion (a panic, which drops the handle) does not leave it serving: the runtime of
+  `#[tokio::test]` ends with the test. No readiness wait is needed: the listener is bound before the
+  client connects, and the kernel queues the connection.
+- **Child process** (the black-box tests). The test runs `tracker_client` with
+  `std::process::Command::output()`, which waits for the exit and closes both pipes; stdout goes to a
+  pipe, so the terminal refusal does not apply. The child is never left running: it ends on its own
+  request failure.
+- **Deadlines.** Every awaited request is bounded: the client gets a short timeout (the library
+  tests pass one to `Client::new`; the tool uses its own default network timeout), and every await
+  in a library test is wrapped in `tokio::time::timeout` with a fixed bound, so a hang fails the test
+  instead of blocking the run.
+- **Checkpoint.** After the first vertical slice (the masking function used by the library error,
+  with its unit test and one black-box test green), review this ownership map against the code and
+  record the result in the evidence file before adding the next increment.
 
 ## Bug-Fix Process
 
@@ -174,6 +197,13 @@ Follow `.claude/skills/fix-bug/SKILL.md`:
   it does not contain the key, and that the URL shows `****`. Announce and scrape build their URLs
   and errors on separate paths (`build_announce_url`, `build_scrape_url`), so each gets its own
   test.
+- Unit tests at the same library seam for the other two leak paths, each with a keyed URL and the
+  local HTTP responder: a non-2xx reply (`UnsuccessfulResponse`, whose text today prints the
+  `reqwest::Response` with its URL), and a reply whose body read fails (the headers promise more
+  bytes than the responder sends before it closes, so `Response::bytes()` returns a
+  `reqwest::Error` that carries the URL). The error text of each does not contain the key. The
+  body-read error is built by the console client (`unified/http.rs`, `clients/http/mod.rs`), so
+  its test sits where that text is built.
 - A black-box test of `tracker_client check` with a keyed HTTP URL on a closed local port (R0c),
   asserting that neither stdout nor stderr contains the key, and that the result's `url` field
   shows `****`. This path copies the configured URL into `Checks.url` and never goes through the
@@ -243,6 +273,7 @@ commit.
 - 2026-11-19 16:09 UTC - Claude Code (Claude Opus 5.5) - Drafted this spec as the EPIC #2758 coordinator from the #2768 leftover; reproduced the leak (R0).
 - 2026-11-23 13:47 UTC - Claude Code (Claude Opus 5.5) - Re-read the draft against `develop` `ff3600f10`: added the `Display` text of `reqwest::Error` (it also carries the URL), the `Debug` of `reqwest::Response` in `UnsuccessfulResponse`, the body-read error in `unified/http.rs` and the `{err:?}` texts in `http/mod.rs` and `health.rs`; recorded the relation to EPIC #2993. Created issue #3004 (maintainer approved the spec content and a public issue) and moved the spec to `docs/issues/open/`.
 - 2026-11-23 14:19 UTC - Claude Code (Claude Opus 5.5) - Addressed review round 1 of PR 3005 (da2ce7 F1 to F10, Greptile): `Checks.url` named as the `check` source, black-box tests for `http scrape` and `check`, M1 keeps the exit status, the progressive test loop and the maintainer stop (new T5), #2984 and #3006 named, the e2e runner configuration log recorded as out of scope, the public-issue decision stated. The EPIC row is added by the coordinator in PR 3007.
+- 2026-11-23 14:22 UTC - Claude Code (Claude Opus 5.5) - Addressed the Copilot review of round 1 of PR 3005: ownership and deadlines of the regression-test resources, library-seam tests for a non-2xx reply and a failed body read, and how the completion review is recorded.
 
 ## Acceptance Criteria
 
@@ -299,6 +330,13 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 ## Implementation Completion Review
 
 - Retrospective: `Not yet assessed`
+
+After implementation, compare the result with this specification: invalidated assumptions,
+material design changes, unexpected validation findings and reusable lessons. If there is any,
+create `implementation-retrospective.md` in this folder from
+`docs/templates/IMPLEMENTATION-RETROSPECTIVE.md`. If there is none, add a progress-log entry that
+says why the work had no material discovery. The completion-review checkbox is ticked only with one
+of the two.
 
 ## References
 
