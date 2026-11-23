@@ -41,17 +41,17 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1, on the first head: Greptile review 6023114012 (one thread), CodeRabbit review 6023135871 (one thread), da2ce7 review 6023338079 (F1 to F4) and Copilot review 6023386734 (one thread, reviewer ID F1). The Greptile, CodeRabbit and Copilot threads raise the same concern as da2ce7's F1; they are recorded as F5, F6 and F7, each fixed by the same change.
+Round 1, on the first head: Greptile review 6023114012 (one thread), CodeRabbit review 6023135871 (one thread), da2ce7 review 6023338079 (F1 to F4) and Copilot review 6023386734 (one thread, reviewer ID F1). The Greptile, CodeRabbit and Copilot threads raise the same concern as da2ce7's F1; they are recorded as F5, F6 and F7, each fixed by the same change. The earliest report is the Greptile thread (14:10), so F5 is the original and F1, F6 and F7 are `RE_RAISE_OF:F5` (corrected in round 2).
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
-| F1 | review-finding:pr-3007-f1 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F1 | review-finding:pr-3007-f1 | Human | Minor | correctness | RE_RAISE_OF:F5 | FIXED | RESOLVED |
 | F2 | review-finding:pr-3007-f2 | Human | Minor | link-integrity | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-3007-f3 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F4 | review-finding:pr-3007-f4 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F5 | review-finding:pr-3007-f5 | Unknown | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
-| F6 | review-finding:pr-3007-f6 | Unknown | Major | correctness | ORIGINAL | FIXED | RESOLVED |
-| F7 | review-finding:pr-3007-f7 | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F6 | review-finding:pr-3007-f6 | Unknown | Major | correctness | RE_RAISE_OF:F5 | FIXED | RESOLVED |
+| F7 | review-finding:pr-3007-f7 | Copilot | Minor | correctness | RE_RAISE_OF:F5 | FIXED | RESOLVED |
 
 ## Finding Details
 
