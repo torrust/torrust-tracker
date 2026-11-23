@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2387-si-13-job-names-from-role-and-index/ISSUE.md
 branch: "{issue-number}-2387-si-13-job-names-from-role-and-index-spec"
 related-pr: null
-last-updated-utc: "2026-11-23 16:16"
+last-updated-utc: "2026-11-23 16:53"
 semantic-links:
   skill-links:
     - create-issue
@@ -31,7 +31,7 @@ semantic-links:
 **Draft.** This draft fixes the goal, the scope and the decisions it implements. The session that takes this sub-issue completes it (file lists, exact messages, test boundaries), creates the GitHub issue and opens the specification pull request before any code.
 
 - Implements: D3d, in [decisions.md](../../open/2387-review-tracker-lifecycle-logs/decisions.md).
-- Depends on: SI-3.
+- Depends on: SI-5.
 - Working order and rules common to all sub-issues: [EPIC.md](../../open/2387-review-tracker-lifecycle-logs/EPIC.md), section Delivery Strategy.
 - Evidence of today's behavior: [baseline-lifecycle-logs.md](../../open/2387-review-tracker-lifecycle-logs/baseline-lifecycle-logs.md) and the two captures beside it.
 
@@ -56,11 +56,11 @@ Service jobs are named `udp_instance_0_0.0.0.0:6868` and `http_instance_1_0.0.0.
 ### Out of Scope
 
 - Levels of job manager lines (SI-14).
-- Durations (SI-10, SI-20).
+- Durations (SI-9, SI-18).
 
 ## Architectural Decisions
 
-- Related decisions: D3d of the EPIC. After SI-1 is merged, the logging ADR it creates governs this work.
+- Related decisions: D3d of the EPIC. After SI-2 is merged, the logging ADR it creates governs this work.
 - ADRs to create: none. The specification states how the job manager receives the identity (for example optional metadata on `reserve`) without the manager depending on service packages.
 
 During implementation, stop and create an ADR when a decision affects project architecture or design patterns, selects an approach among meaningful alternatives, or has consequences future contributors need to understand. If a decision of the EPIC does not hold in the code, stop, record the finding and ask the maintainer.
@@ -124,6 +124,7 @@ For test-producing work, use the `write-unit-test` skill and complete the design
 Append one line per meaningful update. When an AI agent did the work, name its model after the agent.
 
 - 2026-11-23 16:16 UTC - Claude Code (Fable 5.2) - Drafted with EPIC #2387 from the maintainer's decisions of 2026-11-21 and 2026-11-23. Not approved as a final specification; no GitHub issue created.
+- 2026-11-23 16:53 UTC - Claude Code (Fable 5.2) - Renumbered the sub-issues by working order after review round 1 of PR 3010 (finding F4); this draft's number and its references to other sub-issues follow the new numbers.
 
 ## Acceptance Criteria
 

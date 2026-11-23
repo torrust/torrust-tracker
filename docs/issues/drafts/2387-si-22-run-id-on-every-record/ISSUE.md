@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2387-si-22-run-id-on-every-record/ISSUE.md
 branch: "{issue-number}-2387-si-22-run-id-on-every-record-spec"
 related-pr: null
-last-updated-utc: "2026-11-23 16:16"
+last-updated-utc: "2026-11-23 16:53"
 semantic-links:
   skill-links:
     - create-issue
@@ -30,7 +30,7 @@ semantic-links:
 **Draft.** This draft fixes the goal, the scope and the decisions it implements. The session that takes this sub-issue completes it (file lists, exact messages, test boundaries), creates the GitHub issue and opens the specification pull request before any code.
 
 - Implements: D10, in [decisions.md](../../open/2387-review-tracker-lifecycle-logs/decisions.md).
-- Depends on: #2766 (daemon JSON logs) and SI-18.
+- Depends on: #2766 (daemon JSON logs) and SI-16.
 - Working order and rules common to all sub-issues: [EPIC.md](../../open/2387-review-tracker-lifecycle-logs/EPIC.md), section Delivery Strategy.
 - Evidence of today's behavior: [baseline-lifecycle-logs.md](../../open/2387-review-tracker-lifecycle-logs/baseline-lifecycle-logs.md) and the two captures beside it.
 
@@ -40,7 +40,7 @@ Every log record carries the `run_id` of its run, so any single line can be attr
 
 ## Background
 
-SI-18 puts `run_id` on the start line. To find the lines of a run an operator still needs the time range after that line. Decision D10 chose to add the field to every record, in the formatter and not as a root span: a root span would print in every span list and is lost in tasks that do not inherit it. Issue #2766 replaces the formatter with JSON output, so this issue comes after it to avoid writing the change twice.
+SI-16 puts `run_id` on the start line. To find the lines of a run an operator still needs the time range after that line. Decision D10 chose to add the field to every record, in the formatter and not as a root span: a root span would print in every span list and is lost in tasks that do not inherit it. Issue #2766 replaces the formatter with JSON output, so this issue comes after it to avoid writing the change twice.
 
 ## Scope
 
@@ -54,12 +54,12 @@ SI-18 puts `run_id` on the start line. To find the lines of a run an operator st
 
 ### Out of Scope
 
-- Generating the `run_id` (SI-18).
+- Generating the `run_id` (SI-16).
 - Propagating the `run_id` to clients or to other processes.
 
 ## Architectural Decisions
 
-- Related decisions: D10 of the EPIC. After SI-1 is merged, the logging ADR it creates governs this work.
+- Related decisions: D10 of the EPIC. After SI-2 is merged, the logging ADR it creates governs this work.
 - ADRs to create: none expected. Related: the ADR that #2766 creates for the log format.
 
 During implementation, stop and create an ADR when a decision affects project architecture or design patterns, selects an approach among meaningful alternatives, or has consequences future contributors need to understand. If a decision of the EPIC does not hold in the code, stop, record the finding and ask the maintainer.
@@ -119,6 +119,7 @@ For test-producing work, use the `write-unit-test` skill and complete the design
 Append one line per meaningful update. When an AI agent did the work, name its model after the agent.
 
 - 2026-11-23 16:16 UTC - Claude Code (Fable 5.2) - Drafted with EPIC #2387 from the maintainer's decisions of 2026-11-21 and 2026-11-23. Not approved as a final specification; no GitHub issue created.
+- 2026-11-23 16:53 UTC - Claude Code (Fable 5.2) - Renumbered the sub-issues by working order after review round 1 of PR 3010 (finding F4); this draft's number and its references to other sub-issues follow the new numbers.
 
 ## Acceptance Criteria
 

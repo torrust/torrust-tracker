@@ -10,7 +10,7 @@ last-updated-utc: "2026-11-23 16:03"
 
 This file records what the maintainer decided for the lifecycle logs, the alternatives that were considered, their pros and cons, and the reason for each choice. The decisions were taken on 2026-11-21 and 2026-11-23, in one question-and-answer session between the maintainer (`josecelano`) and Claude Code (Fable 5.2), after reading the fresh log captures in [baseline-lifecycle-logs.md](baseline-lifecycle-logs.md).
 
-Each sub-issue of the EPIC implements one or more decisions and names them by ID (`D1` to `D12`). SI-1 moves the lasting rules into an ADR and into `docs/logging.md`. This file stays as the history of how they were chosen.
+Each sub-issue of the EPIC implements one or more decisions and names them by ID (`D1` to `D12`). SI-2 moves the lasting rules into an ADR and into `docs/logging.md`. This file stays as the history of how they were chosen.
 
 A decision here is the starting point of a sub-issue, not a final design. If a sub-issue finds that a decision does not hold, it stops, records the finding and asks the maintainer.
 
@@ -85,7 +85,7 @@ Issue #2766 (EPIC #2758) changes the daemon's log output to JSON lines on stderr
 
 **Decision:** A. This EPIC goes first. The specification of #2766 and its row in EPIC #2758 say so.
 
-**Reason:** the convention is independent of the output format, so it can be decided and reviewed first. After SI-8 the readers depend on fields, which survive the move to JSON.
+**Reason:** the convention is independent of the output format, so it can be decided and reviewed first. After SI-11 the readers depend on fields, which survive the move to JSON.
 
 **Consequence:** the convention must not depend on the text format. It speaks about targets, message text, field names and levels only. The one item that needs the formatter (`run_id` on every record, D10) is ordered after #2766.
 
@@ -97,7 +97,7 @@ Issue #2766 (EPIC #2758) changes the daemon's log output to JSON lines on stderr
 | B. Named targets on every lifecycle line, and one naming style | One vocabulary of a few names that an operator can list and filter on. Stable across refactors | Every lifecycle log call names its target. Renaming existing targets breaks filters and the test readers |
 | C. Add named targets only where they are missing; keep today's names | Half the work. No break for existing names | Keeps `UDP TRACKER` (with a space) next to `TRACKER_CORE` (with an underscore), and the ambiguous `API` |
 
-**Decision:** B, as two separate tasks: first add the missing targets (SI-3), then rename the existing ones (SI-4).
+**Decision:** B, as two separate tasks: first add the missing targets (SI-5), then rename the existing ones (SI-6).
 
 **Reason:** the two tasks have different risk. Adding a target breaks nothing. Renaming breaks every reader that matches the old name, so it is reviewed alone.
 
@@ -183,7 +183,7 @@ Job names of services today hold the index and the configured bind address, for 
 - `Started` moves to after the registration, because only then can the health check see the service.
 - The text `Started on:` is removed. The E2E parser and the test fixture read `service_binding=` from the `Started` line that has the wanted `service_role=`.
 - `service_role` and `instance_index` are event fields on these lines, not only span fields, so a reader does not depend on the span being printed.
-- The REST API and the health check API follow the same three lines. SI-1's inventory verifies their start sequence, which was not traced line by line in this session.
+- The REST API and the health check API follow the same three lines. SI-2's inventory verifies their start sequence, which was not traced line by line in this session.
 
 **Reason:** rule 2. Between "socket bound" and "service registered" the receive loop is spawned and the registration can fail, so they are two moments.
 
@@ -225,8 +225,8 @@ Today the same kind of value appears as `timeout_seconds=25`, `drain_timeout=15s
 
 Two follow-ups are separate sub-issues because they are outside lifecycle lines:
 
-- Request logs: `latency_ms` becomes `latency_in_ms` (SI-11).
-- Configuration keys without a unit: `max_peer_timeout` becomes `max_peer_timeout_in_secs` and `inactive_peer_cleanup_interval` becomes `inactive_peer_cleanup_interval_in_secs` (SI-12). This changes the configuration schema. Until it lands, the log uses the name with the unit.
+- Request logs: `latency_ms` becomes `latency_in_ms` (SI-19).
+- Configuration keys without a unit: `max_peer_timeout` becomes `max_peer_timeout_in_secs` and `inactive_peer_cleanup_interval` becomes `inactive_peer_cleanup_interval_in_secs` (SI-4). This changes the configuration schema. Until it lands, the log uses the name with the unit.
 
 **Reason:** rule 3 lets an operator search the log for the same word that is in the configuration file.
 
@@ -242,7 +242,7 @@ The crate `torrust-metrics` logs one `INFO` line for every metric it describes, 
 | B. Hide them with a filter on the `METRICS` target in the tracker's logging setup | No change in the other crate | Hides a problem instead of fixing it. Also hides any useful line of that target |
 | C. Fix the crate: `DEBUG` level, `Display` values, no `Option` wrapper; here, bump the dependency and log one summary line | The cause is fixed for every user of the crate. The start keeps one line that says registration happened | Waits for a release of the other crate |
 
-**Decision:** C. An issue is filed on `torrust-metrics` at once. SI-16 bumps the dependency and adds `Registered metrics counters=<n> gauges=<n>`. The numbers are the real counts at that moment.
+**Decision:** C. An issue is filed on `torrust-metrics` at once. SI-21 bumps the dependency and adds `Registered metrics counters=<n> gauges=<n>`. The numbers are the real counts at that moment.
 
 ### D7b - The configuration dump
 
@@ -273,7 +273,7 @@ See the fact above.
 | B. Lower the line to `DEBUG` | Small change | Still one line per event at `DEBUG`. Still does not tell "disabled" from "unknown", and "unknown" is a bug that should be loud |
 | C. Split the two cases and report the disabled state once | The normal case is silent. The bug case is an `ERROR` with fields. The operator still sees, once, that statistics are disabled | Touches three listeners |
 
-**Decision:** C, as a bug fix done early (SI-2).
+**Decision:** C, as a bug fix done early (SI-1).
 
 - Statistics disabled for the listener (`Some(false)`): no log per event (`TRACE` at most).
 - Listener unknown (`None`): `ERROR`, with `service_role` and `instance_index` fields, because it means the event came from a listener the policy does not know.
@@ -310,7 +310,7 @@ Changes that follow:
   | A. Keep the `WARN` | No break | A configured service silently does not run. By the table that is an `ERROR`, and an `ERROR` on every start of a "working" tracker is not acceptable either |
   | B. Reject the configuration at startup | The configuration either does what it says or the tracker does not start. No line to argue about | Breaks configurations that rely on the silent skip. Acceptable in 4.0.0 |
 
-  **Decision:** B, in its own sub-issue (SI-15) with its own ADR, because it changes behavior, not only a log line.
+  **Decision:** B, in its own sub-issue (SI-3) with its own ADR, because it changes behavior, not only a log line.
 
 ## D10 - Information an operator cannot see today
 
@@ -337,7 +337,7 @@ The need: when logs of several runs are in one place (a restart loop, two contai
 | D. `run_id` on every record | Any single line can be attributed to its run. One filter gives a whole run | 36 more characters on every text line. As a root span it would print in every span list and is lost in tasks that do not inherit the span, so it belongs in the formatter |
 | E. Leave it to the infrastructure (container ID, systemd invocation ID, collector labels) | No tracker code | Each deployment solves it differently or not at all. Native runs and tests have nothing |
 
-**Decision:** B and C now (SI-18), D later (SI-22).
+**Decision:** B and C now (SI-16), D later (SI-22).
 
 **Reason:** `pid` and `run_id` on the start line cost almost nothing and are useful at once. D is the complete answer, but it must be done in the formatter, and #2766 replaces the formatter; doing D before #2766 would be written twice. In JSON the extra field costs nothing to read. E stays possible and does not replace an identity the tracker itself knows.
 
@@ -351,12 +351,12 @@ The need: when logs of several runs are in one place (a restart loop, two contai
 
 **Decision:** C.
 
-- One new logging ADR in `docs/adrs/` with the decisions and reasons (SI-1).
-- A new `docs/logging.md`, linked from `docs/index.md`: glossary, targets, canonical fields, levels, and the catalogue of lifecycle lines (SI-1, extended by each sub-issue that changes a line).
-- The skill `structured-runtime-logging` is extended with links, not copies (SI-1).
+- One new logging ADR in `docs/adrs/` with the decisions and reasons (SI-2).
+- A new `docs/logging.md`, linked from `docs/index.md`: glossary, targets, canonical fields, levels, and the catalogue of lifecycle lines (SI-2, extended by each sub-issue that changes a line).
+- The skill `structured-runtime-logging` is extended with links, not copies (SI-2).
 - Rustdoc on the target constants and on the display helper.
-- An automated check (SI-21): a test starts the tracker, stops it, and asserts no `WARN` or `ERROR` on a clean run, no `Debug` patterns such as `{ … }` or `Some(`, and a named target from the list on every lifecycle line.
-- The private-mode rejection has its own ADR (SI-15).
+- An automated check (SI-20): a test starts the tracker, stops it, and asserts no `WARN` or `ERROR` on a clean run, no `Debug` patterns such as `{ … }` or `Some(`, and a named target from the list on every lifecycle line.
+- The private-mode rejection has its own ADR (SI-3).
 
 ## D12 - Compatibility
 
@@ -370,4 +370,4 @@ The need: when logs of several runs are in one place (a restart loop, two contai
 
 **Reason:** version 4.0.0 is the right moment to break. The cost for operators is paid once, with a document that tells them what changed.
 
-**Changelog:** the project has no general `CHANGELOG` yet; the maintainer plans one after 4.0.0. This EPIC keeps its own list of operator-visible changes: targets renamed, fields renamed or removed, messages changed, lines added or removed, levels changed. It is the section "Changes in 4.0.0" of `docs/logging.md`, created by SI-1. Every sub-issue that changes a line adds its entries in the same pull request. It lives in `docs/logging.md` and not in this folder because this folder moves to `docs/issues/closed/` at the end, where an operator does not look.
+**Changelog:** the project has no general `CHANGELOG` yet; the maintainer plans one after 4.0.0. This EPIC keeps its own list of operator-visible changes: targets renamed, fields renamed or removed, messages changed, lines added or removed, levels changed. It is the section "Changes in 4.0.0" of `docs/logging.md`, created by SI-2. Every sub-issue that changes a line adds its entries in the same pull request. It lives in `docs/logging.md` and not in this folder because this folder moves to `docs/issues/closed/` at the end, where an operator does not look.

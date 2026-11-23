@@ -6,7 +6,7 @@ epic: null
 github-issue: 2387
 spec-path: docs/issues/open/2387-review-tracker-lifecycle-logs/EPIC.md
 epic-owner: null
-last-updated-utc: "2026-11-23 16:22"
+last-updated-utc: "2026-11-23 16:52"
 semantic-links:
   skill-links:
     - create-issue
@@ -117,40 +117,40 @@ Process decisions (2026-11-23):
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-The sub-issues are drafts. Each gets its GitHub issue number when its session starts. The `SI` number is an identifier, not the working order; the order is in Delivery Strategy.
+The sub-issues are drafts. Each gets its GitHub issue number when its session starts. The `SI` number is the working order, which is what the `si-{N}` segment of a sub-issue folder means in `docs/issues/open/AGENTS.md`. The reasons for the order are in Delivery Strategy.
 
 | SI | Issue | Local Spec | Status | Decisions | Depends on |
 | --- | --- | --- | --- | --- | --- |
-| 1 | #[To be assigned] - Record the logging convention: ADR, `docs/logging.md`, inventory and skill | `docs/issues/drafts/2387-si-1-logging-convention-adr-and-docs/ISSUE.md` | TODO | D9, D11, D12 | - |
-| 2 | #[To be assigned] - Bug: statistics listeners log a `WARN` for every event when usage statistics are disabled | `docs/issues/drafts/2387-si-2-statistics-disabled-warning-per-event/ISSUE.md` | TODO | D8 | - |
-| 3 | #[To be assigned] - Add named targets to lifecycle lines that have none | `docs/issues/drafts/2387-si-3-add-missing-named-log-targets/ISSUE.md` | TODO | D2 | SI-1 |
-| 4 | #[To be assigned] - Rename log targets to underscore style and `API` to `REST_API` | `docs/issues/drafts/2387-si-4-rename-log-targets-to-underscore-style/ISSUE.md` | TODO | D2 | SI-3 |
-| 5 | #[To be assigned] - Print `service_binding` without a trailing slash in every log line | `docs/issues/drafts/2387-si-5-service-binding-without-trailing-slash/ISSUE.md` | TODO | D3b, D3c | SI-1 |
-| 6 | #[To be assigned] - Identify a listener with one field: remove `local_addr`, `address` and `bind_addr` | `docs/issues/drafts/2387-si-6-single-listener-identity-field/ISSUE.md` | TODO | D3a | SI-5 |
-| 7 | #[To be assigned] - Log three state lines when a service starts | `docs/issues/drafts/2387-si-7-three-state-service-start-lines/ISSUE.md` | TODO | D4 | SI-4, SI-5 |
-| 8 | #[To be assigned] - Read service URLs from structured fields and remove `Starting on:` and `Started on:` | `docs/issues/drafts/2387-si-8-read-service-urls-from-structured-fields/ISSUE.md` | TODO | D4 | SI-7 |
-| 9 | #[To be assigned] - Keep only the service identity in lifecycle spans | `docs/issues/drafts/2387-si-9-identity-only-lifecycle-spans/ISSUE.md` | TODO | D5 | SI-7 |
-| 10 | #[To be assigned] - Write durations in lifecycle lines as numbers with the unit in the name | `docs/issues/drafts/2387-si-10-duration-fields-in-lifecycle-lines/ISSUE.md` | TODO | D6 | SI-1 |
-| 11 | #[To be assigned] - Rename `latency_ms` to `latency_in_ms` in request logs | `docs/issues/drafts/2387-si-11-request-log-latency-field/ISSUE.md` | TODO | D6 | SI-10 |
-| 12 | #[To be assigned] - Add the unit to the configuration keys `max_peer_timeout` and `inactive_peer_cleanup_interval` | `docs/issues/drafts/2387-si-12-configuration-keys-with-units/ISSUE.md` | TODO | D6 | - |
-| 13 | #[To be assigned] - Name service jobs by role and index and add identity fields to job manager lines | `docs/issues/drafts/2387-si-13-job-names-from-role-and-index/ISSUE.md` | TODO | D3d | SI-3 |
-| 14 | #[To be assigned] - Apply the level rule to job manager and shutdown lines | `docs/issues/drafts/2387-si-14-lifecycle-log-levels/ISSUE.md` | TODO | D9 | SI-3 |
-| 15 | #[To be assigned] - Reject private mode with UDP trackers configured at startup | `docs/issues/drafts/2387-si-15-reject-private-mode-with-udp-trackers/ISSUE.md` | TODO | D9 | - |
-| 16 | #[To be assigned] - Summarize metrics registration in one line | `docs/issues/drafts/2387-si-16-metrics-registration-summary-line/ISSUE.md` | BLOCKED | D7a | A `torrust-metrics` release with the fix |
-| 17 | #[To be assigned] - Log the configuration as one single-line event and add an `Enabled services` line | `docs/issues/drafts/2387-si-17-configuration-as-single-line-event/ISSUE.md` | TODO | D7b | SI-3 |
-| 18 | #[To be assigned] - Log the build and run identity as the first line | `docs/issues/drafts/2387-si-18-build-and-run-identity-start-line/ISSUE.md` | TODO | D10 | SI-3 |
-| 19 | #[To be assigned] - Log `Tracker started` when every job has started | `docs/issues/drafts/2387-si-19-tracker-started-line/ISSUE.md` | TODO | D10 | SI-18 |
-| 20 | #[To be assigned] - Log how long each job took to stop and one final `Tracker stopped` line | `docs/issues/drafts/2387-si-20-job-stop-duration-and-tracker-stopped-line/ISSUE.md` | TODO | D10 | SI-10, SI-14 |
-| 21 | #[To be assigned] - Check the lifecycle log convention automatically | `docs/issues/drafts/2387-si-21-automated-lifecycle-log-check/ISSUE.md` | TODO | D11 | SI-2 to SI-20, except SI-16 |
-| 22 | #[To be assigned] - Add `run_id` to every log record | `docs/issues/drafts/2387-si-22-run-id-on-every-record/ISSUE.md` | BLOCKED | D10 | #2766, SI-18 |
+| 1 | #[To be assigned] - Bug: statistics listeners log a `WARN` for every event when usage statistics are disabled | `docs/issues/drafts/2387-si-1-statistics-disabled-warning-per-event/ISSUE.md` | TODO | D8 | - |
+| 2 | #[To be assigned] - Record the logging convention: ADR, `docs/logging.md`, inventory and skill | `docs/issues/drafts/2387-si-2-logging-convention-adr-and-docs/ISSUE.md` | TODO | D9, D11, D12 | - |
+| 3 | #[To be assigned] - Reject private mode with UDP trackers configured at startup | `docs/issues/drafts/2387-si-3-reject-private-mode-with-udp-trackers/ISSUE.md` | TODO | D9 | - |
+| 4 | #[To be assigned] - Add the unit to the configuration keys `max_peer_timeout` and `inactive_peer_cleanup_interval` | `docs/issues/drafts/2387-si-4-configuration-keys-with-units/ISSUE.md` | TODO | D6 | - |
+| 5 | #[To be assigned] - Add named targets to lifecycle lines that have none | `docs/issues/drafts/2387-si-5-add-missing-named-log-targets/ISSUE.md` | TODO | D2 | SI-2 |
+| 6 | #[To be assigned] - Rename log targets to underscore style and `API` to `REST_API` | `docs/issues/drafts/2387-si-6-rename-log-targets-to-underscore-style/ISSUE.md` | TODO | D2 | SI-5 |
+| 7 | #[To be assigned] - Print `service_binding` without a trailing slash in every log line | `docs/issues/drafts/2387-si-7-service-binding-without-trailing-slash/ISSUE.md` | TODO | D3b, D3c | SI-2 |
+| 8 | #[To be assigned] - Identify a listener with one field: remove `local_addr`, `address` and `bind_addr` | `docs/issues/drafts/2387-si-8-single-listener-identity-field/ISSUE.md` | TODO | D3a | SI-7 |
+| 9 | #[To be assigned] - Write durations in lifecycle lines as numbers with the unit in the name | `docs/issues/drafts/2387-si-9-duration-fields-in-lifecycle-lines/ISSUE.md` | TODO | D6 | SI-2 |
+| 10 | #[To be assigned] - Log three state lines when a service starts | `docs/issues/drafts/2387-si-10-three-state-service-start-lines/ISSUE.md` | TODO | D4 | SI-6, SI-7 |
+| 11 | #[To be assigned] - Read service URLs from structured fields and remove `Starting on:` and `Started on:` | `docs/issues/drafts/2387-si-11-read-service-urls-from-structured-fields/ISSUE.md` | TODO | D4 | SI-10 |
+| 12 | #[To be assigned] - Keep only the service identity in lifecycle spans | `docs/issues/drafts/2387-si-12-identity-only-lifecycle-spans/ISSUE.md` | TODO | D5 | SI-10 |
+| 13 | #[To be assigned] - Name service jobs by role and index and add identity fields to job manager lines | `docs/issues/drafts/2387-si-13-job-names-from-role-and-index/ISSUE.md` | TODO | D3d | SI-5 |
+| 14 | #[To be assigned] - Apply the level rule to job manager and shutdown lines | `docs/issues/drafts/2387-si-14-lifecycle-log-levels/ISSUE.md` | TODO | D9 | SI-5 |
+| 15 | #[To be assigned] - Log the configuration as one single-line event and add an `Enabled services` line | `docs/issues/drafts/2387-si-15-configuration-as-single-line-event/ISSUE.md` | TODO | D7b | SI-5 |
+| 16 | #[To be assigned] - Log the build and run identity as the first line | `docs/issues/drafts/2387-si-16-build-and-run-identity-start-line/ISSUE.md` | TODO | D10 | SI-5 |
+| 17 | #[To be assigned] - Log `Tracker started` when every job has started | `docs/issues/drafts/2387-si-17-tracker-started-line/ISSUE.md` | TODO | D10 | SI-16 |
+| 18 | #[To be assigned] - Log how long each job took to stop and one final `Tracker stopped` line | `docs/issues/drafts/2387-si-18-job-stop-duration-and-tracker-stopped-line/ISSUE.md` | TODO | D10 | SI-9, SI-14 |
+| 19 | #[To be assigned] - Rename `latency_ms` to `latency_in_ms` in request logs | `docs/issues/drafts/2387-si-19-request-log-latency-field/ISSUE.md` | TODO | D6 | SI-9 |
+| 20 | #[To be assigned] - Check the lifecycle log convention automatically | `docs/issues/drafts/2387-si-20-automated-lifecycle-log-check/ISSUE.md` | TODO | D11 | SI-1 to SI-19 |
+| 21 | #[To be assigned] - Summarize metrics registration in one line | `docs/issues/drafts/2387-si-21-metrics-registration-summary-line/ISSUE.md` | BLOCKED | D7a | A `torrust-metrics` release with the fix |
+| 22 | #[To be assigned] - Add `run_id` to every log record | `docs/issues/drafts/2387-si-22-run-id-on-every-record/ISSUE.md` | BLOCKED | D10 | #2766, SI-16 |
 | 23 | #[To be assigned] - Close out: recapture, compare, and review the acceptance criteria | `docs/issues/drafts/2387-si-23-close-out/ISSUE.md` | TODO | - | All others |
 
 ### External follow-ups (other repositories)
 
 | Repository | Change | Used by | Status |
 | --- | --- | --- | --- |
-| `torrust/torrust-net-primitives` | `ServiceBinding`'s `Display` prints no trailing slash for any protocol | SI-5 deletes its helper when the fixed crate is used | Filed: [torrust-net-primitives issue 1](https://github.com/torrust/torrust-net-primitives/issues/1) |
-| `torrust/torrust-metrics` | `describe_counter` and `describe_gauge` log at `DEBUG`, with `Display` values and no `Option` wrapper | SI-16 | Filed: [torrust-metrics issue 4](https://github.com/torrust/torrust-metrics/issues/4) |
+| `torrust/torrust-net-primitives` | `ServiceBinding`'s `Display` prints no trailing slash for any protocol | SI-7 deletes its helper when the fixed crate is used | Filed: [torrust-net-primitives issue 1](https://github.com/torrust/torrust-net-primitives/issues/1) |
+| `torrust/torrust-metrics` | `describe_counter` and `describe_gauge` log at `DEBUG`, with `Display` values and no `Option` wrapper | SI-21 | Filed: [torrust-metrics issue 4](https://github.com/torrust/torrust-metrics/issues/4) |
 
 ## Delivery Strategy
 
@@ -158,23 +158,23 @@ One sub-issue at a time, each in its own session, each with a specification pull
 
 ### Working order
 
-`SI-2`, `SI-1`, `SI-15`, `SI-12`, `SI-3`, `SI-4`, `SI-5`, `SI-6`, `SI-10`, `SI-7`, `SI-8`, `SI-9`, `SI-13`, `SI-14`, `SI-17`, `SI-18`, `SI-19`, `SI-20`, `SI-11`, `SI-21`, `SI-23`. `SI-16` and `SI-22` run when their blockers are gone.
+The sub-issues run in the order of their numbers: `SI-1` to `SI-20`, then `SI-23`. `SI-21` and `SI-22` are blocked; each runs when its blocker is gone.
 
 Reasons for the order:
 
-- **SI-2 first.** It is the only defect that harms a production tracker today, and bugs go before other work. It depends on nothing: the fields it needs already exist.
-- **SI-1 second.** Every later sub-issue adds its lines to `docs/logging.md` and its entries to the list of changes, so the documents must exist.
-- **SI-15 and SI-12 early.** They change behavior and the configuration schema. An early merge gives the most time before 4.0.0 to find a problem.
-- **Targets (SI-3, SI-4) before lines.** The lines that later sub-issues rewrite then already have their final target.
-- **SI-5 before SI-6 and SI-7.** The value of `service_binding` has its final form before it is added to more lines.
-- **SI-7 then SI-8.** SI-7 only adds the new lines, so no reader breaks. SI-8 moves the readers and deletes the old lines. Between the two, `develop` has both old and new start lines.
-- **SI-21 near the end.** A check written before the lines are final would need an exception list that changes in every pull request.
+- **SI-1 first.** It is the only defect that harms a production tracker today, and bugs go before other work. It depends on nothing: the fields it needs already exist.
+- **SI-2 second.** Every later sub-issue adds its lines to `docs/logging.md` and its entries to the list of changes, so the documents must exist.
+- **SI-3 and SI-4 early.** They change behavior and the configuration schema. An early merge gives the most time before 4.0.0 to find a problem.
+- **Targets (SI-5, SI-6) before lines.** The lines that later sub-issues rewrite then already have their final target.
+- **SI-7 before SI-8 and SI-10.** The value of `service_binding` has its final form before it is added to more lines.
+- **SI-10 then SI-11.** SI-10 only adds the new lines, so no reader breaks. SI-11 moves the readers and deletes the old lines. Between the two, `develop` has both old and new start lines.
+- **SI-20 near the end.** A check written before the lines are final would need an exception list that changes in every pull request.
 
 The coordinator may change the order when a sub-issue's specification shows a dependency this table does not have. It records the change in the progress log.
 
 ### Blocked sub-issues and the close-out
 
-`SI-16` waits for a release of `torrust-metrics` and `SI-22` waits for #2766. Neither is needed for the others. If one of them is still blocked when `SI-21` is done, the coordinator asks the maintainer whether the EPIC stays open for it or the sub-issue leaves the EPIC and continues alone. `SI-23` runs after that answer.
+`SI-21` waits for a release of `torrust-metrics` and `SI-22` waits for #2766. Neither is needed for the others. If one of them is still blocked when `SI-20` is done, the coordinator asks the maintainer whether the EPIC stays open for it or the sub-issue leaves the EPIC and continues alone. `SI-23` runs after that answer.
 
 ### What every sub-issue does
 
@@ -196,22 +196,22 @@ For each subissue implementation in this EPIC, the default completion policy is:
 
 ### Phase 1: the defect and the rules
 
-- Outcome: SI-2, SI-1, SI-15 and SI-12 merged.
+- Outcome: SI-1 to SI-4 merged.
 - Exit criteria: a tracker with statistics disabled logs no `WARN` for a request; the ADR is accepted; `docs/logging.md` exists with the glossary, the targets, the fields, the levels and an empty catalogue ready to fill.
 
 ### Phase 2: targets and identity
 
-- Outcome: SI-3, SI-4, SI-5 and SI-6 merged.
+- Outcome: SI-5 to SI-8 merged.
 - Exit criteria: no lifecycle line has a module path as target; a bound listener is named only by `service_binding`, without a trailing slash.
 
 ### Phase 3: the lines
 
-- Outcome: SI-10, SI-7, SI-8, SI-9, SI-13, SI-14, SI-17, SI-18, SI-19, SI-20 and SI-11 merged.
+- Outcome: SI-9 to SI-19 merged.
 - Exit criteria: no program reads a service URL from message text; a clean run has no `WARN`, no `ERROR` and no `Debug` output of an internal type.
 
 ### Phase 4: enforcement and acceptance
 
-- Outcome: SI-21 merged; SI-16 and SI-22 merged or detached by the maintainer; SI-23 done.
+- Outcome: SI-20 merged; SI-21 and SI-22 merged or detached by the maintainer; SI-23 done.
 - Exit criteria: the check runs in CI; the recapture is compared with the baseline line by line and every difference is in "Changes in 4.0.0".
 
 ## Progress Tracking
@@ -243,6 +243,7 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 - 2026-11-23 16:05 UTC - Claude Code (Fable 5.2) - The maintainer answered the twelve open questions (2026-11-21 and 2026-11-23); recorded them in `decisions.md` with alternatives, pros, cons and reasons. Recaptured the three logs at `develop` commit `ff3600f10` (same line counts as on 2026-11-21) and replaced the 2026-09-30 baseline.
 - 2026-11-23 16:20 UTC - Claude Code (Fable 5.2) - The maintainer approved the split into 23 sub-issues and the process (issue #2387 is the EPIC; drafts only for the sub-issues; a coordinator runs one sub-issue session at a time). Converted the specification from `ISSUE.md` to `EPIC.md`, set the status from `blocked` to `planned`, and wrote the 23 drafts. Updated the specification of #2766 and its row in EPIC #2758 to say that #2766 starts after this EPIC.
 - 2026-11-23 16:22 UTC - Claude Code (Fable 5.2) - Filed the two external issues as `josecelano-bot`: `torrust/torrust-net-primitives` issue 1 (`ServiceBinding` display without trailing slash) and `torrust/torrust-metrics` issue 4 (level and format of the metric description logs).
+- 2026-11-23 16:52 UTC - Claude Code (Fable 5.2) - Renumbered the sub-issues by working order (review finding F4 of PR 3010): the `si-{N}` segment of a sub-issue folder means the implementation order. The old numbers 2, 1, 15, 12, 3, 4, 5, 6, 10, 7, 8, 9, 13, 14, 17, 18, 19, 20, 11, 21, 16, 22, 23 are now 1 to 23 in that sequence. The draft folders, the decisions and the specification of #2766 use the new numbers.
 
 ## Acceptance Criteria
 
@@ -262,7 +263,7 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 - [ ] AC14: The lines of D10 are logged: build and run identity, `Tracker started`, the stop duration of each job, and `Tracker stopped` with the outcome.
 - [ ] AC15: No program in the repository reads a fact from the message text of a log line.
 - [ ] AC16: "Changes in 4.0.0" in `docs/logging.md` lists every operator-visible change, and the comparison of SI-23 finds no change that is missing from it.
-- [ ] AC17: The automated check of SI-21 runs in CI and fails for a line that breaks the convention.
+- [ ] AC17: The automated check of SI-20 runs in CI and fails for a line that breaks the convention.
 
 ### Acceptance Verification
 
@@ -277,25 +278,25 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 | AC7 | TODO | {issue/spec/PR links} |
 | AC8 | TODO | {issue/spec/PR links} |
 | AC9 | TODO | {issue/spec/PR links} |
-| AC10 | TODO | ADR and `docs/logging.md` (SI-1) |
-| AC11 | TODO | SI-23 recapture; SI-21 check |
-| AC12 | TODO | SI-23 recapture; SI-21 check |
-| AC13 | TODO | SI-23 recapture; SI-2 regression test; SI-21 check |
+| AC10 | TODO | ADR and `docs/logging.md` (SI-2) |
+| AC11 | TODO | SI-23 recapture; SI-20 check |
+| AC12 | TODO | SI-23 recapture; SI-20 check |
+| AC13 | TODO | SI-23 recapture; SI-1 regression test; SI-20 check |
 | AC14 | TODO | SI-23 recapture |
-| AC15 | TODO | SI-8; search recorded in SI-23 |
+| AC15 | TODO | SI-11; search recorded in SI-23 |
 | AC16 | TODO | SI-23 comparison |
-| AC17 | TODO | SI-21 pull request and CI run |
+| AC17 | TODO | SI-20 pull request and CI run |
 
 ## Risks and Trade-offs
 
 - **Operators' parsers break.** Renamed targets and fields silently break queries and alerts. Mitigation: the break is in a major release, and "Changes in 4.0.0" lists each change (D12).
-- **The repository's own readers break.** The E2E runner, the test fixture and the lifecycle tests read log text. Mitigation: each sub-issue updates its readers in the same pull request, and SI-7 and SI-8 are split so the readers move in a pull request of their own.
+- **The repository's own readers break.** The E2E runner, the test fixture and the lifecycle tests read log text. Mitigation: each sub-issue updates its readers in the same pull request, and SI-10 and SI-11 are split so the readers move in a pull request of their own.
 - **Many small pull requests touch the same files.** Mitigation: one sub-issue at a time, each cut from the current `develop`.
 - **Conflict with #2766.** Both rewrite the log parsers. Mitigation: D1 orders them, and both specifications say so.
-- **Other repositories release late.** SI-16 and SI-22 may wait a long time. Mitigation: they block nothing else, and the maintainer decides at the end whether they stay in the EPIC.
-- **Scope grows into request logs.** Mitigation: only `latency_ms` is in scope (SI-11); levels of request logs stay in #1166.
-- **A decision does not survive the code.** The start sequences of the REST API and the health check API were not traced line by line. Mitigation: SI-1's inventory verifies them before SI-7, and a sub-issue stops and asks when a decision does not hold.
-- **Behaviour changes hidden in a log EPIC.** SI-12 changes the configuration schema and SI-15 rejects a configuration that starts today. Mitigation: each is its own sub-issue with its own specification review, and SI-15 has its own ADR.
+- **Other repositories release late.** SI-21 and SI-22 may wait a long time. Mitigation: they block nothing else, and the maintainer decides at the end whether they stay in the EPIC.
+- **Scope grows into request logs.** Mitigation: only `latency_ms` is in scope (SI-19); levels of request logs stay in #1166.
+- **A decision does not survive the code.** The start sequences of the REST API and the health check API were not traced line by line. Mitigation: SI-2's inventory verifies them before SI-10, and a sub-issue stops and asks when a decision does not hold.
+- **Behaviour changes hidden in a log EPIC.** SI-4 changes the configuration schema and SI-3 rejects a configuration that starts today. Mitigation: each is its own sub-issue with its own specification review, and SI-3 has its own ADR.
 
 ## References
 
@@ -303,5 +304,5 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 - Related issues: #1166 (tracing level usage in request handling), #2766 (daemon JSON logs, after this EPIC), #2758 (EPIC of #2766), #1488 (shutdown overhaul, closed), closed #387 (syslog format)
 - Decisions: [decisions.md](decisions.md)
 - Baseline: [baseline-lifecycle-logs.md](baseline-lifecycle-logs.md), [baseline-lifecycle-logs-debug.md](baseline-lifecycle-logs-debug.md), [baseline-lifecycle-logs-statistics-disabled.md](baseline-lifecycle-logs-statistics-disabled.md)
-- Related ADRs: the logging ADR created by SI-1; the private-mode ADR created by SI-15
+- Related ADRs: the logging ADR created by SI-2; the private-mode ADR created by SI-3
 - Skill: `.claude/skills/structured-runtime-logging/SKILL.md`

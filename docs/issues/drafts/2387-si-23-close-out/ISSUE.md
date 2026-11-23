@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2387-si-23-close-out/ISSUE.md
 branch: "{issue-number}-2387-si-23-close-out-spec"
 related-pr: null
-last-updated-utc: "2026-11-23 16:16"
+last-updated-utc: "2026-11-23 16:53"
 semantic-links:
   skill-links:
     - create-issue
@@ -51,7 +51,7 @@ Each sub-issue verifies its own lines. Nobody has read the whole log of the fina
 - Remove the "not yet implemented" marks from the catalogue in `docs/logging.md`.
 - Search the repository for programs that read a fact from log message text (AC15).
 - Fill the EPIC's acceptance verification table, record the completion review, and do the EPIC close-out as the repository's skills describe.
-- Check the status of the two external issues and of SI-16 and SI-22, and record them.
+- Check the status of the two external issues and of SI-21 and SI-22, and record them.
 
 ### Out of Scope
 
@@ -60,7 +60,7 @@ Each sub-issue verifies its own lines. Nobody has read the whole log of the fina
 
 ## Architectural Decisions
 
-- Related decisions: None (it verifies all) of the EPIC. After SI-1 is merged, the logging ADR it creates governs this work.
+- Related decisions: None (it verifies all) of the EPIC. After SI-2 is merged, the logging ADR it creates governs this work.
 - ADRs to create: none.
 
 During implementation, stop and create an ADR when a decision affects project architecture or design patterns, selects an approach among meaningful alternatives, or has consequences future contributors need to understand. If a decision of the EPIC does not hold in the code, stop, record the finding and ask the maintainer.
@@ -126,6 +126,7 @@ For test-producing work, use the `write-unit-test` skill and complete the design
 Append one line per meaningful update. When an AI agent did the work, name its model after the agent.
 
 - 2026-11-23 16:16 UTC - Claude Code (Fable 5.2) - Drafted with EPIC #2387 from the maintainer's decisions of 2026-11-21 and 2026-11-23. Not approved as a final specification; no GitHub issue created.
+- 2026-11-23 16:53 UTC - Claude Code (Fable 5.2) - Renumbered the sub-issues by working order after review round 1 of PR 3010 (finding F4); this draft's number and its references to other sub-issues follow the new numbers.
 
 ## Acceptance Criteria
 

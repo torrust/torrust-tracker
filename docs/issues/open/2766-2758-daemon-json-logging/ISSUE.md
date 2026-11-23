@@ -31,11 +31,11 @@ semantic-links:
 
 ## Dependencies
 
-This issue starts after EPIC #2387 (make tracker startup and shutdown logs coherent for operators) has merged its sub-issues SI-1 to SI-21, except SI-16 if that one is still blocked (maintainer decision, 2026-11-21; decision D1 in `docs/issues/open/2387-review-tracker-lifecycle-logs/decisions.md`). EPIC #2387 fixes the content of the lifecycle log lines (targets, message text, field names, levels) in the text format, and this issue then changes only the format and the stream. Consequences for this issue:
+This issue starts after EPIC #2387 (make tracker startup and shutdown logs coherent for operators) has merged its sub-issues SI-1 to SI-20, which are all the ones that change log lines except SI-21, blocked on a release of another repository (maintainer decision, 2026-11-21; decision D1 in `docs/issues/open/2387-review-tracker-lifecycle-logs/decisions.md`). EPIC #2387 fixes the content of the lifecycle log lines (targets, message text, field names, levels) in the text format, and this issue then changes only the format and the stream. Consequences for this issue:
 
 - The log lines and the readers named below will have changed when this issue starts. EPIC #2387 removes the `Started on:` text and moves `logs_parser.rs` and `tests/common/native_tracker/health.rs` to the `service_binding` field of the `Started` line; it renames `timeout_seconds` to `shutdown_deadline_in_secs`. Before T1, re-read the Background and Scope against `develop` and correct the file and line references.
 - The parsers then read fields, not message text. This issue changes how a field is read (from JSON), not which field.
-- EPIC #2387 adds an automated check of the lifecycle log convention that reads the text format through one small parser (its SI-21). This issue moves that parser to JSON.
+- EPIC #2387 adds an automated check of the lifecycle log convention that reads the text format through one small parser (its SI-20). This issue moves that parser to JSON.
 - Sub-issue SI-22 of EPIC #2387 (`run_id` on every log record) waits for this issue, because it adds a field in the formatter this issue replaces. Keep a place in the logging setup where a per-record field can be added.
 - `docs/logging.md`, created by EPIC #2387, describes the lines. This issue adds the JSON form to it.
 
@@ -110,7 +110,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
-| T0 | BLOCKED | Wait for EPIC #2387 (SI-1 to SI-21, except a blocked SI-16) and refresh this spec | Background, Scope and file references corrected against `develop` after the lifecycle log changes. |
+| T0 | BLOCKED | Wait for EPIC #2387 (SI-1 to SI-20) and refresh this spec | Background, Scope and file references corrected against `develop` after the lifecycle log changes. |
 | T1 | TODO | Agree the migration detail with the maintainer | Decision recorded in the spec; ADR if material. |
 | T2 | TODO | Tests for stream and format | Red tests: stdout empty, stderr JSON. |
 | T3 | TODO | Implement the logging change and the startup-failure record | Green tests. |

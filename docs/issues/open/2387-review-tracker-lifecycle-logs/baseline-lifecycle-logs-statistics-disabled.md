@@ -29,7 +29,7 @@ The log has three parts:
 | 174-189 | Readiness request | The single health check request used to confirm readiness; request logs, not lifecycle logs |
 | 190-262 | Shutdown | From `SIGTERM` to the final success message |
 
-This configuration emits 8 `WARN` lines (from line 175) and no `ERROR` line. They are the statistics listeners ignoring the events of the UDP check that the health check request makes against each of the two UDP trackers: four events for each tracker. Decision D8 in [decisions.md](decisions.md) and sub-issue SI-2 cover them.
+This configuration emits 8 `WARN` lines (from line 175) and no `ERROR` line. They are the statistics listeners ignoring the events of the UDP check that the health check request makes against each of the two UDP trackers: four events for each tracker. Decision D8 in [decisions.md](decisions.md) and sub-issue SI-1 cover them.
 
 ## Log
 
