@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/3004-2758-tracker-client-mask-tracker-key/ISSUE.md
-last-updated-utc: "2026-11-23 18:43"
+last-updated-utc: "2026-11-23 19:03"
 ---
 
 <!-- cspell:ignore SECRETKEY OTHERKEY nothex Abcdefghijklmnopqrstuv Greptile -->
@@ -479,6 +479,29 @@ exit=2 {"error":{"kind":"usage_error","source":"arguments","message":"error: une
 Across the whole recheck output, `SECRETKEYabc123` appears only in the input lines and the
 `grep -cF` commands, which print `0`. The tracker was stopped with `SIGINT` afterwards.
 
+## Review round 3 of PR 3012: recheck after the message casing change
+
+Copilot asked to spell `HTTP` in upper case in three checker error messages
+(`fix(tracker-client): [#3004] spell HTTP in upper case in the checker errors`). That changes
+production text, so the recheck was repeated on that commit, the last commit with code, at
+2026-11-23 19:03 UTC, with the same commands and configuration as the round 2 final recheck. This
+recheck replaces it as the final one.
+
+Every non-empty `exit=`, `stdout:` and `stderr:` line equals a line recorded above (checked with
+`grep -qxF` against this file), except the `check` result (M3), which now reads:
+
+```console
+$ TORRUST_CHECKER_CONFIG='{"udp_trackers":[],"http_trackers":["http://127.0.0.1:1/announce/SECRETKEYabc123"],"health_checks":[]}' target/debug/tracker_client check > out.txt 2> err.txt
+exit=0
+stdout: {"results":[{"Http":{"Err":{"url":"http://127.0.0.1:1/announce/****","results":[["Announce",{"Err":"HTTP request did not receive a response within the timeout: Failed to get a response: connection error for url (http://127.0.0.1:1/announce?info_hash=%9C8B%22%13%E3%0B%FF%21%2B0%C3%60%D2o%9A%02%13d%22&peer_id=%2DqB00000000000000001&port=17548&event=started&compact=0): client error (Connect): tcp connect error: Connection refused (os error 111)"}],["Scrape",{"Err":"HTTP request did not receive a response within the timeout: Failed to get a response: connection error for url (http://127.0.0.1:1/scrape?info_hash=%9C8B%22%13%E3%0B%FF%21%2B0%C3%60%D2o%9A%02%13d%22): client error (Connect): tcp connect error: Connection refused (os error 111)"}]]}}}]}
+stderr:
+matches in stdout: 0, in stderr: 0
+```
+
+`SECRETKEYabc123` appears only in the input lines and the `grep -cF` commands, which print `0`.
+The same commit adds a test that masking keeps the percent encoding of the other segments and the
+query; it passed when it was added (the masker uses the serialized, percent-encoded segments).
+
 ## Outcome
 
 Reproduced. R0 confirms the defect on `develop`: the key appears on stderr for `http announce` and
@@ -486,4 +509,4 @@ Reproduced. R0 confirms the defect on `develop`: the key appears on stderr for `
 
 Fixed. After the fix, the like-for-like recheck (V1 to V3), the success case (V4) and the two
 echoes (V5) write no key; every tracker URL in the output shows `****`. The recheck was repeated
-after the review round 1 and round 2 fixes, on the last commit with code, with the same result.
+after the review round 1, 2 and 3 fixes, on the last commit with code, with the same result.
