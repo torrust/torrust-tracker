@@ -8,6 +8,8 @@ semantic-links:
 
 <!-- skill-link: process-pr-review -->
 
+<!-- cspell:ignore Greptile -->
+
 # PR #3008 Review Audit
 
 Source: pull-request reviews and inline review threads for <https://github.com/torrust/torrust-tracker/pull/3008>.
@@ -67,6 +69,8 @@ Round 11 covers review 6026749477 (da2ce7, APPROVED, submitted 2026-11-23T17:56:
 
 Round 12 covers review 6027138634 (Copilot, COMMENTED, submitted 2026-11-23T18:22:27Z, of the head whose last commit is `docs(issues): [#3006] name the first-run-green exception in the T2 row and the loop`) with two inline comments without IDs or severity brackets, recorded as F32 and F33 with inferred severities. Both report table rows that start with `||`; neither file has one, so both are recorded as no-change findings, as PR 2237's audit records the same report.
 
+Round 13 covers review 6027279183 (Greptile, COMMENTED, submitted 2026-11-23T18:32:27Z, of the head whose last commit is `docs(pr-reviews): [#3006] record review round 12 of PR #3008`) with one inline comment marked P2, recorded as F34 (author class `Unknown`, severity `Minor (inferred)`).
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3008-f1 | Human | Major | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -100,8 +104,9 @@ Round 12 covers review 6027138634 (Copilot, COMMENTED, submitted 2026-11-23T18:2
 | F29 | review-finding:pr-3008-f29 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F30 | review-finding:pr-3008-f30 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F31 | review-finding:pr-3008-f31 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
-| F32 | review-finding:pr-3008-f32 | Copilot | Minor (inferred) | formatting | ORIGINAL | NO_ACTION | RESOLVED |
-| F33 | review-finding:pr-3008-f33 | Copilot | Minor (inferred) | formatting | ORIGINAL | NO_ACTION | RESOLVED |
+| F32 | review-finding:pr-3008-f32 | Copilot | Minor (inferred) | formatting | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F33 | review-finding:pr-3008-f33 | Copilot | Minor (inferred) | formatting | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F34 | review-finding:pr-3008-f34 | Unknown | Minor (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -534,6 +539,19 @@ Round 12 covers review 6027138634 (Copilot, COMMENTED, submitted 2026-11-23T18:2
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4670117477
 
+### F34 - F32 and F33 recorded a no-change finding as RESOLVED
+
+- PR number: 3008
+- Source review ID: 6027279183
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4670223490
+- Concern: F32 and F33 are no-change findings, but their rows said `NO_ACTION`/`RESOLVED`, while `process-pr-review` asks for `NO_ACTION`/`SUPERSEDED` for a no-change thread.
+- Solution: Both rows now say `NO_ACTION`/`SUPERSEDED`.
+- Current-tree verification: `grep -cE '^\| F3[23] \|.*\| NO_ACTION \| SUPERSEDED \|$' docs/pr-reviews/pr-3008-review/PR-REVIEW.md` prints 2.
+- Resolution reference: `docs(pr-reviews): [#3006] record no-change findings F32 and F33 as superseded`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4670286943
+
 ## Processing Log
 
 - 2026-11-23 16:10 UTC - Started audit. Round 1: review 6024919812 (da2ce7, CHANGES_REQUESTED, submitted 16:03:08Z) with seven inline comments, F1 to F7. F1 needed a maintainer decision: he chose D4 (the `http scrape` entries under `files`) and D5 (the UDP field beside the tag). The fixes of F1 and F3 to F7 were committed and pushed as `josecelano-bot` (`docs(issues): [#3006] move http scrape entries under files and name all consumers`).
@@ -553,6 +571,7 @@ Round 12 covers review 6027138634 (Copilot, COMMENTED, submitted 2026-11-23T18:2
 - 2026-11-23 18:05 UTC - Correction of the 17:41 entry: review 6026332138 was submitted as APPROVED and is now shown as DISMISSED.
 - 2026-11-23 18:05 UTC - Rounds 10 and 11: reviews 6026521422 (CodeRabbit, 17:42:25Z), 6026616249 (da2ce7, 17:48:17Z) and 6026749477 (da2ce7, APPROVED, 17:56:39Z) recorded as F27 to F31. The fix of F27 was committed and pushed as `josecelano-bot` (`git-bot-push` exit 0). Replied on the five threads (18:04:34Z to 18:04:44Z) and resolved the four open ones (each mutation returned `isResolved` true; the F27 reply is in the already resolved F23 thread).
 - 2026-11-23 18:23 UTC - Round 12: review 6027138634 (Copilot, 18:22:27Z) recorded as F32 and F33, both no-change. Replied on the two threads (18:23:07Z and 18:23:09Z) and resolved them (each mutation returned `isResolved` true).
+- 2026-11-23 18:38 UTC - Round 13: review 6027279183 (Greptile, 18:32:27Z) recorded as F34. Changed the thread state of F32 and F33 to `SUPERSEDED`. Replied on the thread (18:38:13Z) and resolved it (the mutation returned `isResolved` true). The audit validator, run with the bot token, exits 0.
 
 ## Completion Rules
 
