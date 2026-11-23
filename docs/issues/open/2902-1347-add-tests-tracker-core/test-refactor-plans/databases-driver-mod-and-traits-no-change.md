@@ -29,12 +29,13 @@ six files of `databases/traits/` (row 17). Decision for both: **no change**.
   the two functions that [row 8](sqlite-auth-key-store-tests.md) extracted and tested
   (`parse_valid_until`, `peer_key_from_row`), and the test harness every driver runs
   (`run_tests`).
-- **Uncovered lines, challenged:**
+- **Uncovered lines, challenged** (line numbers at the S2 head, after the rebase on `develop`
+  `f73a359f8`; lines 105-106 and 108 of the loop never run):
 
   | Lines | What they are | Decision |
   | --- | --- | --- |
-  | 101-102, 104 | the retry loop of the test-only `create_database_tables` helper: sleeps 3 seconds and tries again, up to 20 times, then returns "Database is not ready after retries." | No change. The loop waits for a MySQL or PostgreSQL container that is still starting; SQLite is ready at once, so the loop never repeats in a unit test. A test of it would sleep for up to a minute to check a helper of the tests themselves, and the Docker suites exercise the wait |
-  | 368, 403 | the `panic!` arm and the `Err(_)` arm of the helpers of the row 8 tests | test code |
+  | 102-108 | the retry loop of the test-only `create_database_tables` helper: sleeps 3 seconds and tries again, up to 20 times, then returns "Database is not ready after retries." | No change. The loop waits for a MySQL or PostgreSQL container that is still starting; SQLite is ready at once, so the loop never repeats in a unit test. A test of it would sleep for up to a minute to check a helper of the tests themselves, and the Docker suites exercise the wait |
+  | 409, 444 | the `panic!` arm and the `Err(_)` arm of the helpers of the row 8 tests | test code |
 
 ## Row 17: `databases/mod.rs` and `databases/traits/*`
 

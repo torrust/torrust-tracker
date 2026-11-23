@@ -93,7 +93,7 @@ and malformed rows written with raw `sqlx` through the driver's pool.
 - 89-91, `usize::try_from` of the affected-row count: it never exceeds one row on a 64-bit target.
 - A stored key that does not parse, or is not text, is not reachable through `get_key_from_keys`:
   the lookup binds a `Key` built by `Key::new`, which always prints as a valid key, and a stored
-  value of another type never equals that text (line 39, the `key` column decode, is the same case). The shared `peer_key_from_row`
+  value of another type never equals that text (line 37 at the S2 head, the `key` column decode, is the same case). The shared `peer_key_from_row`
   test covers the branch directly, from text, without any `Key` built by `Deserialize` (that path
   skips the validation, finding F3, still to confirm, and no test pins it).
 
@@ -137,9 +137,10 @@ become dev-dependencies of the package, as in `primitives` and `udp-core`; both 
   shared functions and their tests. The MySQL and PostgreSQL key stores shrink from 55 to 35
   measured lines each. The package's unit-only lines 4,651 / 5,526 (84.17%) to 4,747 / 5,563
   (85.33%), regions 5,116 / 6,108 (83.76%), functions 796 / 1,021 (77.96%). What stays uncovered in
-  the key store: line 39 (the `key` column decode of `get_key_from_keys`, unreachable as above),
-  73-75 (the `usize` conversion, unreachable on 64-bit) and 135 (the `unreachable!` arm of the test
-  helper); in `driver/mod.rs` the existing test-only retry helper (row 16) and two test arms.
+  the key store (line numbers at the S2 head, after the rebase on `develop` `f73a359f8`): line 37
+  (the `key` column decode of `get_key_from_keys`, unreachable as above), 68-71 (the `usize`
+  conversion, unreachable on 64-bit) and the `unreachable!` arm of the shared fixture
+  (`sqlite/mod.rs`, line 99); in `driver/mod.rs` the existing test-only retry helper (row 16) and two test arms.
 - **Tests:** 22 added, none changed: 11 for the shared functions (5 cases of `parse_valid_until`,
   one property, 5 cases of `peer_key_from_row`) and 11 for the store (cases of the `load_keys` and
   `get_key_from_keys` reads, the refused expiry, the duplicate key and the failed delete); 213 unit

@@ -51,10 +51,10 @@ returned configuration alive. A bad database is a stored row built by raw SQL
 
 **Not tested, no decision:**
 
-- 40 and 42-44, the decode and parse of the row `get_info_hash_from_whitelist` finds: the lookup
+- The decode and parse of the row `get_info_hash_from_whitelist` finds (lines 39-43 at the S2 head): the lookup
   binds a valid info-hash's text, so a row that matches it always parses and is text (a blob or a
   different text never equals it).
-- 64-66, `usize::try_from` of the affected-row count: it never exceeds one row on a 64-bit target.
+- `usize::try_from` of the affected-row count (lines 60-63 at the S2 head): it never exceeds one row on a 64-bit target.
 
 ## Property-Test Decision
 
@@ -84,8 +84,9 @@ No `quickcheck`: the inputs are SQL rows and one missing table.
   target directory, 2026-11-23): the file 17 / 31 lines to 47 / 54, regions 18 / 42 to 66 / 77,
   functions 7 / 15 to 18 / 21 (the counts include the test module). The package's unit-only lines
   4,823 / 5,620 (85.82%) to 4,853 / 5,643 (86.00%), regions 5,286 / 6,233 (84.81%), functions
-  833 / 1,041 (80.02%). Left uncovered, as planned: 40 and 42-44 (the decode and parse of the row
-  `get_info_hash_from_whitelist` finds) and 64-66 (the `usize` conversion).
+  833 / 1,041 (80.02%). Left uncovered, as planned (line numbers at the S2 head, after the rebase on `develop`
+  `f73a359f8`): 39-43 (the decode and parse of the row `get_info_hash_from_whitelist` finds) and
+  60-63 (the `usize` conversion).
 - **Tests:** 5 added (cases included), none changed: 234 to 239 unit tests in the package.
 - **Mutations** (each applied alone and reverted, the file compared with its copy afterwards):
 

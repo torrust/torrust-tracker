@@ -81,7 +81,8 @@ No `quickcheck`: the inputs are the variants of a closed enum, listed in the tab
 - **Coverage** (stable Rust 1.100.0, `cargo-llvm-cov 0.9.1`, `--all-features --lib`, clean coverage
   target directory, 2026-11-23): the file 35 / 35 lines (reached by rows 8-12) to 38 / 40 with the
   test module's helpers, regions 23 / 23 to 28 / 30, functions 4 / 4 to 5 / 5. The two lines left
-  are the fallback arms of the test helpers (168 and 179): test code. The package's unit-only
+  are the fallback arms of the test helpers (lines 147 and 158 at the S2 head, after the rebase on
+  `develop` `f73a359f8`): test code. The package's unit-only
   lines 4,948 / 5,719 (86.52%) to 4,951 / 5,724 (86.50%; the new test helpers add measured lines),
   regions 5,440 / 6,366 (85.45%), functions 860 / 1,060 (81.13%). Line coverage did not show what
   these tests protect: run against the tests that existed before them (checked on the committed
