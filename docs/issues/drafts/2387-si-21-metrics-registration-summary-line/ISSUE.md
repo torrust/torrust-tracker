@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2387-si-21-metrics-registration-summary-line/ISSUE.md
 branch: "{issue-number}-2387-si-21-metrics-registration-summary-line-spec"
 related-pr: null
-last-updated-utc: "2026-11-23 16:53"
+last-updated-utc: "2026-11-23 17:20"
 semantic-links:
   skill-links:
     - create-issue
@@ -40,7 +40,7 @@ Starting the tracker logs one `INFO` line for metrics registration, with the num
 
 ## Background
 
-The crate `torrust-metrics` 0.2.0 logs one `INFO` line under the target `METRICS` in `describe_counter` and `describe_gauge`, with `unit` and `description` as `Debug` of an `Option`. The baseline has 28 such lines, more than a tenth of a start. The cause is in that crate, so the fix is there: `DEBUG` level, `Display` values, no `Option` wrapper. This issue is blocked until that crate releases the fix.
+The crate `torrust-metrics` 0.2.0 logs one `INFO` line under the target `METRICS` in `describe_counter` and `describe_gauge`, with `unit` and `description` as `Debug` of an `Option`. The baseline has 28 such lines, more than a tenth of a start. The cause is in that crate, so the fix is there: `DEBUG` level, `Display` values, no `Option` wrapper. The upstream issue is <https://github.com/torrust/torrust-metrics/issues/4>. This issue is blocked until that crate releases the fix.
 
 ## Scope
 
@@ -121,6 +121,7 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 
 - 2026-11-23 16:16 UTC - Claude Code (Fable 5.2) - Drafted with EPIC #2387 from the maintainer's decisions of 2026-11-21 and 2026-11-23. Not approved as a final specification; no GitHub issue created.
 - 2026-11-23 16:53 UTC - Claude Code (Fable 5.2) - Renumbered the sub-issues by working order after review round 1 of PR 3010 (finding F4); this draft's number and its references to other sub-issues follow the new numbers.
+- 2026-11-23 17:20 UTC - Claude Code (Fable 5.2) - Restored the link to the upstream issue, which the renumbering commit had dropped (review finding F10 of da2ce7 on PR 3010, audit finding F13).
 
 ## Acceptance Criteria
 

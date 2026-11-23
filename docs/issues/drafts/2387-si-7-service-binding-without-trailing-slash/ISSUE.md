@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2387-si-7-service-binding-without-trailing-slash/ISSUE.md
 branch: "{issue-number}-2387-si-7-service-binding-without-trailing-slash-spec"
 related-pr: null
-last-updated-utc: "2026-11-23 16:53"
+last-updated-utc: "2026-11-23 17:20"
 semantic-links:
   skill-links:
     - create-issue
@@ -47,7 +47,7 @@ A service binding has one text form in every log line: `<protocol>://<socket add
 
 - A small display helper in the workspace that prints a `ServiceBinding` as `<protocol>://<socket address>`, with rustdoc that says why it exists and when it is deleted, and unit tests for UDP, HTTP, HTTPS, IPv4 and IPv6.
 - Use the helper at every log site that prints a service binding, request-handling lines included (about 25 sites; the specification pull request lists them).
-- The issue on `torrust/torrust-net-primitives` for `Display`. It is filed with the EPIC specification; this issue links it.
+- The issue on `torrust/torrust-net-primitives` for `Display`. It is filed: <https://github.com/torrust/torrust-net-primitives/issues/1>.
 - A recorded follow-up: when the fixed crate is used here, delete the helper and print the type directly.
 - Update the catalogue of lifecycle lines and the section "Changes in 4.0.0" in `docs/logging.md` for every line this issue changes.
 
@@ -124,6 +124,7 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 
 - 2026-11-23 16:16 UTC - Claude Code (Fable 5.2) - Drafted with EPIC #2387 from the maintainer's decisions of 2026-11-21 and 2026-11-23. Not approved as a final specification; no GitHub issue created.
 - 2026-11-23 16:53 UTC - Claude Code (Fable 5.2) - Renumbered the sub-issues by working order after review round 1 of PR 3010 (finding F4); this draft's number and its references to other sub-issues follow the new numbers.
+- 2026-11-23 17:20 UTC - Claude Code (Fable 5.2) - Restored the link to the upstream issue, which the renumbering commit had dropped (review finding F10 of da2ce7 on PR 3010, audit finding F13).
 
 ## Acceptance Criteria
 
