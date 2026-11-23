@@ -8,7 +8,7 @@ semantic-links:
 
 <!-- skill-link: process-pr-review -->
 
-<!-- cspell:ignore Greptile -->
+<!-- cspell:ignore Greptile coderabbitai -->
 
 # PR #3012 Review Audit
 
@@ -56,6 +56,11 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F9 | review-finding:pr-3012-f9 | Copilot | Major | security | RE_RAISE_OF:F7 | FIXED | RESOLVED |
 | F10 | review-finding:pr-3012-f10 | Copilot | Major | security | ORIGINAL | FIXED | RESOLVED |
 | F11 | review-finding:pr-3012-f11 | Copilot | Major | security | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-3012-f12 | Unknown | Major (inferred) | security | ORIGINAL | FIXED | RESOLVED |
+| F13 | review-finding:pr-3012-f13 | Unknown | Minor | security | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-3012-f14 | Unknown | Minor | security | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-3012-f15 | Unknown | Minor | security | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-3012-f16 | Unknown | Nit | testing | ORIGINAL | FIXED | NON_RESOLVABLE |
 
 ## Finding Details
 
@@ -202,9 +207,75 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3012#discussion_r4669943169
 
+### F12 - A backslash separator leaves the key in an echo
+
+- PR number: 3012
+- Source review ID: 6026959633
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3012#discussion_r4669969342
+- Concern: Greptile (P1, security): `http://tracker.example/announce\<key>` is not masked by the literal search, although HTTP URL parsing treats the backslash as a slash; as an extra argument it reaches stderr through `AppError::from_clap`. Cover separators the parser normalizes and add a usage-error test.
+- Solution: The masker takes `\` as `/` and a `\` ends a key segment. The recheck then found the configuration echo still leaking, because `serde_json` writes the backslash as `\\`; the key is now the first non-empty segment after the endpoint (`fix(tracker-client): [#3004] mask the key after an escaped backslash`). Unit and black-box tests for both echoes were red first.
+- Current-tree verification: `cargo test -q -p torrust-tracker-client-lib --lib backslash` passes 2 tests and `cargo test -q -p torrust-tracker-client --test key_redaction backslash` passes 2.
+- Resolution reference: `fix(tracker-client): [#3004] mask keys after a backslash, a delimiter or a nested endpoint`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3012#discussion_r4670404999
+
+### F13 - A key after a delimiter that follows the endpoint stays visible
+
+- PR number: 3012
+- Source review ID: 6027173167
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3012#discussion_r4670137678
+- Concern: CodeRabbit: the masker stops at the first delimiter after `/announce/` or `/scrape/`, so `/announce/abc)<key>` keeps `<key>` and `/announce/(<key>` is unchanged. Mask the key segment whatever delimiter precedes it, and test it.
+- Solution: A key segment ends only at a path delimiter, a character that cannot appear in a URL, or a closing quote; `(` and `)` are part of it. The contract states the rule. The test was red first.
+- Current-tree verification: `cargo test -q -p torrust-tracker-client-lib --lib starts_with_or_contains` passes 1 test.
+- Resolution reference: `fix(tracker-client): [#3004] mask keys after a backslash, a delimiter or a nested endpoint`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3012#discussion_r4670405555
+
+### F14 - An endpoint that starts at the slash ending another one is skipped
+
+- PR number: 3012
+- Source review ID: 6027173167
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3012#discussion_r4670137688
+- Concern: CodeRabbit: after masking a key the cursor passes a marker whose leading `/` it shares, so `/announce/scrape/<key>` keeps the key. Find every marker, including overlapping ones.
+- Solution: Every marker is found by searching on from the byte after each match; the key ranges are collected and masked, merging overlaps. The test was red first.
+- Current-tree verification: `cargo test -q -p torrust-tracker-client-lib --lib follows_another_endpoint` passes 1 test.
+- Resolution reference: `fix(tracker-client): [#3004] mask keys after a backslash, a delimiter or a nested endpoint`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3012#discussion_r4670406053
+
+### F15 - The password of a second URL whose authority follows the first is kept
+
+- PR number: 3012
+- Source review ID: 6027173167
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3012#discussion_r4670137696
+- Concern: CodeRabbit: the password scan resumes after the whole authority, which can contain the scheme of the next URL, so its password is copied unmasked. Resume at the authority start with a separate copy cursor, and test two URLs.
+- Solution: Applied the suggested fix (copy cursor, search from the authority start); `\` also ends an authority. The test was red first.
+- Current-tree verification: `cargo test -q -p torrust-tracker-client-lib --lib password_of_every_url` passes 1 test.
+- Resolution reference: `fix(tracker-client): [#3004] mask keys after a backslash, a delimiter or a nested endpoint`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3012#discussion_r4670406539
+
+### F16 - No body-read test for `http scrape`
+
+- PR number: 3012
+- Source review ID: 6027173167
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3012#pullrequestreview-6027173167
+- Concern: CodeRabbit (trivial, in the review body): the cut-short tests cover `http announce` and `check`, not the separate body read of `scrape_command`. Add an `http scrape` test with the cut-short fake.
+- Solution: Added the test. It passed on the round 1 head because the fix covered the path, so it was proved by mutation: with `scrape_command` reading the body with `response.bytes().await?`, only this test failed (`evidence/r2-scrape-mutation.txt`). The finding has no thread; the reply is a PR comment.
+- Current-tree verification: `cargo test -q -p torrust-tracker-client --test key_redaction http_scrape_response_body` passes 1 test.
+- Resolution reference: `fix(tracker-client): [#3004] mask keys after a backslash, a delimiter or a nested endpoint`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3012#issuecomment-7110688881
+
 ## Processing Log
 
 - 2026-11-23 18:10 UTC - Round 1 had three reviews of the head `docs(issues): [#3004] record the regression tests, the recheck and the retrospective`: Greptile 6026091763 (COMMENTED, 17:17:59Z, two inline comments, F7 and F8), da2ce7 6026720101 (COMMENTED, 17:54:49Z, six inline comments, F1 to F6) and Copilot 6026728662 (COMMENTED, 17:55:20Z, three inline comments with IDs R1 to R3, recorded as F9 to F11 because the audit IDs F1 to F3 were taken). The new tests were run red at 17:58Z (`evidence/r1-red.txt`); fix commits made at 18:00:56Z, 18:01:42Z and 18:03:44Z (committer times) and pushed before the replies. Replied on the 11 threads as `josecelano-bot` (reply `created_at` 18:07:56Z to 18:08:21Z), edited the PR description (counts and the round 1 changes, F5), and resolved each thread with GraphQL; every `resolveReviewThread` returned `isResolved` true. The audit was written after the replies.
+- 2026-11-23 18:49 UTC - Round 2 had two reviews: Greptile 6026959633 (COMMENTED, 18:10:24Z, on the round 1 fix head, one inline comment, F12) and CodeRabbit 6027173167 (COMMENTED, 18:24:53Z, on the round 1 audit head, three inline comments, F13 to F15, and one nitpick in its body, F16). The poller watched only da2ce7 and Copilot, so it did not report them; they were found when the maintainer asked. Red runs at 18:39Z and 18:41Z, the scrape mutation at 18:40Z; fix commits at 18:40:23Z and 18:42:20Z, the evidence commit at 18:44:47Z, after the final recheck at 18:43Z; pushed before the replies. Replied on the four threads (`created_at` 18:48:36Z to 18:48:43Z) and on F16 with a PR comment (18:48:46Z), all as `josecelano-bot`. Resolved F12 and F13 with GraphQL (`isResolved` true); CodeRabbit had already resolved the F14 and F15 threads itself after the push (`resolvedBy` `coderabbitai[bot]`). F16 has no thread.
 
 ## Completion Rules
 
