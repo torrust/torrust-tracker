@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/ci-tools-keep-secrets-out-of-logs/ISSUE.md
 branch: "{issue-number}-ci-tools-keep-secrets-out-of-logs"
 related-pr: null
-last-updated-utc: "2026-11-23 19:45"
+last-updated-utc: "2026-11-23 20:42"
 semantic-links:
   skill-links:
     - create-issue
@@ -42,7 +42,7 @@ The inventory of EPIC #2993 (section "Verified by running experiments") and its 
 | `src/console/ci/e2e/docker.rs:89` | `tracing::debug!("Docker run args: {:?}", args)`: the `docker run` arguments, including each `--env KEY=value`, so the configuration passed through the environment |
 | `src/console/ci/compose.rs:111`, `:317` | `tracing::info!("Running docker compose command: {:?}", command)`: the `Debug` of a `std::process::Command`, which prints the environment set with `.envs(...)`. Its only caller today passes image names, ports and paths (`src/console/ci/qbittorrent_e2e/services_setup.rs:123-160`), so the risk is latent |
 | `src/console/ci/e2e/tracker_checker.rs:88` | `tracing::info!("Tracker Checker config:\n{config}")`: the checker configuration. In the E2E runner it is the JSON of the running services (addresses parsed from the `Started on:` lines, `runner.rs:117-120`), so it holds no token or password today; it is listed because the function logs whatever configuration it gets (issue #3004 noted it and left it out of its scope) |
-| `src/console/ci/qbittorrent_e2e/tracker/config_builder.rs:16-17` | constants that hold database URLs with a user and a password (`mysql://db_user:db_user_secret_password@...`, `postgresql://postgres:postgres@...`) |
+| `src/console/ci/qbittorrent_e2e/tracker/config_builder.rs:16-17` | constants that hold database URLs with a user and a password (`mysql://db_user:***@...`, `postgresql://postgres:***@...`) |
 
 The values are test values of the CI environment, so the exposure is low today. The pattern is the problem: the CI logs are public on GitHub Actions, and the same code would print a real secret if someone pointed the tool at a real configuration. The `handle-secrets` skill forbids secrets in logs.
 
