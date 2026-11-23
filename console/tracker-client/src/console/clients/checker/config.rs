@@ -115,16 +115,10 @@ impl TryFrom<PlainConfiguration> for Configuration {
 fn parse_udp_tracker_url(entry: String) -> Result<ServiceUrl, ConfigurationError> {
     // The scheme is read from the raw entry: `127.0.0.1:6969` has none, and a URL parser alone
     // would read `localhost:6969` as the scheme `localhost`.
-    if let Some((scheme, _)) = entry.split_once("://")
-        && scheme != "udp"
-    {
-        return Err(reject(entry, UrlRejection::UnsupportedScheme));
-    }
-
-    let candidate = if entry.contains("://") {
-        entry.clone()
-    } else {
-        format!("udp://{entry}")
+    let candidate = match leading_scheme(&entry) {
+        Some(scheme) if scheme.eq_ignore_ascii_case("udp") => entry.clone(),
+        Some(_) => return Err(reject(entry, UrlRejection::UnsupportedScheme)),
+        None => format!("udp://{entry}"),
     };
     let url = candidate.parse::<ServiceUrl>().map_err(ConfigurationError::InvalidUrl)?;
 
@@ -137,6 +131,20 @@ fn parse_udp_tracker_url(entry: String) -> Result<ServiceUrl, ConfigurationError
     }
 
     Ok(url)
+}
+
+/// Returns the scheme when the entry starts with one (`<scheme>://`).
+///
+/// A scheme is a letter followed by letters, digits, `+`, `-` or `.` (RFC 3986), so `://` found
+/// later in the entry, for example inside a query string, is not a leading scheme.
+fn leading_scheme(entry: &str) -> Option<&str> {
+    let (scheme, _) = entry.split_once("://")?;
+    let mut chars = scheme.chars();
+
+    chars.next().filter(char::is_ascii_alphabetic)?;
+    chars
+        .all(|c| c.is_ascii_alphanumeric() || matches!(c, '+' | '-' | '.'))
+        .then_some(scheme)
 }
 
 /// Parses an HTTP tracker or health-check entry. It must have the scheme `http` or `https` and a
@@ -321,6 +329,37 @@ mod tests {
                 let config = Configuration::try_from(plain_config).expect("Invalid plain configuration");
 
                 assert_eq!(config.udp_trackers[0], "udp://localhost:6969".parse::<ServiceUrl>().unwrap());
+            }
+
+            #[test]
+            fn it_should_allow_the_udp_scheme_in_upper_case() {
+                let plain_config = PlainConfiguration {
+                    udp_trackers: vec!["UDP://127.0.0.1:6969".to_string()],
+                    http_trackers: vec![],
+                    health_checks: vec![],
+                };
+
+                let config = Configuration::try_from(plain_config).expect("Invalid plain configuration");
+
+                assert_eq!(config.udp_trackers[0], "udp://127.0.0.1:6969".parse::<ServiceUrl>().unwrap());
+            }
+
+            #[test]
+            fn it_should_not_read_a_scheme_from_a_query_string() {
+                let plain_config = PlainConfiguration {
+                    udp_trackers: vec!["127.0.0.1:6969/announce?next=http://example.com".to_string()],
+                    http_trackers: vec![],
+                    health_checks: vec![],
+                };
+
+                let config = Configuration::try_from(plain_config).expect("Invalid plain configuration");
+
+                assert_eq!(
+                    config.udp_trackers[0],
+                    "udp://127.0.0.1:6969/announce?next=http://example.com"
+                        .parse::<ServiceUrl>()
+                        .unwrap()
+                );
             }
 
             #[test]
