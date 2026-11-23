@@ -1,10 +1,10 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/3004-2758-tracker-client-mask-tracker-key/ISSUE.md
-last-updated-utc: "2026-11-23 18:03"
+last-updated-utc: "2026-11-23 18:43"
 ---
 
-<!-- cspell:ignore SECRETKEY OTHERKEY nothex Abcdefghijklmnopqrstuv -->
+<!-- cspell:ignore SECRETKEY OTHERKEY nothex Abcdefghijklmnopqrstuv Greptile -->
 
 # Manual Verification Evidence
 
@@ -427,6 +427,58 @@ exit=2 {"error":{"kind":"usage_error","source":"arguments","message":"error: une
 
 No output contains a key. The tracker was stopped with `SIGINT` afterwards.
 
+## Review round 2 of PR 3012: regression tests, fix and recheck
+
+Greptile and CodeRabbit found four more ways the text masker left a key or a password in an echo: a
+`\` separator (`/announce\<key>`), a key segment that starts with or contains a delimiter
+(`/announce/(<key>`), an endpoint that starts at the `/` ending another one
+(`/announce/scrape/<key>`), and a second URL's password when one authority runs into the next. They
+also asked for a body-read test of `http scrape`.
+
+### Red runs and the scrape mutation
+
+- 2026-11-23 18:39 UTC, tests added, production code as in the round 1 head
+  (`docs(pr-reviews): [#3012] record review round 1`), `evidence/r2-red.txt`: 4 library tests
+  failed (backslash, delimiter in the segment, nested endpoint, two passwords) and the black-box
+  usage-error test with a backslash failed. The `http scrape` body-read test passed, because the fix
+  already covered that path.
+- 2026-11-23 18:40 UTC, `evidence/r2-scrape-mutation.txt`: with `scrape_command` reading the body
+  with `response.bytes().await?` again (announce unchanged), only the new `http scrape` body-read
+  test failed. The file was restored with no diff.
+- 2026-11-23 18:41 UTC, `evidence/r2-red-escaped-backslash.txt`: the recheck after the first round 2
+  fix (`fix(tracker-client): [#3004] mask keys after a backslash, a delimiter or a nested endpoint`)
+  still showed the key in the configuration echo with a backslash, because `serde_json` writes it
+  as `\\` and the masker stopped at the second one. A unit test with `\\` and a black-box test of
+  the configuration echo with a backslash were added and failed on that commit; the next commit
+  (`fix(tracker-client): [#3004] mask the key after an escaped backslash`) makes the key the first
+  non-empty segment after the endpoint.
+
+### Green run
+
+2026-11-23 18:42 UTC on `fix(tracker-client): [#3004] mask the key after an escaped backslash`:
+`cargo test -q -p torrust-tracker-client-lib --lib` 40 passed; `cargo test -q -p torrust-tracker-client`
+all binaries `ok` (`key_redaction` 15 passed); clippy with `-D clippy::pedantic` clean.
+
+### Final recheck
+
+2026-11-23 18:43 UTC, `tracker_client` and `torrust-tracker` built on
+`fix(tracker-client): [#3004] mask the key after an escaped backslash`, the last commit with code.
+The same commands as the round 1 recheck (a fresh database), and the two echoes now also with a
+backslash URL. This recheck replaces the round 1 recheck as the final one. Every non-empty `exit=`,
+`stdout:` and `stderr:` line of M1 to M4 and of the first three echo URLs equals a line recorded
+in the round 1 recheck above (checked with `grep -qxF` against this file). The new lines:
+
+```console
+$ U='http://127.0.0.1:1/announce\SECRETKEYabc123'
+$ TORRUST_CHECKER_CONFIG="{\"udp_trackers\":[],\"http_trackers\":\"${U//\\/\\\\}\",\"health_checks\":[]}" target/debug/tracker_client check > /dev/null 2> e.txt
+exit=2 {"error":{"kind":"invalid_configuration","source":"TORRUST_CHECKER_CONFIG","message":"JSON parse error: invalid type: string \"http://127.0.0.1:1/announce\\\\****\", expected a sequence at line 1 column 81"}}
+$ target/debug/tracker_client http announce http://127.0.0.1:1/announce 9c38422213e30bff212b30c360d26f9a02136422 "$U" > /dev/null 2> e.txt
+exit=2 {"error":{"kind":"usage_error","source":"arguments","message":"error: unexpected argument 'http://127.0.0.1:1/announce\\****' found\n\nUsage: tracker_client http announce [OPTIONS] <TRACKER_URL> <INFO_HASH>\n\nFor more information, try '--help'.\n"}}
+```
+
+Across the whole recheck output, `SECRETKEYabc123` appears only in the input lines and the
+`grep -cF` commands, which print `0`. The tracker was stopped with `SIGINT` afterwards.
+
 ## Outcome
 
 Reproduced. R0 confirms the defect on `develop`: the key appears on stderr for `http announce` and
@@ -434,4 +486,4 @@ Reproduced. R0 confirms the defect on `develop`: the key appears on stderr for `
 
 Fixed. After the fix, the like-for-like recheck (V1 to V3), the success case (V4) and the two
 echoes (V5) write no key; every tracker URL in the output shows `****`. The recheck was repeated
-after the review round 1 fix, on the last commit with code, with the same result.
+after the review round 1 and round 2 fixes, on the last commit with code, with the same result.

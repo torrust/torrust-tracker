@@ -1,0 +1,23 @@
+2026-11-23 18:40
+mutation: scrape_command reads the body with response.bytes().await? again (announce_command unchanged)
+
+running 14 tests
+............ 12/14
+it_should_mask_the_tracker_key_when_an_http_scrape_response_body_is_cut_short --- FAILED
+.
+failures:
+
+---- it_should_mask_the_tracker_key_when_an_http_scrape_response_body_is_cut_short stdout ----
+
+thread 'it_should_mask_the_tracker_key_when_an_http_scrape_response_body_is_cut_short' (199958) panicked at console/tracker-client/tests/key_redaction.rs:66:5:
+stderr should not contain the tracker key: {"error":{"kind":"runtime_failure","source":"runtime","message":"error decoding response body for url (http://127.0.0.1:33375/scrape/SecretTrackerKey123?info_hash=%9C8B%22%13%E3%0B%FF%21%2B0%C3%60%D2o%9A%02%13d%22)"}}
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    it_should_mask_the_tracker_key_when_an_http_scrape_response_body_is_cut_short
+
+test result: FAILED. 13 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+error: test failed, to rerun pass `-p torrust-tracker-client --test key_redaction`

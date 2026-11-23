@@ -9,7 +9,7 @@ github-issue: 3004
 spec-path: docs/issues/open/3004-2758-tracker-client-mask-tracker-key/ISSUE.md
 branch: "3004-tracker-client-mask-tracker-key"
 related-pr: null
-last-updated-utc: "2026-11-23 18:03"
+last-updated-utc: "2026-11-23 18:43"
 semantic-links:
   skill-links:
     - create-issue
@@ -348,6 +348,7 @@ commit.
 - 2026-11-23 16:52 UTC - Claude Code (Claude Opus 5.5) - Spec PR 3005 merged. Repeated R0 on the implementation branch (same output) and did the T1 audit: two more leaks found, the `serde_json` echo of a wrong-typed checker configuration value (P8) and the `clap` echo of a misplaced argument (P9). The maintainer decided to fix both here; added a text-masking function and their tests to the spec.
 - 2026-11-23 17:09 UTC - Claude Code (Claude Opus 5.5) - Implemented T2 to T7: masking functions in the library, the library error and every console output path fixed; 13 library tests (10 of them red before the fix) and 8 black-box tests, red before the fix and green after; each console fix guarded by a mutation; the maintainer reviewed the work at the T5 stop. Docs updated; M1 to M4 rechecked. Material discoveries are in `implementation-retrospective.md`.
 - 2026-11-23 18:03 UTC - Claude Code (Claude Opus 5.5) - Addressed review round 1 of PR 3012 (da2ce7 F1 to F6, Copilot, Greptile): the text masker no longer parses URLs, so it masks echoed URLs with an upper-case scheme, a `)` or `'` inside, or that do not parse; an authenticated client masks its own key; the error text keeps the chain of causes; contract, README and evidence counts corrected. New tests were red first; the recheck was repeated on the last commit with code.
+- 2026-11-23 18:43 UTC - Claude Code (Claude Opus 5.5) - Addressed review round 2 of PR 3012 (Greptile, CodeRabbit): the text masker takes `\` as a separator, masks the whole segment after an endpoint and the first non-empty one after extra separators, finds nested endpoints, and masks every password; an `http scrape` body-read test. The recheck found the `serde_json`-escaped backslash leak, fixed with its own red tests; the final recheck ran on the last commit with code.
 
 ## Acceptance Criteria
 

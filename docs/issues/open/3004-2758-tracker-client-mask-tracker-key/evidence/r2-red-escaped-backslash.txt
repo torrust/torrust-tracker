@@ -1,0 +1,43 @@
+2026-11-23 18:41
+state: escaped-backslash tests added on fix(tracker-client): [#3004] mask keys after a backslash, a delimiter or a nested endpoint
+
+running 1 test
+http::client::redaction::tests::it_should_mask_the_key_after_an_escaped_backslash_separator --- FAILED
+
+failures:
+
+---- http::client::redaction::tests::it_should_mask_the_key_after_an_escaped_backslash_separator stdout ----
+
+thread 'http::client::redaction::tests::it_should_mask_the_key_after_an_escaped_backslash_separator' (234043) panicked at packages/tracker-client/src/http/client/redaction.rs:419:9:
+assertion `left == right` failed
+  left: "invalid type: string \"http://tracker.example.com/announce\\\\SECRET\", expected a sequence"
+ right: "invalid type: string \"http://tracker.example.com/announce\\\\****\", expected a sequence"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    http::client::redaction::tests::it_should_mask_the_key_after_an_escaped_backslash_separator
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 39 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p torrust-tracker-client-lib --lib`
+
+running 2 tests
+it_should_mask_the_tracker_key_when_the_check_configuration_echoes_a_url_with_a_backslash_separator --- FAILED
+.
+failures:
+
+---- it_should_mask_the_tracker_key_when_the_check_configuration_echoes_a_url_with_a_backslash_separator stdout ----
+
+thread 'it_should_mask_the_tracker_key_when_the_check_configuration_echoes_a_url_with_a_backslash_separator' (234593) panicked at console/tracker-client/tests/key_redaction.rs:66:5:
+stderr should not contain the tracker key: {"error":{"kind":"invalid_configuration","source":"TORRUST_CHECKER_CONFIG","message":"JSON parse error: invalid type: string \"http://127.0.0.1:7070/announce\\\\SecretTrackerKey123\", expected a sequence at line 1 column 88"}}
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    it_should_mask_the_tracker_key_when_the_check_configuration_echoes_a_url_with_a_backslash_separator
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 13 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p torrust-tracker-client --test key_redaction`

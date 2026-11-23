@@ -1,0 +1,74 @@
+2026-11-23 18:39
+state: round 2 tests added, production code as in the head of round 1
+
+running 35 tests
+.. 2/35
+http::client::redaction::tests::it_should_mask_the_key_after_a_backslash_separator --- FAILED
+http::client::redaction::tests::it_should_mask_a_key_segment_that_starts_with_or_contains_a_delimiter --- FAILED
+... 7/35
+http::client::redaction::tests::it_should_mask_the_key_after_an_endpoint_that_follows_another_endpoint --- FAILED
+..... 13/35
+http::client::redaction::tests::it_should_mask_the_password_of_every_url_in_a_text --- FAILED
+.....................
+failures:
+
+---- http::client::redaction::tests::it_should_mask_the_key_after_a_backslash_separator stdout ----
+
+thread 'http::client::redaction::tests::it_should_mask_the_key_after_a_backslash_separator' (180932) panicked at packages/tracker-client/src/http/client/redaction.rs:351:9:
+assertion `left == right` failed
+  left: "unexpected argument 'http://tracker.example.com/announce\\SECRET' found"
+ right: "unexpected argument 'http://tracker.example.com/announce\\****' found"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- http::client::redaction::tests::it_should_mask_a_key_segment_that_starts_with_or_contains_a_delimiter stdout ----
+
+thread 'http::client::redaction::tests::it_should_mask_a_key_segment_that_starts_with_or_contains_a_delimiter' (180931) panicked at packages/tracker-client/src/http/client/redaction.rs:359:9:
+assertion `left == right` failed
+  left: "http://tracker.example.com/announce/(SECRET"
+ right: "http://tracker.example.com/announce/****"
+
+---- http::client::redaction::tests::it_should_mask_the_key_after_an_endpoint_that_follows_another_endpoint stdout ----
+
+thread 'http::client::redaction::tests::it_should_mask_the_key_after_an_endpoint_that_follows_another_endpoint' (180933) panicked at packages/tracker-client/src/http/client/redaction.rs:371:9:
+assertion `left == right` failed
+  left: "http://tracker.example.com/announce/****/SECRET"
+ right: "http://tracker.example.com/announce/****/****"
+
+---- http::client::redaction::tests::it_should_mask_the_password_of_every_url_in_a_text stdout ----
+
+thread 'http::client::redaction::tests::it_should_mask_the_password_of_every_url_in_a_text' (180942) panicked at packages/tracker-client/src/http/client/redaction.rs:379:9:
+assertion `left == right` failed
+  left: "http://u:****@a.example.com,http://v:SECRET2@b.example.com"
+ right: "http://u:****@a.example.com,http://v:****@b.example.com"
+
+
+failures:
+    http::client::redaction::tests::it_should_mask_a_key_segment_that_starts_with_or_contains_a_delimiter
+    http::client::redaction::tests::it_should_mask_the_key_after_a_backslash_separator
+    http::client::redaction::tests::it_should_mask_the_key_after_an_endpoint_that_follows_another_endpoint
+    http::client::redaction::tests::it_should_mask_the_password_of_every_url_in_a_text
+
+test result: FAILED. 31 passed; 4 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.03s
+
+error: test failed, to rerun pass `-p torrust-tracker-client-lib --lib`
+
+running 14 tests
+.. 2/14
+it_should_mask_the_tracker_key_when_a_usage_error_echoes_a_misplaced_url_with_a_backslash_separator --- FAILED
+...........
+failures:
+
+---- it_should_mask_the_tracker_key_when_a_usage_error_echoes_a_misplaced_url_with_a_backslash_separator stdout ----
+
+thread 'it_should_mask_the_tracker_key_when_a_usage_error_echoes_a_misplaced_url_with_a_backslash_separator' (182781) panicked at console/tracker-client/tests/key_redaction.rs:66:5:
+stderr should not contain the tracker key: {"error":{"kind":"usage_error","source":"arguments","message":"error: unexpected argument 'http://127.0.0.1:7070/announce\\SecretTrackerKey123' found\n\nUsage: tracker_client http announce [OPTIONS] <TRACKER_URL> <INFO_HASH>\n\nFor more information, try '--help'.\n"}}
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    it_should_mask_the_tracker_key_when_a_usage_error_echoes_a_misplaced_url_with_a_backslash_separator
+
+test result: FAILED. 13 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+error: test failed, to rerun pass `-p torrust-tracker-client --test key_redaction`
