@@ -202,8 +202,6 @@ mod tests {
     }
 
     mod tracker_core_error {
-        use std::panic::Location;
-
         use rstest::rstest;
         use torrust_tracker_primitives::Driver;
 
@@ -212,16 +210,12 @@ mod tests {
         use crate::{authentication, databases};
 
         fn a_database_error() -> databases::error::Error {
-            databases::error::Error::InsertFailed {
-                location: Location::caller(),
-                driver: Driver::Sqlite3,
-            }
+            databases::error::Error::InsertFailed { driver: Driver::Sqlite3 }
         }
 
         fn a_whitelist_error() -> WhitelistError {
             WhitelistError::TorrentNotWhitelisted {
                 info_hash: sample_info_hash(),
-                location: Location::caller(),
             }
         }
 
@@ -252,9 +246,7 @@ mod tests {
             "Tracker core whitelist error: The torrent: "
         )]
         #[case::authentication(
-            TrackerCoreError::from(authentication::key::Error::KeyExpired {
-                location: Location::caller()
-            }),
+            TrackerCoreError::from(authentication::key::Error::KeyExpired),
             "AuthenticationError",
             "Tracker core authentication error: Key has expired"
         )]
