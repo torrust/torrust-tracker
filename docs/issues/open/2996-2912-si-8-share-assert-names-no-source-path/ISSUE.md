@@ -141,11 +141,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | TODO | Add the shared function with a unit test | In `packages/test-helpers`; one test per fragment and one for a clean message; doc comment names copies 1 and 2 |
+| T1 | TODO | Add the shared function with a unit test | In `packages/test-helpers`; one test per fragment and one for a clean message; doc comment names the other four definitions by path (copies 1, 2, 8 and 9) |
 | T2 | TODO | Switch `tracker-core` (copy 5) | Calls use the shared function; copy deleted |
 | T3 | TODO | Switch `axum-http-server` (copies 3 and 4) | Unit tests and integration tests use the shared function; copies deleted |
 | T4 | TODO | Switch `axum-rest-api-server` and `udp-server` (copies 6 and 7) | Copies deleted |
-| T5 | TODO | Cross-link the remaining copies | Doc comments on copies 1 and 2 name the other two |
+| T5 | TODO | Cross-link the remaining copies | Doc comments on copies 1, 2, 8 and 9 name the other four by path and say to change all five together |
 | T6 | TODO | Verify | `grep -rn "fn assert_names_no_source_path" packages` finds exactly five definitions; no `Cargo.toml` or `deny.toml` change |
 
 ## Commit Points
