@@ -9,7 +9,7 @@ github-issue: 2904
 spec-path: docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md
 branch: "2904-t5-task-reviewer-spec"
 related-pr: null
-last-updated-utc: "2026-11-23 13:16"
+last-updated-utc: "2026-11-23 14:03"
 semantic-links:
   skill-links:
     - create-issue
@@ -652,6 +652,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - 2026-11-19 12:17 UTC - Claude Code (Claude Opus 5.5) - Third review round of pull request #2963 (reviews `5974503813` and `5974634671` of `da2ce7`, findings F14 to F18), processed by `pr-review-handler`: the records of the M3 runs, of round 2 and of round 3 are stored in `evidence/m3-run-records.md`, which V3 and V6 link; V3 quotes the message that names `CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS` and says its effect alone was not observed; V6 counts three rounds with fixes; AC3 is checked with the evidence of V3, and the AC9 row gives the new count.
 - 2026-11-19 16:57 UTC - Claude Code (Claude Opus 5.5) - Fourth review round of pull request #2963 (review `5976833863` of `da2ce7`, finding F20), processed by `pr-review-handler`: V6 names its round definition, one push of fixes per processing round, which is how the 14 rounds of #2851 were counted, and also gives the count of reviews with a `FIXED` finding (19 for #2851, 5 for #2963); #2963 has 4 rounds with this one. The AC9 row gives both counts, and `evidence/m3-run-records.md` records the second run of round 3 and the two runs of round 4.
 - 2026-11-23 13:16 UTC - Claude Code (Claude Opus 5.5) - Pull request #2963 merged on 2026-11-19 at 18:37 UTC (T4). Before T5, the maintainer settled how the stop hook of D17 works, recorded in D17: the caller names the reply file in a `Reply file:` line of the task, which the hook reads from the agent's transcript; the count of refusals is kept per run in `.agents/issues/<issue-number>/reply-guard/`; the program is the binary `agent-reply-guard` of the crate `agent-reply-validator`. Two documented facts about `SubagentStop` hooks were added to What Claude Code supports.
+- 2026-11-23 14:03 UTC - Claude Code (Claude Opus 5.5) - Addressed the first review round of pull request #3002 (review `6022610166` of CodeRabbit, review `6022825332` of `da2ce7` with findings F1 to F5, review `6022913275` of Copilot), processed by `pr-review-handler` with the two design answers the maintainer gave that day: the hook reads the `Reply file:` line from the last message from the caller that carries one, so a continued reviewer is held to its latest request, and the count of refusals is kept per request, keyed by the `agent_id` together with the reply file, replacing the per-run count of the entry above; for a draft path the hook lets the reviewer finish with a message and keeps no count, and the issue number comes only from a path under `open/` or `closed/`. The plan, the checks and M7 name the hook's new tests, the cap of eight is stated only for `Stop`, and the facts table's introduction dates the two rows of 2026-11-23.
 
 ## Acceptance Criteria
 
