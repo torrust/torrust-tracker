@@ -50,7 +50,7 @@ The same kind of value appears as `timeout_seconds=25`, `drain_timeout=15s`, `re
 
 - Rule 1: a number in a field; never `Debug` of `Duration`; never only in the message.
 - Rule 2: the suffix `_in_secs` or `_in_ms`.
-- Rule 3: a configured duration uses its configuration key, prefixed with its section when ambiguous: `shutdown_deadline_in_secs`, `http_drain_in_secs`, `udp_request_drain_in_secs`, `event_listener_drain_in_secs`, `cookie_lifetime_in_secs`, `ip_bans_reset_interval_in_secs`. For the two keys that have no unit yet, the log uses the name with the unit (`max_peer_timeout_in_secs`, `inactive_peer_cleanup_interval_in_secs`).
+- Rule 3: a configured duration uses its configuration key, prefixed with its section when ambiguous: `shutdown_deadline_in_secs`, `http_drain_in_secs`, `udp_request_drain_in_secs`, `event_listener_drain_in_secs`, `cookie_lifetime_in_secs`, `ip_bans_reset_interval_in_secs`. Three keys have no unit yet (`max_peer_timeout`, `inactive_peer_cleanup_interval` and the UDP tracker's `cookie_lifetime`); for them the log uses the name SI-4 gives them (`max_peer_timeout_in_secs`, `inactive_peer_cleanup_interval_in_secs`, `cookie_lifetime_in_secs`). This is the one exception to rule 3, recorded in D6.
 - Rule 4: a measured duration is `elapsed_in_ms`, an integer. This issue renames existing measured durations in lifecycle lines; new ones come with SI-17 and SI-18.
 - Update the tests that read `timeout_seconds=` (`tests/lifecycle/shutdown_policy.rs`, `tests/common/native_tracker/mod.rs`).
 - Update the catalogue of lifecycle lines and the section "Changes in 4.0.0" in `docs/logging.md` for every line this issue changes.

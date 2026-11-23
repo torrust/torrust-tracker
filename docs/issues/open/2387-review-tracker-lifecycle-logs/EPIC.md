@@ -6,7 +6,7 @@ epic: null
 github-issue: 2387
 spec-path: docs/issues/open/2387-review-tracker-lifecycle-logs/EPIC.md
 epic-owner: null
-last-updated-utc: "2026-11-23 16:52"
+last-updated-utc: "2026-11-23 16:54"
 semantic-links:
   skill-links:
     - create-issue
@@ -100,7 +100,7 @@ Process decisions (2026-11-23):
 - Moving the programs that parse log text (E2E runner, test fixture, lifecycle tests) to structured fields.
 - The new lines of D10.
 - The rejection of private mode with UDP trackers configured.
-- Two changes outside lifecycle lines that the duration rule needs to be coherent: the `latency_ms` field of request logs and two configuration keys without a unit.
+- Two changes outside lifecycle lines that the duration rule needs to be coherent: the `latency_ms` field of request logs and three configuration keys without a unit.
 - An automated check of the convention.
 - The list of operator-visible changes for 4.0.0.
 
@@ -124,7 +124,7 @@ The sub-issues are drafts. Each gets its GitHub issue number when its session st
 | 1 | #[To be assigned] - Bug: statistics listeners log a `WARN` for every event when usage statistics are disabled | `docs/issues/drafts/2387-si-1-statistics-disabled-warning-per-event/ISSUE.md` | TODO | D8 | - |
 | 2 | #[To be assigned] - Record the logging convention: ADR, `docs/logging.md`, inventory and skill | `docs/issues/drafts/2387-si-2-logging-convention-adr-and-docs/ISSUE.md` | TODO | D9, D11, D12 | - |
 | 3 | #[To be assigned] - Reject private mode with UDP trackers configured at startup | `docs/issues/drafts/2387-si-3-reject-private-mode-with-udp-trackers/ISSUE.md` | TODO | D9 | - |
-| 4 | #[To be assigned] - Add the unit to the configuration keys `max_peer_timeout` and `inactive_peer_cleanup_interval` | `docs/issues/drafts/2387-si-4-configuration-keys-with-units/ISSUE.md` | TODO | D6 | - |
+| 4 | #[To be assigned] - Add the unit to the three duration configuration keys that have none | `docs/issues/drafts/2387-si-4-configuration-keys-with-units/ISSUE.md` | TODO | D6 | - |
 | 5 | #[To be assigned] - Add named targets to lifecycle lines that have none | `docs/issues/drafts/2387-si-5-add-missing-named-log-targets/ISSUE.md` | TODO | D2 | SI-2 |
 | 6 | #[To be assigned] - Rename log targets to underscore style and `API` to `REST_API` | `docs/issues/drafts/2387-si-6-rename-log-targets-to-underscore-style/ISSUE.md` | TODO | D2 | SI-5 |
 | 7 | #[To be assigned] - Print `service_binding` without a trailing slash in every log line | `docs/issues/drafts/2387-si-7-service-binding-without-trailing-slash/ISSUE.md` | TODO | D3b, D3c | SI-2 |

@@ -18,12 +18,13 @@ semantic-links:
     - docs/issues/open/2387-review-tracker-lifecycle-logs/decisions.md
     - .claude/skills/create-issue/SKILL.md
     - packages/configuration/src/v3_0_0/core.rs
+    - packages/configuration/src/v3_0_0/udp_tracker.rs
     - share/default/config/tracker.development.sqlite3.toml
 ---
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Add the unit to the configuration keys `max_peer_timeout` and `inactive_peer_cleanup_interval`
+# Issue #[To be assigned] - Add the unit to the three duration configuration keys that have none
 
 **Parent EPIC:** #2387 - Make Tracker Startup and Shutdown Logs Coherent for Operators. Sub-issue SI-4 of 23.
 
@@ -36,17 +37,18 @@ semantic-links:
 
 ## Goal
 
-Every duration key of the configuration says its unit. `max_peer_timeout` becomes `max_peer_timeout_in_secs` and `inactive_peer_cleanup_interval` becomes `inactive_peer_cleanup_interval_in_secs`.
+Every duration key of the configuration says its unit. `max_peer_timeout` becomes `max_peer_timeout_in_secs`, `inactive_peer_cleanup_interval` becomes `inactive_peer_cleanup_interval_in_secs`, and the UDP tracker's `cookie_lifetime` becomes `cookie_lifetime_in_secs`.
 
 ## Background
 
-The newer keys carry their unit (`deadline_in_secs`, `http_drain_in_secs`, `ip_bans_reset_interval_in_secs`); these two older keys do not. Rule 3 of D6 logs a configured duration under its key name, so the key names must be coherent for the log to be. This is a change of the configuration schema, not of a log line, so it has its own issue.
+The newer keys carry their unit (`deadline_in_secs`, `http_drain_in_secs`, `ip_bans_reset_interval_in_secs`); three older keys do not: `max_peer_timeout`, `inactive_peer_cleanup_interval` (`packages/configuration/src/v3_0_0/core.rs`) and `cookie_lifetime` (`packages/configuration/src/v3_0_0/udp_tracker.rs`). The first two are integers of seconds. `cookie_lifetime` is a `Duration`, which the configuration writes as a table with `secs` and `nanos`. Rule 3 of D6 logs a configured duration under its key name, so the key names must be coherent for the log to be. This is a change of the configuration schema, not of a log line, so it has its own issue.
 
 ## Scope
 
 ### In Scope
 
-- Rename the two keys in the current configuration schema, in the default configuration files under `share/default/config/`, in tests and in documents.
+- Rename the three keys in the current configuration schema, in the default configuration files under `share/default/config/`, in tests and in documents.
+- `cookie_lifetime` changes its value as well as its name: from a table with `secs` and `nanos` to an integer of seconds. The maintainer approved the first two renames on 2026-11-23; this third one follows the same decision (D6) and was added after the review of PR 3010, so the specification pull request asks him to confirm it. If he declines, record the exception to rule 3 of D6 in the logging convention instead.
 - Decide with the maintainer, in the specification pull request, how the schema version is handled: the keys change inside the configuration version that 4.0.0 ships, or the schema version is bumped. The specification records the decision and its reason.
 - Decide what an old key in a configuration file does: with D12 (clean break), the tracker refuses to start and the message names the new key. Check what the configuration loader does with an unknown key today and record it.
 - Search for any other duration key without a unit and report it.
@@ -128,7 +130,7 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 
 ## Acceptance Criteria
 
-- [ ] AC1: The two new keys are read and have the same effect as the old ones.
+- [ ] AC1: The three new keys are read and have the same effect as the old ones.
 - [ ] AC2: A configuration file with an old key does what the recorded decision says, with a message that names the new key.
 - [ ] AC3: No default configuration, test or current document uses an old key.
 - [ ] AC4: The change is listed for operators in "Changes in 4.0.0" of `docs/logging.md`, or where SI-2 says configuration changes go.
@@ -152,7 +154,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | Start with the new keys | Start the release tracker with the development configuration | It starts; the log shows the two values under the new names once SI-9 is merged | TODO | `manual-verification-evidence.md` section V1 |
+| M1 | Start with the new keys | Start the release tracker with the development configuration | It starts; the log shows the three values under the new names once SI-9 is merged | TODO | `manual-verification-evidence.md` section V1 |
 | M2 | Start with an old key | Put `max_peer_timeout = 60` in a copy of the configuration and start | The behavior the decision records | TODO | `manual-verification-evidence.md` section V2 |
 
 Notes:

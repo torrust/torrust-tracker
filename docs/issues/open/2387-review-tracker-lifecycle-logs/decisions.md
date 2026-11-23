@@ -1,7 +1,7 @@
 ---
 doc-type: decision-record
 issue-spec: docs/issues/open/2387-review-tracker-lifecycle-logs/EPIC.md
-last-updated-utc: "2026-11-23 16:03"
+last-updated-utc: "2026-11-23 16:54"
 ---
 
 # Decisions of EPIC #2387
@@ -200,7 +200,7 @@ Today `#[instrument]` captures every argument with `Debug`, which prints values 
 **Decision:** C.
 
 - A lifecycle span carries only `service_role` and `instance_index`. Every other argument is skipped.
-- A setting is logged once, as a field of the `Starting` line (for example `connection_id_validation`, `cookie_lifetime_in_secs`, `request_drain_in_secs`).
+- A setting is logged once, as a field of the `Starting` line (for example `connection_id_validation`, `cookie_lifetime_in_secs`, `udp_request_drain_in_secs`).
 - A nested span does not repeat the identity. A span without identity carries no fields.
 - One span per service job stays (`start_job`). `#[instrument]` is removed from the inner functions (`start_with_cancellation`, `start_v1`) and from `complete_startup`.
 
@@ -226,7 +226,9 @@ Today the same kind of value appears as `timeout_seconds=25`, `drain_timeout=15s
 Two follow-ups are separate sub-issues because they are outside lifecycle lines:
 
 - Request logs: `latency_ms` becomes `latency_in_ms` (SI-19).
-- Configuration keys without a unit: `max_peer_timeout` becomes `max_peer_timeout_in_secs` and `inactive_peer_cleanup_interval` becomes `inactive_peer_cleanup_interval_in_secs` (SI-4). This changes the configuration schema. Until it lands, the log uses the name with the unit.
+- Configuration keys without a unit (SI-4): `max_peer_timeout` becomes `max_peer_timeout_in_secs`, `inactive_peer_cleanup_interval` becomes `inactive_peer_cleanup_interval_in_secs`, and `cookie_lifetime` of a UDP tracker becomes `cookie_lifetime_in_secs`. The first two are integers of seconds already. `cookie_lifetime` is a `Duration`, written in the configuration as a table with `secs` and `nanos`, so its rename also changes its value to an integer of seconds. This changes the configuration schema.
+
+These three keys are the only exception to rule 3: until SI-4 lands, the log uses the name the key will have (`max_peer_timeout_in_secs`, `inactive_peer_cleanup_interval_in_secs`, `cookie_lifetime_in_secs`), not the key of today. The maintainer approved the first two renames on 2026-11-23. The third was found by the review of PR 3010 and follows the same decision; SI-4's specification pull request asks him to confirm it.
 
 **Reason:** rule 3 lets an operator search the log for the same word that is in the configuration file.
 
