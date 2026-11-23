@@ -9,7 +9,7 @@ github-issue: 2902
 spec-path: docs/issues/open/2902-1347-add-tests-tracker-core/ISSUE.md
 branch: "2902-1347-add-tests-tracker-core-statistics"
 related-pr: 2988
-last-updated-utc: "2026-11-23 13:03"
+last-updated-utc: "2026-11-23 13:06"
 semantic-links:
   skill-links:
     - create-issue
@@ -359,7 +359,7 @@ rows are ordered by slice, then by risk.
 | 6 | `statistics/persisted/downloads.rs` | S1 | 77 / 77 | Failing-`Database` case (line 133, `increase_global_downloads`), covered by row 5; two increment tests kill a surviving mutant ([plan](test-refactor-plans/statistics-persisted-downloads-tests.md)) | DONE |
 | 7 | `statistics/mod.rs`, `statistics/event/mod.rs` | S1 | 42 / 43, no entries | Test candidate (`statistics/mod.rs:49`, usage statistics disabled); `event/mod.rs` declarations only; 60 / 60 with one table test, `event/mod.rs` no change ([plan](test-refactor-plans/statistics-mod-tests.md)) | DONE |
 | 8 | `databases/driver/sqlite/auth_key_store.rs` | S2 | 29 / 55 | Test candidate; 97 / 102 with 22 tests, the shared `parse_valid_until` and `peer_key_from_row` extracted ([plan](test-refactor-plans/sqlite-auth-key-store-tests.md)) | DONE |
-| 9 | `databases/driver/sqlite/torrent_metrics_store.rs` | S2 | 27 / 46 | Test candidate | PENDING |
+| 9 | `databases/driver/sqlite/torrent_metrics_store.rs` | S2 | 27 / 46 | Test candidate ([plan](test-refactor-plans/sqlite-torrent-metrics-store-tests.md)) | IN_PROGRESS |
 | 10 | `databases/driver/sqlite/whitelist_store.rs` | S2 | 17 / 31 | Test candidate | PENDING |
 | 11 | `databases/driver/sqlite/mod.rs` | S2 | 81 / 91 | Test candidate (aggregate-metric error branches) | PENDING |
 | 12 | `databases/driver/sqlite/schema_migrator.rs` | S2 | 136 / 149 | No change likely; challenge each `?` | PENDING |
