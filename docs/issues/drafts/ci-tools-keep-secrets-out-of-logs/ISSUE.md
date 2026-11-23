@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/ci-tools-keep-secrets-out-of-logs/ISSUE.md
 branch: "{issue-number}-ci-tools-keep-secrets-out-of-logs"
 related-pr: null
-last-updated-utc: "2026-11-23 18:55"
+last-updated-utc: "2026-11-23 19:29"
 semantic-links:
   skill-links:
     - create-issue
@@ -40,8 +40,8 @@ The inventory of EPIC #2993 (section "Verified by running experiments") and its 
 | --- | --- |
 | `src/console/ci/e2e/runner.rs:80` | `tracing::info!("tracker config:\n{tracker_config}")`: the whole configuration TOML, with its access tokens and database password |
 | `src/console/ci/e2e/docker.rs:89` | `tracing::debug!("Docker run args: {:?}", args)`: the `docker run` arguments, including each `--env KEY=value`, so the configuration passed through the environment |
-| `src/console/ci/compose.rs:111`, `:317` | `tracing::info!("Running docker compose command: {:?}", command)`: the `Debug` of a `std::process::Command`, which prints the environment set with `.envs(...)` |
-| `src/console/ci/e2e/tracker_checker.rs:88` | `tracing::info!("Tracker Checker config:\n{config}")`: the checker configuration (issue #3004 noted it and left it out of its scope) |
+| `src/console/ci/compose.rs:111`, `:317` | `tracing::info!("Running docker compose command: {:?}", command)`: the `Debug` of a `std::process::Command`, which prints the environment set with `.envs(...)`. Its only caller today passes image names, ports and paths (`src/console/ci/qbittorrent_e2e/services_setup.rs:123-160`), so the risk is latent |
+| `src/console/ci/e2e/tracker_checker.rs:88` | `tracing::info!("Tracker Checker config:\n{config}")`: the checker configuration. In the E2E runner it is the JSON of the running services (addresses parsed from the `Started on:` lines, `runner.rs:117-120`), so it holds no token or password today; it is listed because the function logs whatever configuration it gets (issue #3004 noted it and left it out of its scope) |
 | `src/console/ci/qbittorrent_e2e/tracker/config_builder.rs:16-17` | constants that hold database URLs with a user and a password (`mysql://db_user:db_user_secret_password@...`, `postgresql://postgres:postgres@...`) |
 
 The values are test values of the CI environment, so the exposure is low today. The pattern is the problem: the CI logs are public on GitHub Actions, and the same code would print a real secret if someone pointed the tool at a real configuration. The `handle-secrets` skill forbids secrets in logs.
@@ -77,7 +77,7 @@ Follows `.claude/skills/fix-bug/SKILL.md`: re-check the sites on the starting co
 
 ## Regression Test Strategy
 
-A unit test per redaction helper (configuration text, `docker run` arguments, compose environment) that builds the input from a unique marker value and asserts the marker is not in the logged text. The E2E run itself is the manual check.
+A unit test per redaction helper (configuration text, `docker run` arguments, compose environment) that builds the input from a unique marker value and asserts the marker is not in the logged text. These tests carry the cases a real run cannot reach: a database password (the E2E runner forces SQLite), a credential in the compose environment (none is passed today) and the checker configuration (the E2E runner passes service addresses only). The manual scenarios show that each logging site runs.
 
 ## Implementation Plan
 
@@ -121,6 +121,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 ### Progress Log
 
 - 2026-11-23 18:08 UTC - Claude Code (Claude Opus 5.5), EPIC #2993 coordinator session - Drafted from the EPIC #2993 recheck after the maintainer put the CI tools out of the EPIC's scope. Not approved; no GitHub issue created.
+- 2026-11-23 19:29 UTC - Claude Code (Claude Opus 5.5), EPIC #2993 coordinator session - Review of PR 3014: scoped M1 to the runner configuration line and the admin token (the runner forces SQLite), and recorded that the checker log and the compose environment hold no credential today, so their markers are injected by unit tests.
 
 ## Acceptance Criteria
 
@@ -147,9 +148,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | E2E runner configuration log | Run the E2E runner locally with a configuration whose admin token and database password are unique markers; read the INFO log (`runner.rs:80`, `tracker_checker.rs:88`) | The configuration lines appear, redacted; no marker | TODO | `manual-verification-evidence.md` section V1 |
+| M1 | E2E runner configuration log | Run the E2E runner (`src/console/ci/e2e/runner.rs`) locally with an input configuration whose `[http_api.access_tokens]` admin token is a unique marker, and read the INFO line `tracker config:` (`runner.rs:80`). The line is written before the container starts. The runner then forces the SQLite driver (`runner.rs:95-96`), so a network-database input with a password marker cannot complete the run; the password case is covered by the T2 unit test, not by this scenario | The configuration line appears, redacted; no marker | TODO | `manual-verification-evidence.md` section V1 |
 | M2 | `docker run` arguments | The runner fixes tracing at INFO (`src/console/ci/e2e/runner.rs:74`), so the DEBUG event of `docker.rs:89` does not appear in M1. Run it with the level raised to DEBUG (a temporary local change, recorded and not committed, unless T3 adds a level option) and the same markers in the `--env` values | The `Docker run args` line appears; no marker | TODO | `manual-verification-evidence.md` section V2 |
-| M3 | Compose commands | Run the qBittorrent E2E runner (`src/console/ci/qbittorrent_e2e/`, which uses `compose.rs`) with marker values in the compose environment; read both `Running docker compose command` lines (`compose.rs:111`, `:317`) | Both lines appear; no marker | TODO | `manual-verification-evidence.md` section V3 |
+| M3 | Compose commands | The compose environment of the qBittorrent E2E runner holds only image names, ports and paths (`src/console/ci/qbittorrent_e2e/services_setup.rs:123-160`), so there is no credential to show today. Run the qBittorrent E2E runner and read both `Running docker compose command` lines (`compose.rs:111`, `:317`); the T3 unit test injects a marker through `DockerCompose::with_env` | Both lines appear and print no environment value | TODO | `manual-verification-evidence.md` section V3 |
 
 Each scenario is run on the starting commit first (baseline, the marker visible) and again after the last production change, and the evidence shows that each logging site ran.
 
