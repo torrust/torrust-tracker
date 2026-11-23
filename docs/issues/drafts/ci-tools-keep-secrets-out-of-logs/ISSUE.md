@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/ci-tools-keep-secrets-out-of-logs/ISSUE.md
 branch: "{issue-number}-ci-tools-keep-secrets-out-of-logs"
 related-pr: null
-last-updated-utc: "2026-11-23 18:08"
+last-updated-utc: "2026-11-23 18:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -81,6 +81,8 @@ A unit test per redaction helper (configuration text, `docker run` arguments, co
 
 ## Implementation Plan
 
+Test-development loop (required by `docs/templates/ISSUE.md`, "Commit Points", and the `create-issue` skill): the red tests are not written as one batch. Use the `write-unit-test` skill and work one behavior area at a time, in the order of the commit points below. For each area: write the smallest behavior-focused test, record its red output, make the production change, record the green output, then perform and record an explicit test-design review before starting the next area. The review uses the prose-first Arrange-Act-Assert comparison (write temporary prose for each section, refactor until the code expresses it, remove redundant prose) and confirms that the test exposes the one causal initial-state difference, that its fixture owns only incidental mechanics, and that the production Act and the independently specified expected result stay visible. Record each review in the task's evidence. Commit each reviewed increment before the next one. After the last increment, stop for maintainer review before final verification, the final commit and the pull request.
+
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
@@ -89,14 +91,15 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2 | TODO | Configuration logs | `runner.rs:80`, `tracker_checker.rs:88` log a redacted form. |
 | T3 | TODO | Command logs | `docker.rs:89`, `compose.rs:111`, `:317` log no environment value. |
 | T4 | TODO | Database URL constants | `config_builder.rs:16-17` removed or rebuilt. |
-| T5 | TODO | Final recheck | The E2E run repeated; no secret in the log. |
+| T4b | TODO | Maintainer checkpoint | Stop for maintainer review after the last test increment, before final verification, the final commit and the pull request. |
+| T5 | TODO | Final recheck | The manual scenarios repeated; no secret in the log. |
 
 ## Commit Points
 
 | Task | Coherent change set | Commit policy |
 | --- | --- | --- |
-| T2 | Configuration log redaction with its tests | Commit after focused validation and required review. |
-| T3 | Command log redaction with its tests | Commit after focused validation and required review. |
+| T2 | Configuration log redaction with its tests | Commit after the red and green runs and the recorded test-design review. |
+| T3 | Command log redaction with its tests | Commit after the red and green runs and the recorded test-design review. |
 | T4 | Database URL constants | Commit after focused validation and required review. |
 
 ## Progress Tracking
@@ -124,6 +127,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [ ] AC1: No log line of the CI tools under `src/console/ci/` holds an access token or a database password from the configuration or the environment.
 - [ ] AC2: The log still says which configuration file, container and command the tool used.
 - [ ] AC3: No constant in the CI tools holds a database URL with a password, or the reason it must stay is recorded.
+- [ ] AC4: Each test increment has a recorded test-design review, and the maintainer checkpoint after the last increment is recorded in the progress log.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -143,7 +147,11 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | E2E runner log | Run the E2E runner locally with a configuration whose admin token and database password are unique markers; read the log | No marker in the log | TODO | `manual-verification-evidence.md` section V1 |
+| M1 | E2E runner configuration log | Run the E2E runner locally with a configuration whose admin token and database password are unique markers; read the INFO log (`runner.rs:80`, `tracker_checker.rs:88`) | The configuration lines appear, redacted; no marker | TODO | `manual-verification-evidence.md` section V1 |
+| M2 | `docker run` arguments | The runner fixes tracing at INFO (`src/console/ci/e2e/runner.rs:74`), so the DEBUG event of `docker.rs:89` does not appear in M1. Run it with the level raised to DEBUG (a temporary local change, recorded and not committed, unless T3 adds a level option) and the same markers in the `--env` values | The `Docker run args` line appears; no marker | TODO | `manual-verification-evidence.md` section V2 |
+| M3 | Compose commands | Run the qBittorrent E2E runner (`src/console/ci/qbittorrent_e2e/`, which uses `compose.rs`) with marker values in the compose environment; read both `Running docker compose command` lines (`compose.rs:111`, `:317`) | Both lines appear; no marker | TODO | `manual-verification-evidence.md` section V3 |
+
+Each scenario is run on the starting commit first (baseline, the marker visible) and again after the last production change, and the evidence shows that each logging site ran.
 
 ### Disposable Verification Scripts
 
@@ -156,6 +164,7 @@ None planned.
 | AC1 | TODO | {test/log/PR link} |
 | AC2 | TODO | {test/log/PR link} |
 | AC3 | TODO | {test/log/PR link} |
+| AC4 | TODO | {test/log/PR link} |
 
 ## Risks and Trade-offs
 
