@@ -6,7 +6,7 @@ epic: null
 github-issue: 2387
 spec-path: docs/issues/open/2387-review-tracker-lifecycle-logs/EPIC.md
 epic-owner: null
-last-updated-utc: "2026-11-23 16:54"
+last-updated-utc: "2026-11-23 17:15"
 semantic-links:
   skill-links:
     - create-issue
@@ -71,11 +71,11 @@ All content decisions (D1 to D12), with their alternatives, pros, cons and reaso
 | --- | --- |
 | D1 | This EPIC goes before the JSON log format of #2766. The convention does not depend on the output format |
 | D2 | Named targets on every lifecycle line, in uppercase with underscores. Adding targets and renaming targets are two tasks. New: `JOB_MANAGER`, `APPLICATION`. `API` becomes `REST_API` |
-| D3 | `service_binding` is the only name of a bound listener, as a URL without trailing slash; `bind_address` only before the bind. A local display helper now and a fix in `torrust-net-primitives`. Service jobs are named by role and index |
+| D3 | Four parts. D3a: `service_binding` is the only name of a bound listener; `bind_address` only before the bind. D3b: the URL has no trailing slash. D3c: a local display helper now and a fix in `torrust-net-primitives`. D3d: service jobs are named by role and index |
 | D4 | Three state lines for each service: `Starting`, `Bound … socket`, `Started` (after registration). Lines are merged only when nothing can fail between them. The text `Started on:` is removed and its readers use fields |
 | D5 | Lifecycle spans carry only `service_role` and `instance_index`. Settings are logged once, on the `Starting` line |
 | D6 | A duration is a number with the unit in the field name (`_in_secs`, `_in_ms`); a configured duration uses its configuration key name; a measured one is `elapsed_in_ms` |
-| D7 | Metrics registration is fixed in `torrust-metrics` and summarized in one line here. The configuration is one single-line event plus an `Enabled services` summary |
+| D7 | Two parts. D7a: metrics registration is fixed in `torrust-metrics` and summarized in one line here. D7b: the configuration is one single-line event plus an `Enabled services` summary |
 | D8 | The per-request statistics-disabled `WARN` is a bug: silent when disabled, `ERROR` when the listener is unknown, state reported once at startup |
 | D9 | One meaning for each level. A clean run has no `WARN` or `ERROR`. Job panic, failure and abort are `ERROR`. Private mode with UDP trackers configured is rejected at startup |
 | D10 | New lines: build and run identity at start (`version`, `git_commit`, `build_profile`, `pid`, `run_id`), `Tracker started`, `elapsed_in_ms` on job outcomes, `Tracker stopped` with the outcome. `run_id` on every record comes after #2766 |
