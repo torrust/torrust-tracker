@@ -6,7 +6,7 @@ epic: null
 github-issue: 2387
 spec-path: docs/issues/open/2387-review-tracker-lifecycle-logs/EPIC.md
 epic-owner: null
-last-updated-utc: "2026-11-23 17:15"
+last-updated-utc: "2026-11-23 17:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -133,7 +133,7 @@ The sub-issues are drafts. Each gets its GitHub issue number when its session st
 | 10 | #[To be assigned] - Log three state lines when a service starts | `docs/issues/drafts/2387-si-10-three-state-service-start-lines/ISSUE.md` | TODO | D4 | SI-6, SI-7 |
 | 11 | #[To be assigned] - Read service URLs from structured fields and remove `Starting on:` and `Started on:` | `docs/issues/drafts/2387-si-11-read-service-urls-from-structured-fields/ISSUE.md` | TODO | D4 | SI-10 |
 | 12 | #[To be assigned] - Keep only the service identity in lifecycle spans | `docs/issues/drafts/2387-si-12-identity-only-lifecycle-spans/ISSUE.md` | TODO | D5 | SI-10 |
-| 13 | #[To be assigned] - Name service jobs by role and index and add identity fields to job manager lines | `docs/issues/drafts/2387-si-13-job-names-from-role-and-index/ISSUE.md` | TODO | D3d | SI-5 |
+| 13 | #[To be assigned] - Name service jobs by role and index and add identity fields to job manager lines | `docs/issues/drafts/2387-si-13-job-names-from-role-and-index/ISSUE.md` | TODO | D3d | SI-5, SI-10 |
 | 14 | #[To be assigned] - Apply the level rule to job manager and shutdown lines | `docs/issues/drafts/2387-si-14-lifecycle-log-levels/ISSUE.md` | TODO | D9 | SI-5 |
 | 15 | #[To be assigned] - Log the configuration as one single-line event and add an `Enabled services` line | `docs/issues/drafts/2387-si-15-configuration-as-single-line-event/ISSUE.md` | TODO | D7b | SI-5 |
 | 16 | #[To be assigned] - Log the build and run identity as the first line | `docs/issues/drafts/2387-si-16-build-and-run-identity-start-line/ISSUE.md` | TODO | D10 | SI-5 |

@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2387-si-13-job-names-from-role-and-index/ISSUE.md
 branch: "{issue-number}-2387-si-13-job-names-from-role-and-index-spec"
 related-pr: null
-last-updated-utc: "2026-11-23 17:29"
+last-updated-utc: "2026-11-23 17:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -31,7 +31,7 @@ semantic-links:
 **Draft.** This draft fixes the goal, the scope and the decisions it implements. The session that takes this sub-issue completes it (file lists, exact messages, test boundaries) and stops for the maintainer to review and approve it. Only after that approval it creates the GitHub issue and opens the specification pull request, before any code.
 
 - Implements: D3d, in [decisions.md](../../open/2387-review-tracker-lifecycle-logs/decisions.md).
-- Depends on: SI-5.
+- Depends on: SI-5, SI-10.
 - Working order and rules common to all sub-issues: [EPIC.md](../../open/2387-review-tracker-lifecycle-logs/EPIC.md), section Delivery Strategy.
 - Evidence of today's behavior: [baseline-lifecycle-logs.md](../../open/2387-review-tracker-lifecycle-logs/baseline-lifecycle-logs.md) and the two captures beside it.
 
