@@ -9,7 +9,7 @@ github-issue: 2766
 spec-path: docs/issues/open/2766-2758-daemon-json-logging/ISSUE.md
 branch: "2766-daemon-json-logging"
 related-pr: null
-last-updated-utc: "2026-11-23 16:13"
+last-updated-utc: "2026-11-23 16:58"
 semantic-links:
   skill-links:
     - create-issue
@@ -121,6 +121,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | Task | Coherent change set | Commit policy |
 | ---- | ------------------- | ------------- |
+| T0 | Refresh this specification against `develop` after EPIC #2387 | One documentation commit, before T1. |
 | T1 | Agree the migration detail with the maintainer | Commit after focused validation and required review. |
 | T2 | Tests for stream and format | Commit after focused validation and required review. |
 | T3 | Implement the logging change and the startup-failure record | Commit after focused validation and required review. |
