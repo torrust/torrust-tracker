@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2387-si-4-configuration-keys-with-units/ISSUE.md
 branch: "{issue-number}-2387-si-4-configuration-keys-with-units-spec"
 related-pr: null
-last-updated-utc: "2026-11-23 17:32"
+last-updated-utc: "2026-11-23 17:58"
 semantic-links:
   skill-links:
     - create-issue
@@ -48,8 +48,8 @@ The newer keys carry their unit (`deadline_in_secs`, `http_drain_in_secs`, `ip_b
 ### In Scope
 
 - Rename the three keys in the current configuration schema, in the default configuration files under `share/default/config/`, in tests and in documents.
-- `cookie_lifetime` changes its value as well as its name: from a table with `secs` and `nanos` to an integer of seconds. The maintainer approved the first two renames on 2026-11-23; this third one follows the same decision (D6) and was added after the review of PR 3010, so the specification pull request asks him to confirm it. If he declines, record the exception to rule 3 of D6 in the logging convention instead.
-- Decide with the maintainer, in the specification pull request, what happens to a sub-second `cookie_lifetime`. Today the table can hold `nanos`, and the UDP server uses the value as a fraction of seconds (`packages/udp-server/src/handlers/mod.rs` takes it as `f64`), so an integer of seconds cannot hold a value such as 0.5 seconds. The alternatives to compare: an integer of seconds, rejecting at startup a configuration whose value has a fraction; a decimal number of seconds under `cookie_lifetime_in_secs`; or an integer under `cookie_lifetime_in_ms`. The specification records the choice with pros and cons, and the tracker never rounds a configured value silently.
+- `cookie_lifetime` changes how its value is written as well as its name: from a table with `secs` and `nanos` to one number. The form of that number is the decision of the next item. The maintainer approved the first two renames on 2026-11-23; this third one follows the same decision (D6) and was added after the review of PR 3010, so the specification pull request asks him to confirm it. If he declines, record the exception to rule 3 of D6 in the logging convention instead.
+- Decide with the maintainer, in the specification pull request, what happens to a sub-second `cookie_lifetime`. Today the table can hold `nanos`, and the UDP server uses the value as a fraction of seconds (`packages/udp-server/src/handlers/mod.rs` takes it as `f64`), so an integer of seconds cannot hold a value such as 0.5 seconds. The alternatives to compare: an integer of seconds, rejecting at startup a configuration whose value has a fraction; a decimal number of seconds under `cookie_lifetime_in_secs`; or an integer under `cookie_lifetime_in_ms`. The first two keep the name `cookie_lifetime_in_secs` that D5, D6 and the SI-9 draft use. The third changes that name, so choosing it means correcting D5, D6 and the SI-9 draft in the same specification pull request. The specification records the choice with pros and cons, and the tracker never rounds a configured value silently.
 - Decide with the maintainer, in the specification pull request, how the schema version is handled: the keys change inside the configuration version that 4.0.0 ships, or the schema version is bumped. The specification records the decision and its reason.
 - Decide what an old key in a configuration file does: with D12 (clean break), the tracker refuses to start and the message names the new key. Check what the configuration loader does with an unknown key today and record it.
 - Search for any other duration key without a unit and report it.
