@@ -70,6 +70,17 @@ No `quickcheck`: four fixed conversions.
 | R2 | DONE | Run M1-M4. | Each is killed by its expected case. |
 | R3 | DONE | Record the results and ask for the completed-file review. | This record and the ledger. |
 
+## Prose-First AAA Review
+
+Temporary prose, written from this plan's Test Design when the review of #3009 found this section
+missing (it belongs before the completed-file review), then compared with the code.
+
+| Test | Arrange prose | Act prose | Assert prose | Outcome |
+| --- | --- | --- | --- | --- |
+| `it_should_wrap_each_error_in_its_own_variant_and_name_its_area` (cases) | One source error per case: announce (database), scrape (whitelist), whitelist, authentication (key expired), already converted by `From`. | Read the variant and the message of the converted error. | The variant is the case's, and the message starts with the case's area prefix. | Matches the code. The conversion is built in the case expression. |
+
+Smells found: none. The test has no AAA comments: a four-line body separated by blank lines.
+
 ## Results
 
 - **Coverage** (stable Rust 1.100.0, `cargo-llvm-cov 0.9.1`, `--all-features --lib`, clean coverage

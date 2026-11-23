@@ -81,6 +81,23 @@ No `quickcheck`: the inputs are SQL rows and named boundaries.
 | D2 | DONE | Run M1-M6. | Each is killed by its expected test. |
 | D3 | DONE | Record the results and ask for the completed-file review. | This record and the ledger. |
 
+## Prose-First AAA Review
+
+Temporary prose, written from this plan's Test Design when the review of #3009 found this section
+missing (it belongs before the completed-file review), then compared with the code.
+
+| Test | Arrange prose | Act prose | Assert prose | Outcome |
+| --- | --- | --- | --- | --- |
+| `it_should_report_a_corrupted_aggregate_value_as_a_malformed_record` (cases) | A metric row whose value is below zero or above `u32`. | Load that metric. | A malformed record. | Matches the code. |
+| `it_should_report_an_unreadable_aggregate_value_or_a_failed_query_as_an_invalid_query` (cases) | A metric row whose value is text, or no aggregate table. | Load that metric. | An invalid query. | Matches the code. |
+| `it_should_report_a_failed_save_of_an_aggregate_metric_as_an_invalid_query` | A store without the aggregate table. | Save a metric. | An invalid query. | Matches the code. |
+| `it_should_keep_each_aggregate_metric_separate_when_several_are_stored` | Metrics `a` as `1` and `b` as `2` saved. | Load `a`, `b` and the never saved `c`. | `(Some(1), Some(2), None)`. | Matches the code. |
+| `it_should_overwrite_an_aggregate_metric_that_is_saved_again` | A metric saved with `1`. | Save it again with `7`. | It loads `7`. | Matches the code. |
+| `it_should_store_and_load_back_the_largest_aggregate_value` | An empty store. | Save `u32::MAX`. | It loads `u32::MAX`. | Matches the code. |
+
+Smells found: none. The helper `store_with_aggregate_metric` builds the Arrange from one argument,
+and the case line states the stored value. The four multi-statement tests carry the AAA comments.
+
 ## Results
 
 - **Coverage** (stable Rust 1.100.0, `cargo-llvm-cov 0.9.1`, `--all-features --lib`, clean coverage

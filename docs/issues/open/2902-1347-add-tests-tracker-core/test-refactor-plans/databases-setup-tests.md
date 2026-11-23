@@ -77,6 +77,22 @@ No `quickcheck`: the input is a configuration enum and one path.
 | S2 | DONE | Run M1-M4. | Each is killed by its expected test. |
 | S3 | DONE | Record the results and ask for the completed-file review. | This record and the ledger. |
 
+## Prose-First AAA Review
+
+Temporary prose, written from this plan's Test Design when the review of #3009 found this section
+missing (it belongs before the completed-file review), then compared with the code.
+
+| Test | Arrange prose | Act prose | Assert prose | Outcome |
+| --- | --- | --- | --- | --- |
+| `it_should_hand_the_same_migrated_database_to_all_four_stores` | A migrated SQLite database initialized through the factory, and a permanent key. | Write through the whitelist, key and metrics stores; read each back; then drop the tables through the schema migrator. | Each write reads back; after the drop, the whitelist, key and metrics stores all fail. | Matches the code. The test has two Act and Assert phases, marked by comments, because the drop is the point of the second half. |
+| `it_should_return_an_error_instead_of_panicking_when_the_database_cannot_be_opened` | A SQLite configuration whose directory does not exist. | Initialize from it. | An error, not a panic. | Matches the code. |
+| `it_should_panic_when_the_legacy_factory_gets_a_configuration_without_a_database` | A configuration with no database. | Initialize with the legacy factory. | It panics with "database configuration is required". | Matches the code. |
+| `it_should_panic_when_the_legacy_factory_cannot_open_the_database` | A configuration whose SQLite path is in a missing directory. | Initialize with the legacy factory. | It panics with "database initialization requested". | Matches the code. |
+
+Smells found: the first test has two Act and Assert phases (accepted, above). The existing test
+`it_should_initialize_the_sqlite_database` asserts nothing; it is kept unchanged because the other
+tests of the package use it as their fixture.
+
 ## Results
 
 - **Coverage** (stable Rust 1.100.0, `cargo-llvm-cov 0.9.1`, `--all-features --lib`, clean coverage

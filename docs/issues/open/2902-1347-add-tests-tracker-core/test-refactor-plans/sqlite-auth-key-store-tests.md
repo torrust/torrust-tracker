@@ -128,6 +128,31 @@ become dev-dependencies of the package, as in `primitives` and `udp-core`; both 
 | A4 | DONE | Run M1-M7. | Each is killed by its expected test. |
 | A5 | DONE | Record the results and ask for the completed-file review. | This record, the ledger and F2. |
 
+## Prose-First AAA Review
+
+Temporary prose, written from this plan's Test Design when the review of #3009 found this section
+missing (it belongs before the completed-file review), then compared with the code.
+
+| Test | Arrange prose | Act prose | Assert prose | Outcome |
+| --- | --- | --- | --- | --- |
+| `it_should_parse_a_stored_expiry_that_is_not_negative` (cases) | A stored value of `0`, `1` or `i64::MAX`. | Parse it for the SQLite driver. | It equals that many seconds. | Matches the code. The expected seconds are literals, or `i64::MAX.unsigned_abs()`, derived from the input and not from the production code. |
+| `it_should_reject_a_negative_stored_expiry_as_a_malformed_record_of_the_given_driver` (cases) | `-1` with MySQL, `i64::MIN` with PostgreSQL. | Parse it. | A malformed-record error carrying the given driver and naming the stored value. | Matches the code. |
+| `it_should_accept_a_stored_expiry_exactly_when_it_is_not_negative` (property) | Any `i64`. | Parse it. | Accepted exactly when it is not negative, with the same seconds; the only error is a malformed record. | Matches the code. The oracle restates the sign rule, not the code. |
+| `it_should_build_a_peer_key_from_the_stored_columns` (cases) | The sample key text with no expiry, or with `1_700_000_000`. | Build the peer key for MySQL. | The key and the expiry match (equality compares whole seconds). | Matches the code. |
+| `it_should_reject_a_corrupted_stored_key_as_a_malformed_record_of_the_given_driver` (cases) | A short text, a 32-character text with a symbol, or a valid key with `-1`. | Build the peer key for PostgreSQL. | A malformed record carrying PostgreSQL. | Matches the code; the message is not asserted (the plan said it was and was corrected in review). |
+| `it_should_report_a_corrupted_row_as_a_malformed_record_when_loading_the_keys` (cases) | A store with one row: a short key, or a valid key with `-1`. | Load all the keys. | A malformed record. | Matches the code. |
+| `it_should_report_an_unreadable_row_or_a_failed_query_as_an_invalid_query_when_loading_the_keys` (cases) | A store with a blob key, a text expiry, or no `keys` table. | Load all the keys. | An invalid query. | Matches the code. |
+| `it_should_report_a_corrupted_row_as_a_malformed_record_when_getting_a_key` (case) | A store with a valid key and expiry `-1`. | Get that key. | A malformed record. | Matches the code. |
+| `it_should_report_an_unreadable_row_or_a_failed_query_as_an_invalid_query_when_getting_a_key` (cases) | A store with a text expiry, or no `keys` table. | Get the key. | An invalid query. | Matches the code. |
+| `it_should_refuse_to_add_a_key_that_expires_after_the_largest_stored_timestamp` | An empty store and a key expiring at `u64::MAX` seconds. | Add the key. | A malformed record, and nothing is stored. | Matches the code. |
+| `it_should_refuse_to_add_a_key_that_is_already_stored_and_keep_the_stored_one` | A permanent key stored, and the same key with an expiry. | Add the duplicate. | An invalid query, and the first key stays, permanent. | Matches the code. |
+| `it_should_report_a_failed_query_as_an_invalid_query_when_removing_a_key` | A store without the `keys` table. | Remove a key. | An invalid query. | Matches the code. |
+
+Smells found: none that needs a change. The case tests (`rstest`) have three-line bodies separated
+by blank lines and no `// Arrange`, `// Act` or `// Assert` comments; the three multi-step tests carry
+them. Their Arrange is a named case (`Broken::Row { .. }`), so the data that makes the row bad is on
+the case line, and each test has one reason to fail.
+
 ## Results
 
 - **Coverage** (stable Rust 1.100.0, `cargo-llvm-cov 0.9.1`, `--all-features --lib`, clean coverage

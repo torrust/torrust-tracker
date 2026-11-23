@@ -78,6 +78,21 @@ No `quickcheck`: the inputs are SQL rows and one missing table.
 | W2 | DONE | Run M1-M5. | Each is killed by its expected test. |
 | W3 | DONE | Record the results and ask for the completed-file review. | This record and the ledger. |
 
+## Prose-First AAA Review
+
+Temporary prose, written from this plan's Test Design when the review of #3009 found this section
+missing (it belongs before the completed-file review), then compared with the code.
+
+| Test | Arrange prose | Act prose | Assert prose | Outcome |
+| --- | --- | --- | --- | --- |
+| `it_should_report_a_corrupted_row_as_a_malformed_record_when_loading_the_whitelist` (case) | One stored info-hash `'nope'`. | Load the whitelist. | A malformed record. | Matches the code. |
+| `it_should_report_an_unreadable_row_or_a_failed_query_as_an_invalid_query_when_loading_the_whitelist` (cases) | A blob info-hash, or no `whitelist` table. | Load the whitelist. | An invalid query. | Matches the code. |
+| `it_should_report_a_failed_query_as_an_invalid_query_when_getting_an_info_hash` | A store without the `whitelist` table. | Get an info-hash. | An invalid query. | Matches the code. |
+| `it_should_report_a_failed_query_as_an_invalid_query_when_removing_an_info_hash` | A store without the `whitelist` table. | Remove an info-hash. | An invalid query. | Matches the code. |
+
+Smells found: none. The two table-missing tests carry `// Arrange`, `// Act` and `// Assert`
+comments; the case tests have blank-line separated steps.
+
 ## Results
 
 - **Coverage** (stable Rust 1.100.0, `cargo-llvm-cov 0.9.1`, `--all-features --lib`, clean coverage

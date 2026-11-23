@@ -76,6 +76,21 @@ No `quickcheck`: the inputs are the variants of a closed enum, listed in the tab
 | E2 | DONE | Run M1-M8. | Each is killed by its expected case. |
 | E3 | DONE | Record the results and ask for the completed-file review. | This record and the ledger. |
 
+## Prose-First AAA Review
+
+Temporary prose, written from this plan's Test Design when the review of #3009 found this section
+missing (it belongs before the completed-file review), then compared with the code.
+
+| Test | Arrange prose | Act prose | Assert prose | Outcome |
+| --- | --- | --- | --- | --- |
+| `it_should_classify_each_sqlx_error` (cases) | One `sqlx` error per case: missing row, I/O, TLS, pool timeout, pool closed, worker crash, configuration, column not found, decode, protocol. | Convert it for SQLite. | Its variant is the one the case names. | Matches the code. The expected variant is a string in the case, not derived from the code. |
+| `it_should_classify_a_migration_error` | A migration error (`VersionMissing(1)`). | Convert it for SQLite. | It is a migration error. | Matches the code. |
+| `it_should_keep_the_driver_it_was_converted_with` (cases) | One converted error per kind, converted for PostgreSQL. | Read the driver the error carries. | It is PostgreSQL. | Matches the code. The Arrange is the case expression itself (`Error::from((.., Driver::PostgreSQL))`), so the conversion is built in the case, not in the body; accepted because the conversion is the unit under test. |
+
+Smells found: the second test's Act is a single conversion and its Assert a single string compare;
+fine. The tests have no AAA comments (three-line bodies separated by blank lines). The two old tests
+(`RowNotFound`, `Io`) were replaced by their cases.
+
 ## Results
 
 - **Coverage** (stable Rust 1.100.0, `cargo-llvm-cov 0.9.1`, `--all-features --lib`, clean coverage

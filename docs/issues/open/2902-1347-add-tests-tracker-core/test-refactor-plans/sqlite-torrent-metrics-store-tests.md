@@ -106,6 +106,28 @@ pinned by `-1`, `4294967296` and `u32::MAX`.
 | T3 | DONE | Run M1-M11. | Each is killed by its expected test. |
 | T4 | DONE | Record the results and ask for the completed-file review. | This record and the ledger. |
 
+## Prose-First AAA Review
+
+Temporary prose, written from this plan's Test Design when the review of #3009 found this section
+missing (it belongs before the completed-file review), then compared with the code.
+
+| Test | Arrange prose | Act prose | Assert prose | Outcome |
+| --- | --- | --- | --- | --- |
+| `it_should_report_a_corrupted_row_as_a_malformed_record_when_loading_all_the_torrents` (cases) | One stored torrent with a count below zero, above `u32`, or an info-hash that does not parse. | Load all the torrents. | A malformed record. | Matches the code. |
+| `it_should_report_an_unreadable_row_or_a_failed_query_as_an_invalid_query_when_loading_all_the_torrents` (cases) | A count that is text, an info-hash that is a blob, or no `torrents` table. | Load all the torrents. | An invalid query. | Matches the code. |
+| `it_should_report_a_corrupted_row_as_a_malformed_record_when_loading_the_requested_torrents` (cases) | The requested torrent stored with a count below zero or above `u32`. | Load the requested torrent. | A malformed record. | Matches the code. |
+| `it_should_report_an_unreadable_row_or_a_failed_query_as_an_invalid_query_when_loading_the_requested_torrents` (cases) | The requested torrent stored with a text count, or no table. | Load the requested torrent. | An invalid query. | Matches the code. |
+| `it_should_report_a_corrupted_row_as_a_malformed_record_when_loading_one_torrent` (cases) | The torrent stored with a count below zero or above `u32`. | Load that torrent. | A malformed record. | Matches the code. |
+| `it_should_report_an_unreadable_row_or_a_failed_query_as_an_invalid_query_when_loading_one_torrent` (cases) | The torrent stored with a text count, or no table. | Load that torrent. | An invalid query. | Matches the code. |
+| `it_should_overwrite_the_stored_downloads_when_a_torrent_is_saved_again` | A torrent saved with `1`. | Save it again with `7`. | It loads `7`. | Matches the code. |
+| `it_should_store_and_load_back_the_largest_number_of_downloads` | An empty store. | Save `u32::MAX`. | It loads `u32::MAX`. | Matches the code. |
+| `it_should_not_create_a_torrent_when_increasing_the_downloads_of_one_that_is_not_stored` | An empty store. | Increase an absent torrent. | The call succeeds and the torrent is still absent. | Matches the code. |
+| `it_should_not_create_the_global_downloads_when_increasing_them_before_they_are_stored` | An empty store. | Increase the global downloads. | The call succeeds and the global total is still absent. | Matches the code. |
+| `it_should_report_a_failed_write_as_an_invalid_query` (cases) | A store whose `torrents` or aggregate table is missing, as the case says. | Run the case's write (save, increase a torrent, increase the global total). | An invalid query. | Matches the code. The Act goes through `Write::perform`, an enum method that hides which write runs; the case name states it, and the table is the purpose of the test, so it is kept. |
+
+Smells found: the `Write::perform` indirection above, accepted. The case tests carry no `// Arrange`
+comments and have blank-line separated steps; the four tests with several statements carry them.
+
 ## Results
 
 - **Coverage** (stable Rust 1.100.0, `cargo-llvm-cov 0.9.1`, `--all-features --lib`, clean coverage

@@ -81,6 +81,20 @@ No `quickcheck`: no input domain.
 | G2 | DONE | Run M1-M3. | Each is killed by its expected test. |
 | G3 | DONE | Record the results and ask for the completed-file review. | This record and the ledger. |
 
+## Prose-First AAA Review
+
+Temporary prose, written from this plan's Test Design when the review of #3009 found this section
+missing (it belongs before the completed-file review), then compared with the code.
+
+| Test | Arrange prose | Act prose | Assert prose | Outcome |
+| --- | --- | --- | --- | --- |
+| `it_should_refuse_a_migration_history_that_does_not_match_the_embedded_migrations` | A database migrated once, then its recorded checksums overwritten. | Create the tables again. | A migration error, and the tables of the first run are still there. | Matches the code. |
+| `it_should_report_a_closed_pool_as_a_connection_error_when_creating_the_tables` | A driver whose pool is closed. | Create the tables. | A connection error. | Matches the code. |
+| `it_should_report_a_closed_pool_as_a_connection_error_when_dropping_the_tables` | A driver whose pool is closed. | Drop the tables. | A connection error. | Matches the code. |
+
+Smells found: none. All three carry the AAA comments. The legacy-bootstrap tests of the file were not
+changed.
+
 ## Results
 
 - **Coverage** (stable Rust 1.100.0, `cargo-llvm-cov 0.9.1`, `--all-features --lib`, clean coverage
