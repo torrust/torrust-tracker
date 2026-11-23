@@ -1,6 +1,5 @@
 //! Error types for the UDP server.
 use std::fmt::Display;
-use std::panic::Location;
 
 use derive_more::derive::Display;
 use thiserror::Error;
@@ -33,15 +32,12 @@ pub enum Error {
     ScrapeFailed { source: UdpScrapeError },
 
     /// Error returned from the wire-protocol crate (`torrust_tracker_udp_protocol`).
-    #[error("internal server error: {message}, {location}")]
-    Internal {
-        location: &'static Location<'static>,
-        message: String,
-    },
+    #[error("internal server error: {message}")]
+    Internal { message: String },
 
     /// Error returned when tracker requires authentication.
-    #[error("domain tracker requires authentication but is not supported in current UDP implementation. Location: {location}")]
-    AuthRequired { location: &'static Location<'static> },
+    #[error("domain tracker requires authentication but is not supported in current UDP implementation")]
+    AuthRequired,
 }
 
 impl From<RequestParseError> for Error {
@@ -221,7 +217,6 @@ mod tests {
     fn it_should_not_hold_a_source_path_when_an_internal_error_is_displayed() {
         // Arrange
         let error = Error::Internal {
-            location: std::panic::Location::caller(),
             message: "failure".to_string(),
         };
 
@@ -235,9 +230,7 @@ mod tests {
     #[test]
     fn it_should_not_hold_a_source_path_when_an_authentication_required_error_is_displayed() {
         // Arrange
-        let error = Error::AuthRequired {
-            location: std::panic::Location::caller(),
-        };
+        let error = Error::AuthRequired;
 
         // Act
         let message = error.to_string();
