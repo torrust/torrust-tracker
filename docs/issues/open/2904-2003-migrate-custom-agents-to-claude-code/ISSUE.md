@@ -118,11 +118,13 @@ which model the session happens to use.
 ### What Claude Code supports
 
 Every fact below was checked on 2026-11-15 against the raw text of the official Claude Code
-documentation, and each row links the section that states it. The section anchors were derived
+documentation, except the two rows that start with "Checked on 2026-11-23", which were checked
+on that day; each row links the section that states it. The section anchors were derived
 from the heading names and not opened in a browser; if one fails, search the page for the heading
 in the link text. A row that starts with "Not documented" names the pages that were searched.
 Nothing below was run yet; the manual scenarios verify the parts this issue relies on. The
-installed version on the day was Claude Code 2.1.318.
+installed version on 2026-11-15 was Claude Code 2.1.318, and `claude --version` still printed
+2.1.318 on 2026-11-23.
 
 | Fact | Where the documentation says it |
 | --- | --- |
