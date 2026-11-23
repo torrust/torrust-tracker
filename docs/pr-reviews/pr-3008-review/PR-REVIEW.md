@@ -442,10 +442,10 @@ Round 11 covers review 6026749477 (da2ce7, APPROVED, submitted 2026-11-23T17:56:
 ### F27 - The T2 row and the loop's first step did not name the first-run-green exception
 
 - PR number: 3008
-- Source review ID: 6026521422
+- Source review ID: 6026068748
 - Reviewer finding ID: N/A
-- Source URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669629323
-- Concern: After the F23 fix, the T2 row still said each test is red first and the loop's first step said the test must fail, while the second step lets a later `schema_version` test pass on its first run.
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669288470
+- Concern: In its follow-up reply r4669629323 (review 6026521422) in the F23 thread (the source review and URL above are that thread's root, as the validator ties a row to its thread), after the F23 fix, the T2 row still said each test is red first and the loop's first step said the test must fail, while the second step lets a later `schema_version` test pass on its first run.
 - Solution: The T2 row and the loop's first step name the exception: a later `schema_version` test that the shared writer already covers passes on its first run and records that green run.
 - Current-tree verification: `grep -c 'except a later .schema_version. test that the shared writer already covers' docs/issues/open/3006-2758-tracker-client-schema-version/ISSUE.md` prints 1; `grep -c 'The one exception is in the next step' docs/issues/open/3006-2758-tracker-client-schema-version/ISSUE.md` prints 1.
 - Resolution reference: `docs(issues): [#3006] name the first-run-green exception in the T2 row and the loop`
