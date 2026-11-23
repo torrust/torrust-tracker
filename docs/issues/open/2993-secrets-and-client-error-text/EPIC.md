@@ -6,7 +6,7 @@ epic: null
 github-issue: 2993
 spec-path: docs/issues/open/2993-secrets-and-client-error-text/EPIC.md
 epic-owner: null
-last-updated-utc: "2026-11-23 18:08"
+last-updated-utc: "2026-11-23 18:28"
 semantic-links:
   skill-links:
     - create-issue
@@ -65,7 +65,7 @@ Paths are relative to the repository root. Every item was read in the code, and 
 | A7 | `packages/tracker-core/src/authentication/key/peer_key.rs:127-128`, `:46-47`, `:71-75` (`Key` and `PeerKey` derive `Debug`, `Display`, `Serialize`) | the peer key prints in clear wherever the value is formatted | any log or error that formats a `Key` |
 | A8 | `packages/axum-rest-api-server/src/v1/middlewares/auth.rs:62-65` (`QueryParams { token: Option<String> }` derives `Debug`); `packages/rest-api-client/src/connection_info.rs:7-9` (`api_token: Option<String>`) | plain `String` tokens; no log of them was found | none today; a latent risk |
 | A9 | `docs/containers.md` (`?token=` at lines 562, 650 and 719; the `mysql://` `path` at 532 and its DSN percent-encoding advice at 535-537). Recheck: `?token=` is also taught by the skills `use-rest-api` (`SKILL.md:43`), `manual-http-download-completion-e2e` (`:34`, `:66`, `:290`) and `manual-udp-download-completion-e2e` (`:28`, `:60`), the rustdoc of `src/lib.rs` (`:277`, `:387`), `packages/axum-rest-api-server/src/lib.rs` (`:10`, `:54`, `:59`, `:90`, `:155`), `v1/middlewares/auth.rs:20`, `v1/context/{auth_key,stats,torrent,whitelist}/mod.rs` and `v1/context/torrent/handlers.rs:54`, `:59`, and `contrib/dev-tools/experiments/dual-stack-sockets/README.md:61` | the documentation teaches `?token=` URLs and a `mysql://user:password@host` URL in config and environment | readers; the request log then records the token. The MySQL example (`path = "mysql://db_user:...@mysql:3306/torrust_tracker"`) is also stale: the v3 schema refuses `path` for a network database (`packages/configuration/src/v3_0_0/database.rs:203-204`) |
-| A10 | `packages/configuration/src/v3_0_0/mod.rs:409` (`figment.extract()`), wrapped by `Error::ConfigError` (`packages/configuration/src/lib.rs:335`) | a configuration error prints the offending value, so a numeric database password or access token is printed (details below) | the operator: stderr and the server log |
+| A10 | `packages/configuration/src/v3_0_0/mod.rs:409` (`figment.extract()`), wrapped by `Error::ConfigError` (`packages/configuration/src/lib.rs:334` since SI-5 of EPIC #2912 merged) | a configuration error prints the offending value, so a numeric database password or access token is printed (details below) | the operator: stderr and the server log |
 | A11 | `packages/tracker-core/src/databases/error.rs:92-116` (`From<(SqlxError, Driver)>` keeps the `sqlx` text) | a database server message names the database user and the client address (details below). Not a secret; owned by SI-B | the operator today; a client wherever driver text is forwarded |
 | A12 | `packages/tracker-core/src/databases/error.rs:92-116` (the `sqlx` source is kept and printed), reached from `packages/tracker-core/src/databases/driver/mysql/auth_key_store.rs` | a database server message can contain a secret: adding a peer key that already exists makes MySQL answer `Duplicate entry '<peer key>' for key 'keys.key'`, and the error keeps and prints it. PostgreSQL (`duplicate key value violates unique constraint "keys_key_key"`) and SQLite (`UNIQUE constraint failed: keys.key`) do not print the value | the REST administrator (500 reply). Before SI-4 of EPIC #2912 also the server log at DEBUG, through the `torrust_located_error` event; that line is gone since SI-4 |
 
@@ -85,7 +85,7 @@ Verified by running experiments (2026-11-22, a debug build of the tracker; MySQL
 - A6 by reading: `reqwest` appends `for url (<url>)` to its `Display` (`reqwest-0.13.5/src/error.rs:300-302`). The REST client sends the token in the `Authorization: Bearer` header on every request (`packages/rest-api-client/src/v1/client.rs:395-396` and `:476-497`), and on GET requests it also adds it to the query string (`:369-370`), so the URL of a GET holds the token. (The first version of this item said the client had no header form; the recheck of 2026-11-23 found that wrong, and it was already wrong at `bcca9764c`.) Its users in the workspace are the REST server tests and the qBittorrent end-to-end tool (`src/console/ci/qbittorrent_e2e/tracker/client.rs`).
 - UDP replies, on a public tracker with `listed = true`: a non-whitelisted announce returned `tracker announce error: Tracker core whitelist error: The torrent: <info-hash>, is not whitelisted, <location>`; an announce with a wrong connection id returned `tracker announce error: Connection cookie error: cookie value is expired: <decoded cookie as f64>, expected > 1795353220.6572893`, which gives the client the server clock and the decoded value of the cookie it sent; a 3-byte packet returned `error parsing request: SendableRequestParseError { message: "Couldn't parse action", opt_connection_id: None, opt_transaction_id: None }`, a Rust type name in client text.
 - UDP trackers are not started in private mode (`Could not start UDP trackers while in private mode. UDP is not safe for private trackers!`), so the peer key never travels over UDP.
-- A10, configuration errors echo secret values. `figment` prints the offending value (`Actual::Str` and the integer forms, `figment-0.10.19/src/error.rs:323-345`). Reproduced: `password = 987654321` makes the tracker print `invalid type: found signed int 987654321, expected a string for key "default.core.database.password"`, and `admin = 424242` under `[http_api.access_tokens]` prints the number the same way. A numeric password or token, which TOML reads as an integer, is therefore printed on stderr and in the log. Seen by the operator. Related: `Error::ConfigError` is built by `LocatedError`, so the line also holds a source location (SI-5 of EPIC #2912). SI-5 (#2917, pull request #3001) removes the location and keeps the `figment` message, so the value is still printed after it; its specification leaves the secret value to SI-A of this EPIC.
+- A10, configuration errors echo secret values. `figment` prints the offending value (`Actual::Str` and the integer forms, `figment-0.10.19/src/error.rs:323-345`). Reproduced: `password = 987654321` makes the tracker print `invalid type: found signed int 987654321, expected a string for key "default.core.database.password"`, and `admin = 424242` under `[http_api.access_tokens]` prints the number the same way. A numeric password or token, which TOML reads as an integer, is therefore printed on stderr and in the log. Seen by the operator. Related: `Error::ConfigError` is built by `LocatedError`, so the line also holds a source location (SI-5 of EPIC #2912). SI-5 (#2917, pull request #3001, merged 2026-11-23) removed the location and kept the `figment` message, so the value is still printed; its specification leaves the secret value to SI-A of this EPIC.
 - A11, database server messages name the user and the client address. Reproduced with MySQL: `1045 (28000): Access denied for user 'db_user'@'172.17.0.1' (using password: YES)`; with PostgreSQL: `password authentication failed for user "db_user"`. sqlx passes the server message through unchanged (`sqlx-mysql-0.8.6/src/error.rs:44-49`). Today this reaches the operator (stderr and log). It reaches a client only when a runtime database failure is mapped into a client reply (section B), which is why SI-B must not forward driver text. The MySQL case is also labelled `The MySQL query was malformed` because `From<(SqlxError, Driver)>` maps every `Database` error to `InvalidQuery`, so the label is wrong as well.
 - The v2 configuration is not reachable at runtime. The tracker loads `v3_0_0::Configuration` only (`src/bootstrap/config.rs:8`); a file with `schema_version = "2.0.0"` is refused with `UnsupportedVersion` (`v3_0_0/mod.rs:413`). Only the v2 `Logging` types are still imported (`packages/configuration/src/logging.rs:18`). So the v2 `Database.path` masking issue is dead code, and is out of scope for SI-A.
 - `url::ParseError` is safe: its `Display` is a fixed string per variant and never includes the input (`url-2.5.9/src/parser.rs:63-70`), so a malformed database URL does not echo the password.
@@ -108,11 +108,11 @@ UDP tracker (the error packet message is `error.to_string()` of `udp_server::err
 
 | Error family | Client text (shape) | Source |
 | --- | --- | --- |
-| request parse | `error parsing request: {request_parse_error:?}` (Debug of a struct) | `packages/udp-server/src/error.rs:24` |
+| request parse | `error parsing request: {request_parse_error:?}` (Debug of a struct) | `packages/udp-server/src/error.rs:23` |
 | connection cookie | `... Connection cookie error: cookie value is expired: <f64>, expected > <f64>` (server timing values) | `packages/udp-core/src/connection_cookie.rs:112-118` |
 | whitelist | `tracker announce error: Tracker core whitelist error: The torrent: <info-hash>, is not whitelisted` | `packages/udp-core/src/services/announce.rs:190-204` |
 | database | `tracker announce error: Tracker core announce error: Database error: Failed to connect to <driver> database: error communicating with database: <io error>` | `packages/tracker-core/src/databases/error.rs:92-116` |
-| internal | `internal server error: {message}, {location}` (SI-5 of EPIC #2912, pull request #3001, removes the location) | `packages/udp-server/src/error.rs:36` |
+| internal | `internal server error: {message}` (the location was removed by SI-5 of EPIC #2912, pull request #3001, merged 2026-11-23) | `packages/udp-server/src/error.rs:35` |
 
 REST API (`packages/axum-rest-api-server/src/v1/responses.rs`):
 
@@ -179,10 +179,10 @@ SI-B, client error text (a design question):
 Decided by the maintainer on 2026-11-22: this EPIC is standalone and linked. It is not a sub-issue of #2912, so #2912 keeps its single scope (source locations). Effects on #2912:
 
 - SI-4 (#2916, PR #2991) merged on 2026-11-22. It did not fix A1 or A2; it links this EPIC for the standing review finding.
-- SI-5 (#2917): one interaction. Its AC2 says the startup error for a bad configuration file "names the file and the invalid key or value". For a secret option (the database password, an access token) the value must not be printed (A10). Settled on 2026-11-23: SI-A owns it. The SI-5 pull request (#3001) keeps the `figment` message unchanged and its specification reads AC2 as "the key and the value that are not secret". SI-A starts after #3001 merges, because both change `packages/configuration/src/lib.rs`.
+- SI-5 (#2917): one interaction. Its AC2 says the startup error for a bad configuration file "names the file and the invalid key or value". For a secret option (the database password, an access token) the value must not be printed (A10). Settled on 2026-11-23: SI-A owns it. The SI-5 pull request (#3001) keeps the `figment` message unchanged and its specification reads AC2 as "the key and the value that are not secret". #3001 merged on 2026-11-23, so SI-A starts from a tree that has it.
 - SI-6 (#2918) is unchanged.
 - SI-7 (#384) is unchanged: it checks that no client reply holds a source path. Its out-of-scope note about other information in a reply (for example database error codes) points to SI-B.
-- Order: nothing here blocks #2912. SI-4 has merged; SI-A waits for SI-5 (#3001) to merge, then starts on its tracker-core errors.
+- Order: nothing here blocks #2912. SI-4 and SI-5 (#3001) have merged, so SI-A can start.
 - Issue #3004 (EPIC #2758, pull request #3012) masks the tracker key in `tracker_client` output with its own function and the marker `****`. It touches no file of this EPIC. SI-A uses `***` on the server (decided 2026-11-23), the marker of the configuration redaction; the two markers differ on purpose and need not be unified.
 
 ## Subissues
@@ -191,7 +191,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | Order | Issue | Local Spec | Status | Notes |
 | --- | --- | --- | --- | --- |
-| 1 | #2999 - SI-A Keep secrets out of errors, logs and output | [`2999-2993-si-a-keep-secrets-out-of-errors-and-logs/ISSUE.md`](../2999-2993-si-a-keep-secrets-out-of-errors-and-logs/ISSUE.md) | TODO | A bug class with the listed cases A1 to A10 and A12. Starts after SI-5 of EPIC #2912 (#3001) merges |
+| 1 | #2999 - SI-A Keep secrets out of errors, logs and output | [`2999-2993-si-a-keep-secrets-out-of-errors-and-logs/ISSUE.md`](../2999-2993-si-a-keep-secrets-out-of-errors-and-logs/ISSUE.md) | TODO | A bug class with the listed cases A1 to A10 and A12. Was to start after SI-5 of EPIC #2912 (#3001) merged; it merged on 2026-11-23 |
 | 2 | #3000 - SI-B Define and apply the client error text policy | [`3000-2993-si-b-client-error-text-policy/ISSUE.md`](../3000-2993-si-b-client-error-text-policy/ISSUE.md) | TODO | Starts with an ADR; implementation after the maintainer accepts the ADR. May start in parallel with SI-A, but it touches the same error types, so run them one after the other |
 
 Both sub-issue specifications were approved by the maintainer on 2026-11-23 and their GitHub issues created, #2999 (SI-A) and #3000 (SI-B).
@@ -261,7 +261,7 @@ Recorded 2026-11-22 in the session that drafted this specification:
 Recorded in the EPIC coordinator session, after the recheck of the specifications against `develop`:
 
 1. The coordinator refreshes the EPIC and SI-A specifications in one spec-only pull request before SI-A starts; the client texts SI-B's first table missed are listed in the SI-B specification for its ADR, not rewritten now.
-2. SI-A starts after SI-5 of EPIC #2912 (#3001) merges.
+2. SI-A starts after SI-5 of EPIC #2912 (#3001) merges. (It merged later the same day.)
 3. The server-side redaction marker is `***`; the `****` of #3004 in `tracker_client` stays as it is.
 4. The skills and rustdoc that teach `?token=` are fixed in SI-A, with `docs/containers.md`.
 5. The SI-B ADR covers the replies of the health-check API too.

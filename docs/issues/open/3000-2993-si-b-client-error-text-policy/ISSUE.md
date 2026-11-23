@@ -9,7 +9,7 @@ github-issue: 3000
 spec-path: docs/issues/open/3000-2993-si-b-client-error-text-policy/ISSUE.md
 branch: "3000-si-b-client-error-text-policy"
 related-pr: null
-last-updated-utc: "2026-11-23 18:08"
+last-updated-utc: "2026-11-23 18:28"
 semantic-links:
   skill-links:
     - create-issue
@@ -47,10 +47,10 @@ Section B of the EPIC inventory lists what each protocol sends today, reproduced
 
 ### More client texts found by the recheck
 
-The EPIC inventory was rechecked against `develop` `6bc417424` on 2026-11-23. Section B is still right, apart from the scrape database prefix (`Tracker scrape error:`) and the UDP internal text, which also carries a source location until SI-5 of EPIC #2912 (#3001) merges. These client texts are not in section B and belong in the ADR's table of current texts:
+The EPIC inventory was rechecked against `develop` `6bc417424` on 2026-11-23. Section B is still right, apart from the scrape database prefix (`Tracker scrape error:`) and the UDP line numbers that SI-5 of EPIC #2912 (#3001, merged 2026-11-23) moved by one: the parse text is now at `packages/udp-server/src/error.rs:23` and the internal text, without its former source location, at `:35`. These client texts are not in section B and belong in the ADR's table of current texts:
 
 - HTTP tracker: the scrape query parse texts (`packages/http-protocol/src/v1/requests/scrape.rs:39-49`, `:61`); `invalid param value <v> for <name>: it must percent-decode to exactly 20 bytes` and `malformed percent encoding or invalid UTF-8 for ip` (`requests/announce.rs:229`, `:237`, `:245`); the announce `ip` parameter texts sent without a prefix (`packages/http-core/src/services/announce.rs:366-372`, `:424`); the latent `Key could not be verified: <sqlx text>` (`packages/tracker-core/src/authentication/key/mod.rs:170`, nothing builds it today); 408 with an empty body; axum's default 404.
-- UDP tracker: the parse messages inside the `Debug` struct (`packages/udp-protocol/src/request.rs:64-159`); the cookie texts `cookie value is not normal: <f64>` and `cookie value is from future: <f64>, expected < <f64>` (`packages/udp-core/src/connection_cookie.rs:112`, `:118`); ``Invalid announce request: `left` must not be negative, got <n>`` (`packages/udp-core/src/services/announce.rs:195`); the scrape texts (`services/scrape.rs:152`, `:156`); `AuthRequired`, which #3001 turns into a fixed message. Banned IPs get no reply.
+- UDP tracker: the parse messages inside the `Debug` struct (`packages/udp-protocol/src/request.rs:64-159`); the cookie texts `cookie value is not normal: <f64>` and `cookie value is from future: <f64>, expected < <f64>` (`packages/udp-core/src/connection_cookie.rs:112`, `:118`); ``Invalid announce request: `left` must not be negative, got <n>`` (`packages/udp-core/src/services/announce.rs:195`); the scrape texts (`services/scrape.rs:152`, `:156`); `domain tracker requires authentication but is not supported in current UDP implementation` (`AuthRequired`, `packages/udp-server/src/error.rs:39`, a fixed message since #3001; also the `ErrorKind::TrackerAuthentication` event text). Banned IPs get no reply.
 - REST API: `Invalid URL: invalid auth key duration: "<n>"` (`packages/axum-rest-api-server/src/v1/context/auth_key/responses.rs:58-59`); 200 `torrent not known` (`v1/context/torrent/responses.rs:23`); the whitelist 409 `listed capability ...`; axum's default path, query and JSON rejections (pinned in `packages/axum-rest-api-server/tests/server/v1/asserts.rs:121`, `:129` and `contract/context/torrent.rs:203`, `:233`); 408 with an empty body.
 - Tests that pin today's texts and change with the ADR: `packages/axum-http-server/tests/server/v1/contract/failure_reasons_hold_no_source_path.rs`, `packages/udp-server/tests/server/contract.rs` and the REST `asserts.rs`.
 - Not rechecked: whether any event type other than the UDP error event carries an error string.

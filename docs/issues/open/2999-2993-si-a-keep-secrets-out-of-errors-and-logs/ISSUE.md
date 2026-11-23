@@ -9,7 +9,7 @@ github-issue: 2999
 spec-path: docs/issues/open/2999-2993-si-a-keep-secrets-out-of-errors-and-logs/ISSUE.md
 branch: "2999-si-a-keep-secrets-out-of-errors-and-logs"
 related-pr: null
-last-updated-utc: "2026-11-23 18:08"
+last-updated-utc: "2026-11-23 18:28"
 semantic-links:
   skill-links:
     - create-issue
@@ -39,7 +39,7 @@ No error value keeps a peer authentication key or a REST API admin token, no err
 
 The inventory of the EPIC (section "Inventory", items A1 to A12) lists every case found in the tree and reproduced on a running tracker. This issue owns the cases that are secrets: A1 to A8, A10 and A12. A9 is a documentation fix that belongs here too, and so is A12 (a database server message that holds the key). A11 (database server messages that name the user and host) is owned by SI-B. The commands and output of the reproductions are in the EPIC's [`manual-verification-evidence.md`](../2993-secrets-and-client-error-text/manual-verification-evidence.md). The inventory was rechecked against `develop` `6bc417424` on 2026-11-23 (nothing fixed; corrections and missed cases folded into this specification and the EPIC rows).
 
-Start condition (maintainer, 2026-11-23): this issue starts after SI-5 of EPIC #2912 (#3001) merges, because both change `packages/configuration/src/lib.rs`. Implementation session: Claude Fable 5.2 at high effort; no other implementation session of this EPIC runs at the same time.
+Start condition (maintainer, 2026-11-23): this issue starts after SI-5 of EPIC #2912 (#3001) merges, because both change `packages/configuration/src/lib.rs`. #3001 merged on 2026-11-23. Implementation session: Claude Fable 5.2 at high effort; no other implementation session of this EPIC runs at the same time.
 
 The rule already exists: rule 3 of the errors ADR (`docs/adrs/20261118045443_errors_do_not_record_source_locations.md`) says a secret is never the offending input in a message and the error does not keep it, and the `handle-secrets` skill forbids secrets in logs and error text. The code predates both for the peer key, which is not a `SecretString` and prints in clear wherever it is formatted. The skill and the secrecy ADR cover configuration secrets only; they do not name the peer key or secrets carried in URLs.
 
@@ -219,7 +219,7 @@ None planned. The UDP and HTTP probes of the EPIC session were ad-hoc commands; 
 ## Risks and Trade-offs
 
 - **Redacting the URI loses debugging value.** An operator cannot see which key a client used. Mitigation: if correlation is needed, log a short stable fingerprint (a truncated hash) instead of the key; decide in review.
-- **Overlap with EPIC #2912.** SI-4 (#2916) has merged. SI-5 (#2917, pull request #3001) rewrites the configuration errors that item 7 also touches. Decided 2026-11-23: this issue starts after #3001 merges.
+- **Overlap with EPIC #2912.** SI-4 (#2916) has merged. SI-5 (#2917, pull request #3001) rewrites the configuration errors that item 7 also touches. Decided 2026-11-23: this issue starts after #3001 merges; it merged the same day.
 - **A breaking change in a public error enum.** `UnableToReadKey` loses a field. Mitigation: tracker-core is not published yet, and the enum is `#[non_exhaustive]`.
 - **Moving the REST client token to the header** breaks nothing on the server, which accepts both, but changes what a proxy log sees. Mitigation: record it in the release notes.
 - **Detecting secret options in a `figment` error** can miss a new secret option. Mitigation: derive the list from the `SecretString` fields, or test that each secret field is covered.
