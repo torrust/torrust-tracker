@@ -9,7 +9,7 @@ github-issue: 2984
 spec-path: docs/issues/open/2984-tracker-client-check-udp-url-validation/ISSUE.md
 branch: "2984-tracker-client-check-udp-url-validation"
 related-pr: null
-last-updated-utc: "2026-11-23 19:36"
+last-updated-utc: "2026-11-23 21:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -151,6 +151,7 @@ Test-development loop (T3), as `create-issue` requires for a plan that adds or c
 - 2026-11-23 17:30 UTC - Claude Code (Claude Sonnet 5.5) - Implemented T3 to T5: red tests (V3), validation in config, fallible resolution with a failed `Setup` check, `panic_record` seam, and the recheck (V4) - implementation PR
 - 2026-11-23 18:09 UTC - Claude Code (Claude Sonnet 5.5) - Implementation PR review round 1 (Copilot F1 to F3): scheme detection fixed, failed-check test added, and the test design reviews recorded as V5 (done after T3, not during it) - PR 3013 audit
 - 2026-11-23 19:36 UTC - Claude Code (Claude Sonnet 5.5) - Implementation PR review rounds 2 and 3 (Copilot F5 to F7): IP-literal tests fixed, the rejected-entry diagnostic no longer echoes path, query or credentials, and the recheck repeated as V6 - PR 3013 audit
+- 2026-11-23 21:25 UTC - Claude Code (Claude Sonnet 5.5) - Implementation PR review round 4 (CodeRabbit F8): the UDP check result and the resolution error carry the redacted URL, and the recheck repeated as V7 - PR 3013 audit
 
 ## Acceptance Criteria
 
@@ -179,7 +180,7 @@ Test-development loop (T3), as `create-issue` requires for a plan that adds or c
 | --- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ------ | --------------------------------------------- |
 | M1  | Reproduce: UDP URL without port, without host, with wrong scheme, unresolvable host | `TORRUST_CHECKER_CONFIG='{"udp_trackers":["<url>"],"http_trackers":[],"health_checks":[]}' ./target/debug/tracker_client check \| cat` for each URL, capturing the exit code with `${PIPESTATUS[0]}` as in the evidence file | Panic record and `runtime_failure`, exit 1, empty stdout | DONE | `manual-verification-evidence.md` section V1 |
 | M2  | Reproduce: HTTP forms (wrong scheme, no host) in `http_trackers` and `health_checks` | `TORRUST_CHECKER_CONFIG='{"udp_trackers":[],"http_trackers":["<url>"],"health_checks":[]}' ./target/debug/tracker_client check \| cat` (exit code captured with `${PIPESTATUS[0]}`), and the same with the URL in `health_checks`, for `ftp://127.0.0.1`, `udp://127.0.0.1:6969` and `http:///` | Observed outcome recorded: a failed check with exit 0 for the first two, exit 2 with `invalid_configuration` for `http:///` | DONE | `manual-verification-evidence.md` section V2 |
-| M3  | Final like-for-like recheck of M1 and M2 after the last production change | The same commands as M1 and M2 | Exit `2` and one `invalid_configuration` record for AC1, AC2 and AC5; a failed check and no panic for AC3 | DONE | `manual-verification-evidence.md` sections V4 and V6 (final) |
+| M3  | Final like-for-like recheck of M1 and M2 after the last production change | The same commands as M1 and M2 | Exit `2` and one `invalid_configuration` record for AC1, AC2 and AC5; a failed check and no panic for AC3 | DONE | `manual-verification-evidence.md` sections V4, V6 and V7 (final) |
 
 Notes:
 
@@ -190,11 +191,11 @@ Notes:
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | DONE                   | `manual-verification-evidence.md` V3 (red) and V6 (final recheck) |
-| AC2   | DONE                   | `manual-verification-evidence.md` V3 (red) and V6 (final recheck) |
-| AC3   | DONE                   | `manual-verification-evidence.md` V3 (red) and V6 (final recheck) |
-| AC4   | DONE                   | `manual-verification-evidence.md` V3 (red) and V6 (final recheck) |
-| AC5   | DONE                   | `manual-verification-evidence.md` V3 (red) and V6 (final recheck) |
+| AC1   | DONE                   | `manual-verification-evidence.md` V3 (red) and V7 (final recheck) |
+| AC2   | DONE                   | `manual-verification-evidence.md` V3 (red) and V7 (final recheck) |
+| AC3   | DONE                   | `manual-verification-evidence.md` V3 (red) and V7 (final recheck) |
+| AC4   | DONE                   | `manual-verification-evidence.md` V3 (red) and V7 (final recheck) |
+| AC5   | DONE                   | `manual-verification-evidence.md` V3 (red) and V7 (final recheck) |
 
 ## Risks and Trade-offs
 

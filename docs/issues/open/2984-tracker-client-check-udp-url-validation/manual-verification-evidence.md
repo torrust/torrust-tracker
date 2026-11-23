@@ -268,3 +268,18 @@ Production code changed after V4 to answer review findings (the scheme detection
 | `http_trackers` and `health_checks` | `http:///` | 2 | 0 | "Invalid URL: empty host" (unchanged) |
 
 No `PRIVATE_KEY` text appears in any output. V4 remains the record of the first recheck; V6 supersedes it as the final one.
+
+### V7 - Recheck after the redaction of the UDP result (last production change)
+
+Production code changed after V6: the `url` field of the UDP check result and the URL in the resolution error are now redacted. Build: commit `fix(tracker-client): [#2984] do not write the path of a UDP tracker URL in the check result`; `cargo test -p torrust-tracker-client` passes (69 unit tests and the integration tests) and the pre-commit gate passed. The V6 matrix for the invalid entries is unchanged by this commit (the configuration error already used the redaction); the rerun below covers the forms the commit changes, with the capture procedure of V1.
+
+| Entry in `udp_trackers` | Exit | stdout bytes | Result |
+| ----------------------- | ---- | ------------ | ------ |
+| `udp://127.0.0.1`, `udp:///`, `ftp://127.0.0.1:6969` | 2 | 0 | `invalid_configuration`, messages as in V6 |
+| `udp://nonexistent.invalid:6969` | 0 | 258 | failed `Setup`, `url` `udp://nonexistent.invalid:6969`, `remote_addr` null |
+| `udp://nonexistent.invalid:6969/announce/PRIVATE_KEY` | 0 | 268 | failed `Setup`, `url` and error text `udp://nonexistent.invalid:6969/****` |
+| `udp://127.0.0.1:6969`, `localhost:6969` | 0 | 205 | `url` `udp://127.0.0.1:6969` and `udp://localhost:6969`, `remote_addr` `127.0.0.1:6969` |
+| `udp://localhost:6969/announce/PRIVATE_KEY` | 0 | 210 | `url` `udp://localhost:6969/****`, `remote_addr` `127.0.0.1:6969` |
+| `udp://127.0.0.1/announce/PRIVATE_KEY`, `http://127.0.0.1:7070/announce/PRIVATE_KEY` | 2 | 0 | `invalid_configuration` with the entry redacted to `/****` |
+
+`PRIVATE_KEY` appears in no stdout or stderr. V7 supersedes V6 as the final recheck for the UDP result.

@@ -1,7 +1,7 @@
 ---
 pr-number: 3013
 pr-url: https://github.com/torrust/torrust-tracker/pull/3013
-last-updated-utc: "2026-11-23 19:36"
+last-updated-utc: "2026-11-23 21:25"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -43,6 +43,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
+Round 4 is CodeRabbit's COMMENTED review `6028281546` (19:42:29Z, one inline finding, F8) on the head `fix(tracker-client): [#2984] do not echo the path, query or credentials of a rejected tracker URL`; it was not on the poller's reviewer list and was found when the maintainer asked for a check of new reviews.
+
 Round 3 is Copilot's COMMENTED review `6028073393` (19:27:21Z, one finding, F7, in the review body with no inline thread) on the head `docs(pr-reviews): [#2984] add round 2 findings F5 and F6 to the PR 3013 audit`; the same review lists F5 and F6 as resolved.
 
 Round 2 is Copilot's COMMENTED review `6027526242` (18:50:43Z, two inline findings, F5 and F6; the review says its full agentic review did not start before the timeout) on the head `docs(issues): [#2984] record the test design reviews of the implementation`.
@@ -58,6 +60,7 @@ Round 1 is Copilot's COMMENTED review `6026885441` (18:05:27Z, three inline find
 | F5 | `review-finding:pr-3013-f5` | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
 | F6 | `review-finding:pr-3013-f6` | Copilot | Minor (inferred) | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F7 | `review-finding:pr-3013-f7` | Copilot | Major | security | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F8 | `review-finding:pr-3013-f8` | Unknown | Major | security | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -152,12 +155,26 @@ Round 1 is Copilot's COMMENTED review `6026885441` (18:05:27Z, three inline find
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/3013#issuecomment-7111837351>
 
+### F8 - The UDP check result and resolution error write the full tracker URL
+
+- PR number: 3013
+- Source review ID: 6028281546
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3013#discussion_r4671033737
+- Concern: A valid entry such as `udp://127.0.0.1:6969/announce/PRIVATE_KEY` passes validation, and the `url` field added to the UDP check result and the URL in the resolution error both copy its private path to stdout; both outputs need a redacted URL and secret-bearing fixtures.
+- Solution: Both outputs carry the redacted form (scheme, host and port, with `/****` replacing any other part), the same function as the configuration error uses; the original URL is still used on the network. A test of `run` with a resolved and an unresolved secret-bearing URL covers both.
+- Current-tree verification: `cargo test -p torrust-tracker-client` passes (69 unit tests); the new test failed before the fix with the key in the output; the real binary shows no `PRIVATE_KEY` text on stdout or stderr for the resolved and unresolved forms (evidence V7).
+- Resolution reference: `fix(tracker-client): [#2984] do not write the path of a UDP tracker URL in the check result`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3013#discussion_r4672236269
+
 ## Processing Log
 
 - 2026-11-23 18:20 UTC - Round 1: Copilot's COMMENTED review `6026885441` (18:05:27Z, three findings F1 to F3). Three commits fixed them, one per finding (pushed, exit 0). Three replies were posted after the push, between 18:14:13Z and 18:14:19Z, and this record was written after them, not before (late start). Greptile's review `6026494247` (17:40:51Z, one finding F4, a re-raise of F2) was found at 18:14Z while listing the threads, because the poller does not watch Greptile; its reply (`Superseded by F2`) was posted at 18:14Z. All four threads were resolved at 18:14Z. The poller's reviewer list has no Greptile entry; later rounds pass it with `--reviewer` so a Greptile review wakes the loop.
 - 2026-11-23 18:36 UTC - Correction: the round 1 entry stamped 2026-11-23 18:20 UTC (and the record's `last-updated-utc`) carry a time that was typed, not read from the clock. The entry was written after the replies (18:14:13Z to 18:14:19Z) and before the validator run; the exact minute is not known. The first commit of this record failed the spell check and was redone with the reviewer's name added to the project dictionary.
 - 2026-11-23 18:57 UTC - Round 2: Copilot's COMMENTED review `6027526242` (18:50:43Z, two findings F5 and F6). One commit fixed F5 (pushed, exit 0); F6 needs no change. Two replies were posted after the push, at 18:57:01Z and 18:57:03Z, and the threads were resolved at 18:57Z. This entry and the two detail entries were written after them, at 2026-11-23 18:57 UTC (the clock read). Copilot's review overview lists the three round 1 findings as resolved.
 - 2026-11-23 19:36 UTC - Round 3: Copilot's COMMENTED review `6028073393` (19:27:21Z, one finding F7 in the review body). One commit fixed it (pushed, exit 0). F7 has no inline thread, so one PR conversation response (19:36Z) names the review, the finding and the commit; this entry and the detail entry were written after it, at 2026-11-23 19:36 UTC (the clock read). The build jobs of the workflow run failed on this head because the macOS nightly job could not start sccache ("Timed out waiting for server startup") and the matrix cancelled the others; nothing in the code is implicated.
+- 2026-11-23 21:25 UTC - Round 4: CodeRabbit's COMMENTED review `6028281546` (19:42:29Z, one finding F8), found when the maintainer asked for a check of new reviews; the poller had no CodeRabbit entry and its last run ended in a timeout. One commit fixed F8 (pushed, exit 0); the reply was posted at 21:25:31Z and the thread resolved after it; this entry and the detail entry were written after that, at 2026-11-23 21:25 UTC (the clock read). The maintainer's `ACK` of the previous head is stale after this push.
 
 ## Completion Rules
 
