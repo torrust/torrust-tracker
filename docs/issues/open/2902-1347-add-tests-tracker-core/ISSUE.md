@@ -9,7 +9,7 @@ github-issue: 2902
 spec-path: docs/issues/open/2902-1347-add-tests-tracker-core/ISSUE.md
 branch: "2902-1347-add-tests-tracker-core-statistics"
 related-pr: 2988
-last-updated-utc: "2026-11-23 15:51"
+last-updated-utc: "2026-11-23 15:57"
 semantic-links:
   skill-links:
     - create-issue
@@ -364,8 +364,8 @@ rows are ordered by slice, then by risk.
 | 11 | `databases/driver/sqlite/mod.rs` | S2 | 81 / 91 | Test candidate (aggregate-metric error branches); 137 / 139 with 8 tests ([plan](test-refactor-plans/sqlite-mod-tests.md)) | DONE |
 | 12 | `databases/driver/sqlite/schema_migrator.rs` | S2 | 136 / 149 | No change likely; challenge each `?`: three tests, 175 / 184, the rest left with reasons ([plan](test-refactor-plans/sqlite-schema-migrator-tests.md)) | DONE |
 | 13 | `databases/error.rs` | S2 | 28 / 35 | Test candidate (migration-error mapping); 35 / 35 since rows 8-12; classification and driver pinned by 15 cases, five mutants that survived line coverage now killed ([plan](test-refactor-plans/databases-error-tests.md)) | DONE |
-| 14 | `databases/setup.rs` | S2 | 33 / 41 | Test candidate (SQLite arm and unreachable endpoint); server arms to S3 96 / 104 with 4 tests, server arms left to S3 ([plan](test-refactor-plans/databases-setup-tests.md)) | DONE |
-| 15 | `error.rs` | S2 | 38 / 50 | Test candidate (`From` conversions) | PENDING |
+| 14 | `databases/setup.rs` | S2 | 33 / 41 | Test candidate (SQLite arm and unreachable endpoint); 96 / 104 with 4 tests, the server arms left to S3 ([plan](test-refactor-plans/databases-setup-tests.md)) | DONE |
+| 15 | `error.rs` | S2 | 38 / 50 | Test candidate (`From` conversions) ([plan](test-refactor-plans/tracker-core-error-tests.md)) | IN_PROGRESS |
 | 16 | `databases/driver/mod.rs` | S2 | 186 / 189 | No change to the test-only retry helper; receives the shared functions of row 8, tested there | PENDING |
 | 17 | `databases/mod.rs`, `databases/traits/*` (6 files) | S2 | 2 / 2, no entries | No change (declarations and the mock) | PENDING |
 | 18-22 | `databases/driver/mysql/{mod,auth_key_store,schema_migrator,torrent_metrics_store,whitelist_store}.rs` | S3 | 7 / 211, 0 / 55, 0 / 77, 0 / 46, 0 / 31 | Container-gated; assess after T1b | PENDING |
