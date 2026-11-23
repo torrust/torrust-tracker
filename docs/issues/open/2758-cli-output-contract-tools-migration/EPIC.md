@@ -6,7 +6,7 @@ epic: null
 github-issue: 2758
 spec-path: docs/issues/open/2758-cli-output-contract-tools-migration/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-23 14:44"
+last-updated-utc: "2026-11-23 16:15"
 semantic-links:
   skill-links:
     - create-issue
@@ -88,7 +88,7 @@ Checked against `develop` at `35ec81000`.
 ## Subissues
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`. File sets are disjoint inside a wave, so a wave can run in
-parallel; the maintainer sets how many sessions run at once.
+parallel; the maintainer sets how many sessions run at once. The `Order` column is a stable row number that the specs cite ("issue 11", "Order 11 of 13"), not the execution order: rows 12 and 13 were added later, and the schedule in the Delivery Strategy below sets the execution order of the remaining work.
 
 | Order | Issue | Local Spec | Status | Files it touches / notes |
 | ----- | ----- | ---------- | ------ | ------------------------ |
@@ -154,6 +154,7 @@ consumes the old behavior (named in its spec). No issue edits the ADR table exce
 - 2026-11-23 14:03 UTC - Claude Code (Claude Opus 5.5) - Added issues 12 (#3004, bug) and 13 (#3006) from the #2768 leftovers; the maintainer set the order: #3004, #2766, #2769, #3006, then #2763 and #2767, and #2770 last.
 - 2026-11-23 14:25 UTC - Claude Code (Claude Opus 5.5) - Addressed da2ce7's review 6023338079 of PR 3007: named the #3006 spec PR, refreshed the counts and the row 1 note, and put the maintainer's order in the Delivery Strategy.
 - 2026-11-23 14:44 UTC - Claude Code (Claude Opus 5.5) - Addressed round 2 of PR 3007: row 1 now says only issue 11 edits the ADR table, and the order is stated as a schedule that overrides the wave 1 parallel rule.
+- 2026-11-23 16:15 UTC - Claude Code (Claude Opus 5.5) - Addressed round 3 of PR 3007: the `Order` column is a stable row number, and the Delivery Strategy schedule sets the execution order.
 
 ## Acceptance Criteria
 
