@@ -66,6 +66,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F14 | review-finding:pr-3014-f14 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F15 | review-finding:pr-3014-f15 | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F16 | review-finding:pr-3014-f16 | Copilot | Minor (inferred) | formatting | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F17 | review-finding:pr-3014-f17 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | NON_RESOLVABLE |
 
 ## Finding Details
 
@@ -368,6 +369,19 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4672240897
 
+### F17 - The UDP parse-error event and reply texts differ
+
+- PR number: 3014
+- Source review ID: 6030147055
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3014#pullrequestreview-6030147055
+- Concern: Copilot (review summary, "Needs a closer look", no inline comment): parse-error events and wire replies use different text formats. The SI-B background said the UDP error event holds the same strings as the reply.
+- Solution: The SI-B background now lists the two texts: the reply is the struct's `Debug`, the event holds its own `Display`; both carry the type name.
+- Current-tree verification: `packages/udp-server/src/error.rs:23` formats `{request_parse_error:?}`; `error.rs:74-82` implements `Display` as `SendableRequestParseError: message: ...`; `event.rs:127` builds `ErrorKind::RequestParse` with `to_string()`.
+- Resolution reference: docs(issues): [#3000] tell the UDP parse-error reply and event texts apart
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3014#issuecomment-7115250721
+
 ## Processing Log
 
 - 2026-11-23 18:58 UTC - Started audit after the Copilot review 6027563286 (18:53 UTC); the two Greptile reviews 6027255837 (18:30 UTC) and 6027369330 (18:39 UTC) had arrived before it. Five findings, all checked against the branch.
@@ -383,6 +397,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-23 20:17 UTC - Round 4: Copilot review 6028703592 (20:10 UTC) raised R6 (on head `dc8ac4473`, already fixed by head `1f00028c2`, pushed by 20:11:10 UTC at the latest) and R8 (no R7 was posted). R8 was fixed and pushed (head `06eb49131`, by 20:17:08 UTC at the latest), then both threads were answered (replies 4671450945 and 4671451408).
 - 2026-11-23 20:49 UTC - Round 5: Copilot review 6029159032 (20:40 UTC, a "Lite" review) raised F11 to F13. Fixed and pushed (head `eaf83008a`, by 20:49:03 UTC at the latest), then replied (replies 4671824253, 4671824671, 4671825094).
 - 2026-11-23 21:26 UTC - Round 6 (after the maintainer said to keep fixing past five rounds): Copilot review 6029667183 (21:17 UTC, "Lite") raised F14 to F16. F14 and F15 were fixed and pushed (head `8cd01f5a9`, by 21:25:49 UTC at the latest), then all three threads were answered (replies 4672240047, 4672240495, 4672240897); F16 needed no change.
+- 2026-11-23 22:02 UTC - Round 7: Copilot review 6030147055 (21:55 UTC) had no inline finding but its summary named one (F17). Fixed and pushed (head `09efe4a49`, by 22:02:32 UTC at the latest), then answered in PR comment 7115250721 (22:02:38 UTC).
 
 ## Completion Rules
 
