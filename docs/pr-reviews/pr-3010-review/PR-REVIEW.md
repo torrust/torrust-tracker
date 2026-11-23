@@ -57,6 +57,8 @@ Round 4 covers review 6026228066 (CodeRabbit, COMMENTED, submitted 2026-11-23T17
 
 Round 5 covers review 6026371049 (da2ce7, COMMENTED, submitted 2026-11-23T17:33:29Z) with one inline thread on this record. Its ID F15 collides with the first CodeRabbit finding, which was submitted earlier, so it is recorded as F23.
 
+Round 6 covers three items. CodeRabbit's review 6026538673 (submitted 2026-11-23T17:43:28Z) is one follow-up comment on the F20 thread that says the F20 fix left a conflict; it is F24, a re-raise of F20, with severity inferred from F20. CodeRabbit's review 6026541291 (17:43:38Z) only confirms F19 and has no finding. Greptile's review 6026552595 (17:44:20Z) has one inline thread with a `P2` badge, F25. Review 6026737720 (da2ce7, APPROVED, submitted 17:55:54Z) has one inline thread, F26, which asks for the same change as F24.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F9 | review-finding:pr-3010-f9 | Unknown | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -82,6 +84,9 @@ Round 5 covers review 6026371049 (da2ce7, COMMENTED, submitted 2026-11-23T17:33:
 | F21 | review-finding:pr-3010-f21 | Unknown | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F22 | review-finding:pr-3010-f22 | Unknown | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F23 | review-finding:pr-3010-f23 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F24 | review-finding:pr-3010-f24 | Unknown | Minor (inferred) | correctness | RE_RAISE_OF:F20 | FIXED | RESOLVED |
+| F25 | review-finding:pr-3010-f25 | Unknown | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F26 | review-finding:pr-3010-f26 | Human | Minor | correctness | RE_RAISE_OF:F24 | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -384,6 +389,45 @@ Round 5 covers review 6026371049 (da2ce7, COMMENTED, submitted 2026-11-23T17:33:
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4669630702
 
+### F24 - The key sub-issue still fixes an integer of seconds for `cookie_lifetime`
+
+- PR number: 3010
+- Source review ID: 6026228066
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4669400261
+- Concern: Raised by the follow-up comment https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4669642665 (review 6026538673) on the F20 thread, so the source fields name that thread and its review. After the F20 fix, one scope line of the SI-4 draft still said that `cookie_lifetime` becomes an integer of seconds while the next line left the form to the maintainer, and one alternative uses `cookie_lifetime_in_ms` while D6 and the draft's goal name `cookie_lifetime_in_secs`.
+- Solution: The scope line says the value becomes one number whose form is decided in the next item. That item says which alternatives keep the name `cookie_lifetime_in_secs` and that the `_in_ms` alternative means correcting D5, D6 and the SI-9 draft in the same specification pull request.
+- Current-tree verification: `grep -n 'integer of seconds' docs/issues/drafts/2387-si-4-configuration-keys-with-units/ISSUE.md` shows the phrase only inside the item that lists the alternatives. `grep -n 'means correcting D5, D6' docs/issues/drafts/2387-si-4-configuration-keys-with-units/ISSUE.md` shows the new sentence.
+- Resolution reference: docs(issues): [#2387] defer the form of cookie_lifetime in the scope line of the key sub-issue too
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4669879444
+
+### F25 - Pre-bind field rules disagree between D3a and the listener identity sub-issue
+
+- PR number: 3010
+- Source review ID: 6026552595
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4669653954
+- Concern: The SI-8 draft, after the F18 fix, requires `bind_address` on the `UdpSocket::bind (binding)` debug line, while decision D3a allowed that field only on the `Starting` line.
+- Solution: D3a allows `bind_address` on every line logged before the bind and names the `Starting` line and a `DEBUG` line of the bind call as the two kinds. The SI-8 draft is unchanged.
+- Current-tree verification: `grep -n 'appears only on lines logged before the bind' docs/issues/open/2387-review-tracker-lifecycle-logs/decisions.md` shows the sentence, and `grep -rn 'only on the .Starting. line' docs/issues/open/2387-review-tracker-lifecycle-logs docs/issues/drafts/2387-si-*` prints nothing.
+- Resolution reference: docs(issues): [#2387] let decision D3a allow bind_address on every line logged before the bind
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4669879919
+
+### F26 - The key sub-issue's scope line still fixes an integer of seconds, and the next offers a name that D6 rules out
+
+- PR number: 3010
+- Source review ID: 6026737720
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4669798489
+- Concern: The same two points as F24, raised by the reviewer on the SI-4 draft, with the note that the automated follow-up on the F20 thread had no answer.
+- Solution: As F24. The three alternatives are kept, and the `_in_ms` one says what else it changes, which is the second option the reviewer gave.
+- Current-tree verification: As F24.
+- Resolution reference: docs(issues): [#2387] defer the form of cookie_lifetime in the scope line of the key sub-issue too
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4669880370
+
 ## Processing Log
 
 - 2026-11-23 16:32 UTC - Round 1: review 6025366087 submitted by Greptile at 16:32:02Z with one inline thread, recorded as F9.
@@ -408,6 +452,11 @@ Round 5 covers review 6026371049 (da2ce7, COMMENTED, submitted 2026-11-23T17:33:
 - 2026-11-23 17:40 UTC - Pushed the round 3 record and the eight round 4 commits (the push ended at 17:40:41 UTC). Review 6026371049 (da2ce7, submitted 17:33:29Z, one thread, F23) had read a head without the round 3 record.
 - 2026-11-23 17:42 UTC - Replied on the nine threads of rounds 4 and 5 (replies created 17:42:12Z to 17:42:32Z) and recorded the reply URLs here.
 - 2026-11-23 17:43 UTC - The audit validator passed (23 rows, 0 failures). Listed the unresolved threads: six, all with a reply and a fix (the two of round 3, three of round 4 and the one of round 5). The other five threads of round 4 were already resolved; this session did not resolve them. Resolved the six by their IDs, and a new GraphQL fetch reports 0 unresolved threads.
+- 2026-11-23 17:44 UTC - Committed the record of rounds 4 and 5 at 17:43 UTC and pushed it.
+- 2026-11-23 17:55 UTC - Round 6: review 6026737720 submitted by da2ce7 at 17:55:54Z, state APPROVED, with one thread (F26). Reading the pull request showed two automated items submitted before it and not yet seen: CodeRabbit's follow-up on the F20 thread (17:43:28Z, F24) and Greptile's thread (17:44:20Z, F25). CodeRabbit's comment of 17:43:38Z on the F19 thread confirms that fix.
+- 2026-11-23 18:02 UTC - Committed the two fixes at 17:58 UTC and pushed them (the push ended at 18:02:06 UTC).
+- 2026-11-23 18:02 UTC - Replied on the three threads (replies created 18:02:36Z to 18:02:40Z) and recorded the reply URLs here.
+- 2026-11-23 18:03 UTC - The audit validator passed (26 rows, 0 failures). Listed the unresolved threads: two, those of F25 and F26; the F20 thread, which carries F24, was still resolved. Resolved the two by their IDs, and a new GraphQL fetch reports 0 unresolved threads.
 
 ## Completion Rules
 
