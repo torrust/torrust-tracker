@@ -489,7 +489,7 @@ Round 4 covers four reviews. Review 6025120305 (CodeRabbit, submitted 2026-11-23
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4668734671
 - Concern: On the head commit `docs(pr-reviews): [#3002] record review round 3`, the Reply URL of F13 was `PENDING`. Copilot asks to fill the placeholders of durable references before merge, or to set a final value. The overview marks it High, recorded as `Major (inferred)`. The same request as F29.
 - Solution: Fixed by the commit of F29, which filled the Reply URL of F13 with the reply on its own thread.
-- Current-tree verification: The F13 detail entry's Reply URL is a `discussion_r` URL; this record has no `PENDING` text.
+- Current-tree verification: The F13 detail entry's Reply URL is a `discussion_r` URL; no Reply URL, Resolution reference or Current-tree verification field of this record holds a placeholder, and the audit validator confirms it.
 - Resolution reference: `docs(pr-reviews): [#3002] record the replies and resolutions of review round 3`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4669146315
@@ -502,7 +502,7 @@ Round 4 covers four reviews. Review 6025120305 (CodeRabbit, submitted 2026-11-23
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4668734746
 - Concern: On the head commit `docs(pr-reviews): [#3002] record review round 3`, the Reply URL of F14 was `PENDING`. Copilot asks to fill the placeholders of durable references before merge, or to set a final value. The overview marks it High, recorded as `Major (inferred)`. The same request as F29.
 - Solution: Fixed by the commit of F29, which filled the Reply URL of F14 with the reply on its own thread.
-- Current-tree verification: The F14 detail entry's Reply URL is a `discussion_r` URL; this record has no `PENDING` text.
+- Current-tree verification: The F14 detail entry's Reply URL is a `discussion_r` URL; no Reply URL, Resolution reference or Current-tree verification field of this record holds a placeholder, and the audit validator confirms it.
 - Resolution reference: `docs(pr-reviews): [#3002] record the replies and resolutions of review round 3`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4669147040
@@ -515,7 +515,7 @@ Round 4 covers four reviews. Review 6025120305 (CodeRabbit, submitted 2026-11-23
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4668734798
 - Concern: On the head commit `docs(pr-reviews): [#3002] record review round 3`, the Reply URL of F15 was `PENDING`. Copilot asks to fill the placeholders of durable references before merge, or to set a final value. The overview marks it High, recorded as `Major (inferred)`. The same request as F29.
 - Solution: Fixed by the commit of F29, which filled the Reply URL of F15 with the reply on its own thread.
-- Current-tree verification: The F15 detail entry's Reply URL is a `discussion_r` URL; this record has no `PENDING` text.
+- Current-tree verification: The F15 detail entry's Reply URL is a `discussion_r` URL; no Reply URL, Resolution reference or Current-tree verification field of this record holds a placeholder, and the audit validator confirms it.
 - Resolution reference: `docs(pr-reviews): [#3002] record the replies and resolutions of review round 3`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4669147837
@@ -528,7 +528,7 @@ Round 4 covers four reviews. Review 6025120305 (CodeRabbit, submitted 2026-11-23
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4668734855
 - Concern: On the head commit `docs(pr-reviews): [#3002] record review round 3`, the Reply URL of F16 was `PENDING`. Copilot asks to fill the placeholders of durable references before merge, or to set a final value. The overview marks it High, recorded as `Major (inferred)`. The same request as F29.
 - Solution: Fixed by the commit of F29, which filled the Reply URL of F16 with the reply on its own thread.
-- Current-tree verification: The F16 detail entry's Reply URL is a `discussion_r` URL; this record has no `PENDING` text.
+- Current-tree verification: The F16 detail entry's Reply URL is a `discussion_r` URL; no Reply URL, Resolution reference or Current-tree verification field of this record holds a placeholder, and the audit validator confirms it.
 - Resolution reference: `docs(pr-reviews): [#3002] record the replies and resolutions of review round 3`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4669148577
@@ -541,7 +541,7 @@ Round 4 covers four reviews. Review 6025120305 (CodeRabbit, submitted 2026-11-23
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4668734904
 - Concern: On the head commit `docs(pr-reviews): [#3002] record review round 3`, the Reply URL of F17 was `PENDING`. Copilot asks to fill the placeholders of durable references before merge, or to set a final value. The overview marks it High, recorded as `Major (inferred)`. The same request as F29.
 - Solution: Fixed by the commit of F29, which filled the Reply URL of F17 with the reply on its own thread.
-- Current-tree verification: The F17 detail entry's Reply URL is a `discussion_r` URL; this record has no `PENDING` text.
+- Current-tree verification: The F17 detail entry's Reply URL is a `discussion_r` URL; no Reply URL, Resolution reference or Current-tree verification field of this record holds a placeholder, and the audit validator confirms it.
 - Resolution reference: `docs(pr-reviews): [#3002] record the replies and resolutions of review round 3`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4669149234
@@ -554,7 +554,7 @@ Round 4 covers four reviews. Review 6025120305 (CodeRabbit, submitted 2026-11-23
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4668734958
 - Concern: On the head commit `docs(pr-reviews): [#3002] record review round 3`, the Reply URL of F18 was `PENDING`. Copilot asks to fill the placeholders of durable references before merge, or to set a final value. The overview marks it High, recorded as `Major (inferred)`. The same request as F29.
 - Solution: Fixed by the commit of F29, which filled the Reply URL of F18 with the reply on its own thread.
-- Current-tree verification: The F18 detail entry's Reply URL is a `discussion_r` URL; this record has no `PENDING` text.
+- Current-tree verification: The F18 detail entry's Reply URL is a `discussion_r` URL; no Reply URL, Resolution reference or Current-tree verification field of this record holds a placeholder, and the audit validator confirms it.
 - Resolution reference: `docs(pr-reviews): [#3002] record the replies and resolutions of review round 3`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4669149969
@@ -567,7 +567,7 @@ Round 4 covers four reviews. Review 6025120305 (CodeRabbit, submitted 2026-11-23
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4668735020
 - Concern: On the head commit `docs(pr-reviews): [#3002] record review round 3`, the Reply URL of F19 was `PENDING`. Copilot asks to fill the placeholders of durable references before merge, or to set a final value. The overview marks it High, recorded as `Major (inferred)`. The same request as F29.
 - Solution: Fixed by the commit of F29, which filled the Reply URL of F19 with the reply on its own thread.
-- Current-tree verification: The F19 detail entry's Reply URL is a `discussion_r` URL; this record has no `PENDING` text.
+- Current-tree verification: The F19 detail entry's Reply URL is a `discussion_r` URL; no Reply URL, Resolution reference or Current-tree verification field of this record holds a placeholder, and the audit validator confirms it.
 - Resolution reference: `docs(pr-reviews): [#3002] record the replies and resolutions of review round 3`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4669150848
@@ -580,7 +580,7 @@ Round 4 covers four reviews. Review 6025120305 (CodeRabbit, submitted 2026-11-23
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4668735072
 - Concern: On the head commit `docs(pr-reviews): [#3002] record review round 3`, the Reply URL of F20 was `PENDING`. Copilot asks to fill the placeholders of durable references before merge, or to set a final value. The overview marks it High, recorded as `Major (inferred)`. The same request as F29.
 - Solution: Fixed by the commit of F29, which filled the Reply URL of F20 with the reply on its own thread.
-- Current-tree verification: The F20 detail entry's Reply URL is a `discussion_r` URL; this record has no `PENDING` text.
+- Current-tree verification: The F20 detail entry's Reply URL is a `discussion_r` URL; no Reply URL, Resolution reference or Current-tree verification field of this record holds a placeholder, and the audit validator confirms it.
 - Resolution reference: `docs(pr-reviews): [#3002] record the replies and resolutions of review round 3`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4669151474
@@ -593,7 +593,7 @@ Round 4 covers four reviews. Review 6025120305 (CodeRabbit, submitted 2026-11-23
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4668735139
 - Concern: On the head commit `docs(pr-reviews): [#3002] record review round 3`, the Reply URL of F21 was `PENDING`. Copilot asks to fill the placeholders of durable references before merge, or to set a final value. The overview marks it High, recorded as `Major (inferred)`. The same request as F29.
 - Solution: Fixed by the commit of F29, which filled the Reply URL of F21 with the reply on its own thread.
-- Current-tree verification: The F21 detail entry's Reply URL is a `discussion_r` URL; this record has no `PENDING` text.
+- Current-tree verification: The F21 detail entry's Reply URL is a `discussion_r` URL; no Reply URL, Resolution reference or Current-tree verification field of this record holds a placeholder, and the audit validator confirms it.
 - Resolution reference: `docs(pr-reviews): [#3002] record the replies and resolutions of review round 3`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4669152049
@@ -606,7 +606,7 @@ Round 4 covers four reviews. Review 6025120305 (CodeRabbit, submitted 2026-11-23
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4668735209
 - Concern: On the head commit `docs(pr-reviews): [#3002] record review round 3`, the Reply URL of F22 was `PENDING`. Copilot asks to fill the placeholders of durable references before merge, or to set a final value. The overview marks it High, recorded as `Major (inferred)`. The same request as F29.
 - Solution: Fixed by the commit of F29, which filled the Reply URL of F22 with the reply on its own thread.
-- Current-tree verification: The F22 detail entry's Reply URL is a `discussion_r` URL; this record has no `PENDING` text.
+- Current-tree verification: The F22 detail entry's Reply URL is a `discussion_r` URL; no Reply URL, Resolution reference or Current-tree verification field of this record holds a placeholder, and the audit validator confirms it.
 - Resolution reference: `docs(pr-reviews): [#3002] record the replies and resolutions of review round 3`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4669152725
@@ -619,7 +619,7 @@ Round 4 covers four reviews. Review 6025120305 (CodeRabbit, submitted 2026-11-23
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4668735274
 - Concern: On the head commit `docs(pr-reviews): [#3002] record review round 3`, the Reply URL of F23 was `PENDING`. Copilot asks to fill the placeholders of durable references before merge, or to set a final value. The overview marks it High, recorded as `Major (inferred)`. The same request as F29.
 - Solution: Fixed by the commit of F29, which filled the Reply URL of F23 with the reply on its own thread.
-- Current-tree verification: The F23 detail entry's Reply URL is a `discussion_r` URL; this record has no `PENDING` text.
+- Current-tree verification: The F23 detail entry's Reply URL is a `discussion_r` URL; no Reply URL, Resolution reference or Current-tree verification field of this record holds a placeholder, and the audit validator confirms it.
 - Resolution reference: `docs(pr-reviews): [#3002] record the replies and resolutions of review round 3`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4669153396
@@ -632,7 +632,7 @@ Round 4 covers four reviews. Review 6025120305 (CodeRabbit, submitted 2026-11-23
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4668735314
 - Concern: On the head commit `docs(pr-reviews): [#3002] record review round 3`, the Reply URL of F24 was `PENDING`. Copilot asks to fill the placeholders of durable references before merge, or to set a final value. The overview marks it High, recorded as `Major (inferred)`. The same request as F29.
 - Solution: Fixed by the commit of F29, which filled the Reply URL of F24 with the reply on its own thread.
-- Current-tree verification: The F24 detail entry's Reply URL is a `discussion_r` URL; this record has no `PENDING` text.
+- Current-tree verification: The F24 detail entry's Reply URL is a `discussion_r` URL; no Reply URL, Resolution reference or Current-tree verification field of this record holds a placeholder, and the audit validator confirms it.
 - Resolution reference: `docs(pr-reviews): [#3002] record the replies and resolutions of review round 3`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4669153964
@@ -645,7 +645,7 @@ Round 4 covers four reviews. Review 6025120305 (CodeRabbit, submitted 2026-11-23
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4668735362
 - Concern: On the head commit `docs(pr-reviews): [#3002] record review round 3`, the Reply URL of F25 was `PENDING`. Copilot asks to fill the placeholders of durable references before merge, or to set a final value. The overview marks it High, recorded as `Major (inferred)`. The same request as F29.
 - Solution: Fixed by the commit of F29, which filled the Reply URL of F25 with the reply on its own thread.
-- Current-tree verification: The F25 detail entry's Reply URL is a `discussion_r` URL; this record has no `PENDING` text.
+- Current-tree verification: The F25 detail entry's Reply URL is a `discussion_r` URL; no Reply URL, Resolution reference or Current-tree verification field of this record holds a placeholder, and the audit validator confirms it.
 - Resolution reference: `docs(pr-reviews): [#3002] record the replies and resolutions of review round 3`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4669154471
