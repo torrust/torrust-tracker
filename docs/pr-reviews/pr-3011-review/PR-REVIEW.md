@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1 covers review 6025635934 (da2ce7, CHANGES_REQUESTED) with six findings, review 6025446613 (Greptile, COMMENTED) and review 6025738529 (Copilot, COMMENTED), all on the first commit `docs(issues): [#2924] record the T1 design decision and the V1 reproduction`. Greptile's and Copilot's findings repeat F1 and F5 and are re-raises. Round 3 is review 6026135793 (da2ce7, APPROVED); its reviewer IDs F10 to F12 are F13 to F15 here. Round 2 is review 6025843021 (da2ce7, COMMENTED) on the head `docs(issues): [#2924] rerun V1 with stamped steps and address review of PR 3011`. Its reviewer IDs F7 to F9 collide with this audit, so they are F10 to F12 here with the reviewer's ID in the detail entry. Copilot's `High severity` badge maps to `Major (inferred)` and `Low severity` to `Nit (inferred)`; Greptile's `P2` maps to `Minor (inferred)`.
+Round 1 covers review 6025635934 (da2ce7, CHANGES_REQUESTED) with six findings, review 6025446613 (Greptile, COMMENTED) and review 6025738529 (Copilot, COMMENTED), all on the first commit `docs(issues): [#2924] record the T1 design decision and the V1 reproduction`. Greptile's and Copilot's findings repeat F1 and F5 and are re-raises. Round 2 is review 6025843021 (da2ce7, COMMENTED) on the head `docs(issues): [#2924] rerun V1 with stamped steps and address review of PR 3011`. Its reviewer IDs F7 to F9 collide with this audit, so they are F10 to F12 here with the reviewer's ID in the detail entry. Round 3 is review 6026135793 (da2ce7, APPROVED); its reviewer IDs F10 to F12 are F13 to F15 here. Copilot's `High severity` badge maps to `Major (inferred)` and `Low severity` to `Nit (inferred)`; Greptile's `P2` maps to `Minor (inferred)`.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -60,6 +60,7 @@ Round 1 covers review 6025635934 (da2ce7, CHANGES_REQUESTED) with six findings, 
 | F13 | review-finding:pr-3011-f13 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F14 | review-finding:pr-3011-f14 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F15 | review-finding:pr-3011-f15 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-3011-f16 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -199,7 +200,7 @@ Round 1 covers review 6025635934 (da2ce7, CHANGES_REQUESTED) with six findings, 
 - Source review ID: 6025843021
 - Reviewer finding ID: F8
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3011#discussion_r4669110216
-- Concern: The round-1 replies cite the branch commit of round 1 by its id, which can change on a rebase.
+- Concern: The round-1 replies cite the commit that answered round 1 by its id, which can change on a rebase.
 - Solution: The replies stay as written; each is mapped in this record to the commit subject `docs(issues): [#2924] rerun V1 with stamped steps and address review of PR 3011` in its Resolution reference.
 - Current-tree verification: `grep -c 'rerun V1 with stamped steps' docs/pr-reviews/pr-3011-review/PR-REVIEW.md` is non-zero and every F1 to F9 row except F4 cites the subject; F4's fix is the PR description, so its row cites its reply URL.
 - Resolution reference: `docs(pr-reviews): [#3011] record the audit of review rounds 1 and 2`
@@ -258,10 +259,24 @@ Round 1 covers review 6025635934 (da2ce7, CHANGES_REQUESTED) with six findings, 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3011#discussion_r4669344642
 
+### F16 - Two wording slips in the record
+
+- PR number: 3011
+- Source review ID: 6026327069
+- Reviewer finding ID: F13
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3011#discussion_r4669477128
+- Concern: The intro paragraph describes round 3 before round 2, and F11's Concern says "the branch commit of round 1", which reads as the commit reviewed in round 1.
+- Solution: Round 3's sentence moved after round 2's, and the Concern now says "the commit that answered round 1".
+- Current-tree verification: `grep -n 'commit that answered round 1' docs/pr-reviews/pr-3011-review/PR-REVIEW.md` finds the new wording.
+- Resolution reference: `docs(pr-reviews): [#3011] fix two wording slips in the audit record`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3011#discussion_r4669490778
+
 ## Processing Log
 
 - 2026-11-23 17:06 UTC - Started audit, late: the replies of round 1 (da2ce7 review 6025635934, Greptile 6025446613, Copilot 6025738529) had been posted and the threads resolved before this record existed, which da2ce7 raised as F10. Created from the template now. Round 2 (review 6025843021) was replied to before this commit; its reply URLs are recorded above. All twelve rows were checked against the current tree.
 - 2026-11-23 17:20 UTC - Round 3: review 6026135793 (da2ce7, APPROVED) with three findings, F13 to F15 here (its F10 to F12). Replied on the three threads, edited the PR description for F15, fixed F13 and F14 in this record.
+- 2026-11-23 17:31 UTC - Round 4: review 6026327069 (da2ce7, APPROVED, on the head after round 3) with one nit, F16 here (its F13). Replied, fixed the two wording slips in this record.
 
 ## Completion Rules
 
