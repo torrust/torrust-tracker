@@ -6,7 +6,7 @@ epic: null
 github-issue: 2387
 spec-path: docs/issues/open/2387-review-tracker-lifecycle-logs/EPIC.md
 epic-owner: null
-last-updated-utc: "2026-11-23 17:33"
+last-updated-utc: "2026-11-23 18:32"
 semantic-links:
   skill-links:
     - create-issue
@@ -261,7 +261,7 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 - [ ] AC12: Lifecycle lines print no `Debug` output of an internal type, such as `CancellationToken { is_cancelled: false }` or `Some(…)`.
 - [ ] AC13: A clean start and a clean stop log no `WARN` and no `ERROR`, with usage statistics enabled and disabled, except the warnings the convention lists.
 - [ ] AC14: The lines of D10 are logged: build and run identity, `Tracker started`, the stop duration of each job, and `Tracker stopped` with the outcome.
-- [ ] AC15: No program in the repository reads a fact from the message text of a log line.
+- [ ] AC15: No program in the repository reads a value from the message text of a log line; values come from fields. A program may match a message that the catalogue of `docs/logging.md` documents, to select a line or to wait for a state, as SI-11 does with `Started <service>` and SI-20 with `Tracker started`.
 - [ ] AC16: "Changes in 4.0.0" in `docs/logging.md` lists every operator-visible change, and the comparison of SI-23 finds no change that is missing from it.
 - [ ] AC17: The automated check of SI-20 runs in CI and fails for a line that breaks the convention.
 

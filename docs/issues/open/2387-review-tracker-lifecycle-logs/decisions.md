@@ -1,7 +1,7 @@
 ---
 doc-type: decision-record
 issue-spec: docs/issues/open/2387-review-tracker-lifecycle-logs/EPIC.md
-last-updated-utc: "2026-11-23 17:58"
+last-updated-utc: "2026-11-23 18:32"
 ---
 
 # Decisions of EPIC #2387
@@ -18,7 +18,7 @@ A decision here is the starting point of a sub-issue, not a final design. If a s
 
 These rules came up while answering and apply to every sub-issue:
 
-1. **Prefer structured fields.** A fact that a tool may read is an event field, never only words in the message.
+1. **Prefer structured fields.** A value that a tool may read is an event field, never only words in the message. A tool may match the message of a catalogued line to select that line or to detect that a state was reached; it never reads a value from the message.
 2. **The log maps what happens inside the application.** Do not merge two lines when something can fail between the two moments they report. A crash must leave the last reached state in the log. Merge lines only when they report the same moment, or when nothing can go wrong between them.
 3. **Effort is not a reason to choose the smaller design.** When the better design costs more work, do it before 4.0.0 and split it into small sub-issues.
 4. **Record the alternatives.** Every decision keeps its alternatives, pros, cons and reason in the specification, and the rules that result are documented where future contributors find them (ADR, documentation, skill, rustdoc).

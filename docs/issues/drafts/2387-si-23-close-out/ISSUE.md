@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2387-si-23-close-out/ISSUE.md
 branch: "{issue-number}-2387-si-23-close-out-spec"
 related-pr: null
-last-updated-utc: "2026-11-23 17:30"
+last-updated-utc: "2026-11-23 18:32"
 semantic-links:
   skill-links:
     - create-issue
@@ -49,7 +49,7 @@ Each sub-issue verifies its own lines. Nobody has read the whole log of the fina
 - Check every difference against "Changes in 4.0.0" in `docs/logging.md` and add what is missing.
 - Read the final log as an operator: is anything still incoherent or missing? Report findings to the maintainer as candidate issues; do not fix them here.
 - Remove the "not yet implemented" mark from each catalogue entry in `docs/logging.md` whose line is implemented. An entry of a sub-issue that is still open or was detached from the EPIC (SI-21 or SI-22) keeps its mark and names the issue that will implement it.
-- Search the repository for programs that read a fact from log message text (AC15).
+- Search the repository for programs that read log text (AC15): none reads a value from a message, and every message a program matches is in the catalogue of `docs/logging.md`.
 - Fill the EPIC's acceptance verification table, record the completion review, and do the EPIC close-out as the repository's skills describe.
 - Check the status of the two external issues and of SI-21 and SI-22, and record them.
 
