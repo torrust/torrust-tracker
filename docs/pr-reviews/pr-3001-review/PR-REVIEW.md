@@ -299,7 +299,7 @@ F1 and F2 come from Copilot's review 6021313664 (COMMENTED on the first head, "d
 - Concern: da2ce7 (Minor) noted that F14 and F15 were recorded as Nit with "rated Low", while the overview of Copilot review 6022662894 marks both Medium.
 - Solution: Both rows are now Minor and both Concern lines say "rated Medium, recorded as Minor".
 - Current-tree verification: `grep -n "^| F14 \|^| F15 " docs/pr-reviews/pr-3001-review/PR-REVIEW.md` shows Minor.
-- Resolution reference: docs(issues): [#2917] fix the SI-8 option rationale, dates and provenance wording after review round 5
+- Resolution reference: docs(pr-reviews): [#2917] record round 6 of the review audit of PR #3001
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4668280696
 
@@ -325,7 +325,7 @@ F1 and F2 come from Copilot's review 6021313664 (COMMENTED on the first head, "d
 - Concern: da2ce7 (Nit) noted that the origin of F16 is stated twice in the intro paragraph and placed before the F14 and F15 sentence although it says it is last, and that the 13:51 correction gives 13:44:52 for the batch resolve while the 13:45 entry gives 13:45:33.
 - Solution: The duplicate sentence is removed, the remaining one is moved after the F14 and F15 sentence and says it is placed after them; the correction now says the resolve ran at 13:45:33 and 13:44:52 was the time of the replies.
 - Current-tree verification: `grep -o "F16 comes fro[m]" docs/pr-reviews/pr-3001-review/PR-REVIEW.md | wc -l` prints 1.
-- Resolution reference: docs(issues): [#2917] fix the SI-8 option rationale, dates and provenance wording after review round 5
+- Resolution reference: docs(pr-reviews): [#2917] record round 6 of the review audit of PR #3001
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4668281799
 
@@ -336,9 +336,9 @@ F1 and F2 come from Copilot's review 6021313664 (COMMENTED on the first head, "d
 - Reviewer finding ID: F10
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4666865693
 - Concern: da2ce7 (Nit) noted that the evidence says the first after captures were taken at a commit build that did not yet exist, that three `last-updated-utc` values were stale, that the 11:21 progress-log entry was rewritten instead of appended to, and that the 13:26 audit entry ends in a double period.
-- Solution: The evidence says "a working tree matching" the commit; the evidence file, the SI-5 and SI-8 specs and the EPIC carry the current `last-updated-utc`; the 11:21 entry is restored to its first text and the SI-8 record is a new 15:55 line; the double period is removed.
-- Current-tree verification: `grep -n "last-updated-utc" docs/issues/open/2996*/ISSUE.md docs/issues/open/2912*/EPIC.md` shows 2026-11-23 15:55.
-- Resolution reference: docs(issues): [#2917] fix the SI-8 option rationale, dates and provenance wording after review round 5
+- Solution: The evidence says "a working tree matching" the commit; the evidence file, the SI-5 and SI-8 specs and the EPIC carry the current `last-updated-utc`; the 11:21 entry is restored to its first text and the SI-8 record is a new 15:53 line; the double period is removed.
+- Current-tree verification: `grep -n "last-updated-utc" docs/issues/open/2996*/ISSUE.md docs/issues/open/2912*/EPIC.md` shows 2026-11-23 15:53.
+- Resolution reference: docs(issues): [#2917] fix the SI-8 option rationale, dates and provenance wording after review round 5; docs(issues): [#2917] use the real time in the updated metadata; docs(pr-reviews): [#2917] record round 6 of the review audit of PR #3001
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4668282221
 
