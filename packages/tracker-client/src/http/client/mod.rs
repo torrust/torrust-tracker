@@ -15,12 +15,13 @@ use thiserror::Error;
 use torrust_tracker_http_protocol::v1::requests::announce::Announce;
 use torrust_tracker_http_protocol::v1::requests::scrape_builder;
 
-use self::redaction::{mask_tracker_key, request_error_text};
+use self::redaction::{mask_key_segments, mask_tracker_key, request_error_text};
 
 /// An HTTP tracker client error.
 ///
 /// Its `Display` and `Debug` texts never carry the tracker key: the request URL is masked with
-/// [`redaction::mask_tracker_key`], and the texts of [`reqwest::Error`] and [`Response`], which
+/// [`redaction::mask_tracker_key`] and, for an authenticated client, with its own key
+/// ([`redaction::mask_key_segments`]), and the texts of [`reqwest::Error`] and [`Response`], which
 /// carry the full URL, are not used.
 #[derive(Clone, Error)]
 #[non_exhaustive]
@@ -29,8 +30,13 @@ pub enum Error {
     ClientBuildingError { err: Arc<reqwest::Error> },
     #[error("Failed to get a response: {}", request_error_text(err))]
     ResponseError { err: Arc<reqwest::Error> },
-    #[error("Returned a non-success code: \"{code}\" for url ({})", mask_tracker_key(response.url()))]
-    UnsuccessfulResponse { code: StatusCode, response: Arc<Response> },
+    #[error("Returned a non-success code: \"{code}\" for url ({url})")]
+    UnsuccessfulResponse {
+        code: StatusCode,
+        /// The request URL with its secrets masked.
+        url: Url,
+        response: Arc<Response>,
+    },
 }
 
 impl fmt::Debug for Error {
@@ -44,10 +50,10 @@ impl fmt::Debug for Error {
                 .debug_struct("ResponseError")
                 .field("err", &request_error_text(err))
                 .finish(),
-            Self::UnsuccessfulResponse { code, response } => f
+            Self::UnsuccessfulResponse { code, url, .. } => f
                 .debug_struct("UnsuccessfulResponse")
                 .field("code", code)
-                .field("url", &mask_tracker_key(response.url()).as_str())
+                .field("url", &url.as_str())
                 .finish(),
         }
     }
@@ -133,10 +139,7 @@ impl Client {
         if response.status().is_success() {
             Ok(response)
         } else {
-            Err(Error::UnsuccessfulResponse {
-                code: response.status(),
-                response: response.into(),
-            })
+            Err(self.unsuccessful_response(response))
         }
     }
 
@@ -149,10 +152,7 @@ impl Client {
         if response.status().is_success() {
             Ok(response)
         } else {
-            Err(Error::UnsuccessfulResponse {
-                code: response.status(),
-                response: response.into(),
-            })
+            Err(self.unsuccessful_response(response))
         }
     }
 
@@ -165,10 +165,7 @@ impl Client {
         if response.status().is_success() {
             Ok(response)
         } else {
-            Err(Error::UnsuccessfulResponse {
-                code: response.status(),
-                response: response.into(),
-            })
+            Err(self.unsuccessful_response(response))
         }
     }
 
@@ -181,10 +178,7 @@ impl Client {
         if response.status().is_success() {
             Ok(response)
         } else {
-            Err(Error::UnsuccessfulResponse {
-                code: response.status(),
-                response: response.into(),
-            })
+            Err(self.unsuccessful_response(response))
         }
     }
 
@@ -196,7 +190,7 @@ impl Client {
             .get(self.build_url(path))
             .send()
             .await
-            .map_err(|e| Error::ResponseError { err: e.into() })
+            .map_err(|e| self.response_error(e))
     }
 
     /// # Errors
@@ -208,15 +202,11 @@ impl Client {
             .header(key, value)
             .send()
             .await
-            .map_err(|e| Error::ResponseError { err: e.into() })
+            .map_err(|e| self.response_error(e))
     }
 
     async fn get_url(&self, url: Url) -> Result<Response, Error> {
-        self.http_client
-            .get(url)
-            .send()
-            .await
-            .map_err(|e| Error::ResponseError { err: e.into() })
+        self.http_client.get(url).send().await.map_err(|e| self.response_error(e))
     }
 
     async fn get_url_with_header(&self, url: Url, key: &str, value: &str) -> Result<Response, Error> {
@@ -225,7 +215,35 @@ impl Client {
             .header(key, value)
             .send()
             .await
-            .map_err(|e| Error::ResponseError { err: e.into() })
+            .map_err(|e| self.response_error(e))
+    }
+
+    /// The request URL with its secrets masked: the key after `announce` or `scrape`, and this
+    /// client's own key wherever its path puts it.
+    fn masked_url(&self, url: &Url) -> Url {
+        let masked = mask_tracker_key(url);
+
+        match &self.key {
+            Some(key) => mask_key_segments(&masked, key.value()),
+            None => masked,
+        }
+    }
+
+    fn response_error(&self, error: reqwest::Error) -> Error {
+        let error = match error.url().map(|url| self.masked_url(url)) {
+            Some(masked_url) => error.with_url(masked_url),
+            None => error,
+        };
+
+        Error::ResponseError { err: error.into() }
+    }
+
+    fn unsuccessful_response(&self, response: Response) -> Error {
+        Error::UnsuccessfulResponse {
+            code: response.status(),
+            url: self.masked_url(response.url()),
+            response: response.into(),
+        }
     }
 
     fn build_announce_url(&self, query: &Announce) -> Url {
@@ -409,10 +427,10 @@ mod tests {
         use reqwest::Url;
         use tokio::io::{AsyncReadExt as _, AsyncWriteExt as _};
         use tokio::task::JoinHandle;
-        use torrust_tracker_http_protocol::v1::requests::announce::AnnounceBuilder;
+        use torrust_tracker_http_protocol::v1::requests::announce::{Announce, AnnounceBuilder};
         use torrust_tracker_http_protocol::v1::requests::scrape_builder;
 
-        use super::super::Client;
+        use super::super::{Client, Key};
 
         const KEY: &str = "SecretTrackerKey123";
 
@@ -470,7 +488,17 @@ mod tests {
             Client::new(url, Duration::from_secs(2)).expect("the client should build")
         }
 
-        fn announce_query() -> torrust_tracker_http_protocol::v1::requests::announce::Announce {
+        /// A client that adds `KEY` to the paths it builds, for a tracker at `base_url`.
+        fn authenticated_client(base_url: &str) -> Client {
+            Client::authenticated(
+                Url::parse(base_url).expect("the base URL should parse"),
+                Duration::from_secs(2),
+                Key::new(KEY),
+            )
+            .expect("the client should build")
+        }
+
+        fn announce_query() -> Announce {
             AnnounceBuilder::with_default_values().query()
         }
 
@@ -547,6 +575,74 @@ mod tests {
 
             let text = format!("{error:?}");
             assert!(!text.contains(KEY), "the Debug text should not contain the key: {text}");
+        }
+
+        #[tokio::test]
+        async fn it_should_keep_the_transport_cause_when_a_request_gets_no_response() {
+            let client = client(keyed_announce_url(closed_local_address()));
+
+            let error = tokio::time::timeout(TEST_DEADLINE, client.announce(&announce_query()))
+                .await
+                .expect("the announce should end before the test deadline")
+                .expect_err("the announce to a closed port should fail");
+
+            let text = error.to_string();
+            assert!(
+                text.contains("tcp connect error"),
+                "the error text should keep the transport cause: {text}"
+            );
+        }
+
+        #[tokio::test]
+        async fn it_should_mask_the_client_key_when_a_request_to_a_custom_path_gets_no_response() {
+            let client = authenticated_client(&format!("http://{}/custom-tracker-endpoint", closed_local_address())); // DevSkim: ignore DS137138
+
+            let error = tokio::time::timeout(TEST_DEADLINE, client.announce(&announce_query()))
+                .await
+                .expect("the announce should end before the test deadline")
+                .expect_err("the announce to a closed port should fail");
+
+            let text = format!("{error} {error:?}");
+            assert!(!text.contains(KEY), "the error texts should not contain the key: {text}");
+            assert!(
+                text.contains("/custom-tracker-endpoint/****"),
+                "the error text should show the masked URL: {text}"
+            );
+        }
+
+        #[tokio::test]
+        async fn it_should_mask_the_client_key_when_a_request_to_a_custom_path_gets_a_non_success_status() {
+            let (address, _responder) = start_not_found_responder().await;
+            let client = authenticated_client(&format!("http://{address}/custom-tracker-endpoint")); // DevSkim: ignore DS137138
+
+            let error = tokio::time::timeout(TEST_DEADLINE, client.announce(&announce_query()))
+                .await
+                .expect("the announce should end before the test deadline")
+                .expect_err("a 404 reply should fail the announce");
+
+            let text = format!("{error} {error:?}");
+            assert!(!text.contains(KEY), "the error texts should not contain the key: {text}");
+            assert!(
+                text.contains("/custom-tracker-endpoint/****"),
+                "the error text should show the masked URL: {text}"
+            );
+        }
+
+        #[tokio::test]
+        async fn it_should_mask_the_client_key_when_a_health_check_gets_no_response() {
+            let client = authenticated_client(&format!("http://{}/", closed_local_address())); // DevSkim: ignore DS137138
+
+            let error = tokio::time::timeout(TEST_DEADLINE, client.health_check())
+                .await
+                .expect("the health check should end before the test deadline")
+                .expect_err("the health check to a closed port should fail");
+
+            let text = format!("{error} {error:?}");
+            assert!(!text.contains(KEY), "the error texts should not contain the key: {text}");
+            assert!(
+                text.contains("/health_check/****"),
+                "the error text should show the masked URL: {text}"
+            );
         }
     }
 }

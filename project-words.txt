@@ -496,6 +496,7 @@ rerequests
 rescope
 retag
 reuseaddr
+rfind
 ringbuf
 ringsize
 rlib

@@ -6,12 +6,16 @@
 //! (`docs/adrs/20260519000000_define_global_cli_output_contract.md`) says secrets are masked with a
 //! fixed string, so these functions replace the key with [`MASK`] and keep the rest of the URL, so a
 //! reader can still tell which tracker it was.
+use std::error::Error as _;
+use std::iter;
+
 use reqwest::Url;
 
 /// The fixed string that replaces a secret.
 pub const MASK: &str = "****";
 
-/// The path segments a tracker key follows: `/announce/<key>` and `/scrape/<key>`.
+/// The path segments a tracker key follows: `/announce/<key>` and `/scrape/<key>`. They are
+/// compared without regard to ASCII case.
 const KEYED_ENDPOINTS: [&str; 2] = ["announce", "scrape"];
 
 /// Returns `url` with its tracker key and its password replaced by [`MASK`].
@@ -21,6 +25,21 @@ const KEYED_ENDPOINTS: [&str; 2] = ["announce", "scrape"];
 /// query) is kept.
 #[must_use]
 pub fn mask_tracker_key(url: &Url) -> Url {
+    mask_path_segments(url, |previous, segment| {
+        !segment.is_empty() && previous.is_some_and(is_keyed_endpoint)
+    })
+}
+
+/// Returns `url` with its password and every path segment equal to `key` replaced by [`MASK`].
+///
+/// A client that knows its own key uses it to mask URLs where the key is not after `announce` or
+/// `scrape`, such as a custom endpoint path or the health-check path.
+#[must_use]
+pub fn mask_key_segments(url: &Url, key: &str) -> Url {
+    mask_path_segments(url, |_, segment| !key.is_empty() && segment == key)
+}
+
+fn mask_path_segments(url: &Url, is_secret: impl Fn(Option<&str>, &str) -> bool) -> Url {
     let mut masked = url.clone();
 
     if masked.password().is_some() {
@@ -35,13 +54,9 @@ pub fn mask_tracker_key(url: &Url) -> Url {
             .iter()
             .enumerate()
             .map(|(index, segment)| {
-                let follows_keyed_endpoint = index > 0 && KEYED_ENDPOINTS.contains(&segments[index - 1]);
+                let previous = index.checked_sub(1).map(|previous| segments[previous]);
 
-                if follows_keyed_endpoint && !segment.is_empty() {
-                    MASK
-                } else {
-                    segment
-                }
+                if is_secret(previous, segment) { MASK } else { segment }
             })
             .collect();
 
@@ -53,46 +68,109 @@ pub fn mask_tracker_key(url: &Url) -> Url {
     masked
 }
 
-/// Returns `text` with the secrets of every HTTP tracker URL in it masked by
-/// [`mask_tracker_key`].
+fn is_keyed_endpoint(segment: &str) -> bool {
+    KEYED_ENDPOINTS.iter().any(|endpoint| segment.eq_ignore_ascii_case(endpoint))
+}
+
+/// Returns `text` with the tracker key and the user-info password of every URL in it replaced by
+/// [`MASK`].
 ///
 /// It is meant for text built by a third-party formatter that echoes input, such as a parse error
-/// or a command-line usage error. A URL ends at whitespace, a quote, a backtick, an angle bracket
-/// or a closing parenthesis. A URL that does not parse is left as it is.
+/// or a command-line usage error, where the URL may be malformed. It does not parse URLs:
+///
+/// - a key is the text after `/announce/` or `/scrape/` (in any ASCII case) up to the next `/`,
+///   `?`, `#`, whitespace, quote, bracket, `,` or `;`;
+/// - a password is the text between the first `:` and the last `@` of the authority that follows
+///   a `://`.
+///
+/// A key that itself contains one of those delimiters is masked only up to it. Tracker keys are
+/// alphanumeric.
 #[must_use]
 pub fn mask_tracker_keys_in_text(text: &str) -> String {
+    mask_keys_after_endpoints(&mask_user_info_passwords(text))
+}
+
+fn mask_keys_after_endpoints(text: &str) -> String {
+    // ASCII lowercasing keeps every byte offset, so offsets found here index `text` too.
+    let lowercase = text.to_ascii_lowercase();
     let mut masked = String::with_capacity(text.len());
-    let mut rest = text;
+    let mut position = 0;
 
-    while let Some(start) = find_http_url_start(rest) {
-        masked.push_str(&rest[..start]);
+    while let Some(key_start) = next_key_start(&lowercase, position) {
+        let key_length = text[key_start..].find(ends_key_in_text).unwrap_or(text.len() - key_start);
 
-        let candidate = &rest[start..];
-        let end = candidate
-            .find(|c: char| c.is_whitespace() || matches!(c, '\'' | '"' | '`' | '<' | '>' | ')'))
-            .unwrap_or(candidate.len());
-        let token = &candidate[..end];
-
-        match Url::parse(token) {
-            Ok(url) if mask_tracker_key(&url) != url => masked.push_str(mask_tracker_key(&url).as_str()),
-            _ => masked.push_str(token),
+        masked.push_str(&text[position..key_start]);
+        if key_length > 0 {
+            masked.push_str(MASK);
         }
 
-        rest = &candidate[end..];
+        position = key_start + key_length;
     }
 
-    masked.push_str(rest);
+    masked.push_str(&text[position..]);
     masked
 }
 
-fn find_http_url_start(text: &str) -> Option<usize> {
-    ["http://", "https://"].iter().filter_map(|scheme| text.find(scheme)).min() // DevSkim: ignore DS137138
+/// The offset of the first key, after `/announce/` or `/scrape/`, at or after `from`.
+fn next_key_start(lowercase_text: &str, from: usize) -> Option<usize> {
+    KEYED_ENDPOINTS
+        .iter()
+        .filter_map(|endpoint| {
+            let marker = format!("/{endpoint}/");
+            lowercase_text[from..]
+                .find(&marker)
+                .map(|offset| from + offset + marker.len())
+        })
+        .min()
 }
 
-/// A short description of a failed HTTP request: the kind of failure and the masked request URL.
+const fn ends_key_in_text(c: char) -> bool {
+    c.is_whitespace()
+        || matches!(
+            c,
+            '/' | '?' | '#' | '\'' | '"' | '`' | '<' | '>' | '(' | ')' | '[' | ']' | '{' | '}' | ',' | ';'
+        )
+}
+
+fn mask_user_info_passwords(text: &str) -> String {
+    let mut masked = String::with_capacity(text.len());
+    let mut position = 0;
+
+    while let Some(offset) = text[position..].find("://") {
+        let authority_start = position + offset + "://".len();
+        let authority_length = text[authority_start..]
+            .find(|c: char| c.is_whitespace() || matches!(c, '/' | '?' | '#'))
+            .unwrap_or(text.len() - authority_start);
+        let authority = &text[authority_start..authority_start + authority_length];
+
+        masked.push_str(&text[position..authority_start]);
+
+        let password = authority
+            .rfind('@')
+            .and_then(|at| authority[..at].find(':').map(|colon| (colon, at)));
+
+        match password {
+            Some((colon, at)) => {
+                masked.push_str(&authority[..=colon]);
+                masked.push_str(MASK);
+                masked.push_str(&authority[at..]);
+            }
+            None => masked.push_str(authority),
+        }
+
+        position = authority_start + authority_length;
+    }
+
+    masked.push_str(&text[position..]);
+    masked
+}
+
+/// A short description of a failed HTTP request: the kind of failure, the masked request URL and
+/// the chain of causes.
 ///
 /// It replaces the `Display` and `Debug` texts of [`reqwest::Error`], which both carry the full
-/// request URL, tracker key included.
+/// request URL, tracker key included. The causes (from `hyper`, `hyper-util` and `std::io`) carry
+/// no URL; they are masked with [`mask_tracker_keys_in_text`] all the same.
 #[must_use]
 pub fn request_error_text(error: &reqwest::Error) -> String {
     let kind = if error.is_timeout() {
@@ -115,10 +193,20 @@ pub fn request_error_text(error: &reqwest::Error) -> String {
         "unknown"
     };
 
-    error.url().map_or_else(
+    let summary = error.url().map_or_else(
         || format!("{kind} error"),
         |url| format!("{kind} error for url ({})", mask_tracker_key(url)),
-    )
+    );
+
+    let causes: Vec<String> = iter::successors(error.source(), |&cause| cause.source())
+        .map(|cause| mask_tracker_keys_in_text(&cause.to_string()))
+        .collect();
+
+    if causes.is_empty() {
+        summary
+    } else {
+        format!("{summary}: {}", causes.join(": "))
+    }
 }
 
 #[cfg(test)]
@@ -207,5 +295,54 @@ mod tests {
         let text = "invalid type: string \"http://tracker.example.com/announce\", expected a sequence at line 1 column 80";
 
         assert_eq!(mask_tracker_keys_in_text(text), text);
+    }
+
+    #[test]
+    fn it_should_mask_the_key_of_a_text_that_is_one_keyed_url() {
+        assert_eq!(
+            mask_tracker_keys_in_text("http://tracker.example.com/announce/SECRET"),
+            "http://tracker.example.com/announce/****"
+        );
+    }
+
+    #[test]
+    fn it_should_not_change_a_text_without_a_url() {
+        let text = "JSON parse error: expected value at line 1 column 1";
+
+        assert_eq!(mask_tracker_keys_in_text(text), text);
+    }
+
+    #[test]
+    fn it_should_mask_the_key_of_a_url_whose_scheme_is_not_lowercase() {
+        let text = "unexpected argument 'HTTP://a.example.com/announce/SECRET1' and \"Https://b.example.com/scrape/SECRET2\"";
+
+        assert_eq!(
+            mask_tracker_keys_in_text(text),
+            "unexpected argument 'HTTP://a.example.com/announce/****' and \"Https://b.example.com/scrape/****\""
+        );
+    }
+
+    #[test]
+    fn it_should_mask_the_key_of_a_url_with_a_closing_parenthesis_before_the_endpoint() {
+        assert_eq!(
+            mask_tracker_keys_in_text("'http://tracker.example.com/prefix)/announce/SECRET' found"),
+            "'http://tracker.example.com/prefix)/announce/****' found"
+        );
+    }
+
+    #[test]
+    fn it_should_mask_the_key_of_a_url_that_does_not_parse() {
+        assert_eq!(
+            mask_tracker_keys_in_text("invalid type: string \"http://127.0.0.1:bad/announce/SECRET\", expected a sequence"),
+            "invalid type: string \"http://127.0.0.1:bad/announce/****\", expected a sequence"
+        );
+    }
+
+    #[test]
+    fn it_should_mask_the_password_and_the_key_of_a_url_with_an_apostrophe_in_the_user_info() {
+        assert_eq!(
+            mask_tracker_keys_in_text("unexpected argument 'http://o'neil:SECRET1@tracker.example.com/announce/SECRET2' found"),
+            "unexpected argument 'http://o'neil:****@tracker.example.com/announce/****' found"
+        );
     }
 }
