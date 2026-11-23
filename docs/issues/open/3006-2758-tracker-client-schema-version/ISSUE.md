@@ -9,7 +9,7 @@ github-issue: 3006
 spec-path: docs/issues/open/3006-2758-tracker-client-schema-version/ISSUE.md
 branch: 3006-tracker-client-schema-version-spec
 related-pr: 3008
-last-updated-utc: "2026-11-23 16:10"
+last-updated-utc: "2026-11-23 16:18"
 semantic-links:
   skill-links:
     - create-issue
@@ -39,7 +39,7 @@ and a migration note, and its Auditability section lists `schema_version` as a r
 
 Issue #2768 changed the `check` result from a top-level array to `{"results": [...]}`, a breaking change.
 No schema version existed, so it was recorded only as a documented breaking change in the contract
-doc and the README. da2ce7 raised it in round 2 of PR 2956 (audit row F7 of
+doc and the README. The reviewer da2ce7 (GitHub user `da2ce7`) raised it in round 2 of PR 2956 (audit row F7 of
 `docs/pr-reviews/pr-2956-review/PR-REVIEW.md`), and the contract doc now says a version is left to a
 later issue of the EPIC. No open sub-issue of #2758 owns it; this issue does.
 
@@ -53,7 +53,9 @@ Today `tracker_client` has four render paths and one writer: `output::render_jso
 `serialize_json` in `unified/http.rs` (`http announce`, `http scrape`), `to_json_string` of the UDP
 response DTO (`udp announce`, `udp scrape`) and a plain `serde_json::to_string` in
 `checker/monitor/udp.rs` (`check monitor udp`). All of them pass an already rendered string to
-`output::write_result(&str)`, so that writer cannot add a field.
+`output::write_result(&str)`, so that writer cannot add a field. Both `--format` values write
+JSON: `json` is compact and `text` is the same JSON pretty-printed (`OutputFormat::is_pretty` in
+`unified/app.rs`), so a result in either format is one JSON value that `jq` reads.
 
 Every result is a JSON object, but two shapes do not take a top-level field as they are:
 
@@ -101,7 +103,8 @@ The maintainer answered these in the spec review (2026-11-23):
 ### In Scope
 
 - Apply D1 to D3 to every subcommand that writes a result: `http announce`, `http scrape`,
-  `udp announce`, `udp scrape` and `check`, each in both `--format` values (`json`, `text`), and
+  `udp announce`, `udp scrape` and `check`, each in both `--format` values (`json` compact, `text`
+  pretty-printed; both are JSON), and
   the `check monitor udp` summary (always compact JSON).
 - Move the `http scrape` result under `files` (D4), in `tracker_client`'s own result type; the
   `Serialize` impl of the protocol package stays as it is.
@@ -206,6 +209,7 @@ commit.
 - 2026-11-23 14:02 UTC - Claude Code (Claude Opus 5.5) - Created issue #3006 as josecelano-bot, moved the spec to `docs/issues/open/`, branch `3006-tracker-client-schema-version-spec` for the spec-only PR.
 - 2026-11-23 14:18 UTC - Claude Code (Claude Opus 5.5) - Opened spec-only PR #3008.
 - 2026-11-23 16:10 UTC - Claude Code (Claude Opus 5.5) - Addressed da2ce7's review of PR #3008: recorded the maintainer's answers D4 (`http scrape` entries under `files`) and D5 (UDP field beside the tag) for F1, named the skills and the README among the consumers and in the file set and stated why the e2e helper needs no change (F3), asked for toolchain-qualified evidence (F4), fixed the snake_case claim (F6) and the tense of D3 (F7). F5: the maintainer answered D1 to D3 before the issue was created; the approval of the whole spec, now with D4 and D5, is the review and merge of PR #3008, so that checkpoint stays open until then. F2 (EPIC row and order before #2770) is in the coordinator's PR #3007.
+- 2026-11-23 16:18 UTC - Claude Code (Claude Opus 5.5) - Addressed Copilot's review of PR #3008: stated that `--format text` is pretty-printed JSON, so `jq` reads both formats, and named da2ce7 as a GitHub user.
 
 ## Acceptance Criteria
 
