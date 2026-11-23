@@ -282,4 +282,55 @@ mod tests {
         // sides of the precondition.
         assert_eq!(LEGACY_TABLES.len(), 4);
     }
+
+    #[tokio::test]
+    async fn it_should_refuse_a_migration_history_that_does_not_match_the_embedded_migrations() {
+        // Arrange
+        let (_pool, path, _database_directory) = new_pool().await;
+        let driver = driver(&path);
+        driver.create_database_tables().await.unwrap();
+        ::sqlx::query("UPDATE _sqlx_migrations SET checksum = X'00'")
+            .execute(&driver.pool)
+            .await
+            .unwrap();
+
+        // Act
+        let result = driver.create_database_tables().await;
+
+        // Assert
+        assert!(matches!(result, Err(Error::MigrationError { .. })), "got {result:?}");
+        let tables: i64 = ::sqlx::query_scalar("SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'keys'")
+            .fetch_one(&driver.pool)
+            .await
+            .unwrap();
+        assert_eq!(tables, 1, "a refused history must not drop the tables the first run created");
+    }
+
+    #[tokio::test]
+    async fn it_should_report_a_closed_pool_as_a_connection_error_when_creating_the_tables() {
+        // Arrange
+        let (_pool, path, _database_directory) = new_pool().await;
+        let driver = driver(&path);
+        driver.pool.close().await;
+
+        // Act
+        let result = driver.create_database_tables().await;
+
+        // Assert
+        assert!(matches!(result, Err(Error::ConnectionError { .. })), "got {result:?}");
+    }
+
+    #[tokio::test]
+    async fn it_should_report_a_closed_pool_as_a_connection_error_when_dropping_the_tables() {
+        // Arrange
+        let (_pool, path, _database_directory) = new_pool().await;
+        let driver = driver(&path);
+        driver.pool.close().await;
+
+        // Act
+        let result = driver.drop_database_tables().await;
+
+        // Assert
+        assert!(matches!(result, Err(Error::ConnectionError { .. })), "got {result:?}");
+    }
 }
