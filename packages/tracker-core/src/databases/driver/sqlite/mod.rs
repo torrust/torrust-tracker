@@ -82,6 +82,34 @@ impl Sqlite {
     }
 }
 
+/// Fixture shared by the tests of the `SQLite` stores.
+#[cfg(test)]
+mod fixture {
+    use torrust_tracker_configuration::v3_0_0::database::Database as DatabaseConfig;
+
+    use super::Sqlite;
+    use crate::databases::SchemaMigrator;
+    use crate::test_helpers::tests::{EphemeralConfiguration, ephemeral_configuration};
+
+    /// A store over a temporary database with its tables created. The returned configuration owns
+    /// the database directory: keep it alive for the whole test.
+    pub(super) async fn migrated_store() -> (Sqlite, EphemeralConfiguration) {
+        let ephemeral = ephemeral_configuration();
+        let Some(DatabaseConfig::Sqlite3 { path }) = ephemeral.config.database.as_ref() else {
+            unreachable!("the test configuration uses SQLite persistence");
+        };
+        let store = Sqlite::new(path).unwrap();
+        store.create_database_tables().await.unwrap();
+
+        (store, ephemeral)
+    }
+
+    /// Runs one raw SQL statement on the store's pool, to build a database the store would never write.
+    pub(super) async fn execute(store: &Sqlite, statement: &str) {
+        ::sqlx::query(statement).execute(&store.pool).await.unwrap();
+    }
+}
+
 #[cfg(test)]
 mod tests {
 

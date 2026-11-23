@@ -97,13 +97,13 @@ impl AuthKeyStore for Sqlite {
 mod tests {
     use rstest::rstest;
     use torrust_clock::DurationSinceUnixEpoch;
-    use torrust_tracker_configuration::v3_0_0::database::Database as DatabaseConfig;
 
     use super::Sqlite;
     use crate::authentication::{Key, PeerKey};
+    use crate::databases::AuthKeyStore;
+    use crate::databases::driver::sqlite::fixture::{execute, migrated_store};
     use crate::databases::error::Error;
-    use crate::databases::{AuthKeyStore, SchemaMigrator};
-    use crate::test_helpers::tests::{EphemeralConfiguration, ephemeral_configuration};
+    use crate::test_helpers::tests::EphemeralConfiguration;
 
     const A_KEY: &str = "YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ";
     const A_KEY_SQL: &str = "'YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ'";
@@ -123,21 +123,8 @@ mod tests {
         A_KEY.parse::<Key>().unwrap()
     }
 
-    /// A SQLite key store over a temporary database with its tables created. The returned
-    /// configuration owns the database directory: keep it alive for the whole test.
-    async fn key_store() -> (Sqlite, EphemeralConfiguration) {
-        let ephemeral = ephemeral_configuration();
-        let Some(DatabaseConfig::Sqlite3 { path }) = ephemeral.config.database.as_ref() else {
-            unreachable!("the test configuration uses SQLite persistence");
-        };
-        let store = Sqlite::new(path).unwrap();
-        store.create_database_tables().await.unwrap();
-
-        (store, ephemeral)
-    }
-
     async fn broken_key_store(broken: Broken) -> (Sqlite, EphemeralConfiguration) {
-        let (store, ephemeral) = key_store().await;
+        let (store, ephemeral) = migrated_store().await;
 
         let statement = match broken {
             Broken::Row {
@@ -148,7 +135,7 @@ mod tests {
             }
             Broken::KeysTableMissing => "DROP TABLE keys".to_string(),
         };
-        ::sqlx::query(&statement).execute(&store.pool).await.unwrap();
+        execute(&store, &statement).await;
 
         (store, ephemeral)
     }
@@ -206,7 +193,7 @@ mod tests {
     #[tokio::test]
     async fn it_should_refuse_to_add_a_key_that_expires_after_the_largest_stored_timestamp() {
         // Arrange
-        let (store, _ephemeral) = key_store().await;
+        let (store, _ephemeral) = migrated_store().await;
         let key = PeerKey {
             key: a_key(),
             valid_until: Some(DurationSinceUnixEpoch::from_secs(u64::MAX)),
@@ -226,7 +213,7 @@ mod tests {
     #[tokio::test]
     async fn it_should_refuse_to_add_a_key_that_is_already_stored_and_keep_the_stored_one() {
         // Arrange
-        let (store, _ephemeral) = key_store().await;
+        let (store, _ephemeral) = migrated_store().await;
         let stored = PeerKey {
             key: a_key(),
             valid_until: None,
