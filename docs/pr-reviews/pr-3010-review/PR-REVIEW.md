@@ -59,6 +59,8 @@ Round 5 covers review 6026371049 (da2ce7, COMMENTED, submitted 2026-11-23T17:33:
 
 Round 6 covers three items. CodeRabbit's review 6026538673 (submitted 2026-11-23T17:43:28Z) is one follow-up comment on the F20 thread that says the F20 fix left a conflict; it is F24, a re-raise of F20, with severity inferred from F20. CodeRabbit's review 6026541291 (17:43:38Z) only confirms F19 and has no finding. Greptile's review 6026552595 (17:44:20Z) has one inline thread with a `P2` badge, F25. Review 6026737720 (da2ce7, APPROVED, submitted 17:55:54Z) has one inline thread, F26, which asks for the same change as F24.
 
+Round 7 covers review 6026909751 (CodeRabbit, submitted 2026-11-23T18:07:08Z) with one inline thread carrying a `Minor` badge, F27, and review 6027161752 (Copilot, COMMENTED, submitted 2026-11-23T18:24:08Z) with two inline threads, F28 and F29. Copilot's comments carry no severity; `Minor (inferred)` is this record's reading of them. Five rounds of fixes had been pushed before this round, which is the limit after which the author asks the maintainer; the maintainer said to fix all three.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F9 | review-finding:pr-3010-f9 | Unknown | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -87,6 +89,9 @@ Round 6 covers three items. CodeRabbit's review 6026538673 (submitted 2026-11-23
 | F24 | review-finding:pr-3010-f24 | Unknown | Minor (inferred) | correctness | RE_RAISE_OF:F20 | FIXED | RESOLVED |
 | F25 | review-finding:pr-3010-f25 | Unknown | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 | F26 | review-finding:pr-3010-f26 | Human | Minor | correctness | RE_RAISE_OF:F24 | FIXED | RESOLVED |
+| F27 | review-finding:pr-3010-f27 | Unknown | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F28 | review-finding:pr-3010-f28 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F29 | review-finding:pr-3010-f29 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -428,6 +433,45 @@ Round 6 covers three items. CodeRabbit's review 6026538673 (submitted 2026-11-23
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4669880370
 
+### F27 - The pre-bind criterion covers lines that are not about a listener
+
+- PR number: 3010
+- Source review ID: 6026909751
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4669930343
+- Concern: After the F18 fix, AC2 of the SI-8 draft required `bind_address` on every pre-bind line. Lines such as the build and run identity line are logged before any bind and have no listener address.
+- Solution: AC2 is limited to pre-bind lines about a listener and says that other lines have no such field.
+- Current-tree verification: `grep -n 'AC2:' docs/issues/drafts/2387-si-8-single-listener-identity-field/ISSUE.md` shows `every pre-bind line about a listener`.
+- Resolution reference: docs(issues): [#2387] limit the pre-bind criterion of the listener identity sub-issue to listener lines
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4670268175
+
+### F28 - Waiting for `Tracker started` alone does not make it safe to send `SIGTERM`
+
+- PR number: 3010
+- Source review ID: 6027161752
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4670128855
+- Concern: The SI-20 draft's test waited only for `Tracker started` before sending `SIGTERM`, while the SI-17 draft left open whether that line comes before or after the signal handlers are installed. The native tracker fixture waits for health readiness and for the signal-handler line because the handlers are installed after the jobs start.
+- Solution: The SI-17 draft logs `Tracker started` after the shutdown signal handlers are installed and its AC1 requires it. The SI-20 draft waits until the handlers are installed, through that line, and keeps the fixture's existing wait if SI-17 did not land with that order.
+- Current-tree verification: `grep -n 'signal_handlers_are_installed' tests/common/native_tracker/mod.rs` shows the fixture's wait. `grep -n 'after the shutdown signal handlers are installed' docs/issues/drafts/2387-si-17-tracker-started-line/ISSUE.md` shows the scope item and AC1, and `grep -n 'Safe means' docs/issues/drafts/2387-si-20-automated-lifecycle-log-check/ISSUE.md` shows the new sentence.
+- Resolution reference: docs(issues): [#2387] log Tracker started after the signal handlers so the automated check can stop the tracker
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4670268750
+
+### F29 - AC15 forbids what SI-11 and SI-20 plan to do
+
+- PR number: 3010
+- Source review ID: 6027161752
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4670128982
+- Concern: AC15 of the EPIC said that no program reads a fact from the message text of a log line. SI-11 selects lines by the message `Started <service>` and SI-20 waits for `Tracker started`, so the criterion could not be met.
+- Solution: AC15 forbids reading a value from message text and allows matching a message that the catalogue documents, to select a line or to wait for a state. Rule 1 of the decisions and the close-out search of SI-23 say the same.
+- Current-tree verification: `grep -n 'AC15:' docs/issues/open/2387-review-tracker-lifecycle-logs/EPIC.md` shows the new criterion; `grep -n 'Prefer structured fields' docs/issues/open/2387-review-tracker-lifecycle-logs/decisions.md` shows rule 1 with the sentence on catalogued messages; `grep -n 'AC15' docs/issues/drafts/2387-si-23-close-out/ISSUE.md` shows the search item.
+- Resolution reference: docs(issues): [#2387] let programs match catalogued messages while values come from fields
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4670269202
+
 ## Processing Log
 
 - 2026-11-23 16:32 UTC - Round 1: review 6025366087 submitted by Greptile at 16:32:02Z with one inline thread, recorded as F9.
@@ -457,6 +501,11 @@ Round 6 covers three items. CodeRabbit's review 6026538673 (submitted 2026-11-23
 - 2026-11-23 18:02 UTC - Committed the two fixes at 17:58 UTC and pushed them (the push ended at 18:02:06 UTC).
 - 2026-11-23 18:02 UTC - Replied on the three threads (replies created 18:02:36Z to 18:02:40Z) and recorded the reply URLs here.
 - 2026-11-23 18:03 UTC - The audit validator passed (26 rows, 0 failures). Listed the unresolved threads: two, those of F25 and F26; the F20 thread, which carries F24, was still resolved. Resolved the two by their IDs, and a new GraphQL fetch reports 0 unresolved threads.
+- 2026-11-23 18:04 UTC - Committed the record of round 6 at 18:04 UTC and pushed it. The maintainer's `ACK` comment of 18:05:43Z names the commit before this record commit, and da2ce7's `ACK` of 17:55:58Z names the head of round 5, so both were stale from that push.
+- 2026-11-23 18:24 UTC - Round 7: review 6026909751 (CodeRabbit, 18:07:08Z, F27) and review 6027161752 (Copilot, 18:24:08Z, F28 and F29). Did not fix or reply: five rounds of fixes were pushed. Reported the three findings to the maintainer and asked.
+- 2026-11-23 18:35 UTC - The maintainer said to fix all three. Committed the three fixes between 18:31 and 18:32 UTC and pushed them (the push ended at 18:35:56 UTC).
+- 2026-11-23 18:36 UTC - Replied on the three threads (replies created 18:36:31Z to 18:36:37Z) and recorded the reply URLs here.
+- 2026-11-23 18:37 UTC - The audit validator passed (29 rows, 0 failures). Listed the unresolved threads: two, those of F28 and F29; the F27 thread was already resolved, not by this session. Resolved the two by their IDs, and a new GraphQL fetch reports 0 unresolved threads.
 
 ## Completion Rules
 
