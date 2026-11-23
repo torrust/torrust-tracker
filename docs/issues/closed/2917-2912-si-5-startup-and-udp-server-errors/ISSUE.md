@@ -9,7 +9,7 @@ github-issue: 2917
 spec-path: docs/issues/closed/2917-2912-si-5-startup-and-udp-server-errors/ISSUE.md
 branch: "2917-startup-and-udp-server-errors"
 related-pr: 3001
-last-updated-utc: "2026-11-23 18:39"
+last-updated-utc: "2026-11-23 21:23"
 semantic-links:
   skill-links:
     - create-issue
@@ -27,7 +27,7 @@ semantic-links:
 
 # Issue #2917 - Remove source locations from the configuration, TLS and UDP server errors
 
-Parent EPIC: [Remove source locations from errors](../2912-remove-source-locations-from-errors/EPIC.md) (#2912). Sub-issue SI-5 of the EPIC.
+Parent EPIC: [Remove source locations from errors](../../open/2912-remove-source-locations-from-errors/EPIC.md) (#2912). Sub-issue SI-5 of the EPIC.
 
 ## Goal
 
