@@ -9,7 +9,7 @@ github-issue: 3006
 spec-path: docs/issues/open/3006-2758-tracker-client-schema-version/ISSUE.md
 branch: 3006-tracker-client-schema-version-spec
 related-pr: 3008
-last-updated-utc: "2026-11-23 16:18"
+last-updated-utc: "2026-11-23 16:34"
 semantic-links:
   skill-links:
     - create-issue
@@ -74,7 +74,8 @@ keys.
 
 ## Decisions
 
-The maintainer answered these in the spec review (2026-11-23):
+The maintainer answered D1 to D3 before the issue was created and D4 and D5 during the review of
+PR #3008 (all on 2026-11-23):
 
 - D1, where the rule lives: the global contract ADR
   (`docs/adrs/20260519000000_define_global_cli_output_contract.md`) gets one rule for every
@@ -86,17 +87,19 @@ The maintainer answered these in the spec review (2026-11-23):
   (`{"schema_version": 1, ...}`), not on stderr diagnostics. It is snake_case like the keys that
   `tracker_client` defines itself (`results`, `udp_trackers`), unlike the kebab-case
   `schema-version` of `agent-reply-validator`.
-- D4, the `http scrape` shape (answered in the review of PR #3008, finding F1): the info-hash map
-  moves under a named key, `{"schema_version": 1, "files": {"<info-hash>": {...}}}`, the same key
-  as in the bencoded tracker response. The ADR rule adds that a result object never uses data as
-  its top-level keys, so the version field cannot collide with data.
-- D5, the UDP shape (same review): the field goes beside the variant tag,
-  `{"schema_version": 1, "Scrape": {...}}`. The tag is a name, not data, and no repository
-  consumer reads the result as a typed enum; the risk for an outside typed reader is recorded
-  under Risks.
 - D3, the first value: `1`, for the shape after #2768 and this issue. The contract doc will name
   the two changes that `1` marks: the `check` array-to-object change of #2768 and the `http scrape`
   move under `files` of D4.
+- D4, the `http scrape` shape (finding F1 of da2ce7's review of PR #3008; the maintainer answered the
+  spec author's question in its agent session on 2026-11-23, and the reply on the F1 thread,
+  <https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4668650441>, records it): the info-hash map
+  moves under a named key, `{"schema_version": 1, "files": {"<info-hash>": {...}}}`, the same key
+  as in the bencoded tracker response. The ADR rule adds that a result object never uses data as
+  its top-level keys, so the version field cannot collide with data.
+- D5, the UDP shape (same question, answer and record as D4): the field goes beside the variant tag,
+  `{"schema_version": 1, "Scrape": {...}}`. The tag is a name, not data, and no repository
+  consumer reads the result as a typed enum; the risk for an outside typed reader is recorded
+  under Risks.
 
 ## Scope
 
@@ -210,17 +213,18 @@ commit.
 - 2026-11-23 14:18 UTC - Claude Code (Claude Opus 5.5) - Opened spec-only PR #3008.
 - 2026-11-23 16:10 UTC - Claude Code (Claude Opus 5.5) - Addressed da2ce7's review of PR #3008: recorded the maintainer's answers D4 (`http scrape` entries under `files`) and D5 (UDP field beside the tag) for F1, named the skills and the README among the consumers and in the file set and stated why the e2e helper needs no change (F3), asked for toolchain-qualified evidence (F4), fixed the snake_case claim (F6) and the tense of D3 (F7). F5: the maintainer answered D1 to D3 before the issue was created; the approval of the whole spec, now with D4 and D5, is the review and merge of PR #3008, so that checkpoint stays open until then. F2 (EPIC row and order before #2770) is in the coordinator's PR #3007.
 - 2026-11-23 16:18 UTC - Claude Code (Claude Opus 5.5) - Addressed Copilot's review of PR #3008: stated that `--format text` is pretty-printed JSON, so `jq` reads both formats, and named da2ce7 as a GitHub user.
+- 2026-11-23 16:34 UTC - Claude Code (Claude Opus 5.5) - Addressed da2ce7's second review of PR #3008: D4 and D5 name where the maintainer answered and the F1 thread reply that records it, and D4, D5 and AC5 now follow D3 and AC4.
 
 ## Acceptance Criteria
 
 - [ ] AC1: Every stdout result of `tracker_client` has a top-level integer `schema_version` equal to
   `1`.
-- [ ] AC5: The `http scrape` result holds its info-hash entries under `files`, and no result uses
-  data as a top-level key.
 - [ ] AC2: The contract doc states when the version is bumped and lists the changes that the
   current value marks (#2768's `check` change and D4).
 - [ ] AC3: The global contract ADR states the rule for all `stdout-result-data` tools.
 - [ ] AC4: Every consumer of the `tracker_client` stdout in the repository still works.
+- [ ] AC5: The `http scrape` result holds its info-hash entries under `files`, and no result uses
+  data as a top-level key.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
