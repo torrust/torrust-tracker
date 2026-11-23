@@ -3,7 +3,7 @@ doc-type: file-test-plan
 issue: 2902
 package: torrust-tracker-core
 target-file: packages/tracker-core/src/databases/driver/sqlite/mod.rs
-status: approved
+status: done
 semantic-links:
   related-artifacts:
     - packages/tracker-core/src/databases/driver/sqlite/mod.rs
@@ -77,10 +77,31 @@ No `quickcheck`: the inputs are SQL rows and named boundaries.
 
 | ID | Status | Work | Completion evidence |
 | --- | --- | --- | --- |
-| D1 | TODO | The tests. | They pass; lines 54-62 and 79 run. |
-| D2 | TODO | Run M1-M6. | Each is killed by its expected test. |
-| D3 | TODO | Record the results and ask for the completed-file review. | This record and the ledger. |
+| D1 | DONE | The tests. | They pass; lines 54-62 and 79 run. |
+| D2 | DONE | Run M1-M6. | Each is killed by its expected test. |
+| D3 | DONE | Record the results and ask for the completed-file review. | This record and the ledger. |
 
 ## Results
 
-To be filled in after D3.
+- **Coverage** (stable Rust 1.100.0, `cargo-llvm-cov 0.9.1`, `--all-features --lib`, clean coverage
+  target directory, 2026-11-23): the file 87 / 97 lines (after the shared fixture of row 9) to
+  137 / 139, regions 81 / 95 to 170 / 172, functions 16 / 20 to 32 / 32 (the counts include the
+  fixture and the test module). The package's unit-only lines 4,853 / 5,643 (86.00%) to
+  4,903 / 5,685 (86.24%), regions 5,375 / 6,310 (85.18%), functions 849 / 1,053 (80.63%). Left
+  uncovered: the `unreachable!` arms of the two test helpers (lines 99 and 141): test code.
+- **Tests:** 8 added (cases included), none changed: 239 to 247 unit tests in the package.
+- **Mutations** (each applied alone and reverted, the file compared with its copy afterwards):
+
+  | ID | Result |
+  | --- | --- |
+  | M1 | Killed by the two malformed-value cases |
+  | M2 | Killed by the missing-table load case |
+  | M3 | Killed by the not-an-integer case |
+  | M4 | Killed by the failed-save test |
+  | M5 | Killed by the save-again test |
+  | M6 | Killed by the two-metrics test |
+
+- **Review outcome:** the maintainer approved the completed file on 2026-11-23.
+- **Validation:** `cargo clippy -p torrust-tracker-core --all-targets --all-features` (only the
+  existing `axum::serve` warning), `cargo +nightly fmt --all -- --check` and
+  `cargo machete --with-metadata` pass.

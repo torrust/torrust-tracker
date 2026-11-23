@@ -36,7 +36,7 @@ approves it. A group of declaration-only files may share one plan.
 | 9 | [sqlite-auth-key-store-tests.md](sqlite-auth-key-store-tests.md) | DONE | Plan approved 2026-11-22; extracts the shared `parse_valid_until` and `peer_key_from_row` (Q4); completed file approved 2026-11-22 |
 | 10 | [sqlite-torrent-metrics-store-tests.md](sqlite-torrent-metrics-store-tests.md) | DONE | Plan approved 2026-11-23; moves the SQLite store test setup into a shared fixture; completed file approved 2026-11-23 |
 | 11 | [sqlite-whitelist-store-tests.md](sqlite-whitelist-store-tests.md) | DONE | Plan approved 2026-11-23; completed file approved 2026-11-23 |
-| 12 | [sqlite-mod-tests.md](sqlite-mod-tests.md) | IN_PROGRESS | Plan approved 2026-11-23 |
+| 12 | [sqlite-mod-tests.md](sqlite-mod-tests.md) | DONE | Plan approved 2026-11-23; completed file approved 2026-11-23 |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 
