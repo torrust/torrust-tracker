@@ -61,6 +61,8 @@ Round 1 covers review 6025635934 (da2ce7, CHANGES_REQUESTED) with six findings, 
 | F14 | review-finding:pr-3011-f14 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F15 | review-finding:pr-3011-f15 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F16 | review-finding:pr-3011-f16 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-3011-f17 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-3011-f18 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -272,11 +274,38 @@ Round 1 covers review 6025635934 (da2ce7, CHANGES_REQUESTED) with six findings, 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3011#discussion_r4669490778
 
+### F17 - The spec's V1 row still has the command-local TMPDIR
+
+- PR number: 3011
+- Source review ID: 6026724820
+- Reviewer finding ID: F1
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3011#discussion_r4669788389
+- Concern: The V1 row of the spec still reads `TMPDIR=$(mktemp -d) cargo ...`, which does not persist the directory for the count, and V2 inherits it. F1 fixed the evidence file only.
+- Solution: The V1 row now reads `export TMPDIR=$(mktemp -d)`, then the `cargo` command, then the count in `$TMPDIR`; V2 says "the same three steps".
+- Current-tree verification: `grep -n 'export TMPDIR' docs/issues/open/2924-2392-sqlite-test-database-guard/ISSUE.md` finds the V1 row.
+- Resolution reference: `docs(issues): [#2924] export TMPDIR in the V1 row and create .tmp for the script`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3011#discussion_r4670285073
+
+### F18 - The embedded script needs the .tmp directory
+
+- PR number: 3011
+- Source review ID: 6026724820
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3011#discussion_r4669788486
+- Concern: The embedded script writes to `.tmp/`, which does not exist on a fresh checkout, so the redirects fail and Cargo never runs.
+- Solution: The evidence file's prerequisites now include `mkdir -p .tmp`; the script stays verbatim.
+- Current-tree verification: `grep -n 'mkdir -p .tmp' docs/issues/open/2924-2392-sqlite-test-database-guard/manual-verification-evidence.md` finds it.
+- Resolution reference: `docs(issues): [#2924] export TMPDIR in the V1 row and create .tmp for the script`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3011#discussion_r4670285619
+
 ## Processing Log
 
 - 2026-11-23 17:06 UTC - Started audit, late: the replies of round 1 (da2ce7 review 6025635934, Greptile 6025446613, Copilot 6025738529) had been posted and the threads resolved before this record existed, which da2ce7 raised as F10. Created from the template now. Round 2 (review 6025843021) was replied to before this commit; its reply URLs are recorded above. All twelve rows were checked against the current tree.
 - 2026-11-23 17:20 UTC - Round 3: review 6026135793 (da2ce7, APPROVED) with three findings, F13 to F15 here (its F10 to F12). Replied on the three threads, edited the PR description for F15, fixed F13 and F14 in this record.
 - 2026-11-23 17:31 UTC - Round 4: review 6026327069 (da2ce7, APPROVED, on the head after round 3) with one nit, F16 here (its F13). Replied, fixed the two wording slips in this record.
+- 2026-11-23 18:38 UTC - Round 5: Copilot review 6026724820 (COMMENTED, on the head after round 4) with two findings, F17 and F18 here (its F1 and F18). Replied and fixed both in the spec and the evidence file.
 
 ## Completion Rules
 
