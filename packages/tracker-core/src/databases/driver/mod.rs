@@ -387,3 +387,90 @@ pub(crate) mod tests {
         }
     }
 }
+
+#[cfg(test)]
+mod stored_key_tests {
+    use quickcheck::TestResult;
+    use quickcheck_macros::quickcheck;
+    use rstest::rstest;
+    use torrust_clock::DurationSinceUnixEpoch;
+    use torrust_tracker_primitives::Driver;
+
+    use super::{parse_valid_until, peer_key_from_row};
+    use crate::authentication::{Key, PeerKey};
+    use crate::databases::error::Error;
+
+    const A_KEY: &str = "YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ";
+
+    /// Unwraps the `MalformedDatabaseRecord` of an error, failing on any other variant.
+    fn malformed_record(error: Error) -> (String, Driver) {
+        match error {
+            Error::MalformedDatabaseRecord { message, driver } => (message, driver),
+            other => panic!("expected a malformed database record, got {other:?}"),
+        }
+    }
+
+    #[rstest]
+    #[case::zero(0, 0)]
+    #[case::one_second(1, 1)]
+    #[case::the_largest_stored_value(i64::MAX, i64::MAX.unsigned_abs())]
+    fn it_should_parse_a_stored_expiry_that_is_not_negative(#[case] stored: i64, #[case] expected_seconds: u64) {
+        let parsed = parse_valid_until(stored, &Driver::Sqlite3).unwrap();
+
+        assert_eq!(parsed, DurationSinceUnixEpoch::from_secs(expected_seconds));
+    }
+
+    #[rstest]
+    #[case::minus_one(-1, Driver::MySQL)]
+    #[case::the_smallest_stored_value(i64::MIN, Driver::PostgreSQL)]
+    fn it_should_reject_a_negative_stored_expiry_as_a_malformed_record_of_the_given_driver(
+        #[case] stored: i64,
+        #[case] driver: Driver,
+    ) {
+        let (message, reported_driver) = malformed_record(parse_valid_until(stored, &driver).unwrap_err());
+
+        assert_eq!(reported_driver, driver);
+        assert!(
+            message.contains(&stored.to_string()),
+            "the message should name the stored value {stored}, got: {message}"
+        );
+    }
+
+    #[quickcheck]
+    fn it_should_accept_a_stored_expiry_exactly_when_it_is_not_negative(stored: i64) -> TestResult {
+        TestResult::from_bool(match parse_valid_until(stored, &Driver::Sqlite3) {
+            Ok(parsed) => stored >= 0 && i64::try_from(parsed.as_secs()) == Ok(stored),
+            Err(Error::MalformedDatabaseRecord { .. }) => stored < 0,
+            Err(_) => false,
+        })
+    }
+
+    #[rstest]
+    #[case::a_permanent_key(None)]
+    #[case::an_expiring_key(Some(1_700_000_000))]
+    fn it_should_build_a_peer_key_from_the_stored_columns(#[case] stored_expiry: Option<i64>) {
+        let peer_key = peer_key_from_row(A_KEY, stored_expiry, &Driver::MySQL).unwrap();
+
+        assert_eq!(
+            peer_key,
+            PeerKey {
+                key: A_KEY.parse::<Key>().unwrap(),
+                valid_until: stored_expiry.map(|seconds| DurationSinceUnixEpoch::from_secs(seconds.unsigned_abs())),
+            }
+        );
+    }
+
+    #[rstest]
+    #[case::a_key_that_is_too_short("short", None)]
+    #[case::a_key_with_a_symbol("YZSl4lMZupRuOpSRC3krIKR5BPB14nr!", None)]
+    #[case::a_valid_key_with_a_negative_expiry(A_KEY, Some(-1))]
+    fn it_should_reject_a_corrupted_stored_key_as_a_malformed_record_of_the_given_driver(
+        #[case] stored_key: &str,
+        #[case] stored_expiry: Option<i64>,
+    ) {
+        let (_message, reported_driver) =
+            malformed_record(peer_key_from_row(stored_key, stored_expiry, &Driver::PostgreSQL).unwrap_err());
+
+        assert_eq!(reported_driver, Driver::PostgreSQL);
+    }
+}

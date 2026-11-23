@@ -5269,6 +5269,8 @@ dependencies = [
  "chrono",
  "derive_more 2.1.1",
  "mockall",
+ "quickcheck",
+ "quickcheck_macros",
  "rand 0.9.5",
  "rstest 0.28.0",
  "secrecy",
