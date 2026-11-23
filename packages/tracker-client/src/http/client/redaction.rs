@@ -78,72 +78,100 @@ fn is_keyed_endpoint(segment: &str) -> bool {
 /// It is meant for text built by a third-party formatter that echoes input, such as a parse error
 /// or a command-line usage error, where the URL may be malformed. It does not parse URLs:
 ///
-/// - a key is the text after `/announce/` or `/scrape/` (in any ASCII case) up to the next `/`,
-///   `?`, `#`, whitespace, quote, bracket, `,` or `;`;
-/// - a password is the text between the first `:` and the last `@` of the authority that follows
+/// - a key is the segment after every `/announce/` or `/scrape/`, compared in any ASCII case and
+///   with `\` taken as `/`, as URL parsers do for HTTP. The segment ends at a path delimiter (`/`,
+///   `\`, `?`, `#`), at a character that cannot appear in a URL (whitespace, `"`, `<`, `>`, a
+///   backtick, `{`, `}`, `|`, `^`), or at an apostrophe followed by whitespace or the end of the
+///   text (the closing quote of a quoted value). Any other character, such as `(` or `)`, is part
+///   of the masked segment;
+/// - a password is the text between the first `:` and the last `@` of each authority that follows
 ///   a `://`.
-///
-/// A key that itself contains one of those delimiters is masked only up to it. Tracker keys are
-/// alphanumeric.
 #[must_use]
 pub fn mask_tracker_keys_in_text(text: &str) -> String {
     mask_keys_after_endpoints(&mask_user_info_passwords(text))
 }
 
 fn mask_keys_after_endpoints(text: &str) -> String {
-    // ASCII lowercasing keeps every byte offset, so offsets found here index `text` too.
-    let lowercase = text.to_ascii_lowercase();
+    // ASCII lowercasing and turning `\` into `/` keep every byte offset, so offsets found in
+    // `normalized` index `text` too.
+    let normalized: String = text
+        .chars()
+        .map(|c| if c == '\\' { '/' } else { c.to_ascii_lowercase() })
+        .collect();
+
+    let mut keys: Vec<(usize, usize)> = Vec::new();
+
+    for endpoint in KEYED_ENDPOINTS {
+        let marker = format!("/{endpoint}/");
+        let mut from = 0;
+
+        // A marker can start at the `/` that ends the previous one (`/announce/scrape/<key>`), so
+        // the search goes on from the next byte, not from the end of the key.
+        while let Some(offset) = normalized[from..].find(&marker) {
+            let key_start = from + offset + marker.len();
+            let key_end = key_segment_end(text, key_start);
+
+            if key_end > key_start {
+                keys.push((key_start, key_end));
+            }
+
+            from += offset + 1;
+        }
+    }
+
+    keys.sort_unstable();
+
     let mut masked = String::with_capacity(text.len());
     let mut position = 0;
 
-    while let Some(key_start) = next_key_start(&lowercase, position) {
-        let key_length = text[key_start..].find(ends_key_in_text).unwrap_or(text.len() - key_start);
-
-        masked.push_str(&text[position..key_start]);
-        if key_length > 0 {
-            masked.push_str(MASK);
+    for (key_start, key_end) in keys {
+        if key_start < position {
+            // Overlaps a key already masked.
+            position = position.max(key_end);
+            continue;
         }
 
-        position = key_start + key_length;
+        masked.push_str(&text[position..key_start]);
+        masked.push_str(MASK);
+        position = key_end;
     }
 
     masked.push_str(&text[position..]);
     masked
 }
 
-/// The offset of the first key, after `/announce/` or `/scrape/`, at or after `from`.
-fn next_key_start(lowercase_text: &str, from: usize) -> Option<usize> {
-    KEYED_ENDPOINTS
-        .iter()
-        .filter_map(|endpoint| {
-            let marker = format!("/{endpoint}/");
-            lowercase_text[from..]
-                .find(&marker)
-                .map(|offset| from + offset + marker.len())
-        })
-        .min()
+/// The offset where the key segment that starts at `key_start` ends.
+fn key_segment_end(text: &str, key_start: usize) -> usize {
+    let mut chars = text[key_start..].char_indices().peekable();
+
+    while let Some((offset, c)) = chars.next() {
+        let closes_a_quote = c == '\'' && chars.peek().is_none_or(|(_, next)| next.is_whitespace());
+
+        if ends_key_segment(c) || closes_a_quote {
+            return key_start + offset;
+        }
+    }
+
+    text.len()
 }
 
-const fn ends_key_in_text(c: char) -> bool {
-    c.is_whitespace()
-        || matches!(
-            c,
-            '/' | '?' | '#' | '\'' | '"' | '`' | '<' | '>' | '(' | ')' | '[' | ']' | '{' | '}' | ',' | ';'
-        )
+const fn ends_key_segment(c: char) -> bool {
+    c.is_whitespace() || matches!(c, '/' | '\\' | '?' | '#' | '"' | '<' | '>' | '`' | '{' | '}' | '|' | '^')
 }
 
 fn mask_user_info_passwords(text: &str) -> String {
     let mut masked = String::with_capacity(text.len());
-    let mut position = 0;
+    let mut copied = 0;
+    let mut search_from = 0;
 
-    while let Some(offset) = text[position..].find("://") {
-        let authority_start = position + offset + "://".len();
+    while let Some(offset) = text[search_from..].find("://") {
+        let authority_start = search_from + offset + "://".len();
         let authority_length = text[authority_start..]
-            .find(|c: char| c.is_whitespace() || matches!(c, '/' | '?' | '#'))
+            .find(|c: char| c.is_whitespace() || matches!(c, '/' | '\\' | '?' | '#'))
             .unwrap_or(text.len() - authority_start);
         let authority = &text[authority_start..authority_start + authority_length];
 
-        masked.push_str(&text[position..authority_start]);
+        masked.push_str(&text[copied..authority_start]);
 
         let password = authority
             .rfind('@')
@@ -158,10 +186,13 @@ fn mask_user_info_passwords(text: &str) -> String {
             None => masked.push_str(authority),
         }
 
-        position = authority_start + authority_length;
+        copied = authority_start + authority_length;
+        // The authority can end with the scheme of the next URL (`...@a.example,http://...`), so
+        // the next search starts inside it.
+        search_from = authority_start;
     }
 
-    masked.push_str(&text[position..]);
+    masked.push_str(&text[copied..]);
     masked
 }
 
@@ -343,6 +374,42 @@ mod tests {
         assert_eq!(
             mask_tracker_keys_in_text("unexpected argument 'http://o'neil:SECRET1@tracker.example.com/announce/SECRET2' found"),
             "unexpected argument 'http://o'neil:****@tracker.example.com/announce/****' found"
+        );
+    }
+
+    #[test]
+    fn it_should_mask_the_key_after_a_backslash_separator() {
+        assert_eq!(
+            mask_tracker_keys_in_text("unexpected argument 'http://tracker.example.com/announce\\SECRET' found"),
+            "unexpected argument 'http://tracker.example.com/announce\\****' found"
+        );
+    }
+
+    #[test]
+    fn it_should_mask_a_key_segment_that_starts_with_or_contains_a_delimiter() {
+        assert_eq!(
+            mask_tracker_keys_in_text("http://tracker.example.com/announce/(SECRET"),
+            "http://tracker.example.com/announce/****"
+        );
+        assert_eq!(
+            mask_tracker_keys_in_text("http://tracker.example.com/announce/abc)SECRET"),
+            "http://tracker.example.com/announce/****"
+        );
+    }
+
+    #[test]
+    fn it_should_mask_the_key_after_an_endpoint_that_follows_another_endpoint() {
+        assert_eq!(
+            mask_tracker_keys_in_text("http://tracker.example.com/announce/scrape/SECRET"),
+            "http://tracker.example.com/announce/****/****"
+        );
+    }
+
+    #[test]
+    fn it_should_mask_the_password_of_every_url_in_a_text() {
+        assert_eq!(
+            mask_tracker_keys_in_text("http://u:SECRET1@a.example.com,http://v:SECRET2@b.example.com"),
+            "http://u:****@a.example.com,http://v:****@b.example.com"
         );
     }
 }

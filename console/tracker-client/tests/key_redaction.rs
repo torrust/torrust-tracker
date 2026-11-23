@@ -134,6 +134,23 @@ fn it_should_mask_the_tracker_key_when_an_http_announce_response_body_is_cut_sho
 }
 
 #[test]
+fn it_should_mask_the_tracker_key_when_an_http_scrape_response_body_is_cut_short() {
+    let tracker = FakeHttpTracker::start_with_cut_short_body();
+    let keyed_url = format!("{}/scrape/{KEY}", tracker.url());
+
+    let output = run(tracker_client(&["http", "scrape", &keyed_url, INFO_HASH]));
+
+    assert_eq!(output.status.code(), Some(1), "a failed body read should exit with 1");
+    assert_key_not_written(&output);
+    let message = error_message(&only_stderr_record(&output)).to_owned();
+    assert!(
+        message.contains("/scrape/****"),
+        "the message should show the masked URL: {message}"
+    );
+    assert_no_reqwest_debug_text(&output);
+}
+
+#[test]
 fn it_should_not_write_reqwest_debug_text_when_a_check_response_body_is_cut_short() {
     let tracker = FakeHttpTracker::start_with_cut_short_body();
     let config = format!(
@@ -249,4 +266,11 @@ fn it_should_not_write_reqwest_debug_text_when_a_health_check_gets_no_response()
     let output = run(tracker_client_check(&config));
 
     assert_no_reqwest_debug_text(&output);
+}
+
+#[test]
+fn it_should_mask_the_tracker_key_when_a_usage_error_echoes_a_misplaced_url_with_a_backslash_separator() {
+    let output = announce_with_misplaced_argument(&format!("http://127.0.0.1:7070/announce\\{KEY}")); // DevSkim: ignore DS137138
+
+    assert_echo_is_masked(&output, 2, "http://127.0.0.1:7070/announce\\****");
 }
