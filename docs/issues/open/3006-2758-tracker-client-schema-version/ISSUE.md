@@ -9,7 +9,7 @@ github-issue: 3006
 spec-path: docs/issues/open/3006-2758-tracker-client-schema-version/ISSUE.md
 branch: 3006-tracker-client-schema-version-spec
 related-pr: 3008
-last-updated-utc: "2026-11-23 16:48"
+last-updated-utc: "2026-11-23 17:05"
 semantic-links:
   skill-links:
     - create-issue
@@ -183,8 +183,17 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T4 | Tests and skills that consume the result | Commit after focused validation and required review. |
 | T5 | Docs | Commit after focused validation and required review. |
 
-Use the `write-unit-test` skill and the design review after each passing test increment. Sign every
-commit.
+T2 follows the progressive test-development loop of the `write-unit-test` skill:
+
+- Make the smallest behavior-focused increment and run it.
+- After it passes focused validation, do the design review: the prose-first Arrange-Act-Assert
+  comparison (write temporary prose for each section, refactor until the code expresses it, remove
+  redundant prose). Record the result in the task evidence before the next test-producing increment
+  starts.
+- After the final increment, stop for maintainer review before final verification, commit or pull
+  request.
+
+Sign every commit.
 
 ## Progress Tracking
 
@@ -215,6 +224,7 @@ commit.
 - 2026-11-23 16:18 UTC - Claude Code (Claude Opus 5.5) - Addressed Copilot's review of PR #3008: stated that `--format text` is pretty-printed JSON, so `jq` reads both formats, and named da2ce7 as a GitHub user.
 - 2026-11-23 16:34 UTC - Claude Code (Claude Opus 5.5) - Addressed da2ce7's second review of PR #3008: D4 and D5 name where the maintainer answered and the F1 thread reply that records it, and D4, D5 and AC5 now follow D3 and AC4.
 - 2026-11-23 16:48 UTC - Claude Code (Claude Opus 5.5) - Addressed Copilot's second review of PR #3008: `agent-reply-validator` "uses" a schema version, not "fixes" one.
+- 2026-11-23 17:05 UTC - Claude Code (Claude Opus 5.5) - Addressed Copilot's third review of PR #3008: the commit-points section states the design-review and maintainer-review gates of the test loop, and the Implementation Completion Review states when a retrospective is created and how to close without one.
 
 ## Acceptance Criteria
 
@@ -281,7 +291,13 @@ and the toolchain that produced each result (for example the `stable Rust toolch
 
 ## Implementation Completion Review
 
+After implementation, compare the result with this specification and record invalidated
+assumptions, material design changes, unexpected validation findings and reusable lessons.
+
 - Retrospective: `Not yet assessed`
+- If any of those exist, create `implementation-retrospective.md` in this directory from
+  `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md`.
+- Otherwise add a progress-log entry explaining why the work had no material discovery.
 
 ## References
 
