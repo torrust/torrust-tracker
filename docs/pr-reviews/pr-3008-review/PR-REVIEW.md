@@ -41,15 +41,17 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1 covers review 6024919812 (da2ce7, CHANGES_REQUESTED, submitted 2026-11-23T16:03:08Z, of commit `076c87b02`) with seven inline comments, each with a `[Severity][FindingId]` first line; the IDs F1 to F7 are kept and the severities are the brackets. Its body summarizes the same seven findings and the checks the reviewer ran; it makes no row.
+Round 1 covers review 6024919812 (da2ce7, CHANGES_REQUESTED, submitted 2026-11-23T16:03:08Z, of the head whose last commit is `docs(issues): [#3006] link spec-only PR #3008`) with seven inline comments, each with a `[Severity][FindingId]` first line; the IDs F1 to F7 are kept and the severities are the brackets. Its body summarizes the same seven findings and the checks the reviewer ran; it makes no row.
 
 Round 1 also covers review 6024982355 (Copilot, COMMENTED, submitted 2026-11-23T16:07:10Z) with three inline comments without IDs or severity brackets, recorded as F8 to F10. F9 has the same text as F8 on another line and is a re-raise with its own row.
 
-Round 2 covers review 6025241076 (da2ce7, COMMENTED, submitted 2026-11-23T16:23:52Z, of commit `001b226ef`) with three inline comments that carry the reviewer IDs F8, F9 and F10. Those IDs collide with the audit's F8 to F10 (Copilot's threads), so they are recorded as F11, F12 and F13, with the reviewer's ID in each detail entry; the severities are the brackets. Its body also says "F2 stands", a re-raise of F2 without a thread, recorded as F14 with the review URL as its source.
+Round 2 covers review 6025241076 (da2ce7, COMMENTED, submitted 2026-11-23T16:23:52Z, of the head whose last commit is `docs(issues): [#3006] move http scrape entries under files and name all consumers`) with three inline comments that carry the reviewer IDs F8, F9 and F10. Those IDs collide with the audit's F8 to F10 (Copilot's threads), so they are recorded as F11, F12 and F13, with the reviewer's ID in each detail entry; the severities are the brackets. Its body also says "F2 stands", a re-raise of F2 without a thread, recorded as F14 with the review URL as its source.
 
-Round 3 covers review 6025333875 (da2ce7, COMMENTED, submitted 2026-11-23T16:29:55Z, of commit `b4ebacdc0`) with no inline comment. Its body accepts the F2 route, restates F11 to F13 (its F8 to F10) and adds no finding, so it makes no row.
+Round 3 covers review 6025333875 (da2ce7, COMMENTED, submitted 2026-11-23T16:29:55Z, of the head whose last commit is `docs(issues): [#3006] say that --format text is pretty-printed JSON`) with no inline comment. Its body accepts the F2 route, restates F11 to F13 (its F8 to F10) and adds no finding, so it makes no row.
 
-Round 4 covers review 6025551279 (Copilot, COMMENTED, submitted 2026-11-23T16:44:16Z, of commit `b4ebacdc0`, a lite review) with one inline comment, recorded as F15. Its body is an overview that repeats it and lists three earlier threads as resolved; it makes no row. The overview marks it Low, recorded as `Nit (inferred)`.
+Round 4 covers review 6025551279 (Copilot, COMMENTED, submitted 2026-11-23T16:44:16Z, of the head whose last commit is `docs(issues): [#3006] say that --format text is pretty-printed JSON`, a lite review) with one inline comment, recorded as F15. Its body is an overview that repeats it and lists three earlier threads as resolved; it makes no row. The overview marks it Low, recorded as `Nit (inferred)`.
+
+Round 5 covers review 6025811357 (da2ce7, CHANGES_REQUESTED, submitted 2026-11-23T17:00:35Z, of the head whose last commit is `docs(issues): [#3006] say that agent-reply-validator uses a schema version`) with three inline comments that carry the reviewer IDs F12, F13 and F14. They collide with the audit's F12 to F14, so they are recorded in source order as F16 (their F13), F17 (their F12) and F18 (their F14), with the reviewer's ID in each detail entry. Its body summarizes them and makes no row.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -68,6 +70,9 @@ Round 4 covers review 6025551279 (Copilot, COMMENTED, submitted 2026-11-23T16:44
 | F13 | review-finding:pr-3008-f13 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F14 | review-finding:pr-3008-f14 | Human | Minor | documentation | RE_RAISE_OF:F2 | FOLLOW_UP | NON_RESOLVABLE |
 | F15 | review-finding:pr-3008-f15 | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-3008-f16 | Human | Major | documentation | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-3008-f17 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-3008-f18 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -207,7 +212,7 @@ Round 4 covers review 6025551279 (Copilot, COMMENTED, submitted 2026-11-23T16:44
 - Source review ID: 6025241076
 - Reviewer finding ID: F8
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4668624060
-- Concern: At commit `001b226ef` the round-1 fixes were committed but `docs/pr-reviews/pr-3008-review/PR-REVIEW.md` did not exist, and none of the ten threads had a reply; `process-pr-review` asks for the record before the first reply.
+- Concern: At the head whose last commit is `docs(issues): [#3006] move http scrape entries under files and name all consumers`, the round-1 fixes were committed but `docs/pr-reviews/pr-3008-review/PR-REVIEW.md` did not exist, and none of the ten threads had a reply; `process-pr-review` asks for the record before the first reply.
 - Solution: The record was created after the replies (a late start, logged below) with a row and a detail entry for each of the ten round-1 threads; the replies and resolutions were done at 16:26 UTC.
 - Current-tree verification: `ls docs/pr-reviews/pr-3008-review/PR-REVIEW.md` lists the file; the audit validator run with the bot token prints `"rows": 10, "failures": 0` for the round-1 rows.
 - Resolution reference: `docs(pr-reviews): [#3006] audit record of the first review round of PR #3008`
@@ -266,6 +271,45 @@ Round 4 covers review 6025551279 (Copilot, COMMENTED, submitted 2026-11-23T16:44
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669009621
 
+### F16 - The PR description predated D4, D5 and the audit record
+
+- PR number: 3008
+- Source review ID: 6025811357
+- Reviewer finding ID: F13
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669084154
+- Concern: The description listed only D1 to D3, gave D3 its old meaning (marking only the #2768 change) and named only the spec among the files, and the merge tool copies the description into the merge commit.
+- Solution: The description now lists D1 to D5, says D3's `1` marks both the #2768 `check` change and D4, names both files (the spec and this record), points to PR #3007 for the EPIC row, and names the audit validator under Validation. It was edited with `gh-bot pr edit`, so no commit carries it.
+- Current-tree verification: `gh-bot pr view 3008 --repo torrust/torrust-tracker --json body -q .body | grep -c 'D5 (decided'` prints 1; the same with `PR-REVIEW.md` prints 1.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669109330
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669109330
+
+### F17 - The record cited PR-branch commit ids
+
+- PR number: 3008
+- Source review ID: 6025811357
+- Reviewer finding ID: F12
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669084167
+- Concern: The Findings paragraphs and the F11 concern cited three commits by ids that are not on `develop`, which the `open-pull-request` commit-id check forbids in review audits.
+- Solution: Each id is replaced by the subject of the head's last commit, and the commit-id check from `open-pull-request` prints nothing for the files this PR changes.
+- Current-tree verification: The `open-pull-request` commit-id check (`git diff -z --name-only --diff-filter=d torrust/develop...HEAD | xargs -0 -r grep -IohE ...`) prints nothing.
+- Resolution reference: `docs(pr-reviews): [#3006] record review round 5 of PR #3008 and drop branch commit ids`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669121066
+
+### F18 - The reply to Copilot's round-4 thread cited audit F15 before the record held it
+
+- PR number: 3008
+- Source review ID: 6025811357
+- Reviewer finding ID: F14
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669084176
+- Concern: Reply 4669009621 answered the round-4 thread as "FIXED (audit F15)", but the record at the reviewed head ended at F14.
+- Solution: The F15 row and detail entry, with that reply URL, were added in `docs(pr-reviews): [#3006] record review round 4 of PR #3008`, pushed at 16:55 UTC, before this review was read.
+- Current-tree verification: `grep -c '^| F15 |' docs/pr-reviews/pr-3008-review/PR-REVIEW.md` prints 1; `grep -c '^- Reply URL: .*r4669009621' docs/pr-reviews/pr-3008-review/PR-REVIEW.md` prints 1.
+- Resolution reference: `docs(pr-reviews): [#3006] record review round 4 of PR #3008`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669109801
+
 ## Processing Log
 
 - 2026-11-23 16:10 UTC - Started audit. Round 1: review 6024919812 (da2ce7, CHANGES_REQUESTED, submitted 16:03:08Z) with seven inline comments, F1 to F7. F1 needed a maintainer decision: he chose D4 (the `http scrape` entries under `files`) and D5 (the UDP field beside the tag). The fixes of F1 and F3 to F7 were committed and pushed as `josecelano-bot` (`docs(issues): [#3006] move http scrape entries under files and name all consumers`).
@@ -277,6 +321,7 @@ Round 4 covers review 6025551279 (Copilot, COMMENTED, submitted 2026-11-23T16:44
 - 2026-11-23 16:41 UTC - The audit validator, run with the bot token, exits 0 (14 rows, 0 failures). A GraphQL fetch that ran before this entry shows 13 threads, 0 unresolved.
 - 2026-11-23 16:54 UTC - Round 4: review 6025551279 (Copilot, 16:44:16Z) recorded as F15. The fix was committed and pushed as `josecelano-bot` (`docs(issues): [#3006] say that agent-reply-validator uses a schema version`). Replied on the thread (16:54:30Z) and resolved it (the mutation returned `isResolved` true).
 - 2026-11-23 16:55 UTC - The audit validator, run with the bot token, exits 0 (15 rows, 0 failures). A GraphQL fetch that ran before this entry shows 14 threads, 0 unresolved.
+- 2026-11-23 17:03 UTC - Round 5: review 6025811357 (da2ce7, CHANGES_REQUESTED, 17:00:35Z) recorded as F16 to F18. F16: edited the PR description with `gh-bot pr edit`. F17: replaced the three branch commit ids in this record with commit subjects; the `open-pull-request` commit-id check prints nothing. F18 was already fixed by the round-4 audit commit. Replied on the three threads (17:01Z to 17:03:39Z) and resolved them (each mutation returned `isResolved` true). `linter all` exits 0.
 
 ## Completion Rules
 
