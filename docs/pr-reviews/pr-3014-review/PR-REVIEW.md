@@ -56,6 +56,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F8 | review-finding:pr-3014-f8 | Unknown | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | R4 | review-finding:pr-3014-r4 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | R5 | review-finding:pr-3014-r5 | Copilot | Minor | correctness | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F9 | review-finding:pr-3014-f9 | Unknown | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -228,6 +229,19 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3014#issuecomment-7111763293
 
+### F9 - The M3 baseline had no marker to show
+
+- PR number: 3014
+- Source review ID: 6028299786
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4671046950
+- Concern: CodeRabbit (round 3, on head `8ce3ce3f8`): the note under the CI-tools draft's manual scenarios said every baseline shows the marker, but M3 has no marker because no credential reaches compose today.
+- Solution: The note now says the baselines of M1 and M2 show the marker, and that the M3 baseline records the environment values the two compose lines print; the final run shows they are no longer printed.
+- Current-tree verification: Read the note and the M3 row of `docs/issues/drafts/ci-tools-keep-secrets-out-of-logs/ISSUE.md` on the branch; `src/console/ci/qbittorrent_e2e/services_setup.rs:123-160` passes image names, ports and paths only.
+- Resolution reference: docs(issues): say what the M3 baseline records in the CI-tools draft
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4671124313
+
 ## Processing Log
 
 - 2026-11-23 18:58 UTC - Started audit after the Copilot review 6027563286 (18:53 UTC); the two Greptile reviews 6027255837 (18:30 UTC) and 6027369330 (18:39 UTC) had arrived before it. Five findings, all checked against the branch.
@@ -235,6 +249,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-23 19:05 UTC - The two fix commits and this record were pushed (head `12c44a815`; time of its Docs Lint run on GitHub). The five round-1 threads were resolved after the push.
 - 2026-11-23 19:29 UTC - Round 2: CodeRabbit review 6027811353 (19:10 UTC, six assertions in five comments) and Copilot review 6028085158 (19:28 UTC, R4 inline and R5 in the body). Eight findings, all checked against the branch.
 - 2026-11-23 19:33 UTC - Replied on the six inline threads (replies 4670921433, 4670921850, 4670922327, 4670922736, 4670923149, 4670925538) and answered R5 in PR comment 7111763293, before the fix commits were pushed.
+- 2026-11-23 19:39 UTC - The round-2 fix commits and the record were pushed (head `8ce3ce3f8`; time of its Docs Lint run on GitHub). The six round-2 threads were resolved after the push.
+- 2026-11-23 19:41 UTC - CodeRabbit posted five automatic replies (reviews 6028161719, 6028161801, 6028162354, 6028163012, 6028169121, 19:33-19:34 UTC) to the round-2 replies. Each checked head `12c44a815`, before the push, and said it could not verify the fix yet. No new finding. Answered in each thread that the fix is on head `8ce3ce3f8`.
+- 2026-11-23 19:50 UTC - Round 3: CodeRabbit review 6028299786 (19:43 UTC) raised F9. Fixed, pushed (head `d7c45ec21`, Docs Lint run created 19:50:14 UTC), then replied (reply 4671124313, 19:50:16 UTC). A follow-up commit corrected the draft's `last-updated-utc`, which had been stamped ahead of the clock.
 
 ## Completion Rules
 
