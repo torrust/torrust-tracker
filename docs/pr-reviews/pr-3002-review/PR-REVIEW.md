@@ -47,6 +47,8 @@ Round 2 covers review 6023199677 (Greptile, submitted 2026-11-23T14:15:50Z, COMM
 
 Commit ids in posted replies: this record names commits by subject only. Two replies posted before that rule was applied cite a commit by its abbreviated id, and a reply cannot be edited. In both, the id is that of the commit `docs(pr-reviews): [#3002] record review round 1`: the F1 reply (<https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4666976606>, "Checked at ...") and the F12 reply (<https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4667230477>, "The placeholders you saw at ...").
 
+Round 3 covers five reviews. Review 6023349775 (`da2ce7`, submitted 2026-11-23T14:25:45Z, CHANGES_REQUESTED) and review 6023402273 (`copilot-pull-request-reviewer`, 14:29:09Z, COMMENTED) are on the head commit `docs(pr-reviews): [#3002] record the replies and resolutions of review round 1`; review 6023553046 (CodeRabbit, 14:38:58Z, COMMENTED) and review 6023574266 (`da2ce7`, 14:40:16Z, CHANGES_REQUESTED) are on the head commit `docs(pr-reviews): [#3002] record review round 2 before replying`; review 6023654876 (`da2ce7`, 14:45:11Z, CHANGES_REQUESTED) is on the head commit `docs(pr-reviews): [#3002] record the reply and resolution of review round 2`. They have thirteen inline comments, F13 to F25 here in source order. The `da2ce7` comments carry `[Severity][FindingId]` first lines whose IDs (F6, F7, F8, F10, F11; F12, F13, F14; F15, F16) collide with this record's, so each detail entry keeps the reviewer's ID; the Copilot comment carries `[Minor][F12]`, which collides too. The CodeRabbit comments carry a "Major" or "Minor" label, recorded as the severity. The `da2ce7` review bodies are verdicts, checks summaries and the status of earlier findings (one of them says its F9 of an earlier round is fixed; it has no inline comment and makes no row); the Copilot body is an overview of its one comment; the CodeRabbit body only counts its comments. None makes a row. Reviews 6023191005 and 6023194907 (CodeRabbit, 14:15:17Z and 14:15:32Z) are its replies on the F1 and F2 threads, which accept the fixes and request nothing; they make no row. The contributor answered the design questions of this round on 2026-11-23 (a continuation without a line, preloaded skill text, a path outside the three places, the M7 step, the PR description and the commit ids); the rows apply those answers.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3002-f1 | Unknown | Major | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -61,6 +63,19 @@ Commit ids in posted replies: this record names commits by subject only. Two rep
 | F10 | review-finding:pr-3002-f10 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F11 | review-finding:pr-3002-f11 | Copilot | Minor (inferred) | documentation | RE_RAISE_OF:F7 | NO_ACTION | SUPERSEDED |
 | F12 | review-finding:pr-3002-f12 | Unknown | Minor (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
+| F13 | review-finding:pr-3002-f13 | Human | Major | metadata | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-3002-f14 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-3002-f15 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-3002-f16 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-3002-f17 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-3002-f18 | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F19 | review-finding:pr-3002-f19 | Unknown | Major | testing | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-3002-f20 | Unknown | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F21 | review-finding:pr-3002-f21 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F22 | review-finding:pr-3002-f22 | Human | Minor | metadata | RE_RAISE_OF:F20 | FIXED | RESOLVED |
+| F23 | review-finding:pr-3002-f23 | Human | Minor | correctness | RE_RAISE_OF:F18 | FIXED | RESOLVED |
+| F24 | review-finding:pr-3002-f24 | Human | Minor | testing | RE_RAISE_OF:F19 | FIXED | RESOLVED |
+| F25 | review-finding:pr-3002-f25 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -220,6 +235,175 @@ Commit ids in posted replies: this record names commits by subject only. Two rep
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4667230477
 
+### F13 - The PR description describes the replaced design
+
+- PR number: 3002
+- Source review ID: 6023349775
+- Reviewer finding ID: F6
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4667121510
+- Concern: The author-written part of the pull request description was unchanged since the first head: it begins "One commit" and says the hook reads the line from the first message of the transcript, that the count is one file per run, and that a draft reply path is refused. The merge tool copies the description into the merge commit, so a merge would put the replaced design into permanent history. `da2ce7` asks to update it to the design at the head.
+- Solution: Applied the contributor's answer of 2026-11-23: the description was rewritten with `gh-bot pr edit 3002 --body-file` to the design at the head, with no commit count and no commit id: the latest-line rule, the per-request count keyed by the `agent_id` and the reply file, the issue number only from `open/` or `closed/`, the let-finish branches, preloaded skill text, the M7 continued-run step, the binary `agent-reply-guard`, the two facts rows, and this audit record as part of the pull request.
+- Current-tree verification: PENDING (filled after the edit).
+- Resolution reference: PENDING (the reply that states the edit)
+- Follow-up PR URL: N/A
+- Reply URL: PENDING
+
+### F14 - Preloaded skill text can carry the reply-file line
+
+- PR number: 3002
+- Source review ID: 6023349775
+- Reviewer finding ID: F7
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4667121532
+- Concern: The hook reads the last caller message that carries the `Reply file:` line, and V1 records the preloaded skills' text right after the task in the transcript. `task-reviewer` preloads `review-task`, where T5 writes the reply rule; if that rule shows the line literally, the last message carrying it is the skill's example. D17 named tool results and the refusal text as non-caller text, not preloaded skills.
+- Solution: Applied the contributor's answer: both of the reviewer's options. D17 names preloaded skill text with tool results and the refusal text, and says that neither the refusal text nor `review-task` ever shows the literal line, both referring to the reply-file line of D17. The T5 row says the reply rule refers to that line without showing it literally, and T5's tests include a transcript where skill text follows the task.
+- Current-tree verification: `grep -c` on `docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md` finds "preloaded skills and from its own refusal text" once, "ever shows the literal line" once, "without showing it literally" once and "skill text that follows the task" 3 times (the T5 row, the Commit Points and the Progress Log entry; the Automatic Checks item wraps the phrase).
+- Resolution reference: `docs(issues): [#2904] keep the reply file line out of preloaded skill text`
+- Follow-up PR URL: N/A
+- Reply URL: PENDING
+
+### F15 - The record and two replies cite PR-branch commit ids
+
+- PR number: 3002
+- Source review ID: 6023349775
+- Reviewer finding ID: F8
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4667121546
+- Concern: The `open-pull-request` commit-id check printed PR-branch commit ids in this record: the round paragraphs, the F12 concern and the Processing Log entries named heads by id, and the F1 reply cites one. In its later reviews `da2ce7` widened the finding to a third id in the round-2 log entry and to the F12 reply.
+- Solution: Applied the contributor's answer: every PR-branch commit id in this record was replaced by the commit's subject, with a correction entry in the Processing Log, and the two posted replies that cite an id are mapped to the commit subject after the round paragraphs. New text and replies of this round name commits by subject only.
+- Current-tree verification: The `open-pull-request` commit-id check, with `torrust/develop` fetched, prints nothing for this file and the spec.
+- Resolution reference: `docs(pr-reviews): [#3002] name commits by subject instead of commit id`
+- Follow-up PR URL: N/A
+- Reply URL: PENDING
+
+### F16 - A reply path outside open/, closed/ and drafts/ has no stated behaviour
+
+- PR number: 3002
+- Source review ID: 6023349775
+- Reviewer finding ID: F10
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4667121583
+- Concern: A `Reply file:` path outside `docs/issues/open/`, `closed/` and `drafts/` had no stated behaviour: the validator rejects its place, so the hook would refuse it with no issue number to key the count, which is the round-1 draft case for a mistyped path.
+- Solution: Applied the contributor's answer: the reviewer cannot change the path the caller wrote, so the hook lets it finish, as for a draft, with a message that names the path and says it is outside the places D18 allows, and keeps no count. The caller then finds no valid reply file and stops. The T5 row, the Commit Points and Automatic Checks name the test of the branch.
+- Current-tree verification: `grep -c` on `docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md` finds "A path outside the specification folders" once, "outside the places D18 allows" once, and "for a path outside the specification folders" twice (the T5 row and the Commit Points; the Automatic Checks item wraps the phrase).
+- Resolution reference: `docs(issues): [#2904] let the task reviewer finish on a reply path outside the specification folders`
+- Follow-up PR URL: N/A
+- Reply URL: PENDING
+
+### F17 - The Greptile thread had no reply, row or resolution
+
+- PR number: 3002
+- Source review ID: 6023349775
+- Reviewer finding ID: F11
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4667121559
+- Concern: The thread opened by Greptile at 14:15:49 UTC on the head commit `docs(pr-reviews): [#3002] record review round 1` had no reply, row or resolution when `da2ce7` reviewed; the reviewer notes the concern itself was already fixed.
+- Solution: No further change: round 2 added the row F12, replied on that thread and resolved it, and the next commit recorded the reply URL.
+- Current-tree verification: The F12 detail entry has its Reply URL on the thread of `discussion_r4667004905`; a GraphQL fetch as `josecelano-bot` before this round showed that thread resolved with the reply.
+- Resolution reference: `docs(pr-reviews): [#3002] record the reply and resolution of review round 2`
+- Follow-up PR URL: N/A
+- Reply URL: PENDING
+
+### F18 - A continuation without a folder-style specification inherits the earlier line
+
+- PR number: 3002
+- Source review ID: 6023402273
+- Reviewer finding ID: F12
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4667163452
+- Concern: If a reviewer handles a folder-style issue and is then continued for a task without one, the lookup selects the earlier request's line, so the no-line branch cannot apply and the hook checks the earlier reply and count. Copilot asks for a request boundary or a no-reply marker, and a test.
+- Solution: Applied the contributor's answer: no new marker. D17 states the case and why it is harmless: the latest line found is then the earlier request's, and the earlier run could only have finished with that file valid or with its 3 refusals used, so the hook lets the agent finish, with a message naming the earlier file. T5's tests include a continued transcript whose last request has no line.
+- Current-tree verification: `grep -c` on `docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md` finds "A continuation without a line" once, "its message names the earlier file" once and "whose last request has no line" 3 times (the T5 row, the Commit Points and Automatic Checks).
+- Resolution reference: `docs(issues): [#2904] state that a continuation without a reply file line keeps the earlier file`
+- Follow-up PR URL: N/A
+- Reply URL: PENDING
+
+### F19 - M7 does not observe a continued run
+
+- PR number: 3002
+- Source review ID: 6023553046
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4667281929
+- Concern: The hook reads the latest `Reply file:` line from an undocumented transcript format, M7 covers only a fresh task, and the continued-run test uses fixtures, so nothing observes how Claude Code records a resumed request. CodeRabbit asks for a continued-run step in M7 that records the message carrying the line, the Claude Code version and whether the hook reads the new path, and for D17 to be revised before T5 if the line cannot be told apart.
+- Solution: Applied the contributor's answer: M7 continues a finished `task-reviewer` with a new request carrying a new `Reply file:` line (the next round's file), and V7 records the Claude Code version, which transcript message carries the line, where the preloaded skill text sits and whether the hook reads the new path; if the line cannot be told apart from tool results, skill text or the refusal text, D17 is revised before T5's code. D17 no longer says that M7 already shows this: the tests pin only the format their fixtures assume, and M7 observes the real one. The T5 row says M7 is recorded with its continued-run step.
+- Current-tree verification: `grep -c` on `docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md` finds "continue the finished reviewer with a new request" once (M7), "D17 is revised before T5's code" twice (D17 and M7), "including its continued-run step" once (the T5 row) and "scenario M7 shows that the hook" 0 times.
+- Resolution reference: `docs(issues): [#2904] add a continued-run step to scenario M7`
+- Follow-up PR URL: N/A
+- Reply URL: PENDING
+
+### F20 - The F12 Reply URL was a placeholder
+
+- PR number: 3002
+- Source review ID: 6023553046
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4667281942
+- Concern: At the head commit `docs(pr-reviews): [#3002] record review round 2 before replying` the F12 row's Reply URL was a placeholder, so the validator reported one failure. CodeRabbit asks to post the reply, record its URL and resolve only after the reply.
+- Solution: No further change: the reply was posted before the thread was resolved, and the next commit recorded its URL. The thread was already resolved by the CodeRabbit account (GraphQL `resolvedBy`); it gets a reply now and stays resolved.
+- Current-tree verification: The F12 detail entry's Reply URL is `discussion_r4667230477`; review 6023654876 reports that the validator's logic passes at the head commit `docs(pr-reviews): [#3002] record the reply and resolution of review round 2` (12 rows, 0 failures).
+- Resolution reference: `docs(pr-reviews): [#3002] record the reply and resolution of review round 2`
+- Follow-up PR URL: N/A
+- Reply URL: PENDING
+
+### F21 - Review 6023349775 was left out of the record
+
+- PR number: 3002
+- Source review ID: 6023574266
+- Reviewer finding ID: F12
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4667299022
+- Concern: Review 6023349775 was submitted three minutes before the round-2 audit commit, but the record had no row for its five comments and none of its threads had a reply or resolution. In its next review `da2ce7` widened the finding to review 6023402273 of Copilot.
+- Solution: This round records both reviews (F13 to F18), and each of their threads is replied to and resolved.
+- Current-tree verification: The rows F13 to F18 cite reviews 6023349775 and 6023402273; the Reply URLs and the final GraphQL fetch are recorded at the end of the round.
+- Resolution reference: `docs(pr-reviews): [#3002] record review round 3`
+- Follow-up PR URL: N/A
+- Reply URL: PENDING
+
+### F22 - The F12 Reply URL was still a placeholder
+
+- PR number: 3002
+- Source review ID: 6023574266
+- Reviewer finding ID: F13
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4667299037
+- Concern: The same concern as F20: the F12 Reply URL was a placeholder although the reply existed, so the validator failed once.
+- Solution: Fixed by the commit of F20.
+- Current-tree verification: As for F20.
+- Resolution reference: `docs(pr-reviews): [#3002] record the reply and resolution of review round 2`
+- Follow-up PR URL: N/A
+- Reply URL: PENDING
+
+### F23 - The Copilot continuation thread had no reply, row or resolution
+
+- PR number: 3002
+- Source review ID: 6023574266
+- Reviewer finding ID: F14
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4667299056
+- Concern: The thread of F18 had no reply, row or resolution. `da2ce7` adds that by D17's own bound the result is harmless, since the earlier run could only have finished with that file valid or its 3 refusals used, and asks that the text say so or mark the request boundary.
+- Solution: Fixed by the commit of F18: D17 says so.
+- Current-tree verification: As for F18.
+- Resolution reference: `docs(issues): [#2904] state that a continuation without a reply file line keeps the earlier file`
+- Follow-up PR URL: N/A
+- Reply URL: PENDING
+
+### F24 - M7 lacks the continued-run step
+
+- PR number: 3002
+- Source review ID: 6023654876
+- Reviewer finding ID: F15
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4667361461
+- Concern: The D17 sentence said that M7 shows the hook reads the line and that the tests pin the format including a continued run, while M7 had no continuation step and fixtures can only pin the format they assume. The same request as F19.
+- Solution: Fixed by the commit of F19.
+- Current-tree verification: As for F19.
+- Resolution reference: `docs(issues): [#2904] add a continued-run step to scenario M7`
+- Follow-up PR URL: N/A
+- Reply URL: PENDING
+
+### F25 - Five later threads had no reply, row or resolution
+
+- PR number: 3002
+- Source review ID: 6023654876
+- Reviewer finding ID: F16
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4667361489
+- Concern: The two threads of review 6023553046 and the three of review 6023574266 postdate the round-2 audit commit and had no reply, row or resolution.
+- Solution: This round records the five threads (F19 to F23), replies on each and resolves it; the F20 thread was already resolved and stays so.
+- Current-tree verification: The rows F19 to F23 cite reviews 6023553046 and 6023574266; the Reply URLs and the final GraphQL fetch are recorded at the end of the round.
+- Resolution reference: `docs(pr-reviews): [#3002] record review round 3`
+- Follow-up PR URL: N/A
+- Reply URL: PENDING
+
 ## Processing Log
 
 - 2026-11-23 14:05 UTC - Started audit. Round 1: reviews 6022610166 (CodeRabbit), 6022825332 (`da2ce7`) and 6022913275 (Copilot) on the head commit `docs(issues): [#2904] record how the stop hook of the task reviewer works`, eleven inline comments recorded as F1 to F11. Fetched the eleven review threads with GraphQL as `josecelano-bot`: all unresolved, `viewerCanResolve` true for each. Applied the maintainer's two design answers of 2026-11-23 (F1, F2, F4; F3, F5) and the mechanical fixes in five signed commits (committer times 13:59:23Z to 14:03:03Z) and logged the round in the spec (14:03:55Z); each commit's pre-commit hook passed. Checked each disposition against the current tree with the commands in the detail entries. Not pushed yet.
@@ -228,6 +412,7 @@ Commit ids in posted replies: this record names commits by subject only. Two rep
 - 2026-11-23 14:22 UTC - Round 2: review 6023199677 (Greptile) on the head commit `docs(pr-reviews): [#3002] record review round 1`, one inline comment recorded as F12. Checked against the current tree: the Reply URLs it asks for were filled by the next commit, so no change. Row committed before the reply.
 - 2026-11-23 14:34 UTC - Pushed the F12 row with `git-bot-push` (pre-push hook passed); `git ls-remote josecelano-bot refs/heads/2904-t5-task-reviewer-spec` showed the commit `docs(pr-reviews): [#3002] record review round 2 before replying`. Replied on the F12 thread as `josecelano-bot` and resolved it (`isResolved` true).
 - 2026-11-23 16:01 UTC - Correction for round 3 (finding F15 below): in the two round paragraphs, the F12 concern and the four entries above stamped 14:05, 14:14, 14:22 and 14:34, each abbreviated commit id was replaced by that commit's subject; nothing else in them changed. The ids of the two posted replies that cite one are mapped to a commit subject after the round paragraphs. The `open-pull-request` commit-id check, run on this file and the spec, prints nothing.
+- 2026-11-23 16:03 UTC - Round 3: reviews 6023349775, 6023574266 and 6023654876 (`da2ce7`), 6023402273 (Copilot) and 6023553046 (CodeRabbit), thirteen inline comments recorded as F13 to F25; a new listing of the reviews before recording showed none later than 6023654876. Fetched the threads with GraphQL as `josecelano-bot`: twelve of the thirteen unresolved with `viewerCanResolve` true, the F20 thread already resolved. Applied the contributor's answers of 2026-11-23 in four signed spec commits and the commit-id fix in one audit commit, and logged the round in the spec; each commit's pre-commit hook passed. Rows committed before the replies, so their Reply URLs, and the F13 verification and resolution reference, are placeholders that the next audit commit fills after the replies and the description edit; not pushed yet.
 
 ## Completion Rules
 
