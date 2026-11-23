@@ -9,7 +9,7 @@ github-issue: 2984
 spec-path: docs/issues/open/2984-tracker-client-check-udp-url-validation/ISSUE.md
 branch: "2984-tracker-client-check-udp-url-validation"
 related-pr: null
-last-updated-utc: "2026-11-23 17:30"
+last-updated-utc: "2026-11-23 18:09"
 semantic-links:
   skill-links:
     - create-issue
@@ -149,6 +149,7 @@ Test-development loop (T3), as `create-issue` requires for a plan that adds or c
 - 2026-11-22 14:21 UTC - Claude Code (Claude Sonnet 5.5) - Round 9 review fix (Copilot F27): the evidence records the actual capture procedure (`${PIPESTATUS[0]}`, stdout measured, stderr separate) for V1 and V2, and the scenarios name it - PR 2985 audit
 
 - 2026-11-23 17:30 UTC - Claude Code (Claude Sonnet 5.5) - Implemented T3 to T5: red tests (V3), validation in config, fallible resolution with a failed `Setup` check, `panic_record` seam, and the recheck (V4) - implementation PR
+- 2026-11-23 18:09 UTC - Claude Code (Claude Sonnet 5.5) - Implementation PR review round 1 (Copilot F1 to F3): scheme detection fixed, failed-check test added, and the test design reviews recorded as V5 (done after T3, not during it) - PR 3013 audit
 
 ## Acceptance Criteria
 
