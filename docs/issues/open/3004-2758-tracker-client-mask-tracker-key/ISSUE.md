@@ -9,7 +9,7 @@ github-issue: 3004
 spec-path: docs/issues/open/3004-2758-tracker-client-mask-tracker-key/ISSUE.md
 branch: "3004-tracker-client-mask-tracker-key-spec"
 related-pr: null
-last-updated-utc: "2026-11-23 14:41"
+last-updated-utc: "2026-11-23 14:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -212,8 +212,10 @@ Follow `.claude/skills/fix-bug/SKILL.md`:
   `tracker_client http announce` runs against the fake HTTP tracker in a fixed-reply mode whose
   headers promise more bytes than it sends before it closes, with a keyed URL. Stderr does not
   contain the key. On the unchanged code it fails on the key, because the body-read `reqwest::Error`
-  carries the URL (`response.rs:435`, see Background), and on AC2 for the checker path, which writes
-  the `Debug` text.
+  carries the URL (`response.rs:435`, see Background). The same test also runs `tracker_client check`
+  against the same fake, the only command that reaches the checker's `bytes()` calls, and asserts
+  that the output holds no `reqwest::Error` `Debug` text. The checker clears the URL path
+  (`checks/http.rs:34`), so that run can be red only on AC2, not on the key.
 - A black-box test of `tracker_client check` with a keyed HTTP URL on a closed local port (R0c),
   asserting that neither stdout nor stderr contains the key, and that the result's `url` field
   shows `****`. This path copies the configured URL into `Checks.url` and never goes through the
@@ -285,6 +287,7 @@ commit.
 - 2026-11-23 14:19 UTC - Claude Code (Claude Opus 5.5) - Addressed review round 1 of PR 3005 (da2ce7 F1 to F10, Greptile): `Checks.url` named as the `check` source, black-box tests for `http scrape` and `check`, M1 keeps the exit status, the progressive test loop and the maintainer stop (new T5), #2984 and #3006 named, the e2e runner configuration log recorded as out of scope, the public-issue decision stated. The EPIC row is added by the coordinator in PR 3007.
 - 2026-11-23 14:22 UTC - Claude Code (Claude Opus 5.5) - Addressed the Copilot review of round 1 of PR 3005: ownership and deadlines of the regression-test resources, library-seam tests for a non-2xx reply and a failed body read, and how the completion review is recorded.
 - 2026-11-23 14:41 UTC - Claude Code (Claude Opus 5.5) - Addressed review round 2 of PR 3005 (da2ce7): the body-read test is a black-box test of the console client against the existing fake HTTP tracker, and the URL in a body-read error is confirmed in the reqwest 0.13.5 source (`response.rs:435`).
+- 2026-11-23 14:55 UTC - Claude Code (Claude Opus 5.5) - Addressed review round 3 of PR 3005 (da2ce7): the body-read test also runs `check` against the fake, the only way to reach the checker's `bytes()` calls, and asserts no `Debug` text (AC2).
 
 ## Acceptance Criteria
 
