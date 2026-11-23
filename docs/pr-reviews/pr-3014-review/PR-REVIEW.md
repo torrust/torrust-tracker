@@ -57,6 +57,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | R4 | review-finding:pr-3014-r4 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | R5 | review-finding:pr-3014-r5 | Copilot | Minor | correctness | ORIGINAL | FIXED | NON_RESOLVABLE |
 | F9 | review-finding:pr-3014-f9 | Unknown | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-3014-f10 | Unknown | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -242,16 +243,30 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4671124313
 
+### F10 - A workflow-run time was recorded as the push time
+
+- PR number: 3014
+- Source review ID: 6028344228
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4671082938
+- Concern: CodeRabbit (reply in the F8 thread): the 19:05 entry took the push time from the Docs Lint run creation time, which does not establish the exact push time; check the push event or call it an approximation.
+- Solution: The 19:05, 19:39 and 19:50 entries now call the run time an upper bound on the push time. GitHub has no exact record: the PR timeline shows commit times only, and the fork's event list has no event for these pushes.
+- Current-tree verification: `gh-bot api repos/torrust/torrust-tracker/issues/3014/timeline` lists `committed` events with commit dates and one `head_ref_force_pushed` (18:36:13 UTC, the rebase); `gh-bot api repos/josecelano-bot/torrust-tracker/events` lists no push to `2993-refresh-specs-spec`.
+- Resolution reference: docs(pr-reviews): [#2993] call the workflow-run times upper bounds on the push times
+- Follow-up PR URL: N/A
+- Reply URL: REPLY_F10
+
 ## Processing Log
 
 - 2026-11-23 18:58 UTC - Started audit after the Copilot review 6027563286 (18:53 UTC); the two Greptile reviews 6027255837 (18:30 UTC) and 6027369330 (18:39 UTC) had arrived before it. Five findings, all checked against the branch.
 - 2026-11-23 18:58 UTC - Replied on all five threads (replies 4670523578, 4670524038, 4670524515, 4670524934, 4670525417), before the two fix commits were pushed.
-- 2026-11-23 19:05 UTC - The two fix commits and this record were pushed (head `12c44a815`; time of its Docs Lint run on GitHub). The five round-1 threads were resolved after the push.
+- 2026-11-23 19:05 UTC - The two fix commits and this record were pushed (head `12c44a815`) by this time at the latest: its Docs Lint run was created at 19:05:10 UTC. GitHub keeps no exact time for a plain push to the fork branch (the PR timeline has only commit times, and the fork's event list has no event for it), so the run time is an upper bound, not the push time. The five round-1 threads were resolved after the push.
 - 2026-11-23 19:29 UTC - Round 2: CodeRabbit review 6027811353 (19:10 UTC, six assertions in five comments) and Copilot review 6028085158 (19:28 UTC, R4 inline and R5 in the body). Eight findings, all checked against the branch.
 - 2026-11-23 19:33 UTC - Replied on the six inline threads (replies 4670921433, 4670921850, 4670922327, 4670922736, 4670923149, 4670925538) and answered R5 in PR comment 7111763293, before the fix commits were pushed.
-- 2026-11-23 19:39 UTC - The round-2 fix commits and the record were pushed (head `8ce3ce3f8`; time of its Docs Lint run on GitHub). The six round-2 threads were resolved after the push.
+- 2026-11-23 19:39 UTC - The round-2 fix commits and the record were pushed (head `8ce3ce3f8`) by this time at the latest (its Docs Lint run was created at 19:39:37 UTC; upper bound, as in the 19:05 entry). The six round-2 threads were resolved after the push.
 - 2026-11-23 19:41 UTC - CodeRabbit posted five automatic replies (reviews 6028161719, 6028161801, 6028162354, 6028163012, 6028169121, 19:33-19:34 UTC) to the round-2 replies. Each checked head `12c44a815`, before the push, and said it could not verify the fix yet. No new finding. Answered in each thread that the fix is on head `8ce3ce3f8`.
-- 2026-11-23 19:50 UTC - Round 3: CodeRabbit review 6028299786 (19:43 UTC) raised F9. Fixed, pushed (head `d7c45ec21`, Docs Lint run created 19:50:14 UTC), then replied (reply 4671124313, 19:50:16 UTC). A follow-up commit corrected the draft's `last-updated-utc`, which had been stamped ahead of the clock.
+- 2026-11-23 19:50 UTC - Round 3: CodeRabbit review 6028299786 (19:43 UTC) raised F9. Fixed, pushed (head `d7c45ec21`, pushed by 19:50:14 UTC at the latest, when its Docs Lint run was created), then replied (reply 4671124313, 19:50:16 UTC). A follow-up commit corrected the draft's `last-updated-utc`, which had been stamped ahead of the clock.
+- 2026-11-23 19:57 UTC - CodeRabbit replies 6028337617 (19:46 UTC, F5 thread: verified, asked for the audit validator to be run) and 6028344228 (19:46 UTC, F8 thread: raised F10). Ran the validator (`status ok`, 0 failures) and recorded F10.
 
 ## Completion Rules
 
