@@ -1,10 +1,10 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/3004-2758-tracker-client-mask-tracker-key/ISSUE.md
-last-updated-utc: "2026-11-23 14:19"
+last-updated-utc: "2026-11-23 16:52"
 ---
 
-<!-- cspell:ignore SECRETKEY -->
+<!-- cspell:ignore SECRETKEY OTHERKEY nothex -->
 
 # Manual Verification Evidence
 
@@ -65,6 +65,42 @@ to `/announce` and `/scrape` without the key, so the per-request texts do not ca
 still carry the `Debug` text of `reqwest::Error`. Two side observations, not part of this defect:
 the checker drops the key from the request path, and it reports a refused connection as "did not
 receive a response within the timeout".
+
+### R0 repeat - on the implementation branch, before the fix
+
+- Date and time (UTC): 2026-11-23 16:32
+- Artifact under test: `tracker_client` built from `develop` at merge commit `6bc417424`
+  (`Merge torrust/torrust-tracker#3005`), with `cargo build -p torrust-tracker-client --bin tracker_client`
+  (`dev` profile), `rustc 1.100.0 (0ef1bc386 2026-11-09)`.
+- Commands: the R0a, R0b and R0c commands above, unchanged, with stdout and stderr redirected to
+  files.
+
+Result: byte-for-byte the same records as R0a, R0b and R0c (exit `1`, `1` and `0`; the key once on
+stderr for announce and scrape, once on stdout for `check`). The defect is still present on the
+branch.
+
+### T1 probes - other output paths
+
+Run on the same build, to complete the audit in the spec (section "Output Path Audit (T1)").
+
+```console
+$ TORRUST_CHECKER_CONFIG='{"udp_trackers":[],"http_trackers":"http://127.0.0.1:1/announce/SECRETKEYabc123","health_checks":[]}' target/debug/tracker_client check > /dev/null 2> e.txt
+exit=2 {"error":{"kind":"invalid_configuration","source":"TORRUST_CHECKER_CONFIG","message":"JSON parse error: invalid type: string \"http://127.0.0.1:1/announce/SECRETKEYabc123\", expected a sequence at line 1 column 80"}}
+
+$ TORRUST_CHECKER_CONFIG='{"udp_trackers":[],"http_trackers":["http://[::1/announce/SECRETKEYabc123"],"health_checks":[]}' target/debug/tracker_client check > /dev/null 2> e.txt
+exit=2 {"error":{"kind":"invalid_configuration","source":"TORRUST_CHECKER_CONFIG","message":"Invalid URL: invalid IPv6 address"}}
+
+$ target/debug/tracker_client http announce 'http://127.0.0.1:1/announce/SECRETKEYabc123?x=1' 9c38422213e30bff212b30c360d26f9a02136422 > /dev/null 2> e.txt
+exit=1 {"error":{"kind":"runtime_failure","source":"runtime","message":"invalid tracker URL input: include only scheme, host, optional port, and optional path. Do not include query or fragment. Pass tracker request params using dedicated CLI arguments"}}
+
+$ target/debug/tracker_client http announce http://127.0.0.1:1/announce/SECRETKEYabc123 nothex > /dev/null 2> e.txt
+exit=1 {"error":{"kind":"runtime_failure","source":"runtime","message":"invalid infohash `nothex`. Example infohash: `9c38422213e30bff212b30c360d26f9a02136422`"}}
+
+$ target/debug/tracker_client http announce http://127.0.0.1:1/announce/SECRETKEYabc123 9c38422213e30bff212b30c360d26f9a02136422 http://x/announce/OTHERKEY > /dev/null 2> e.txt
+exit=2 {"error":{"kind":"usage_error","source":"arguments","message":"error: unexpected argument 'http://x/announce/OTHERKEY' found\n\nUsage: tracker_client http announce [OPTIONS] <TRACKER_URL> <INFO_HASH>\n\nFor more information, try '--help'.\n"}}
+```
+
+The first and the last record carry a key (P8 and P9 of the audit). The others do not echo the URL.
 
 ## Outcome
 

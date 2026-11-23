@@ -7,9 +7,9 @@ priority: p1
 epic: 2758
 github-issue: 3004
 spec-path: docs/issues/open/3004-2758-tracker-client-mask-tracker-key/ISSUE.md
-branch: "3004-tracker-client-mask-tracker-key-spec"
+branch: "3004-tracker-client-mask-tracker-key"
 related-pr: null
-last-updated-utc: "2026-11-23 14:55"
+last-updated-utc: "2026-11-23 16:52"
 semantic-links:
   skill-links:
     - create-issue
@@ -139,6 +139,50 @@ Files this issue may touch (a sibling issue in the same wave must not touch them
 - `console/tracker-client/**`
 - `packages/tracker-client/src/http/client/**` and its tests
 
+## Output Path Audit (T1)
+
+Done on `develop` `6bc417424`, by reading every file under `console/tracker-client/src` and
+`packages/tracker-client/src/http/client`, and by running the built binary against a closed port
+and malformed input (commands and output in `manual-verification-evidence.md`, R0 repeat and T1
+probes).
+
+Paths that write a tracker URL or `reqwest` error text, and how this issue treats them:
+
+| ID | Path | Output | What leaks today | Treatment |
+| -- | ---- | ------ | ---------------- | --------- |
+| P1 | Library `Error::ResponseError`, `Error::ClientBuildingError` (`packages/tracker-client/src/http/client/mod.rs`) | stderr (`http announce`, `http scrape`), stdout (`check`) | `Debug` of `reqwest::Error`: full URL with the key and the query | Kind-based text and the masked URL, no `Debug` text |
+| P2 | Library `Error::UnsuccessfulResponse` (same file) | as P1 | `Debug` of `reqwest::Response`: the request URL | Status code and the masked URL |
+| P3 | `response.bytes().await?` in `unified/http.rs` (announce and scrape) | stderr | `Display` of the body-read `reqwest::Error`: the URL (`for url (...)`) | Kind-based text and the masked URL |
+| P4 | Checker `Checks.url` (`checker/checks/http.rs`) | stdout (`check`) | The configured URL with the key | Masked URL |
+| P5 | Checker per-request errors (`clients/http/mod.rs`: `HttpClientError`, `ResponseError`, `{err:?}`) | stdout (`check`) | `Debug` of the library error and of `reqwest::Error`; no key today, because the checker drops the path | `Display` of the fixed library error; kind-based text for the body-read error |
+| P6 | Health check errors (`checker/checks/health.rs`, `{err:?}` and `{response:?}`) | stdout (`check`) | `Debug` of `reqwest::Error` and `reqwest::Response`; health URLs carry no key | Kind-based text, no `Debug` text (AC2) |
+| P7 | `report_runtime_failure` in `bin/tracker_client.rs` | stderr | Writes P1 to P3 unchanged; it reports `anyhow` errors with `to_string()`, the outermost message only | No change needed once P1 to P3 are fixed |
+| P8 | Checker configuration parse error (`checker/config.rs`, `JsonParseError`) | stderr (`check`) | `serde_json` echoes a value of the wrong type: `invalid type: string "http://…/announce/<key>", expected a sequence` | Mask the key of every tracker URL inside the record's text (see below) |
+| P9 | `clap` usage error (`AppError::from_clap`) | stderr (any command) | `clap` echoes a misplaced argument: `unexpected argument 'http://…/announce/<key>' found` | As P8 |
+
+Checked and not leaking:
+
+- UDP commands (`udp announce`, `udp scrape`), the UDP checker and `check monitor`: UDP URLs
+  carry no key. Their `tracing::debug!` lines are below the fixed `INFO` level of the subscriber
+  (`unified/app.rs`), so they are not written.
+- `tracing` records of `reqwest` and `hyper`: they log at `debug` and `trace`, below `INFO`.
+- The URL validation error (`parse_and_validate_tracker_url`) and the infohash error do not echo the
+  URL.
+- Invalid URL errors of the checker configuration (`Invalid URL: <url::ParseError>`) do not echo
+  the URL.
+- The panic hook record: the panics found (`checker/checks/udp.rs:107`, #2984) carry no URL.
+- `CheckerOutput` (`checks/structs.rs`) is unused.
+- The e2e runner configuration log is out of scope (see Out of Scope).
+- Other users of the library (`packages/udp-server`, `packages/axum-http-server`, dev-dependency
+  tests): no code matches the old error texts.
+
+P8 and P9 echo text the caller typed, at the place where it was wrong, through a third-party
+formatter (`serde_json`, `clap`). The URL is inside free text, so the URL-masking function cannot
+reach them alone. The maintainer decided, when shown the audit, to fix them in this issue: a second
+small function masks the key of every HTTP tracker URL it finds in a text, using the URL-masking
+function for each one, and the usage-error and configuration-error records go through it. Each gets
+a red regression test.
+
 ## Architectural Decisions
 
 - Related ADRs: `docs/adrs/20260519000000_define_global_cli_output_contract.md` (section 7,
@@ -149,7 +193,11 @@ Files this issue may touch (a sibling issue in the same wave must not touch them
 
 Interface: one small pure function owns the masking of a URL (input: a URL; output: the same URL
 with the key segment replaced). Every output path calls it; no output path builds its own masked
-text. The production change has no child process, readiness wait or shared fixture.
+text. A second pure function (input: a text; output: the same text with the key of every HTTP
+tracker URL in it masked by the first function) covers the records whose text comes from a
+third-party formatter (P8, P9 in the audit).
+
+The production change has no child process, readiness wait or shared fixture.
 
 The regression tests do, so they follow these rules:
 
@@ -220,6 +268,11 @@ Follow `.claude/skills/fix-bug/SKILL.md`:
   asserting that neither stdout nor stderr contains the key, and that the result's `url` field
   shows `****`. This path copies the configured URL into `Checks.url` and never goes through the
   library error, so the tests above do not cover it.
+- Unit tests of the text-masking function (P8, P9): a text with one keyed URL, two keyed URLs,
+  a keyed URL inside quotes, and a text with no URL.
+- Black-box tests of the two third-party echoes: `tracker_client check` with a configuration whose
+  `http_trackers` is a keyed URL string instead of a list (P8), and `tracker_client http announce`
+  with a misplaced keyed URL argument (P9). Stderr does not contain the key and shows `****`.
 - Tests that run the binary look up `NEXTEST_BIN_EXE_tracker_client` before
   `CARGO_BIN_EXE_tracker_client`.
 
@@ -239,7 +292,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
-| T1  | TODO   | Audit the output paths | The list of paths that write a URL or request error text, recorded in this spec. |
+| T1  | DONE   | Audit the output paths | The list of paths that write a URL or request error text, recorded in this spec. |
 | T2  | TODO   | Red regression tests | The tests of the Regression Test Strategy, failing on the unchanged code; output and the design review of each increment in the evidence file. |
 | T3  | TODO   | Masking function and library error text | The key segment is masked; no `Debug` text of `reqwest::Error` is written. |
 | T4  | TODO   | Apply it on every output path | Every path from T1 writes masked URLs only. |
@@ -270,7 +323,7 @@ commit.
 - [x] Folder-style spec drafted in `docs/issues/drafts/2758-tracker-client-mask-tracker-key/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
+- [x] Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -288,6 +341,7 @@ commit.
 - 2026-11-23 14:22 UTC - Claude Code (Claude Opus 5.5) - Addressed the Copilot review of round 1 of PR 3005: ownership and deadlines of the regression-test resources, library-seam tests for a non-2xx reply and a failed body read, and how the completion review is recorded.
 - 2026-11-23 14:41 UTC - Claude Code (Claude Opus 5.5) - Addressed review round 2 of PR 3005 (da2ce7): the body-read test is a black-box test of the console client against the existing fake HTTP tracker, and the URL in a body-read error is confirmed in the reqwest 0.13.5 source (`response.rs:435`).
 - 2026-11-23 14:55 UTC - Claude Code (Claude Opus 5.5) - Addressed review round 3 of PR 3005 (da2ce7): the body-read test also runs `check` against the fake, the only way to reach the checker's `bytes()` calls, and asserts no `Debug` text (AC2).
+- 2026-11-23 16:52 UTC - Claude Code (Claude Opus 5.5) - Spec PR 3005 merged. Repeated R0 on the implementation branch (same output) and did the T1 audit: two more leaks found, the `serde_json` echo of a wrong-typed checker configuration value (P8) and the `clap` echo of a misplaced argument (P9). The maintainer decided to fix both here; added a text-masking function and their tests to the spec.
 
 ## Acceptance Criteria
 
