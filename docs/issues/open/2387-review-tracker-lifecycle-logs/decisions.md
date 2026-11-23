@@ -103,7 +103,7 @@ Issue #2766 (EPIC #2758) changes the daemon's log output to JSON lines on stderr
 
 Details decided:
 
-- **Style:** uppercase with underscores, for example `UDP_TRACKER`. A name without spaces needs no quotes in a filter or in a JSON query, and three targets already use it.
+- **Style:** uppercase with underscores, for example `UDP_TRACKER`. A name without spaces needs no quotes in a filter or in a JSON query, and two targets already use it (`TRACKER_CORE` and `SWARM_COORDINATION_REGISTRY`).
 - **New targets:** `JOB_MANAGER` for the job manager; `APPLICATION` for process-level lines (logging initialized, configuration loaded, signal handlers installed, shutting down, stopped, startup failed, and the new lines of D10); one target for each periodic job.
 - **`TRACKER` was rejected** as the name for process-level lines: everything in the tracker is "tracker", so the name says nothing. `APPLICATION` names the layer that owns those lines.
 - **Shared HTTP shutdown code** (`torrust_tracker_axum_server::signals`) logs under the target of the service it stops, not under its own module path.
