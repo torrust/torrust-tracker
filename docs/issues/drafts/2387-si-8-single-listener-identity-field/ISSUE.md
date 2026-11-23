@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2387-si-8-single-listener-identity-field/ISSUE.md
 branch: "{issue-number}-2387-si-8-single-listener-identity-field-spec"
 related-pr: null
-last-updated-utc: "2026-11-23 17:31"
+last-updated-utc: "2026-11-23 18:31"
 semantic-links:
   skill-links:
     - create-issue
@@ -129,7 +129,7 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 ## Acceptance Criteria
 
 - [ ] AC1: A capture at `debug` contains none of the three removed field names.
-- [ ] AC2: `bind_address` appears only on lines logged before the bind, and every pre-bind line names the address with `bind_address`.
+- [ ] AC2: `bind_address` appears only on lines logged before the bind, and every pre-bind line about a listener names its address with `bind_address`. A line that is not about one listener, such as the build and run identity line, has no such field.
 - [ ] AC3: Every line with `service_binding` can be attributed to a service by `service_role` and `instance_index`, as event or span fields.
 - [ ] AC4: "Changes in 4.0.0" lists the removed names.
 - [ ] `linter all` exits with code `0`
