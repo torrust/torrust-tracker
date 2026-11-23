@@ -300,7 +300,7 @@ Round 4, on the head that carries the round 3 audit: da2ce7 review 6025458205 (A
 - Reviewer finding ID: F17
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4668922122
 - Concern: The audit ends at round 3 with no row for da2ce7's finding on the stale "of 11" totals.
-- Solution: None: the reviewed head `e5aa7579c` was one commit before the audit commit; row F17 and its detail entry already record that finding.
+- Solution: None: the reviewed head was the commit `docs(issues): [#2758] update the EPIC total in the open child specs to 13`, one commit before the audit commit; row F17 and its detail entry already record that finding.
 - Current-tree verification: `grep -c '^| F17 | review-finding' docs/pr-reviews/pr-3007-review/PR-REVIEW.md` printed 1 at the head after the round 4 audit commit.
 - Resolution reference: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4668927443
 - Follow-up PR URL: N/A
