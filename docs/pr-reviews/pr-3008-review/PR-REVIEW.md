@@ -71,6 +71,8 @@ Round 12 covers review 6027138634 (Copilot, COMMENTED, submitted 2026-11-23T18:2
 
 Round 13 covers review 6027279183 (Greptile, COMMENTED, submitted 2026-11-23T18:32:27Z, of the head whose last commit is `docs(pr-reviews): [#3006] record review round 12 of PR #3008`) with one inline comment marked P2, recorded as F34 (author class `Unknown`, severity `Minor (inferred)`).
 
+Round 14 covers review 6027543824 (Copilot, COMMENTED, submitted 2026-11-23T18:52:06Z, of the head whose last commit is `docs(pr-reviews): [#3006] record review round 12 of PR #3008`) with two inline comments that repeat the `||` reports of F32 and F33, recorded as re-raises F35 and F36.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3008-f1 | Human | Major | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -107,6 +109,8 @@ Round 13 covers review 6027279183 (Greptile, COMMENTED, submitted 2026-11-23T18:
 | F32 | review-finding:pr-3008-f32 | Copilot | Minor (inferred) | formatting | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F33 | review-finding:pr-3008-f33 | Copilot | Minor (inferred) | formatting | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F34 | review-finding:pr-3008-f34 | Unknown | Minor (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
+| F35 | review-finding:pr-3008-f35 | Copilot | Minor (inferred) | formatting | RE_RAISE_OF:F32 | NO_ACTION | SUPERSEDED |
+| F36 | review-finding:pr-3008-f36 | Copilot | Minor (inferred) | formatting | RE_RAISE_OF:F33 | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -552,6 +556,32 @@ Round 13 covers review 6027279183 (Greptile, COMMENTED, submitted 2026-11-23T18:
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4670286943
 
+### F35 - Same `||` table report as F32
+
+- PR number: 3008
+- Source review ID: 6027543824
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4670445046
+- Concern: Same report as F32: table rows in `docs/issues/open/3006-2758-tracker-client-schema-version/ISSUE.md` start with `||`.
+- Solution: No change, as for F32.
+- Current-tree verification: `grep -c '^||' docs/issues/open/3006-2758-tracker-client-schema-version/ISSUE.md` prints 0; `git show <head>:docs/issues/open/3006-2758-tracker-client-schema-version/ISSUE.md | grep -c '^||'` prints 0 for the reviewed head and the current head.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4670480804
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4670480804
+
+### F36 - Same `||` table report as F33
+
+- PR number: 3008
+- Source review ID: 6027543824
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4670445143
+- Concern: Same report as F33: table rows in `docs/pr-reviews/pr-3008-review/PR-REVIEW.md` start with `||`.
+- Solution: No change, as for F33.
+- Current-tree verification: `grep -c '^||' docs/pr-reviews/pr-3008-review/PR-REVIEW.md` prints 0; `git show <head>:docs/pr-reviews/pr-3008-review/PR-REVIEW.md | grep -c '^||'` prints 0 for the reviewed head and the current head.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4670481543
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4670481543
+
 ## Processing Log
 
 - 2026-11-23 16:10 UTC - Started audit. Round 1: review 6024919812 (da2ce7, CHANGES_REQUESTED, submitted 16:03:08Z) with seven inline comments, F1 to F7. F1 needed a maintainer decision: he chose D4 (the `http scrape` entries under `files`) and D5 (the UDP field beside the tag). The fixes of F1 and F3 to F7 were committed and pushed as `josecelano-bot` (`docs(issues): [#3006] move http scrape entries under files and name all consumers`).
@@ -572,6 +602,7 @@ Round 13 covers review 6027279183 (Greptile, COMMENTED, submitted 2026-11-23T18:
 - 2026-11-23 18:05 UTC - Rounds 10 and 11: reviews 6026521422 (CodeRabbit, 17:42:25Z), 6026616249 (da2ce7, 17:48:17Z) and 6026749477 (da2ce7, APPROVED, 17:56:39Z) recorded as F27 to F31. The fix of F27 was committed and pushed as `josecelano-bot` (`git-bot-push` exit 0). Replied on the five threads (18:04:34Z to 18:04:44Z) and resolved the four open ones (each mutation returned `isResolved` true; the F27 reply is in the already resolved F23 thread).
 - 2026-11-23 18:23 UTC - Round 12: review 6027138634 (Copilot, 18:22:27Z) recorded as F32 and F33, both no-change. Replied on the two threads (18:23:07Z and 18:23:09Z) and resolved them (each mutation returned `isResolved` true).
 - 2026-11-23 18:38 UTC - Round 13: review 6027279183 (Greptile, 18:32:27Z) recorded as F34. Changed the thread state of F32 and F33 to `SUPERSEDED`. Replied on the thread (18:38:13Z) and resolved it (the mutation returned `isResolved` true). The audit validator, run with the bot token, exits 0.
+- 2026-11-23 18:55 UTC - Round 14: review 6027543824 (Copilot, 18:52:06Z) recorded as F35 and F36, re-raises of F32 and F33. Replied `Superseded by` on the two threads (18:55:02Z and 18:55:05Z) and resolved them (each mutation returned `isResolved` true).
 
 ## Completion Rules
 
