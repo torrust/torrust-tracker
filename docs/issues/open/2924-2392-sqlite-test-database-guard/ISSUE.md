@@ -9,7 +9,7 @@ github-issue: 2924
 spec-path: docs/issues/open/2924-2392-sqlite-test-database-guard/ISSUE.md
 branch: "2924-2392-sqlite-test-database-guard"
 related-pr: null
-last-updated-utc: "2026-11-23 16:50"
+last-updated-utc: "2026-11-23 18:38"
 semantic-links:
   skill-links:
     - create-issue
@@ -245,8 +245,8 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| V1 | Reproduce | `TMPDIR=$(mktemp -d) cargo +stable test -p torrust-tracker-http-core --all-targets --all-features`, then count the `data_*.db` files | Leaked files counted | DONE (6 files) | `manual-verification-evidence.md` |
-| V2 | Recheck | Same command after the change | Only `data_*.db` files created through the `ephemeral*()` configurations remain, counted and listed by test | TODO | `manual-verification-evidence.md` |
+| V1 | Reproduce | `export TMPDIR=$(mktemp -d)`, then `cargo +stable test -p torrust-tracker-http-core --all-targets --all-features`, then count the `data_*.db` files in `$TMPDIR` | Leaked files counted | DONE (6 files) | `manual-verification-evidence.md` |
+| V2 | Recheck | The same three steps after the change | Only `data_*.db` files created through the `ephemeral*()` configurations remain, counted and listed by test | TODO | `manual-verification-evidence.md` |
 
 Evidence policy: every recorded command result names the toolchain that produced it, and the
 evidence file is created from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`.

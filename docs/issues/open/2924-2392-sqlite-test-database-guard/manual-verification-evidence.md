@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2924-2392-sqlite-test-database-guard/ISSUE.md
-last-updated-utc: "2026-11-23 17:03"
+last-updated-utc: "2026-11-23 18:38"
 ---
 
 # Manual Verification Evidence
@@ -21,7 +21,7 @@ below; the random file names are not recorded (they are random and fail the spel
 - Date and time (UTC): 2026-11-23, 16:50 (V1 rerun with stamps)
 - Artifact under test: `torrust/develop` at `98fa27df2`, no code change
 - Operating system / environment: Linux 7.0.0-43-generic; `cargo +stable` 1.100.0
-- Prerequisites and setup performed: a fresh directory from `mktemp -d`, exported as `TMPDIR`
+- Prerequisites and setup performed: `mkdir -p .tmp` in the repository root (the script writes its stamps and the Cargo output there), and a fresh directory from `mktemp -d`, exported as `TMPDIR`
 
 ## Verification Processes
 
