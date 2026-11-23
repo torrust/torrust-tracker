@@ -9,7 +9,7 @@ github-issue: 3004
 spec-path: docs/issues/open/3004-2758-tracker-client-mask-tracker-key/ISSUE.md
 branch: "3004-tracker-client-mask-tracker-key-spec"
 related-pr: null
-last-updated-utc: "2026-11-23 14:22"
+last-updated-utc: "2026-11-23 14:41"
 semantic-links:
   skill-links:
     - create-issue
@@ -71,7 +71,10 @@ Known sources, to confirm and complete during analysis:
   writes the key the same way.
 - `console/tracker-client/src/console/clients/unified/http.rs`: `response.bytes().await?` turns a
   body-read `reqwest::Error` into the `anyhow` error that `report_runtime_failure` writes, with the
-  URL in its `Display` text.
+  URL in its `Display` text: reqwest 0.13.5 builds that error with the request URL
+  (`crate::error::decode(err).with_url(*self.url)` in `Response::do_bytes`,
+  `reqwest-0.13.5/src/async_impl/response.rs:435`). The checker calls `bytes()` too
+  (`checks/http.rs:76,94`) and writes its `Debug` text.
 - `console/tracker-client/src/console/clients/http/mod.rs` and
   `console/tracker-client/src/console/clients/checker/checks/health.rs`: their errors also format a
   `reqwest::Error` (or the library error) with `{err:?}`. Health-check URLs carry no key, but the
@@ -153,12 +156,16 @@ The regression tests do, so they follow these rules:
 - **Closed port.** A test that needs a refused connection binds a listener to `127.0.0.1:0`, reads
   its port and drops the listener before the request, so nothing listens there. The test owns the
   port only for that moment; no shared fixture.
-- **Local HTTP responder** (the non-2xx and body-read cases at the library seam). The test binds a
+- **Local HTTP responder** (the non-2xx case at the library seam). The test binds a
   `tokio` listener to `127.0.0.1:0` and spawns one task that accepts one connection, writes a fixed
   reply and closes it. The test owns the task's `JoinHandle` and aborts it at the end, so a failing
   assertion (a panic, which drops the handle) does not leave it serving: the runtime of
   `#[tokio::test]` ends with the test. No readiness wait is needed: the listener is bound before the
   client connects, and the kernel queues the connection.
+- **Fake HTTP tracker** (the body-read case, a black-box test). It reuses
+  `console/tracker-client/tests/common/fake_trackers/http.rs`, which already owns a fake HTTP
+  server with bounded reads and a stop-and-join thread, extended with a fixed-reply mode instead of
+  a second fake.
 - **Child process** (the black-box tests). The test runs `tracker_client` with
   `std::process::Command::output()`, which waits for the exit and closes both pipes; stdout goes to a
   pipe, so the terminal refusal does not apply. The child is never left running: it ends on its own
@@ -197,13 +204,16 @@ Follow `.claude/skills/fix-bug/SKILL.md`:
   it does not contain the key, and that the URL shows `****`. Announce and scrape build their URLs
   and errors on separate paths (`build_announce_url`, `build_scrape_url`), so each gets its own
   test.
-- Unit tests at the same library seam for the other two leak paths, each with a keyed URL and the
-  local HTTP responder: a non-2xx reply (`UnsuccessfulResponse`, whose text today prints the
-  `reqwest::Response` with its URL), and a reply whose body read fails (the headers promise more
-  bytes than the responder sends before it closes, so `Response::bytes()` returns a
-  `reqwest::Error` that carries the URL). The error text of each does not contain the key. The
-  body-read error is built by the console client (`unified/http.rs`, `clients/http/mod.rs`), so
-  its test sits where that text is built.
+- A unit test at the same library seam for a non-2xx reply, with a keyed URL and the local HTTP
+  responder: the text of `UnsuccessfulResponse` (today it prints the `reqwest::Response` with its
+  URL) does not contain the key.
+- A black-box test for a reply whose body read fails, where that error is built: in the console
+  client (`bytes()` at `unified/http.rs:187,215` and `checks/http.rs:76,94`), not in the library.
+  `tracker_client http announce` runs against the fake HTTP tracker in a fixed-reply mode whose
+  headers promise more bytes than it sends before it closes, with a keyed URL. Stderr does not
+  contain the key. On the unchanged code it fails on the key, because the body-read `reqwest::Error`
+  carries the URL (`response.rs:435`, see Background), and on AC2 for the checker path, which writes
+  the `Debug` text.
 - A black-box test of `tracker_client check` with a keyed HTTP URL on a closed local port (R0c),
   asserting that neither stdout nor stderr contains the key, and that the result's `url` field
   shows `****`. This path copies the configured URL into `Checks.url` and never goes through the
@@ -274,6 +284,7 @@ commit.
 - 2026-11-23 13:47 UTC - Claude Code (Claude Opus 5.5) - Re-read the draft against `develop` `ff3600f10`: added the `Display` text of `reqwest::Error` (it also carries the URL), the `Debug` of `reqwest::Response` in `UnsuccessfulResponse`, the body-read error in `unified/http.rs` and the `{err:?}` texts in `http/mod.rs` and `health.rs`; recorded the relation to EPIC #2993. Created issue #3004 (maintainer approved the spec content and a public issue) and moved the spec to `docs/issues/open/`.
 - 2026-11-23 14:19 UTC - Claude Code (Claude Opus 5.5) - Addressed review round 1 of PR 3005 (da2ce7 F1 to F10, Greptile): `Checks.url` named as the `check` source, black-box tests for `http scrape` and `check`, M1 keeps the exit status, the progressive test loop and the maintainer stop (new T5), #2984 and #3006 named, the e2e runner configuration log recorded as out of scope, the public-issue decision stated. The EPIC row is added by the coordinator in PR 3007.
 - 2026-11-23 14:22 UTC - Claude Code (Claude Opus 5.5) - Addressed the Copilot review of round 1 of PR 3005: ownership and deadlines of the regression-test resources, library-seam tests for a non-2xx reply and a failed body read, and how the completion review is recorded.
+- 2026-11-23 14:41 UTC - Claude Code (Claude Opus 5.5) - Addressed review round 2 of PR 3005 (da2ce7): the body-read test is a black-box test of the console client against the existing fake HTTP tracker, and the URL in a body-read error is confirmed in the reqwest 0.13.5 source (`response.rs:435`).
 
 ## Acceptance Criteria
 
