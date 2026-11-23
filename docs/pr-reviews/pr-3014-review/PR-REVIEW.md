@@ -60,6 +60,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F10 | review-finding:pr-3014-f10 | Unknown | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | R6 | review-finding:pr-3014-r6 | Copilot | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | R8 | review-finding:pr-3014-r8 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-3014-f11 | Copilot | Minor (inferred) | security | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-3014-f12 | Copilot | Minor (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
+| F13 | review-finding:pr-3014-f13 | Copilot | Minor (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -284,6 +287,45 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4671450945
 
+### F11 - The draft quoted credential-shaped database URLs
+
+- PR number: 3014
+- Source review ID: 6029159032
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4671725688
+- Concern: Copilot: the CI-tools draft quoted the CI constants with their test passwords (`user:password@`), which normalizes credential-shaped strings and can be copied into real configurations. The reply called it R9; Copilot gave this round no finding IDs, so the audit uses the next `F` ordinal.
+- Solution: The draft quotes them as `mysql://db_user:***@...` and `postgresql://postgres:***@...`.
+- Current-tree verification: `grep -n "db_user_secret_password" docs/issues/drafts/ci-tools-keep-secrets-out-of-logs/ISSUE.md` finds nothing.
+- Resolution reference: docs(issues): redact the example database passwords in the CI-tools draft
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4671824253
+
+### F12 - The SI-A spec-only checkpoint did not name its PR
+
+- PR number: 3014
+- Source review ID: 6029159032
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4671725745
+- Concern: Copilot: the SI-A checkbox "Spec-only PR merged" was ticked while this PR still changes the specification. The reply called it R10; Copilot gave this round no finding IDs, so the audit uses the next `F` ordinal.
+- Solution: The checkbox names #2994 and says #3014 must merge before implementation too.
+- Current-tree verification: Read the checkbox in `docs/issues/open/2999-2993-si-a-keep-secrets-out-of-errors-and-logs/ISSUE.md`.
+- Resolution reference: docs(issues): [#2993] name the PR behind the spec-only checkpoint of SI-A and SI-B
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4671824671
+
+### F13 - The SI-B spec-only checkpoint did not name its PR
+
+- PR number: 3014
+- Source review ID: 6029159032
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4671725825
+- Concern: Copilot: the same point for SI-B. The reply called it R11; Copilot gave this round no finding IDs, so the audit uses the next `F` ordinal.
+- Solution: The same annotation, in the same commit.
+- Current-tree verification: Read the checkbox in `docs/issues/open/3000-2993-si-b-client-error-text-policy/ISSUE.md`.
+- Resolution reference: docs(issues): [#2993] name the PR behind the spec-only checkpoint of SI-A and SI-B
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4671825094
+
 ## Processing Log
 
 - 2026-11-23 18:58 UTC - Started audit after the Copilot review 6027563286 (18:53 UTC); the two Greptile reviews 6027255837 (18:30 UTC) and 6027369330 (18:39 UTC) had arrived before it. Five findings, all checked against the branch.
@@ -297,6 +339,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-23 19:57 UTC - CodeRabbit replies 6028337617 (19:46 UTC, F5 thread: verified, asked for the audit validator to be run) and 6028344228 (19:46 UTC, F8 thread: raised F10). Ran the validator (`status ok`, 0 failures) and recorded F10.
 - 2026-11-23 20:03 UTC - The F10 fix was pushed, then replied in the F8 thread (reply 4671273059) and answered the validator request in the F5 thread (reply 4671273542).
 - 2026-11-23 20:17 UTC - Round 4: Copilot review 6028703592 (20:10 UTC) raised R6 (on head `dc8ac4473`, already fixed by head `1f00028c2`, pushed by 20:11:10 UTC at the latest) and R8 (no R7 was posted). R8 was fixed and pushed (head `06eb49131`, by 20:17:08 UTC at the latest), then both threads were answered (replies 4671450945 and 4671451408).
+- 2026-11-23 20:49 UTC - Round 5: Copilot review 6029159032 (20:40 UTC, a "Lite" review) raised F11 to F13. Fixed and pushed (head `eaf83008a`, by 20:49:03 UTC at the latest), then replied (replies 4671824253, 4671824671, 4671825094).
 
 ## Completion Rules
 
