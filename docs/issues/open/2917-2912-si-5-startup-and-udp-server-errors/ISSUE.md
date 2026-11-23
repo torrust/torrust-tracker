@@ -9,7 +9,7 @@ github-issue: 2917
 spec-path: docs/issues/open/2917-2912-si-5-startup-and-udp-server-errors/ISSUE.md
 branch: "2917-startup-and-udp-server-errors"
 related-pr: 3001
-last-updated-utc: "2026-11-23 15:53"
+last-updated-utc: "2026-11-23 16:40"
 semantic-links:
   skill-links:
     - create-issue
@@ -187,6 +187,7 @@ the model that produced them.
 
 - 2026-11-23 11:21 UTC - Claude Code (Claude Sonnet 5.5) - T1 to T6 on branch `2917-startup-and-udp-server-errors`: reproduced both startup errors (each ended in a `packages/...rs:line` path), added red tests and committed them, then removed the locations. The four `configuration` sources and `BadTlsConfig` hold a plain `Box<dyn std::error::Error + Send + Sync>`; `MissingTlsConfig` lost `location`; `udp-server` `AuthRequired` became a unit variant and `Internal` lost `location`; `ErrorKind::TrackerAuthentication` now carries the error's message. `torrust-located-error` is removed from `configuration` and `axum-server`; `tracker-client` still uses it (SI-6). `UnableToLoadFromEnvironmentVariable` and `UnableToLoadFromConfigFile` are never built, so they have no red test. Each crate keeps a local copy of the path-check helper until SI-8 (#2996) shares it. 4.0.0 note recorded in #2583. No retrospective: the work matched the spec.
 - 2026-11-23 15:53 UTC - Claude Code (Claude Sonnet 5.5) - Recorded the SI-8 (#2996) follow-up of review round 3: `configuration` and `axum-server` each add a local copy of the path-check helper (copies 8 and 9 of `assert_names_no_source_path`); SI-8 cannot move them, because `torrust-tracker-test-helpers` depends on `configuration` and `axum-server` has no such dev-dependency, so they are cross-linked in the SI-8 spec and the EPIC row.
+- 2026-11-23 16:40 UTC - Claude Code (Claude Sonnet 5.5) - Review round 7: the 15:53 line above supersedes the claim of the 11:21 line that each crate keeps its copy until SI-8 (#2996) shares it; the SI-8 record itself landed in "docs(issues): [#2917] record the SI-5 copies of the path helper in the SI-8 spec and the EPIC" (13:29 UTC). A Risks bullet now names SI-A (#2999) as the owner of the secret-value case of AC2.
 
 ## Acceptance Criteria
 
@@ -270,6 +271,12 @@ None planned for this issue.
   current text so the new text can be compared.
 - **`configuration` 4.0.0 is published first.** Mitigation: EPIC ordering; otherwise this needs a
   later major.
+- **AC2 and secret values.** The figment message this sub-issue keeps still prints a non-string
+  value, for example the number of a numeric database password, as it did before. EPIC #2993
+  (`docs/issues/open/2993-secrets-and-client-error-text/EPIC.md`, item A10) assigns that case to
+  SI-A (`docs/issues/open/2999-2993-si-a-keep-secrets-out-of-errors-and-logs/ISSUE.md`); the "or
+  value" of AC2 is read as the key and the value that are not secret. This sub-issue does not
+  change the message.
 
 ## Implementation Completion Review
 
