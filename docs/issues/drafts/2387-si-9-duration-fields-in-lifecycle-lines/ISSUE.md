@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2387-si-9-duration-fields-in-lifecycle-lines/ISSUE.md
 branch: "{issue-number}-2387-si-9-duration-fields-in-lifecycle-lines-spec"
 related-pr: null
-last-updated-utc: "2026-11-23 17:29"
+last-updated-utc: "2026-11-23 17:32"
 semantic-links:
   skill-links:
     - create-issue
@@ -135,7 +135,7 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 ## Acceptance Criteria
 
 - [ ] AC1: No lifecycle field value in a capture at `debug` is a duration with a unit suffix such as `15s` or `250ms`.
-- [ ] AC2: Each configured duration in the log has the name of its configuration key.
+- [ ] AC2: Each configured duration in the log has the name of its configuration key. The three keys of the exception in D6 (`max_peer_timeout`, `inactive_peer_cleanup_interval`, `cookie_lifetime`) are logged under the name SI-4 gives them, whether or not SI-4 is merged.
 - [ ] AC3: No lifecycle message contains a duration.
 - [ ] AC4: "Changes in 4.0.0" lists the renamed fields.
 - [ ] `linter all` exits with code `0`
