@@ -62,6 +62,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F15 | review-finding:pr-3005-f15 | Copilot | Minor | testing | RE_RAISE_OF:F5 | FIXED | RESOLVED |
 | F16 | review-finding:pr-3005-f16 | Copilot | Minor | correctness | RE_RAISE_OF:F12 | FIXED | RESOLVED |
 | F17 | review-finding:pr-3005-f17 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-3005-f18 | Human | Nit | testing | ORIGINAL | FIXED | RESOLVED |
+| F19 | review-finding:pr-3005-f19 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-3005-f20 | Human | Suggestion | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -286,11 +289,52 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3005#discussion_r4667109458
 
+### F18 - The body-read test is placed at the library seam and in the console client
+
+- PR number: 3005
+- Source review ID: 6023559554
+- Reviewer finding ID: F11
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3005#discussion_r4667287157
+- Concern: The ownership map put the body-read test at the library seam while the strategy put it in the console client, where `bytes()` is called (`unified/http.rs:187,215`, `checks/http.rs:76,94`). Say which responder the console-side test uses; `tests/common/fake_trackers/http.rs` already owns a fake HTTP server.
+- Solution: The local responder covers only the non-2xx case at the library seam. The body-read case is a black-box test of `tracker_client http announce` against the existing fake HTTP tracker extended with a fixed-reply mode; the ownership map has a "Fake HTTP tracker" rule for it.
+- Current-tree verification: `grep -n "Fake HTTP tracker\|the non-2xx case at the library seam" docs/issues/open/3004-2758-tracker-client-mask-tracker-key/ISSUE.md` matches both; `ls console/tracker-client/tests/common/fake_trackers/http.rs` exists.
+- Resolution reference: `docs(issues): [#3004] place the body-read test in the console client`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3005#discussion_r4667323105
+
+### F19 - The Processing Log's reply window ends too early
+
+- PR number: 3005
+- Source review ID: 6023559554
+- Reviewer finding ID: F12
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3005#discussion_r4667287167
+- Concern: The round 1 log entry says the replies were created 14:23:44Z to 14:24:29Z, but the F14 to F17 replies were created 14:24:32Z to 14:24:43Z.
+- Solution: The log is append-only, so a correction entry below states the window as 14:23:44Z to 14:24:43Z; the round 1 entry is unchanged.
+- Current-tree verification: `gh-bot api repos/torrust/torrust-tracker/pulls/3005/reviews` lists the 17 `josecelano-bot` reply reviews of round 1 submitted from 14:23:44Z to 14:24:43Z.
+- Resolution reference: `docs(pr-reviews): [#3005] record review round 2`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3005#discussion_r4667324172
+
+### F20 - Confirm that a body-read error carries the URL
+
+- PR number: 3005
+- Source review ID: 6023559554
+- Reviewer finding ID: F13
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3005#discussion_r4667287179
+- Concern: If reqwest builds body errors without the request URL, the "does not contain the key" assertion of the body-read case cannot fail on the unchanged code; check `response.rs` and `error.rs` and assert what the source shows.
+- Solution: Checked: `Response::bytes()` calls `do_bytes`, which maps a collect failure with `crate::error::decode(err).with_url(*self.url)` (`reqwest-0.13.5/src/async_impl/response.rs:435`), so the error carries the URL and the key assertion can be red. The spec cites the line in the Background and in the test bullet, and keeps the AC2 red case for the checker's `Debug` text.
+- Current-tree verification: `sed -n 430,436p ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/reqwest-0.13.5/src/async_impl/response.rs` shows the `with_url` call; `grep -n "response.rs:435" docs/issues/open/3004-2758-tracker-client-mask-tracker-key/ISSUE.md` matches the Background and the test bullet.
+- Resolution reference: `docs(issues): [#3004] place the body-read test in the console client`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3005#discussion_r4667325011
+
 ## Processing Log
 
 - 2026-11-23 14:20 UTC - Round 1 had three reviews: Greptile 6022884092 (COMMENTED, 13:55:02Z, two inline comments, F11 and F12), da2ce7 6023213938 (COMMENTED, 14:16:41Z, ten inline comments, F1 to F10) and Copilot 6023264037 (COMMENTED, 14:19:58Z, five inline comments, F13 to F17; its IDs R1, R2, R2, F2 and R4 collide, so audit IDs were assigned). Fix commits made (committer times 14:20:35Z and 14:22:27Z); the PR description was edited for F9.
 - 2026-11-23 14:23 UTC - Replied on the 17 threads as `josecelano-bot` (reply `created_at` 14:23:44Z to 14:24:29Z, before the fix commits were pushed) and resolved each with GraphQL; every `resolveReviewThread` returned `isResolved` true.
 - 2026-11-23 14:25 UTC - Started this audit late: the record was written after the replies, not before them as the workflow asks. The validator (`validate-audit-record.py`, run with the bot token) first failed on F14's two-subject resolution reference; F14 now cites one subject.
+- 2026-11-23 14:40 UTC - Round 2: review 6023559554 (da2ce7, APPROVED at `0cb4c9cca`, 14:39:23Z) with three inline comments; its IDs F11 to F13 collide with audit IDs, so they are F18 to F20. Fix commit made (committer time 14:41:20Z).
+- 2026-11-23 14:42 UTC - Correction to the round 1 entry of 14:23 UTC: the round 1 replies were created from 14:23:44Z to 14:24:43Z (the F17 reply), not to 14:24:29Z (finding F19). Replied on the three round 2 threads as `josecelano-bot` (reply `created_at` 14:42:09Z to 14:42:18Z) and resolved each; every `resolveReviewThread` returned `isResolved` true.
 
 ## Completion Rules
 
