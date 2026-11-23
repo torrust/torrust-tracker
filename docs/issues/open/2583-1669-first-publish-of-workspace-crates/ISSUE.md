@@ -512,7 +512,7 @@ release branch and a signed tag.
   #2482 is closed. Four sentences were reworded (OQ2, the "Other prerequisites" row, the In Scope
   bullet and the "Stale order" risk). No crate's status changed.
 - 2026-11-23 13:32 UTC - Claude Code (Claude Sonnet 5.5) - Issue #2917 (SI-5 of EPIC #2912, PR torrust/torrust-tracker#3001) recorded its breaking change of `configuration` under "Semver bumps owed", for the 4.0.0 release notes (T3 of its spec), and the list now also names the SI-20 field `Configuration::application`. No crate's status changed.
-- 2026-11-23 21:30 UTC - Claude Code (Claude Sonnet 5.5) - Issue #2918 (SI-6 of EPIC #2912) recorded under "Semver bumps owed" that the `torrust-located-error` crate leaves the workspace; `torrust-tracker-client-lib` is unpublished, so no bump is owed.
+- 2026-11-23 21:27 UTC - Claude Code (Claude Sonnet 5.5) - Issue #2918 (SI-6 of EPIC #2912) recorded under "Semver bumps owed" that the `torrust-located-error` crate leaves the workspace; `torrust-tracker-client-lib` is unpublished, so no bump is owed.
 
 ## Acceptance Criteria
 

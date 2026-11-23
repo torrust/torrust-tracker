@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2918-2912-si-6-drop-located-error-and-enforce-the-rule/ISSUE.md
-last-updated-utc: "2026-11-23 21:40"
+last-updated-utc: "2026-11-23 22:30"
 ---
 
 # Manual Verification Evidence
@@ -13,7 +13,7 @@ actually performed against the artifact; nothing here is invented.
 
 ## Environment and Prerequisites
 
-- Date and time (UTC): 2026-11-23, about 21:35.
+- Date and time (UTC): 2026-11-23. V1 steps 1 to 3 ran shortly before 21:26 UTC (stamped afterwards from `date -u`; the first version of this file gave estimated times); V1 step 4 ran at 22:25:45 UTC.
 - Artifact under test: the branch `2918-drop-located-error-and-enforce-the-rule` at the commit
   `feat(source-location-check): [#2918] add the check that errors record no source locations`.
 - Operating system / environment: Linux, stable Rust toolchain of the repository.
@@ -24,8 +24,8 @@ actually performed against the artifact; nothing here is invented.
 
 ### V1 - A contributor reintroduces a location (M1, T4)
 
-The pre-commit step is `cargo run --quiet --package source-location-check`; the probe ran that
-command directly, not the whole hook.
+Steps 1 to 3 ran the pre-commit step's command directly,
+`cargo run --quiet --package source-location-check`; step 4 ran the real hook through `git commit`.
 
 1. Appended a function that calls `std::panic::Location::caller()` to `packages/primitives/src/lib.rs`:
 
@@ -44,7 +44,24 @@ command directly, not the whole hook.
 3. Appended a `#[track_caller]` function instead: exit 1, `file` `packages/primitives/src/lib.rs`,
    `line` 83, then reverted.
 
-Result: the check names the file, the line and the rule, and passes after the revert.
+4. Appended the same `Location::caller()` function to `packages/primitives/src/lib.rs`, ran
+   `git add` and `git commit -m "chore: temporary probe, must be rejected by the hook"` at the commit
+   `fix(source-location-check): [#2918] mask comments and strings, balance delimiters and track module ancestry`.
+   The `pre-commit.sh` hook rejected the commit at 22:25:45 UTC (`date -u` before and after the
+   commit command): `"status": "fail"`, `"failed_step": "Checking that errors record no source locations"`,
+   and the step's failure tail:
+
+   ```text
+   {"kind":"validation_error","message":"`Location::caller` records the caller's source location; errors do not record source locations (ADR 20261118045443_errors_do_not_record_source_locations)","file":"packages/primitives/src/lib.rs","line":84,"exit_code":1}
+   ```
+
+   The two steps before it (dictionary, Clippy allows) passed. `git log --oneline -1` still printed
+   the `fix(source-location-check)` commit, so no commit was created. Then
+   `git restore --staged packages/primitives/src/lib.rs` and `git checkout packages/primitives/src/lib.rs`
+   left `git status --short` empty.
+
+Result: the check names the file, the line and the rule, passes after the revert, and the hook
+rejects a commit that adds a location.
 
 ### V2 - Test helpers stay allowed (M2)
 

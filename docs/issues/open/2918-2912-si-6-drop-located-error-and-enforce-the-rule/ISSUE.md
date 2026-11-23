@@ -9,7 +9,7 @@ github-issue: 2918
 spec-path: docs/issues/open/2918-2912-si-6-drop-located-error-and-enforce-the-rule/ISSUE.md
 branch: "2918-drop-located-error-and-enforce-the-rule"
 related-pr: null
-last-updated-utc: "2026-11-23 21:45"
+last-updated-utc: "2026-11-23 22:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -115,10 +115,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   the `.rs` files of `git ls-files --cached --others --exclude-standard`, so a staged new file counts.
 - **Forbidden text** (non-comment lines): `Location::caller`, `track_caller`, `torrust_located_error`,
   `torrust-located-error`. The crate builds these with `concat!` so its own source does not match.
-- **Test code**, by convention (rustfmt keeps it regular): the item after a `#[cfg(test)]` attribute
-  (a block ends at the first `}` with the attribute's indentation; a `mod name;` ends on its line);
-  files declared by `#[cfg(test)] mod name;` and everything below them; files under any `tests/`
-  directory; and `packages/test-helpers/` (SI-8 #2996 moves the shared helper there).
+- **Scanned text:** the source with comments (line, nested block) and the content of string, raw
+  string and character literals blanked, so text in them is never matched and never counts as a delimiter.
+- **Test code**: the item after a `#[cfg(test)]` attribute (it ends at the `;` or the closing delimiter
+  that balances `{}`, `()` and `[]`, so `use std::{a, b};` ends at its semicolon); files declared by
+  `#[cfg(test)] mod name;` (resolved under the declaration's inline-module ancestry) and everything
+  below them, unless a production declaration, for example in `main.rs`, also includes the file; files
+  under any `tests/` directory; and `packages/test-helpers/` (SI-8 #2996 moves the shared helper there).
 - **Allow-list:** `contrib/dev-tools/checks/source-location-check/allow-list.txt`, `<path>: <reason>`
   per line; an entry without a reason fails the check. It starts, and must stay, empty: SI-2 to SI-5
   migrated every file.
@@ -126,9 +129,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   files declared `#[cfg(test)] mod x;` (`http-protocol/src/test_helpers.rs`,
   `tracker-core/src/test_helpers.rs`), `tests/` helpers in three server packages, comments that
   mention the patterns, and production code after a `#[cfg(test)]` module (still flagged). Known
-  limit: a `#[cfg(test)]` item that rustfmt would not format (closing brace not at the attribute's
-  indentation) is read as ending at the next such brace; a `#[cfg(all(test, ...))]` or
-  `#[cfg_attr]` form is not recognized and would be flagged, which fails safe.
+  limits: a `#[cfg(all(test, ...))]` or `#[cfg_attr]` form and a `#[path = "..."]` module are not
+  recognized, so their code is flagged (fails safe); a `b"..."` raw byte string is not masked.
 - **Wiring:** a `pre-commit.sh` step and a `Source Locations` job in `testing.yaml`; the crate is a
   workspace member and admitted in `.dockerignore`.
 
@@ -184,7 +186,8 @@ the model that produced them.
 
 - 2026-11-11 17:05 UTC - Claude Code (Fable 5.2) - Drafted from the audit of issue #2804 (`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`, `options.md`) as a sub-issue of the EPIC draft. Not yet approved; line numbers are those of `develop` at `4f0af379a` and must be re-checked before implementation.
 - 2026-11-17 17:30 UTC - Claude Code (Claude Opus 5.5) - EPIC coordinator: the maintainer approved the specification on 2026-11-17; issue #2918 created as `josecelano-bot` and the specification moved from `docs/issues/drafts/` to `docs/issues/open/` (SI-6 of EPIC #2912).
-- 2026-11-23 21:45 UTC - Claude Code (Claude Sonnet 5.5) - Implemented SI-6: removed the last use of `torrust-located-error` (`tracker-client`; the unused `From<Error> for DynError` impl is gone, the crate left `Cargo.lock`), added the `source-location-check` tool with tests, wired it into pre-commit and CI, updated the docs and the #2583 spec, and drafted the two upstream issues. No retrospective: the work matched the spec; the only deviation is that the check also exempts files declared `#[cfg(test)] mod x;`, which the spec did not list.
+- 2026-11-23 21:27 UTC - Claude Code (Claude Sonnet 5.5) - Implemented SI-6: removed the last use of `torrust-located-error` (`tracker-client`; the unused `From<Error> for DynError` impl is gone, the crate left `Cargo.lock`), added the `source-location-check` tool with tests, wired it into pre-commit and CI, updated the docs and the #2583 spec, and drafted the two upstream issues. No retrospective: the work matched the spec; the only deviation is that the check also exempts files declared `#[cfg(test)] mod x;`, which the spec did not list.
+- 2026-11-23 22:27 UTC - Claude Code (Claude Sonnet 5.5) - Review round 1 of PR #3018 (audit: `docs/pr-reviews/pr-3018-review/PR-REVIEW.md`): the check now blanks comments and strings, ends a `#[cfg(test)]` item by balancing delimiters, resolves test module files under their inline-module ancestry and keeps a file checked when a production declaration includes it; M1 was re-run through the real hook (V1 step 4). The two earlier progress-log stamps of 2026-11-23 that were estimated ahead are corrected in place to 21:27.
 
 ## Acceptance Criteria
 
@@ -215,7 +218,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | A contributor reintroduces a location | Add `location: Location::caller()` to a production error on a scratch branch and commit | The pre-commit check fails and names the file and the rule | DONE (the hook's command was run directly, not the whole hook) | `manual-verification-evidence.md` section V1 |
+| M1 | A contributor reintroduces a location | Add `location: Location::caller()` to a production error on a scratch branch and commit | The pre-commit check fails and names the file and the rule | DONE (the hook's command run directly, then a real `git commit` rejected by the hook) | `manual-verification-evidence.md` section V1 |
 | M2 | Test helpers stay allowed | Run the check on the tree, which has `#[track_caller]` assertion helpers in test code | The check passes | DONE | `manual-verification-evidence.md` section V2 |
 
 Notes:
