@@ -9,7 +9,7 @@ github-issue: 3006
 spec-path: docs/issues/open/3006-2758-tracker-client-schema-version/ISSUE.md
 branch: 3006-tracker-client-schema-version-spec
 related-pr: 3008
-last-updated-utc: "2026-11-23 17:05"
+last-updated-utc: "2026-11-23 17:33"
 semantic-links:
   skill-links:
     - create-issue
@@ -168,7 +168,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
 | T1  | TODO   | ADR rule | The amendment of the global contract ADR with the rule of D1 to D3 and the no-data-keys rule of D4. |
-| T2  | TODO   | Tests first | Each result-writing subcommand: a test that the result has `schema_version` equal to `1`, and an `http scrape` test that the entries are under `files`; failing before T3. |
+| T2  | TODO   | Tests first | Each result-writing subcommand: a test that the result has `schema_version` equal to `1`, and an `http scrape` test that the entries are under `files`. Each test is red first and turns green in the same increment, with the T3 change it needs (see the loop below). |
 | T3  | TODO   | Add the field in the result writer | `output.rs` takes the value, adds the field, renders and writes; the four render paths call it. Every stdout result carries it; `http scrape` writes `{"files": ...}` (D4) and UDP results keep their tag beside the field (D5). |
 | T4  | TODO   | Consumers | The package tests (`returned_files` reads `files`) and the skills named in Scope updated; their commands still work. |
 | T5  | TODO   | Docs | Contract doc and README examples show the field, the `files` key of `http scrape` and the bump rule, and name the two changes that `1` marks. |
@@ -178,17 +178,22 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | Task | Coherent change set | Commit policy |
 | ---- | ------------------- | ------------- |
 | T1 | ADR amendment | Commit after focused validation and required review. |
-| T2 | Tests | Commit after focused validation and required review. |
-| T3 | Result writer | Commit after focused validation and required review. |
+| T2 and T3 | One red-green increment: a test and the writer change that makes it pass | Commit each increment after it passes focused validation and its design review. |
 | T4 | Tests and skills that consume the result | Commit after focused validation and required review. |
 | T5 | Docs | Commit after focused validation and required review. |
 
-T2 follows the progressive test-development loop of the `write-unit-test` skill:
+T2 and T3 follow the progressive test-development loop of the `write-unit-test` skill, one
+red-green increment at a time:
 
-- Make the smallest behavior-focused increment and run it.
-- After it passes focused validation, do the design review: the prose-first Arrange-Act-Assert
-  comparison (write temporary prose for each section, refactor until the code expresses it, remove
-  redundant prose). Record the result in the task evidence before the next test-producing increment
+- Write the smallest behavior-focused test and run it: it must fail (red), which shows it checks
+  the missing field or shape. The red run is recorded in the task evidence and is not committed.
+- Make the T3 change that turns it green. The first increment brings the value-taking writer, so a
+  later `schema_version` test for another subcommand can pass on its first run; that increment
+  records the green run instead of a red one. The `http scrape` `files` test is red until its own
+  increment moves the entries.
+- The loop's gate applies to the increment as a whole: after it passes focused validation, do the
+  design review: the prose-first Arrange-Act-Assert comparison (write temporary prose for each
+  section, refactor until the code expresses it, remove redundant prose). Record the result in the task evidence before the next test-producing increment
   starts.
 - After the final increment, stop for maintainer review before final verification, commit or pull
   request.
@@ -225,6 +230,7 @@ Sign every commit.
 - 2026-11-23 16:34 UTC - Claude Code (Claude Opus 5.5) - Addressed da2ce7's second review of PR #3008: D4 and D5 name where the maintainer answered and the F1 thread reply that records it, and D4, D5 and AC5 now follow D3 and AC4.
 - 2026-11-23 16:48 UTC - Claude Code (Claude Opus 5.5) - Addressed Copilot's second review of PR #3008: `agent-reply-validator` "uses" a schema version, not "fixes" one.
 - 2026-11-23 17:05 UTC - Claude Code (Claude Opus 5.5) - Addressed Copilot's third review of PR #3008: the commit-points section states the design-review and maintainer-review gates of the test loop, and the Implementation Completion Review states when a retrospective is created and how to close without one.
+- 2026-11-23 17:33 UTC - Claude Code (Claude Opus 5.5) - Addressed CodeRabbit's review of PR #3008: T2 and T3 run as red-green increments, so a T2 test is red first and the loop's pass gate applies to the increment once its T3 change makes the test pass; the commit points pair them.
 
 ## Acceptance Criteria
 
