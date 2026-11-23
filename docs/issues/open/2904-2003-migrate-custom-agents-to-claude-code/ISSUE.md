@@ -367,6 +367,11 @@ Decided by the maintainer on 2026-11-15:
     caller has fixed the file, so an agent that skips the reply cannot pass for one that had
     nothing to write. The transcript's format is not documented; scenario M7 shows that the hook
     reads the line, and the hook's tests pin the format it relies on, including a continued run.
+  - **A continuation without a line.** A caller that continues a reviewer for a task with no
+    folder-style specification has no `Reply file:` line to write, and no other marker is added.
+    The latest line found is then the earlier request's. This is harmless: the earlier run could
+    only have finished with that file valid or with its 3 refusals used, so the hook lets the
+    agent finish, and its message names the earlier file.
   - **The count of refusals.** One file per request, keyed by the run's `agent_id` together with
     the reply file (for example a file named from the `agent_id` and the reply file's name), in
     `.agents/issues/<issue-number>/reply-guard/`. A continued run keeps its `agent_id`, but its
@@ -563,7 +568,7 @@ on are merged.
 | T2  | DONE   | Pointer `CLAUDE.md` | A root `CLAUDE.md` whose only content is the import of `AGENTS.md` (D11); if scenario M4 shows that a scoped `AGENTS.md` is not loaded, an import-only `CLAUDE.md` beside each of the ten scoped `AGENTS.md` files; scenario M4 recorded |
 | T3  | DONE   | Reply schema and validator | `docs/schemas/agent-reply-v1.schema.json`; the validator with tests, developed in the progressive loop of the `write-unit-test` skill with a recorded design review per increment, and run by the repository checks; `docs/schemas/README.md` updated (D18) |
 | T4  | DONE | `pr-review-handler` | `.claude/agents/pr-review-handler.md` with the pinned model; `wait-for-pr-review` and `process-pr-review` say which agent runs a round; the inventory `removed-profile-rules.md` created in this folder with the rules of `copilot-suggestions-handler` (AC6); scenarios M1 to M3 recorded |
-| T5  | TODO   | `task-reviewer` | The agent file with the pinned model and the stop hook (D17): the binary `agent-reply-guard` with tests of its limit of 3 refusals, of reading the latest `Reply file:` line from a transcript (including a continued run), and of the branches that let the agent finish without a line and for a draft path, and the ignore and linter rules for `.agents/issues/`; the complexity item in `review-task` (D12); the reply rule in `review-task`, which also says that a reply file satisfies the earlier template's checkpoint (D18); scenario M7 recorded |
+| T5  | TODO   | `task-reviewer` | The agent file with the pinned model and the stop hook (D17): the binary `agent-reply-guard` with tests of its limit of 3 refusals, of reading the latest `Reply file:` line from a transcript (including a continued run, and a continued run whose last request has no line), and of the branches that let the agent finish without a line and for a draft path, and the ignore and linter rules for `.agents/issues/`; the complexity item in `review-task` (D12); the reply rule in `review-task`, which also says that a reply file satisfies the earlier template's checkpoint (D18); scenario M7 recorded |
 | T6  | TODO   | `implementer` | The agent file; the three committer rules in `commit-changes` (D14); the rules that only `planner` held moved into `create-issue` |
 | T7  | TODO   | `pr-reviewer` | The agent file with the pinned model; the reply rule in `review-pr` |
 | T8  | TODO   | `researcher` | The agent file |
@@ -595,7 +600,7 @@ T10 completes it before removing the profiles.
 | T11  | The measurement evidence | One commit per recorded pull request |
 | T12  | The completion review; the move to `closed/`; the EPIC row | One commit each |
 
-Tests are added in T3 (the reply validator) and in T5 (the stop hook: its limit of 3 refusals, reading the latest `Reply file:` line from a transcript including a continued run, and letting the agent finish without a line and for a draft path). For
+Tests are added in T3 (the reply validator) and in T5 (the stop hook: its limit of 3 refusals, reading the latest `Reply file:` line from a transcript including a continued run and a continued run whose last request has no line, and letting the agent finish without a line and for a draft path). For
 this test-producing work, use the `write-unit-test` skill and complete an explicit design review
 after each passing test increment, before maintainer review and commit. Confirm that the test
 exposes the one causal initial-state difference; its fixture owns only incidental mechanics; and
@@ -700,7 +705,8 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - `linter all`
 - The reply validator's tests, and a run of the validator on every reply file
 - The tests of the stop hook (T5): its limit of 3 refusals, reading the latest `Reply file:` line from a
-  transcript including a continued run, and letting the agent finish without a line and for a draft path
+  transcript including a continued run and a continued run whose last request has no line, and letting
+  the agent finish without a line and for a draft path
 - `cargo test -p agent-review-report-contract` and a run of the check itself, in every task that
   touches a file it reads, including T9 (`docs/agents/orchestration.md`) and T10
 - `cargo test -p frontmatter-validator` in the task that changes its `.agent.md` rule
