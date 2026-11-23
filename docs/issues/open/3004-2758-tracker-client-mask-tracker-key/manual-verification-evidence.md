@@ -1,0 +1,73 @@
+---
+doc-type: manual-verification-evidence
+issue-spec: docs/issues/open/3004-2758-tracker-client-mask-tracker-key/ISSUE.md
+last-updated-utc: "2026-11-19 16:12"
+---
+
+<!-- cspell:ignore SECRETKEY -->
+
+# Manual Verification Evidence
+
+## Purpose
+
+Record real, human-oriented verification of the defect and, after the fix, of the completed
+behavior. Do not invent commands, output, logs, or results.
+
+## Environment and Prerequisites
+
+- Date and time (UTC): 2026-11-19 16:10 to 16:12
+- Artifact under test: `tracker_client` built from `develop` at merge commit `7bc30738a`
+  (`Merge torrust/torrust-tracker#2966`), with `cargo build -p torrust-tracker-client --bin tracker_client`
+  (`dev` profile).
+- Toolchain: `rustc 1.100.0 (0ef1bc386 2026-11-09)`, stable Rust toolchain.
+- Operating system / environment: Linux workstation; no tracker listens on `127.0.0.1:1`, so every
+  request fails with "connection refused".
+- Prerequisites and setup performed: none. `SECRETKEYabc123` stands for a private tracker key.
+
+## Verification Processes
+
+### R0 - Before the fix: the key appears in the output
+
+#### R0a - `http announce`, failed request
+
+```console
+$ target/debug/tracker_client http announce http://127.0.0.1:1/announce/SECRETKEYabc123 9c38422213e30bff212b30c360d26f9a02136422 > out.txt 2> err.txt
+exit=1
+stdout:
+stderr: {"error":{"kind":"runtime_failure","source":"runtime","message":"Failed to get a response: reqwest::Error { kind: Request, url: \"http://127.0.0.1:1/announce/SECRETKEYabc123?info_hash=%9C8B%22%13%E3%0B%FF%21%2B0%C3%60%D2o%9A%02%13d%22&peer_id=%2DqB00000000000000001&port=17548&event=started&compact=0\", source: hyper_util::client::legacy::Error(Connect, ConnectError(\"tcp connect error\", 127.0.0.1:1, Os { code: 111, kind: ConnectionRefused, message: \"Connection refused\" })) }"}}
+grep -c SECRETKEYabc123 err.txt -> 1
+```
+
+The record carries the key, the full query and the `Debug` text of `reqwest::Error`.
+
+#### R0b - `http scrape`, failed request
+
+```console
+$ target/debug/tracker_client http scrape http://127.0.0.1:1/scrape/SECRETKEYabc123 9c38422213e30bff212b30c360d26f9a02136422 > out.txt 2> err.txt
+exit=1
+stdout:
+stderr: {"error":{"kind":"runtime_failure","source":"runtime","message":"Failed to get a response: reqwest::Error { kind: Request, url: \"http://127.0.0.1:1/scrape/SECRETKEYabc123?info_hash=%9C8B%22%13%E3%0B%FF%21%2B0%C3%60%D2o%9A%02%13d%22\", source: hyper_util::client::legacy::Error(Connect, ConnectError(\"tcp connect error\", 127.0.0.1:1, Os { code: 111, kind: ConnectionRefused, message: \"Connection refused\" })) }"}}
+grep -c SECRETKEYabc123 err.txt -> 1
+```
+
+#### R0c - `check` with a keyed HTTP tracker
+
+```console
+$ TORRUST_CHECKER_CONFIG='{"udp_trackers":[],"http_trackers":["http://127.0.0.1:1/announce/SECRETKEYabc123"],"health_checks":[]}' target/debug/tracker_client check > out.txt 2> err.txt
+exit=0
+stdout: {"results":[{"Http":{"Err":{"url":"http://127.0.0.1:1/announce/SECRETKEYabc123","results":[["Announce",{"Err":"Http request did not receive a response within the timeout: ResponseError { err: reqwest::Error { kind: Request, url: \"http://127.0.0.1:1/announce?info_hash=%9C8B%22%13%E3%0B%FF%21%2B0%C3%60%D2o%9A%02%13d%22&peer_id=%2DqB00000000000000001&port=17548&event=started&compact=0\", source: hyper_util::client::legacy::Error(Connect, ConnectError(\"tcp connect error\", 127.0.0.1:1, Os { code: 111, kind: ConnectionRefused, message: \"Connection refused\" })) } }"}],["Scrape",{"Err":"Http request did not receive a response within the timeout: ResponseError { err: reqwest::Error { kind: Request, url: \"http://127.0.0.1:1/scrape?info_hash=%9C8B%22%13%E3%0B%FF%21%2B0%C3%60%D2o%9A%02%13d%22\", source: hyper_util::client::legacy::Error(Connect, ConnectError(\"tcp connect error\", 127.0.0.1:1, Os { code: 111, kind: ConnectionRefused, message: \"Connection refused\" })) } }"}]]}}}]}
+stderr:
+matches in stdout: 1, in stderr: 0
+```
+
+The result echoes the configured URL with the key in its `url` field. The requests themselves go
+to `/announce` and `/scrape` without the key, so the per-request texts do not carry it here; they
+still carry the `Debug` text of `reqwest::Error`. Two side observations, not part of this defect:
+the checker drops the key from the request path, and it reports a refused connection as "did not
+receive a response within the timeout".
+
+## Outcome
+
+R0 confirms the defect on `develop`: the key appears on stderr for `http announce` and
+`http scrape`, and on stdout for `check`. After the fix, repeat R0a to R0c like for like as
+scenarios M1 to M3 of the spec and record them below.
