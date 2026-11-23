@@ -9,7 +9,7 @@ github-issue: 2767
 spec-path: docs/issues/open/2767-2758-scripts-audit/ISSUE.md
 branch: "2767-scripts-audit"
 related-pr: null
-last-updated-utc: "2026-11-09 10:25"
+last-updated-utc: "2026-11-23 16:38"
 semantic-links:
   skill-links:
     - create-issue
@@ -24,7 +24,7 @@ semantic-links:
 
 # Issue #2767 - Audit and classify the scripts called by CI and AI agents
 
-**Parent EPIC:** #2758 - Migrate the CLI tools to the global output contract. Order 8 of 11, wave 1.
+**Parent EPIC:** #2758 - Migrate the CLI tools to the global output contract. Order 8 of 13, wave 1.
 
 ## Goal
 
@@ -113,6 +113,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-06 16:43 UTC - Claude Code (Claude Sonnet 5.5) - Drafted this spec as part of EPIC #2758 from the 2026-11-06 audit.
 - 2026-11-06 16:52 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the spec; GitHub issue #2767 created.
 - 2026-11-09 10:25 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the review rounds on PR 2771 and PR 2774 and fixed the earlier log stamps from the commit and issue creation times.
+- 2026-11-23 16:38 UTC - Claude Code (Claude Opus 5.5) - Updated the EPIC total to 13 after #3004 and #3006 were added (PR 3007 review).
 
 ## Acceptance Criteria
 
