@@ -159,8 +159,8 @@ fn it_should_write_the_check_results_of_a_failing_tracker_inside_the_object() {
 }
 
 #[test]
-fn it_should_report_a_panic_as_a_json_record_and_leave_stdout_empty() {
-    // A UDP tracker URL without a port passes validation and panics while it is resolved.
+fn it_should_report_a_udp_tracker_url_without_a_port_as_a_configuration_error_and_leave_stdout_empty() {
+    // A UDP tracker URL without a port is rejected while the configuration is validated.
     let output = tracker_client(&["check"])
         .env(
             "TORRUST_CHECKER_CONFIG",
@@ -169,13 +169,17 @@ fn it_should_report_a_panic_as_a_json_record_and_leave_stdout_empty() {
         .output()
         .expect("tracker_client should run");
 
-    assert_eq!(output.status.code(), Some(1));
+    assert_eq!(output.status.code(), Some(2));
     assert_eq!(stdout_text(&output), "");
     let records = stderr_records(&output);
-    assert_eq!(records.len(), 2, "records: {records:?}");
-    assert_eq!(records[0]["kind"], "panic");
-    assert!(records[0]["message"].as_str().is_some_and(|m| m.contains("No port number")));
-    assert_eq!(records[1]["error"]["kind"], "runtime_failure");
+    assert_eq!(records.len(), 1, "records: {records:?}");
+    assert_eq!(records[0]["error"]["kind"], "invalid_configuration");
+    assert!(
+        records[0]["error"]["message"]
+            .as_str()
+            .is_some_and(|m| m.contains("udp://127.0.0.1") && m.contains("port")),
+        "records: {records:?}"
+    );
 }
 
 #[test]

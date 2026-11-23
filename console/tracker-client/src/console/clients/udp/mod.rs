@@ -12,6 +12,9 @@ pub mod responses;
 #[serde(into = "String")]
 #[non_exhaustive]
 pub enum Error {
+    #[error("Failed to resolve the tracker address `{url}`: {reason}")]
+    UnableToResolveAddress { url: String, reason: String },
+
     #[error("Failed to Connect to: {remote_addr}, with error: {err}")]
     UnableToBindAndConnect { remote_addr: SocketAddr, err: Box<udp::Error> },
 

@@ -12,7 +12,10 @@ use crate::console::clients::udp::checker::{AnnounceParams, Client};
 
 #[derive(Debug, Clone, Serialize)]
 pub struct Checks {
-    remote_addr: SocketAddr,
+    /// The configured tracker URL.
+    url: String,
+    /// The resolved address, or `None` when the URL did not resolve.
+    remote_addr: Option<SocketAddr>,
     results: Vec<(Check, Result<(), Error>)>,
 }
 
@@ -26,8 +29,7 @@ pub enum Check {
 
 /// # Panics
 ///
-/// Panics if the fixed sample info hash literal is invalid, if URL socket-address
-/// resolution fails, or if a URL resolves to no socket addresses.
+/// Panics if the fixed sample info hash literal is invalid.
 pub async fn run(udp_trackers: Vec<Url>, timeout: Duration) -> Vec<Result<Checks, Checks>> {
     let mut results = Vec::default();
 
@@ -36,16 +38,31 @@ pub async fn run(udp_trackers: Vec<Url>, timeout: Duration) -> Vec<Result<Checks
     let info_hash = TorrustInfoHash::from_str("9c38422213e30bff212b30c360d26f9a02136422").unwrap(); // DevSkim: ignore DS173237
 
     for remote_url in udp_trackers {
-        let remote_addr = resolve_socket_addr(&remote_url);
-
         let mut checks = Checks {
-            remote_addr,
+            url: remote_url.to_string(),
+            remote_addr: None,
             results: Vec::default(),
         };
 
         tracing::debug!("UDP tracker: {:?}", remote_url);
 
         // Setup
+        let remote_addr = match resolve_socket_addr(&remote_url) {
+            Ok(remote_addr) => remote_addr,
+            Err(reason) => {
+                checks.results.push((
+                    Check::Setup,
+                    Err(Error::UnableToResolveAddress {
+                        url: remote_url.to_string(),
+                        reason,
+                    }),
+                ));
+                results.push(Err(checks));
+                continue;
+            }
+        };
+        checks.remote_addr = Some(remote_addr);
+
         let client = match Client::new(remote_addr, timeout).await {
             Ok(client) => {
                 checks.results.push((Check::Setup, Ok(())));
@@ -103,9 +120,13 @@ pub async fn run(udp_trackers: Vec<Url>, timeout: Duration) -> Vec<Result<Checks
     results
 }
 
-fn resolve_socket_addr(url: &Url) -> SocketAddr {
-    let socket_addr = url.socket_addrs(|| None).unwrap();
-    *socket_addr.first().unwrap()
+fn resolve_socket_addr(url: &Url) -> Result<SocketAddr, String> {
+    let socket_addrs = url.socket_addrs(|| None).map_err(|err| err.to_string())?;
+
+    socket_addrs
+        .first()
+        .copied()
+        .ok_or_else(|| "the URL resolved to no socket addresses".to_string())
 }
 
 #[cfg(test)]
@@ -118,7 +139,7 @@ mod tests {
 
     #[test]
     fn it_should_resolve_the_socket_address_for_udp_scheme_urls_containing_a_domain() {
-        let socket_addr = resolve_socket_addr(&Url::parse("udp://localhost:8080").unwrap());
+        let socket_addr = resolve_socket_addr(&Url::parse("udp://localhost:8080").unwrap()).unwrap();
 
         assert!(
             socket_addr == SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080)
@@ -128,11 +149,20 @@ mod tests {
 
     #[test]
     fn it_should_resolve_the_socket_address_for_udp_scheme_urls_containing_an_ip() {
-        let socket_addr = resolve_socket_addr(&Url::parse("udp://localhost:8080").unwrap());
+        let socket_addr = resolve_socket_addr(&Url::parse("udp://localhost:8080").unwrap()).unwrap();
 
         assert!(
             socket_addr == SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080)
                 || socket_addr == SocketAddr::new(IpAddr::V6(Ipv6Addr::LOCALHOST), 8080)
         );
+    }
+
+    #[test]
+    fn it_should_return_an_error_instead_of_panicking_when_the_host_cannot_be_resolved() {
+        // `.invalid` is reserved (RFC 6761) and never resolves. The test goes through the system
+        // resolver, so it only asserts that an error is returned, not which one.
+        let result = resolve_socket_addr(&Url::parse("udp://nonexistent.invalid:6969").unwrap());
+
+        assert!(result.is_err());
     }
 }
