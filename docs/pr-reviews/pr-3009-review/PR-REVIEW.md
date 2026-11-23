@@ -157,7 +157,7 @@ F17 with the severity of its `P2` badge.
 - Concern: The Greptile thread on `setup.rs` had no reply and the pull request had no review audit record.
 - Solution: The thread has a reply (F9), and this record has a row for each finding of da2ce7's review and for Greptile's comment. The three comments of Copilot's review of the same head were missed and added later as F10 to F12 (see F13).
 - Current-tree verification: `docs/pr-reviews/pr-3009-review/PR-REVIEW.md` exists and its checker passes.
-- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669099455
+- Resolution reference: docs(pr-reviews): [#2902] record the first review round of #3009
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669097830
 
@@ -248,7 +248,7 @@ F17 with the severity of its `P2` badge.
 - Concern: The round 1 head had three reviews, not two: the three threads of the Copilot review had no reply and no row, and the round 1 sentence, the processing log and F6 said otherwise.
 - Solution: The three threads were answered and recorded as F10 to F12; the round 1 sentence names the three reviews, says Greptile's first review was of the previous head, and notes Greptile's second review has no finding; F6's solution no longer claims a row for every finding. The processing log is append-only, so a new entry records the Copilot findings.
 - Current-tree verification: `grep -c '6025721446' docs/pr-reviews/pr-3009-review/PR-REVIEW.md` is at least 4, and the table has rows F10 to F12.
-- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669377876
+- Resolution reference: docs(pr-reviews): [#2902] record the Copilot findings of the first review round of #3009; docs(pr-reviews): [#2902] record the second review round of #3009
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669377876
 
@@ -300,7 +300,7 @@ F17 with the severity of its `P2` badge.
 - Concern: The F10 row, a repeat of F1, was marked `ORIGINAL`, and its resolution reference was the fixing commit subject where a `NO_ACTION` resolution needs a durable reply URL.
 - Solution: The F10 row is `RE_RAISE_OF:F1`, and its resolution reference is its reply URL.
 - Current-tree verification: `grep -n '^| F10 ' docs/pr-reviews/pr-3009-review/PR-REVIEW.md` shows `RE_RAISE_OF:F1`.
-- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669505166
+- Resolution reference: docs(pr-reviews): [#2902] record the third review round of #3009
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669505166
 
