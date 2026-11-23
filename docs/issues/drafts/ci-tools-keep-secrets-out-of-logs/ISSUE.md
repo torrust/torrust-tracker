@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/ci-tools-keep-secrets-out-of-logs/ISSUE.md
 branch: "{issue-number}-ci-tools-keep-secrets-out-of-logs"
 related-pr: null
-last-updated-utc: "2026-11-23 19:29"
+last-updated-utc: "2026-11-23 19:47"
 semantic-links:
   skill-links:
     - create-issue
@@ -152,7 +152,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | M2 | `docker run` arguments | The runner fixes tracing at INFO (`src/console/ci/e2e/runner.rs:74`), so the DEBUG event of `docker.rs:89` does not appear in M1. Run it with the level raised to DEBUG (a temporary local change, recorded and not committed, unless T3 adds a level option) and the same markers in the `--env` values | The `Docker run args` line appears; no marker | TODO | `manual-verification-evidence.md` section V2 |
 | M3 | Compose commands | The compose environment of the qBittorrent E2E runner holds only image names, ports and paths (`src/console/ci/qbittorrent_e2e/services_setup.rs:123-160`), so there is no credential to show today. Run the qBittorrent E2E runner and read both `Running docker compose command` lines (`compose.rs:111`, `:317`); the T3 unit test injects a marker through `DockerCompose::with_env` | Both lines appear and print no environment value | TODO | `manual-verification-evidence.md` section V3 |
 
-Each scenario is run on the starting commit first (baseline, the marker visible) and again after the last production change, and the evidence shows that each logging site ran.
+Each scenario is run on the starting commit first and again after the last production change, and the evidence shows that each logging site ran. The baseline of M1 and M2 shows the marker. M3 has no marker (no credential is passed to compose today), so its baseline records the environment values the two lines print, and the final run shows they are no longer printed.
 
 ### Disposable Verification Scripts
 
