@@ -51,6 +51,8 @@ Round 3 covers five reviews. Review 6023349775 (`da2ce7`, submitted 2026-11-23T1
 
 Round 4 covers four reviews. Review 6025120305 (CodeRabbit, submitted 2026-11-23T16:16:10Z), review 6025142141 (`da2ce7`, 16:17:34Z) and review 6025374584 (`copilot-pull-request-reviewer`, 16:32:40Z) are on the head commit `docs(pr-reviews): [#3002] record review round 3`; review 6025460812 (`da2ce7`, 16:38:05Z) is on the head commit `docs(pr-reviews): [#3002] record the replies and resolutions of review round 3`. All are COMMENTED. They have twenty-two inline comments, F26 to F47 here in source order. The `da2ce7` comments carry `[Severity][FindingId]` first lines whose IDs (F17, F18, F19; F26, F27) collide with this record's, so each detail entry keeps the reviewer's ID. The CodeRabbit comment carries a "Minor" label, recorded as the severity. The Copilot comments carry no severity; its overview marks the thirteen placeholder threads High, the log-entry thread Medium and the two long-line threads Low, recorded as `Major (inferred)`, `Minor (inferred)` and `Nit (inferred)`. The CodeRabbit body is a count of its comment and a prompt that repeats it; the `da2ce7` bodies are verdicts, checks summaries and the status of earlier findings; the Copilot body is an overview of its comments, which also lists the resolved thread of F18. None makes a row. Reviews 6025149790 and 6025153395 (CodeRabbit, 16:18:05Z and 16:18:18Z) are its replies on the resolved F19 and F20 threads: they note the `PENDING` Reply URLs of F13 to F25, which the commit `docs(pr-reviews): [#3002] record the replies and resolutions of review round 3` filled, take no resolution action and request nothing new; they make no row. Two reviews arrived on the head commit `docs(issues): [#2904] log the fourth review round of pull request 3002` while the round's replies were posted: review 6025904627 (CodeRabbit, 17:06:45Z) is its reply on the F26 thread, which keeps one point of F26 and is recorded as F48; review 6025931039 (`da2ce7`, 17:08:28Z, COMMENTED) reports no new finding and the status of F17, F18, F26 and F27, and makes no row. The contributor answered the questions of this round on 2026-11-23 (the missing reply folder, the description sentence, the F19 count, the old log entry and the long lines); the rows apply those answers.
 
+Round 5 covers two reviews. Review 6026236623 (`copilot-pull-request-reviewer`, submitted 2026-11-23T17:25:26Z, COMMENTED) is on the intermediate head commit `docs(issues): [#2904] log the fourth review round of pull request 3002`, which did not yet contain the round-4 rows; it has one inline comment, F49, whose first line carries `[Minor][F46]`, an ID that collides with this record's. Review 6026291754 (`da2ce7`, 17:28:36Z, APPROVED) is on the head commit `docs(pr-reviews): [#3002] cite the review of F48 as its source`; it has one inline comment, F50 (`[Nit][F28]`). Neither body makes a row: the Copilot body is an overview of its comment, and the `da2ce7` body is the verdict and the status of earlier findings.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3002-f1 | Unknown | Major | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -101,6 +103,8 @@ Round 4 covers four reviews. Review 6025120305 (CodeRabbit, submitted 2026-11-23
 | F46 | review-finding:pr-3002-f46 | Human | Minor | correctness | RE_RAISE_OF:F26 | FIXED | RESOLVED |
 | F47 | review-finding:pr-3002-f47 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F48 | review-finding:pr-3002-f48 | Unknown | Minor (inferred) | correctness | RE_RAISE_OF:F26 | NO_ACTION | SUPERSEDED |
+| F49 | review-finding:pr-3002-f49 | Copilot | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F50 | review-finding:pr-3002-f50 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -728,6 +732,32 @@ Round 4 covers four reviews. Review 6025120305 (CodeRabbit, submitted 2026-11-23
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4669191731
 
+### F49 - The record had no rows for the fourth round
+
+- PR number: 3002
+- Source review ID: 6026236623
+- Reviewer finding ID: F46
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4669406210
+- Concern: On the head commit `docs(issues): [#2904] log the fourth review round of pull request 3002`, the specification's Progress Log recorded four addressed reviews, while this record ended at round 3 and the replies already posted cited rows F29 to F45 that it did not contain.
+- Solution: The commit `docs(pr-reviews): [#3002] record review round 4`, pushed after that head, added the round-4 paragraph, rows F26 to F48, their detail entries and Reply URLs, and the Processing Log entries of that round.
+- Current-tree verification: The Findings table has rows F26 to F48, each detail entry has a `discussion_r` Reply URL, and the audit validator exits 0.
+- Resolution reference: `docs(pr-reviews): [#3002] record review round 4`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4669575184
+
+### F50 - The placeholder check matched its own line
+
+- PR number: 3002
+- Source review ID: 6026291754
+- Reviewer finding ID: F28
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4669448063
+- Concern: The verification lines of F30 to F42 said that the record had no `PENDING` text, but a plain count of that word on the record found 28 matches, among them those lines themselves. The claim meant is that no field holds a placeholder.
+- Solution: The thirteen lines now say that no Reply URL, Resolution reference or Current-tree verification field of this record holds a placeholder, and that the audit validator confirms it. F29's verification, limited to rows F1 to F25, is unchanged.
+- Current-tree verification: The thirteen verification lines of F30 to F42 carry the new wording; the audit validator exits 0.
+- Resolution reference: `docs(pr-reviews): [#3002] say that no field holds a placeholder instead of no PENDING text`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3002#discussion_r4669575652
+
 ## Processing Log
 
 - 2026-11-23 14:05 UTC - Started audit. Round 1: reviews 6022610166 (CodeRabbit), 6022825332 (`da2ce7`) and 6022913275 (Copilot) on the head commit `docs(issues): [#2904] record how the stop hook of the task reviewer works`, eleven inline comments recorded as F1 to F11. Fetched the eleven review threads with GraphQL as `josecelano-bot`: all unresolved, `viewerCanResolve` true for each. Applied the maintainer's two design answers of 2026-11-23 (F1, F2, F4; F3, F5) and the mechanical fixes in five signed commits (committer times 13:59:23Z to 14:03:03Z) and logged the round in the spec (14:03:55Z); each commit's pre-commit hook passed. Checked each disposition against the current tree with the commands in the detail entries. Not pushed yet.
@@ -741,6 +771,7 @@ Round 4 covers four reviews. Review 6025120305 (CodeRabbit, submitted 2026-11-23
 - 2026-11-23 17:09 UTC - Round 4: reviews 6025120305 (CodeRabbit), 6025142141 and 6025460812 (`da2ce7`) and 6025374584 (Copilot), twenty-two inline comments recorded as F26 to F47; a listing of the reviews before recording showed none later than 6025460812 apart from this round's replies of `josecelano-bot`. Fetched the threads with GraphQL as `josecelano-bot`: the twenty-two unresolved with `viewerCanResolve` true. Applied the contributor's answers of 2026-11-23 in two signed spec commits and logged the round in the spec; each commit's pre-commit hook passed. Corrected the F19 verification, which said twice where `grep -n -F` at the head commit `docs(pr-reviews): [#3002] record the replies and resolutions of review round 3` printed three lines (F28). Pushed the three spec commits with `git-bot-push` (pre-push hook passed); `git ls-remote josecelano-bot refs/heads/2904-t5-task-reviewer-spec` showed the commit `docs(issues): [#2904] log the fourth review round of pull request 3002`. Edited the pull request description with `gh-bot pr edit 3002 --body-file` (F27). Replied on the twenty-two threads as `josecelano-bot` (reply `created_at` 17:05:28Z to 17:06:25Z) and recorded the reply URLs before committing this record. The copy of the audit validator that calls `gh-bot` then reported 47 rows and 2 failures, the rows F28 and F47, whose resolution reference is this record's own commit, not made yet. A GraphQL fetch showed the twenty-two threads unresolved, each with a reply of `josecelano-bot` and `viewerCanResolve` true; they were resolved as `josecelano-bot` (`isResolved` true for each), and a new GraphQL fetch showed 47 threads, 0 unresolved.
 - 2026-11-23 17:09 UTC - A new listing of the reviews showed review 6025904627 (CodeRabbit, 17:06:45Z), its reply on the F26 thread, recorded as F48, and review 6025931039 (`da2ce7`, 17:08:28Z), which has no new finding. Replied on the F26 thread with the `Superseded by F26` form (reply `created_at` 17:09:13Z); the thread was already resolved and stays resolved.
 - 2026-11-23 17:14 UTC - Correction for F48: the validator reported 1 failure at the commit `docs(pr-reviews): [#3002] record review round 4`, because F48's Source URL was CodeRabbit's comment inside the F26 thread, while the reply's `in_reply_to_id` is the thread's first comment. F48 now cites its review 6025904627 as the Source URL and names the comment in its Concern; nothing else changed.
+- 2026-11-23 17:38 UTC - Round 5: review 6026236623 (Copilot) and review 6026291754 (`da2ce7`, APPROVED), one inline comment each, recorded as F49 and F50; a listing of the reviews before recording showed none later. Fixed F50 in the commit `docs(pr-reviews): [#3002] say that no field holds a placeholder instead of no PENDING text`, which also logs the round in the specification; its pre-commit hook passed. Pushed it with `git-bot-push` (pre-push hook passed) and confirmed the head with `git ls-remote`. Replied on both threads as `josecelano-bot` and resolved them.
 
 ## Completion Rules
 
