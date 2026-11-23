@@ -49,6 +49,8 @@ Review 6025633932 (da2ce7, COMMENTED, submitted 2026-11-23T16:49:15Z) has eight 
 
 CodeRabbit posted a rate-limit notice and no finding.
 
+Round 2 covers review 6026001901 (Copilot, COMMENTED, submitted 2026-11-23T17:13:14Z). It reviewed the first head, after the round 1 fixes were pushed, and its body says the full review did not run before a timeout. It has three inline threads on `EPIC.md` with the same text. They have no `[Severity][FindingId]` first line; the review overview labels each `Medium severity`, recorded as `Minor (inferred)`. The first is F10, and F11 and F12 are re-raises of it.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F9 | review-finding:pr-3010-f9 | Unknown | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -60,6 +62,9 @@ CodeRabbit posted a rate-limit notice and no finding.
 | F6 | review-finding:pr-3010-f6 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 | F7 | review-finding:pr-3010-f7 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F8 | review-finding:pr-3010-f8 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-3010-f10 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-3010-f11 | Copilot | Minor (inferred) | documentation | RE_RAISE_OF:F10 | NO_ACTION | SUPERSEDED |
+| F12 | review-finding:pr-3010-f12 | Copilot | Minor (inferred) | documentation | RE_RAISE_OF:F10 | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -180,6 +185,45 @@ CodeRabbit posted a rate-limit notice and no finding.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4669105081
 
+### F10 - The decision summary table has one `D3`, but the sub-issue table cites `D3a` to `D3d`
+
+- PR number: 3010
+- Source review ID: 6026001901
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4669239849
+- Concern: The EPIC's decision summary had a single D3 row while the sub-issue table cites D3a, D3b, D3c and D3d, so a reader could not tell where the parts are defined.
+- Solution: The D3 row names its four parts and the D7 row its two parts (the same mismatch existed for D7a and D7b). The parts are the headings of `decisions.md`.
+- Current-tree verification: `grep -n '^| D3 \|^| D7 ' docs/issues/open/2387-review-tracker-lifecycle-logs/EPIC.md` shows `D3a`, `D3b`, `D3c`, `D3d`, `D7a` and `D7b` in the two rows. `grep -c '^### D3[a-d]\|^### D7[ab]' docs/issues/open/2387-review-tracker-lifecycle-logs/decisions.md` prints 6.
+- Resolution reference: docs(issues): [#2387] name the parts of decisions D3 and D7 in the EPIC summary table
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4669312716
+
+### F11 - Duplicate of F10: the same comment on the decision summary table
+
+- PR number: 3010
+- Source review ID: 6026001901
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4669239918
+- Concern: The same text as F10, posted as a separate thread by the same review.
+- Solution: No separate change. F10's fix covers it.
+- Current-tree verification: As F10.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4669313349
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4669313349
+
+### F12 - Duplicate of F10: the same comment on the decision summary table
+
+- PR number: 3010
+- Source review ID: 6026001901
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4669239961
+- Concern: The same text as F10, posted as a separate thread by the same review.
+- Solution: No separate change. F10's fix covers it.
+- Current-tree verification: As F10.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4669314154
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4669314154
+
 ## Processing Log
 
 - 2026-11-23 16:32 UTC - Round 1: review 6025366087 submitted by Greptile at 16:32:02Z with one inline thread, recorded as F9.
@@ -189,6 +233,11 @@ CodeRabbit posted a rate-limit notice and no finding.
 - 2026-11-23 17:01 UTC - Pushed the eight commits to the pull request branch.
 - 2026-11-23 17:02 UTC - Replied on the nine threads (replies created 17:01:59Z to 17:02:19Z) and updated the pull request description to the new sub-issue numbers and the third configuration key. Recorded the reply URLs here. No thread is resolved yet.
 - 2026-11-23 17:03 UTC - The audit validator passed (9 rows, 0 failures). Resolved the nine threads; a new GraphQL fetch reports 0 unresolved threads.
+- 2026-11-23 17:05 UTC - Committed this audit record with the round 1 entries, with `Greptile` added to `project-words.txt` for the spell check, and pushed it.
+- 2026-11-23 17:13 UTC - Round 2: review 6026001901 submitted by Copilot at 17:13:14Z (the poller reported it) with three inline threads of the same text, F10 to F12.
+- 2026-11-23 17:18 UTC - Pushed the F10 fix (committed at 17:15 UTC).
+- 2026-11-23 17:18 UTC - Replied on the three threads (replies created 2026-11-23T17:18:23Z to 2026-11-23T17:18:28Z) and recorded the reply URLs here.
+- 2026-11-23 17:19 UTC - The audit validator passed (12 rows, 0 failures). Resolved the three threads; a new GraphQL fetch reports 0 unresolved threads.
 
 ## Completion Rules
 
