@@ -149,13 +149,17 @@ mod tests {
     }
 
     #[test]
-    fn it_should_resolve_the_socket_address_for_udp_scheme_urls_containing_an_ip() {
-        let socket_addr = resolve_socket_addr(&Url::parse("udp://localhost:8080").unwrap()).unwrap();
+    fn it_should_resolve_the_socket_address_for_udp_scheme_urls_containing_an_ipv4_address() {
+        let socket_addr = resolve_socket_addr(&Url::parse("udp://127.0.0.1:8080").unwrap()).unwrap();
 
-        assert!(
-            socket_addr == SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080)
-                || socket_addr == SocketAddr::new(IpAddr::V6(Ipv6Addr::LOCALHOST), 8080)
-        );
+        assert_eq!(socket_addr, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080));
+    }
+
+    #[test]
+    fn it_should_resolve_the_socket_address_for_udp_scheme_urls_containing_an_ipv6_address() {
+        let socket_addr = resolve_socket_addr(&Url::parse("udp://[::1]:8080").unwrap()).unwrap();
+
+        assert_eq!(socket_addr, SocketAddr::new(IpAddr::V6(Ipv6Addr::LOCALHOST), 8080));
     }
 
     #[test]
