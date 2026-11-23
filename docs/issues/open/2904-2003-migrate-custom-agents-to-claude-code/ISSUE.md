@@ -339,7 +339,8 @@ Decided by the maintainer on 2026-11-15:
   the one that stopped being written (25 of 48 archived folders in October, 2 of 32 in the first
   half of November; see Background for the method). Requirements: the hook cannot loop forever,
   and it lets the agent finish when the reviewer was given no folder-style specification, because
-  then there is no place for a reply file. The bound is 3 refusals per run of the agent, the same
+  then there is no place for a reply file. The bound is 3 refusals per request, that is per run of
+  the agent and reply file (see How the hook works), the same
   number as the round limit of D18: the fourth attempt to finish is allowed, and the hook reports
   that the limit was reached. The orchestrator then finds no valid reply file, stops, and asks the
   contributor. This is the only
@@ -351,16 +352,24 @@ Decided by the maintainer on 2026-11-15:
   program:
 
   - **Which file.** Whoever starts the reviewer (the session today, the orchestrator from T9)
-    writes one line `Reply file: <path>` in the agent's task, with the path D18 defines. The hook
-    input has no field for the task (see What Claude Code supports), so the hook reads the line
-    from the first message of the agent's transcript, `agent_transcript_path`. Without the line
-    the reviewer was given no folder-style specification, and the hook lets the agent finish.
-    With the line, the caller has fixed the file, so an agent that skips the reply cannot pass
-    for one that had nothing to write. The transcript's format is not documented; scenario M7
-    shows that the hook reads the line, and the hook's tests pin the format it relies on.
-  - **The count of refusals.** One file per run, named after the run's `agent_id`, in
-    `.agents/issues/<issue-number>/reply-guard/`, where the issue number is the first number of
-    the specification's folder name. The `.agents/issues/` subtree holds only local workflow
+    writes one line `Reply file: <path>` in the agent's task, with the path D18 defines. A caller
+    that continues a finished reviewer writes the line again in its new request, naming the new
+    round's file (D18). The hook input has no field for the task (see What Claude Code
+    supports), so the hook opens the transcript file at `agent_transcript_path` and reads the
+    line from the last message from the caller that carries one. A continued reviewer is
+    therefore held to the file of its latest request, not to an earlier file that is already
+    valid. The hook tells the caller's messages apart from tool results and from its own refusal
+    text, and its refusal text never contains `Reply file:`. Without the line the reviewer was
+    given no folder-style specification, and the hook lets the agent finish. With the line, the
+    caller has fixed the file, so an agent that skips the reply cannot pass for one that had
+    nothing to write. The transcript's format is not documented; scenario M7 shows that the hook
+    reads the line, and the hook's tests pin the format it relies on, including a continued run.
+  - **The count of refusals.** One file per request, keyed by the run's `agent_id` together with
+    the reply file (for example a file named from the `agent_id` and the reply file's name), in
+    `.agents/issues/<issue-number>/reply-guard/`. A continued run keeps its `agent_id`, but its
+    request names a new round file under D18, so it gets its own 3 refusals and does not inherit
+    the count of the earlier request. The issue number is the first number of the
+    specification's folder name. The `.agents/issues/` subtree holds only local workflow
     state: it is ignored by Git and excluded from every linter, which do not read `.gitignore`,
     and nothing committed goes there. `.tmp/` is not used, because agents clean it as scratch
     space. A `Reply file:` path in `docs/issues/drafts/` has no issue number, so the hook refuses
