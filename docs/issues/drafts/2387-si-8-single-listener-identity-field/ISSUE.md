@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2387-si-8-single-listener-identity-field/ISSUE.md
 branch: "{issue-number}-2387-si-8-single-listener-identity-field-spec"
 related-pr: null
-last-updated-utc: "2026-11-23 17:29"
+last-updated-utc: "2026-11-23 17:31"
 semantic-links:
   skill-links:
     - create-issue
@@ -47,6 +47,7 @@ The listener is named five ways across components. `bind_address` (the configure
 ### In Scope
 
 - Replace `local_addr`, `address` and `bind_addr` with `service_binding` in every lifecycle line and lifecycle span that is after the bind.
+- Rename `bind_addr` to `bind_address` where it is logged before the bind, with the configured socket address as value. One such line exists today: `UdpSocket::bind (binding)` in `packages/udp-server/src/server/bound_socket.rs`, at `DEBUG`, whose value is a URL built from the configured address.
 - Where a line has the listener only in its message text, add the field and take the address out of the text.
 - Keep `bind_address` only on lines before the bind.
 - Add `service_role` and `instance_index` where a line has `service_binding` without them and is outside a span that carries them.
@@ -128,7 +129,7 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 ## Acceptance Criteria
 
 - [ ] AC1: A capture at `debug` contains none of the three removed field names.
-- [ ] AC2: `bind_address` appears only on lines logged before the bind.
+- [ ] AC2: `bind_address` appears only on lines logged before the bind, and every pre-bind line names the address with `bind_address`.
 - [ ] AC3: Every line with `service_binding` can be attributed to a service by `service_role` and `instance_index`, as event or span fields.
 - [ ] AC4: "Changes in 4.0.0" lists the removed names.
 - [ ] `linter all` exits with code `0`
