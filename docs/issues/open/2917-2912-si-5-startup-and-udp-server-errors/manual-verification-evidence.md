@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2917-2912-si-5-startup-and-udp-server-errors/ISSUE.md
-last-updated-utc: "2026-11-23 11:20"
+last-updated-utc: "2026-11-23 15:55"
 ---
 
 # Manual Verification Evidence
@@ -11,7 +11,7 @@ Run on branch `2917-startup-and-udp-server-errors` with the stable Rust toolchai
 and after it.
 
 Artifact under test: the first "after" captures (`evidence/startup-after.txt`,
-`evidence/tests-green.txt`) were taken at the build of the commit "fix(udp-server): [#2917] remove
+`evidence/tests-green.txt`) were taken at a working tree matching the commit "fix(udp-server): [#2917] remove
 source locations from the UDP server errors". Two production-affecting commits followed:
 "test(udp-server): [#2917] compare the authentication classification with the error's own message"
 and "refactor(udp-server): [#2917] match the unit variant AuthRequired directly" (it changes

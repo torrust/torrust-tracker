@@ -9,7 +9,7 @@ github-issue: 2917
 spec-path: docs/issues/open/2917-2912-si-5-startup-and-udp-server-errors/ISSUE.md
 branch: "2917-startup-and-udp-server-errors"
 related-pr: 3001
-last-updated-utc: "2026-11-23 13:35"
+last-updated-utc: "2026-11-23 15:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -185,7 +185,8 @@ the model that produced them.
 - 2026-11-11 17:05 UTC - Claude Code (Fable 5.2) - Drafted from the audit of issue #2804 (`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`, `options.md`) as a sub-issue of the EPIC draft. Not yet approved; line numbers are those of `develop` at `4f0af379a` and must be re-checked before implementation.
 - 2026-11-17 17:30 UTC - Claude Code (Claude Opus 5.5) - EPIC coordinator: the maintainer approved the specification on 2026-11-17; issue #2917 created as `josecelano-bot` and the specification moved from `docs/issues/drafts/` to `docs/issues/open/` (SI-5 of EPIC #2912).
 
-- 2026-11-23 11:21 UTC - Claude Code (Claude Sonnet 5.5) - T1 to T6 on branch `2917-startup-and-udp-server-errors`: reproduced both startup errors (each ended in a `packages/...rs:line` path), added red tests and committed them, then removed the locations. The four `configuration` sources and `BadTlsConfig` hold a plain `Box<dyn std::error::Error + Send + Sync>`; `MissingTlsConfig` lost `location`; `udp-server` `AuthRequired` became a unit variant and `Internal` lost `location`; `ErrorKind::TrackerAuthentication` now carries the error's message. `torrust-located-error` is removed from `configuration` and `axum-server`; `tracker-client` still uses it (SI-6). `UnableToLoadFromEnvironmentVariable` and `UnableToLoadFromConfigFile` are never built, so they have no red test. `configuration` and `axum-server` each add a local copy of the path-check helper (copies 8 and 9 of `assert_names_no_source_path`): SI-8 (#2996) cannot move them, because `torrust-tracker-test-helpers` depends on `configuration` and `axum-server` has no such dev-dependency, so they are recorded in the SI-8 spec and the EPIC row to be cross-linked. 4.0.0 note recorded in #2583. No retrospective: the work matched the spec.
+- 2026-11-23 11:21 UTC - Claude Code (Claude Sonnet 5.5) - T1 to T6 on branch `2917-startup-and-udp-server-errors`: reproduced both startup errors (each ended in a `packages/...rs:line` path), added red tests and committed them, then removed the locations. The four `configuration` sources and `BadTlsConfig` hold a plain `Box<dyn std::error::Error + Send + Sync>`; `MissingTlsConfig` lost `location`; `udp-server` `AuthRequired` became a unit variant and `Internal` lost `location`; `ErrorKind::TrackerAuthentication` now carries the error's message. `torrust-located-error` is removed from `configuration` and `axum-server`; `tracker-client` still uses it (SI-6). `UnableToLoadFromEnvironmentVariable` and `UnableToLoadFromConfigFile` are never built, so they have no red test. Each crate keeps a local copy of the path-check helper until SI-8 (#2996) shares it. 4.0.0 note recorded in #2583. No retrospective: the work matched the spec.
+- 2026-11-23 15:55 UTC - Claude Code (Claude Sonnet 5.5) - Recorded the SI-8 (#2996) follow-up of review round 3: `configuration` and `axum-server` each add a local copy of the path-check helper (copies 8 and 9 of `assert_names_no_source_path`); SI-8 cannot move them, because `torrust-tracker-test-helpers` depends on `configuration` and `axum-server` has no such dev-dependency, so they are cross-linked in the SI-8 spec and the EPIC row.
 
 ## Acceptance Criteria
 

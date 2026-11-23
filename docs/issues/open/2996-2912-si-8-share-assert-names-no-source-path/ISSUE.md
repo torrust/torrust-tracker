@@ -9,7 +9,7 @@ github-issue: 2996
 spec-path: docs/issues/open/2996-2912-si-8-share-assert-names-no-source-path/ISSUE.md
 branch: "2996-share-assert-names-no-source-path-spec"
 related-pr: null
-last-updated-utc: "2026-11-22 14:24"
+last-updated-utc: "2026-11-23 15:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -66,7 +66,7 @@ Copies, verified on the branch of PR #2991 (`2916-tracker-core`; the SI-4 copies
 | 8 | `packages/configuration/src/lib.rs` | private fn in the unit-test module | Stays; cross-linked (`test-helpers` depends on `configuration`, a dev-dependency would be a cycle, as for copy 2) |
 | 9 | `packages/axum-server/src/tls.rs` | private fn in the unit-test module | Stays; cross-linked (`axum-server` has no `test-helpers` dev-dependency, and none is added) |
 
-About 50 call sites in 18 files call the helper (`grep -rn assert_names_no_source_path packages`).
+About 50 call sites in 21 files call the helper (`grep -rn assert_names_no_source_path packages`).
 
 Dependency facts that decide the design (re-verified):
 
@@ -82,9 +82,9 @@ Dependency facts that decide the design (re-verified):
 | B. A new dependency-free dev-only crate | One definition usable everywhere, no cycle | One more workspace package (`docs/packages.md` and `deny.toml` change) for a ten-line function |
 | C. Leave all nine | No change, no risk | Nine copies of the fragment list that drift if it ever changes |
 | D. Put it in `torrust-info-hash` or `torrust-clock` | `primitives` and `http-protocol` already depend on them | Ties an external crate's API to this workspace's test needs |
-| **E (chosen).** Merge for the four packages that already use `test-helpers`; cross-link the two that cannot | Duplication 9 to 5, no new coupling, a small mechanical change, follows rule B, easy to undo or to finish later | Drift between the shared function and the two copies is still possible, and comments enforce nothing. A small test comparing the fragment lists is a possible later step if drift happens |
+| **E (chosen).** Merge for the four packages that already use `test-helpers`; cross-link the four that cannot | Duplication 9 to 5, no new coupling, a small mechanical change, follows rule B, easy to undo or to finish later | Drift between the shared function and the four copies is still possible, and comments enforce nothing. A small test comparing the fragment lists is a possible later step if drift happens |
 
-E is chosen because it removes most of the duplication at no coupling cost, while A and B pay a structural price (a cycle, a new package) for the last two copies and C does not address the finding.
+E is chosen because it removes most of the duplication at no coupling cost, while A and B pay a structural price (a cycle, a new package) for the last four copies and C does not address the finding.
 
 ### Why the rest of the workspace policy is not affected
 
