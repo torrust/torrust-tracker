@@ -8,6 +8,8 @@ semantic-links:
 
 <!-- skill-link: process-pr-review -->
 
+<!-- cspell:ignore characterse -->
+
 # PR #2994 Review Audit
 
 Source: pull-request reviews and inline review threads for <https://github.com/torrust/torrust-tracker/pull/2994>.
@@ -45,6 +47,8 @@ Round 1 covers review 6012624473 (Copilot, COMMENTED, submitted 2026-11-22T14:05
 
 Round 2 covers review 6012831750 (Copilot, COMMENTED, submitted 2026-11-22T14:40:22Z, a balanced review) with five inline comments, each with a `[Severity][FindingId]` first line. Its body is a verdict ("Changes recommended") and a list that repeats the five inline findings and the seven threads resolved since round 1; it makes no row. Copilot's IDs F8, F9 and F13 do not collide with F1 to F7 and are kept. Copilot used `F12` for two different findings: the first in source order (comment 4658541296, the SI-A draft) keeps F12, and the other (comment 4658541369, the EPIC evidence) is F14 here, the first number after the highest ID in use, with Copilot's ID in its detail entry. The rows are in source order. Severities are the comments' brackets. The overview's badges (Medium for F8, Low for the other four) differ from the brackets and are not used.
 
+Round 3 covers review 6018472413 (Copilot, COMMENTED, submitted 2026-11-23T08:24:06Z, a lite review of the head that held the round 2 fixes, the merge of SI-4 and the inventory refresh) with six inline comments, which are four distinct findings: F15 (two threads, F19 is the second), F16, F17 and F18 (two threads, F20 is the second). Its body is an overview that repeats them, with a warning that the full agentic review did not start before the timeout. The overview marks F15 Medium and the others Low; they are recorded as Major and Minor.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2994-f1 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
@@ -59,6 +63,12 @@ Round 2 covers review 6012831750 (Copilot, COMMENTED, submitted 2026-11-22T14:40
 | F9 | review-finding:pr-2994-f9 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | F13 | review-finding:pr-2994-f13 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | F14 | review-finding:pr-2994-f14 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-2994-f15 | Copilot | Major | correctness | ORIGINAL | FIXED | RESOLVED |
+| F19 | review-finding:pr-2994-f19 | Copilot | Major | correctness | RE_RAISE_OF:F15 | NO_ACTION | SUPERSEDED |
+| F16 | review-finding:pr-2994-f16 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-2994-f17 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-2994-f18 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-2994-f20 | Copilot | Minor | documentation | RE_RAISE_OF:F18 | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -218,6 +228,84 @@ Round 2 covers review 6012831750 (Copilot, COMMENTED, submitted 2026-11-22T14:40
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2994#discussion_r4658604272
 
+### F15 - The UDP probe unpacks a str when the connect reply is missing
+
+- PR number: 2994
+- Source review ID: 6018472413
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2994#discussion_r4663340881
+- Concern: When `rx()` hits a socket error or timeout it returns a `str`, but the probe slices and unpacks the result as bytes, which raises, and it also raises on a reply shorter than 16 bytes. Copilot asks for `rx()` to always return bytes or raise, for a length check before unpacking the connection id, and for a clear failure message.
+- Solution: `rx()` returns `None` on a socket error, the probe exits with a message that names the address and what it received when the connect reply is `None` or shorter than 16 bytes, and later replies print `(no reply)` when none arrives. The evidence file says the probe was edited after the run and run again.
+- Current-tree verification: `python3 -I -B docs/issues/open/2993-secrets-and-client-error-text/evidence/udp_probe.py 46999` with no tracker prints `no valid connect response from 127.0.0.1:46999 (got None)` and exits 1. Against a local public tracker (debug build of `develop` at the merge of PR #2995) on 2026-11-23 08:27 UTC it printed the three replies of V6 and exited 0. The note is in the evidence file under "Preserving Verification Artifacts".
+- Resolution reference: `docs(issues): [#2993] fix the review round 3 findings in the evidence files and the EPIC`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2994#discussion_r4663415273
+
+### F19 - Same UDP probe comment on the second thread
+
+- PR number: 2994
+- Source review ID: 6018472413
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2994#discussion_r4663340931
+- Concern: Same text as F15, posted a second time on the same code.
+- Solution: No separate change: F15's fix covers it.
+- Current-tree verification: Same as F15.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2994#discussion_r4663415596
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2994#discussion_r4663415596
+
+### F16 - The proposed message example hard-codes `got 40`
+
+- PR number: 2994
+- Source review ID: 6018472413
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2994#discussion_r4663340995
+- Concern: The EPIC table proposes `Invalid authentication key: expected 32 characters, got 40`, which implies a specific wrong length. Copilot asks for a placeholder as in the SI-A draft.
+- Solution: The EPIC table row reads `got <n>`.
+- Current-tree verification: `grep -c 'got <n>' docs/issues/open/2993-secrets-and-client-error-text/EPIC.md` is at least 1 and `grep -c 'got 40' docs/issues/open/2993-secrets-and-client-error-text/EPIC.md` prints 0.
+- Resolution reference: `docs(issues): [#2993] fix the review round 3 findings in the evidence files and the EPIC`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2994#discussion_r4663415872
+
+### F17 - The usage comment of reproduce.sh names run.sh
+
+- PR number: 2994
+- Source review ID: 6018472413
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2994#discussion_r4663341048
+- Concern: The first line of `evidence/reproduce.sh` says `Usage: run.sh`, but the file is `reproduce.sh`.
+- Solution: The usage comment says `reproduce.sh`.
+- Current-tree verification: `head -2 docs/issues/open/2993-secrets-and-client-error-text/evidence/reproduce.sh` shows `Usage: reproduce.sh <tracker-binary> <work-dir>`.
+- Resolution reference: `docs(issues): [#2993] fix the review round 3 findings in the evidence files and the EPIC`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2994#discussion_r4663416140
+
+### F18 - The quoted reply ends in `characterse` and reads like a typo
+
+- PR number: 2994
+- Source review ID: 6018472413
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2994#discussion_r4663341105
+- Concern: The evidence file quotes a failure reason ending in `characterse`. Copilot asks to mark the quote as verbatim and add `[sic]`, as the EPIC does for the `must be have` slip.
+- Solution: Not `[sic]`: the text is the tracker's reply, and the final `e` is the bencode terminator, not a typo. The evidence file now says so under that reply, so readers do not take it for an error of the spec.
+- Current-tree verification: `grep -n 'bencode terminator' docs/issues/open/2993-secrets-and-client-error-text/manual-verification-evidence.md` finds the note under the reply of V1.
+- Resolution reference: `docs(issues): [#2993] fix the review round 3 findings in the evidence files and the EPIC`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2994#discussion_r4663416450
+
+### F20 - Same quoted-reply comment on the second thread
+
+- PR number: 2994
+- Source review ID: 6018472413
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2994#discussion_r4663341155
+- Concern: Same text as F18, posted a second time on the same text.
+- Solution: No separate change: F18's note covers it.
+- Current-tree verification: Same as F18.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2994#discussion_r4663416793
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2994#discussion_r4663416793
+
 ## Processing Log
 
 - 2026-11-22 14:16 UTC - Started audit. Round 1: review 6012624473 (Copilot, COMMENTED, submitted 14:05:07Z) with seven inline comments, F1 to F7. Fetched the seven review threads with GraphQL as `josecelano-bot`: all unresolved, `viewerCanResolve` true for each. The fixes of F1 and F4 were already committed (committer times 14:09:00Z and 14:10:03Z) and on the pull request head. Checked each disposition against the current tree with the commands in the detail entries.
@@ -226,6 +314,9 @@ Round 2 covers review 6012831750 (Copilot, COMMENTED, submitted 2026-11-22T14:40
 - 2026-11-22 14:55 UTC - Round 2: review 6012831750 (Copilot, COMMENTED, submitted 14:40:22Z) with five inline comments, recorded as F8, F12, F9, F13 and F14. Fetched the twelve review threads with GraphQL as `josecelano-bot`: the seven of round 1 resolved, the five new ones unresolved with `viewerCanResolve` true. The four fix commits were already on the pull request head (committer times 14:47:25Z to 14:49:05Z). Checked each disposition against the head commit with `git show HEAD:<path>`, because the working tree held an unfinished merge of `develop` that this audit did not start.
 - 2026-11-22 14:56 UTC - Replied on the five threads of round 2 as `josecelano-bot` (reply `created_at` 14:56:46Z to 14:56:55Z) and recorded the reply URLs.
 - 2026-11-22 14:57 UTC - The copy of the audit validator that calls `gh-bot` exits 0 (12 rows, 0 failures). After it, `github-review-threads reply-status` reported `all_replied` (5 of 5) and the five threads were resolved as `josecelano-bot`. A new GraphQL fetch shows 12 threads, 0 unresolved. The round 2 additions to this record are not committed yet: the working tree holds an unfinished merge of `develop` with a conflict in `cspell.json`.
+- 2026-11-23 08:26 UTC - Round 3: review 6018472413 (Copilot, COMMENTED, submitted 08:24:06Z) with six inline comments, recorded as F15, F19, F16, F17, F18 and F20. Fetched the 18 review threads with GraphQL as `josecelano-bot`: the twelve of rounds 1 and 2 resolved, the six new ones unresolved. The same head ran its workflow checks after approval: 14 passed, 5 skipped and `Test (Docker) (release)` failed in the qBittorrent MySQL end-to-end test (the tracker container was unhealthy); this pull request changes only documentation, so the cause was not found here and a new run of the head will show whether it repeats.
+- 2026-11-23 08:33 UTC - Merged `torrust/develop` (four commits, including the archive move of the #2916 spec), fixed the findings in one signed commit, ran the pre-commit gate (exit 0) and pushed with `git-bot-push`. Replied on the six threads as `josecelano-bot` (reply `created_at` 08:33:33Z to 08:33:45Z) and recorded the reply URLs.
+- 2026-11-23 08:35 UTC - The copy of the audit validator that calls `gh-bot` exits 0 (18 rows, 0 failures). The six threads were then resolved as `josecelano-bot`. A new GraphQL fetch shows 18 threads, 0 unresolved.
 
 ## Completion Rules
 
