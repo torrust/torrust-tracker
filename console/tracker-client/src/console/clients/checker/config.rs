@@ -87,19 +87,19 @@ impl TryFrom<PlainConfiguration> for Configuration {
         let udp_trackers = plain_config
             .udp_trackers
             .into_iter()
-            .map(parse_udp_tracker_url)
+            .map(|entry| parse_udp_tracker_url(&entry))
             .collect::<Result<Vec<_>, _>>()?;
 
         let http_trackers = plain_config
             .http_trackers
             .into_iter()
-            .map(parse_http_url)
+            .map(|entry| parse_http_url(&entry))
             .collect::<Result<Vec<_>, _>>()?;
 
         let health_checks = plain_config
             .health_checks
             .into_iter()
-            .map(parse_http_url)
+            .map(|entry| parse_http_url(&entry))
             .collect::<Result<Vec<_>, _>>()?;
 
         Ok(Self {
@@ -112,11 +112,11 @@ impl TryFrom<PlainConfiguration> for Configuration {
 
 /// Parses a UDP tracker entry. A missing scheme defaults to `udp`; the entry must have a host
 /// and a port because UDP has no default port.
-fn parse_udp_tracker_url(entry: String) -> Result<ServiceUrl, ConfigurationError> {
+fn parse_udp_tracker_url(entry: &str) -> Result<ServiceUrl, ConfigurationError> {
     // The scheme is read from the raw entry: `127.0.0.1:6969` has none, and a URL parser alone
     // would read `localhost:6969` as the scheme `localhost`.
-    let candidate = match leading_scheme(&entry) {
-        Some(scheme) if scheme.eq_ignore_ascii_case("udp") => entry.clone(),
+    let candidate = match leading_scheme(entry) {
+        Some(scheme) if scheme.eq_ignore_ascii_case("udp") => entry.to_string(),
         Some(_) => return Err(reject(entry, UrlRejection::UnsupportedScheme)),
         None => format!("udp://{entry}"),
     };
@@ -149,7 +149,7 @@ fn leading_scheme(entry: &str) -> Option<&str> {
 
 /// Parses an HTTP tracker or health-check entry. It must have the scheme `http` or `https` and a
 /// host; the port is optional because HTTP(S) has default ports.
-fn parse_http_url(entry: String) -> Result<ServiceUrl, ConfigurationError> {
+fn parse_http_url(entry: &str) -> Result<ServiceUrl, ConfigurationError> {
     let url = entry.parse::<ServiceUrl>().map_err(ConfigurationError::InvalidUrl)?;
 
     if !matches!(url.scheme(), "http" | "https") {
@@ -163,8 +163,46 @@ fn parse_http_url(entry: String) -> Result<ServiceUrl, ConfigurationError> {
     Ok(url)
 }
 
-const fn reject(entry: String, reason: UrlRejection) -> ConfigurationError {
-    ConfigurationError::InvalidTrackerUrl { entry, reason }
+fn reject(entry: &str, reason: UrlRejection) -> ConfigurationError {
+    ConfigurationError::InvalidTrackerUrl {
+        entry: redacted_entry(entry),
+        reason,
+    }
+}
+
+/// Describes a rejected entry without writing a secret.
+///
+/// A private tracker URL carries its key in the path, and a URL can carry credentials or a key in
+/// the query, so only the scheme (as typed), the host and the port are kept. Anything else is
+/// replaced by `/****`, the fixed mask of the CLI output contract.
+fn redacted_entry(entry: &str) -> String {
+    const MASK: &str = "****";
+
+    let scheme = leading_scheme(entry).map(|scheme| format!("{scheme}://"));
+    let parsable = if scheme.is_some() {
+        entry.to_string()
+    } else {
+        format!("udp://{entry}")
+    };
+
+    let Ok(url) = parsable.parse::<ServiceUrl>() else {
+        return format!("{}{MASK}", scheme.unwrap_or_default());
+    };
+
+    let authority = url.host_str().map_or_else(String::new, |host| {
+        url.port().map_or_else(|| host.to_string(), |port| format!("{host}:{port}"))
+    });
+    let has_more = !url.username().is_empty()
+        || url.password().is_some()
+        || url.query().is_some()
+        || url.fragment().is_some()
+        || !matches!(url.path(), "" | "/");
+
+    format!(
+        "{}{authority}{}",
+        scheme.unwrap_or_default(),
+        if has_more { format!("/{MASK}") } else { String::new() }
+    )
 }
 
 #[cfg(test)]
@@ -279,7 +317,7 @@ mod tests {
                     health_checks: vec![],
                 });
 
-                assert_eq!(rejected, ("udp://localhost/announce".to_string(), UrlRejection::MissingPort));
+                assert_eq!(rejected, ("udp://localhost/****".to_string(), UrlRejection::MissingPort));
             }
 
             #[test]
@@ -290,7 +328,7 @@ mod tests {
                     health_checks: vec![],
                 });
 
-                assert_eq!(rejected, ("udp:///".to_string(), UrlRejection::MissingHost));
+                assert_eq!(rejected, ("udp://".to_string(), UrlRejection::MissingHost));
             }
 
             #[test]
@@ -315,6 +353,46 @@ mod tests {
                 assert_eq!(
                     rejected,
                     ("ftp://127.0.0.1:6969".to_string(), UrlRejection::UnsupportedScheme)
+                );
+            }
+
+            #[test]
+            fn it_should_not_echo_the_path_of_a_rejected_tracker_url() {
+                // A private HTTP tracker URL carries its key in the path.
+                let rejected = rejection(PlainConfiguration {
+                    udp_trackers: vec!["http://127.0.0.1:7070/announce/PRIVATE_KEY".to_string()],
+                    http_trackers: vec![],
+                    health_checks: vec![],
+                });
+
+                assert_eq!(
+                    rejected,
+                    ("http://127.0.0.1:7070/****".to_string(), UrlRejection::UnsupportedScheme)
+                );
+            }
+
+            #[test]
+            fn it_should_not_echo_the_query_of_a_rejected_tracker_url() {
+                let rejected = rejection(PlainConfiguration {
+                    udp_trackers: vec!["udp://127.0.0.1?key=PRIVATE_KEY".to_string()],
+                    http_trackers: vec![],
+                    health_checks: vec![],
+                });
+
+                assert_eq!(rejected, ("udp://127.0.0.1/****".to_string(), UrlRejection::MissingPort));
+            }
+
+            #[test]
+            fn it_should_not_echo_the_credentials_of_a_rejected_tracker_url() {
+                let rejected = rejection(PlainConfiguration {
+                    udp_trackers: vec!["ftp://user:PRIVATE_KEY@127.0.0.1:6969".to_string()],
+                    http_trackers: vec![],
+                    health_checks: vec![],
+                });
+
+                assert_eq!(
+                    rejected,
+                    ("ftp://127.0.0.1:6969/****".to_string(), UrlRejection::UnsupportedScheme)
                 );
             }
 
@@ -458,6 +536,20 @@ mod tests {
                 assert_eq!(
                     rejected,
                     ("udp://127.0.0.1:6969".to_string(), UrlRejection::UnsupportedScheme)
+                );
+            }
+
+            #[test]
+            fn it_should_not_echo_the_path_of_a_rejected_http_tracker_url() {
+                let rejected = rejection(PlainConfiguration {
+                    udp_trackers: vec![],
+                    http_trackers: vec!["ftp://127.0.0.1/announce/PRIVATE_KEY".to_string()],
+                    health_checks: vec![],
+                });
+
+                assert_eq!(
+                    rejected,
+                    ("ftp://127.0.0.1/****".to_string(), UrlRejection::UnsupportedScheme)
                 );
             }
 
