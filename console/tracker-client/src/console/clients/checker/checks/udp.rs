@@ -132,10 +132,11 @@ fn resolve_socket_addr(url: &Url) -> Result<SocketAddr, String> {
 #[cfg(test)]
 mod tests {
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
+    use std::time::Duration;
 
     use url::Url;
 
-    use crate::console::clients::checker::checks::udp::resolve_socket_addr;
+    use crate::console::clients::checker::checks::udp::{resolve_socket_addr, run};
 
     #[test]
     fn it_should_resolve_the_socket_address_for_udp_scheme_urls_containing_a_domain() {
@@ -164,5 +165,26 @@ mod tests {
         let result = resolve_socket_addr(&Url::parse("udp://nonexistent.invalid:6969").unwrap());
 
         assert!(result.is_err());
+    }
+
+    #[tokio::test]
+    async fn it_should_report_a_failed_setup_check_for_every_tracker_whose_address_does_not_resolve() {
+        // URLs without a port never resolve, so the test needs no DNS and no network traffic.
+        let urls = vec![Url::parse("udp://127.0.0.1").unwrap(), Url::parse("udp://127.0.0.2").unwrap()];
+
+        let results = run(urls, Duration::from_millis(10)).await;
+
+        let failed_checks: Vec<serde_json::Value> = results
+            .iter()
+            .map(|result| serde_json::to_value(result.as_ref().expect_err("the check should have failed")).unwrap())
+            .collect();
+        assert_eq!(failed_checks.len(), 2);
+        for (check, url) in failed_checks.iter().zip(["udp://127.0.0.1", "udp://127.0.0.2"]) {
+            assert_eq!(check["url"], url);
+            assert_eq!(check["remote_addr"], serde_json::Value::Null);
+            assert_eq!(check["results"].as_array().map(Vec::len), Some(1), "check: {check}");
+            assert_eq!(check["results"][0][0], "Setup", "check: {check}");
+            assert!(check["results"][0][1]["Err"].is_string(), "check: {check}");
+        }
     }
 }
