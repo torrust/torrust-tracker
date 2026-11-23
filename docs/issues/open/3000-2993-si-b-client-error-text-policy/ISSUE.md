@@ -9,7 +9,7 @@ github-issue: 3000
 spec-path: docs/issues/open/3000-2993-si-b-client-error-text-policy/ISSUE.md
 branch: "3000-si-b-client-error-text-policy"
 related-pr: null
-last-updated-utc: "2026-11-23 11:05"
+last-updated-utc: "2026-11-23 18:08"
 semantic-links:
   skill-links:
     - create-issue
@@ -32,7 +32,7 @@ Parent EPIC: [Keep secrets out of errors, logs and client replies, and make clie
 
 ## Goal
 
-An accepted ADR says what an error reply may tell a client of the HTTP tracker, the UDP tracker and the REST API, and the three protocols follow it: the text helps a legitimate user fix the problem, and carries no database driver text, no internal error nesting, no server timing value and no Rust type name.
+An accepted ADR says what an error reply may tell a client of the HTTP tracker, the UDP tracker, the REST API and the health-check API, and all four follow it: the text helps a legitimate user fix the problem, and carries no database driver text, no internal error nesting, no server timing value and no Rust type name.
 
 ## Background
 
@@ -42,7 +42,18 @@ Section B of the EPIC inventory lists what each protocol sends today, reproduced
 - UDP tracker: the full `Display` chain of the server error. A wrong connection id returns `cookie value is expired: <value>, expected > 1795353220.6572893` (the server clock and the decoded cookie); a short packet returns `error parsing request: SendableRequestParseError { message: "Couldn't parse action", ... }` (a Rust type name).
 - REST API: every key, whitelist and reload failure, and a missing or wrong token, is a 500 with `Unhandled rejection: Err { reason: "..." }`; database failures put `e.to_string()` of the driver error in it (`UNIQUE constraint failed: keys.key`); a malformed JSON body returns serde's own text.
 - A database server message can name the database user and the client address (`Access denied for user 'db_user'@'172.17.0.1'`). Today it reaches the operator only; it would reach a client wherever driver text is forwarded (EPIC item A11).
-- The UDP error event payload (`packages/udp-server/src/event.rs:114-153`) holds the same strings.
+- The UDP error event payload (`packages/udp-server/src/event.rs:114-153`) holds the same strings, including the type name of a parse error (`ErrorKind::RequestParse`).
+- The health-check API returns 503 with `shutting down`, `health check failed`, and per service `Err(<reqwest error or status text>)` or `the health check job failed: <join error>` (`packages/axum-health-check-api-server/src/responses.rs:19`, `handlers.rs:66`, `:82`; `packages/axum-http-server/src/server.rs:331-332`). Added to the scope on 2026-11-23.
+
+### More client texts found by the recheck
+
+The EPIC inventory was rechecked against `develop` `6bc417424` on 2026-11-23. Section B is still right, apart from the scrape database prefix (`Tracker scrape error:`) and the UDP internal text, which also carries a source location until SI-5 of EPIC #2912 (#3001) merges. These client texts are not in section B and belong in the ADR's table of current texts:
+
+- HTTP tracker: the scrape query parse texts (`packages/http-protocol/src/v1/requests/scrape.rs:39-49`, `:61`); `invalid param value <v> for <name>: it must percent-decode to exactly 20 bytes` and `malformed percent encoding or invalid UTF-8 for ip` (`requests/announce.rs:229`, `:237`, `:245`); the announce `ip` parameter texts sent without a prefix (`packages/http-core/src/services/announce.rs:366-372`, `:424`); the latent `Key could not be verified: <sqlx text>` (`packages/tracker-core/src/authentication/key/mod.rs:170`, nothing builds it today); 408 with an empty body; axum's default 404.
+- UDP tracker: the parse messages inside the `Debug` struct (`packages/udp-protocol/src/request.rs:64-159`); the cookie texts `cookie value is not normal: <f64>` and `cookie value is from future: <f64>, expected < <f64>` (`packages/udp-core/src/connection_cookie.rs:112`, `:118`); ``Invalid announce request: `left` must not be negative, got <n>`` (`packages/udp-core/src/services/announce.rs:195`); the scrape texts (`services/scrape.rs:152`, `:156`); `AuthRequired`, which #3001 turns into a fixed message. Banned IPs get no reply.
+- REST API: `Invalid URL: invalid auth key duration: "<n>"` (`packages/axum-rest-api-server/src/v1/context/auth_key/responses.rs:58-59`); 200 `torrent not known` (`v1/context/torrent/responses.rs:23`); the whitelist 409 `listed capability ...`; axum's default path, query and JSON rejections (pinned in `packages/axum-rest-api-server/tests/server/v1/asserts.rs:121`, `:129` and `contract/context/torrent.rs:203`, `:233`); 408 with an empty body.
+- Tests that pin today's texts and change with the ADR: `packages/axum-http-server/tests/server/v1/contract/failure_reasons_hold_no_source_path.rs`, `packages/udp-server/tests/server/contract.rs` and the REST `asserts.rs`.
+- Not rechecked: whether any event type other than the UDP error event carries an error string.
 
 Rule 4 of the errors ADR says client text is the workspace error's own `Display` and that a source error from a crate the workspace does not control is not formatted into client text. It does not say how much a workspace `Display` may reveal, and the database errors break it today, because their `Display` includes the `sqlx` source.
 
@@ -62,7 +73,7 @@ The maintainer's decisions (2026-11-22): the text for database failures is decid
    - whether any reply text is a contract that clients may match, or all of it is free to change;
    - where the detail goes: a `tracing` event on the server at the site of the failure, with the request id where one exists. Today the REST API logs a 500 with no reason, so the operator cannot tell why a request failed;
    - what an event payload may carry (the UDP `ErrorKind` strings), in line with the events ADR (`docs/adrs/20260727000000_events_are_objective_facts.md`).
-2. **The implementation of the ADR**, after the maintainer accepts it: the HTTP tracker (`packages/http-core/src/services/error_mapping.rs`, `packages/http-protocol`), the UDP tracker (`packages/udp-server/src/error.rs`, `packages/udp-server/src/handlers/error.rs`, `packages/udp-core/src/connection_cookie.rs`), the REST API (`packages/rest-api-runtime-adapter/src/v1/adapters/`, `packages/axum-rest-api-server/src/v1/responses.rs`, the JSON rejection) and the UDP error event. Each old and new text is listed in this specification for approval before the code changes, as the SI-3 and SI-4 specifications of EPIC #2912 do.
+2. **The implementation of the ADR**, after the maintainer accepts it: the health-check API (`packages/axum-health-check-api-server/src/`), the HTTP tracker (`packages/http-core/src/services/error_mapping.rs`, `packages/http-protocol`), the UDP tracker (`packages/udp-server/src/error.rs`, `packages/udp-server/src/handlers/error.rs`, `packages/udp-core/src/connection_cookie.rs`), the REST API (`packages/rest-api-runtime-adapter/src/v1/adapters/`, `packages/axum-rest-api-server/src/v1/responses.rs`, the JSON rejection) and the UDP error event. Each old and new text is listed in this specification for approval before the code changes, as the SI-3 and SI-4 specifications of EPIC #2912 do.
 3. **The wrong label**: `From<(SqlxError, Driver)>` maps every `sqlx::Error::Database` to `InvalidQuery`, so an authentication failure reads `The MySQL query was malformed`. Fix the mapping or the wording as the ADR decides.
 4. **The skill**: update `handle-errors-in-code` with the policy.
 
@@ -97,6 +108,8 @@ The driver text in client replies and the wrong `InvalidQuery` label are bugs ag
 - A helper that forbids known driver markers (`sqlx`, `error returned from database`, `constraint failed`, `Access denied`) in client text, used by the protocol tests.
 
 ## Implementation Plan
+
+Session (maintainer, 2026-11-23): this issue starts after SI-A (#2999) is merged; one implementation session, Claude Fable 5.2 at high effort.
 
 Test-development loop (required by `docs/templates/ISSUE.md`, "Commit Points", and the `create-issue` skill): the red tests are not written as one batch. Use the `write-unit-test` skill and work one behavior area at a time, in the order of the commit points below (T4 to T7). For each area: write the smallest behavior-focused test, record its red output, make the production change, record the green output, then perform and record an explicit test-design review before starting the next area. The review uses the prose-first Arrange-Act-Assert comparison (write temporary prose for each section, refactor until the code expresses it, remove redundant prose) and confirms that the test exposes the one causal initial-state difference, that its fixture owns only incidental mechanics, and that the production Act and the independently specified expected result stay visible. Record each review in the task's evidence. Commit each reviewed increment before the next one. After the last increment, stop for maintainer review before final verification, the final commit and the pull request.
 
@@ -133,7 +146,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Folder-style spec drafted in `docs/issues/drafts/`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
+- [x] Spec-only PR merged into `develop` before implementation
 - [ ] ADR accepted
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
@@ -147,11 +160,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 ### Progress Log
 
 - 2026-11-22 13:50 UTC - Claude Code (Claude Fable 5.2) - Drafted from the EPIC inventory after the maintainer asked that the sub-issue specifications be part of the EPIC pull request. Not approved; no GitHub issue created.
+- 2026-11-23 11:06 UTC - Claude Code (Claude Sonnet 5.5) - The maintainer approved the specification; created #3000 and moved it to `docs/issues/open/`. Merged with the EPIC by pull request #2994.
+- 2026-11-23 18:08 UTC - Claude Code (Claude Opus 5.5), EPIC coordinator session - Rechecked against `develop` `6bc417424`: nothing fixed. Listed the client texts section B of the EPIC missed, and recorded the maintainer's answers of 2026-11-23: the health-check API joins the scope, and the implementation session runs after SI-A with Claude Fable 5.2 at high effort.
 
 ## Acceptance Criteria
 
 - [ ] AC1: An accepted ADR defines the client error text policy and answers each question listed in the scope.
-- [ ] AC2: No reply of the HTTP tracker, the UDP tracker or the REST API holds database driver text, shown by a test through each protocol server and on a running tracker.
+- [ ] AC2: No reply of the HTTP tracker, the UDP tracker, the REST API or the health-check API holds database driver text, shown by a test through each protocol server and on a running tracker.
 - [ ] AC3: A database failure leaves a `tracing` event on the server with the detail, and the operator can relate it to the client's reply.
 - [ ] AC4: The UDP connection-id error holds no server clock value, and the UDP parse error holds no Rust type name.
 - [ ] AC5: Every changed client text is listed, old and new, in this specification and was approved before the change.
