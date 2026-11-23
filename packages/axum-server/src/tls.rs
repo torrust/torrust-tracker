@@ -66,6 +66,25 @@ mod tests {
 
     use super::{Error, make_rust_tls};
 
+    /// Fails when `message` holds a source path: a workspace or registry path, or a `file.rs:line` suffix.
+    #[track_caller]
+    fn assert_names_no_source_path(message: &str) {
+        for fragment in [
+            ".rs:",
+            "packages/",
+            "packages\\",
+            "src/",
+            "src\\",
+            ".cargo/registry",
+            "rustlib/src",
+        ] {
+            assert!(
+                !message.contains(fragment),
+                "the error message must not hold a source path, but it contains {fragment:?}: {message:?}"
+            );
+        }
+    }
+
     /// Writes `content` to a new `<prefix><random>.pem` file in the system temporary directory.
     ///
     /// The returned guard removes the file when it is dropped, also when the test holding it fails.
@@ -97,6 +116,7 @@ mod tests {
         .expect_err("bad_cert_and_key_files");
 
         assert!(matches!(err, Error::BadTlsConfig { source: _ }));
+        assert_names_no_source_path(&err.to_string());
     }
 
     #[test]

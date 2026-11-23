@@ -1,0 +1,7 @@
+test tests::it_should_not_hold_a_source_path_when_a_figment_error_is_converted ... FAILED
+test tests::it_should_not_hold_a_source_path_when_an_explicit_config_file_is_invalid ... FAILED
+thread 'tests::it_should_not_hold_a_source_path_when_a_figment_error_is_converted' (97092) panicked at packages/configuration/src/lib.rs:940:9:
+the error message must not hold a source path, but it contains ".rs:": "Failed processing the configuration: invalid value for key `core.listed`, packages/configuration/src/lib.rs:935:21"
+thread 'tests::it_should_not_hold_a_source_path_when_an_explicit_config_file_is_invalid' (97093) panicked at packages/configuration/src/lib.rs:958:13:
+the error message must not hold a source path, but it contains ".rs:": "Unable to process explicit configuration file `explicit.toml`: Missing mandatory configuration option. Option path: core.listed, packages/configuration/src/lib.rs:258:56"
+test result: FAILED. 159 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s

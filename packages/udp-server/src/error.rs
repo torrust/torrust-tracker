@@ -216,4 +216,36 @@ mod tests {
             } if actual_source == source
         ));
     }
+
+    #[test]
+    fn it_should_not_hold_a_source_path_when_an_internal_error_is_displayed() {
+        // Arrange
+        let error = Error::Internal {
+            location: std::panic::Location::caller(),
+            message: "failure".to_string(),
+        };
+
+        // Act
+        let message = error.to_string();
+
+        // Assert
+        assert_eq!(message, "internal server error: failure");
+    }
+
+    #[test]
+    fn it_should_not_hold_a_source_path_when_an_authentication_required_error_is_displayed() {
+        // Arrange
+        let error = Error::AuthRequired {
+            location: std::panic::Location::caller(),
+        };
+
+        // Act
+        let message = error.to_string();
+
+        // Assert
+        assert_eq!(
+            message,
+            "domain tracker requires authentication but is not supported in current UDP implementation"
+        );
+    }
 }

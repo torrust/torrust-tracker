@@ -386,6 +386,25 @@ mod tests {
     use super::{ENV_VAR_CONFIG_TOML, ENV_VAR_CONFIG_TOML_PATH, Error, Info};
     use crate::v3_0_0::Configuration;
 
+    /// Fails when `message` holds a source path: a workspace or registry path, or a `file.rs:line` suffix.
+    #[track_caller]
+    fn assert_names_no_source_path(message: &str) {
+        for fragment in [
+            ".rs:",
+            "packages/",
+            "packages\\",
+            "src/",
+            "src\\",
+            ".cargo/registry",
+            "rustlib/src",
+        ] {
+            assert!(
+                !message.contains(fragment),
+                "the error message must not hold a source path, but it contains {fragment:?}: {message:?}"
+            );
+        }
+    }
+
     const MANDATORY_CONFIGURATION: &str = r#"
         [metadata]
         schema_version = "3.0.0"
@@ -902,6 +921,45 @@ mod tests {
 
             // Assert
             assert_eq!(configuration.health_check_api.bind_address, health_check_address(41016));
+
+            Ok(())
+        });
+    }
+
+    #[test]
+    fn it_should_not_hold_a_source_path_when_a_figment_error_is_converted() {
+        // Arrange
+        let figment_error = figment::Error::from("invalid value for key `core.listed`".to_owned());
+
+        // Act
+        let error = Error::from(figment_error);
+
+        // Assert
+        let message = error.to_string();
+        assert!(message.contains("invalid value for key `core.listed`"), "{message}");
+        assert_names_no_source_path(&message);
+    }
+
+    #[test]
+    #[allow(
+        clippy::result_large_err,
+        reason = "figment::Jail::expect_with requires the framework Result callback type"
+    )]
+    fn it_should_not_hold_a_source_path_when_an_explicit_config_file_is_invalid() {
+        Jail::expect_with(|jail| {
+            // Arrange
+            jail.clear_env();
+            jail.create_file("explicit.toml", &MANDATORY_CONFIGURATION.replace("listed = false", ""))?;
+
+            // Act
+            let error = load_configuration_with_explicit_path(PathBuf::from("explicit.toml"))
+                .expect_err("an explicit file without a mandatory option should not load");
+
+            // Assert
+            let message = error.to_string();
+            assert!(message.contains("explicit.toml"), "{message}");
+            assert!(message.contains("core.listed"), "{message}");
+            assert_names_no_source_path(&message);
 
             Ok(())
         });
