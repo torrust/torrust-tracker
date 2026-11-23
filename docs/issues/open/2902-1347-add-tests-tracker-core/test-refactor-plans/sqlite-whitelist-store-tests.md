@@ -3,7 +3,7 @@ doc-type: file-test-plan
 issue: 2902
 package: torrust-tracker-core
 target-file: packages/tracker-core/src/databases/driver/sqlite/whitelist_store.rs
-status: approved
+status: done
 semantic-links:
   related-artifacts:
     - packages/tracker-core/src/databases/driver/sqlite/whitelist_store.rs
@@ -74,10 +74,30 @@ No `quickcheck`: the inputs are SQL rows and one missing table.
 
 | ID | Status | Work | Completion evidence |
 | --- | --- | --- | --- |
-| W1 | TODO | The four tests. | They pass; the failure lines run except the recorded exceptions. |
-| W2 | TODO | Run M1-M5. | Each is killed by its expected test. |
-| W3 | TODO | Record the results and ask for the completed-file review. | This record and the ledger. |
+| W1 | DONE | The four tests. | They pass; the failure lines run except the recorded exceptions. |
+| W2 | DONE | Run M1-M5. | Each is killed by its expected test. |
+| W3 | DONE | Record the results and ask for the completed-file review. | This record and the ledger. |
 
 ## Results
 
-To be filled in after W3.
+- **Coverage** (stable Rust 1.100.0, `cargo-llvm-cov 0.9.1`, `--all-features --lib`, clean coverage
+  target directory, 2026-11-23): the file 17 / 31 lines to 47 / 54, regions 18 / 42 to 66 / 77,
+  functions 7 / 15 to 18 / 21 (the counts include the test module). The package's unit-only lines
+  4,823 / 5,620 (85.82%) to 4,853 / 5,643 (86.00%), regions 5,286 / 6,233 (84.81%), functions
+  833 / 1,041 (80.02%). Left uncovered, as planned: 40 and 42-44 (the decode and parse of the row
+  `get_info_hash_from_whitelist` finds) and 64-66 (the `usize` conversion).
+- **Tests:** 5 added (cases included), none changed: 234 to 239 unit tests in the package.
+- **Mutations** (each applied alone and reverted, the file compared with its copy afterwards):
+
+  | ID | Result |
+  | --- | --- |
+  | M1 | Killed by the malformed and the not-text `load_whitelist` cases |
+  | M2 | Killed by the malformed `load_whitelist` case |
+  | M3 | Killed by the failed `get` test |
+  | M4 | Killed by the failed `remove` test |
+  | M5 | Killed by the shared suite, `run_sqlite_driver_tests` (its duplicate-add test) |
+
+- **Review outcome:** the maintainer approved the completed file on 2026-11-23.
+- **Validation:** `cargo clippy -p torrust-tracker-core --all-targets --all-features` (only the
+  existing `axum::serve` warning), `cargo +nightly fmt --all -- --check` and
+  `cargo machete --with-metadata` pass.

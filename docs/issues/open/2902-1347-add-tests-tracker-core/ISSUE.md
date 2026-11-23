@@ -9,7 +9,7 @@ github-issue: 2902
 spec-path: docs/issues/open/2902-1347-add-tests-tracker-core/ISSUE.md
 branch: "2902-1347-add-tests-tracker-core-statistics"
 related-pr: 2988
-last-updated-utc: "2026-11-23 13:27"
+last-updated-utc: "2026-11-23 13:34"
 semantic-links:
   skill-links:
     - create-issue
@@ -360,7 +360,7 @@ rows are ordered by slice, then by risk.
 | 7 | `statistics/mod.rs`, `statistics/event/mod.rs` | S1 | 42 / 43, no entries | Test candidate (`statistics/mod.rs:49`, usage statistics disabled); `event/mod.rs` declarations only; 60 / 60 with one table test, `event/mod.rs` no change ([plan](test-refactor-plans/statistics-mod-tests.md)) | DONE |
 | 8 | `databases/driver/sqlite/auth_key_store.rs` | S2 | 29 / 55 | Test candidate; 97 / 102 with 22 tests, the shared `parse_valid_until` and `peer_key_from_row` extracted ([plan](test-refactor-plans/sqlite-auth-key-store-tests.md)) | DONE |
 | 9 | `databases/driver/sqlite/torrent_metrics_store.rs` | S2 | 27 / 46 | Test candidate; 99 / 99 with 21 tests ([plan](test-refactor-plans/sqlite-torrent-metrics-store-tests.md)) | DONE |
-| 10 | `databases/driver/sqlite/whitelist_store.rs` | S2 | 17 / 31 | Test candidate ([plan](test-refactor-plans/sqlite-whitelist-store-tests.md)) | IN_PROGRESS |
+| 10 | `databases/driver/sqlite/whitelist_store.rs` | S2 | 17 / 31 | Test candidate; 47 / 54 with 5 tests ([plan](test-refactor-plans/sqlite-whitelist-store-tests.md)) | DONE |
 | 11 | `databases/driver/sqlite/mod.rs` | S2 | 81 / 91 | Test candidate (aggregate-metric error branches) | PENDING |
 | 12 | `databases/driver/sqlite/schema_migrator.rs` | S2 | 136 / 149 | No change likely; challenge each `?` | PENDING |
 | 13 | `databases/error.rs` | S2 | 28 / 35 | Test candidate (migration-error mapping) | PENDING |
@@ -431,6 +431,7 @@ The first slice's record checks the grouping against `find packages/tracker-core
 - 2026-11-22 14:23 UTC - Claude Code (Sonnet 5.5) - S1 merged (#2988). S2 started on `2902-1347-add-tests-tracker-core-sqlite`, cut from `develop` `83f3ecbbc`; S2 baseline in the four scopes (unit-only lines 84.17%, aggregate equal, 191 unit tests, 15 integration). First plan: [`sqlite/auth_key_store.rs`](test-refactor-plans/sqlite-auth-key-store-tests.md); the maintainer approved it with the row mapping extracted too, so Q4's extraction covers `parse_valid_until` and `peer_key_from_row`.
 - 2026-11-23 13:03 UTC - Claude Code (Sonnet 5.5) - Row 8 (`sqlite/auth_key_store.rs`) done: `parse_valid_until` and the key-and-expiry parse extracted once into `databases/driver/mod.rs` for the three drivers (finding F2 / Q4), run green against the local MySQL and PostgreSQL containers; 22 tests, 97 / 102 lines, all ten named mutants killed ([plan](test-refactor-plans/sqlite-auth-key-store-tests.md)). Plan and completed file approved by the maintainer.
 - 2026-11-23 13:16 UTC - Claude Code (Sonnet 5.5) - Row 9 (`sqlite/torrent_metrics_store.rs`) done: 21 tests on a temporary database, 99 / 99 lines, all eleven named mutants killed; the SQLite store test setup moved into a shared fixture of the driver ([plan](test-refactor-plans/sqlite-torrent-metrics-store-tests.md)). Plan and completed file approved by the maintainer.
+- 2026-11-23 13:34 UTC - Claude Code (Sonnet 5.5) - Row 10 (`sqlite/whitelist_store.rs`) done: 5 tests on the shared fixture, 47 / 54 lines, all five named mutants killed, two groups of lines left by reason ([plan](test-refactor-plans/sqlite-whitelist-store-tests.md)). Plan and completed file approved by the maintainer.
 
 ## Open Design Questions
 
