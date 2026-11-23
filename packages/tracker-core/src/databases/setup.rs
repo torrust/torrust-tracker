@@ -132,6 +132,7 @@ pub async fn initialize_database_from_configuration(database: &Database) -> Resu
 
 #[cfg(test)]
 mod tests {
+    use tempfile::{TempDir, tempdir};
     use torrust_tracker_configuration::v3_0_0::core::Core;
     use torrust_tracker_configuration::v3_0_0::database::Database;
 
@@ -141,8 +142,8 @@ mod tests {
 
     /// A SQLite configuration whose database file sits in a directory that does not exist, so the
     /// database cannot be opened. The returned directory keeps the path unique to the test.
-    fn sqlite_database_in_a_missing_directory() -> (Database, tempfile::TempDir) {
-        let directory = tempfile::tempdir().expect("a temporary directory can be created");
+    fn sqlite_database_in_a_missing_directory() -> (Database, TempDir) {
+        let directory = tempdir().expect("a temporary directory can be created");
         let path = directory.path().join("missing").join("data.db");
 
         (
