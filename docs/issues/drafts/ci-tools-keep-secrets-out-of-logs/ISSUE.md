@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/ci-tools-keep-secrets-out-of-logs/ISSUE.md
 branch: "{issue-number}-ci-tools-keep-secrets-out-of-logs"
 related-pr: null
-last-updated-utc: "2026-11-23 20:42"
+last-updated-utc: "2026-11-23 21:19"
 semantic-links:
   skill-links:
     - create-issue
@@ -46,14 +46,14 @@ The inventory of EPIC #2993 (section "Verified by running experiments") and its 
 
 The values are test values of the CI environment, so the exposure is low today. The pattern is the problem: the CI logs are public on GitHub Actions, and the same code would print a real secret if someone pointed the tool at a real configuration. The `handle-secrets` skill forbids secrets in logs.
 
-Not checked yet: whether the `config_builder.rs` constants are still used, since the v3 configuration refuses `path` for a network database (`packages/configuration/src/v3_0_0/database.rs:203-204`).
+The `config_builder.rs` constants are in use: the qBittorrent E2E runner picks one by database driver (`src/console/ci/qbittorrent_e2e/runner.rs:108`), and `database_configuration` parses it into the v3 network database fields with `connection_info_from_url` (`config_builder.rs:136-150`). So the password lives in a URL string only inside the CI tool; the tracker never sees the URL.
 
 ## Scope
 
 ### In Scope
 
 - Each site above logs a redacted form or only the non-secret part (for example the configuration with `to_redacted_json` or the same masking, the `docker run` arguments with `--env` values replaced by `***`, the compose command without its environment).
-- The `config_builder.rs` database URLs: removed if unused, or built from the v3 network database fields.
+- The `config_builder.rs` database URLs: replaced by constants for the v3 network database fields (host, port, user, password, database), so no password sits inside a URL string, or kept with the reason recorded.
 - A check of the other `src/console/ci/` tools for the same pattern.
 
 ### Out of Scope
@@ -90,7 +90,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1 | TODO | Baseline | The sites re-checked; one E2E run's log lines recorded with test values. |
 | T2 | TODO | Configuration logs | `runner.rs:80`, `tracker_checker.rs:88` log a redacted form. |
 | T3 | TODO | Command logs | `docker.rs:89`, `compose.rs:111`, `:317` log no environment value. |
-| T4 | TODO | Database URL constants | `config_builder.rs:16-17` removed or rebuilt. |
+| T4 | TODO | Database URL constants | `config_builder.rs:16-17` replaced by v3 database field constants, or kept with the reason recorded. |
 | T4b | TODO | Maintainer checkpoint | Stop for maintainer review after the last test increment, before final verification, the final commit and the pull request. |
 | T5 | TODO | Final recheck | The manual scenarios repeated; no secret in the log. |
 
