@@ -7,9 +7,9 @@ priority: p1
 epic: 2003
 github-issue: 2904
 spec-path: docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md
-branch: "2904-t4-pr-review-handler"
+branch: "2904-t5-task-reviewer-spec"
 related-pr: null
-last-updated-utc: "2026-11-19 16:57"
+last-updated-utc: "2026-11-23 13:16"
 semantic-links:
   skill-links:
     - create-issue
@@ -159,6 +159,8 @@ installed version on the day was Claude Code 2.1.318.
 | **Enforcement** |  |
 | An agent's frontmatter can declare hooks; a `Stop` hook there becomes `SubagentStop`. | [Hooks in subagent frontmatter](https://code.claude.com/docs/en/sub-agents#hooks-in-subagent-frontmatter), [Hooks in skills and agents](https://code.claude.com/docs/en/hooks#hooks-in-skills-and-agents) |
 | Exit code 2 from a `SubagentStop` hook prevents the agent from stopping. | [Exit code 2 behavior per event](https://code.claude.com/docs/en/hooks#exit-code-2-behavior-per-event) |
+| Checked on 2026-11-23: a `SubagentStop` hook receives `stop_hook_active`, `agent_id`, `agent_type`, `agent_transcript_path` (the agent's own transcript) and `last_assistant_message` (the text of its final response), besides the fields every hook receives. The agent's task text is not among them. | [SubagentStop input](https://code.claude.com/docs/en/hooks#subagentstop-input) |
+| Checked on 2026-11-23: after stop hooks have continued a turn eight times in a row, Claude Code overrides the next block. The page states it for `Stop`; it does not say whether it applies to `SubagentStop`. | [Stop input](https://code.claude.com/docs/en/hooks#stop-input) |
 | A dynamic workflow takes no user input in the middle of a run. | [Behavior and limits](https://code.claude.com/docs/en/workflows#behavior-and-limits) |
 | Not documented: using a named `.claude/agents/` definition in a workflow's `agent()` call. The workflows page was searched for `.claude/agents`, `subagent_type` and "agent type". | [Workflows](https://code.claude.com/docs/en/workflows) |
 | **Skills** |  |
@@ -343,6 +345,29 @@ Decided by the maintainer on 2026-11-15:
   contributor. This is the only
   hook in this issue; it is a Claude Code mechanism, so the rule itself stays written in the
   `review-task` skill (maintainer, 2026-11-17).
+
+  How the hook works (maintainer, 2026-11-23). The rule belongs to this project's process, not to
+  one harness, so the names below are neutral and another harness's stop hook can call the same
+  program:
+
+  - **Which file.** Whoever starts the reviewer (the session today, the orchestrator from T9)
+    writes one line `Reply file: <path>` in the agent's task, with the path D18 defines. The hook
+    input has no field for the task (see What Claude Code supports), so the hook reads the line
+    from the first message of the agent's transcript, `agent_transcript_path`. Without the line
+    the reviewer was given no folder-style specification, and the hook lets the agent finish.
+    With the line, the caller has fixed the file, so an agent that skips the reply cannot pass
+    for one that had nothing to write. The transcript's format is not documented; scenario M7
+    shows that the hook reads the line, and the hook's tests pin the format it relies on.
+  - **The count of refusals.** One file per run, named after the run's `agent_id`, in
+    `.agents/issues/<issue-number>/reply-guard/`, where the issue number is the first number of
+    the specification's folder name. The `.agents/issues/` subtree holds only local workflow
+    state: it is ignored by Git and excluded from every linter, which do not read `.gitignore`,
+    and nothing committed goes there. `.tmp/` is not used, because agents clean it as scratch
+    space. A `Reply file:` path in `docs/issues/drafts/` has no issue number, so the hook refuses
+    it and says that the reviewed specification needs one. The bound of 3 is below the cap of
+    eight continuations that Claude Code documents for stop hooks.
+  - **The program.** A binary `agent-reply-guard` in the crate `agent-reply-validator` (T3), so
+    the hook runs the same checks as the validator and needs no new crate.
 - **D18 - The trace is one JSON reply file per reply, validated against a schema.** Only replies
   are recorded for now, not requests. Stricter formats are preferred for artifacts, so that a
   schema can validate them and, later, the communication between agents:
@@ -520,7 +545,7 @@ on are merged.
 | T2  | DONE   | Pointer `CLAUDE.md` | A root `CLAUDE.md` whose only content is the import of `AGENTS.md` (D11); if scenario M4 shows that a scoped `AGENTS.md` is not loaded, an import-only `CLAUDE.md` beside each of the ten scoped `AGENTS.md` files; scenario M4 recorded |
 | T3  | DONE   | Reply schema and validator | `docs/schemas/agent-reply-v1.schema.json`; the validator with tests, developed in the progressive loop of the `write-unit-test` skill with a recorded design review per increment, and run by the repository checks; `docs/schemas/README.md` updated (D18) |
 | T4  | DONE | `pr-review-handler` | `.claude/agents/pr-review-handler.md` with the pinned model; `wait-for-pr-review` and `process-pr-review` say which agent runs a round; the inventory `removed-profile-rules.md` created in this folder with the rules of `copilot-suggestions-handler` (AC6); scenarios M1 to M3 recorded |
-| T5  | TODO   | `task-reviewer` | The agent file with the pinned model and the stop hook (D17), with tests of its limit of 3 refusals; the complexity item in `review-task` (D12); the reply rule in `review-task`, which also says that a reply file satisfies the earlier template's checkpoint (D18); scenario M7 recorded |
+| T5  | TODO   | `task-reviewer` | The agent file with the pinned model and the stop hook (D17): the binary `agent-reply-guard` with tests of its limit of 3 refusals, and the ignore and linter rules for `.agents/issues/`; the complexity item in `review-task` (D12); the reply rule in `review-task`, which also says that a reply file satisfies the earlier template's checkpoint (D18); scenario M7 recorded |
 | T6  | TODO   | `implementer` | The agent file; the three committer rules in `commit-changes` (D14); the rules that only `planner` held moved into `create-issue` |
 | T7  | TODO   | `pr-reviewer` | The agent file with the pinned model; the reply rule in `review-pr` |
 | T8  | TODO   | `researcher` | The agent file |
@@ -608,6 +633,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - 2026-11-19 11:37 UTC - Claude Code (Claude Opus 5.5) - Scenario M3 done on the first review round of pull request #2963 (review `5972182565` of `da2ce7`, findings F1 to F6, all fixed), delegated to `pr-review-handler` by non-interactive sessions; it took three runs. The first was stopped after 10 minutes because the session started the agent in the background; the second stopped at a question, since the maintainer had ACKed the reviewed head during the round; the third, with the contributor's answer "Push the fixes", pushed the fixes and the audit record, replied to and resolved the six threads, and `validate-audit-record.py` exited `0`. Evidence in `manual-verification-evidence.md` section V3; the first round count for AC9 is in section V6. Task T4 is done.
 - 2026-11-19 12:17 UTC - Claude Code (Claude Opus 5.5) - Third review round of pull request #2963 (reviews `5974503813` and `5974634671` of `da2ce7`, findings F14 to F18), processed by `pr-review-handler`: the records of the M3 runs, of round 2 and of round 3 are stored in `evidence/m3-run-records.md`, which V3 and V6 link; V3 quotes the message that names `CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS` and says its effect alone was not observed; V6 counts three rounds with fixes; AC3 is checked with the evidence of V3, and the AC9 row gives the new count.
 - 2026-11-19 16:57 UTC - Claude Code (Claude Opus 5.5) - Fourth review round of pull request #2963 (review `5976833863` of `da2ce7`, finding F20), processed by `pr-review-handler`: V6 names its round definition, one push of fixes per processing round, which is how the 14 rounds of #2851 were counted, and also gives the count of reviews with a `FIXED` finding (19 for #2851, 5 for #2963); #2963 has 4 rounds with this one. The AC9 row gives both counts, and `evidence/m3-run-records.md` records the second run of round 3 and the two runs of round 4.
+- 2026-11-23 13:16 UTC - Claude Code (Claude Opus 5.5) - Pull request #2963 merged on 2026-11-19 at 18:37 UTC (T4). Before T5, the maintainer settled how the stop hook of D17 works, recorded in D17: the caller names the reply file in a `Reply file:` line of the task, which the hook reads from the agent's transcript; the count of refusals is kept per run in `.agents/issues/<issue-number>/reply-guard/`; the program is the binary `agent-reply-guard` of the crate `agent-reply-validator`. Two documented facts about `SubagentStop` hooks were added to What Claude Code supports.
 
 ## Acceptance Criteria
 
