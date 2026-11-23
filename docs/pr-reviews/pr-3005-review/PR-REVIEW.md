@@ -65,6 +65,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F18 | review-finding:pr-3005-f18 | Human | Nit | testing | ORIGINAL | FIXED | RESOLVED |
 | F19 | review-finding:pr-3005-f19 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F20 | review-finding:pr-3005-f20 | Human | Suggestion | correctness | ORIGINAL | FIXED | RESOLVED |
+| F21 | review-finding:pr-3005-f21 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F22 | review-finding:pr-3005-f22 | Human | Nit | testing | ORIGINAL | FIXED | RESOLVED |
+| F23 | review-finding:pr-3005-f23 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -328,13 +331,54 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3005#discussion_r4667325011
 
+### F21 - The audit cites a PR-branch commit by id
+
+- PR number: 3005
+- Source review ID: 6023801718
+- Reviewer finding ID: F18
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3005#discussion_r4667479178
+- Concern: The round 2 log entry cited the reviewed PR-branch commit by its id, which the `open-pull-request` commit-id check flags; a rebase would orphan it. Audits cite commit subjects.
+- Solution: The round 2 entry names the reviewed head by its subject, `docs(pr-reviews): [#3005] record review round 1`. That is an in-place change to an append-only log, so the correction entry of round 3 records it.
+- Current-tree verification: the commit-id check of `open-pull-request` (Pre-flight Checks), run from the repository root with `UPSTREAM_REMOTE=torrust`, prints nothing.
+- Resolution reference: `docs(pr-reviews): [#3005] record review round 3`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3005#discussion_r4667508845
+
+### F22 - The planned body-read test cannot be red on AC2 for the checker
+
+- PR number: 3005
+- Source review ID: 6023801718
+- Reviewer finding ID: F19
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3005#discussion_r4667479194
+- Concern: The body-read test runs `http announce`, so it cannot reach the checker's `bytes()` calls (`checks/http.rs:76,94`); either run `check` against the fake too or drop the AC2 clause. That run can only be red on AC2, because the checker clears the URL path.
+- Solution: The test also runs `tracker_client check` against the same fake and asserts no `reqwest::Error` `Debug` text; the spec says it can be red only on AC2.
+- Current-tree verification: `grep -n "can be red only on AC2" docs/issues/open/3004-2758-tracker-client-mask-tracker-key/ISSUE.md` matches the test bullet; `sed -n 34p console/tracker-client/src/console/clients/checker/checks/http.rs` shows `base_url.set_path("");`.
+- Resolution reference: `docs(issues): [#3004] run check in the body-read test for the AC2 red case`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3005#discussion_r4667509992
+
+### F23 - Two log entries are stamped before the commits they report
+
+- PR number: 3005
+- Source review ID: 6023801718
+- Reviewer finding ID: F20
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3005#discussion_r4667479204
+- Concern: The 14:20 entry reports a commit made at 14:22:27Z and the 14:40 entry one made at 14:41:20Z; a log entry is stamped after its event. Add a correction entry.
+- Solution: A correction entry of round 3 states the real commit times; the earlier entries stay as written.
+- Current-tree verification: `git log --format='%cI %s' torrust/develop..HEAD` shows the round 1 fix commits at 14:20:35Z and 14:22:27Z and the round 2 fix commit at 14:41:20Z.
+- Resolution reference: `docs(pr-reviews): [#3005] record review round 3`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3005#discussion_r4667511054
+
 ## Processing Log
 
 - 2026-11-23 14:20 UTC - Round 1 had three reviews: Greptile 6022884092 (COMMENTED, 13:55:02Z, two inline comments, F11 and F12), da2ce7 6023213938 (COMMENTED, 14:16:41Z, ten inline comments, F1 to F10) and Copilot 6023264037 (COMMENTED, 14:19:58Z, five inline comments, F13 to F17; its IDs R1, R2, R2, F2 and R4 collide, so audit IDs were assigned). Fix commits made (committer times 14:20:35Z and 14:22:27Z); the PR description was edited for F9.
 - 2026-11-23 14:23 UTC - Replied on the 17 threads as `josecelano-bot` (reply `created_at` 14:23:44Z to 14:24:29Z, before the fix commits were pushed) and resolved each with GraphQL; every `resolveReviewThread` returned `isResolved` true.
 - 2026-11-23 14:25 UTC - Started this audit late: the record was written after the replies, not before them as the workflow asks. The validator (`validate-audit-record.py`, run with the bot token) first failed on F14's two-subject resolution reference; F14 now cites one subject.
-- 2026-11-23 14:40 UTC - Round 2: review 6023559554 (da2ce7, APPROVED at `0cb4c9cca`, 14:39:23Z) with three inline comments; its IDs F11 to F13 collide with audit IDs, so they are F18 to F20. Fix commit made (committer time 14:41:20Z).
+- 2026-11-23 14:40 UTC - Round 2: review 6023559554 (da2ce7, APPROVED at the head `docs(pr-reviews): [#3005] record review round 1`, 14:39:23Z) with three inline comments; its IDs F11 to F13 collide with audit IDs, so they are F18 to F20. Fix commit made (committer time 14:41:20Z).
 - 2026-11-23 14:42 UTC - Correction to the round 1 entry of 14:23 UTC: the round 1 replies were created from 14:23:44Z to 14:24:43Z (the F17 reply), not to 14:24:29Z (finding F19). Replied on the three round 2 threads as `josecelano-bot` (reply `created_at` 14:42:09Z to 14:42:18Z) and resolved each; every `resolveReviewThread` returned `isResolved` true.
+- 2026-11-23 14:57 UTC - Round 3: review 6023801718 (da2ce7, APPROVED, 14:54:34Z) with three inline comments; its IDs F18 to F20 collide with audit IDs, so they are F21 to F23. Fix commit made at 14:55:49Z. Replied on the three threads as `josecelano-bot` (reply `created_at` 14:56:40Z to 14:56:48Z) and resolved each; every `resolveReviewThread` returned `isResolved` true.
+- 2026-11-23 14:57 UTC - Corrections (findings F21 and F23): the round 2 entry of 14:40 UTC was changed in place to name the reviewed head by its commit subject instead of its commit id; its other text is unchanged. The 14:20 UTC entry reports fix commits made at 14:20:35Z and 14:22:27Z, and the 14:40 UTC entry one made at 14:41:20Z, after their stamps.
 
 ## Completion Rules
 
