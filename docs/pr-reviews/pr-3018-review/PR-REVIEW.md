@@ -52,11 +52,11 @@ F1 to F5 come from CodeRabbit's review 6030014294 (COMMENTED, submitted 21:44:49
 | F5 | review-finding:pr-3018-f5 | Unknown | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-3018-f6 | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F7 | review-finding:pr-3018-f7 | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
-| F8 | review-finding:pr-3018-f8 | Unknown | Minor | correctness | ORIGINAL | FIXED | OPEN |
-| F9 | review-finding:pr-3018-f9 | Unknown | Minor | correctness | ORIGINAL | FIXED | OPEN |
-| F10 | review-finding:pr-3018-f10 | Unknown | Minor | correctness | ORIGINAL | FIXED | OPEN |
-| F11 | review-finding:pr-3018-f11 | Unknown | Minor | correctness | ORIGINAL | FIXED | OPEN |
-| F12 | review-finding:pr-3018-f12 | Unknown | Minor | correctness | RE_RAISE_OF:F4 | FIXED | OPEN |
+| F8 | review-finding:pr-3018-f8 | Unknown | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F9 | review-finding:pr-3018-f9 | Unknown | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-3018-f10 | Unknown | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-3018-f11 | Unknown | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-3018-f12 | Unknown | Minor | correctness | RE_RAISE_OF:F4 | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -162,7 +162,7 @@ F1 to F5 come from CodeRabbit's review 6030014294 (COMMENTED, submitted 21:44:49
 - Current-tree verification: `cargo test -p source-location-check` (stable Rust toolchain) passes 20 library tests and 4 CLI tests, including the named test; `cargo run -q -p source-location-check` exits 0 on the tree. The tests were written with the fix; the first three were also run against the previous code and failed there.
 - Resolution reference: fix(source-location-check): [#2918] mask raw byte strings and escaped apostrophes and parse attributes on the item's line
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3018#discussion_r4673532108
 
 ### F9 - An escaped apostrophe ends a character literal too early
 
@@ -175,7 +175,7 @@ F1 to F5 come from CodeRabbit's review 6030014294 (COMMENTED, submitted 21:44:49
 - Current-tree verification: `cargo test -p source-location-check` (stable Rust toolchain) passes 20 library tests and 4 CLI tests, including the named test; `cargo run -q -p source-location-check` exits 0 on the tree. The tests were written with the fix; the first three were also run against the previous code and failed there.
 - Resolution reference: fix(source-location-check): [#2918] mask raw byte strings and escaped apostrophes and parse attributes on the item's line
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3018#discussion_r4673532413
 
 ### F10 - An attribute on the item's line is discarded with the item
 
@@ -188,7 +188,7 @@ F1 to F5 come from CodeRabbit's review 6030014294 (COMMENTED, submitted 21:44:49
 - Current-tree verification: `cargo test -p source-location-check` (stable Rust toolchain) passes 20 library tests and 4 CLI tests, including the named test; `cargo run -q -p source-location-check` exits 0 on the tree. The tests were written with the fix; the first three were also run against the previous code and failed there.
 - Resolution reference: fix(source-location-check): [#2918] mask raw byte strings and escaped apostrophes and parse attributes on the item's line
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3018#discussion_r4673532677
 
 ### F11 - A multi-line attribute clears the pending `#[cfg(test)]`
 
@@ -201,23 +201,24 @@ F1 to F5 come from CodeRabbit's review 6030014294 (COMMENTED, submitted 21:44:49
 - Current-tree verification: `cargo test -p source-location-check` (stable Rust toolchain) passes 20 library tests and 4 CLI tests, including the named test; `cargo run -q -p source-location-check` exits 0 on the tree. The tests were written with the fix; the first three were also run against the previous code and failed there.
 - Resolution reference: fix(source-location-check): [#2918] mask raw byte strings and escaped apostrophes and parse attributes on the item's line
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3018#discussion_r4673533009
 
 ### F12 - A production module below a test-only prefix is still skipped
 
 - PR number: 3018
 - Source review ID: 6030752681
 - Reviewer finding ID: N/A
-- Source URL: https://github.com/torrust/torrust-tracker/pull/3018#discussion_r4673071018
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3018#pullrequestreview-6030752681
 - Concern: CodeRabbit (rated Minor) noted that in a reply on the F4 thread, CodeRabbit found that a production inline module (`mod shared { mod child; }` in `main.rs`) next to `#[cfg(test)] mod shared;` in `lib.rs` still left `src/shared/child.rs` skipped, because the test-only prefix `src/shared/` stayed in force.
 - Solution: `is_test_file` compares the longest matching test-only entry with the longest matching production entry and the more specific one decides; `test_only_paths` returns both sets (`ModulePaths`). `it_should_let_a_production_declaration_override_a_test_only_directory_prefix` pins `child.rs` and a file below it.
 - Current-tree verification: `cargo test -p source-location-check` (stable Rust toolchain) passes 20 library tests and 4 CLI tests, including the named test; `cargo run -q -p source-location-check` exits 0 on the tree. The tests were written with the fix; the first three were also run against the previous code and failed there.
 - Resolution reference: fix(source-location-check): [#2918] let a production module declaration override a test-only directory prefix
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3018#discussion_r4673533475
 
 ## Processing Log
 
 - 2026-11-23 22:27 UTC - Copilot's review 6030466922 (COMMENTED, submitted 22:22:53Z) reached the poller; listing the reviews through the REST API also showed CodeRabbit's review 6030014294 (submitted 21:44:49Z), which the poller does not watch. Seven inline findings, F1 to F7. The audit was started before the first reply. F1 to F4, F6 and F7 are fixed in "fix(source-location-check): [#2918] mask comments and strings, balance delimiters and track module ancestry" and F5 in this audit's commit.
 - 2026-11-23 22:31 UTC - Pushed the fixes (pre-push hook passed, push finished 22:30:26 UTC by `date -u`), replied on the seven threads (replies posted 22:30:57 UTC) and resolved them (`resolveReviewThread` returned `true` for each; `date -u` after the resolve commands: 22:31:10). GraphQL refresh: zero unresolved threads on PR #3018. This entry is committed and pushed after the replies.
 - 2026-11-23 23:38 UTC - The poller (watching da2ce7 and Copilot only) timed out after an hour with no event, but listing the reviews showed CodeRabbit's round 2: review 6030628364 with four new inline findings (F8 to F11) and a reply on the F4 thread (F12). F8 to F11 fixed in "fix(source-location-check): [#2918] mask raw byte strings and escaped apostrophes and parse attributes on the item's line" and F12 in "fix(source-location-check): [#2918] let a production module declaration override a test-only directory prefix". The poller is restarted with the CodeRabbit login added as a watched reviewer.
+- 2026-11-23 23:43 UTC - Pushed the round-2 fixes and audit (pre-push hook passed, push finished 23:41:42 UTC by `date -u`), replied on the five threads (replies posted 23:42:06 UTC) and resolved them (`resolveReviewThread` returned `true` for each, including the F4 thread that CodeRabbit's reply had left resolved; `date -u` after the resolve commands: 23:42:22). GraphQL refresh: zero unresolved threads on PR #3018. This entry is committed and pushed after the replies.
