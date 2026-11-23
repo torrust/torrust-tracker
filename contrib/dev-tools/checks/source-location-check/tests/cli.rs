@@ -8,18 +8,19 @@ use tempfile::TempDir;
 
 const CALLER: &str = concat!("Location::", "caller()");
 
+/// A `git` command that ignores the repository a Git hook runs in (`GIT_DIR`, `GIT_INDEX_FILE`, ...).
+fn git() -> Command {
+    let mut command = Command::new("git");
+    for (name, _) in std::env::vars_os().filter(|(name, _)| name.to_string_lossy().starts_with("GIT_")) {
+        command.env_remove(name);
+    }
+    command
+}
+
 fn scratch(files: &[(&str, &str)]) -> TempDir {
     let directory = tempfile::tempdir().expect("create scratch directory");
     let root = directory.path();
-    assert!(
-        Command::new("git")
-            .arg("init")
-            .arg("--quiet")
-            .current_dir(root)
-            .status()
-            .unwrap()
-            .success()
-    );
+    assert!(git().arg("init").arg("--quiet").current_dir(root).status().unwrap().success());
     for (name, content) in files {
         write(root, name, content);
     }
@@ -33,11 +34,20 @@ fn write(root: &Path, name: &str, content: &str) {
 }
 
 fn run(directory: &TempDir) -> Output {
-    Command::new(env!("CARGO_BIN_EXE_source-location-check"))
+    binary()
         .args(["--allow-list", "allow-list.txt"])
         .current_dir(directory.path())
         .output()
         .expect("run source-location-check")
+}
+
+/// The binary under test, with the `GIT_*` variables of a running hook removed (it runs `git ls-files`).
+fn binary() -> Command {
+    let mut command = Command::new(env!("CARGO_BIN_EXE_source-location-check"));
+    for (name, _) in std::env::vars_os().filter(|(name, _)| name.to_string_lossy().starts_with("GIT_")) {
+        command.env_remove(name);
+    }
+    command
 }
 
 fn stderr(output: &Output) -> String {
@@ -92,11 +102,7 @@ fn it_should_pass_for_a_file_on_the_allow_list_and_fail_for_an_entry_without_rea
 fn it_should_exit_two_on_an_unknown_argument() {
     let directory = scratch(&[]);
 
-    let output = Command::new(env!("CARGO_BIN_EXE_source-location-check"))
-        .arg("--bogus")
-        .current_dir(directory.path())
-        .output()
-        .unwrap();
+    let output = binary().arg("--bogus").current_dir(directory.path()).output().unwrap();
 
     assert_eq!(output.status.code(), Some(2));
 }
