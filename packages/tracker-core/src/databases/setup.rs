@@ -132,12 +132,99 @@ pub async fn initialize_database_from_configuration(database: &Database) -> Resu
 
 #[cfg(test)]
 mod tests {
-    use super::initialize_database;
-    use crate::test_helpers::tests::ephemeral_configuration;
+    use torrust_tracker_configuration::v3_0_0::core::Core;
+    use torrust_tracker_configuration::v3_0_0::database::Database;
+
+    use super::{initialize_database, initialize_database_from_configuration};
+    use crate::authentication::{Key, PeerKey};
+    use crate::test_helpers::tests::{ephemeral_configuration, sample_info_hash};
+
+    /// A SQLite configuration whose database file sits in a directory that does not exist, so the
+    /// database cannot be opened. The returned directory keeps the path unique to the test.
+    fn sqlite_database_in_a_missing_directory() -> (Database, tempfile::TempDir) {
+        let directory = tempfile::tempdir().expect("a temporary directory can be created");
+        let path = directory.path().join("missing").join("data.db");
+
+        (
+            Database::Sqlite3 {
+                path: path.to_str().expect("the temporary path is UTF-8").to_string(),
+            },
+            directory,
+        )
+    }
 
     #[tokio::test]
     async fn it_should_initialize_the_sqlite_database() {
         let ephemeral = ephemeral_configuration();
         let _database = initialize_database(&ephemeral.config).await;
+    }
+
+    #[tokio::test]
+    async fn it_should_hand_the_same_migrated_database_to_all_four_stores() {
+        // Arrange
+        let ephemeral = ephemeral_configuration();
+        let stores = initialize_database(&ephemeral.config).await;
+        let key = PeerKey {
+            key: Key::new("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ").unwrap(),
+            valid_until: None,
+        };
+
+        // Act: every store writes and reads back, so the tables exist
+        stores
+            .whitelist_store
+            .add_info_hash_to_whitelist(sample_info_hash())
+            .await
+            .unwrap();
+        stores.auth_key_store.add_key_to_keys(&key).await.unwrap();
+        stores.torrent_metrics_store.save_global_downloads(5).await.unwrap();
+
+        // Assert
+        assert_eq!(
+            stores.whitelist_store.load_whitelist().await.unwrap(),
+            vec![sample_info_hash()]
+        );
+        assert_eq!(stores.auth_key_store.load_keys().await.unwrap(), vec![key]);
+        assert_eq!(stores.torrent_metrics_store.load_global_downloads().await.unwrap(), Some(5));
+
+        // Act: the schema migrator drops the tables of the database it shares with the others
+        stores.schema_migrator.drop_database_tables().await.unwrap();
+
+        // Assert
+        assert!(
+            stores.whitelist_store.load_whitelist().await.is_err(),
+            "the schema migrator and the whitelist store must share one database"
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_return_an_error_instead_of_panicking_when_the_database_cannot_be_opened() {
+        let (database, _directory) = sqlite_database_in_a_missing_directory();
+
+        let result = initialize_database_from_configuration(&database).await;
+
+        assert!(result.is_err(), "a database in a missing directory cannot be initialized");
+    }
+
+    #[tokio::test]
+    #[should_panic(expected = "database configuration is required")]
+    async fn the_legacy_factory_should_panic_when_the_configuration_has_no_database() {
+        let config = Core {
+            database: None,
+            ..ephemeral_configuration().config
+        };
+
+        let _stores = initialize_database(&config).await;
+    }
+
+    #[tokio::test]
+    #[should_panic(expected = "database initialization requested")]
+    async fn the_legacy_factory_should_panic_when_the_database_cannot_be_opened() {
+        let (database, _directory) = sqlite_database_in_a_missing_directory();
+        let config = Core {
+            database: Some(database),
+            ..ephemeral_configuration().config
+        };
+
+        let _stores = initialize_database(&config).await;
     }
 }
