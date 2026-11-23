@@ -62,8 +62,9 @@ A failed HTTP request is described by its kind (one of `timeout`, `connection`, 
 `decode`, `body`, `redirect`, `builder`, `request` and `unknown`), the masked URL and the chain of
 causes, never by the `Debug` text of the HTTP library error. The same masking applies to
 configuration and usage errors that echo a keyed URL the caller typed, in any scheme case, with
-`\` as a separator, and even when the URL does not parse: the whole segment after the endpoint is
-masked, up to a path delimiter, a character that cannot appear in a URL, or a closing quote. The
+`\` as a separator, and even when the URL does not parse: the rest of the path after the endpoint
+is masked, up to the query, the fragment, a character that cannot appear in a URL, or a closing
+quote, so dot segments and nested endpoints cannot move the key out of the mask. The
 masking functions live in
 `packages/tracker-client/src/http/client/redaction.rs`.
 

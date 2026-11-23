@@ -78,13 +78,13 @@ fn is_keyed_endpoint(segment: &str) -> bool {
 /// It is meant for text built by a third-party formatter that echoes input, such as a parse error
 /// or a command-line usage error, where the URL may be malformed. It does not parse URLs:
 ///
-/// - a key is the first non-empty segment after every `/announce/` or `/scrape/`, compared in any
-///   ASCII case and with `\` taken as `/`, as URL parsers do for HTTP (so an escaped `\\` is a
-///   separator too). The segment ends at a path delimiter (`/`,
-///   `\`, `?`, `#`), at a character that cannot appear in a URL (whitespace, `"`, `<`, `>`, a
-///   backtick, `{`, `}`, `|`, `^`), or at an apostrophe followed by whitespace or the end of the
-///   text (the closing quote of a quoted value). Any other character, such as `(` or `)`, is part
-///   of the masked segment;
+/// - after every `/announce/` or `/scrape/`, compared in any ASCII case and with `\` taken as
+///   `/`, as URL parsers do for HTTP (so an escaped `\\` is a separator too), the rest of the path
+///   is masked: from its first non-empty segment to the query (`?`), the fragment (`#`), a
+///   character that cannot appear in a URL (whitespace, `"`, `<`, `>`, a backtick, `{`, `}`, `|`,
+///   `^`), or an apostrophe followed by whitespace or the end of the text (the closing quote of a
+///   quoted value). Masking the whole rest, not one segment, also covers the forms a URL parser
+///   normalizes to the same key (`./<key>`, `%2e/<key>`, `../x/<key>`, a nested endpoint);
 /// - a password is the text between the first `:` and the last `@` of each authority that follows
 ///   a `://`.
 #[must_use]
@@ -116,7 +116,7 @@ fn mask_keys_after_endpoints(text: &str) -> String {
                 + text[after_marker..]
                     .find(|c: char| c != '/' && c != '\\')
                     .unwrap_or(text.len() - after_marker);
-            let key_end = key_segment_end(text, key_start);
+            let key_end = path_end(text, key_start);
 
             if key_end > key_start {
                 keys.push((key_start, key_end));
@@ -147,14 +147,14 @@ fn mask_keys_after_endpoints(text: &str) -> String {
     masked
 }
 
-/// The offset where the key segment that starts at `key_start` ends.
-fn key_segment_end(text: &str, key_start: usize) -> usize {
+/// The offset where the path that continues at `key_start` ends.
+fn path_end(text: &str, key_start: usize) -> usize {
     let mut chars = text[key_start..].char_indices().peekable();
 
     while let Some((offset, c)) = chars.next() {
         let closes_a_quote = c == '\'' && chars.peek().is_none_or(|(_, next)| next.is_whitespace());
 
-        if ends_key_segment(c) || closes_a_quote {
+        if ends_path(c) || closes_a_quote {
             return key_start + offset;
         }
     }
@@ -162,8 +162,8 @@ fn key_segment_end(text: &str, key_start: usize) -> usize {
     text.len()
 }
 
-const fn ends_key_segment(c: char) -> bool {
-    c.is_whitespace() || matches!(c, '/' | '\\' | '?' | '#' | '"' | '<' | '>' | '`' | '{' | '}' | '|' | '^')
+const fn ends_path(c: char) -> bool {
+    c.is_whitespace() || matches!(c, '?' | '#' | '"' | '<' | '>' | '`' | '{' | '}' | '|' | '^')
 }
 
 fn mask_user_info_passwords(text: &str) -> String {
@@ -408,7 +408,7 @@ mod tests {
     fn it_should_mask_the_key_after_an_endpoint_that_follows_another_endpoint() {
         assert_eq!(
             mask_tracker_keys_in_text("http://tracker.example.com/announce/scrape/SECRET"),
-            "http://tracker.example.com/announce/****/****"
+            "http://tracker.example.com/announce/****"
         );
     }
 
@@ -436,6 +436,26 @@ mod tests {
         assert_eq!(
             masked("http://tracker.example.com/a%7Eb/announce/SECRET?info_hash=%9C8B&x=%2F"),
             "http://tracker.example.com/a%7Eb/announce/****?info_hash=%9C8B&x=%2F"
+        );
+    }
+
+    #[test]
+    fn it_should_mask_the_key_after_a_dot_segment() {
+        assert_eq!(
+            mask_tracker_keys_in_text("unexpected argument 'http://tracker.example.com/announce/./SECRET' found"),
+            "unexpected argument 'http://tracker.example.com/announce/****' found"
+        );
+        assert_eq!(
+            mask_tracker_keys_in_text("unexpected argument 'http://tracker.example.com/announce/%2E/SECRET' found"),
+            "unexpected argument 'http://tracker.example.com/announce/****' found"
+        );
+    }
+
+    #[test]
+    fn it_should_mask_the_whole_path_after_the_endpoint_but_keep_the_query() {
+        assert_eq!(
+            mask_tracker_keys_in_text("\"http://tracker.example.com/announce/../x/SECRET?info_hash=%9C8B\", expected"),
+            "\"http://tracker.example.com/announce/****?info_hash=%9C8B\", expected"
         );
     }
 }
