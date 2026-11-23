@@ -57,7 +57,7 @@ The captures of a real run at the current `develop` ([baseline-lifecycle-logs.md
 | A supported configuration logs `WARN` for every request | With usage statistics disabled, three statistics listeners log `Ignoring … event from an unknown or metrics-disabled listener` for every event |
 | Metrics registration floods `INFO` | 28 `METRICS:` lines with `description=Some(MetricDescription(…))` |
 | One event spans about 110 lines | `Configuration:` followed by indented JSON |
-| Shutdown messages vary | `!! Shutting down … !!`, `Received cancellation request, shutting down …`, `Job completed after cooperative cancellation job=…` |
+| Shutdown messages vary | `!! Shutting down … !!`, `Received cancellation request, draining … event listener.`, `Job completed after cooperative cancellation job=…` |
 | Facts are missing | Version and commit, how long the start took, how long each job took to stop, one final line with the outcome |
 | Other programs parse the message text | The E2E runner and the test fixture read service URLs from `Started on: …` |
 
