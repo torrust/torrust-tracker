@@ -8,8 +8,8 @@ epic: 1347
 github-issue: 2902
 spec-path: docs/issues/open/2902-1347-add-tests-tracker-core/ISSUE.md
 branch: "2902-1347-add-tests-tracker-core-statistics"
-related-pr: 2988
-last-updated-utc: "2026-11-23 16:21"
+related-pr: 3009
+last-updated-utc: "2026-11-23 16:27"
 semantic-links:
   skill-links:
     - create-issue
@@ -298,7 +298,7 @@ is the proposal for the maintainer's approval (questions Q5, Q6):
 | --- | --- | --- | --- | --- | --- |
 | S0 | This specification, the T1 evidence, and the EPIC registration with the baseline | - | `2902-1347-add-tests-tracker-core-spec` | #2903 | DONE |
 | S1 | T2, then `statistics/`: `repository.rs`, `metrics.rs`, `persisted/mod.rs`, `persisted/downloads.rs`, `event/listener.rs`, `event/handler.rs`, `mod.rs` (the only area reached just by the integration binary) | 1-7 | `2902-1347-add-tests-tracker-core-statistics` | #2988 | IN_PROGRESS |
-| S2 | The SQLite persistence boundary: `sqlite/{auth_key_store,torrent_metrics_store,whitelist_store,mod,schema_migrator}.rs`, `databases/{error,setup}.rs`, `error.rs`, the extraction of `parse_valid_until` and the row mapping (Q4, F2), plus the `databases/traits` and `driver/mod.rs` no-change decisions | 8-17 | `2902-1347-add-tests-tracker-core-sqlite` | TBD | IN_PROGRESS |
+| S2 | The SQLite persistence boundary: `sqlite/{auth_key_store,torrent_metrics_store,whitelist_store,mod,schema_migrator}.rs`, `databases/{error,setup}.rs`, `error.rs`, the extraction of `parse_valid_until` and the row mapping (Q4, F2), plus the `databases/traits` and `driver/mod.rs` no-change decisions | 8-17 | `2902-1347-add-tests-tracker-core-sqlite` | #3009 | IN_PROGRESS |
 | S3 | MySQL and PostgreSQL drivers: Docker-free error-path tests if non-flaky, otherwise no-change rows with the `db-compatibility` workflow as owner (Q3); the README and `packages/AGENTS.md` driver-test commands (Q2) | 18-27 | `2902-1347-add-tests-tracker-core-server-drivers` | TBD | TODO |
 | S4 | Authentication and whitelist: failing-`Database` propagation, `Key` property decision (F3, F4 checks) | 28-39 | `2902-1347-add-tests-tracker-core-auth-whitelist` | TBD | TODO |
 | S5 | `torrent/`, `announce_handler.rs`, `scrape_handler.rs`, `container.rs`, `lib.rs`, `test_helpers.rs`, `peer_tests.rs`, then T4-T6; updates the EPIC tables; the spec moves to `docs/issues/closed/` in a separate `cleanup-completed-issues` PR after the issue closes | 40-45 | `2902-1347-add-tests-tracker-core-final` | TBD | TODO |
@@ -439,6 +439,7 @@ The first slice's record checks the grouping against `find packages/tracker-core
 - 2026-11-23 16:03 UTC - Claude Code (Sonnet 5.5) - Row 15 (`error.rs`) done: a four-case table pins the variant and the message of each `From` conversion into `TrackerCoreError`, 69 / 69 lines, all four message mutants killed; the conversions themselves cannot be mutated without breaking the build ([plan](test-refactor-plans/tracker-core-error-tests.md)). Plan and completed file approved by the maintainer.
 - 2026-11-23 16:10 UTC - Claude Code (Sonnet 5.5) - Rows 16 and 17 (`databases/driver/mod.rs`, `databases/mod.rs` and the traits) done as no change, approved by the maintainer: the retry loop of a test-only helper waits on Docker, and the traits hold declarations and generated mocks ([record](test-refactor-plans/databases-driver-mod-and-traits-no-change.md)). All S2 ledger rows are done.
 - 2026-11-23 16:21 UTC - Claude Code (Sonnet 5.5) - S2 closed: the branch was rebased on `develop` `f73a359f8` (#2916 had removed the source locations of the errors; one test of row 15 was adapted in its own commit) and measured in the four scopes with its base: unit-only lines 84.47% to 87.11%, aggregate 84.47% to 87.11% ([slice measurements](coverage-evidence.md#slice-measurements)). The EPIC's #2902 rows hold the latest values. Next: the S2 PR.
+- 2026-11-23 16:27 UTC - Claude Code (Sonnet 5.5) - Opened the S2 PR #3009 (`Related to #2902`).
 
 ## Open Design Questions
 
