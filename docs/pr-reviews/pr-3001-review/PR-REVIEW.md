@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-F1 and F2 come from Copilot's review 6021313664 (COMMENTED on the first head, "docs(issues): [#2917] record the SI-5 verification evidence and the configuration 4.0.0 breaking change"), in source order. Copilot noted that its full agentic review did not start before its timeout; the two findings are its inline threads. F3 to F6 come from Copilot's review 6022021456 (COMMENTED on the round-1 head, "docs(pr-reviews): [#2917] add the review audit of PR #3001", with ACK comments of the maintainer on the first head and on that head), in source order; its overview lists F1 and F2 as resolved. F7 to F13 come from da2ce7's review 6022459738 (APPROVED on the round-2 head, "docs(pr-reviews): [#2917] record round 2 of the review audit of PR #3001"), in source order; the reviewer numbered them F1 to F7 and each entry's "Reviewer finding ID" keeps that number.
+F1 and F2 come from Copilot's review 6021313664 (COMMENTED on the first head, "docs(issues): [#2917] record the SI-5 verification evidence and the configuration 4.0.0 breaking change"), in source order. Copilot noted that its full agentic review did not start before its timeout; the two findings are its inline threads. F3 to F6 come from Copilot's review 6022021456 (COMMENTED on the round-1 head, "docs(pr-reviews): [#2917] add the review audit of PR #3001", with ACK comments of the maintainer on the first head and on that head), in source order; its overview lists F1 and F2 as resolved. F7 to F13 come from da2ce7's review 6022459738 (APPROVED on the round-2 head, "docs(pr-reviews): [#2917] record round 2 of the review audit of PR #3001"), in source order; the reviewer numbered them F1 to F7 and each entry's "Reviewer finding ID" keeps that number. F14 and F15 come from Copilot's review 6022662894 (COMMENTED on the round-2 head, with no ACK of its own), in source order; Copilot's overview there lists the earlier findings as resolved.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -58,6 +58,8 @@ F1 and F2 come from Copilot's review 6021313664 (COMMENTED on the first head, "d
 | F11 | review-finding:pr-3001-f11 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-3001-f12 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F13 | review-finding:pr-3001-f13 | Human | Nit | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F14 | review-finding:pr-3001-f14 | Copilot | Nit | testing | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-3001-f15 | Copilot | Nit | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -230,6 +232,32 @@ F1 and F2 come from Copilot's review 6021313664 (COMMENTED on the first head, "d
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4666517629
 
+### F14 - The test of the missing TLS files does not check that the message holds no source path
+
+- PR number: 3001
+- Source review ID: 6022662894
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4666579091
+- Concern: Copilot (rated Low, recorded as Nit) noted that `it_should_error_on_missing_cert_or_key_paths` does not assert that `MissingTlsConfig`'s message holds no source path, although the variant previously carried a caller location, and asked for the same check as in `it_should_error_on_bad_tls_config`.
+- Solution: The test now also calls `assert_names_no_source_path(&err.to_string())`. The message had no location before either (its format never printed the field), so the assertion guards against a regression and was not a red test.
+- Current-tree verification: `grep -n "assert_names_no_source_path(&err.to_string())" packages/axum-server/src/tls.rs` shows both uses; `cargo test -p torrust-tracker-axum-server --lib` (stable Rust toolchain) passes 9 tests.
+- Resolution reference: test(axum-server): [#2917] check that the missing TLS files message holds no source path
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4666636036
+
+### F15 - `ErrorKind::TrackerAuthentication` is tied to the `Display` text
+
+- PR number: 3001
+- Source review ID: 6022662894
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4666579162
+- Concern: Copilot (rated Low, recorded as Nit) noted that `ErrorKind::TrackerAuthentication` is now built from `Error`'s `Display` text and suggested a stable message constant, or a stable code plus a human message, so that wording changes cannot break a client-visible surface.
+- Solution: No change. `AuthRequired` is built only in `#[cfg(test)]` code, so no production event carries it today. The payload was `location.to_string()` before this PR, a source path that is less stable than the message; the other `ErrorKind` arms (`BadRequest`, `Whitelist`, `Database` and the rest) carry their error's `Display` text in the same way. A stable code and message for error events is the work of the general error-events EPIC that the module's own doc comment names, not of this sub-issue; the two test-only variants are the subject of the follow-up the spec lists as out of scope.
+- Current-tree verification: `grep -n "TrackerAuthentication\|BadRequest(\|Whitelist(" packages/udp-server/src/event.rs` shows the sibling arms built from `to_string()`; `grep -rn "AuthRequired" packages --include=*.rs` finds no use outside `error.rs` and `event.rs` tests and conversion.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4666636634
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4666636634
+
 ## Processing Log
 
 - 2026-11-23 12:00 UTC - Copilot's review 6021313664 (COMMENTED, submitted 12:00:15Z on the first head) arrived with two inline findings, F1 (Medium, recorded as Minor) and F2 (Low, recorded as Nit). The audit was started before the first reply. F1 fixed in "test(udp-server): [#2917] compare the authentication classification with the error's own message", pushed at 12:04 UTC (pre-push hook passed). F2 declined with a reason (the spec `status` becomes `done` at close-out).
@@ -240,3 +268,5 @@ F1 and F2 come from Copilot's review 6021313664 (COMMENTED on the first head, "d
 - 2026-11-23 13:26 UTC - da2ce7's review 6022459738 (APPROVED, submitted on the round-2 head) arrived with seven findings, recorded as F7 to F13 with the reviewer's F1 to F7. F7 to F12 fixed in "docs(axum-server): [#2917] drop the README bullet on torrust-located-error", "docs(issues): [#2917] record the SI-5 copies of the path helper in the SI-8 spec and the EPIC", "docs(issues): [#2917] name the SI-20 break in the configuration 4.0.0 list of the publish plan" and "docs(issues): [#2917] repeat the recheck after the last production change and align the spec rows and metadata" (pushed at 13:31 UTC, pre-push hook passed); the PR body was edited for F7. F13 declined with a reason (intermediate commits are kept)..
 - 2026-11-23 13:35 UTC - Replied on the seven threads (replies posted 13:34:05 UTC by `date -u`).
 - 2026-11-23 13:35 UTC - Resolved the seven round-3 threads (`resolveReviewThread` returned `true` for each; `date -u` after the resolve commands: 13:34:57). GraphQL refresh: zero unresolved threads on PR #3001.
+- 2026-11-23 13:39 UTC - Copilot's review 6022662894 (COMMENTED, submitted 13:39:42Z on the round-2 head) arrived with two inline findings, recorded as F14 and F15. F14 fixed in "test(axum-server): [#2917] check that the missing TLS files message holds no source path", pushed before 13:44 UTC (pre-push hook passed). F15 declined with a reason.
+- 2026-11-23 13:45 UTC - Replied on both threads (replies posted 13:44:52 UTC by `date -u`) and resolved both (`resolveReviewThread` returned `true` for each; `date -u` after the resolve commands: 13:45:33). GraphQL refresh: zero unresolved threads on PR #3001.
