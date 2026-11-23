@@ -3,7 +3,7 @@ doc-type: file-test-plan
 issue: 2902
 package: torrust-tracker-core
 target-file: packages/tracker-core/src/databases/driver/sqlite/torrent_metrics_store.rs
-status: approved
+status: done
 semantic-links:
   related-artifacts:
     - packages/tracker-core/src/databases/driver/sqlite/torrent_metrics_store.rs
@@ -101,11 +101,39 @@ pinned by `-1`, `4294967296` and `u32::MAX`.
 
 | ID | Status | Work | Completion evidence |
 | --- | --- | --- | --- |
-| T1 | TODO | The shared fixture in `sqlite/mod.rs`; row 8's tests use it. | All tests pass unchanged. |
-| T2 | TODO | The tests of this plan. | They pass; the failure lines run except any recorded exception. |
-| T3 | TODO | Run M1-M11. | Each is killed by its expected test. |
-| T4 | TODO | Record the results and ask for the completed-file review. | This record and the ledger. |
+| T1 | DONE | The shared fixture in `sqlite/mod.rs`; row 8's tests use it. | All tests pass unchanged. |
+| T2 | DONE | The tests of this plan. | They pass; the failure lines run except any recorded exception. |
+| T3 | DONE | Run M1-M11. | Each is killed by its expected test. |
+| T4 | DONE | Record the results and ask for the completed-file review. | This record and the ledger. |
 
 ## Results
 
-To be filled in after T4.
+- **Coverage** (stable Rust 1.100.0, `cargo-llvm-cov 0.9.1`, `--all-features --lib`, clean coverage
+  target directory, 2026-11-23): the file 27 / 46 lines to 99 / 99, regions 28 / 60 to 143 / 143,
+  functions 11 / 23 to 35 / 35 (the counts include the test module). The package's unit-only lines
+  4,747 / 5,563 (85.33%) to 4,823 / 5,620 (85.82%), regions 5,238 / 6,198 (84.51%), functions
+  822 / 1,035 (79.42%). No line of the file is left uncovered.
+- **Tests:** 21 added (cases included), none changed: 213 to 234 unit tests in the package. The
+  shared fixture (`sqlite/mod.rs`, `migrated_store()` and `execute()`) was moved in its own commit,
+  `test(tracker-core): [#2902] share the SQLite store test fixture`, and row 8's tests use it
+  unchanged.
+- **Mutations** (each applied alone and reverted, the file compared with its copy afterwards):
+
+  | ID | Result |
+  | --- | --- |
+  | M1 | Killed by the `-1` and `4294967296` cases of the all-torrents and requested-torrents reads |
+  | M2 | Killed by the info-hash that does not parse, in the all-torrents read |
+  | M3 | Killed by the `-1` and `4294967296` cases of the single-torrent read |
+  | M4 | Killed by all five bad-row cases of the all-torrents read |
+  | M5 | Killed by the three bad-count cases of the requested-torrents read |
+  | M6 | Killed by `it_should_overwrite_the_stored_downloads_when_a_torrent_is_saved_again` |
+  | M7 | Killed by the absent-torrent test |
+  | M8 | Killed by the no-global-row test |
+  | M9 | Killed by `it_should_report_a_failed_write_as_an_invalid_query`, saving a torrent |
+  | M10 | Killed by the same test, increasing a torrent |
+  | M11 | Killed by the same test, increasing the global downloads |
+
+- **Review outcome:** the maintainer approved the completed file on 2026-11-23.
+- **Validation:** `cargo clippy -p torrust-tracker-core --all-targets --all-features` (only the
+  existing `axum::serve` warning), `cargo +nightly fmt --all -- --check` and
+  `cargo machete --with-metadata` pass.
