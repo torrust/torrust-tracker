@@ -46,7 +46,9 @@ Round 1 is two reviews of the head whose last commit is
 reviewer Greptile (2026-11-23 16:30:18 UTC, comment; one inline comment without an ID, recorded as F9
 with the severity of its `P2` badge) and da2ce7's review `6025674705` (2026-11-23 16:51:51 UTC,
 approval; inline findings F1 to F8 with the reviewer's IDs). F6 asks for the reply to the Greptile
-thread and for this record.
+thread and for this record. Copilot's review `6025721446` (2026-11-23 16:54:40 UTC, comment) is of the
+same head and arrived while the fixes were being made; its three inline comments carry the IDs R1,
+R2 and F3 (which collides with da2ce7's F3) and are recorded as F10, F11 and F12.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -59,6 +61,9 @@ thread and for this record.
 | F7 | review-finding:pr-3009-f7 | Human | Nit | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F8 | review-finding:pr-3009-f8 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F9 | review-finding:pr-3009-f9 | Unknown | Minor (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-3009-f10 | Copilot | Minor | testing | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F11 | review-finding:pr-3009-f11 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-3009-f12 | Copilot | Nit | testing | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -179,9 +184,49 @@ thread and for this record.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669099455
 
+### F10 - The post-drop assertion covered one store (Copilot)
+
+- PR number: 3009
+- Source review ID: 6025721446
+- Reviewer finding ID: R1
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669011501
+- Concern: The same as F1: after the drop only the whitelist store was checked, so a key or metrics store on another migrated database would pass.
+- Solution: Superseded by F1: the test also asserts that `load_keys` and `load_global_downloads` fail after the drop.
+- Current-tree verification: `grep -c 'must share one database' packages/tracker-core/src/databases/setup.rs` prints 3.
+- Resolution reference: test(tracker-core): [#2902] check that all four stores lose their tables when the migrator drops them
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669260082
+
+### F11 - The plans omitted the Prose-First AAA Review (Copilot)
+
+- PR number: 3009
+- Source review ID: 6025721446
+- Reviewer finding ID: R2
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669011565
+- Concern: The eight new test-producing plans omit the Prose-First AAA Review rows that the shared guardrails require before the completed-file review.
+- Solution: Each of the eight plans has the section, with the prose for every test, the comparison with the code and the smells found; it says the prose was written after the fact. The S1 plans that #2988 merged have the same gap, raised with the maintainer.
+- Current-tree verification: `grep -l 'Prose-First AAA Review' docs/issues/open/2902-1347-add-tests-tracker-core/test-refactor-plans/*.md | wc -l` prints 10 (the eight plans, the repository plan of S1 and the README that states the rule).
+- Resolution reference: docs(issues): [#2902] record the Prose-First AAA review of the eight S2 test plans
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669260697
+
+### F12 - The panic tests lacked the it_should prefix (Copilot)
+
+- PR number: 3009
+- Source review ID: 6025721446
+- Reviewer finding ID: F3
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669011629
+- Concern: The two tests of the legacy factory panics were named `the_legacy_factory_should_*` where the plans and the `write-unit-test` skill ask for `it_should_*`.
+- Solution: They are `it_should_panic_when_the_legacy_factory_gets_a_configuration_without_a_database` and `it_should_panic_when_the_legacy_factory_cannot_open_the_database`.
+- Current-tree verification: `grep -rc 'the_legacy_factory_should' packages/tracker-core/src/databases/setup.rs` prints 0.
+- Resolution reference: test(tracker-core): [#2902] name the legacy factory panic tests with the it_should prefix
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669261412
+
 ## Processing Log
 
 - 2026-11-23 17:01 UTC - Read both round 1 reviews. The `OS Compatibility` check of the reviewed head failed only because its `macos-latest (nightly)` build was cancelled (the other five builds pass), not because of a test; re-running it is the maintainer's. Fixed F1, F7 (with F9), F2, F3, F4 and F8 in their own commits and F5 in the PR description; replied on all nine threads at 17:01:31 to 17:01:51 UTC, before pushing the fixes and this record together; the threads are resolved after the push.
+- 2026-11-23 17:14 UTC - Copilot's review of the same head (F10 to F12) was read after that push: F10 duplicates F1 and is superseded by it; F11 and F12 fixed in their own commits; replied at 17:14:51 to 17:14:56 UTC, before pushing the fixes and this update together; the threads are resolved after the push.
 
 ## Completion Rules
 
