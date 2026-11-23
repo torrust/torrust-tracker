@@ -6,7 +6,7 @@ epic: null
 github-issue: 2758
 spec-path: docs/issues/open/2758-cli-output-contract-tools-migration/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-19 09:45"
+last-updated-utc: "2026-11-23 16:13"
 semantic-links:
   skill-links:
     - create-issue
@@ -98,7 +98,7 @@ parallel; the maintainer sets how many sessions run at once.
 | 4 | #2763 - Make `agent-review-report-contract` and `frontmatter-schema` emit NDJSON; classify `workspace-coupling` | `docs/issues/open/2763-2758-dev-tool-checks-ndjson/ISSUE.md` | TODO | Wave 1: `contrib/dev-tools/checks/agent-review-report-contract/**`, `contrib/dev-tools/checks/frontmatter-validator/src/bin/frontmatter-schema.rs`, `contrib/dev-tools/analysis/workspace-coupling/**` |
 | 5 | #2764 - `http_health_check`: NDJSON diagnostics, usage exit 2 | `docs/issues/closed/2764-2758-http-health-check-no-stdout/ISSUE.md` | DONE | Implemented in PR #2889. Wave 1: `src/bin/http_health_check.rs` and its tests; verify `Containerfile` `HEALTHCHECK` |
 | 6 | #2765 - Remove the deprecated tracker client binaries | `docs/issues/closed/2765-2758-remove-deprecated-tracker-clients/ISSUE.md` | DONE | Implemented in PR #2901. Wave 1: `console/tracker-client/src/bin/{http_tracker_client,udp_tracker_client,tracker_checker}.rs`, README, tests, docs that name them, and `src/console/ci/e2e/tracker_checker.rs` (the e2e runner launches the old `tracker_checker`; migrate it to `tracker_client check`) |
-| 7 | #2766 - `torrust-tracker` daemon: JSON logs on stderr and JSON startup failure | `docs/issues/open/2766-2758-daemon-json-logging/ISSUE.md` | TODO | Wave 1: `packages/configuration/src/{logging.rs,v3_0_0/logging.rs}`, `src/main.rs`, `src/console/ci/e2e/logs_parser.rs` and `docker.rs` (`Docker::logs` reads stdout only), the default configs that set `[logging]` (not `tracker_checker.json`, which issue 6 owns) and docs. Release note: operator-visible change. |
+| 7 | #2766 - `torrust-tracker` daemon: JSON logs on stderr and JSON startup failure | `docs/issues/open/2766-2758-daemon-json-logging/ISSUE.md` | TODO | Wave 1: `packages/configuration/src/{logging.rs,v3_0_0/logging.rs}`, `src/main.rs`, `src/console/ci/e2e/logs_parser.rs` and `docker.rs` (`Docker::logs` reads stdout only), the default configs that set `[logging]` (not `tracker_checker.json`, which issue 6 owns) and docs. Release note: operator-visible change. Starts after EPIC #2387 (lifecycle logs), which changes the same log lines and parsers first (maintainer decision, 2026-11-21). |
 | 8 | #2767 - Audit and classify the scripts called by CI and agents | `docs/issues/open/2767-2758-scripts-audit/ISSUE.md` | TODO | Wave 1: a new audit document only; no script changes |
 | 9 | #2768 - `tracker_client`: TTY refusal, JSON-only output | `docs/issues/closed/2768-2758-tracker-client-json-only/ISSUE.md` | DONE | Implemented in PR #2956. Wave 2, after 6: `console/tracker-client/**` |
 | 10 | #2769 - `e2e_tests_runner` and `qbittorrent_e2e_runner`: JSON diagnostics | `docs/issues/open/2769-2758-e2e-runners-json/ISSUE.md` | TODO | Wave 2, after 6 and 7: `src/console/ci/**`, `packages/e2e-tools/src/bin/` |
@@ -108,7 +108,7 @@ parallel; the maintainer sets how many sessions run at once.
 
 Wave 0 first (the table the others cite). Wave 1 issues touch disjoint files and may run in parallel. Wave 2 waits
 for its predecessors because it shares files with them (`console/tracker-client/**` with issue 6 for issue 9; for issue 10,
-`src/console/ci/e2e/tracker_checker.rs` with issue 6 and the e2e log parser and `docker.rs` with issue 7). Issue 11 runs last, as wave 3. Issues 2 to 5 do not depend on the operator-visible changes. Issue 9 runs after issue 6, a breaking removal, and itself changes the output shape of `check` (a top-level array becomes an object), which is also breaking.
+`src/console/ci/e2e/tracker_checker.rs` with issue 6 and the e2e log parser and `docker.rs` with issue 7). Issue 11 runs last, as wave 3. Issue 7, although in wave 1 by its files, waits for EPIC #2387 (make tracker startup and shutdown logs coherent for operators): that EPIC fixes the content of the daemon's lifecycle log lines and moves the log parsers to structured fields, and issue 7 then changes only the format and the stream (see the Dependencies section of its spec). Issue 10 waits for issue 7 as before. Issues 2 to 5 do not depend on the operator-visible changes. Issue 9 runs after issue 6, a breaking removal, and itself changes the output shape of `check` (a top-level array becomes an object), which is also breaking.
 
 For each subissue, the default completion policy is:
 
@@ -147,6 +147,7 @@ consumes the old behavior (named in its spec). No issue edits the ADR table exce
 - 2026-11-09 11:26 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the round 3 review of PR 2774.
 - 2026-11-09 12:12 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the review of PR 2771 (da2ce7 findings F1 to F27 and Copilot's later comments): specs corrected from the code, reproductions recorded where a spec has a bug-fix section.
 - 2026-11-09 13:21 UTC - Claude Code (Claude Sonnet 5.5) - Addressed da2ce7's review 5826238636 of PR 2771 on this spec.
+- 2026-11-23 16:13 UTC - Claude Code (Fable 5.2) - Recorded the maintainer's decision of 2026-11-21 that issue 7 (#2766) starts after EPIC #2387 (subissue table row 7 and Delivery Strategy).
 
 ## Acceptance Criteria
 
@@ -181,7 +182,7 @@ consumes the old behavior (named in its spec). No issue edits the ADR table exce
 
 ## References
 
-- Related issues: #2003, #2715, #1798, #2581
+- Related issues: #2003, #2715, #1798, #2581, #2387 (EPIC that goes before issue 7)
 - Related PRs: #2748 (merged; added the two ADRs)
 - Related ADRs: `docs/adrs/20260519000000_define_global_cli_output_contract.md`,
   `docs/adrs/20261106102632_scope_the_cli_output_contract_and_keep_exit_codes_to_zero_one_two.md`
