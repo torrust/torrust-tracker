@@ -90,7 +90,8 @@ and malformed rows written with raw `sqlx` through the driver's pool.
 
 **Not tested, no decision:**
 
-- 89-91, `usize::try_from` of the affected-row count: it never exceeds one row on a 64-bit target.
+- `usize::try_from` of the affected-row count (lines 68-71 at the S2 head, 89-91 at the S2 baseline): it
+  never exceeds one row on a 64-bit target.
 - A stored key that does not parse, or is not text, is not reachable through `get_key_from_keys`:
   the lookup binds a `Key` built by `Key::new`, which always prints as a valid key, and a stored
   value of another type never equals that text (line 37 at the S2 head, the `key` column decode, is the same case). The shared `peer_key_from_row`
