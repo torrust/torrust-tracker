@@ -49,6 +49,8 @@ Round 2 covers review 6025241076 (da2ce7, COMMENTED, submitted 2026-11-23T16:23:
 
 Round 3 covers review 6025333875 (da2ce7, COMMENTED, submitted 2026-11-23T16:29:55Z, of commit `b4ebacdc0`) with no inline comment. Its body accepts the F2 route, restates F11 to F13 (its F8 to F10) and adds no finding, so it makes no row.
 
+Round 4 covers review 6025551279 (Copilot, COMMENTED, submitted 2026-11-23T16:44:16Z, of commit `b4ebacdc0`, a lite review) with one inline comment, recorded as F15. Its body is an overview that repeats it and lists three earlier threads as resolved; it makes no row. The overview marks it Low, recorded as `Nit (inferred)`.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3008-f1 | Human | Major | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -65,6 +67,7 @@ Round 3 covers review 6025333875 (da2ce7, COMMENTED, submitted 2026-11-23T16:29:
 | F12 | review-finding:pr-3008-f12 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F13 | review-finding:pr-3008-f13 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F14 | review-finding:pr-3008-f14 | Human | Minor | documentation | RE_RAISE_OF:F2 | FOLLOW_UP | NON_RESOLVABLE |
+| F15 | review-finding:pr-3008-f15 | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -250,6 +253,19 @@ Round 3 covers review 6025333875 (da2ce7, COMMENTED, submitted 2026-11-23T16:29:
 - Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/3007
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3008#issuecomment-7107505007
 
+### F15 - "already fixes a schema version" reads like a bug fix
+
+- PR number: 3008
+- Source review ID: 6025551279
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4668878114
+- Concern: In the Background, "`agent-reply-validator` already fixes a schema version of 1" can read as correcting a bug; Copilot suggested "uses" or "sets".
+- Solution: The sentence reads "already uses a schema version of 1".
+- Current-tree verification: `grep -c 'already uses a schema version of 1' docs/issues/open/3006-2758-tracker-client-schema-version/ISSUE.md` prints 1; `grep -c 'fixes a schema version' docs/issues/open/3006-2758-tracker-client-schema-version/ISSUE.md` prints 0.
+- Resolution reference: `docs(issues): [#3006] say that agent-reply-validator uses a schema version`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669009621
+
 ## Processing Log
 
 - 2026-11-23 16:10 UTC - Started audit. Round 1: review 6024919812 (da2ce7, CHANGES_REQUESTED, submitted 16:03:08Z) with seven inline comments, F1 to F7. F1 needed a maintainer decision: he chose D4 (the `http scrape` entries under `files`) and D5 (the UDP field beside the tag). The fixes of F1 and F3 to F7 were committed and pushed as `josecelano-bot` (`docs(issues): [#3006] move http scrape entries under files and name all consumers`).
@@ -259,6 +275,8 @@ Round 3 covers review 6025333875 (da2ce7, COMMENTED, submitted 2026-11-23T16:29:
 - 2026-11-23 16:40 UTC - Correction of the 16:28 entry: its "A GraphQL fetch shows 10 threads, 0 unresolved" was written before the fetch ran. The fetch that ran after it showed 13 threads, 3 unresolved: review 6025241076 (da2ce7, submitted 16:23:52Z) had added three threads before the replies of 16:26. The audit record was also created after those replies, not before them (late start).
 - 2026-11-23 16:40 UTC - Rounds 2 and 3: review 6025241076 recorded as F11 to F14 and review 6025333875 (16:29:55Z) as context without a row. The fix of F12 and F13 was committed and pushed as `josecelano-bot` (`docs(issues): [#3006] trace the D4 and D5 answers and keep decisions and ACs in order`). Replied on the three threads (reply `created_at` 16:40:37Z to 16:40:42Z), answered F14 in a PR comment (16:40:45Z), and resolved the three threads (each mutation returned `isResolved` true).
 - 2026-11-23 16:41 UTC - The audit validator, run with the bot token, exits 0 (14 rows, 0 failures). A GraphQL fetch that ran before this entry shows 13 threads, 0 unresolved.
+- 2026-11-23 16:54 UTC - Round 4: review 6025551279 (Copilot, 16:44:16Z) recorded as F15. The fix was committed and pushed as `josecelano-bot` (`docs(issues): [#3006] say that agent-reply-validator uses a schema version`). Replied on the thread (16:54:30Z) and resolved it (the mutation returned `isResolved` true).
+- 2026-11-23 16:55 UTC - The audit validator, run with the bot token, exits 0 (15 rows, 0 failures). A GraphQL fetch that ran before this entry shows 14 threads, 0 unresolved.
 
 ## Completion Rules
 
