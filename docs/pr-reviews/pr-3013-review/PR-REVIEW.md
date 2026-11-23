@@ -1,7 +1,7 @@
 ---
 pr-number: 3013
 pr-url: https://github.com/torrust/torrust-tracker/pull/3013
-last-updated-utc: "2026-11-23 18:20"
+last-updated-utc: "2026-11-23 18:36"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -109,6 +109,7 @@ Round 1 is Copilot's COMMENTED review `6026885441` (18:05:27Z, three inline find
 ## Processing Log
 
 - 2026-11-23 18:20 UTC - Round 1: Copilot's COMMENTED review `6026885441` (18:05:27Z, three findings F1 to F3). Three commits fixed them, one per finding (pushed, exit 0). Three replies were posted after the push, between 18:14:13Z and 18:14:19Z, and this record was written after them, not before (late start). Greptile's review `6026494247` (17:40:51Z, one finding F4, a re-raise of F2) was found at 18:14Z while listing the threads, because the poller does not watch Greptile; its reply (`Superseded by F2`) was posted at 18:14Z. All four threads were resolved at 18:14Z. The poller's reviewer list has no Greptile entry; later rounds pass it with `--reviewer` so a Greptile review wakes the loop.
+- 2026-11-23 18:36 UTC - Correction: the round 1 entry stamped 2026-11-23 18:20 UTC (and the record's `last-updated-utc`) carry a time that was typed, not read from the clock. The entry was written after the replies (18:14:13Z to 18:14:19Z) and before the validator run; the exact minute is not known. The first commit of this record failed the spell check and was redone with the reviewer's name added to the project dictionary.
 
 ## Completion Rules
 
