@@ -3,7 +3,7 @@ doc-type: file-test-plan
 issue: 2902
 package: torrust-tracker-core
 target-file: packages/tracker-core/src/error.rs
-status: approved
+status: done
 semantic-links:
   related-artifacts:
     - packages/tracker-core/src/error.rs
@@ -66,10 +66,29 @@ No `quickcheck`: four fixed conversions.
 
 | ID | Status | Work | Completion evidence |
 | --- | --- | --- | --- |
-| R1 | TODO | The table test. | It passes; lines 47-67 run. |
-| R2 | TODO | Run M1-M4. | Each is killed by its expected case. |
-| R3 | TODO | Record the results and ask for the completed-file review. | This record and the ledger. |
+| R1 | DONE | The table test. | It passes; lines 47-67 run. |
+| R2 | DONE | Run M1-M4. | Each is killed by its expected case. |
+| R3 | DONE | Record the results and ask for the completed-file review. | This record and the ledger. |
 
 ## Results
 
-To be filled in after R3.
+- **Coverage** (stable Rust 1.100.0, `cargo-llvm-cov 0.9.1`, `--all-features --lib`, clean coverage
+  target directory, 2026-11-23): the file 38 / 50 lines to 69 / 69, regions 33 / 45 to 58 / 58,
+  functions 4 / 8 to 11 / 11 (the counts include the test module). The package's unit-only lines
+  5,014 / 5,787 (86.64%) to 5,045 / 5,806 (86.89%), regions 5,528 / 6,441 (85.83%), functions
+  876 / 1,072 (81.72%).
+- **Tests:** 4 cases added, 4 existing tests unchanged: 267 to 271 unit tests in the package.
+- **Mutations** (each applied alone and reverted, the file compared with its copy afterwards):
+
+  | ID | Result |
+  | --- | --- |
+  | M1 | Killed by the announce case |
+  | M2 | Killed by the scrape case |
+  | M3 | Killed by the whitelist case |
+  | M4 | Killed by the authentication case |
+
+  As planned, no mutant of the conversions themselves exists: a `From` that wraps its source in another variant does not compile.
+- **Review outcome:** the maintainer approved the completed file on 2026-11-23.
+- **Validation:** `cargo clippy -p torrust-tracker-core --all-targets --all-features` (only the
+  existing `axum::serve` warning), `cargo +nightly fmt --all -- --check` and
+  `cargo machete --with-metadata` pass.
