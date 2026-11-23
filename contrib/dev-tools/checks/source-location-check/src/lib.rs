@@ -110,7 +110,7 @@ pub fn mask(source: &str) -> Vec<String> {
                     } else if c == '"' {
                         out.push(' ');
                         state = State::Str;
-                    } else if c == 'r' && raw_string_hashes(&chars, i).is_some() && !preceded_by_identifier(&chars, i) {
+                    } else if c == 'r' && raw_string_hashes(&chars, i).is_some() && raw_prefix_allowed(&chars, i) {
                         let hashes = raw_string_hashes(&chars, i).unwrap_or(0);
                         out.extend(std::iter::repeat_n(' ', hashes + 2));
                         i += hashes + 1;
@@ -145,12 +145,18 @@ fn preceded_by_identifier(chars: &[char], i: usize) -> bool {
     i > 0 && (chars[i - 1].is_alphanumeric() || chars[i - 1] == '_')
 }
 
+/// Whether the `r` at `i` starts a raw string: it must not end an identifier, except as the `r` of a `br` prefix.
+fn raw_prefix_allowed(chars: &[char], i: usize) -> bool {
+    !preceded_by_identifier(chars, i) || (chars[i - 1] == 'b' && !preceded_by_identifier(chars, i - 1))
+}
+
 /// The length of the character literal that starts at `i`, or `None` for a lifetime.
 fn char_literal_length(chars: &[char], i: usize) -> Option<usize> {
     match (chars.get(i + 1), chars.get(i + 2)) {
         (Some('\\'), _) => {
-            let close = chars[i + 2..].iter().position(|c| *c == '\'')?;
-            Some(close + 3)
+            // `\` and the escaped character come first, so `'\''` closes at the fourth character.
+            let close = chars.get(i + 3..)?.iter().position(|c| *c == '\'')?;
+            Some(close + 4)
         }
         (Some(_), Some('\'')) => Some(3),
         _ => None,
@@ -165,8 +171,8 @@ pub fn violations_in(source: &str) -> Vec<Violation> {
     let mut lines = masked.iter().enumerate();
 
     while let Some((index, line)) = lines.next() {
-        if line.trim() == "#[cfg(test)]" {
-            skip_test_item(&mut lines);
+        if let Some(after_attribute) = line.trim_start().strip_prefix(CFG_TEST) {
+            skip_test_item(after_attribute, &mut lines);
             continue;
         }
         for (pattern, reason) in FORBIDDEN {
@@ -183,19 +189,61 @@ pub fn violations_in(source: &str) -> Vec<Violation> {
     violations
 }
 
-/// Consumes the item that follows a `#[cfg(test)]` attribute: further attributes, then everything up to
+const CFG_TEST: &str = "#[cfg(test)]";
+
+/// Skips the attributes at the start of `text`, which may continue from an earlier line (`depth` is the
+/// number of unclosed `[`), and returns the text after them. Returns an empty string while an attribute
+/// is still open at the end of `text`.
+fn skip_attributes<'a>(text: &'a str, depth: &mut usize) -> &'a str {
+    let mut rest = text;
+    'attributes: loop {
+        let trimmed = rest.trim_start();
+        let body = if *depth > 0 {
+            trimmed
+        } else if let Some(after) = trimmed.strip_prefix("#[") {
+            *depth = 1;
+            after
+        } else {
+            return trimmed;
+        };
+        for (index, c) in body.char_indices() {
+            match c {
+                '[' => *depth += 1,
+                ']' => {
+                    *depth -= 1;
+                    if *depth == 0 {
+                        rest = &body[index + 1..];
+                        continue 'attributes;
+                    }
+                }
+                _ => {}
+            }
+        }
+        return "";
+    }
+}
+
+/// Consumes the item that follows a `#[cfg(test)]` attribute: `first` is the text after the attribute on
+/// its line, then further attributes (also on the item's line, or over several lines), then everything up to
 /// the `;` or the closing delimiter that ends the item, found by balancing `{}`, `()` and `[]`.
-fn skip_test_item<'a>(lines: &mut impl Iterator<Item = (usize, &'a String)>) {
+fn skip_test_item<'a>(first: &str, lines: &mut impl Iterator<Item = (usize, &'a String)>) {
     let mut depth = 0_usize;
+    let mut attribute_depth = 0_usize;
     let mut started = false;
 
-    for (_, line) in lines.by_ref() {
-        let trimmed = line.trim();
-        if !started && (trimmed.is_empty() || trimmed.starts_with("#[")) {
+    let mut next = Some(first);
+    while let Some(text) = next {
+        let item = if started {
+            text
+        } else {
+            skip_attributes(text, &mut attribute_depth)
+        };
+        if !started && item.trim().is_empty() {
+            next = lines.next().map(|(_, line)| line.as_str());
             continue;
         }
         started = true;
-        for c in line.chars() {
+        for c in item.chars() {
             match c {
                 '{' | '(' | '[' => depth += 1,
                 '}' | ')' | ']' => {
@@ -208,6 +256,7 @@ fn skip_test_item<'a>(lines: &mut impl Iterator<Item = (usize, &'a String)>) {
                 _ => {}
             }
         }
+        next = lines.next().map(|(_, line)| line.as_str());
     }
 }
 
@@ -229,20 +278,18 @@ pub fn module_declarations(source: &str) -> Vec<ModuleDeclaration> {
     let mut depth = 0_usize;
     let mut after_cfg_test = false;
 
+    let mut attribute_depth = 0_usize;
+
     for line in mask(source) {
-        let trimmed = line.trim();
-        if trimmed.is_empty() {
-            continue;
-        }
-        if trimmed == "#[cfg(test)]" {
+        if attribute_depth == 0 && line.trim_start().starts_with(CFG_TEST) {
             after_cfg_test = true;
-            continue;
         }
-        if trimmed.starts_with("#[") {
+        let item = skip_attributes(&line, &mut attribute_depth);
+        if item.is_empty() {
             continue;
         }
 
-        if let Some((name, inline)) = module_item(trimmed) {
+        if let Some((name, inline)) = module_item(item) {
             let test_only = after_cfg_test || stack.iter().any(|entry| entry.2);
             if inline {
                 stack.push((name, depth, test_only));
@@ -254,7 +301,7 @@ pub fn module_declarations(source: &str) -> Vec<ModuleDeclaration> {
         }
         after_cfg_test = false;
 
-        for c in line.chars() {
+        for c in item.chars() {
             match c {
                 '{' => depth += 1,
                 '}' => {
@@ -447,6 +494,29 @@ mod tests {
         let source = format!("#[cfg(test)]\nfn t() -> Vec<u8> {{ vec![{CALLER}] }}\n{ATTRIBUTE}\nfn f() {{}}\n");
 
         assert_eq!(violations_in(&source).iter().map(|v| v.line).collect::<Vec<_>>(), vec![3]);
+    }
+
+    #[test]
+    fn it_should_mask_a_raw_byte_string_and_an_escaped_apostrophe() {
+        let raw_byte = format!("let a = br#\"\"\"#;\n{CALLER};\n");
+        let apostrophe = format!("fn t() {{ let _ = ['\\'', '{{']; }}\n{CALLER};\n");
+
+        assert_eq!(violations_in(&raw_byte).iter().map(|v| v.line).collect::<Vec<_>>(), vec![2]);
+        assert_eq!(violations_in(&apostrophe).iter().map(|v| v.line).collect::<Vec<_>>(), vec![2]);
+    }
+
+    #[test]
+    fn it_should_skip_an_item_that_shares_its_line_with_another_attribute() {
+        let source = format!("#[cfg(test)]\n#[allow(dead_code)] fn helper() {{}}\n{ATTRIBUTE}\nfn production() {{}}\n");
+
+        assert_eq!(violations_in(&source).iter().map(|v| v.line).collect::<Vec<_>>(), vec![3]);
+    }
+
+    #[test]
+    fn it_should_keep_the_cfg_test_attribute_across_a_multiline_attribute() {
+        let source = "#[cfg(test)]\n#[allow(\n    dead_code\n)]\nmod helpers;\n";
+
+        assert!(module_declarations(source)[0].test_only);
     }
 
     #[test]
