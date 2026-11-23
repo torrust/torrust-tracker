@@ -48,6 +48,14 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | R3 | review-finding:pr-3014-r3 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | R2 | review-finding:pr-3014-r2 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | R1 | review-finding:pr-3014-r1 | Copilot | Minor | correctness | RE_RAISE_OF:F2 | NO_ACTION | SUPERSEDED |
+| F3 | review-finding:pr-3014-f3 | Unknown | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F4 | review-finding:pr-3014-f4 | Unknown | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F5 | review-finding:pr-3014-f5 | Unknown | Minor | security | ORIGINAL | FIXED | RESOLVED |
+| F6 | review-finding:pr-3014-f6 | Unknown | Major | security | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-3014-f7 | Unknown | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-3014-f8 | Unknown | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| R4 | review-finding:pr-3014-r4 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| R5 | review-finding:pr-3014-r5 | Copilot | Minor | correctness | ORIGINAL | FIXED | NON_RESOLVABLE |
 
 ## Finding Details
 
@@ -116,10 +124,117 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4670524515
 
+### F3 - The database-password marker cannot run through the E2E runner
+
+- PR number: 3014
+- Source review ID: 6027811353
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4670663043
+- Concern: CodeRabbit: the runner forces the SQLite driver after loading the input TOML, so a network-database input with a password cannot complete the run, and M1 could not reach the checker log with it.
+- Solution: M1 now checks the admin-token marker in the `tracker config:` line (`runner.rs:80`), which is written before the container starts; the database-password case moved to the T2 unit test.
+- Current-tree verification: `src/console/ci/e2e/runner.rs:95-96` sets `DATABASE_DRIVER_OVERRIDE` to `SQLITE_DRIVER`.
+- Resolution reference: docs(issues): make the CI-tools draft scenarios runnable and say where markers enter
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4670921433
+
+### F4 - The checker log carries service addresses only
+
+- PR number: 3014
+- Source review ID: 6027811353
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4670663043
+- Concern: CodeRabbit (second assertion of the same comment): `tracker_checker.rs:88` logs the running-services JSON, so a marker in the input TOML never reaches it.
+- Solution: The background table now says the checker log holds service addresses only today and is listed because the function logs whatever configuration it gets; its marker test is a unit test.
+- Current-tree verification: `runner.rs:117-120` serializes `running_services` and passes it to `tracker_checker::run`.
+- Resolution reference: docs(issues): make the CI-tools draft scenarios runnable and say where markers enter
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4670921433
+
+### F5 - The POST seconds route echoes a key in its path rejection
+
+- PR number: 3014
+- Source review ID: 6027811353
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4670663057
+- Concern: CodeRabbit: `POST /api/v1/key/<key>` extracts the segment as `u64`, and the axum rejection includes the rejected value in the 400 reply.
+- Solution: SI-A item 1 covers the rejection with the 400 status kept; the regression strategy adds a test that posts a key to that route.
+- Current-tree verification: `packages/axum-rest-api-server/src/v1/context/auth_key/handlers.rs:65` is `Path<u64>`; `tests/server/v1/asserts.rs:129` pins `Invalid URL: Cannot parse ... to a u64`.
+- Resolution reference: docs(issues): [#2999] cover the POST path rejection, malformed key segments and the client GET exceptions
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4670921850
+
+### F6 - Redact the key segment whatever its shape
+
+- PR number: 3014
+- Source review ID: 6027811353
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4670663071
+- Concern: CodeRabbit: a rule that redacts only key-shaped segments leaves a malformed key, such as a valid key with a stray character, in the log.
+- Solution: SI-A item 3 now requires redaction of every segment after `/announce/`, `/scrape/` and `/api/v1/key/`, and the redaction test includes malformed keys.
+- Current-tree verification: The spec text was the only place the choice was open ("decided at implementation"); no code exists yet.
+- Resolution reference: docs(issues): [#2999] cover the POST path rejection, malformed key segments and the client GET exceptions
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4670922327
+
+### F7 - AC2 claims health-check database coverage
+
+- PR number: 3014
+- Source review ID: 6027811353
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4670663080
+- Concern: CodeRabbit: AC2 required a database-driver-text check through the health-check API, but no test or scenario showed one, and it is not clear a database failure can reach it.
+- Solution: AC2 names the three servers that reach the database; AC2b covers the health-check failed-probe text and statuses.
+- Current-tree verification: `grep -rn -i "database|sqlx" packages/axum-health-check-api-server/src` finds nothing.
+- Resolution reference: docs(issues): [#3000] limit the driver-text criterion to the servers that reach the database
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4670922736
+
+### F8 - A log entry claimed a push before it happened
+
+- PR number: 3014
+- Source review ID: 6027811353
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4670663085
+- Concern: CodeRabbit: the 18:58 Processing Log entry said the fix commits were pushed together with the record, written before that push.
+- Solution: Removed the push clause from that entry and added an entry with the push time taken from GitHub (the Docs Lint run created for head `12c44a815`).
+- Current-tree verification: `gh-bot run list --branch 2993-refresh-specs-spec` shows the run for that head created at 2026-11-23T19:05:10Z.
+- Resolution reference: docs(pr-reviews): [#2993] record review round 2 of PR 3014
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4670925538
+
+### R4 - CI-tools markers cannot reach the checker or compose logs
+
+- PR number: 3014
+- Source review ID: 6028085158
+- Reviewer finding ID: R4
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4670871714
+- Concern: Copilot: the token and password markers never reach `tracker_checker.rs:88`, and M3 did not say how a marker enters `DockerCompose::with_env`, whose caller passes image, port and path values only. The first point is the same as F4.
+- Solution: Same change as F3 and F4 for the checker; M3 now says the compose environment holds no credential today and the T3 unit test injects the marker through `DockerCompose::with_env`.
+- Current-tree verification: `src/console/ci/qbittorrent_e2e/services_setup.rs:123-160` passes image names, ports and paths.
+- Resolution reference: docs(issues): make the CI-tools draft scenarios runnable and say where markers enter
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4670923149
+
+### R5 - REST client exceptions to header-token sending
+
+- PR number: 3014
+- Source review ID: 6028085158
+- Reviewer finding ID: R5
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3014#pullrequestreview-6028085158
+- Concern: Copilot (review body, "previously missed"): `get_request` sends no token, GET helpers keep a caller-supplied `Authorization` header, and the free GET helper wraps its send error at `:552`; the specs said the header is sent on every request.
+- Solution: SI-A item 6 and the EPIC A6 evidence line name both exceptions and include `:552` in the `without_url` audit.
+- Current-tree verification: `packages/rest-api-client/src/v1/client.rs:514-517` (`get_request` calls `get_result(url, None, None)`), `:486-489`, `:552`.
+- Resolution reference: docs(issues): [#2999] cover the POST path rejection, malformed key segments and the client GET exceptions
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3014#issuecomment-7111763293
+
 ## Processing Log
 
 - 2026-11-23 18:58 UTC - Started audit after the Copilot review 6027563286 (18:53 UTC); the two Greptile reviews 6027255837 (18:30 UTC) and 6027369330 (18:39 UTC) had arrived before it. Five findings, all checked against the branch.
-- 2026-11-23 18:58 UTC - Replied on all five threads (replies 4670523578, 4670524038, 4670524515, 4670524934, 4670525417), before the two fix commits were pushed; they were pushed together with this record.
+- 2026-11-23 18:58 UTC - Replied on all five threads (replies 4670523578, 4670524038, 4670524515, 4670524934, 4670525417), before the two fix commits were pushed.
+- 2026-11-23 19:05 UTC - The two fix commits and this record were pushed (head `12c44a815`; time of its Docs Lint run on GitHub). The five round-1 threads were resolved after the push.
+- 2026-11-23 19:29 UTC - Round 2: CodeRabbit review 6027811353 (19:10 UTC, six assertions in five comments) and Copilot review 6028085158 (19:28 UTC, R4 inline and R5 in the body). Eight findings, all checked against the branch.
+- 2026-11-23 19:33 UTC - Replied on the six inline threads (replies 4670921433, 4670921850, 4670922327, 4670922736, 4670923149, 4670925538) and answered R5 in PR comment 7111763293, before the fix commits were pushed.
 
 ## Completion Rules
 
