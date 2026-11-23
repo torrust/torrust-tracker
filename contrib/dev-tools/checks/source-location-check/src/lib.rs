@@ -346,50 +346,73 @@ fn module_directory(path: &Path) -> PathBuf {
     }
 }
 
-/// Repo-relative `/`-separated files and directory prefixes (ending in `/`) that are test code, given
-/// every `.rs` file as `(path, source)`.
+/// The files and directory prefixes (repo-relative, `/`-separated, prefixes end in `/`) that module
+/// declarations include, split by whether the declaration is `#[cfg(test)]`.
+#[derive(Debug, Default, PartialEq, Eq)]
+pub struct ModulePaths {
+    pub test_only: BTreeSet<String>,
+    pub production: BTreeSet<String>,
+}
+
+/// Collects the module paths of every `.rs` file, given as `(path, source)`.
 ///
-/// A module file counts only when every declaration that includes it is `#[cfg(test)]`: one production
-/// declaration (for example in `main.rs` next to a test-only one in `lib.rs`) keeps it checked.
+/// A file counts as test code only when every declaration that includes it is `#[cfg(test)]`: one
+/// production declaration (for example in `main.rs` next to a test-only one in `lib.rs`) keeps it checked,
+/// and a production declaration below a test-only directory prefix overrides that prefix (see
+/// [`is_test_file`]).
 #[must_use]
-pub fn test_only_paths<'a>(files: impl IntoIterator<Item = (&'a Path, &'a str)>) -> BTreeSet<String> {
-    let mut test_only = BTreeSet::new();
-    let mut production = BTreeSet::new();
+pub fn test_only_paths<'a>(files: impl IntoIterator<Item = (&'a Path, &'a str)>) -> ModulePaths {
+    let mut paths = ModulePaths::default();
 
     for (path, source) in files {
         let directory = module_directory(path);
         for declaration in module_declarations(source) {
             let module = directory.join(declaration.path.join("/"));
-            let file = slash(&module.with_extension("rs"));
-            let prefix = slash(&module) + "/";
             let target = if declaration.test_only {
-                &mut test_only
+                &mut paths.test_only
             } else {
-                &mut production
+                &mut paths.production
             };
-            target.insert(file);
-            target.insert(prefix);
+            target.insert(slash(&module.with_extension("rs")));
+            target.insert(slash(&module) + "/");
         }
     }
 
-    test_only.retain(|entry| !production.contains(entry));
-    test_only
+    paths.test_only.retain(|entry| !paths.production.contains(entry));
+    paths
 }
 
 fn slash(path: &Path) -> String {
     path.to_string_lossy().replace('\\', "/")
 }
 
-/// Whether the file at `path` is test code wholesale.
+/// The length of the longest entry of `entries` that is `path` itself or a directory prefix of it.
+fn longest_match(path: &str, entries: &BTreeSet<String>) -> Option<usize> {
+    entries
+        .iter()
+        .filter(|entry| path == entry.as_str() || (entry.ends_with('/') && path.starts_with(entry.as_str())))
+        .map(String::len)
+        .max()
+}
+
+/// Whether the file at `path` is test code wholesale. Of a test-only and a production module path that
+/// both match, the more specific (longer) one decides.
 #[must_use]
-pub fn is_test_file(path: &Path, test_only: &BTreeSet<String>) -> bool {
+pub fn is_test_file(path: &Path, paths: &ModulePaths) -> bool {
     let path = slash(path);
-    path.split('/').rev().skip(1).any(|part| part == "tests")
+    if path.split('/').rev().skip(1).any(|part| part == "tests")
         || TEST_ONLY_PREFIXES.iter().any(|prefix| path.starts_with(prefix))
-        || test_only.contains(&path)
-        || test_only
-            .iter()
-            .any(|entry| entry.ends_with('/') && path.starts_with(entry.as_str()))
+    {
+        return true;
+    }
+    match (
+        longest_match(&path, &paths.test_only),
+        longest_match(&path, &paths.production),
+    ) {
+        (Some(test), Some(production)) => test > production,
+        (Some(_), None) => true,
+        (None, _) => false,
+    }
 }
 
 /// Parses the allow-list: `<path>: <reason>` lines. Returns the allowed paths or the first bad line.
@@ -585,6 +608,19 @@ mod tests {
         let paths = test_only_paths([(lib, "#[cfg(test)]\nmod shared;\n"), (main, "mod shared;\n")]);
 
         assert!(!is_test_file(Path::new("packages/x/src/shared.rs"), &paths));
+    }
+
+    #[test]
+    fn it_should_let_a_production_declaration_override_a_test_only_directory_prefix() {
+        let lib = Path::new("packages/x/src/lib.rs");
+        let main = Path::new("packages/x/src/main.rs");
+        let paths = test_only_paths([
+            (lib, "#[cfg(test)]\nmod shared;\n"),
+            (main, "mod shared {\n    mod child;\n}\n"),
+        ]);
+
+        assert!(!is_test_file(Path::new("packages/x/src/shared/child.rs"), &paths));
+        assert!(!is_test_file(Path::new("packages/x/src/shared/child/deeper.rs"), &paths));
     }
 
     #[test]
