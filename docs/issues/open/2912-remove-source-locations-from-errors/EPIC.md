@@ -6,7 +6,7 @@ epic: null
 github-issue: 2912
 spec-path: docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md
 epic-owner: null
-last-updated-utc: "2026-11-23 15:55"
+last-updated-utc: "2026-11-23 15:53"
 semantic-links:
   skill-links:
     - create-issue

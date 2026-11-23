@@ -9,7 +9,7 @@ github-issue: 2996
 spec-path: docs/issues/open/2996-2912-si-8-share-assert-names-no-source-path/ISSUE.md
 branch: "2996-share-assert-names-no-source-path-spec"
 related-pr: null
-last-updated-utc: "2026-11-23 15:55"
+last-updated-utc: "2026-11-23 15:53"
 semantic-links:
   skill-links:
     - create-issue
