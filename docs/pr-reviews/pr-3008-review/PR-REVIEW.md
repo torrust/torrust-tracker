@@ -59,7 +59,11 @@ Round 7 covers review 6025926288 (da2ce7, submitted 2026-11-23T17:08:10Z, of the
 
 Round 8 covers review 6026068748 (CodeRabbit, COMMENTED, submitted 2026-11-23T17:16:52Z, of the head whose last commit is `docs(pr-reviews): [#3006] record review round 5 of PR #3008 and drop branch commit ids`) with one inline comment marked Minor, recorded as F23 (author class `Unknown`, a bot that is not Copilot). Its body counts the one actionable comment and makes no row. It also covers review 6026144266 (da2ce7, COMMENTED, submitted 2026-11-23T17:20:32Z, same head) with two inline comments carrying the reviewer IDs F19 and F20, which collide with the audit's F19 and F20, so they are recorded as F24 and F25; F25 asks for the same T2 change as F23 and is a re-raise.
 
-Round 9 covers review 6026332138 (da2ce7, APPROVED, submitted 2026-11-23T17:31:06Z, of the head whose last commit is `docs(pr-reviews): [#3006] record review rounds 6 and 7 of PR #3008`) with one inline comment carrying the reviewer ID F23, which collides with the audit's F23, so it is recorded as F26.
+Round 9 covers review 6026332138 (da2ce7, submitted as APPROVED and now shown as DISMISSED, submitted 2026-11-23T17:31:06Z, of the head whose last commit is `docs(pr-reviews): [#3006] record review rounds 6 and 7 of PR #3008`) with one inline comment carrying the reviewer ID F23, which collides with the audit's F23, so it is recorded as F26.
+
+Round 10 covers review 6026521422 (CodeRabbit, COMMENTED, submitted 2026-11-23T17:42:25Z, of the head whose last commit is `docs(issues): [#3006] make T2 red-green increments agree with the test loop`), a follow-up reply in the resolved F23 thread that asks the T2 row and the loop's first step to name the first-run-green exception, recorded as F27. It also covers review 6026616249 (da2ce7, submitted 2026-11-23T17:48:17Z, same head; now shown as DISMISSED) with two inline comments carrying the reviewer IDs F24 and F25, recorded as F28 (a re-raise of F27) and F29.
+
+Round 11 covers review 6026749477 (da2ce7, APPROVED, submitted 2026-11-23T17:56:39Z, of the head whose last commit is `docs(pr-reviews): [#3006] record review rounds 8 and 9 of PR #3008`) with two inline comments carrying the reviewer IDs F27 and F28, recorded as F30 and F31.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -89,6 +93,11 @@ Round 9 covers review 6026332138 (da2ce7, APPROVED, submitted 2026-11-23T17:31:0
 | F24 | review-finding:pr-3008-f24 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F25 | review-finding:pr-3008-f25 | Human | Minor | testing | RE_RAISE_OF:F23 | NO_ACTION | SUPERSEDED |
 | F26 | review-finding:pr-3008-f26 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F27 | review-finding:pr-3008-f27 | Unknown | Minor | testing | RE_RAISE_OF:F23 | FIXED | RESOLVED |
+| F28 | review-finding:pr-3008-f28 | Human | Minor | testing | RE_RAISE_OF:F27 | NO_ACTION | SUPERSEDED |
+| F29 | review-finding:pr-3008-f29 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F30 | review-finding:pr-3008-f30 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F31 | review-finding:pr-3008-f31 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -430,6 +439,71 @@ Round 9 covers review 6026332138 (da2ce7, APPROVED, submitted 2026-11-23T17:31:0
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669615728
 
+### F27 - The T2 row and the loop's first step did not name the first-run-green exception
+
+- PR number: 3008
+- Source review ID: 6026521422
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669629323
+- Concern: After the F23 fix, the T2 row still said each test is red first and the loop's first step said the test must fail, while the second step lets a later `schema_version` test pass on its first run.
+- Solution: The T2 row and the loop's first step name the exception: a later `schema_version` test that the shared writer already covers passes on its first run and records that green run.
+- Current-tree verification: `grep -c 'except a later .schema_version. test that the shared writer already covers' docs/issues/open/3006-2758-tracker-client-schema-version/ISSUE.md` prints 1; `grep -c 'The one exception is in the next step' docs/issues/open/3006-2758-tracker-client-schema-version/ISSUE.md` prints 1.
+- Resolution reference: `docs(issues): [#3006] name the first-run-green exception in the T2 row and the loop`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669902384
+
+### F28 - The T2 row and the loop's first step said every test fails first
+
+- PR number: 3008
+- Source review ID: 6026616249
+- Reviewer finding ID: F24
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669702667
+- Concern: Same request as F27.
+- Solution: No separate change: F27's fix covers it.
+- Current-tree verification: Same as F27.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669902930
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669902930
+
+### F29 - The round-8 and round-9 rows, the promised commit and the reply-time correction were not at the reviewed head
+
+- PR number: 3008
+- Source review ID: 6026616249
+- Reviewer finding ID: F25
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669702679
+- Concern: At the reviewed head the record ended at F22, the replies cited audit F23 to F26 and a commit the branch did not hold, and the 17:01Z reply time stood uncorrected.
+- Solution: The rounds 8 and 9 audit commit, pushed after the reviewed head, added F23 to F26 and the correction entry.
+- Current-tree verification: `grep -cE '^\| F2[3-6] \|' docs/pr-reviews/pr-3008-review/PR-REVIEW.md` prints 4; `grep -c '^- 2026.* - Correction of the 17:03 entry' docs/pr-reviews/pr-3008-review/PR-REVIEW.md` prints 1.
+- Resolution reference: `docs(pr-reviews): [#3006] record review rounds 8 and 9 of PR #3008`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669903429
+
+### F30 - The round-9 note called review 6026332138 APPROVED while the forge shows it DISMISSED
+
+- PR number: 3008
+- Source review ID: 6026749477
+- Reviewer finding ID: F27
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669807605
+- Concern: The round-9 note and the 17:41 log entry said APPROVED, while the round-7 note reports the DISMISSED state of its review.
+- Solution: The round-9 note says the review was submitted as APPROVED and is now shown as DISMISSED, and an appended log entry corrects the 17:41 entry the same way.
+- Current-tree verification: `grep -c '^Round 9 .*submitted as APPROVED and now shown as DISMISSED' docs/pr-reviews/pr-3008-review/PR-REVIEW.md` prints 1; `grep -c '^- 2026.* - Correction of the 17:41 entry' docs/pr-reviews/pr-3008-review/PR-REVIEW.md` prints 1.
+- Resolution reference: `docs(pr-reviews): [#3006] record review rounds 10 and 11 of PR #3008`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669903888
+
+### F31 - The round-10 threads awaited replies, rows and resolutions
+
+- PR number: 3008
+- Source review ID: 6026749477
+- Reviewer finding ID: F28
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669807614
+- Concern: Review 6026616249's two threads had no reply, row or resolution, and the T2 exception was still unnamed.
+- Solution: The T2 exception is fixed (F27); the two threads have replies and are resolved; this record holds F28 and F29.
+- Current-tree verification: `grep -cE '^\| F(28|29) \|' docs/pr-reviews/pr-3008-review/PR-REVIEW.md` prints 2.
+- Resolution reference: `docs(pr-reviews): [#3006] record review rounds 10 and 11 of PR #3008`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3008#discussion_r4669904297
+
 ## Processing Log
 
 - 2026-11-23 16:10 UTC - Started audit. Round 1: review 6024919812 (da2ce7, CHANGES_REQUESTED, submitted 16:03:08Z) with seven inline comments, F1 to F7. F1 needed a maintainer decision: he chose D4 (the `http scrape` entries under `files`) and D5 (the UDP field beside the tag). The fixes of F1 and F3 to F7 were committed and pushed as `josecelano-bot` (`docs(issues): [#3006] move http scrape entries under files and name all consumers`).
@@ -446,6 +520,8 @@ Round 9 covers review 6026332138 (da2ce7, APPROVED, submitted 2026-11-23T17:31:0
 - 2026-11-23 17:16 UTC - The audit validator, run with the bot token, exits 0 (22 rows, 0 failures), and the `open-pull-request` commit-id check prints nothing. A GraphQL fetch that ran before this entry shows 21 threads, 0 unresolved.
 - 2026-11-23 17:41 UTC - Correction of the 17:03 entry: it gives the first round-5 reply as 17:01Z; that reply (to the F16 thread) was created at 17:02:40Z.
 - 2026-11-23 17:41 UTC - Rounds 8 and 9: reviews 6026068748 (CodeRabbit, 17:16:52Z), 6026144266 (da2ce7, 17:20:32Z) and 6026332138 (da2ce7, APPROVED, 17:31:06Z) recorded as F23 to F26. The fix of F23 was committed and pushed as `josecelano-bot` (`git-bot-push` exit 0). Replied on the four threads (17:41:15Z to 17:41:23Z) and resolved them (each mutation returned `isResolved` true).
+- 2026-11-23 18:05 UTC - Correction of the 17:41 entry: review 6026332138 was submitted as APPROVED and is now shown as DISMISSED.
+- 2026-11-23 18:05 UTC - Rounds 10 and 11: reviews 6026521422 (CodeRabbit, 17:42:25Z), 6026616249 (da2ce7, 17:48:17Z) and 6026749477 (da2ce7, APPROVED, 17:56:39Z) recorded as F27 to F31. The fix of F27 was committed and pushed as `josecelano-bot` (`git-bot-push` exit 0). Replied on the five threads (18:04:34Z to 18:04:44Z) and resolved the four open ones (each mutation returned `isResolved` true; the F27 reply is in the already resolved F23 thread).
 
 ## Completion Rules
 
