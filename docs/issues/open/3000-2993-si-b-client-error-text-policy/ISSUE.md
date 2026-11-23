@@ -9,7 +9,7 @@ github-issue: 3000
 spec-path: docs/issues/open/3000-2993-si-b-client-error-text-policy/ISSUE.md
 branch: "3000-si-b-client-error-text-policy"
 related-pr: null
-last-updated-utc: "2026-11-23 18:28"
+last-updated-utc: "2026-11-23 18:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -43,7 +43,7 @@ Section B of the EPIC inventory lists what each protocol sends today, reproduced
 - REST API: every key, whitelist and reload failure, and a missing or wrong token, is a 500 with `Unhandled rejection: Err { reason: "..." }`; database failures put `e.to_string()` of the driver error in it (`UNIQUE constraint failed: keys.key`); a malformed JSON body returns serde's own text.
 - A database server message can name the database user and the client address (`Access denied for user 'db_user'@'172.17.0.1'`). Today it reaches the operator only; it would reach a client wherever driver text is forwarded (EPIC item A11).
 - The UDP error event payload (`packages/udp-server/src/event.rs:114-153`) holds the same strings, including the type name of a parse error (`ErrorKind::RequestParse`).
-- The health-check API returns 503 with `shutting down`, `health check failed`, and per service `Err(<reqwest error or status text>)` or `the health check job failed: <join error>` (`packages/axum-health-check-api-server/src/responses.rs:19`, `handlers.rs:66`, `:82`; `packages/axum-http-server/src/server.rs:331-332`). Added to the scope on 2026-11-23.
+- The health-check API (added to the scope on 2026-11-23) has two kinds of failure reply, with different statuses. While the application is shutting down it returns 503 with the report `shutting down` and probes nothing (`packages/axum-health-check-api-server/src/handlers.rs:28-33`, `responses.rs:19`). When a probe fails or its job panics it returns 200 with the report `health check failed` and, per service, `Err(<reqwest error or status text>)` or `the health check job failed: <join error>` (`handlers.rs:66`, `:82`; `packages/axum-http-server/src/server.rs:331-332`; pinned in `packages/axum-health-check-api-server/tests/server/contract.rs:147-188`, `:711-741`). This issue changes the text only; the statuses stay.
 
 ### More client texts found by the recheck
 
@@ -105,6 +105,7 @@ The driver text in client replies and the wrong `InvalidQuery` label are bugs ag
 - **Real boundary, REST API**: a test with the existing REST test server asserting that the reply for a forced database failure (a duplicate key insert) holds no driver text, and that the server log holds the detail.
 - **Real boundary, HTTP and UDP trackers**: a duplicate insert cannot reach them. An announce updates the in-memory repository and touches the database only in `load_downloads_metric_if_needed` (`packages/tracker-core/src/announce_handler.rs:196-205`), which reads the persisted download count when the torrent is not in memory; scrape reads it in `persisted_downloads.load_many`. So the test needs `core.tracker_policy.persistent_torrent_completed_stat = true`, an info-hash that is not in memory, and a read that fails (a database that was dropped or closed after start, or a test double of the persisted-downloads store that returns a database error). It asserts that the announce and scrape replies of each tracker hold no driver text.
 - **UDP**: tests that the connection-id error holds no clock value and the parse error holds no type name.
+- **Health-check API**: a test with the existing health-check test server where a probe fails (an unreachable service) and one where the probe job panics, asserting that the per-service text follows the ADR, holds no `reqwest` or join-error text, and keeps the 200 status; and that the shutting-down reply keeps its 503 status.
 - A helper that forbids known driver markers (`sqlx`, `error returned from database`, `constraint failed`, `Access denied`) in client text, used by the protocol tests.
 
 ## Implementation Plan
@@ -124,6 +125,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T5 | TODO | HTTP tracker text | As the ADR decides. |
 | T6 | TODO | UDP tracker text and the error event | As the ADR decides. |
 | T7 | TODO | REST API text | As the ADR decides, within v1's additive-only rule. |
+| T7b | TODO | Health-check API text | As the ADR decides; the per-service failure text and the report message, with the statuses unchanged (200 for a failed probe, 503 while shutting down). |
 | T8 | TODO | Skill and documentation | `handle-errors-in-code`; any documented example reply. |
 | T8b | TODO | Maintainer checkpoint | Stop for maintainer review after the last test increment, before final verification, the final commit and the pull request. |
 | T9 | TODO | Final recheck | The baseline reproduction repeated after the last production change. |
@@ -137,6 +139,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T5 | HTTP tracker text | Commit after the red and green runs and the recorded test-design review. |
 | T6 | UDP tracker text and event | Commit after the red and green runs and the recorded test-design review. |
 | T7 | REST API text | Commit after the red and green runs and the recorded test-design review. |
+| T7b | Health-check API text | Commit after the red and green runs and the recorded test-design review. |
 | T8 | Skill and documentation | Commit after focused validation and required review. |
 
 ## Progress Tracking
@@ -196,6 +199,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | M3 | UDP connection id and short packet | Announce with a wrong connection id; send a 3-byte packet | No clock value; no type name | TODO | `manual-verification-evidence.md` section V3 |
 | M4 | Database down | On a MySQL or PostgreSQL tracker with `persistent_torrent_completed_stat = true`, stop the database and send an HTTP and a UDP announce for an info-hash that is not in memory, a scrape, and a REST key request | The client text follows the ADR and names neither the user nor the host; the log holds them | TODO | `manual-verification-evidence.md` section V4 |
 | M5 | REST bad token and bad JSON | Call the API with a wrong token and with a malformed JSON body | Text as the ADR decides, within v1's rules | TODO | `manual-verification-evidence.md` section V5 |
+| M6 | Health-check API failures | On a running tracker, make one registered service unreachable (for example block its port) and call `GET /health_check`; then call it during shutdown | The failed-probe reply is 200 with text as the ADR decides and no `reqwest` text; the shutting-down reply is 503 | TODO | `manual-verification-evidence.md` section V6 |
 
 Notes: manual verification is mandatory even when automated tests pass. Record the toolchain for every command, and create `manual-verification-evidence.md` from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`.
 
