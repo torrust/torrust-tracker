@@ -90,8 +90,10 @@ missing (it belongs before the completed-file review), then compared with the co
 | `it_should_panic_when_the_legacy_factory_cannot_open_the_database` | A configuration whose SQLite path is in a missing directory. | Initialize with the legacy factory. | It panics with "database initialization requested". | Matches the code. |
 
 Smells found: the first test has two Act and Assert phases (accepted, above). The existing test
-`it_should_initialize_the_sqlite_database` asserts nothing; it is kept unchanged because the other
-tests of the package use it as their fixture.
+`it_should_initialize_the_sqlite_database` asserted nothing. This record first said it was kept because
+the other tests use it as their fixture; that was not true (a test cannot be a fixture, and the others
+call `initialize_database` themselves). It is a smell, and the review of #3009 changed the test: see
+Changes After Review.
 
 ## Results
 
@@ -102,7 +104,8 @@ tests of the package use it as their fixture.
   pool and cannot fail, so its error arm has no decision) and 119-128 (the MySQL and PostgreSQL
   arms, assigned to S3). The package's unit-only lines 4,951 / 5,724 (86.50%) to 5,014 / 5,787
   (86.64%), regions 5,503 / 6,428 (85.61%), functions 869 / 1,069 (81.29%).
-- **Tests:** 4 added, 1 unchanged: 263 to 267 unit tests in the package.
+- **Tests:** 4 added, 1 unchanged at the time of the measurement above (263 to 267 unit tests in the
+  package); the review of #3009 then gave the existing test an assertion, see Changes After Review.
 - **Mutations** (each applied alone and reverted, the file compared with its copy afterwards):
 
   | ID | Result |
@@ -116,3 +119,17 @@ tests of the package use it as their fixture.
 - **Validation:** `cargo clippy -p torrust-tracker-core --all-targets --all-features` (only the
   existing `axum::serve` warning), `cargo +nightly fmt --all -- --check` and
   `cargo machete --with-metadata` pass.
+
+## Changes After Review (#3009)
+
+- **Legacy factory test names (Copilot):** the two panic tests are named
+  `it_should_panic_when_the_legacy_factory_gets_a_configuration_without_a_database` and
+  `it_should_panic_when_the_legacy_factory_cannot_open_the_database`.
+- **All four stores checked after the drop (da2ce7 F1, Copilot R1):** the shared-database test also
+  asserts that the key store and the torrent metrics store fail after the schema migrator drops the
+  tables; four mutants that give one store its own migrated database all fail it.
+- **The existing test (da2ce7 F12 of the third review):** `it_should_initialize_the_sqlite_database`
+  now has Arrange, Act and Assert, and asserts that the freshly initialized database has its tables
+  and an empty whitelist. Alone, it kills the mutant that skips the table creation. It stays distinct
+  from the shared-database test, which writes and drops; it is the smallest test of "the factory
+  leaves a usable database".
