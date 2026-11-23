@@ -1,7 +1,7 @@
 ---
 pr-number: 3007
 pr-url: https://github.com/torrust/torrust-tracker/pull/3007
-last-updated-utc: "2026-11-23 17:04"
+last-updated-utc: "2026-11-23 22:10"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -51,6 +51,8 @@ Round 4, on the head that carries the round 3 audit: da2ce7 review 6025458205 (A
 
 Round 5, on the head that carries F18: da2ce7 review 6025803194 (APPROVED) with one Minor, recorded as F19 (his ID F17 is taken here). It is the last fix round the loop allows.
 
+Round 6, after the maintainer's go-ahead: Copilot review 6026249183 (COMMENTED, on the head before the round 5 audit) left three wording suggestions, recorded as F20 to F22. The fix rewords the sentence that F10's check reads, so F10's verification now quotes the new wording.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3007-f1 | Human | Minor | correctness | RE_RAISE_OF:F5 | FIXED | RESOLVED |
@@ -72,6 +74,9 @@ Round 5, on the head that carries F18: da2ce7 review 6025803194 (APPROVED) with 
 | F17 | review-finding:pr-3007-f17 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F18 | review-finding:pr-3007-f18 | Copilot | Minor | metadata | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F19 | review-finding:pr-3007-f19 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-3007-f20 | Copilot | Suggestion (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F21 | review-finding:pr-3007-f21 | Copilot | Suggestion (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F22 | review-finding:pr-3007-f22 | Copilot | Suggestion (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -322,6 +327,45 @@ Round 5, on the head that carries F18: da2ce7 review 6025803194 (APPROVED) with 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4669130993
 
+### F20 - #2770 cites issues 12 and 13 ambiguously
+
+- PR number: 3007
+- Source review ID: 6026249183
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4669414939
+- Concern: In #2770, "including issues 12 and 13" can be read as GitHub issues #12 and #13 instead of EPIC rows 12 and 13.
+- Solution: The line now reads "including EPIC subissues 12 and 13, #3004 and #3006".
+- Current-tree verification: `grep -c 'including EPIC subissues 12 and 13, #3004 and #3006' docs/issues/open/2770-2758-close-out-adr-and-epic/ISSUE.md` printed 1 at the fix head.
+- Resolution reference: `docs(issues): [#2758] clarify three EPIC and #2770 wordings from Copilot's PR 3007 review`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4672693647
+
+### F21 - Row 1's exclusion wording is awkward
+
+- PR number: 3007
+- Source review ID: 6026249183
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4669415040
+- Concern: Row 1's "no issue but issue 11 edits its table" is awkward and can be misread.
+- Solution: Row 1 now reads "no other issue edits its table except issue 11 (issue 13 amends its text)".
+- Current-tree verification: `grep -c 'no other issue edits its table except issue 11' docs/issues/open/2758-cli-output-contract-tools-migration/EPIC.md` printed 1 at the fix head.
+- Resolution reference: `docs(issues): [#2758] clarify three EPIC and #2770 wordings from Copilot's PR 3007 review`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4672694101
+
+### F22 - The order paragraph packs four rules together
+
+- PR number: 3007
+- Source review ID: 6026249183
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4669415101
+- Concern: The remaining-work paragraph chains the schedule, the reason, the merge constraint and the precedence rule in long sentences, which makes updates error-prone.
+- Solution: The paragraph is now a short intro and a four-item list: schedule, why issue 12 is first, merge constraint and precedence.
+- Current-tree verification: `grep -c '^- \*\*Merge constraint:\*\*' docs/issues/open/2758-cli-output-contract-tools-migration/EPIC.md` printed 1 at the fix head.
+- Resolution reference: `docs(issues): [#2758] clarify three EPIC and #2770 wordings from Copilot's PR 3007 review`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4672694561
+
 ## Processing Log
 
 - 2026-11-23 14:24 UTC - Reviews arrived on the first head: Greptile (14:10:28), CodeRabbit (14:11:52) and da2ce7 (14:24:56).
@@ -340,6 +384,9 @@ Round 5, on the head that carries F18: da2ce7 review 6025803194 (APPROVED) with 
 - 2026-11-23 16:48 UTC - Added row F18 after the reply and the resolution.
 - 2026-11-23 17:04 UTC - Round 5: da2ce7 review 6025803194 (17:00:01, APPROVED, one Minor). The commit-id check had not been run before the earlier pushes; ran it, fixed the one id it printed, pushed, replied (17:04:29) and resolved (17:04:31).
 - 2026-11-23 17:04 UTC - Added row F19 after the reply and the resolution; the commit-id check prints nothing.
+- 2026-11-23 17:26 UTC - Copilot review 6026249183 (17:26:06) left three wording suggestions after the fix-round limit; held for the maintainer, who asked for them to be fixed (in the coordinator session, before 22:06 UTC).
+- 2026-11-23 22:09 UTC - Pushed the round 6 fix (with F10's check updated to the new wording), replied on the three threads (22:09:48 and before) and resolved them (22:09:53).
+- 2026-11-23 22:10 UTC - Added rows F20 to F22 after the replies and the resolution.
 
 ## Completion Rules
 
