@@ -73,6 +73,7 @@ F1 and F2 come from Copilot's review 6021313664 (COMMENTED on the first head, "d
 | F26 | review-finding:pr-3001-f26 | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
 | F27 | review-finding:pr-3001-f27 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F28 | review-finding:pr-3001-f28 | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
+| F29 | review-finding:pr-3001-f29 | Copilot | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -440,6 +441,19 @@ F1 and F2 come from Copilot's review 6021313664 (COMMENTED on the first head, "d
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4668818262
 
+### F29 - The axum-server README spells the TLS type TslConfig
+
+- PR number: 3001
+- Source review ID: 6025573059
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4668896026
+- Concern: Copilot (rated Low, recorded as Nit) noted that the README of `axum-server` calls the TLS configuration type `TslConfig`, twice, which looks like a typo of `TlsConfig` and makes the type hard to find.
+- Solution: Both mentions now say `TlsConfig`, the type that `tls.rs` imports from the v3 configuration. The lines are older than this PR; the PR edits the same list, so the fix rides along.
+- Current-tree verification: `grep -n "Tsl" packages/axum-server/README.md` finds nothing.
+- Resolution reference: docs(axum-server): [#2917] spell TlsConfig in the README
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3001#discussion_r4668929648
+
 ## Processing Log
 
 - 2026-11-23 12:00 UTC - Copilot's review 6021313664 (COMMENTED, submitted 12:00:15Z on the first head) arrived with two inline findings, F1 (Medium, recorded as Minor) and F2 (Low, recorded as Nit). The audit was started before the first reply. F1 fixed in "test(udp-server): [#2917] compare the authentication classification with the error's own message", pushed at 12:04 UTC (pre-push hook passed). F2 declined with a reason (the spec `status` becomes `done` at close-out).
@@ -457,3 +471,4 @@ F1 and F2 come from Copilot's review 6021313664 (COMMENTED on the first head, "d
 - 2026-11-23 15:58 UTC - Copilot's review 6023246827 (COMMENTED, submitted 14:18:50Z on the round-5 head) arrived with one inline finding, F17 (Low, recorded as Nit), the same defect as da2ce7's F19; da2ce7's review 6023021299 (APPROVED on the same head) had four findings, F18 to F21 (his F12, F9, F13 and F10). This is round 6, beyond the limit of five, done on the maintainer's message in the session. All five fixed in "docs(issues): [#2917] fix the SI-8 option rationale, dates and provenance wording after review round 5", "docs(issues): [#2917] use the real time in the updated metadata" and this audit commit; the first two pushed 15:55 UTC (pre-push hook passed). Replies posted 15:56:46 UTC by `date -u`; the threads are resolved after this commit is pushed.
 - 2026-11-23 16:39 UTC - Review round 7 (beyond the limit of five, done at the maintainer's request): Greptile's thread 4668369792 (review 6024928625) and da2ce7's review 6024983512 (four findings) were opened before the round-6 push; da2ce7's review 6025316233 (COMMENTED on the merge of `develop`) added two more and noted that those five threads had no reply. Recorded as F22 to F28; all fixed in "docs(issues): [#2917] note that the 15:53 line corrects the 11:21 one and name SI-A for secret values", "docs(pr-reviews): [#2917] cite the commits that fixed rows F18, F20 and F21 and correct the times in row F21" and "docs(pr-reviews): [#2917] record round 7 of the review audit of PR #3001". Replies posted 16:39:22 UTC by `date -u`; the three older replies that cited commits by id were edited. The threads are resolved after this commit is pushed.
 - 2026-11-23 16:39 UTC - Correction to earlier entries (da2ce7's F21, row F25): the 15:58 entry above was stamped 15:58 but its commit is dated 15:57:04; and the 13:26 entry (double period removed) and the 13:51 entry (the resolve time changed to 13:45:33) were edited in place in round 6, not corrected by an appended entry. They stay as they are, this entry names the edits.
+- 2026-11-23 16:48 UTC - Copilot's review 6025573059 (COMMENTED on the head of the `develop` merge plus the round 7 audit; it found one inline finding, F29) arrived after the round 7 push. F29 fixed in "docs(axum-server): [#2917] spell TlsConfig in the README"; replied at 16:47:58 UTC by `date -u`; the thread is resolved after this commit is pushed.
