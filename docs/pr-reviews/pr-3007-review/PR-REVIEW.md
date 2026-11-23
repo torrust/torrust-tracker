@@ -1,7 +1,7 @@
 ---
 pr-number: 3007
 pr-url: https://github.com/torrust/torrust-tracker/pull/3007
-last-updated-utc: "2026-11-23 14:30"
+last-updated-utc: "2026-11-23 14:48"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -43,6 +43,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 Round 1, on the first head: Greptile review 6023114012 (one thread), CodeRabbit review 6023135871 (one thread), da2ce7 review 6023338079 (F1 to F4) and Copilot review 6023386734 (one thread, reviewer ID F1). The Greptile, CodeRabbit and Copilot threads raise the same concern as da2ce7's F1; they are recorded as F5, F6 and F7, each fixed by the same change. The earliest report is the Greptile thread (14:10), so F5 is the original and F1, F6 and F7 are `RE_RAISE_OF:F5` (corrected in round 2).
 
+Round 2, on the head that carries the audit commit: Greptile review 6023502560 and CodeRabbit review 6023522118 (one thread each), and da2ce7 review 6023616767 (APPROVED, findings F5 to F7, recorded here as F10 to F12 because those IDs are taken). da2ce7's F6 asks for the change of the Greptile thread (F8), and his F7 asks for the change of the CodeRabbit thread (F9), so F11 and F12 are re-raises. CodeRabbit resolved its own thread after the reply.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3007-f1 | Human | Minor | correctness | RE_RAISE_OF:F5 | FIXED | RESOLVED |
@@ -52,6 +54,11 @@ Round 1, on the first head: Greptile review 6023114012 (one thread), CodeRabbit 
 | F5 | review-finding:pr-3007-f5 | Unknown | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-3007-f6 | Unknown | Major | correctness | RE_RAISE_OF:F5 | FIXED | RESOLVED |
 | F7 | review-finding:pr-3007-f7 | Copilot | Minor | correctness | RE_RAISE_OF:F5 | FIXED | RESOLVED |
+| F8 | review-finding:pr-3007-f8 | Unknown | Minor (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
+| F9 | review-finding:pr-3007-f9 | Unknown | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-3007-f10 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-3007-f11 | Human | Minor | metadata | RE_RAISE_OF:F8 | FIXED | RESOLVED |
+| F12 | review-finding:pr-3007-f12 | Human | Minor | documentation | RE_RAISE_OF:F9 | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -146,12 +153,80 @@ Round 1, on the first head: Greptile review 6023114012 (one thread), CodeRabbit 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4667172635
 
+### F8 - Greptile: repeated findings marked as original
+
+- PR number: 3007
+- Source review ID: 6023502560
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4667242430
+- Concern: The audit says F1, F5, F6 and F7 are one concern, but all four rows read `ORIGINAL`; `process-pr-review` records a later report of the same change as `RE_RAISE_OF:<FindingId>`.
+- Solution: F5 (the Greptile thread at 14:10) is the earliest report, so F1, F6 and F7 now read `RE_RAISE_OF:F5`; IDs, dispositions, thread states and replies are unchanged.
+- Current-tree verification: `grep -c '^| F[0-9]* | .* | RE_RAISE_OF:F5 |' docs/pr-reviews/pr-3007-review/PR-REVIEW.md` printed 3 at the fix head.
+- Resolution reference: `docs(issues): [#2758] address round 2 of the PR 3007 review`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4667394172
+
+### F9 - CodeRabbit: state whether the listed order is strict
+
+- PR number: 3007
+- Source review ID: 6023522118
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4667257329
+- Concern: The Delivery Strategy lists an order that puts wave 1 issues #2763 and #2767 after wave 2 issues, but does not say whether that order overrides the rule that wave 1 issues may run in parallel.
+- Solution: The paragraph now says the order is a schedule the maintainer set (one implementation session at a time, bugs first), not a file dependency, and that for the listed issues it takes precedence over the wave 1 parallel rule.
+- Current-tree verification: `grep -c 'takes precedence over the wave 1 rule' docs/issues/open/2758-cli-output-contract-tools-migration/EPIC.md` printed 1 at the fix head.
+- Resolution reference: `docs(issues): [#2758] address round 2 of the PR 3007 review`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4667394779
+
+### F10 - Row 1 contradicts issue 11's table edit
+
+- PR number: 3007
+- Source review ID: 6023616767
+- Reviewer finding ID: da2ce7 F5
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4667332494
+- Concern: Row 1 says no other issue edits the ADR's table, then names issue 11 updating the notes, which are the table's `Notes` column, while the EPIC and #2770 say issue 11 edits the table.
+- Solution: Row 1 now reads "no issue but issue 11 edits its table (issue 13 amends its text)".
+- Current-tree verification: `grep -c 'no issue but issue 11 edits its table' docs/issues/open/2758-cli-output-contract-tools-migration/EPIC.md` printed 1 at the fix head.
+- Resolution reference: `docs(issues): [#2758] address round 2 of the PR 3007 review`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4667395234
+
+### F11 - The four glob rows are all ORIGINAL
+
+- PR number: 3007
+- Source review ID: 6023616767
+- Reviewer finding ID: da2ce7 F6
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4667332512
+- Concern: The audit says F1, F5, F6 and F7 are one concern, but all four rows read `ORIGINAL`; `process-pr-review` records a later report of the same change as `RE_RAISE_OF:<FindingId>`.
+- Solution: F5 (the Greptile thread at 14:10) is the earliest report, so F1, F6 and F7 now read `RE_RAISE_OF:F5`; IDs, dispositions, thread states and replies are unchanged.
+- Current-tree verification: `grep -c '^| F[0-9]* | .* | RE_RAISE_OF:F5 |' docs/pr-reviews/pr-3007-review/PR-REVIEW.md` printed 3 at the fix head.
+- Resolution reference: `docs(issues): [#2758] address round 2 of the PR 3007 review`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4667396184
+
+### F12 - Later threads unanswered; the order's strictness
+
+- PR number: 3007
+- Source review ID: 6023616767
+- Reviewer finding ID: da2ce7 F7
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4667332521
+- Concern: Two threads opened after the audit commit had no reply, row or resolution, and the order paragraph does not say whether it overrides the wave 1 parallel rule.
+- Solution: Both threads have replies and rows (F8, F9), and the order paragraph states that it is a schedule which takes precedence over the wave 1 parallel rule for the listed issues.
+- Current-tree verification: `grep -c 'takes precedence over the wave 1 rule' docs/issues/open/2758-cli-output-contract-tools-migration/EPIC.md` printed 1 at the fix head.
+- Resolution reference: `docs(issues): [#2758] address round 2 of the PR 3007 review`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4667396693
+
 ## Processing Log
 
 - 2026-11-23 14:24 UTC - Reviews arrived on the first head: Greptile (14:10:28), CodeRabbit (14:11:52) and da2ce7 (14:24:56).
 - 2026-11-23 14:29 UTC - Pushed the fix commit for all four da2ce7 findings, then replied on the six threads seen so far (14:29:14 to 14:29:26). Copilot's review (14:28:08) arrived during the fix.
 - 2026-11-23 14:29 UTC - Resolved the open threads at 14:29:42. The resolve step also closed the Copilot thread (F7) before it had a reply, a breach of reply-before-resolve; the reply followed at 14:29:55, with the fix already on the head. Lesson: list the threads again right before resolving.
 - 2026-11-23 14:30 UTC - Created this audit record after the replies and the resolution.
+- 2026-11-23 14:42 UTC - Round 2: Greptile (14:35:39), CodeRabbit (14:36:56) and da2ce7 (14:42:55, APPROVED with F5 to F7) reviewed the audit head.
+- 2026-11-23 14:48 UTC - Pushed the round 2 fix, listed the threads again, replied on the five threads (14:48:03 and before) and resolved the four left open (14:48:18); CodeRabbit had resolved its own.
+- 2026-11-23 14:48 UTC - Added rows F8 to F12 after the replies and the resolution.
 
 ## Completion Rules
 
