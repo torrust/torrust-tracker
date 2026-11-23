@@ -1,7 +1,7 @@
 ---
 pr-number: 3007
 pr-url: https://github.com/torrust/torrust-tracker/pull/3007
-last-updated-utc: "2026-11-23 16:48"
+last-updated-utc: "2026-11-23 17:04"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -49,6 +49,8 @@ Round 3, on the head that carries the round 2 audit: Copilot review 6025006260 (
 
 Round 4, on the head that carries the round 3 audit: da2ce7 review 6025458205 (APPROVED) with one Nit, recorded as F17 (his ID F13 is taken here). Copilot review 6025604829 then reviewed the fix head, one commit before the round 4 audit, and asked for the row that F17 already is; it is recorded as F18 with the prescribed `Superseded by` reply.
 
+Round 5, on the head that carries F18: da2ce7 review 6025803194 (APPROVED) with one Minor, recorded as F19 (his ID F17 is taken here). It is the last fix round the loop allows.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3007-f1 | Human | Minor | correctness | RE_RAISE_OF:F5 | FIXED | RESOLVED |
@@ -69,6 +71,7 @@ Round 4, on the head that carries the round 3 audit: da2ce7 review 6025458205 (A
 | F16 | review-finding:pr-3007-f16 | Copilot | Nit (inferred) | formatting | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F17 | review-finding:pr-3007-f17 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F18 | review-finding:pr-3007-f18 | Copilot | Minor | metadata | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F19 | review-finding:pr-3007-f19 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -306,6 +309,19 @@ Round 4, on the head that carries the round 3 audit: da2ce7 review 6025458205 (A
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4668927443
 
+### F19 - The record cites a branch commit by id
+
+- PR number: 3007
+- Source review ID: 6025803194
+- Reviewer finding ID: da2ce7 F17
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4669077691
+- Concern: The F18 detail named a PR-branch commit by its abbreviated id, which a rebase would rewrite; the `open-pull-request` commit-id check printed it.
+- Solution: The F18 detail now names that commit by its Conventional Commit subject.
+- Current-tree verification: The `open-pull-request` commit-id check, run verbatim against `torrust/develop`, printed nothing at the fix head.
+- Resolution reference: `docs(pr-reviews): [#2758] cite the F18 commit by subject in the PR 3007 audit`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4669130993
+
 ## Processing Log
 
 - 2026-11-23 14:24 UTC - Reviews arrived on the first head: Greptile (14:10:28), CodeRabbit (14:11:52) and da2ce7 (14:24:56).
@@ -322,6 +338,8 @@ Round 4, on the head that carries the round 3 audit: da2ce7 review 6025458205 (A
 - 2026-11-23 16:41 UTC - Added row F17 after the reply and the resolution.
 - 2026-11-23 16:47 UTC - Copilot review 6025604829 (16:47:22) on the fix head asked for row F17, which the round 4 audit commit had already added; replied with `Superseded by F17` (16:47:48) and resolved (16:47:50). No change to the specs.
 - 2026-11-23 16:48 UTC - Added row F18 after the reply and the resolution.
+- 2026-11-23 17:04 UTC - Round 5: da2ce7 review 6025803194 (17:00:01, APPROVED, one Minor). The commit-id check had not been run before the earlier pushes; ran it, fixed the one id it printed, pushed, replied (17:04:29) and resolved (17:04:31).
+- 2026-11-23 17:04 UTC - Added row F19 after the reply and the resolution; the commit-id check prints nothing.
 
 ## Completion Rules
 
