@@ -41,6 +41,7 @@ approves it. A group of declaration-only files may share one plan.
 | 14 | [databases-error-tests.md](databases-error-tests.md) | DONE | Plan approved 2026-11-23; classification and driver of every conversion; completed file approved 2026-11-23 |
 | 15 | [databases-setup-tests.md](databases-setup-tests.md) | DONE | Plan approved 2026-11-23; the server arms stay with S3; completed file approved 2026-11-23 |
 | 16 | [tracker-core-error-tests.md](tracker-core-error-tests.md) | DONE | Plan approved 2026-11-23; the four conversions and their messages; completed file approved 2026-11-23 |
+| 17 | [databases-driver-mod-and-traits-no-change.md](databases-driver-mod-and-traits-no-change.md) | DONE | No change for rows 16 and 17, approved 2026-11-23 |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 
