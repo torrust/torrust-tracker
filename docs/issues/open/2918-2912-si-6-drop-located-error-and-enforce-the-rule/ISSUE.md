@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p2
 epic: 2912
 github-issue: 2918
 spec-path: docs/issues/open/2918-2912-si-6-drop-located-error-and-enforce-the-rule/ISSUE.md
 branch: "2918-drop-located-error-and-enforce-the-rule"
 related-pr: null
-last-updated-utc: "2026-11-18 19:11"
+last-updated-utc: "2026-11-23 21:45"
 semantic-links:
   skill-links:
     - create-issue
@@ -19,7 +19,7 @@ semantic-links:
     - docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md
     - docs/issues/closed/2804-location-caller-track-caller-audit/inventory.md
     - packages/tracker-client/src/udp/mod.rs
-    - contrib/dev-tools/checks
+    - contrib/dev-tools/checks/source-location-check/src/lib.rs
 ---
 
 <!-- skill-link: create-issue -->
@@ -101,11 +101,36 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | TODO | Remove the last uses | `tracker-client` without the dependency; `grep -rn 'located' --include=Cargo.toml .` finds no workspace manifest; `Cargo.lock` state recorded. |
-| T2 | TODO | Design the check | Short design note in this spec: a Rust crate like the existing checks in `contrib/dev-tools/checks/`, how test code is recognized, the allow-list format, false-positive cases tried. |
-| T3 | TODO | Implement the check with tests | The check, its tests (a fixture that must fail and one that must pass) and its wiring into pre-commit and CI. |
-| T4 | TODO | Prove the check fails | Evidence of the check failing on a temporary `Location::caller()` added to production code, then passing after its removal. |
-| T5 | TODO | Draft the upstream issues | Two issue texts in this folder, handed to the maintainer; links added here once opened. |
+| T1 | DONE | Remove the last uses | `tracker-client` without the dependency; `grep -rn 'located' --include=Cargo.toml .` finds no workspace manifest; `Cargo.lock` state recorded. Done: `udp::Error` kept its type and lost the unused `From<Error> for DynError`; `Cargo.lock` no longer lists `torrust-located-error` and no registry crate pulls it in. |
+| T2 | DONE | Design the check | Short design note in this spec: a Rust crate like the existing checks in `contrib/dev-tools/checks/`, how test code is recognized, the allow-list format, false-positive cases tried. See "Design note" below. |
+| T3 | DONE | Implement the check with tests | The check, its tests (a fixture that must fail and one that must pass) and its wiring into pre-commit and CI. |
+| T4 | DONE | Prove the check fails | Evidence of the check failing on a temporary `Location::caller()` added to production code, then passing after its removal. |
+| T5 | DONE | Draft the upstream issues | Two issue texts in this folder, handed to the maintainer; links added here once opened. |
+
+### Design note (T2)
+
+- **Tool:** the crate `source-location-check` in `contrib/dev-tools/checks/source-location-check/`, a
+  library (detection) plus a CLI adapter that follows the global CLI output contract
+  (`no-stdout-result`: JSON lines on stderr, exit 0, 1 or 2). It runs from the repository root over
+  the `.rs` files of `git ls-files --cached --others --exclude-standard`, so a staged new file counts.
+- **Forbidden text** (non-comment lines): `Location::caller`, `track_caller`, `torrust_located_error`,
+  `torrust-located-error`. The crate builds these with `concat!` so its own source does not match.
+- **Test code**, by convention (rustfmt keeps it regular): the item after a `#[cfg(test)]` attribute
+  (a block ends at the first `}` with the attribute's indentation; a `mod name;` ends on its line);
+  files declared by `#[cfg(test)] mod name;` and everything below them; files under any `tests/`
+  directory; and `packages/test-helpers/` (SI-8 #2996 moves the shared helper there).
+- **Allow-list:** `contrib/dev-tools/checks/source-location-check/allow-list.txt`, `<path>: <reason>`
+  per line; an entry without a reason fails the check. It starts, and must stay, empty: SI-2 to SI-5
+  migrated every file.
+- **False positives tried:** `#[track_caller]` helpers in `#[cfg(test)]` modules (six files),
+  files declared `#[cfg(test)] mod x;` (`http-protocol/src/test_helpers.rs`,
+  `tracker-core/src/test_helpers.rs`), `tests/` helpers in three server packages, comments that
+  mention the patterns, and production code after a `#[cfg(test)]` module (still flagged). Known
+  limit: a `#[cfg(test)]` item that rustfmt would not format (closing brace not at the attribute's
+  indentation) is read as ending at the next such brace; a `#[cfg(all(test, ...))]` or
+  `#[cfg_attr]` form is not recognized and would be flagged, which fails safe.
+- **Wiring:** a `pre-commit.sh` step and a `Source Locations` job in `testing.yaml`; the crate is a
+  workspace member and admitted in `.dockerignore`.
 
 ## Commit Points
 
@@ -141,11 +166,11 @@ with the narrow affected scope, and sign every commit with GPG.
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
+- [x] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
@@ -159,18 +184,19 @@ the model that produced them.
 
 - 2026-11-11 17:05 UTC - Claude Code (Fable 5.2) - Drafted from the audit of issue #2804 (`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`, `options.md`) as a sub-issue of the EPIC draft. Not yet approved; line numbers are those of `develop` at `4f0af379a` and must be re-checked before implementation.
 - 2026-11-17 17:30 UTC - Claude Code (Claude Opus 5.5) - EPIC coordinator: the maintainer approved the specification on 2026-11-17; issue #2918 created as `josecelano-bot` and the specification moved from `docs/issues/drafts/` to `docs/issues/open/` (SI-6 of EPIC #2912).
+- 2026-11-23 21:45 UTC - Claude Code (Claude Sonnet 5.5) - Implemented SI-6: removed the last use of `torrust-located-error` (`tracker-client`; the unused `From<Error> for DynError` impl is gone, the crate left `Cargo.lock`), added the `source-location-check` tool with tests, wired it into pre-commit and CI, updated the docs and the #2583 spec, and drafted the two upstream issues. No retrospective: the work matched the spec; the only deviation is that the check also exempts files declared `#[cfg(test)] mod x;`, which the spec did not list.
 
 ## Acceptance Criteria
 
-- [ ] AC1: No workspace package depends on `torrust-located-error`.
-- [ ] AC2: The check fails on `Location::caller()`, `#[track_caller]` or `torrust_located_error` in non-test code and passes on the tree, proven by its tests and by the T4 evidence.
-- [ ] AC3: The check runs in pre-commit and in CI.
-- [ ] AC4: The two upstream issue drafts exist and the maintainer has them.
+- [x] AC1: No workspace package depends on `torrust-located-error`.
+- [x] AC2: The check fails on `Location::caller()`, `#[track_caller]` or `torrust_located_error` in non-test code and passes on the tree, proven by its tests and by the T4 evidence.
+- [x] AC3: The check runs in pre-commit and in CI.
+- [ ] AC4: The two upstream issue drafts exist and the maintainer has them. (Drafts exist; the maintainer is told in the PR.)
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior/workflow changes
+- [x] Documentation is updated when behavior/workflow changes
 
 ## Verification Plan
 
@@ -189,8 +215,8 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | A contributor reintroduces a location | Add `location: Location::caller()` to a production error on a scratch branch and commit | The pre-commit check fails and names the file and the rule | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | Test helpers stay allowed | Run the check on the tree, which has `#[track_caller]` assertion helpers in test code | The check passes | TODO | `manual-verification-evidence.md` section V2 |
+| M1 | A contributor reintroduces a location | Add `location: Location::caller()` to a production error on a scratch branch and commit | The pre-commit check fails and names the file and the rule | DONE (the hook's command was run directly, not the whole hook) | `manual-verification-evidence.md` section V1 |
+| M2 | Test helpers stay allowed | Run the check on the tree, which has `#[track_caller]` assertion helpers in test code | The check passes | DONE | `manual-verification-evidence.md` section V2 |
 
 Notes:
 
@@ -230,10 +256,10 @@ None planned for this issue.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | --- | --- | --- |
-| AC1 | TODO | {test/log/PR link} |
-| AC2 | TODO | {test/log/PR link} |
-| AC3 | TODO | {test/log/PR link} |
-| AC4 | TODO | {test/log/PR link} |
+| AC1 | DONE | `grep -rn located --include=Cargo.toml .` finds no manifest; `Cargo.lock` has no `torrust-located-error` |
+| AC2 | DONE | `source-location-check` unit and CLI tests; `manual-verification-evidence.md` V1 |
+| AC3 | DONE | `pre-commit.sh` step and the `Source Locations` job of `testing.yaml` |
+| AC4 | TODO | `upstream-issue-info-hash.md`, `upstream-issue-located-error.md`; links after the maintainer opens them |
 
 ## Risks and Trade-offs
 
@@ -250,7 +276,7 @@ After implementation, compare the result with this specification. Record
 invalidated assumptions, material design changes, unexpected validation
 findings, and reusable lessons.
 
-- Retrospective: `Not yet assessed`
+- Retrospective: none needed; see the progress log entry
 - If needed, create `implementation-retrospective.md` from the repository
   template at `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this issue
   specification's directory.
