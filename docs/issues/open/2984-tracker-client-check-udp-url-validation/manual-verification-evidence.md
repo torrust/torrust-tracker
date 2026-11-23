@@ -248,3 +248,23 @@ The Test-development loop in `ISSUE.md` requires a design review for every test-
 | Panic-record tests (`panic_record`, three payload kinds) | One payload kind: `&str`, `String` or non-string | `panic_record(payload, location)` | The `kind`, `message` and `location` fields of the JSON record; the fixed message for a non-string payload comes from the previous inline code | `panic_record_value` parses the record and checks that it is one line | Kept; they pass on the red tree because the extraction does not change behaviour |
 
 Weakness found by the review and left as it is: the allowed HTTP forms only assert `is_ok`, because the specification does not say which URL they parse to.
+
+### V6 - Recheck after the review fixes (last production change)
+
+Production code changed after V4 to answer review findings (the scheme detection, the IP-literal tests and the redaction of the rejected entry), so the recheck was repeated. Build: commit `fix(tracker-client): [#2984] do not echo the path, query or credentials of a rejected tracker URL`, `cargo build -p torrust-tracker-client --bin tracker_client`; `cargo test -p torrust-tracker-client` passes (68 unit tests and the integration tests) and the pre-commit gate passed. The commands are those of V1 and V2, with the capture procedure of V1; the table gives the exit code, the stdout size and the error message (`invalid_configuration` record) or the check result.
+
+| Section | Entry | Exit | stdout bytes | Message or result |
+| ------- | ----- | ---- | ------------ | ----------------- |
+| `udp_trackers` | `udp://127.0.0.1` | 2 | 0 | "Invalid URL `udp://127.0.0.1`: the URL has no port" |
+| `udp_trackers` | `udp:///` | 2 | 0 | "Invalid URL `udp://`: the URL has no host" |
+| `udp_trackers` | `http://127.0.0.1`, `ftp://127.0.0.1:6969` | 2 | 0 | "...: the URL scheme is not supported here" (entry as typed) |
+| `udp_trackers` | `udp://nonexistent.invalid:6969` | 0 | 258 | `Udp` `Err`, `remote_addr` null, failed `Setup`; no panic |
+| `udp_trackers` | `udp://127.0.0.1:6969`, `127.0.0.1:6969`, `UDP://localhost:6969`, `localhost:6969` | 0 | 205 | checked as before (`remote_addr` `127.0.0.1:6969`) |
+| `udp_trackers` | `http://127.0.0.1:7070/announce/PRIVATE_KEY` | 2 | 0 | "Invalid URL `http://127.0.0.1:7070/****`: the URL scheme is not supported here" |
+| `udp_trackers` | `udp://127.0.0.1?key=PRIVATE_KEY` | 2 | 0 | "Invalid URL `udp://127.0.0.1/****`: the URL has no port" |
+| `udp_trackers` | `ftp://user:PRIVATE_KEY@127.0.0.1:6969` | 2 | 0 | "Invalid URL `ftp://127.0.0.1:6969/****`: the URL scheme is not supported here" |
+| `http_trackers` and `health_checks` | `ftp://127.0.0.1`, `udp://127.0.0.1:6969` | 2 | 0 | "...: the URL scheme is not supported here" |
+| `http_trackers` and `health_checks` | `ftp://127.0.0.1/announce/PRIVATE_KEY` | 2 | 0 | "Invalid URL `ftp://127.0.0.1/****`: the URL scheme is not supported here" |
+| `http_trackers` and `health_checks` | `http:///` | 2 | 0 | "Invalid URL: empty host" (unchanged) |
+
+No `PRIVATE_KEY` text appears in any output. V4 remains the record of the first recheck; V6 supersedes it as the final one.
