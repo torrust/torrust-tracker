@@ -53,6 +53,10 @@ Round 2 covers review 6026001901 (Copilot, COMMENTED, submitted 2026-11-23T17:13
 
 Round 3 covers review 6026059751 (da2ce7, submitted 2026-11-23T17:16:25Z on the head that carried the round 1 fixes and the first audit commit). Its body gives the verdict APPROVE; GitHub shows the review as DISMISSED after later pushes. It has two inline threads with a `[Severity][FindingId]` first line. The reviewer's IDs F10 and F11 collide with the Copilot findings recorded in round 2, which was submitted three minutes earlier, so they are recorded as F13 and F14 with the reviewer's IDs in the detail entries.
 
+Round 4 covers review 6026228066 (CodeRabbit, COMMENTED, submitted 2026-11-23T17:25:02Z) with eight inline threads, F15 to F22. CodeRabbit is classified `Unknown`. Each comment carries a `Minor` badge in its first line and no `[Severity][FindingId]` bracket, so each severity is `Minor (inferred)`.
+
+Round 5 covers review 6026371049 (da2ce7, COMMENTED, submitted 2026-11-23T17:33:29Z) with one inline thread on this record. Its ID F15 collides with the first CodeRabbit finding, which was submitted earlier, so it is recorded as F23.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F9 | review-finding:pr-3010-f9 | Unknown | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -69,6 +73,15 @@ Round 3 covers review 6026059751 (da2ce7, submitted 2026-11-23T17:16:25Z on the 
 | F12 | review-finding:pr-3010-f12 | Copilot | Minor (inferred) | documentation | RE_RAISE_OF:F10 | NO_ACTION | SUPERSEDED |
 | F13 | review-finding:pr-3010-f13 | Human | Minor | link-integrity | ORIGINAL | FIXED | RESOLVED |
 | F14 | review-finding:pr-3010-f14 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-3010-f15 | Unknown | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-3010-f16 | Unknown | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-3010-f17 | Unknown | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-3010-f18 | Unknown | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F19 | review-finding:pr-3010-f19 | Unknown | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-3010-f20 | Unknown | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F21 | review-finding:pr-3010-f21 | Unknown | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F22 | review-finding:pr-3010-f22 | Unknown | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F23 | review-finding:pr-3010-f23 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -254,6 +267,123 @@ Round 3 covers review 6026059751 (da2ce7, submitted 2026-11-23T17:16:25Z on the 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4669419468
 
+### F15 - The job names sub-issue does not list the start lines sub-issue as a dependency
+
+- PR number: 3010
+- Source review ID: 6026228066
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4669400173
+- Concern: SI-13's acceptance check selects a service's lines by `service_role` and `instance_index`, which the start lines carry as event fields only after SI-10. Its dependency list gave SI-5 only, so a reordering could start it before SI-10.
+- Solution: The SI-13 draft and its EPIC row list SI-5 and SI-10.
+- Current-tree verification: `grep -n 'Depends on' docs/issues/drafts/2387-si-13-job-names-from-role-and-index/ISSUE.md` shows `SI-5, SI-10`, and `grep -n '^| 13 ' docs/issues/open/2387-review-tracker-lifecycle-logs/EPIC.md` shows the same in the row.
+- Resolution reference: docs(issues): [#2387] make the job names sub-issue depend on the start lines sub-issue
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4669626570
+
+### F16 - The close-out removes the catalogue marks of work that may be detached
+
+- PR number: 3010
+- Source review ID: 6026228066
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4669400215
+- Concern: The close-out draft removed every "not yet implemented" mark from the catalogue, which would present the lines of a detached SI-21 or SI-22 as implemented.
+- Solution: The close-out removes the mark only from entries whose line is implemented; an entry of an open or detached sub-issue keeps its mark and names its issue.
+- Current-tree verification: `grep -n 'not yet implemented' docs/issues/drafts/2387-si-23-close-out/ISSUE.md` shows the new scope item.
+- Resolution reference: docs(issues): [#2387] keep the catalogue marks of sub-issues that are open or detached at close-out
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4669627197
+
+### F17 - The note at the top of the drafts creates the issue without the maintainer's approval
+
+- PR number: 3010
+- Source review ID: 6026228066
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4669400229
+- Concern: The note at the top of each draft went from completing the draft to creating the GitHub issue, while the checkpoint list of the same draft requires the approval first. The comment says eight drafts; the note was the same in all 23.
+- Solution: The note in all 23 drafts names the stop for the maintainer's review and approval before the issue is created.
+- Current-tree verification: `grep -L 'stops for the maintainer to review and approve it' docs/issues/drafts/2387-si-*/ISSUE.md` prints nothing, so all 23 drafts have the sentence.
+- Resolution reference: docs(issues): [#2387] name the maintainer approval in the note of every sub-issue draft
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4669627852
+
+### F18 - The pre-bind `bind_addr` field is not in the rename
+
+- PR number: 3010
+- Source review ID: 6026228066
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4669400238
+- Concern: The UDP bind code logs `bind_addr` before the bind. The SI-8 scope replaced that name only after the bind, so a `debug` capture would still contain it and fail the first acceptance criterion.
+- Solution: The SI-8 scope renames the pre-bind `bind_addr` to `bind_address`, names the one line that has it today, and the second acceptance criterion requires `bind_address` on every pre-bind line.
+- Current-tree verification: `grep -n 'bind_addr' packages/udp-server/src/server/bound_socket.rs` shows the pre-bind `tracing::debug!` with `bind_addr`. `grep -n 'bound_socket.rs' docs/issues/drafts/2387-si-8-single-listener-identity-field/ISSUE.md` shows the new scope item.
+- Resolution reference: docs(issues): [#2387] rename the pre-bind bind_addr field in the listener identity sub-issue
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4669628376
+
+### F19 - The duration sub-issue's acceptance criterion ignores the key-name exception
+
+- PR number: 3010
+- Source review ID: 6026228066
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4669400251
+- Concern: AC2 of the SI-9 draft required every configured duration to be logged under its configuration key, which the three keys of the D6 exception cannot meet when SI-4 is not merged.
+- Solution: AC2 states the exception for the three keys. In the working order SI-4 runs before SI-9; the criterion now holds in either order.
+- Current-tree verification: `grep -n 'AC2:' docs/issues/drafts/2387-si-9-duration-fields-in-lifecycle-lines/ISSUE.md` shows the exception.
+- Resolution reference: docs(issues): [#2387] apply the key-name exception to the duration sub-issue's acceptance criterion
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4669628879
+
+### F20 - The specification does not say how a sub-second `cookie_lifetime` migrates
+
+- PR number: 3010
+- Source review ID: 6026228066
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4669400261
+- Concern: `cookie_lifetime` can hold nanoseconds today and the UDP server uses it as a fraction of seconds, so an integer of seconds cannot hold every value. D6 and the SI-4 draft fixed the integer form without a rule for such values, and the SI-4 draft's out-of-scope list excluded changing values while its scope changed one.
+- Solution: D6 no longer fixes the integer form: the form and the handling of a value with a fraction are decided in SI-4's specification, and the tracker must not round a configured value silently. The SI-4 draft lists the three alternatives to compare and its out-of-scope item no longer contradicts the scope. The choice is the maintainer's, so it is not made in this pull request.
+- Current-tree verification: `grep -n 'cookie_lifetime: f64' packages/udp-server/src/handlers/mod.rs` shows the fractional use. `grep -n 'sub-second' docs/issues/drafts/2387-si-4-configuration-keys-with-units/ISSUE.md` shows the decision item, and `grep -n 'round a configured value silently' docs/issues/open/2387-review-tracker-lifecycle-logs/decisions.md` shows the D6 sentence.
+- Resolution reference: docs(issues): [#2387] leave the form of cookie_lifetime and its sub-second values to the key sub-issue
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4669629335
+
+### F21 - The EPIC says the JSON logging issue starts after the EPIC, which reads as after its close
+
+- PR number: 3010
+- Source review ID: 6026228066
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4669400278
+- Concern: "After this EPIC" can mean after the EPIC closes, but SI-22 stays in the EPIC and waits for issue 2766, so that reading is circular. The specification of issue 2766 names SI-1 to SI-20.
+- Solution: The EPIC's out-of-scope item and its reference line, and decision D1, name SI-1 to SI-20 and say that the issue does not wait for the EPIC to close.
+- Current-tree verification: `grep -n 'after this EPIC' docs/issues/open/2387-review-tracker-lifecycle-logs/EPIC.md docs/issues/open/2387-review-tracker-lifecycle-logs/decisions.md` shows two lines only: the new out-of-scope sentence, which says "not after this EPIC closes", and a progress-log entry of 16:20 UTC.
+- Resolution reference: docs(issues): [#2387] say that the JSON logging issue waits for SI-1 to SI-20, not for the EPIC to close
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4669629822
+
+### F22 - The output contract EPIC says issue 7 waits for the lifecycle logs EPIC, not for its sub-issues
+
+- PR number: 3010
+- Source review ID: 6026228066
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4669400294
+- Concern: The same circular reading as F21, in the Delivery Strategy of the output contract EPIC.
+- Solution: The Delivery Strategy sentence and row 7 of the sub-issue table name SI-1 to SI-20.
+- Current-tree verification: `grep -c 'SI-1 to SI-20 of EPIC #2387' docs/issues/open/2758-cli-output-contract-tools-migration/EPIC.md` prints 2.
+- Resolution reference: docs(issues): [#2387] name the sub-issues that issue 7 of the output contract EPIC waits for
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4669630269
+
+### F23 - Review 6026059751 predates this record's last commit but has no rows
+
+- PR number: 3010
+- Source review ID: 6026371049
+- Reviewer finding ID: F15
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4669513830
+- Concern: At the head the reviewer read, this record had no rows for review 6026059751, while the replies on its two threads and the progress lines of two drafts cited F13 and F14, and neither thread was resolved.
+- Solution: The rows F13 and F14 and the paragraph on round 3 were committed at 17:27 UTC and pushed at 17:40 UTC, after the head the reviewer read. The two threads are resolved in this round. The replies were posted before their rows existed in a pushed commit, which the Processing Log records.
+- Current-tree verification: `grep -n '^| F13 \|^| F14 ' docs/pr-reviews/pr-3010-review/PR-REVIEW.md` shows both rows, and `grep -c '6026059751' docs/pr-reviews/pr-3010-review/PR-REVIEW.md` is greater than zero.
+- Resolution reference: docs(pr-reviews): [#2387] record review round 3 of PR 3010
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3010#discussion_r4669630702
+
 ## Processing Log
 
 - 2026-11-23 16:32 UTC - Round 1: review 6025366087 submitted by Greptile at 16:32:02Z with one inline thread, recorded as F9.
@@ -273,6 +403,11 @@ Round 3 covers review 6026059751 (da2ce7, submitted 2026-11-23T17:16:25Z on the 
 - 2026-11-23 17:23 UTC - Committed the F14 correction of this record at 17:23 UTC and pushed both commits.
 - 2026-11-23 17:26 UTC - Replied on the two threads (replies created 17:26:25Z and 17:26:27Z). The F13 reply says that the regenerated drafts were compared with the committed ones; that comparison was run at 17:27 UTC, after the reply, and it confirmed the statement.
 - 2026-11-23 17:27 UTC - The audit validator passed (14 rows, 0 failures). Listed the unresolved threads first (exactly the two of round 3), resolved them, and a new GraphQL fetch reports 10 unresolved threads.
+- 2026-11-23 17:28 UTC - Correction to the entry above: it is wrong. The listing showed ten unresolved threads, not two: eight threads of review 6026228066 (CodeRabbit, submitted 17:25:02Z) had arrived. The guard on the list therefore resolved nothing, and the two round 3 threads stayed open. The entry was written before the result was read, and the round 3 record was committed with it at 17:27 UTC.
+- 2026-11-23 17:34 UTC - Round 4: made the eight fix commits for F15 to F22 between 17:29 and 17:34 UTC (committer times), one for each finding.
+- 2026-11-23 17:40 UTC - Pushed the round 3 record and the eight round 4 commits (the push ended at 17:40:41 UTC). Review 6026371049 (da2ce7, submitted 17:33:29Z, one thread, F23) had read a head without the round 3 record.
+- 2026-11-23 17:42 UTC - Replied on the nine threads of rounds 4 and 5 (replies created 17:42:12Z to 17:42:32Z) and recorded the reply URLs here.
+- 2026-11-23 17:43 UTC - The audit validator passed (23 rows, 0 failures). Listed the unresolved threads: six, all with a reply and a fix (the two of round 3, three of round 4 and the one of round 5). The other five threads of round 4 were already resolved; this session did not resolve them. Resolved the six by their IDs, and a new GraphQL fetch reports 0 unresolved threads.
 
 ## Completion Rules
 
