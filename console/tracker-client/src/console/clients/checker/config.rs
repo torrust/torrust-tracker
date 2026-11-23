@@ -170,12 +170,12 @@ fn reject(entry: &str, reason: UrlRejection) -> ConfigurationError {
     }
 }
 
-/// Describes a rejected entry without writing a secret.
+/// Describes a tracker URL or a rejected entry without writing a secret.
 ///
 /// A private tracker URL carries its key in the path, and a URL can carry credentials or a key in
 /// the query, so only the scheme (as typed), the host and the port are kept. Anything else is
 /// replaced by `/****`, the fixed mask of the CLI output contract.
-fn redacted_entry(entry: &str) -> String {
+pub(crate) fn redacted_entry(entry: &str) -> String {
     const MASK: &str = "****";
 
     let scheme = leading_scheme(entry).map(|scheme| format!("{scheme}://"));
