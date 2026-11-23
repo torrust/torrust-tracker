@@ -9,7 +9,7 @@ github-issue: 2770
 spec-path: docs/issues/open/2770-2758-close-out-adr-and-epic/ISSUE.md
 branch: "2770-close-out-adr-and-epic"
 related-pr: null
-last-updated-utc: "2026-11-23 14:25"
+last-updated-utc: "2026-11-23 22:06"
 semantic-links:
   skill-links:
     - create-issue
@@ -24,7 +24,7 @@ semantic-links:
 
 # Issue #2770 - Close the CLI contract migration: update the ADR notes and the EPIC
 
-**Parent EPIC:** #2758 - Migrate the CLI tools to the global output contract. Order 11 of 13, wave 3 (the close-out, after all the others, including issues 12 and 13).
+**Parent EPIC:** #2758 - Migrate the CLI tools to the global output contract. Order 11 of 13, wave 3 (the close-out, after all the others, including EPIC subissues 12 and 13, #3004 and #3006).
 
 ## Goal
 
@@ -123,6 +123,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-19 06:58 UTC - Claude Code (Claude Sonnet 5.5) - Named F28 as a missing-test gap with its recorded disposition (Copilot review 5964601313 of PR 2958).
 - 2026-11-23 14:03 UTC - Claude Code (Claude Opus 5.5) - Added #3004 and #3006 to the scope; #3006 merges before this issue.
 - 2026-11-23 14:25 UTC - Claude Code (Claude Opus 5.5) - Widened the child-spec glob to `*-2758-*` so #3004 and #3006 are covered, and updated the order line (PR 3007 review).
+- 2026-11-23 22:06 UTC - Claude Code (Claude Opus 5.5) - Named EPIC subissues 12 and 13 by their issue numbers (PR 3007 review).
 
 ## Acceptance Criteria
 

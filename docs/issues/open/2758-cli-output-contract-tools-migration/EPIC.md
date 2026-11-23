@@ -6,7 +6,7 @@ epic: null
 github-issue: 2758
 spec-path: docs/issues/open/2758-cli-output-contract-tools-migration/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-23 16:15"
+last-updated-utc: "2026-11-23 22:06"
 semantic-links:
   skill-links:
     - create-issue
@@ -92,7 +92,7 @@ parallel; the maintainer sets how many sessions run at once. The `Order` column 
 
 | Order | Issue | Local Spec | Status | Files it touches / notes |
 | ----- | ----- | ---------- | ------ | ------------------------ |
-| 1 | #2760 - Align the ADR binary table with the audit | `docs/issues/closed/2760-2758-adr-binary-table/ISSUE.md` | DONE | Wave 0, docs only: `docs/adrs/20260519000000_define_global_cli_output_contract.md`. Must land first; no issue but issue 11 edits its table (issue 13 amends its text). |
+| 1 | #2760 - Align the ADR binary table with the audit | `docs/issues/closed/2760-2758-adr-binary-table/ISSUE.md` | DONE | Wave 0, docs only: `docs/adrs/20260519000000_define_global_cli_output_contract.md`. Must land first; no other issue edits its table except issue 11 (issue 13 amends its text). |
 | 2 | #2761 - `github-review-threads reply-status`: a missing reply is a result | `docs/issues/closed/2761-2758-reply-status-result/ISSUE.md` | DONE | Implemented in PR #2775. Wave 1: `contrib/dev-tools/github/github-review-threads/**`, `.claude/skills/resolve-review-threads/SKILL.md`, `.claude/skills/fetch-review-threads/SKILL.md` |
 | 3 | #2762 - `package-coverage-check`: NDJSON errors, usage exit 2, TTY refusal, JSON `summary` | `docs/issues/closed/2762-2758-package-coverage-check-contract/ISSUE.md` | DONE | Implemented in PR #2810. Wave 1: `contrib/dev-tools/checks/package-coverage-check/**`, `.github/workflows/generate_coverage_pr.yaml` |
 | 4 | #2763 - Make `agent-review-report-contract` and `frontmatter-schema` emit NDJSON; classify `workspace-coupling` | `docs/issues/open/2763-2758-dev-tool-checks-ndjson/ISSUE.md` | TODO | Wave 1: `contrib/dev-tools/checks/agent-review-report-contract/**`, `contrib/dev-tools/checks/frontmatter-validator/src/bin/frontmatter-schema.rs`, `contrib/dev-tools/analysis/workspace-coupling/**` |
@@ -112,7 +112,12 @@ Wave 0 first (the table the others cite). Wave 1 issues touch disjoint files and
 for its predecessors because it shares files with them (`console/tracker-client/**` with issue 6 for issue 9; for issue 10,
 `src/console/ci/e2e/tracker_checker.rs` with issue 6 and the e2e log parser and `docker.rs` with issue 7). Issue 11 runs last, as wave 3. Issues 2 to 5 do not depend on the operator-visible changes. Issue 9 runs after issue 6, a breaking removal, and itself changes the output shape of `check` (a top-level array becomes an object), which is also breaking.
 
-Issues 12 and 13 were added after the #2768 leftovers, and the maintainer set the order of the remaining work: issue 12 (#3004, a bug) first, because bugs and security fixes go before other work and no other implementation overlaps it; then issue 7 (#2766), issue 10 (#2769), issue 13 (#3006), issues 4 (#2763) and 8 (#2767), and issue 11 (#2770) last. Issue 13 must merge before issue 11, because both edit the contract ADR. This order is a schedule the maintainer set (one implementation session at a time, bugs first), not a file dependency, and for the issues it lists it takes precedence over the wave 1 rule that lets wave 1 issues run in parallel.
+Issues 12 and 13 were added after the #2768 leftovers, and the maintainer set the order of the remaining work:
+
+- **Schedule:** issue 12 (#3004, a bug) first, then issue 7 (#2766), issue 10 (#2769), issue 13 (#3006), issues 4 (#2763) and 8 (#2767), and issue 11 (#2770) last.
+- **Why issue 12 is first:** bugs and security fixes go before other work, and no other implementation overlaps them.
+- **Merge constraint:** issue 13 must merge before issue 11, because both edit the contract ADR.
+- **Precedence:** this order is a schedule the maintainer set (one implementation session at a time, bugs first), not a file dependency. For the issues it lists, it takes precedence over the wave 1 rule that lets wave 1 issues run in parallel.
 
 For each subissue, the default completion policy is:
 
@@ -155,6 +160,7 @@ consumes the old behavior (named in its spec). No issue edits the ADR table exce
 - 2026-11-23 14:25 UTC - Claude Code (Claude Opus 5.5) - Addressed da2ce7's review 6023338079 of PR 3007: named the #3006 spec PR, refreshed the counts and the row 1 note, and put the maintainer's order in the Delivery Strategy.
 - 2026-11-23 14:44 UTC - Claude Code (Claude Opus 5.5) - Addressed round 2 of PR 3007: row 1 now says only issue 11 edits the ADR table, and the order is stated as a schedule that overrides the wave 1 parallel rule.
 - 2026-11-23 16:15 UTC - Claude Code (Claude Opus 5.5) - Addressed round 3 of PR 3007: the `Order` column is a stable row number, and the Delivery Strategy schedule sets the execution order.
+- 2026-11-23 22:06 UTC - Claude Code (Claude Opus 5.5) - Split the remaining-work order into a list and reworded the row 1 note (PR 3007 review).
 
 ## Acceptance Criteria
 

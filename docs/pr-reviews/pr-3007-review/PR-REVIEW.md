@@ -200,7 +200,7 @@ Round 5, on the head that carries F18: da2ce7 review 6025803194 (APPROVED) with 
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4667332494
 - Concern: Row 1 says no other issue edits the ADR's table, then names issue 11 updating the notes, which are the table's `Notes` column, while the EPIC and #2770 say issue 11 edits the table.
 - Solution: Row 1 now reads "no issue but issue 11 edits its table (issue 13 amends its text)".
-- Current-tree verification: `grep -c 'no issue but issue 11 edits its table' docs/issues/open/2758-cli-output-contract-tools-migration/EPIC.md` printed 1 at the fix head.
+- Current-tree verification: `grep -c 'no other issue edits its table except issue 11' docs/issues/open/2758-cli-output-contract-tools-migration/EPIC.md` prints 1 at the current head (the round 6 fix reworded this sentence; at the round 2 fix head the old wording, `no issue but issue 11 edits its table`, printed 1).
 - Resolution reference: `docs(issues): [#2758] address round 2 of the PR 3007 review`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3007#discussion_r4667395234
