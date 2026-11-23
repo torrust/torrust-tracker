@@ -3,7 +3,7 @@ doc-type: file-test-plan
 issue: 2902
 package: torrust-tracker-core
 target-file: packages/tracker-core/src/databases/driver/sqlite/schema_migrator.rs
-status: approved
+status: done
 semantic-links:
   related-artifacts:
     - packages/tracker-core/src/databases/driver/sqlite/schema_migrator.rs
@@ -77,10 +77,30 @@ No `quickcheck`: no input domain.
 
 | ID | Status | Work | Completion evidence |
 | --- | --- | --- | --- |
-| G1 | TODO | The three tests. | They pass; lines 38, 56 and 90 run. |
-| G2 | TODO | Run M1-M3. | Each is killed by its expected test. |
-| G3 | TODO | Record the results and ask for the completed-file review. | This record and the ledger. |
+| G1 | DONE | The three tests. | They pass; lines 38, 56 and 90 run. |
+| G2 | DONE | Run M1-M3. | Each is killed by its expected test. |
+| G3 | DONE | Record the results and ask for the completed-file review. | This record and the ledger. |
 
 ## Results
 
-To be filled in after G3.
+- **Coverage** (stable Rust 1.100.0, `cargo-llvm-cov 0.9.1`, `--all-features --lib`, clean coverage
+  target directory, 2026-11-23): the file 137 / 150 lines to 175 / 184, regions 129 / 153 to
+  185 / 202, functions 15 / 23 to 24 / 29 (the counts include the test module). Lines 38, 56 and 90
+  now run. The package's unit-only lines 4,903 / 5,685 (86.24%) to 4,948 / 5,719 (86.52%), regions
+  5,435 / 6,359 (85.47%), functions 859 / 1,059 (81.11%). Left uncovered, as planned: 103, 122-123,
+  136, 139 and 152 (no decision, reasons above) and 279 (test code). `databases/error.rs` is now
+  35 / 35 lines: the tampered-history test reaches `From<(MigrateError, Driver)>`, which row 13 had
+  planned to test.
+- **Tests:** 3 added, none changed: 247 to 250 unit tests in the package.
+- **Mutations** (each applied alone and reverted, the file compared with its copy afterwards):
+
+  | ID | Result |
+  | --- | --- |
+  | M1 | Killed by the tampered-history test |
+  | M2 | **Survived**, and is equivalent for this fault: on a closed pool the next query (line 103) fails with the same `ConnectionError`, so ignoring the first failure cannot be seen. The `?` of line 90 is covered but redundant under a closed pool; no other fault fails the first query and not the later ones |
+  | M3 | Killed by the closed-pool dropping test |
+
+- **Review outcome:** the maintainer approved the completed file on 2026-11-23, with M2 recorded as equivalent.
+- **Validation:** `cargo clippy -p torrust-tracker-core --all-targets --all-features` (only the
+  existing `axum::serve` warning), `cargo +nightly fmt --all -- --check` and
+  `cargo machete --with-metadata` pass.
