@@ -58,6 +58,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | R5 | review-finding:pr-3014-r5 | Copilot | Minor | correctness | ORIGINAL | FIXED | NON_RESOLVABLE |
 | F9 | review-finding:pr-3014-f9 | Unknown | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | F10 | review-finding:pr-3014-f10 | Unknown | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| R6 | review-finding:pr-3014-r6 | Copilot | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| R8 | review-finding:pr-3014-r8 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -256,6 +258,32 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4671273059
 
+### R6 - A placeholder was left in the F10 reply URL
+
+- PR number: 3014
+- Source review ID: 6028703592
+- Reviewer finding ID: R6
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4671370711
+- Concern: Copilot (on head `dc8ac4473`): the F10 entry still had the `REPLY_F10` placeholder, so the record could not pass the validator.
+- Solution: The next commit had already replaced it with the reply URL; no further change.
+- Current-tree verification: The F10 entry's Reply URL is `https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4671273059`; the validator returned `status ok` on head `1f00028c2`.
+- Resolution reference: docs(pr-reviews): [#2993] record the F10 reply and the validator run in the PR 3014 audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4671451408
+
+### R8 - The UDP health-check texts were missing
+
+- PR number: 3014
+- Source review ID: 6028703592
+- Reviewer finding ID: R8
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4671370607
+- Concern: Copilot: the health-check report also forwards the UDP receive error's `Display` and the client construction error's `Debug` (`packages/tracker-client/src/udp/client.rs:245-286`), which the reqwest and join-error checks would miss.
+- Solution: The SI-B inventory, the health-check regression test (reusing the junk-response contract test), T7b, AC2b and M6 now cover the UDP texts, with the 200 status kept.
+- Current-tree verification: `client.rs:245-286` returns `Err(e.to_string())` and `Err(format!("{e:?}"))`; `packages/axum-health-check-api-server/tests/server/contract.rs:514` is `it_should_return_error_when_the_registered_udp_service_answers_the_check_with_junk`.
+- Resolution reference: docs(issues): [#3000] add the UDP health-check failure texts
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3014#discussion_r4671450945
+
 ## Processing Log
 
 - 2026-11-23 18:58 UTC - Started audit after the Copilot review 6027563286 (18:53 UTC); the two Greptile reviews 6027255837 (18:30 UTC) and 6027369330 (18:39 UTC) had arrived before it. Five findings, all checked against the branch.
@@ -268,6 +296,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-23 19:50 UTC - Round 3: CodeRabbit review 6028299786 (19:43 UTC) raised F9. Fixed, pushed (head `d7c45ec21`, pushed by 19:50:14 UTC at the latest, when its Docs Lint run was created), then replied (reply 4671124313, 19:50:16 UTC). A follow-up commit corrected the draft's `last-updated-utc`, which had been stamped ahead of the clock.
 - 2026-11-23 19:57 UTC - CodeRabbit replies 6028337617 (19:46 UTC, F5 thread: verified, asked for the audit validator to be run) and 6028344228 (19:46 UTC, F8 thread: raised F10). Ran the validator (`status ok`, 0 failures) and recorded F10.
 - 2026-11-23 20:03 UTC - The F10 fix was pushed, then replied in the F8 thread (reply 4671273059) and answered the validator request in the F5 thread (reply 4671273542).
+- 2026-11-23 20:17 UTC - Round 4: Copilot review 6028703592 (20:10 UTC) raised R6 (on head `dc8ac4473`, already fixed by head `1f00028c2`, pushed by 20:11:10 UTC at the latest) and R8 (no R7 was posted). R8 was fixed and pushed (head `06eb49131`, by 20:17:08 UTC at the latest), then both threads were answered (replies 4671450945 and 4671451408).
 
 ## Completion Rules
 
