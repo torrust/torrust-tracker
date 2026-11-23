@@ -7,9 +7,9 @@ priority: p2
 epic: 2392
 github-issue: 2924
 spec-path: docs/issues/open/2924-2392-sqlite-test-database-guard/ISSUE.md
-branch: "2392-split-test-temp-files-spec"
+branch: "2924-2392-sqlite-test-database-guard"
 related-pr: null
-last-updated-utc: "2026-11-18 13:39"
+last-updated-utc: "2026-11-23 16:15"
 semantic-links:
   skill-links:
     - create-issue
@@ -136,6 +136,22 @@ Follow the progressive test-development loop of the `write-unit-test` skill
 review each passing increment with the prose-first Arrange-Act-Assert comparison, record each
 review in `manual-verification-evidence.md` and commit the reviewed increment before the next.
 
+### T1 Decision (approved by the maintainer, 2026-11-23)
+
+- Guard type: `SqliteDatabaseGuard` in `torrust-tracker-test-helpers`
+  (`packages/test-helpers/src/configuration.rs`). It owns a `tempfile::TempDir` and exposes
+  `path()` (`<dir>/data.db`). "Guard" is the Rust RAII idiom (like `MutexGuard`): the value releases
+  the resource when dropped. It is not named `SqliteTempDir` because it creates the directory and
+  is also responsible for removing it. The type's doc comment records this reasoning.
+- Factory: `ephemeral_with_sqlite_database() -> (Configuration, SqliteDatabaseGuard)`. The tuple
+  makes the test bind the guard visibly (`let (config, _guard) = ...`, never a bare `_`).
+- Existing `ephemeral*()` functions keep their signatures (AC4).
+- `tracker-core` keeps its own wrappers; adopting the shared type is left to #2925.
+- The `http-core` helper converts to a guard-owned directory with a missing sub-directory, so the
+  test still gets a path whose parent does not exist.
+- T2 finding: that `http-core` helper creates no file today, so the conversion cannot lower the
+  leak count; it removes the last outside caller of `ephemeral_sqlite_database()` (AC3).
+
 ## Bug-Fix Process
 
 The defect is in test-support code. Follow `.claude/skills/fix-bug/SKILL.md`:
@@ -157,8 +173,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | TODO | Decide the names and the return shape | Recorded in this spec, approved by the maintainer. |
-| T2 | TODO | Reproduce for the direct users | Before-count recorded (V1). |
+| T1 | DONE | Decide the names and the return shape | Recorded in the T1 Decision section below; approved by the maintainer. |
+| T2 | DONE | Reproduce for the direct users | Before-count recorded (V1): 6 files; the `http-core` direct caller creates none. |
 | T3 | TODO | Guard type and factory | Unit tests red then green; design review recorded. |
 | T4 | TODO | Convert the direct users | The direct users outside `tracker-core` use the guard; test-design review recorded. |
 | T5 | TODO | Recheck | Direct users leave no `data_*.db` (V2); `linter all` passes. |
@@ -198,6 +214,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   the draft. Created GitHub issue #2924 and moved the spec from `docs/issues/drafts/` to
   `docs/issues/open/`. The names and the return shape stay open until T1.
 
+- 2026-11-23 16:15 UTC - Claude Code (Claude Sonnet 5.5), #2924 implementation session - T1 approved by
+  the maintainer (names, tuple return shape, `tracker-core` unchanged). T2: V1 counted 6 leaked files
+  for `http-core`, none from the direct caller. Evidence in `manual-verification-evidence.md`.
+
 ## Acceptance Criteria
 
 - [ ] AC1: `torrust-tracker-test-helpers` has a guard type and a factory that returns a
@@ -222,7 +242,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| V1 | Reproduce | `TMPDIR=$(mktemp -d) cargo +stable test -p torrust-tracker-http-core --all-targets --all-features`, then count the `data_*.db` files | Leaked files counted | TODO | `manual-verification-evidence.md` |
+| V1 | Reproduce | `TMPDIR=$(mktemp -d) cargo +stable test -p torrust-tracker-http-core --all-targets --all-features`, then count the `data_*.db` files | Leaked files counted | DONE (6 files) | `manual-verification-evidence.md` |
 | V2 | Recheck | Same command after the change | Only `data_*.db` files created through the `ephemeral*()` configurations remain, counted and listed by test | TODO | `manual-verification-evidence.md` |
 
 Evidence policy: every recorded command result names the toolchain that produced it, and the
