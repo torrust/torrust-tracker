@@ -9,7 +9,7 @@ github-issue: 2902
 spec-path: docs/issues/open/2902-1347-add-tests-tracker-core/ISSUE.md
 branch: "2902-1347-add-tests-tracker-core-statistics"
 related-pr: 2988
-last-updated-utc: "2026-11-22 14:23"
+last-updated-utc: "2026-11-23 13:03"
 semantic-links:
   skill-links:
     - create-issue
@@ -358,7 +358,7 @@ rows are ordered by slice, then by risk.
 | 5 | `statistics/event/handler.rs` | S1 | 175 / 196 | Mostly logging-only; one error arm; 311 / 311 with two event tables and a failure test ([plan](test-refactor-plans/statistics-event-handler-tests.md)) | DONE |
 | 6 | `statistics/persisted/downloads.rs` | S1 | 77 / 77 | Failing-`Database` case (line 133, `increase_global_downloads`), covered by row 5; two increment tests kill a surviving mutant ([plan](test-refactor-plans/statistics-persisted-downloads-tests.md)) | DONE |
 | 7 | `statistics/mod.rs`, `statistics/event/mod.rs` | S1 | 42 / 43, no entries | Test candidate (`statistics/mod.rs:49`, usage statistics disabled); `event/mod.rs` declarations only; 60 / 60 with one table test, `event/mod.rs` no change ([plan](test-refactor-plans/statistics-mod-tests.md)) | DONE |
-| 8 | `databases/driver/sqlite/auth_key_store.rs` | S2 | 29 / 55 | Test candidate; also extracts the shared `parse_valid_until` and `peer_key_from_row` ([plan](test-refactor-plans/sqlite-auth-key-store-tests.md)) | IN_PROGRESS |
+| 8 | `databases/driver/sqlite/auth_key_store.rs` | S2 | 29 / 55 | Test candidate; 97 / 102 with 22 tests, the shared `parse_valid_until` and `peer_key_from_row` extracted ([plan](test-refactor-plans/sqlite-auth-key-store-tests.md)) | DONE |
 | 9 | `databases/driver/sqlite/torrent_metrics_store.rs` | S2 | 27 / 46 | Test candidate | PENDING |
 | 10 | `databases/driver/sqlite/whitelist_store.rs` | S2 | 17 / 31 | Test candidate | PENDING |
 | 11 | `databases/driver/sqlite/mod.rs` | S2 | 81 / 91 | Test candidate (aggregate-metric error branches) | PENDING |
@@ -429,6 +429,7 @@ The first slice's record checks the grouping against `find packages/tracker-core
 - 2026-11-21 13:24 UTC - Claude Code (Opus 5.5) - S1 closed: the branch was rebased on `develop` `44ce734fe` (one EPIC log conflict, both entries kept) and measured in the four scopes with the base: unit-only lines 79.45% to 84.41%, aggregate 81.27% to 84.41%, so the integration binary no longer reaches any line the unit tests miss ([slice measurements](coverage-evidence.md#slice-measurements)). The EPIC's #2902 rows hold the latest values. Next: the S1 PR.
 - 2026-11-21 13:33 UTC - Claude Code (Opus 5.5) - Opened the S1 PR #2988 (`Related to #2902`); it also carries the fix of finding F20 of #2903, whose thread is now resolved.
 - 2026-11-22 14:23 UTC - Claude Code (Sonnet 5.5) - S1 merged (#2988). S2 started on `2902-1347-add-tests-tracker-core-sqlite`, cut from `develop` `83f3ecbbc`; S2 baseline in the four scopes (unit-only lines 84.17%, aggregate equal, 191 unit tests, 15 integration). First plan: [`sqlite/auth_key_store.rs`](test-refactor-plans/sqlite-auth-key-store-tests.md); the maintainer approved it with the row mapping extracted too, so Q4's extraction covers `parse_valid_until` and `peer_key_from_row`.
+- 2026-11-23 13:03 UTC - Claude Code (Sonnet 5.5) - Row 8 (`sqlite/auth_key_store.rs`) done: `parse_valid_until` and the key-and-expiry parse extracted once into `databases/driver/mod.rs` for the three drivers (finding F2 / Q4), run green against the local MySQL and PostgreSQL containers; 22 tests, 97 / 102 lines, all ten named mutants killed ([plan](test-refactor-plans/sqlite-auth-key-store-tests.md)). Plan and completed file approved by the maintainer.
 
 ## Open Design Questions
 
