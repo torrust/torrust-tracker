@@ -3,7 +3,7 @@ doc-type: file-test-plan
 issue: 2902
 package: torrust-tracker-core
 target-file: packages/tracker-core/src/databases/error.rs
-status: approved
+status: done
 semantic-links:
   related-artifacts:
     - packages/tracker-core/src/databases/error.rs
@@ -72,10 +72,38 @@ No `quickcheck`: the inputs are the variants of a closed enum, listed in the tab
 
 | ID | Status | Work | Completion evidence |
 | --- | --- | --- | --- |
-| E1 | TODO | The tests. | They pass. |
-| E2 | TODO | Run M1-M8. | Each is killed by its expected case. |
-| E3 | TODO | Record the results and ask for the completed-file review. | This record and the ledger. |
+| E1 | DONE | The tests. | They pass. |
+| E2 | DONE | Run M1-M8. | Each is killed by its expected case. |
+| E3 | DONE | Record the results and ask for the completed-file review. | This record and the ledger. |
 
 ## Results
 
-To be filled in after E3.
+- **Coverage** (stable Rust 1.100.0, `cargo-llvm-cov 0.9.1`, `--all-features --lib`, clean coverage
+  target directory, 2026-11-23): the file 35 / 35 lines (reached by rows 8-12) to 38 / 40 with the
+  test module's helpers, regions 23 / 23 to 28 / 30, functions 4 / 4 to 5 / 5. The two lines left
+  are the fallback arms of the test helpers (168 and 179): test code. The package's unit-only
+  lines 4,948 / 5,719 (86.52%) to 4,951 / 5,724 (86.50%; the new test helpers add measured lines),
+  regions 5,440 / 6,366 (85.45%), functions 860 / 1,060 (81.13%). Line coverage did not show what
+  these tests protect: run against the tests that existed before them (checked on the committed
+  file), M2, M3, M5, M6 and M8 survive every test of the package; M4 was already killed by the
+  closed-pool tests of row 12.
+- **Tests:** 15 cases added (10 sqlx errors, one migration error, four drivers); the two existing
+  tests are replaced by their cases in the first table: 250 to 263 unit tests in the package.
+- **Mutations** (each applied alone and reverted, the file compared with its copy afterwards;
+  M6 was first written wrongly, did not compile and was rewritten):
+
+  | ID | Result |
+  | --- | --- |
+  | M1 | Killed by the `RowNotFound` case |
+  | M2 | Killed by the `Tls` case |
+  | M3 | Killed by the `PoolTimedOut` case |
+  | M4 | Killed by the `PoolClosed` case and by the two closed-pool tests of row 12 |
+  | M5 | Killed by the `WorkerCrashed` case |
+  | M6 | Killed by the `Configuration` case |
+  | M7 | Killed by the three `InvalidQuery` cases and by the `InvalidQuery` tests of rows 8-11 |
+  | M8 | Killed by the migration failure case of the driver table |
+
+- **Review outcome:** the maintainer approved the completed file on 2026-11-23.
+- **Validation:** `cargo clippy -p torrust-tracker-core --all-targets --all-features` (only the
+  existing `axum::serve` warning), `cargo +nightly fmt --all -- --check` and
+  `cargo machete --with-metadata` pass.
