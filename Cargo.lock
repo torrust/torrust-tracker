@@ -5188,7 +5188,6 @@ dependencies = [
  "tokio",
  "tokio-rustls",
  "tokio-util",
- "torrust-located-error",
  "torrust-tracker-configuration",
  "tracing",
 ]
@@ -5254,7 +5253,6 @@ dependencies = [
  "tempfile",
  "thiserror 2.0.21",
  "toml 1.2.2+spec-1.1.0",
- "torrust-located-error",
  "torrust-tracker-primitives",
  "tracing",
  "tracing-subscriber",
