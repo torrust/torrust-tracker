@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: in-progress
+status: done
 priority: p2
 epic: 2912
 github-issue: 2917
-spec-path: docs/issues/open/2917-2912-si-5-startup-and-udp-server-errors/ISSUE.md
+spec-path: docs/issues/closed/2917-2912-si-5-startup-and-udp-server-errors/ISSUE.md
 branch: "2917-startup-and-udp-server-errors"
 related-pr: 3001
-last-updated-utc: "2026-11-23 16:40"
+last-updated-utc: "2026-11-23 18:39"
 semantic-links:
   skill-links:
     - create-issue
@@ -167,14 +167,14 @@ with the narrow affected scope, and sign every commit with GPG.
 - [x] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [x] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -188,6 +188,7 @@ the model that produced them.
 - 2026-11-23 11:21 UTC - Claude Code (Claude Sonnet 5.5) - T1 to T6 on branch `2917-startup-and-udp-server-errors`: reproduced both startup errors (each ended in a `packages/...rs:line` path), added red tests and committed them, then removed the locations. The four `configuration` sources and `BadTlsConfig` hold a plain `Box<dyn std::error::Error + Send + Sync>`; `MissingTlsConfig` lost `location`; `udp-server` `AuthRequired` became a unit variant and `Internal` lost `location`; `ErrorKind::TrackerAuthentication` now carries the error's message. `torrust-located-error` is removed from `configuration` and `axum-server`; `tracker-client` still uses it (SI-6). `UnableToLoadFromEnvironmentVariable` and `UnableToLoadFromConfigFile` are never built, so they have no red test. Each crate keeps a local copy of the path-check helper until SI-8 (#2996) shares it. 4.0.0 note recorded in #2583. No retrospective: the work matched the spec.
 - 2026-11-23 15:53 UTC - Claude Code (Claude Sonnet 5.5) - Recorded the SI-8 (#2996) follow-up of review round 3: `configuration` and `axum-server` each add a local copy of the path-check helper (copies 8 and 9 of `assert_names_no_source_path`); SI-8 cannot move them, because `torrust-tracker-test-helpers` depends on `configuration` and `axum-server` has no such dev-dependency, so they are cross-linked in the SI-8 spec and the EPIC row.
 - 2026-11-23 16:40 UTC - Claude Code (Claude Sonnet 5.5) - Review round 7: the 15:53 line above supersedes the claim of the 11:21 line that each crate keeps its copy until SI-8 (#2996) shares it; the SI-8 record itself landed in "docs(issues): [#2917] record the SI-5 copies of the path helper in the SI-8 spec and the EPIC" (13:29 UTC). A Risks bullet now names SI-A (#2999) as the owner of the secret-value case of AC2.
+- 2026-11-23 18:39 UTC - Claude Code (Claude Sonnet 5.5) - PR #3001 merged and issue #2917 closed on 2026-11-23 (18:15 UTC); spec archived to `docs/issues/closed/` and checked boxes completed. The "Independent reviewer reports" and the optional spec-only PR checkpoints stay unticked: no `agent-review-reports.md` was produced and the spec was reviewed inside the implementation PR. Still using `torrust-located-error` after this issue: `torrust-tracker-client-lib` (`packages/tracker-client`), which is SI-6 (#2918).
 
 ## Acceptance Criteria
 
@@ -196,11 +197,11 @@ the model that produced them.
 - [x] AC3: The startup error for invalid PEM files holds no source path.
 - [x] AC4: `packages/configuration/Cargo.toml` and `packages/axum-server/Cargo.toml` no longer depend on `torrust-located-error`.
 - [x] AC5: The breaking change of `torrust-tracker-configuration` is recorded for its 4.0.0 release.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior/workflow changes
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated when behavior/workflow changes
 
 ## Verification Plan
 

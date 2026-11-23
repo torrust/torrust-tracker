@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2917-2912-si-5-startup-and-udp-server-errors/ISSUE.md
-last-updated-utc: "2026-11-23 15:53"
+issue-spec: docs/issues/closed/2917-2912-si-5-startup-and-udp-server-errors/ISSUE.md
+last-updated-utc: "2026-11-23 18:39"
 ---
 
 # Manual Verification Evidence
