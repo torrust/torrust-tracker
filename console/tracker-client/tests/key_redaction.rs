@@ -274,3 +274,11 @@ fn it_should_mask_the_tracker_key_when_a_usage_error_echoes_a_misplaced_url_with
 
     assert_echo_is_masked(&output, 2, "http://127.0.0.1:7070/announce\\****");
 }
+
+#[test]
+fn it_should_mask_the_tracker_key_when_the_check_configuration_echoes_a_url_with_a_backslash_separator() {
+    // In JSON the backslash is written `\\`; the parser echoes it the same way.
+    let output = check_with_wrong_typed_http_trackers(&format!("http://127.0.0.1:7070/announce\\\\{KEY}")); // DevSkim: ignore DS137138
+
+    assert_echo_is_masked(&output, 2, "http://127.0.0.1:7070/announce\\\\****");
+}

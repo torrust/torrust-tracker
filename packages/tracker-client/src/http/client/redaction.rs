@@ -78,8 +78,9 @@ fn is_keyed_endpoint(segment: &str) -> bool {
 /// It is meant for text built by a third-party formatter that echoes input, such as a parse error
 /// or a command-line usage error, where the URL may be malformed. It does not parse URLs:
 ///
-/// - a key is the segment after every `/announce/` or `/scrape/`, compared in any ASCII case and
-///   with `\` taken as `/`, as URL parsers do for HTTP. The segment ends at a path delimiter (`/`,
+/// - a key is the first non-empty segment after every `/announce/` or `/scrape/`, compared in any
+///   ASCII case and with `\` taken as `/`, as URL parsers do for HTTP (so an escaped `\\` is a
+///   separator too). The segment ends at a path delimiter (`/`,
 ///   `\`, `?`, `#`), at a character that cannot appear in a URL (whitespace, `"`, `<`, `>`, a
 ///   backtick, `{`, `}`, `|`, `^`), or at an apostrophe followed by whitespace or the end of the
 ///   text (the closing quote of a quoted value). Any other character, such as `(` or `)`, is part
@@ -108,7 +109,13 @@ fn mask_keys_after_endpoints(text: &str) -> String {
         // A marker can start at the `/` that ends the previous one (`/announce/scrape/<key>`), so
         // the search goes on from the next byte, not from the end of the key.
         while let Some(offset) = normalized[from..].find(&marker) {
-            let key_start = from + offset + marker.len();
+            // More separators can follow the marker: an escaped backslash (`\\`, as `serde_json`
+            // echoes one) or an empty segment. The key is the first segment after them.
+            let after_marker = from + offset + marker.len();
+            let key_start = after_marker
+                + text[after_marker..]
+                    .find(|c: char| c != '/' && c != '\\')
+                    .unwrap_or(text.len() - after_marker);
             let key_end = key_segment_end(text, key_start);
 
             if key_end > key_start {
@@ -410,6 +417,17 @@ mod tests {
         assert_eq!(
             mask_tracker_keys_in_text("http://u:SECRET1@a.example.com,http://v:SECRET2@b.example.com"),
             "http://u:****@a.example.com,http://v:****@b.example.com"
+        );
+    }
+
+    #[test]
+    fn it_should_mask_the_key_after_an_escaped_backslash_separator() {
+        // `serde_json` escapes a backslash as `\\` when it echoes a string value.
+        assert_eq!(
+            mask_tracker_keys_in_text(
+                r#"invalid type: string "http://tracker.example.com/announce\\SECRET", expected a sequence"#
+            ),
+            r#"invalid type: string "http://tracker.example.com/announce\\****", expected a sequence"#
         );
     }
 }

@@ -61,8 +61,10 @@ tell which tracker it was:
 A failed HTTP request is described by its kind (one of `timeout`, `connection`, `status`,
 `decode`, `body`, `redirect`, `builder`, `request` and `unknown`), the masked URL and the chain of
 causes, never by the `Debug` text of the HTTP library error. The same masking applies to
-configuration and usage errors that echo a keyed URL the caller typed, in any scheme case and even
-when the URL does not parse. The masking functions live in
+configuration and usage errors that echo a keyed URL the caller typed, in any scheme case, with
+`\` as a separator, and even when the URL does not parse: the whole segment after the endpoint is
+masked, up to a path delimiter, a character that cannot appear in a URL, or a closing quote. The
+masking functions live in
 `packages/tracker-client/src/http/client/redaction.rs`.
 
 ### JSON-first output
