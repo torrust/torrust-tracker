@@ -9,7 +9,7 @@ github-issue: 384
 spec-path: docs/issues/closed/384-2912-si-7-strip-location-from-errors-sent-to-clients/ISSUE.md
 branch: "384-strip-location-from-errors-sent-to-clients"
 related-pr: 3028
-last-updated-utc: "2026-11-24 17:33"
+last-updated-utc: "2026-11-24 17:41"
 semantic-links:
   skill-links:
     - create-issue
@@ -24,7 +24,7 @@ semantic-links:
 
 # Issue #384 - Make Option to Strip Location from Errors sent to Clients
 
-Parent EPIC: [Remove source locations from errors](../2912-remove-source-locations-from-errors/EPIC.md) (#2912). Sub-issue SI-7 (the last one) of the EPIC.
+Parent EPIC: [Remove source locations from errors](../../open/2912-remove-source-locations-from-errors/EPIC.md) (#2912). Sub-issue SI-7 (the last one) of the EPIC.
 
 ## Goal
 
@@ -203,6 +203,7 @@ the model that produced them.
 - 2026-11-24 13:32 UTC - Claude Code (Claude Sonnet 5.5) - SI-7: T1-T5 done on one run. Baseline `tracker-before` built from `305027e70`, recheck `tracker-after` from `c94bda536` (SI-1 to SI-6 merged), both run with the same 17-request script plus 7 extra error requests; the baseline replies held a `packages/...` path (H7 and R6 also a `~/.cargo/registry` path), the recheck replies hold none (grep of the forbidden substrings is empty). `cargo test --workspace --no-fail-fast source_path`: 45 passed. No leak found, no production change. Coverage (T4), surface to maintained test: HTTP announce and scrape parse errors, `axum-http-server/tests/server/v1/contract/failure_reasons_hold_no_source_path.rs` and `http-protocol` unit tests (H1, H5-H7, R6, R7); private-key errors (H2-H4, H8), the same contract file and `tracker-core` `authentication/service.rs` tests; UDP whitelist rejection (U1), `udp-server/tests/server/contract.rs` `should_reject_a_torrent_that_is_not_whitelisted_with_a_message_that_holds_no_source_path`; REST (K2, K3), `axum-rest-api-server/tests/server/v1/contract/context/auth_key.rs` (`should_fail_without_a_source_path_*`). Not tied to a source-path test: R1 to R5 never held a path (their text comes from axum extractors and the REST layer); recorded as a note, no leak. Docs: no example reply holds a location. `docs/packages.md` line 280 still lists the external `located-error` crate in its table of extracted crates; it is not a reply and is left to the EPIC close-out.
 - 2026-11-24 14:37 UTC - Claude Code (Claude Sonnet 5.5) - Review round 1 (CodeRabbit, PR 3028): AC1 wording narrowed to what the evidence shows (a replies-that-never-held-a-path clause); the path check re-run with the full forbidden set of the Regression Test Strategy, including `packages\` and `src\`, still empty.
 - 2026-11-24 17:33 UTC - Claude Code (Claude Sonnet 5.5) - PR 3028 merged. Outcome comment posted on #384 (links the ADR, the EPIC and the evidence; 13 leaking replies before, none now). Spec archived to `docs/issues/closed/` and SI-7 marked DONE in EPIC #2912; the archive pull request closes #384.
+- 2026-11-24 17:41 UTC - Claude Code (Claude Sonnet 5.5) - Review round 1 of PR 3038 (Greptile): the parent EPIC link now points to `../../open/2912-remove-source-locations-from-errors/EPIC.md`, since the EPIC stays in `open/` after this spec moved.
 
 ## Acceptance Criteria
 
