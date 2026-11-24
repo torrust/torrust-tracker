@@ -109,6 +109,31 @@ unhandled (`it_should_leave_the_queued_event_unprocessed_and_return_cancelled_wh
 | L2 | DONE | Run M1-M7. | Each is killed by its expected test. |
 | L3 | DONE | Stop for the T2b fixture-shape review and the completed-file review. | The maintainer's decision recorded here. |
 
+## Prose-First AAA Review
+
+Temporary prose, written from this plan's Test Design when the review of #3009 found this section
+missing (it belongs before the completed-file review), then compared with the code.
+
+| Test | Arrange prose | Act prose | Assert prose | Outcome |
+| --- | --- | --- | --- | --- |
+| `it_should_handle_an_event_then_stop_when_the_in_memory_receiver_is_closed` | A scripted receiver with one completed download then a closed signal. | Dispatch the in-memory events. | The in-memory totals read 1. | Matches the code. |
+| `it_should_continue_after_lag_then_handle_an_event_then_stop_when_the_in_memory_receiver_is_closed` | A scripted receiver with a lag signal, one download, then closed. | Dispatch the in-memory events. | The totals read 1: the lag did not stop the listener. | Matches the code. |
+| `it_should_stop_when_the_in_memory_receiver_is_closed` | A scripted receiver that is closed. | Dispatch the in-memory events. | The totals read 0. | Matches the code. |
+| `it_should_handle_a_queued_event_then_return_cancelled_when_cancellation_is_already_pending` | One queued download and a token already cancelled. | Dispatch the in-memory events. | The download is counted and the result is `Cancelled`. | Matches the code. |
+| `it_should_leave_the_queued_event_unprocessed_and_return_cancelled_when_the_drain_timeout_has_expired` | The same, with a drain timeout of zero. | Dispatch the in-memory events. | Nothing is counted and the result is `Cancelled`. | Matches the code. |
+| `it_should_handle_an_event_then_stop_when_the_persistent_receiver_is_closed` | A scripted receiver with one download then closed, and a temporary database. | Dispatch the persistent events. | The database holds 1 and the persisted total reads 1. | Matches the code. |
+| `it_should_continue_after_lag_then_handle_an_event_then_stop_when_the_persistent_receiver_is_closed` | A lag signal, one download, then closed. | Dispatch the persistent events. | The database holds 1 and the persisted total reads 1. | Matches the code. |
+| `it_should_stop_when_the_persistent_receiver_is_closed` | A closed receiver. | Dispatch the persistent events. | The database holds no global total and the persisted total reads 0. | Matches the code. |
+| `it_should_persist_a_queued_completed_download_when_cancellation_is_already_pending` | One queued download and a cancelled token. | Dispatch the persistent events. | The database holds 1 and the persisted total reads 1. | Matches the code. |
+| `it_should_persist_every_queued_event_then_return_cancelled_when_cancellation_is_already_pending` | Two queued downloads and a cancelled token. | Dispatch the persistent events. | The database holds 2 and the result is `Cancelled`. | Matches the code. |
+| `it_should_leave_the_queued_events_unprocessed_and_return_cancelled_when_the_drain_timeout_has_expired` | Two queued downloads, a cancelled token and a zero drain timeout. | Dispatch the persistent events. | Nothing is persisted and the result is `Cancelled`. | Matches the code. |
+| `it_should_handle_a_queued_event_and_return_cancelled_when_the_unspawned_in_memory_listener_is_cancelled` | A real event bus, an unspawned in-memory listener and one event sent on the bus. | Cancel the token and await the listener within the deadline. | The download is counted and the result is `Cancelled`. | Matches the code. |
+| `it_should_persist_a_queued_event_and_return_cancelled_when_the_unspawned_persistent_listener_is_cancelled` | The same with the persistent listener and a temporary database. | Cancel the token and await the listener. | The database holds 1 and the result is `Cancelled`. | Matches the code. |
+| `it_should_handle_a_queued_event_then_finish_when_the_spawned_in_memory_listener_is_cancelled` | A real event bus, a spawned in-memory listener and one event. | Cancel the token and await the task within the deadline. | The task does not panic and the download is counted. | Matches the code. |
+| `it_should_persist_a_queued_event_then_finish_when_the_spawned_persistent_listener_is_cancelled` | The same with the persistent listener. | Cancel the token and await the task. | The task does not panic and the database holds 1. | Matches the code. |
+
+Smells found: the queued-event tests of the two listeners repeat the same Arrange; the repetition is kept because each test names one scenario. The tests have AAA comments and one Act each; the real-bus tests wait with a 5 s deadline, so a hang fails with a message.
+
 ## Results
 
 - **Coverage** (stable Rust 1.100.0, `cargo-llvm-cov 0.9.1`, `--all-features --lib`, clean

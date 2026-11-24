@@ -83,6 +83,21 @@ a runtime per case for no extra mutant.
 | P2 | DONE | Run M1-M7 and M6b. | Each is killed by its expected test. |
 | P3 | DONE | Record the results and ask for the completed-file review. | This record and the ledger. |
 
+## Prose-First AAA Review
+
+Temporary prose, written from this plan's Test Design when the review of #3009 found this section
+missing (it belongs before the completed-file review), then compared with the code.
+
+| Test | Arrange prose | Act prose | Assert prose | Outcome |
+| --- | --- | --- | --- | --- |
+| `it_should_set_the_persistent_and_the_persisted_totals_to_the_stored_global_downloads` | A store that returns a global total of 7 and a statistics repository with both totals registered. | Load the persisted metrics. | The load succeeds, the persistent and persisted totals read 7, and the in-session total reads 0. | Matches the code. |
+| `it_should_set_both_totals_to_the_largest_stored_value` | A store that returns `u32::MAX`. | Load the persisted metrics. | Both totals read `u32::MAX` as a `u64`. | Matches the code. The Act unwraps the result, which is a hidden assertion that the load succeeds; accepted because the next line would fail anyway. |
+| `it_should_leave_the_totals_at_zero_when_no_global_downloads_are_stored` | A store with no stored total. | Load the persisted metrics. | The load succeeds and both totals read 0. | Matches the code. |
+| `it_should_return_a_database_error_and_load_nothing_when_the_store_fails` | A store that fails with a malformed record. | Load the persisted metrics. | A database error, and both totals read 0. | Matches the code. |
+| `it_should_return_a_metrics_error_and_keep_the_first_total_when_the_repository_refuses_the_second` | A store that returns 7, and a repository where the persisted total's name already holds a gauge, so its counter write is refused. | Load the persisted metrics. | A metrics error, and the persistent total written first reads 7. | Matches the code. The Arrange sets a gauge on purpose to force the refusal. |
+
+Smells found: none. Every test has Arrange, Act and Assert comments and one Act.
+
 ## Results
 
 - **Coverage:** the file's production lines 0 / 11 to 11 / 11 (`--all-features --lib`,

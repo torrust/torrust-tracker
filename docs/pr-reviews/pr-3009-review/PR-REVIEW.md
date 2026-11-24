@@ -66,6 +66,12 @@ commit is `docs(pr-reviews): [#2902] record the second review round of #3009`. I
 carry the IDs F13 and F14, which collide with rows of this record, and are recorded as F18 and F19. His
 review of the previous head, `6026265498` (round 3 above), had no other finding.
 
+Round 5 is da2ce7's review `6026746653` (17:56:28 UTC, approval) of the head whose last commit is
+`docs(pr-reviews): [#2902] record the fourth review round of #3009`. Its one inline finding carries the ID
+F16, which collides with a row of this record, and is recorded as F20. It was found after the review
+loop of #3009 ended and is fixed in a follow-up documentation PR; its thread stays open until that PR
+replies to it.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3009-f1 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
@@ -87,6 +93,7 @@ review of the previous head, `6026265498` (round 3 above), had no other finding.
 | F17 | review-finding:pr-3009-f17 | Unknown | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F18 | review-finding:pr-3009-f18 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F19 | review-finding:pr-3009-f19 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-3009-f20 | Human | Nit | documentation | ORIGINAL | FIXED | OPEN |
 
 ## Finding Details
 
@@ -318,7 +325,7 @@ review of the previous head, `6026265498` (round 3 above), had no other finding.
 - Reviewer finding ID: F13
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669522659
 - Concern: The automated review `6026192696` left a thread on the F10 row that had no reply and no row in the record, and its two points (F10 is a re-raise of F1; a `NO_ACTION` row takes a reply URL) held.
-- Solution: The thread has a reply, the record has the round 3 paragraph, a log entry and row F17 for it, and F10 is `RE_RAISE_OF:F1` with its reply URL as the resolution reference. This was already pushed when the review was written.
+- Solution: The thread has a reply, the record has the round 3 paragraph, a log entry and row F17 for it, and F10 is `RE_RAISE_OF:F1` with its reply URL as the resolution reference. The fix, commit `docs(pr-reviews): [#2902] record the third review round of #3009`, was committed at 17:34:51 UTC, 44 seconds after the review was submitted (17:34:07 UTC), not before it (F20).
 - Current-tree verification: `grep -n '^| F10 ' docs/pr-reviews/pr-3009-review/PR-REVIEW.md` shows `RE_RAISE_OF:F1`, and `grep -c 6026192696 docs/pr-reviews/pr-3009-review/PR-REVIEW.md` is at least 2.
 - Resolution reference: docs(pr-reviews): [#2902] record the third review round of #3009
 - Follow-up PR URL: N/A
@@ -337,13 +344,27 @@ review of the previous head, `6026265498` (round 3 above), had no other finding.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669649838
 
+### F20 - The F18 row said its fix was pushed before the review
+
+- PR number: 3009
+- Source review ID: 6026746653
+- Reviewer finding ID: F16
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669805477
+- Concern: The F18 row said "This was already pushed when the review was written", but review `6026382070` was submitted at 17:34:07 UTC and the commit that fixed the F10 row has a committer time of 17:34:51 UTC.
+- Solution: The F18 row and the round 4 log entry now say the fix was committed 44 seconds after the review; the interval is commit time (`e97fe40d5`), not push time, which the record has no evidence for.
+- Current-tree verification: `grep -n 'was committed at 17:34:51 UTC' docs/pr-reviews/pr-3009-review/PR-REVIEW.md` shows the F18 row.
+- Resolution reference: docs(pr-reviews): [#2902] correct when the F18 fix was pushed and record the fifth review round of #3009
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4679682329
+
 ## Processing Log
 
 - 2026-11-23 17:01 UTC - Read both round 1 reviews. The `OS Compatibility` check of the reviewed head failed only because its `macos-latest (nightly)` build was cancelled (the other five builds pass), not because of a test; re-running it is the maintainer's. Fixed F1, F7 (with F9), F2, F3, F4 and F8 in their own commits and F5 in the PR description; replied on all nine threads at 17:01:31 to 17:01:51 UTC, before pushing the fixes and this record together; the threads are resolved after the push.
 - 2026-11-23 17:14 UTC - Copilot's review of the same head (F10 to F12) was read after that push: F10 duplicates F1 and is superseded by it; F11 and F12 fixed in their own commits; replied at 17:14:51 to 17:14:56 UTC, before pushing the fixes and this update together; the threads are resolved after the push.
 - 2026-11-23 17:23 UTC - Round 2 (da2ce7's comment without approval, findings recorded as F13 to F15): F14 and F15 fixed in their own commits, F13 by correcting this record; replied at 17:23:18 to 17:23:23 UTC, before pushing the fixes and this update together; the threads are resolved after the push.
 - 2026-11-23 17:32 UTC - Round 3 (da2ce7's review of the Copilot-findings head and Greptile's comment on the F10 row, recorded as F16 and F17): F16 fixed in its own commits, F17 by correcting the F10 row; replied at 17:32:47 and 17:32:50 UTC, before pushing the fixes and this update together; the threads are resolved after the push.
-- 2026-11-23 17:44 UTC - Round 4 (da2ce7's comment without approval, findings recorded as F18 and F19): F18 was already fixed by the round 3 push, F19 fixed in its own commit; replied at 17:43:58 and 17:44:01 UTC, before pushing this update; the threads are resolved after the push.
+- 2026-11-23 17:44 UTC - Round 4 (da2ce7's comment without approval, findings recorded as F18 and F19): F18 was fixed by the round 3 push, which was committed 44 seconds after his review (commit time, not push time; corrected in F20), F19 fixed in its own commit; replied at 17:43:58 and 17:44:01 UTC, before pushing this update; the threads are resolved after the push.
+- 2026-11-24 12:02 UTC - Round 5 (da2ce7's approval review of the fourth-round head, finding F16 recorded as F20): fixed in its own commit in #3022, after #3009 was merged; replied on the thread after pushing that PR; the thread is resolved after the reply.
 
 ## Completion Rules
 

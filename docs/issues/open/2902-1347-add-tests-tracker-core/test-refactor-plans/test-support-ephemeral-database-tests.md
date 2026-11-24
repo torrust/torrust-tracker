@@ -81,6 +81,13 @@ All on 2026-11-17:
 | E3 | DONE | The three private copies (sources 3 to 5). | Unit tests pass. |
 | E4 | DONE | Count the files a full run leaves. | Results below. |
 
+## Prose-First AAA Review
+
+This plan adds no test: it changes the fixtures the other tests build their databases from, so there is no
+Arrange, Act and Assert of its own to review. What it changes is each caller's Arrange, which now creates the
+configuration and keeps it alive. Smells found: none; a caller that drops the guard too early fails with
+`unable to open database file`, as the probe above showed.
+
 ## Results
 
 - **Leak:** after the change, `cargo test -p torrust-tracker-core --all-features` (157 unit, 12
