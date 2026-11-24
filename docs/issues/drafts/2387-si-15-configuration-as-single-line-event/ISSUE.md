@@ -64,7 +64,7 @@ The EPIC coordinator compared this draft with the code at `develop` `6a058dd4d` 
 - `to_redacted_json` uses `to_string_pretty` (`packages/configuration/src/v3_0_0/mod.rs:521`), so a compact form needs a change in `packages/configuration`.
 - `Configuration:` is logged at `src/bootstrap/app.rs:66`, after the logging setup. Masking: API tokens by `mask_secrets` (`packages/configuration/src/v3_0_0/mod.rs:526`), the database password by its `Serialize` (`v3_0_0/database.rs:149,158`).
 - For `Enabled services`: `core.database` is an `Option` (`packages/configuration/src/v3_0_0/core.rs:28`), so `database_driver` can be absent; `health_check_api` is always present (`mod.rs:343`).
-- In the `pretty` style one event spans several lines whatever this issue does.
+- In the `pretty` style one event spans several lines whatever this issue does; AC1 applies to the single-line styles only.
 
 ## Architectural Decisions
 
@@ -136,7 +136,7 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 
 ## Acceptance Criteria
 
-- [ ] AC1: The configuration is logged as exactly one line.
+- [ ] AC1: The configuration is logged as one event with one `configuration` field. In the single-line styles (the JSON default of #2766, `full` and `compact`) that event is exactly one line. The `pretty` style prints every event over several lines by design, so it is excluded from this criterion.
 - [ ] AC2: No secret that is masked today appears in it.
 - [ ] AC3: The `Enabled services` line matches the services that start.
 - [ ] AC4: "Changes in 4.0.0" lists the change.
