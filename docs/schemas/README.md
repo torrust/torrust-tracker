@@ -82,10 +82,12 @@ ECMA-262 set of `\S`: a text of only U+0085 passes the schema and fails the vali
 of only U+FEFF fails the schema and passes the validator. The module documentation of
 `src/schema.rs` lists these.
 
-### The stop hook of the task reviewer
+### The hooks of the task reviewer
 
-`agent-reply-guard`, the second binary of the crate, is the stop hook of the `task-reviewer` agent
-(decision D17 of issue #2904). The agent declares it in its frontmatter:
+`agent-reply-guard`, the second binary of the crate, is the program of the two hooks of the
+`task-reviewer` agent (decision D17 of issue #2904): a stop hook, and a hook before the tool that
+hands the agent's report back, because Claude Code discards a stop hook's refusal when the agent
+ends its turn with that tool. The agent declares both in its frontmatter:
 
 ```yaml
 hooks:
@@ -93,15 +95,22 @@ hooks:
     - hooks:
         - type: command
           command: cargo run --quiet --manifest-path "$CLAUDE_PROJECT_DIR/Cargo.toml" --package agent-reply-validator --bin agent-reply-guard
+  PreToolUse:
+    - matcher: SubagentHandback
+      hooks:
+        - type: command
+          command: cargo run --quiet --manifest-path "$CLAUDE_PROJECT_DIR/Cargo.toml" --package agent-reply-validator --bin agent-reply-guard
 ```
 
-Claude Code runs it when the agent tries to finish, with the hook input as JSON on standard input.
+Claude Code runs it when the agent tries to finish and when it calls the hand-back tool, with the
+hook input as JSON on standard input. The first input names the agent's own transcript; the second
+names only the session's, and the program finds the agent's from it (see `src/transcript.rs`).
 The program reads the reply file that the agent's latest request names from the agent's transcript,
 checks it with the validator above, and answers with its exit code: `0` lets the agent finish
 (standard output is empty, or one JSON object whose `systemMessage` says why the reply was not
 enforced or that the limit was reached), `2` keeps the agent working with the problems on standard
 error, and `1` is a failure of the program itself, which never holds the agent. It refuses at most
-three times for one request, that is for one run of the agent and one reply file, and keeps its
+three times for one request, that is for one run of the agent and one reply file, counting both hooks together, and keeps its
 count in `.agents/issues/<issue-number>/reply-guard/`, a folder that Git ignores and the linters
 exclude. The rules are in `src/guard.rs`, the format of the transcript it relies on in
 `src/transcript.rs`, and the tests run with the crate's others: `cargo test -p agent-reply-validator`.

@@ -31,8 +31,9 @@ programs whose caller is a person or a script we control.
 
 Some programs are not called that way. A host application, which we do not control, defines the
 conversation, and the program is a plug-in of that host. The first such program is
-`agent-reply-guard` (issue #2904), the stop hook of the `task-reviewer` agent. Claude Code calls it
-and defines the protocol:
+`agent-reply-guard` (issue #2904), the stop hook of the `task-reviewer` agent, which the agent also
+declares as a hook before the tool that hands its report back. Claude Code calls it and defines the
+protocol:
 
 - the input is a JSON object on stdin, with no arguments;
 - exit code `2` means "refuse: keep the agent working", and the host feeds stderr to the agent as

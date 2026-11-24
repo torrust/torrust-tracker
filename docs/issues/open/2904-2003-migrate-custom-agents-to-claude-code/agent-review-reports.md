@@ -488,3 +488,41 @@ semantic-links:
 - Verdict: REVIEW PASSED
 - Follow-up actions:
   - Author, done before the commit: the fixes above.
+
+### 2026-11-24 13:33 UTC - Test-design reviewer (Claude Code subagent `general-purpose`, Claude Sonnet 5.5, `write-unit-test` conventions)
+
+- Invocation scope: Test-design review of the uncommitted change that makes `agent-reply-guard` also
+  the program of a `PreToolUse` hook on `SubagentHandback` (decision D17, "Two registrations of the
+  program"): `subagent_transcript_path` in `src/transcript.rs`, `HookInput` and
+  `agent_transcript_path` in the binary, and the new command-boundary tests of `tests/guard.rs`.
+  One round, then the author's fixes. The reviewer inherited the session's model, which is
+  weaker than the Opus 5.5 of the earlier entries; the review is independent of the author's
+  reasoning but not of its model.
+- Inputs: `.claude/skills/write-unit-test/SKILL.md`; `AGENTS.md`; the uncommitted files.
+- Evidence: `cargo test -q -p agent-reply-validator` passed before and after the fixes (277 and
+  22 tests after, among others); clippy with the workspace lints and nightly rustfmt were clean.
+  The author ran five mutations before the review (the `subagents` folder renamed, `.` allowed in
+  an id, an empty id allowed, the session's transcript preferred, the id left out of the file
+  name), and each made a test fail.
+- Findings:
+  - Major: the precedence test passed for a guard that read neither file. Fixed: a table of two
+    cases, the named file valid and the derived one missing, and the reverse, each asserting the
+    exit code and an empty standard output.
+  - Major: the choice between the two paths was tested only at the process level. Fixed: unit tests
+    of `agent_transcript_path` for both fields, only the session's, and neither, and for a `null`
+    agent transcript.
+  - Minor: the session folder was a literal repeated in two places. Fixed: a constant and a helper.
+  - Minor: the shared count was tested in one order and never to the limit. Fixed: a test in which
+    the two hooks take turns, three refusals and a fourth attempt that is allowed with the message.
+  - Minor: the id and session-path cases were incomplete. Fixed: a backslash, a newline and a
+    non-ASCII id; an empty session path, a relative one, one without an extension and one with a
+    dotted stem.
+  - Minor: the failure test did not name the path the session leads to. Fixed.
+  - Nit: a test name still said the input lacks the transcript path; the valid hand-back test did
+    not check that no state is kept. Fixed. An empty `agent_transcript_path` is pinned as a failure
+    that names the empty path.
+  - Not applied: the overlap between `../x` and `a/b` in different layers was kept, because the
+    boundary case pins the message and the unit cases pin the rule.
+- Verdict: REVIEW PASSED
+- Follow-up actions:
+  - Author, done before the commit: the fixes above.

@@ -162,6 +162,7 @@ installed version on 2026-11-15 was Claude Code 2.1.318, and `claude --version` 
 | An agent's frontmatter can declare hooks; a `Stop` hook there becomes `SubagentStop`. | [Hooks in subagent frontmatter](https://code.claude.com/docs/en/sub-agents#hooks-in-subagent-frontmatter), [Hooks in skills and agents](https://code.claude.com/docs/en/hooks#hooks-in-skills-and-agents) |
 | Exit code 2 from a `SubagentStop` hook prevents the agent from stopping. | [Exit code 2 behavior per event](https://code.claude.com/docs/en/hooks#exit-code-2-behavior-per-event) |
 | Checked on 2026-11-23: a `SubagentStop` hook receives `stop_hook_active`, `agent_id`, `agent_type`, `agent_transcript_path` (the agent's own transcript) and `last_assistant_message` (the text of its final response), besides the fields every hook receives. The agent's task text is not among them. | [SubagentStop input](https://code.claude.com/docs/en/hooks#subagentstop-input) |
+| Observed in scenario M7 on Claude Code 2.1.318 (V7): when a subagent ends its turn with a tool call (`SubagentHandback`, the tool that hands its report back), the refusal of a `SubagentStop` hook is discarded and the agent finishes; a `PreToolUse` hook on that tool, declared in the agent's frontmatter, refuses the call with exit code 2 and holds the agent, and its input has `agent_id` and the session's `transcript_path` but no `agent_transcript_path`. | Observed, not documented: `manual-verification-evidence.md` section V7 |
 | Checked on 2026-11-23: after stop hooks have continued a turn eight times in a row, Claude Code overrides the next block. The page states it for `Stop`; it does not say whether it applies to `SubagentStop`. | [Stop input](https://code.claude.com/docs/en/hooks#stop-input) |
 | A dynamic workflow takes no user input in the middle of a run. | [Behavior and limits](https://code.claude.com/docs/en/workflows#behavior-and-limits) |
 | Not documented: using a named `.claude/agents/` definition in a workflow's `agent()` call. The workflows page was searched for `.claude/agents`, `subagent_type` and "agent type". | [Workflows](https://code.claude.com/docs/en/workflows) |
@@ -347,8 +348,19 @@ Decided by the maintainer on 2026-11-15:
   number as the round limit of D18: the fourth attempt to finish is allowed, and the hook reports
   that the limit was reached. The orchestrator then finds no valid reply file, stops, and asks the
   contributor. This is the only
-  hook in this issue; it is a Claude Code mechanism, so the rule itself stays written in the
-  `review-task` skill (maintainer, 2026-11-17).
+  program in this issue that runs as a hook; it is a Claude Code mechanism, so the rule itself
+  stays written in the `review-task` skill (maintainer, 2026-11-17).
+
+  Two registrations of the program (maintainer, 2026-11-24, after scenario M7). Scenario M7 showed
+  that Claude Code discards the refusal of a `SubagentStop` hook when the agent ends its turn with
+  the tool call that hands its report back (`SubagentHandback`, which Claude Code tells every
+  subagent to use): the hook ran and counted a refusal, and the agent finished without a reply
+  file. The agent therefore declares the program twice: as `Stop`, which holds an agent that ends
+  its turn with a message, and as a `PreToolUse` hook on `SubagentHandback`, whose exit code 2
+  refuses the tool call and so holds an agent that hands back directly. The `PreToolUse` input has
+  `agent_id` but no `agent_transcript_path`; its `transcript_path` is the session's, and the agent's
+  file is at `<folder>/<session>/subagents/agent-<agent id>.jsonl` beside it, a layout that Claude
+  Code does not document and V7 observed. The two registrations share one count per request.
 
   How the hook works (maintainer, 2026-11-23). The rule belongs to this project's process, not to
   one harness, so the names below are neutral and another harness's stop hook can call the same

@@ -1,0 +1,61 @@
+{
+  "schema-version": 1,
+  "agent": "task-reviewer",
+  "model": "claude-opus-5-5",
+  "subject": "t5",
+  "round": 1,
+  "created-utc": "2026-11-24 12:07",
+  "verdict": "REVIEW_PASSED",
+  "summary": "REVIEW PASSED for the scope a44dde2fa..HEAD (12 commits), with three criteria PENDING only because they depend on this run (scenario M7, AC10, AC11). Every deliverable of the T5 row that can be checked before this run ends is present and verified: the agent file pinned to claude-opus-5-5 with its stop hook, the binary agent-reply-guard with every test the plan names, the ignore and linter rules for .agents/issues/, M8 committed before the hook's code, the complexity item and the reply rule in review-task, and the inventory rows. The crate tests, clippy, linter all, the validator and the contract check pass. Four non-blocking findings: the progress log has no entry for the hook's implementation, D17 was extended in an implementation commit with no recorded maintainer approval, the new ADR is not in the plan, and a cold or locked cargo build could time out the hook. In this run the hook refused the first attempt to finish (refusal 1 of 3, 'the file does not exist') and kept its count in .agents/issues/2904/reply-guard/. That is the first step of M7, observed but not yet recorded in V7.",
+  "findings": [
+    {
+      "severity": "Minor",
+      "location": "docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md, Manual Verification Scenarios, row M7, and manual-verification-evidence.md section V7",
+      "description": "PENDING, not FAIL: M7 is still TODO and V7 does not exist. This run is the first M7 step, and it cannot be recorded before the run ends. Observed so far: the first attempt to finish was refused with 'The review is not finished: the reply file `docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/agent-replies/task-reviewer-t5-r1.json` is not valid (refusal 1 of 3).' followed by '- the file does not exist', and .agents/issues/2904/reply-guard/afc9f9ddf685fc9ef--task-reviewer-t5-r1.json.count held 1. Remediation: record V7 from this run's transcript (Claude Code version, the transcript record that carries the line, where the preloaded skill text sits, whether the hook read the path). Also run the forced case (3 refusals, then the fourth attempt allowed with the limit reported) and the continued run with a new round's line. Then set M7 to DONE."
+    },
+    {
+      "severity": "Minor",
+      "location": "docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md, Acceptance Criteria AC10 and AC11",
+      "description": "PENDING, not FAIL: AC10 needs every agent started in M7 to have a valid reply file in agent-replies/, and this file is the first. AC11 needs the forced case of M7. Neither can be verified before this run ends. Remediation: after M7, check AC10 (run agent-reply-validator --all on the committed reply files) and AC11 against V7, and fill their rows in Acceptance Verification."
+    },
+    {
+      "severity": "Minor",
+      "location": "docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md, Progress Log",
+      "description": "The last entry is 2026-11-24 07:47 UTC (M8). Commits 5874f2905 to b4dae2d85 have no entry: the transcript reader, the decision logic, the count on disk, the binary, the agent file, the review-task changes, the inventory rows, the ADR and the D17 change. The ISSUE.md last-updated-utc is still 07:47, although commit 96e3e433d edited ISSUE.md. The checkpoint 'Spec progress verified as up to date before each commit' is therefore not met for that commit. Remediation: add a factual progress-log entry for the T5 implementation, with the four recorded test-design reviews, the D17 extension and the ADR, and update last-updated-utc."
+    },
+    {
+      "severity": "Minor",
+      "location": "docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md, D17 'A path outside the specification folders' (added in commit 96e3e433d)",
+      "description": "D17 is a maintainer decision (maintainer, 2026-11-23). An implementation commit extended it: a path under open/ or closed/ that is not exactly <specification>/agent-replies/<file>, an absolute path, and a path with an empty, '.' or '..' component now also let the agent finish unenforced. The rule is sound and the tests cover it (classify's 19 'outside' cases). No entry records who approved it, though. Remediation: record in the progress log that the maintainer approved the extension, with the date. If he has not seen it, ask him before the pull request."
+    },
+    {
+      "severity": "Nit",
+      "location": "docs/adrs/20261124120307_let_programs_follow_the_protocol_of_the_host_that_calls_them.md; docs/adrs/20260519000000_define_global_cli_output_contract.md",
+      "description": "The T5 row and the Commit Points do not plan an ADR, and the progress log does not mention it. The ADR is justified: the CLI output contract reserves exit 2 for usage errors and NDJSON for stderr, and the host protocol needs exit 2 for a refusal and plain text, so without it agent-reply-guard would silently break the binary table. Remediation: name the ADR and the reason in the T5 progress-log entry, so a reader of the plan sees the scope addition."
+    },
+    {
+      "severity": "Suggestion",
+      "location": ".claude/agents/task-reviewer.md, hooks.Stop command (cargo run --quiet --manifest-path ...)",
+      "description": "The hook runs through cargo run. A cold build, or a wait on cargo's build lock while another build runs in the same target directory, may exceed Claude Code's hook timeout. This review saw 'Blocking waiting for file lock on package cache' in its own concurrent cargo runs. A timed-out hook is a non-blocking error, so the reviewer would finish unenforced. Remediation: record in V7 how long the hook took on a cold build, and if it can approach the timeout, set the hook's timeout field or document a prebuild step. No change is needed if V7 shows it is well inside the limit."
+    }
+  ],
+  "questions": [],
+  "evidence": [
+    "git log --oneline a44dde2fa..HEAD: 12 commits, 255caeead (M8 evidence) first, before any of the hook's code (5874f2905 onward); git log --format=%G? shows every commit signed",
+    "git diff --stat a44dde2fa..HEAD: 27 files, all in the T5 row's scope except the new ADR 20261124120307 and its amendment note in ADR 20260519000000 (see the Nit)",
+    "cargo test -p agent-reply-validator: lib 263, agent-reply-guard bin 5, agent-reply-validator bin 6, tests/cli.rs 23, tests/guard.rs 15, tests/schema.rs 2; all passed",
+    "Tests named by the T5 row exist: refusal limit (guard.rs it_should_count_each_refusal_up_to_the_limit, it_should_let_the_agent_finish_with_the_limit_reported..., tests/guard.rs it_should_refuse_three_times_and_then_let_the_agent_finish_with_a_message); latest line and continued run (transcript.rs it_should_find_the_line_of_the_latest_request_when_the_agent_was_continued, tests/guard.rs it_should_hold_a_continued_agent_to_the_file_of_its_latest_request...); continued run without a line (it_should_keep_the_earlier_line_when_the_latest_request_has_none); preloaded skill text after the task (case preloaded_skill_text); no line, draft, outside, missing folder (guard.rs decide tests and tests/guard.rs it_should_let_the_agent_finish_with_one_message_and_keep_no_state...)",
+    "cargo clippy -p agent-reply-validator --all-targets: exit 0",
+    "linter all: exit 0 (markdown, lychee, yaml, toml, cspell, clippy, rustfmt, shellcheck all passed)",
+    "cargo run -q -p agent-reply-validator --bin agent-reply-validator -- --all: exit 0",
+    "cargo run -q -p agent-review-report-contract: 'Agent review report contract check passed.'",
+    "Function length and nesting: an awk scan of src/guard.rs, src/transcript.rs, src/workspace.rs, src/bin/agent-reply-guard/main.rs, tests/guard.rs and tests/support/mod.rs found no function over 45 lines; reading the code showed no nesting deeper than 3 levels",
+    "Test design: the four increments (transcript, decision, workspace, binary) each have an independent test-design review in agent-review-reports.md (07:56, 08:06, 08:11, 08:17 UTC, REVIEW PASSED); the tests reviewed here keep Arrange-Act-Assert visible, use named fixtures shaped like V8's records, and use TempDir and in-memory fakes with no sleep or wall clock",
+    ".gitignore, .markdownlintignore, .taplo.toml, .yamllint-ci.yml and cspell.json each exclude .agents/issues/; git check-ignore -v .agents/issues/2904/reply-guard/x matched .gitignore:15",
+    "grep 'Reply file:' in .claude/skills/review-task/SKILL.md: no match (the skill refers to the line of D17 without showing it); guard.rs test it_should_never_write_the_literal_line... covers every outcome's text",
+    ".claude/agents/task-reviewer.md: model claude-opus-5-5, skills [review-task], hooks.Stop runs agent-reply-guard; review-task gains the Function Length And Nesting item (D12) and Recording The Review, which says a reply file satisfies the earlier template's checkpoint (D18)",
+    "removed-profile-rules.md gains the task-reviewer and complexity-auditor sections (AC6 rows for T5)",
+    "Stop hook in this run: the first attempt to finish, made before any review, was refused with 'refusal 1 of 3' and '- the file does not exist'; .agents/issues/2904/reply-guard/afc9f9ddf685fc9ef--task-reviewer-t5-r1.json.count held 1",
+    "Issue spec updates made: none. No T5-specific checkbox could be verified before M7; the issue-wide checklist items stay for the close-out"
+  ]
+}
