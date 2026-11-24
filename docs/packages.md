@@ -297,7 +297,7 @@ Under `contrib/dev-tools/`, all _(unpublished)_.
 | Tool                                  | Crate Name                     | Description                                                |
 | ------------------------------------- | ------------------------------ | ---------------------------------------------------------- |
 | `analysis/workspace-coupling`         | `workspace-coupling`           | Generates the workspace coupling report                    |
-| `checks/agent-reply-validator`        | `agent-reply-validator`        | Validates agent reply files and generates their schema     |
+| `checks/agent-reply-validator`        | `agent-reply-validator`        | Agent reply files: validator, schema and stop hook         |
 | `checks/agent-review-report-contract` | `agent-review-report-contract` | Validates agent-review report documentation contracts      |
 | `checks/ci-gate`                      | `ci-gate`                      | Decides which CI job groups a pull request needs           |
 | `checks/clippy-allow-reasons`         | `clippy-allow-reasons`         | Validates documented Clippy allow attributes               |
