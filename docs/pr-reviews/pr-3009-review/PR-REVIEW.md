@@ -1,0 +1,365 @@
+---
+semantic-links:
+  skill-links:
+    - process-pr-review
+  related-artifacts:
+    - .claude/skills/process-pr-review/SKILL.md
+---
+
+<!-- skill-link: process-pr-review -->
+
+# PR #3009 Review Audit
+
+Source: pull-request reviews and inline review threads for https://github.com/torrust/torrust-tracker/pull/3009.
+
+## Ownership
+
+The PR author owns this tracked audit record. Reviewers, including repository review agents,
+deliver findings through GitHub and have no repository-artifact obligation.
+
+- Post-merge workflow approval: N/A
+
+## Status Values
+
+- Relationship: `ORIGINAL`, `RE_RAISE_OF:<FindingId>`
+- Disposition: `FIXED`, `NO_ACTION`, `SUPERSEDED`, `FOLLOW_UP`
+- Thread state: `OPEN`, `RESOLVED`, `NON_RESOLVABLE`, `SUPERSEDED`. `OPEN` applies prospectively
+  to audits created or updated for approved follow-up work; historical audits remain valid without
+  bulk migration.
+- Severity: `Blocker`, `Major`, `Minor`, `Nit`, `Suggestion`; append `(inferred)` when derived
+  from free prose.
+- Author class: `Copilot`, `Human`, `Unknown`
+- Category: `link-integrity`, `formatting`, `metadata`, `testing`, `correctness`,
+  `documentation`, `maintainability`, `security`, `other`
+- An outdated thread whose concern was fixed is `FIXED`/`RESOLVED`, even when GitHub marks the
+  original thread outdated after the push. For in-PR feedback, use `NO_ACTION`/`SUPERSEDED` only
+  for a duplicate, superseded, or no-change concern. A post-merge `NO_ACTION` requires maintainer
+  approval to decline the follow-up work.
+- When the current identity cannot resolve a thread (`viewerCanResolve` is `false`), keep the
+  disposition established from the current tree and record `Thread state=OPEN`. The reviewer or PR
+  author resolves it; permission says nothing about whether the concern was fixed.
+
+## Findings
+
+Round 1 is three reviews. The review `6025339962` of the automated reviewer Greptile (2026-11-23
+16:30:18 UTC, comment) is of the previous head, whose last commit is
+`docs(issues): [#2902] close slice S2 with its coverage measurement`; its one inline comment has no ID
+and is recorded as F9 with the severity of its `P2` badge. da2ce7's review `6025674705` (16:51:51 UTC,
+approval; inline findings F1 to F8 with the reviewer's IDs) and Copilot's review `6025721446`
+(16:54:40 UTC, comment) are of the head whose last commit is `docs(issues): [#2902] record the S2 pull
+request`. F6 asks for the reply to the Greptile thread and for this record. Copilot's three inline
+comments carry the IDs R1, R2 and F3 (which collides with da2ce7's F3) and are recorded as F10, F11 and
+F12; they were added after the first push of the fixes. Greptile's second review `6025835445`
+(17:02:13 UTC) only answers the F9 thread, accepting the reply, and has no finding, so it needs no row.
+
+Round 2 is da2ce7's review `6026108273` (17:18:45 UTC, comment, no approval) of the head whose last
+commit is `docs(pr-reviews): [#2902] record the first review round of #3009`. Its three inline findings
+carry the IDs F9, F10 and F11, which collide with rows of this record, and are recorded as F13, F14 and
+F15. Round 3 is two reviews of the head whose last commit is `docs(pr-reviews): [#2902] record the
+Copilot findings of the first review round of #3009`: da2ce7's review `6026265498` (17:27:00 UTC), whose
+one inline finding carries his ID F12 (it collides with Copilot's F12) and is recorded as F16, and
+Greptile's review `6026192696` (17:23:10 UTC), whose one inline comment on the F10 row is recorded as
+F17 with the severity of its `P2` badge.
+
+Round 4 is da2ce7's review `6026382070` (17:34:07 UTC, comment, no approval) of the head whose last
+commit is `docs(pr-reviews): [#2902] record the second review round of #3009`. Its two inline findings
+carry the IDs F13 and F14, which collide with rows of this record, and are recorded as F18 and F19. His
+review of the previous head, `6026265498` (round 3 above), had no other finding.
+
+| Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
+| ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
+| F1 | review-finding:pr-3009-f1 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F2 | review-finding:pr-3009-f2 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F3 | review-finding:pr-3009-f3 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F4 | review-finding:pr-3009-f4 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F5 | review-finding:pr-3009-f5 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F6 | review-finding:pr-3009-f6 | Human | Minor | other | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-3009-f7 | Human | Nit | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-3009-f8 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F9 | review-finding:pr-3009-f9 | Unknown | Minor (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-3009-f10 | Copilot | Minor | testing | RE_RAISE_OF:F1 | NO_ACTION | SUPERSEDED |
+| F11 | review-finding:pr-3009-f11 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-3009-f12 | Copilot | Nit | testing | ORIGINAL | FIXED | RESOLVED |
+| F13 | review-finding:pr-3009-f13 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-3009-f14 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-3009-f15 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-3009-f16 | Human | Nit | testing | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-3009-f17 | Unknown | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-3009-f18 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F19 | review-finding:pr-3009-f19 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+
+## Finding Details
+
+### F1 - The shared-database test checked one store after the drop
+
+- PR number: 3009
+- Source review ID: 6025674705
+- Reviewer finding ID: F1
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4668977631
+- Concern: After dropping the tables through the schema migrator the test checked only the whitelist store, so a factory that gave the key store or the metrics store its own migrated database would pass.
+- Solution: After the drop the test also asserts that `load_keys` and `load_global_downloads` fail; four mutants that give one store its own migrated database all fail it.
+- Current-tree verification: `grep -c 'must share one database' packages/tracker-core/src/databases/setup.rs` prints 3.
+- Resolution reference: test(tracker-core): [#2902] check that all four stores lose their tables when the migrator drops them
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669095496
+
+### F2 - The spec front matter named the S1 branch
+
+- PR number: 3009
+- Source review ID: 6025674705
+- Reviewer finding ID: F2
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4668977645
+- Concern: `related-pr` names this pull request but `branch` still named the S1 branch.
+- Solution: `branch` is `2902-1347-add-tests-tracker-core-sqlite`.
+- Current-tree verification: `grep -n '^branch:' docs/issues/open/2902-1347-add-tests-tracker-core/ISSUE.md` shows the S2 branch.
+- Resolution reference: docs(issues): [#2902] name the S2 branch in the spec front matter
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669096014
+
+### F3 - The slice table showed S1 in progress
+
+- PR number: 3009
+- Source review ID: 6025674705
+- Reviewer finding ID: F3
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4668977659
+- Concern: The S1 row still said `IN_PROGRESS` although S1 was merged and this change logs it.
+- Solution: The S1 row is `DONE`.
+- Current-tree verification: `grep -n '^| S1 ' docs/issues/open/2902-1347-add-tests-tracker-core/ISSUE.md | grep -c DONE` prints 1.
+- Resolution reference: docs(issues): [#2902] mark slice S1 done in the slice table
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669096483
+
+### F4 - Line numbers taken before the rebase
+
+- PR number: 3009
+- Source review ID: 6025674705
+- Reviewer finding ID: F4
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4668977666
+- Concern: The Results of four plans quoted lines as they were before the rebase onto #2916, which moved them.
+- Solution: They give the line numbers at the S2 head after the rebase and say so.
+- Current-tree verification: `grep -c 'at the S2 head' docs/issues/open/2902-1347-add-tests-tracker-core/test-refactor-plans/databases-error-tests.md` prints 1.
+- Resolution reference: docs(issues): [#2902] refresh the line numbers of the plans after the rebase on develop
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669096949
+
+### F5 - The description said the gate ran on every commit
+
+- PR number: 3009
+- Source review ID: 6025674705
+- Reviewer finding ID: F5
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4668977683
+- Concern: After the rebase the commits that build the row 15 table with the removed `location` fields do not compile their test target until the adapting commit, so the validation line overstated.
+- Solution: The PR description says the gate ran as each commit was made, before the rebase, names the commits that do not compile by subject, and says the history was not rewritten.
+- Current-tree verification: `gh pr view 3009 --json body --jq .body | grep -c 'history was not rewritten'` prints 1.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669097345
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669097345
+
+### F6 - The automated review thread had no reply and the head had no audit record
+
+- PR number: 3009
+- Source review ID: 6025674705
+- Reviewer finding ID: F6
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4668977699
+- Concern: The Greptile thread on `setup.rs` had no reply and the pull request had no review audit record.
+- Solution: The thread has a reply (F9), and this record has a row for each finding of da2ce7's review and for Greptile's comment. The three comments of Copilot's review of the same head were missed and added later as F10 to F12 (see F13).
+- Current-tree verification: `docs/pr-reviews/pr-3009-review/PR-REVIEW.md` exists and its checker passes.
+- Resolution reference: docs(pr-reviews): [#2902] record the first review round of #3009
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669097830
+
+### F7 - `tempfile::TempDir` written in full
+
+- PR number: 3009
+- Source review ID: 6025674705
+- Reviewer finding ID: F7
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4668977722
+- Concern: The helper wrote `tempfile::TempDir` where the sibling test modules import it.
+- Solution: `use tempfile::{TempDir, tempdir};` in the test module.
+- Current-tree verification: `grep -c 'tempfile::tempdir' packages/tracker-core/src/databases/setup.rs` prints 0.
+- Resolution reference: test(tracker-core): [#2902] import the temporary directory names in the database setup tests
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669098387
+
+### F8 - The plan row promised a message naming the key
+
+- PR number: 3009
+- Source review ID: 6025674705
+- Reviewer finding ID: F8
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4668977743
+- Concern: The plan said the bad-key cases assert the driver and a message naming the key; the test asserts only the driver.
+- Solution: The clause is dropped; the row says the cases carry the driver they were given.
+- Current-tree verification: `grep -c 'message naming the key' docs/issues/open/2902-1347-add-tests-tracker-core/test-refactor-plans/sqlite-auth-key-store-tests.md` prints 0.
+- Resolution reference: docs(issues): [#2902] say what the bad-key cases of the shared parsing test assert
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669098863
+
+### F9 - Imports of the new test helpers (Greptile)
+
+- PR number: 3009
+- Source review ID: 6025339962
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4668705638
+- Concern: The helper uses `tempfile::TempDir` and `tempfile::tempdir()` without importing them, and `::sqlx::query` without a naming conflict; the repository guide asks for short imported names.
+- Solution: The `tempfile` names are imported (same change as F7). The `::sqlx::query` half is declined: every query of the driver files is written with the leading `::sqlx::query` path, and the new code follows that style.
+- Current-tree verification: `grep -c 'use tempfile::' packages/tracker-core/src/databases/setup.rs` prints 1.
+- Resolution reference: test(tracker-core): [#2902] import the temporary directory names in the database setup tests
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669099455
+
+### F10 - The post-drop assertion covered one store (Copilot)
+
+- PR number: 3009
+- Source review ID: 6025721446
+- Reviewer finding ID: R1
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669011501
+- Concern: The same as F1: after the drop only the whitelist store was checked, so a key or metrics store on another migrated database would pass.
+- Solution: Superseded by F1: the test also asserts that `load_keys` and `load_global_downloads` fail after the drop.
+- Current-tree verification: `grep -c 'must share one database' packages/tracker-core/src/databases/setup.rs` prints 3.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669260082
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669260082
+
+### F11 - The plans omitted the Prose-First AAA Review (Copilot)
+
+- PR number: 3009
+- Source review ID: 6025721446
+- Reviewer finding ID: R2
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669011565
+- Concern: The eight new test-producing plans omit the Prose-First AAA Review rows that the shared guardrails require before the completed-file review.
+- Solution: Each of the eight plans has the section, with the prose for every test, the comparison with the code and the smells found; it says the prose was written after the fact. The S1 plans that #2988 merged have the same gap, raised with the maintainer.
+- Current-tree verification: `grep -l 'Prose-First AAA Review' docs/issues/open/2902-1347-add-tests-tracker-core/test-refactor-plans/*.md | wc -l` prints 10 (the eight plans, the repository plan of S1 and the README that states the rule).
+- Resolution reference: docs(issues): [#2902] record the Prose-First AAA review of the eight S2 test plans
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669260697
+
+### F12 - The panic tests lacked the it_should prefix (Copilot)
+
+- PR number: 3009
+- Source review ID: 6025721446
+- Reviewer finding ID: F3
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669011629
+- Concern: The two tests of the legacy factory panics were named `the_legacy_factory_should_*` where the plans and the `write-unit-test` skill ask for `it_should_*`.
+- Solution: They are `it_should_panic_when_the_legacy_factory_gets_a_configuration_without_a_database` and `it_should_panic_when_the_legacy_factory_cannot_open_the_database`.
+- Current-tree verification: `grep -rc 'the_legacy_factory_should' packages/tracker-core/src/databases/setup.rs` prints 0.
+- Resolution reference: test(tracker-core): [#2902] name the legacy factory panic tests with the it_should prefix
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669261412
+
+### F13 - The record missed the Copilot review
+
+- PR number: 3009
+- Source review ID: 6026108273
+- Reviewer finding ID: F9
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669318465
+- Concern: The round 1 head had three reviews, not two: the three threads of the Copilot review had no reply and no row, and the round 1 sentence, the processing log and F6 said otherwise.
+- Solution: The three threads were answered and recorded as F10 to F12; the round 1 sentence names the three reviews, says Greptile's first review was of the previous head, and notes Greptile's second review has no finding; F6's solution no longer claims a row for every finding. The processing log is append-only, so a new entry records the Copilot findings.
+- Current-tree verification: `grep -c '6025721446' docs/pr-reviews/pr-3009-review/PR-REVIEW.md` is at least 4, and the table has rows F10 to F12.
+- Resolution reference: docs(pr-reviews): [#2902] record the Copilot findings of the first review round of #3009; docs(pr-reviews): [#2902] record the second review round of #3009
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669377876
+
+### F14 - A plan bullet in the baseline numbering
+
+- PR number: 3009
+- Source review ID: 6026108273
+- Reviewer finding ID: F10
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669318484
+- Concern: The F4 refresh left one bullet of the key store plan in the baseline numbering while the next gave head numbers.
+- Solution: The bullet gives lines 68-71 at the S2 head and names 89-91 as the baseline's.
+- Current-tree verification: `grep -c '89-91 at the S2 baseline' docs/issues/open/2902-1347-add-tests-tracker-core/test-refactor-plans/sqlite-auth-key-store-tests.md` prints 1.
+- Resolution reference: docs(issues): [#2902] give the key store plan's untested lines in one numbering
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669378494
+
+### F15 - The spec's last-updated stamp
+
+- PR number: 3009
+- Source review ID: 6026108273
+- Reviewer finding ID: F11
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669318497
+- Concern: `last-updated-utc` still read 16:27 although the spec was edited at 16:56 and 16:57.
+- Solution: The stamp reads 17:22, the time of the edit that moved it.
+- Current-tree verification: `grep -n '^last-updated-utc' docs/issues/open/2902-1347-add-tests-tracker-core/ISSUE.md` shows 17:22.
+- Resolution reference: docs(issues): [#2902] bring the spec's last-updated stamp up to date
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669379034
+
+### F16 - The reason for keeping the assertion-less setup test was false
+
+- PR number: 3009
+- Source review ID: 6026265498
+- Reviewer finding ID: F12
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669426580
+- Concern: The setup plan said the assertion-less `it_should_initialize_the_sqlite_database` was kept because the other tests use it as their fixture; nothing does, so the reason was untrue.
+- Solution: The test now has Arrange, Act and Assert and asserts that a freshly initialized database has its tables and an empty whitelist; alone it kills the mutant that skips the table creation. The plan says the reason was untrue and records the change.
+- Current-tree verification: `grep -c 'kept unchanged because' docs/issues/open/2902-1347-add-tests-tracker-core/test-refactor-plans/databases-setup-tests.md` prints 0, and the plan's Changes After Review section describes the new assertion.
+- Resolution reference: test(tracker-core): [#2902] give the database setup smoke test an assertion
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669504647
+
+### F17 - The audit's duplicate finding was mislabeled (Greptile)
+
+- PR number: 3009
+- Source review ID: 6026192696
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669375929
+- Concern: The F10 row, a repeat of F1, was marked `ORIGINAL`, and its resolution reference was the fixing commit subject where a `NO_ACTION` resolution needs a durable reply URL.
+- Solution: The F10 row is `RE_RAISE_OF:F1`, and its resolution reference is its reply URL.
+- Current-tree verification: `grep -n '^| F10 ' docs/pr-reviews/pr-3009-review/PR-REVIEW.md` shows `RE_RAISE_OF:F1`.
+- Resolution reference: docs(pr-reviews): [#2902] record the third review round of #3009
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669505166
+
+### F18 - The Greptile thread on the F10 row had no reply and no row
+
+- PR number: 3009
+- Source review ID: 6026382070
+- Reviewer finding ID: F13
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669522659
+- Concern: The automated review `6026192696` left a thread on the F10 row that had no reply and no row in the record, and its two points (F10 is a re-raise of F1; a `NO_ACTION` row takes a reply URL) held.
+- Solution: The thread has a reply, the record has the round 3 paragraph, a log entry and row F17 for it, and F10 is `RE_RAISE_OF:F1` with its reply URL as the resolution reference. This was already pushed when the review was written.
+- Current-tree verification: `grep -n '^| F10 ' docs/pr-reviews/pr-3009-review/PR-REVIEW.md` shows `RE_RAISE_OF:F1`, and `grep -c 6026192696 docs/pr-reviews/pr-3009-review/PR-REVIEW.md` is at least 2.
+- Resolution reference: docs(pr-reviews): [#2902] record the third review round of #3009
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669649286
+
+### F19 - F13's resolution reference was a reply URL for a fix in the tree
+
+- PR number: 3009
+- Source review ID: 6026382070
+- Reviewer finding ID: F14
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669522674
+- Concern: F13 was fixed by edits to the review record, so its resolution reference should be the subjects of the commits that made them, not a reply URL.
+- Solution: F13 names the two commits, separated by a semicolon; F6 and F17, fixed the same way, are given theirs.
+- Current-tree verification: `grep '^- Resolution reference' docs/pr-reviews/pr-3009-review/PR-REVIEW.md | grep -c 'Copilot findings of the first review round of #3009; docs(pr-reviews)'` prints 1.
+- Resolution reference: docs(pr-reviews): [#2902] give the audit rows fixed in the tree their fixing commits as references
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669649838
+
+## Processing Log
+
+- 2026-11-23 17:01 UTC - Read both round 1 reviews. The `OS Compatibility` check of the reviewed head failed only because its `macos-latest (nightly)` build was cancelled (the other five builds pass), not because of a test; re-running it is the maintainer's. Fixed F1, F7 (with F9), F2, F3, F4 and F8 in their own commits and F5 in the PR description; replied on all nine threads at 17:01:31 to 17:01:51 UTC, before pushing the fixes and this record together; the threads are resolved after the push.
+- 2026-11-23 17:14 UTC - Copilot's review of the same head (F10 to F12) was read after that push: F10 duplicates F1 and is superseded by it; F11 and F12 fixed in their own commits; replied at 17:14:51 to 17:14:56 UTC, before pushing the fixes and this update together; the threads are resolved after the push.
+- 2026-11-23 17:23 UTC - Round 2 (da2ce7's comment without approval, findings recorded as F13 to F15): F14 and F15 fixed in their own commits, F13 by correcting this record; replied at 17:23:18 to 17:23:23 UTC, before pushing the fixes and this update together; the threads are resolved after the push.
+- 2026-11-23 17:32 UTC - Round 3 (da2ce7's review of the Copilot-findings head and Greptile's comment on the F10 row, recorded as F16 and F17): F16 fixed in its own commits, F17 by correcting the F10 row; replied at 17:32:47 and 17:32:50 UTC, before pushing the fixes and this update together; the threads are resolved after the push.
+- 2026-11-23 17:44 UTC - Round 4 (da2ce7's comment without approval, findings recorded as F18 and F19): F18 was already fixed by the round 3 push, F19 fixed in its own commit; replied at 17:43:58 and 17:44:01 UTC, before pushing this update; the threads are resolved after the push.
+
+## Completion Rules
+
+- Re-derive the reply claim against the current tree before replying or resolving a thread.
+- Reply on every resolvable thread before resolving it.
+- For an outdated thread whose concern was fixed, record `Disposition=FIXED` and
+  `Thread state=RESOLVED`, even if GitHub marks the thread outdated after the push. For a
+  duplicate, superseded, or no-change in-PR thread, reply exactly
+  `Superseded by <FindingId>: <reason>.`, record `Disposition=NO_ACTION` and
+  `Thread state=SUPERSEDED`, then resolve it. A post-merge `NO_ACTION` requires maintainer
+  approval to decline the follow-up work. When the current identity cannot resolve a thread
+  (`viewerCanResolve` is `false`), still reply, keep the disposition established from the current
+  tree, and record `Thread state=OPEN`; the reviewer or PR author resolves it.
+- A consolidated PR conversation response may cover multiple review rounds only when it names
+  every review ID and every finding ID with its disposition and resolution reference. Record its
+  durable URL in each related row.
+- Cite a fix by its unique Conventional Commit subject or durable reply URL, never by a branch SHA
+  that can change after a rebase.
+- Refresh review threads using GraphQL and confirm that no unresolved actionable thread remains.

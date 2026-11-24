@@ -33,6 +33,15 @@ approves it. A group of declaration-only files may share one plan.
 | 6 | [statistics-event-handler-tests.md](statistics-event-handler-tests.md) | DONE | Plan approved 2026-11-18; completed file approved 2026-11-18 |
 | 7 | [statistics-persisted-downloads-tests.md](statistics-persisted-downloads-tests.md) | DONE | Plan approved 2026-11-18 (a surviving mutant despite full coverage); completed file approved 2026-11-18 |
 | 8 | [statistics-mod-tests.md](statistics-mod-tests.md) | DONE | Plan approved 2026-11-18; completed file approved 2026-11-18 |
+| 9 | [sqlite-auth-key-store-tests.md](sqlite-auth-key-store-tests.md) | DONE | Plan approved 2026-11-22; extracts the shared `parse_valid_until` and `peer_key_from_row` (Q4); completed file approved 2026-11-22 |
+| 10 | [sqlite-torrent-metrics-store-tests.md](sqlite-torrent-metrics-store-tests.md) | DONE | Plan approved 2026-11-23; moves the SQLite store test setup into a shared fixture; completed file approved 2026-11-23 |
+| 11 | [sqlite-whitelist-store-tests.md](sqlite-whitelist-store-tests.md) | DONE | Plan approved 2026-11-23; completed file approved 2026-11-23 |
+| 12 | [sqlite-mod-tests.md](sqlite-mod-tests.md) | DONE | Plan approved 2026-11-23; completed file approved 2026-11-23 |
+| 13 | [sqlite-schema-migrator-tests.md](sqlite-schema-migrator-tests.md) | DONE | Plan approved 2026-11-23; challenges each uncovered line; completed file approved 2026-11-23 |
+| 14 | [databases-error-tests.md](databases-error-tests.md) | DONE | Plan approved 2026-11-23; classification and driver of every conversion; completed file approved 2026-11-23 |
+| 15 | [databases-setup-tests.md](databases-setup-tests.md) | DONE | Plan approved 2026-11-23; the server arms stay with S3; completed file approved 2026-11-23 |
+| 16 | [tracker-core-error-tests.md](tracker-core-error-tests.md) | DONE | Plan approved 2026-11-23; the four conversions and their messages; completed file approved 2026-11-23 |
+| 17 | [databases-driver-mod-and-traits-no-change.md](databases-driver-mod-and-traits-no-change.md) | DONE | No change for rows 16 and 17, approved 2026-11-23 |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 

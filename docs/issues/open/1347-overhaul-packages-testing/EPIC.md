@@ -6,7 +6,7 @@ epic: null
 github-issue: 1347
 spec-path: docs/issues/open/1347-overhaul-packages-testing/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-21 13:24"
+last-updated-utc: "2026-11-23 16:21"
 semantic-links:
   skill-links:
     - create-issue
@@ -134,7 +134,7 @@ level or determine whether unit coverage is adequate.
 | `torrust-tracker-http-core`        | [#1349](../../closed/1349-1347-add-tests-http-core/ISSUE.md) | Lines: 88.88%; regions: 90.41%; functions: 84.29% | Lines: 99.28%; regions: 99.25%; functions: 99.74% | Lines: +10.40 pp; regions: +8.84 pp; functions: +15.45 pp | [Coverage evidence](../../closed/1349-1347-add-tests-http-core/coverage-evidence.md) |
 | `torrust-tracker-axum-rest-api-server` | [#2637](../../closed/2637-1347-add-tests-axum-rest-api-server/ISSUE.md) | Lines: 87.98%; regions: 84.10%; functions: 83.42% | Lines: 97.67%; regions: 97.13%; functions: 95.48% | Lines: +9.69 pp; regions: +13.03 pp; functions: +12.06 pp | [Coverage evidence](../../closed/2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md) |
 | `torrust-tracker-primitives` | [#2824](../../closed/2824-1347-add-tests-primitives/ISSUE.md) | Lines: 60.56%; regions: 67.94%; functions: 57.23% | Lines: 94.07%; regions: 95.30%; functions: 94.17% | Lines: +33.51 pp; regions: +27.36 pp; functions: +36.94 pp | [Coverage evidence](../../closed/2824-1347-add-tests-primitives/coverage-evidence.md) |
-| `torrust-tracker-core` | [#2902](../2902-1347-add-tests-tracker-core/ISSUE.md) | Lines: 81.15%; regions: 79.59%; functions: 73.35% | Lines: 84.41%; regions: 82.63%; functions: 75.96% (after S1) | Lines: +3.26 pp; regions: +3.04 pp; functions: +2.61 pp | [Coverage evidence](../2902-1347-add-tests-tracker-core/coverage-evidence.md) |
+| `torrust-tracker-core` | [#2902](../2902-1347-add-tests-tracker-core/ISSUE.md) | Lines: 81.15%; regions: 79.59%; functions: 73.35% | Lines: 87.11%; regions: 86.16%; functions: 82.13% (after S2) | Lines: +5.96 pp; regions: +6.57 pp; functions: +8.78 pp | [Coverage evidence](../2902-1347-add-tests-tracker-core/coverage-evidence.md) |
 
 ### Unit-Only Coverage
 
@@ -150,7 +150,7 @@ weak unit-only result with aggregate, integration, example, or end-to-end covera
 | `torrust-tracker-http-core` | [#1349](../../closed/1349-1347-add-tests-http-core/ISSUE.md) | Lines: 88.88%; regions: 90.41%; functions: 84.29% | Lines: 99.28%; regions: 99.25%; functions: 99.74% | Lines: +10.40 pp; regions: +8.84 pp; functions: +15.45 pp | [Coverage evidence](../../closed/1349-1347-add-tests-http-core/coverage-evidence.md) |
 | `torrust-tracker-axum-rest-api-server` | [#2637](../../closed/2637-1347-add-tests-axum-rest-api-server/ISSUE.md) | Lines: 63.87%; regions: 63.98%; functions: 51.34% | Lines: 96.67%; regions: 96.38%; functions: 93.97% | Lines: +32.80 pp; regions: +32.40 pp; functions: +42.63 pp | [Coverage evidence](../../closed/2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md) |
 | `torrust-tracker-primitives` | [#2824](../../closed/2824-1347-add-tests-primitives/ISSUE.md) | Lines: 60.56%; regions: 67.94%; functions: 57.23% | Lines: 94.07%; regions: 95.30%; functions: 94.17% | Lines: +33.51 pp; regions: +27.36 pp; functions: +36.94 pp | [Coverage evidence](../../closed/2824-1347-add-tests-primitives/coverage-evidence.md) |
-| `torrust-tracker-core` | [#2902](../2902-1347-add-tests-tracker-core/ISSUE.md) | Lines: 79.32%; regions: 78.62%; functions: 71.98% | Lines: 84.41%; regions: 82.63%; functions: 75.96% (after S1) | Lines: +5.09 pp; regions: +4.01 pp; functions: +3.98 pp | [Coverage evidence](../2902-1347-add-tests-tracker-core/coverage-evidence.md) |
+| `torrust-tracker-core` | [#2902](../2902-1347-add-tests-tracker-core/ISSUE.md) | Lines: 79.32%; regions: 78.62%; functions: 71.98% | Lines: 87.11%; regions: 86.16%; functions: 82.13% (after S2) | Lines: +7.79 pp; regions: +7.54 pp; functions: +10.15 pp | [Coverage evidence](../2902-1347-add-tests-tracker-core/coverage-evidence.md) |
 
 ## Delivery Strategy
 
@@ -373,6 +373,7 @@ For each subissue implementation, the completion policy is:
 - 2026-11-18 09:10 UTC - Claude Code (Opus 5.5) - #2902 re-measured its baseline with stable Rust 1.100.0 and `cargo-llvm-cov 0.9.1` (Rust 1.99.1 with `cargo-llvm-cov 0.6.16` cannot measure after the Cargo 1.100.0 test-binary layout change): `tracker-core` unit-only lines 79.32% (was 80.31%), aggregate 81.15% (was 82.15%), container-gated 92.67% (was 93.80%), at the same commit. The other packages' rows keep their own toolchains.
 - 2026-11-18 10:20 UTC - Claude Code (Claude Fable 5.2) - Added the "Publishing gate" paragraph under the `Subissues` table through PR torrust/torrust-tracker#2935 (issue #2583): by the maintainer's decision of 2026-11-18, a crate may be published under #2583 once its own package-testing subissues are closed, and EPIC #1669 no longer waits for this EPIC to close as a whole. No subissue was created or changed.
 - 2026-11-21 13:24 UTC - Claude Code (Opus 5.5) - #2902 S1 (`statistics/`) closed, measured on its `develop` base `44ce734fe`: `tracker-core` unit-only lines 84.41% (79.45% on the base), aggregate 84.41% (81.27% on the base); the aggregate now equals unit-only, so the integration binary covers no line the unit tests miss. Row 14 is `IN_PROGRESS`.
+- 2026-11-23 16:21 UTC - Claude Code (Sonnet 5.5) - #2902 S2 (the SQLite persistence boundary) closed, measured on its `develop` base `f73a359f8`: `tracker-core` unit-only lines 87.11% (84.47% on the base), aggregate 87.11% (84.47% on the base); the aggregate still equals unit-only. Row 14 stays `IN_PROGRESS`.
 
 ## Acceptance Criteria
 

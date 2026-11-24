@@ -128,28 +128,68 @@ impl From<(MigrateError, Driver)> for Error {
 
 #[cfg(test)]
 mod tests {
+    use std::io;
+
+    use rstest::rstest;
+    use sqlx::Error as SqlxError;
+    use sqlx::migrate::MigrateError;
     use torrust_tracker_primitives::Driver;
 
     use crate::databases::error::Error;
 
-    #[test]
-    fn it_should_build_a_database_error_from_a_sqlx_row_not_found_error() {
-        let err: Error = (sqlx::Error::RowNotFound, Driver::Sqlite3).into();
+    /// The name of the variant of `error`, to compare a conversion with a plain string.
+    fn variant(error: &Error) -> &'static str {
+        match error {
+            Error::QueryReturnedNoRows { .. } => "QueryReturnedNoRows",
+            Error::InvalidQuery { .. } => "InvalidQuery",
+            Error::ConnectionError { .. } => "ConnectionError",
+            Error::MigrationError { .. } => "MigrationError",
+            _ => "another variant",
+        }
+    }
 
-        assert!(matches!(err, Error::QueryReturnedNoRows { .. }));
+    /// The driver a converted error carries.
+    fn driver(error: &Error) -> &Driver {
+        match error {
+            Error::QueryReturnedNoRows { driver, .. }
+            | Error::InvalidQuery { driver, .. }
+            | Error::ConnectionError { driver, .. }
+            | Error::MigrationError { driver, .. } => driver,
+            other => panic!("expected a converted error, got {other:?}"),
+        }
+    }
+
+    #[rstest]
+    #[case::row_not_found(SqlxError::RowNotFound, "QueryReturnedNoRows")]
+    #[case::io(SqlxError::Io(io::Error::from(io::ErrorKind::ConnectionRefused)), "ConnectionError")]
+    #[case::tls(SqlxError::Tls("a tls failure".into()), "ConnectionError")]
+    #[case::pool_timed_out(SqlxError::PoolTimedOut, "ConnectionError")]
+    #[case::pool_closed(SqlxError::PoolClosed, "ConnectionError")]
+    #[case::worker_crashed(SqlxError::WorkerCrashed, "ConnectionError")]
+    #[case::configuration(SqlxError::Configuration("a bad option".into()), "ConnectionError")]
+    #[case::column_not_found(SqlxError::ColumnNotFound("a_column".to_string()), "InvalidQuery")]
+    #[case::decode(SqlxError::Decode("a bad value".into()), "InvalidQuery")]
+    #[case::protocol(SqlxError::Protocol("a bad packet".to_string()), "InvalidQuery")]
+    fn it_should_classify_each_sqlx_error(#[case] error: SqlxError, #[case] expected: &str) {
+        let converted: Error = (error, Driver::Sqlite3).into();
+
+        assert_eq!(variant(&converted), expected);
     }
 
     #[test]
-    fn it_should_build_a_database_error_from_a_sqlx_io_error() {
-        use std::io;
+    fn it_should_classify_a_migration_error() {
+        let converted: Error = (MigrateError::VersionMissing(1), Driver::Sqlite3).into();
 
-        let err: Error = (
-            sqlx::Error::Io(io::Error::from(io::ErrorKind::ConnectionRefused)),
-            Driver::MySQL,
-        )
-            .into();
+        assert_eq!(variant(&converted), "MigrationError");
+    }
 
-        assert!(matches!(err, Error::ConnectionError { .. }));
+    #[rstest]
+    #[case::a_missing_row(Error::from((SqlxError::RowNotFound, Driver::PostgreSQL)))]
+    #[case::a_connection_failure(Error::from((SqlxError::PoolClosed, Driver::PostgreSQL)))]
+    #[case::an_invalid_query(Error::from((SqlxError::Protocol("a bad packet".to_string()), Driver::PostgreSQL)))]
+    #[case::a_migration_failure(Error::from((MigrateError::VersionMissing(1), Driver::PostgreSQL)))]
+    fn it_should_keep_the_driver_it_was_converted_with(#[case] converted: Error) {
+        assert_eq!(driver(&converted), &Driver::PostgreSQL);
     }
 
     #[test]

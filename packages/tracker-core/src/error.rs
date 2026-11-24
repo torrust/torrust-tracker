@@ -200,4 +200,68 @@ mod tests {
             );
         }
     }
+
+    mod tracker_core_error {
+        use rstest::rstest;
+        use torrust_tracker_primitives::Driver;
+
+        use crate::error::{AnnounceError, ScrapeError, TrackerCoreError, WhitelistError};
+        use crate::test_helpers::tests::sample_info_hash;
+        use crate::{authentication, databases};
+
+        fn a_database_error() -> databases::error::Error {
+            databases::error::Error::InsertFailed { driver: Driver::Sqlite3 }
+        }
+
+        fn a_whitelist_error() -> WhitelistError {
+            WhitelistError::TorrentNotWhitelisted {
+                info_hash: sample_info_hash(),
+            }
+        }
+
+        /// The name of the variant of `error`, to compare a conversion with a plain string.
+        fn variant(error: &TrackerCoreError) -> &'static str {
+            match error {
+                TrackerCoreError::AnnounceError { .. } => "AnnounceError",
+                TrackerCoreError::ScrapeError { .. } => "ScrapeError",
+                TrackerCoreError::WhitelistError { .. } => "WhitelistError",
+                TrackerCoreError::AuthenticationError { .. } => "AuthenticationError",
+            }
+        }
+
+        #[rstest]
+        #[case::announce(
+            TrackerCoreError::from(AnnounceError::Database(a_database_error())),
+            "AnnounceError",
+            "Tracker core announce error: Database error: "
+        )]
+        #[case::scrape(
+            TrackerCoreError::from(ScrapeError::Whitelist(a_whitelist_error())),
+            "ScrapeError",
+            "Tracker core scrape error: Whitelist error: "
+        )]
+        #[case::whitelist(
+            TrackerCoreError::from(a_whitelist_error()),
+            "WhitelistError",
+            "Tracker core whitelist error: The torrent: "
+        )]
+        #[case::authentication(
+            TrackerCoreError::from(authentication::key::Error::KeyExpired),
+            "AuthenticationError",
+            "Tracker core authentication error: Key has expired"
+        )]
+        fn it_should_wrap_each_error_in_its_own_variant_and_name_its_area(
+            #[case] error: TrackerCoreError,
+            #[case] expected_variant: &str,
+            #[case] expected_message_start: &str,
+        ) {
+            let message = error.to_string();
+
+            assert_eq!(variant(&error), expected_variant);
+            assert!(
+                message.starts_with(expected_message_start),
+                "the message should start with {expected_message_start:?}, got: {message}"
+            );
+        }
+    }
 }

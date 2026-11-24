@@ -216,6 +216,31 @@ covered by lines; the regions left are the log-level checks of `tracing` calls, 
 error arm of `load_persisted_metrics` (line 34) and test code. The per-file decisions are in the
 [test-refactor plans](test-refactor-plans/README.md).
 
+### S2 (the SQLite persistence boundary)
+
+Measured on 2026-11-23. Base: `develop` at `f73a359f8`, which includes #2916 (the error texts of
+`tracker-core` no longer name a source path) and its 10 new unit tests (191 to 201). Head: the S2 branch at its
+commit `test(tracker-core): [#2902] adapt the tracker core error table to errors without source
+locations` (the slice-close commit changes documentation only).
+
+| Scope | Tests | Lines | Regions | Functions |
+| --- | ---: | ---: | ---: | ---: |
+| Unit-only, base | 201 unit | 4,754 / 5,628 (84.47%) | 5,151 / 6,211 (82.93%) | 796 / 1,039 (76.61%) |
+| Unit-only, S2 | 281 unit | 5,143 / 5,904 (87.11%) | 5,685 / 6,598 (86.16%) | 901 / 1,097 (82.13%) |
+| Integration-only, base | 15 integration | 827 / 1,918 (43.12%) | 712 / 2,032 (35.04%) | 145 / 484 (29.96%) |
+| Integration-only, S2 | 15 integration | 827 / 1,876 (44.08%) | 712 / 1,997 (35.65%) | 145 / 477 (30.40%) |
+| Aggregate, base | 201 unit + 15 integration | 4,754 / 5,628 (84.47%) | 5,151 / 6,211 (82.93%) | 796 / 1,039 (76.61%) |
+| Aggregate, S2 | 281 unit + 15 integration | 5,143 / 5,904 (87.11%) | 5,685 / 6,598 (86.16%) | 901 / 1,097 (82.13%) |
+| Unit-only without `db-compatibility-tests`, base | 199 unit | 4,740 / 5,304 (89.37%) | 5,137 / 5,903 (87.02%) | 792 / 1,001 (79.12%) |
+| Unit-only without `db-compatibility-tests`, S2 | 279 unit | 5,129 / 5,580 (91.92%) | 5,671 / 6,290 (90.16%) | 897 / 1,059 (84.70%) |
+
+The aggregate still equals the unit-only figure line for line, as after S1. The integration-only
+line count changes between base and S2 only because the library code it measures changed (the shared
+key parsing moved into `databases/driver/mod.rs`); its tests did not. The MySQL and PostgreSQL
+drivers (S3) are the largest uncovered area left in the default scopes; the SQLite persistence boundary
+and the error conversions are covered, and the lines left in those files are recorded with their
+reasons in the [test-refactor plans](test-refactor-plans/README.md).
+
 ## Test-Technique Assessment (initial)
 
 | Technique | Applicability | Initial decision |
