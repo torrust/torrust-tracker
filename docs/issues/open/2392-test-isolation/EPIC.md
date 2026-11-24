@@ -6,7 +6,7 @@ epic: null
 github-issue: 2392
 spec-path: docs/issues/open/2392-test-isolation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-24 17:06"
+last-updated-utc: "2026-11-24 18:57"
 semantic-links:
   skill-links:
     - create-issue
@@ -114,7 +114,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | 6 | #2906 - Let two runs of the fixed-port metrics test share a machine | `docs/issues/open/2906-2392-fixed-port-metrics-test-concurrent-runs/ISSUE.md` | TODO | Bug (#2394 D1, P2). `tests/metrics/fixed_ports.rs` binds `0.0.0.0:17091`-`17094`, so two runs on one machine collide (20 of 20 paired runs had one failure). The proposed fix uses the loopback helper beyond the 9 #2393 tests, which needs a maintainer decision before implementation starts (the Decisions section limits the helper to those 9 tests). |
 | 7 | #2907 - Remove the temporary TOML and PEM files tests leave behind | `docs/issues/closed/2907-2392-remove-leaked-test-temporary-files/ISSUE.md` | DONE | Bug (#2394 D2, F2). Narrowed on 2026-11-17 to the `test_config_*.toml` and PEM files that tests leave in the system temporary directory. The `data_*.db` files, 301 of the 303 files one full run leaves, moved to orders 9 and 10. PR #2938 moved the two TOML tests into a `TempDir` and made the TLS helper return a `NamedTempFile`; after it, a full run leaves 0 TOML and 0 PEM files (V2). Found during the work: 18 `figment::Jail` tests in `packages/configuration/src/lib.rs` call `clear_env()`, which removes `TMPDIR` from the whole process while they run, so leaked-file counts are lower bounds (no issue yet). |
 | 8 | #2908 - Tear down the qBittorrent E2E stack when it fails to start | `docs/issues/open/2908-2392-compose-cleanup-after-failed-start/ISSUE.md` | TODO | Bug (#2394 D3, C9). A failed `docker compose up` leaves the stack running on the Docker host. Touches the qBittorrent E2E runner, like order 4. |
-| 9 | #2924 - Add a guard-owned SQLite test database | `docs/issues/closed/2924-2392-sqlite-test-database-guard/ISSUE.md` | TODO | Bug, split from order 7. Adds to the test helpers a guard that owns the SQLite database's directory and a factory that returns a configuration with its guard, next to the existing `ephemeral*()` functions; converts the helpers outside `tracker-core` that build the database path themselves. PR #2923 (#2902) fixes `tracker-core` with the same shape, and order 9 starts after it merges. |
+| 9 | #2924 - Add a guard-owned SQLite test database | `docs/issues/closed/2924-2392-sqlite-test-database-guard/ISSUE.md` | DONE | Bug, split from order 7. Adds to the test helpers a guard that owns the SQLite database's directory and a factory that returns a configuration with its guard, next to the existing `ephemeral*()` functions; converts the helpers outside `tracker-core` that build the database path themselves. PR #2923 (#2902) fixes `tracker-core` with the same shape. Done with PRs #3011 (spec), #3029 (guard, factory and the `http-core` conversion) and #3035 (close-out). |
 | 10 | #2925 - Move tests to the guard-owned SQLite database and default to no database | `docs/issues/open/2925-2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md` | TODO | Bug, split from order 7. Moves the tests that need persistence to order 9's factory, one pull request per package, then removes the database from `ephemeral*()`. Owns the check that a fresh `TMPDIR` is empty after the suite. Depends on order 9. |
 | 11 | #2943 - Keep `figment::Jail` tests from changing the environment other tests see | `docs/issues/open/2943-2392-figment-jail-process-environment/ISSUE.md` | TODO | Bug, found by #2907. The `Jail` tests of `packages/configuration` clear and set the process environment and change the current directory while tests of the same binary that do not use `Jail` run. The order 2 audit classified this resource (G2) as isolated; this issue corrects that row and rechecks G1. The maintainer chooses the design in its T2. Independent of the other orders. |
 
@@ -313,6 +313,11 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
   sync on 2026-11-21: the 13:24 entry now says when PR #2983 merged (about 15:14 UTC), and the
   Phase 4 outcome now says only #1419's remaining R8, AC8a and R9 were done under this EPIC
   (about 15:20 UTC).
+- 2026-11-24 18:57 UTC - Claude Code (Claude Sonnet 5.5), EPIC coordinator - Order 9 (#2924) is DONE: PRs
+  #3011, #3029 and #3035 merged and GitHub closed #2924. The guard and its factory are in
+  `torrust-tracker-test-helpers`. The recheck still counts 6 `data_*.db` files, all from
+  `ephemeral*()` users that order 10 (#2925) moves. `tracker-core` keeps its own
+  `EphemeralConfiguration` wrappers, and no subissue owns adopting the shared type there yet.
 
 ## Acceptance Criteria
 
