@@ -9,7 +9,7 @@ github-issue: 2770
 spec-path: docs/issues/open/2770-2758-close-out-adr-and-epic/ISSUE.md
 branch: "2770-close-out-adr-and-epic"
 related-pr: null
-last-updated-utc: "2026-11-19 06:58"
+last-updated-utc: "2026-11-23 22:06"
 semantic-links:
   skill-links:
     - create-issue
@@ -24,7 +24,7 @@ semantic-links:
 
 # Issue #2770 - Close the CLI contract migration: update the ADR notes and the EPIC
 
-**Parent EPIC:** #2758 - Migrate the CLI tools to the global output contract. Order 11 of 11, wave 3 (the close-out, after all the others).
+**Parent EPIC:** #2758 - Migrate the CLI tools to the global output contract. Order 11 of 13, wave 3 (the close-out, after all the others, including EPIC subissues 12 and 13, #3004 and #3006).
 
 ## Goal
 
@@ -45,6 +45,7 @@ The global CLI output contract (`docs/adrs/20260519000000_define_global_cli_outp
 - Repair every live reference to the EPIC's old path: the child specs (open or closed) cite `docs/issues/open/2758-cli-output-contract-tools-migration/EPIC.md` in their `semantic-links.related-artifacts`, and the frontmatter validator reports a moved file as missing. Update them in the same PR as the move, and run the frontmatter validator to confirm.
 - Update the `http_health_check` row of the ADR binary table: it is still marked currently non-compliant, but #2764 (PR 2889) made it `no-stdout-result` with NDJSON on stderr. Do the same check for every other row against the merged children (#2761, #2762, #2764, #2765 and the later ones).
 - Record the leftovers of the merged children that the audit must account for: the untested write-failure path of `http_health_check` (exit code kept when the stderr write fails; verified by reading the code only, #2764) and the missing tests for the e2e checker helper's log-limit selection (full log on a failure, 64 KiB excerpt on success; finding F28 of the PR 2901 audit, `docs/pr-reviews/pr-2901-review/PR-REVIEW.md`). F28 is a non-blocking test gap that the maintainer decided to leave (record: https://github.com/torrust/torrust-tracker/pull/2921#issuecomment-6956412285); the implemented policy is not reopened. Each leftover is covered by a test elsewhere or recorded with an issue; this issue changes no code.
+- Account for the two issues added from the #2768 leftovers: #3004 (the tracker key in `tracker_client` output, a breach of the ADR redaction rule) and #3006 (the schema version rule). #3006 amends the ADR text and must be merged before this issue starts; both must be closed, or their leftover recorded with an issue, before the EPIC closes.
 - Verify with a fresh audit that no in-scope tool is non-compliant, or that the leftover is recorded with an issue.
 
 ### Out of Scope
@@ -55,7 +56,7 @@ Files this issue may touch (a sibling issue in the same wave must not touch them
 
 - `docs/adrs/20260519000000_define_global_cli_output_contract.md`
 - `docs/issues/open/2758-cli-output-contract-tools-migration/EPIC.md` (moved to `docs/issues/closed/2758-cli-output-contract-tools-migration/EPIC.md`)
-- `docs/issues/{open,closed}/27*-2758-*/ISSUE.md` (only the references to the EPIC path)
+- `docs/issues/{open,closed}/*-2758-*/ISSUE.md` (only the references to the EPIC path)
 
 ## Architectural Decisions
 
@@ -120,6 +121,9 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-09 12:12 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the review of PR 2771 (da2ce7 findings F1 to F27 and Copilot's later comments): specs corrected from the code, reproductions recorded where a spec has a bug-fix section.
 - 2026-11-18 19:25 UTC - Claude Code (Claude Sonnet 5.5) - Added the ADR `http_health_check` note and the leftovers of #2764 and #2765 to the scope.
 - 2026-11-19 06:58 UTC - Claude Code (Claude Sonnet 5.5) - Named F28 as a missing-test gap with its recorded disposition (Copilot review 5964601313 of PR 2958).
+- 2026-11-23 14:03 UTC - Claude Code (Claude Opus 5.5) - Added #3004 and #3006 to the scope; #3006 merges before this issue.
+- 2026-11-23 14:25 UTC - Claude Code (Claude Opus 5.5) - Widened the child-spec glob to `*-2758-*` so #3004 and #3006 are covered, and updated the order line (PR 3007 review).
+- 2026-11-23 22:06 UTC - Claude Code (Claude Opus 5.5) - Named EPIC subissues 12 and 13 by their issue numbers (PR 3007 review).
 
 ## Acceptance Criteria
 

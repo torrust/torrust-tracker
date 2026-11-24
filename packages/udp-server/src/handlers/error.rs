@@ -188,7 +188,6 @@ mod tests {
 
     fn internal_error() -> Error {
         Error::Internal {
-            location: std::panic::Location::caller(),
             message: "failure".into(),
         }
     }

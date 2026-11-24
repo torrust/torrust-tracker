@@ -1,9 +1,5 @@
-use std::panic::Location;
-use std::sync::Arc;
-
 use axum_server::tls_rustls::RustlsConfig;
 use thiserror::Error;
-use torrust_located_error::{DynError, LocatedError};
 use torrust_tracker_configuration::v3_0_0::tls::TlsConfig;
 use tracing::instrument;
 
@@ -16,13 +12,12 @@ pub enum Error {
     MissingTlsConfig {
         cert: camino::Utf8PathBuf,
         key: camino::Utf8PathBuf,
-        location: &'static Location<'static>,
     },
 
     /// Unable to parse tls Config.
     #[error("bad tls config: {source}")]
     BadTlsConfig {
-        source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
+        source: Box<dyn std::error::Error + Send + Sync>,
     },
 }
 
@@ -37,11 +32,7 @@ pub async fn make_rust_tls(tls_config: &TlsConfig) -> Result<RustlsConfig, Error
     let key = tls_config.ssl_key_path.clone();
 
     if !cert.exists() || !key.exists() {
-        return Err(Error::MissingTlsConfig {
-            cert,
-            key,
-            location: Location::caller(),
-        });
+        return Err(Error::MissingTlsConfig { cert, key });
     }
 
     tracing::info!("Using https: cert path: {cert}.");
@@ -49,9 +40,7 @@ pub async fn make_rust_tls(tls_config: &TlsConfig) -> Result<RustlsConfig, Error
 
     RustlsConfig::from_pem_file(cert, key)
         .await
-        .map_err(|err| Error::BadTlsConfig {
-            source: (Arc::new(err) as DynError).into(),
-        })
+        .map_err(|err| Error::BadTlsConfig { source: Box::new(err) })
 }
 
 #[cfg(test)]
@@ -65,6 +54,25 @@ mod tests {
     use torrust_tracker_configuration::v3_0_0::tls::TlsConfig;
 
     use super::{Error, make_rust_tls};
+
+    /// Fails when `message` holds a source path: a workspace or registry path, or a `file.rs:line` suffix.
+    #[track_caller]
+    fn assert_names_no_source_path(message: &str) {
+        for fragment in [
+            ".rs:",
+            "packages/",
+            "packages\\",
+            "src/",
+            "src\\",
+            ".cargo/registry",
+            "rustlib/src",
+        ] {
+            assert!(
+                !message.contains(fragment),
+                "the error message must not hold a source path, but it contains {fragment:?}: {message:?}"
+            );
+        }
+    }
 
     /// Writes `content` to a new `<prefix><random>.pem` file in the system temporary directory.
     ///
@@ -97,6 +105,7 @@ mod tests {
         .expect_err("bad_cert_and_key_files");
 
         assert!(matches!(err, Error::BadTlsConfig { source: _ }));
+        assert_names_no_source_path(&err.to_string());
     }
 
     #[test]
@@ -139,13 +148,7 @@ mod tests {
         .await
         .expect_err("missing_config");
 
-        assert!(matches!(
-            err,
-            Error::MissingTlsConfig {
-                cert: _,
-                key: _,
-                location: _
-            }
-        ));
+        assert!(matches!(err, Error::MissingTlsConfig { cert: _, key: _ }));
+        assert_names_no_source_path(&err.to_string());
     }
 }

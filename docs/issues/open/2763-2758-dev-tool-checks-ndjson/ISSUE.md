@@ -9,7 +9,7 @@ github-issue: 2763
 spec-path: docs/issues/open/2763-2758-dev-tool-checks-ndjson/ISSUE.md
 branch: "2763-dev-tool-checks-ndjson"
 related-pr: null
-last-updated-utc: "2026-11-09 12:12"
+last-updated-utc: "2026-11-23 16:38"
 semantic-links:
   skill-links:
     - create-issue
@@ -25,7 +25,7 @@ semantic-links:
 
 # Issue #2763 - `agent-review-report-contract` and `frontmatter-schema`: NDJSON diagnostics; classify `workspace-coupling`
 
-**Parent EPIC:** #2758 - Migrate the CLI tools to the global output contract. Order 4 of 11, wave 1.
+**Parent EPIC:** #2758 - Migrate the CLI tools to the global output contract. Order 4 of 13, wave 1.
 
 ## Goal
 
@@ -126,6 +126,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-06 16:51 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the spec; GitHub issue #2763 created.
 - 2026-11-09 10:25 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the review rounds on PR 2771 and PR 2774 and fixed the earlier log stamps from the commit and issue creation times.
 - 2026-11-09 12:12 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the review of PR 2771 (da2ce7 findings F1 to F27 and Copilot's later comments): specs corrected from the code, reproductions recorded where a spec has a bug-fix section.
+- 2026-11-23 16:38 UTC - Claude Code (Claude Opus 5.5) - Updated the EPIC total to 13 after #3004 and #3006 were added (PR 3007 review).
 
 ## Acceptance Criteria
 

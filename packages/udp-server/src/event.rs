@@ -148,8 +148,8 @@ impl From<Error> for ErrorKind {
                 UdpScrapeError::TrackerCoreWhitelistError { source } => Self::Whitelist(source.to_string()),
                 unknown => Self::InternalServer(unknown.to_string()),
             },
-            Error::Internal { location: _, message } => Self::InternalServer(message),
-            Error::AuthRequired { location } => Self::TrackerAuthentication(location.to_string()),
+            Error::Internal { message } => Self::InternalServer(message),
+            Error::AuthRequired => Self::TrackerAuthentication(Error::AuthRequired.to_string()),
         }
     }
 }
@@ -179,7 +179,6 @@ pub mod bus {
 mod tests {
     use std::net::Ipv4Addr;
     use std::num::NonZeroU16;
-    use std::panic::Location;
     use std::str::FromStr;
 
     use torrust_info_hash::InfoHash;
@@ -435,7 +434,6 @@ mod tests {
     fn it_should_classify_an_internal_error() {
         // Arrange
         let error = Error::Internal {
-            location: Location::caller(),
             message: "internal failure".to_string(),
         };
 
@@ -449,14 +447,13 @@ mod tests {
     #[test]
     fn it_should_classify_an_authentication_error() {
         // Arrange
-        let location = Location::caller();
-        let error = Error::AuthRequired { location };
+        let error = Error::AuthRequired;
 
         // Act
         let actual = ErrorKind::from(error);
 
         // Assert
-        assert_eq!(actual, ErrorKind::TrackerAuthentication(location.to_string()));
+        assert_eq!(actual, ErrorKind::TrackerAuthentication(Error::AuthRequired.to_string()));
     }
 
     #[test]

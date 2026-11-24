@@ -9,7 +9,7 @@ github-issue: 2769
 spec-path: docs/issues/open/2769-2758-e2e-runners-json/ISSUE.md
 branch: "2769-e2e-runners-json"
 related-pr: null
-last-updated-utc: "2026-11-18 19:25"
+last-updated-utc: "2026-11-23 16:38"
 semantic-links:
   skill-links:
     - create-issue
@@ -25,7 +25,7 @@ semantic-links:
 
 # Issue #2769 - `e2e_tests_runner` and `qbittorrent_e2e_runner`: JSON diagnostics
 
-**Parent EPIC:** #2758 - Migrate the CLI tools to the global output contract. Order 10 of 11, wave 2.
+**Parent EPIC:** #2758 - Migrate the CLI tools to the global output contract. Order 10 of 13, wave 2.
 
 ## Goal
 
@@ -135,6 +135,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-09 13:21 UTC - Claude Code (Claude Sonnet 5.5) - Addressed da2ce7's review 5826238636 of PR 2771 on this spec.
 - 2026-11-09 16:03 UTC - Claude Code (Claude Sonnet 5.5) - Addressed da2ce7's review 5826857760 of PR 2771 on this spec.
 - 2026-11-18 19:25 UTC - Claude Code (Claude Sonnet 5.5) - Updated the child-process facts after PR 2901 (#2765) merged: the checker child is already captured by a helper to reuse; `docker.rs` and `compose.rs` still inherit their streams.
+- 2026-11-23 16:38 UTC - Claude Code (Claude Opus 5.5) - Updated the EPIC total to 13 after #3004 and #3006 were added (PR 3007 review).
 
 ## Acceptance Criteria
 

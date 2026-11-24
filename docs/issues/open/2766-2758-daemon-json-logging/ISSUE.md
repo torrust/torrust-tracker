@@ -27,7 +27,7 @@ semantic-links:
 
 # Issue #2766 - `torrust-tracker` daemon: JSON logs on stderr and JSON startup failure
 
-**Parent EPIC:** #2758 - Migrate the CLI tools to the global output contract. Order 7 of 11, wave 1.
+**Parent EPIC:** #2758 - Migrate the CLI tools to the global output contract. Order 7 of 13, wave 1.
 
 ## Dependencies
 
@@ -156,6 +156,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-09 13:21 UTC - Claude Code (Claude Sonnet 5.5) - Addressed da2ce7's review 5826238636 of PR 2771 on this spec.
 - 2026-11-09 16:03 UTC - Claude Code (Claude Sonnet 5.5) - Addressed da2ce7's review 5826857760 of PR 2771 on this spec.
 - 2026-11-23 16:13 UTC - Claude Code (Fable 5.2) - Recorded the maintainer's decision of 2026-11-21 that this issue starts after EPIC #2387, with the consequences for its scope (section Dependencies, task T0).
+- 2026-11-23 16:38 UTC - Claude Code (Claude Opus 5.5) - Updated the EPIC total to 13 after #3004 and #3006 were added (PR 3007 review).
 
 ## Acceptance Criteria
 

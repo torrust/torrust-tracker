@@ -1,0 +1,5 @@
+== V1 bad config
+Tracker startup failed: Tracker setup failed. Correct the reported configuration or dependency problem and restart: Tracker configuration could not be loaded. Correct the configuration source and restart: Could not load the tracker configuration. Fix the configured TOML source and try again: Failed processing the configuration: invalid type: found string "yes", expected a boolean for key "default.core.listed" in bad.toml TOML file
+== V2 bad PEM
+2026-11-23T11:13:52.289045Z ERROR torrust_tracker: Tracker startup failed error=Configured HTTP tracker startup failed. Correct its configuration or make its listener address available: Could not load TLS material for the HTTP tracker. Verify the configured certificate and key paths: bad tls config: The private key file contained no keys
+Tracker startup failed: Configured HTTP tracker startup failed. Correct its configuration or make its listener address available: Could not load TLS material for the HTTP tracker. Verify the configured certificate and key paths: bad tls config: The private key file contained no keys

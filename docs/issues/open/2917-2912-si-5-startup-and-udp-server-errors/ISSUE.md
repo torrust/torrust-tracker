@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: in-progress
 priority: p2
 epic: 2912
 github-issue: 2917
 spec-path: docs/issues/open/2917-2912-si-5-startup-and-udp-server-errors/ISSUE.md
 branch: "2917-startup-and-udp-server-errors"
-related-pr: null
-last-updated-utc: "2026-11-18 19:11"
+related-pr: 3001
+last-updated-utc: "2026-11-23 16:40"
 semantic-links:
   skill-links:
     - create-issue
@@ -123,12 +123,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | TODO | Reproduce and record | Startup error text for a bad configuration file and for invalid PEM files, in `manual-verification-evidence.md`. |
-| T2 | TODO | Red tests | `to_string()` tests for the four configuration variants, `BadTlsConfig` and the two UDP variants; red output recorded. |
-| T3 | TODO | `configuration` | Plain sources, no location capture, dependency removed, 4.0.0 note recorded. |
-| T4 | TODO | `axum-server` | Plain `BadTlsConfig` source, `MissingTlsConfig` without `location`, dependency removed. |
-| T5 | TODO | `udp-server` | The two variants and their tests without `location`. |
-| T6 | TODO | Green and recheck | Green output, then the T1 startups repeated. |
+| T1 | DONE | Reproduce and record | Startup error text for a bad configuration file and for invalid PEM files, in `manual-verification-evidence.md`. |
+| T2 | DONE | Red tests | Red tests written: two for the `configuration` variants that are built (`ConfigError` through `From<figment::Error>`, and `UnableToProcessExplicitConfigFile` through an explicit file; `UnableToLoadFromEnvironmentVariable` and `UnableToLoadFromConfigFile` are never built and have none), a path check added to `it_should_error_on_bad_tls_config` for `BadTlsConfig`, two `Display` tests for the UDP variants and the pinned message in `it_should_classify_an_authentication_error`; red output recorded. |
+| T3 | DONE | `configuration` | Plain sources, no location capture, dependency removed, 4.0.0 note recorded. |
+| T4 | DONE | `axum-server` | Plain `BadTlsConfig` source, `MissingTlsConfig` without `location`, dependency removed. |
+| T5 | DONE | `udp-server` | The two variants and their tests without `location`. |
+| T6 | DONE | Green and recheck | Green output, then the T1 startups repeated. |
 
 ## Commit Points
 
@@ -166,10 +166,10 @@ with the narrow affected scope, and sign every commit with GPG.
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
+- [x] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
@@ -185,13 +185,17 @@ the model that produced them.
 - 2026-11-11 17:05 UTC - Claude Code (Fable 5.2) - Drafted from the audit of issue #2804 (`docs/issues/open/2804-location-caller-track-caller-audit/inventory.md`, `options.md`) as a sub-issue of the EPIC draft. Not yet approved; line numbers are those of `develop` at `4f0af379a` and must be re-checked before implementation.
 - 2026-11-17 17:30 UTC - Claude Code (Claude Opus 5.5) - EPIC coordinator: the maintainer approved the specification on 2026-11-17; issue #2917 created as `josecelano-bot` and the specification moved from `docs/issues/drafts/` to `docs/issues/open/` (SI-5 of EPIC #2912).
 
+- 2026-11-23 11:21 UTC - Claude Code (Claude Sonnet 5.5) - T1 to T6 on branch `2917-startup-and-udp-server-errors`: reproduced both startup errors (each ended in a `packages/...rs:line` path), added red tests and committed them, then removed the locations. The four `configuration` sources and `BadTlsConfig` hold a plain `Box<dyn std::error::Error + Send + Sync>`; `MissingTlsConfig` lost `location`; `udp-server` `AuthRequired` became a unit variant and `Internal` lost `location`; `ErrorKind::TrackerAuthentication` now carries the error's message. `torrust-located-error` is removed from `configuration` and `axum-server`; `tracker-client` still uses it (SI-6). `UnableToLoadFromEnvironmentVariable` and `UnableToLoadFromConfigFile` are never built, so they have no red test. Each crate keeps a local copy of the path-check helper until SI-8 (#2996) shares it. 4.0.0 note recorded in #2583. No retrospective: the work matched the spec.
+- 2026-11-23 15:53 UTC - Claude Code (Claude Sonnet 5.5) - Recorded the SI-8 (#2996) follow-up of review round 3: `configuration` and `axum-server` each add a local copy of the path-check helper (copies 8 and 9 of `assert_names_no_source_path`); SI-8 cannot move them, because `torrust-tracker-test-helpers` depends on `configuration` and `axum-server` has no such dev-dependency, so they are cross-linked in the SI-8 spec and the EPIC row.
+- 2026-11-23 16:40 UTC - Claude Code (Claude Sonnet 5.5) - Review round 7: the 15:53 line above supersedes the claim of the 11:21 line that each crate keeps its copy until SI-8 (#2996) shares it; the SI-8 record itself landed in "docs(issues): [#2917] record the SI-5 copies of the path helper in the SI-8 spec and the EPIC" (13:29 UTC). A Risks bullet now names SI-A (#2999) as the owner of the secret-value case of AC2.
+
 ## Acceptance Criteria
 
-- [ ] AC1: `configuration::Error`, `axum_server::tls::Error` and the `udp-server` `Error` have no `location` field and no `LocatedError` source.
-- [ ] AC2: The startup error for a bad configuration file names the file and the invalid key or value and holds no source path.
-- [ ] AC3: The startup error for invalid PEM files holds no source path.
-- [ ] AC4: `packages/configuration/Cargo.toml` and `packages/axum-server/Cargo.toml` no longer depend on `torrust-located-error`.
-- [ ] AC5: The breaking change of `torrust-tracker-configuration` is recorded for its 4.0.0 release.
+- [x] AC1: `configuration::Error`, `axum_server::tls::Error` and the `udp-server` `Error` have no `location` field and no `LocatedError` source.
+- [x] AC2: The startup error for a bad configuration file names the file and the invalid key or value and holds no source path.
+- [x] AC3: The startup error for invalid PEM files holds no source path.
+- [x] AC4: `packages/configuration/Cargo.toml` and `packages/axum-server/Cargo.toml` no longer depend on `torrust-located-error`.
+- [x] AC5: The breaking change of `torrust-tracker-configuration` is recorded for its 4.0.0 release.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -214,8 +218,8 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | Bad configuration file | Run the tracker with `TORRUST_TRACKER_CONFIG_TOML_PATH` pointing to a file with an invalid value | The error names the file and the problem and holds no `.rs:` path | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | Invalid TLS files | Enable TLS for the HTTP tracker with a certificate file that is not valid PEM and start the tracker | The error says the TLS configuration is bad and holds no path | TODO | `manual-verification-evidence.md` section V2 |
+| M1 | Bad configuration file | Run the tracker with `TORRUST_TRACKER_CONFIG_TOML_PATH` pointing to a file with an invalid value | The error names the file and the problem and holds no `.rs:` path | DONE | `manual-verification-evidence.md` section V1 |
+| M2 | Invalid TLS files | Enable TLS for the HTTP tracker with a certificate file that is not valid PEM and start the tracker | The error says the TLS configuration is bad and holds no path | DONE | `manual-verification-evidence.md` section V2 |
 
 Notes:
 
@@ -255,11 +259,11 @@ None planned for this issue.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | --- | --- | --- |
-| AC1 | TODO | {test/log/PR link} |
-| AC2 | TODO | {test/log/PR link} |
-| AC3 | TODO | {test/log/PR link} |
-| AC4 | TODO | {test/log/PR link} |
-| AC5 | TODO | {test/log/PR link} |
+| AC1 | DONE | Tests `it_should_not_hold_a_source_path_*` in `configuration/src/lib.rs` and `udp-server/src/error.rs`, the path check in `it_should_error_on_bad_tls_config` (`axum-server/src/tls.rs`) and `it_should_classify_an_authentication_error` (`udp-server/src/event.rs`); red and green in `evidence/` |
+| AC2 | DONE | V1; `it_should_not_hold_a_source_path_when_an_explicit_config_file_is_invalid` (names file and `core.listed`) |
+| AC3 | DONE | V2; `it_should_error_on_bad_tls_config` |
+| AC4 | DONE | `grep located packages/configuration/Cargo.toml packages/axum-server/Cargo.toml` finds nothing; `cargo machete` clean |
+| AC5 | DONE | Entry under "Semver bumps owed" in the publish plan #2583 |
 
 ## Risks and Trade-offs
 
@@ -267,6 +271,12 @@ None planned for this issue.
   current text so the new text can be compared.
 - **`configuration` 4.0.0 is published first.** Mitigation: EPIC ordering; otherwise this needs a
   later major.
+- **AC2 and secret values.** The figment message this sub-issue keeps still prints a non-string
+  value, for example the number of a numeric database password, as it did before. EPIC #2993
+  (`docs/issues/open/2993-secrets-and-client-error-text/EPIC.md`, item A10) assigns that case to
+  SI-A (`docs/issues/open/2999-2993-si-a-keep-secrets-out-of-errors-and-logs/ISSUE.md`); the "or
+  value" of AC2 is read as the key and the value that are not secret. This sub-issue does not
+  change the message.
 
 ## Implementation Completion Review
 

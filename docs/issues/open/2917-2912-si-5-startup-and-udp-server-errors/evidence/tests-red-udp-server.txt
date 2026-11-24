@@ -1,0 +1,13 @@
+test error::tests::it_should_not_hold_a_source_path_when_an_authentication_required_error_is_displayed ... FAILED
+test error::tests::it_should_not_hold_a_source_path_when_an_internal_error_is_displayed ... FAILED
+test event::tests::it_should_classify_an_authentication_error ... FAILED
+thread 'error::tests::it_should_not_hold_a_source_path_when_an_authentication_required_error_is_displayed' (113029) panicked at packages/udp-server/src/error.rs:246:9:
+  left: "domain tracker requires authentication but is not supported in current UDP implementation. Location: packages/udp-server/src/error.rs:239:23"
+ right: "domain tracker requires authentication but is not supported in current UDP implementation"
+thread 'error::tests::it_should_not_hold_a_source_path_when_an_internal_error_is_displayed' (113030) panicked at packages/udp-server/src/error.rs:232:9:
+  left: "internal server error: failure, packages/udp-server/src/error.rs:224:23"
+ right: "internal server error: failure"
+thread 'event::tests::it_should_classify_an_authentication_error' (113044) panicked at packages/udp-server/src/event.rs:459:9:
+  left: TrackerAuthentication("packages/udp-server/src/event.rs:452:24")
+ right: TrackerAuthentication("domain tracker requires authentication but is not supported in current UDP implementation")
+test result: FAILED. 223 passed; 3 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.28s
