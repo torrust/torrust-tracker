@@ -65,9 +65,19 @@ for ([ADR](../../../docs/adrs/20261124182709_review_pull_requests_without_a_mand
 Its review, if it posts one, goes through the review loop like any other.
 
 `gh pr checks` reports an empty `workflow` for these check runs, so they can be left out without
-naming any service. `--watch` waits for every check run, theirs included, and its exit code counts a
-failed review-service check as a failure. After it exits, or when only a review-service check is
-still pending, decide with the workflow checks alone:
+naming any service. `--watch` waits for every check run, theirs included, so it can keep waiting
+for a slow review service after CI has finished, and its exit code counts a failed review-service
+check as a failure. To wait for the workflow checks alone, poll them instead. The loop spends no
+tokens; it ends when at least one workflow check exists and none is pending:
+
+```sh
+until gh pr checks <PR> --repo torrust/torrust-tracker --json bucket,workflow \
+  --jq '[.[] | select(.workflow != "")] | length > 0 and all(.bucket != "pending")' \
+  2> /dev/null | grep -qx true; do sleep 60; done
+```
+
+Then decide with the workflow checks alone, and list the review-service check runs that were left
+out, for the report:
 
 ```sh
 gh pr checks <PR> --repo torrust/torrust-tracker --json name,bucket,workflow \
@@ -76,8 +86,8 @@ gh pr checks <PR> --repo torrust/torrust-tracker --json name,bucket,workflow \
   --jq '.[] | select(.workflow == "") | "\(.name) \(.bucket)"'
 ```
 
-The first command counts the workflow checks by bucket: they pass when there is no `fail` and no
-`pending`. The second lists the review-service check runs that were left out, for the report.
+The workflow checks pass only when every one of them is `pass` or `skipping`. A `cancel` needs
+attention, like a `fail`: the job did not check the change. A `pending` needs more waiting.
 
 ## When Checks Never Start
 
