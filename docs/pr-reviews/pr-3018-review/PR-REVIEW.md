@@ -60,9 +60,9 @@ F1 to F5 come from CodeRabbit's review 6030014294 (COMMENTED, submitted 21:44:49
 | F13 | review-finding:pr-3018-f13 | Unknown | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F14 | review-finding:pr-3018-f14 | Unknown | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F15 | review-finding:pr-3018-f15 | Unknown | Minor | testing | ORIGINAL | FIXED | RESOLVED |
-| F16 | review-finding:pr-3018-f16 | Copilot | Minor | documentation | ORIGINAL | FIXED | OPEN |
-| F17 | review-finding:pr-3018-f17 | Copilot | Minor | documentation | ORIGINAL | FIXED | OPEN |
-| F18 | review-finding:pr-3018-f18 | Copilot | Nit | maintainability | ORIGINAL | FIXED | OPEN |
+| F16 | review-finding:pr-3018-f16 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-3018-f17 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-3018-f18 | Copilot | Nit | maintainability | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -272,7 +272,7 @@ F1 to F5 come from CodeRabbit's review 6030014294 (COMMENTED, submitted 21:44:49
 - Current-tree verification: `sed -n 1,25p contrib/dev-tools/checks/source-location-check/src/lib.rs` shows the new text; `cargo doc -p source-location-check --no-deps` (stable Rust toolchain) builds without warnings.
 - Resolution reference: docs(source-location-check): [#2918] describe the current skipping rule and lock stderr once
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3018#discussion_r4673839963
 
 ### F17 - The spec's known limits are outdated
 
@@ -285,7 +285,7 @@ F1 to F5 come from CodeRabbit's review 6030014294 (COMMENTED, submitted 21:44:49
 - Current-tree verification: `grep -n "Known" -A4 docs/issues/open/2918-2912-si-6-drop-located-error-and-enforce-the-rule/ISSUE.md` shows the new note and no mention of byte strings.
 - Resolution reference: docs(pr-reviews): [#2918] record round 4 of the review audit of PR #3018
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3018#discussion_r4673840305
 
 ### F18 - Stderr is locked once per record
 
@@ -298,7 +298,7 @@ F1 to F5 come from CodeRabbit's review 6030014294 (COMMENTED, submitted 21:44:49
 - Current-tree verification: `grep -n "write_record\|lock()" contrib/dev-tools/checks/source-location-check/src/main.rs` shows one `lock()` call; `cargo test -p source-location-check` (stable Rust toolchain) passes 23 library tests and 4 CLI tests.
 - Resolution reference: docs(source-location-check): [#2918] describe the current skipping rule and lock stderr once
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3018#discussion_r4673840647
 
 ## Processing Log
 
@@ -309,3 +309,4 @@ F1 to F5 come from CodeRabbit's review 6030014294 (COMMENTED, submitted 21:44:49
 - 2026-11-23 23:52 UTC - The poller, now watching CodeRabbit too, returned CodeRabbit's round 3 (review 6031363636, 23:47:54Z, two inline findings F13 and F14) and a reply on the F9 thread asking for a stronger regression test (F15, 23:49:54Z); another CodeRabbit reply on the F4 thread (23:49:12Z) says the code and tests cover F12 and holds no finding. This is round 3 of at most 5. F13 and F14 fixed in "fix(source-location-check): [#2918] scan the rest of a line after an excluded item and inherit test-only status through module files" and F15 in "test(source-location-check): [#2918] cover adjacent character literals in a test-only function", which was run red against the previous character literal length by hand before the fix state was restored.
 - 2026-11-23 23:56 UTC - Pushed the round-3 fixes and audit (pre-push hook passed, push finished 23:55:36 UTC by `date -u`), replied on the three threads (replies posted 23:55:56 UTC) and resolved them (`resolveReviewThread` returned `true` for each, including the F9 thread that CodeRabbit's reply had left resolved; `date -u` after the resolve commands: 23:56:08). GraphQL refresh: zero unresolved threads on PR #3018. This entry is committed and pushed after the replies.
 - 2026-11-24 00:17 UTC - Copilot's review 6031622618 (the poller's event) arrived with three inline findings, F16 to F18; two more CodeRabbit replies (23:56:37Z on the F9 thread and 23:57:01Z on the F13 thread) confirm the round-3 fixes and hold no finding. This is round 4 of at most 5. F16 and F18 fixed in "docs(source-location-check): [#2918] describe the current skipping rule and lock stderr once" and F17 in this audit's commit.
+- 2026-11-24 00:21 UTC - Pushed the round-4 fixes and audit (pre-push hook passed, push finished 00:20:38 UTC by `date -u`), replied on the three threads (replies posted 00:20:51 UTC) and resolved them (`resolveReviewThread` returned `true` for each; `date -u` after the resolve commands: 00:20:56). GraphQL refresh: zero unresolved threads on PR #3018. This entry is committed and pushed after the replies.
