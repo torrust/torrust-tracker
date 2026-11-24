@@ -18,6 +18,7 @@ use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
 use torrust_server_lib::logging::{Latency, STARTED_ON};
 use torrust_server_lib::registar::{Registar, RegistrationError, ServiceRegistration};
 use torrust_tracker_axum_server::custom_axum_server;
+use torrust_tracker_axum_server::request_log::{RedactedMakeSpan, redact_uri};
 use torrust_tracker_axum_server::signals::{GracefulShutdownOutcome, graceful_shutdown_on_cancellation};
 use torrust_tracker_primitives::{Readiness, RuntimeServiceMetadata};
 use tower_http::LatencyUnit;
@@ -25,8 +26,8 @@ use tower_http::classify::ServerErrorsFailureClass;
 use tower_http::compression::CompressionLayer;
 use tower_http::propagate_header::PropagateHeaderLayer;
 use tower_http::request_id::{MakeRequestUuid, SetRequestIdLayer};
-use tower_http::trace::{DefaultMakeSpan, TraceLayer};
-use tracing::{Level, Span};
+use tower_http::trace::TraceLayer;
+use tracing::Span;
 
 use crate::HEALTH_CHECK_API_LOG_TARGET;
 use crate::handlers::{HealthCheckState, health_check_handler};
@@ -149,10 +150,10 @@ fn router(registar: Registar<RuntimeServiceMetadata>, readiness: Readiness) -> R
         .layer(PropagateHeaderLayer::new(HeaderName::from_static("x-request-id")))
         .layer(
             TraceLayer::new_for_http()
-                .make_span_with(DefaultMakeSpan::new().level(Level::INFO))
+                .make_span_with(RedactedMakeSpan)
                 .on_request(|request: &Request<axum::body::Body>, span: &Span| {
                     let method = request.method().to_string();
-                    let uri = request.uri().to_string();
+                    let uri = redact_uri(request.uri());
                     let request_id = request
                         .headers()
                         .get("x-request-id")

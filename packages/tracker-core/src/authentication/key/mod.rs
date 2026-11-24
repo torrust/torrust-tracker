@@ -105,22 +105,10 @@ pub(crate) fn generate_expiring_key(lifetime: Duration) -> PeerKey {
 /// ```
 #[must_use]
 pub fn generate_key(lifetime: Option<Duration>) -> PeerKey {
-    let random_key = Key::random();
-
-    if let Some(lifetime) = lifetime {
-        tracing::debug!("Generated key: {}, valid for: {:?} seconds", random_key, lifetime);
-
-        PeerKey {
-            key: random_key,
-            valid_until: Some(CurrentClock::now_add(&lifetime).unwrap()),
-        }
-    } else {
-        tracing::debug!("Generated key: {}, permanent", random_key);
-
-        PeerKey {
-            key: random_key,
-            valid_until: None,
-        }
+    // The key is a secret: nothing logs it, so the log says nothing about the generation.
+    PeerKey {
+        key: Key::random(),
+        valid_until: lifetime.map(|lifetime| CurrentClock::now_add(&lifetime).unwrap()),
     }
 }
 
@@ -194,6 +182,28 @@ impl From<sqlx::Error> for Error {
 
 #[cfg(test)]
 mod tests {
+
+    mod when_a_key_is_generated {
+        use std::time::Duration;
+
+        use torrust_tracker_test_helpers::logging::capture_logs_while;
+
+        use crate::authentication::key::generate_key;
+
+        #[test]
+        fn it_should_not_write_an_expiring_key_to_the_log() {
+            let (key, logs) = capture_logs_while(|| generate_key(Some(Duration::from_secs(60))));
+
+            assert!(!logs.contains(key.key.value()), "the log holds the generated key");
+        }
+
+        #[test]
+        fn it_should_not_write_a_permanent_key_to_the_log() {
+            let (key, logs) = capture_logs_while(|| generate_key(None));
+
+            assert!(!logs.contains(key.key.value()), "the log holds the generated key");
+        }
+    }
 
     mod the_authentication_error {
         use rstest::rstest;

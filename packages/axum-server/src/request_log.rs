@@ -1,0 +1,172 @@
+//! Request logging that keeps secrets out of the log.
+//!
+//! The URI of a request can hold a secret: a peer authentication key is a path segment
+//! (`/announce/<key>`, `/scrape/<key>`), a REST API key is a path segment (`/api/v1/key/<key>`) and
+//! the REST API admin token can be a query parameter (`?token=<token>`). The tracker servers log
+//! the URI of every request, in the `request` event and in the span that wraps the request, so
+//! both go through [`redact_uri`].
+//!
+//! The rule redacts what follows `/announce/`, `/scrape/` and `/key/` whatever its shape, because
+//! a malformed key (a stray character, a wrong length) is still the user's secret. The seconds
+//! value of `POST /api/v1/key/<seconds>` is lost in the log with it; that is accepted.
+use http::{Request, Uri};
+use tower_http::trace::MakeSpan;
+use tracing::{Level, Span};
+
+/// What replaces a secret in a logged URI. It is the marker the configuration redaction uses.
+pub const REDACTED: &str = "***";
+
+/// Path segments after which the rest of the path is a secret.
+const SECRET_PATH_PREFIXES: [&str; 3] = ["announce", "scrape", "key"];
+
+/// Query parameters whose value is a secret.
+const SECRET_QUERY_PARAMS: [&str; 1] = ["token"];
+
+/// The path and query of `uri`, with the secrets replaced by [`REDACTED`].
+///
+/// A URI in absolute form loses its scheme and authority: the log shows what was requested, not
+/// where the client sent it.
+#[must_use]
+pub fn redact_uri(uri: &Uri) -> String {
+    redact_path_and_query(uri.path(), uri.query())
+}
+
+/// Replaces the secrets in a path and an optional query. See the [module](self) documentation.
+#[must_use]
+pub fn redact_path_and_query(path: &str, query: Option<&str>) -> String {
+    let mut redacted = redact_path(path);
+
+    if let Some(query) = query {
+        redacted.push('?');
+        redacted.push_str(&redact_query(query));
+    }
+
+    redacted
+}
+
+fn redact_path(path: &str) -> String {
+    let segments: Vec<&str> = path.split('/').collect();
+
+    for (index, segment) in segments.iter().enumerate() {
+        let has_a_secret_after_it = segments.get(index + 1).is_some_and(|next| !next.is_empty());
+
+        if SECRET_PATH_PREFIXES.contains(segment) && has_a_secret_after_it {
+            return format!("{}/{REDACTED}", segments[..=index].join("/"));
+        }
+    }
+
+    path.to_string()
+}
+
+fn redact_query(query: &str) -> String {
+    query
+        .split('&')
+        .map(|parameter| match parameter.split_once('=') {
+            Some((name, _value)) if SECRET_QUERY_PARAMS.iter().any(|secret| name.eq_ignore_ascii_case(secret)) => {
+                format!("{name}={REDACTED}")
+            }
+            _ => parameter.to_string(),
+        })
+        .collect::<Vec<_>>()
+        .join("&")
+}
+
+/// Makes the span of a request like `tower_http`'s `DefaultMakeSpan` at the `INFO` level, with
+/// the redacted URI instead of the raw one.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct RedactedMakeSpan;
+
+impl<B> MakeSpan<B> for RedactedMakeSpan {
+    fn make_span(&mut self, request: &Request<B>) -> Span {
+        tracing::span!(
+            Level::INFO,
+            "request",
+            method = %request.method(),
+            uri = %redact_uri(request.uri()),
+            version = ?request.version(),
+        )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use http::Request;
+    use rstest::rstest;
+    use torrust_tracker_test_helpers::logging::capture_logs_while;
+    use tower_http::trace::MakeSpan as _;
+
+    use super::{RedactedMakeSpan, redact_path_and_query};
+
+    // The tests use made-up keys and tokens. Each case states the whole expected text.
+    #[rstest]
+    #[case::an_announce_with_a_key(
+        "/announce/TestPeerKey000000000000000000001",
+        Some("info_hash=%00%00&peer_id=-qB00000000000000001&port=17548&left=0"),
+        "/announce/***?info_hash=%00%00&peer_id=-qB00000000000000001&port=17548&left=0"
+    )]
+    #[case::a_scrape_with_a_key(
+        "/scrape/TestPeerKey000000000000000000001",
+        Some("info_hash=%00%00"),
+        "/scrape/***?info_hash=%00%00"
+    )]
+    #[case::a_key_delete_with_a_token_in_the_query(
+        "/api/v1/key/TestPeerKey000000000000000000001",
+        Some("token=TestAdminToken0001"),
+        "/api/v1/key/***?token=***"
+    )]
+    #[case::a_token_in_the_query_only("/api/v1/stats", Some("token=TestAdminToken0001"), "/api/v1/stats?token=***")]
+    #[case::a_token_among_other_parameters(
+        "/api/v1/torrents",
+        Some("limit=10&token=TestAdminToken0001&offset=5"),
+        "/api/v1/torrents?limit=10&token=***&offset=5"
+    )]
+    #[case::a_token_with_another_case("/api/v1/stats", Some("Token=TestAdminToken0001"), "/api/v1/stats?Token=***")]
+    #[case::an_empty_token_value("/api/v1/stats", Some("token="), "/api/v1/stats?token=***")]
+    #[case::a_uri_without_a_secret("/api/v1/stats", Some("limit=10"), "/api/v1/stats?limit=10")]
+    #[case::a_path_without_a_query("/health_check", None, "/health_check")]
+    #[case::an_announce_without_a_key("/announce", Some("info_hash=%00%00"), "/announce?info_hash=%00%00")]
+    #[case::an_announce_with_an_empty_key_segment("/announce/", None, "/announce/")]
+    #[case::a_percent_encoded_key("/announce/Test%50eerKey000000000000000000001", None, "/announce/***")]
+    #[case::a_key_with_a_stray_character("/announce/TestPeerKey-0000000000000000001", None, "/announce/***")]
+    #[case::a_key_of_the_wrong_length("/announce/ShortTestKey01", Some("port=1"), "/announce/***?port=1")]
+    #[case::a_key_delete_with_a_key_of_the_wrong_length("/api/v1/key/ShortTestKey01", None, "/api/v1/key/***")]
+    #[case::a_key_posted_where_the_seconds_go("/api/v1/key/TestPeerKeyPostedByMistake000001", None, "/api/v1/key/***")]
+    #[case::more_segments_after_the_key("/announce/TestPeerKey000000000000000000001/extra", None, "/announce/***")]
+    #[case::the_keys_collection_has_no_secret("/api/v1/keys", None, "/api/v1/keys")]
+    #[case::a_rest_prefix_other_than_the_default("/custom/key/TestPeerKey000000000000000000001", None, "/custom/key/***")]
+    fn it_should_replace_the_secrets_of_a_uri_with_a_marker(
+        #[case] path: &str,
+        #[case] query: Option<&str>,
+        #[case] expected: &str,
+    ) {
+        let redacted = redact_path_and_query(path, query);
+
+        assert_eq!(redacted, expected);
+    }
+
+    #[test]
+    fn it_should_record_the_redacted_uri_and_not_the_raw_one_in_the_span_of_a_request() {
+        // Arrange
+        let peer_key = "TestPeerKeyInTheSpan000000000001";
+        let admin_token = "TestAdminTokenInTheSpan0001";
+        let request = Request::builder()
+            .uri(format!("/announce/{peer_key}?port=17548&token={admin_token}"))
+            .body(())
+            .expect("the test request should be valid");
+
+        // Act
+        let ((), logs) = capture_logs_while(|| {
+            let span = RedactedMakeSpan.make_span(&request);
+            let _entered = span.enter();
+            tracing::info!("an event inside the request span");
+        });
+
+        // Assert
+        assert!(
+            logs.contains("uri=/announce/***?port=17548&token=***"),
+            "the span should record the redacted URI, got: {logs}"
+        );
+        assert!(!logs.contains(peer_key), "the span holds the test peer key");
+        assert!(!logs.contains(admin_token), "the span holds the test token");
+    }
+}

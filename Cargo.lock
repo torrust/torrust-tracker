@@ -5181,7 +5181,9 @@ dependencies = [
  "axum",
  "axum-server",
  "camino",
+ "http",
  "hyper-util",
+ "rstest 0.28.0",
  "rustls",
  "tempfile",
  "thiserror 2.0.21",
@@ -5189,6 +5191,8 @@ dependencies = [
  "tokio-rustls",
  "tokio-util",
  "torrust-tracker-configuration",
+ "torrust-tracker-test-helpers",
+ "tower-http 0.7.1",
  "tracing",
 ]
 

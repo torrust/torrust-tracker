@@ -11,6 +11,7 @@ use axum_client_ip::ClientIpSource;
 use hyper::{Request, StatusCode};
 use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_server_lib::logging::Latency;
+use torrust_tracker_axum_server::request_log::{RedactedMakeSpan, redact_uri};
 use torrust_tracker_http_core::container::HttpTrackerCoreContainer;
 use tower::ServiceBuilder;
 use tower::timeout::TimeoutLayer;
@@ -19,8 +20,8 @@ use tower_http::classify::ServerErrorsFailureClass;
 use tower_http::compression::CompressionLayer;
 use tower_http::propagate_header::PropagateHeaderLayer;
 use tower_http::request_id::{MakeRequestUuid, SetRequestIdLayer};
-use tower_http::trace::{DefaultMakeSpan, TraceLayer};
-use tracing::{Level, Span, instrument};
+use tower_http::trace::TraceLayer;
+use tracing::{Span, instrument};
 
 use super::handlers::{announce, health_check, scrape};
 use crate::HTTP_TRACKER_LOG_TARGET;
@@ -80,10 +81,10 @@ fn with_request_layers(router: Router, server_service_binding: &ServiceBinding) 
         .layer(PropagateHeaderLayer::new(HeaderName::from_static("x-request-id")))
         .layer(
             TraceLayer::new_for_http()
-                .make_span_with(DefaultMakeSpan::new().level(Level::INFO))
+                .make_span_with(RedactedMakeSpan)
                 .on_request(move |request: &Request<axum::body::Body>, span: &Span| {
                     let method = request.method().to_string();
-                    let uri = request.uri().to_string();
+                    let uri = redact_uri(request.uri());
                     let request_id = request
                         .headers()
                         .get("x-request-id")

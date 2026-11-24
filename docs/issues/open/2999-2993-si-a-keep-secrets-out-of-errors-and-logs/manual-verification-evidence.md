@@ -6,6 +6,8 @@ last-updated-utc: "2026-11-24 16:41"
 
 # Manual Verification Evidence
 
+<!-- cspell:ignore nnounce -->
+
 ## Purpose
 
 Record the baseline reproduction of the secret leaks owned by SI-A (#2999), the test plan, the
@@ -233,3 +235,66 @@ test result: FAILED. 60 passed; 8 failed (tracker-core); 3 passed; 2 failed (res
   blanket "print nothing" does not pass). The absence message never prints the secret.
 - Smell check: `AuthenticationService` has no own test (the redaction comes from the repository it
   holds, which has one); recorded here as deliberate.
+
+## T5 - Request Logging and the Generated Key
+
+Toolchain: stable `rustc 1.100.0`, `cargo test`. Commit subject:
+`fix(servers): [#2999] keep peer keys and admin tokens out of the request log`.
+
+### Design
+
+- One tested function owns the rule: `torrust_tracker_axum_server::request_log::redact_uri`
+  (`packages/axum-server/src/request_log.rs`). The three servers already depend on the package, so
+  no new package is needed. It redacts everything after a path segment `announce`, `scrape` or
+  `key` (whatever its shape) and the value of a `token` query parameter (any case), with `***`.
+  A custom `RedactedMakeSpan` records the redacted URI in the span; it replaces `DefaultMakeSpan`
+  in the HTTP tracker, the REST API and the health-check API, and their `on_request` events log
+  `redact_uri(request.uri())`. The `latency_ms` field name is unchanged (decision 5).
+- A URI in absolute form loses its scheme and authority in the log (only `path?query` is shown).
+- The segment names are compared as written; a percent-encoded name (`/%61nnounce/<key>`) does
+  not match a route, so it reaches no handler and carries no key.
+- `tower-http` is pinned to `0.7` in `axum-server` to share the servers' version; `Cargo.lock`
+  gained `http` and `tower-http 0.7.1` edges for the package, no new crate.
+- `tracker-core::authentication::key::generate_key` no longer logs: both `Generated key` debug
+  lines are gone.
+
+### Red runs and mutations
+
+- Through each server (one test binary per crate that captures every level,
+  [`evidence/t5-red.txt`](evidence/t5-red.txt)), before the servers used the redaction:
+
+  ```text
+  axum-http-server          the log holds a test peer key of 32 characters
+  axum-rest-api-server      the log holds the test admin token
+  axum-health-check-api-server  the log holds the test admin token
+  ```
+
+- Generated key (A5), before removing the lines:
+  `the log holds the generated key` for the expiring and the permanent case
+  ([`evidence/t5-mutations.txt`](evidence/t5-mutations.txt)).
+- The redaction function and the span were written together with their tests, so their guard was
+  shown by mutate-then-restore ([`evidence/t5-mutations.txt`](evidence/t5-mutations.txt)): with
+  the path not redacted 10 of 19 cases fail; with the query not redacted 5 of 19 fail; with the
+  span recording the raw URI, or the event recording it, the HTTP tracker test fails with the
+  same leak message. Mutated files were restored from a copy and the test run green again. (Two
+  first attempts did not compile, because the unused-import lint rejected them; the successful
+  ones carry an `allow(unused_imports)`.)
+
+### Green run
+
+`cargo test --workspace --no-fail-fast`: no failure. The three `request_logging` binaries pass.
+
+### Test-design review (prose-first AAA)
+
+- Arrange: the test keys and token are visible local values: they are the thing the assertion
+  searches for, and each says its role (`well_formed_key`, `malformed_key`,
+  `key_of_the_wrong_length`, `a_key_posted_where_the_seconds_go`). The server env is the
+  crate's own `Started` environment.
+- Act: the requests are the visible calls (`client.get`, `reqwest` GET/DELETE/POST); the production
+  logging is exercised by the running server, not called by the test.
+- Assert: the leak assertions come first, so a red run shows the leak and not a missing marker;
+  the marker assertion (`uri=/announce/***?`) guards against a fix that drops the URI entirely.
+  The redaction table states each full expected text independently of the function.
+- Smell check: three test binaries repeat the capture pattern deliberately (each crate owns its
+  server's startup); the shared pieces (`setup_capturing_every_level`, `captured_logs`,
+  `capture_logs_while`) live in `torrust-tracker-test-helpers`.
