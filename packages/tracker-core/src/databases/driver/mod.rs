@@ -251,9 +251,10 @@ pub(crate) mod tests {
         use std::sync::Arc;
         use std::time::Duration;
 
+        use torrust_tracker_test_helpers::assertions::assert_names_no_source_path;
+
         use crate::authentication::key::{generate_expiring_key, generate_permanent_key};
         use crate::databases::traits::Database;
-        use crate::test_helpers::tests::assert_names_no_source_path;
 
         pub async fn it_should_load_the_keys(driver: &Arc<Box<dyn Database>>) {
             let permanent_peer_key = generate_permanent_key();
@@ -328,8 +329,10 @@ pub(crate) mod tests {
 
         use std::sync::Arc;
 
+        use torrust_tracker_test_helpers::assertions::assert_names_no_source_path;
+
         use crate::databases::traits::Database;
-        use crate::test_helpers::tests::{assert_names_no_source_path, random_info_hash};
+        use crate::test_helpers::tests::random_info_hash;
 
         pub async fn it_should_load_the_whitelist(driver: &Arc<Box<dyn Database>>) {
             let infohash = random_info_hash();
