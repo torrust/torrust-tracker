@@ -106,3 +106,61 @@ fn it_should_exit_two_on_an_unknown_argument() {
 
     assert_eq!(output.status.code(), Some(2));
 }
+
+fn stage(directory: &TempDir) {
+    assert!(
+        git()
+            .args(["add", "-A"])
+            .current_dir(directory.path())
+            .status()
+            .unwrap()
+            .success()
+    );
+}
+
+fn run_staged(directory: &TempDir) -> Output {
+    binary()
+        .args(["--allow-list", "allow-list.txt", "--staged"])
+        .current_dir(directory.path())
+        .output()
+        .expect("run source-location-check --staged")
+}
+
+#[test]
+fn it_should_check_the_staged_content_and_not_a_working_tree_fix_that_is_not_staged() {
+    let directory = scratch(&[("allow-list.txt", ""), ("src/lib.rs", &format!("fn f() {{ {CALLER}; }}\n"))]);
+    stage(&directory);
+    write(directory.path(), "src/lib.rs", "fn f() {}\n");
+
+    let staged = run_staged(&directory);
+    let working_tree = run(&directory);
+
+    assert_eq!(staged.status.code(), Some(1), "{}", stderr(&staged));
+    assert_eq!(working_tree.status.code(), Some(0), "{}", stderr(&working_tree));
+}
+
+#[test]
+fn it_should_not_check_an_unstaged_violation_in_staged_mode() {
+    let directory = scratch(&[("allow-list.txt", ""), ("src/lib.rs", "fn f() {}\n")]);
+    stage(&directory);
+    write(directory.path(), "src/lib.rs", &format!("fn f() {{ {CALLER}; }}\n"));
+
+    let output = run_staged(&directory);
+
+    assert_eq!(output.status.code(), Some(0), "{}", stderr(&output));
+}
+
+#[test]
+fn it_should_read_the_allow_list_from_the_index_in_staged_mode() {
+    let directory = scratch(&[("allow-list.txt", ""), ("src/lib.rs", &format!("fn f() {{ {CALLER}; }}\n"))]);
+    stage(&directory);
+    write(
+        directory.path(),
+        "allow-list.txt",
+        "src/lib.rs: allowed only in the working tree\n",
+    );
+
+    let output = run_staged(&directory);
+
+    assert_eq!(output.status.code(), Some(1), "{}", stderr(&output));
+}

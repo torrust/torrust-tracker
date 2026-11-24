@@ -66,7 +66,7 @@ The script runs these steps in order:
 2. `cargo run --quiet --package clippy-allow-reasons -- --staged` - prospective native-reason
    check for changed staged Clippy allow attributes. The command resolves the first available
    base reference from `origin/develop`, `upstream/develop`, `torrust/develop`, or local `develop`.
-3. `cargo run --quiet --package source-location-check` - repository-wide check that non-test Rust code
+3. `cargo run --quiet --package source-location-check -- --staged` - check, on the staged content, that non-test Rust code
    does not use `Location::caller()`, `#[track_caller]` or `torrust-located-error` (ADR
    `20261118045443_errors_do_not_record_source_locations`). Exceptions go in
    `contrib/dev-tools/checks/source-location-check/allow-list.txt`, one reason per entry.

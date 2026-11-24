@@ -152,9 +152,10 @@ fn preceded_by_identifier(chars: &[char], i: usize) -> bool {
     i > 0 && (chars[i - 1].is_alphanumeric() || chars[i - 1] == '_')
 }
 
-/// Whether the `r` at `i` starts a raw string: it must not end an identifier, except as the `r` of a `br` prefix.
+/// Whether the `r` at `i` starts a raw string: it must not end an identifier, except as the `r` of a `br`
+/// (raw byte string) or `cr` (raw C string) prefix.
 fn raw_prefix_allowed(chars: &[char], i: usize) -> bool {
-    !preceded_by_identifier(chars, i) || (chars[i - 1] == 'b' && !preceded_by_identifier(chars, i - 1))
+    !preceded_by_identifier(chars, i) || (matches!(chars[i - 1], 'b' | 'c') && !preceded_by_identifier(chars, i - 1))
 }
 
 /// The length of the character literal that starts at `i`, or `None` for a lifetime.
@@ -286,6 +287,8 @@ pub struct ModuleDeclaration {
     pub path: Vec<String>,
     /// Whether the declaration is `#[cfg(test)]`, directly or through an enclosing `#[cfg(test)]` module.
     pub test_only: bool,
+    /// The value of a `#[path = "..."]` attribute on the declaration, which names the module file.
+    pub explicit_path: Option<String>,
 }
 
 /// The `mod name;` declarations of `source`, each with its inline-module ancestry.
@@ -298,10 +301,14 @@ pub fn module_declarations(source: &str) -> Vec<ModuleDeclaration> {
     let mut after_cfg_test = false;
 
     let mut attribute_depth = 0_usize;
+    let mut pending_path: Option<String> = None;
 
-    for line in mask(source) {
+    for (line, original) in mask(source).into_iter().zip(source.lines()) {
         if attribute_depth == 0 && line.trim_start().starts_with(CFG_TEST) {
             after_cfg_test = true;
+        }
+        if let Some(value) = path_attribute_value(&line, original) {
+            pending_path = Some(value);
         }
         let item = skip_attributes(&line, &mut attribute_depth);
         if item.is_empty() {
@@ -315,10 +322,15 @@ pub fn module_declarations(source: &str) -> Vec<ModuleDeclaration> {
             } else {
                 let mut path: Vec<String> = stack.iter().map(|entry| entry.0.clone()).collect();
                 path.push(name);
-                declarations.push(ModuleDeclaration { path, test_only });
+                declarations.push(ModuleDeclaration {
+                    path,
+                    test_only,
+                    explicit_path: pending_path.take(),
+                });
             }
         }
         after_cfg_test = false;
+        pending_path = None;
 
         for c in item.chars() {
             match c {
@@ -335,6 +347,16 @@ pub fn module_declarations(source: &str) -> Vec<ModuleDeclaration> {
     }
 
     declarations
+}
+
+/// The value of a single-line `#[path = "..."]` attribute in `original`. `masked` is the same line with the
+/// string contents blanked, so the attribute name is found there and the value in the original text.
+fn path_attribute_value(masked: &str, original: &str) -> Option<String> {
+    let column = masked.find("#[path")?;
+    let after = &original[column..];
+    let start = after.find('"')? + 1;
+    let value = &after[start..];
+    Some(value[..value.find('"')?].to_owned())
 }
 
 /// Parses `[pub ...] mod name;` or `[pub ...] mod name {` and returns the name and whether it is inline.
@@ -384,7 +406,9 @@ pub struct ModulePaths {
 pub fn test_only_paths<'a>(files: impl IntoIterator<Item = (&'a Path, &'a str)>) -> ModulePaths {
     struct Declared {
         declaring_file: String,
-        module: PathBuf,
+        /// The module file and the directory prefix (ending in `/`) of its child modules.
+        file: String,
+        prefix: String,
         test_only: bool,
     }
 
@@ -392,9 +416,17 @@ pub fn test_only_paths<'a>(files: impl IntoIterator<Item = (&'a Path, &'a str)>)
     for (path, source) in files {
         let directory = module_directory(path);
         for declaration in module_declarations(source) {
+            let (file, prefix) = declaration.explicit_path.as_ref().map_or_else(
+                || {
+                    let module = directory.join(declaration.path.join("/"));
+                    (slash(&module.with_extension("rs")), slash(&module) + "/")
+                },
+                |explicit| explicit_module_paths(path, &declaration.path, explicit),
+            );
             declared.push(Declared {
                 declaring_file: slash(path),
-                module: directory.join(declaration.path.join("/")),
+                file,
+                prefix,
                 test_only: declaration.test_only,
             });
         }
@@ -412,8 +444,8 @@ pub fn test_only_paths<'a>(files: impl IntoIterator<Item = (&'a Path, &'a str)>)
             } else {
                 &mut next.production
             };
-            target.insert(slash(&declaration.module.with_extension("rs")));
-            target.insert(slash(&declaration.module) + "/");
+            target.insert(declaration.file.clone());
+            target.insert(declaration.prefix.clone());
         }
         next.test_only.retain(|entry| !next.production.contains(entry));
         if next == paths {
@@ -421,6 +453,41 @@ pub fn test_only_paths<'a>(files: impl IntoIterator<Item = (&'a Path, &'a str)>)
         }
         paths = next;
     }
+}
+
+/// The file and child-module prefix of a module with `#[path = "explicit"]`, declared in `declaring`
+/// below the inline modules `inline` (the last element is the module itself).
+///
+/// The path is relative to the directory of the declaring file, below the inline modules and, for a file
+/// that is not `lib.rs`, `main.rs` or `mod.rs`, below its stem when the module is inline-nested.
+fn explicit_module_paths(declaring: &Path, inline: &[String], explicit: &str) -> (String, String) {
+    let base = if inline.len() > 1 {
+        module_directory(declaring).join(inline[..inline.len() - 1].join("/"))
+    } else {
+        declaring.parent().unwrap_or_else(|| Path::new("")).to_path_buf()
+    };
+    let file = normalize(&base.join(explicit));
+    let prefix = if file.file_name().is_some_and(|name| name == "mod.rs") {
+        file.parent().unwrap_or_else(|| Path::new("")).to_path_buf()
+    } else {
+        file.with_extension("")
+    };
+    (slash(&file), slash(&prefix) + "/")
+}
+
+/// Resolves `.` and `..` components without touching the file system.
+fn normalize(path: &Path) -> PathBuf {
+    let mut normalized = PathBuf::new();
+    for component in path.components() {
+        match component {
+            std::path::Component::CurDir => {}
+            std::path::Component::ParentDir => {
+                normalized.pop();
+            }
+            other => normalized.push(other),
+        }
+    }
+    normalized
 }
 
 fn slash(path: &Path) -> String {
@@ -687,6 +754,33 @@ mod tests {
         let source = format!("#[cfg(test)]\nfn t() {{ let _ = ['\\'','{{']; }}\n{ATTRIBUTE}\nfn production() {{}}\n");
 
         assert_eq!(violations_in(&source).iter().map(|v| v.line).collect::<Vec<_>>(), vec![3]);
+    }
+
+    #[test]
+    fn it_should_mask_a_raw_c_string() {
+        let source = format!("let _ = cr#\"\"\"#;\n{CALLER};\n");
+
+        assert_eq!(violations_in(&source).iter().map(|v| v.line).collect::<Vec<_>>(), vec![2]);
+    }
+
+    #[test]
+    fn it_should_keep_checking_the_file_named_by_a_production_path_attribute() {
+        let lib = Path::new("packages/x/src/lib.rs");
+        let source = "#[cfg(test)]\nmod shared;\n#[path = \"shared.rs\"]\nmod runtime;\n";
+        let paths = test_only_paths([(lib, source)]);
+
+        assert!(!is_test_file(Path::new("packages/x/src/shared.rs"), &paths));
+        assert!(!is_test_file(Path::new("packages/x/src/runtime.rs"), &paths));
+    }
+
+    #[test]
+    fn it_should_exempt_the_file_named_by_a_test_only_path_attribute() {
+        let lib = Path::new("packages/x/src/lib.rs");
+        let source = "#[cfg(test)]\n#[path = \"../support/helpers.rs\"] mod helpers;\n";
+        let paths = test_only_paths([(lib, source)]);
+
+        assert!(is_test_file(Path::new("packages/x/support/helpers.rs"), &paths));
+        assert!(!is_test_file(Path::new("packages/x/src/helpers.rs"), &paths));
     }
 
     #[test]

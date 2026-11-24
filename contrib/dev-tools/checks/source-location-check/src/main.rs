@@ -3,7 +3,8 @@
 //! Output follows the global CLI output contract (`no-stdout-result`): nothing on stdout, one JSON object
 //! per line on stderr, exit code 0 when the tree is clean, 1 on a violation or a runtime failure, and 2 on
 //! a usage error. It runs from the repository root and checks the `.rs` files that Git tracks or would
-//! track (`git ls-files`), so a staged new file is covered.
+//! track (`git ls-files`), so a staged new file is covered. With `--staged` (the pre-commit hook) it reads
+//! the Git index instead of the working tree, so what is checked is what the commit contains.
 
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
@@ -58,14 +59,16 @@ const fn runtime(message: String) -> Failure {
 }
 
 fn check() -> Result<Vec<Record>, Failure> {
-    let allow_list_path = parse_arguments(env::args().skip(1)).map_err(|message| ("usage_error", message, EXIT_USAGE_ERROR))?;
-    let allow_list_text = fs::read_to_string(&allow_list_path)
-        .map_err(|error| runtime(format!("cannot read the allow-list `{allow_list_path}`: {error}")))?;
+    let arguments = parse_arguments(env::args().skip(1)).map_err(|message| ("usage_error", message, EXIT_USAGE_ERROR))?;
+    let staged = arguments.staged;
+    let allow_list_text = read_file(&arguments.allow_list, staged)
+        .map_err(|error| runtime(format!("cannot read the allow-list `{}`: {error}", arguments.allow_list)))?;
     let allowed = parse_allow_list(&allow_list_text).map_err(runtime)?;
 
     let mut sources = Vec::new();
-    for path in rust_files()? {
-        let source = fs::read_to_string(&path).map_err(|error| runtime(format!("cannot read `{}`: {error}", path.display())))?;
+    for path in rust_files(staged)? {
+        let source = read_file(&path.to_string_lossy(), staged)
+            .map_err(|error| runtime(format!("cannot read `{}`: {error}", path.display())))?;
         sources.push((path, source));
     }
     let test_only = test_only_paths(sources.iter().map(|(path, source)| (path.as_path(), source.as_str())));
@@ -105,26 +108,61 @@ fn check() -> Result<Vec<Record>, Failure> {
     Ok(records)
 }
 
-fn parse_arguments(mut arguments: impl Iterator<Item = String>) -> Result<String, String> {
+struct Arguments {
+    allow_list: String,
+    /// Read the Git index (the snapshot of the commit being made) instead of the working tree.
+    staged: bool,
+}
+
+fn parse_arguments(mut arguments: impl Iterator<Item = String>) -> Result<Arguments, String> {
     let mut allow_list = None;
+    let mut staged = false;
     while let Some(argument) = arguments.next() {
         match argument.as_str() {
             "--allow-list" if allow_list.is_none() => {
                 allow_list = Some(arguments.next().ok_or("usage error: `--allow-list` requires a value")?);
             }
+            "--staged" if !staged => staged = true,
             _ => {
                 return Err(format!(
-                    "usage error: unexpected argument `{argument}`; use `--allow-list <FILE>`"
+                    "usage error: unexpected argument `{argument}`; use `--allow-list <FILE>` and `--staged`"
                 ));
             }
         }
     }
-    Ok(allow_list.unwrap_or_else(|| DEFAULT_ALLOW_LIST.to_owned()))
+    Ok(Arguments {
+        allow_list: allow_list.unwrap_or_else(|| DEFAULT_ALLOW_LIST.to_owned()),
+        staged,
+    })
 }
 
-fn rust_files() -> Result<Vec<PathBuf>, Failure> {
+/// Reads a file from the working tree, or its staged content from the Git index (`git show :<path>`, which
+/// honors `GIT_INDEX_FILE`, so the same snapshot serves the sources, the module classification and the
+/// allow-list).
+fn read_file(path: &str, staged: bool) -> Result<String, String> {
+    if !staged {
+        return fs::read_to_string(path).map_err(|error| error.to_string());
+    }
     let output = Command::new("git")
-        .args(["ls-files", "-z", "--cached", "--others", "--exclude-standard", "--", "*.rs"])
+        .arg("show")
+        .arg(format!(":{path}"))
+        .output()
+        .map_err(|error| format!("failed to run `git show`: {error}"))?;
+    if !output.status.success() {
+        return Err(String::from_utf8_lossy(&output.stderr).trim().to_owned());
+    }
+    String::from_utf8(output.stdout).map_err(|error| error.to_string())
+}
+
+/// The `.rs` files to check: those that Git tracks or would track, or, when `staged`, those in the index.
+fn rust_files(staged: bool) -> Result<Vec<PathBuf>, Failure> {
+    let mut arguments = vec!["ls-files", "-z", "--cached"];
+    if !staged {
+        arguments.extend(["--others", "--exclude-standard"]);
+    }
+    arguments.extend(["--", "*.rs"]);
+    let output = Command::new("git")
+        .args(arguments)
         .output()
         .map_err(|error| runtime(format!("failed to run `git ls-files`: {error}")))?;
     if !output.status.success() {
@@ -138,7 +176,7 @@ fn rust_files() -> Result<Vec<PathBuf>, Failure> {
         .split(|byte| *byte == 0)
         .filter(|name| !name.is_empty())
         .map(|name| PathBuf::from(String::from_utf8_lossy(name).into_owned()))
-        .filter(|path| Path::new(path).is_file())
+        .filter(|path| staged || Path::new(path).is_file())
         .collect())
 }
 
