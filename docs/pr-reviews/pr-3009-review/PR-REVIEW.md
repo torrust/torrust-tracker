@@ -351,7 +351,7 @@ replies to it.
 - Reviewer finding ID: F16
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4669805477
 - Concern: The F18 row said "This was already pushed when the review was written", but review `6026382070` was submitted at 17:34:07 UTC and the commit that fixed the F10 row has a committer time of 17:34:51 UTC.
-- Solution: The F18 row and the round 4 log entry now say the fix landed 44 seconds after the review.
+- Solution: The F18 row and the round 4 log entry now say the fix was committed 44 seconds after the review; the interval is commit time (`e97fe40d5`), not push time, which the record has no evidence for.
 - Current-tree verification: `grep -n 'was committed at 17:34:51 UTC' docs/pr-reviews/pr-3009-review/PR-REVIEW.md` shows the F18 row.
 - Resolution reference: docs(pr-reviews): [#2902] correct when the F18 fix was pushed and record the fifth review round of #3009
 - Follow-up PR URL: N/A
@@ -363,7 +363,7 @@ replies to it.
 - 2026-11-23 17:14 UTC - Copilot's review of the same head (F10 to F12) was read after that push: F10 duplicates F1 and is superseded by it; F11 and F12 fixed in their own commits; replied at 17:14:51 to 17:14:56 UTC, before pushing the fixes and this update together; the threads are resolved after the push.
 - 2026-11-23 17:23 UTC - Round 2 (da2ce7's comment without approval, findings recorded as F13 to F15): F14 and F15 fixed in their own commits, F13 by correcting this record; replied at 17:23:18 to 17:23:23 UTC, before pushing the fixes and this update together; the threads are resolved after the push.
 - 2026-11-23 17:32 UTC - Round 3 (da2ce7's review of the Copilot-findings head and Greptile's comment on the F10 row, recorded as F16 and F17): F16 fixed in its own commits, F17 by correcting the F10 row; replied at 17:32:47 and 17:32:50 UTC, before pushing the fixes and this update together; the threads are resolved after the push.
-- 2026-11-23 17:44 UTC - Round 4 (da2ce7's comment without approval, findings recorded as F18 and F19): F18 was fixed by the round 3 push, which landed 44 seconds after his review (corrected in F20), F19 fixed in its own commit; replied at 17:43:58 and 17:44:01 UTC, before pushing this update; the threads are resolved after the push.
+- 2026-11-23 17:44 UTC - Round 4 (da2ce7's comment without approval, findings recorded as F18 and F19): F18 was fixed by the round 3 push, which was committed 44 seconds after his review (commit time, not push time; corrected in F20), F19 fixed in its own commit; replied at 17:43:58 and 17:44:01 UTC, before pushing this update; the threads are resolved after the push.
 - 2026-11-24 12:02 UTC - Round 5 (da2ce7's approval review of the fourth-round head, finding F16 recorded as F20): fixed in its own commit in #3022, after #3009 was merged; replied on the thread after pushing that PR; the thread is resolved after the reply.
 
 ## Completion Rules
