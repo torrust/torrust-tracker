@@ -9,7 +9,7 @@ github-issue: 3031
 spec-path: docs/issues/open/3031-2387-si-1-statistics-disabled-warning-per-event/ISSUE.md
 branch: "3031-2387-si-1-statistics-disabled-warning-per-event-spec"
 related-pr: null
-last-updated-utc: "2026-11-24 18:11"
+last-updated-utc: "2026-11-24 18:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -211,6 +211,7 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 - 2026-11-24 17:00 UTC - Claude Code (Sonnet 5.5), SI-1 session - Review round 1 of PR 3032 (CodeRabbit): corrected the row of the check table for `tracker.container.no-persistence.toml`, which does declare one UDP and one HTTP tracker without the per-tracker key (I had read only the first 30 lines of the file).
 - 2026-11-24 18:11 UTC - Claude Code (Sonnet 5.5), SI-1 session - Implemented. Reproduced with the release binary (17 `WARN`), wrote the red tests (three listeners, tracker level), fixed the three listeners (three-way `match`, `TRACE`/`ERROR`, counts on the start lines), rechecked: 0 `WARN`, 0 `ERROR`, counters unchanged with statistics enabled. Evidence in `manual-verification-evidence.md`.
 - 2026-11-24 18:11 UTC - Claude Code (Sonnet 5.5), SI-1 session - Implementation completion review: no material discovery changed the design. Differences from the plan: the log capture helper `capture_logs_in_scope` was added to `packages/test-helpers` (the global buffer there is shared by every test of a binary and captures only `WARN` and above) and `udp-core` gained that crate as a dev-dependency; the native fixture gained `with_statistics_disabled_udp_tracker`. The coordinator's claim about `tracker.container.no-persistence.toml` was already corrected in the specification. No retrospective file.
+- 2026-11-24 18:24 UTC - Claude Code (Sonnet 5.5), SI-1 session - Review round 1 of PR 3043: Greptile (import `Arc` in the log capture helper; assert the tracker exit status in the tracker-level test) and CodeRabbit (the evidence file names issue #3031 with `issue: 3031` instead of a spec path that goes stale when the spec moves to `closed/`). All three were valid and fixed.
 
 ## Acceptance Criteria
 

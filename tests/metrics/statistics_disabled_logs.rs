@@ -55,6 +55,12 @@ async fn it_should_not_log_a_warning_or_an_error_for_the_requests_of_trackers_wi
     )
     .expect("deliver SIGTERM to the exact tracker child PID");
     let exit = tracker.wait_for_exit().await.expect("the tracker exits after SIGTERM");
+    assert!(
+        exit.status.success(),
+        "tracker exited with {}\ntracker output:\n{}",
+        exit.status,
+        exit.plain_output()
+    );
 
     // Assert
     let output = exit.plain_output();

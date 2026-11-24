@@ -1,7 +1,7 @@
 //! Setup for logging in tests.
 use std::collections::VecDeque;
 use std::io;
-use std::sync::{Mutex, MutexGuard, Once, OnceLock};
+use std::sync::{Arc, Mutex, MutexGuard, Once, OnceLock};
 
 use torrust_tracker_configuration::v3_0_0::logging::TraceStyle;
 use tracing::level_filters::LevelFilter;
@@ -163,7 +163,7 @@ impl CircularBuffer {
 /// test thread.
 #[derive(Debug)]
 pub struct ScopedLogCapture {
-    records: std::sync::Arc<Mutex<Vec<u8>>>,
+    records: Arc<Mutex<Vec<u8>>>,
     _guard: tracing::subscriber::DefaultGuard,
 }
 
@@ -171,7 +171,7 @@ pub struct ScopedLogCapture {
 /// returned guard is dropped.
 #[must_use]
 pub fn capture_logs_in_scope() -> ScopedLogCapture {
-    let records = std::sync::Arc::new(Mutex::new(Vec::new()));
+    let records = Arc::new(Mutex::new(Vec::new()));
     let sink = records.clone();
     let subscriber = tracing_subscriber::fmt()
         .with_max_level(LevelFilter::TRACE)
@@ -203,7 +203,7 @@ impl ScopedLogCapture {
     }
 }
 
-struct SharedSink(std::sync::Arc<Mutex<Vec<u8>>>);
+struct SharedSink(Arc<Mutex<Vec<u8>>>);
 
 impl io::Write for SharedSink {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
