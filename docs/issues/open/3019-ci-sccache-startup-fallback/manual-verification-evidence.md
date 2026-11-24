@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/3019-ci-sccache-startup-fallback/ISSUE.md
-last-updated-utc: "2026-11-24 07:28"
+last-updated-utc: "2026-11-24 13:07"
 ---
 
 # Manual Verification Evidence
@@ -153,7 +153,16 @@ reliable check, and the build passes without the wrapper.
 
 ### V3 - Hosted red run
 
-- Status: `TODO`
+- Status: `BLOCKED`
+- Branch: `3019-verify-red` in the `josecelano-bot` fork, commit `63cf7ca13`: `torrust/develop`
+  at `c3efcb844` plus one temporary commit that adds a step to the `unit` job of
+  `testing.yaml`. The step writes `server_startup_timeout_ms = 1` to a config file and exports
+  `SCCACHE_CONF` before the sccache steps.
+- Observed on 2026-11-24 at 13:05 UTC: the push succeeded, but no workflow run started. The
+  commit's only check suite belongs to the `claude` app; there is no GitHub Actions suite. The
+  fork's Actions permissions report `enabled: true`, `allowed_actions: all`, and the fork's
+  latest workflow run on any branch is from 2026-10-30.
+- Next step: a way to run the workflow, decided by the maintainer.
 
 ### V4 - Hosted green run
 

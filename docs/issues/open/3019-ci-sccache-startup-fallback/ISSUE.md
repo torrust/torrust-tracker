@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: in-progress
 priority: p1
 epic: null
 github-issue: 3019
 spec-path: docs/issues/open/3019-ci-sccache-startup-fallback/ISSUE.md
-branch: "3019-ci-sccache-startup-fallback-spec"
+branch: "3019-ci-sccache-startup-fallback"
 related-pr: null
-last-updated-utc: "2026-11-24 10:16"
+last-updated-utc: "2026-11-24 13:07"
 semantic-links:
   skill-links:
     - create-issue
@@ -89,7 +89,7 @@ set to `1`, the build still fails with the same error.
 - A fallback for every bare CI job that enables `sccache`: start the server explicitly, use
   `sccache` only if it started, and otherwise build without it and show a warning annotation.
 - One shared local composite action, `.github/actions/enable-sccache/action.yml`, that replaces
-  the ten copies of the `Enable sccache` step in `testing.yaml`, `os-compatibility.yaml`,
+  the nine copies of the `Enable sccache` step in `testing.yaml`, `os-compatibility.yaml`,
   `db-compatibility.yaml`, `coverage.yaml` and `db-benchmarking.yaml`. The action sets
   `shell: bash`, so the step also runs in Git Bash on the `windows-latest` jobs.
 - Keep the server alive for the whole job (`SCCACHE_IDLE_TIMEOUT=0`), so that the only server
@@ -116,9 +116,11 @@ set to `1`, the build still fails with the same error.
 - The `mozilla-actions/sccache-action` step stays in each workflow. It owns the install and its
   post step (`sccache --show-stats`). Keeping it a direct step of the job avoids depending on how
   a composite action runs the post steps of the actions it nests.
-- The new composite action owns the decision to enable `sccache`. Its only inputs are the
-  `SCCACHE_PATH` variable the install step exports and the runner; its only output is
-  `$GITHUB_ENV`.
+- The new composite action owns the decision to enable `sccache`. It runs the `sccache` that
+  the install step puts on `PATH`, the same one `RUSTC_WRAPPER=sccache` uses; its only output
+  is `$GITHUB_ENV`.
+- `db-compatibility.yaml` and `db-benchmarking.yaml` run only for listed paths, so their path
+  filters also list `.github/actions/enable-sccache/**`: a change to the action runs them.
 - Backend selection: the server reads its configuration, including the cache backend, when it
   starts. So the startup command itself runs with `SCCACHE_GHA_ENABLED=true` and
   `SCCACHE_IDLE_TIMEOUT=0` in its environment (the step's `env:`), and the server it starts uses
@@ -180,12 +182,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | ------ | ---------------------------------------- | --------------------------------------------------------------------------------------- |
 | T1  | DONE   | Reproduce locally                        | V1 and V2 in `manual-verification-evidence.md`                                          |
 | T2  | TODO   | Red: hosted run with the timeout forced  | `unit` job fails with `Timed out waiting for server startup` on the current workflow (V3) |
-| T3  | TODO   | Add the `enable-sccache` composite action | Starts the server; exports the variables only on success; warns otherwise              |
-| T4  | TODO   | Use it in the five workflows             | Ten `Enable sccache` steps replaced; `if:` conditions kept                              |
+| T3  | DONE   | Add the `enable-sccache` composite action | Starts the server; exports the variables only on success; warns otherwise              |
+| T4  | DONE   | Use it in the five workflows             | Nine `Enable sccache` steps replaced; `if:` conditions kept                             |
 | T5  | TODO   | Green: hosted run with the timeout forced | Same job passes and shows the warning (V4); temporary commit dropped                   |
 | T6  | TODO   | Normal hosted run                        | PR jobs pass and the sccache stats show cache hits (V5)                                 |
 | T6b | TODO   | Hosted runs of jobs the PR does not run  | `docker-e2e` and `coverage` pass in the fork with cache hits (V6)                       |
-| T7  | TODO   | Amend the ADR                            | Fallback and the `SCCACHE_IGNORE_SERVER_IO_ERROR` analysis recorded                     |
+| T7  | DONE   | Amend the ADR                            | Fallback and the `SCCACHE_IGNORE_SERVER_IO_ERROR` analysis recorded                     |
 
 ## Commit Points
 
@@ -205,7 +207,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Folder-style spec drafted in `docs/issues/drafts/ci-sccache-startup-fallback/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
+- [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -226,6 +228,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-24 10:16 UTC - Claude Code (Claude Opus 5.5) - Addressed CodeRabbit's review of PR
   #3020: the startup command sets `SCCACHE_GHA_ENABLED=true`; hosted runs move to fork
   verification branches and cover `docker-e2e` and `coverage` (V6)
+- 2026-11-24 13:07 UTC - Claude Code (Claude Opus 5.5) - Spec PR #3020 merged. Added the
+  `enable-sccache` composite action, used it in the nine `Enable sccache` steps (the spec said
+  ten; the `os-compatibility.yaml` matrix makes one step run in three jobs), and amended the
+  ADR. Pushing the red verification branch to the `josecelano-bot` fork started no workflow
+  run (see V3), so T2, T5 and T6b wait for a way to run them
 
 ## Acceptance Criteria
 
