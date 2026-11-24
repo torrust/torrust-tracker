@@ -6,6 +6,8 @@
 //! the URI of every request, in the `request` event and in the span that wraps the request, so
 //! both go through [`redact_uri`].
 //!
+//! Names are compared after percent-decoding, as the server reads them (`%74oken` is `token`).
+//!
 //! The rule redacts what follows `/announce/`, `/scrape/` and `/key/` whatever its shape, because
 //! a malformed key (a stray character, a wrong length) is still the user's secret. The seconds
 //! value of `POST /api/v1/key/<seconds>` is lost in the log with it; that is accepted.
@@ -50,7 +52,7 @@ fn redact_path(path: &str) -> String {
     for (index, segment) in segments.iter().enumerate() {
         let has_a_secret_after_it = segments.get(index + 1).is_some_and(|next| !next.is_empty());
 
-        if SECRET_PATH_PREFIXES.contains(segment) && has_a_secret_after_it {
+        if has_a_secret_after_it && SECRET_PATH_PREFIXES.contains(&percent_decoded(segment).as_str()) {
             return format!("{}/{REDACTED}", segments[..=index].join("/"));
         }
     }
@@ -62,13 +64,47 @@ fn redact_query(query: &str) -> String {
     query
         .split('&')
         .map(|parameter| match parameter.split_once('=') {
-            Some((name, _value)) if SECRET_QUERY_PARAMS.iter().any(|secret| name.eq_ignore_ascii_case(secret)) => {
+            Some((name, _value)) if is_a_secret_query_param(name) => {
                 format!("{name}={REDACTED}")
             }
             _ => parameter.to_string(),
         })
         .collect::<Vec<_>>()
         .join("&")
+}
+
+/// Whether the query parameter `name`, once decoded, names a secret. The server decodes names
+/// before it reads them (`%74oken` is `token`), so the comparison must too.
+fn is_a_secret_query_param(name: &str) -> bool {
+    let decoded = percent_decoded(name);
+
+    SECRET_QUERY_PARAMS.iter().any(|secret| decoded.eq_ignore_ascii_case(secret))
+}
+
+/// Decodes the `%XX` escapes of `text`. A malformed escape stays as written, and bytes that are not
+/// UTF-8 become the replacement character: the result is only compared with known names.
+fn percent_decoded(text: &str) -> String {
+    let bytes = text.as_bytes();
+    let mut decoded = Vec::with_capacity(bytes.len());
+    let mut index = 0;
+
+    while index < bytes.len() {
+        let escaped = (bytes[index] == b'%')
+            .then(|| bytes.get(index + 1..index + 3))
+            .flatten()
+            .and_then(|hex| std::str::from_utf8(hex).ok())
+            .and_then(|hex| u8::from_str_radix(hex, 16).ok());
+
+        if let Some(byte) = escaped {
+            decoded.push(byte);
+            index += 3;
+        } else {
+            decoded.push(bytes[index]);
+            index += 1;
+        }
+    }
+
+    String::from_utf8_lossy(&decoded).into_owned()
 }
 
 /// Makes the span of a request like `tower_http`'s `DefaultMakeSpan` at the `INFO` level, with
@@ -122,6 +158,19 @@ mod tests {
     )]
     #[case::a_token_with_another_case("/api/v1/stats", Some("Token=TestAdminToken0001"), "/api/v1/stats?Token=***")]
     #[case::an_empty_token_value("/api/v1/stats", Some("token="), "/api/v1/stats?token=***")]
+    #[case::a_token_name_with_an_encoded_letter("/api/v1/stats", Some("%74oken=TestAdminToken0001"), "/api/v1/stats?%74oken=***")]
+    #[case::a_token_name_fully_encoded(
+        "/api/v1/stats",
+        Some("%74%6F%6B%65%6E=TestAdminToken0001"),
+        "/api/v1/stats?%74%6F%6B%65%6E=***"
+    )]
+    #[case::an_encoded_token_name_with_lower_case_hex(
+        "/api/v1/stats",
+        Some("to%6ben=TestAdminToken0001"),
+        "/api/v1/stats?to%6ben=***"
+    )]
+    #[case::a_name_that_is_not_valid_utf8_after_decoding("/api/v1/stats", Some("%FF=1&limit=2"), "/api/v1/stats?%FF=1&limit=2")]
+    #[case::an_encoded_path_segment_name("/%61nnounce/TestPeerKey000000000000000000001", None, "/%61nnounce/***")]
     #[case::a_uri_without_a_secret("/api/v1/stats", Some("limit=10"), "/api/v1/stats?limit=10")]
     #[case::a_path_without_a_query("/health_check", None, "/health_check")]
     #[case::an_announce_without_a_key("/announce", Some("info_hash=%00%00"), "/announce?info_hash=%00%00")]

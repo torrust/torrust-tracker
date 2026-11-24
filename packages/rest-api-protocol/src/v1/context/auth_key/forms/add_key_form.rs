@@ -1,6 +1,8 @@
 //! Form for adding a new authentication key.
 //!
 //! This is the input DTO for the `POST /api/v1/keys` endpoint.
+use std::fmt;
+
 use serde::{Deserialize, Serialize};
 use serde_with::{DefaultOnNull, serde_as};
 
@@ -25,8 +27,8 @@ pub struct AddKeyForm {
 }
 
 /// The uploaded key is a secret, so `Debug` redacts it.
-impl std::fmt::Debug for AddKeyForm {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::Debug for AddKeyForm {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("AddKeyForm")
             .field("opt_key", &self.opt_key.as_ref().map(|_| "[REDACTED]"))
             .field("opt_seconds_valid", &self.opt_seconds_valid)

@@ -6,6 +6,7 @@
 //! supports adding new keys (either pre-generated or randomly created),
 //! removing keys, and loading keys from the database into memory. Keys can be
 //! either permanent or expire after a configurable duration per key.
+use std::fmt;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -35,8 +36,8 @@ pub struct AddKeyRequest {
 }
 
 /// The uploaded key is a secret, so `Debug` redacts it.
-impl std::fmt::Debug for AddKeyRequest {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::Debug for AddKeyRequest {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("AddKeyRequest")
             .field("opt_key", &self.opt_key.as_ref().map(|_| "[REDACTED]"))
             .field("opt_seconds_valid", &self.opt_seconds_valid)

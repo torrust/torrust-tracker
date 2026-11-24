@@ -8,6 +8,7 @@
 //! A `Key` is a 32-character alphanumeric token, while a `PeerKey` couples a
 //! `Key` with an optional expiration timestamp. If the expiration is set (via
 //! `valid_until`), the key will become invalid after that time.
+use std::fmt;
 use std::str::FromStr;
 use std::time::Duration;
 
@@ -70,8 +71,8 @@ impl Eq for PeerKey {}
 
 /// Describes the key without printing it: the key is a secret, and nothing needs the whole
 /// `PeerKey` as text. Code that hands the key to its owner reads `PeerKey::key` instead.
-impl std::fmt::Display for PeerKey {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::Display for PeerKey {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.expiry_time() {
             Some(expire_time) => write!(f, "key: `[REDACTED]`, valid until `{expire_time}`"),
             None => write!(f, "key: `[REDACTED]`, permanent"),
@@ -136,8 +137,8 @@ impl PeerKey {
 #[derive(Serialize, Deserialize, Eq, PartialEq, Clone, Display, Hash)]
 pub struct Key(String);
 
-impl std::fmt::Debug for Key {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::Debug for Key {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("Key([REDACTED])")
     }
 }

@@ -10,6 +10,7 @@
 //! error type using the provided `From` implementations. No variant records a
 //! source location (see
 //! `docs/adrs/20261118045443_errors_do_not_record_source_locations.md`).
+use std::borrow::Cow;
 use std::sync::Arc;
 
 use sqlx::Error as SqlxError;
@@ -150,7 +151,7 @@ impl Error {
                     Self::InvalidQuery {
                         source: Arc::new(StatementRejected {
                             kind: format!("{:?}", server_error.kind()),
-                            code: server_error.code().map(std::borrow::Cow::into_owned),
+                            code: server_error.code().map(Cow::into_owned),
                         }),
                         driver,
                     }
@@ -174,7 +175,8 @@ impl From<(MigrateError, Driver)> for Error {
 
 #[cfg(test)]
 mod tests {
-    use std::io;
+    use std::borrow::Cow;
+    use std::{fmt, io};
 
     use rstest::rstest;
     use sqlx::Error as SqlxError;
@@ -239,8 +241,8 @@ mod tests {
         code: Option<&'static str>,
     }
 
-    impl std::fmt::Display for ServerError {
-        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    impl fmt::Display for ServerError {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
             f.write_str(&self.message)
         }
     }
@@ -252,8 +254,8 @@ mod tests {
             &self.message
         }
 
-        fn code(&self) -> Option<std::borrow::Cow<'_, str>> {
-            self.code.map(std::borrow::Cow::Borrowed)
+        fn code(&self) -> Option<Cow<'_, str>> {
+            self.code.map(Cow::Borrowed)
         }
 
         fn as_error(&self) -> &(dyn std::error::Error + Send + Sync + 'static) {

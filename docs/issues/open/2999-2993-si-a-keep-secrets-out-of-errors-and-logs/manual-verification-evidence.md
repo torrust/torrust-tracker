@@ -251,8 +251,9 @@ Toolchain: stable `rustc 1.100.0`, `cargo test`. Commit subject:
   in the HTTP tracker, the REST API and the health-check API, and their `on_request` events log
   `redact_uri(request.uri())`. The `latency_ms` field name is unchanged (decision 5).
 - A URI in absolute form loses its scheme and authority in the log (only `path?query` is shown).
-- The segment names are compared as written; a percent-encoded name (`/%61nnounce/<key>`) does
-  not match a route, so it reaches no handler and carries no key.
+- Names are compared after percent-decoding (review round 1 of the pull request: the server
+  decodes `%74oken` to `token`, so an encoded name must not keep its value; see section R1). The
+  logged text keeps the original spelling of the name.
 - `tower-http` is pinned to `0.7` in `axum-server` to share the servers' version; `Cargo.lock`
   gained `http` and `tower-http 0.7.1` edges for the package, no new crate.
 - `tracker-core::authentication::key::generate_key` no longer logs: both `Generated key` debug
@@ -526,3 +527,35 @@ reviewers: (1) the HTTP-extractor and REST-reply areas were written together wit
 proven by mutation, not by a run against the old code (the adapter stopped compiling as soon as
 `PeerKeyError` lost its field); (2) the generated-key log lines were removed, not replaced by a
 key-less line.
+
+## R1 - Review Round 1 (Greptile)
+
+Greptile reviewed the head with the subject `docs(issues): [#2999] record the final recheck and the
+acceptance evidence` and reported two findings, both accepted:
+
+1. **P1, encoded token names reach the log**: `redact_query` compared the raw name, but the server
+   decodes it, so `/api/v1/stats?%74oken=<token>` authenticates and was logged unredacted. The
+   redaction now percent-decodes query parameter names and path segment names before comparing
+   (the logged text keeps the original spelling). Red run: four new cases failed
+   (`%74oken`, `%74%6F%6B%65%6E`, `to%6ben`, `/%61nnounce/<key>`; 21 passed, 4 failed); green: 25
+   passed. A malformed escape stays as written and a name that is not UTF-8 after decoding is not
+   treated as `token` (both cases are in the table).
+2. **P2, import style**: the code this branch added used `std::fmt::...`, `std::borrow::Cow` and an
+   `Arc` import inside a function. Imports moved to the file headers with short names in
+   `handler.rs`, `peer_key.rs`, `add_key_form.rs`, `databases/error.rs` and `test-helpers/logging.rs`
+   (behaviour unchanged; the workspace builds and the tests pass).
+
+The checks run again after this round: `cargo test --workspace --no-fail-fast` and the pre-commit gate.
+
+### Recheck after the review fix (2026-11-24 18:10 UTC)
+
+Production code changed after the T9 run, so the recheck was repeated on a debug build of the
+branch head after the review-fix commit (subject `fix(axum-server): [#2999] decode query and path
+names before redacting the request URI`): `reproduce.sh` with the same command as T9, output in
+[`evidence/final-output-after-review-round-1.txt`](evidence/final-output-after-review-round-1.txt).
+Every M1 to M7 line is the same as in T9 (no key or token in any reply or log line, `uri=...?token=***`,
+0 `Generated key` lines, the configuration errors name the option, the duplicate key on MySQL and
+PostgreSQL answers `already holds this authentication key`). By hand, on a private tracker with the
+script's configuration, `GET /api/v1/stats?%74oken=TestAdminToken0001` returned the statistics JSON
+(the server decodes the name, so the request authenticated) and the log held
+`uri=/api/v1/stats?%74oken=***` and 0 lines with the test token.

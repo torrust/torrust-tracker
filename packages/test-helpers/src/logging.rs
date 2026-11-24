@@ -1,7 +1,7 @@
 //! Setup for logging in tests.
 use std::collections::VecDeque;
 use std::io;
-use std::sync::{Mutex, MutexGuard, Once, OnceLock};
+use std::sync::{Arc, Mutex, MutexGuard, Once, OnceLock};
 
 use torrust_tracker_configuration::v3_0_0::logging::TraceStyle;
 use tracing::level_filters::LevelFilter;
@@ -78,8 +78,6 @@ pub fn captured_logs() -> String {
 ///
 /// Will panic if the captured text is not UTF-8.
 pub fn capture_logs_while<R>(f: impl FnOnce() -> R) -> (R, String) {
-    use std::sync::Arc;
-
     #[derive(Clone)]
     struct SharedWriter(Arc<Mutex<Vec<u8>>>);
 
