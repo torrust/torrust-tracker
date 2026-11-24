@@ -82,3 +82,12 @@ files is not done.
 
 The first record of V1 set `TMPDIR` for the `cargo` command only and was questioned in review
 (PR #3011, F1); it was rerun as above.
+
+## T3: guard and factory unit tests
+
+Red then green, checked by mutation because the guard and its tests were written in one step:
+with the factory changed to call `ephemeral_sqlite_database()` the two factory tests failed
+(`the_factory_should_point_the_configuration_at_the_database_file_of_the_guard`,
+`the_factory_should_not_create_a_file_in_the_system_temp_directory`); with the real factory all
+8 tests of `torrust-tracker-test-helpers` pass
+(`cargo test -q -p torrust-tracker-test-helpers`).

@@ -178,7 +178,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | --- | --- | --- |
 | T1 | DONE | Decide the names and the return shape | Recorded in the T1 Decision section above; approved by the maintainer. |
 | T2 | DONE | Reproduce for the direct users | Before-count recorded (V1): 6 files; the `http-core` direct caller creates none. |
-| T3 | TODO | Guard type and factory | Unit tests red then green; design review recorded. |
+| T3 | DONE | Guard type and factory | Unit tests red then green; design review recorded. |
 | T4 | TODO | Convert the direct users | The direct users outside `tracker-core` use the guard; test-design review recorded. |
 | T5 | TODO | Recheck | Direct users leave no `data_*.db` (V2); `linter all` passes. |
 

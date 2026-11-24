@@ -1,9 +1,10 @@
 //! Tracker configuration factories for testing.
 use std::env;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::time::Duration;
 
+use tempfile::TempDir;
 use torrust_tracker_configuration::v3_0_0::Configuration;
 use torrust_tracker_configuration::v3_0_0::database::Database;
 use torrust_tracker_configuration::v3_0_0::http_tracker::HttpTracker;
@@ -86,6 +87,70 @@ pub fn ephemeral_sqlite_database() -> PathBuf {
     let temp_directory = env::temp_dir();
     let random_db_id = random::string(16);
     temp_directory.join(format!("data_{random_db_id}.db"))
+}
+
+/// Owns the temporary directory that holds a test's `SQLite` database file.
+///
+/// It is called a "guard" after the RAII guard idiom (like `MutexGuard`): the
+/// value that creates a resource also releases it when it goes out of scope.
+/// Dropping the guard deletes the directory and the database in it, even when
+/// the test panics.
+///
+/// Keep the guard alive for as long as the database is used and bind it to a
+/// named variable such as `_guard`: a bare `_` drops it immediately. The guard
+/// does not depend on a test environment, so a restart test can share one guard
+/// between two environments.
+#[derive(Debug)]
+pub struct SqliteDatabaseGuard {
+    directory: TempDir,
+}
+
+impl SqliteDatabaseGuard {
+    /// Creates an empty temporary directory for a `SQLite` database.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the temporary directory cannot be created.
+    #[must_use]
+    pub fn new() -> Self {
+        Self {
+            directory: TempDir::new().expect("it should create a temporary directory for the SQLite database"),
+        }
+    }
+
+    /// The directory owned by the guard.
+    #[must_use]
+    pub fn directory(&self) -> &Path {
+        self.directory.path()
+    }
+
+    /// The path of the database file inside the directory. The file is created
+    /// by `SQLite` when the tracker opens it.
+    #[must_use]
+    pub fn path(&self) -> PathBuf {
+        self.directory.path().join("data.db")
+    }
+}
+
+impl Default for SqliteDatabaseGuard {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+/// Like [`ephemeral`], but the `SQLite` database lives in a directory owned by
+/// the returned guard, so it is removed when the guard is dropped.
+///
+/// [`ephemeral`] is unchanged: it still points at a file in the system temp
+/// directory that nobody deletes.
+#[must_use]
+pub fn ephemeral_with_sqlite_database() -> (Configuration, SqliteDatabaseGuard) {
+    let guard = SqliteDatabaseGuard::new();
+    let mut config = ephemeral();
+    config.core.database = Some(Database::Sqlite3 {
+        path: guard.path().to_string_lossy().into_owned(),
+    });
+    (config, guard)
 }
 
 /// Ephemeral configuration with reverse proxy enabled.
@@ -217,4 +282,74 @@ pub fn ephemeral_with_no_services() -> Configuration {
     cfg.udp_trackers = None;
 
     cfg
+}
+
+#[cfg(test)]
+mod tests {
+    use std::fs;
+
+    use super::*;
+
+    #[test]
+    fn the_guard_should_create_an_empty_directory_without_the_database_file() {
+        let guard = SqliteDatabaseGuard::new();
+
+        assert!(guard.directory().is_dir());
+        assert!(!guard.path().exists());
+    }
+
+    #[test]
+    fn dropping_the_guard_should_remove_the_directory_and_the_files_in_it() {
+        let guard = SqliteDatabaseGuard::new();
+        let directory = guard.directory().to_path_buf();
+        fs::write(guard.path(), b"data").unwrap();
+
+        drop(guard);
+
+        assert!(!directory.exists());
+    }
+
+    #[test]
+    fn dropping_the_guard_while_a_test_panics_should_remove_the_directory() {
+        let guard = SqliteDatabaseGuard::new();
+        let directory = guard.directory().to_path_buf();
+
+        let result = std::panic::catch_unwind(move || {
+            let _guard = guard;
+            panic!("the test fails");
+        });
+
+        assert!(result.is_err());
+        assert!(!directory.exists());
+    }
+
+    #[test]
+    fn two_guards_should_not_share_a_directory() {
+        let first = SqliteDatabaseGuard::new();
+        let second = SqliteDatabaseGuard::new();
+
+        assert_ne!(first.directory(), second.directory());
+    }
+
+    #[test]
+    fn the_factory_should_point_the_configuration_at_the_database_file_of_the_guard() {
+        let (config, guard) = ephemeral_with_sqlite_database();
+
+        let Some(Database::Sqlite3 { path }) = config.core.database else {
+            panic!("it should configure a SQLite database");
+        };
+
+        assert_eq!(PathBuf::from(path), guard.path());
+    }
+
+    #[test]
+    fn the_factory_should_not_create_a_file_in_the_system_temp_directory() {
+        let (config, _guard) = ephemeral_with_sqlite_database();
+
+        let Some(Database::Sqlite3 { path }) = config.core.database else {
+            panic!("it should configure a SQLite database");
+        };
+
+        assert_ne!(PathBuf::from(path).parent(), Some(env::temp_dir().as_path()));
+    }
 }
