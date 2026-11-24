@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: done
 priority: p2
 epic: 2392
 github-issue: 2924
-spec-path: docs/issues/open/2924-2392-sqlite-test-database-guard/ISSUE.md
+spec-path: docs/issues/closed/2924-2392-sqlite-test-database-guard/ISSUE.md
 branch: "2924-2392-sqlite-test-database-guard"
-related-pr: null
-last-updated-utc: "2026-11-23 18:38"
+related-pr: 3029
+last-updated-utc: "2026-11-24 17:02"
 semantic-links:
   skill-links:
     - create-issue
@@ -198,12 +198,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Folder-style spec drafted in `docs/issues/drafts/2392-sqlite-test-database-guard/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -220,17 +220,18 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-23 16:50 UTC - Claude Code (Claude Sonnet 5.5), #2924 implementation session - T1 approved by
   the maintainer (names, tuple return shape, `tracker-core` unchanged). T2: V1 counted 6 leaked files
   for `http-core`, none from the direct caller. Evidence in `manual-verification-evidence.md`.
+- 2026-11-24 17:02 UTC - Claude Code (Claude Sonnet 5.5), #2924 implementation session - PR #3011 (spec) and PR #3029 (guard, factory, http-core conversion) merged; V2 recounted 6 files, all from `ephemeral*()` users. Issue closed; spec archived to `docs/issues/closed/`.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `torrust-tracker-test-helpers` has a guard type and a factory that returns a
+- [x] AC1: `torrust-tracker-test-helpers` has a guard type and a factory that returns a
   configuration with SQLite persistence together with its guard.
-- [ ] AC2: Unit tests prove the database directory is removed when the guard is dropped.
-- [ ] AC3: No code outside `torrust-tracker-test-helpers` calls `ephemeral_sqlite_database()`.
+- [x] AC2: Unit tests prove the database directory is removed when the guard is dropped.
+- [x] AC3: No code outside `torrust-tracker-test-helpers` calls `ephemeral_sqlite_database()`.
   Inside it, only the existing `ephemeral*()` functions call it, until #2925 removes it.
-- [ ] AC4: The existing `ephemeral*()` functions keep their signatures, so no other package
+- [x] AC4: The existing `ephemeral*()` functions keep their signatures, so no other package
   changes.
-- [ ] `linter all` exits with code `0`
+- [x] `linter all` exits with code `0`
 
 ## Verification Plan
 
@@ -255,10 +256,10 @@ evidence file is created from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | --- | --- | --- |
-| AC1 | TODO | Code review |
-| AC2 | TODO | Unit tests |
-| AC3 | TODO | `grep` for the function's callers |
-| AC4 | TODO | `git diff --stat` shows no other package |
+| AC1 | DONE | `SqliteDatabaseGuard` and `ephemeral_with_sqlite_database()` in `packages/test-helpers/src/configuration.rs` (PR #3029) |
+| AC2 | DONE | `dropping_the_guard_should_remove_the_directory_and_the_files_in_it` and the panic variant (PR #3029) |
+| AC3 | DONE | `grep -rn ephemeral_sqlite_database --include=*.rs` finds callers only inside `packages/test-helpers` (rechecked on `develop` after PR #3029) |
+| AC4 | DONE | PR #3029 changes only `test-helpers`, the converted `http-core` test and the spec |
 
 ## Risks and Trade-offs
 

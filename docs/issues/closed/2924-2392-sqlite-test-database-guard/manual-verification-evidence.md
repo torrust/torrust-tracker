@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2924-2392-sqlite-test-database-guard/ISSUE.md
-last-updated-utc: "2026-11-23 18:38"
+issue-spec: docs/issues/closed/2924-2392-sqlite-test-database-guard/ISSUE.md
+last-updated-utc: "2026-11-24 17:05"
 ---
 
 # Manual Verification Evidence
