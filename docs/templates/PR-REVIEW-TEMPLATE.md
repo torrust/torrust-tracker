@@ -34,7 +34,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
   bulk migration.
 - Severity: `Blocker`, `Major`, `Minor`, `Nit`, `Suggestion`; append `(inferred)` when derived
   from free prose.
-- Author class: `Copilot`, `Human`, `Unknown`
+- Reviewer: the author's GitHub login, for example `da2ce7` or `coderabbitai[bot]`; `unknown`
+  when GitHub shows no author
 - Category: `link-integrity`, `formatting`, `metadata`, `testing`, `correctness`,
   `documentation`, `maintainability`, `security`, `other`
 - An outdated thread whose concern was fixed is `FIXED`/`RESOLVED`, even when GitHub marks the
@@ -58,10 +59,11 @@ original finding.
 For an independently actionable review-body finding without an inline thread, use the submitted
 review URL as `Source URL` and `Thread state=NON_RESOLVABLE`.
 
-For every new audit row, record the source author's derived `Author class` and exactly one primary
+For every new audit row, record the source author's GitHub login as `Reviewer` and exactly one primary
 `Category`. Classify the category from the concern, not the proposed fix; use `other` only when no
 listed category fits. These fields make future audit records suitable for deterministic aggregation.
-Historical records predate this schema and remain unchanged.
+Historical records predate this schema and remain unchanged. Records created before issue #3037
+have an `Author class` column in place of `Reviewer`.
 
 Assign each new row an immutable repository reference in the form
 `review-finding:pr-<PR_NUMBER>-<FINDING_ID>`, with the finding ID lowercased. For example, audit
@@ -76,9 +78,9 @@ Record each finding in two coordinated places: one compact tracking row below, a
 entry in `## Finding Details` for the narrative fields. The pair shares the finding ID and
 together records every field in the [canonical roster](../../.claude/skills/process-pr-review/SKILL.md#required-audit-fields).
 
-| Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
-| ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
-| <FINDING_ID> | <REVIEW_FINDING_REFERENCE> | <AUTHOR_CLASS> | <SEVERITY> | <CATEGORY> | <RELATIONSHIP> | <DISPOSITION> | <THREAD_STATE> |
+| Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
+| ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
+| <FINDING_ID> | <REVIEW_FINDING_REFERENCE> | <REVIEWER_LOGIN> | <SEVERITY> | <CATEGORY> | <RELATIONSHIP> | <DISPOSITION> | <THREAD_STATE> |
 
 <!-- Guidance omitted from an audit record; instantiate the heading and entries below. -->
 

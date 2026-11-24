@@ -1,9 +1,9 @@
 ---
 name: process-pr-review
-description: "Process every pull-request review finding, from Copilot, a person or a bot: fix, reply, record. Use when addressing PR review feedback, even after merge or on a replaced PR."
+description: "Process every pull-request review finding, from any reviewer, person or bot: fix, reply, record. Use when addressing PR review feedback, even after merge or on a replaced PR."
 metadata:
   author: torrust
-  version: "1.10"
+  version: "1.11"
   semantic-links:
     related-artifacts:
       - docs/issues/closed/2219-2003-unify-pr-review-processing/ISSUE.md
@@ -60,9 +60,9 @@ A row's reply URL exists only after replying: create the record, reply, then fil
    submitted review and its review-specific comments by review ID. REST comment
    responses are supplementary: GraphQL thread data is authoritative for thread
    identity and resolution state.
-2. **Classify and normalize.** Classify `github-copilot[bot]` and
-   `copilot-pull-request-reviewer` as `Copilot`, human accounts as `Human`, and
-   every other bot or unavailable author as `Unknown`. Split each review body into
+2. **Record the reviewer and normalize.** Record the GitHub login of each finding's
+   author as its `Reviewer`, for example `da2ce7` or `coderabbitai[bot]`, and
+   `unknown` when GitHub shows no author. Split each review body into
    one row per independently actionable assertion; do not make a row for a summary
    or verdict that contains no request. Preserve the source review ID and URL.
    Treat Copilot's collapsed `Suppressed comments` as findings only when their
@@ -232,7 +232,7 @@ names and order exactly.
 
 - Finding ID
 - Review finding reference
-- Author class
+- Reviewer
 - Severity
 - Category
 - Relationship
@@ -267,7 +267,9 @@ when another repository artifact needs to cite the finding. GitHub identifiers
 remain source metadata, not the canonical finding reference. Never change the
 reference after assigning it. Historical audit records remain unchanged and do
 not need review-finding references.
-Author class is `Copilot`, `Human`, or `Unknown`; category is `link-integrity`,
+Reviewer is the author's GitHub login, or `unknown` when GitHub shows no author;
+records created before issue #3037 have an `Author class` column (`Copilot`,
+`Human`, or `Unknown`) in its place and remain valid. Category is `link-integrity`,
 `formatting`, `metadata`, `testing`, `correctness`, `documentation`,
 `maintainability`, `security`, or `other`. Severity is `Blocker`, `Major`,
 `Minor`, `Nit`, or `Suggestion`; mark a severity inferred from free prose as
