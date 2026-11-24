@@ -45,11 +45,14 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 Review 6036567949 (CodeRabbit, 2026-11-24 09:19 UTC) posted two inline comments. Its body only
 repeats them, so it adds no row.
+Review 6037525308 (CodeRabbit, 2026-11-24 10:26 UTC, on the audit commit) posted one inline
+comment, F3; its body only repeats it.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3020-f1 | Unknown | Major | correctness | ORIGINAL | FIXED | RESOLVED |
 | F2 | review-finding:pr-3020-f2 | Unknown | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F3 | review-finding:pr-3020-f3 | Unknown | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -94,6 +97,23 @@ repeats them, so it adds no row.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/3020#discussion_r4678537650>
 
+### F3 - Cite the issue, not the spec path, in the audit frontmatter
+
+- PR number: 3020
+- Source review ID: 6037525308
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/3020#discussion_r4678605284>
+- Concern: the audit's `related-artifacts` listed
+  `docs/issues/open/3019-ci-sccache-startup-fallback/ISSUE.md`, which goes stale when the spec
+  moves to `docs/issues/closed/` after the issue closes.
+- Solution: the entry is now `issue #3019`, the form other audit records use (for example
+  `issue #2264`).
+- Current-tree verification: `sed -n 1,9p docs/pr-reviews/pr-3020-review/PR-REVIEW.md` shows
+  `- issue #3019` under `related-artifacts`.
+- Resolution reference: docs(pr-reviews): [#3019] cite issue #3019 instead of the spec path in the PR 3020 audit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3020#discussion_r4678654975>
+
 ## Processing Log
 
 - 2026-11-24 10:18 UTC - Started audit for CodeRabbit review 6036567949 (F1, F2). Both fixes
@@ -101,6 +121,8 @@ repeats them, so it adds no row.
 - 2026-11-24 10:20 UTC - Pushed both fixes; replied on both threads (reply `created_at`
   10:20:29Z and 10:20:31Z). CodeRabbit had already resolved the F2 thread; resolved the F1
   thread.
+- 2026-11-24 10:31 UTC - Pushed the F3 fix and replied (reply `created_at` 10:31:02Z).
+  CodeRabbit had already resolved the thread.
 
 ## Completion Rules
 
