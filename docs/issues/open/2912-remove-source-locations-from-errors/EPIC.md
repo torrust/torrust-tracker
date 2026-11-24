@@ -6,7 +6,7 @@ epic: null
 github-issue: 2912
 spec-path: docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md
 epic-owner: null
-last-updated-utc: "2026-11-23 18:39"
+last-updated-utc: "2026-11-24 12:43"
 semantic-links:
   skill-links:
     - create-issue
@@ -120,7 +120,7 @@ existing issue #384. SI-8 is issue #2996, created by `josecelano-bot` on 2026-11
 | 3 | #2915 - SI-3 Remove source locations from the HTTP tracker request errors | `docs/issues/closed/2915-2912-si-3-http-tracker-request-errors/ISSUE.md` | DONE | After SI-1. `http-protocol` and the `axum-http-server` extractors. Largest client-visible exposure |
 | 4 | #2916 - SI-4 Remove source locations from the errors of `torrust-tracker-core` | `docs/issues/closed/2916-2912-si-4-tracker-core/ISSUE.md` | DONE | After SI-1; after SI-3 if not run in parallel, because both touch `http-core` tests. Largest diff |
 | 5 | #2917 - SI-5 Remove source locations from the configuration, TLS and UDP server errors | `docs/issues/closed/2917-2912-si-5-startup-and-udp-server-errors/ISSUE.md` | DONE | After SI-1. Must land before `configuration` 4.0.0 is published |
-| 6 | #2918 - SI-6 Drop `torrust-located-error` from the workspace and enforce the rule | `docs/issues/open/2918-2912-si-6-drop-located-error-and-enforce-the-rule/ISSUE.md` | TODO | After SI-2 to SI-5 |
+| 6 | #2918 - SI-6 Drop `torrust-located-error` from the workspace and enforce the rule | `docs/issues/closed/2918-2912-si-6-drop-located-error-and-enforce-the-rule/ISSUE.md` | DONE | After SI-2 to SI-5 |
 | 7 | #384 - Make Option to Strip Location from Errors sent to Clients | `docs/issues/open/384-strip-location-from-errors-sent-to-clients/ISSUE.md` | TODO | Existing issue. Its baseline reproduction can start at once; its recheck waits for SI-2 to SI-6 |
 | 8 | #2996 - SI-8 Share the `assert_names_no_source_path` test helper | `docs/issues/open/2996-2912-si-8-share-assert-names-no-source-path/ISSUE.md` | TODO | Independent of SI-6; implement after SI-4 (PR #2991) and SI-5 (PR #3001), which add the last copies (copies 8 and 9 in `configuration` and `axum-server` stay, cross-linked). Reduces the nine copies to five definitions |
 

@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2918-2912-si-6-drop-located-error-and-enforce-the-rule/ISSUE.md
-last-updated-utc: "2026-11-24 00:44"
+issue-spec: docs/issues/closed/2918-2912-si-6-drop-located-error-and-enforce-the-rule/ISSUE.md
+last-updated-utc: "2026-11-24 12:43"
 ---
 
 # Manual Verification Evidence
