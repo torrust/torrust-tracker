@@ -46,7 +46,7 @@ Review 6044596970 (Greptile, 2026-11-24 17:57 UTC) posted one inline comment, F1
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
-| F1 | review-finding:pr-3041-f1 | Unknown | Minor (inferred) | maintainability | ORIGINAL | FIXED | OPEN |
+| F1 | review-finding:pr-3041-f1 | Unknown | Minor (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -61,11 +61,12 @@ Review 6044596970 (Greptile, 2026-11-24 17:57 UTC) posted one inline comment, F1
 - Current-tree verification: `grep -n "catch_unwind" packages/test-helpers/src/assertions.rs` prints the `use std::panic::catch_unwind;` line and one call `catch_unwind(...)`; `cargo test -p torrust-tracker-test-helpers` passes (10 tests) and `linter all` exits 0.
 - Resolution reference: refactor(test-helpers): [#2996] import catch_unwind in the assertions test module
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3041#discussion_r4684386574>
 
 ## Processing Log
 
 - 2026-11-24 18:01 UTC - Started audit for review 6044596970 (Greptile); F1 fixed in a signed commit, reply and thread resolution follow after the push.
+- 2026-11-24 18:04 UTC - Replied on the F1 thread (reply created 18:04:39 UTC) after pushing the fix and the audit, and resolved the thread; a GraphQL refresh shows it resolved and no other thread.
 
 ## Completion Rules
 
