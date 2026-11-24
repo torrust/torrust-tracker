@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: done
 priority: p2
 epic: null
 github-issue: 2984
-spec-path: docs/issues/open/2984-tracker-client-check-udp-url-validation/ISSUE.md
+spec-path: docs/issues/closed/2984-tracker-client-check-udp-url-validation/ISSUE.md
 branch: "2984-tracker-client-check-udp-url-validation"
-related-pr: null
-last-updated-utc: "2026-11-23 21:25"
+related-pr: 3013
+last-updated-utc: "2026-11-24 13:38"
 semantic-links:
   skill-links:
     - create-issue
@@ -117,19 +117,19 @@ Test-development loop (T3), as `create-issue` requires for a plan that adds or c
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/open/2984-tracker-client-check-udp-url-validation/ISSUE.md`
+- [x] Folder-style spec drafted in `docs/issues/closed/2984-tracker-client-check-udp-url-validation/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [x] Implementation completed
 - [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -152,6 +152,7 @@ Test-development loop (T3), as `create-issue` requires for a plan that adds or c
 - 2026-11-23 18:09 UTC - Claude Code (Claude Sonnet 5.5) - Implementation PR review round 1 (Copilot F1 to F3): scheme detection fixed, failed-check test added, and the test design reviews recorded as V5 (done after T3, not during it) - PR 3013 audit
 - 2026-11-23 19:36 UTC - Claude Code (Claude Sonnet 5.5) - Implementation PR review rounds 2 and 3 (Copilot F5 to F7): IP-literal tests fixed, the rejected-entry diagnostic no longer echoes path, query or credentials, and the recheck repeated as V6 - PR 3013 audit
 - 2026-11-23 21:25 UTC - Claude Code (Claude Sonnet 5.5) - Implementation PR review round 4 (CodeRabbit F8): the UDP check result and the resolution error carry the redacted URL, and the recheck repeated as V7 - PR 3013 audit
+- 2026-11-24 13:38 UTC - Claude Code (Claude Sonnet 5.5) - PR 3013 merged and issue #2984 closed; spec archived to `docs/issues/closed/`. `agent-review-reports.md` was not created: no separate agent reviewer received this folder, and the PR reviewers are recorded in the PR 3013 audit - archive PR
 
 ## Acceptance Criteria
 
@@ -163,8 +164,8 @@ Test-development loop (T3), as `create-issue` requires for a plan that adds or c
 - [x] `linter all` exits with code `0`
 - [x] Relevant tests pass
 - [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior/workflow changes
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated when behavior/workflow changes
 
 ## Verification Plan
 
@@ -204,7 +205,7 @@ Notes:
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: none created. The review findings of the implementation PR (F1 to F8) are recorded in the PR 3013 audit and in the evidence file (V5 to V7), and no discovery needs more than that.
 
 ## References
 
