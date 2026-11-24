@@ -1,0 +1,21 @@
+R1 whitelist an invalid info-hash
+  POST :17212/api/v1/whitelist/zzz?token=<token>
+  HTTP/1.1 400 Bad Request  Invalid URL: invalid infohash param: string "zzz", expected a 40 character long string
+R2 no token
+  POST :17212/api/v1/whitelist/3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0
+  HTTP/1.1 500 Internal Server Error  Unhandled rejection: Err { reason: "unauthorized" }
+R3 wrong token
+  POST :17212/api/v1/whitelist/3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0?token=bad
+  HTTP/1.1 500 Internal Server Error  Unhandled rejection: Err { reason: "token not valid" }
+R4 key with invalid duration
+  POST :17212/api/v1/key/abc?token=<token>
+  HTTP/1.1 400 Bad Request  Invalid URL: Cannot parse `abc` to a `u64`
+R5 torrent info for an invalid hash
+  GET :17212/api/v1/torrent/zzz?token=<token>
+  HTTP/1.1 400 Bad Request  Invalid URL: invalid infohash param: string "zzz", expected a 40 character long string
+R6 scrape with an invalid info_hash (HTTP)
+  GET :17070/scrape?info_hash=abc
+  HTTP/1.1 200 OK  d14:failure reason329:Bad request. Cannot parse query params for scrape request: invalid param value abc for info_hash in not enough bytes for infohash: got 3 bytes, expected 20 <home>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/torrust-info-hash-0.2.0/src/info_hash.rs:273:27, packages/http-protocol/src/v1/requests/scrape.rs:84:46e
+R7 announce with an invalid port (HTTP)
+  GET :17070/announce?info_hash=%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0&peer_id=-qB00000000000000001&port=x
+  HTTP/1.1 200 OK  d14:failure reason152:Bad request. Cannot parse query params for announce request: invalid param value x for port in packages/http-protocol/src/v1/requests/announce.rs:591:23e
