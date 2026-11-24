@@ -9,7 +9,7 @@ github-issue: 2766
 spec-path: docs/issues/open/2766-2758-daemon-json-logging/ISSUE.md
 branch: "2766-daemon-json-logging"
 related-pr: null
-last-updated-utc: "2026-11-09 16:03"
+last-updated-utc: "2026-11-23 16:38"
 semantic-links:
   skill-links:
     - create-issue
@@ -25,7 +25,7 @@ semantic-links:
 
 # Issue #2766 - `torrust-tracker` daemon: JSON logs on stderr and JSON startup failure
 
-**Parent EPIC:** #2758 - Migrate the CLI tools to the global output contract. Order 7 of 11, wave 1.
+**Parent EPIC:** #2758 - Migrate the CLI tools to the global output contract. Order 7 of 13, wave 1.
 
 ## Goal
 
@@ -141,6 +141,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-09 12:12 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the review of PR 2771 (da2ce7 findings F1 to F27 and Copilot's later comments): specs corrected from the code, reproductions recorded where a spec has a bug-fix section.
 - 2026-11-09 13:21 UTC - Claude Code (Claude Sonnet 5.5) - Addressed da2ce7's review 5826238636 of PR 2771 on this spec.
 - 2026-11-09 16:03 UTC - Claude Code (Claude Sonnet 5.5) - Addressed da2ce7's review 5826857760 of PR 2771 on this spec.
+- 2026-11-23 16:38 UTC - Claude Code (Claude Opus 5.5) - Updated the EPIC total to 13 after #3004 and #3006 were added (PR 3007 review).
 
 ## Acceptance Criteria
 
