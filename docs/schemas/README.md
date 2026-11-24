@@ -110,7 +110,7 @@ checks it with the validator above, and answers with its exit code: `0` lets the
 (standard output is empty, or one JSON object whose `systemMessage` says why the reply was not
 enforced or that the limit was reached), `2` keeps the agent working with the problems on standard
 error, and `1` is a failure of the program itself, which never holds the agent. It refuses at most
-three times for one request, that is for one run of the agent and one reply file, counting both hooks together, and keeps its
-count in `.agents/issues/<issue-number>/reply-guard/`, a folder that Git ignores and the linters
+three times for one request, that is for one run of the agent and one reply file, counting both
+hooks together, and keeps its count in `.agents/issues/<issue-number>/reply-guard/`, a folder that Git ignores and the linters
 exclude. The rules are in `src/guard.rs`, the format of the transcript it relies on in
 `src/transcript.rs`, and the tests run with the crate's others: `cargo test -p agent-reply-validator`.

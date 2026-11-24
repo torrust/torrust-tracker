@@ -3,7 +3,8 @@
 //! Claude Code runs it when the agent tries to finish, as a `SubagentStop` hook, and when the agent
 //! calls the tool that hands its report back, as a `PreToolUse` hook (scenario M7: Claude Code
 //! discards a stop hook's refusal when the agent ends its turn with that tool call). It passes the
-//! hook input as JSON on standard input. The program reads the reply file that the agent's latest request names from the
+//! hook input as JSON on standard input. The program reads the reply file that the agent's latest
+//! request names from the
 //! agent's transcript, checks it with the reply validator, and answers with the exit code:
 //!
 //! - `0`: the agent may finish. Standard output is empty, or one JSON object whose `systemMessage`
