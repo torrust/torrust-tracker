@@ -9,7 +9,7 @@ github-issue: 3019
 spec-path: docs/issues/open/3019-ci-sccache-startup-fallback/ISSUE.md
 branch: "3019-ci-sccache-startup-fallback"
 related-pr: null
-last-updated-utc: "2026-11-24 17:39"
+last-updated-utc: "2026-11-24 18:50"
 semantic-links:
   skill-links:
     - create-issue
@@ -186,7 +186,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3  | DONE   | Add the `enable-sccache` composite action | Starts the server; exports the variables only on success; warns otherwise              |
 | T4  | DONE   | Use it in the five workflows             | Nine `Enable sccache` steps replaced; `if:` conditions kept                             |
 | T5  | DONE   | Green: hosted run with the timeout forced | Same job passes and shows the warning (V4); temporary commit dropped                   |
-| T6  | TODO   | Normal hosted run                        | PR jobs pass and the sccache stats show cache hits (V5)                                 |
+| T6  | DONE   | Normal hosted run                        | PR jobs pass and the sccache stats show cache hits (V5)                                 |
 | T6b | TODO   | Hosted runs of jobs the PR does not run  | After the merge: `coverage` and a Dependabot `docker-e2e` pass with cache hits (V6)                     |
 | T7  | DONE   | Amend the ADR                            | Fallback and the `SCCACHE_IGNORE_SERVER_IO_ERROR` analysis recorded                     |
 
@@ -241,6 +241,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-24 17:39 UTC - Claude Code (Claude Opus 5.5) - Red (#3033) and green (#3034) runs
   done: the forced timeout fails the current workflow and passes with the fix, with the
   warning annotation - `manual-verification-evidence.md` V3, V4
+- 2026-11-24 18:50 UTC - Claude Code (Claude Opus 5.5) - Normal run of PR #3040 passed; every
+  job but `Build on windows-latest (stable)`, whose cache was cold, had cache hits (V5). The Windows jobs now use `sccache`; before this change they
+  compiled nothing through it. AC2 and AC3 wait for the post-merge runs (V6)
 
 ## Acceptance Criteria
 
@@ -273,7 +276,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | M2  | `SCCACHE_IGNORE_SERVER_IO_ERROR` and fallback, locally | Same build with the variable set; then the fallback commands and the same build     | Variable: still fails. Fallback: warning, build passes  | DONE   | `manual-verification-evidence.md` section V2 |
 | M3  | Hosted red run                              | Draft PR #3033: temporary commit forcing the timeout on the current workflow                 | `unit` job fails with the original error                | DONE   | `manual-verification-evidence.md` section V3 |
 | M4  | Hosted green run                            | Draft PR #3034: same temporary commit on top of the fix                                      | `unit` job passes with the warning annotation           | DONE   | `manual-verification-evidence.md` section V4 |
-| M5  | Hosted normal run                           | PR checks without any temporary commit                                                       | Jobs pass; sccache stats show cache hits                | TODO   | `manual-verification-evidence.md` section V5 |
+| M5  | Hosted normal run                           | PR checks without any temporary commit                                                       | Jobs pass; sccache stats show cache hits                | DONE   | `manual-verification-evidence.md` section V5 |
 | M6  | Jobs the PR checks do not run               | After the merge: the `coverage.yaml` run of the merge push; the next Dependabot branch push (`docker-e2e`) | Both jobs pass; sccache stats show cache hits | TODO | `manual-verification-evidence.md` section V6 |
 
 ### Acceptance Verification

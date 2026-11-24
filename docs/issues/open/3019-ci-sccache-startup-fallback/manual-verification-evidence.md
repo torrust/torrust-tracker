@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/3019-ci-sccache-startup-fallback/ISSUE.md
-last-updated-utc: "2026-11-24 17:39"
+last-updated-utc: "2026-11-24 18:50"
 ---
 
 # Manual Verification Evidence
@@ -191,7 +191,51 @@ reliable check, and the build passes without the wrapper.
 
 ### V5 - Hosted normal run
 
-- Status: `TODO`
+- Status: `DONE`
+- PR <https://github.com/torrust/torrust-tracker/pull/3040>, first head, no temporary commit.
+  All workflow runs passed: `Testing` 45452040750, `OS Compatibility` 45452040716,
+  `Database Compatibility` 45452040507, `Database Benchmarking` 45452040796. `Docker E2E` and
+  the coverage package jobs were skipped, as expected for a pull request to `develop` (V6).
+- No job showed the `sccache disabled` warning. The post step of each job reported these
+  `sccache stats` annotations:
+
+| Job                                       | Hit rate | Hits | Misses | Errors |
+| ----------------------------------------- | -------- | ---- | ------ | ------ |
+| `Unit (nightly)`                          | 36 %     | 1144 | 1434   | 607    |
+| `Unit (stable)`                           | 45 %     | 1348 | 1134   | 491    |
+| `Build on ubuntu-latest (nightly)`        | 59 %     | 623  | 307    | 124    |
+| `Build on ubuntu-latest (stable)`         | 48 %     | 572  | 356    | 262    |
+| `Build on macos-latest (nightly)`         | 21 %     | 243  | 687    | 222    |
+| `Build on macos-latest (stable)`          | 30 %     | 309  | 619    | 113    |
+| `Build on windows-latest (nightly)`       | 15 %     | 139  | 653    | 122    |
+| `Build on windows-latest (stable)`        | 0 %      | 0    | 790    | 244    |
+| `Database Compatibility MySQL (8.0)`      | 65 %     | 392  | 106    | 102    |
+| `Database Compatibility MySQL (8.4)`      | 27 %     | 190  | 308    | 208    |
+| `Database Compatibility PostgreSQL (14)`  | 89 %     | 466  | 32     | 28     |
+| `Database Compatibility PostgreSQL (15)`  | 68 %     | 400  | 98     | 94     |
+| `Database Compatibility PostgreSQL (16)`  | 67 %     | 399  | 99     | 99     |
+| `Database Compatibility PostgreSQL (17)`  | 65 %     | 384  | 114    | 96     |
+| `Persistence Benchmark SQLite3`           | 26 %     | 184  | 311    | 203    |
+| `Persistence Benchmark MySQL`             | 50 %     | 289  | 206    | 79     |
+| `Persistence Benchmark PostgreSQL`        | 29 %     | 201  | 294    | 206    |
+
+- The full stats of `Unit (nightly)` report `cache_location: ghac` (the GitHub Actions cache
+  backend) and `version: 0.20.1`: `mozilla-actions/sccache-action` now installs sccache v0.20.1,
+  not the v0.20.0 read for the analysis. The errors are `cache_read_errors` (607) and
+  `cache_write_errors` (789): the cache service failed requests.
+- Comparison with runs that do not have this change, read the same way at 18:4x UTC:
+  - `Unit` jobs of other pull requests between 17:40 and 18:08 UTC show the same pattern:
+    34 % to 61 % hits with 349 to 867 errors. A pull request run at 14:45 UTC had 98 % hits and
+    0 errors. The low hit rate and the errors come from the cache service at that time, not
+    from this change.
+  - On `windows-latest`, two other pull requests at 18:23 and 18:27 UTC report
+    `0 hits, 0 misses, 0 errors`: before this change no compilation went through `sccache` on
+    Windows. With the composite action (`shell: bash`) the Windows jobs use it. The cold cache
+    explains the low hit rates there. The old step was a `run:` step with the default Windows
+    shell, PowerShell; this was not investigated further.
+- Conclusion: when the server starts, the jobs use `sccache` with the GitHub Actions cache
+  backend, and every bare job that enabled `sccache` now uses the shared action and passes,
+  including the `windows-latest` jobs.
 
 ### V6 - Hosted runs of jobs the PR checks do not run
 
