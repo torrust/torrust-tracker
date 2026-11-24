@@ -50,13 +50,14 @@ Without a check, the next change adds a `local_addr` again. The convention has r
 - A maintained Rust test (not a shell script) that runs the tracker binary with every service enabled, waits until it is safe to stop it, sends `SIGTERM`, and reads the whole log. Safe means that the shutdown signal handlers are installed: SI-17 logs `Tracker started` only after that, so the test waits for that line. It keeps the fixture's existing wait for health readiness and for the signal-handler line if SI-17 did not land with that order.
 - It asserts: no `WARN` and no `ERROR` on a clean run, except the listed deliberate-configuration warnings; no `Debug` pattern in a lifecycle line (`Some(`, `None`, a struct dump `Name { … }`); every lifecycle line has a target from the list in `docs/logging.md`, with no module path; no removed field name (`local_addr`, `address`, `bind_addr`, `timeout_seconds`, `latency_ms`); no `service_binding` value with a trailing slash; no duration value with a unit suffix.
 - The same run with usage statistics disabled.
+- Request lines are checked for the removed field names and for the duration rule (no duration value with a unit suffix; `latency_in_ms` is a number). The run produces them: the health check probes, and one UDP and one HTTP request that the test sends.
 - The list of targets and of removed names is in one place that the test and `docs/logging.md` share, or the test checks that they agree.
 - A message that tells the contributor which rule failed and where the rule is written.
 - Decide in the specification pull request where the test lives (the root `tests/lifecycle/` with the native tracker fixture is the candidate) and what it costs in CI time.
 
 ### Out of Scope
 
-- Checking request-handling lines beyond the removed field names.
+- Checking request-handling lines beyond the removed field names and the duration rule.
 - A lint over source code; this check reads real output.
 - Lines logged by dependencies, which the test lists as exceptions with a reason.
 
@@ -66,7 +67,7 @@ The EPIC coordinator compared this draft with the code at `develop` `6a058dd4d` 
 
 - Under order B′ (D1) the check reads the JSON output of #2766 from the start.
 - The native fixture configures one HTTP tracker and the health check API only (`tests/common/native_tracker/command.rs:19-34`); "every service enabled" needs a new configuration. Test targets are explicit `[[test]]` entries in `Cargo.toml`. The lifecycle tests are `cfg(unix)`. The fixture merges stdout and stderr (`output.rs`); #2766 moves the logs to stderr. Workspace tests also run inside the container build.
-- The rule "no duration value with a unit suffix" also covers request lines once SI-19 is merged (it renames the `response failed` latency too).
+- The rule "no duration value with a unit suffix" also covers request lines once SI-19 is merged (it renames the `response failed` latency too). Scope and Out of Scope above say how the test checks them.
 - The test-only executable `packages/hung-component-tracker` runs the same lines; the specification decides whether the check covers it.
 
 ## Architectural Decisions
