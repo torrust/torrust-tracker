@@ -114,10 +114,18 @@ set to `1`, the build still fails with the same error.
 ## Design and Ownership Review
 
 - The `mozilla-actions/sccache-action` step stays in each workflow. It owns the install and its
-  post step (`sccache --show-stats`), which only runs for an action used directly by the job.
+  post step (`sccache --show-stats`). Keeping it a direct step of the job avoids depending on how
+  a composite action runs the post steps of the actions it nests.
 - The new composite action owns the decision to enable `sccache`. Its only inputs are the
   `SCCACHE_PATH` variable the install step exports and the runner; its only output is
   `$GITHUB_ENV`.
+- Backend selection: the server reads its configuration, including the cache backend, when it
+  starts. So the startup command itself runs with `SCCACHE_GHA_ENABLED=true` and
+  `SCCACHE_IDLE_TIMEOUT=0` in its environment (the step's `env:`), and the server it starts uses
+  the GitHub Actions cache. The action writes `RUSTC_WRAPPER=sccache`,
+  `SCCACHE_GHA_ENABLED=true` and `SCCACHE_IDLE_TIMEOUT=0` to `$GITHUB_ENV` only after the startup
+  succeeded, so later steps, and any server the post step starts, use the same configuration.
+  `CARGO_INCREMENTAL=0` is written in both cases, as today.
 - Server lifetime: started once by the composite action with `SCCACHE_IDLE_TIMEOUT=0`, it lives
   until the runner ends the job. On failure the action runs `sccache --stop-server` and ignores
   its result, so a server that becomes ready late does not keep running with the cache backend.
