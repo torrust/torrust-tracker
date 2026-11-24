@@ -363,3 +363,45 @@ semantic-links:
 - Follow-up actions:
   - Author, done before the commit: the six fixes above; the word `rfind` added to
     `project-words.txt`.
+
+### 2026-11-24 08:06 UTC - Test-design reviewer (Claude Code subagent, Claude Opus 5.5, `write-unit-test` skill)
+
+- Invocation scope: Read-only review of task T5, increment 2, on branch `2904-t5-task-reviewer`
+  before its commit: the decision logic of the stop hook, `src/guard.rs` of the crate
+  `agent-reply-validator`, with its unit tests, which run against an in-memory `Workspace`. One
+  round, then the author's fixes.
+- Inputs: D17 ("How the hook works"); `.claude/skills/write-unit-test/SKILL.md`; `AGENTS.md`; the
+  uncommitted file.
+- Evidence: `cargo test -q -p agent-reply-validator --lib guard` passed with 41 tests in the review
+  and 53 after the fixes; clippy with the workspace lints and nightly rustfmt were clean. The
+  author ran thirteen mutations of the production code before the review, and each made at least
+  one test fail: the limit off by one in both directions, the count not cleared when the reply is
+  valid, the missing-folder branch dropped, the key ignoring the agent, the key ignoring the file
+  name, a draft treated as outside, `..` allowed, a junk suffix after the issue number allowed, a
+  failed count write turned into a refusal, and a task with no line still enforced. Some of them
+  first did not compile, because they left a variable unused, and were rewritten. After the fixes
+  the author ran five more: a path of any depth under the replies folder, any folder name before
+  the file, the validator's messages replaced, a literal line in the refusal, and a literal line in
+  the reason of an unreadable file. Each was killed.
+- Findings:
+  - Major: `classify` returned a specification for any path below its folder, so a reviewer given a
+    path of the wrong shape (deeper, or directly in the folder) was refused three times for a path
+    it cannot change, and the validator would refuse it whatever the file held. Fixed: under
+    `open/` and `closed/` only `<specification>/agent-replies/<file>` is a specification; every
+    other shape is outside, and the hook lets the agent finish with a message. D17 says so (a
+    consequence of the maintainer's decision for a path outside the folders, not a new
+    decision); the cases moved to the outside group, with new ones.
+  - Minor: a check on the missing-folder message could not fail, because the path already contains
+    the folder. Fixed: it looks for the folder in backticks.
+  - Minor: the helper `key` hid the issue number and the file name that the count tests depend
+    on. Fixed: two constants, next to the specification and the reply.
+  - Minor: the test of the literal line looped over seven runs, stopped at the first failure and
+    missed the invalid-content and unreadable cases. Fixed: a test with nine named cases.
+  - Minor: two tests copied the wording of the validator's dependency. Fixed: they compute the
+    validator's messages for the same content and check that each appears.
+  - Nit: an assertion message about the draft path said it has no issue number, although it has one.
+    Reworded.
+  - Nit: the case of another issue adds little; kept.
+- Verdict: REVIEW PASSED
+- Follow-up actions:
+  - Author, done before the commit: the six fixes above, and the sentence of D17.

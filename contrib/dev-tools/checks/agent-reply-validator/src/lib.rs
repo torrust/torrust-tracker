@@ -7,6 +7,7 @@
 
 pub mod file;
 pub mod git;
+pub mod guard;
 pub mod name;
 pub mod reply;
 pub mod schema;

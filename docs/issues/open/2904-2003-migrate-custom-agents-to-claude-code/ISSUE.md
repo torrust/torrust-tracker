@@ -410,7 +410,12 @@ Decided by the maintainer on 2026-11-15:
     `docs/issues/open/`, `docs/issues/closed/` and `docs/issues/drafts/` the reviewer cannot
     change the path the caller wrote, so the hook lets it finish, as for a draft, with a message
     that names the path and says it is outside the places D18 allows. It keeps no count. The
-    caller then finds no valid reply file and stops, as the Requirements above say.
+    caller then finds no valid reply file and stops, as the Requirements above say. The same holds
+    for a path under `open/` or `closed/` that is not exactly
+    `<specification>/agent-replies/<file>` (a file directly in the specification folder, in a
+    folder with another name, or deeper), for an absolute path, and for a path with an empty,
+    `.` or `..` component: the validator would refuse such a place whatever the file holds, so
+    refusing three times would only hold the reviewer to what it cannot change.
   - **A missing specification folder.** For a `Reply file:` path under `docs/issues/open/` or
     `docs/issues/closed/` whose specification folder does not exist, because close-out moved the
     specification to `closed/` after an earlier request or because the caller mistyped the path,
