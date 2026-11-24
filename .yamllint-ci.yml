@@ -12,6 +12,7 @@ rules:
 # Ignore generated/runtime directories
 ignore: |
   .tmp/**
+  .agents/issues/**
   target/**
   storage/**
   .coverage/**
