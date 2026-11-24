@@ -315,7 +315,7 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
   (about 15:20 UTC).
 - 2026-11-24 18:57 UTC - Claude Code (Claude Sonnet 5.5), EPIC coordinator - Order 9 (#2924) is DONE: PRs
   #3011, #3029 and #3035 merged and GitHub closed #2924. The guard and its factory are in
-  `torrust-tracker-test-helpers`. The recheck still counts 6 `data_*.db` files, all from
+  `torrust-tracker-test-helpers`. The `http-core` recheck still counts 6 `data_*.db` files, all from
   `ephemeral*()` users that order 10 (#2925) moves. `tracker-core` keeps its own
   `EphemeralConfiguration` wrappers, and no subissue owns adopting the shared type there yet.
 
