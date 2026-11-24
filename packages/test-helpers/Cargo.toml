@@ -19,6 +19,7 @@ workspace = true
 
 [dependencies]
 rand = "0"
+tempfile = "3.27.0"
 torrust-tracker-configuration = { version = "3.0.0", path = "../configuration" }
 tracing = "0"
 tracing-subscriber = { version = "0", features = [ "json" ] }

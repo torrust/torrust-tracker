@@ -5484,6 +5484,7 @@ name = "torrust-tracker-test-helpers"
 version = "3.0.0"
 dependencies = [
  "rand 0.10.4",
+ "tempfile",
  "torrust-tracker-configuration",
  "tracing",
  "tracing-subscriber",
