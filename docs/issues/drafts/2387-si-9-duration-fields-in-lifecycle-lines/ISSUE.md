@@ -169,8 +169,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | Compare with the configuration | Start the release tracker; for each duration that a lifecycle line of the UDP or HTTP trackers, the job manager or a periodic job logs today (the list of T1), search the log for its configuration key name | Each is found with the configured value. Durations not logged today, such as `event_listener_drain_in_secs`, are not expected | TODO | `manual-verification-evidence.md` section V1 |
+| M1 | Compare with the configuration | Start the release tracker; for each configured duration that a lifecycle line of the UDP or HTTP trackers, the job manager or a periodic job logs today (the configured entries of the list of T1), search the log for its configuration key name | Each is found with the configured value. Durations not logged today, such as `event_listener_drain_in_secs`, are not expected. Measured durations have no configuration key and are checked by M3 | TODO | `manual-verification-evidence.md` section V1 |
 | M2 | Shutdown deadline | Stop the tracker with `SIGTERM` | The shutdown lines show `shutdown_deadline_in_secs=25` | TODO | `manual-verification-evidence.md` section V2 |
+| M3 | Measured durations | Start the release tracker, send one UDP announce, and stop it with `SIGTERM` at `debug` | Every measured duration that the list of T1 names (for example the UDP drain `elapsed`) is logged as `elapsed_in_ms=<integer>`, with no unit in its value | TODO | `manual-verification-evidence.md` section V3 |
 
 Notes:
 
