@@ -7,9 +7,9 @@ priority: p2
 epic: 1347
 github-issue: 2902
 spec-path: docs/issues/open/2902-1347-add-tests-tracker-core/ISSUE.md
-branch: "2902-1347-add-tests-tracker-core-sqlite"
+branch: "2902-1347-add-tests-tracker-core-server-drivers"
 related-pr: 3009
-last-updated-utc: "2026-11-23 17:22"
+last-updated-utc: "2026-11-24 17:03"
 semantic-links:
   skill-links:
     - create-issue
@@ -299,7 +299,7 @@ is the proposal for the maintainer's approval (questions Q5, Q6):
 | S0 | This specification, the T1 evidence, and the EPIC registration with the baseline | - | `2902-1347-add-tests-tracker-core-spec` | #2903 | DONE |
 | S1 | T2, then `statistics/`: `repository.rs`, `metrics.rs`, `persisted/mod.rs`, `persisted/downloads.rs`, `event/listener.rs`, `event/handler.rs`, `mod.rs` (the only area reached just by the integration binary) | 1-7 | `2902-1347-add-tests-tracker-core-statistics` | #2988 | DONE |
 | S2 | The SQLite persistence boundary: `sqlite/{auth_key_store,torrent_metrics_store,whitelist_store,mod,schema_migrator}.rs`, `databases/{error,setup}.rs`, `error.rs`, the extraction of `parse_valid_until` and the row mapping (Q4, F2), plus the `databases/traits` and `driver/mod.rs` no-change decisions | 8-17 | `2902-1347-add-tests-tracker-core-sqlite` | #3009 | IN_PROGRESS |
-| S3 | MySQL and PostgreSQL drivers: Docker-free error-path tests if non-flaky, otherwise no-change rows with the `db-compatibility` workflow as owner (Q3); the README and `packages/AGENTS.md` driver-test commands (Q2) | 18-27 | `2902-1347-add-tests-tracker-core-server-drivers` | TBD | TODO |
+| S3 | MySQL and PostgreSQL drivers: Docker-free error-path tests if non-flaky, otherwise no-change rows with the `db-compatibility` workflow as owner (Q3); the README and `packages/AGENTS.md` driver-test commands (Q2) | 18-27 | `2902-1347-add-tests-tracker-core-server-drivers` | TBD | IN_PROGRESS |
 | S4 | Authentication and whitelist: failing-`Database` propagation, `Key` property decision (F3, F4 checks) | 28-39 | `2902-1347-add-tests-tracker-core-auth-whitelist` | TBD | TODO |
 | S5 | `torrent/`, `announce_handler.rs`, `scrape_handler.rs`, `container.rs`, `lib.rs`, `test_helpers.rs`, `peer_tests.rs`, then T4-T6; updates the EPIC tables; the spec moves to `docs/issues/closed/` in a separate `cleanup-completed-issues` PR after the issue closes | 40-45 | `2902-1347-add-tests-tracker-core-final` | TBD | TODO |
 
@@ -368,8 +368,8 @@ rows are ordered by slice, then by risk.
 | 15 | `error.rs` | S2 | 38 / 50 | Test candidate (`From` conversions); 69 / 69 with a four-case table ([plan](test-refactor-plans/tracker-core-error-tests.md)) | DONE |
 | 16 | `databases/driver/mod.rs` | S2 | 186 / 189 | No change to the test-only retry helper; receives the shared functions of row 8, tested there; 214 / 219 ([record](test-refactor-plans/databases-driver-mod-and-traits-no-change.md)) | DONE |
 | 17 | `databases/mod.rs`, `databases/traits/*` (6 files) | S2 | 2 / 2, no entries | No change (declarations and the mock) ([record](test-refactor-plans/databases-driver-mod-and-traits-no-change.md)) | DONE |
-| 18-22 | `databases/driver/mysql/{mod,auth_key_store,schema_migrator,torrent_metrics_store,whitelist_store}.rs` | S3 | 7 / 211, 0 / 55, 0 / 77, 0 / 46, 0 / 31 | Container-gated; assess after T1b | PENDING |
-| 23-27 | `databases/driver/postgres/{mod,auth_key_store,schema_migrator,torrent_metrics_store,whitelist_store}.rs` | S3 | 7 / 188, 0 / 55, 0 / 6, 0 / 46, 0 / 31 | Container-gated; assess after T1b | PENDING |
+| 18-22 | `databases/driver/mysql/{mod,auth_key_store,schema_migrator,torrent_metrics_store,whitelist_store}.rs` | S3 | 7 / 211, 0 / 55, 0 / 77, 0 / 46, 0 / 31 | Test candidate for the constructor only (`mod.rs`: 19 / 217 with 3 tests); the other four files are no change, owned by `db-compatibility.yaml`: every executable line talks to the database, and an unreachable endpoint takes 30 s to fail ([plan](test-refactor-plans/databases-server-drivers-tests.md)) | DONE |
+| 23-27 | `databases/driver/postgres/{mod,auth_key_store,schema_migrator,torrent_metrics_store,whitelist_store}.rs` | S3 | 7 / 188, 0 / 55, 0 / 6, 0 / 46, 0 / 31 | Test candidate for the constructor only (`mod.rs`: 19 / 194 with 3 tests); the other four files are no change, as for MySQL ([plan](test-refactor-plans/databases-server-drivers-tests.md)) | DONE |
 | 28 | `authentication/handler.rs` | S4 | 366 / 366 | Failing-`Database` cases (two production `?` regions; seven assertion lines) | PENDING |
 | 29 | `authentication/key/peer_key.rs` | S4 | 99 / 100 | `PartialEq` mixed-expiry arm; property candidate (`Key`); finding F3 check | PENDING |
 | 30 | `authentication/key/mod.rs` | S4 | 77 / 77 | Property candidate (expiry bounds) | PENDING |
@@ -440,6 +440,7 @@ The first slice's record checks the grouping against `find packages/tracker-core
 - 2026-11-23 16:10 UTC - Claude Code (Sonnet 5.5) - Rows 16 and 17 (`databases/driver/mod.rs`, `databases/mod.rs` and the traits) done as no change, approved by the maintainer: the retry loop of a test-only helper waits on Docker, and the traits hold declarations and generated mocks ([record](test-refactor-plans/databases-driver-mod-and-traits-no-change.md)). All S2 ledger rows are done.
 - 2026-11-23 16:21 UTC - Claude Code (Sonnet 5.5) - S2 closed: the branch was rebased on `develop` `f73a359f8` (#2916 had removed the source locations of the errors; one test of row 15 was adapted in its own commit) and measured in the four scopes with its base: unit-only lines 84.47% to 87.11%, aggregate 84.47% to 87.11% ([slice measurements](coverage-evidence.md#slice-measurements)). The EPIC's #2902 rows hold the latest values. Next: the S2 PR.
 - 2026-11-23 16:27 UTC - Claude Code (Sonnet 5.5) - Opened the S2 PR #3009 (`Related to #2902`).
+- 2026-11-24 17:03 UTC - Claude Code (Sonnet 5.5) - S3 (MySQL and PostgreSQL drivers) done on `2902-1347-add-tests-tracker-core-server-drivers`, from `develop` `b81e4512e`: an unreachable endpoint measured at 30.0 s, so only the constructors are tested (Q8): 6 tests, 6 mutants killed on both drivers, unit-only lines 87.13% to 87.36%, aggregate 87.13% to 87.38% ([slice measurements](coverage-evidence.md#slice-measurements)); the README and `packages/AGENTS.md` commands (Q2) corrected. Rows 19-22 and 24-27 are no change. Next: the S3 PR.
 
 ## Open Design Questions
 
@@ -454,6 +455,7 @@ Each has a recommendation; the maintainer decides.
 | Q5 | Is `quickcheck` acceptable for `Key` and the expiry bounds, as in #2824 and #1348? | ANSWERED (maintainer, 2026-11-17): use it wherever a file has a natural property (for example `parse_valid_until`, the `Key` round trip, the expiry bounds), next to the examples; the dev-dependency is added by the first plan that needs it (recommendation was only when examples leave a surviving mutant). |
 | Q6 | Is the six-slice plan (S0-S5) right, or should S4 and S5 merge? | ANSWERED (maintainer, 2026-11-17): keep six. |
 | Q7 | The temporary SQLite files the existing tests leave behind (F5): fix them here or hand them off? | ANSWERED (maintainer, 2026-11-17): fix here, package-local, with the package's helpers returning a `TempDir` guard with the configuration; the shared `test-helpers` function and the other packages are #2924 and #2925. Delivered in its own PR, split from S1 on the maintainer's request. |
+| Q8 | Which Docker-free tests should S3 keep, given that an unreachable MySQL or PostgreSQL endpoint fails only after 30.0 s (the fixed `sqlx` pool acquire timeout, measured 2026-11-24) while a malformed URL fails at once? | ANSWERED (maintainer, 2026-11-24): instant tests only: the constructor of each driver (a malformed URL, a well-formed one); no unreachable-endpoint test and no production change to the pool options; the rest of the server-driver files stay with `db-compatibility.yaml`. |
 
 Which EPIC row is the "unit-only" baseline? Recommendation: `--all-features --lib` (79.32%), the same
 command as the other packages, with the container-gated figure reported separately in
