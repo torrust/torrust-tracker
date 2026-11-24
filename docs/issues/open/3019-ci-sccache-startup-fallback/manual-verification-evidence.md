@@ -20,7 +20,7 @@ rely on is embedded here: the config file, the commands and their output.
 
 - Date and time (UTC): 2026-11-24 07:27
 - Artifact under test: the `sccache` client and server, with the `develop` workflows at
-  b7890cfbf (merge of PR 3001). The hosted runs (V3 to V5) will name the PR-branch commits by
+  b7890cfbf (merge of PR 3001). The hosted runs (V3 to V6) will name the commits they ran on by
   their Conventional Commit subject.
 - Operating system / environment: Linux 7.0.0-43-generic, stable Rust toolchain
   (`rustc 1.100.0 (0ef1bc386 2026-11-09)`), `sccache 0.13.0` from the distribution package.
@@ -160,6 +160,10 @@ reliable check, and the build passes without the wrapper.
 - Status: `TODO`
 
 ### V5 - Hosted normal run
+
+- Status: `TODO`
+
+### V6 - Hosted runs of jobs the PR checks do not run
 
 - Status: `TODO`
 
