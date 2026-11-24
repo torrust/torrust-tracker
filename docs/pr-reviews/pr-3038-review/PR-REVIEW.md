@@ -62,4 +62,4 @@ Review 6044345436 (Greptile, 2026-11-24 17:39 UTC) posted one inline comment, F1
 - Current-tree verification: `test -f docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md` succeeds, and line 27 of the archived `ISSUE.md` uses the `../../open/` form.
 - Resolution reference: docs(issues): [#384] link the parent EPIC in open/ from the archived SI-7 spec
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3038#discussion_r4684154526>
