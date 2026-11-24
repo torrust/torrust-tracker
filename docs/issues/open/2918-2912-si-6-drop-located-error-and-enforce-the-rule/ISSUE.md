@@ -9,7 +9,7 @@ github-issue: 2918
 spec-path: docs/issues/open/2918-2912-si-6-drop-located-error-and-enforce-the-rule/ISSUE.md
 branch: "2918-drop-located-error-and-enforce-the-rule"
 related-pr: null
-last-updated-utc: "2026-11-23 22:30"
+last-updated-utc: "2026-11-24 00:44"
 semantic-links:
   skill-links:
     - create-issue
@@ -130,10 +130,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   `tracker-core/src/test_helpers.rs`), `tests/` helpers in three server packages, comments that
   mention the patterns, and production code after a `#[cfg(test)]` module (still flagged). Known
   limits, all of which fail safe (the code is flagged, never skipped): a `#[cfg(all(test, ...))]` or
-  `#[cfg_attr]` form, a `#[cfg(test)]` that does not start its line or spans several lines, and a
-  `#[path = "..."]` module are not recognized as test code.
-- **Wiring:** a `pre-commit.sh` step and a `Source Locations` job in `testing.yaml`; the crate is a
-  workspace member and admitted in `.dockerignore`.
+  `#[cfg_attr]` form and a `#[cfg(test)]` that does not start its line or spans several lines are not
+  recognized as test code; a `#[path = "..."]` attribute is resolved only when it is on one line, and the
+  file it names is resolved lexically against the declaring file.
+- **Wiring:** a `pre-commit.sh` step (`-- --staged`, which reads the Git index for the sources, the module
+  classification and the allow-list, so the check sees what the commit contains) and a `Source Locations`
+  job in `testing.yaml` (the working tree of the checkout); the crate is a workspace member and admitted
+  in `.dockerignore`.
 
 ## Commit Points
 
@@ -189,6 +192,7 @@ the model that produced them.
 - 2026-11-17 17:30 UTC - Claude Code (Claude Opus 5.5) - EPIC coordinator: the maintainer approved the specification on 2026-11-17; issue #2918 created as `josecelano-bot` and the specification moved from `docs/issues/drafts/` to `docs/issues/open/` (SI-6 of EPIC #2912).
 - 2026-11-23 21:27 UTC - Claude Code (Claude Sonnet 5.5) - Implemented SI-6: removed the last use of `torrust-located-error` (`tracker-client`; the unused `From<Error> for DynError` impl is gone, the crate left `Cargo.lock`), added the `source-location-check` tool with tests, wired it into pre-commit and CI, updated the docs and the #2583 spec, and drafted the two upstream issues. No retrospective: the work matched the spec; the only deviation is that the check also exempts files declared `#[cfg(test)] mod x;`, which the spec did not list.
 - 2026-11-23 22:27 UTC - Claude Code (Claude Sonnet 5.5) - Review round 1 of PR #3018 (audit: `docs/pr-reviews/pr-3018-review/PR-REVIEW.md`): the check now blanks comments and strings, ends a `#[cfg(test)]` item by balancing delimiters, resolves test module files under their inline-module ancestry and keeps a file checked when a production declaration includes it; M1 was re-run through the real hook (V1 step 4). The two earlier progress-log stamps of 2026-11-23 that were estimated ahead are corrected in place to 21:27.
+- 2026-11-24 00:44 UTC - Claude Code (Claude Sonnet 5.5) - Review rounds 2 to 5 of PR #3018 (audit: `docs/pr-reviews/pr-3018-review/PR-REVIEW.md`) hardened the check (balanced delimiters, masking of comments, strings, raw byte and raw C strings, module ancestry, production declarations, explicit `#[path]` modules) and made the pre-commit step read the Git index (`--staged`); M1 was re-run through the hook after that change (V1 step 5).
 
 ## Acceptance Criteria
 

@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2918-2912-si-6-drop-located-error-and-enforce-the-rule/ISSUE.md
-last-updated-utc: "2026-11-23 22:30"
+last-updated-utc: "2026-11-24 00:44"
 ---
 
 # Manual Verification Evidence
@@ -60,8 +60,16 @@ Steps 1 to 3 ran the pre-commit step's command directly,
    `git restore --staged packages/primitives/src/lib.rs` and `git checkout packages/primitives/src/lib.rs`
    left `git status --short` empty.
 
+5. After review round 5 the hook step runs `cargo run --quiet --package source-location-check -- --staged`
+   (it reads the Git index). The same probe was staged and committed at the commit
+   `fix(source-location-check): [#2918] check the staged content, resolve path attributes and mask raw C strings`;
+   the hook rejected it between 00:44:24 and 00:44:27 UTC (`date -u` before and after the commit
+   command) with `"failed_step": "Checking that errors record no source locations"` and the same
+   `validation_error` for `packages/primitives/src/lib.rs` line 84. `git log --oneline -1` still printed that
+   fix commit, and `git restore --staged` plus `git checkout` of the file left `git status --short` empty.
+
 Result: the check names the file, the line and the rule, passes after the revert, and the hook
-rejects a commit that adds a location.
+rejects a commit that adds a location, before and after the `--staged` change.
 
 ### V2 - Test helpers stay allowed (M2)
 

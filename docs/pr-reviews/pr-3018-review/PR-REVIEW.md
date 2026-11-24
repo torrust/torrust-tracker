@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-F1 to F5 come from CodeRabbit's review 6030014294 (COMMENTED, submitted 21:44:49Z on the first head, "test(source-location-check): [#2918] ignore the GIT_* variables of a running Git hook in the CLI tests"), in source order of its inline threads. F6 and F7 come from Copilot's review 6030466922 (COMMENTED, submitted 22:22:53Z on the same head); Copilot noted that its full agentic review did not start before its timeout, and the two inline findings are all it reported. F8 to F11 come from CodeRabbit's review 6030628364 (COMMENTED, submitted 22:37:45Z on the round-1 head `0cade8030`'s tree, before the audit push) and F12 from a reply of CodeRabbit on the F4 thread (review 6030752681, 22:49:00Z), a re-raise of F4. F13 and F14 come from CodeRabbit's review 6031363636 (COMMENTED, 23:47:54Z, on the round-2 head) and F15 from its reply on the F9 thread (review 6031381794, 23:49:54Z). F16 to F18 come from Copilot's review 6031622618 (COMMENTED, 00:13:56Z on the round-3 head; its full agentic review again did not start, and its overview lists F7 and F6 as resolved). CodeRabbit also replied on the F1, F2 and F3 threads (22:39Z) that the current code addresses them; those replies hold no new finding. Copilot rates findings Medium and Low; they are recorded as Minor and Nit, as in the audits of PRs #2991 and #3001.
+F1 to F5 come from CodeRabbit's review 6030014294 (COMMENTED, submitted 21:44:49Z on the first head, "test(source-location-check): [#2918] ignore the GIT_* variables of a running Git hook in the CLI tests"), in source order of its inline threads. F6 and F7 come from Copilot's review 6030466922 (COMMENTED, submitted 22:22:53Z on the same head); Copilot noted that its full agentic review did not start before its timeout, and the two inline findings are all it reported. F8 to F11 come from CodeRabbit's review 6030628364 (COMMENTED, submitted 22:37:45Z on the round-1 head `0cade8030`'s tree, before the audit push) and F12 from a reply of CodeRabbit on the F4 thread (review 6030752681, 22:49:00Z), a re-raise of F4. F13 and F14 come from CodeRabbit's review 6031363636 (COMMENTED, 23:47:54Z, on the round-2 head) and F15 from its reply on the F9 thread (review 6031381794, 23:49:54Z). F16 to F18 come from Copilot's review 6031622618 (COMMENTED, 00:13:56Z on the round-3 head; its full agentic review again did not start, and its overview lists F7 and F6 as resolved). F19 to F21 come from the body of Copilot's review 6031847445 (COMMENTED, 00:40:53Z on the round-4 head); the body lists three "previously missed issues" with the reviewer's own IDs F21, F20 and F19, which are recorded in that order as audit F19, F20 and F21 (the reviewer finding ID is kept in each entry). That review has no inline thread. CodeRabbit also replied on the F1, F2 and F3 threads (22:39Z) that the current code addresses them; those replies hold no new finding. Copilot rates findings Medium and Low; they are recorded as Minor and Nit, as in the audits of PRs #2991 and #3001.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -63,6 +63,9 @@ F1 to F5 come from CodeRabbit's review 6030014294 (COMMENTED, submitted 21:44:49
 | F16 | review-finding:pr-3018-f16 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F17 | review-finding:pr-3018-f17 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F18 | review-finding:pr-3018-f18 | Copilot | Nit | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F19 | review-finding:pr-3018-f19 | Copilot | Major | correctness | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-3018-f20 | Copilot | Major | correctness | ORIGINAL | FIXED | RESOLVED |
+| F21 | review-finding:pr-3018-f21 | Copilot | Major | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -300,6 +303,45 @@ F1 to F5 come from CodeRabbit's review 6030014294 (COMMENTED, submitted 21:44:49
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3018#discussion_r4673840647
 
+### F19 - Raw C strings mask forbidden calls from the guard
+
+- PR number: 3018
+- Source review ID: 6031847445
+- Reviewer finding ID: F21
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3018#pullrequestreview-6031847445
+- Concern: Copilot (rated Major, in the review body, labelled Major with the reviewer ID F21) noted that raw C strings (`cr#"..."#`) were not masked: the raw-string prefix rule accepted only a `b` before the `r`, so after `let _ = cr#"""#;` the masker took the quotes as ordinary string delimiters and blanked a production `Location::caller()` on the next line.
+- Solution: `raw_prefix_allowed` accepts a `c` as well as a `b` before the `r`. `it_should_mask_a_raw_c_string` checks that the next line's call is reported; it fails on the previous code.
+- Current-tree verification: `cargo test -p source-location-check` (stable Rust toolchain) passes 26 library tests and 7 CLI tests, including the named tests; `cargo run -q -p source-location-check` exits 0 on the tree in the working-tree and in the `--staged` mode.
+- Resolution reference: fix(source-location-check): [#2918] check the staged content, resolve path attributes and mask raw C strings
+- Follow-up PR URL: N/A
+- Reply URL: N/A (a finding in the review body; the review has no inline thread to reply to or resolve)
+
+### F20 - Explicit production module paths can inherit test-only exemptions
+
+- PR number: 3018
+- Source review ID: 6031847445
+- Reviewer finding ID: F20
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3018#pullrequestreview-6031847445
+- Concern: Copilot (rated Major, in the review body, labelled Major with the reviewer ID F20) noted that a production `#[path = "shared.rs"] mod runtime;` was recorded as `runtime.rs`, so `shared.rs` stayed exempt when `lib.rs` also declared `#[cfg(test)] mod shared;`, and a forbidden call in that production file passed.
+- Solution: `module_declarations` reads a single-line `#[path = "..."]` attribute (the value from the original text, since the masked text blanks it) and `test_only_paths` resolves the named file and its child prefix lexically against the declaring file instead of using the module name. `it_should_keep_checking_the_file_named_by_a_production_path_attribute` and `it_should_exempt_the_file_named_by_a_test_only_path_attribute` pin both directions; they fail on the previous code. A path attribute spanning several lines is a documented limit that fails safe.
+- Current-tree verification: `cargo test -p source-location-check` (stable Rust toolchain) passes 26 library tests and 7 CLI tests, including the named tests; `cargo run -q -p source-location-check` exits 0 on the tree in the working-tree and in the `--staged` mode.
+- Resolution reference: fix(source-location-check): [#2918] check the staged content, resolve path attributes and mask raw C strings
+- Follow-up PR URL: N/A
+- Reply URL: N/A (a finding in the review body; the review has no inline thread to reply to or resolve)
+
+### F21 - Pre-commit gate reads working tree instead of staged contents
+
+- PR number: 3018
+- Source review ID: 6031847445
+- Reviewer finding ID: F19
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3018#pullrequestreview-6031847445
+- Concern: Copilot (rated Major, in the review body, labelled Major with the reviewer ID F19) noted that the pre-commit gate read the working tree, so a staged forbidden call that was removed only from the working tree passed the hook.
+- Solution: The tool has a `--staged` mode that lists the index with `git ls-files --cached` and reads each file, and the allow-list, with `git show :<path>` (which honors `GIT_INDEX_FILE`), so one snapshot serves the sources, the module classification and the allow-list. `pre-commit.sh` runs it with `--staged`; CI keeps the working-tree mode. Three CLI tests cover a staged violation fixed only in the working tree, an unstaged violation, and an allow-list entry present only in the working tree. The hook run of M1 was repeated with the new command (`manual-verification-evidence.md` V1 step 5).
+- Current-tree verification: `cargo test -p source-location-check` (stable Rust toolchain) passes 26 library tests and 7 CLI tests, including the named tests; `cargo run -q -p source-location-check` exits 0 on the tree in the working-tree and in the `--staged` mode.
+- Resolution reference: fix(source-location-check): [#2918] check the staged content, resolve path attributes and mask raw C strings
+- Follow-up PR URL: N/A
+- Reply URL: N/A (a finding in the review body; the review has no inline thread to reply to or resolve)
+
 ## Processing Log
 
 - 2026-11-23 22:27 UTC - Copilot's review 6030466922 (COMMENTED, submitted 22:22:53Z) reached the poller; listing the reviews through the REST API also showed CodeRabbit's review 6030014294 (submitted 21:44:49Z), which the poller does not watch. Seven inline findings, F1 to F7. The audit was started before the first reply. F1 to F4, F6 and F7 are fixed in "fix(source-location-check): [#2918] mask comments and strings, balance delimiters and track module ancestry" and F5 in this audit's commit.
@@ -310,3 +352,4 @@ F1 to F5 come from CodeRabbit's review 6030014294 (COMMENTED, submitted 21:44:49
 - 2026-11-23 23:56 UTC - Pushed the round-3 fixes and audit (pre-push hook passed, push finished 23:55:36 UTC by `date -u`), replied on the three threads (replies posted 23:55:56 UTC) and resolved them (`resolveReviewThread` returned `true` for each, including the F9 thread that CodeRabbit's reply had left resolved; `date -u` after the resolve commands: 23:56:08). GraphQL refresh: zero unresolved threads on PR #3018. This entry is committed and pushed after the replies.
 - 2026-11-24 00:17 UTC - Copilot's review 6031622618 (the poller's event) arrived with three inline findings, F16 to F18; two more CodeRabbit replies (23:56:37Z on the F9 thread and 23:57:01Z on the F13 thread) confirm the round-3 fixes and hold no finding. This is round 4 of at most 5. F16 and F18 fixed in "docs(source-location-check): [#2918] describe the current skipping rule and lock stderr once" and F17 in this audit's commit.
 - 2026-11-24 00:21 UTC - Pushed the round-4 fixes and audit (pre-push hook passed, push finished 00:20:38 UTC by `date -u`), replied on the three threads (replies posted 00:20:51 UTC) and resolved them (`resolveReviewThread` returned `true` for each; `date -u` after the resolve commands: 00:20:56). GraphQL refresh: zero unresolved threads on PR #3018. This entry is committed and pushed after the replies.
+- 2026-11-24 00:44 UTC - Copilot's review 6031847445 (the poller's event, 00:40:53Z) arrived with three findings in its body, all rated Major: F19 to F21 (reviewer IDs F21, F20, F19); it has no inline threads, so there are no replies or resolutions. This is round 5, the last of the five allowed. The three are fixed in "fix(source-location-check): [#2918] check the staged content, resolve path attributes and mask raw C strings", and the hook run of M1 was repeated after the change of the hook command. If another round of findings arrives, work stops and the maintainer is asked.
