@@ -59,7 +59,7 @@ Today a UDP or HTTP tracker logs `Starting … instance` before the bind, then `
 
 - Deleting `Starting on:` and `Started on:` and moving their readers (SI-11).
 - Span fields (SI-12).
-- Duration field names on the `Starting` line beyond what exists today (SI-9).
+- The naming rule of durations (SI-9, which runs first). This issue creates the `Starting` lines of the REST API and the health check API, which have none today, and logs their settings there with the names that rule gives.
 
 ## Findings of the coordinator's check (2026-11-24)
 

@@ -67,7 +67,7 @@ The EPIC coordinator compared this draft with the code at `develop` `6a058dd4d` 
 
 - More durations without a unit: `?deadline` (`packages/udp-server/src/server/launcher.rs:88,134`), `?elapsed` (`:148,150`, `elapsed=3.005µs` in the baseline, so an integer `elapsed_in_ms` is `0`), `reset_interval_in_secs` (`src/bootstrap/jobs/udp_tracker_server.rs:97`, which D6 names `ip_bans_reset_interval_in_secs`).
 - Durations inside messages: `packages/axum-server/src/signals.rs:33,46,54`; `src/bootstrap/jobs/torrent_cleanup.rs:59,61`; `packages/swarm-coordination-registry/src/statistics/activity_metrics_updater.rs:69,84`.
-- `drain_timeout`, `request_drain_deadline`, `cookie_lifetime` and `max_peer_timeout` exist only as span fields today (`src/bootstrap/jobs/http_tracker.rs:53,102`, `tracker_apis.rs:72,116`, `health_check_api.rs:44`, `udp_tracker.rs:46`; `packages/udp-server/src/server/states.rs:73`, `launcher.rs:231`; `packages/axum-server/src/signals.rs:18`; `activity_metrics_updater.rs:22`). This issue logs the settings on the `Starting` line; SI-12 removes the span fields. AC1 excludes span fields for that reason (maintainer, 2026-11-24).
+- `drain_timeout`, `request_drain_deadline`, `cookie_lifetime` and `max_peer_timeout` exist only as span fields today (`src/bootstrap/jobs/http_tracker.rs:53,102`, `tracker_apis.rs:72,116`, `health_check_api.rs:44`, `udp_tracker.rs:46`; `packages/udp-server/src/server/states.rs:73`, `launcher.rs:231`; `packages/axum-server/src/signals.rs:18`; `activity_metrics_updater.rs:22`). This issue logs the settings on the existing `Starting` lines (UDP and HTTP trackers); SI-10 creates the `Starting` lines of the REST API and the health check API and logs their drain setting there under the name this issue's rule gives it; SI-12 removes the span fields. AC1 excludes span fields for that reason (maintainer, 2026-11-24).
 - `event_listener_drain_in_secs` is not logged today.
 - Readers of `timeout_seconds=`: `tests/lifecycle/shutdown_policy.rs:110,146,176,219`, `tests/common/native_tracker/mod.rs:427,440`; no others.
 
@@ -145,7 +145,7 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 
 ## Acceptance Criteria
 
-- [ ] AC1: No lifecycle event field value in a capture at `debug` is a duration with a unit suffix such as `15s` or `250ms`. Span fields are excluded (SI-12 removes them; the settings they hold are logged on the `Starting` line by this issue), and so are lines of dependency targets such as `sqlx::query` (maintainer, 2026-11-24).
+- [ ] AC1: No lifecycle event field value in a capture at `debug` is a duration with a unit suffix such as `15s` or `250ms`. Span fields are excluded (SI-12 removes them; the settings they hold are logged by this issue on the `Starting` lines of the UDP and HTTP trackers, the only services that have one today, and by SI-10 on the new `Starting` lines of the REST API and the health check API), and so are lines of dependency targets such as `sqlx::query` (maintainer, 2026-11-24).
 - [ ] AC2: Each configured duration in the log has the name of its configuration key. The three keys of the exception in D6 (`max_peer_timeout`, `inactive_peer_cleanup_interval`, `cookie_lifetime`) are logged under the name SI-4 gives them, whether or not SI-4 is merged.
 - [ ] AC3: No lifecycle message contains a duration.
 - [ ] AC4: "Changes in 4.0.0" lists the renamed fields.
