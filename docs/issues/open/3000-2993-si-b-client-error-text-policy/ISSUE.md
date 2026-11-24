@@ -9,7 +9,7 @@ github-issue: 3000
 spec-path: docs/issues/open/3000-2993-si-b-client-error-text-policy/ISSUE.md
 branch: "3000-si-b-client-error-text-policy"
 related-pr: null
-last-updated-utc: "2026-11-23 11:05"
+last-updated-utc: "2026-11-23 21:56"
 semantic-links:
   skill-links:
     - create-issue
@@ -32,7 +32,7 @@ Parent EPIC: [Keep secrets out of errors, logs and client replies, and make clie
 
 ## Goal
 
-An accepted ADR says what an error reply may tell a client of the HTTP tracker, the UDP tracker and the REST API, and the three protocols follow it: the text helps a legitimate user fix the problem, and carries no database driver text, no internal error nesting, no server timing value and no Rust type name.
+An accepted ADR says what an error reply may tell a client of the HTTP tracker, the UDP tracker, the REST API and the health-check API, and all four follow it: the text helps a legitimate user fix the problem, and carries no database driver text, no internal error nesting, no server timing value and no Rust type name.
 
 ## Background
 
@@ -42,7 +42,18 @@ Section B of the EPIC inventory lists what each protocol sends today, reproduced
 - UDP tracker: the full `Display` chain of the server error. A wrong connection id returns `cookie value is expired: <value>, expected > 1795353220.6572893` (the server clock and the decoded cookie); a short packet returns `error parsing request: SendableRequestParseError { message: "Couldn't parse action", ... }` (a Rust type name).
 - REST API: every key, whitelist and reload failure, and a missing or wrong token, is a 500 with `Unhandled rejection: Err { reason: "..." }`; database failures put `e.to_string()` of the driver error in it (`UNIQUE constraint failed: keys.key`); a malformed JSON body returns serde's own text.
 - A database server message can name the database user and the client address (`Access denied for user 'db_user'@'172.17.0.1'`). Today it reaches the operator only; it would reach a client wherever driver text is forwarded (EPIC item A11).
-- The UDP error event payload (`packages/udp-server/src/event.rs:114-153`) holds the same strings.
+- The UDP error event payload (`packages/udp-server/src/event.rs:114-153`) holds the same errors as text, but not always in the same format as the reply. For a parse error the reply is the `Debug` of the struct (`error parsing request: SendableRequestParseError { message: ..., opt_connection_id: ..., opt_transaction_id: ... }`, `packages/udp-server/src/error.rs:23`), while `ErrorKind::RequestParse` holds its own `Display` (`SendableRequestParseError: message: ..., connection_id: ..., transaction_id: ...`, `error.rs:74-82`, `event.rs:127`). Both carry the type name; the ADR's table lists the reply text and the event text separately.
+- The health-check API (added to the scope on 2026-11-23) has two kinds of failure reply, with different statuses. While the application is shutting down it returns 503 with the report `shutting down` and probes nothing (`packages/axum-health-check-api-server/src/handlers.rs:28-33`, `responses.rs:19`). When a probe fails or its job panics it returns 200 with the report `health check failed` and, per service, `Err(<reqwest error or status text>)` for an HTTP service, `Err(<receive error Display>)` or `Err(<client construction error Debug>)` for a UDP service (`packages/tracker-client/src/udp/client.rs:245-286`, the UDP check), or `the health check job failed: <join error>` (`handlers.rs:66`, `:82`; `packages/axum-http-server/src/server.rs:331-332`; pinned in `packages/axum-health-check-api-server/tests/server/contract.rs:147-188`, `:711-741`). This issue changes the text only; the statuses stay.
+
+### More client texts found by the recheck
+
+The EPIC inventory was rechecked against `develop` `6bc417424` on 2026-11-23. Section B is still right, apart from the scrape database prefix (`Tracker scrape error:`) and the UDP line numbers that SI-5 of EPIC #2912 (#3001, merged 2026-11-23) moved by one: the parse text is now at `packages/udp-server/src/error.rs:23` and the internal text, without its former source location, at `:35`. These client texts are not in section B and belong in the ADR's table of current texts:
+
+- HTTP tracker: the scrape query parse texts (`packages/http-protocol/src/v1/requests/scrape.rs:39-49`, `:61`); `invalid param value <v> for <name>: it must percent-decode to exactly 20 bytes` and `malformed percent encoding or invalid UTF-8 for ip` (`requests/announce.rs:229`, `:237`, `:245`); the announce `ip` parameter texts sent without a prefix (`packages/http-core/src/services/announce.rs:366-372`, `:424`); the latent `Key could not be verified: <sqlx text>` (`packages/tracker-core/src/authentication/key/mod.rs:170`, nothing builds it today); 408 with an empty body; axum's default 404.
+- UDP tracker: the parse messages inside the `Debug` struct (`packages/udp-protocol/src/request.rs:64-159`); the cookie texts `cookie value is not normal: <f64>` and `cookie value is from future: <f64>, expected < <f64>` (`packages/udp-core/src/connection_cookie.rs:112`, `:118`); ``Invalid announce request: `left` must not be negative, got <n>`` (`packages/udp-core/src/services/announce.rs:195`); the scrape texts (`services/scrape.rs:152`, `:156`); `domain tracker requires authentication but is not supported in current UDP implementation` (`AuthRequired`, `packages/udp-server/src/error.rs:39`, a fixed message since #3001; also the `ErrorKind::TrackerAuthentication` event text). Banned IPs get no reply.
+- REST API: `Invalid URL: invalid auth key duration: "<n>"` (`packages/axum-rest-api-server/src/v1/context/auth_key/responses.rs:58-59`); 200 `torrent not known` (`v1/context/torrent/responses.rs:23`); the whitelist 409 `listed capability ...`; axum's default path, query and JSON rejections (pinned in `packages/axum-rest-api-server/tests/server/v1/asserts.rs:121`, `:129` and `contract/context/torrent.rs:203`, `:233`); 408 with an empty body.
+- Tests that pin today's texts and change with the ADR: `packages/axum-http-server/tests/server/v1/contract/failure_reasons_hold_no_source_path.rs`, `packages/udp-server/tests/server/contract.rs` and the REST `asserts.rs`.
+- Not rechecked: whether any event type other than the UDP error event carries an error string.
 
 Rule 4 of the errors ADR says client text is the workspace error's own `Display` and that a source error from a crate the workspace does not control is not formatted into client text. It does not say how much a workspace `Display` may reveal, and the database errors break it today, because their `Display` includes the `sqlx` source.
 
@@ -62,7 +73,7 @@ The maintainer's decisions (2026-11-22): the text for database failures is decid
    - whether any reply text is a contract that clients may match, or all of it is free to change;
    - where the detail goes: a `tracing` event on the server at the site of the failure, with the request id where one exists. Today the REST API logs a 500 with no reason, so the operator cannot tell why a request failed;
    - what an event payload may carry (the UDP `ErrorKind` strings), in line with the events ADR (`docs/adrs/20260727000000_events_are_objective_facts.md`).
-2. **The implementation of the ADR**, after the maintainer accepts it: the HTTP tracker (`packages/http-core/src/services/error_mapping.rs`, `packages/http-protocol`), the UDP tracker (`packages/udp-server/src/error.rs`, `packages/udp-server/src/handlers/error.rs`, `packages/udp-core/src/connection_cookie.rs`), the REST API (`packages/rest-api-runtime-adapter/src/v1/adapters/`, `packages/axum-rest-api-server/src/v1/responses.rs`, the JSON rejection) and the UDP error event. Each old and new text is listed in this specification for approval before the code changes, as the SI-3 and SI-4 specifications of EPIC #2912 do.
+2. **The implementation of the ADR**, after the maintainer accepts it: the health-check API (`packages/axum-health-check-api-server/src/`), the HTTP tracker (`packages/http-core/src/services/error_mapping.rs`, `packages/http-protocol`), the UDP tracker (`packages/udp-server/src/error.rs`, `packages/udp-server/src/handlers/error.rs`, `packages/udp-core/src/connection_cookie.rs`), the REST API (`packages/rest-api-runtime-adapter/src/v1/adapters/`, `packages/axum-rest-api-server/src/v1/responses.rs`, the JSON rejection) and the UDP error event. Each old and new text is listed in this specification for approval before the code changes, as the SI-3 and SI-4 specifications of EPIC #2912 do.
 3. **The wrong label**: `From<(SqlxError, Driver)>` maps every `sqlx::Error::Database` to `InvalidQuery`, so an authentication failure reads `The MySQL query was malformed`. Fix the mapping or the wording as the ADR decides.
 4. **The skill**: update `handle-errors-in-code` with the policy.
 
@@ -94,9 +105,12 @@ The driver text in client replies and the wrong `InvalidQuery` label are bugs ag
 - **Real boundary, REST API**: a test with the existing REST test server asserting that the reply for a forced database failure (a duplicate key insert) holds no driver text, and that the server log holds the detail.
 - **Real boundary, HTTP and UDP trackers**: a duplicate insert cannot reach them. An announce updates the in-memory repository and touches the database only in `load_downloads_metric_if_needed` (`packages/tracker-core/src/announce_handler.rs:196-205`), which reads the persisted download count when the torrent is not in memory; scrape reads it in `persisted_downloads.load_many`. So the test needs `core.tracker_policy.persistent_torrent_completed_stat = true`, an info-hash that is not in memory, and a read that fails (a database that was dropped or closed after start, or a test double of the persisted-downloads store that returns a database error). It asserts that the announce and scrape replies of each tracker hold no driver text.
 - **UDP**: tests that the connection-id error holds no clock value and the parse error holds no type name.
+- **Health-check API**: a test with the existing health-check test server where a probe fails (an unreachable service) and one where the probe job panics, and a malformed UDP response (the existing `it_should_return_error_when_the_registered_udp_service_answers_the_check_with_junk` case of `tests/server/contract.rs:514`), asserting that the per-service text follows the ADR, holds no `reqwest`, UDP client (`Display` or `Debug`) or join-error text, and keeps the 200 status; and that the shutting-down reply keeps its 503 status.
 - A helper that forbids known driver markers (`sqlx`, `error returned from database`, `constraint failed`, `Access denied`) in client text, used by the protocol tests.
 
 ## Implementation Plan
+
+Session (maintainer, 2026-11-23): this issue starts after SI-A (#2999) is merged; one implementation session, Claude Fable 5.2 at high effort.
 
 Test-development loop (required by `docs/templates/ISSUE.md`, "Commit Points", and the `create-issue` skill): the red tests are not written as one batch. Use the `write-unit-test` skill and work one behavior area at a time, in the order of the commit points below (T4 to T7). For each area: write the smallest behavior-focused test, record its red output, make the production change, record the green output, then perform and record an explicit test-design review before starting the next area. The review uses the prose-first Arrange-Act-Assert comparison (write temporary prose for each section, refactor until the code expresses it, remove redundant prose) and confirms that the test exposes the one causal initial-state difference, that its fixture owns only incidental mechanics, and that the production Act and the independently specified expected result stay visible. Record each review in the task's evidence. Commit each reviewed increment before the next one. After the last increment, stop for maintainer review before final verification, the final commit and the pull request.
 
@@ -111,6 +125,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T5 | TODO | HTTP tracker text | As the ADR decides. |
 | T6 | TODO | UDP tracker text and the error event | As the ADR decides. |
 | T7 | TODO | REST API text | As the ADR decides, within v1's additive-only rule. |
+| T7b | TODO | Health-check API text | As the ADR decides; the per-service failure text of the HTTP and UDP checks and the report message, with the statuses unchanged (200 for a failed probe, 503 while shutting down). |
 | T8 | TODO | Skill and documentation | `handle-errors-in-code`; any documented example reply. |
 | T8b | TODO | Maintainer checkpoint | Stop for maintainer review after the last test increment, before final verification, the final commit and the pull request. |
 | T9 | TODO | Final recheck | The baseline reproduction repeated after the last production change. |
@@ -124,6 +139,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T5 | HTTP tracker text | Commit after the red and green runs and the recorded test-design review. |
 | T6 | UDP tracker text and event | Commit after the red and green runs and the recorded test-design review. |
 | T7 | REST API text | Commit after the red and green runs and the recorded test-design review. |
+| T7b | Health-check API text | Commit after the red and green runs and the recorded test-design review. |
 | T8 | Skill and documentation | Commit after focused validation and required review. |
 
 ## Progress Tracking
@@ -133,7 +149,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Folder-style spec drafted in `docs/issues/drafts/`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
+- [x] Spec-only PR merged into `develop` before implementation (#2994; refreshed by #3014, which must merge before implementation too)
 - [ ] ADR accepted
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
@@ -147,11 +163,15 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 ### Progress Log
 
 - 2026-11-22 13:50 UTC - Claude Code (Claude Fable 5.2) - Drafted from the EPIC inventory after the maintainer asked that the sub-issue specifications be part of the EPIC pull request. Not approved; no GitHub issue created.
+- 2026-11-23 11:06 UTC - Claude Code (Claude Sonnet 5.5) - The maintainer approved the specification; created #3000 and moved it to `docs/issues/open/`. Merged with the EPIC by pull request #2994.
+- 2026-11-23 18:08 UTC - Claude Code (Claude Opus 5.5), EPIC coordinator session - Rechecked against `develop` `6bc417424`: nothing fixed. Listed the client texts section B of the EPIC missed, and recorded the maintainer's answers of 2026-11-23: the health-check API joins the scope, and the implementation session runs after SI-A with Claude Fable 5.2 at high effort.
+- 2026-11-23 19:29 UTC - Claude Code (Claude Opus 5.5), EPIC coordinator session - Review of PR 3014: limited AC2 to the three servers that can reach the database and added AC2b for the health-check API.
 
 ## Acceptance Criteria
 
 - [ ] AC1: An accepted ADR defines the client error text policy and answers each question listed in the scope.
-- [ ] AC2: No reply of the HTTP tracker, the UDP tracker or the REST API holds database driver text, shown by a test through each protocol server and on a running tracker.
+- [ ] AC2: No reply of the HTTP tracker, the UDP tracker or the REST API holds database driver text, shown by a test through each protocol server and on a running tracker. (The health-check API does not reach the database: its probes call the tracker services, and `packages/axum-health-check-api-server/src/` has no database code.)
+- [ ] AC2b: The health-check API's failed-probe reply holds no `reqwest`, UDP client or join-error text, and its statuses are unchanged (200 for a failed probe, 503 while shutting down), shown by the health-check regression test and scenario M6.
 - [ ] AC3: A database failure leaves a `tracing` event on the server with the detail, and the operator can relate it to the client's reply.
 - [ ] AC4: The UDP connection-id error holds no server clock value, and the UDP parse error holds no Rust type name.
 - [ ] AC5: Every changed client text is listed, old and new, in this specification and was approved before the change.
@@ -181,6 +201,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | M3 | UDP connection id and short packet | Announce with a wrong connection id; send a 3-byte packet | No clock value; no type name | TODO | `manual-verification-evidence.md` section V3 |
 | M4 | Database down | On a MySQL or PostgreSQL tracker with `persistent_torrent_completed_stat = true`, stop the database and send an HTTP and a UDP announce for an info-hash that is not in memory, a scrape, and a REST key request | The client text follows the ADR and names neither the user nor the host; the log holds them | TODO | `manual-verification-evidence.md` section V4 |
 | M5 | REST bad token and bad JSON | Call the API with a wrong token and with a malformed JSON body | Text as the ADR decides, within v1's rules | TODO | `manual-verification-evidence.md` section V5 |
+| M6 | Health-check API failures | On a running tracker, make one registered service unreachable (for example block its port) and call `GET /health_check`; repeat with an unreachable UDP tracker; then call it during shutdown | The failed-probe reply is 200 with text as the ADR decides and no `reqwest` or UDP client text; the shutting-down reply is 503 | TODO | `manual-verification-evidence.md` section V6 |
 
 Notes: manual verification is mandatory even when automated tests pass. Record the toolchain for every command, and create `manual-verification-evidence.md` from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`.
 
@@ -194,6 +215,7 @@ A short UDP probe (connect, announce, raw packet) is needed for M2 and M3, becau
 | --- | --- | --- |
 | AC1 | TODO | {test/log/PR link} |
 | AC2 | TODO | {test/log/PR link} |
+| AC2b | TODO | {test/log/PR link} |
 | AC3 | TODO | {test/log/PR link} |
 | AC4 | TODO | {test/log/PR link} |
 | AC5 | TODO | {test/log/PR link} |
