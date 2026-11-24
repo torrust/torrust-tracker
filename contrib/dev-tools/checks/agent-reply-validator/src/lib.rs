@@ -10,3 +10,4 @@ pub mod git;
 pub mod name;
 pub mod reply;
 pub mod schema;
+pub mod transcript;

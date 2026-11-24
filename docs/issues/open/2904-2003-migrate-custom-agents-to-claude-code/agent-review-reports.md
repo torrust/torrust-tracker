@@ -325,3 +325,41 @@ semantic-links:
     the session keeps; AC2 is checked with its evidence.
   - Not changed: `Grep` and `Glob` stay in `tools`, as V1 records, for the builds that have them. The M3
     cautions apply to its run.
+
+### 2026-11-24 07:56 UTC - Test-design reviewer (Claude Code subagent, Claude Opus 5.5, `write-unit-test` skill)
+
+- Invocation scope: Read-only review of task T5, increment 1, on branch `2904-t5-task-reviewer`
+  before its commit: the transcript reader `src/transcript.rs` of the crate
+  `agent-reply-validator`, with its unit tests. One round, then the author's fixes.
+- Inputs: D17 ("How the hook works") and section V8 of `manual-verification-evidence.md`, which
+  give the record format the fixtures must model; `.claude/skills/write-unit-test/SKILL.md`;
+  `AGENTS.md`; the uncommitted file.
+- Evidence: `cargo test -q -p agent-reply-validator --lib transcript` passed with 20 tests in the
+  review and 21 after the fixes; clippy with the workspace lints and nightly rustfmt were clean.
+  The author ran nine mutations of the production code, and each made at least one test fail:
+  accepting any origin kind, accepting `isMeta` records, dropping the type check, reading the
+  first request instead of the latest, matching the prefix anywhere in a line, taking the first
+  line of a request, no trim, accepting an empty path, and treating a null origin as present. Two
+  of them first survived or did not compile: the type check was killed by no case, because the copy
+  of a request has block content, which the string check already rejects, and the origin mutation
+  left a constant unused. The author added a case whose record is not of type `user` and has
+  string content, and reran both. After the review's fixes the author reran the trim, type and
+  `isMeta` mutations, and each was killed.
+- Findings:
+  - Minor: the `windows_line_ending` case could not fail on the trim rule, because `lines()` strips
+    `\r\n` before the trim. Fixed: the case is a lone `\r` at the end of the text.
+  - Minor: the case named `preloaded_skill_text` used the shape of a harness reminder (a string),
+    not the two text blocks of V8. Fixed: it is now `harness_reminder`, and `preloaded_skill_text`
+    builds the two-block record.
+  - Minor: the case of the copy of a request cannot fail for the reason its name gives, and the
+    type check is pinned only by the agent message. Fixed in the comments of both fixtures.
+  - Minor: no assertion had a message. Fixed in the groups and the multi-record tests, where the
+    case label alone does not say which record won.
+  - Nit: the null-origin test pins a tolerance that V8 did not observe. Fixed: its doc comment
+    says so.
+  - Nit: the helper `transcript` was shadowed by the variable of the same name in every test.
+    Fixed: the helper is `jsonl`.
+- Verdict: REVIEW PASSED
+- Follow-up actions:
+  - Author, done before the commit: the six fixes above; the word `rfind` added to
+    `project-words.txt`.
