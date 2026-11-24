@@ -68,22 +68,31 @@ Its review, if it posts one, goes through the review loop like any other.
 naming any service. `--watch` waits for every check run, theirs included, so it can keep waiting
 for a slow review service after CI has finished, and its exit code counts a failed review-service
 check as a failure. To wait for the workflow checks alone, poll them instead. The loop spends no
-tokens; it ends when at least one workflow check exists and none is pending:
+tokens. It ends when at least one workflow check exists and none is pending, or when the workflow
+runs of the head commit wait for a maintainer's approval (see
+[When Checks Never Start](#when-checks-never-start)), or when a `gh` call fails:
 
 ```sh
+head=$(git rev-parse HEAD)   # the commit you pushed
 while :; do
   ready=$(gh pr checks <PR> --repo torrust/torrust-tracker --json bucket,workflow \
     --jq '[.[] | select(.workflow != "")] | length > 0 and all(.bucket != "pending")') \
     || { echo "gh pr checks failed; see its error above" >&2; break; }
-  [ "$ready" = true ] && break
+  [ "$ready" = true ] && { echo "workflow checks finished"; break; }
+  waiting=$(gh run list --repo torrust/torrust-tracker --commit "$head" --json conclusion \
+    --jq 'any(.[]; .conclusion == "action_required")') \
+    || { echo "gh run list failed; see its error above" >&2; break; }
+  [ "$waiting" = true ] && { echo "workflow runs of $head wait for a maintainer's approval"; break; }
   sleep 60
 done > .tmp/pr-checks-wait.txt 2>&1
 ```
 
-With `--json`, `gh pr checks` exits `0` whether the checks pass, fail or are pending, so a non-zero
-exit is a real error, such as an expired login, denied access or a network failure. The loop then
-stops and keeps the error in its output file instead of retrying without end: read the file when it
-exits and fix the cause before waiting again.
+Read the last line of the file when the loop exits. With `--json`, `gh pr checks` exits `0` whether
+the checks pass, fail or are pending, so a non-zero exit is a real error, such as an expired login,
+denied access or a network failure. The loop then stops and keeps the error instead of retrying
+without end: fix the cause before waiting again. When the runs wait for approval, ask for it as
+"When Checks Never Start" says and run the loop again once they start. `--commit` needs the full
+commit hash.
 
 Then decide with the workflow checks alone, and list the review-service check runs that were left
 out, for the report:
