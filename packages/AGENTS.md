@@ -34,8 +34,7 @@ depend on packages in the same layer or a lower one.
 ├────────────────────────────────────────────────────────────────┤
 │  Domain / Shared                                               │
 │  configuration  primitives  events                             │
-│  (extracted: clock, located-error, metrics, net-primitives,    │
-│   server-lib)                                                  │
+│  (extracted: clock, metrics, net-primitives, server-lib)        │
 ├────────────────────────────────────────────────────────────────┤
 │  Utilities / Test support                                      │
 │  test-helpers                                                  │
@@ -146,7 +145,8 @@ Use `test-helpers` for generic test configurations, logging and random data. A p
   delegates peer lookups to it.
 - `configuration` is the only package that reads from the filesystem or environment at startup;
   other packages receive config structs as arguments.
-- `torrust-located-error` (extracted crate) wraps any `std::error::Error` — use it at module boundaries to preserve
-  error origin context without losing the original error type.
+- Errors do not record source locations, and the workspace no longer uses `torrust-located-error`: keep a
+  source error as a `#[source]` or `#[from]` field (ADR `20261118045443_errors_do_not_record_source_locations`).
+  The `source-location-check` tool enforces it.
 - `events` provides the only sanctioned inter-package async communication channel; avoid direct
   `tokio::sync` coupling between packages.

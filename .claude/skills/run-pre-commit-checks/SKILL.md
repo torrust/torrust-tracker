@@ -66,28 +66,32 @@ The script runs these steps in order:
 2. `cargo run --quiet --package clippy-allow-reasons -- --staged` - prospective native-reason
    check for changed staged Clippy allow attributes. The command resolves the first available
    base reference from `origin/develop`, `upstream/develop`, `torrust/develop`, or local `develop`.
-3. `cargo run --quiet --package frontmatter-validator --bin frontmatter-validator -- --staged` -
+3. `cargo run --quiet --package source-location-check -- --staged` - check, on the staged content, that non-test Rust code
+   does not use `Location::caller()`, `#[track_caller]` or `torrust-located-error` (ADR
+   `20261118045443_errors_do_not_record_source_locations`). Exceptions go in
+   `contrib/dev-tools/checks/source-location-check/allow-list.txt`, one reason per entry.
+4. `cargo run --quiet --package frontmatter-validator --bin frontmatter-validator -- --staged` -
    read-only v1 frontmatter check of the staged content of staged Markdown files. A staged edit
    to a draft or open issue spec without v1 frontmatter fails with `legacy-shape`. See
    `contrib/dev-tools/checks/frontmatter-validator/README.md` for the migration checklist.
-4. `cargo run --quiet --package frontmatter-validator --bin frontmatter-validator -- --skill-layout` -
+5. `cargo run --quiet --package frontmatter-validator --bin frontmatter-validator -- --skill-layout` -
    repository-wide check of the agent skills in the index: every skill at
    `.claude/skills/<name>/SKILL.md`, the redirect stubs under `.github/skills/` and their
    inventory, each skill's `name`, and the index `.claude/skills/README.md`. See the validator
    README for each finding.
-5. `cargo run --quiet --package frontmatter-validator --bin frontmatter-validator -- --skill-descriptions` -
+6. `cargo run --quiet --package frontmatter-validator --bin frontmatter-validator -- --skill-descriptions` -
    check of each skill's `description` in the index: whole as YAML reads it (not cut by a `#`
    comment) and 200 characters or less. See the `add-new-skill` skill's description rules.
-6. `cargo run --quiet --package agent-reply-validator --bin agent-reply-validator -- --all` -
+7. `cargo run --quiet --package agent-reply-validator --bin agent-reply-validator -- --all` -
    check of the staged content of every agent reply file in the index: every file in an
    `agent-replies/` folder or named like a reply file. See the `agent-reply-v1` schema in
    `docs/schemas/README.md`.
-7. `cargo machete --with-metadata` - unused dependency check
-8. `cargo deny check bans` - workspace layer-boundary dependency check
-9. `cargo +nightly fmt --all -- --check` - nightly Rust formatting check
-10. `linter all` - all linters (markdown, lychee local links, YAML, TOML, clippy, rustfmt, shellcheck, cspell)
-11. `./contrib/dev-tools/checks/lint-containerfile.sh` - hadolint check of the `Containerfile`
-12. `cargo test --doc --workspace` - documentation tests
+8. `cargo machete --with-metadata` - unused dependency check
+9. `cargo deny check bans` - workspace layer-boundary dependency check
+10. `cargo +nightly fmt --all -- --check` - nightly Rust formatting check
+11. `linter all` - all linters (markdown, lychee local links, YAML, TOML, clippy, rustfmt, shellcheck, cspell)
+12. `./contrib/dev-tools/checks/lint-containerfile.sh` - hadolint check of the `Containerfile`
+13. `cargo test --doc --workspace` - documentation tests
 
 If the formatter changes the dictionary, the hook exits non-zero before the verification steps.
 Stage `project-words.txt` and retry the commit. Run the formatter independently with:

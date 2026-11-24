@@ -87,6 +87,7 @@ All diagnostics go to stderr via the tracing subscriber or direct JSON stderr wr
 | `agent-reply-validator`         | `no-stdout-result`   | Agent reply file check (issue #2904); NDJSON diagnostics on stderr                                                         |
 | `agent-reply-schema`            | `no-stdout-result`   | Writes the agent reply schema (issue #2904); one NDJSON record on stderr                                                   |
 | `shipped-features-check`        | `no-stdout-result`   | Shipped-binary feature check; NDJSON diagnostics on stderr                                                                  |
+| `source-location-check`         | `no-stdout-result`   | Source-location rule check (issue #2918); NDJSON diagnostics on stderr                                                      |
 | `agent-review-report-contract`  | `no-stdout-result`   | Review report check; currently non-compliant (plain-text success line on stdout, plain-text failures on stderr), migration issue #2763 |
 | `workspace-coupling`            | `no-stdout-result`   | Writes its Markdown report to a file (`OUTPUT_FILE`), nothing on stdout; NDJSON status events on stderr                     |
 | `github-review-threads`         | `stdout-result-data` | GitHub CLI review-thread results and JSON diagnostics; a missing reply is a result (exit `0`)                                |

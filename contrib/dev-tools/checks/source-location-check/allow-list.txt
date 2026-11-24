@@ -1,0 +1,3 @@
+# Files that may use `Location::caller()`, `#[track_caller]` or `torrust_located_error` outside test code.
+# One entry per line: `<repo-relative path>: <reason>`. Blank lines and `#` comments are ignored.
+# An entry without a reason is rejected. The list is meant to stay empty (ADR 20261118045443).

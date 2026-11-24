@@ -2,7 +2,6 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 
 use thiserror::Error;
-use torrust_located_error::DynError;
 use torrust_tracker_udp_protocol::Request;
 
 pub mod client;
@@ -58,12 +57,6 @@ pub enum Error {
         err: Arc<std::io::Error>,
         response: Vec<u8>,
     },
-}
-
-impl From<Error> for DynError {
-    fn from(e: Error) -> Self {
-        Arc::new(Box::new(e))
-    }
 }
 
 #[cfg(test)]

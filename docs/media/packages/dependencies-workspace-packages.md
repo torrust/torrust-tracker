@@ -93,7 +93,6 @@ flowchart TB
         direction TB
         clock["torrust-clock"]
         info-hash["torrust-info-hash"]
-        located-err["torrust-located-error"]
         metrics["torrust-metrics"]
         net-prim["torrust-net-primitives"]
         peer-id["torrust-peer-id"]
@@ -146,7 +145,6 @@ flowchart TB
     axum-health --> axum-base
     axum-health --> primitives
 
-    axum-base --> located-err
     axum-base --> server-lib
     axum-base --> config
 
@@ -167,7 +165,6 @@ flowchart TB
     %% Core layer dependencies
     tracker-core --> clock
     tracker-core --> info-hash
-    tracker-core --> located-err
     tracker-core --> metrics
     tracker-core --> config
     tracker-core --> events
@@ -216,7 +213,6 @@ flowchart TB
     http-proto --> bencode
     http-proto --> clock
     http-proto --> info-hash
-    http-proto --> located-err
     http-proto --> peer-id
 
     udp-proto --> peer-id
@@ -230,7 +226,6 @@ flowchart TB
     swarm --> events
     swarm --> primitives
 
-    config --> located-err
     config --> primitives
 
     primitives --> clock
@@ -239,7 +234,6 @@ flowchart TB
     primitives --> peer-id
 
     %% Client tools
-    client-lib --> located-err
     client-lib --> net-prim
     client-lib --> peer-id
     client-lib --> http-proto
@@ -272,7 +266,7 @@ flowchart TB
 
     %% External crates styling
     classDef ext fill:#e1f5fe,stroke:#0288d1,stroke-dasharray: 5 5
-    class clock,info-hash,located-err,metrics,net-prim,peer-id,bencode,server-lib ext
+    class clock,info-hash,metrics,net-prim,peer-id,bencode,server-lib ext
 
     %% Layer styling
     classDef app fill:#fff3e0,stroke:#ff9800

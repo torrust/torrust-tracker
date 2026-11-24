@@ -158,6 +158,7 @@ members = [
   "contrib/dev-tools/checks/frontmatter-validator",
   "contrib/dev-tools/checks/package-coverage-check",
   "contrib/dev-tools/checks/shipped-features-check",
+  "contrib/dev-tools/checks/source-location-check",
   "contrib/dev-tools/github/github-review-threads",
   "packages/axum-health-check-api-server",
   "packages/axum-http-server",
