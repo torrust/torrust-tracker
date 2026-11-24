@@ -129,8 +129,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   files declared `#[cfg(test)] mod x;` (`http-protocol/src/test_helpers.rs`,
   `tracker-core/src/test_helpers.rs`), `tests/` helpers in three server packages, comments that
   mention the patterns, and production code after a `#[cfg(test)]` module (still flagged). Known
-  limits: a `#[cfg(all(test, ...))]` or `#[cfg_attr]` form and a `#[path = "..."]` module are not
-  recognized, so their code is flagged (fails safe); a `b"..."` raw byte string is not masked.
+  limits, all of which fail safe (the code is flagged, never skipped): a `#[cfg(all(test, ...))]` or
+  `#[cfg_attr]` form, a `#[cfg(test)]` that does not start its line or spans several lines, and a
+  `#[path = "..."]` module are not recognized as test code.
 - **Wiring:** a `pre-commit.sh` step and a `Source Locations` job in `testing.yaml`; the crate is a
   workspace member and admitted in `.dockerignore`.
 

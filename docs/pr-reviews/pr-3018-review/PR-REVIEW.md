@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-F1 to F5 come from CodeRabbit's review 6030014294 (COMMENTED, submitted 21:44:49Z on the first head, "test(source-location-check): [#2918] ignore the GIT_* variables of a running Git hook in the CLI tests"), in source order of its inline threads. F6 and F7 come from Copilot's review 6030466922 (COMMENTED, submitted 22:22:53Z on the same head); Copilot noted that its full agentic review did not start before its timeout, and the two inline findings are all it reported. F8 to F11 come from CodeRabbit's review 6030628364 (COMMENTED, submitted 22:37:45Z on the round-1 head `0cade8030`'s tree, before the audit push) and F12 from a reply of CodeRabbit on the F4 thread (review 6030752681, 22:49:00Z), a re-raise of F4. F13 and F14 come from CodeRabbit's review 6031363636 (COMMENTED, 23:47:54Z, on the round-2 head) and F15 from its reply on the F9 thread (review 6031381794, 23:49:54Z). CodeRabbit also replied on the F1, F2 and F3 threads (22:39Z) that the current code addresses them; those replies hold no new finding. Copilot rates findings Medium and Low; they are recorded as Minor and Nit, as in the audits of PRs #2991 and #3001.
+F1 to F5 come from CodeRabbit's review 6030014294 (COMMENTED, submitted 21:44:49Z on the first head, "test(source-location-check): [#2918] ignore the GIT_* variables of a running Git hook in the CLI tests"), in source order of its inline threads. F6 and F7 come from Copilot's review 6030466922 (COMMENTED, submitted 22:22:53Z on the same head); Copilot noted that its full agentic review did not start before its timeout, and the two inline findings are all it reported. F8 to F11 come from CodeRabbit's review 6030628364 (COMMENTED, submitted 22:37:45Z on the round-1 head `0cade8030`'s tree, before the audit push) and F12 from a reply of CodeRabbit on the F4 thread (review 6030752681, 22:49:00Z), a re-raise of F4. F13 and F14 come from CodeRabbit's review 6031363636 (COMMENTED, 23:47:54Z, on the round-2 head) and F15 from its reply on the F9 thread (review 6031381794, 23:49:54Z). F16 to F18 come from Copilot's review 6031622618 (COMMENTED, 00:13:56Z on the round-3 head; its full agentic review again did not start, and its overview lists F7 and F6 as resolved). CodeRabbit also replied on the F1, F2 and F3 threads (22:39Z) that the current code addresses them; those replies hold no new finding. Copilot rates findings Medium and Low; they are recorded as Minor and Nit, as in the audits of PRs #2991 and #3001.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -60,6 +60,9 @@ F1 to F5 come from CodeRabbit's review 6030014294 (COMMENTED, submitted 21:44:49
 | F13 | review-finding:pr-3018-f13 | Unknown | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F14 | review-finding:pr-3018-f14 | Unknown | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F15 | review-finding:pr-3018-f15 | Unknown | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-3018-f16 | Copilot | Minor | documentation | ORIGINAL | FIXED | OPEN |
+| F17 | review-finding:pr-3018-f17 | Copilot | Minor | documentation | ORIGINAL | FIXED | OPEN |
+| F18 | review-finding:pr-3018-f18 | Copilot | Nit | maintainability | ORIGINAL | FIXED | OPEN |
 
 ## Finding Details
 
@@ -258,6 +261,45 @@ F1 to F5 come from CodeRabbit's review 6030014294 (COMMENTED, submitted 21:44:49
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3018#discussion_r4673643164
 
+### F16 - The crate docs describe the old skipping rule
+
+- PR number: 3018
+- Source review ID: 6031622618
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3018#discussion_r4673788822
+- Concern: Copilot (rated Medium, recorded as Minor) noted that the crate-level documentation of `source-location-check` still described the first skipping rule (a block ends at the first closing brace with the attribute's indentation, a `mod name;` ends on its own line) although the code balances `{}`, `()` and `[]` and stops at `;`.
+- Solution: The module documentation now describes the masking, the balanced-delimiter rule with the rest of the line scanned again, the module-file rules (inline ancestry, modules of test-code files, production declarations and the more specific path) and the test directories.
+- Current-tree verification: `sed -n 1,25p contrib/dev-tools/checks/source-location-check/src/lib.rs` shows the new text; `cargo doc -p source-location-check --no-deps` (stable Rust toolchain) builds without warnings.
+- Resolution reference: docs(source-location-check): [#2918] describe the current skipping rule and lock stderr once
+- Follow-up PR URL: N/A
+- Reply URL: pending
+
+### F17 - The spec's known limits are outdated
+
+- PR number: 3018
+- Source review ID: 6031622618
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3018#discussion_r4673788862
+- Concern: Copilot (rated Medium, recorded as Minor) noted that the "Known limits" note in the SI-6 spec said a `b"..."` byte string is not masked, which was wrong: ordinary byte strings go through the normal string handling and raw byte strings (`br...`) are handled since round 2, and the spec is used as design and verification guidance.
+- Solution: The note drops the byte-string claim and lists the limits that remain, all failing safe: `#[cfg(all(test, ...))]`, `#[cfg_attr]`, a `#[cfg(test)]` that does not start its line or spans several lines, and `#[path = "..."]` modules.
+- Current-tree verification: `grep -n "Known" -A4 docs/issues/open/2918-2912-si-6-drop-located-error-and-enforce-the-rule/ISSUE.md` shows the new note and no mention of byte strings.
+- Resolution reference: docs(pr-reviews): [#2918] record round 4 of the review audit of PR #3018
+- Follow-up PR URL: N/A
+- Reply URL: pending
+
+### F18 - Stderr is locked once per record
+
+- PR number: 3018
+- Source review ID: 6031622618
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3018#discussion_r4673788902
+- Concern: Copilot (rated Low, recorded as Nit) noted that `main` locked stderr once per record, although it already loops over all records; one lock could serve the whole loop (Copilot rated it Low).
+- Solution: `main` takes the stderr lock once and `write_record` takes the writer as a parameter. Behavior is unchanged: the CLI tests that read the records pass.
+- Current-tree verification: `grep -n "write_record\|lock()" contrib/dev-tools/checks/source-location-check/src/main.rs` shows one `lock()` call; `cargo test -p source-location-check` (stable Rust toolchain) passes 23 library tests and 4 CLI tests.
+- Resolution reference: docs(source-location-check): [#2918] describe the current skipping rule and lock stderr once
+- Follow-up PR URL: N/A
+- Reply URL: pending
+
 ## Processing Log
 
 - 2026-11-23 22:27 UTC - Copilot's review 6030466922 (COMMENTED, submitted 22:22:53Z) reached the poller; listing the reviews through the REST API also showed CodeRabbit's review 6030014294 (submitted 21:44:49Z), which the poller does not watch. Seven inline findings, F1 to F7. The audit was started before the first reply. F1 to F4, F6 and F7 are fixed in "fix(source-location-check): [#2918] mask comments and strings, balance delimiters and track module ancestry" and F5 in this audit's commit.
@@ -266,3 +308,4 @@ F1 to F5 come from CodeRabbit's review 6030014294 (COMMENTED, submitted 21:44:49
 - 2026-11-23 23:43 UTC - Pushed the round-2 fixes and audit (pre-push hook passed, push finished 23:41:42 UTC by `date -u`), replied on the five threads (replies posted 23:42:06 UTC) and resolved them (`resolveReviewThread` returned `true` for each, including the F4 thread that CodeRabbit's reply had left resolved; `date -u` after the resolve commands: 23:42:22). GraphQL refresh: zero unresolved threads on PR #3018. This entry is committed and pushed after the replies.
 - 2026-11-23 23:52 UTC - The poller, now watching CodeRabbit too, returned CodeRabbit's round 3 (review 6031363636, 23:47:54Z, two inline findings F13 and F14) and a reply on the F9 thread asking for a stronger regression test (F15, 23:49:54Z); another CodeRabbit reply on the F4 thread (23:49:12Z) says the code and tests cover F12 and holds no finding. This is round 3 of at most 5. F13 and F14 fixed in "fix(source-location-check): [#2918] scan the rest of a line after an excluded item and inherit test-only status through module files" and F15 in "test(source-location-check): [#2918] cover adjacent character literals in a test-only function", which was run red against the previous character literal length by hand before the fix state was restored.
 - 2026-11-23 23:56 UTC - Pushed the round-3 fixes and audit (pre-push hook passed, push finished 23:55:36 UTC by `date -u`), replied on the three threads (replies posted 23:55:56 UTC) and resolved them (`resolveReviewThread` returned `true` for each, including the F9 thread that CodeRabbit's reply had left resolved; `date -u` after the resolve commands: 23:56:08). GraphQL refresh: zero unresolved threads on PR #3018. This entry is committed and pushed after the replies.
+- 2026-11-24 00:17 UTC - Copilot's review 6031622618 (the poller's event) arrived with three inline findings, F16 to F18; two more CodeRabbit replies (23:56:37Z on the F9 thread and 23:57:01Z on the F13 thread) confirm the round-3 fixes and hold no finding. This is round 4 of at most 5. F16 and F18 fixed in "docs(source-location-check): [#2918] describe the current skipping rule and lock stderr once" and F17 in this audit's commit.
