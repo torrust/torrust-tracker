@@ -1,7 +1,7 @@
 ---
 pr-number: 3027
 pr-url: https://github.com/torrust/torrust-tracker/pull/3027
-last-updated-utc: "2026-11-24 13:49"
+last-updated-utc: "2026-11-24 15:58"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -65,6 +65,7 @@ Round 1, on the first head: CodeRabbit review 6040148469 (one thread). It says t
 - 2026-11-24 13:36 UTC - Round 1: CodeRabbit review 6040148469 (13:36:16) with one thread.
 - 2026-11-24 13:48 UTC - Added the merge-order line to the PR description, replied on the thread and resolved it (13:48:18).
 - 2026-11-24 13:49 UTC - Created this audit record after the reply and the resolution.
+- 2026-11-24 15:58 UTC - Rebased on `develop` to resolve a conflict with the #3004 close-out (PR #3021) in the EPIC's `last-updated-utc`; kept the later stamp. PR #3024 had merged by then, so the merge order of F1 is met.
 
 ## Completion Rules
 
