@@ -486,3 +486,43 @@ Commit subject: `docs(secrets): [#2999] teach the Authorization header and the p
   `docs/pr-reviews/`, `target/` and test code finds only the sentences that explain the query form
   on purpose, and tests that exercise it (`auth.rs`, `routes.rs`, `client.rs`).
 - Pre-commit gate (markdown, links, spelling, doc tests): passed.
+
+## T9 - Final Recheck (M1 to M7)
+
+- Date and time (UTC): 2026-11-24 17:54 to 17:56.
+- Artifact: `target/debug/torrust-tracker` built with `cargo build --bin torrust-tracker` after the
+  last production change, from the branch head with the subject `docs(secrets): [#2999] teach the
+  Authorization header and the peer-key rule` (the commits before it hold all production changes;
+  this one only changes documentation). `rustc 1.100.0`, Docker 28.3.3, `mysql:8.0`, `postgres:16`.
+- Command: `bash <abs path>/docs/issues/open/2993-secrets-and-client-error-text/evidence/reproduce.sh
+  <abs path>/target/debug/torrust-tracker <scratch work dir>` (the baseline's command, unchanged).
+  Complete output: [`evidence/final-output.txt`](evidence/final-output.txt), compared with
+  [`evidence/baseline-output.txt`](evidence/baseline-output.txt).
+
+| ID | Result | Observed (final run) |
+|---|---|---|
+| M1 | DONE | Unregistered key: `Authentication key not registered`. No key: `Missing authentication key: this tracker is private, use /announce/<key>`. 14 characters: `Invalid authentication key: expected 32 characters, got 14`. None holds a key. The characters case (`...only the characters 0-9, a-z and A-Z are allowed`) and the expired case (`Authentication key expired`) were not requested by the script; the contract and unit tests assert them. |
+| M2 | DONE | `POST /api/v1/keys` short key: `Invalid URL: invalid auth key: expected 32 characters, got 14 [400]`. `DELETE /api/v1/key/BadTestKey`: `Invalid auth key id param: expected 32 characters, got 10 [400]`. |
+| M3 | DONE | With `trace_filter = "debug"`: 0 `uri=` fields hold a test key or token; the 500 line shows `uri=/api/v1/stats?token=***`; 0 log lines hold the admin token. The health-check API is covered by its test binary (the script does not start it with traffic). |
+| M4 | DONE | `Generated key` lines: 0; lines holding the generated key: 0. |
+| M5 | DONE | ``invalid type: found a value of another type (not shown: the option is a secret), expected a string for key "default.core.database.password"`` and the same for `default.http_api.access_tokens.admin`. |
+| M6 | DONE (by test) | The REST client is a library with no command line; the closed-port GET with a token and key delete are the `rest-api-client` tests (`it_should_not_hold_the_token_or_the_url_query_in_the_transport_error_of_a_get_request`, `it_should_not_hold_the_key_in_the_transport_error_of_a_key_delete`), which run the real client against a refused connection. |
+| M7 | DONE | MySQL duplicate key: `failed to add key: The MySQL database already holds this authentication key [500]`; 0 log lines hold the key. PostgreSQL gives the same text; SQLite likewise. |
+
+Unchanged by design, owned by SI-B: the database server message for wrong credentials still names
+the user and the client address (A11), and UDP and whitelist reply texts.
+
+### Automatic checks
+
+`./contrib/dev-tools/git/hooks/pre-commit.sh` passed for every commit (cargo machete, `linter all`,
+nightly formatting, doc tests). `cargo test --workspace --no-fail-fast` passed after the last code
+change; the MySQL and PostgreSQL driver tests passed with
+`--features db-compatibility-tests`.
+
+### Completion review
+
+No `implementation-retrospective.md` is needed: no increment needed a redesign. Two notes for
+reviewers: (1) the HTTP-extractor and REST-reply areas were written together with their tests and
+proven by mutation, not by a run against the old code (the adapter stopped compiling as soon as
+`PeerKeyError` lost its field); (2) the generated-key log lines were removed, not replaced by a
+key-less line.
