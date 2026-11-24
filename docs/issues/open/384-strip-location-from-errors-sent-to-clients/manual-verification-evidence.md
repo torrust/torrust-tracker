@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/384-strip-location-from-errors-sent-to-clients/ISSUE.md
-last-updated-utc: "2026-11-24 13:40"
+last-updated-utc: "2026-11-24 14:37"
 ---
 
 <!-- cspell:ignore getrandbits QQQII EXPKEY fromhex whitelistede hashe numwante bytese characterse keye expirede -->
@@ -406,6 +406,6 @@ Each reply held a path before (`http-core`, `tracker-core`, `axum-http-server`) 
 
 ### Summary of the path check
 
-On the "after" output, `grep -nE '\.rs:|packages/|src/|\.cargo/registry|rustlib' evidence/responses-after.txt evidence/responses-extra-after.txt` finds nothing (the forbidden substrings of the spec). R6 and R7 of `extra.sh` (HTTP scrape and announce with an invalid parameter) are further replies that held a path before and hold none after.
+On the "after" output, `grep -nF -e '.rs:' -e 'packages/' -e 'packages\' -e 'src/' -e 'src\' -e '.cargo/registry' -e 'rustlib/src' evidence/responses-after.txt evidence/responses-extra-after.txt` (the seven forbidden substrings of the spec, Windows forms included) finds nothing (exit status 1, run 2026-11-24 14:37 UTC). R6 and R7 of `extra.sh` (HTTP scrape and announce with an invalid parameter) are further replies that held a path before and hold none after.
 
 Server logs are out of scope (spec) and were not checked.
