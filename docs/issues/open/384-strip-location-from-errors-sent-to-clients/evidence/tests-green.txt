@@ -1,0 +1,159 @@
+     Running unittests src/lib.rs (target/debug/build/agent-reply-validator/08cdc798c13e2bcd/out/agent_reply_validator-08cdc798c13e2bcd)
+     Running unittests src/bin/agent-reply-schema.rs (target/debug/build/agent-reply-validator/a314dd19aaf0a89a/out/agent_reply_schema-a314dd19aaf0a89a)
+     Running unittests src/bin/agent-reply-validator/main.rs (target/debug/build/agent-reply-validator/aedcd8c1def90e4d/out/agent_reply_validator-aedcd8c1def90e4d)
+     Running tests/cli.rs (target/debug/build/agent-reply-validator/a966234e7b05d5ab/out/cli-a966234e7b05d5ab)
+     Running tests/schema.rs (target/debug/build/agent-reply-validator/f3849482acec29d6/out/schema-f3849482acec29d6)
+     Running unittests src/main.rs (target/debug/build/agent-review-report-contract/0d6122d474db4682/out/agent_review_report_contract-0d6122d474db4682)
+     Running unittests src/lib.rs (target/debug/build/ci-gate/cc36e52087bed04d/out/ci_gate-cc36e52087bed04d)
+     Running unittests src/main.rs (target/debug/build/ci-gate/2a17b83de923f0ae/out/ci_gate-2a17b83de923f0ae)
+     Running tests/cli.rs (target/debug/build/ci-gate/78bc3a08bde7e94f/out/cli-78bc3a08bde7e94f)
+     Running unittests src/lib.rs (target/debug/build/clippy-allow-reasons/1d5c9f63c7e766b8/out/clippy_allow_reasons-1d5c9f63c7e766b8)
+     Running unittests src/main.rs (target/debug/build/clippy-allow-reasons/0dae1fd3312b1f3f/out/clippy_allow_reasons-0dae1fd3312b1f3f)
+     Running tests/cli.rs (target/debug/build/clippy-allow-reasons/7c113a30ad0c4352/out/cli-7c113a30ad0c4352)
+     Running unittests src/lib.rs (target/debug/build/frontmatter-validator/18df44ae9c651c72/out/frontmatter_validator-18df44ae9c651c72)
+     Running unittests src/bin/frontmatter-schema.rs (target/debug/build/frontmatter-validator/c49ac259eb0ef85d/out/frontmatter_schema-c49ac259eb0ef85d)
+     Running unittests src/bin/frontmatter-validator/main.rs (target/debug/build/frontmatter-validator/190c904633157e8e/out/frontmatter_validator-190c904633157e8e)
+     Running tests/cli.rs (target/debug/build/frontmatter-validator/fb3ccc836707a045/out/cli-fb3ccc836707a045)
+     Running unittests src/lib.rs (target/debug/build/github-review-threads/5b4ff71cab0c4d74/out/github_review_threads-5b4ff71cab0c4d74)
+     Running unittests src/main.rs (target/debug/build/github-review-threads/cf80e17e5031ebe7/out/github_review_threads-cf80e17e5031ebe7)
+     Running tests/cli.rs (target/debug/build/github-review-threads/2330f26c10f36d40/out/cli-2330f26c10f36d40)
+     Running unittests src/lib.rs (target/debug/build/package-coverage-check/ae7cbae7f97c1c35/out/package_coverage_check-ae7cbae7f97c1c35)
+     Running unittests src/main.rs (target/debug/build/package-coverage-check/c64b7956cc95bd10/out/package_coverage_check-c64b7956cc95bd10)
+     Running tests/cli.rs (target/debug/build/package-coverage-check/e4d24d38430f490d/out/cli-e4d24d38430f490d)
+     Running tests/summary.rs (target/debug/build/package-coverage-check/33cbf88ba6677695/out/summary-33cbf88ba6677695)
+     Running unittests src/lib.rs (target/debug/build/shipped-features-check/4941d07214dc4352/out/shipped_features_check-4941d07214dc4352)
+     Running unittests src/main.rs (target/debug/build/shipped-features-check/bd9d5febcfc408c2/out/shipped_features_check-bd9d5febcfc408c2)
+     Running tests/cli.rs (target/debug/build/shipped-features-check/e17d4d2027c0682a/out/cli-e17d4d2027c0682a)
+     Running unittests src/lib.rs (target/debug/build/source-location-check/0c51f695abea59da/out/source_location_check-0c51f695abea59da)
+     Running unittests src/main.rs (target/debug/build/source-location-check/67e5af74a839e89f/out/source_location_check-67e5af74a839e89f)
+     Running tests/cli.rs (target/debug/build/source-location-check/75385ad6a5626a5a/out/cli-75385ad6a5626a5a)
+     Running unittests src/lib.rs (target/debug/build/torrust-tracker/9c01d4a0dc25c6f4/out/torrust_tracker_lib-9c01d4a0dc25c6f4)
+     Running unittests src/bin/http_health_check.rs (target/debug/build/torrust-tracker/519bb19ee87d2c7c/out/http_health_check-519bb19ee87d2c7c)
+     Running unittests src/main.rs (target/debug/build/torrust-tracker/8ab679e0664d5ae4/out/torrust_tracker-8ab679e0664d5ae4)
+     Running tests/banning/udp_metrics_disabled_port_zero.rs (target/debug/build/torrust-tracker/4feaa7f16223b5db/out/banning_udp_metrics_disabled_port_zero-4feaa7f16223b5db)
+     Running tests/banning/udp_shared_connection_id_error_limit.rs (target/debug/build/torrust-tracker/426c51e1a614100a/out/banning_udp_shared_connection_id_error_limit-426c51e1a614100a)
+     Running tests/banning/udp_shared_connection_id_error_limit_reverse_order.rs (target/debug/build/torrust-tracker/39bb4b42c3e78bc8/out/banning_udp_shared_connection_id_error_limit_reverse_order-39bb4b42c3e78bc8)
+     Running tests/configuration/cli_configuration.rs (target/debug/build/torrust-tracker/c30e04cda12cae4c/out/cli_configuration-c30e04cda12cae4c)
+     Running tests/http_health_check.rs (target/debug/build/torrust-tracker/08ab5613a7e521b9/out/http_health_check-08ab5613a7e521b9)
+     Running tests/lifecycle/fixture_shutdown_assertion.rs (target/debug/build/torrust-tracker/9d66132674fca9dd/out/lifecycle_fixture_shutdown_assertion-9d66132674fca9dd)
+     Running tests/lifecycle/shutdown_policy.rs (target/debug/build/torrust-tracker/38c660faaebfe3e0/out/lifecycle_shutdown_policy-38c660faaebfe3e0)
+     Running tests/lifecycle/signals.rs (target/debug/build/torrust-tracker/344aafee271fc801/out/lifecycle_signals-344aafee271fc801)
+     Running tests/metrics/fixed_ports.rs (target/debug/build/torrust-tracker/689261ab37a21e8d/out/metrics_fixed_ports-689261ab37a21e8d)
+     Running tests/metrics/port_zero.rs (target/debug/build/torrust-tracker/7d3c85bcdb1a8fba/out/metrics_port_zero-7d3c85bcdb1a8fba)
+     Running tests/metrics/udp_error_disabled_port_zero.rs (target/debug/build/torrust-tracker/0fc796df3f821671/out/metrics_udp_error_disabled_port_zero-0fc796df3f821671)
+     Running tests/metrics/udp_error_enabled_port_zero.rs (target/debug/build/torrust-tracker/9dccbb276d1728c0/out/metrics_udp_error_enabled_port_zero-9dccbb276d1728c0)
+     Running tests/persistence/completed_downloads_on_shutdown.rs (target/debug/build/torrust-tracker/dee9efa4f7b87b3c/out/persistence_completed_downloads_on_shutdown-dee9efa4f7b87b3c)
+     Running tests/persistence/scrape_after_restart.rs (target/debug/build/torrust-tracker/00172d094bb6801d/out/persistence_scrape_after_restart-00172d094bb6801d)
+     Running tests/scaffold.rs (target/debug/build/torrust-tracker/83e39868254c1425/out/scaffold-83e39868254c1425)
+     Running unittests src/lib.rs (target/debug/build/torrust-tracker-axum-health-check-api-server/7289419f9beeec2d/out/torrust_tracker_axum_health_check_api_server-7289419f9beeec2d)
+     Running tests/integration.rs (target/debug/build/torrust-tracker-axum-health-check-api-server/a22dd60dfac0f4e7/out/integration-a22dd60dfac0f4e7)
+     Running unittests src/lib.rs (target/debug/build/torrust-tracker-axum-http-server/2532d19b3ce840f2/out/torrust_tracker_axum_http_server-2532d19b3ce840f2)
+running 4 tests
+test v1::extractors::announce_request::tests::it_should_say_that_a_request_without_query_params_has_no_query_string_and_name_no_source_path ... ok
+test v1::extractors::authentication_key::tests::it_should_describe_an_invalid_path_key_by_the_expected_format_and_no_source_path ... ok
+test v1::extractors::scrape_request::tests::it_should_say_that_a_request_without_query_params_has_no_query_string_and_name_no_source_path ... ok
+test v1::extractors::authentication_key::tests::it_should_say_where_the_key_is_expected_and_name_no_source_path_when_the_request_has_no_path_params ... ok
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 49 filtered out; finished in 0.00s
+     Running tests/integration.rs (target/debug/build/torrust-tracker-axum-http-server/e1a873bd4411cbcf/out/integration-e1a873bd4411cbcf)
+running 14 tests
+test server::v1::contract::failure_reasons_hold_no_source_path::a_scrape_without_query_params ... ok
+test server::v1::contract::failure_reasons_hold_no_source_path::an_announce_to_a_tracker_behind_a_reverse_proxy_without_the_x_forwarded_for_header ... ok
+test server::v1::contract::failure_reasons_hold_no_source_path::an_announce_to_a_listed_tracker_for_a_torrent_that_is_not_whitelisted ... ok
+test server::v1::contract::failure_reasons_hold_no_source_path::an_announce_without_query_params ... ok
+test server::v1::contract::failure_reasons_hold_no_source_path::an_announce_with_a_short_info_hash ... ok
+test server::v1::contract::failure_reasons_hold_no_source_path::an_announce_to_a_private_tracker_with_a_malformed_key ... ok
+test server::v1::contract::failure_reasons_hold_no_source_path::an_announce_with_an_unparsable_query ... ok
+test server::v1::contract::failure_reasons_hold_no_source_path::an_announce_with_an_invalid_numwant_param ... ok
+test server::v1::contract::failure_reasons_hold_no_source_path::a_scrape_with_a_short_info_hash ... ok
+test server::v1::contract::failure_reasons_hold_no_source_path::an_announce_to_a_private_tracker_without_a_key ... ok
+test server::v1::contract::failure_reasons_hold_no_source_path::a_scrape_without_the_info_hash_param ... ok
+test server::v1::contract::failure_reasons_hold_no_source_path::an_announce_with_a_short_peer_id ... ok
+test server::v1::contract::failure_reasons_hold_no_source_path::an_announce_to_a_private_tracker_with_an_unregistered_key ... ok
+test server::v1::contract::failure_reasons_hold_no_source_path::an_announce_without_the_info_hash_param ... ok
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 63 filtered out; finished in 1.13s
+     Running unittests src/lib.rs (target/debug/build/torrust-tracker-axum-rest-api-server/2baee7a255b9406e/out/torrust_tracker_axum_rest_api_server-2baee7a255b9406e)
+     Running tests/integration.rs (target/debug/build/torrust-tracker-axum-rest-api-server/1ebb5758bfada81c/out/integration-1ebb5758bfada81c)
+running 2 tests
+test server::v1::contract::context::auth_key::should_fail_without_a_source_path_when_the_same_auth_key_is_uploaded_twice ... ok
+test server::v1::contract::context::auth_key::should_fail_without_a_source_path_when_the_auth_key_to_delete_does_not_exist ... ok
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 58 filtered out; finished in 1.08s
+     Running unittests src/lib.rs (target/debug/build/torrust-tracker-axum-server/baa1ac4ab94c5a04/out/torrust_tracker_axum_server-baa1ac4ab94c5a04)
+     Running tests/idle_connections.rs (target/debug/build/torrust-tracker-axum-server/c231c9821e23e15d/out/idle_connections-c231c9821e23e15d)
+     Running unittests src/lib.rs (target/debug/build/torrust-tracker-client/2343124a04244fe1/out/torrust_tracker_console_client-2343124a04244fe1)
+     Running unittests src/bin/tracker_client.rs (target/debug/build/torrust-tracker-client/9ee8c8b15964d163/out/tracker_client-9ee8c8b15964d163)
+     Running tests/key_redaction.rs (target/debug/build/torrust-tracker-client/101e95d23e3627cf/out/key_redaction-101e95d23e3627cf)
+     Running tests/output_contract.rs (target/debug/build/torrust-tracker-client/5c347b696ed79cb6/out/output_contract-5c347b696ed79cb6)
+     Running tests/tracker_checker.rs (target/debug/build/torrust-tracker-client/0a8eb506f88a29fe/out/tracker_checker-0a8eb506f88a29fe)
+     Running tests/tracker_client.rs (target/debug/build/torrust-tracker-client/34576b7be0a9608f/out/tracker_client-34576b7be0a9608f)
+     Running unittests src/lib.rs (target/debug/build/torrust-tracker-client-lib/f48cc6206a08c517/out/torrust_tracker_client-f48cc6206a08c517)
+     Running unittests src/lib.rs (target/debug/build/torrust-tracker-configuration/11a2f83525666cbd/out/torrust_tracker_configuration-11a2f83525666cbd)
+running 2 tests
+test tests::it_should_not_hold_a_source_path_when_a_figment_error_is_converted ... ok
+test tests::it_should_not_hold_a_source_path_when_an_explicit_config_file_is_invalid ... ok
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 159 filtered out; finished in 0.00s
+     Running unittests src/lib.rs (target/debug/build/torrust-tracker-core/66d871d11402d70f/out/torrust_tracker_core-66d871d11402d70f)
+running 7 tests
+test whitelist::authorization::tests::the_whitelist_authorization_for_announce_and_scrape_actions::when_the_tacker_is_configured_as_listed::should_reject_a_non_whitelisted_infohash_with_a_message_that_names_it_and_holds_no_source_path ... ok
+test authentication::key::tests::the_key_verification_error::should_render_the_database_error_text_and_no_source_path ... ok
+test authentication::service::tests::the_authentication_service::when_the_tracker_is_private::it_should_reject_an_expired_key_with_a_message_that_holds_no_source_path ... ok
+test databases::error::tests::it_should_render_a_sqlx_error_with_its_own_text_and_no_source_path ... ok
+test authentication::service::tests::the_authentication_service::when_the_tracker_is_private::it_should_reject_an_unregistered_key_with_a_message_that_holds_no_source_path ... ok
+test authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::peer_key_errors::it_should_fail_without_a_source_path_when_the_key_is_invalid ... ok
+test authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::peer_key_errors::it_should_fail_without_a_source_path_when_the_database_rejects_a_duplicate_key ... ok
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 272 filtered out; finished in 0.03s
+     Running tests/integration.rs (target/debug/build/torrust-tracker-core/1caae664bedbe747/out/integration-1caae664bedbe747)
+     Running unittests src/bin/e2e_tests_runner.rs (target/debug/build/torrust-tracker-e2e-tools/978d90ebcd7da59b/out/e2e_tests_runner-978d90ebcd7da59b)
+     Running unittests src/bin/profiling.rs (target/debug/build/torrust-tracker-e2e-tools/5c2f075f2501cd7e/out/profiling-5c2f075f2501cd7e)
+     Running unittests src/bin/qbittorrent_e2e_runner.rs (target/debug/build/torrust-tracker-e2e-tools/05cbafc7b242b342/out/qbittorrent_e2e_runner-05cbafc7b242b342)
+     Running unittests src/lib.rs (target/debug/build/torrust-tracker-events/a08a971e561a2dce/out/torrust_tracker_events-a08a971e561a2dce)
+     Running unittests src/lib.rs (target/debug/build/torrust-tracker-http-core/11c5ad089d2f1ccd/out/torrust_tracker_http_core-11c5ad089d2f1ccd)
+     Running unittests src/lib.rs (target/debug/build/torrust-tracker-http-protocol/1c98c22c359e7bb0/out/torrust_tracker_http_protocol-1c98c22c359e7bb0)
+running 10 tests
+test v1::query::tests::url_query::it_should_describe_an_unparsable_param_by_its_raw_text_and_no_source_path ... ok
+test v1::requests::announce::tests::announce_request::describing_a_rejected_query::it_should_name_a_missing_mandatory_param_and_no_source_path ... ok
+test v1::requests::announce::tests::announce_request::describing_a_rejected_query::it_should_name_a_short_info_hash_and_the_expected_length_and_no_source_path ... ok
+test v1::services::peer_ip_resolver::tests::working_without_reverse_proxy::it_should_say_why_it_cannot_get_the_remote_client_ip_without_a_source_path ... ok
+test v1::requests::scrape::tests::scrape_request::describing_a_rejected_query::it_should_name_a_short_info_hash_and_the_expected_length_and_no_source_path ... ok
+test v1::requests::scrape::tests::scrape_request::describing_a_rejected_query::it_should_name_the_missing_info_hash_param_and_no_source_path ... ok
+test v1::services::peer_ip_resolver::tests::working_on_reverse_proxy_mode::it_should_name_the_missing_x_forwarded_for_ip_without_a_source_path ... ok
+test v1::requests::announce::tests::announce_request::describing_a_rejected_query::it_should_name_a_short_peer_id_and_the_expected_length_and_no_source_path ... ok
+test v1::requests::announce::tests::announce_request::describing_a_rejected_query::it_should_name_an_invalid_event_and_no_source_path_when_the_event_is_parsed_on_its_own ... ok
+test v1::requests::announce::tests::announce_request::describing_a_rejected_query::it_should_name_an_invalid_param_and_its_value_and_no_source_path ... ok
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 72 filtered out; finished in 0.00s
+     Running unittests src/main.rs (target/debug/build/torrust-tracker-hung-component-tracker/6caffe3377d682cb/out/hung_component_tracker-6caffe3377d682cb)
+     Running tests/hung_component_abort.rs (target/debug/build/torrust-tracker-hung-component-tracker/147fdf3fd1560ae4/out/hung_component_abort-147fdf3fd1560ae4)
+     Running unittests src/bin/persistence_benchmark_runner.rs (target/debug/build/torrust-tracker-persistence-benchmark/6657533ef96a0084/out/persistence_benchmark_runner-6657533ef96a0084)
+     Running unittests src/lib.rs (target/debug/build/torrust-tracker-primitives/b2d0f84a6ee3f9c7/out/torrust_tracker_primitives-b2d0f84a6ee3f9c7)
+running 3 tests
+test peer::test::peer_role::it_should_describe_a_name_that_is_not_a_role_by_the_rejected_text_and_no_source_path ... ok
+test peer::test::torrent_peer_id::it_should_describe_a_byte_vector_with_less_than_20_bytes_by_its_length_and_no_source_path ... ok
+test peer::test::torrent_peer_id::it_should_describe_a_byte_vector_with_more_than_20_bytes_by_its_length_and_no_source_path ... ok
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 126 filtered out; finished in 0.00s
+     Running unittests src/lib.rs (target/debug/build/torrust-tracker-rest-api-application/3a682b416ee64571/out/torrust_tracker_rest_api_application-3a682b416ee64571)
+     Running unittests src/lib.rs (target/debug/build/torrust-tracker-rest-api-client/75b81678bd741c22/out/torrust_tracker_rest_api_client-75b81678bd741c22)
+     Running unittests src/lib.rs (target/debug/build/torrust-tracker-rest-api-protocol/5a75c73cf469563e/out/torrust_tracker_rest_api_protocol-5a75c73cf469563e)
+     Running unittests src/lib.rs (target/debug/build/torrust-tracker-rest-api-runtime-adapter/a2d4be7829496a81/out/torrust_tracker_rest_api_runtime_adapter-a2d4be7829496a81)
+     Running unittests src/lib.rs (target/debug/build/torrust-tracker-swarm-coordination-registry/98bc02bdbb48f23f/out/torrust_tracker_swarm_coordination_registry-98bc02bdbb48f23f)
+     Running unittests src/lib.rs (target/debug/build/torrust-tracker-test-helpers/7e1349869b71e5b5/out/torrust_tracker_test_helpers-7e1349869b71e5b5)
+     Running unittests src/lib.rs (target/debug/build/torrust-tracker-torrent-repository-benchmarking/cd77e963b8622aec/out/torrust_tracker_torrent_repository_benchmarking-cd77e963b8622aec)
+     Running tests/integration.rs (target/debug/build/torrust-tracker-torrent-repository-benchmarking/843ffdeba299ff12/out/integration-843ffdeba299ff12)
+     Running unittests src/lib.rs (target/debug/build/torrust-tracker-udp-core/fef81b30943529cb/out/torrust_tracker_udp_core-fef81b30943529cb)
+     Running unittests src/lib.rs (target/debug/build/torrust-tracker-udp-protocol/90f1ba7c1cb9bc73/out/torrust_tracker_udp_protocol-90f1ba7c1cb9bc73)
+     Running unittests src/lib.rs (target/debug/build/torrust-tracker-udp-server/c7435f1838ef771b/out/torrust_tracker_udp_server-c7435f1838ef771b)
+running 2 tests
+test error::tests::it_should_not_hold_a_source_path_when_an_authentication_required_error_is_displayed ... ok
+test error::tests::it_should_not_hold_a_source_path_when_an_internal_error_is_displayed ... ok
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 224 filtered out; finished in 0.00s
+     Running tests/integration.rs (target/debug/build/torrust-tracker-udp-server/5ead751fcf80c09d/out/integration-5ead751fcf80c09d)
+running 1 test
+test server::contract::receiving_an_announce_request::should_reject_a_torrent_that_is_not_whitelisted_with_a_message_that_holds_no_source_path ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 16 filtered out; finished in 0.06s
+     Running unittests src/lib.rs (target/debug/build/wait-for-pr-review/dce739c3f1018283/out/wait_for_pr_review-dce739c3f1018283)
+     Running unittests src/main.rs (target/debug/build/wait-for-pr-review/e59d1f2264470cdd/out/wait_for_pr_review-e59d1f2264470cdd)
+     Running tests/cli.rs (target/debug/build/wait-for-pr-review/fbd96b60447bb311/out/cli-fbd96b60447bb311)
+     Running unittests src/lib.rs (target/debug/build/workspace-coupling/f4bf14c4bceb9e7a/out/workspace_coupling-f4bf14c4bceb9e7a)
+     Running unittests src/main.rs (target/debug/build/workspace-coupling/2b3d270d22922896/out/workspace_coupling-2b3d270d22922896)
+     Running tests/edge_labels.rs (target/debug/build/workspace-coupling/1dd9f608dca648cb/out/edge_labels-1dd9f608dca648cb)
+     Running tests/parse_imports.rs (target/debug/build/workspace-coupling/6ce2cb95ccd1d5ab/out/parse_imports-6ce2cb95ccd1d5ab)
+     Running tests/resolve_module_name.rs (target/debug/build/workspace-coupling/4db4f6be78791d79/out/resolve_module_name-4db4f6be78791d79)
+EXIT=0

@@ -1,0 +1,49 @@
+date -u: 2026-11-24 13:28:32
+U1 UDP announce, info-hash not whitelisted (listed tracker)
+  udp_announce.py 17069 3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0
+  action=3 message='tracker announce error: Tracker core whitelist error: The torrent: 3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0, is not whitelisted, packages/tracker-core/src/whitelist/authorization.rs:61:23'
+H1 HTTP announce, info-hash not whitelisted (listed tracker)
+  GET :17070/announce?info_hash=%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0&peer_id=-qB00000000000000001&port=17548
+  d14:failure reason158:Tracker whitelist error: The torrent: 3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0, is not whitelisted, packages/tracker-core/src/whitelist/authorization.rs:61:23e
+H5 HTTP announce without info_hash (listed tracker)
+  GET :17070/announce?peer_id=-qB00000000000000001&port=17548
+  d14:failure reason145:Bad request. Cannot parse query params for announce request: missing param info_hash in packages/http-protocol/src/v1/requests/announce.rs:564:23e
+H6 HTTP announce with numwant=x (listed tracker)
+  GET :17070/announce?info_hash=%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0&peer_id=-qB00000000000000001&port=17548&numwant=x
+  d14:failure reason155:Bad request. Cannot parse query params for announce request: invalid param value x for numwant in packages/http-protocol/src/v1/requests/announce.rs:654:27e
+H7 HTTP announce with a short info_hash (listed tracker)
+  GET :17070/announce?info_hash=abc&peer_id=-qB00000000000000001&port=17548
+  d14:failure reason334:Bad request. Cannot parse query params for announce request: invalid param value abc for info_hash in not enough bytes for infohash: got 3 bytes, expected 20 <home>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/torrust-info-hash-0.2.0/src/info_hash.rs:273:27, packages/http-protocol/src/v1/requests/announce.rs:559:42e
+H8 HTTP announce with a malformed key (private tracker)
+  GET :17080/announce/not-a-key?info_hash=%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0&peer_id=-qB00000000000000001&port=17548
+  d14:failure reason156:Tracker authentication error: Invalid format for authentication key param. Error in packages/axum-http-server/src/v1/extractors/authentication_key.rs:109:23e
+W1 REST whitelist the info-hash
+  POST :17212/api/v1/whitelist/3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0?token=<token>
+  {"status":"ok"}
+W2 REST whitelist the same info-hash again
+  POST :17212/api/v1/whitelist/3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0?token=<token>
+  {"status":"ok"}
+W3 REST remove an info-hash that is not whitelisted
+  DELETE :17212/api/v1/whitelist/9e0217d0fa71c87332cd8bf9dbeabcb2c2cf3c4d?token=<token>
+  {"status":"ok"}
+H2 HTTP announce without key (private tracker)
+  GET :17080/announce?info_hash=%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0&peer_id=-qB00000000000000001&port=17548
+  d14:failure reason108:Tracker authentication error: Missing authentication key, packages/http-core/src/services/announce.rs:308:27e
+H3 HTTP announce with an unregistered key (private tracker)
+  GET :17080/announce/YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ?info_hash=%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0&peer_id=-qB00000000000000001&port=17548
+  d14:failure reason141:Tracker authentication error: Failed to read key: YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ, packages/tracker-core/src/authentication/service.rs:98:27e
+K1 REST add a key valid for 60 s
+  POST :17213/api/v1/keys?token=<token>
+  {"key":"YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ","valid_until":1795526972,"expiry_time":"2026-11-24 13:29:32 UTC"}
+K2 REST add the same key again
+  POST :17213/api/v1/keys?token=<token>
+  Unhandled rejection: Err { reason: "failed to add key: The Sqlite3 query was malformed: error returned from database: (code: 2067) UNIQUE constraint failed: keys.key, packages/tracker-core/src/databases/driver/sqlite/auth_key_store.rs:74:22, packages/tracker-core/src/authentication/handler.rs:103:50" }
+K3 REST remove a key that does not exist
+  DELETE :17213/api/v1/key/ZZZZ4lMZupRuOpSRC3krIKR5BPB14nrJ?token=<token>
+  Unhandled rejection: Err { reason: "failed to delete key: Failed to remove record from Sqlite3 database, error-code: 0, packages/tracker-core/src/databases/driver/sqlite/auth_key_store.rs:108:27" }
+K4 REST generate a key valid for 1 s
+  POST /api/v1/key/1?token=<token>
+  {"key":"s4P5Ecf5GilrCfhjt4YSTxPgsCQTxVRW","valid_until":1795526913,"expiry_time":"2026-11-24 13:28:33 UTC"}
+H4 HTTP announce with the expired key (private tracker)
+  GET :17080/announce/s4P5Ecf5GilrCfhjt4YSTxPgsCQTxVRW?info_hash=%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0&peer_id=-qB00000000000000001&port=17548
+  d14:failure reason105:Tracker authentication error: Key has expired, packages/tracker-core/src/authentication/key/mod.rs:158:31e
