@@ -1,0 +1,35 @@
+name: Enable sccache
+description: >-
+  Start the sccache server with the GitHub Actions cache backend and use it as the Rust compiler
+  wrapper. When the server does not start, build without sccache and show a warning instead of
+  failing the job. Run it after mozilla-actions/sccache-action, before the first cargo command.
+
+# issue: #3019
+# adr: docs/adrs/20260612000000_adopt_sccache_for_ci_bare_builds.md
+#
+# The sccache client gives up when its server is not ready in 10 seconds, and with the GitHub
+# Actions cache backend the server's startup depends on the cache service. Starting the server
+# here, before RUSTC_WRAPPER is set, keeps that failure out of the cargo commands.
+# SCCACHE_IDLE_TIMEOUT=0 keeps the server alive for the whole job, so no later compile starts a
+# new server without this check.
+
+runs:
+  using: composite
+  steps:
+    - name: Start the sccache server
+      shell: bash
+      env:
+        SCCACHE_GHA_ENABLED: "true"
+        SCCACHE_IDLE_TIMEOUT: "0"
+      run: |
+        echo "CARGO_INCREMENTAL=0" >> "$GITHUB_ENV"
+        if sccache --start-server; then
+          {
+            echo "RUSTC_WRAPPER=sccache"
+            echo "SCCACHE_GHA_ENABLED=true"
+            echo "SCCACHE_IDLE_TIMEOUT=0"
+          } >> "$GITHUB_ENV"
+        else
+          sccache --stop-server || true
+          echo "::warning title=sccache disabled::The sccache server did not start, so this job builds without the compilation cache. See issue #3019."
+        fi
