@@ -71,10 +71,19 @@ check as a failure. To wait for the workflow checks alone, poll them instead. Th
 tokens; it ends when at least one workflow check exists and none is pending:
 
 ```sh
-until gh pr checks <PR> --repo torrust/torrust-tracker --json bucket,workflow \
-  --jq '[.[] | select(.workflow != "")] | length > 0 and all(.bucket != "pending")' \
-  2> /dev/null | grep -qx true; do sleep 60; done
+while :; do
+  ready=$(gh pr checks <PR> --repo torrust/torrust-tracker --json bucket,workflow \
+    --jq '[.[] | select(.workflow != "")] | length > 0 and all(.bucket != "pending")') \
+    || { echo "gh pr checks failed; see its error above" >&2; break; }
+  [ "$ready" = true ] && break
+  sleep 60
+done > .tmp/pr-checks-wait.txt 2>&1
 ```
+
+With `--json`, `gh pr checks` exits `0` whether the checks pass, fail or are pending, so a non-zero
+exit is a real error, such as an expired login, denied access or a network failure. The loop then
+stops and keeps the error in its output file instead of retrying without end: read the file when it
+exits and fix the cause before waiting again.
 
 Then decide with the workflow checks alone, and list the review-service check runs that were left
 out, for the report:
