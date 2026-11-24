@@ -474,7 +474,7 @@ mod tests {
 
             assert_failure_reason_contains(
                 &actual_error_response,
-                "Tracker authentication error: Missing authentication key",
+                "Tracker authentication error: Missing authentication key: this tracker is private, use /announce/<key>",
             );
         }
 
@@ -501,7 +501,7 @@ mod tests {
 
             assert_failure_reason_contains(
                 &actual_error_response,
-                "Tracker authentication error: Failed to read key: YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ",
+                "Tracker authentication error: Authentication key not registered",
             );
         }
     }

@@ -1,0 +1,57 @@
+### V1-V5 private tracker, sqlite
+--- V1 announce, unregistered key
+d14:failure reason82:Tracker authentication error: Failed to read key: TestPeerKey000000000000000000001e
+--- V1 announce, no key
+d14:failure reason56:Tracker authentication error: Missing authentication keye
+--- V1 announce, 14-character key
+d14:failure reason110:Tracker authentication error: Invalid format for authentication key param: expected 32 alphanumeric characterse
+--- V2 REST add 14-character key
+Invalid URL: invalid auth key: string "ShortTestKey01", Invalid key length. Key must be have 32 chars [400]
+--- V2 REST delete malformed key
+Invalid auth key id param "BadTestKey" [400]
+--- V3 REST wrong token in query
+Unhandled rejection: Err { reason: "token not valid" } [500]
+--- V4 REST generate key (reply not shown)
+[200]
+--- V5 REST duplicate key (sqlite)
+{"key":"TestPeerKey000000000000000000002","valid_until":1795537654,"expiry_time":"2026-11-24 16:27:34 UTC"} [200]
+Unhandled rejection: Err { reason: "failed to add key: The Sqlite3 query was malformed: error returned from database: (code: 2067) UNIQUE constraint failed: keys.key" } [500]
+--- V5 REST malformed JSON
+Failed to parse the request body as JSON: key must be a string at line 1 column 2 [400]
+--- V5 REST unknown path
+[404]
+--- log: uri fields holding a test key or token
+uri=/announce/ShortTestKey01?info_hash=%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00&peer_id=-qB00000000000000001&port=17548&left=0
+uri=/announce/TestPeerKey000000000000000000001?info_hash=%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00&peer_id=-qB00000000000000001&port=17548&left=0
+uri=/api/v1/key/BadTestKey
+uri=/api/v1/stats?token=WrongTestToken0001
+--- log: lines holding the admin token sent in the header: 0 (the startup configuration dump prints it as ***)
+--- log: 'Generated key' lines: 1; lines holding the generated key: 1
+2026-11-24T16:25:54.732022Z DEBUG request{method=POST uri=/api/v1/key/3600 version=HTTP/1.1}: torrust_tracker_core::authentication::key: Generated key: <the generated key>, valid for: 3600s seconds
+--- log: lines for the 500 reply
+2026-11-24T16:25:54.728684Z ERROR request{method=GET uri=/api/v1/stats?token=WrongTestToken0001 version=HTTP/1.1}: API: response latency_ms=0 status_code=500 Internal Server Error server_socket_addr=127.0.0.1:41212 service_binding=http://127.0.0.1:41212/ request_id=b3564ec5-1a75-43a3-a7d8-f1be3f968d54
+
+### V6 UDP, public listed tracker, sqlite
+python3: can't open file '<work-dir>/docs/issues/open/2993-secrets-and-client-error-text/evidence/udp_probe.py': [Errno 2] No such file or directory
+--- HTTP announce, not whitelisted
+d14:failure reason98:Tracker whitelist error: The torrent: 0000000000000000000000000000000000000000, is not whitelistede
+
+### V7 configuration errors
+--- pw-int
+Failed processing the configuration: invalid type: found signed int `987654321`, expected a string for key "default.core.database.password" in TOML source string
+--- token-int
+Failed processing the configuration: invalid type: found signed int `424242`, expected a string for key "default.http_api.access_tokens.admin" in TOML source string
+
+### V8 database server messages (MySQL 8.0, PostgreSQL 16)
+--- mysql-bad (wrong credentials)
+The MySQL query was malformed: error returned from database: 1045 (28000): Access denied for user 'db_user'@'172.17.0.1' (using password: YES)
+--- pg-bad (wrong credentials)
+Failed to apply PostgreSQL schema migrations: while executing migrations: error returned from database: password authentication failed for user "db_user"
+--- mysql duplicate key
+{"key":"TestPeerKey000000000000000000003","valid_until":1795537669,"expiry_time":"2026-11-24 16:27:49 UTC"} [200]
+Unhandled rejection: Err { reason: "failed to add key: The MySQL query was malformed: error returned from database: 1062 (23000): Duplicate entry 'TestPeerKey000000000000000000003' for key 'keys.key'" } [500]
+log lines holding the key: 0
+--- pg duplicate key
+{"key":"TestPeerKey000000000000000000003","valid_until":1795537671,"expiry_time":"2026-11-24 16:27:51 UTC"} [200]
+Unhandled rejection: Err { reason: "failed to add key: The PostgreSQL query was malformed: error returned from database: duplicate key value violates unique constraint \"keys_key_key\"" } [500]
+log lines holding the key: 0

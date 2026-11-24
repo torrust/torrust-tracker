@@ -1,0 +1,35 @@
+test authentication::key::peer_key::tests::key::it_should_name_the_allowed_characters_when_the_key_has_another_character ... FAILED
+test authentication::key::peer_key::tests::key::it_should_count_characters_not_bytes_when_naming_the_received_length ... FAILED
+test authentication::key::peer_key::tests::key::it_should_name_the_received_length_when_the_key_has_the_wrong_length ... FAILED
+test authentication::key::tests::the_authentication_error::it_should_tell_the_user_which_case_failed::case_1_missing ... FAILED
+test authentication::key::tests::the_authentication_error::it_should_tell_the_user_which_case_failed::case_2_expired ... FAILED
+test authentication::service::tests::the_authentication_service::when_the_tracker_is_private::it_should_reject_an_expired_key_with_a_message_that_holds_no_source_path ... FAILED
+test authentication::service::tests::the_authentication_service::when_the_tracker_is_private::it_should_neither_keep_nor_print_an_unregistered_key ... FAILED
+test authentication::service::tests::the_authentication_service::when_the_tracker_is_private::it_should_reject_an_unregistered_key_with_a_message_that_holds_no_source_path ... FAILED
+test authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::peer_key_errors::it_should_neither_keep_nor_print_an_invalid_key_and_name_its_length ... FAILED
+thread 'authentication::key::peer_key::tests::key::it_should_name_the_allowed_characters_when_the_key_has_another_character' (1064041) panicked at packages/tracker-core/src/authentication/key/peer_key
+  left: "Invalid chars for key. Key can only alphanumeric chars (0-9, a-z, A-Z)"
+ right: "only the characters 0-9, a-z and A-Z are allowed"
+thread 'authentication::key::peer_key::tests::key::it_should_count_characters_not_bytes_when_naming_the_received_length' (1064040) panicked at packages/tracker-core/src/authentication/key/peer_key.rs:
+  left: "Invalid key length. Key must be have 32 chars"
+ right: "only the characters 0-9, a-z and A-Z are allowed"
+thread 'authentication::key::peer_key::tests::key::it_should_name_the_received_length_when_the_key_has_the_wrong_length' (1064043) panicked at packages/tracker-core/src/authentication/key/peer_key.rs:
+  left: "Invalid key length. Key must be have 32 chars"
+ right: "expected 32 characters, got 14"
+thread 'authentication::key::tests::the_authentication_error::it_should_tell_the_user_which_case_failed::case_1_missing' (1064069) panicked at packages/tracker-core/src/authentication/key/mod.rs:209:1
+  left: "Missing authentication key"
+ right: "Missing authentication key: this tracker is private, use /announce/<key>"
+thread 'authentication::key::tests::the_authentication_error::it_should_tell_the_user_which_case_failed::case_2_expired' (1064070) panicked at packages/tracker-core/src/authentication/key/mod.rs:209:1
+  left: "Key has expired"
+ right: "Authentication key expired"
+thread 'authentication::service::tests::the_authentication_service::when_the_tracker_is_private::it_should_reject_an_expired_key_with_a_message_that_holds_no_source_path' (1064090) panicked at package
+  left: "Key has expired"
+ right: "Authentication key expired"
+thread 'authentication::service::tests::the_authentication_service::when_the_tracker_is_private::it_should_neither_keep_nor_print_an_unregistered_key' (1064085) panicked at packages/tracker-core/src/a
+the error Display holds the test secret
+thread 'authentication::service::tests::the_authentication_service::when_the_tracker_is_private::it_should_reject_an_unregistered_key_with_a_message_that_holds_no_source_path' (1064091) panicked at pa
+  left: "Failed to read key: YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ"
+ right: "Authentication key not registered"
+thread 'authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::peer_key_errors::it_should_neither_keep_nor_print_an_invalid_key_and_name_its_length' (1064031) pani
+the error Display holds the test secret
+test result: FAILED. 55 passed; 9 failed; 0 ignored; 0 measured; 222 filtered out; finished in 0.06s

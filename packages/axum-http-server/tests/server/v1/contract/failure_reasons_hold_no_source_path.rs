@@ -162,9 +162,10 @@ async fn an_announce_to_a_private_tracker_with_a_malformed_key() {
 
     assert_names_no_source_path(&failure_reason);
     assert!(
-        failure_reason.contains("Invalid format for authentication key param"),
+        failure_reason.contains("Invalid authentication key: expected 32 characters, got 11"),
         "{failure_reason:?}"
     );
+    assert!(!failure_reason.contains("INVALID_KEY"), "the failure reason holds the key");
 }
 
 #[tokio::test]
@@ -203,7 +204,10 @@ async fn an_announce_to_a_private_tracker_without_a_key() {
     .await;
 
     assert_names_no_source_path(&failure_reason);
-    assert!(failure_reason.contains("Missing authentication key"), "{failure_reason:?}");
+    assert!(
+        failure_reason.contains("Missing authentication key: this tracker is private, use /announce/<key>"),
+        "{failure_reason:?}"
+    );
 }
 
 #[tokio::test]
@@ -215,5 +219,12 @@ async fn an_announce_to_a_private_tracker_with_an_unregistered_key() {
     .await;
 
     assert_names_no_source_path(&failure_reason);
-    assert!(failure_reason.contains("Failed to read key"), "{failure_reason:?}");
+    assert!(
+        failure_reason.contains("Authentication key not registered"),
+        "{failure_reason:?}"
+    );
+    assert!(
+        !failure_reason.contains("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ"),
+        "the failure reason holds the key"
+    );
 }

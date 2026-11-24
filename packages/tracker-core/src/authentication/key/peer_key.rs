@@ -137,8 +137,10 @@ impl Key {
     /// - The input string does not have exactly 32 characters.
     /// - The input string contains characters that are not ASCII alphanumeric.
     pub fn new(value: &str) -> Result<Self, ParseKeyError> {
-        if value.len() != AUTH_KEY_LENGTH {
-            return Err(ParseKeyError::InvalidKeyLength);
+        let length = value.chars().count();
+
+        if length != AUTH_KEY_LENGTH {
+            return Err(ParseKeyError::InvalidKeyLength { length });
         }
 
         if !value.chars().all(|c| c.is_ascii_alphanumeric()) {
@@ -187,17 +189,23 @@ impl Key {
 /// ```
 ///
 /// If the string does not contains a valid key, the parser function will return
-/// this error.
+/// this error. The error never holds the rejected string, because a malformed
+/// key is still the user's secret: it states the received length or the
+/// allowed characters instead.
 #[derive(Debug, Error, Clone, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum ParseKeyError {
-    /// The provided key does not have exactly 32 characters.
-    #[error("Invalid key length. Key must be have 32 chars")]
-    InvalidKeyLength,
+    /// The provided key does not have exactly 32 characters. It keeps the
+    /// number of characters received, never the key: the key is a secret.
+    #[error("expected 32 characters, got {length}")]
+    InvalidKeyLength {
+        /// The number of characters (not bytes) of the rejected key.
+        length: usize,
+    },
 
     /// The provided key contains invalid characters. Only ASCII alphanumeric
     /// characters are allowed.
-    #[error("Invalid chars for key. Key can only alphanumeric chars (0-9, a-z, A-Z)")]
+    #[error("only the characters 0-9, a-z and A-Z are allowed")]
     InvalidChars,
 }
 
@@ -246,6 +254,38 @@ mod tests {
         fn should_only_include_alphanumeric_chars() {
             let key = Key::new("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
             assert!(key.is_err());
+        }
+
+        #[test]
+        fn it_should_name_the_received_length_when_the_key_has_the_wrong_length() {
+            let fourteen_characters = "ShortTestKey01";
+
+            let error = Key::new(fourteen_characters).unwrap_err();
+
+            assert_eq!(error.to_string(), "expected 32 characters, got 14");
+        }
+
+        #[test]
+        fn it_should_count_characters_not_bytes_when_naming_the_received_length() {
+            // 31 ASCII characters and one two-byte character: 32 characters, 33 bytes.
+            let thirty_two_characters = "TestPeerKeyWithAccent0000000000é";
+
+            let error = Key::new(thirty_two_characters).unwrap_err();
+
+            assert_eq!(
+                error.to_string(),
+                "only the characters 0-9, a-z and A-Z are allowed",
+                "a 32-character key with a non-ASCII character is rejected for its characters, not its length"
+            );
+        }
+
+        #[test]
+        fn it_should_name_the_allowed_characters_when_the_key_has_another_character() {
+            let key_with_a_dash = "TestPeerKey-00000000000000000001";
+
+            let error = Key::new(key_with_a_dash).unwrap_err();
+
+            assert_eq!(error.to_string(), "only the characters 0-9, a-z and A-Z are allowed");
         }
 
         #[test]

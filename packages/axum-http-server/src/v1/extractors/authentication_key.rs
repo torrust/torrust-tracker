@@ -20,32 +20,39 @@
 //! When the key param is **missing**:
 //!
 //! ```text
-//! d14:failure reason56:Tracker authentication error: Missing authentication keye
+//! d14:failure reason102:Tracker authentication error: Missing authentication key: this tracker is private, use /announce/<key>e
 //! ```
 //!
-//! When the key param has an **invalid format**:
+//! When the key param has the **wrong length**, the reply states the number of characters
+//! received, never the key (the key is a secret):
 //!
 //! ```text
-//! d14:failure reason110:Tracker authentication error: Invalid format for authentication key param: expected 32 alphanumeric characterse
+//! d14:failure reason88:Tracker authentication error: Invalid authentication key: expected 32 characters, got 14e
 //! ```
 //!
-//! When the key is **not found** in the database:
+//! When the key param has a **character outside `0-9`, `a-z` and `A-Z`**:
 //!
 //! ```text
-//! d14:failure reason82:Tracker authentication error: Failed to read key: YZSl4lMZupRuOpSRC3krIKR5BPB14nrJe
+//! d14:failure reason106:Tracker authentication error: Invalid authentication key: only the characters 0-9, a-z and A-Z are allowede
 //! ```
 //!
-//! When the key is found in the database but it's **expired**:
+//! When the key is **not registered**:
 //!
 //! ```text
-//! d14:failure reason45:Tracker authentication error: Key has expirede
+//! d14:failure reason63:Tracker authentication error: Authentication key not registerede
+//! ```
+//!
+//! When the key is registered but it's **expired**:
+//!
+//! ```text
+//! d14:failure reason56:Tracker authentication error: Authentication key expirede
 //! ```
 //!
 //! > **NOTICE**: the returned HTTP status code is always `200` for authentication errors.
 //! > Neither [The `BitTorrent` Protocol Specification](https://www.bittorrent.org/beps/bep_0003.html)
 //! > nor [The Private Torrents](https://www.bittorrent.org/beps/bep_0027.html)
 //! > specifications specify any HTTP status code for authentication errors.
-// cspell:ignore characterse keye expirede
+// cspell:ignore keye expirede registerede allowede
 use std::future::Future;
 
 use axum::extract::rejection::PathRejection;
@@ -55,6 +62,7 @@ use axum::response::{IntoResponse, Response};
 use hyper::StatusCode;
 use serde::Deserialize;
 use torrust_tracker_core::authentication::Key;
+use torrust_tracker_core::authentication::key::ParseKeyError;
 use torrust_tracker_http_protocol::v1::{auth, responses};
 
 /// Extractor for the [`Key`] struct.
@@ -108,14 +116,17 @@ fn parse_key(key: &str) -> Result<Key, responses::error::Error> {
 
     match key {
         Ok(key) => Ok(key),
-        Err(_parse_key_error) => Err(responses::error::Error::from(auth::Error::InvalidKeyFormat)),
+        Err(ParseKeyError::InvalidKeyLength { length }) => {
+            Err(responses::error::Error::from(auth::Error::InvalidKeyLength { length }))
+        }
+        Err(_) => Err(responses::error::Error::from(auth::Error::InvalidKeyChars)),
     }
 }
 
 fn custom_error(rejection: &PathRejection) -> responses::error::Error {
     match rejection {
         axum::extract::rejection::PathRejection::FailedToDeserializePathParams(_) => {
-            responses::error::Error::from(auth::Error::InvalidKeyFormat)
+            responses::error::Error::from(auth::Error::InvalidKeyChars)
         }
         _ => responses::error::Error::from(auth::Error::CannotExtractKeyParam),
     }
@@ -164,30 +175,33 @@ mod tests {
     }
 
     #[test]
-    fn it_should_map_an_invalid_path_key_to_an_invalid_key_format_authentication_failure() {
+    fn it_should_name_the_received_length_and_not_the_key_when_the_path_key_has_the_wrong_length() {
         // Arrange
-        let invalid_key = "invalid_key";
+        let fourteen_character_key = "ShortTestKey01";
 
         // Act
-        let actual_error_response = parse_key(invalid_key).unwrap_err();
-
-        // Assert
-        assert_failure_reason_contains(
-            &actual_error_response,
-            "Tracker authentication error: Invalid format for authentication key param",
-        );
-    }
-
-    #[test]
-    fn it_should_describe_an_invalid_path_key_by_the_expected_format_and_no_source_path() {
-        // Act
-        let actual_error_response = parse_key("invalid_key").unwrap_err();
+        let actual_error_response = parse_key(fourteen_character_key).unwrap_err();
 
         // Assert
         assert_names_no_source_path(&actual_error_response.failure_reason);
         assert_eq!(
             actual_error_response.failure_reason,
-            "Tracker authentication error: Invalid format for authentication key param: expected 32 alphanumeric characters"
+            "Tracker authentication error: Invalid authentication key: expected 32 characters, got 14"
+        );
+    }
+
+    #[test]
+    fn it_should_name_the_allowed_characters_and_not_the_key_when_the_path_key_has_another_character() {
+        // Arrange
+        let key_with_a_dash = "TestPeerKey-00000000000000000001";
+
+        // Act
+        let actual_error_response = parse_key(key_with_a_dash).unwrap_err();
+
+        // Assert
+        assert_eq!(
+            actual_error_response.failure_reason,
+            "Tracker authentication error: Invalid authentication key: only the characters 0-9, a-z and A-Z are allowed"
         );
     }
 
@@ -246,7 +260,7 @@ mod tests {
         // Assert
         assert_failure_reason_contains(
             &actual_error_response,
-            "Tracker authentication error: Invalid format for authentication key param",
+            "Tracker authentication error: Invalid authentication key: expected 32 characters, got 11",
         );
     }
 }

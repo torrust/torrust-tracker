@@ -172,16 +172,17 @@ pub enum Error {
         source: Arc<dyn std::error::Error + Send + Sync>,
     },
 
-    /// Indicates that the key could not be read or found.
-    #[error("Failed to read key: {key}")]
-    UnableToReadKey { key: Box<Key> },
+    /// Indicates that the key is not registered. The error does not keep the
+    /// key: it is the client's secret.
+    #[error("Authentication key not registered")]
+    UnableToReadKey,
 
     /// Indicates that the key has expired.
-    #[error("Key has expired")]
+    #[error("Authentication key expired")]
     KeyExpired,
 
     /// Indicates that the required key for authentication was not provided.
-    #[error("Missing authentication key")]
+    #[error("Missing authentication key: this tracker is private, use /announce/<key>")]
     MissingAuthKey,
 }
 
@@ -193,6 +194,22 @@ impl From<sqlx::Error> for Error {
 
 #[cfg(test)]
 mod tests {
+
+    mod the_authentication_error {
+        use rstest::rstest;
+
+        use crate::authentication::key::Error;
+
+        #[rstest]
+        #[case::missing(
+            Error::MissingAuthKey,
+            "Missing authentication key: this tracker is private, use /announce/<key>"
+        )]
+        #[case::expired(Error::KeyExpired, "Authentication key expired")]
+        fn it_should_tell_the_user_which_case_failed(#[case] error: Error, #[case] expected_message: &str) {
+            assert_eq!(error.to_string(), expected_message);
+        }
+    }
 
     mod the_expiring_peer_key {
 

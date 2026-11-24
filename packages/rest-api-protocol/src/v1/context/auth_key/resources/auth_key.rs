@@ -27,8 +27,10 @@ pub struct AuthKey {
 pub enum AuthKeyError {
     /// The provided duration overflows.
     DurationOverflow { seconds_valid: u64 },
-    /// The provided key is invalid.
-    InvalidKey { key: String, reason: String },
+    /// The provided key is invalid. The error keeps the reason, which states
+    /// what is wrong with the key (its length or its characters), and never
+    /// the key: a malformed key is still the user's secret.
+    InvalidKey { reason: String },
     /// The private-tracker capability is disabled by configuration.
     DisabledByConfiguration { capability: &'static str },
     /// A database error occurred during the auth key operation.
@@ -41,8 +43,8 @@ impl fmt::Display for AuthKeyError {
             Self::DurationOverflow { seconds_valid } => {
                 write!(f, "duration overflow: {seconds_valid}")
             }
-            Self::InvalidKey { key, reason } => {
-                write!(f, "invalid key: \"{key}\", {reason}")
+            Self::InvalidKey { reason } => {
+                write!(f, "invalid key: {reason}")
             }
             Self::DisabledByConfiguration { capability } => {
                 write!(f, "{capability} capability is disabled by configuration")

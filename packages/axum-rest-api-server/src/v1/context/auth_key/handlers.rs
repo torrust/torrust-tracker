@@ -10,7 +10,8 @@ use torrust_tracker_rest_api_protocol::v1::context::auth_key::resources::auth_ke
 
 use super::responses::{
     auth_key_response, failed_to_add_key_response, failed_to_delete_key_response, failed_to_generate_key_response,
-    failed_to_reload_keys_response, invalid_auth_key_duration_response, invalid_auth_key_response,
+    failed_to_reload_keys_response, invalid_auth_key_duration_param_response, invalid_auth_key_duration_response,
+    invalid_auth_key_response,
 };
 use crate::v1::responses::{disabled_by_configuration_response, invalid_auth_key_param_response, ok_response};
 
@@ -39,7 +40,7 @@ pub async fn add_auth_key_handler(
         Ok(auth_key) => auth_key_response(&auth_key),
         Err(err) => match &err {
             AuthKeyError::DurationOverflow { seconds_valid } => invalid_auth_key_duration_response(*seconds_valid),
-            AuthKeyError::InvalidKey { key, reason } => invalid_auth_key_response(key, reason),
+            AuthKeyError::InvalidKey { reason } => invalid_auth_key_response(reason),
             AuthKeyError::DisabledByConfiguration { .. } => disabled_response(),
             // `Database` and any variant added later: a generic failure response.
             _ => failed_to_add_key_response(AuthKeyErrorDisplay(&err)),
@@ -62,13 +63,18 @@ pub async fn add_auth_key_handler(
 /// This endpoint has been deprecated. Use [`add_auth_key_handler`].
 pub async fn generate_auth_key_handler(
     State(auth_key_service): State<Option<Arc<AuthKeyApiService>>>,
-    Path(seconds_valid_or_key): Path<u64>,
+    Path(seconds_valid_or_key): Path<String>,
 ) -> Response {
     let Some(auth_key_service) = auth_key_service else {
         return disabled_response();
     };
 
-    let seconds_valid = seconds_valid_or_key;
+    // The segment is parsed here, not by the `Path<u64>` extractor, because the extractor's
+    // rejection echoes the rejected value and a peer key posted to this route by mistake
+    // would be echoed with it.
+    let Ok(seconds_valid) = seconds_valid_or_key.parse::<u64>() else {
+        return invalid_auth_key_duration_param_response();
+    };
     match auth_key_service.generate_key(seconds_valid).await {
         Ok(auth_key) => auth_key_response(&auth_key),
         Err(e) => failed_to_generate_key_response(AuthKeyErrorDisplay(&e)),
@@ -102,10 +108,7 @@ pub async fn delete_auth_key_handler(
 
     match auth_key_service.delete_key(&seconds_valid_or_key.0).await {
         Ok(()) => ok_response(),
-        Err(torrust_tracker_rest_api_protocol::v1::context::auth_key::resources::auth_key::AuthKeyError::InvalidKey {
-            key: _,
-            reason: _,
-        }) => invalid_auth_key_param_response(&seconds_valid_or_key.0),
+        Err(AuthKeyError::InvalidKey { reason }) => invalid_auth_key_param_response(&reason),
         Err(e) => failed_to_delete_key_response(AuthKeyErrorDisplay(&e)),
     }
 }
@@ -317,7 +320,7 @@ mod tests {
 
     #[tokio::test]
     async fn it_should_answer_conflict_when_generating_a_key_and_the_private_capability_is_not_available() {
-        let response = generate_auth_key_handler(State(None), Path(60)).await;
+        let response = generate_auth_key_handler(State(None), Path("60".to_string())).await;
 
         assert_eq!(observed(response).await, disabled());
     }
@@ -346,8 +349,8 @@ mod tests {
         bad_request(r#"Invalid URL: invalid auth key duration: "18446744073709551615""#)
     )]
     #[case::an_invalid_key(
-        (|| Err(AuthKeyError::InvalidKey { key: "bad key".to_string(), reason: "too short".to_string() })) as KeyOutcome,
-        bad_request(r#"Invalid URL: invalid auth key: string "bad key", too short"#)
+        (|| Err(AuthKeyError::InvalidKey { reason: "expected 32 characters, got 7".to_string() })) as KeyOutcome,
+        bad_request("Invalid URL: invalid auth key: expected 32 characters, got 7")
     )]
     #[case::a_capability_disabled_in_the_service(
         (|| Err(AuthKeyError::DisabledByConfiguration { capability: "private" })) as KeyOutcome,
@@ -384,7 +387,7 @@ mod tests {
         let fake = FakeAuthKeyPort::answering(a_key, nothing);
         let calls = fake.call_log();
 
-        let response = generate_auth_key_handler(state_with(fake), Path(60)).await;
+        let response = generate_auth_key_handler(state_with(fake), Path("60".to_string())).await;
 
         assert_eq!(
             (observed(response).await, recorded(&calls)),
@@ -398,8 +401,8 @@ mod tests {
     #[rstest]
     #[case::a_database_error((|| Err(database_error())) as KeyOutcome, "failed to generate key: boom")]
     #[case::an_invalid_key(
-        (|| Err(AuthKeyError::InvalidKey { key: "x".to_string(), reason: "y".to_string() })) as KeyOutcome,
-        r#"failed to generate key: invalid key: \"x\", y"#
+        (|| Err(AuthKeyError::InvalidKey { reason: "y".to_string() })) as KeyOutcome,
+        "failed to generate key: invalid key: y"
     )]
     #[tokio::test]
     async fn it_should_answer_an_internal_server_error_whatever_the_error_when_generating_a_key(
@@ -408,7 +411,7 @@ mod tests {
     ) {
         let state = state_answering(outcome, nothing);
 
-        let response = generate_auth_key_handler(state, Path(60)).await;
+        let response = generate_auth_key_handler(state, Path("60".to_string())).await;
 
         assert_eq!(observed(response).await, unhandled(reason));
     }
@@ -427,17 +430,16 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn it_should_name_the_path_parameter_when_the_service_rejects_the_key_to_delete() {
+    async fn it_should_state_the_reason_and_not_the_key_when_the_service_rejects_the_key_to_delete() {
         let state = state_answering(a_key, || {
             Err(AuthKeyError::InvalidKey {
-                key: "service-key".to_string(),
                 reason: "rejected".to_string(),
             })
         });
 
         let response = delete_auth_key_handler(state, Path(KeyParam("abc".to_string()))).await;
 
-        assert_eq!(observed(response).await, bad_request(r#"Invalid auth key id param "abc""#));
+        assert_eq!(observed(response).await, bad_request("Invalid auth key id param: rejected"));
     }
 
     #[tokio::test]

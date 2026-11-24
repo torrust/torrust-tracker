@@ -28,6 +28,7 @@
         "docs/issues/*/2916-2912-si-4-tracker-core/evidence/*.txt",
         "docs/issues/*/384-strip-location-from-errors-sent-to-clients/evidence/*.txt",
         "docs/issues/*/2993-secrets-and-client-error-text/evidence/*.txt",
+        "docs/issues/*/2999-2993-si-a-keep-secrets-out-of-errors-and-logs/evidence/*.txt",
         ".github/labels.json",
         "/project-words.txt",
         "repomix-output.xml",

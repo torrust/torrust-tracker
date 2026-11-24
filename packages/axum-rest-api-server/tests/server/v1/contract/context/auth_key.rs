@@ -256,13 +256,16 @@ async fn should_fail_generating_a_new_auth_key_when_the_provided_key_is_invalid(
     let invalid_keys = [
         // "", it returns 404
         // " ", it returns 404
-        "-1",                               // Not a string
-        "invalid",                          // Invalid string
-        "GQEs2ZNcCm9cwEV9dBpcPB5OwNFWFiR",  // Not a 32-char string
-        "%QEs2ZNcCm9cwEV9dBpcPB5OwNFWFiRd", // Invalid char.
+        ("-1", "expected 32 characters, got 2"),            // Not a string
+        ("NotAValidKey", "expected 32 characters, got 12"), // Invalid string
+        ("GQEs2ZNcCm9cwEV9dBpcPB5OwNFWFiR", "expected 32 characters, got 31"), // Not a 32-char string
+        (
+            "%QEs2ZNcCm9cwEV9dBpcPB5OwNFWFiRd",
+            "only the characters 0-9, a-z and A-Z are allowed",
+        ), // Invalid char.
     ];
 
-    for invalid_key in invalid_keys {
+    for (invalid_key, expected_reason) in invalid_keys {
         let request_id = Uuid::new_v4();
 
         let response = ApiHttpClient::new(env.get_connection_info())
@@ -278,7 +281,7 @@ async fn should_fail_generating_a_new_auth_key_when_the_provided_key_is_invalid(
             .await
             .unwrap();
 
-        assert_invalid_auth_key_post_param(response, invalid_key).await;
+        assert_invalid_auth_key_post_param(response, invalid_key, expected_reason).await;
     }
 
     env.stop().await;
@@ -334,14 +337,14 @@ async fn should_fail_deleting_an_auth_key_when_the_key_id_is_invalid() {
     let invalid_auth_keys = [
         // "", it returns a 404
         // " ", it returns a 404
-        "0",
-        "-1",
-        "INVALID AUTH KEY ID",
-        "IrweYtVuQPGbG9Jzx1DihcPmJGGpVy8",   // 32 char key cspell:disable-line
-        "IrweYtVuQPGbG9Jzx1DihcPmJGGpVy8zs", // 34 char key cspell:disable-line
+        ("0", "expected 32 characters, got 1"),
+        ("-1", "expected 32 characters, got 2"),
+        ("INVALID AUTH KEY ID", "expected 32 characters, got 19"),
+        ("IrweYtVuQPGbG9Jzx1DihcPmJGGpVy8", "expected 32 characters, got 31"), // cspell:disable-line
+        ("IrweYtVuQPGbG9Jzx1DihcPmJGGpVy8zs", "expected 32 characters, got 33"), // cspell:disable-line
     ];
 
-    for invalid_auth_key in &invalid_auth_keys {
+    for (invalid_auth_key, expected_reason) in &invalid_auth_keys {
         let request_id = Uuid::new_v4();
 
         let response = ApiHttpClient::new(env.get_connection_info())
@@ -350,7 +353,7 @@ async fn should_fail_deleting_an_auth_key_when_the_key_id_is_invalid() {
             .await
             .unwrap();
 
-        assert_invalid_auth_key_get_param(response, invalid_auth_key).await;
+        assert_invalid_auth_key_get_param(response, invalid_auth_key, expected_reason).await;
     }
 
     env.stop().await;
@@ -714,7 +717,10 @@ mod deprecated_generate_key_endpoint {
         let invalid_key_durations = [
             // "", it returns 404
             // " ", it returns 404
-            "-1", "text",
+            "-1",
+            "text",
+            // A peer key posted by mistake to the route that expects a number of seconds.
+            "TestPeerKeyPostedByMistake000001",
         ];
 
         for invalid_key_duration in invalid_key_durations {

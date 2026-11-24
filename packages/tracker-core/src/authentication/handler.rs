@@ -100,10 +100,7 @@ impl KeysHandler {
                         Ok(auth_key) => Ok(auth_key),
                         Err(err) => Err(PeerKeyError::DatabaseError { source: err }),
                     },
-                    Err(err) => Err(PeerKeyError::InvalidKey {
-                        key: pre_existing_key,
-                        source: err,
-                    }),
+                    Err(err) => Err(PeerKeyError::InvalidKey { source: err }),
                 }
             } else {
                 // Permanent key
@@ -115,10 +112,7 @@ impl KeysHandler {
                         Ok(auth_key) => Ok(auth_key),
                         Err(err) => Err(PeerKeyError::DatabaseError { source: err }),
                     },
-                    Err(err) => Err(PeerKeyError::InvalidKey {
-                        key: pre_existing_key,
-                        source: err,
-                    }),
+                    Err(err) => Err(PeerKeyError::InvalidKey { source: err }),
                 }
             }
         } else {
@@ -680,7 +674,7 @@ mod tests {
                 instantiate_keys_handler, private_tracker_configuration,
             };
             use crate::error::PeerKeyError;
-            use crate::test_helpers::tests::assert_names_no_source_path;
+            use crate::test_helpers::tests::{assert_holds_no_secret, assert_names_no_source_path};
 
             fn add_key_request(key: &str) -> AddKeyRequest {
                 AddKeyRequest {
@@ -713,6 +707,24 @@ mod tests {
                 assert!(matches!(error, PeerKeyError::InvalidKey { .. }), "{error:?}");
                 assert_names_no_source_path(&error.to_string());
                 assert_names_no_source_path(&error.source().unwrap().to_string());
+            }
+
+            #[tokio::test]
+            async fn it_should_neither_keep_nor_print_an_invalid_key_and_name_its_length() {
+                let ephemeral = private_tracker_configuration();
+                let keys_handler = instantiate_keys_handler(&ephemeral.config).await;
+                let fourteen_character_key = "ShortTestKey01";
+
+                let error = keys_handler
+                    .add_peer_key(add_key_request(fourteen_character_key))
+                    .await
+                    .unwrap_err();
+
+                assert_holds_no_secret(&error, fourteen_character_key);
+                assert_eq!(
+                    error.to_string(),
+                    "Invalid authentication key: expected 32 characters, got 14"
+                );
             }
         }
     }

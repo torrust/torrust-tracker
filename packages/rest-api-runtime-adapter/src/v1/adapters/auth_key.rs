@@ -51,10 +51,7 @@ impl AuthKeyPort for TrackerAuthKeyAdapter {
 
     async fn delete_key(&self, key: &str) -> Result<(), AuthKeyError> {
         match Key::from_str(key) {
-            Err(_) => Err(AuthKeyError::InvalidKey {
-                key: key.to_string(),
-                reason: "invalid key format".to_string(),
-            }),
+            Err(err) => Err(AuthKeyError::InvalidKey { reason: err.to_string() }),
             Ok(key) => self
                 .keys_handler
                 .remove_peer_key(&key)
@@ -76,8 +73,7 @@ fn map_peer_key_error(err: torrust_tracker_core::error::PeerKeyError) -> AuthKey
 
     match err {
         PeerKeyError::DurationOverflow { seconds_valid } => AuthKeyError::DurationOverflow { seconds_valid },
-        PeerKeyError::InvalidKey { key, source } => AuthKeyError::InvalidKey {
-            key,
+        PeerKeyError::InvalidKey { source } => AuthKeyError::InvalidKey {
             reason: source.to_string(),
         },
         PeerKeyError::DatabaseError { source } => AuthKeyError::Database(source.to_string()),
