@@ -15,6 +15,8 @@
 use std::fmt;
 use std::path::PathBuf;
 
+use torrust_tracker_client::http::client::redaction::mask_tracker_keys_in_text;
+
 /// Where the configuration content was delivered from.
 #[derive(Debug, Clone)]
 pub enum ConfigSource {
@@ -70,7 +72,8 @@ impl AppError {
                 kind: "version",
                 message,
             },
-            _ => Self::Usage(message),
+            // The parser echoes a wrong argument, which can be a keyed tracker URL.
+            _ => Self::Usage(mask_tracker_keys_in_text(&message)),
         }
     }
 

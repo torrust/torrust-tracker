@@ -1,0 +1,129 @@
+2026-11-23 17:58
+state: round 1 tests added, production code as in the reviewed head
+
+running 31 tests
+..... 5/31
+http::client::redaction::tests::it_should_mask_the_key_of_a_url_whose_scheme_is_not_lowercase --- FAILED
+http::client::redaction::tests::it_should_mask_the_key_of_a_url_that_does_not_parse --- FAILED
+. 8/31
+http::client::redaction::tests::it_should_mask_the_key_of_a_url_with_a_closing_parenthesis_before_the_endpoint --- FAILED
+.. 11/31
+http::client::redaction::tests::it_should_mask_the_password_and_the_key_of_a_url_with_an_apostrophe_in_the_user_info --- FAILED
+...... 18/31
+http::client::tests::error_text::it_should_mask_the_client_key_when_a_health_check_gets_no_response --- FAILED
+http::client::tests::error_text::it_should_mask_the_client_key_when_a_request_to_a_custom_path_gets_no_response --- FAILED
+. 21/31
+http::client::tests::error_text::it_should_mask_the_client_key_when_a_request_to_a_custom_path_gets_a_non_success_status --- FAILED
+... 25/31
+http::client::tests::error_text::it_should_keep_the_transport_cause_when_a_request_gets_no_response --- FAILED
+.....
+failures:
+
+---- http::client::redaction::tests::it_should_mask_the_key_of_a_url_whose_scheme_is_not_lowercase stdout ----
+
+thread 'http::client::redaction::tests::it_should_mask_the_key_of_a_url_whose_scheme_is_not_lowercase' (3846024) panicked at packages/tracker-client/src/http/client/redaction.rs:231:9:
+assertion `left == right` failed
+  left: "unexpected argument 'HTTP://a.example.com/announce/SECRET1' and \"Https://b.example.com/scrape/SECRET2\""
+ right: "unexpected argument 'HTTP://a.example.com/announce/****' and \"Https://b.example.com/scrape/****\""
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- http::client::redaction::tests::it_should_mask_the_key_of_a_url_that_does_not_parse stdout ----
+
+thread 'http::client::redaction::tests::it_should_mask_the_key_of_a_url_that_does_not_parse' (3846023) panicked at packages/tracker-client/src/http/client/redaction.rs:247:9:
+assertion `left == right` failed
+  left: "invalid type: string \"http://127.0.0.1:bad/announce/SECRET\", expected a sequence"
+ right: "invalid type: string \"http://127.0.0.1:bad/announce/****\", expected a sequence"
+
+---- http::client::redaction::tests::it_should_mask_the_key_of_a_url_with_a_closing_parenthesis_before_the_endpoint stdout ----
+
+thread 'http::client::redaction::tests::it_should_mask_the_key_of_a_url_with_a_closing_parenthesis_before_the_endpoint' (3846025) panicked at packages/tracker-client/src/http/client/redaction.rs:239:9:
+assertion `left == right` failed
+  left: "'http://tracker.example.com/prefix)/announce/SECRET' found"
+ right: "'http://tracker.example.com/prefix)/announce/****' found"
+
+---- http::client::redaction::tests::it_should_mask_the_password_and_the_key_of_a_url_with_an_apostrophe_in_the_user_info stdout ----
+
+thread 'http::client::redaction::tests::it_should_mask_the_password_and_the_key_of_a_url_with_an_apostrophe_in_the_user_info' (3846028) panicked at packages/tracker-client/src/http/client/redaction.rs:255:9:
+assertion `left == right` failed
+  left: "unexpected argument 'http://o'neil:SECRET1@tracker.example.com/announce/SECRET2' found"
+ right: "unexpected argument 'http://o'neil:****@tracker.example.com/announce/****' found"
+
+---- http::client::tests::error_text::it_should_mask_the_client_key_when_a_health_check_gets_no_response stdout ----
+
+thread 'http::client::tests::error_text::it_should_mask_the_client_key_when_a_health_check_gets_no_response' (3846035) panicked at packages/tracker-client/src/http/client/mod.rs:623:13:
+the error texts should not contain the key: Failed to get a response: connection error for url (http://127.0.0.1:46341/health_check/SecretTrackerKey123) ResponseError { err: "connection error for url (http://127.0.0.1:46341/health_check/SecretTrackerKey123)" }
+
+---- http::client::tests::error_text::it_should_mask_the_client_key_when_a_request_to_a_custom_path_gets_no_response stdout ----
+
+thread 'http::client::tests::error_text::it_should_mask_the_client_key_when_a_request_to_a_custom_path_gets_no_response' (3846037) panicked at packages/tracker-client/src/http/client/mod.rs:588:13:
+the error texts should not contain the key: Failed to get a response: connection error for url (http://127.0.0.1:37005/custom-tracker-endpoint/SecretTrackerKey123?info_hash=%9C8B%22%13%E3%0B%FF%21%2B0%C3%60%D2o%9A%02%13d%22&peer_id=%2DqB00000000000000001&port=17548&event=started&compact=0) ResponseError { err: "connection error for url (http://127.0.0.1:37005/custom-tracker-endpoint/SecretTrackerKey123?info_hash=%9C8B%22%13%E3%0B%FF%21%2B0%C3%60%D2o%9A%02%13d%22&peer_id=%2DqB00000000000000001&port=17548&event=started&compact=0)" }
+
+---- http::client::tests::error_text::it_should_mask_the_client_key_when_a_request_to_a_custom_path_gets_a_non_success_status stdout ----
+
+thread 'http::client::tests::error_text::it_should_mask_the_client_key_when_a_request_to_a_custom_path_gets_a_non_success_status' (3846036) panicked at packages/tracker-client/src/http/client/mod.rs:606:13:
+the error texts should not contain the key: Returned a non-success code: "404 Not Found" for url (http://127.0.0.1:43795/custom-tracker-endpoint/SecretTrackerKey123?info_hash=%9C8B%22%13%E3%0B%FF%21%2B0%C3%60%D2o%9A%02%13d%22&peer_id=%2DqB00000000000000001&port=17548&event=started&compact=0) UnsuccessfulResponse { code: 404, url: "http://127.0.0.1:43795/custom-tracker-endpoint/SecretTrackerKey123?info_hash=%9C8B%22%13%E3%0B%FF%21%2B0%C3%60%D2o%9A%02%13d%22&peer_id=%2DqB00000000000000001&port=17548&event=started&compact=0" }
+
+---- http::client::tests::error_text::it_should_keep_the_transport_cause_when_a_request_gets_no_response stdout ----
+
+thread 'http::client::tests::error_text::it_should_keep_the_transport_cause_when_a_request_gets_no_response' (3846034) panicked at packages/tracker-client/src/http/client/mod.rs:572:13:
+the error text should keep the transport cause: Failed to get a response: connection error for url (http://127.0.0.1:33333/announce/****?info_hash=%9C8B%22%13%E3%0B%FF%21%2B0%C3%60%D2o%9A%02%13d%22&peer_id=%2DqB00000000000000001&port=17548&event=started&compact=0)
+
+
+failures:
+    http::client::redaction::tests::it_should_mask_the_key_of_a_url_that_does_not_parse
+    http::client::redaction::tests::it_should_mask_the_key_of_a_url_whose_scheme_is_not_lowercase
+    http::client::redaction::tests::it_should_mask_the_key_of_a_url_with_a_closing_parenthesis_before_the_endpoint
+    http::client::redaction::tests::it_should_mask_the_password_and_the_key_of_a_url_with_an_apostrophe_in_the_user_info
+    http::client::tests::error_text::it_should_keep_the_transport_cause_when_a_request_gets_no_response
+    http::client::tests::error_text::it_should_mask_the_client_key_when_a_health_check_gets_no_response
+    http::client::tests::error_text::it_should_mask_the_client_key_when_a_request_to_a_custom_path_gets_a_non_success_status
+    http::client::tests::error_text::it_should_mask_the_client_key_when_a_request_to_a_custom_path_gets_no_response
+
+test result: FAILED. 23 passed; 8 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.02s
+
+error: test failed, to rerun pass `-p torrust-tracker-client-lib --lib`
+
+running 12 tests
+it_should_mask_the_tracker_key_when_a_usage_error_echoes_a_misplaced_url_with_an_uppercase_scheme --- FAILED
+it_should_mask_the_tracker_key_when_a_usage_error_echoes_a_misplaced_url_that_does_not_parse --- FAILED
+.. 4/12
+it_should_mask_the_tracker_key_when_the_check_configuration_echoes_a_url_with_an_uppercase_scheme --- FAILED
+it_should_mask_the_tracker_key_when_the_check_configuration_echoes_a_url_that_does_not_parse --- FAILED
+......
+failures:
+
+---- it_should_mask_the_tracker_key_when_a_usage_error_echoes_a_misplaced_url_with_an_uppercase_scheme stdout ----
+
+thread 'it_should_mask_the_tracker_key_when_a_usage_error_echoes_a_misplaced_url_with_an_uppercase_scheme' (3846073) panicked at console/tracker-client/tests/key_redaction.rs:66:5:
+stderr should not contain the tracker key: {"error":{"kind":"usage_error","source":"arguments","message":"error: unexpected argument 'HTTP://127.0.0.1:7070/announce/SecretTrackerKey123' found\n\nUsage: tracker_client http announce [OPTIONS] <TRACKER_URL> <INFO_HASH>\n\nFor more information, try '--help'.\n"}}
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- it_should_mask_the_tracker_key_when_a_usage_error_echoes_a_misplaced_url_that_does_not_parse stdout ----
+
+thread 'it_should_mask_the_tracker_key_when_a_usage_error_echoes_a_misplaced_url_that_does_not_parse' (3846072) panicked at console/tracker-client/tests/key_redaction.rs:66:5:
+stderr should not contain the tracker key: {"error":{"kind":"usage_error","source":"arguments","message":"error: unexpected argument 'http://127.0.0.1:bad/announce/SecretTrackerKey123' found\n\nUsage: tracker_client http announce [OPTIONS] <TRACKER_URL> <INFO_HASH>\n\nFor more information, try '--help'.\n"}}
+
+
+---- it_should_mask_the_tracker_key_when_the_check_configuration_echoes_a_url_with_an_uppercase_scheme stdout ----
+
+thread 'it_should_mask_the_tracker_key_when_the_check_configuration_echoes_a_url_with_an_uppercase_scheme' (3846080) panicked at console/tracker-client/tests/key_redaction.rs:66:5:
+stderr should not contain the tracker key: {"error":{"kind":"invalid_configuration","source":"TORRUST_CHECKER_CONFIG","message":"JSON parse error: invalid type: string \"HTTP://127.0.0.1:7070/announce/SecretTrackerKey123\", expected a sequence at line 1 column 87"}}
+
+
+---- it_should_mask_the_tracker_key_when_the_check_configuration_echoes_a_url_that_does_not_parse stdout ----
+
+thread 'it_should_mask_the_tracker_key_when_the_check_configuration_echoes_a_url_that_does_not_parse' (3846078) panicked at console/tracker-client/tests/key_redaction.rs:66:5:
+stderr should not contain the tracker key: {"error":{"kind":"invalid_configuration","source":"TORRUST_CHECKER_CONFIG","message":"JSON parse error: invalid type: string \"http://127.0.0.1:bad/announce/SecretTrackerKey123\", expected a sequence at line 1 column 86"}}
+
+
+
+failures:
+    it_should_mask_the_tracker_key_when_a_usage_error_echoes_a_misplaced_url_that_does_not_parse
+    it_should_mask_the_tracker_key_when_a_usage_error_echoes_a_misplaced_url_with_an_uppercase_scheme
+    it_should_mask_the_tracker_key_when_the_check_configuration_echoes_a_url_that_does_not_parse
+    it_should_mask_the_tracker_key_when_the_check_configuration_echoes_a_url_with_an_uppercase_scheme
+
+test result: FAILED. 8 passed; 4 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+error: test failed, to rerun pass `-p torrust-tracker-client --test key_redaction`

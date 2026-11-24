@@ -6,17 +6,18 @@ use hyper::StatusCode;
 use reqwest::{Client as HttpClient, Response};
 use serde::Serialize;
 use thiserror::Error;
+use torrust_tracker_client::http::client::redaction::{mask_tracker_key, request_error_text};
 use url::Url;
 
 #[derive(Debug, Clone, Error, Serialize)]
 #[serde(into = "String")]
 #[non_exhaustive]
 pub enum Error {
-    #[error("Failed to Build a Http Client: {err:?}")]
+    #[error("Failed to build an HTTP client: {}", request_error_text(err))]
     ClientBuildingError { err: Arc<reqwest::Error> },
-    #[error("Heath check failed to get a response: {err:?}")]
+    #[error("Health check failed to get a response: {}", request_error_text(err))]
     ResponseError { err: Arc<reqwest::Error> },
-    #[error("Http check returned a non-success code: \"{code}\" with the response: \"{response:?}\"")]
+    #[error("HTTP check returned a non-success code: \"{code}\" for url ({})", mask_tracker_key(response.url()))]
     UnsuccessfulResponse { code: StatusCode, response: Arc<Response> },
 }
 
@@ -43,7 +44,10 @@ pub async fn run(health_checks: Vec<Url>, timeout: Duration) -> Vec<Result<Check
             Err(err) => Err(err),
         };
 
-        let check = Checks { url, result };
+        let check = Checks {
+            url: mask_tracker_key(&url),
+            result,
+        };
 
         if check.result.is_err() {
             results.push(Err(check));

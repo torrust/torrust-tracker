@@ -7,9 +7,9 @@ priority: p1
 epic: 2758
 github-issue: 3004
 spec-path: docs/issues/open/3004-2758-tracker-client-mask-tracker-key/ISSUE.md
-branch: "3004-tracker-client-mask-tracker-key-spec"
+branch: "3004-tracker-client-mask-tracker-key"
 related-pr: null
-last-updated-utc: "2026-11-23 14:55"
+last-updated-utc: "2026-11-23 19:42"
 semantic-links:
   skill-links:
     - create-issue
@@ -139,6 +139,55 @@ Files this issue may touch (a sibling issue in the same wave must not touch them
 - `console/tracker-client/**`
 - `packages/tracker-client/src/http/client/**` and its tests
 
+## Output Path Audit (T1)
+
+Done on `develop` `6bc417424`, by reading every file under `console/tracker-client/src` and
+`packages/tracker-client/src/http/client`, and by running the built binary against a closed port
+and malformed input (commands and output in `manual-verification-evidence.md`, R0 repeat and T1
+probes).
+
+Paths that write a tracker URL or `reqwest` error text, and how this issue treats them:
+
+| ID | Path | Output | What leaks today | Treatment |
+| -- | ---- | ------ | ---------------- | --------- |
+| P1 | Library `Error::ResponseError`, `Error::ClientBuildingError` (`packages/tracker-client/src/http/client/mod.rs`) | stderr (`http announce`, `http scrape`), stdout (`check`) | `Debug` of `reqwest::Error`: full URL with the key and the query | Kind-based text and the masked URL, no `Debug` text |
+| P2 | Library `Error::UnsuccessfulResponse` (same file) | as P1 | `Debug` of `reqwest::Response`: the request URL | Status code and the masked URL |
+| P3 | `response.bytes().await?` in `unified/http.rs` (announce and scrape) | stderr | `Display` of the body-read `reqwest::Error`: the URL (`for url (...)`) | Kind-based text and the masked URL |
+| P4 | Checker `Checks.url` (`checker/checks/http.rs`) | stdout (`check`) | The configured URL with the key | Masked URL |
+| P5 | Checker per-request errors (`clients/http/mod.rs`: `HttpClientError`, `ResponseError`, `{err:?}`) | stdout (`check`) | `Debug` of the library error and of `reqwest::Error`; no key today, because the checker drops the path | `Display` of the fixed library error; kind-based text for the body-read error |
+| P6 | Health check errors (`checker/checks/health.rs`, `{err:?}` and `{response:?}`) | stdout (`check`) | `Debug` of `reqwest::Error` and `reqwest::Response`; health URLs carry no key | Kind-based text, no `Debug` text (AC2) |
+| P7 | `report_runtime_failure` in `bin/tracker_client.rs` | stderr | Writes P1 to P3 unchanged; it reports `anyhow` errors with `to_string()`, the outermost message only | No change needed once P1 to P3 are fixed |
+| P8 | Checker configuration parse error (`checker/config.rs`, `JsonParseError`) | stderr (`check`) | `serde_json` echoes a value of the wrong type: `invalid type: string "http://…/announce/<key>", expected a sequence` | Mask the key of every tracker URL inside the record's text (see below) |
+| P9 | `clap` usage error (`AppError::from_clap`) | stderr (any command) | `clap` echoes a misplaced argument: `unexpected argument 'http://…/announce/<key>' found` | As P8 |
+
+Checked and not leaking:
+
+- UDP commands (`udp announce`, `udp scrape`), the UDP checker and `check monitor`: UDP URLs
+  carry no key. Their `tracing::debug!` lines are below the fixed `INFO` level of the subscriber
+  (`unified/app.rs`), so they are not written.
+- `tracing` records of `reqwest` and `hyper`: they log at `debug` and `trace`, below `INFO`.
+- The URL validation error (`parse_and_validate_tracker_url`) and the infohash error do not echo the
+  URL.
+- Invalid URL errors of the checker configuration (`Invalid URL: <url::ParseError>`) do not echo
+  the URL.
+- The panic hook record: the panics found (`checker/checks/udp.rs:107`, #2984) carry no URL.
+- `CheckerOutput` (`checks/structs.rs`) is unused.
+- The e2e runner configuration log is out of scope (see Out of Scope).
+- Other users of the library (`packages/udp-server`, `packages/axum-http-server`, dev-dependency
+  tests): no code matches the old error texts.
+
+P8 and P9 echo text the caller typed, at the place where it was wrong, through a third-party
+formatter (`serde_json`, `clap`). The URL is inside free text, so the URL-masking function cannot
+reach them alone. The maintainer decided, when shown the audit, to fix them in this issue: a second
+small function masks the key of every tracker URL it finds in a text, and the usage-error and
+configuration-error records go through it. Each gets a red regression test. Review round 1 of the
+implementation PR (3012) showed that the first version, which parsed each URL it found, missed a
+scheme in upper or mixed case, a URL cut at a `)` or `'` inside it, and a URL that does not parse;
+the function now finds the text after `/announce/` and `/scrape/` without parsing. Rounds 2 to 5
+found more forms a URL parser normalizes to the same key (a `\` separator, a delimiter at the start
+of the segment, a nested endpoint, a dot segment); since round 5 the function masks the whole rest
+of the path after the endpoint, up to the query, so no such form moves the key out of the mask.
+
 ## Architectural Decisions
 
 - Related ADRs: `docs/adrs/20260519000000_define_global_cli_output_contract.md` (section 7,
@@ -149,7 +198,13 @@ Files this issue may touch (a sibling issue in the same wave must not touch them
 
 Interface: one small pure function owns the masking of a URL (input: a URL; output: the same URL
 with the key segment replaced). Every output path calls it; no output path builds its own masked
-text. The production change has no child process, readiness wait or shared fixture.
+text. A second pure function (input: a text; output: the same text with the rest of the path
+after every `/announce/` and `/scrape/` and the password of every URL user info masked, without parsing the
+URLs) covers the records whose text comes from a third-party formatter (P8, P9 in the audit). An
+authenticated library client also masks its own key wherever its path puts it (a custom endpoint
+path, the health-check path).
+
+The production change has no child process, readiness wait or shared fixture.
 
 The regression tests do, so they follow these rules:
 
@@ -220,6 +275,11 @@ Follow `.claude/skills/fix-bug/SKILL.md`:
   asserting that neither stdout nor stderr contains the key, and that the result's `url` field
   shows `****`. This path copies the configured URL into `Checks.url` and never goes through the
   library error, so the tests above do not cover it.
+- Unit tests of the text-masking function (P8, P9): a text with one keyed URL, two keyed URLs,
+  a keyed URL inside quotes, and a text with no URL.
+- Black-box tests of the two third-party echoes: `tracker_client check` with a configuration whose
+  `http_trackers` is a keyed URL string instead of a list (P8), and `tracker_client http announce`
+  with a misplaced keyed URL argument (P9). Stderr does not contain the key and shows `****`.
 - Tests that run the binary look up `NEXTEST_BIN_EXE_tracker_client` before
   `CARGO_BIN_EXE_tracker_client`.
 
@@ -239,13 +299,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
-| T1  | TODO   | Audit the output paths | The list of paths that write a URL or request error text, recorded in this spec. |
-| T2  | TODO   | Red regression tests | The tests of the Regression Test Strategy, failing on the unchanged code; output and the design review of each increment in the evidence file. |
-| T3  | TODO   | Masking function and library error text | The key segment is masked; no `Debug` text of `reqwest::Error` is written. |
-| T4  | TODO   | Apply it on every output path | Every path from T1 writes masked URLs only. |
-| T5  | TODO   | Maintainer stop | After the final test increment is green and reviewed, report to the maintainer and wait for his review before T6, T7 and the pull request. |
-| T6  | TODO   | Docs | Contract doc redaction rule for tracker URLs; README examples checked. |
-| T7  | TODO   | Green run and recheck | The regression tests pass (output in the evidence file) and R0 is repeated like for like as M1 to M4; the key does not appear. |
+| T1  | DONE   | Audit the output paths | The list of paths that write a URL or request error text, recorded in this spec. |
+| T2  | DONE   | Red regression tests | The tests of the Regression Test Strategy, failing on the unchanged code; output and the design review of each increment in the evidence file. |
+| T3  | DONE   | Masking function and library error text | The key segment is masked; no `Debug` text of `reqwest::Error` is written. |
+| T4  | DONE   | Apply it on every output path | Every path from T1 writes masked URLs only. |
+| T5  | DONE   | Maintainer stop | After the final test increment is green and reviewed, report to the maintainer and wait for his review before T6, T7 and the pull request. |
+| T6  | DONE   | Docs | Contract doc redaction rule for tracker URLs; README examples checked. Done: a "No secrets" rule in `tracker-cli-io-contract.md`, a bullet in the console README, the `redaction` module in the library README. Sweep: `grep -rn 'announce/[A-Za-z0-9]\|scrape/[A-Za-z0-9]' console/tracker-client packages/tracker-client docs/*.md` and a search of all Markdown files for `reqwest::Error` and `Failed to get a response`: no live doc shows a key or the old error text (the matches are in other issues' records, which stay as written). |
+| T7  | DONE   | Green run and recheck | The regression tests pass (output in the evidence file) and R0 is repeated like for like as M1 to M4; the key does not appear. |
 
 ## Commit Points
 
@@ -270,14 +330,14 @@ commit.
 - [x] Folder-style spec drafted in `docs/issues/drafts/2758-tracker-client-mask-tracker-key/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
+- [x] Spec-only PR merged into `develop` before implementation
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -288,20 +348,26 @@ commit.
 - 2026-11-23 14:22 UTC - Claude Code (Claude Opus 5.5) - Addressed the Copilot review of round 1 of PR 3005: ownership and deadlines of the regression-test resources, library-seam tests for a non-2xx reply and a failed body read, and how the completion review is recorded.
 - 2026-11-23 14:41 UTC - Claude Code (Claude Opus 5.5) - Addressed review round 2 of PR 3005 (da2ce7): the body-read test is a black-box test of the console client against the existing fake HTTP tracker, and the URL in a body-read error is confirmed in the reqwest 0.13.5 source (`response.rs:435`).
 - 2026-11-23 14:55 UTC - Claude Code (Claude Opus 5.5) - Addressed review round 3 of PR 3005 (da2ce7): the body-read test also runs `check` against the fake, the only way to reach the checker's `bytes()` calls, and asserts no `Debug` text (AC2).
+- 2026-11-23 16:52 UTC - Claude Code (Claude Opus 5.5) - Spec PR 3005 merged. Repeated R0 on the implementation branch (same output) and did the T1 audit: two more leaks found, the `serde_json` echo of a wrong-typed checker configuration value (P8) and the `clap` echo of a misplaced argument (P9). The maintainer decided to fix both here; added a text-masking function and their tests to the spec.
+- 2026-11-23 17:09 UTC - Claude Code (Claude Opus 5.5) - Implemented T2 to T7: masking functions in the library, the library error and every console output path fixed; 13 library tests (10 of them red before the fix) and 8 black-box tests, red before the fix and green after; each console fix guarded by a mutation; the maintainer reviewed the work at the T5 stop. Docs updated; M1 to M4 rechecked. Material discoveries are in `implementation-retrospective.md`.
+- 2026-11-23 18:03 UTC - Claude Code (Claude Opus 5.5) - Addressed review round 1 of PR 3012 (da2ce7 F1 to F6, Copilot, Greptile): the text masker no longer parses URLs, so it masks echoed URLs with an upper-case scheme, a `)` or `'` inside, or that do not parse; an authenticated client masks its own key; the error text keeps the chain of causes; contract, README and evidence counts corrected. New tests were red first; the recheck was repeated on the last commit with code.
+- 2026-11-23 18:43 UTC - Claude Code (Claude Opus 5.5) - Addressed review round 2 of PR 3012 (Greptile, CodeRabbit): the text masker takes `\` as a separator, masks the whole segment after an endpoint and the first non-empty one after extra separators, finds nested endpoints, and masks every password; an `http scrape` body-read test. The recheck found the `serde_json`-escaped backslash leak, fixed with its own red tests; the final recheck ran on the last commit with code.
+- 2026-11-23 19:03 UTC - Claude Code (Claude Opus 5.5) - Addressed review round 3 of PR 3012 (Copilot): `HTTP` in upper case in the checker errors, a percent-encoding test, the library README paragraph wrapped; the recheck repeated on the last commit with code.
+- 2026-11-23 19:42 UTC - Claude Code (Claude Opus 5.5) - Review round 4 of PR 3012 (Copilot): the tokio test features are listed. Round 5 (CodeRabbit): a dot segment moved the key past the masked segment; the text masker now hides the whole rest of the path after the endpoint; red tests first, the recheck repeated on the last commit with code.
 
 ## Acceptance Criteria
 
-- [ ] AC1: No output of `tracker_client` (stdout or stderr, any subcommand, success or failure)
+- [x] AC1: No output of `tracker_client` (stdout or stderr, any subcommand, success or failure)
   contains the key of a tracker URL; the key segment is written as `****`.
-- [ ] AC2: No output contains the `Debug` text of a `reqwest::Error`; a failed request is reported
+- [x] AC2: No output contains the `Debug` text of a `reqwest::Error`; a failed request is reported
   with an error kind and the masked URL.
-- [ ] AC3: The library error text of `packages/tracker-client` does not contain the key.
-- [ ] AC4: Regression tests fail on the unchanged code and pass after the fix.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior/workflow changes
+- [x] AC3: The library error text of `packages/tracker-client` does not contain the key.
+- [x] AC4: Regression tests fail on the unchanged code and pass after the fix.
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated when behavior/workflow changes
 
 ## Verification Plan
 
@@ -318,19 +384,19 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Failed announce with a key | `tracker_client http announce http://127.0.0.1:1/announce/SECRETKEYabc123 <infohash> > out.txt 2> err.txt; echo "exit=$?"` (stdout to a file, as R0 does: it keeps the exit status and avoids the terminal refusal), then search `err.txt` for `SECRETKEYabc123` | Exit `1`; one JSON record; no match; the URL shows `/announce/****` | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | Failed scrape with a key | The same with `http scrape` and `/scrape/<key>` | As M1 | TODO | `manual-verification-evidence.md` section V2 |
-| M3 | `check` with a keyed HTTP tracker | A `check` configuration with a keyed URL on a closed port | The result and stderr contain no key | TODO | `manual-verification-evidence.md` section V3 |
-| M4 | Success with a key | Announce to a local private tracker with a valid key | The result contains no key | TODO | `manual-verification-evidence.md` section V4 |
+| M1 | Failed announce with a key | `tracker_client http announce http://127.0.0.1:1/announce/SECRETKEYabc123 <infohash> > out.txt 2> err.txt; echo "exit=$?"` (stdout to a file, as R0 does: it keeps the exit status and avoids the terminal refusal), then search `err.txt` for `SECRETKEYabc123` | Exit `1`; one JSON record; no match; the URL shows `/announce/****` | DONE | `manual-verification-evidence.md` section V1 |
+| M2 | Failed scrape with a key | The same with `http scrape` and `/scrape/<key>` | As M1 | DONE | `manual-verification-evidence.md` section V2 |
+| M3 | `check` with a keyed HTTP tracker | A `check` configuration with a keyed URL on a closed port | The result and stderr contain no key | DONE | `manual-verification-evidence.md` section V3 |
+| M4 | Success with a key | Announce to a local private tracker with a valid key | The result contains no key | DONE | `manual-verification-evidence.md` section V4 |
 
 ### Acceptance Verification
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1 | TODO |  |
-| AC2 | TODO |  |
-| AC3 | TODO |  |
-| AC4 | TODO |  |
+| AC1 | DONE | V1 to V5 of `manual-verification-evidence.md`; black-box tests in `console/tracker-client/tests/key_redaction.rs` |
+| AC2 | DONE | V1 to V3 (kind-based texts); tests `..._check_response_body_is_cut_short` and `..._health_check_gets_no_response` |
+| AC3 | DONE | `error_text` tests in `packages/tracker-client/src/http/client/mod.rs` (`Display` and `Debug`) |
+| AC4 | DONE | Red runs and mutations in `manual-verification-evidence.md` and `evidence/`; green run T7 |
 
 ## Risks and Trade-offs
 
@@ -343,7 +409,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: [`implementation-retrospective.md`](implementation-retrospective.md)
 
 After implementation, compare the result with this specification: invalidated assumptions,
 material design changes, unexpected validation findings and reusable lessons. If there is any,

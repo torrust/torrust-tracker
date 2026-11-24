@@ -23,6 +23,7 @@ There are currently three console clients available:
 - On success, stdout holds one JSON object and nothing else. On failure, stdout is empty.
 - Every stderr line is one JSON object: tracing events, monitor probe events, warnings, errors, and the `--help` and `--version` text (records with `kind` `help` and `version`), and panics (a record with `kind` `panic`).
 - Exit codes are `0` (done), `1` (runtime failure) and `2` (usage error, invalid configuration or terminal refusal).
+- No output carries the key of a private HTTP tracker (`/announce/<key>`, `/scrape/<key>`): wherever a tracker URL is written, its key is written as `****`, including the `url` field of the `check` results (issue #3004).
 
 **Breaking changes** (issue #2768):
 

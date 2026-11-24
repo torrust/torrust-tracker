@@ -10,6 +10,11 @@ Client package. Workspace dependencies: `torrust-tracker-http-protocol`, `torrus
 
 `udp` and `http` hold the clients for each protocol and `peer_id` builds peer ids.
 
+`http::client::redaction` masks the key of a private tracker URL (`/announce/<key>`,
+`/scrape/<key>`) as `****`. The HTTP client error texts use it, and an authenticated client also
+masks its own key wherever its path puts it (a custom endpoint path, the health-check path), so the
+error texts never carry the key.
+
 ## Stability
 
 Versions are independent per package (see the [ADR](https://github.com/torrust/torrust-tracker/blob/develop/docs/adrs/20260629000000_adopt_independent_package_versioning.md)). While the version is `0.x`, the public API can change in any minor release. The crate is developed for the Torrust Tracker first, so use it directly only if you accept that.

@@ -2,17 +2,18 @@ use std::sync::Arc;
 
 use serde::Serialize;
 use thiserror::Error;
+use torrust_tracker_client::http::client::redaction::request_error_text;
 use torrust_tracker_http_protocol::v1::responses::scrape::deserialization::BencodeParseError;
 
 #[derive(Debug, Clone, Error, Serialize)]
 #[serde(into = "String")]
 #[non_exhaustive]
 pub enum Error {
-    #[error("Http request did not receive a response within the timeout: {err:?}")]
+    #[error("HTTP request did not receive a response within the timeout: {err}")]
     HttpClientError {
         err: torrust_tracker_client::http::client::Error,
     },
-    #[error("Http failed to get a response at all: {err:?}")]
+    #[error("HTTP failed to get a response at all: {}", request_error_text(err))]
     ResponseError { err: Arc<reqwest::Error> },
     #[error("Failed to deserialize the bencoded response data with the error: \"{err:?}\"")]
     ParseBencodeError {
