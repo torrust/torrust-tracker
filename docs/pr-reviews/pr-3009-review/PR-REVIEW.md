@@ -355,7 +355,7 @@ replies to it.
 - Current-tree verification: `grep -n 'was committed at 17:34:51 UTC' docs/pr-reviews/pr-3009-review/PR-REVIEW.md` shows the F18 row.
 - Resolution reference: docs(pr-reviews): [#2902] correct when the F18 fix was pushed and record the fifth review round of #3009
 - Follow-up PR URL: N/A
-- Reply URL: PENDING
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3009#discussion_r4679682329
 
 ## Processing Log
 
@@ -364,6 +364,7 @@ replies to it.
 - 2026-11-23 17:23 UTC - Round 2 (da2ce7's comment without approval, findings recorded as F13 to F15): F14 and F15 fixed in their own commits, F13 by correcting this record; replied at 17:23:18 to 17:23:23 UTC, before pushing the fixes and this update together; the threads are resolved after the push.
 - 2026-11-23 17:32 UTC - Round 3 (da2ce7's review of the Copilot-findings head and Greptile's comment on the F10 row, recorded as F16 and F17): F16 fixed in its own commits, F17 by correcting the F10 row; replied at 17:32:47 and 17:32:50 UTC, before pushing the fixes and this update together; the threads are resolved after the push.
 - 2026-11-23 17:44 UTC - Round 4 (da2ce7's comment without approval, findings recorded as F18 and F19): F18 was fixed by the round 3 push, which landed 44 seconds after his review (corrected in F20), F19 fixed in its own commit; replied at 17:43:58 and 17:44:01 UTC, before pushing this update; the threads are resolved after the push.
+- 2026-11-24 12:02 UTC - Round 5 (da2ce7's approval review of the fourth-round head, finding F16 recorded as F20): fixed in its own commit in #3022, after #3009 was merged; replied on the thread after pushing that PR; the thread is resolved after the reply.
 
 ## Completion Rules
 
