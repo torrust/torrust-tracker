@@ -154,8 +154,17 @@ branch to the commit the event is about before it delegates (the start of step 2
 new head, the round count, the exit condition and the watching after it. A
 session that does not delegate, or runs in another tool, runs step 2 itself.
 
-1. Run the poller with `--since-head-sha "$(git rev-parse HEAD)"`. After an event that needed no
-   push, add `--since <cursor>` from that result.
+1. When a session starts or takes over the pull request, first list every review already on it,
+   from every author, because the poller reports only reviews created after the commit you pass:
+
+   ```sh
+   gh api repos/torrust/torrust-tracker/pulls/<PR>/reviews --paginate \
+     --jq '.[] | "\(.id) \(.user.login) \(.state) \(.commit_id[0:9]) \(.submitted_at)"'
+   ```
+
+   Process each review, other than your own replies, that the audit record does not cover yet, as
+   in step 2. Then run the poller with `--since-head-sha "$(git rev-parse HEAD)"`. After an event
+   that needed no push, add `--since <cursor>` from that result.
 2. Branch on `kind`:
    - `review` or `comment`: first make sure you are working on the commit the feedback is about.
      If `head_moved` is `true`, or `head_sha` differs from `git rev-parse HEAD`, run `git fetch` and
@@ -181,13 +190,14 @@ session that does not delegate, or runs in another tool, runs step 2 itself.
 3. Count the round (see [Round Limit](#round-limit)) after each push, and stop and ask the
    contributor when the limit is exceeded.
 4. Check the exit condition after each return. The loop is done when all of these hold:
-   - Every review received so far is processed with `process-pr-review`. No review from a named
+   - Every review received so far is processed with `process-pr-review`: list the reviews as in
+     step 1, and each one either has its findings in the audit record or has none. No review from a named
      reviewer is required and none is waited for: a pull request with no review at all can be
      ready. A review that arrives later reopens the loop (step 6). Reviewers often submit only
      `COMMENTED` reviews; do not wait for an approval state.
-   - Every workflow check of the head commit finished and none failed, as
-     [`watch-pull-request-checks`](../watch-pull-request-checks/SKILL.md) reports (skipped
-     checks do not count as failures). A check run that a review service posts from its own GitHub
+   - Every workflow check of the head commit is `pass` or `skipping`, as
+     [`watch-pull-request-checks`](../watch-pull-request-checks/SKILL.md) reports; a cancelled
+     check needs attention like a failed one. A check run that a review service posts from its own GitHub
      App, for example `CodeRabbit` or `Greptile Review`, does not count: see
      [Review-Service Check Runs](../watch-pull-request-checks/SKILL.md#review-service-check-runs).
    - The pull request has no unresolved actionable review thread anywhere, including threads on
