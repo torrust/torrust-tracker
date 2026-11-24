@@ -1,7 +1,7 @@
 ---
 pr-number: 3044
 pr-url: https://github.com/torrust/torrust-tracker/pull/3044
-last-updated-utc: "2026-11-24 19:11"
+last-updated-utc: "2026-11-24 19:20"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -48,6 +48,7 @@ This is the first audit record with the `Reviewer` column the PR introduces.
 Round 2, on head `e57378df3`: Greptile review 6045462816 (F5), about the wait loop added for F2.
 Round 3, on head `13b96f0cf`: CodeRabbit review 6045569854 with one inline thread (F6) and one
 review-body finding (F7) that repeats F5.
+Round 4, on head `9d1946125`: CodeRabbit review 6045717795, its answer in the F6 thread (F8).
 
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
@@ -58,6 +59,7 @@ review-body finding (F7) that repeats F5.
 | F5 | review-finding:pr-3044-f5 | greptile-apps[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-3044-f6 | coderabbitai[bot] | Major | correctness | ORIGINAL | FIXED | RESOLVED |
 | F7 | review-finding:pr-3044-f7 | coderabbitai[bot] | Minor | correctness | RE_RAISE_OF:F5 | FIXED | NON_RESOLVABLE |
+| F8 | review-finding:pr-3044-f8 | coderabbitai[bot] | Major | correctness | RE_RAISE_OF:F6 | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -189,6 +191,27 @@ review-body finding (F7) that repeats F5.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3044#issuecomment-7141731519
 
+### F8 - The wait loop stopped when the head had no check at all
+
+- PR number: 3044
+- Source review ID: 6045717795
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3044#pullrequestreview-6045717795
+- Concern: CodeRabbit's answer in the F6 thread (comment r4685221545): `gh pr checks --json` fails
+  with `no checks reported on the '<branch>' branch` when the head has no check at all, so the F6
+  loop stopped on that "error" before it looked for runs waiting for approval. It kept F6 open.
+- Solution: The loop keeps the `gh pr checks` error in a file. When it is the "no checks reported"
+  message, the loop treats the head as having no check yet and goes on to the `action_required`
+  test; any other error still stops it. The text explains the message. The reply went in the F6
+  thread, whose replies GitHub attaches to its first comment, so the source URL is the review.
+- Current-tree verification: the `gh` 2.76.2 source (`pkg/cmd/pr/checks/checks.go`, `collectChecks`)
+  returns that error before the JSON exporter runs, and PR 10 of this repository, which has no
+  checks, gives it. One pass of the loop on PR 10 gave `ready=false waiting=false` and would sleep;
+  on the missing PR 999999 it stopped with the GraphQL error and `gh pr checks failed`.
+- Resolution reference: docs(watch-pull-request-checks): [#3037] treat a head with no checks yet as not ready in the workflow-check wait
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3044#discussion_r4685290079
+
 ## Processing Log
 
 - 2026-11-24 18:50 UTC - Round 1: Greptile review 6045345701 (18:50:22) with two threads, after its summary comment (18:50:17).
@@ -198,6 +221,8 @@ review-body finding (F7) that repeats F5.
 - 2026-11-24 19:02 UTC - Round 2: Greptile review 6045462816 (18:58:41, on `e57378df3`) with one thread (F5).
 - 2026-11-24 19:06 UTC - Pushed the F5 fix (head `d186506c4`), replied (r4685124134) and resolved the thread. Round 3: CodeRabbit review 6045569854 (19:05:28, on `13b96f0cf`) with one thread (F6) and a review-body finding (F7, a re-raise of F5).
 - 2026-11-24 19:11 UTC - Pushed the F6 fix (head `9d1946125`), replied on the F6 thread (r4685179281) and resolved it, and answered F7 in a conversation comment. A review listing shows no other review, and a GraphQL refresh shows no unresolved thread. Rounds with a `FIXED` finding: 4 of the limit of 5.
+- 2026-11-24 19:15 UTC - Pushed this record (head `911ae3aae`). Round 4: CodeRabbit review 6045717795 (19:14:43, on `9d1946125`), its answer in the F6 thread (F8).
+- 2026-11-24 19:20 UTC - Pushed the F8 fix (head `146179e79`) and replied in the F6 thread (r4685290079); the thread stays resolved. A review listing shows no other review, and a GraphQL refresh shows no unresolved thread. Rounds with a `FIXED` finding: 5, the limit; a further round needs the contributor's decision.
 
 ## Completion Rules
 
