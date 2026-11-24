@@ -9,7 +9,7 @@ github-issue: 3037
 spec-path: docs/issues/open/3037-2003-reviewer-neutral-pr-review/ISSUE.md
 branch: "3037-reviewer-neutral-pr-review"
 related-pr: null
-last-updated-utc: "2026-11-24 18:27"
+last-updated-utc: "2026-11-24 18:42"
 semantic-links:
   skill-links:
     - create-issue
@@ -204,7 +204,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T5  | DONE   | `merge-pull-request` Merge Readiness | Replace "Copilot review" with a reviewer-neutral "Reviews" check: every review received so far is addressed and no actionable thread is unresolved; no named reviewer's review is required; checks as in T4. |
 | T6  | DONE   | Audit `Reviewer` column | `process-pr-review` step 2 records the login; `PR-REVIEW-TEMPLATE.md` Status Values and Findings table use `Reviewer`; `validate-audit-record.py` (if it reads the column) and the `agent-review-report-contract` pins accept `Reviewer` for new records and `Author class` for existing ones. Tests of the contract check cover both. |
 | T7  | DONE   | Reviewer-neutral wording elsewhere | `AGENTS.md` (After opening a PR: no "re-request the review"), `open-pull-request` After Opening, `pr-review-handler.md`, `.claude/skills/README.md`, `docs/agents/orchestration.md` (reviewer wording only; #2904 T9 rewrites the file later). Contract pins on these files updated in the same commit. |
-| T8  | TODO   | Search for leftovers | `git grep -i copilot` outside the out-of-scope paths returns only the manual-request description, the coding-agent mentions and historical records. Record the command and result in the evidence. |
+| T8  | DONE   | Search for leftovers | `git grep -i copilot` outside the out-of-scope paths returns only the manual-request description, the coding-agent mentions and historical records. Record the command and result in the evidence. |
 
 ## Commit Points
 
@@ -237,11 +237,11 @@ the narrow affected scope, and sign every commit with GPG.
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [x] Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
@@ -257,28 +257,39 @@ the narrow affected scope, and sign every commit with GPG.
 - 2026-11-24 18:27 UTC - Claude Code (Claude Opus 5.5) - Spec PR #3039 merged (maintainer ACK on
   `389c2d287`). Started the implementation on branch `3037-reviewer-neutral-pr-review`. T1 done:
   `docs/adrs/20261124182709_review_pull_requests_without_a_mandatory_reviewer.md`.
+- 2026-11-24 18:42 UTC - Claude Code (Claude Opus 5.5) - T2 to T8 done and M1 to M5 recorded in
+  `manual-verification-evidence.md`. Deviations from the plan: `validate-audit-record.py` needed no
+  change, because it reads the Findings table by position, and the contract check reads no audit
+  record, so "accept both columns" needed no code; instead the check now forbids the old author
+  classes in the template and the skill. The fresh-agent run (M5) found two gaps, fixed on this
+  branch: a failed review-service check run stops `--watch --fail-fast`, and the Copilot login for
+  the `Reviewer` column was unclear. Its question about reporting when only the ACK is missing
+  belongs to #2977. T8 search: `git grep -n -i copilot` outside the Out of Scope paths and history
+  lists only the manual-request description, Copilot as a coding tool, the legacy profile owned by
+  #2904 and the deprecated redirect. No retrospective: the plan held, and the deviations are recorded
+  here.
 
 ## Acceptance Criteria
 
-- [ ] AC1: No skill, tool default or document outside the Out of Scope paths makes a review from a
+- [x] AC1: No skill, tool default or document outside the Out of Scope paths makes a review from a
   named reviewer a condition for a pull request to be ready or mergeable.
-- [ ] AC2: Run without `--reviewer`, the poller reports a review or comment from any account except
+- [x] AC2: Run without `--reviewer`, the poller reports a review or comment from any account except
   the pull request's author; with `--reviewer`, only the listed logins.
-- [ ] AC3: The skills say that an AI agent never triggers a review, that only a maintainer requests
+- [x] AC3: The skills say that an AI agent never triggers a review, that only a maintainer requests
   one, and what the agent does when a requested review (Copilot included) or a self-started review
   arrives: process it with `process-pr-review`.
-- [ ] AC4: Readiness in `wait-for-pr-review` and `merge-pull-request` ignores check runs that do not
+- [x] AC4: Readiness in `wait-for-pr-review` and `merge-pull-request` ignores check runs that do not
   come from a workflow.
-- [ ] AC5: New audit records carry a `Reviewer` column with the login; the contract check and
+- [x] AC5: New audit records carry a `Reviewer` column with the login; the contract check and
   `validate-audit-record.py` accept it, and still accept existing records with `Author class`.
-- [ ] AC6: The ADR records decisions 2 to 5 and the rejected alternatives.
-- [ ] AC7: The text this issue leaves contains neither the 60-minute deadline nor the hand-over
+- [x] AC6: The ADR records decisions 2 to 5 and the rejected alternatives.
+- [x] AC7: The text this issue leaves contains neither the 60-minute deadline nor the hand-over
   report, which stay with #2977.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass (`wait-for-pr-review` tool, `agent-review-report-contract`)
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior/workflow changes
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass (`wait-for-pr-review` tool, `agent-review-report-contract`)
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated when behavior/workflow changes
 
 ## Verification Plan
 
@@ -297,11 +308,11 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | The poller wakes on a reviewer it was not told about | Run the poller without `--reviewer` on a pull request with a CodeRabbit review, with `--since` before that review | A `review` event with `coderabbitai[bot]`; the author's own replies produce no event | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | `--reviewer` still narrows | Same pull request with `--reviewer da2ce7` and a short timeout | No event for `coderabbitai[bot]`; `timeout` | TODO | `manual-verification-evidence.md` section V2 |
-| M3 | Readiness ignores a review-bot check run | Run the documented checks command on a pull request with a `CodeRabbit` check run | Only workflow check runs are counted | TODO | `manual-verification-evidence.md` section V3 |
-| M4 | Old and new audit records validate | Run the contract check and `validate-audit-record.py` on an existing record and on the implementation PR's record | Both pass | TODO | `manual-verification-evidence.md` section V4 |
-| M5 | A fresh agent follows the new skills | Give a fresh agent session the updated `wait-for-pr-review` and a pull request with a CodeRabbit review and no Copilot review; ask whether the pull request is ready and what it would do next | It processes the CodeRabbit findings, requests no review, and does not wait for Copilot | TODO | `manual-verification-evidence.md` section V5 |
+| M1 | The poller wakes on a reviewer it was not told about | Run the poller without `--reviewer` on a pull request with a CodeRabbit review, with `--since` before that review | A `review` event with `coderabbitai[bot]`; the author's own replies produce no event | DONE | `manual-verification-evidence.md` section V1 |
+| M2 | `--reviewer` still narrows | Same pull request with `--reviewer da2ce7` and a short timeout | No event for `coderabbitai[bot]`; `timeout` | DONE | `manual-verification-evidence.md` section V2 |
+| M3 | Readiness ignores a review-bot check run | Run the documented checks command on a pull request with a `CodeRabbit` check run | Only workflow check runs are counted | DONE | `manual-verification-evidence.md` section V3 |
+| M4 | Old and new audit records validate | Run the contract check and `validate-audit-record.py` on an existing record and on the implementation PR's record | Both pass | DONE | `manual-verification-evidence.md` section V4 |
+| M5 | A fresh agent follows the new skills | Give a fresh agent session the updated `wait-for-pr-review` and a pull request with a CodeRabbit review and no Copilot review; ask whether the pull request is ready and what it would do next | It processes the CodeRabbit findings, requests no review, and does not wait for Copilot | DONE | `manual-verification-evidence.md` section V5 |
 
 Notes:
 
@@ -314,13 +325,13 @@ Notes:
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1 | TODO | T8 search |
-| AC2 | TODO | T2 tests, M1, M2 |
-| AC3 | TODO | T3 diff, M5 |
-| AC4 | TODO | T4 diff, M3 |
-| AC5 | TODO | T6 tests, M4 |
-| AC6 | TODO | T1 ADR |
-| AC7 | TODO | T3 diff |
+| AC1 | DONE | T8 `git grep -i copilot` (progress log, 2026-11-24 18:42): only the manual-request description, Copilot as a coding tool, the legacy profile owned by #2904 and history remain |
+| AC2 | DONE | `event.rs` and `snapshot.rs` tests in `test-design-review.md`; evidence V1, V2 |
+| AC3 | DONE | `wait-for-pr-review` "A Review a Maintainer Requested", `AGENTS.md`; evidence V5 |
+| AC4 | DONE | `watch-pull-request-checks` "Review-Service Check Runs", `merge-pull-request` Merge Readiness; evidence V3 |
+| AC5 | DONE | Contract check pins and forbids; `validate-audit-record.py` unchanged (reads by position); evidence V4 |
+| AC6 | DONE | `docs/adrs/20261124182709_review_pull_requests_without_a_mandatory_reviewer.md` |
+| AC7 | DONE | `git grep -n -i "60 minutes\|hand-over" .claude/skills/wait-for-pr-review/SKILL.md` finds neither |
 
 ## Risks and Trade-offs
 
@@ -338,7 +349,7 @@ Notes:
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: not needed; see the progress log entry of 2026-11-24 18:42 UTC.
 - If needed, create `implementation-retrospective.md` from
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this directory.
 - If no retrospective is needed, add a concise progress-log entry explaining why.
