@@ -179,3 +179,57 @@ Toolchain: stable `rustc 1.100.0`, `cargo test`. Commit subject:
   was replaced with `NotAValidKey`, so the absence check is meaningful.
 - The 32-character key with a non-ASCII character guards that the length counts characters, not
   bytes (`chars().count()`).
+
+## T4 - The `Key` Type
+
+Toolchain: stable `rustc 1.100.0`, `cargo test`. Commit subject:
+`fix(tracker-core): [#2999] redact the peer key in Debug and in the PeerKey text`.
+
+### Red run
+
+Ten tests failed before the production change ([`evidence/t4-red.txt`](evidence/t4-red.txt)):
+
+```text
+left: "Key(\"TestPeerKeyForDebugOutput0000001\")"
+right: "Key([REDACTED])"
+the Debug output holds the test secret      (PeerKey, InMemoryKeyRepository, AddKeyRequest, AddKeyForm, AuthKey)
+test result: FAILED. 60 passed; 8 failed (tracker-core); 3 passed; 2 failed (rest-api-protocol)
+```
+
+### Green run
+
+`cargo test --workspace --no-fail-fast`: no failure after the change.
+
+### Decisions
+
+- `Key` has a manual `Debug` (`Key([REDACTED])`). Types that derive `Debug` over a `Key` field
+  (`PeerKey`, `InMemoryKeyRepository`, `AuthenticationService`) are redacted by composition; a
+  test checks `PeerKey` and `InMemoryKeyRepository` (the tokio `RwLock` prints its contents).
+- Fields typed `String` got a manual redacting `Debug`: `AddKeyRequest::opt_key`,
+  `AddKeyForm::opt_key` and `AuthKey::key`. The other fields still print.
+- `PeerKey`'s manual `Display` had no production use (found by searching for `PeerKey` text
+  formatting); it now prints ``key: `[REDACTED]` `` and the expiry. Its four tests pinned the key
+  text and changed with it.
+- Remaining uses of `Key::to_string()`/`Display` and `Serialize`, each deliberate:
+  1. `rest-api-runtime-adapter/src/v1/adapters/auth_key.rs`, `peer_key_to_auth_key`: the REST reply
+     that hands a generated or added key to its owner.
+  2. `tracker-core/src/databases/driver/{sqlite,mysql,postgres}/auth_key_store.rs`: the value bound
+     to the `keys` table (persistence).
+  3. `rest-api-client/src/v1/client.rs`: `format!("key/{key}")`, the key delete URL the caller
+     asked for; the URL is stripped from client errors by T6.
+  4. `tracker-client/src/http/client/mod.rs` builds the announce URL with the key; its output is
+     masked by #3004 (out of scope).
+  5. `Serialize` on `Key` and `PeerKey`: the database load path and REST bodies above.
+
+### Test-design review (prose-first AAA)
+
+- Arrange: the unique 32-character test key is visible in each test because it is both the input
+  and the thing the assertion looks for. Nothing else is set up (the repository test inserts one
+  key).
+- Act: only the formatting call (`format!("{x:?}")`, `to_string()`); production code is the
+  `Debug`/`Display` impl itself.
+- Assert: `Key` is asserted against the literal `Key([REDACTED])`; composed types assert the
+  absence of the secret and, where it costs nothing, that the other fields still print (so a
+  blanket "print nothing" does not pass). The absence message never prints the secret.
+- Smell check: `AuthenticationService` has no own test (the redaction comes from the repository it
+  holds, which has one); recorded here as deliberate.

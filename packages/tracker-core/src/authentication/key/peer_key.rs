@@ -68,11 +68,13 @@ impl PartialEq for PeerKey {
 
 impl Eq for PeerKey {}
 
+/// Describes the key without printing it: the key is a secret, and nothing needs the whole
+/// `PeerKey` as text. Code that hands the key to its owner reads `PeerKey::key` instead.
 impl std::fmt::Display for PeerKey {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self.expiry_time() {
-            Some(expire_time) => write!(f, "key: `{}`, valid until `{}`", self.key, expire_time),
-            None => write!(f, "key: `{}`, permanent", self.key),
+            Some(expire_time) => write!(f, "key: `[REDACTED]`, valid until `{expire_time}`"),
+            None => write!(f, "key: `[REDACTED]`, permanent"),
         }
     }
 }
@@ -124,8 +126,21 @@ impl PeerKey {
 /// use torrust_tracker_core::authentication::key::peer_key::Key;
 /// let random_key = Key::random();
 /// ```
-#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone, Display, Hash)]
+///
+/// # Secrecy
+///
+/// A key is a secret. `Debug` redacts it (`Key([REDACTED])`), so a type that derives `Debug` and
+/// holds a `Key` cannot print one by accident. `Display` and `Serialize` print the key and stay
+/// only where it is deliberately handed to its owner or persisted: the REST reply that returns a
+/// generated or added key, the database store, and the REST client building a key delete URL.
+#[derive(Serialize, Deserialize, Eq, PartialEq, Clone, Display, Hash)]
 pub struct Key(String);
+
+impl std::fmt::Debug for Key {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("Key([REDACTED])")
+    }
+}
 
 impl Key {
     /// Constructs a new `Key` from the given string.
@@ -236,6 +251,17 @@ mod tests {
         }
 
         #[test]
+        fn it_should_be_redacted_in_its_debug_output() {
+            let secret = "TestPeerKeyForDebugOutput0000001";
+            let key = Key::new(secret).unwrap();
+
+            let debug = format!("{key:?}");
+
+            assert_eq!(debug, "Key([REDACTED])");
+            assert!(!debug.contains(secret), "the Debug output holds the test secret");
+        }
+
+        #[test]
         fn should_be_generated_randomly() {
             let _key = Key::random();
         }
@@ -322,6 +348,22 @@ mod tests {
             assert_eq!(permanent_key.expiry_time(), None);
         }
 
+        #[test]
+        fn it_should_not_print_its_key_in_debug_or_display_output() {
+            let secret = "TestPeerKeyForPeerKeyOutput00001";
+            let peer_key = PeerKey {
+                key: Key::new(secret).unwrap(),
+                valid_until: Some(Duration::from_secs(100)),
+            };
+
+            let debug = format!("{peer_key:?}");
+            let display = peer_key.to_string();
+
+            assert!(!debug.contains(secret), "the Debug output holds the test secret");
+            assert!(!display.contains(secret), "the Display output holds the test secret");
+            assert!(debug.contains("Key([REDACTED])"), "{debug}");
+        }
+
         mod expiring {
             use std::time::Duration;
 
@@ -336,7 +378,7 @@ mod tests {
 
                 assert_eq!(
                     expiring_key.to_string(),
-                    format!("key: `{}`, valid until `1970-01-01 00:01:40 UTC`", expiring_key.key) // cspell:disable-line
+                    "key: `[REDACTED]`, valid until `1970-01-01 00:01:40 UTC`" // cspell:disable-line
                 );
             }
         }
@@ -352,10 +394,7 @@ mod tests {
                     valid_until: None,
                 };
 
-                assert_eq!(
-                    permanent_key.to_string(),
-                    format!("key: `{}`, permanent", permanent_key.key) // cspell:disable-line
-                );
+                assert_eq!(permanent_key.to_string(), "key: `[REDACTED]`, permanent"); // cspell:disable-line
             }
         }
     }

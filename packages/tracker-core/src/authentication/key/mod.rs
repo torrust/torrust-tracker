@@ -229,7 +229,7 @@ mod tests {
 
             assert_eq!(
                 expiring_key.to_string(),
-                format!("key: `{}`, valid until `1970-01-01 00:00:00 UTC`", expiring_key.key) // cspell:disable-line
+                "key: `[REDACTED]`, valid until `1970-01-01 00:00:00 UTC`" // cspell:disable-line
             );
         }
 
@@ -278,7 +278,7 @@ mod tests {
 
             assert_eq!(
                 expiring_key.to_string(),
-                format!("key: `{}`, valid until `1970-01-01 00:00:00 UTC`", expiring_key.key) // cspell:disable-line
+                "key: `[REDACTED]`, valid until `1970-01-01 00:00:00 UTC`" // cspell:disable-line
             );
         }
 
