@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: done
 priority: p1
 epic: 2758
 github-issue: 3004
-spec-path: docs/issues/open/3004-2758-tracker-client-mask-tracker-key/ISSUE.md
+spec-path: docs/issues/closed/3004-2758-tracker-client-mask-tracker-key/ISSUE.md
 branch: "3004-tracker-client-mask-tracker-key"
-related-pr: null
-last-updated-utc: "2026-11-23 19:42"
+related-pr: 3012
+last-updated-utc: "2026-11-24 13:02"
 semantic-links:
   skill-links:
     - create-issue
@@ -336,9 +336,9 @@ commit.
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Reviewer validated acceptance criteria and updated checkboxes (PR #3012 merged after five review rounds)
 - [x] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -417,6 +417,8 @@ create `implementation-retrospective.md` in this folder from
 `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md`. If there is none, add a progress-log entry that
 says why the work had no material discovery. The completion-review checkbox is ticked only with one
 of the two.
+
+- 2026-11-24 11:54 UTC - Claude Code (Claude Opus 5.5) - PR #3012 merged and issue #3004 closed; archived this spec to `docs/issues/closed/` (`status: done`, `related-pr: 3012`).
 
 ## References
 

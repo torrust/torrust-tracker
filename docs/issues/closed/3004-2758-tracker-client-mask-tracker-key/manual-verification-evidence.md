@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/3004-2758-tracker-client-mask-tracker-key/ISSUE.md
-last-updated-utc: "2026-11-23 19:42"
+issue-spec: docs/issues/closed/3004-2758-tracker-client-mask-tracker-key/ISSUE.md
+last-updated-utc: "2026-11-24 11:54"
 ---
 
 <!-- cspell:ignore SECRETKEY OTHERKEY nothex Abcdefghijklmnopqrstuv Greptile -->

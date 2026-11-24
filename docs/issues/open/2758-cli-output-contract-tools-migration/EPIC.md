@@ -6,7 +6,7 @@ epic: null
 github-issue: 2758
 spec-path: docs/issues/open/2758-cli-output-contract-tools-migration/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-23 22:06"
+last-updated-utc: "2026-11-24 11:54"
 semantic-links:
   skill-links:
     - create-issue
@@ -103,7 +103,7 @@ parallel; the maintainer sets how many sessions run at once. The `Order` column 
 | 9 | #2768 - `tracker_client`: TTY refusal, JSON-only output | `docs/issues/closed/2768-2758-tracker-client-json-only/ISSUE.md` | DONE | Implemented in PR #2956. Wave 2, after 6: `console/tracker-client/**` |
 | 10 | #2769 - `e2e_tests_runner` and `qbittorrent_e2e_runner`: JSON diagnostics | `docs/issues/open/2769-2758-e2e-runners-json/ISSUE.md` | TODO | Wave 2, after 6 and 7: `src/console/ci/**`, `packages/e2e-tools/src/bin/` |
 | 11 | #2770 - Close the migration: update the ADR notes and the EPIC | `docs/issues/open/2770-2758-close-out-adr-and-epic/ISSUE.md` | TODO | Wave 3 (last): ADR "currently non-compliant" notes, `docs/issues/` bookkeeping. The only close-out PR for the EPIC. |
-| 12 | #3004 - `tracker_client`: do not write the tracker key in diagnostics or results (bug) | `docs/issues/open/3004-2758-tracker-client-mask-tracker-key/ISSUE.md` (spec PR #3005) | IN_PROGRESS | Found while closing #2768. Runs before #2766: the maintainer puts bugs and security fixes first, with no implementation overlapping it. Files: `console/tracker-client/**`, `packages/tracker-client/src/http/client/**`. |
+| 12 | #3004 - `tracker_client`: do not write the tracker key in diagnostics or results (bug) | `docs/issues/closed/3004-2758-tracker-client-mask-tracker-key/ISSUE.md` (spec PR #3005, fix PR #3012) | DONE | Found while closing #2768. Runs before #2766: the maintainer puts bugs and security fixes first, with no implementation overlapping it. Files: `console/tracker-client/**`, `packages/tracker-client/src/http/client/**`. |
 | 13 | #3006 - `tracker_client`: add a schema version to the results | `docs/issues/open/3006-2758-tracker-client-schema-version/ISSUE.md` (spec PR #3008) | IN_PROGRESS | Spec only for now (maintainer decisions: a global ADR rule, top-level integer `schema_version`, first value `1`). Implementation after issue 10 and before issue 11: it amends the text of `docs/adrs/20260519000000_define_global_cli_output_contract.md`, which issue 11 also edits. Files: `console/tracker-client/**` and that ADR. |
 
 ## Delivery Strategy
