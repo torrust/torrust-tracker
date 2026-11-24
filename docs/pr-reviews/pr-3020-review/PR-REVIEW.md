@@ -47,12 +47,17 @@ Review 6036567949 (CodeRabbit, 2026-11-24 09:19 UTC) posted two inline comments.
 repeats them, so it adds no row.
 Review 6037525308 (CodeRabbit, 2026-11-24 10:26 UTC, on the audit commit) posted one inline
 comment, F3; its body only repeats it.
+Review 6037619842 (CodeRabbit, 2026-11-24 10:33 UTC) is a reply in the F3 thread that found a
+defect in the F3 fix: F4. Review 6037565542 (10:29 UTC) is a reply in the F2 thread that accepts
+the plan change and asks for the audit validator to be run; it requests no change, so it adds no
+row and was answered in the thread.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3020-f1 | Unknown | Major | correctness | ORIGINAL | FIXED | RESOLVED |
 | F2 | review-finding:pr-3020-f2 | Unknown | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-3020-f3 | Unknown | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F4 | review-finding:pr-3020-f4 | Unknown | Minor (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -114,6 +119,26 @@ comment, F3; its body only repeats it.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/3020#discussion_r4678654975>
 
+### F4 - The unquoted `issue #3019` entry parses as `issue`
+
+- PR number: 3020
+- Source review ID: 6037619842
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/3020#pullrequestreview-6037619842>
+- Concern: in comment
+  <https://github.com/torrust/torrust-tracker/pull/3020#discussion_r4678683115>, a reply inside
+  the F3 thread (so this row cites its review, not a thread of its own), the reviewer found that
+  the F3 fix wrote `- issue #3019` unquoted; YAML reads the space and `#3019` after `issue` as a comment, so the
+  value is only `issue`.
+- Solution: quoted the value as `"issue #3019"`, the form most records use (188 quoted against
+  49 unquoted entries in `docs/` and `.claude/` on 2026-11-24). Swept the spec and evidence
+  frontmatter of this PR: they have no other `#` value.
+- Current-tree verification: `yaml.safe_load` of the frontmatter printed
+  `['.claude/skills/process-pr-review/SKILL.md', 'issue #3019']`.
+- Resolution reference: docs(pr-reviews): [#3019] quote the issue #3019 entry in the PR 3020 audit frontmatter
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3020#discussion_r4678732133>
+
 ## Processing Log
 
 - 2026-11-24 10:18 UTC - Started audit for CodeRabbit review 6036567949 (F1, F2). Both fixes
@@ -123,6 +148,11 @@ comment, F3; its body only repeats it.
   thread.
 - 2026-11-24 10:31 UTC - Pushed the F3 fix and replied (reply `created_at` 10:31:02Z).
   CodeRabbit had already resolved the thread.
+- 2026-11-24 10:37 UTC - Pushed the F4 fix and replied in the F3 thread (reply `created_at`
+  10:37:50Z); answered the validator request in the F2 thread (10:37:52Z). All three threads
+  were already resolved. Process correction: the F1 thread was resolved at 10:20 UTC before
+  `validate-audit-record.py` ran; the skill runs it first. It passed when it ran, before the
+  first audit commit.
 
 ## Completion Rules
 
