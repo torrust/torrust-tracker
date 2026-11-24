@@ -87,9 +87,9 @@ mod tests {
     use torrust_info_hash::InfoHash;
     use torrust_tracker_http_protocol::v1::requests::scrape::Scrape;
     use torrust_tracker_http_protocol::v1::responses::error::Error;
+    use torrust_tracker_test_helpers::assertions::assert_names_no_source_path;
 
     use super::extract_scrape_from;
-    use crate::tests::helpers::assert_names_no_source_path;
 
     struct TestInfoHash {
         pub bencoded: String,

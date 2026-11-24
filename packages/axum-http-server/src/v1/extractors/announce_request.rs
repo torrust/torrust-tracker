@@ -89,9 +89,9 @@ mod tests {
     use torrust_tracker_http_protocol::v1::requests::announce::{Announce, Compact, Event, NumberOfBytes, PeerIp};
     use torrust_tracker_http_protocol::v1::responses::error::Error;
     use torrust_tracker_primitives::PeerId;
+    use torrust_tracker_test_helpers::assertions::assert_names_no_source_path;
 
     use super::extract_announce_from;
-    use crate::tests::helpers::assert_names_no_source_path;
 
     fn assert_error_response(error: &Error, error_message: &str) {
         assert!(
