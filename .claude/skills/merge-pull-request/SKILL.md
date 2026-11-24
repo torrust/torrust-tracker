@@ -3,7 +3,7 @@ name: merge-pull-request
 description: Build, inspect, sign and optionally push a maintainer merge of a pull request with the vendored merge tool. Use when asked to merge a pull request.
 metadata:
   author: torrust
-  version: "1.3"
+  version: "1.4"
 ---
 
 # Merging a Pull Request
@@ -57,9 +57,14 @@ Before showing or running the merge command for a pull request, report these rea
 the maintainer. The ruleset requires no approvals and the tool only warns about missing ACKs, so
 these checks are repository convention rather than technical enforcement.
 
-- **Copilot review:** the latest Copilot review is on the current head commit, and no actionable
-  review thread is unresolved. Copilot only submits `COMMENTED` reviews, never `APPROVED`, so do
-  not wait for an approval state.
+- **Reviews:** every review received so far is processed, and no actionable review thread is
+  unresolved. No review from a named reviewer is required (see
+  [the ADR](../../../docs/adrs/20261124182709_review_pull_requests_without_a_mandatory_reviewer.md)):
+  report which reviewers reviewed which commit, and which did not review, but do not hold the
+  pull request for them.
+- **Checks:** every workflow check of the head commit passed. A check run that a review service
+  posts from its own GitHub App does not count (see
+  [Review-Service Check Runs](../watch-pull-request-checks/SKILL.md#review-service-check-runs)).
 - **Reviewer ACK:** the other maintainer has commented `ACK <full head commit hash>` on the head
   commit. This is recommended, not mandatory: the maintainer may waive it. Record a waiver as a
   durable comment on the pull request before merging. An `ACK` on an earlier commit does not count
