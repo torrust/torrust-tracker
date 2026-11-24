@@ -135,9 +135,10 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 
 ## Acceptance Criteria
 
-- [ ] AC1: No `latency_ms` in a capture or in the code.
+- [ ] AC1: No `latency_ms` field and no `latency` field in a capture at `trace`, and no field named `latency_ms` in the code.
 - [ ] AC2: `latency_in_ms` is a number.
 - [ ] AC3: "Changes in 4.0.0" lists the rename.
+- [ ] AC4: The three `response failed` lines and the UDP `responded` trace each carry `latency_in_ms` as an integer, checked by a test for each path.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -159,6 +160,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | M1 | Read request lines | Start the release tracker; send one HTTP announce, one REST API request and one health check request | Each response line has `latency_in_ms=<number>` | TODO | `manual-verification-evidence.md` section V1 |
+| M2 | Read failure and UDP lines | Start the release tracker at `trace`; make one request of each HTTP service end in a `response failed` line (the specification names how), and send one UDP announce | Each `response failed` line and the UDP `responded` line has `latency_in_ms=<number>` and no `latency` | TODO | `manual-verification-evidence.md` section V2 |
 
 Notes:
 
@@ -177,6 +179,7 @@ None planned. If one is needed, record its path, purpose and removal owner here 
 | AC1 | TODO | {test/log/PR link} |
 | AC2 | TODO | {test/log/PR link} |
 | AC3 | TODO | {test/log/PR link} |
+| AC4 | TODO | {test/log/PR link} |
 
 ## Risks and Trade-offs
 
