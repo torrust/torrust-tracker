@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md
-last-updated-utc: "2026-11-19 16:57"
+last-updated-utc: "2026-11-24 07:47"
 ---
 
 # Manual Verification Evidence
@@ -408,6 +408,85 @@ mechanism; the behaviour is that of Claude Code 2.1.318.
 | Pull request | Rounds with fixes | Model of each round | Count final |
 | --- | --- | --- | --- |
 | #2963 (T4) | 4 so far, answering 5 reviews with a `FIXED` finding. Round 1: review `5972182565`, F1 to F6, all fixed (see V3). Round 2: review `5974337471`, F8 to F13, five fixed and F8 with no change. Round 3: reviews `5974503813` and `5974634671`, F14 to F18, all fixed. Round 4: review `5976833863`, F20, fixed | Round 1: `claude-opus-5-5` (three runs). Round 2: `claude-opus-5-5`. Round 3: `claude-opus-5-5` (two runs). Round 4: `claude-opus-5-5` (two runs) | No, the pull request is open |
+
+### V8 - The transcript shows each request's line (scenario M8)
+
+- Goal: before any of T5's code, observe how the transcript file of an agent that already exists
+  records a first request and a continued request that each carry a `Reply file:` line, and
+  decide whether the stop hook of D17 can tell the caller's requests apart from tool results,
+  preloaded skill text and harness messages.
+- Initial state: `develop` at the merge of pull request #3002, on the branch of T5 before any
+  of its code; neither `task-reviewer` nor `agent-reply-guard` exists.
+- Status: `DONE`
+
+#### Steps Performed
+
+One non-interactive Claude Code session started in the checkout, on `claude-sonnet-5-5`, with the
+agent `pr-review-handler` (pinned to `claude-opus-5-5`, four preloaded skills):
+
+```text
+CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0 claude -p --model sonnet --debug-file <file> --output-format json "<prompt>" < /dev/null
+```
+
+The prompt told the session to do two things and nothing else. Step 1: start one
+`pr-review-handler` in the foreground with a task that asks for no file change, no command and no
+tool, and for the answer `FIRST`, and whose second line is `Reply file: <path of round 1>`. Step
+2: continue the same agent with `SendMessage` (the schema loaded with `ToolSearch`), with a task
+that asks for the answer `SECOND` and whose second line is `Reply file: <path of round 2>`. Both
+paths name files under this specification's `agent-replies/` folder that the probe never writes
+(`pr-review-handler-m8probe-r1.json` and `pr-review-handler-m8probe-r2.json`). The session printed
+the agent id and the answers `FIRST` and `SECOND`. The transcript file of the agent is
+`<projects folder>/<project>/<session id>/subagents/agent-<agent id>.jsonl`, with a sibling
+`agent-<agent id>.meta.json`. Each record was read with a short Python script that prints, per
+record, `type`, `isMeta`, `origin`, the role, the shape of `message.content` and the paths that a
+line-anchored match `^Reply file: (.+)$` finds in its text.
+
+#### Results
+
+Claude Code 2.1.318 (`claude --version`). The agent's `model` lines were all `claude-opus-5-5`.
+The agent had finished its first request and handed its report back (record 25 below, 07:45:18Z)
+before the continuation was recorded (record 26, 07:45:20Z), so the second request resumed a
+finished agent. The transcript has 35 records:
+
+| Records | Kind | `type` | `isMeta` | `origin` | `message.content` | Carries a `Reply file:` line |
+| ------- | ---- | ------ | -------- | -------- | ----------------- | ----------------------------- |
+| 0 | The first request | `user` | absent | absent | a string, the task as written | yes, round 1 |
+| 1 to 4 | The four preloaded skills, one record each, after the first request | `user` | `true` | absent | two `text` blocks (the skill's command line and its body) | no (none of these skills shows the line) |
+| 5 | A harness reminder about the final report | `user` | `true` | absent | a string | no |
+| 6 to 13 | Attachments | `attachment` | n/a | n/a | none | no |
+| 14, 17, 22, 28, 32 | Request markers | `api-request-shape`, `api-request` | n/a | n/a | none | no |
+| 15 | A copy of the whole request sent to the model, with the first task in its content | `api-request-blob` | n/a | n/a | blocks, one of them the first task | yes, round 1 (a copy) |
+| 16, 27 | Copies of the system prompt and of a response | `api-request-blob` | n/a | n/a | blocks | no |
+| 18, 19, 23, 24, 29, 30, 33 | The agent's thinking, text and tool calls | `assistant` | n/a | n/a | blocks | no |
+| 21, 31 | A harness message after each answer: "[handback-send-enforce] Your report has not been delivered ..." | `user` | `true` | absent | a string | no |
+| 25, 34 | Results of the tool call that hands the report back | `user` | absent | absent | one `tool_result` block | no |
+| 26 | The continued request | `user` | `true` | `{"kind": "coordinator"}` | a string: the line "The coordinator sent a message while you were working:", then the task as written | yes, round 2 |
+
+The three records that carry a line are 0, 15 and 26. Taken by the discriminators above, the
+caller's requests are record 0 (a `user` record with neither `isMeta` nor `origin`, and a string
+as content) and record 26 (a `user` record whose `origin.kind` is `coordinator`); the last one
+carries the round-2 path, which is the file the continued request names. The line is on its own
+line in both, so the line-anchored match finds it; in record 26 it follows the one-line prefix.
+Preloaded skill text sits in records 1 to 4, directly after the first request and before the
+agent's first action, as `isMeta` records with no `origin`. Tool results have a `tool_result` block
+and no `isMeta`. The `api-request-blob` record 15 repeats the first task, so a search that did not
+filter by `type` would find the round-1 line there too; the filter by `type` and by the
+discriminators removes it.
+
+#### Conclusion
+
+The lines can be told apart from tool results, preloaded skill text and harness messages, so D17
+stands (it was to be revised only if they could not). What the hook relies on is a format that
+Claude Code does not document, observed here on one version and for one kind of caller:
+
+- the `origin.kind` of a continued request was `coordinator` for a session that continues a
+  finished agent with `SendMessage` in a `claude -p` run; another caller (an interactive session,
+  another way of continuing an agent) may record another kind, and a version other than 2.1.318
+  may change the field names. The hook accepts only the kinds observed, and a request recorded in
+  another way is not found: the hook then reads the earlier request's line, as for an omitted
+  line (D17), which the caller rule covers.
+- the hook's tests pin this format with fixtures shaped like the records above, and scenario M7
+  checks the hook against the real transcript of a fresh run and of a continued run.
 
 ## Failures and Follow-up
 

@@ -7,9 +7,9 @@ priority: p1
 epic: 2003
 github-issue: 2904
 spec-path: docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md
-branch: "2904-t5-task-reviewer-spec"
+branch: "2904-t5-task-reviewer"
 related-pr: null
-last-updated-utc: "2026-11-23 18:08"
+last-updated-utc: "2026-11-24 07:47"
 semantic-links:
   skill-links:
     - create-issue
@@ -367,12 +367,20 @@ Decided by the maintainer on 2026-11-15:
     reply-file line of D17 instead. Without the line the reviewer was
     given no folder-style specification, and the hook lets the agent finish. With the line, the
     caller has fixed the file, so an agent that skips the reply cannot pass for one that had
-    nothing to write. The transcript's format is not documented. The hook's tests pin only the
-    format their fixtures assume. Before any of T5's code, scenario M8 observes the real format
-    without the hook: an agent that already exists and preloads skills is started with the line
-    and then continued with a new one. If M8 shows that a continued request's line cannot be told
-    apart from tool results or preloaded skill text, D17 is revised before T5's code. Scenario
-    M7 then checks the hook itself, in a fresh run and in a continued run.
+    nothing to write. The transcript's format is not documented, so scenario M8 observed it before
+    any of T5's code, without the hook (2026-11-24, Claude Code 2.1.318; V8). In the agent's
+    transcript file, the first request is the first record, of type `user`, with no `isMeta` and no
+    `origin`; a continued request is a later record of type `user` with `isMeta` true and
+    `origin.kind` `coordinator`, whose text is the request after a one-line prefix; tool results
+    (a `tool_result` block), preloaded skill text and harness reminders (`isMeta` and no `origin`)
+    are `user` records that are neither; and the records of type `api-request-blob` repeat the
+    request text and are not requests. The lines can be told apart, so this rule stands. The hook
+    reads the line only from the records identified so, and accepts only the `origin` kind
+    observed. A request recorded in a way M8 did not observe (another caller, another Claude Code
+    version) is not found, and the hook then treats it as an omitted line, which the caller rule
+    covers. The hook's tests pin the observed format with fixtures shaped like the records of V8,
+    and scenario M7 checks the hook against the real transcript, in a fresh run and in a
+    continued run.
   - **A continuation without a line.** A caller that continues a reviewer for a task with no
     folder-style specification has no `Reply file:` line to write, and no other marker is added.
     The latest line found is then the earlier request's. This is harmless: the earlier run could
@@ -590,7 +598,7 @@ on are merged.
 | T2  | DONE   | Pointer `CLAUDE.md` | A root `CLAUDE.md` whose only content is the import of `AGENTS.md` (D11); if scenario M4 shows that a scoped `AGENTS.md` is not loaded, an import-only `CLAUDE.md` beside each of the ten scoped `AGENTS.md` files; scenario M4 recorded |
 | T3  | DONE   | Reply schema and validator | `docs/schemas/agent-reply-v1.schema.json`; the validator with tests, developed in the progressive loop of the `write-unit-test` skill with a recorded design review per increment, and run by the repository checks; `docs/schemas/README.md` updated (D18) |
 | T4  | DONE | `pr-review-handler` | `.claude/agents/pr-review-handler.md` with the pinned model; `wait-for-pr-review` and `process-pr-review` say which agent runs a round; the inventory `removed-profile-rules.md` created in this folder with the rules of `copilot-suggestions-handler` (AC6); scenarios M1 to M3 recorded |
-| T5  | TODO   | `task-reviewer` | The agent file with the pinned model and the stop hook (D17): the binary `agent-reply-guard` with tests of its limit of 3 refusals, of reading the latest `Reply file:` line from a transcript (including a continued run, a continued run whose last request has no line, and preloaded skill text that follows the task), and of the branches that let the agent finish without a line, for a draft path, for a path outside the specification folders and for a path whose specification folder does not exist, and the ignore and linter rules for `.agents/issues/`; scenario M8 recorded before the hook's code; the complexity item in `review-task` (D12); the reply rule in `review-task`, which refers to the reply-file line of D17 without showing it literally and also says that a reply file satisfies the earlier template's checkpoint (D18); scenario M7 recorded, including its continued-run step |
+| T5  | IN_PROGRESS   | `task-reviewer` | The agent file with the pinned model and the stop hook (D17): the binary `agent-reply-guard` with tests of its limit of 3 refusals, of reading the latest `Reply file:` line from a transcript (including a continued run, a continued run whose last request has no line, and preloaded skill text that follows the task), and of the branches that let the agent finish without a line, for a draft path, for a path outside the specification folders and for a path whose specification folder does not exist, and the ignore and linter rules for `.agents/issues/`; scenario M8 recorded before the hook's code; the complexity item in `review-task` (D12); the reply rule in `review-task`, which refers to the reply-file line of D17 without showing it literally and also says that a reply file satisfies the earlier template's checkpoint (D18); scenario M7 recorded, including its continued-run step |
 | T6  | TODO   | `implementer` | The agent file; the three committer rules in `commit-changes` (D14); the rules that only `planner` held moved into `create-issue` |
 | T7  | TODO   | `pr-reviewer` | The agent file with the pinned model; the reply rule in `review-pr` |
 | T8  | TODO   | `researcher` | The agent file |
@@ -691,6 +699,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - 2026-11-23 16:57 UTC - Claude Code (Claude Opus 5.5) - Addressed the fourth review round of pull request #3002 (review `6025120305` of CodeRabbit, reviews `6025142141` and `6025460812` of `da2ce7`, review `6025374584` of Copilot), processed by `pr-review-handler` with the answers the contributor gave that day. D17 adds the case of a `Reply file:` path under `open/` or `closed/` whose specification folder does not exist, after close-out moved it to `closed/` or because the caller mistyped it: the hook lets the agent finish with a message naming the path and keeps no count, because the agent cannot create a specification folder legitimately. The continuation without a line no longer assumes that the earlier file is still in place. The T5 row, the Commit Points and Automatic Checks name the test, and the test paragraph of the Commit Points wraps near 100 characters.
 - 2026-11-23 17:31 UTC - Claude Code (Claude Opus 5.5) - Addressed the fifth review round of pull request #3002: review `6026291754` of `da2ce7` (APPROVED, one nit on the audit record's wording of its placeholder check) and review `6026236623` of Copilot (round-4 rows absent at an intermediate head, already recorded). No change to the specification.
 - 2026-11-23 18:08 UTC - Claude Code (Claude Opus 5.5) - Addressed review `6026746874` of Copilot on pull request #3002: M7 runs on the T5 branch, after the hook exists, so it could not gate T5's code. By the maintainer's decision that day, a new scenario M8 observes the transcript format before any of T5's code, with an agent that already exists and preloads skills; D17 is revised before T5's code if M8 shows the lines cannot be told apart, and M7 checks the hook itself afterwards. T5's row and the Commit Points order M8 first.
+- 2026-11-24 07:47 UTC - Claude Code (Claude Sonnet 5.5) - Pull request #3002 merged on 2026-11-24 at 07:43 UTC (the spec for T5's hook). T5 started on its own branch with scenario M8, before any of its code: `pr-review-handler` was started with a `Reply file:` line and continued with a new one, and its transcript file was read. The first request is the first `user` record with no `isMeta` and no `origin`; the continued request is a `user` record with `isMeta` true and `origin.kind` `coordinator`; tool results, preloaded skill text and harness reminders differ by `tool_result` blocks or by `isMeta` without `origin`; `api-request-blob` records repeat the request text. The lines can be told apart, so D17 stands, with the observed format added to it. V8 records the run on Claude Code 2.1.318.
 
 ## Acceptance Criteria
 
@@ -761,7 +770,7 @@ Every scenario records the Claude Code version it ran on.
 | M5  | The orchestrator leads | Start a session as the orchestrator on a small real task, once with `claude --agent orchestrator` and once by telling a normal session to read the file and take the role | It starts the implementer, then the task reviewer; each writes a valid reply file in `agent-replies/`; the implementer starts no agent; questions come back to the contributor through the orchestrator | TODO | `manual-verification-evidence.md` section V5 |
 | M6  | Review rounds per pull request | For the first three pull requests handled by `pr-review-handler`, count the review rounds with fixes | The counts are recorded with the model of each round, next to the baseline of pull request #2851 (14 rounds, split by model) | IN_PROGRESS | `manual-verification-evidence.md` section V6 |
 | M7  | The stop hook holds the reviewer | Start `task-reviewer` on a task whose text carries the `Reply file:` line (D17), first with an instruction that makes it try to finish without a reply file, then normally; then continue the finished reviewer with a new request that carries a new `Reply file:` line, naming the next round's file | The hook refuses the first attempt and names what is missing; the agent then writes a valid reply file and finishes; a forced case shows 3 refusals and then the fourth attempt allowed, with the limit reported; in the continued run the hook reads the new path. V7 records the Claude Code version, which transcript message carries the new line, where the preloaded skill text sits, and whether the hook reads the new path | TODO | `manual-verification-evidence.md` section V7 |
-| M8  | The transcript shows each request's line | Before any of T5's code, start an agent that already exists and preloads skills (for example `pr-review-handler`) with a harmless task that changes no file and carries a `Reply file:` line naming a path that is never written; when it finishes, continue it with a new request that carries a different `Reply file:` line; open its transcript file | Each request is a message from the caller that can be told apart from tool results and from the preloaded skill text, and the second request's line is in the last such message. V8 records the Claude Code version, how each message is marked, which message carries each line and where the preloaded skill text sits. If the lines cannot be told apart, D17 is revised before T5's code | TODO | `manual-verification-evidence.md` section V8 |
+| M8  | The transcript shows each request's line | Before any of T5's code, start an agent that already exists and preloads skills (for example `pr-review-handler`) with a harmless task that changes no file and carries a `Reply file:` line naming a path that is never written; when it finishes, continue it with a new request that carries a different `Reply file:` line; open its transcript file | Each request is a message from the caller that can be told apart from tool results and from the preloaded skill text, and the second request's line is in the last such message. V8 records the Claude Code version, how each message is marked, which message carries each line and where the preloaded skill text sits. If the lines cannot be told apart, D17 is revised before T5's code | DONE | `manual-verification-evidence.md` section V8 |
 
 Notes:
 
