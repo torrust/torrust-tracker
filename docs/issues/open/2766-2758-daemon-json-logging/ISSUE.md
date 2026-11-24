@@ -9,7 +9,7 @@ github-issue: 2766
 spec-path: docs/issues/open/2766-2758-daemon-json-logging/ISSUE.md
 branch: "2766-daemon-json-logging"
 related-pr: null
-last-updated-utc: "2026-11-23 16:38"
+last-updated-utc: "2026-11-23 16:58"
 semantic-links:
   skill-links:
     - create-issue
@@ -19,6 +19,8 @@ semantic-links:
     - docs/adrs/20260519000000_define_global_cli_output_contract.md
     - docs/adrs/20261106102632_scope_the_cli_output_contract_and_keep_exit_codes_to_zero_one_two.md
     - docs/issues/open/2758-cli-output-contract-tools-migration/EPIC.md
+    - docs/issues/open/2387-review-tracker-lifecycle-logs/EPIC.md
+    - docs/issues/open/2387-review-tracker-lifecycle-logs/decisions.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -26,6 +28,16 @@ semantic-links:
 # Issue #2766 - `torrust-tracker` daemon: JSON logs on stderr and JSON startup failure
 
 **Parent EPIC:** #2758 - Migrate the CLI tools to the global output contract. Order 7 of 13, wave 1.
+
+## Dependencies
+
+This issue starts after EPIC #2387 (make tracker startup and shutdown logs coherent for operators) has merged its sub-issues SI-1 to SI-20, which are all the ones that change log lines except SI-21, blocked on a release of another repository (maintainer decision, 2026-11-21; decision D1 in `docs/issues/open/2387-review-tracker-lifecycle-logs/decisions.md`). EPIC #2387 fixes the content of the lifecycle log lines (targets, message text, field names, levels) in the text format, and this issue then changes only the format and the stream. Consequences for this issue:
+
+- The log lines and the readers named below will have changed when this issue starts. EPIC #2387 removes the `Started on:` text and moves `logs_parser.rs` and `tests/common/native_tracker/health.rs` to the `service_binding` field of the `Started` line; it renames `timeout_seconds` to `shutdown_deadline_in_secs`. Before T1, re-read the Background and Scope against `develop` and correct the file and line references.
+- The parsers then read fields, not message text. This issue changes how a field is read (from JSON), not which field.
+- EPIC #2387 adds an automated check of the lifecycle log convention that reads the text format through one small parser (its SI-20). This issue moves that parser to JSON.
+- Sub-issue SI-22 of EPIC #2387 (`run_id` on every log record) waits for this issue, because it adds a field in the formatter this issue replaces. Keep a place in the logging setup where a per-record field can be added.
+- `docs/logging.md`, created by EPIC #2387, describes the lines. This issue adds the JSON form to it.
 
 ## Goal
 
@@ -98,6 +110,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
+| T0 | BLOCKED | Wait for EPIC #2387 (SI-1 to SI-20) and refresh this spec | Background, Scope and file references corrected against `develop` after the lifecycle log changes. |
 | T1 | TODO | Agree the migration detail with the maintainer | Decision recorded in the spec; ADR if material. |
 | T2 | TODO | Tests for stream and format | Red tests: stdout empty, stderr JSON. |
 | T3 | TODO | Implement the logging change and the startup-failure record | Green tests. |
@@ -108,6 +121,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | Task | Coherent change set | Commit policy |
 | ---- | ------------------- | ------------- |
+| T0 | Refresh this specification against `develop` after EPIC #2387 | One documentation commit, before T1. |
 | T1 | Agree the migration detail with the maintainer | Commit after focused validation and required review. |
 | T2 | Tests for stream and format | Commit after focused validation and required review. |
 | T3 | Implement the logging change and the startup-failure record | Commit after focused validation and required review. |
@@ -141,6 +155,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-09 12:12 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the review of PR 2771 (da2ce7 findings F1 to F27 and Copilot's later comments): specs corrected from the code, reproductions recorded where a spec has a bug-fix section.
 - 2026-11-09 13:21 UTC - Claude Code (Claude Sonnet 5.5) - Addressed da2ce7's review 5826238636 of PR 2771 on this spec.
 - 2026-11-09 16:03 UTC - Claude Code (Claude Sonnet 5.5) - Addressed da2ce7's review 5826857760 of PR 2771 on this spec.
+- 2026-11-23 16:13 UTC - Claude Code (Fable 5.2) - Recorded the maintainer's decision of 2026-11-21 that this issue starts after EPIC #2387, with the consequences for its scope (section Dependencies, task T0).
 - 2026-11-23 16:38 UTC - Claude Code (Claude Opus 5.5) - Updated the EPIC total to 13 after #3004 and #3006 were added (PR 3007 review).
 
 ## Acceptance Criteria
@@ -203,5 +218,5 @@ Manual verification is mandatory even when automated tests pass. Record actual c
 ## References
 
 - Parent EPIC: #2758
-- Related issues: #2715, #1798
+- Related issues: #2715, #1798, #2387 (EPIC that goes before this issue)
 - Related ADRs: `docs/adrs/20260519000000_define_global_cli_output_contract.md`, `docs/adrs/20261106102632_scope_the_cli_output_contract_and_keep_exit_codes_to_zero_one_two.md`
