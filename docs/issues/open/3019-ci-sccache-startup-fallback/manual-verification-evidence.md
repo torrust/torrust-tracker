@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/3019-ci-sccache-startup-fallback/ISSUE.md
-last-updated-utc: "2026-11-24 13:07"
+last-updated-utc: "2026-11-24 17:04"
 ---
 
 # Manual Verification Evidence
@@ -153,20 +153,22 @@ reliable check, and the build passes without the wrapper.
 
 ### V3 - Hosted red run
 
-- Status: `BLOCKED`
-- Branch: `3019-verify-red` in the `josecelano-bot` fork, commit `63cf7ca13`: `torrust/develop`
-  at `c3efcb844` plus one temporary commit that adds a step to the `unit` job of
-  `testing.yaml`. The step writes `server_startup_timeout_ms = 1` to a config file and exports
-  `SCCACHE_CONF` before the sccache steps.
-- Observed on 2026-11-24 at 13:05 UTC: the push succeeded, but no workflow run started. The
-  commit's only check suite belongs to the `claude` app; there is no GitHub Actions suite. The
-  fork's Actions permissions report `enabled: true`, `allowed_actions: all`, and the fork's
-  latest workflow run on any branch is from 2026-10-30.
-- Next step: a way to run the workflow, decided by the maintainer.
+- Status: `IN_PROGRESS`
+- First attempt, on a `josecelano-bot` fork branch: branch `3019-verify-red`, upstream
+  `develop` at the merge of PR #3020 plus one temporary commit that adds a step to the `unit`
+  job of `testing.yaml`. The step writes `server_startup_timeout_ms = 1` to a config file and
+  exports `SCCACHE_CONF` before the sccache steps. On 2026-11-24 at 13:05 UTC the push
+  succeeded, but no workflow run started: the commit's only check suite belongs to the `claude`
+  app, with no GitHub Actions suite. The fork's Actions permissions report `enabled: true` and
+  `allowed_actions: all`, and the fork's latest workflow run on any branch is from 2026-10-30.
+- The maintainer then chose a throwaway draft PR from the same branch:
+  <https://github.com/torrust/torrust-tracker/pull/3033>, waiting for its workflow runs.
 
 ### V4 - Hosted green run
 
-- Status: `TODO`
+- Status: `IN_PROGRESS`
+- Throwaway draft PR <https://github.com/torrust/torrust-tracker/pull/3034>: the implementation
+  branch plus the same temporary commit as V3. Waiting for its workflow runs.
 
 ### V5 - Hosted normal run
 
@@ -174,7 +176,10 @@ reliable check, and the build passes without the wrapper.
 
 ### V6 - Hosted runs of jobs the PR checks do not run
 
-- Status: `TODO`
+- Status: `TODO` (after the merge)
+- `coverage.yaml`: the run for the merge push to `develop`.
+- `testing.yaml` → `docker-e2e`: the next Dependabot branch push, the only event that runs its
+  `sccache` steps in `torrust/torrust-tracker`.
 
 ## Failures and Follow-up
 
