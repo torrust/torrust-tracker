@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: in-progress
+status: done
 priority: p1
 epic: 2912
 github-issue: 384
-spec-path: docs/issues/open/384-strip-location-from-errors-sent-to-clients/ISSUE.md
+spec-path: docs/issues/closed/384-2912-si-7-strip-location-from-errors-sent-to-clients/ISSUE.md
 branch: "384-strip-location-from-errors-sent-to-clients"
-related-pr: null
-last-updated-utc: "2026-11-24 14:37"
+related-pr: 3028
+last-updated-utc: "2026-11-24 17:33"
 semantic-links:
   skill-links:
     - create-issue
@@ -146,7 +146,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3 | DONE | Like-for-like recheck | The T1 requests repeated on a tracker built from `develop` at `c94bda536`; no reply holds a source path (`manual-verification-evidence.md`). |
 | T4 | DONE | Coverage gap check | Each surface exercised in T3 is covered by a maintained test of SI-3 or SI-4; a missing one is added in its package and linked here. Result: every surface is covered, no test added (table in the progress log entry of 2026-11-24 13:32 UTC). |
 | T5 | DONE | Documentation | `grep -rn '\.rs:' docs packages/*/README.md README.md` reviewed for example responses with a location; each one updated. Result: no example reply holds a location; nothing to update. |
-| T6 | IN_PROGRESS | Answer and close #384 | Comment on #384 linking the ADR and the EPIC; the maintainer closes the issue or lets the last pull request close it. |
+| T6 | DONE | Answer and close #384 | Comment on #384 linking the ADR and the EPIC; the maintainer closes the issue or lets the last pull request close it. |
 
 ## Commit Points
 
@@ -178,19 +178,19 @@ with the narrow affected scope, and sign every commit with GPG.
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec written in `docs/issues/open/384-strip-location-from-errors-sent-to-clients/ISSUE.md`
+- [x] Folder-style spec written in `docs/issues/closed/384-2912-si-7-strip-location-from-errors-sent-to-clients/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec (#384 already existed)
-- [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
+- [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [x] Implementation completed (no production change; verification only)
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Independent reviewer reports recorded (not applicable: no independent reviewer received this folder; the pull request reviews are in `docs/pr-reviews/pr-3028-review/PR-REVIEW.md`) in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -202,18 +202,19 @@ the model that produced them.
 - 2026-11-17 17:30 UTC - Claude Code (Claude Opus 5.5) - EPIC coordinator: the maintainer approved the specification on 2026-11-17; this issue keeps its title and is SI-7 of EPIC #2912 (comment posted on #384).
 - 2026-11-24 13:32 UTC - Claude Code (Claude Sonnet 5.5) - SI-7: T1-T5 done on one run. Baseline `tracker-before` built from `305027e70`, recheck `tracker-after` from `c94bda536` (SI-1 to SI-6 merged), both run with the same 17-request script plus 7 extra error requests; the baseline replies held a `packages/...` path (H7 and R6 also a `~/.cargo/registry` path), the recheck replies hold none (grep of the forbidden substrings is empty). `cargo test --workspace --no-fail-fast source_path`: 45 passed. No leak found, no production change. Coverage (T4), surface to maintained test: HTTP announce and scrape parse errors, `axum-http-server/tests/server/v1/contract/failure_reasons_hold_no_source_path.rs` and `http-protocol` unit tests (H1, H5-H7, R6, R7); private-key errors (H2-H4, H8), the same contract file and `tracker-core` `authentication/service.rs` tests; UDP whitelist rejection (U1), `udp-server/tests/server/contract.rs` `should_reject_a_torrent_that_is_not_whitelisted_with_a_message_that_holds_no_source_path`; REST (K2, K3), `axum-rest-api-server/tests/server/v1/contract/context/auth_key.rs` (`should_fail_without_a_source_path_*`). Not tied to a source-path test: R1 to R5 never held a path (their text comes from axum extractors and the REST layer); recorded as a note, no leak. Docs: no example reply holds a location. `docs/packages.md` line 280 still lists the external `located-error` crate in its table of extracted crates; it is not a reply and is left to the EPIC close-out.
 - 2026-11-24 14:37 UTC - Claude Code (Claude Sonnet 5.5) - Review round 1 (CodeRabbit, PR 3028): AC1 wording narrowed to what the evidence shows (a replies-that-never-held-a-path clause); the path check re-run with the full forbidden set of the Regression Test Strategy, including `packages\` and `src\`, still empty.
+- 2026-11-24 17:33 UTC - Claude Code (Claude Sonnet 5.5) - PR 3028 merged. Outcome comment posted on #384 (links the ADR, the EPIC and the evidence; 13 leaking replies before, none now). Spec archived to `docs/issues/closed/` and SI-7 marked DONE in EPIC #2912; the archive pull request closes #384.
 
 ## Acceptance Criteria
 
 - [x] AC1: On a tracker built from `develop` after SI-2 to SI-6, none of the replies of the manual scenarios (HTTP, UDP, REST) holds a source path, and every baseline reply that held one (13 of the recorded replies) holds none now. Replies that never held a path (for example R1 to R5, whose text comes from axum extractors and the REST layer) are recorded as no-leak notes, not as baseline matches.
 - [x] AC2: Every client surface exercised by the scenarios is covered by a maintained test.
 - [x] AC3: The documentation shows no example error reply with a source location.
-- [ ] AC4: #384 has a comment that states the outcome and links the ADR and the EPIC, and is closed.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
+- [x] AC4: #384 has a comment that states the outcome and links the ADR and the EPIC, and is closed.
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
 - [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior/workflow changes
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated when behavior/workflow changes
 
 ## Verification Plan
 
@@ -277,7 +278,7 @@ None planned for this issue.
 | AC1 | DONE | `manual-verification-evidence.md` V1-V4: 13 baseline replies held a path; after, `grep` for the forbidden substrings finds nothing |
 | AC2 | DONE | Coverage table in the progress log; `evidence/tests-green.txt` (45 tests of the `source_path` filter pass) |
 | AC3 | DONE | `grep -rn '\.rs:' docs packages/*/README.md README.md` outside `docs/issues` and `docs/pr-reviews` finds only discussion, schema and ADR prose, no reply |
-| AC4 | TODO | Comment and closing happen after this pull request is merged |
+| AC4 | DONE | Outcome comment on #384: <https://github.com/torrust/torrust-tracker/issues/384#issuecomment-7139357870>; the issue closes with the pull request that archives this spec |
 
 ## Risks and Trade-offs
 
