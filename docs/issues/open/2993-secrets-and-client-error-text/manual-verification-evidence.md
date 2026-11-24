@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2993-secrets-and-client-error-text/EPIC.md
-last-updated-utc: "2026-11-23 11:22"
+last-updated-utc: "2026-11-24 12:38"
 ---
 
 # Manual Verification Evidence
@@ -20,7 +20,9 @@ they change anything. Nothing here is a fix; every result shows current behavior
   writes the tracker configuration files it uses, so they are in the script.
   After the run it was edited to satisfy ShellCheck (`cd ... || exit 1`, loop variables renamed to
   `_`, one `shellcheck disable` comment) and the private-mode UDP line it printed empty was dropped
-  from the output; the edited script was not run again.
+  from the output; the edited script was not run again. On 2026-11-24 that check was removed from
+  the script as well: `private.toml` has no UDP tracker, so it never printed anything, and SI-3 of
+  EPIC #2387 makes a private configuration with a UDP tracker fail at startup.
 - [`evidence/udp_probe.py`](evidence/udp_probe.py): the UDP requests of V6. After the run it was
   edited to stop with a clear message when no connect response arrives, instead of failing on an
   unpack. The edited probe was run again on 2026-11-23 08:27 UTC against a local public tracker
