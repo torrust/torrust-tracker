@@ -3,11 +3,12 @@ name: watch-pull-request-checks
 description: Wait for a pull request's CI checks to finish with gh pr checks, then read which failed. Use when you need to know whether CI passed after pushing to a PR.
 metadata:
   author: torrust
-  version: "1.0"
+  version: "1.1"
   semantic-links:
     related-artifacts:
       - .claude/skills/wait-for-pr-review/SKILL.md
       - .claude/skills/open-pull-request/SKILL.md
+      - docs/adrs/20261124182709_review_pull_requests_without_a_mandatory_reviewer.md
 ---
 
 # Watching Pull-Request Checks
@@ -54,6 +55,29 @@ gh pr checks <PR> --repo torrust/torrust-tracker --json name,bucket \
 gh pr checks <PR> --repo torrust/torrust-tracker --json name,bucket,link \
   --jq '.[] | select(.bucket == "fail") | "\(.name) \(.link)"'
 ```
+
+## Review-Service Check Runs
+
+A review service installed on the repository can post its own check run, for example `CodeRabbit`
+or `Greptile Review`. Such a check run comes from the service's GitHub App, not from a workflow of
+this repository, and it does not count for readiness: it neither blocks a pull request nor is waited
+for ([ADR](../../../docs/adrs/20261124182709_review_pull_requests_without_a_mandatory_reviewer.md)).
+Its review, if it posts one, goes through the review loop like any other.
+
+`gh pr checks` reports an empty `workflow` for these check runs, so they can be left out without
+naming any service. `--watch` waits for every check run, theirs included, and its exit code counts a
+failed review-service check as a failure. After it exits, or when only a review-service check is
+still pending, decide with the workflow checks alone:
+
+```sh
+gh pr checks <PR> --repo torrust/torrust-tracker --json name,bucket,workflow \
+  --jq '[.[] | select(.workflow != "")] | group_by(.bucket) | map({(.[0].bucket): length}) | add'
+gh pr checks <PR> --repo torrust/torrust-tracker --json name,bucket,workflow \
+  --jq '.[] | select(.workflow == "") | "\(.name) \(.bucket)"'
+```
+
+The first command counts the workflow checks by bucket: they pass when there is no `fail` and no
+`pending`. The second lists the review-service check runs that were left out, for the report.
 
 ## When Checks Never Start
 
