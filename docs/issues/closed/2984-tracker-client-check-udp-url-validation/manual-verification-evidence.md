@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2984-tracker-client-check-udp-url-validation/ISSUE.md
-last-updated-utc: "2026-11-22 14:21"
+issue-spec: docs/issues/closed/2984-tracker-client-check-udp-url-validation/ISSUE.md
+last-updated-utc: "2026-11-24 13:38"
 ---
 
 # Manual Verification Evidence
