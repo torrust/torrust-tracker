@@ -75,9 +75,13 @@ runs of the head commit wait for a maintainer's approval (see
 ```sh
 head=$(git rev-parse HEAD)   # the commit you pushed
 while :; do
-  ready=$(gh pr checks <PR> --repo torrust/torrust-tracker --json bucket,workflow \
-    --jq '[.[] | select(.workflow != "")] | length > 0 and all(.bucket != "pending")') \
-    || { echo "gh pr checks failed; see its error above" >&2; break; }
+  if ! ready=$(gh pr checks <PR> --repo torrust/torrust-tracker --json bucket,workflow \
+    --jq '[.[] | select(.workflow != "")] | length > 0 and all(.bucket != "pending")' \
+    2> .tmp/pr-checks-error.txt); then
+    grep -q "^no checks reported" .tmp/pr-checks-error.txt \
+      || { cat .tmp/pr-checks-error.txt; echo "gh pr checks failed" >&2; break; }
+    ready=false   # no check exists yet: see whether the runs wait for approval
+  fi
   [ "$ready" = true ] && { echo "workflow checks finished"; break; }
   waiting=$(gh run list --repo torrust/torrust-tracker --commit "$head" --json conclusion \
     --jq 'any(.[]; .conclusion == "action_required")') \
@@ -88,8 +92,9 @@ done > .tmp/pr-checks-wait.txt 2>&1
 ```
 
 Read the last line of the file when the loop exits. With `--json`, `gh pr checks` exits `0` whether
-the checks pass, fail or are pending, so a non-zero exit is a real error, such as an expired login,
-denied access or a network failure. The loop then stops and keeps the error instead of retrying
+the checks pass, fail or are pending. It exits non-zero with `no checks reported on the '<branch>'
+branch` when the head has no check at all, which the loop treats as "not yet"; any other non-zero
+exit is a real error, such as an expired login, denied access or a network failure. The loop then stops and keeps the error instead of retrying
 without end: fix the cause before waiting again. When the runs wait for approval, ask for it as
 "When Checks Never Start" says and run the loop again once they start. `--commit` needs the full
 commit hash.
