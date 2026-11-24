@@ -68,7 +68,7 @@ The EPIC coordinator compared this draft with the code at `develop` `6a058dd4d` 
 - More durations without a unit: `?deadline` (`packages/udp-server/src/server/launcher.rs:88,134`), `?elapsed` (`:148,150`, `elapsed=3.005µs` in the baseline, so an integer `elapsed_in_ms` is `0`), `reset_interval_in_secs` (`src/bootstrap/jobs/udp_tracker_server.rs:97`, which D6 names `ip_bans_reset_interval_in_secs`).
 - Durations inside messages: `packages/axum-server/src/signals.rs:33,46,54`; `src/bootstrap/jobs/torrent_cleanup.rs:59,61`; `packages/swarm-coordination-registry/src/statistics/activity_metrics_updater.rs:69,84`.
 - `drain_timeout`, `request_drain_deadline`, `cookie_lifetime` and `max_peer_timeout` exist only as span fields today (`src/bootstrap/jobs/http_tracker.rs:53,102`, `tracker_apis.rs:72,116`, `health_check_api.rs:44`, `udp_tracker.rs:46`; `packages/udp-server/src/server/states.rs:73`, `launcher.rs:231`; `packages/axum-server/src/signals.rs:18`; `activity_metrics_updater.rs:22`). This issue logs the settings on the existing `Starting` lines (UDP and HTTP trackers); SI-10 creates the `Starting` lines of the REST API and the health check API and logs their drain setting there under the name this issue's rule gives it; SI-12 removes the span fields. AC1 excludes span fields for that reason (maintainer, 2026-11-24).
-- `event_listener_drain_in_secs` is not logged today.
+- `event_listener_drain_in_secs` is not logged today, and adding a duration that is not logged today is out of scope, so M1 does not expect it.
 - Readers of `timeout_seconds=`: `tests/lifecycle/shutdown_policy.rs:110,146,176,219`, `tests/common/native_tracker/mod.rs:427,440`; no others.
 
 ## Architectural Decisions
@@ -169,7 +169,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | Compare with the configuration | Start the release tracker; for each duration key of the configuration file, search the log for the key name | Each is found with the configured value | TODO | `manual-verification-evidence.md` section V1 |
+| M1 | Compare with the configuration | Start the release tracker; for each duration that a lifecycle line of the UDP or HTTP trackers, the job manager or a periodic job logs today (the list of T1), search the log for its configuration key name | Each is found with the configured value. Durations not logged today, such as `event_listener_drain_in_secs`, are not expected | TODO | `manual-verification-evidence.md` section V1 |
 | M2 | Shutdown deadline | Stop the tracker with `SIGTERM` | The shutdown lines show `shutdown_deadline_in_secs=25` | TODO | `manual-verification-evidence.md` section V2 |
 
 Notes:
