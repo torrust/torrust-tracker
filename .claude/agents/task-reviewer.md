@@ -10,6 +10,11 @@ hooks:
     - hooks:
         - type: command
           command: cargo run --quiet --manifest-path "$CLAUDE_PROJECT_DIR/Cargo.toml" --package agent-reply-validator --bin agent-reply-guard
+  PreToolUse:
+    - matcher: SubagentHandback
+      hooks:
+        - type: command
+          command: cargo run --quiet --manifest-path "$CLAUDE_PROJECT_DIR/Cargo.toml" --package agent-reply-validator --bin agent-reply-guard
 ---
 
 # Task Reviewer
@@ -49,12 +54,16 @@ You do not commit: the caller commits the reply file with the work it describes.
 
 ## The stop hook
 
-This agent has a stop hook, `agent-reply-guard`. When you try to finish, it reads the reply file the
-latest request of the caller names and checks it with the reply validator. While the file is
-missing or invalid it refuses and tells you what is wrong, at most three times for one request; the
-fourth attempt is allowed and the caller then finds no valid reply file and stops. A caller that
-continues you for another round gives you a new file and a new count. Write the file before you
-try to finish, and check it with the validator command the skill gives.
+This agent has two hooks that run one program, `agent-reply-guard`: a `Stop` hook, run when you try
+to finish with a message, and a `PreToolUse` hook on `SubagentHandback`, the tool that hands your
+report back to the caller. Claude Code discards a refusal when you end your turn with that tool, so
+the second hook is what holds you when you hand back directly. Each reads the reply file the latest
+request of the caller names and checks it with the reply validator. While the file is missing or
+invalid it refuses and tells you what is wrong, at most three times for one request, counting both
+hooks together; the fourth attempt is allowed and the caller then finds no valid reply file and
+stops. A caller that continues you for another round gives you a new file and a new count. Write the
+file before you try to finish or to hand back, and check it with the validator command the skill
+gives.
 
 ## Final message
 

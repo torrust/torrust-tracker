@@ -18,6 +18,13 @@
 //!
 //! A request recorded in another way, by another caller or another Claude Code version, is not
 //! found, and the task then looks like one that has no line.
+//!
+//! The `PreToolUse` hook input, unlike the `SubagentStop` one, names only the transcript of the
+//! session that started the agent. Scenario M7 observed where Claude Code keeps the agent's own
+//! file: `<folder>/<session>.jsonl` is the session's and `<folder>/<session>/subagents/agent-<id>.jsonl`
+//! the agent's. [`subagent_transcript_path`] builds that path.
+
+use std::path::{Path, PathBuf};
 
 use serde_json::Value;
 
@@ -39,6 +46,30 @@ pub fn latest_reply_file(transcript: &str) -> Option<String> {
         .rev()
         .filter_map(|line| serde_json::from_str::<Value>(line).ok())
         .find_map(|record| request_text(&record).and_then(reply_file_in).map(str::to_owned))
+}
+
+/// The transcript file of the agent `agent_id`, from the transcript file of the session that
+/// started it.
+///
+/// `None` when the session's transcript has no file stem, or when the id is not a single plain
+/// path component (letters, digits, `-` and `_`), so that an id never leads outside the session's
+/// folder.
+#[must_use]
+pub fn subagent_transcript_path(session_transcript: &Path, agent_id: &str) -> Option<PathBuf> {
+    let plain = !agent_id.is_empty()
+        && agent_id
+            .chars()
+            .all(|character| character.is_ascii_alphanumeric() || character == '-' || character == '_');
+    if !plain {
+        return None;
+    }
+    let session = session_transcript.file_stem()?;
+    Some(
+        session_transcript
+            .with_file_name(session)
+            .join("subagents")
+            .join(format!("agent-{agent_id}.jsonl")),
+    )
 }
 
 /// The text of the record when it is a request from the caller, the first one or a continued one.
@@ -64,10 +95,12 @@ fn reply_file_in(text: &str) -> Option<&str> {
 
 #[cfg(test)]
 mod tests {
+    use std::path::Path;
+
     use rstest::rstest;
     use serde_json::json;
 
-    use super::latest_reply_file;
+    use super::{latest_reply_file, subagent_transcript_path};
 
     const ROUND_1: &str = "docs/issues/open/2904-slug/agent-replies/task-reviewer-t5-r1.json";
     const ROUND_2: &str = "docs/issues/open/2904-slug/agent-replies/task-reviewer-t5-r2.json";
@@ -328,5 +361,60 @@ mod tests {
 
         // Assert
         assert_eq!(file, None);
+    }
+
+    #[test]
+    fn it_should_find_the_agents_transcript_in_the_subagents_folder_of_the_session() {
+        // Act
+        let path = subagent_transcript_path(Path::new("/projects/p/s1.jsonl"), "a423cd4370c2ebae8");
+
+        // Assert
+        assert_eq!(
+            path.as_deref(),
+            Some(Path::new("/projects/p/s1/subagents/agent-a423cd4370c2ebae8.jsonl"))
+        );
+    }
+
+    #[rstest]
+    #[case::empty("")]
+    #[case::with_a_separator("a/b")]
+    #[case::with_a_parent_component("..")]
+    #[case::with_a_dot("a.b")]
+    #[case::with_a_space("a b")]
+    #[case::with_a_backslash("a\\b")]
+    #[case::with_a_newline("a\nb")]
+    #[case::non_ascii("é")]
+    fn it_should_find_no_transcript_when_the_agent_id_is_not_a_plain_name(#[case] agent_id: &str) {
+        // Act
+        let path = subagent_transcript_path(Path::new("/projects/p/s1.jsonl"), agent_id);
+
+        // Assert
+        assert_eq!(path, None, "the id `{agent_id}` must not name a file");
+    }
+
+    #[rstest]
+    #[case::root("/")]
+    #[case::empty("")]
+    fn it_should_find_no_transcript_when_the_session_transcript_has_no_file_name(#[case] session_transcript: &str) {
+        // Act
+        let path = subagent_transcript_path(Path::new(session_transcript), "a1");
+
+        // Assert
+        assert_eq!(path, None);
+    }
+
+    #[rstest]
+    #[case::relative("s1.jsonl", "s1/subagents/agent-a1.jsonl")]
+    #[case::without_an_extension("/p/s1", "/p/s1/subagents/agent-a1.jsonl")]
+    #[case::with_a_dotted_stem("/p/s.1.jsonl", "/p/s.1/subagents/agent-a1.jsonl")]
+    fn it_should_keep_the_file_stem_of_the_session_transcript_as_the_session_folder(
+        #[case] session_transcript: &str,
+        #[case] expected: &str,
+    ) {
+        // Act
+        let path = subagent_transcript_path(Path::new(session_transcript), "a1");
+
+        // Assert
+        assert_eq!(path.as_deref(), Some(Path::new(expected)));
     }
 }

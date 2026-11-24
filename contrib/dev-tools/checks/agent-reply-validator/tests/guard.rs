@@ -14,6 +14,9 @@ use support::isolated;
 use tempfile::TempDir;
 
 const AGENT: &str = "a423cd4370c2ebae8";
+/// Where the session that started the agent keeps its files, relative to the repository's root:
+/// `<SESSION>.jsonl` is the session's transcript and `<SESSION>/subagents/` holds the agents'.
+const SESSION: &str = "session-folder/s1";
 const SPECIFICATION: &str = "docs/issues/open/2904-slug";
 const REPLY_1: &str = "docs/issues/open/2904-slug/agent-replies/task-reviewer-t5-r1.json";
 const REPLY_2: &str = "docs/issues/open/2904-slug/agent-replies/task-reviewer-t5-r2.json";
@@ -149,6 +152,33 @@ impl Repository {
         });
         run_hook(process_directory, &input.to_string(), &[])
     }
+}
+
+impl Repository {
+    /// Runs the hook as Claude Code runs it before the agent's hand-back tool call: the input names
+    /// the transcript of the session and not the agent's, which is where Claude Code keeps it.
+    /// With `agent_transcript` as `false`, the agent's transcript file is not written.
+    fn run_before_the_hand_back(&self, transcript: &[String], agent_transcript: bool) -> Outcome {
+        if agent_transcript {
+            self.write(&agent_transcript_in_the_session(), &transcript.join("\n"));
+        }
+        let input = json!({
+            "session_id": "s1",
+            "hook_event_name": "PreToolUse",
+            "tool_name": "SubagentHandback",
+            "tool_input": {"message": "Done."},
+            "agent_id": AGENT,
+            "agent_type": "task-reviewer",
+            "transcript_path": self.root().join(format!("{SESSION}.jsonl")),
+            "cwd": self.root()
+        });
+        run_hook(self.root(), &input.to_string(), &[])
+    }
+}
+
+/// Where the session keeps the transcript of `AGENT`, relative to the repository's root.
+fn agent_transcript_in_the_session() -> String {
+    format!("{SESSION}/subagents/agent-{AGENT}.jsonl")
 }
 
 fn run_hook(directory: &Path, input: &str, arguments: &[&str]) -> Outcome {
@@ -433,4 +463,135 @@ fn it_should_fail_without_holding_the_agent_when_the_directory_is_not_in_a_repos
     assert_eq!(outcome.exit_code, 1);
     assert_eq!(outcome.stdout, "");
     assert!(outcome.stderr.starts_with("agent-reply-guard: "), "{}", outcome.stderr);
+}
+
+#[test]
+fn it_should_refuse_before_the_hand_back_and_keep_the_count_when_the_reply_file_does_not_exist() {
+    // Arrange
+    let repository = Repository::with_the_specification();
+
+    // Act
+    let outcome = repository.run_before_the_hand_back(&[first_request(REPLY_1)], true);
+
+    // Assert
+    assert_eq!(outcome.exit_code, 2);
+    assert_eq!(outcome.stdout, "");
+    assert!(
+        outcome.stderr.contains("refusal 1 of 3"),
+        "the agent must learn the count: {}",
+        outcome.stderr
+    );
+    assert_eq!(repository.read(COUNT_1), "1\n");
+}
+
+#[test]
+fn it_should_let_the_agent_hand_back_in_silence_when_the_reply_file_is_valid() {
+    // Arrange
+    let repository = Repository::with_the_specification();
+    repository.write(REPLY_1, &reply(1));
+
+    // Act
+    let outcome = repository.run_before_the_hand_back(&[first_request(REPLY_1)], true);
+
+    // Assert
+    assert_eq!(outcome.exit_code, 0);
+    assert_eq!(outcome.stdout, "");
+    assert_eq!(outcome.stderr, "");
+    assert!(!repository.exists(".agents"), "a valid reply leaves no count behind");
+}
+
+#[test]
+fn it_should_count_a_refusal_before_the_hand_back_together_with_a_refusal_at_the_stop() {
+    // Arrange
+    let repository = Repository::with_the_specification();
+    let at_the_stop = repository.run(&[first_request(REPLY_1)]);
+
+    // Act
+    let before_the_hand_back = repository.run_before_the_hand_back(&[first_request(REPLY_1)], true);
+
+    // Assert
+    assert_eq!(at_the_stop.exit_code, 2);
+    assert_eq!(before_the_hand_back.exit_code, 2);
+    assert!(
+        before_the_hand_back.stderr.contains("refusal 2 of 3"),
+        "the two attempts of one agent share a count: {}",
+        before_the_hand_back.stderr
+    );
+    assert_eq!(repository.read(COUNT_1), "2\n");
+}
+
+#[test]
+fn it_should_fail_without_holding_the_agent_when_the_transcript_of_the_agent_is_not_where_the_session_keeps_it() {
+    // Arrange
+    let repository = Repository::with_the_specification();
+
+    // Act
+    let outcome = repository.run_before_the_hand_back(&[first_request(REPLY_1)], false);
+
+    // Assert
+    assert_eq!(outcome.exit_code, 1, "exit code 2 would hold the agent: {}", outcome.stderr);
+    assert_eq!(outcome.stdout, "");
+    assert!(
+        outcome.stderr.contains(&agent_transcript_in_the_session()),
+        "the message must name the path the session leads to: {}",
+        outcome.stderr
+    );
+    assert!(!repository.exists(".agents"), "a failure keeps no state");
+}
+
+#[rstest]
+#[case::the_named_one_is_valid(REPLY_1, REPLY_2, 0)]
+#[case::the_named_one_is_missing(REPLY_2, REPLY_1, 2)]
+fn it_should_read_the_transcript_the_input_names_and_not_the_one_the_session_leads_to(
+    #[case] named_reply: &str,
+    #[case] session_reply: &str,
+    #[case] expected_exit_code: i32,
+) {
+    // Arrange: round 1 is written and valid, round 2 is not written.
+    let repository = Repository::with_the_specification();
+    repository.write(REPLY_1, &reply(1));
+    repository.write("transcript.jsonl", &first_request(named_reply));
+    repository.write(&agent_transcript_in_the_session(), &first_request(session_reply));
+    let input = json!({
+        "hook_event_name": "SubagentStop",
+        "agent_id": AGENT,
+        "agent_transcript_path": repository.root().join("transcript.jsonl"),
+        "transcript_path": repository.root().join(format!("{SESSION}.jsonl")),
+        "cwd": repository.root()
+    });
+
+    // Act
+    let outcome = run_hook(repository.root(), &input.to_string(), &[]);
+
+    // Assert
+    assert_eq!(outcome.exit_code, expected_exit_code, "{}", outcome.stderr);
+    assert_eq!(outcome.stdout, "");
+}
+
+#[test]
+fn it_should_release_the_agent_at_the_fourth_attempt_when_the_two_hooks_take_turns() {
+    // Arrange
+    let repository = Repository::with_the_specification();
+    let request = [first_request(REPLY_1)];
+
+    // Act
+    let attempts = [
+        repository.run_before_the_hand_back(&request, true),
+        repository.run(&request),
+        repository.run_before_the_hand_back(&request, true),
+        repository.run(&request),
+    ];
+
+    // Assert
+    let exit_codes: Vec<i32> = attempts.iter().map(|attempt| attempt.exit_code).collect();
+    assert_eq!(
+        exit_codes,
+        [2, 2, 2, 0],
+        "one budget of three refusals is shared by both hooks"
+    );
+    assert!(
+        attempts[3].system_message().contains(REPLY_1),
+        "the limit message names the file: {}",
+        attempts[3].stdout
+    );
 }

@@ -1,7 +1,9 @@
 //! The stop hook of the task reviewer: it holds the agent to a valid reply file.
 //!
-//! Claude Code runs it when the agent tries to finish and passes the hook input as JSON on
-//! standard input. The program reads the reply file that the agent's latest request names from the
+//! Claude Code runs it when the agent tries to finish, as a `SubagentStop` hook, and when the agent
+//! calls the tool that hands its report back, as a `PreToolUse` hook (scenario M7: Claude Code
+//! discards a stop hook's refusal when the agent ends its turn with that tool call). It passes the
+//! hook input as JSON on standard input. The program reads the reply file that the agent's latest request names from the
 //! agent's transcript, checks it with the reply validator, and answers with the exit code:
 //!
 //! - `0`: the agent may finish. Standard output is empty, or one JSON object whose `systemMessage`
@@ -22,7 +24,7 @@ use std::{env, fs};
 
 use agent_reply_validator::git::Git;
 use agent_reply_validator::guard::{Outcome, decide};
-use agent_reply_validator::transcript::latest_reply_file;
+use agent_reply_validator::transcript::{latest_reply_file, subagent_transcript_path};
 use agent_reply_validator::workspace::FileWorkspace;
 use serde::Deserialize;
 use serde_json::json;
@@ -31,13 +33,15 @@ const EXIT_FINISH: u8 = 0;
 const EXIT_FAILURE: u8 = 1;
 const EXIT_REFUSE: u8 = 2;
 
-/// The fields of the `SubagentStop` hook input that the program uses; the others are ignored.
+/// The fields of the hook input that the program uses; the others are ignored.
 #[derive(Debug, Deserialize)]
 struct HookInput {
     /// The run of the agent; a continued run keeps it.
     agent_id: String,
-    /// The agent's own transcript file.
-    agent_transcript_path: PathBuf,
+    /// The agent's own transcript file: a `SubagentStop` input has it, a `PreToolUse` one does not.
+    agent_transcript_path: Option<PathBuf>,
+    /// The transcript file of the session that started the agent, which both inputs have.
+    transcript_path: Option<PathBuf>,
     /// The directory Claude Code runs in, which is in the repository.
     cwd: Option<PathBuf>,
 }
@@ -99,20 +103,16 @@ fn hook(
     stdin
         .read_to_string(&mut text)
         .map_err(|error| format!("could not read the hook input on standard input: {error}"))?;
-    let input: HookInput = serde_json::from_str(&text).map_err(|error| {
-        format!("the hook input on standard input lacks `agent_id` or `agent_transcript_path`, or is not JSON: {error}")
-    })?;
+    let input: HookInput = serde_json::from_str(&text)
+        .map_err(|error| format!("the hook input on standard input lacks `agent_id`, or is not JSON: {error}"))?;
     if input.agent_id.is_empty() {
         return Err("the hook input has an empty `agent_id`".to_owned());
     }
 
+    let transcript_path = agent_transcript_path(&input)?;
     let git = Git::discover(input.cwd.as_deref().unwrap_or(working_directory))?;
-    let transcript = fs::read(&input.agent_transcript_path).map_err(|error| {
-        format!(
-            "could not read the transcript `{}`: {error}",
-            input.agent_transcript_path.display()
-        )
-    })?;
+    let transcript = fs::read(&transcript_path)
+        .map_err(|error| format!("could not read the transcript `{}`: {error}", transcript_path.display()))?;
     let reply_file = latest_reply_file(&String::from_utf8_lossy(&transcript));
 
     Ok(decide(
@@ -122,12 +122,31 @@ fn hook(
     ))
 }
 
+/// The agent's transcript file: the one the input names, or else the one the session's transcript
+/// leads to.
+fn agent_transcript_path(input: &HookInput) -> Result<PathBuf, String> {
+    if let Some(path) = &input.agent_transcript_path {
+        return Ok(path.clone());
+    }
+    let session = input
+        .transcript_path
+        .as_deref()
+        .ok_or("the hook input lacks both `agent_transcript_path` and `transcript_path`")?;
+    subagent_transcript_path(session, &input.agent_id).ok_or_else(|| {
+        format!(
+            "could not find the transcript of agent `{}` from `{}`",
+            input.agent_id,
+            session.display()
+        )
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use std::ffi::OsString;
-    use std::path::Path;
+    use std::path::{Path, PathBuf};
 
-    use super::{EXIT_FAILURE, run};
+    use super::{EXIT_FAILURE, HookInput, agent_transcript_path, run};
 
     /// What one run printed, and its exit code.
     struct Run {
@@ -172,12 +191,85 @@ mod tests {
     }
 
     #[test]
-    fn it_should_fail_without_holding_the_agent_when_the_hook_input_lacks_the_transcript_path() {
+    fn it_should_fail_without_holding_the_agent_when_the_hook_input_names_no_transcript() {
         // Act
         let run = run_with(&["agent-reply-guard"], b"{\"agent_id\": \"a1\"}");
 
         // Assert
-        assert_failure_without_holding_the_agent(&run, "`agent_transcript_path`");
+        assert_failure_without_holding_the_agent(&run, "`agent_transcript_path` and `transcript_path`");
+    }
+
+    fn input(agent_transcript_path: Option<&str>, transcript_path: Option<&str>) -> HookInput {
+        HookInput {
+            agent_id: "a1".to_owned(),
+            agent_transcript_path: agent_transcript_path.map(PathBuf::from),
+            transcript_path: transcript_path.map(PathBuf::from),
+            cwd: None,
+        }
+    }
+
+    #[test]
+    fn it_should_use_the_transcript_the_input_names_when_it_also_names_the_session_transcript() {
+        // Act
+        let path = agent_transcript_path(&input(Some("/p/agent.jsonl"), Some("/p/s1.jsonl")));
+
+        // Assert
+        assert_eq!(path, Ok(PathBuf::from("/p/agent.jsonl")));
+    }
+
+    #[test]
+    fn it_should_lead_from_the_session_transcript_to_the_agents_when_the_input_names_only_that() {
+        // Act
+        let path = agent_transcript_path(&input(None, Some("/p/s1.jsonl")));
+
+        // Assert
+        assert_eq!(path, Ok(PathBuf::from("/p/s1/subagents/agent-a1.jsonl")));
+    }
+
+    #[test]
+    fn it_should_find_no_transcript_when_the_input_names_neither() {
+        // Act
+        let path = agent_transcript_path(&input(None, None));
+
+        // Assert
+        assert!(path.is_err(), "{path:?}");
+    }
+
+    #[test]
+    fn it_should_lead_from_the_session_transcript_when_the_agents_is_null_in_the_input() {
+        // Arrange
+        let text = r#"{"agent_id": "a1", "agent_transcript_path": null, "transcript_path": "/p/s1.jsonl"}"#;
+        let parsed: HookInput = serde_json::from_str(text).unwrap();
+
+        // Act
+        let path = agent_transcript_path(&parsed);
+
+        // Assert
+        assert_eq!(path, Ok(PathBuf::from("/p/s1/subagents/agent-a1.jsonl")));
+    }
+
+    #[test]
+    fn it_should_fail_without_holding_the_agent_when_the_agent_id_cannot_lead_to_a_transcript() {
+        // Act
+        let run = run_with(
+            &["agent-reply-guard"],
+            b"{\"agent_id\": \"../x\", \"transcript_path\": \"/p/s1.jsonl\"}",
+        );
+
+        // Assert
+        assert_failure_without_holding_the_agent(&run, "could not find the transcript of agent `../x`");
+    }
+
+    #[test]
+    fn it_should_fail_without_holding_the_agent_when_the_transcript_the_input_names_is_an_empty_path() {
+        // Act
+        let run = run_with(
+            &["agent-reply-guard"],
+            b"{\"agent_id\": \"a1\", \"agent_transcript_path\": \"\"}",
+        );
+
+        // Assert
+        assert_failure_without_holding_the_agent(&run, "could not read the transcript ``");
     }
 
     #[test]
