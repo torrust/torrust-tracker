@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p2
 epic: 2912
 github-issue: 2918
-spec-path: docs/issues/open/2918-2912-si-6-drop-located-error-and-enforce-the-rule/ISSUE.md
+spec-path: docs/issues/closed/2918-2912-si-6-drop-located-error-and-enforce-the-rule/ISSUE.md
 branch: "2918-drop-located-error-and-enforce-the-rule"
-related-pr: null
-last-updated-utc: "2026-11-24 00:44"
+related-pr: 3018
+last-updated-utc: "2026-11-24 12:43"
 semantic-links:
   skill-links:
     - create-issue
@@ -173,14 +173,14 @@ with the narrow affected scope, and sign every commit with GPG.
 - [x] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [x] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -193,6 +193,7 @@ the model that produced them.
 - 2026-11-23 21:27 UTC - Claude Code (Claude Sonnet 5.5) - Implemented SI-6: removed the last use of `torrust-located-error` (`tracker-client`; the unused `From<Error> for DynError` impl is gone, the crate left `Cargo.lock`), added the `source-location-check` tool with tests, wired it into pre-commit and CI, updated the docs and the #2583 spec, and drafted the two upstream issues. No retrospective: the work matched the spec; the only deviation is that the check also exempts files declared `#[cfg(test)] mod x;`, which the spec did not list.
 - 2026-11-23 22:27 UTC - Claude Code (Claude Sonnet 5.5) - Review round 1 of PR #3018 (audit: `docs/pr-reviews/pr-3018-review/PR-REVIEW.md`): the check now blanks comments and strings, ends a `#[cfg(test)]` item by balancing delimiters, resolves test module files under their inline-module ancestry and keeps a file checked when a production declaration includes it; M1 was re-run through the real hook (V1 step 4). The two earlier progress-log stamps of 2026-11-23 that were estimated ahead are corrected in place to 21:27.
 - 2026-11-24 00:44 UTC - Claude Code (Claude Sonnet 5.5) - Review rounds 2 to 5 of PR #3018 (audit: `docs/pr-reviews/pr-3018-review/PR-REVIEW.md`) hardened the check (balanced delimiters, masking of comments, strings, raw byte and raw C strings, module ancestry, production declarations, explicit `#[path]` modules) and made the pre-commit step read the Git index (`--staged`); M1 was re-run through the hook after that change (V1 step 5).
+- 2026-11-24 12:43 UTC - Claude Code (Claude Sonnet 5.5) - PR #3018 merged (`df8ff6fc3`) and issue #2918 closed; spec archived to `docs/issues/closed/`. AC4 stays open: the two upstream issues are still to be opened by the maintainer from the drafts in this folder.
 
 ## Acceptance Criteria
 
@@ -200,10 +201,10 @@ the model that produced them.
 - [x] AC2: The check fails on `Location::caller()`, `#[track_caller]` or `torrust_located_error` in non-test code and passes on the tree, proven by its tests and by the T4 evidence.
 - [x] AC3: The check runs in pre-commit and in CI.
 - [ ] AC4: The two upstream issue drafts exist and the maintainer has them. (Drafts exist; the maintainer is told in the PR.)
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 - [x] Documentation is updated when behavior/workflow changes
 
 ## Verification Plan
