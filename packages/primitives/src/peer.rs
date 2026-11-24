@@ -661,6 +661,14 @@ pub mod test {
     /// Fails when `message` contains anything that looks like a source path: a workspace path, a
     /// registry checkout, the standard library sources, or a `file.rs:line` suffix, written with
     /// either path separator. It reports a failure at the caller's line.
+    ///
+    /// This definition is separate because `torrust-tracker-test-helpers` depends on `configuration`, which depends on `primitives`, so a dev-dependency would be a cycle.
+    /// Four other definitions exist; change all five together:
+    ///
+    /// - `packages/test-helpers/src/assertions.rs`
+    /// - `packages/http-protocol/src/test_helpers.rs`
+    /// - `packages/configuration/src/lib.rs`
+    /// - `packages/axum-server/src/tls.rs`
     #[track_caller]
     fn assert_names_no_source_path(message: &str) {
         for fragment in [

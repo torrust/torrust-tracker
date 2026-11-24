@@ -381,7 +381,17 @@ mod tests {
     use super::{ENV_VAR_CONFIG_TOML, ENV_VAR_CONFIG_TOML_PATH, Error, Info};
     use crate::v3_0_0::Configuration;
 
-    /// Fails when `message` holds a source path: a workspace or registry path, or a `file.rs:line` suffix.
+    /// Fails when `message` contains anything that looks like a source path: a workspace path, a
+    /// registry checkout, the standard library sources, or a `file.rs:line` suffix, written with
+    /// either path separator. It reports a failure at the caller's line.
+    ///
+    /// This definition is separate because `torrust-tracker-test-helpers` depends on `configuration`, so a dev-dependency would be a cycle.
+    /// Four other definitions exist; change all five together:
+    ///
+    /// - `packages/test-helpers/src/assertions.rs`
+    /// - `packages/http-protocol/src/test_helpers.rs`
+    /// - `packages/primitives/src/peer.rs`
+    /// - `packages/axum-server/src/tls.rs`
     #[track_caller]
     fn assert_names_no_source_path(message: &str) {
         for fragment in [
