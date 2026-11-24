@@ -188,3 +188,98 @@ exit=2 stdout_bytes=0
 #### Conclusion
 
 Wrong-scheme entries that parse (`ftp://`, `udp://`) are checked as if they were HTTP and fail at run time with exit `0`; `http:///` is already a configuration error with exit `2` (`Invalid URL: empty host`). AC5 therefore changes the first case and must keep the second.
+
+### V3 - Red regression tests (before the fix)
+
+Run on `torrust/develop` at `6bc417424` with the new tests and only the test-enabling production changes (`resolve_socket_addr` returning a `Result` whose body still unwraps, the `ConfigurationError::InvalidTrackerUrl` type unused, and `panic_record` extracted). Command: `cargo test -p torrust-tracker-client --lib`, then `cargo test -p torrust-tracker-client --test output_contract`.
+
+```text
+test result: FAILED. 49 passed; 11 failed; 0 ignored
+FAILED (all panicked with "the configuration should be rejected", except the last):
+  health_checks::it_should_fail_when_a_health_check_url_has_the_ftp_scheme
+  health_checks::it_should_fail_when_a_health_check_url_has_the_udp_scheme
+  http_trackers::it_should_fail_when_a_tracker_http_url_has_the_ftp_scheme
+  http_trackers::it_should_fail_when_a_tracker_http_url_has_the_udp_scheme
+  udp_trackers::it_should_fail_when_a_tracker_udp_url_has_a_path_but_no_port
+  udp_trackers::it_should_fail_when_a_tracker_udp_url_has_no_host
+  udp_trackers::it_should_fail_when_a_tracker_udp_url_has_no_port
+  udp_trackers::it_should_fail_when_a_tracker_udp_url_has_no_scheme_and_no_port
+  udp_trackers::it_should_fail_when_a_tracker_udp_url_has_the_ftp_scheme
+  udp_trackers::it_should_fail_when_a_tracker_udp_url_has_the_http_scheme
+  checks::udp::tests::it_should_return_an_error_instead_of_panicking_when_the_host_cannot_be_resolved (panicked at udp.rs:111)
+
+test it_should_report_a_udp_tracker_url_without_a_port_as_a_configuration_error_and_leave_stdout_empty ... FAILED
+  left: Some(1)
+ right: Some(2)
+test result: FAILED. 9 passed; 1 failed
+```
+
+The tests that must keep passing (`localhost:6969`, `https://tracker.example.com` for the HTTP lists, the existing valid cases) passed in the same run. The three `panic_record` unit tests pass on the red tree because the extraction does not change behaviour; they are characterization tests of the panic-hook seam.
+
+### V4 - Green run and like-for-like recheck (after the last production change)
+
+Build: commit `fix(tracker-client): [#2984] reject unusable tracker URLs and fail the check on a DNS error`, `cargo build -p torrust-tracker-client --bin tracker_client`. `cargo test -p torrust-tracker-client` passes (60 unit tests, the integration tests, all green) and `linter all` passes in the pre-commit gate. The commands are those of V1 and V2, with the capture procedure described in V1.
+
+| Section | Entry | Exit | stdout bytes | stderr / result |
+| ------- | ----- | ---- | ------------ | --------------- |
+| `udp_trackers` | `udp://127.0.0.1` | 2 | 0 | `invalid_configuration`: "Invalid URL `udp://127.0.0.1`: the URL has no port" |
+| `udp_trackers` | `udp:///` | 2 | 0 | `invalid_configuration`: "Invalid URL `udp:///`: the URL has no host" |
+| `udp_trackers` | `http://127.0.0.1` | 2 | 0 | `invalid_configuration`: "...: the URL scheme is not supported here" |
+| `udp_trackers` | `ftp://127.0.0.1:6969` | 2 | 0 | `invalid_configuration`: "...: the URL scheme is not supported here" |
+| `udp_trackers` | `udp://nonexistent.invalid:6969` | 0 | 258 | one `Udp` `Err` result, `remote_addr` null, `Setup` failed: "Failed to resolve the tracker address ...: failed to lookup address information: Name or service not known"; no panic |
+| `udp_trackers` | `udp://127.0.0.1:6969`, `127.0.0.1:6969`, `udp://localhost:6969`, `localhost:6969` | 0 | 205 | checked as before (`Setup` ok, `Connect` timeout because nothing listens) |
+| `http_trackers` and `health_checks` | `ftp://127.0.0.1` | 2 | 0 | `invalid_configuration`: "...: the URL scheme is not supported here" |
+| `http_trackers` and `health_checks` | `udp://127.0.0.1:6969` | 2 | 0 | `invalid_configuration`: "...: the URL scheme is not supported here" |
+| `http_trackers` and `health_checks` | `http:///` | 2 | 0 | `invalid_configuration`: "Invalid URL: empty host" (unchanged) |
+
+Outcome: AC1 to AC5 hold on the real artifact. The result record now has `url` and `remote_addr: Option<SocketAddr>` (`null` when the host did not resolve); for a resolved tracker it carries the same address as before plus the new `url` field.
+
+### V5 - Test design reviews (prose-first Arrange/Act/Assert)
+
+The Test-development loop in `ISSUE.md` requires a design review for every test-producing increment. It was not recorded when T3 was marked done; Copilot's review of the implementation pull request found that gap. The reviews below were done afterwards, by re-reading each test against the loop's checklist: the one causal initial-state difference, a fixture that owns only incidental mechanics, and a visible production Act with an independently specified expected result. A refactoring pattern from `docs/testing/refactoring-patterns/` was not needed in any increment; none of the tests has duplicated setup that a catalog pattern would remove.
+
+| Increment | Arrange (one causal difference) | Act | Assert (specified independently of the code) | Helper boundary | Outcome |
+| --------- | ------------------------------- | --- | -------------------------------------------- | --------------- | ------- |
+| UDP config cases (`udp_trackers`: no port, no scheme and no port, path but no port, no host, `http`, `ftp`; plus upper-case `UDP://` and a query string that contains `://`) | One entry in `udp_trackers`, nothing else in the configuration; the entry is the only difference between tests | `Configuration::try_from(plain_config)`, inside the helper `rejection` for the rejecting cases and visible in the allowing cases | The rejected entry and its `UrlRejection` reason, written as literals from the spec (AC1, AC2), or the parsed URL for the allowed forms (AC4) | `rejection(plain_config)` hides only the match on `ConfigurationError::InvalidTrackerUrl`; the test names the entry and reason. The Act is inside the helper, which is named for what it returns; accepted because the alternative repeats a six-line match in eleven tests | Kept. One test per entry, so a failure names the URL |
+| HTTP config cases (`http_trackers` and `health_checks`: `ftp`, `udp`; `https` without a port allowed) | One entry in one list | Same helper and `try_from` as above | `(entry, UnsupportedScheme)` from AC5; the allowed `https` entry only asserts `is_ok` because AC5 names no parsed form | Same helper, shared by the three list modules | Kept |
+| Resolver test (`it_should_return_an_error_instead_of_panicking_when_the_host_cannot_be_resolved`) | The reserved `.invalid` host | `resolve_socket_addr(&url)` | `is_err()` only, as the spec's strategy says: it goes through the system resolver and does not claim to be network-free | None | Kept; its Result signature was added only so it could be written (V3) |
+| Failed-check test on `run` (added for Copilot finding F2) | Two UDP URLs without a port | `run(urls, timeout)` | Two failed results, each with its URL, a null `remote_addr` and exactly one failed `Setup`; no DNS or network | None | Kept |
+| End-to-end test (`it_should_report_a_udp_tracker_url_without_a_port_as_a_configuration_error_and_leave_stdout_empty`) | The configuration `udp://127.0.0.1` in `TORRUST_CHECKER_CONFIG` | Run the real binary with `check` | Exit `2`, empty stdout, one `invalid_configuration` record that names the entry and the port, as the output-contract ADR specifies | `tracker_client`, `stdout_text` and `stderr_records` are the file's existing helpers | Kept |
+| Panic-record tests (`panic_record`, three payload kinds) | One payload kind: `&str`, `String` or non-string | `panic_record(payload, location)` | The `kind`, `message` and `location` fields of the JSON record; the fixed message for a non-string payload comes from the previous inline code | `panic_record_value` parses the record and checks that it is one line | Kept; they pass on the red tree because the extraction does not change behaviour |
+
+Weakness found by the review and left as it is: the allowed HTTP forms only assert `is_ok`, because the specification does not say which URL they parse to.
+
+### V6 - Recheck after the review fixes (last production change)
+
+Production code changed after V4 to answer review findings (the scheme detection, the IP-literal tests and the redaction of the rejected entry), so the recheck was repeated. Build: commit `fix(tracker-client): [#2984] do not echo the path, query or credentials of a rejected tracker URL`, `cargo build -p torrust-tracker-client --bin tracker_client`; `cargo test -p torrust-tracker-client` passes (68 unit tests and the integration tests) and the pre-commit gate passed. The commands are those of V1 and V2, with the capture procedure of V1; the table gives the exit code, the stdout size and the error message (`invalid_configuration` record) or the check result.
+
+| Section | Entry | Exit | stdout bytes | Message or result |
+| ------- | ----- | ---- | ------------ | ----------------- |
+| `udp_trackers` | `udp://127.0.0.1` | 2 | 0 | "Invalid URL `udp://127.0.0.1`: the URL has no port" |
+| `udp_trackers` | `udp:///` | 2 | 0 | "Invalid URL `udp://`: the URL has no host" |
+| `udp_trackers` | `http://127.0.0.1`, `ftp://127.0.0.1:6969` | 2 | 0 | "...: the URL scheme is not supported here" (entry as typed) |
+| `udp_trackers` | `udp://nonexistent.invalid:6969` | 0 | 258 | `Udp` `Err`, `remote_addr` null, failed `Setup`; no panic |
+| `udp_trackers` | `udp://127.0.0.1:6969`, `127.0.0.1:6969`, `UDP://localhost:6969`, `localhost:6969` | 0 | 205 | checked as before (`remote_addr` `127.0.0.1:6969`) |
+| `udp_trackers` | `http://127.0.0.1:7070/announce/PRIVATE_KEY` | 2 | 0 | "Invalid URL `http://127.0.0.1:7070/****`: the URL scheme is not supported here" |
+| `udp_trackers` | `udp://127.0.0.1?key=PRIVATE_KEY` | 2 | 0 | "Invalid URL `udp://127.0.0.1/****`: the URL has no port" |
+| `udp_trackers` | `ftp://user:PRIVATE_KEY@127.0.0.1:6969` | 2 | 0 | "Invalid URL `ftp://127.0.0.1:6969/****`: the URL scheme is not supported here" |
+| `http_trackers` and `health_checks` | `ftp://127.0.0.1`, `udp://127.0.0.1:6969` | 2 | 0 | "...: the URL scheme is not supported here" |
+| `http_trackers` and `health_checks` | `ftp://127.0.0.1/announce/PRIVATE_KEY` | 2 | 0 | "Invalid URL `ftp://127.0.0.1/****`: the URL scheme is not supported here" |
+| `http_trackers` and `health_checks` | `http:///` | 2 | 0 | "Invalid URL: empty host" (unchanged) |
+
+No `PRIVATE_KEY` text appears in any output. V4 remains the record of the first recheck; V6 supersedes it as the final one.
+
+### V7 - Recheck after the redaction of the UDP result (last production change)
+
+Production code changed after V6: the `url` field of the UDP check result and the URL in the resolution error are now redacted. Build: commit `fix(tracker-client): [#2984] do not write the path of a UDP tracker URL in the check result`; `cargo test -p torrust-tracker-client` passes (69 unit tests and the integration tests) and the pre-commit gate passed. The V6 matrix for the invalid entries is unchanged by this commit (the configuration error already used the redaction); the rerun below covers the forms the commit changes, with the capture procedure of V1.
+
+| Entry in `udp_trackers` | Exit | stdout bytes | Result |
+| ----------------------- | ---- | ------------ | ------ |
+| `udp://127.0.0.1`, `udp:///`, `ftp://127.0.0.1:6969` | 2 | 0 | `invalid_configuration`, messages as in V6 |
+| `udp://nonexistent.invalid:6969` | 0 | 258 | failed `Setup`, `url` `udp://nonexistent.invalid:6969`, `remote_addr` null |
+| `udp://nonexistent.invalid:6969/announce/PRIVATE_KEY` | 0 | 268 | failed `Setup`, `url` and error text `udp://nonexistent.invalid:6969/****` |
+| `udp://127.0.0.1:6969`, `localhost:6969` | 0 | 205 | `url` `udp://127.0.0.1:6969` and `udp://localhost:6969`, `remote_addr` `127.0.0.1:6969` |
+| `udp://localhost:6969/announce/PRIVATE_KEY` | 0 | 210 | `url` `udp://localhost:6969/****`, `remote_addr` `127.0.0.1:6969` |
+| `udp://127.0.0.1/announce/PRIVATE_KEY`, `http://127.0.0.1:7070/announce/PRIVATE_KEY` | 2 | 0 | `invalid_configuration` with the entry redacted to `/****` |
+
+`PRIVATE_KEY` appears in no stdout or stderr. V7 supersedes V6 as the final recheck for the UDP result.

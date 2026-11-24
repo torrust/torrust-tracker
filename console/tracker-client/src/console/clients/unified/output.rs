@@ -7,6 +7,7 @@
 //! The one other writer is the `tracing` subscriber, which `app` points at `std::io::stderr` with
 //! its JSON formatter, so its events are JSON lines on stderr too.
 
+use std::any::Any;
 use std::io::{self, IsTerminal as _, Write as _};
 
 use serde::Serialize;
@@ -60,22 +61,60 @@ pub fn write_diagnostic(record: &str) {
 /// `panic` JSON record. The default hook is not chained.
 pub fn install_panic_hook() {
     std::panic::set_hook(Box::new(|info| {
-        let message = info
-            .payload()
-            .downcast_ref::<&str>()
-            .map(|message| (*message).to_string())
-            .or_else(|| info.payload().downcast_ref::<String>().cloned())
-            .unwrap_or_else(|| "panic with a non-string payload".to_string());
         let location = info
             .location()
             .map(|location| format!("{}:{}", location.file(), location.line()));
-        write_diagnostic(&serde_json::json!({ "kind": "panic", "message": message, "location": location }).to_string());
+        write_diagnostic(&panic_record(info.payload(), location.as_deref()));
     }));
+}
+
+/// Builds the `panic` JSON record from a panic payload and its location (`file:line`).
+///
+/// A payload that is neither a `&str` nor a `String` gets a fixed message.
+fn panic_record(payload: &(dyn Any + Send), location: Option<&str>) -> String {
+    let message = payload
+        .downcast_ref::<&str>()
+        .map(|message| (*message).to_string())
+        .or_else(|| payload.downcast_ref::<String>().cloned())
+        .unwrap_or_else(|| "panic with a non-string payload".to_string());
+
+    serde_json::json!({ "kind": "panic", "message": message, "location": location }).to_string()
 }
 
 #[cfg(test)]
 mod tests {
-    use super::tty_refusal_record;
+    use super::{panic_record, tty_refusal_record};
+
+    fn panic_record_value(payload: &(dyn std::any::Any + Send), location: Option<&str>) -> serde_json::Value {
+        let record = panic_record(payload, location);
+
+        assert!(!record.contains('\n'));
+        serde_json::from_str(&record).expect("record should be JSON")
+    }
+
+    #[test]
+    fn the_panic_record_carries_the_message_of_a_str_payload() {
+        let value = panic_record_value(&"boom", Some("src/main.rs:7"));
+
+        assert_eq!(value["kind"], "panic");
+        assert_eq!(value["message"], "boom");
+        assert_eq!(value["location"], "src/main.rs:7");
+    }
+
+    #[test]
+    fn the_panic_record_carries_the_message_of_a_string_payload() {
+        let value = panic_record_value(&"formatted boom".to_string(), None);
+
+        assert_eq!(value["message"], "formatted boom");
+        assert_eq!(value["location"], serde_json::Value::Null);
+    }
+
+    #[test]
+    fn the_panic_record_has_a_fixed_message_for_a_non_string_payload() {
+        let value = panic_record_value(&42_u32, None);
+
+        assert_eq!(value["message"], "panic with a non-string payload");
+    }
 
     #[test]
     fn the_tty_refusal_record_is_one_json_line_with_the_adr_kind() {

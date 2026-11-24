@@ -336,7 +336,7 @@ fn is_timeout_error(err: &UdpError) -> bool {
         | UdpError::UnableToReceiveScrapeResponse { err }
         | UdpError::UnableToReceiveResponse { err }
         | UdpError::UnableToGetLocalAddr { err } => is_timeout_udp_client_error(err),
-        UdpError::UnexpectedConnectionResponse { .. } => false,
+        UdpError::UnexpectedConnectionResponse { .. } | UdpError::UnableToResolveAddress { .. } => false,
     }
 }
 
