@@ -443,3 +443,48 @@ semantic-links:
 - Verdict: REVIEW PASSED
 - Follow-up actions:
   - Author, done before the commit: the four fixes above.
+
+### 2026-11-24 08:17 UTC - Test-design reviewer (Claude Code subagent, Claude Opus 5.5, `write-unit-test` skill)
+
+- Invocation scope: Read-only review of task T5, increment 4, on branch `2904-t5-task-reviewer`
+  before its commit: the binary `agent-reply-guard` (`src/bin/agent-reply-guard/main.rs`) with
+  its unit tests, the command-boundary tests `tests/guard.rs` (the built binary in a disposable
+  git repository, fed hook input on standard input and a real transcript file), and the move of
+  the git-isolation helper of `tests/cli.rs` into `tests/support/mod.rs`. One round, then the
+  author's fixes.
+- Inputs: D17 ("How the hook works"); `.claude/skills/write-unit-test/SKILL.md`; `AGENTS.md`; the
+  uncommitted files.
+- Evidence: `cargo test -q -p agent-reply-validator --test guard --bin agent-reply-guard` passed
+  with 18 and 4 tests in the review, and 15 and 5 after the fixes; the `cli` tests still pass;
+  clippy with the workspace lints and nightly rustfmt were clean. The author ran nine mutations
+  of `main.rs` before the review, and each made at least one test fail: a refusal exiting 1, a
+  failure exiting 2, the message key renamed, the transcript ignored, the input directory
+  ignored, the agent id ignored, the refusal on standard output, arguments accepted, and an empty
+  agent id accepted. After the fixes the author ran three more: a strict UTF-8 transcript, the
+  process directory ignored, and a failed read of standard input ignored. Each was killed. The
+  mutation of the input directory first did not compile (the field became unused) and was
+  rewritten.
+- Findings:
+  - Minor: two command-boundary tests repeated unit tests of `main.rs` (an argument given, input
+    that is not JSON). Fixed: the command-boundary copies were deleted, and the unit tests now share
+    one assertion of the contract for a failure of the hook itself (exit 1, empty standard output,
+    a reason on standard error).
+  - Minor: the fallback to the process directory, when the input has no directory, was untested,
+    and the subfolder test could not tell which directory was used. Fixed: a test without a
+    directory in the input, and the subfolder test starts the process at the root.
+  - Minor: a transcript that is not UTF-8 was untested, so a strict decoding would have survived.
+    Fixed: a test with an invalid byte in another record, and a unit test for standard input that
+    is not UTF-8.
+  - Minor: text assertions were tied to wording owned by the committed decision logic. Fixed: they
+    check the exit code, the stream, the file the test chose and the count files, and keep the one
+    property that belongs to the boundary, that the refusal never carries the literal line.
+  - Minor (optional): the table of five paths at the boundary re-tested decision rules. Fixed: two
+    cases remain, a draft (the shape of the message) and a path that leaves the repository (nothing
+    outside is read).
+  - Nit: two failure tests did not check that standard output is empty; one test name was
+    imprecise. Fixed.
+  - Not tested, as the reviewer accepted: a failed write of the message to standard output, which
+    exits 1.
+- Verdict: REVIEW PASSED
+- Follow-up actions:
+  - Author, done before the commit: the fixes above.
