@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: draft
+status: planned
 priority: p1
 epic: 2387
-github-issue: null
-spec-path: docs/issues/drafts/2387-si-1-statistics-disabled-warning-per-event/ISSUE.md
-branch: "{issue-number}-2387-si-1-statistics-disabled-warning-per-event-spec"
+github-issue: 3031
+spec-path: docs/issues/open/3031-2387-si-1-statistics-disabled-warning-per-event/ISSUE.md
+branch: "3031-2387-si-1-statistics-disabled-warning-per-event-spec"
 related-pr: null
-last-updated-utc: "2026-11-24 12:46"
+last-updated-utc: "2026-11-24 16:20"
 semantic-links:
   skill-links:
     - create-issue
@@ -25,16 +25,16 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Bug: statistics listeners log a `WARN` for every event when usage statistics are disabled
+# Issue #3031 - Bug: statistics listeners log a `WARN` for every event when usage statistics are disabled
 
 **Parent EPIC:** #2387 - Make Tracker Startup and Shutdown Logs Coherent for Operators. Sub-issue SI-1 of 23.
 
-**Draft.** This draft fixes the goal, the scope and the decisions it implements. The session that takes this sub-issue completes it (file lists, exact messages, test boundaries) and stops for the maintainer to review and approve it. Only after that approval it creates the GitHub issue and opens the specification pull request, before any code.
+**Approved by the maintainer on 2026-11-24.** The GitHub issue is #3031. This specification is added by a spec-only pull request; the implementation follows in a separate pull request after it is merged.
 
-- Implements: D8, in [decisions.md](../../open/2387-review-tracker-lifecycle-logs/decisions.md).
+- Implements: D8, in [decisions.md](../2387-review-tracker-lifecycle-logs/decisions.md).
 - Depends on: Nothing.
-- Working order and rules common to all sub-issues: [EPIC.md](../../open/2387-review-tracker-lifecycle-logs/EPIC.md), section Delivery Strategy.
-- Evidence of today's behavior: [baseline-lifecycle-logs.md](../../open/2387-review-tracker-lifecycle-logs/baseline-lifecycle-logs.md) and the two captures beside it.
+- Working order and rules common to all sub-issues: [EPIC.md](../2387-review-tracker-lifecycle-logs/EPIC.md), section Delivery Strategy.
+- Evidence of today's behavior: [baseline-lifecycle-logs.md](../2387-review-tracker-lifecycle-logs/baseline-lifecycle-logs.md) and the two captures beside it.
 
 ## Goal
 
@@ -69,6 +69,71 @@ The EPIC coordinator compared this draft with the code at `develop` `6a058dd4d` 
 - The native tracker fixture configures one HTTP tracker and no UDP tracker (`tests/common/native_tracker/command.rs:29-31`) and exposes only the HTTP tracker address (`mod.rs:175`). The UDP half of the regression test needs fixture work, or another harness that captures the log.
 - Under order B′ (D1) #2766 comes after this issue: the regression test reads today's text output.
 
+### Result of the check (2026-11-24, `torrust/develop` `23095e3a6`)
+
+| Case | Result |
+| --- | --- |
+| Default `false` of the per-tracker key | Confirmed. `tracker.container.no-persistence.toml` sets only `core.tracker_usage_statistics = true` (a different key, not the policy) and declares no tracker section, so it runs no UDP or HTTP tracker. `tracker.e2e.container.sqlite3.toml` declares one UDP and one HTTP tracker without the key: both log the `WARN` per request. `tracker.container.sqlite3.toml` has its tracker sections commented out. `tracker.udp.benchmarking.toml` sets `false` explicitly. |
+| Sites | Confirmed, with one difference: the three branches are not alike. `udp-server` tests `== Some(true)`; `udp-core` and `http-core` use `.copied().unwrap_or(false)`. Only the last two cannot tell a missing entry from `false`, and all three log the same `WARN` with `configuration_instance_id` as a `Debug` struct. The drain path (`drain_events`) calls the same function as the live path: one fix covers both. |
+| Who builds the policy | `src/bootstrap/jobs/{udp_tracker_server,udp_tracker_core,http_tracker_core}.rs` build a `BTreeMap<ConfigurationInstanceId, bool>` from the instance containers, one entry per configured instance of the role. An event from a configured instance therefore always finds its entry: `None` is reachable only by a wiring bug. No other listener has a policy branch. |
+| Test fixture | Confirmed. `tests/common/native_tracker/command.rs` already sets `tracker_usage_statistics = false` for its one HTTP tracker and has no UDP tracker. The fixture finds the HTTP address by parsing the `Started on:` line (`health.rs`, `parse_started_address`); SI-11 will move readers to structured fields, so the UDP addition must reuse the same parser and be easy to switch. |
+| Order B′ | Understood. The test reads today's text output, with ANSI codes stripped (`NativeTrackerExit::plain_output`). |
+
+## Detailed Design
+
+### Behavior after the fix, in each of the three listeners
+
+| Policy lookup | Event counted | Log |
+| --- | --- | --- |
+| `Some(true)` | yes | none (unchanged) |
+| `Some(false)` | no | none at `INFO` or above; `TRACE` only |
+| `None` | no | one `ERROR` per event with `service_role` and `instance_index` as fields |
+
+Exact messages (the three keep their existing log targets; target renames are SI-6):
+
+- `TRACE`, disabled: `Ignoring event: usage statistics are disabled for this instance`, fields `service_role`, `instance_index`. Variant per listener: `UDP server event`, `UDP tracker event`, `HTTP tracker event`, as today.
+- `ERROR`, unknown: `Received an event from an instance that has no statistics policy entry`, with the same fields. The `Debug` struct `configuration_instance_id=ConfigurationInstanceId { … }` goes away. `service_role` is written with `Display` (`udp_tracker`, `http_tracker`), `instance_index` as an integer.
+- Start line of each of the three listeners (today `Starting UDP tracker server event listener`, `Starting UDP tracker core event listener`, `Starting HTTP tracker core event listener`) keeps its text and gains the fields `enabled_instances=N disabled_instances=M`, counted from the policy map the listener receives. D8 names "the statistics listener's start line"; there are three statistics listeners with three policy maps, so the proposal is to put the counts on all three (a UDP-server and a UDP-core line give the same numbers; that is the cost of reporting where the policy is held). The maintainer may prefer only the `udp-server` one: say so at review.
+- `tracker_usage_statistics` on each service's `Starting` line already exists; no change.
+
+The three-way decision is written once per listener as a `match` on `metrics_policy.get(&id).copied()`; no shared type. A shared helper would need a new dependency edge between the three packages or a type in `primitives`, for about ten lines.
+
+### Files
+
+| File | Change |
+| --- | --- |
+| `packages/udp-server/src/statistics/event/listener.rs` | `handle_event_if_enabled`: three arms; start line counts; unit tests |
+| `packages/udp-core/src/statistics/event/listener.rs` | `handle_received_event`: three arms; start line counts; unit tests |
+| `packages/http-core/src/statistics/event/listener.rs` | `handle_received_event`: three arms; start line counts; unit tests |
+| `tests/common/native_tracker/command.rs`, `mod.rs` | A `[[udp_trackers]]` entry with `tracker_usage_statistics = false` and discovery of its address; a `plain_output` accessor if missing |
+| `tests/metrics/` (new file) | The tracker-level regression test, new test binary for the statistics-disabled case |
+| `docs/issues/.../manual-verification-evidence.md` | M1 to M3 evidence |
+
+Production code outside the three listeners does not change.
+
+### Operator-visible changes (for SI-2, "Changes in 4.0.0")
+
+1. With per-tracker `tracker_usage_statistics = false` (the default), the tracker no longer logs `WARN … Ignoring … event from an unknown or metrics-disabled listener` for every request.
+2. An event from a listener with no policy entry is now an `ERROR` with `service_role` and `instance_index` fields, not a `WARN` with a `Debug` struct.
+3. The start line of the UDP server, UDP core and HTTP core statistics listeners carries `enabled_instances` and `disabled_instances`.
+
+If SI-2 has merged when this issue is implemented, `docs/logging.md` is updated directly instead.
+
+### Test boundaries
+
+- **Unit, per listener** (`write-unit-test` skill): capture log records with a local `tracing_subscriber` `MakeWriter` set by `tracing::subscriber::set_default` (the `packages/*` crates depend on `tracing` only, so `tracing-subscriber` becomes a `dev-dependency` of the three crates; `test-helpers` is not used, its buffer is global and level `WARN` only). Cases: enabled counts and logs nothing; disabled counts nothing and logs nothing at `INFO` or above; unknown counts nothing and logs one `ERROR` with both fields; start line shows the counts for a map with enabled, disabled and no entries. The existing test `it_should_ignore_disabled_and_unknown_events_before_processing_an_enabled_event` stays.
+- **Tracker level** (the real binary through `tests/common/native_tracker/`): configuration with one UDP and one HTTP tracker, both statistics disabled; one UDP announce (`tests/common/udp_requests.rs`) and one HTTP announce (`http_requests.rs`); graceful shutdown; assert that the plain output has no line with `WARN` or `ERROR` and that the start lines show `disabled_instances=1` (HTTP) and `disabled_instances=1` (UDP). Red run on `develop`: the `WARN` count is greater than zero, recorded in T2. In-process `TrackerApplicationFixture` is not used: `test-helpers` captures `WARN` and above into one global buffer shared by tests of the same binary, which makes "no `WARN`" unreliable.
+
+### Risks added by the check
+
+- The `ERROR` fires per event, so a real wiring bug floods the log. D8 asks for `ERROR` per event; the bug is rare and must be loud. A once-per-instance limiter is not added; say so at review if the maintainer wants it.
+- `udp-core`'s and `http-core`'s `.unwrap_or(false)` hid the difference for as long as the code existed; the fix makes the unknown case reachable in unit tests only (the real wiring never produces it).
+
+### Follow-ups found (not fixed here)
+
+- `tracing::debug!(target = ...)` in `packages/udp-core/src/services/announce.rs:178` and `scrape.rs:140`: has its own issue (maintainer's decision).
+- The `Lagged` `WARN` of the three listeners is a different case (a real loss of events) and is untouched.
+
 ## Architectural Decisions
 
 - Related decisions: D8 of the EPIC. After SI-2 is merged, the logging ADR it creates governs this work.
@@ -95,9 +160,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
 | T1 | TODO | Reproduce with the real binary | Capture of a statistics-disabled tracker that serves one UDP announce and one HTTP announce, showing the `WARN` lines, in `manual-verification-evidence.md` |
-| T2 | TODO | Write the failing regression test | Red test output recorded |
+| T2 | TODO | Write the failing regression test | Fixture gains a UDP tracker; tracker-level test and unit tests fail on `develop`; red output recorded |
 | T3 | TODO | Fix the three listeners | Three results, each handled in its own branch |
-| T4 | TODO | Report the state at startup | Start line of each statistics listener carries the counts |
+| T4 | TODO | Report the state at startup | Start line of the three listeners carries `enabled_instances` and `disabled_instances` |
 | T5 | TODO | Test the unknown-listener case | A unit test asserts the `ERROR` and its fields |
 | T6 | TODO | Recheck with the real binary | Same scenario as T1: no `WARN`, no `ERROR` |
 
@@ -118,9 +183,10 @@ For test-producing work, use the `write-unit-test` skill and complete the design
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/drafts/2387-si-1-statistics-disabled-warning-per-event/ISSUE.md`
-- [ ] Draft completed by the sub-issue session and approved by the maintainer
-- [ ] GitHub issue created and issue number added to this spec
+- [x] Folder-style spec drafted in `docs/issues/open/3031-2387-si-1-statistics-disabled-warning-per-event/ISSUE.md`
+- [x] Draft completed by the sub-issue session
+- [x] Draft approved by the maintainer
+- [x] GitHub issue created and issue number added to this spec
 - [ ] Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
@@ -140,6 +206,8 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 - 2026-11-23 16:53 UTC - Claude Code (Fable 5.2) - Renumbered the sub-issues by working order after review round 1 of PR 3010 (finding F4); this draft's number and its references to other sub-issues follow the new numbers.
 - 2026-11-23 17:29 UTC - Claude Code (Fable 5.2) - Corrected after the CodeRabbit review of PR 3010 (audit findings F15 to F22): this draft now names the maintainer's approval before the GitHub issue is created; the drafts of SI-4, SI-8, SI-9, SI-13 and SI-23 have one more correction each.
 - 2026-11-24 12:46 UTC - Claude Code (Opus 5.5), EPIC coordinator - Compared with the code at `develop` `6a058dd4d`: corrected the claims the code contradicts, recorded the maintainer's answers of 2026-11-24 that concern this draft, and added "Findings of the coordinator's check" (order B′ of D1 places #2766 after SI-1 and before SI-2).
+- 2026-11-24 16:00 UTC - Claude Code (Sonnet 5.5), SI-1 session - Completed the draft against `torrust/develop` `23095e3a6`: checked each case of the coordinator, added the check results, the detailed design, the file list, the exact messages, the test boundaries and the operator-visible changes for SI-2. Waiting for the maintainer's approval; no GitHub issue yet.
+- 2026-11-24 16:20 UTC - Claude Code (Sonnet 5.5), SI-1 session - The maintainer approved the completed draft in the session. Created issue #3031 (label `bug`, "Part of EPIC #2387" in the body; the bot account cannot add it as a native sub-issue of #2387, the maintainer links it). Moved the specification to `docs/issues/open/3031-2387-si-1-statistics-disabled-warning-per-event/`.
 
 ## Acceptance Criteria
 
@@ -208,6 +276,6 @@ After implementation, compare the result with this specification. Record invalid
 
 ## References
 
-- Parent EPIC: #2387, [EPIC.md](../../open/2387-review-tracker-lifecycle-logs/EPIC.md)
-- Decisions: [decisions.md](../../open/2387-review-tracker-lifecycle-logs/decisions.md) (D8)
-- Baseline: [baseline-lifecycle-logs.md](../../open/2387-review-tracker-lifecycle-logs/baseline-lifecycle-logs.md)
+- Parent EPIC: #2387, [EPIC.md](../2387-review-tracker-lifecycle-logs/EPIC.md)
+- Decisions: [decisions.md](../2387-review-tracker-lifecycle-logs/decisions.md) (D8)
+- Baseline: [baseline-lifecycle-logs.md](../2387-review-tracker-lifecycle-logs/baseline-lifecycle-logs.md)
