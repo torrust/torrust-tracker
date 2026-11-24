@@ -100,7 +100,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1 | TODO | Record how the schema and unknown keys behave today | Evidence in the specification |
 | T2 | TODO | Maintainer decision on the schema version and on old keys | Recorded with alternatives and reason |
 | T3 | TODO | Rename in the configuration and primitives packages and their users | Fields, serde names, defaults, tests; `TrackerPolicy` is read by swarm-coordination-registry, tracker-core and `src/bootstrap/jobs/torrent_cleanup.rs`. A v2 file still reads `max_peer_timeout`: a test loads a v2 file with a non-default value and gets it (AC5) |
-| T4 | TODO | Rename in default files, tests and documents | No old key left |
+| T4 | TODO | Rename in default files, tests and documents | No old key left, except in v2 compatibility tests and documents about v2 (AC3) |
 | T5 | TODO | Old key behavior | A test for a configuration file with an old key |
 
 ## Commit Points
@@ -146,7 +146,7 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 
 - [ ] AC1: The three new keys are read and have the same effect as the old ones.
 - [ ] AC2: A configuration file with an old key does what the recorded decision says, with a message that names the new key.
-- [ ] AC3: No default configuration, test or current document uses an old key.
+- [ ] AC3: No default configuration, test or current document uses an old key, except the v2 compatibility tests of AC5 and the documents about v2 (such as `packages/configuration/docs/migrate-v2-to-v3.md`), which keep the v2 names.
 - [ ] AC4: The change is listed for operators in "Changes in 4.0.0" of `docs/logging.md`, or where SI-2 says configuration changes go.
 - [ ] AC5: A v2 configuration file with a non-default `max_peer_timeout` loads with that value, proved by a test.
 - [ ] `linter all` exits with code `0`
@@ -190,6 +190,7 @@ None planned. If one is needed, record its path, purpose and removal owner here 
 | AC2 | TODO | {test/log/PR link} |
 | AC3 | TODO | {test/log/PR link} |
 | AC4 | TODO | {test/log/PR link} |
+| AC5 | TODO | {test/log/PR link} |
 
 ## Risks and Trade-offs
 
