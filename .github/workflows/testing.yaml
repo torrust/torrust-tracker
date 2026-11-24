@@ -65,6 +65,12 @@ jobs:
         with:
           node-version: "20"
 
+      - id: force-sccache-timeout
+        name: "TEMPORARY (#3019 verification): force the sccache startup timeout"
+        run: |
+          printf 'server_startup_timeout_ms = 1\n' > "$RUNNER_TEMP/sccache-force-timeout.toml"
+          echo "SCCACHE_CONF=$RUNNER_TEMP/sccache-force-timeout.toml" >> "$GITHUB_ENV"
+
       - id: sccache
         name: Install sccache (GHA backend)
         uses: mozilla-actions/sccache-action@v0.0.11
