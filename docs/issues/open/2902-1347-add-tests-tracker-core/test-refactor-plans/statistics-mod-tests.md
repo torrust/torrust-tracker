@@ -70,6 +70,17 @@ M1 and M2 survive today: no test disables usage statistics.
 | C2 | DONE | Run M1-M4. | Each is killed by the table. |
 | C3 | DONE | Record the results and ask for the completed-file review. | This record and the ledger. |
 
+## Prose-First AAA Review
+
+Temporary prose, written from this plan's Test Design when the review of #3009 found this section
+missing (it belongs before the completed-file review), then compared with the code.
+
+| Test | Arrange prose | Act prose | Assert prose | Outcome |
+| --- | --- | --- | --- | --- |
+| `it_should_register_each_downloads_total_only_when_its_statistics_are_enabled` (cases) | The two flags of the case: usage statistics and persisted statistics. | Describe the metrics for those flags. | The persistent total is registered at 0; the in-session total only with usage statistics; the persisted total only with persisted statistics. | Matches the code. The expectation is computed from the flags in the Assert (`then_some`), not copied from the code under test. |
+
+Smells found: none. The test has an Act and Assert comment and no Arrange, because the case arguments are the Arrange.
+
 ## Results
 
 - **Mutations** (each applied alone and reverted, run against the `statistics::` tests):

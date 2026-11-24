@@ -81,6 +81,22 @@ M1 and M2 survive today: the only non-completion event under test is `PeerAdded`
 | H2 | DONE | Run M1-M4. | Each is killed by its expected test. |
 | H3 | DONE | Record the results and ask for the completed-file review. | This record and the ledger. |
 
+## Prose-First AAA Review
+
+Temporary prose, written from this plan's Test Design when the review of #3009 found this section
+missing (it belongs before the completed-file review), then compared with the code.
+
+| Test | Arrange prose | Act prose | Assert prose | Outcome |
+| --- | --- | --- | --- | --- |
+| `it_should_increment_in_memory_completion_metrics_when_a_peer_download_is_completed` | A default statistics repository and a time. | Handle a completed-download event in memory. | The persistent and in-session totals read 1. | Matches the code. |
+| `it_should_change_no_in_memory_total_for_an_event_other_than_a_completed_download` (cases) | The same, with one event of each other kind per case. | Handle the event in memory. | Both totals still read 0. | Matches the code. |
+| `it_should_persist_completion_statistics_when_a_peer_download_is_completed` | A repository with persisted statistics enabled and a temporary database. | Handle a completed-download event. | The torrent and the global total read 1 in the database and the persisted total reads 1. | Matches the code. |
+| `it_should_persist_nothing_for_an_event_other_than_a_completed_download` (cases) | The same, with one other event per case. | Handle the event. | No torrent, no global total and a persisted total of 0. | Matches the code. |
+| `it_should_persist_global_completion_statistics_when_torrent_persistence_fails` | A mock store whose torrent read fails and whose global read and save succeed. | Handle a completed-download event. | The persisted total reads 1. | Matches the code. The mock expectations do not pin call counts (no `.times`), unlike the next test, so the Assert checks only the total. |
+| `it_should_not_increment_the_persisted_total_when_the_global_downloads_cannot_be_increased` | A mock store that reads and saves the torrent but fails to read the global total, each expected once. | Handle a completed-download event. | The persisted total reads 0. | Matches the code. |
+
+Smells found: the mock expectations of the fifth test have no call counts. The tests have AAA comments and one Act each.
+
 ## Results
 
 - **Coverage** (stable Rust 1.100.0, `cargo-llvm-cov 0.9.1`, `--all-features --lib`, clean
