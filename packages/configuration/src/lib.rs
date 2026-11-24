@@ -6,6 +6,7 @@
 //! The current schema version is [`v3_0_0`].
 //! The previous version [`v2_0_0`] is kept for backward compatibility.
 //! Consumers must import schema types through an explicit versioned module.
+mod secret_options;
 pub mod v2_0_0;
 pub mod v3_0_0;
 pub mod validator;
@@ -344,7 +345,9 @@ pub enum Error {
 
 impl From<figment::Error> for Error {
     fn from(err: figment::Error) -> Self {
-        Self::ConfigError { source: Box::new(err) }
+        Self::ConfigError {
+            source: Box::new(secret_options::redact_secret_values(err)),
+        }
     }
 }
 

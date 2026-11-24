@@ -5249,6 +5249,7 @@ dependencies = [
  "camino",
  "derive_more 2.1.1",
  "figment",
+ "rstest 0.28.0",
  "secrecy",
  "serde",
  "serde_json",

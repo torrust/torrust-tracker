@@ -354,3 +354,60 @@ the URL fails the free-helper test and both key-delete tests.
   the request line.
 - Smell check: a helper with two uses (`everything_shown_by`) stays named for what it returns; the
   request-head test checks the header case-insensitively because HTTP header names are.
+
+## T7 - Configuration Errors (A10)
+
+Toolchain: stable `rustc 1.100.0`, `cargo test`. Commit subject:
+`fix(configuration): [#2999] do not print the value of a secret option in a configuration error`.
+
+### Decision: how a secret option is detected
+
+By the key path of the `figment` error against a list (`SECRET_OPTIONS` in
+`packages/configuration/src/secret_options.rs`), not by reading the secret fields as strings: the
+secret fields keep their `SecretString` type and TOML syntax, and the list covers every source
+(file, inline TOML, `TORRUST_TRACKER_CONFIG_OVERRIDE_*` variables) because `figment` reports the
+same path for all of them. Entries:
+
+- `core.database.password`, and everything below it;
+- `http_api.access_tokens`, and everything below it (a map of labels to tokens);
+- `core.database` for an error about the value itself only (a table written as a string such as
+  `mysql://user:<password>@host/db` echoes the whole string); other errors inside the database
+  table (a bad port) keep printing their value, because that value is not a secret.
+
+Each error of a chained `figment` error is redacted; the option path, the expected type and the
+source stay. The value becomes the fixed text `a value of another type (not shown: the option is
+a secret)`. A new secret option must be added to the list (the `handle-secrets` skill says so, T8).
+Limit: the detection does not know a secret field that is added without an entry; the test of
+the module loads an invalid value for each current entry.
+
+### Red run
+
+Five of seven tests failed on the starting loader ([`evidence/t7-red.txt`](evidence/t7-red.txt));
+for each: `the error text holds the secret value`. The non-secret control test passed.
+
+### Green run
+
+`cargo test -p torrust-tracker-configuration`: 168 passed. The environment-override case reports
+``invalid type: found a value of another type (not shown: the option is a secret), expected a
+string for key "CORE.DATABASE.PASSWORD" in `TORRUST_TRACKER_CONFIG_OVERRIDE_` environment
+variable(s)``.
+
+### Mutations (one per clause, [`evidence/t7-mutations.txt`](evidence/t7-mutations.txt))
+
+- Access tokens redacted only when the map itself is wrong: the numeric and the boolean token cases
+  fail.
+- No rule for a database written as a string: the DSN case fails.
+- The database rule covering everything below it: the non-secret control test fails (a bad port
+  would lose its value). (A first attempt, which made the second variant unused, did not compile
+  and was discarded.)
+
+### Test-design review (prose-first AAA)
+
+- Arrange: each case is a complete TOML text, so the reader sees the one causal difference (a
+  password or token written as a number or boolean, or a table written as a string) with the secret
+  value next to the option path the assertion expects.
+- Act: `Configuration::load`, the production loader, inside a `figment::Jail` with a cleared
+  environment.
+- Assert: the secret value is absent from both `Display` and `Debug`; the option path and the word
+  `expected` are present, so a fix that drops the whole message does not pass; a control test keeps
+  non-secret values printed.
