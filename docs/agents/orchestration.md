@@ -132,7 +132,9 @@ flowchart TD
 This view shows conditional paths after a pull request exists. No profile defines a universal PR
 entry, remediation owner for a PR Reviewer finding, or mandatory re-review after a fix; those paths
 are therefore dashed. Copilot-specific entry points delegate their review processing and audit
-semantics to `process-pr-review`. Feedback submitted after merge has a documented read-only triage
+semantics to `process-pr-review`. Feedback from any other reviewer, person or bot, goes through
+`process-pr-review` the same way, and no review from a named reviewer is required before merge
+([ADR](../adrs/20261124182709_review_pull_requests_without_a_mandatory_reviewer.md)). Feedback submitted after merge has a documented read-only triage
 path, but no mutating follow-up begins until the maintainer approves its disposition.
 
 ```mermaid
