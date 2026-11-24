@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/3019-ci-sccache-startup-fallback/ISSUE.md
-last-updated-utc: "2026-11-24 17:04"
+last-updated-utc: "2026-11-24 17:39"
 ---
 
 # Manual Verification Evidence
@@ -153,7 +153,7 @@ reliable check, and the build passes without the wrapper.
 
 ### V3 - Hosted red run
 
-- Status: `IN_PROGRESS`
+- Status: `DONE`
 - First attempt, on a `josecelano-bot` fork branch: branch `3019-verify-red`, upstream
   `develop` at the merge of PR #3020 plus one temporary commit that adds a step to the `unit`
   job of `testing.yaml`. The step writes `server_startup_timeout_ms = 1` to a config file and
@@ -162,13 +162,32 @@ reliable check, and the build passes without the wrapper.
   app, with no GitHub Actions suite. The fork's Actions permissions report `enabled: true` and
   `allowed_actions: all`, and the fork's latest workflow run on any branch is from 2026-10-30.
 - The maintainer then chose a throwaway draft PR from the same branch:
-  <https://github.com/torrust/torrust-tracker/pull/3033>, waiting for its workflow runs.
+  <https://github.com/torrust/torrust-tracker/pull/3033>. `Testing` run
+  <https://github.com/torrust/torrust-tracker/actions/runs/45444358221>:
+  - `Unit (nightly)`, job 138630276169: **failure** after 23 s. Its log shows
+    `sccache: error: Timed out waiting for server startup. Maybe the remote service is unreachable?`,
+    the error of the 2026-11-23 failures, and the post step reports
+    `Cache location ghac`, so the GitHub Actions cache backend was selected.
+  - `Unit (stable)`, job 138630276239: cancelled when the nightly job failed (matrix fail-fast),
+    so it gives no result of its own.
+- Conclusion: the forced timeout reproduces the original failure on the hosted runner with the
+  current `Enable sccache` step (red).
 
 ### V4 - Hosted green run
 
-- Status: `IN_PROGRESS`
+- Status: `DONE`
 - Throwaway draft PR <https://github.com/torrust/torrust-tracker/pull/3034>: the implementation
-  branch plus the same temporary commit as V3. Waiting for its workflow runs.
+  branch plus the same temporary commit as V3. `Testing` run
+  <https://github.com/torrust/torrust-tracker/actions/runs/45444371578>:
+  - `Unit (nightly)`, job 138630252048: **success** (17:16:33 to 17:30:15 UTC).
+  - `Unit (stable)`, job 138630251811: **success** (17:17:09 to 17:32:32 UTC).
+  - In both jobs the `Enable sccache` step logs
+    `sccache: error: Timed out waiting for server startup`, then the job keeps building. The run
+    shows the warning annotation `sccache disabled: The sccache server did not start, so this job
+    builds without the compilation cache. See issue #3019.`
+  - The post step reports `Cache location Local disk` and `0 hits, 0 misses`: no `sccache`
+    wrapper was used, and the post-step server did not need the cache service.
+- Conclusion: with the fix, the same forced timeout costs the cache, not the job (green).
 
 ### V5 - Hosted normal run
 

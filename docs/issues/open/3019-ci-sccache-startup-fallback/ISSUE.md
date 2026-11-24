@@ -9,7 +9,7 @@ github-issue: 3019
 spec-path: docs/issues/open/3019-ci-sccache-startup-fallback/ISSUE.md
 branch: "3019-ci-sccache-startup-fallback"
 related-pr: null
-last-updated-utc: "2026-11-24 17:04"
+last-updated-utc: "2026-11-24 17:39"
 semantic-links:
   skill-links:
     - create-issue
@@ -182,10 +182,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task                                     | Notes / Expected Output                                                                 |
 | --- | ------ | ---------------------------------------- | --------------------------------------------------------------------------------------- |
 | T1  | DONE   | Reproduce locally                        | V1 and V2 in `manual-verification-evidence.md`                                          |
-| T2  | IN_PROGRESS | Red: hosted run with the timeout forced  | `unit` job fails with `Timed out waiting for server startup` on the current workflow (V3) |
+| T2  | DONE   | Red: hosted run with the timeout forced  | `unit` job fails with `Timed out waiting for server startup` on the current workflow (V3) |
 | T3  | DONE   | Add the `enable-sccache` composite action | Starts the server; exports the variables only on success; warns otherwise              |
 | T4  | DONE   | Use it in the five workflows             | Nine `Enable sccache` steps replaced; `if:` conditions kept                             |
-| T5  | IN_PROGRESS | Green: hosted run with the timeout forced | Same job passes and shows the warning (V4); temporary commit dropped                   |
+| T5  | DONE   | Green: hosted run with the timeout forced | Same job passes and shows the warning (V4); temporary commit dropped                   |
 | T6  | TODO   | Normal hosted run                        | PR jobs pass and the sccache stats show cache hits (V5)                                 |
 | T6b | TODO   | Hosted runs of jobs the PR does not run  | After the merge: `coverage` and a Dependabot `docker-e2e` pass with cache hits (V6)                     |
 | T7  | DONE   | Amend the ADR                            | Fallback and the `SCCACHE_IGNORE_SERVER_IO_ERROR` analysis recorded                     |
@@ -238,16 +238,19 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   PRs for the red and green runs: opened #3033 (red) and #3034 (green). `coverage` and
   `docker-e2e` evidence (V6) moves to after the merge, because neither job runs on a PR to
   `develop`
+- 2026-11-24 17:39 UTC - Claude Code (Claude Opus 5.5) - Red (#3033) and green (#3034) runs
+  done: the forced timeout fails the current workflow and passes with the fix, with the
+  warning annotation - `manual-verification-evidence.md` V3, V4
 
 ## Acceptance Criteria
 
-- [ ] AC1: When the `sccache` server does not start, a bare CI job builds without `sccache` and
+- [x] AC1: When the `sccache` server does not start, a bare CI job builds without `sccache` and
       passes, and the run shows a warning annotation that says the cache was disabled.
 - [ ] AC2: When the server starts, the job uses `sccache` with the GitHub Actions cache backend
       as before (`RUSTC_WRAPPER=sccache`, cache hits in the sccache stats).
 - [ ] AC3: Every bare CI job that enabled `sccache` before uses the shared composite action, and
       the `windows-latest` jobs in `os-compatibility.yaml` still pass.
-- [ ] AC4: The sccache ADR records the fallback and why `SCCACHE_IGNORE_SERVER_IO_ERROR` is not
+- [x] AC4: The sccache ADR records the fallback and why `SCCACHE_IGNORE_SERVER_IO_ERROR` is not
       sufficient.
 - [ ] `linter all` exits with code `0`
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -268,8 +271,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | ------------------------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------- | ------ | -------------------------------------------- |
 | M1  | Local reproduction of the startup timeout   | `cargo build` with `RUSTC_WRAPPER=sccache` and `server_startup_timeout_ms = 1`               | Build fails with `Timed out waiting for server startup` | DONE   | `manual-verification-evidence.md` section V1 |
 | M2  | `SCCACHE_IGNORE_SERVER_IO_ERROR` and fallback, locally | Same build with the variable set; then the fallback commands and the same build     | Variable: still fails. Fallback: warning, build passes  | DONE   | `manual-verification-evidence.md` section V2 |
-| M3  | Hosted red run                              | Draft PR #3033: temporary commit forcing the timeout on the current workflow                 | `unit` job fails with the original error                | TODO   | `manual-verification-evidence.md` section V3 |
-| M4  | Hosted green run                            | Draft PR #3034: same temporary commit on top of the fix                                      | `unit` job passes with the warning annotation           | TODO   | `manual-verification-evidence.md` section V4 |
+| M3  | Hosted red run                              | Draft PR #3033: temporary commit forcing the timeout on the current workflow                 | `unit` job fails with the original error                | DONE   | `manual-verification-evidence.md` section V3 |
+| M4  | Hosted green run                            | Draft PR #3034: same temporary commit on top of the fix                                      | `unit` job passes with the warning annotation           | DONE   | `manual-verification-evidence.md` section V4 |
 | M5  | Hosted normal run                           | PR checks without any temporary commit                                                       | Jobs pass; sccache stats show cache hits                | TODO   | `manual-verification-evidence.md` section V5 |
 | M6  | Jobs the PR checks do not run               | After the merge: the `coverage.yaml` run of the merge push; the next Dependabot branch push (`docker-e2e`) | Both jobs pass; sccache stats show cache hits | TODO | `manual-verification-evidence.md` section V6 |
 
@@ -277,10 +280,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | TODO                   | V4       |
+| AC1   | DONE                   | V4       |
 | AC2   | TODO                   | V5, V6   |
 | AC3   | TODO                   | V5, V6   |
-| AC4   | TODO                   | PR diff  |
+| AC4   | DONE                   | PR diff  |
 
 ## Risks and Trade-offs
 
