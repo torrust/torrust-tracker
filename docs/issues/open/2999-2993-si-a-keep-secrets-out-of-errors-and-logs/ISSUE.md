@@ -9,7 +9,7 @@ github-issue: 2999
 spec-path: docs/issues/open/2999-2993-si-a-keep-secrets-out-of-errors-and-logs/ISSUE.md
 branch: "2999-si-a-keep-secrets-out-of-errors-and-logs"
 related-pr: null
-last-updated-utc: "2026-11-23 21:19"
+last-updated-utc: "2026-11-24 12:38"
 semantic-links:
   skill-links:
     - create-issue
@@ -235,5 +235,6 @@ None planned. The UDP and HTTP probes of the EPIC session were ad-hoc commands; 
 
 ## References
 
+- Overlap: SI-19 of EPIC #2387 (draft `docs/issues/drafts/2387-si-19-request-log-latency-field/ISSUE.md`) renames `latency_ms` in the same three `TraceLayer` blocks that T5 rewrites. Maintainer decision of 2026-11-24: this issue goes first, and SI-19 adapts to its code afterwards. T5 keeps the `latency_ms` field name as it is.
 - Related issues: #2993 (EPIC), #2912, #2916 (SI-4, where the finding arose), #2917 (SI-5, startup errors, pull request #3001), #2079 (adopt `secrecy`), #3004 (tracker key in `tracker_client` output)
 - Related ADRs: `docs/adrs/20260822094338_adopt_secrecy_for_sensitive_values.md`, `docs/adrs/20261118045443_errors_do_not_record_source_locations.md`

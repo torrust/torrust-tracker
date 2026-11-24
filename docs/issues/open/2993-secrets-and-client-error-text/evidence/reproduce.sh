@@ -42,7 +42,6 @@ rm -f public.db*; start public.toml public.log 41212
 python3 -I "$(dirname "$0")/udp_probe.py" 46969
 echo "--- HTTP announce, not whitelisted"; curl -s "http://127.0.0.1:47070/announce?$IH"; echo
 stop public.log
-echo "--- private mode refuses UDP:"; strip < private.log | grep -o 'Could not start UDP trackers.*' | head -1
 
 echo; echo "### V7 configuration errors"
 db='[core]\nlisted = false\nprivate = false\n[core.database]\ndriver = "mysql"\nhost = "127.0.0.1"\nuser = "db_user"\ndatabase = "torrust_tracker"\n'
