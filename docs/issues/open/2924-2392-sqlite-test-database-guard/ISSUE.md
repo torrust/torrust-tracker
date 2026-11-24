@@ -179,8 +179,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1 | DONE | Decide the names and the return shape | Recorded in the T1 Decision section above; approved by the maintainer. |
 | T2 | DONE | Reproduce for the direct users | Before-count recorded (V1): 6 files; the `http-core` direct caller creates none. |
 | T3 | DONE | Guard type and factory | Unit tests red then green; design review recorded. |
-| T4 | TODO | Convert the direct users | The direct users outside `tracker-core` use the guard; test-design review recorded. |
-| T5 | TODO | Recheck | Direct users leave no `data_*.db` (V2); `linter all` passes. |
+| T4 | DONE | Convert the direct users | The direct users outside `tracker-core` use the guard; test-design review recorded. |
+| T5 | DONE | Recheck | Direct users leave no `data_*.db` (V2); `linter all` passes. |
 
 ## Commit Points
 
@@ -246,7 +246,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | V1 | Reproduce | `export TMPDIR=$(mktemp -d)`, then `cargo +stable test -p torrust-tracker-http-core --all-targets --all-features`, then count the `data_*.db` files in `$TMPDIR` | Leaked files counted | DONE (6 files) | `manual-verification-evidence.md` |
-| V2 | Recheck | The same three steps after the change | Only `data_*.db` files created through the `ephemeral*()` configurations remain, counted and listed by test | TODO | `manual-verification-evidence.md` |
+| V2 | Recheck | The same three steps after the change | Only `data_*.db` files created through the `ephemeral*()` configurations remain, counted and listed by test | DONE (6 files, all from ephemeral*()) | `manual-verification-evidence.md` |
 
 Evidence policy: every recorded command result names the toolchain that produced it, and the
 evidence file is created from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`.

@@ -91,3 +91,21 @@ with the factory changed to call `ephemeral_sqlite_database()` the two factory t
 `the_factory_should_not_create_a_file_in_the_system_temp_directory`); with the real factory all
 8 tests of `torrust-tracker-test-helpers` pass
 (`cargo test -q -p torrust-tracker-test-helpers`).
+
+## T3 design approval
+
+The maintainer approved the guard and factory design (relayed by the EPIC coordinator, 2026-11-24):
+"Approve the design" (`SqliteDatabaseGuard` with `new()`, `directory()`, `path()` and `Default`;
+`ephemeral_with_sqlite_database() -> (Configuration, SqliteDatabaseGuard)`).
+
+## V2: recheck after converting the direct caller
+
+Same steps as V1: `export TMPDIR=$(mktemp -d)` (13:31:20.758 UTC), then
+`cargo +stable test -p torrust-tracker-http-core --all-targets --all-features` (finished 13:31:44.848),
+then count `data_*.db` in `$TMPDIR`: **6**.
+
+The count is the same as V1 on purpose. T2 found that the one direct caller in `http-core`
+(`it_should_panic_when_the_configured_database_cannot_be_initialized`) never created a file, so the
+conversion removes no file. The 6 files come from tests that use the `ephemeral*()` configurations,
+which are out of scope (#2925). The converted test still passes and now builds its path inside a
+guard-owned directory.

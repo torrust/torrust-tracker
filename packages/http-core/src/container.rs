@@ -174,6 +174,7 @@ mod tests {
     use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
     use torrust_tracker_primitives::{ConfigurationInstanceId, ScrapeData, ServiceRole};
     use torrust_tracker_test_helpers::configuration;
+    use torrust_tracker_test_helpers::configuration::SqliteDatabaseGuard;
 
     use super::{HttpTrackerCoreContainer, HttpTrackerCoreServices};
     use crate::CurrentClock;
@@ -993,10 +994,13 @@ mod tests {
         #[tokio::test]
         #[should_panic(expected = "HTTP tracker core initialization requires a configured database or SQLite fallback")]
         async fn it_should_panic_when_the_configured_database_cannot_be_initialized() {
-            // Arrange: the parent of the database file is a random name that does not exist.
+            // Arrange: the parent of the database file is a directory that does not exist.
+            let guard = SqliteDatabaseGuard::new();
             let mut configuration = configuration::ephemeral_public();
             configuration.core.database = Some(Database::Sqlite3 {
-                path: configuration::ephemeral_sqlite_database()
+                path: guard
+                    .directory()
+                    .join("missing")
                     .join("tracker.sqlite3")
                     .to_string_lossy()
                     .into_owned(),
