@@ -132,8 +132,9 @@ cargo test -p <package-name>
 # Doc tests only
 cargo test --doc -p <package-name>
 
-# MySQL-specific tests in tracker-core (requires a running MySQL instance)
-TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST=true cargo test -p torrust-tracker-core
+# MySQL and PostgreSQL driver suites in tracker-core (each needs its container and the feature)
+TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST=true cargo test -p torrust-tracker-core --features db-compatibility-tests run_mysql_driver_tests
+TORRUST_TRACKER_CORE_RUN_POSTGRES_DRIVER_TEST=true cargo test -p torrust-tracker-core --features db-compatibility-tests run_postgres_driver_tests
 ```
 
 Use `clock::Stopped` (from the [`torrust-clock`](https://crates.io/crates/torrust-clock) crate) in unit tests that need deterministic time.

@@ -20,24 +20,30 @@ Versions are independent per package (see the [ADR](https://github.com/torrust/t
 
 ## Testing
 
-Run tests including tests for MySQL driver:
+Run tests including the tests of the MySQL driver (each driver suite needs the `db-compatibility-tests` feature, a container and its variable):
 
 ```console
-TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST=true cargo test
+TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST=true cargo test --features db-compatibility-tests run_mysql_driver_tests
 ```
 
-> NOTE: MySQL driver requires docker to run. We don't run them by default because we don't want to run them when we build container images. The Torrust Tracker container build runs unit tests for all dependencies, including this library.
+The PostgreSQL driver has its own suite and variable:
+
+```console
+TORRUST_TRACKER_CORE_RUN_POSTGRES_DRIVER_TEST=true cargo test --features db-compatibility-tests run_postgres_driver_tests
+```
+
+> NOTE: The MySQL and PostgreSQL driver suites require docker to run. We don't run them by default because we don't want to run them when we build container images. The Torrust Tracker container build runs unit tests for all dependencies, including this library. The `db-compatibility` workflow (`.github/workflows/db-compatibility.yaml`) runs both suites against MySQL 8.0 and 8.4 and PostgreSQL 14 to 17. Without the feature the suites are not compiled, and with it but without the variable they return at once, so a run that skips them still reports them as passed.
 
 Show coverage report:
 
 ```console
-TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST=true cargo +stable llvm-cov
+TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST=true TORRUST_TRACKER_CORE_RUN_POSTGRES_DRIVER_TEST=true cargo +stable llvm-cov --features db-compatibility-tests
 ```
 
 Export coverage report to `lcov` format:
 
 ```console
-TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST=true cargo +stable llvm-cov --lcov --output-path=./.coverage/lcov.info
+TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST=true TORRUST_TRACKER_CORE_RUN_POSTGRES_DRIVER_TEST=true cargo +stable llvm-cov --features db-compatibility-tests --lcov --output-path=./.coverage/lcov.info
 ```
 
 If you use Visual Studio Code, you can use the [Coverage Gutters](https://marketplace.visualstudio.com/items?itemName=ryanluker.vscode-coverage-gutters) extension to view the coverage lines.
