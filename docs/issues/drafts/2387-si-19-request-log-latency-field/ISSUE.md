@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2387-si-19-request-log-latency-field/ISSUE.md
 branch: "{issue-number}-2387-si-19-request-log-latency-field-spec"
 related-pr: null
-last-updated-utc: "2026-11-23 17:29"
+last-updated-utc: "2026-11-24 12:46"
 semantic-links:
   skill-links:
     - create-issue
@@ -31,7 +31,7 @@ semantic-links:
 **Draft.** This draft fixes the goal, the scope and the decisions it implements. The session that takes this sub-issue completes it (file lists, exact messages, test boundaries) and stops for the maintainer to review and approve it. Only after that approval it creates the GitHub issue and opens the specification pull request, before any code.
 
 - Implements: D6, in [decisions.md](../../open/2387-review-tracker-lifecycle-logs/decisions.md).
-- Depends on: SI-9.
+- Depends on: SI-9, and #2999 of EPIC #2993 (same `TraceLayer` blocks; security fix first).
 - Working order and rules common to all sub-issues: [EPIC.md](../../open/2387-review-tracker-lifecycle-logs/EPIC.md), section Delivery Strategy.
 - Evidence of today's behavior: [baseline-lifecycle-logs.md](../../open/2387-review-tracker-lifecycle-logs/baseline-lifecycle-logs.md) and the two captures beside it.
 
@@ -41,22 +41,31 @@ The latency field of request logs follows the duration rule: `latency_in_ms`.
 
 ## Background
 
-The HTTP tracker, the REST API and the health check API log `latency_ms` on their response lines (`packages/axum-http-server/src/v1/routes.rs`, `packages/axum-rest-api-server/src/routes.rs`, `packages/axum-health-check-api-server/src/server.rs`). It is the only duration field outside lifecycle lines that breaks rule 2. It is a request log, so it is separate from the lifecycle work and can be reviewed alone.
+The HTTP tracker, the REST API and the health check API log `latency_ms` on their response lines (`packages/axum-http-server/src/v1/routes.rs`, `packages/axum-rest-api-server/src/routes.rs`, `packages/axum-health-check-api-server/src/server.rs`). It is not the only duration field of request logs that breaks the duration rule: the three `response failed` handlers log `latency=0 ms` (`packages/axum-http-server/src/v1/routes.rs:143-148`, `packages/axum-rest-api-server/src/routes.rs:137-143`, `packages/axum-health-check-api-server/src/server.rs:191-195`), and the UDP tracker logs `trace!(?latency, "responded")`, a `Debug` of `Duration` (`packages/udp-server/src/handlers/mod.rs:162-163`). They are request logs, so they are separate from the lifecycle work and can be reviewed alone.
+
+This issue runs after #2999 (EPIC #2993), which replaces `MakeSpan` and `on_request` in the same three `TraceLayer` blocks to keep secrets out of request logs. #2999 is a security fix and goes first; this issue adapts to its code (maintainer, 2026-11-24).
 
 ## Scope
 
 ### In Scope
 
-- Rename the field at the nine sites in the three packages.
-- Check that the value is a number in milliseconds and not `Debug` of `Duration`; fix it if not.
+- Rename `latency_ms` to `latency_in_ms` at the nine sites in the three packages (three bindings and six log uses).
+- The `latency` field of the three `response failed` lines becomes `latency_in_ms` too, and so does the UDP `?latency` trace (maintainer, 2026-11-24).
+- Record every value as an integer of milliseconds (`u64`, not `%` and not `Debug`), so it is a number in the JSON output (maintainer, 2026-11-24).
 - Update tests and documents that show the field.
-- Check the UDP tracker's request lines for a latency or duration field and apply the same rule.
 - Update the catalogue of lifecycle lines and the section "Changes in 4.0.0" in `docs/logging.md` for every line this issue changes.
 
 ### Out of Scope
 
 - Levels and messages of request logs (#1166).
 - Any other request log field.
+
+## Findings of the coordinator's check (2026-11-24)
+
+The EPIC coordinator compared this draft with the code at `develop` `6a058dd4d` on 2026-11-24. Nothing changed since the draft was written; these are cases the draft did not name. The session that completes the draft checks each one and decides how its specification uses it.
+
+- The value is `latency.as_millis()` (a `u128`) recorded with `%`, so in JSON it would be a string. AC2 ("is a number") needs an integer field.
+- No test, parser, script or document outside the issue specifications names `latency_ms`. AC1 ("no `latency_ms` in the code") also matches the local variable names.
 
 ## Architectural Decisions
 
@@ -122,6 +131,7 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 - 2026-11-23 16:16 UTC - Claude Code (Fable 5.2) - Drafted with EPIC #2387 from the maintainer's decisions of 2026-11-21 and 2026-11-23. Not approved as a final specification; no GitHub issue created.
 - 2026-11-23 16:53 UTC - Claude Code (Fable 5.2) - Renumbered the sub-issues by working order after review round 1 of PR 3010 (finding F4); this draft's number and its references to other sub-issues follow the new numbers.
 - 2026-11-23 17:29 UTC - Claude Code (Fable 5.2) - Corrected after the CodeRabbit review of PR 3010 (audit findings F15 to F22): this draft now names the maintainer's approval before the GitHub issue is created; the drafts of SI-4, SI-8, SI-9, SI-13 and SI-23 have one more correction each.
+- 2026-11-24 12:46 UTC - Claude Code (Opus 5.5), EPIC coordinator - Compared with the code at `develop` `6a058dd4d`: corrected the claims the code contradicts, recorded the maintainer's answers of 2026-11-24 that concern this draft, and added "Findings of the coordinator's check" (order B′ of D1 places #2766 after SI-1 and before SI-2).
 
 ## Acceptance Criteria
 

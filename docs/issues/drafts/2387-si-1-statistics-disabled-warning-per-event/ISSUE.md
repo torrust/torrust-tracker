@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2387-si-1-statistics-disabled-warning-per-event/ISSUE.md
 branch: "{issue-number}-2387-si-1-statistics-disabled-warning-per-event-spec"
 related-pr: null
-last-updated-utc: "2026-11-23 17:29"
+last-updated-utc: "2026-11-24 12:46"
 semantic-links:
   skill-links:
     - create-issue
@@ -38,7 +38,7 @@ semantic-links:
 
 ## Goal
 
-A tracker with `tracker_usage_statistics = false` logs nothing for each event it does not count. An event from a listener the statistics policy does not know is an `ERROR`. The operator sees once, at startup, for which services statistics are disabled.
+A tracker whose UDP or HTTP tracker sections have `tracker_usage_statistics = false` (the default of that per-tracker key) logs nothing for each event it does not count. An event from a listener the statistics policy does not know is an `ERROR`. The operator sees once, at startup, for which services statistics are disabled.
 
 ## Background
 
@@ -49,9 +49,9 @@ Three statistics event listeners share one branch for two cases: the service has
 ### In Scope
 
 - In the three listeners, split the policy lookup into its three results: enabled (count the event), disabled (no log; `TRACE` at most), unknown (`ERROR` with `service_role` and `instance_index` as fields, not a `Debug` struct).
-- Report the state once at startup: the statistics listener's start line says how many service instances have statistics enabled and disabled (for example `enabled_instances=0 disabled_instances=2`). The `Starting` line of each UDP and HTTP tracker already has, or gets, `tracker_usage_statistics`.
+- Report the state once at startup: the statistics listener's start line says how many service instances have statistics enabled and disabled (for example `enabled_instances=0 disabled_instances=2`). The `Starting` line of each UDP and HTTP tracker already has `tracker_usage_statistics` (`src/bootstrap/jobs/udp_tracker.rs:65-69`, `src/bootstrap/jobs/http_tracker.rs:70-74`).
 - A regression test: a tracker with statistics disabled handles a UDP request and an HTTP request and logs no `WARN` and no `ERROR`.
-- A test for the unknown-listener case at the unit boundary of one listener.
+- A test for the unknown-listener case at the unit boundary of each listener (see Regression Test Strategy: the code is the same in three packages).
 - This issue runs before SI-2, which creates `docs/logging.md`. It lists its operator-visible changes in its own specification, and SI-2 copies them into "Changes in 4.0.0". If SI-2 is already merged when this issue runs, update `docs/logging.md` directly.
 
 ### Out of Scope
@@ -59,6 +59,15 @@ Three statistics event listeners share one branch for two cases: the service has
 - Renaming the targets of these lines (SI-6).
 - Stopping the publication of events when no listener counts them. The draft `docs/issues/drafts/optimize-event-publication-without-consumers` covers that.
 - Any other `WARN` line.
+
+## Findings of the coordinator's check (2026-11-24)
+
+The EPIC coordinator compared this draft with the code at `develop` `6a058dd4d` on 2026-11-24. Nothing changed since the draft was written; these are cases the draft did not name. The session that completes the draft checks each one and decides how its specification uses it.
+
+- The per-tracker `tracker_usage_statistics` defaults to `false` (`packages/configuration/src/v3_0_0/udp_tracker.rs:63`, `http_tracker.rs:74`). `share/default/config/tracker.container.no-persistence.toml` and `tracker.e2e.container.sqlite3.toml` omit the key in their tracker sections, so they log the `WARN` for every request today. `core.tracker_usage_statistics` (default `true`) is a different key and does not feed this policy.
+- Sites: `packages/udp-server/src/statistics/event/listener.rs:126-133`, `packages/udp-core/src/statistics/event/listener.rs:126-132`, `packages/http-core/src/statistics/event/listener.rs:129-135`. No other listener has a policy branch. The drain path calls the same function.
+- The native tracker fixture configures one HTTP tracker and no UDP tracker (`tests/common/native_tracker/command.rs:29-31`) and exposes only the HTTP tracker address (`mod.rs:175`). The UDP half of the regression test needs fixture work, or another harness that captures the log.
+- Under order B′ (D1) #2766 comes after this issue: the regression test reads today's text output.
 
 ## Architectural Decisions
 
@@ -130,6 +139,7 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 - 2026-11-23 16:16 UTC - Claude Code (Fable 5.2) - Drafted with EPIC #2387 from the maintainer's decisions of 2026-11-21 and 2026-11-23. Not approved as a final specification; no GitHub issue created.
 - 2026-11-23 16:53 UTC - Claude Code (Fable 5.2) - Renumbered the sub-issues by working order after review round 1 of PR 3010 (finding F4); this draft's number and its references to other sub-issues follow the new numbers.
 - 2026-11-23 17:29 UTC - Claude Code (Fable 5.2) - Corrected after the CodeRabbit review of PR 3010 (audit findings F15 to F22): this draft now names the maintainer's approval before the GitHub issue is created; the drafts of SI-4, SI-8, SI-9, SI-13 and SI-23 have one more correction each.
+- 2026-11-24 12:46 UTC - Claude Code (Opus 5.5), EPIC coordinator - Compared with the code at `develop` `6a058dd4d`: corrected the claims the code contradicts, recorded the maintainer's answers of 2026-11-24 that concern this draft, and added "Findings of the coordinator's check" (order B′ of D1 places #2766 after SI-1 and before SI-2).
 
 ## Acceptance Criteria
 

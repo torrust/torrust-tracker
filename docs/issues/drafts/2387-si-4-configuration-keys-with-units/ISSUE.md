@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2387-si-4-configuration-keys-with-units/ISSUE.md
 branch: "{issue-number}-2387-si-4-configuration-keys-with-units-spec"
 related-pr: null
-last-updated-utc: "2026-11-23 17:58"
+last-updated-utc: "2026-11-24 12:46"
 semantic-links:
   skill-links:
     - create-issue
@@ -41,7 +41,7 @@ Every duration key of the configuration says its unit. `max_peer_timeout` become
 
 ## Background
 
-The newer keys carry their unit (`deadline_in_secs`, `http_drain_in_secs`, `ip_bans_reset_interval_in_secs`); three older keys do not: `max_peer_timeout`, `inactive_peer_cleanup_interval` (`packages/configuration/src/v3_0_0/core.rs`) and `cookie_lifetime` (`packages/configuration/src/v3_0_0/udp_tracker.rs`). The first two are integers of seconds. `cookie_lifetime` is a `Duration`, which the configuration writes as a table with `secs` and `nanos`. Rule 3 of D6 logs a configured duration under its key name, so the key names must be coherent for the log to be. This is a change of the configuration schema, not of a log line, so it has its own issue.
+The newer keys carry their unit (`deadline_in_secs`, `http_drain_in_secs`, `ip_bans_reset_interval_in_secs`); three older keys do not: `max_peer_timeout` (field of `TrackerPolicy` in `packages/primitives/src/policy.rs`, under `[core.tracker_policy]`, shared with the v2 schema), `inactive_peer_cleanup_interval` (`packages/configuration/src/v3_0_0/core.rs`) and `cookie_lifetime` (`packages/configuration/src/v3_0_0/udp_tracker.rs`). The first two are integers of seconds. `cookie_lifetime` is a `Duration`, which the configuration writes as a table with `secs` and `nanos`. Rule 3 of D6 logs a configured duration under its key name, so the key names must be coherent for the log to be. This is a change of the configuration schema, not of a log line, so it has its own issue.
 
 ## Scope
 
@@ -60,6 +60,16 @@ The newer keys carry their unit (`deadline_in_secs`, `http_drain_in_secs`, `ip_b
 - Durations in log lines (SI-9).
 - Changing the meaning or the effective value of a setting. The only change of representation is the one of `cookie_lifetime` described in scope.
 - Older configuration schema versions kept for migration, unless the decision above says so.
+
+## Findings of the coordinator's check (2026-11-24)
+
+The EPIC coordinator compared this draft with the code at `develop` `6a058dd4d` on 2026-11-24. Nothing changed since the draft was written; these are cases the draft did not name. The session that completes the draft checks each one and decides how its specification uses it.
+
+- `TrackerPolicy` (`packages/primitives/src/policy.rs:16`) has no `#[serde(deny_unknown_fields)]`. After the rename, an old `max_peer_timeout` key would be ignored silently and the default `900` used, so the clean break (D12) and AC2 need it, or another check. `Core` and `UdpTracker` do deny unknown keys (`core.rs:17`, `udp_tracker.rs:14`). This is read from the serde attributes, not run.
+- `TrackerPolicy` is shared with the v2 schema (`packages/configuration/src/v2_0_0/core.rs:46`), so a serde rename on it changes v2 as well.
+- Two more durations without a unit: `[core.announce_policy]` `interval` and `interval_min` (`packages/primitives/src/announce.rs:34,48`, type `AnnounceIntervalInSecs`), also without `deny_unknown_fields`. They mirror BitTorrent protocol names, which may justify a recorded exception.
+- Places that name the old keys: `share/default/config/tracker.development.sqlite3.toml:13,36`; `contrib/dev-tools/experiments/dual-stack-sockets/config/tracker.dual-stack.toml:10,15`; `.claude/skills/manual-torrent-cleanup-e2e/SKILL.md:42,48`; `packages/configuration/docs/migrate-v2-to-v3.md:431,442`; `src/lib.rs:179,196`; `packages/tracker-core/src/lib.rs:61,79`; `packages/configuration/src/v3_0_0/mod.rs:229,240,581,592,619,630`; `packages/primitives/src/policy.rs:40,93,116`; `docs/features/shutdown-process/task-inventory.md:132`; `packages/test-helpers/src/configuration.rs:66` and two `udp-server` examples (`cookie_lifetime`).
+- No environment-variable override of these keys and no configuration JSON schema exist in the repository.
 
 ## Architectural Decisions
 
@@ -88,7 +98,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | --- | --- | --- |
 | T1 | TODO | Record how the schema and unknown keys behave today | Evidence in the specification |
 | T2 | TODO | Maintainer decision on the schema version and on old keys | Recorded with alternatives and reason |
-| T3 | TODO | Rename in the configuration package | Fields, serde names, defaults, tests |
+| T3 | TODO | Rename in the configuration and primitives packages and their users | Fields, serde names, defaults, tests; `TrackerPolicy` is read by swarm-coordination-registry, tracker-core and `src/bootstrap/jobs/torrent_cleanup.rs` |
 | T4 | TODO | Rename in default files, tests and documents | No old key left |
 | T5 | TODO | Old key behavior | A test for a configuration file with an old key |
 
@@ -129,6 +139,7 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 - 2026-11-23 16:16 UTC - Claude Code (Fable 5.2) - Drafted with EPIC #2387 from the maintainer's decisions of 2026-11-21 and 2026-11-23. Not approved as a final specification; no GitHub issue created.
 - 2026-11-23 16:53 UTC - Claude Code (Fable 5.2) - Renumbered the sub-issues by working order after review round 1 of PR 3010 (finding F4); this draft's number and its references to other sub-issues follow the new numbers.
 - 2026-11-23 17:29 UTC - Claude Code (Fable 5.2) - Corrected after the CodeRabbit review of PR 3010 (audit findings F15 to F22): this draft now names the maintainer's approval before the GitHub issue is created; the drafts of SI-4, SI-8, SI-9, SI-13 and SI-23 have one more correction each.
+- 2026-11-24 12:46 UTC - Claude Code (Opus 5.5), EPIC coordinator - Compared with the code at `develop` `6a058dd4d`: corrected the claims the code contradicts, recorded the maintainer's answers of 2026-11-24 that concern this draft, and added "Findings of the coordinator's check" (order B′ of D1 places #2766 after SI-1 and before SI-2).
 
 ## Acceptance Criteria
 

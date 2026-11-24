@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2387-si-2-logging-convention-adr-and-docs/ISSUE.md
 branch: "{issue-number}-2387-si-2-logging-convention-adr-and-docs-spec"
 related-pr: null
-last-updated-utc: "2026-11-23 17:29"
+last-updated-utc: "2026-11-24 12:46"
 semantic-links:
   skill-links:
     - create-issue
@@ -31,7 +31,7 @@ semantic-links:
 **Draft.** This draft fixes the goal, the scope and the decisions it implements. The session that takes this sub-issue completes it (file lists, exact messages, test boundaries) and stops for the maintainer to review and approve it. Only after that approval it creates the GitHub issue and opens the specification pull request, before any code.
 
 - Implements: D2, D3, D4, D5, D6, D9, D11, D12, in [decisions.md](../../open/2387-review-tracker-lifecycle-logs/decisions.md).
-- Depends on: Nothing.
+- Depends on: #2766 (daemon JSON logs; D1, order B′).
 - Working order and rules common to all sub-issues: [EPIC.md](../../open/2387-review-tracker-lifecycle-logs/EPIC.md), section Delivery Strategy.
 - Evidence of today's behavior: [baseline-lifecycle-logs.md](../../open/2387-review-tracker-lifecycle-logs/baseline-lifecycle-logs.md) and the two captures beside it.
 
@@ -59,6 +59,17 @@ The decisions of the EPIC are in its `decisions.md`, which moves to `docs/issues
 - Any change to Rust code, including rustdoc on target constants (each code sub-issue adds the rustdoc for what it touches).
 - The level policy for request-handling logs (#1166).
 - The private-mode ADR (SI-3).
+
+## Findings of the coordinator's check (2026-11-24)
+
+The EPIC coordinator compared this draft with the code at `develop` `6a058dd4d` on 2026-11-24. Nothing changed since the draft was written; these are cases the draft did not name. The session that completes the draft checks each one and decides how its specification uses it.
+
+- Under order B′ (D1) #2766 is merged before this issue: the captures, the inventory and the catalogue of `docs/logging.md` describe the JSON output.
+- The inventory also has lifecycle sources outside `src/`: `Logging initialized` (`packages/configuration/src/v3_0_0/logging.rs:101`, `v2_0_0/logging.rs:88`, `logging.rs:60`), configuration loading (`packages/configuration/src/lib.rs:196,210,219,223`) and TLS (`packages/axum-server/src/tls.rs:38-39`).
+- `.claude/skills/structured-runtime-logging/SKILL.md` shows `service_binding` without a trailing slash in its example output; real HTTP output has one today.
+- ADR `docs/adrs/20260826124959_use_explicit_identifiers_for_test_log_assertions.md` governs tests that match log text; the new ADR and `docs/logging.md` link it.
+- Logging styles: `TraceStyle` has `Json`, `Pretty` and `Compact` besides `Full` (`packages/configuration/src/v3_0_0/logging.rs:94-99`); `pretty` prints one event over several lines. The v2 schema and `packages/test-helpers/src/logging.rs` have their own setups, and `src/console/profiling.rs` repeats process lines.
+- Two `WARN` lines come from a deliberate configuration and belong on the convention's list of allowed warnings, or get another level: `No services enabled in configuration` (`src/app.rs:343`) and `UDP connection ID validation is DISABLED…` (`packages/udp-server/src/server/launcher.rs:426`).
 
 ## Architectural Decisions
 
@@ -128,6 +139,7 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 - 2026-11-23 16:16 UTC - Claude Code (Fable 5.2) - Drafted with EPIC #2387 from the maintainer's decisions of 2026-11-21 and 2026-11-23. Not approved as a final specification; no GitHub issue created.
 - 2026-11-23 16:53 UTC - Claude Code (Fable 5.2) - Renumbered the sub-issues by working order after review round 1 of PR 3010 (finding F4); this draft's number and its references to other sub-issues follow the new numbers.
 - 2026-11-23 17:29 UTC - Claude Code (Fable 5.2) - Corrected after the CodeRabbit review of PR 3010 (audit findings F15 to F22): this draft now names the maintainer's approval before the GitHub issue is created; the drafts of SI-4, SI-8, SI-9, SI-13 and SI-23 have one more correction each.
+- 2026-11-24 12:46 UTC - Claude Code (Opus 5.5), EPIC coordinator - Compared with the code at `develop` `6a058dd4d`: corrected the claims the code contradicts, recorded the maintainer's answers of 2026-11-24 that concern this draft, and added "Findings of the coordinator's check" (order B′ of D1 places #2766 after SI-1 and before SI-2).
 
 ## Acceptance Criteria
 

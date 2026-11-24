@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2387-si-20-automated-lifecycle-log-check/ISSUE.md
 branch: "{issue-number}-2387-si-20-automated-lifecycle-log-check-spec"
 related-pr: null
-last-updated-utc: "2026-11-23 18:32"
+last-updated-utc: "2026-11-24 12:46"
 semantic-links:
   skill-links:
     - create-issue
@@ -59,6 +59,15 @@ Without a check, the next change adds a `local_addr` again. The convention has r
 - Checking request-handling lines beyond the removed field names.
 - A lint over source code; this check reads real output.
 - Lines logged by dependencies, which the test lists as exceptions with a reason.
+
+## Findings of the coordinator's check (2026-11-24)
+
+The EPIC coordinator compared this draft with the code at `develop` `6a058dd4d` on 2026-11-24. Nothing changed since the draft was written; these are cases the draft did not name. The session that completes the draft checks each one and decides how its specification uses it.
+
+- Under order B′ (D1) the check reads the JSON output of #2766 from the start.
+- The native fixture configures one HTTP tracker and the health check API only (`tests/common/native_tracker/command.rs:19-34`); "every service enabled" needs a new configuration. Test targets are explicit `[[test]]` entries in `Cargo.toml`. The lifecycle tests are `cfg(unix)`. The fixture merges stdout and stderr (`output.rs`); #2766 moves the logs to stderr. Workspace tests also run inside the container build.
+- The rule "no duration value with a unit suffix" also covers request lines once SI-19 is merged (it renames the `response failed` latency too).
+- The test-only executable `packages/hung-component-tracker` runs the same lines; the specification decides whether the check covers it.
 
 ## Architectural Decisions
 
@@ -130,6 +139,7 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 - 2026-11-23 16:16 UTC - Claude Code (Fable 5.2) - Drafted with EPIC #2387 from the maintainer's decisions of 2026-11-21 and 2026-11-23. Not approved as a final specification; no GitHub issue created.
 - 2026-11-23 16:53 UTC - Claude Code (Fable 5.2) - Renumbered the sub-issues by working order after review round 1 of PR 3010 (finding F4); this draft's number and its references to other sub-issues follow the new numbers.
 - 2026-11-23 17:29 UTC - Claude Code (Fable 5.2) - Corrected after the CodeRabbit review of PR 3010 (audit findings F15 to F22): this draft now names the maintainer's approval before the GitHub issue is created; the drafts of SI-4, SI-8, SI-9, SI-13 and SI-23 have one more correction each.
+- 2026-11-24 12:46 UTC - Claude Code (Opus 5.5), EPIC coordinator - Compared with the code at `develop` `6a058dd4d`: corrected the claims the code contradicts, recorded the maintainer's answers of 2026-11-24 that concern this draft, and added "Findings of the coordinator's check" (order B′ of D1 places #2766 after SI-1 and before SI-2).
 
 ## Acceptance Criteria
 
@@ -181,7 +191,7 @@ None planned. If one is needed, record its path, purpose and removal owner here 
 
 ## Risks and Trade-offs
 
-- A test that parses text logs breaks when #2766 changes the format. Mitigation: the test reads fields through one small parser that #2766 replaces.
+- The test depends on the JSON record shape of #2766, which comes before this issue (D1, order B′). Mitigation: it reads the JSON output from the start, through the parser #2766 provides, and reads each field by name.
 - False failures from timing. Mitigation: it waits for a line, with a deadline, not for a fixed time.
 
 ## Implementation Completion Review

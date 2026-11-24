@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2387-si-22-run-id-on-every-record/ISSUE.md
 branch: "{issue-number}-2387-si-22-run-id-on-every-record-spec"
 related-pr: null
-last-updated-utc: "2026-11-23 17:29"
+last-updated-utc: "2026-11-24 12:46"
 semantic-links:
   skill-links:
     - create-issue
@@ -40,7 +40,7 @@ Every log record carries the `run_id` of its run, so any single line can be attr
 
 ## Background
 
-SI-16 puts `run_id` on the start line. To find the lines of a run an operator still needs the time range after that line. Decision D10 chose to add the field to every record, in the formatter and not as a root span: a root span would print in every span list and is lost in tasks that do not inherit it. Issue #2766 replaces the formatter with JSON output, so this issue comes after it to avoid writing the change twice.
+SI-16 puts `run_id` on the start line. To find the lines of a run an operator still needs the time range after that line. Decision D10 chose to add the field to every record, in the formatter and not as a root span: a root span would print in every span list and is lost in tasks that do not inherit it. Issue #2766 replaces the formatter with JSON output, so this issue comes after it to avoid writing the change twice. Under order B′ (D1, 2026-11-24) #2766 is merged before SI-2, so this issue is no longer blocked: it runs in its place in the order, after SI-16.
 
 ## Scope
 
@@ -56,6 +56,13 @@ SI-16 puts `run_id` on the start line. To find the lines of a run an operator st
 
 - Generating the `run_id` (SI-16).
 - Propagating the `run_id` to clients or to other processes.
+
+## Findings of the coordinator's check (2026-11-24)
+
+The EPIC coordinator compared this draft with the code at `develop` `6a058dd4d` on 2026-11-24. Nothing changed since the draft was written; these are cases the draft did not name. The session that completes the draft checks each one and decides how its specification uses it.
+
+- The `run_id` is generated in the root crate (SI-16), and the formatter lives in `packages/configuration`, so its `setup(&Logging)` needs an API change. Two more setups exist: `packages/configuration/src/logging.rs` (v2) and `packages/test-helpers/src/logging.rs:19-36`.
+- #2766's specification reserves a per-record field hook for this issue.
 
 ## Architectural Decisions
 
@@ -121,6 +128,7 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 - 2026-11-23 16:16 UTC - Claude Code (Fable 5.2) - Drafted with EPIC #2387 from the maintainer's decisions of 2026-11-21 and 2026-11-23. Not approved as a final specification; no GitHub issue created.
 - 2026-11-23 16:53 UTC - Claude Code (Fable 5.2) - Renumbered the sub-issues by working order after review round 1 of PR 3010 (finding F4); this draft's number and its references to other sub-issues follow the new numbers.
 - 2026-11-23 17:29 UTC - Claude Code (Fable 5.2) - Corrected after the CodeRabbit review of PR 3010 (audit findings F15 to F22): this draft now names the maintainer's approval before the GitHub issue is created; the drafts of SI-4, SI-8, SI-9, SI-13 and SI-23 have one more correction each.
+- 2026-11-24 12:46 UTC - Claude Code (Opus 5.5), EPIC coordinator - Compared with the code at `develop` `6a058dd4d`: corrected the claims the code contradicts, recorded the maintainer's answers of 2026-11-24 that concern this draft, and added "Findings of the coordinator's check" (order B′ of D1 places #2766 after SI-1 and before SI-2).
 
 ## Acceptance Criteria
 
@@ -170,7 +178,7 @@ None planned. If one is needed, record its path, purpose and removal owner here 
 
 ## Risks and Trade-offs
 
-- #2766 is delayed. Mitigation: the EPIC's close-out rule lets the maintainer detach this issue.
+- #2766 is delayed. Under order B′ it holds the whole EPIC from SI-2 on, not only this issue; the EPIC's risks cover it.
 - The design of #2766 makes a per-record field hard. Mitigation: this need is written into the specification of #2766.
 
 ## Implementation Completion Review

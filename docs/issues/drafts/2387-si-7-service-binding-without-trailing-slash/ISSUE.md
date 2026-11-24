@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2387-si-7-service-binding-without-trailing-slash/ISSUE.md
 branch: "{issue-number}-2387-si-7-service-binding-without-trailing-slash-spec"
 related-pr: null
-last-updated-utc: "2026-11-23 17:29"
+last-updated-utc: "2026-11-24 12:46"
 semantic-links:
   skill-links:
     - create-issue
@@ -56,6 +56,17 @@ A service binding has one text form in every log line: `<protocol>://<socket add
 - The health check API's JSON, which keeps the slash until the crate changes.
 - Which lines carry `service_binding` (SI-8, SI-10).
 - The crate fix itself.
+
+## Findings of the coordinator's check (2026-11-24)
+
+The EPIC coordinator compared this draft with the code at `develop` `6a058dd4d` on 2026-11-24. Nothing changed since the draft was written; these are cases the draft did not name. The session that completes the draft checks each one and decides how its specification uses it.
+
+- There are exactly 25 event sites with a `service_binding` field: `packages/axum-rest-api-server/src/routes.rs:93,118,129,145`, `server.rs:138,140`; `packages/axum-http-server/src/v1/routes.rs:99,122,133,149`, `server.rs:237,239`; `packages/udp-server/src/handlers/error.rs:103,105,119,121`, `server/states.rs:118,120`, `server/launcher.rs:88,132,134,148,150`; `packages/axum-health-check-api-server/src/handlers.rs:65`, `server.rs:115`.
+- The five UDP launcher sites record a `&str`, so the value prints quoted (`service_binding="udp://…"`). D3a wants one unquoted form.
+- Spans record `ServiceBinding` with `Debug`: `packages/axum-rest-api-server/src/routes.rs:41`, `server.rs:252` (`check_fn{service_binding=ServiceBinding {…}}` on every health probe), `packages/udp-server/src/handlers/mod.rs:80`. SI-12 owns spans.
+- The health check JSON fills its field with `ServiceBinding::url()` (`packages/axum-health-check-api-server/src/handlers.rs:70`), so neither this issue nor the `torrust-net-primitives` fix changes it.
+- A candidate home for the helper: `torrust-tracker-primitives`, which depends on `torrust-net-primitives` and is a dependency of the four server packages; `packages/axum-server` does not depend on it.
+- `torrust-net-primitives` is pinned at 0.1.0 (`Cargo.toml:130`).
 
 ## Architectural Decisions
 
@@ -126,6 +137,7 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 - 2026-11-23 16:53 UTC - Claude Code (Fable 5.2) - Renumbered the sub-issues by working order after review round 1 of PR 3010 (finding F4); this draft's number and its references to other sub-issues follow the new numbers.
 - 2026-11-23 17:20 UTC - Claude Code (Fable 5.2) - Restored the link to the upstream issue, which the renumbering commit had dropped (review finding F10 of da2ce7 on PR 3010, audit finding F13).
 - 2026-11-23 17:29 UTC - Claude Code (Fable 5.2) - Corrected after the CodeRabbit review of PR 3010 (audit findings F15 to F22): this draft now names the maintainer's approval before the GitHub issue is created; the drafts of SI-4, SI-8, SI-9, SI-13 and SI-23 have one more correction each.
+- 2026-11-24 12:46 UTC - Claude Code (Opus 5.5), EPIC coordinator - Compared with the code at `develop` `6a058dd4d`: corrected the claims the code contradicts, recorded the maintainer's answers of 2026-11-24 that concern this draft, and added "Findings of the coordinator's check" (order B′ of D1 places #2766 after SI-1 and before SI-2).
 
 ## Acceptance Criteria
 

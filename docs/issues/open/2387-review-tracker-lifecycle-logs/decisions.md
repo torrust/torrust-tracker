@@ -1,7 +1,7 @@
 ---
 doc-type: decision-record
 issue-spec: docs/issues/open/2387-review-tracker-lifecycle-logs/EPIC.md
-last-updated-utc: "2026-11-23 18:32"
+last-updated-utc: "2026-11-24 12:46"
 ---
 
 # Decisions of EPIC #2387
@@ -11,6 +11,8 @@ last-updated-utc: "2026-11-23 18:32"
 This file records what the maintainer decided for the lifecycle logs, the alternatives that were considered, their pros and cons, and the reason for each choice. The decisions were taken on 2026-11-21 and 2026-11-23, in one question-and-answer session between the maintainer (`josecelano`) and Claude Code (Fable 5.2), after reading the fresh log captures in [baseline-lifecycle-logs.md](baseline-lifecycle-logs.md).
 
 Each sub-issue of the EPIC implements one or more decisions and names them by ID (`D1` to `D12`). SI-2 moves the lasting rules into an ADR and into `docs/logging.md`. This file stays as the history of how they were chosen.
+
+On 2026-11-24 the maintainer changed D1 (order B′), and the EPIC coordinator corrected the facts below that a comparison with the code at `develop` `6a058dd4d` found wrong.
 
 A decision here is the starting point of a sub-issue, not a final design. If a sub-issue finds that a decision does not hold, it stops, records the finding and asks the maintainer.
 
@@ -44,28 +46,43 @@ The health check API returns three of them for every service: `service_binding`,
 
 | Reader | What it reads | File |
 | --- | --- | --- |
-| E2E runner | The service URLs, with a regular expression on `Started on: udp://…` and `Started on: http://…`, on lines selected by the target text (`UDP TRACKER`, `HTTP TRACKER`, `HEALTH CHECK API`) | `src/console/ci/e2e/logs_parser.rs` |
-| Native tracker test fixture | The health check address after `Started on: http://`, on lines with `HEALTH CHECK API` | `tests/common/native_tracker/health.rs` |
-| Signal tests | Exact shutdown messages and `Waiting for job to finish` | `tests/lifecycle/signals.rs` |
-| Shutdown policy tests | `timeout_seconds=N`, the success message and the absence of `Started on:` | `tests/lifecycle/shutdown_policy.rs`, `tests/common/native_tracker/mod.rs` |
+| E2E runner | The service URLs, with a regular expression on `Started on: udp://…` and `Started on: http://…`, on lines selected by the target text (`UDP TRACKER`, `HTTP TRACKER`, `HEALTH CHECK API`). The expression accepts IPv4 only | `src/console/ci/e2e/logs_parser.rs` |
+| E2E runner, container | ` panicked at ` in the container log | `src/console/ci/e2e/tracker_container.rs:125` |
+| Native tracker test fixture | The health check address after `Started on: http://`, on lines with `HEALTH CHECK API`; the HTTP tracker address the same way on lines with `HTTP TRACKER`; the line `Tracker shutdown signal handlers installed.` | `tests/common/native_tracker/health.rs`, `tests/common/native_tracker/mod.rs:47,180` |
+| Signal tests | Exact shutdown messages, `Waiting for job to finish`, and the signal name inside `Torrust tracker shutting down (SIGTERM) ...` | `tests/lifecycle/signals.rs` |
+| Shutdown policy tests | `timeout_seconds=N`, the success message, the `ERROR` summary `Torrust tracker shutdown was incomplete…` and the absence of `Started on:` | `tests/lifecycle/shutdown_policy.rs`, `tests/common/native_tracker/mod.rs` |
+| Hung-component tests (test-only executable `packages/hung-component-tracker`) | `Job was aborted after the shutdown deadline`, `job=`, `incomplete_components=`, the signal-handlers line and the signal name | `packages/hung-component-tracker/tests/hung_component_abort.rs`, `packages/hung-component-tracker/tests/common/mod.rs` |
+| Package contract tests | The target text `UDP TRACKER` and, as a substring, `API` | `packages/udp-server/tests/server/contract.rs:310`, `packages/axum-rest-api-server/tests/server/v1/contract/` |
 
-Every change to these lines breaks one of these readers in CI, so each sub-issue that changes a line updates its readers in the same pull request.
+Every change to these lines breaks one of these readers in CI, so each sub-issue that changes a line updates its readers in the same pull request. Skills and documents that show log lines are readers too: `.claude/skills/setup-dev-environment/SKILL.md`, `.claude/skills/manual-udp-download-completion-e2e/SKILL.md`, `.claude/skills/manual-http-download-completion-e2e/SKILL.md`, `docs/benchmarking.md` and `contrib/dev-tools/experiments/dual-stack-sockets/README.md`. ADR `docs/adrs/20260826124959_use_explicit_identifiers_for_test_log_assertions.md` governs tests that match log text.
+
+`packages/hung-component-tracker` is a test-only executable (not published, not a default workspace member). It starts the tracker with the library's start function, adds one job that never stops, and runs the library's shutdown, to test the shutdown deadline on a real process. It is in scope as a reader and as a second binary (maintainer, 2026-11-24).
 
 ### Targets in use
 
-Named targets: `UDP TRACKER`, `HTTP TRACKER`, `HEALTH CHECK API`, `UDP CLIENT`, `API`, `EVENTS`, `TRACKER_CORE`, `METRICS` (from the crate `torrust-metrics`), the swarm coordination registry target, and `torrust_tracker` for some process lines. Every other lifecycle line has the Rust module path as target, for example `torrust_tracker_lib::bootstrap::jobs::manager` and `torrust_tracker_axum_server::signals`.
+Named targets: `UDP TRACKER`, `HTTP TRACKER`, `HEALTH CHECK API`, `UDP CLIENT`, `API`, `TRACKER_CORE`, `METRICS` (from the crate `torrust-metrics`), the swarm coordination registry target, and `torrust_tracker` for some process lines. The constant `EVENTS_TARGET` (`packages/events/src/lib.rs:9`) exists but no line uses it. `UDP CLIENT` lines are also logged inside the tracker, by the health check's UDP probes. Every other lifecycle line has the Rust module path as target, for example `torrust_tracker_lib::bootstrap::jobs::manager` and `torrust_tracker_axum_server::signals`.
 
 ### How a listener starts today
 
+UDP tracker and HTTP tracker:
+
 1. The job logs `Starting UDP tracker instance` (HTTP: similar) with the configured `bind_address`, before the socket is bound.
 2. The server binds the socket.
-3. The server logs `Starting on: <url>` and `Started on: <url>` one after the other, both after the bind. `Starting on:` is therefore already false when it is printed.
+3. The server logs `Starting on: …` and `Started on: <url>` one after the other, both after the bind. `Starting on:` is therefore already false when it is printed. The UDP `Starting on:` prints a bare socket address (`packages/udp-server/src/server/launcher.rs:423`), not a URL.
 4. The server logs `Started UDP tracker` (HTTP: `Started HTTP tracker`).
 5. The server registers the service in the `Registar`, which makes it visible to the health check API. Registration happens after the `Started` line.
 
+The REST API follows steps 2 to 5 (`Started tracker API`) but has no `Starting` line before the bind (`src/bootstrap/jobs/tracker_apis.rs`).
+
+The health check API differs (`packages/axum-health-check-api-server/src/server.rs`): no `Starting` line from its job; `Starting on: http://<configured address>` before the bind (`:86`); bind; `Started health check API` with `service_role`, `instance_index` and `service_binding` as event fields (`:111-117`); registration of itself (`:119-122`); `Started on:` after the registration (`:132`).
+
+In the three HTTP services the socket is bound by the standard library or `socket2`, not by `axum-server`. Between the bind and the registration, other steps can fail: `local_addr`, `ServiceBinding::new`, and building the server from the listener. The HTTP tracker and the REST API load TLS between the `Starting` line (where it exists) and the bind. Registration fails only with a duplicate binding.
+
+Some identity values print quoted, because a `&str` is recorded: `service_role="health_check_api"` and, at five UDP launcher sites, `service_binding="udp://…"`.
+
 ### The statistics-disabled warning
 
-With `tracker_usage_statistics = false`, three statistics listeners (`udp-core`, `udp-server`, `http-core`) log one `WARN` for every event they ignore:
+With `tracker_usage_statistics = false` in a UDP or HTTP tracker section, three statistics listeners (`udp-core`, `udp-server`, `http-core`) log one `WARN` for every event they ignore. That per-tracker key defaults to `false` (`packages/configuration/src/v3_0_0/udp_tracker.rs:63`, `http_tracker.rs:74`), so a tracker section that omits it has the defect; `core.tracker_usage_statistics` is a different key and does not feed this policy:
 
 ```text
 WARN UDP TRACKER: Ignoring UDP server event from an unknown or metrics-disabled listener configuration_instance_id=ConfigurationInstanceId { service_role: UdpTracker, instance_index: 0 }
@@ -79,15 +96,19 @@ Issue #2766 (EPIC #2758) changes the daemon's log output to JSON lines on stderr
 
 | Alternative | Pros | Cons |
 | --- | --- | --- |
-| A. This EPIC first, then #2766 | The content (targets, field names, messages, levels) is fixed once, in the text format that people read while reviewing. #2766 then changes only the format. The parsers move to structured fields before the format changes, so #2766 changes how a field is read, not what is read | #2766 waits. The parsers are edited twice, once in each issue |
-| B. #2766 first, then this EPIC | The parsers are rewritten once for JSON | The convention is reviewed in JSON, which is harder to read. #2766 has to keep parsing `Started on:` message text inside JSON, which is the worst mix |
+| A. This EPIC first (SI-1 to SI-20), then #2766 | The content (targets, field names, messages, levels) is fixed once, in the text format that people read while reviewing. #2766 then changes only the format. The parsers move to structured fields before the format changes, so #2766 changes how a field is read, not what is read | #2766, and most of EPIC #2758 after it, wait for 20 sub-issues that run one at a time. The parsers are edited twice, once in each issue |
+| B. #2766 strictly first, then this EPIC | EPIC #2758 is not held up. SI-22 is unblocked. The sub-issues and the SI-20 check are written once, for the final format | The SI-1 bug waits behind a feature. #2766 extracts the `Started on:` URL from the JSON `message` field until SI-11 moves the readers to fields. The specifications of #2766, SI-11 and SI-20 assumed order A |
+| B′. SI-1, then #2766, then SI-2 to SI-23 | Same as B, and the bug goes first. It costs #2766 one small pull request (SI-1) of waiting | Same as B, except the bug |
 | C. Do both together | One change | Too large to review. Mixes a format decision with content decisions |
+| E. Readers first: SI-1, SI-2, SI-5, SI-6, SI-7, SI-10, SI-11, then #2766 | #2766 never parses message text inside JSON | #2766 still waits for 7 sub-issues that run one at a time. The convention is reviewed partly in text and partly in JSON |
 
-**Decision:** A. This EPIC goes first: #2766 starts after SI-1 to SI-20 are merged. It does not wait for the EPIC to close, because SI-22 stays in the EPIC and itself waits for #2766. The specification of #2766 and its row in EPIC #2758 say so.
+**Decision (2026-11-24):** B′. SI-1 first; then #2766; then SI-2 to SI-23. The coordinator holds SI-2 until #2766 is merged. SI-22 is no longer blocked by anything outside its order: it comes after SI-16 and #2766. The specification of #2766 and its row in EPIC #2758 are corrected by the coordinator of EPIC #2758 in its own pull request.
 
-**Reason:** the convention is independent of the output format, so it can be decided and reviewed first. After SI-11 the readers depend on fields, which survive the move to JSON.
+The first decision, of 2026-11-21, was A. The maintainer reopened it on 2026-11-24.
 
-**Consequence:** the convention must not depend on the text format. It speaks about targets, message text, field names and levels only. The one item that needs the formatter (`run_id` on every record, D10) is ordered after #2766.
+**Reason:** D1's own consequence says the convention does not depend on the output format. So the only real cost of going format-first is one temporary extraction of the URL from the JSON `message` field, which SI-11 deletes. That is cheaper than making #2766 wait for 7 sub-issues (E) or 20 (A).
+
+**Consequence:** the convention must not depend on the output format. It speaks about targets, message text, field names and levels only. From SI-2 on, the captures, the catalogue of `docs/logging.md`, the readers of SI-11 and the check of SI-20 work on the JSON output of #2766. The one item that needs the formatter (`run_id` on every record, D10) comes after #2766, as before.
 
 ## D2 - Targets
 
@@ -139,7 +160,7 @@ Details decided:
 | B. No trailing slash in any log line | One form. A value can be compared as text | Differs from the health check JSON, which keeps the slash |
 | C. Trailing slash everywhere | One form | Not what the UDP URL looks like anywhere else |
 
-**Decision:** B, in every log line, request logs included. The health check JSON API keeps its slash: it is a public API and its change belongs to the `torrust-net-primitives` fix below.
+**Decision:** B, in every log line, request logs included. The health check JSON API keeps its slash: it is a public API. The `torrust-net-primitives` fix below does not change it either, because the API fills the field with `ServiceBinding::url()` (`packages/axum-health-check-api-server/src/handlers.rs:70`, a `Url` in `resources.rs:15`), not with `Display`.
 
 ### D3c - Where the slash is removed
 
@@ -183,7 +204,7 @@ Job names of services today hold the index and the configured bind address, for 
 - `Started` moves to after the registration, because only then can the health check see the service.
 - The text `Started on:` is removed. The E2E parser and the test fixture read `service_binding=` from the `Started` line that has the wanted `service_role=`.
 - `service_role` and `instance_index` are event fields on these lines, not only span fields, so a reader does not depend on the span being printed.
-- The REST API and the health check API follow the same three lines. SI-2's inventory verifies their start sequence, which was not traced line by line in this session.
+- The REST API and the health check API follow the same three lines. The coordinator traced all four start sequences on 2026-11-24 (see "How a listener starts today"): the model fits each of them without a structural change. The REST API and the health check API get a `Starting` line they do not have today.
 
 **Reason:** rule 2. Between "socket bound" and "service registered" the receive loop is spawned and the registration can fail, so they are two moments.
 
@@ -303,7 +324,7 @@ Alternatives for the rule itself: keep levels as each author chose them (no work
 Changes that follow:
 
 - `Job panicked`, `Job reported a failure` and `Job was aborted after the shutdown deadline` go from `WARN` to `ERROR`: the process exits `1` in these cases.
-- The lines `Job will be asked to stop after …`, one for each dependency edge of the shutdown plan, go from `INFO` to `DEBUG`: they say how the stop is ordered, not that a state changed.
+- The lines `Job will be asked to stop after the jobs it waits for have completed`, one for each job that waits for others (its edges joined in `waiting_for`), go from `INFO` to `DEBUG`: they say how the stop is ordered, not that a state changed.
 - `!! Shutting down … !!` becomes a plain sentence with fields.
 - **Private mode with UDP trackers configured.** Today the tracker logs a `WARN` (`Could not start UDP trackers while in private mode. UDP is not safe for private trackers!`) and runs without the configured UDP trackers.
 
@@ -341,7 +362,7 @@ The need: when logs of several runs are in one place (a restart loop, two contai
 
 **Decision:** B and C now (SI-16), D later (SI-22).
 
-**Reason:** `pid` and `run_id` on the start line cost almost nothing and are useful at once. D is the complete answer, but it must be done in the formatter, and #2766 replaces the formatter; doing D before #2766 would be written twice. In JSON the extra field costs nothing to read. E stays possible and does not replace an identity the tracker itself knows.
+**Reason:** `pid` and `run_id` on the start line cost almost nothing and are useful at once. D is the complete answer, but it must be done in the formatter, and #2766 replaces the formatter; doing D before #2766 would be written twice. Under order B′ (D1) #2766 comes early, so SI-22 waits only for SI-16 and its place in the order. In JSON the extra field costs nothing to read. E stays possible and does not replace an identity the tracker itself knows.
 
 ## D11 - Where the rules live
 

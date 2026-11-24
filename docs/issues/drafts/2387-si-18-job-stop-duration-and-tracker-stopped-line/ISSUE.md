@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2387-si-18-job-stop-duration-and-tracker-stopped-line/ISSUE.md
 branch: "{issue-number}-2387-si-18-job-stop-duration-and-tracker-stopped-line-spec"
 related-pr: null
-last-updated-utc: "2026-11-23 17:29"
+last-updated-utc: "2026-11-24 12:46"
 semantic-links:
   skill-links:
     - create-issue
@@ -42,7 +42,7 @@ Each job outcome line says how long the job took to stop, and the last line of a
 
 ## Background
 
-The job manager logs an outcome for each job, without a duration, so an operator who tunes the shutdown deadline cannot see which job is slow. The last line is `Torrust tracker successfully shutdown.` on success; on failure the facts are spread over several `WARN` lines. Nothing states the exit code.
+The job manager logs an outcome for each job, without a duration, so an operator who tunes the shutdown deadline cannot see which job is slow. The last line is `Torrust tracker successfully shutdown.` on success. On failure one `ERROR` summary exists, `Torrust tracker shutdown was incomplete…` with `incomplete_components` (`src/app.rs:176-180`, asserted by `tests/lifecycle/shutdown_policy.rs:29`), and the per-job facts are in `WARN` lines. Nothing states the exit code. The signal that started the stop is only inside a message: `Torrust tracker shutting down (SIGTERM) ...` (`src/app.rs:158`).
 
 ## Scope
 
@@ -53,12 +53,23 @@ The job manager logs an outcome for each job, without a duration, so an operator
 - `signal` is the signal that started the stop. A stop for another reason (a failed start that joins its jobs) uses a value the specification defines.
 - `exit_code` is the code the process returns. The line is logged where that code is known.
 - Replace `Torrust tracker successfully shutdown.` and `report_shutdown`'s messages with the final line; update `tests/lifecycle/signals.rs` and `tests/lifecycle/shutdown_policy.rs`.
+- Move the signal name out of the message of `Torrust tracker shutting down ({signal}) ...` into a `signal` field, and make the line a plain sentence (maintainer, 2026-11-24). Update its readers: `tests/lifecycle/signals.rs:41,72,76` and `packages/hung-component-tracker/tests/hung_component_abort.rs:51`.
+- Log the final line from the library, not from `src/main.rs`, so the test-only executable `packages/hung-component-tracker` prints it too (maintainer, 2026-11-24).
 - Update the catalogue of lifecycle lines and the section "Changes in 4.0.0" in `docs/logging.md` for every line this issue changes.
 
 ### Out of Scope
 
 - Changing shutdown behavior, ordering or deadlines.
 - `run_id` on the final line unless SI-16 is merged, in which case it is added.
+
+## Findings of the coordinator's check (2026-11-24)
+
+The EPIC coordinator compared this draft with the code at `develop` `6a058dd4d` on 2026-11-24. Nothing changed since the draft was written; these are cases the draft did not name. The session that completes the draft checks each one and decides how its specification uses it.
+
+- A failed start cancels and waits for the jobs already started, then discards their outcomes (`src/app.rs:297-303`). The exit code is decided in `src/main.rs:34`, so the line spans two files and two binaries; #2766 also changes `src/main.rs`.
+- Jobs aborted at the deadline without ever being asked to stop (`src/bootstrap/jobs/manager.rs:733,836`) have no "asked to stop" instant. The per-job instants are in `request_shutdown` and `mark_finished` (`manager.rs:469-512`), under the registry lock.
+- The five outcomes match `JobStatus` (`manager.rs:72-78`); the exit code comes from `shutdown_exit_code` (`manager.rs:104`). Signals: `SIGINT` and `SIGTERM` (`src/app.rs:197-228`); on other platforms only Ctrl-C.
+- The tests of `packages/hung-component-tracker` read `Job was aborted after the shutdown deadline`, `job=`, `incomplete_components=` and the signal name (`tests/hung_component_abort.rs:37-38,51,82-105`).
 
 ## Architectural Decisions
 
@@ -128,6 +139,7 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 - 2026-11-23 16:16 UTC - Claude Code (Fable 5.2) - Drafted with EPIC #2387 from the maintainer's decisions of 2026-11-21 and 2026-11-23. Not approved as a final specification; no GitHub issue created.
 - 2026-11-23 16:53 UTC - Claude Code (Fable 5.2) - Renumbered the sub-issues by working order after review round 1 of PR 3010 (finding F4); this draft's number and its references to other sub-issues follow the new numbers.
 - 2026-11-23 17:29 UTC - Claude Code (Fable 5.2) - Corrected after the CodeRabbit review of PR 3010 (audit findings F15 to F22): this draft now names the maintainer's approval before the GitHub issue is created; the drafts of SI-4, SI-8, SI-9, SI-13 and SI-23 have one more correction each.
+- 2026-11-24 12:46 UTC - Claude Code (Opus 5.5), EPIC coordinator - Compared with the code at `develop` `6a058dd4d`: corrected the claims the code contradicts, recorded the maintainer's answers of 2026-11-24 that concern this draft, and added "Findings of the coordinator's check" (order B′ of D1 places #2766 after SI-1 and before SI-2).
 
 ## Acceptance Criteria
 
