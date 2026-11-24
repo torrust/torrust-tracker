@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-F1 to F7 come from CodeRabbit's review 6039690482 (COMMENTED on the first head, "docs(issues): [#2387] record order B′ and recheck the EPIC specs against develop"), in source order. CodeRabbit is a bot other than Copilot, so its author class is `Unknown`; severities are CodeRabbit's own labels.
+F1 to F7 come from CodeRabbit's review 6039690482 (COMMENTED on the first head, "docs(issues): [#2387] record order B′ and recheck the EPIC specs against develop"), in source order. CodeRabbit is a bot other than Copilot, so its author class is `Unknown`; severities are CodeRabbit's own labels. F8 to F10 come from CodeRabbit's review 6040733131 (COMMENTED on head "docs(issues): [#2387] correct the SI-3 finding about EPIC #2993 after PR 3025"), in source order.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -52,6 +52,9 @@ F1 to F7 come from CodeRabbit's review 6039690482 (COMMENTED on the first head, 
 | F5 | review-finding:pr-3024-f5 | Unknown | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-3024-f6 | Unknown | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F7 | review-finding:pr-3024-f7 | Unknown | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-3024-f8 | Unknown | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F9 | review-finding:pr-3024-f9 | Unknown | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-3024-f10 | Unknown | Major | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -146,10 +149,51 @@ F1 to F7 come from CodeRabbit's review 6039690482 (COMMENTED on the first head, 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3024#discussion_r4681130052
 
+### F8 - The SI-20 check cannot see the UDP request record at info
+
+- PR number: 3024
+- Source review ID: 6040733131
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3024#discussion_r4681210442
+- Concern: CodeRabbit noted that the UDP `responded` record is a `trace` event (`packages/udp-server/src/handlers/mod.rs:163`) while the native fixture logs at `info` (`tests/common/native_tracker/command.rs:19`), so the run that F3's bullet describes produces no UDP request line, and a check of only the lines that appear passes without it.
+- Solution: The SI-20 bullet now requires a `trace_filter` that admits the UDP `responded` record (the specification chooses it) and says the check fails when an expected request record (UDP, HTTP, health check) is missing.
+- Current-tree verification: `grep -n "responded" docs/issues/drafts/2387-si-20-*/ISSUE.md` shows the filter requirement and the missing-record rule.
+- Resolution reference: docs(issues): [#2387] admit the UDP request record in the SI-20 log check
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3024#discussion_r4681301693
+
+### F9 - SI-4 AC3 forbids the v2 test that AC5 requires
+
+- PR number: 3024
+- Source review ID: 6040733131
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3024#discussion_r4681210465
+- Concern: CodeRabbit noted that AC5 (added by F4) requires a test that uses `max_peer_timeout`, while AC3 forbids old keys in any test.
+- Solution: AC3 and T4 now exclude the v2 compatibility tests of AC5 and the documents about v2 (such as `packages/configuration/docs/migrate-v2-to-v3.md`). The same commit adds the AC5 row that F4 left out of Acceptance Verification.
+- Current-tree verification: `grep -n "AC3\|AC5\|^| T4" docs/issues/drafts/2387-si-4-*/ISSUE.md` shows the exception in AC3 and T4 and the AC5 rows.
+- Resolution reference: docs(issues): [#2387] keep v2 compatibility tests out of the SI-4 old-key ban
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3024#discussion_r4681302222
+
+### F10 - SI-9 M1 compares measured durations with the configuration
+
+- PR number: 3024
+- Source review ID: 6040733131
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3024#discussion_r4681210472
+- Concern: CodeRabbit noted that the T1 list that M1 (as changed by F7) refers to includes measured durations such as `?elapsed`, which have no configuration key or configured value, so M1 cannot pass for every item.
+- Solution: M1 now covers only the configured entries of the T1 list and says measured durations have no configuration key; a new M3 checks the measured durations (for example the UDP drain `elapsed`) as `elapsed_in_ms=<integer>`.
+- Current-tree verification: `grep -n "^| M" docs/issues/drafts/2387-si-9-*/ISSUE.md` shows M1, M2 and M3.
+- Resolution reference: docs(issues): [#2387] check measured durations apart from configured ones in SI-9
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3024#discussion_r4681302823
+
 ## Processing Log
 
 - 2026-11-24 13:05 UTC - CodeRabbit's review 6039690482 (COMMENTED, submitted 13:04:59Z) with seven inline findings arrived on head "docs(issues): [#2387] record order B′ and recheck the EPIC specs against develop". The review poller had stopped with the previous session and did not watch CodeRabbit, so the review was found only when the maintainer asked at about 13:50 UTC whether the PR could merge; he had written an `ACK` on that head at 13:20:33Z. He chose to fix the findings before merging.
 - 2026-11-24 14:04 UTC - Fixed F1 to F7 in seven commits, plus one commit that corrects the SI-3 finding about EPIC #2993 after PR 3025 (not a review finding). Pushed (pre-push hook passed; push finished 14:03:55 UTC by `date -u`), then replied on the seven threads (replies posted by 14:04:20 UTC). Started this audit after the replies, against the skill's order (record before the first reply); the reply URLs were known when it was written. The `ACK` of 13:20:33Z names the old head and is stale. Resolved the seven threads (`resolveReviewThread` returned `true` for each by 14:05:22 UTC; a GraphQL refresh shows no unresolved thread).
+- 2026-11-24 14:11 UTC - The poller (now watching CodeRabbit, da2ce7 and Copilot as `josecelano-bot`) returned CodeRabbit's review 6040733131 (COMMENTED, submitted 14:10:35Z) with three inline findings, F8 to F10, on the head before the round-1 audit commit. All three are follow-ons of round-1 fixes (F3, F4, F7).
+- 2026-11-24 14:17 UTC - Fixed F8 to F10 in three commits, pushed them (pre-push hook passed), then replied on the three threads (replies posted by 14:17:34 UTC by `date -u`). Resolved the three threads (`resolveReviewThread` returned `true` for each by 14:18:17 UTC; a GraphQL refresh shows no unresolved thread).
 
 ## Completion Rules
 
