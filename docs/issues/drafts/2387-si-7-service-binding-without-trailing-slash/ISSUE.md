@@ -53,7 +53,7 @@ A service binding has one text form in every log line: `<protocol>://<socket add
 
 ### Out of Scope
 
-- The health check API's JSON, which keeps the slash until the crate changes.
+- The health check API's JSON, which keeps its slash. It is filled with `ServiceBinding::url()`, which the `torrust-net-primitives` fix of `Display` does not change, so that fix does not change the JSON either.
 - Which lines carry `service_binding` (SI-8, SI-10).
 - The crate fix itself.
 
