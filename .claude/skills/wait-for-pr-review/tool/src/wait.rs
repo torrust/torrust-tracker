@@ -6,7 +6,7 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 use crate::error::Error;
-use crate::event::{Baseline, Event, detect};
+use crate::event::{Baseline, Event, Reviewers, detect};
 use crate::gh::Gh;
 use crate::snapshot::{PullRequest, Snapshot, commit_info, take_snapshot};
 
@@ -15,8 +15,8 @@ const SLEEP_SLICE: Duration = Duration::from_millis(100);
 /// How long to wait, how often to look, and whom to listen to.
 #[derive(Clone, Debug)]
 pub struct Config {
-    /// Logins whose reviews and comments count as events.
-    pub reviewers: Vec<String>,
+    /// Whose reviews and comments count as events.
+    pub reviewers: Reviewers,
     /// The longest the poller waits before it reports a timeout.
     pub timeout: Duration,
     /// The pause between two looks at the pull request.
@@ -156,7 +156,7 @@ mod tests {
 
     use super::{Clock, Config, wait};
     use crate::error::Error;
-    use crate::event::Event;
+    use crate::event::{Event, Reviewers};
     use crate::snapshot::PullRequest;
     use crate::snapshot::fake::FakeGh;
 
@@ -198,7 +198,7 @@ mod tests {
 
     fn config() -> Config {
         Config {
-            reviewers: vec!["da2ce7".to_owned()],
+            reviewers: Reviewers::Only(vec!["da2ce7".to_owned()]),
             timeout: Duration::from_secs(900),
             poll_interval: Duration::from_secs(120),
             since_head_sha: None,

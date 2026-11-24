@@ -80,6 +80,8 @@ pub struct Snapshot {
     pub head_sha: String,
     /// Whether the pull request is open, closed, or merged.
     pub state: PullState,
+    /// The login of the account that opened the pull request. `None` when GitHub shows no account.
+    pub author: Option<String>,
     /// Every submitted review.
     pub reviews: Vec<Review>,
     /// Every pull-request conversation comment.
@@ -91,6 +93,8 @@ pub struct Snapshot {
 #[derive(Deserialize)]
 struct PullResponse {
     head: Head,
+    #[serde(default)]
+    user: Option<User>,
     state: String,
     merged: bool,
 }
@@ -150,6 +154,7 @@ pub fn take_snapshot(gh: &impl Gh, pull_request: &PullRequest) -> Result<Snapsho
     Ok(Snapshot {
         head_sha: pull.head.sha,
         state,
+        author: pull.user.map(|user| user.login),
         reviews,
         issue_comments,
         review_comments,
@@ -348,6 +353,31 @@ mod tests {
 
         assert_eq!(snapshot.state, PullState::Merged);
         assert_eq!(snapshot.head_sha, "abc");
+    }
+
+    #[test]
+    fn it_should_read_the_login_of_the_pull_requests_author() {
+        let gh = FakeGh::new();
+        script(
+            &gh,
+            &json!({"head": {"sha": "abc"}, "state": "open", "merged": false, "user": {"login": "contributor"}}),
+        );
+
+        assert_eq!(
+            take_snapshot(&gh, &pull_request()).unwrap().author.as_deref(),
+            Some("contributor")
+        );
+    }
+
+    #[test]
+    fn it_should_have_no_author_when_github_shows_no_account() {
+        let gh = FakeGh::new();
+        script(
+            &gh,
+            &json!({"head": {"sha": "abc"}, "state": "open", "merged": false, "user": null}),
+        );
+
+        assert_eq!(take_snapshot(&gh, &pull_request()).unwrap().author, None);
     }
 
     #[test]

@@ -54,7 +54,7 @@ cat .tmp/wait-for-pr-review.stdout
 | --------------------------- | ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
 | `--pr-number <N>`           | required                                             | Pull request to watch.                                                                                          |
 | `--owner`, `--repository`   | `torrust`, `torrust-tracker`                         | Repository.                                                                                                     |
-| `--reviewer <login>`        | `da2ce7`, `copilot-pull-request-reviewer[bot]`       | Whose reviews and comments count. Repeat the flag to watch several; passing it replaces the defaults.          |
+| `--reviewer <login>`        | every account except the pull request's author      | Whose reviews and comments count. Repeat the flag to watch only those logins. Without it, any reviewer, person or bot, wakes the poller, and the author's own replies do not. |
 | `--timeout-seconds <N>`     | 900 (15 minutes)                                     | Longest wait before a `timeout` result. At most 86400 (one day); a larger value is a usage error, exit `2`.    |
 | `--poll-interval-seconds N` | 120 (2 minutes)                                      | Pause between two looks at the pull request.                                                                    |
 | `--since-head-sha <sha>`    | the head at the start of the wait                    | The commit you have checked out. A pull request head that differs from it is reported as `head_changed`. Unless `--since` is given, reviews and comments created after this commit was made count as new. |
@@ -107,13 +107,17 @@ inline comment when made in the same second), then a head change. Reporting the 
 `cursor` honest: resuming from it never skips an item that was still unreported. The poller reports
 one event; the review loop reads the whole pull request afterward, so nothing is lost.
 
-Copilot's reviews come from `copilot-pull-request-reviewer[bot]`, but its inline comments come from
-the login `Copilot`. The default reviewer set therefore sees its reviews and not its inline comments,
-which is enough because the review result is the signal. Add `--reviewer Copilot` to be woken by each
-inline comment as well.
+Without `--reviewer`, no reviewer has to be named, so a new reviewer or review bot needs no
+configuration. The cost is more wake-ups: a review bot that answers your thread replies submits an
+empty `COMMENTED` review each time, and any comment, for example a maintainer's `ACK`, wakes the
+poller. Such an event needs no push: resume with `--since <cursor>`. When you pass `--reviewer`,
+list every login the reviewer uses: one reviewer's reviews and inline comments can come from
+different logins (Copilot reviews as `copilot-pull-request-reviewer[bot]` and comments inline as
+`Copilot`).
 
 Stderr is NDJSON, one record per line, each with a `kind`: `wait_started` at the start (with the
-`gh_command` that will run), then `gh_identity`, and on failure one diagnostic. `gh_identity` carries
+`gh_command` that will run, `watch` set to `all_except_author` or `listed`, and the listed
+`reviewers`), then `gh_identity`, and on failure one diagnostic. `gh_identity` carries
 `gh_command` and `gh_login`, the account that command is authenticated as (from `api user`), or `null`
 when the lookup fails or ends at its bound, `min(10 s, timeout / 4)`. Check `gh_login` against the account
 you act as before you act on the result. The lookup runs before the baseline snapshot, so without
