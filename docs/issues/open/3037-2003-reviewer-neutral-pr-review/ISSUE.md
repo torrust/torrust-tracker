@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p1
 epic: 2003
 github-issue: 3037
 spec-path: docs/issues/open/3037-2003-reviewer-neutral-pr-review/ISSUE.md
-branch: "3037-reviewer-neutral-pr-review-spec"
+branch: "3037-reviewer-neutral-pr-review"
 related-pr: null
-last-updated-utc: "2026-11-24 17:36"
+last-updated-utc: "2026-11-24 18:27"
 semantic-links:
   skill-links:
     - create-issue
@@ -173,7 +173,7 @@ specification.
   `docs/adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md`
   (provider-specific tools are optional adapters: a named reviewer must not be required).
 - ADRs to create: one root ADR in `docs/adrs/`, "Review pull requests without a mandatory
-  reviewer". It records decisions 2 to 5 and the alternatives that were rejected (require Copilot;
+  reviewer" (created in T1: `docs/adrs/20261124182709_review_pull_requests_without_a_mandatory_reviewer.md`). It records decisions 2 to 5 and the alternatives that were rejected (require Copilot;
   require the new bots on the head; hard-code or configure the reviewer list; per-bot or generic
   author classes; count review-bot check runs).
 
@@ -197,7 +197,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
-| T1  | TODO   | Write the ADR | Root ADR recording decisions 2 to 5 and the rejected alternatives. |
+| T1  | DONE   | Write the ADR | Root ADR recording decisions 2 to 5 and the rejected alternatives. |
 | T2  | TODO   | Poller default reviewers | No default logins in `main.rs`. Without `--reviewer`, every review and comment counts except those by the pull request's author (read from the pull request, compared without regard to case). With `--reviewer`, only the listed logins count, as today. Unit tests: a review from a login in no list is reported by default; the author's own review and comment are not; `--reviewer` narrows. Replace the Copilot-specific test names with reviewer-neutral ones (the "never approves" case stays, with any bot login). |
 | T3  | TODO   | `wait-for-pr-review` skill text | Description and options table match T2. Exit condition: drop the Copilot bullet; ready = checks pass (T4), no unresolved actionable thread, every review received so far processed, ACK rule unchanged. Watching the Checks step 4: run the poller, request nothing. Replace "Re-Requesting a Review" with "A Review a Maintainer Requested": only a maintainer requests a review; an agent never triggers one; a reviewer that reviews by itself after a push is processed like any other; the Copilot timing facts stay as facts about a manual request. Generalize the login note (a reviewer's review and its inline comments may come from different logins). Round limit counts rounds from every reviewer. Do not add the deadline or the report (#2977). |
 | T4  | TODO   | Review-bot check runs | `watch-pull-request-checks` and the exit condition count only check runs from a workflow (non-empty `workflow` in `gh pr checks --json`). Verify how `gh pr checks --watch` behaves with a pending non-workflow check and document the command that waits only for workflow checks. |
@@ -236,7 +236,7 @@ the narrow affected scope, and sign every commit with GPG.
 - [x] Folder-style spec drafted in `docs/issues/drafts/2003-reviewer-neutral-pr-review/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
+- [x] Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -254,6 +254,9 @@ the narrow affected scope, and sign every commit with GPG.
 - 2026-11-24 17:36 UTC - Claude Code (Claude Opus 5.5) - The maintainer approved the draft. Created
   issue #3037 and moved the specification to `docs/issues/open/` on the spec-only branch
   `3037-reviewer-neutral-pr-review-spec`.
+- 2026-11-24 18:27 UTC - Claude Code (Claude Opus 5.5) - Spec PR #3039 merged (maintainer ACK on
+  `389c2d287`). Started the implementation on branch `3037-reviewer-neutral-pr-review`. T1 done:
+  `docs/adrs/20261124182709_review_pull_requests_without_a_mandatory_reviewer.md`.
 
 ## Acceptance Criteria
 
