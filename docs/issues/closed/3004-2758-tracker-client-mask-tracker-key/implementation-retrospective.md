@@ -3,8 +3,8 @@ semantic-links:
   skill-links:
     - write-markdown-docs
   related-artifacts:
-    - docs/issues/open/3004-2758-tracker-client-mask-tracker-key/ISSUE.md
-    - docs/issues/open/3004-2758-tracker-client-mask-tracker-key/manual-verification-evidence.md
+    - docs/issues/closed/3004-2758-tracker-client-mask-tracker-key/ISSUE.md
+    - docs/issues/closed/3004-2758-tracker-client-mask-tracker-key/manual-verification-evidence.md
     - docs/templates/ISSUE.md
     - .claude/skills/fix-bug/SKILL.md
 ---
