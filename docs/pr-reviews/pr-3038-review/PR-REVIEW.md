@@ -74,7 +74,7 @@ Review 6044459239 (Greptile, 2026-11-24 17:47 UTC, on the audit commit) posted o
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/3038#discussion_r4684178317>
 - Concern: the audit commit the reviewer read held `Reply URL: pending` for F1, which fails `validate-audit-record.py` until the reply URL is recorded.
 - Solution: the reply URL of F1 was already recorded in the commit `docs(pr-reviews): [#384] record the reply of round 1 in the PR 3038 audit`, pushed before this review was read, and the validator reports `failures: 0`. This row and its audit commit are the only change.
-- Current-tree verification: `grep -c "Reply URL: pending" docs/pr-reviews/pr-3038-review/PR-REVIEW.md` prints `1` for F2 only until the reply below is recorded, and the validator run after this commit reports `failures: 0`.
+- Current-tree verification: `validate-audit-record.py --pr-number 3038` reports `failures: 0`, and the audit has no `Reply URL: pending` left.
 - Resolution reference: docs(pr-reviews): [#384] record the reply of round 1 in the PR 3038 audit
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3038#discussion_r4685380131>
