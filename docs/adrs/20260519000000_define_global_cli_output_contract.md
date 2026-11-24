@@ -16,6 +16,10 @@ semantic-links:
 > the contract covers the AI-agent and CI tools in the table below, not only operator binaries, and
 > exit codes stay `0`, `1` and `2` with distinct outcomes reported through a `kind` field. Where the
 > text of this ADR or its issue specification (#1798) excludes `contrib/dev-tools/`, the amendment wins.
+>
+> **Amended by** [Let Programs Follow the Protocol of the Host That Calls Them](20261124120307_let_programs_follow_the_protocol_of_the_host_that_calls_them.md):
+> a program whose input, output and exit codes are set by a host application we do not control is
+> classed `external-protocol` and follows that host's protocol instead of sections 1 and 2.
 
 ## Description
 
@@ -65,7 +69,7 @@ JSON result payload on stdout. They do not cause a non-zero exit code.
 
 ### 3. Binary classification
 
-Every binary that is kept is assigned one of two output classes. A deprecated binary that is to be
+Every binary that is kept is assigned one of two output classes, or the class `external-protocol` defined at the end of this section. A deprecated binary that is to be
 removed is not classified: its `Class` cell reads `N/A`.
 
 **`stdout-result-data`** — emits a JSON result object on stdout. TTY refusal applies (see
@@ -86,6 +90,7 @@ All diagnostics go to stderr via the tracing subscriber or direct JSON stderr wr
 | `frontmatter-schema`            | `no-stdout-result`   | Frontmatter schema check; currently non-compliant (plain-text diagnostics on stderr), migration issue #2763                 |
 | `agent-reply-validator`         | `no-stdout-result`   | Agent reply file check (issue #2904); NDJSON diagnostics on stderr                                                         |
 | `agent-reply-schema`            | `no-stdout-result`   | Writes the agent reply schema (issue #2904); one NDJSON record on stderr                                                   |
+| `agent-reply-guard`             | `external-protocol`  | Claude Code `Stop` hook of the `task-reviewer` agent (issue #2904): JSON on stdin, plain-text refusal on stderr with exit `2`, usage and I/O errors exit `1` |
 | `shipped-features-check`        | `no-stdout-result`   | Shipped-binary feature check; NDJSON diagnostics on stderr                                                                  |
 | `source-location-check`         | `no-stdout-result`   | Source-location rule check (issue #2918); NDJSON diagnostics on stderr                                                      |
 | `agent-review-report-contract`  | `no-stdout-result`   | Review report check; currently non-compliant (plain-text success line on stdout, plain-text failures on stderr), migration issue #2763 |
@@ -104,6 +109,12 @@ stdout. `workspace-coupling` is `no-stdout-result` because it writes its report 
 emits only NDJSON status events on stderr. `agent-review-report-contract` and `frontmatter-schema`
 are `no-stdout-result` checks. Each "currently non-compliant" note names the issue that migrates
 the tool; the close-out issue (#2770) removes the notes once the tools are migrated.
+
+**`external-protocol`** — a host application that the repository does not control defines the
+program's input, output and exit codes, and the program exists to be called by that host. The host's
+documented protocol replaces sections 1 and 2 where it defines them; the program's own failures
+still exit `1`, never `2` when `2` has another meaning in the protocol. See
+[the amendment](20261124120307_let_programs_follow_the_protocol_of_the_host_that_calls_them.md).
 
 The `profiling` binary is a developer-only diagnostic harness and is excluded from the
 normative scope of this contract.
