@@ -38,6 +38,7 @@ use torrust_tracker_axum_health_check_api_server::resources::Status;
 use self::command::{NativeTrackerConfigurationSources, NativeTrackerWorkspace, tracker_command};
 use self::health::{
     HealthCheckClient, HealthCheckProbe, HealthCheckProbeError, parse_health_check_address, parse_started_address,
+    parse_started_udp_address,
 };
 use self::output::TrackerOutputCapture;
 
@@ -179,6 +180,18 @@ impl NativeTracker {
             .lines()
             .find_map(|line| parse_started_address(line, "HTTP TRACKER"))
             .ok_or_else(|| Self::failure_message_sync("the HTTP tracker has not logged its address"))
+    }
+
+    /// Returns the address the UDP tracker logged as started, once it has logged it.
+    // Only the statistics-disabled binary configures a UDP tracker.
+    #[allow(dead_code)]
+    pub async fn udp_tracker_address(&self) -> Result<SocketAddr, String> {
+        self.output_ref()
+            .contents()
+            .await
+            .lines()
+            .find_map(parse_started_udp_address)
+            .ok_or_else(|| Self::failure_message_sync("the UDP tracker has not logged its address"))
     }
 
     /// Returns the CLI-selected configuration path owned by this fixture.

@@ -154,3 +154,67 @@ impl CircularBuffer {
         self.buffer.iter().copied().collect()
     }
 }
+
+/// Log records captured on the current thread for the lifetime of this guard.
+///
+/// Unlike [`captured_logs_buffer`], which is global and shared by every test of a binary, the
+/// capture sees only the records the current thread emits while the guard lives, at every level.
+/// Use it with a single-threaded runtime (`#[tokio::test]`), where the code under test runs on the
+/// test thread.
+#[derive(Debug)]
+pub struct ScopedLogCapture {
+    records: std::sync::Arc<Mutex<Vec<u8>>>,
+    _guard: tracing::subscriber::DefaultGuard,
+}
+
+/// Starts capturing, as plain text without color codes, every record this thread emits until the
+/// returned guard is dropped.
+#[must_use]
+pub fn capture_logs_in_scope() -> ScopedLogCapture {
+    let records = std::sync::Arc::new(Mutex::new(Vec::new()));
+    let sink = records.clone();
+    let subscriber = tracing_subscriber::fmt()
+        .with_max_level(LevelFilter::TRACE)
+        .with_ansi(false)
+        .with_writer(move || SharedSink(sink.clone()))
+        .finish();
+
+    ScopedLogCapture {
+        records,
+        _guard: tracing::subscriber::set_default(subscriber),
+    }
+}
+
+impl ScopedLogCapture {
+    /// The records captured so far, one per line, oldest first.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the capture buffer is poisoned or holds invalid UTF-8.
+    #[must_use]
+    pub fn lines(&self) -> Vec<String> {
+        let records = self.records.lock().expect("the capture buffer is not poisoned");
+
+        String::from_utf8(records.clone())
+            .expect("captured records are UTF-8")
+            .lines()
+            .map(str::to_owned)
+            .collect()
+    }
+}
+
+struct SharedSink(std::sync::Arc<Mutex<Vec<u8>>>);
+
+impl io::Write for SharedSink {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        self.0
+            .lock()
+            .map_err(|_| io::Error::from(io::ErrorKind::Other))?
+            .extend_from_slice(buf);
+        Ok(buf.len())
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        Ok(())
+    }
+}
