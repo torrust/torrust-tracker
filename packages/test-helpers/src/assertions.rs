@@ -40,6 +40,8 @@ pub fn assert_names_no_source_path(message: &str) {
 
 #[cfg(test)]
 mod tests {
+    use std::panic::catch_unwind;
+
     use super::assert_names_no_source_path;
 
     #[test]
@@ -58,7 +60,7 @@ mod tests {
             "failed in /home/u/.cargo/registry/index",
             "failed in /toolchain/lib/rustlib/src/rust",
         ] {
-            let outcome = std::panic::catch_unwind(|| assert_names_no_source_path(message));
+            let outcome = catch_unwind(|| assert_names_no_source_path(message));
 
             assert!(outcome.is_err(), "it should reject {message:?}");
         }
