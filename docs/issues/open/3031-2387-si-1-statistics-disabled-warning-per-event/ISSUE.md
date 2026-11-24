@@ -9,7 +9,7 @@ github-issue: 3031
 spec-path: docs/issues/open/3031-2387-si-1-statistics-disabled-warning-per-event/ISSUE.md
 branch: "3031-2387-si-1-statistics-disabled-warning-per-event-spec"
 related-pr: null
-last-updated-utc: "2026-11-24 16:20"
+last-updated-utc: "2026-11-24 17:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -73,7 +73,7 @@ The EPIC coordinator compared this draft with the code at `develop` `6a058dd4d` 
 
 | Case | Result |
 | --- | --- |
-| Default `false` of the per-tracker key | Confirmed. `tracker.container.no-persistence.toml` sets only `core.tracker_usage_statistics = true` (a different key, not the policy) and declares no tracker section, so it runs no UDP or HTTP tracker. `tracker.e2e.container.sqlite3.toml` declares one UDP and one HTTP tracker without the key: both log the `WARN` per request. `tracker.container.sqlite3.toml` has its tracker sections commented out. `tracker.udp.benchmarking.toml` sets `false` explicitly. |
+| Default `false` of the per-tracker key | Confirmed. `tracker.container.no-persistence.toml` sets `core.tracker_usage_statistics = true` (a different key, not the policy) and declares one UDP and one HTTP tracker without the per-tracker key, as does `tracker.e2e.container.sqlite3.toml`: both files log the `WARN` per request. `tracker.container.sqlite3.toml` has its tracker sections commented out. `tracker.udp.benchmarking.toml` sets `false` explicitly. |
 | Sites | Confirmed, with one difference: the three branches are not alike. `udp-server` tests `== Some(true)`; `udp-core` and `http-core` use `.copied().unwrap_or(false)`. Only the last two cannot tell a missing entry from `false`, and all three log the same `WARN` with `configuration_instance_id` as a `Debug` struct. The drain path (`drain_events`) calls the same function as the live path: one fix covers both. |
 | Who builds the policy | `src/bootstrap/jobs/{udp_tracker_server,udp_tracker_core,http_tracker_core}.rs` build a `BTreeMap<ConfigurationInstanceId, bool>` from the instance containers, one entry per configured instance of the role. An event from a configured instance therefore always finds its entry: `None` is reachable only by a wiring bug. No other listener has a policy branch. |
 | Test fixture | Confirmed. `tests/common/native_tracker/command.rs` already sets `tracker_usage_statistics = false` for its one HTTP tracker and has no UDP tracker. The fixture finds the HTTP address by parsing the `Started on:` line (`health.rs`, `parse_started_address`); SI-11 will move readers to structured fields, so the UDP addition must reuse the same parser and be easy to switch. |
@@ -208,6 +208,7 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 - 2026-11-24 12:46 UTC - Claude Code (Opus 5.5), EPIC coordinator - Compared with the code at `develop` `6a058dd4d`: corrected the claims the code contradicts, recorded the maintainer's answers of 2026-11-24 that concern this draft, and added "Findings of the coordinator's check" (order B′ of D1 places #2766 after SI-1 and before SI-2).
 - 2026-11-24 16:00 UTC - Claude Code (Sonnet 5.5), SI-1 session - Completed the draft against `torrust/develop` `23095e3a6`: checked each case of the coordinator, added the check results, the detailed design, the file list, the exact messages, the test boundaries and the operator-visible changes for SI-2. Waiting for the maintainer's approval; no GitHub issue yet.
 - 2026-11-24 16:20 UTC - Claude Code (Sonnet 5.5), SI-1 session - The maintainer approved the completed draft in the session. Created issue #3031 (label `bug`, "Part of EPIC #2387" in the body; the bot account cannot add it as a native sub-issue of #2387, the maintainer links it). Moved the specification to `docs/issues/open/3031-2387-si-1-statistics-disabled-warning-per-event/`.
+- 2026-11-24 17:00 UTC - Claude Code (Sonnet 5.5), SI-1 session - Review round 1 of PR 3032 (CodeRabbit): corrected the row of the check table for `tracker.container.no-persistence.toml`, which does declare one UDP and one HTTP tracker without the per-tracker key (I had read only the first 30 lines of the file).
 
 ## Acceptance Criteria
 
