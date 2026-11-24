@@ -47,8 +47,15 @@ pub async fn run_event_listener_unspawned(
     metrics_policy: BTreeMap<ConfigurationInstanceId, bool>,
     drain_timeout: Duration,
 ) -> Completion {
-    tracing::info!(target: HTTP_TRACKER_LOG_TARGET, "Starting HTTP tracker core event listener");
+    let (enabled_instances, disabled_instances) = count_instances_by_statistics_policy(&metrics_policy);
+    tracing::info!(target: HTTP_TRACKER_LOG_TARGET, enabled_instances, disabled_instances, "Starting HTTP tracker core event listener");
     dispatch_events(receiver, cancellation_token, stats_repository, metrics_policy, drain_timeout).await
+}
+
+/// Counts the instances with usage statistics enabled and disabled, in that order.
+fn count_instances_by_statistics_policy(metrics_policy: &BTreeMap<ConfigurationInstanceId, bool>) -> (usize, usize) {
+    let enabled_instances = metrics_policy.values().filter(|enabled| **enabled).count();
+    (enabled_instances, metrics_policy.len() - enabled_instances)
 }
 
 async fn dispatch_events(
@@ -124,14 +131,22 @@ async fn handle_received_event(
     stats_repository: &Arc<Repository>,
     metrics_policy: &BTreeMap<ConfigurationInstanceId, bool>,
 ) {
-    if metrics_policy.get(&event_connection_id(&event)).copied().unwrap_or(false) {
-        handle_event(event, stats_repository, CurrentClock::now()).await;
-    } else {
-        tracing::warn!(
+    let configuration_instance_id = event_connection_id(&event);
+
+    match metrics_policy.get(&configuration_instance_id).copied() {
+        Some(true) => handle_event(event, stats_repository, CurrentClock::now()).await,
+        Some(false) => tracing::trace!(
             target: HTTP_TRACKER_LOG_TARGET,
-            configuration_instance_id = ?event_connection_id(&event),
-            "Ignoring HTTP tracker event from an unknown or metrics-disabled listener"
-        );
+            service_role = %configuration_instance_id.service_role(),
+            instance_index = configuration_instance_id.instance_index(),
+            "Ignoring HTTP tracker event: usage statistics are disabled for this instance"
+        ),
+        None => tracing::error!(
+            target: HTTP_TRACKER_LOG_TARGET,
+            service_role = %configuration_instance_id.service_role(),
+            instance_index = configuration_instance_id.instance_index(),
+            "Received a HTTP tracker event from an instance that has no statistics policy entry"
+        ),
     }
 }
 
@@ -162,6 +177,7 @@ mod tests {
     use torrust_tracker_events::shutdown::Completion;
     use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::{RemoteClientAddr, ResolvedIp};
     use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
+    use torrust_tracker_test_helpers::logging::capture_logs_in_scope;
 
     use super::{dispatch_events, run_event_listener, run_event_listener_unspawned};
     use crate::CurrentClock;
@@ -612,5 +628,116 @@ mod tests {
 
         // Assert
         assert_eq!(repository.read_metrics(Clone::clone).await, expected);
+    }
+
+    fn has_a_record_at_level(records: &[String], level: &str) -> bool {
+        records.iter().any(|record| record.contains(level))
+    }
+
+    #[tokio::test]
+    async fn it_should_not_log_a_warning_or_an_error_for_an_event_of_a_metrics_enabled_instance() {
+        // Arrange
+        let enabled_id = ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0);
+        let receiver: Receiver = Box::new(ScriptedReceiver::new([Ok(scrape_event(enabled_id)), Err(RecvError::Closed)]));
+        let logs = capture_logs_in_scope();
+
+        // Act
+        dispatch_events(
+            receiver,
+            CancellationToken::new(),
+            Arc::new(Repository::new()),
+            [(enabled_id, true)].into(),
+            DEFAULT_DRAIN_TIMEOUT,
+        )
+        .await;
+
+        // Assert
+        let records = logs.lines();
+        assert!(!has_a_record_at_level(&records, " WARN "), "unexpected WARN in {records:?}");
+        assert!(!has_a_record_at_level(&records, " ERROR "), "unexpected ERROR in {records:?}");
+    }
+
+    #[tokio::test]
+    async fn it_should_not_log_a_warning_or_an_error_for_an_event_of_a_metrics_disabled_instance() {
+        // Arrange
+        let disabled_id = ConfigurationInstanceId::new(ServiceRole::HttpTracker, 1);
+        let receiver: Receiver = Box::new(ScriptedReceiver::new([Ok(scrape_event(disabled_id)), Err(RecvError::Closed)]));
+        let logs = capture_logs_in_scope();
+
+        // Act
+        dispatch_events(
+            receiver,
+            CancellationToken::new(),
+            Arc::new(Repository::new()),
+            [(disabled_id, false)].into(),
+            DEFAULT_DRAIN_TIMEOUT,
+        )
+        .await;
+
+        // Assert
+        let records = logs.lines();
+        assert!(!has_a_record_at_level(&records, " WARN "), "unexpected WARN in {records:?}");
+        assert!(!has_a_record_at_level(&records, " ERROR "), "unexpected ERROR in {records:?}");
+    }
+
+    #[tokio::test]
+    async fn it_should_log_one_error_with_the_service_role_and_the_instance_index_for_an_event_of_an_unknown_instance() {
+        // Arrange
+        let known_id = ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0);
+        let unknown_id = ConfigurationInstanceId::new(ServiceRole::HttpTracker, 2);
+        let receiver: Receiver = Box::new(ScriptedReceiver::new([Ok(scrape_event(unknown_id)), Err(RecvError::Closed)]));
+        let logs = capture_logs_in_scope();
+
+        // Act
+        dispatch_events(
+            receiver,
+            CancellationToken::new(),
+            Arc::new(Repository::new()),
+            [(known_id, true)].into(),
+            DEFAULT_DRAIN_TIMEOUT,
+        )
+        .await;
+
+        // Assert
+        let records = logs.lines();
+        let errors: Vec<_> = records.iter().filter(|record| record.contains(" ERROR ")).collect();
+        assert_eq!(errors.len(), 1, "expected exactly one ERROR in {records:?}");
+        assert!(
+            errors[0].contains("service_role=http_tracker instance_index=2"),
+            "the ERROR names the instance with fields: {}",
+            errors[0]
+        );
+        assert!(!has_a_record_at_level(&records, " WARN "), "unexpected WARN in {records:?}");
+    }
+
+    #[tokio::test]
+    async fn it_should_report_how_many_instances_have_statistics_enabled_and_disabled_when_starting() {
+        // Arrange
+        let policy = [
+            (ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0), true),
+            (ConfigurationInstanceId::new(ServiceRole::HttpTracker, 1), false),
+            (ConfigurationInstanceId::new(ServiceRole::HttpTracker, 2), false),
+        ];
+        let receiver: Receiver = Box::new(ScriptedReceiver::new([Err(RecvError::Closed)]));
+        let logs = capture_logs_in_scope();
+
+        // Act
+        run_event_listener_unspawned(
+            receiver,
+            CancellationToken::new(),
+            Arc::new(Repository::new()),
+            policy.into(),
+            DEFAULT_DRAIN_TIMEOUT,
+        )
+        .await;
+
+        // Assert
+        let records = logs.lines();
+        assert!(
+            records.iter().any(|record| record.contains(" INFO ")
+                && record.contains("Starting")
+                && record.contains("enabled_instances=1 disabled_instances=2")),
+            "the start line carries the counts in {records:?}"
+        );
     }
 }
