@@ -405,3 +405,41 @@ semantic-links:
 - Verdict: REVIEW PASSED
 - Follow-up actions:
   - Author, done before the commit: the six fixes above, and the sentence of D17.
+
+### 2026-11-24 08:11 UTC - Test-design reviewer (Claude Code subagent, Claude Opus 5.5, `write-unit-test` skill)
+
+- Invocation scope: Read-only review of task T5, increment 3, on branch `2904-t5-task-reviewer`
+  before its commit: the file-system workspace `src/workspace.rs` of the crate
+  `agent-reply-validator` (the count of refusals in `.agents/issues/<issue-number>/reply-guard/`
+  and the reading of the reply file), with its unit tests on a disposable folder. One round, then
+  the author's fixes.
+- Inputs: D17 ("The count of refusals"); `src/guard.rs` for the trait;
+  `.claude/skills/write-unit-test/SKILL.md`; `AGENTS.md`; the uncommitted file.
+- Evidence: `cargo test -q -p agent-reply-validator --lib workspace` passed with 31 tests in the
+  review and 32 after the fixes; clippy with the workspace lints and nightly rustfmt were clean.
+  The author ran fourteen mutations before the review, and each made at least one test fail:
+  `exists` instead of `is_dir`, a symbolic link read through, a folder not rejected up front, a
+  garbage count read as one, the key ignoring the run, the file name or the issue, a slash allowed
+  in a name, a leading dot kept, clearing doing nothing, the state folder not created, the failure
+  reason not relative to the root, and invalid UTF-8 read with substitute characters. One of them first did not
+  compile, because it left a function unused, and was rewritten. After the fixes the author ran
+  two more, appending instead of replacing the count and not reducing the names, and each was
+  killed.
+- Findings:
+  - Minor: no test replaced a count that was already there, so writing by appending would have
+    passed every test, and the file `1` then `2` would parse as no count. Fixed: a test writes
+    twice and reads the file.
+  - Minor: one assertion of the test about names that are paths could not fail (the folder
+    `escape` was never the target). Fixed: the test compares the folder's listing with the one
+    expected name.
+  - Minor: the issue number of the keys was hidden in the fixture. Fixed: a constant, with the
+    expected paths spelling the number out.
+  - Nit: the assertion of the test that clears a count never kept was true from the start. Kept,
+    with a message that says the test exists for the absence of a panic.
+  - Nit: the test of the failure reason did not check that a reason follows the file name. Fixed.
+  - The reviewer judged that real disk use is justified here, since the file system is the
+    behaviour under test, each test has its own folder, and the pure part (the safe names) is
+    tested without disk.
+- Verdict: REVIEW PASSED
+- Follow-up actions:
+  - Author, done before the commit: the four fixes above.

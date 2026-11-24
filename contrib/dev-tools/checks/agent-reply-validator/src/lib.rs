@@ -12,3 +12,4 @@ pub mod name;
 pub mod reply;
 pub mod schema;
 pub mod transcript;
+pub mod workspace;
