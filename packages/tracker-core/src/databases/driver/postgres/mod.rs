@@ -302,3 +302,46 @@ mod tests {
         );
     }
 }
+
+#[cfg(test)]
+mod constructor_tests {
+    use rstest::rstest;
+    use torrust_tracker_primitives::Driver;
+
+    use super::Postgres;
+    use crate::databases::error::Error;
+
+    #[rstest]
+    #[case::a_malformed_url("not a url")]
+    #[case::a_port_that_is_not_a_number("postgresql://user:password@127.0.0.1:port/db")]
+    #[tokio::test]
+    async fn it_should_report_a_connection_error_of_its_own_driver_when_the_url_cannot_be_parsed(#[case] url: &str) {
+        // Act
+        let error = Postgres::new(url).err();
+
+        // Assert
+        assert!(
+            matches!(
+                error,
+                Some(Error::ConnectionError {
+                    driver: Driver::PostgreSQL,
+                    ..
+                })
+            ),
+            "an unparsable url should be a connection error of the PostgreSQL driver, got {error:?}"
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_build_a_lazy_pool_without_connecting_when_the_url_is_well_formed() {
+        // Act: nothing listens on port 1, so a constructor that connected would fail
+        let driver = Postgres::new("postgresql://user:password@127.0.0.1:1/db");
+
+        // Assert
+        assert!(
+            driver.is_ok(),
+            "a well-formed url should build the driver, got {:?}",
+            driver.err()
+        );
+    }
+}
