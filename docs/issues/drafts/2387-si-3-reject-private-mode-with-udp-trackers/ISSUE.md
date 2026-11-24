@@ -69,7 +69,7 @@ The EPIC coordinator compared this draft with the code at `develop` `6a058dd4d` 
 - Today's skip is `should_start_udp_tracker_services` (`src/app.rs:484-490`); the `WARN` is `log_udp_tracker_services_not_started` (`src/app.rs:492-503`). The unit test `it_should_not_start_udp_tracker_services_for_a_private_tracker` (`src/app.rs:860-871`) pins the skip.
 - `ephemeral_private()` and `ephemeral_private_and_listed()` (`packages/test-helpers/src/configuration.rs:139,159`) build on `ephemeral()`, which has a UDP tracker (`:64`). They become invalid configurations. They are used in about 40 places (REST API, HTTP core and HTTP server tests, `src/app.rs:1177`).
 - No shipped configuration under `share/default/config/` has `private = true`.
-- EPIC #2993 relies on the skip (`docs/issues/open/2993-secrets-and-client-error-text/EPIC.md:87`, `evidence/reproduce.sh:45`); its coordinator was told on 2026-11-24.
+- EPIC #2993's specification mentions the skip (`docs/issues/open/2993-secrets-and-client-error-text/EPIC.md:87`). Its coordinator was told on 2026-11-24 and rewrote that line in PR 3025 to name this issue's startup failure; the check in its `evidence/reproduce.sh` never ran (its private configuration has no UDP tracker) and PR 3025 removes it. Nothing in #2993 depends on the skip.
 - A startup failure exits `1` today (`src/main.rs:34`); `2` is for usage errors. The UDP packages have no private-mode check at all, which the ADR can state.
 
 ## Architectural Decisions
