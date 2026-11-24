@@ -43,9 +43,12 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 Round 1 covers one review of the first head of the PR (the commit `chore(issues): archive closed issue #2924 spec to docs/issues/closed`): review 6044070911 (CodeRabbit, COMMENTED), with one inline finding. Its body has no other actionable assertion.
 
+Round 2 covers review 6044690269 (Greptile, COMMENTED) of the head `docs(pr-reviews): [#2924] record the audit of review round 1 of PR 3035`, with one inline finding, F2. Greptile marks it P2; this audit maps that badge to `Minor (inferred)`.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3035-f1 | Unknown | Minor | documentation | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F2 | review-finding:pr-3035-f2 | Unknown | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -62,10 +65,24 @@ Round 1 covers one review of the first head of the PR (the commit `chore(issues)
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3035#discussion_r4684291894
 
+### F2 - Completion review lacks evidence
+
+- PR number: 3035
+- Source review ID: 6044690269
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3035#discussion_r4684374831
+- Concern: The completion-review checkpoint of the archived spec is ticked, but the spec still says `Retrospective: Not yet assessed`, and neither the progress log nor the evidence file records the review or why no retrospective was needed.
+- Solution: The finding is valid: the archive commit ticked the checkpoint without recording the decision. The spec now says `Retrospective: Not needed` and a progress-log entry gives the reason: the design is the one approved in T1, the plan ran as written, the unchanged V2 count was predicted by T2, nothing reusable came out beyond the guard, and the remaining helpers are owned by #2925.
+- Current-tree verification: `grep -n "Retrospective" docs/issues/closed/2924-2392-sqlite-test-database-guard/ISSUE.md` shows `Not needed` with a pointer to the progress-log entry.
+- Resolution reference: `docs(issues): [#2924] record the completion review decision in the archived spec`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3035#discussion_r4684708230
+
 ## Processing Log
 
 - 2026-11-24 17:56 UTC - Started audit. Round 1: review 6044070911 (CodeRabbit, COMMENTED) with one finding, F1. Decision for F1: NO_ACTION, because the EPIC status and log belong to the coordinator's own spec PR; the maintainer approved declining it.
 - 2026-11-24 17:57 UTC - Replied on the F1 thread and resolved it; the thread refresh shows no unresolved thread. The audit validator exits 0 (1 row, 0 failures). This record is committed after these events and not pushed yet.
+- 2026-11-24 18:31 UTC - Round 2: review 6044690269 (Greptile, COMMENTED) with finding F2, valid. Fixed in its own commit and pushed, then replied on the thread and resolved it. The audit validator result is in the commit that adds this entry.
 
 ## Completion Rules
 
