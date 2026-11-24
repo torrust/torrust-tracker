@@ -11,6 +11,10 @@ pub struct Git {
 
 impl Git {
     /// Finds the repository that contains `working_directory`.
+    ///
+    /// # Errors
+    ///
+    /// Returns the reason when `git` cannot be run or `working_directory` is not in a repository.
     pub fn discover(working_directory: &Path) -> Result<Self, String> {
         let output = run_git(working_directory, &["rev-parse", "--show-toplevel"])?;
         let root = String::from_utf8(output).map_err(|error| format!("`git rev-parse` output was not UTF-8: {error}"))?;
@@ -20,12 +24,17 @@ impl Git {
         })
     }
 
+    #[must_use]
     pub fn root(&self) -> &Path {
         &self.root
     }
 
     /// The entries of the index: each file's mode and its repository-relative path, as git
     /// stores them. The path is bytes, because it need not be UTF-8.
+    ///
+    /// # Errors
+    ///
+    /// Returns the reason when `git ls-files` fails or prints an entry that cannot be read.
     pub fn index_entries(&self) -> Result<Vec<IndexEntry>, String> {
         let output = run_git(&self.root, &["ls-files", "--stage", "-z"])?;
         output
@@ -36,6 +45,11 @@ impl Git {
     }
 
     /// The content of a repository-relative path in the index.
+    ///
+    /// # Errors
+    ///
+    /// Returns the reason when the path has no staged content, for example because of merge
+    /// conflicts.
     pub fn index_content(&self, path: &str) -> Result<Vec<u8>, String> {
         run_git(&self.root, &["show", &format!(":0:{path}")])
     }
@@ -69,6 +83,7 @@ impl IndexEntry {
         })
     }
 
+    #[must_use]
     pub fn is_symbolic_link(&self) -> bool {
         self.mode == Self::SYMBOLIC_LINK_MODE
     }

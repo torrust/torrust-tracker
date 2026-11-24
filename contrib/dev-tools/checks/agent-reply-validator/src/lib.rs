@@ -6,6 +6,7 @@
 //! `agent-reply-v1` schema. See decision D18 of issue #2904.
 
 pub mod file;
+pub mod git;
 pub mod name;
 pub mod reply;
 pub mod schema;
