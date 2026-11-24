@@ -5426,8 +5426,10 @@ version = "0.1.0"
 dependencies = [
  "hyper",
  "reqwest",
+ "secrecy",
  "serde",
  "thiserror 2.0.21",
+ "tokio",
  "torrust-tracker-rest-api-protocol",
  "url",
  "uuid",

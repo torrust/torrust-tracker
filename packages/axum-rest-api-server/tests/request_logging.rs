@@ -4,6 +4,7 @@
 //! (`?token=<token>`), so the URI the server logs for every request, in the `request` event and
 //! in the span around it, must not show them. The test binary installs a subscriber that captures
 //! every level, which only one binary can do.
+use secrecy::ExposeSecret;
 use torrust_tracker_axum_rest_api_server::testing::environment::Started;
 use torrust_tracker_test_helpers::{configuration, logging};
 
@@ -15,8 +16,10 @@ async fn it_should_not_log_a_key_or_an_admin_token_that_the_uri_of_a_request_hol
     let connection_info = env.get_connection_info();
     let admin_token = connection_info
         .api_token
-        .clone()
-        .expect("the test environment has an admin token");
+        .as_ref()
+        .expect("the test environment has an admin token")
+        .expose_secret()
+        .to_string();
     let base = format!("{}api/v1", connection_info.origin);
     let a_key = "TestPeerKeyLoggedByDelete0000001";
     let a_key_of_the_wrong_length = "ShortLoggedKey01";

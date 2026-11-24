@@ -298,3 +298,59 @@ Toolchain: stable `rustc 1.100.0`, `cargo test`. Commit subject:
 - Smell check: three test binaries repeat the capture pattern deliberately (each crate owns its
   server's startup); the shared pieces (`setup_capturing_every_level`, `captured_logs`,
   `capture_logs_while`) live in `torrust-tracker-test-helpers`.
+
+## T6 - The REST Client
+
+Toolchain: stable `rustc 1.100.0`, `cargo test`. Commit subject:
+`fix(rest-api-client): [#2999] keep the token and the key out of client errors`.
+
+### Changes
+
+- `ClientError` wraps every `reqwest` error through `without_url`: `From<reqwest::Error>` (the
+  transport errors, including the client build and the body reads), a new `deserialization`
+  constructor, and the free `get` helper's send error.
+- The token is sent in the `Authorization: Bearer` header only. The query injection of `get_result`
+  is removed. The two documented exceptions stay: `get_request` sends no token at all, and a GET
+  whose caller supplies its own `Authorization` header keeps it. The server still accepts
+  `?token=`; a caller that builds the query itself (the contract tests of the query form) is
+  unchanged.
+- A8: `ConnectionInfo::api_token` is now `Option<SecretString>` (`secrecy` 0.10, already a
+  workspace dependency). `ConnectionInfo::authenticated(origin, &str)` keeps its signature. A
+  breaking change for a caller that read the field or cloned `ConnectionInfo` (a `SecretString` is
+  not `Clone`, so the `Clone` derive is gone): the in-tree callers (the contract-test
+  environment, `tests/`) adapted; the CI tools under `src/console/ci` build `ConnectionInfo`
+  through `authenticated` and needed no change. The crate is `0.x`; mention it in the release
+  notes (spec risk list).
+
+### Red run
+
+Six tests failed before the change ([`evidence/t6-red.txt`](evidence/t6-red.txt)), for example:
+
+```text
+the error holds the test token                (GET transport error; deserialization error)
+the error holds the test key                  (key delete, plain and typed client)
+the request line holds the token: GET /api/v1/stats?token=TestAdminTokenOfTheClient0001 HTTP/1.1
+```
+
+The free-helper test was tightened afterwards (the first assertion matched the peer socket address
+in the connect error, which stays and is not part of the URL path or query); its guard was shown by
+mutation ([`evidence/t6-mutations.txt`](evidence/t6-mutations.txt)): the free helper keeping the URL
+fails it; the deserialization error keeping the URL fails the deserialization test; `From` keeping
+the URL fails the free-helper test and both key-delete tests.
+
+### Green run
+
+`cargo test --workspace --no-fail-fast`: no failure (13 client tests).
+
+### Test-design review (prose-first AAA)
+
+- Arrange: the closed address (a listener that was dropped) or a one-shot local server that
+  returns a chosen body and hands back the request head; the token and key constants are visible.
+- Act: the real client call (`get_tracker_statistics`, `delete_auth_key`, `ApiClient::...`, the
+  free `get`).
+- Assert: everything a reader can see of the error (`Display`, `Debug`, each source) is searched
+  for the secret by one helper, so a future `reqwest` change that moves the text between layers is
+  still caught; the request head is checked for the header and for the absence of the token in
+  the request line.
+- Smell check: a helper with two uses (`everything_shown_by`) stays named for what it returns; the
+  request-head test checks the header case-insensitively because HTTP header names are.

@@ -1,12 +1,16 @@
 use std::str::FromStr;
 
+use secrecy::SecretString;
 use thiserror::Error;
 use url::Url;
 
-#[derive(Clone)]
+/// Where the REST API is and, when the caller has one, the admin token to send.
+///
+/// The token is a [`SecretString`], so `Debug` redacts it. The client sends it in the
+/// `Authorization: Bearer` header.
 pub struct ConnectionInfo {
     pub origin: Origin,
-    pub api_token: Option<String>,
+    pub api_token: Option<SecretString>,
 }
 
 impl ConnectionInfo {
@@ -14,7 +18,7 @@ impl ConnectionInfo {
     pub fn authenticated(origin: Origin, api_token: &str) -> Self {
         Self {
             origin,
-            api_token: Some(api_token.to_string()),
+            api_token: Some(SecretString::from(api_token)),
         }
     }
 
