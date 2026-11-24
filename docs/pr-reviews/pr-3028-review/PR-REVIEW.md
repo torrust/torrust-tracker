@@ -47,8 +47,8 @@ Review 6040228663 (CodeRabbit, 2026-11-24 13:41 UTC) posted two inline comments,
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
-| F1 | review-finding:pr-3028-f1 | Unknown | Minor | correctness | ORIGINAL | FIXED | OPEN |
-| F2 | review-finding:pr-3028-f2 | Unknown | Minor | security | ORIGINAL | FIXED | OPEN |
+| F1 | review-finding:pr-3028-f1 | Unknown | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F2 | review-finding:pr-3028-f2 | Unknown | Minor | security | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -63,7 +63,7 @@ Review 6040228663 (CodeRabbit, 2026-11-24 13:41 UTC) posted two inline comments,
 - Current-tree verification: `grep -n "AC1:" docs/issues/open/384-strip-location-from-errors-sent-to-clients/ISSUE.md` prints the narrowed text.
 - Resolution reference: docs(issues): [#384] narrow AC1 to the recorded baseline and check the Windows path forms
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3028#discussion_r4681662314>
 
 ### F2 - Check the Windows path substrings too
 
@@ -76,4 +76,4 @@ Review 6040228663 (CodeRabbit, 2026-11-24 13:41 UTC) posted two inline comments,
 - Current-tree verification: the same `grep -nF` command in the "Summary of the path check" section exits with status 1.
 - Resolution reference: docs(issues): [#384] narrow AC1 to the recorded baseline and check the Windows path forms
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3028#discussion_r4681663109>
