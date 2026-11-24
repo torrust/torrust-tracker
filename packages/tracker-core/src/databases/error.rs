@@ -13,8 +13,18 @@
 use std::sync::Arc;
 
 use sqlx::Error as SqlxError;
+use sqlx::error::ErrorKind;
 use sqlx::migrate::MigrateError;
 use torrust_tracker_primitives::Driver;
+
+/// What is kept of an error a database server raised for a statement that binds a secret: the
+/// kind and the code, never the message, which can hold the bound value.
+#[derive(Debug, thiserror::Error)]
+#[error("the database rejected the statement (kind: {kind}, code: {})", code.as_deref().unwrap_or("none"))]
+struct StatementRejected {
+    kind: String,
+    code: Option<String>,
+}
 
 /// A shareable source error, so that [`Error`] stays `Clone`.
 type DynError = Arc<dyn std::error::Error + Send + Sync>;
@@ -37,6 +47,13 @@ pub enum Error {
     /// improperly formatted.
     #[error("The {driver} query was malformed: {source}")]
     InvalidQuery { source: DynError, driver: Driver },
+
+    /// Indicates that an authentication key to add is already stored.
+    ///
+    /// The message does not repeat what the database server answered: the server
+    /// text of a duplicate entry holds the key, which is a secret.
+    #[error("The {driver} database already holds this authentication key")]
+    KeyAlreadyExists { driver: Driver },
 
     /// Indicates a failure to insert a record into the database.
     ///
@@ -115,6 +132,35 @@ impl From<(SqlxError, Driver)> for Error {
     }
 }
 
+impl Error {
+    /// Converts the `sqlx` error of a statement that binds a secret (the `keys` table).
+    ///
+    /// The text a database server answers can hold the value that was bound: a duplicate key on
+    /// `MySQL` is `Duplicate entry '<key>' for key 'keys.key'`. So the text is never kept. A
+    /// unique-constraint violation, found by the driver's error kind and not by its text, becomes
+    /// [`Error::KeyAlreadyExists`]; any other error the database raised keeps only its kind and
+    /// its code. Errors that do not come from the database server (connection, pool, I/O) hold no
+    /// bound value and convert as usual.
+    pub(crate) fn from_statement_that_binds_a_secret(err: SqlxError, driver: Driver) -> Self {
+        match err {
+            SqlxError::Database(server_error) => {
+                if matches!(server_error.kind(), ErrorKind::UniqueViolation) {
+                    Self::KeyAlreadyExists { driver }
+                } else {
+                    Self::InvalidQuery {
+                        source: Arc::new(StatementRejected {
+                            kind: format!("{:?}", server_error.kind()),
+                            code: server_error.code().map(std::borrow::Cow::into_owned),
+                        }),
+                        driver,
+                    }
+                }
+            }
+            other => Self::from((other, driver)),
+        }
+    }
+}
+
 impl From<(MigrateError, Driver)> for Error {
     fn from(value: (MigrateError, Driver)) -> Self {
         let (err, driver) = value;
@@ -136,6 +182,7 @@ mod tests {
     use torrust_tracker_primitives::Driver;
 
     use crate::databases::error::Error;
+    use crate::test_helpers::tests::assert_holds_no_secret;
 
     /// The name of the variant of `error`, to compare a conversion with a plain string.
     fn variant(error: &Error) -> &'static str {
@@ -181,6 +228,104 @@ mod tests {
         let converted: Error = (MigrateError::VersionMissing(1), Driver::Sqlite3).into();
 
         assert_eq!(variant(&converted), "MigrationError");
+    }
+
+    /// A database server error whose message holds the value that was written, like `MySQL`'s
+    /// duplicate entry. Test values only.
+    #[derive(Debug)]
+    struct ServerError {
+        message: String,
+        unique_violation: bool,
+        code: Option<&'static str>,
+    }
+
+    impl std::fmt::Display for ServerError {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            f.write_str(&self.message)
+        }
+    }
+
+    impl std::error::Error for ServerError {}
+
+    impl sqlx::error::DatabaseError for ServerError {
+        fn message(&self) -> &str {
+            &self.message
+        }
+
+        fn code(&self) -> Option<std::borrow::Cow<'_, str>> {
+            self.code.map(std::borrow::Cow::Borrowed)
+        }
+
+        fn as_error(&self) -> &(dyn std::error::Error + Send + Sync + 'static) {
+            self
+        }
+
+        fn as_error_mut(&mut self) -> &mut (dyn std::error::Error + Send + Sync + 'static) {
+            self
+        }
+
+        fn into_error(self: Box<Self>) -> Box<dyn std::error::Error + Send + Sync + 'static> {
+            self
+        }
+
+        fn kind(&self) -> sqlx::error::ErrorKind {
+            if self.unique_violation {
+                sqlx::error::ErrorKind::UniqueViolation
+            } else {
+                sqlx::error::ErrorKind::CheckViolation
+            }
+        }
+    }
+
+    fn a_server_error(secret: &str, unique_violation: bool, code: Option<&'static str>) -> SqlxError {
+        SqlxError::Database(Box::new(ServerError {
+            message: format!("Duplicate entry '{secret}' for key 'keys.key'"),
+            unique_violation,
+            code,
+        }))
+    }
+
+    #[test]
+    fn it_should_turn_a_unique_violation_on_a_statement_that_binds_a_secret_into_a_key_already_exists_error() {
+        // Arrange
+        let secret = "TestPeerKeyInTheServerMessage001";
+        let duplicate = a_server_error(secret, true, Some("23000"));
+
+        // Act
+        let converted = Error::from_statement_that_binds_a_secret(duplicate, Driver::MySQL);
+
+        // Assert
+        assert!(matches!(converted, Error::KeyAlreadyExists { .. }), "{converted:?}");
+        assert_holds_no_secret(&converted, secret);
+        assert_eq!(
+            converted.to_string(),
+            "The MySQL database already holds this authentication key"
+        );
+    }
+
+    #[test]
+    fn it_should_keep_only_the_kind_and_the_code_of_any_other_server_error_on_a_statement_that_binds_a_secret() {
+        // Arrange
+        let secret = "TestPeerKeyInTheOtherMessage0001";
+        let other = a_server_error(secret, false, Some("HY000"));
+
+        // Act
+        let converted = Error::from_statement_that_binds_a_secret(other, Driver::MySQL);
+
+        // Assert
+        assert_holds_no_secret(&converted, secret);
+        let shown = converted.to_string();
+        assert!(
+            shown.contains("CheckViolation") && shown.contains("HY000"),
+            "the kind and the code should stay: {shown}"
+        );
+    }
+
+    #[test]
+    fn it_should_convert_an_error_that_does_not_come_from_the_server_as_usual_on_a_statement_that_binds_a_secret() {
+        let converted = Error::from_statement_that_binds_a_secret(SqlxError::PoolClosed, Driver::PostgreSQL);
+
+        assert_eq!(variant(&converted), "ConnectionError");
     }
 
     #[rstest]

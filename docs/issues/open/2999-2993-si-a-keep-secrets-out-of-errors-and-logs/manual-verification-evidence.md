@@ -411,3 +411,55 @@ variable(s)``.
 - Assert: the secret value is absent from both `Display` and `Debug`; the option path and the word
   `expected` are present, so a fix that drops the whole message does not pass; a control test keeps
   non-secret values printed.
+
+## T7b - Database Errors That Hold a Key (A12)
+
+Toolchain: stable `rustc 1.100.0`, `cargo test`; MySQL and PostgreSQL through the driver tests'
+testcontainers (`--features db-compatibility-tests`, Docker 28.3.3). Commit subject:
+`fix(tracker-core): [#2999] keep the database server message out of key store errors`.
+
+### Statements that bind a secret
+
+The `keys` table: `get_key_from_keys` (`SELECT ... WHERE key = ?`), `add_key_to_keys`
+(`INSERT`) and `remove_key_from_keys` (`DELETE`), in the SQLite, MySQL and PostgreSQL drivers.
+`load_keys` binds nothing and is unchanged. The whitelist and torrent statements bind info hashes,
+which are not secrets.
+
+### Change
+
+`Error::from_statement_that_binds_a_secret` (`databases/error.rs`) converts the `sqlx` error of
+those statements. A server error of kind `UniqueViolation` (the driver's kind, not its text)
+becomes the new `Error::KeyAlreadyExists` (`The <driver> database already holds this authentication
+key`). Any other server error becomes `InvalidQuery` whose source keeps only the kind and the code.
+Connection, pool and I/O errors convert as before. What non-secret driver detail a client may see
+is SI-B's. The existing SQLite test that pinned `InvalidQuery` for a duplicate now expects
+`KeyAlreadyExists`.
+
+### Red run
+
+- Unit and SQLite ([`evidence/t7b-red.txt`](evidence/t7b-red.txt)): three failed, among them
+  `the error Display holds the test secret` and
+  `InvalidQuery { source: Database(ServerError { message: "Duplicate entry '...' for key ..." ...`.
+- MySQL (real server): with the new conversion disabled by mutation, the shared driver test fails
+  with `the error Display holds the test secret` at `driver/mod.rs:317`.
+
+### Green run
+
+`cargo test --workspace --no-fail-fast`: no failure. With Docker:
+`TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST=true TORRUST_TRACKER_CORE_RUN_POSTGRES_DRIVER_TEST=true
+cargo test -p torrust-tracker-core --features db-compatibility-tests --lib -- run_mysql_driver_tests
+run_postgres_driver_tests`: `run_mysql_driver_tests ... ok`, `run_postgres_driver_tests ... ok`
+(the shared test checks `Display`, `Debug` and the source chain and the `KeyAlreadyExists` variant).
+A REST contract test adds the same key twice and checks the 500 reply holds no key and says the
+database already holds it.
+
+### Test-design review (prose-first AAA)
+
+- Arrange: a fake server error whose message holds the secret, with a flag for the unique-violation
+  kind: the one causal difference between the two unit tests. The driver test adds one key twice.
+- Act: the production conversion (`from_statement_that_binds_a_secret`) and the real
+  `add_key_to_keys`.
+- Assert: the secret is absent from `Display`, `Debug` and the chain; the variant and the kept kind
+  and code are asserted, so a fix that drops all detail does not pass.
+- Smell check: the fake is a test-local implementation of `sqlx`'s `DatabaseError` trait, needed
+  because `sqlx` has no public constructor.

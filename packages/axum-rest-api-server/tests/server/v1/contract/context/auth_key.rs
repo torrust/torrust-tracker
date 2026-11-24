@@ -84,6 +84,30 @@ async fn should_allow_generating_a_new_random_auth_key() {
 }
 
 #[tokio::test]
+async fn should_fail_adding_a_key_that_already_exists_without_echoing_it() {
+    // A database server can answer a duplicate with text that holds the key (MySQL does), so the
+    // reply must come from the tracker, not from the server.
+    logging::setup();
+    let env = Started::new(&configuration::ephemeral_private().into()).await;
+    let key = "TestPeerKeyAddedTwiceByTheTest01";
+    let client = ApiHttpClient::new(env.get_connection_info()).unwrap();
+    let form = || AddKeyForm {
+        opt_key: Some(key.to_string()),
+        opt_seconds_valid: Some(60),
+    };
+    client.add_auth_key(form(), None).await.unwrap();
+
+    let response = client.add_auth_key(form(), None).await.unwrap();
+
+    assert_eq!(response.status(), 500);
+    let body = response.text().await.unwrap();
+    assert!(!body.contains(key), "the reply holds the test key");
+    assert!(body.contains("already holds this authentication key"), "{body}");
+
+    env.stop().await;
+}
+
+#[tokio::test]
 async fn should_allow_uploading_a_preexisting_auth_key() {
     logging::setup();
 
