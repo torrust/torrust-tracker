@@ -272,9 +272,13 @@
 //! LABEL = "YOUR_TOKEN"
 //! ```
 //!
-//! All tokens give full access the the API. Once you have defined you token you can make request adding the token as a `GET` parameter. For example:
+//! All tokens give full access the the API. Once you have defined you token you can make requests sending it in the `Authorization` header. For example:
 //!
-//! <http://127.0.0.1:1212/api/v1/stats?token=MyAccessToken>
+//! ```bash
+//! curl -H "Authorization: Bearer MyAccessToken" "http://127.0.0.1:1212/api/v1/stats"
+//! ```
+//!
+//! The server also accepts the token as a `?token=` query parameter, but a URL ends up in proxy and browser logs: send the header.
 //!
 //! That endpoint will give you the tracker metrics:
 //!
@@ -384,7 +388,7 @@
 //! Using `curl` you can create a 2-minute valid auth key:
 //!
 //! ```text
-//! $ curl -X POST "http://127.0.0.1:1212/api/v1/key/120?token=MyAccessToken"
+//! $ curl -H "Authorization: Bearer MyAccessToken" -X POST "http://127.0.0.1:1212/api/v1/key/120"
 //! ```
 //!
 //! Response:

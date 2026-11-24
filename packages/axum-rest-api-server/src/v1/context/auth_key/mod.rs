@@ -39,7 +39,7 @@
 //! **Example request**
 //!
 //! ```bash
-//! curl -X POST http://localhost:1212/api/v1/keys?token=MyAccessToken \
+//! curl -H "Authorization: Bearer MyAccessToken" -X POST http://localhost:1212/api/v1/keys \
 //!      -H "Content-Type: application/json" \
 //!      -d '{
 //!            "key": "xqD6NWH9TcKrOCwDmqcdH5hF5RrbL0A6",
@@ -82,7 +82,7 @@
 //! **Example request**
 //!
 //! ```bash
-//! curl -X DELETE "http://127.0.0.1:1212/api/v1/key/xqD6NWH9TcKrOCwDmqcdH5hF5RrbL0A6?token=MyAccessToken"
+//! curl -H "Authorization: Bearer MyAccessToken" -X DELETE "http://127.0.0.1:1212/api/v1/key/xqD6NWH9TcKrOCwDmqcdH5hF5RrbL0A6"
 //! ```
 //!
 //! **Example response** `200`
@@ -116,7 +116,7 @@
 //! **Example request**
 //!
 //! ```bash
-//! curl "http://127.0.0.1:1212/api/v1/keys/reload?token=MyAccessToken"
+//! curl -H "Authorization: Bearer MyAccessToken" "http://127.0.0.1:1212/api/v1/keys/reload"
 //! ```
 //!
 //! **Example response** `200`

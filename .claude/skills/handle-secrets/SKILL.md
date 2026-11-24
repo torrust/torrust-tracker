@@ -3,7 +3,7 @@ name: handle-secrets
 description: Keep API tokens, passwords and other credentials in secrecy types, never a plain String; expose_secret only where needed. Use when handling secrets or sensitive configuration.
 metadata:
   author: torrust
-  version: "1.2"
+  version: "1.3"
 ---
 
 # Handling Sensitive Data (Secrets)
@@ -62,6 +62,33 @@ Wrap with `SecretString` (or another appropriate direct `secrecy` type) when the
 - API tokens (REST API admin token, external service tokens)
 - Passwords (database credentials, service accounts)
 - Private keys or certificates
+
+## Secrets That Are Not Configuration
+
+The peer authentication key, a REST API key and the admin token are secrets wherever they travel
+(see the amendment in
+[the secrecy ADR](../../../docs/adrs/20260822094338_adopt_secrecy_for_sensitive_values.md)).
+
+- **The peer key** is `Key`, not a `SecretString`: it must be printed to its owner and stored.
+  `Key`'s `Debug` prints `Key([REDACTED])`; a type that holds a key as a `String` gets a redacting
+  `Debug`. Print or serialize a key only where it is deliberately handed to its owner or persisted.
+- **Errors** never keep or print a secret, even a malformed one. State the length received or the
+  rule for its characters (`expected 32 characters, got 14`), or that it is not registered or has
+  expired. Do not add a `key` field to an error variant.
+- **Secrets in URLs**: the peer key is a path segment (`/announce/<key>`, `/scrape/<key>`,
+  `/api/v1/key/<key>`) and a token may be a `?token=` query value. Log a request URI only through
+  `torrust_tracker_axum_server::request_log::redact_uri` (and `RedactedMakeSpan` for the span), which
+  replaces them with `***`. Never log `request.uri()` directly.
+- **The admin token goes in the `Authorization: Bearer` header**, in clients, scripts and
+  documentation. `?token=` is still accepted by the server but it ends up in proxy and browser
+  logs. Do not write it in an example.
+- **Library errors that print the value they rejected**: a `reqwest` error holds the URL, so wrap
+  it with `without_url()`; a `figment` error echoes a value of the wrong type, so a new secret
+  option must be added to `SECRET_OPTIONS` in `packages/configuration/src/secret_options.rs`; a
+  database server message can hold a written value (MySQL prints a duplicate key), so convert the
+  error of a statement that binds a secret with `databases::error::Error::from_statement_that_binds_a_secret`.
+- Tests assert the absence of a unique test secret and never print it
+  (`tracker-core`'s `assert_holds_no_secret`, `test-helpers`' `capture_logs_while`).
 
 ## Rules for `.expose_secret()`
 
@@ -136,5 +163,7 @@ See `docs/security/analysis/reports/` for disclosed, handled-report examples.
 - [ ] Secrets compared with `subtle::ConstantTimeEq`, never `==`; multiple candidates all evaluated
 - [ ] No `.expose_secret()` in log statements or error messages
 - [ ] No sensitive values in `Display` or `Debug` output
+- [ ] No peer key or token in an error variant, an error message, a log line or a logged URI
+- [ ] A new secret configuration option is listed in `SECRET_OPTIONS`
 - [ ] Serialized configuration tests preserve the existing secret syntax
 - [ ] Redaction tests assert `SecretBox<str>([REDACTED])` and never print test secret values

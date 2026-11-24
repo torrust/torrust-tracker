@@ -7,7 +7,7 @@
 //!
 //! All endpoints require an authorization token which must be set in the
 //! configuration before running the tracker. The default configuration uses
-//! `?token=MyAccessToken`. Refer to [Authentication](#authentication) for more
+//! the `Authorization: Bearer MyAccessToken` header. Refer to [Authentication](#authentication) for more
 //! information.
 //!
 //! # Table of contents
@@ -49,14 +49,10 @@
 //!
 //! The API server will be available on the address specified in the configuration.
 //!
-//! You can test the API by loading the following URL on a browser:
-//!
-//! <http://0.0.0.0:1212/api/v1/stats?token=MyAccessToken>
-//!
-//! Or using `curl`:
+//! You can test the API using `curl`:
 //!
 //! ```bash
-//! $ curl -s "http://0.0.0.0:1212/api/v1/stats?token=MyAccessToken"
+//! $ curl -H "Authorization: Bearer MyAccessToken" -s "http://0.0.0.0:1212/api/v1/stats"
 //! ```
 //!
 //! The response will be a JSON object. For example, the [tracker statistics
@@ -85,9 +81,14 @@
 //!
 //! # Authentication
 //!
-//! The API supports authentication using a GET parameter token.
+//! The API authenticates a request by its token. Send it in the `Authorization` header:
 //!
-//! <http://0.0.0.0:1212/api/v1/stats?token=MyAccessToken>
+//! ```bash
+//! curl -H "Authorization: Bearer MyAccessToken" "http://0.0.0.0:1212/api/v1/stats"
+//! ```
+//!
+//! The server also accepts a `token` GET parameter (`?token=<token>`), but a URL, with its query,
+//! is written to proxy and browser logs, so the header is the safe form.
 //!
 //! You can set as many tokens as you want in the configuration file:
 //!
@@ -152,7 +153,7 @@
 //!
 //! > **NOTICE**: we are using [curl](https://curl.se/) in the API examples.
 //! > And you have to use quotes around the URL in order to avoid unexpected
-//! > errors. For example: `curl "http://127.0.0.1:1212/api/v1/stats?token=MyAccessToken"`.
+//! > errors. For example: `curl -H "Authorization: Bearer MyAccessToken" "http://127.0.0.1:1212/api/v1/stats"`.
 pub mod routes;
 pub mod server;
 #[cfg(test)]

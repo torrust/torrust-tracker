@@ -463,3 +463,26 @@ database already holds it.
   and code are asserted, so a fix that drops all detail does not pass.
 - Smell check: the fake is a test-local implementation of `sqlx`'s `DatabaseError` trait, needed
   because `sqlx` has no public constructor.
+
+## T8 - Documentation
+
+Commit subject: `docs(secrets): [#2999] teach the Authorization header and the peer-key rule`.
+
+- The secrecy ADR (`docs/adrs/20260822094338_adopt_secrecy_for_sensitive_values.md`) has an
+  amendment (decided in the issue spec: amend, no new ADR) for the peer key, secrets in URLs and
+  library errors that print a rejected value. The `handle-secrets` skill (version 1.3) has a
+  matching section and two checklist items.
+- `docs/containers.md`: the three `?token=` examples use the `Authorization` header; the MySQL
+  example uses the v3 network fields (`host`, `port`, `user`, `password`, `database`) instead of a
+  `mysql://` `path`, and the DSN percent-encoding advice is replaced by a note that the password
+  needs no encoding.
+- Skills `use-rest-api`, `manual-http-download-completion-e2e`, `manual-udp-download-completion-e2e`;
+  the rustdoc of `src/lib.rs`, `axum-rest-api-server` (`lib.rs`, `v1/middlewares/auth.rs`,
+  `v1/context/{auth_key,stats,torrent,whitelist}`, `torrent/handlers.rs`); and
+  `contrib/dev-tools/experiments/dual-stack-sockets/README.md` use the header. Where the query form
+  is explained on purpose (`axum-rest-api-server/src/lib.rs`, `v1/middlewares/auth.rs`,
+  `src/lib.rs`), it says the server still accepts it and the header is the safe form.
+- Check after the edit: `grep -rn "token=" --include=*.md --include=*.rs .` outside `docs/issues/`,
+  `docs/pr-reviews/`, `target/` and test code finds only the sentences that explain the query form
+  on purpose, and tests that exercise it (`auth.rs`, `routes.rs`, `client.rs`).
+- Pre-commit gate (markdown, links, spelling, doc tests): passed.

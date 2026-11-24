@@ -40,7 +40,7 @@ curl -H "Authorization: Bearer MyAccessToken" http://localhost:1212/api/v1/stats
 ### Query Parameter Method
 
 ```bash
-curl "http://localhost:1212/api/v1/stats?token=MyAccessToken"
+curl -H "Authorization: Bearer MyAccessToken" "http://localhost:1212/api/v1/stats"
 ```
 
 ### Configuration
