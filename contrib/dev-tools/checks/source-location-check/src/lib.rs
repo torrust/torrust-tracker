@@ -2,14 +2,21 @@
 //!
 //! The rule (ADR `20261118045443_errors_do_not_record_source_locations`): non-test code does not use
 //! `Location::caller()`, `#[track_caller]` or `torrust_located_error`. A text check cannot parse Rust, so
-//! test code is recognized by convention, which `rustfmt` keeps regular:
+//! it works on a masked copy of each file and recognizes test code by a few conventions:
 //!
-//! - a `#[cfg(test)]` attribute marks the item that follows (a block ends at the first closing brace
-//!   with the indentation of the attribute, a `mod name;` declaration ends on its own line);
-//! - a file declared by `#[cfg(test)] mod name;` is test code, with everything below that module;
+//! - [`mask`] blanks comments and the content of string and character literals first, so text in them is
+//!   never matched and never counts as a delimiter;
+//! - a `#[cfg(test)]` attribute at the start of a line marks the item that follows, however many other
+//!   attributes come first (also on the item's line or over several lines). The item ends at the `;` or at
+//!   the closing delimiter that balances its `{}`, `()` and `[]`, so `use std::{a, b};` ends at its
+//!   semicolon, and the rest of that line is scanned again;
+//! - a file declared by `#[cfg(test)] mod name;` is test code, with everything below that module, resolved
+//!   under the inline modules that enclose the declaration; so is a module declared inside a test-code
+//!   file. A production declaration that also includes the file keeps it checked, and the more specific of
+//!   a test-only and a production path decides ([`test_only_paths`], [`is_test_file`]);
 //! - files under a `tests` directory and under `packages/test-helpers/` are test code.
 //!
-//! Comment lines are ignored. Patterns are built with `concat!` so this crate does not match itself.
+//! Patterns are built with `concat!` so this crate does not match itself.
 
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};

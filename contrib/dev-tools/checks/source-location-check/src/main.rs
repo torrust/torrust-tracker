@@ -41,8 +41,9 @@ fn main() -> ExitCode {
     };
     let exit_code = records.iter().map(|record| record.exit_code).max().unwrap_or(0);
 
+    let mut stderr = io::stderr().lock();
     for record in &records {
-        if write_record(record).is_err() {
+        if write_record(&mut stderr, record).is_err() {
             std::process::exit(i32::from(exit_code.max(EXIT_FAILURE)));
         }
     }
@@ -141,8 +142,7 @@ fn rust_files() -> Result<Vec<PathBuf>, Failure> {
         .collect())
 }
 
-fn write_record(record: &Record) -> io::Result<()> {
-    let mut stderr = io::stderr().lock();
-    serde_json::to_writer(&mut stderr, record)?;
-    stderr.write_all(b"\n")
+fn write_record(writer: &mut impl Write, record: &Record) -> io::Result<()> {
+    serde_json::to_writer(&mut *writer, record)?;
+    writer.write_all(b"\n")
 }
