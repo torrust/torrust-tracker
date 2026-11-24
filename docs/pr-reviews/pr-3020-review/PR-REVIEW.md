@@ -4,7 +4,7 @@ semantic-links:
     - process-pr-review
   related-artifacts:
     - .claude/skills/process-pr-review/SKILL.md
-    - issue #3019
+    - "issue #3019"
 ---
 
 <!-- skill-link: process-pr-review -->
