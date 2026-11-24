@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2387-si-8-single-listener-identity-field/ISSUE.md
 branch: "{issue-number}-2387-si-8-single-listener-identity-field-spec"
 related-pr: null
-last-updated-utc: "2026-11-23 18:31"
+last-updated-utc: "2026-11-24 12:46"
 semantic-links:
   skill-links:
     - create-issue
@@ -58,6 +58,16 @@ The listener is named five ways across components. `bind_address` (the configure
 - The three start lines (SI-10).
 - Span fields other than the listener identity (SI-12).
 - Job manager lines (SI-13).
+
+## Findings of the coordinator's check (2026-11-24)
+
+The EPIC coordinator compared this draft with the code at `develop` `6a058dd4d` on 2026-11-24. Nothing changed since the draft was written; these are cases the draft did not name. The session that completes the draft checks each one and decides how its specification uses it.
+
+- The drain lines already use `service_binding` (`packages/udp-server/src/server/launcher.rs:88-150`); only the receive-loop lines need the change.
+- Every `local_addr` field: `packages/udp-server/src/server/launcher.rs:196,263,267,282,370,397,446,450,454`, `request_buffer.rs:102,115`, `bound_socket.rs:39`.
+- Other names for a listener: `bind_to` (`launcher.rs:428`, a `WARN` whose value is the bound address); `local_udp_url` (`launcher.rs:193`); `server_socket_addr` in request lines (`packages/axum-http-server/src/v1/routes.rs:98,121,132`, `packages/axum-rest-api-server/src/routes.rs:92,117,128,144`, `packages/udp-server/src/handlers/error.rs:103-121`).
+- A listener named only in message text: `packages/axum-server/src/signals.rs:33,41,54`, with messages built by the callers (`packages/axum-http-server/src/server.rs:292`, `packages/axum-rest-api-server/src/server.rs:230`, `packages/axum-health-check-api-server/src/server.rs:105`), and `Stopped server running on: http://{}` (`src/bootstrap/jobs/health_check_api.rs:67`).
+- AC3 needs the identity in spawned tasks: the UDP receive loop (`run_udp_server_main`) and the shared HTTP shutdown (`graceful_shutdown_on_cancellation`) run in root spans without `service_role` and `instance_index`. `signals.rs` takes a `SocketAddr`, and `packages/axum-server` depends on neither primitives package.
 
 ## Architectural Decisions
 
@@ -125,6 +135,7 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 - 2026-11-23 16:16 UTC - Claude Code (Fable 5.2) - Drafted with EPIC #2387 from the maintainer's decisions of 2026-11-21 and 2026-11-23. Not approved as a final specification; no GitHub issue created.
 - 2026-11-23 16:53 UTC - Claude Code (Fable 5.2) - Renumbered the sub-issues by working order after review round 1 of PR 3010 (finding F4); this draft's number and its references to other sub-issues follow the new numbers.
 - 2026-11-23 17:29 UTC - Claude Code (Fable 5.2) - Corrected after the CodeRabbit review of PR 3010 (audit findings F15 to F22): this draft now names the maintainer's approval before the GitHub issue is created; the drafts of SI-4, SI-8, SI-9, SI-13 and SI-23 have one more correction each.
+- 2026-11-24 12:46 UTC - Claude Code (Opus 5.5), EPIC coordinator - Compared with the code at `develop` `6a058dd4d`: corrected the claims the code contradicts, recorded the maintainer's answers of 2026-11-24 that concern this draft, and added "Findings of the coordinator's check" (order B′ of D1 places #2766 after SI-1 and before SI-2).
 
 ## Acceptance Criteria
 

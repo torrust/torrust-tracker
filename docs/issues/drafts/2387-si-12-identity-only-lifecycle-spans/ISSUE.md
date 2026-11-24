@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2387-si-12-identity-only-lifecycle-spans/ISSUE.md
 branch: "{issue-number}-2387-si-12-identity-only-lifecycle-spans-spec"
 related-pr: null
-last-updated-utc: "2026-11-23 17:29"
+last-updated-utc: "2026-11-24 12:46"
 semantic-links:
   skill-links:
     - create-issue
@@ -49,9 +49,9 @@ A lifecycle span carries `service_role` and `instance_index` and nothing else. N
 ### In Scope
 
 - On each service job's `start_job`: skip all arguments and keep the two identity fields.
-- Remove `#[instrument]` from `complete_startup` and from the inner start functions (`start_with_cancellation`, `start_v1`, and the equivalents of the REST API and the health check API).
+- Remove `#[instrument]` from `complete_startup` and from the inner start functions: UDP `start_with_cancellation` (`packages/udp-server/src/server/states.rs:73`) and `start_v1` of the HTTP tracker and the REST API (`src/bootstrap/jobs/http_tracker.rs:102`, `tracker_apis.rs:116`). The HTTP and REST `start_with_cancellation` are not instrumented, and the health check API has no inner instrumented function; its `start_job` (`src/bootstrap/jobs/health_check_api.rs:44`) has no identity fields today and gets them.
 - Move the settings that were span fields to fields of the `Starting` line: `connection_id_validation`, the cookie lifetime, the drain durations, the HTTP `version`. Duration names follow SI-9 if it is merged; otherwise they keep today's names and SI-9 renames them.
-- Spans of code without a service identity (`graceful_shutdown_on_cancellation`, job manager spans) carry no fields, or are removed when the lines inside already have the identity as event fields.
+- Spans of code without a service identity carry no fields, or are removed when the lines inside already have the identity as event fields. `src/bootstrap/jobs/manager.rs` has no spans. The spawned root spans `run_udp_server_main` (`packages/udp-server/src/server/launcher.rs:231`) and `graceful_shutdown_on_cancellation` (`packages/axum-server/src/signals.rs:18`) need the identity passed in.
 - Check that spawned tasks that log lifecycle lines still have the identity, as span or event fields.
 - Update the catalogue of lifecycle lines and the section "Changes in 4.0.0" in `docs/logging.md` for every line this issue changes.
 
@@ -59,6 +59,14 @@ A lifecycle span carries `service_role` and `instance_index` and nothing else. N
 
 - Request-handling spans (`request_id` and the like).
 - Messages and levels.
+
+## Findings of the coordinator's check (2026-11-24)
+
+The EPIC coordinator compared this draft with the code at `develop` `6a058dd4d` on 2026-11-24. Nothing changed since the draft was written; these are cases the draft did not name. The session that completes the draft checks each one and decides how its specification uses it.
+
+- More spans with settings or `Debug` values: `run_job{max_peer_timeout=60 cancellation_token=CancellationToken {…}}` (`packages/swarm-coordination-registry/src/statistics/activity_metrics_updater.rs:22`, a periodic job); `run_udp_server_main` (`packages/udp-server/src/server/launcher.rs:231`: `cookie_lifetime`, `connection_id_validation`, `request_drain_deadline`, no identity; it prefixes every UDP drain line); `graceful_shutdown_on_cancellation` (`packages/axum-server/src/signals.rs:18`: `address`, `drain_timeout`; three callers); the REST `router` span (`packages/axum-rest-api-server/src/routes.rs:41`, `server_service_binding` with `Debug`); `check_fn{service_binding=ServiceBinding {…}}` (`packages/axum-rest-api-server/src/server.rs:252`) on every health probe.
+- Job runner futures are spawned outside the `start_job` span (`src/bootstrap/jobs/manager.rs:677`), so the lines they log while running and stopping have no span identity today.
+- Removing UDP's `#[instrument(err)]` (`packages/udp-server/src/server/states.rs:79`) removes an `ERROR` line on a bind failure; the error must still be logged.
 
 ## Architectural Decisions
 
@@ -130,6 +138,7 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 - 2026-11-23 16:16 UTC - Claude Code (Fable 5.2) - Drafted with EPIC #2387 from the maintainer's decisions of 2026-11-21 and 2026-11-23. Not approved as a final specification; no GitHub issue created.
 - 2026-11-23 16:53 UTC - Claude Code (Fable 5.2) - Renumbered the sub-issues by working order after review round 1 of PR 3010 (finding F4); this draft's number and its references to other sub-issues follow the new numbers.
 - 2026-11-23 17:29 UTC - Claude Code (Fable 5.2) - Corrected after the CodeRabbit review of PR 3010 (audit findings F15 to F22): this draft now names the maintainer's approval before the GitHub issue is created; the drafts of SI-4, SI-8, SI-9, SI-13 and SI-23 have one more correction each.
+- 2026-11-24 12:46 UTC - Claude Code (Opus 5.5), EPIC coordinator - Compared with the code at `develop` `6a058dd4d`: corrected the claims the code contradicts, recorded the maintainer's answers of 2026-11-24 that concern this draft, and added "Findings of the coordinator's check" (order B′ of D1 places #2766 after SI-1 and before SI-2).
 
 ## Acceptance Criteria
 

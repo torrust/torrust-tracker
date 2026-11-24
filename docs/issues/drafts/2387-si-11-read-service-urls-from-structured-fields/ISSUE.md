@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2387-si-11-read-service-urls-from-structured-fields/ISSUE.md
 branch: "{issue-number}-2387-si-11-read-service-urls-from-structured-fields-spec"
 related-pr: null
-last-updated-utc: "2026-11-23 17:29"
+last-updated-utc: "2026-11-24 12:46"
 semantic-links:
   skill-links:
     - create-issue
@@ -48,16 +48,28 @@ No program in the repository reads a service URL from message text. The E2E runn
 ### In Scope
 
 - The E2E parser reads `service_binding=` from lines whose message is `Started <service>` and whose `service_role=` is the wanted one. Its unit tests use lines copied from a real capture.
-- The native tracker fixture does the same for the health check API.
+- The native tracker fixture does the same for the health check API and for the HTTP tracker (`tests/common/native_tracker/mod.rs:180` reads the HTTP tracker address too).
+- Under order B′ (D1) the log is JSON when this issue runs: the readers read the `service_binding` field of the JSON record, and this issue deletes the temporary extraction of the URL from the `message` field that #2766 added.
 - Tests that assert the presence or absence of `Started on:` assert the new line instead.
-- Delete `Starting on:` and `Started on:` from the four services, and the constant `STARTED_ON`.
+- Delete `Starting on:` and `Started on:` from the four services, and stop importing the constant `STARTED_ON`. It lives in the external crate `torrust-server-lib` (0.6.0, `logging.rs:16`), so it cannot be deleted here; the specification pull request decides whether to file an issue there to deprecate it.
 - Update documents that show these lines.
 - Update the catalogue of lifecycle lines and the section "Changes in 4.0.0" in `docs/logging.md` for every line this issue changes.
 
 ### Out of Scope
 
-- Parsing JSON. #2766 changes the format later; this issue reads fields from the text format.
+- Changing the output format. #2766 did that before this issue (D1, order B′).
 - Other log readers in the lifecycle tests (SI-9, SI-14 and SI-18 update the lines they read).
+
+## Findings of the coordinator's check (2026-11-24)
+
+The EPIC coordinator compared this draft with the code at `develop` `6a058dd4d` on 2026-11-24. Nothing changed since the draft was written; these are cases the draft did not name. The session that completes the draft checks each one and decides how its specification uses it.
+
+- `STARTED_ON` is imported at five sites: `src/console/ci/e2e/logs_parser.rs:4`, `packages/udp-server/src/server/launcher.rs:12`, `packages/axum-http-server/src/server.rs:14`, `packages/axum-rest-api-server/src/server.rs:31`, `packages/axum-health-check-api-server/src/server.rs:18`.
+- The parser's expression accepts IPv4 only (`[0-9.]+`); a reader of `service_binding` should not copy that limit.
+- Unit-test fixtures to rewrite: `src/console/ci/e2e/logs_parser.rs:119-165`, `tests/common/native_tracker/health.rs:79-112`.
+- Documents that show these lines: `.claude/skills/manual-udp-download-completion-e2e/SKILL.md:48-49`, `manual-http-download-completion-e2e/SKILL.md:54-55`, `setup-dev-environment/SKILL.md:121-124`, `contrib/dev-tools/experiments/dual-stack-sockets/README.md:107-114`.
+- Readers that match a message without reading a value, for the catalogue: `Tracker shutdown signal handlers installed.` (`tests/common/native_tracker/mod.rs:47`, `packages/hung-component-tracker/tests/common/mod.rs:17`), ` panicked at ` (`src/console/ci/e2e/tracker_container.rs:125`).
+- The signal name read from `Torrust tracker shutting down (SIGTERM) ...` is SI-18's (maintainer, 2026-11-24).
 
 ## Architectural Decisions
 
@@ -127,6 +139,7 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 - 2026-11-23 16:16 UTC - Claude Code (Fable 5.2) - Drafted with EPIC #2387 from the maintainer's decisions of 2026-11-21 and 2026-11-23. Not approved as a final specification; no GitHub issue created.
 - 2026-11-23 16:53 UTC - Claude Code (Fable 5.2) - Renumbered the sub-issues by working order after review round 1 of PR 3010 (finding F4); this draft's number and its references to other sub-issues follow the new numbers.
 - 2026-11-23 17:29 UTC - Claude Code (Fable 5.2) - Corrected after the CodeRabbit review of PR 3010 (audit findings F15 to F22): this draft now names the maintainer's approval before the GitHub issue is created; the drafts of SI-4, SI-8, SI-9, SI-13 and SI-23 have one more correction each.
+- 2026-11-24 12:46 UTC - Claude Code (Opus 5.5), EPIC coordinator - Compared with the code at `develop` `6a058dd4d`: corrected the claims the code contradicts, recorded the maintainer's answers of 2026-11-24 that concern this draft, and added "Findings of the coordinator's check" (order B′ of D1 places #2766 after SI-1 and before SI-2).
 
 ## Acceptance Criteria
 
@@ -179,7 +192,7 @@ None planned. If one is needed, record its path, purpose and removal owner here 
 ## Risks and Trade-offs
 
 - A reader outside the repository parses `Started on:` (deployment scripts, the demo). Mitigation: listed in "Changes in 4.0.0" with the replacement.
-- The parser depends on the order of fields in the text format. Mitigation: it matches each field by name, not by position.
+- The parser depends on the shape of the JSON record that #2766 defines (top-level fields or nested under `fields`). Mitigation: it reads each field by name through the one parser #2766 provides.
 
 ## Implementation Completion Review
 

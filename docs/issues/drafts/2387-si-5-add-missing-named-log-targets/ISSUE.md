@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2387-si-5-add-missing-named-log-targets/ISSUE.md
 branch: "{issue-number}-2387-si-5-add-missing-named-log-targets-spec"
 related-pr: null
-last-updated-utc: "2026-11-23 17:29"
+last-updated-utc: "2026-11-24 12:46"
 semantic-links:
   skill-links:
     - create-issue
@@ -50,8 +50,8 @@ Some lifecycle lines use a named target constant and the others take the default
 
 - A `JOB_MANAGER` target for every line of `src/bootstrap/jobs/manager.rs`.
 - An `APPLICATION` target for process-level lines: logging initialized, configuration, signal handlers installed, shutting down, shutdown result, startup failure, and the lines that say a service is not configured. The existing `torrust_tracker` target constant becomes `APPLICATION` here, because it is the same set of lines.
-- A target for each periodic job (torrent cleanup, peers inactivity update, UDP ban cleanup) and for each event listener start and stop line that has none. The specification pull request lists the names; a job that belongs to an existing component uses that component's target.
-- The shared HTTP shutdown code in `packages/axum-server/src/signals.rs` logs under the target of the service it stops (HTTP tracker, REST API or health check API), passed in by the caller.
+- A target for each periodic job that has none (torrent cleanup, peers inactivity update). The UDP ban cleanup job and every event listener start, stop and drain line already have one. The specification pull request lists the names; a job that belongs to an existing component uses that component's target.
+- The shared HTTP shutdown code in `packages/axum-server/src/signals.rs` logs under the target of the service it stops (HTTP tracker, REST API or health check API). `tracing` needs a constant target, so a runtime value passed by the caller cannot work; the repository already solves this with a macro (`log_drain_report!`, `packages/events/src/drain.rs:129-131`). The specification pull request chooses the mechanism.
 - Rustdoc on each new target constant: what the target is for.
 - Lifecycle lines logged inside a job starter without a target (for example `Starting UDP tracker instance` in `src/bootstrap/jobs/udp_tracker.rs`).
 - Update the catalogue of lifecycle lines and the section "Changes in 4.0.0" in `docs/logging.md` for every line this issue changes.
@@ -61,6 +61,15 @@ Some lifecycle lines use a named target constant and the others take the default
 - Renaming existing targets (SI-6).
 - Changing messages, fields or levels.
 - Request-handling lines.
+
+## Findings of the coordinator's check (2026-11-24)
+
+The EPIC coordinator compared this draft with the code at `develop` `6a058dd4d` on 2026-11-24. Nothing changed since the draft was written; these are cases the draft did not name. The session that completes the draft checks each one and decides how its specification uses it.
+
+- Lifecycle lines without a named target that the draft does not name: `src/main.rs:32`; `src/app.rs:343,499,501,686,753,787`; `src/bootstrap/app.rs:66`; `src/bootstrap/jobs/http_tracker.rs:70`; `src/bootstrap/jobs/torrent_cleanup.rs:53,59,61`; `src/bootstrap/jobs/manager.rs` (11 sites, `:727-863`); `packages/axum-server/src/signals.rs:33,41,45,53` and `tls.rs:38,39`; `packages/axum-http-server/src/server.rs:118,132,237,239` (`Started HTTP tracker`); `packages/axum-rest-api-server/src/server.rs:196,214`; `packages/swarm-coordination-registry/src/statistics/activity_metrics_updater.rs:44,51,68,83`; `packages/configuration/src/lib.rs:196-223`; `packages/tracker-client/src/udp/client.rs:248,259` (logged inside the tracker by the health check's UDP probes). `packages/tracker-core/src/torrent/manager.rs:119,130` may be lifecycle lines too.
+- `PROCESS_LOG_TARGET` is a private constant in `src/app.rs:141`, and `Logging initialized` is logged in `packages/configuration`, a lower layer. `APPLICATION` needs a home that package can reach, or that line moves (SI-16 adds the identity line after the logging setup).
+- Candidate targets for periodic jobs: `TRACKER_CORE` for torrent cleanup, `SWARM_COORDINATION_REGISTRY` for the activity metrics updater.
+- The bug `tracing::debug!(target = …)` in `packages/udp-core/src/services/announce.rs:178` and `scrape.rs:140` is fixed by its own issue before #2766, not here (maintainer, 2026-11-24).
 
 ## Architectural Decisions
 
@@ -132,6 +141,7 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 - 2026-11-23 16:16 UTC - Claude Code (Fable 5.2) - Drafted with EPIC #2387 from the maintainer's decisions of 2026-11-21 and 2026-11-23. Not approved as a final specification; no GitHub issue created.
 - 2026-11-23 16:53 UTC - Claude Code (Fable 5.2) - Renumbered the sub-issues by working order after review round 1 of PR 3010 (finding F4); this draft's number and its references to other sub-issues follow the new numbers.
 - 2026-11-23 17:29 UTC - Claude Code (Fable 5.2) - Corrected after the CodeRabbit review of PR 3010 (audit findings F15 to F22): this draft now names the maintainer's approval before the GitHub issue is created; the drafts of SI-4, SI-8, SI-9, SI-13 and SI-23 have one more correction each.
+- 2026-11-24 12:46 UTC - Claude Code (Opus 5.5), EPIC coordinator - Compared with the code at `develop` `6a058dd4d`: corrected the claims the code contradicts, recorded the maintainer's answers of 2026-11-24 that concern this draft, and added "Findings of the coordinator's check" (order B′ of D1 places #2766 after SI-1 and before SI-2).
 
 ## Acceptance Criteria
 

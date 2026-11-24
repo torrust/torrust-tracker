@@ -1,12 +1,12 @@
 ---
 schema-version: 1
 doc-type: epic
-status: planned
+status: in-progress
 epic: null
 github-issue: 2387
 spec-path: docs/issues/open/2387-review-tracker-lifecycle-logs/EPIC.md
-epic-owner: null
-last-updated-utc: "2026-11-23 18:32"
+epic-owner: josecelano
+last-updated-utc: "2026-11-24 12:46"
 semantic-links:
   skill-links:
     - create-issue
@@ -69,7 +69,7 @@ All content decisions (D1 to D12), with their alternatives, pros, cons and reaso
 
 | ID | Decision |
 | --- | --- |
-| D1 | This EPIC goes before the JSON log format of #2766. The convention does not depend on the output format |
+| D1 | Order B′ (changed 2026-11-24): SI-1, then the JSON log format of #2766, then SI-2 to SI-23. The convention does not depend on the output format |
 | D2 | Named targets on every lifecycle line, in uppercase with underscores. Adding targets and renaming targets are two tasks. New: `JOB_MANAGER`, `APPLICATION`. `API` becomes `REST_API` |
 | D3 | Four parts. D3a: `service_binding` is the only name of a bound listener; `bind_address` only before the bind. D3b: the URL has no trailing slash. D3c: a local display helper now and a fix in `torrust-net-primitives`. D3d: service jobs are named by role and index |
 | D4 | Three state lines for each service: `Starting`, `Bound … socket`, `Started` (after registration). Lines are merged only when nothing can fail between them. The text `Started on:` is removed and its readers use fields |
@@ -90,6 +90,17 @@ Process decisions (2026-11-23):
 4. **One sub-issue at a time.** The coordinator starts one session for one sub-issue and waits for it to finish before starting the next. Sub-issues do not run in parallel.
 5. **Each sub-issue session**, in this order: completes its draft, stops for the maintainer to review and approve it, creates its GitHub issue only after that approval (the `create-issue` skill forbids creating it earlier), moves the specification to `docs/issues/open/`, opens a specification-only pull request, and after that is merged implements the issue, opens the implementation pull request and does the close-out.
 
+Decisions of 2026-11-24, after the coordinator compared the specifications with the code at `develop` `6a058dd4d` (no drift since the drafts; the findings are recorded in each draft under "Findings of the coordinator's check"):
+
+1. **Order B′** (D1 changed): SI-1, then #2766, then SI-2 to SI-23. See D1 in [decisions.md](decisions.md).
+2. **One specification pull request** records B′ and corrects the facts the check found wrong, and each draft gets the missing cases as a list. Design choices inside a sub-issue stay for that sub-issue's own specification review.
+3. **The test-only executable `packages/hung-component-tracker` is in scope** as a log reader and a second binary: it runs the same start and shutdown code as the tracker, and its tests read log text. Every sub-issue that changes a line it runs or asserts updates it in the same pull request. New process-level lines (SI-16, SI-17, SI-18) are logged from the library, not from `src/main.rs`, so both binaries print them.
+4. **The signal name leaves the message text in SI-18.** Today `Torrust tracker shutting down (SIGTERM) ...` (`src/app.rs:158`) carries it, and tests read it there.
+5. **#2999 (EPIC #2993) goes before SI-19.** Both rewrite the same three `TraceLayer` blocks; SI-19 adapts to #2999's code. The #2993 coordinator corrects its own specification.
+6. **SI-9 keeps its place before SI-12.** Its AC1 excludes span fields, which SI-12 removes, and lines from dependency targets.
+7. **SI-19 covers every request-log duration**: `latency_ms`, the `latency` of the three `response failed` lines and the UDP `?latency` trace, all as `latency_in_ms`, recorded as integers.
+8. **The `tracing::debug!(target = …)` bug** in `packages/udp-core/src/services/announce.rs:178` and `scrape.rs:140` (a field named `target` instead of the target) is its own bug issue, outside this EPIC, run after SI-1.
+
 ## Scope
 
 ### In Scope
@@ -107,7 +118,7 @@ Process decisions (2026-11-23):
 ### Out of Scope
 
 - Levels of request-handling logs (announce, scrape, connect). Issue #1166 covers them.
-- The log output format and stream (JSON on stderr). Issue #2766 covers them. It starts after SI-1 to SI-20 are merged, not after this EPIC closes: SI-22 stays in this EPIC and waits for #2766.
+- The log output format and stream (JSON on stderr). Issue #2766 covers them. It runs after SI-1 and before SI-2 (D1, order B′), so SI-2 to SI-23 are written and reviewed against JSON output.
 - Metrics and domain events as such; only their startup log lines are in scope.
 - Changing shutdown behavior or deadlines. EPIC #1488 did that and is closed.
 - Changes inside `torrust-net-primitives` and `torrust-metrics`. They are other repositories; this EPIC files an issue in each and adapts when they release.
@@ -122,7 +133,7 @@ The sub-issues are drafts. Each gets its GitHub issue number when its session st
 | SI | Issue | Local Spec | Status | Decisions | Depends on |
 | --- | --- | --- | --- | --- | --- |
 | 1 | #[To be assigned] - Bug: statistics listeners log a `WARN` for every event when usage statistics are disabled | `docs/issues/drafts/2387-si-1-statistics-disabled-warning-per-event/ISSUE.md` | TODO | D8 | - |
-| 2 | #[To be assigned] - Record the logging convention: ADR, `docs/logging.md`, inventory and skill | `docs/issues/drafts/2387-si-2-logging-convention-adr-and-docs/ISSUE.md` | TODO | D2, D3, D4, D5, D6, D9, D11, D12 | - |
+| 2 | #[To be assigned] - Record the logging convention: ADR, `docs/logging.md`, inventory and skill | `docs/issues/drafts/2387-si-2-logging-convention-adr-and-docs/ISSUE.md` | TODO | D2, D3, D4, D5, D6, D9, D11, D12 | #2766 |
 | 3 | #[To be assigned] - Reject private mode with UDP trackers configured at startup | `docs/issues/drafts/2387-si-3-reject-private-mode-with-udp-trackers/ISSUE.md` | TODO | D9 | - |
 | 4 | #[To be assigned] - Add the unit to the three duration configuration keys that have none | `docs/issues/drafts/2387-si-4-configuration-keys-with-units/ISSUE.md` | TODO | D6 | - |
 | 5 | #[To be assigned] - Add named targets to lifecycle lines that have none | `docs/issues/drafts/2387-si-5-add-missing-named-log-targets/ISSUE.md` | TODO | D2 | SI-2 |
@@ -139,10 +150,10 @@ The sub-issues are drafts. Each gets its GitHub issue number when its session st
 | 16 | #[To be assigned] - Log the build and run identity as the first line | `docs/issues/drafts/2387-si-16-build-and-run-identity-start-line/ISSUE.md` | TODO | D10 | SI-5 |
 | 17 | #[To be assigned] - Log `Tracker started` when every job has started | `docs/issues/drafts/2387-si-17-tracker-started-line/ISSUE.md` | TODO | D10 | SI-16 |
 | 18 | #[To be assigned] - Log how long each job took to stop and one final `Tracker stopped` line | `docs/issues/drafts/2387-si-18-job-stop-duration-and-tracker-stopped-line/ISSUE.md` | TODO | D10 | SI-9, SI-14 |
-| 19 | #[To be assigned] - Rename `latency_ms` to `latency_in_ms` in request logs | `docs/issues/drafts/2387-si-19-request-log-latency-field/ISSUE.md` | TODO | D6 | SI-9 |
+| 19 | #[To be assigned] - Rename `latency_ms` to `latency_in_ms` in request logs | `docs/issues/drafts/2387-si-19-request-log-latency-field/ISSUE.md` | TODO | D6 | SI-9, #2999 |
 | 20 | #[To be assigned] - Check the lifecycle log convention automatically | `docs/issues/drafts/2387-si-20-automated-lifecycle-log-check/ISSUE.md` | TODO | D11 | SI-1 to SI-19 |
 | 21 | #[To be assigned] - Summarize metrics registration in one line | `docs/issues/drafts/2387-si-21-metrics-registration-summary-line/ISSUE.md` | BLOCKED | D7a | A `torrust-metrics` release with the fix |
-| 22 | #[To be assigned] - Add `run_id` to every log record | `docs/issues/drafts/2387-si-22-run-id-on-every-record/ISSUE.md` | BLOCKED | D10 | #2766, SI-16 |
+| 22 | #[To be assigned] - Add `run_id` to every log record | `docs/issues/drafts/2387-si-22-run-id-on-every-record/ISSUE.md` | TODO | D10 | #2766, SI-16 |
 | 23 | #[To be assigned] - Close out: recapture, compare, and review the acceptance criteria | `docs/issues/drafts/2387-si-23-close-out/ISSUE.md` | TODO | - | All others |
 
 ### External follow-ups (other repositories)
@@ -158,29 +169,39 @@ One sub-issue at a time, each in its own session, each with a specification pull
 
 ### Working order
 
-The sub-issues run in the order of their numbers: `SI-1` to `SI-20`, then `SI-23`. `SI-21` and `SI-22` are blocked; each runs when its blocker is gone.
+Order B′ (D1, 2026-11-24):
+
+1. `SI-1`.
+2. The `target =` bug issue (item 8 of the decisions of 2026-11-24 above), outside this EPIC.
+3. #2766 (EPIC #2758): JSON logs on stderr. The coordinator holds `SI-2` until #2766 is merged.
+4. `SI-2` to `SI-20`, in the order of their numbers.
+5. `SI-22`, after `SI-16` and #2766.
+6. `SI-21` when its blocker is gone.
+7. `SI-23`.
 
 Reasons for the order:
 
-- **SI-1 first.** It is the only defect that harms a production tracker today, and bugs go before other work. It depends on nothing: the fields it needs already exist.
-- **SI-2 second.** Every later sub-issue adds its lines to `docs/logging.md` and its entries to the list of changes, so the documents must exist.
+- **SI-1 first.** It is the only defect that harms a production tracker today, and bugs go before other work. It depends on nothing: the fields it needs already exist. It is the default state, not an opt-in: the per-tracker `tracker_usage_statistics` defaults to `false`.
+- **#2766 after SI-1 and before SI-2.** The convention does not depend on the output format (D1), so the format goes first and the convention is reviewed once, in its final format. #2766 keeps reading service URLs from the `message` field of the JSON records until SI-11 moves the readers to fields.
+- **SI-2 next.** Every later sub-issue adds its lines to `docs/logging.md` and its entries to the list of changes, so the documents must exist.
 - **SI-3 and SI-4 early.** They change behavior and the configuration schema. An early merge gives the most time before 4.0.0 to find a problem.
 - **Targets (SI-5, SI-6) before lines.** The lines that later sub-issues rewrite then already have their final target.
 - **SI-7 before SI-8 and SI-10.** The value of `service_binding` has its final form before it is added to more lines.
 - **SI-10 then SI-11.** SI-10 only adds the new lines, so no reader breaks. SI-11 moves the readers and deletes the old lines. Between the two, `develop` has both old and new start lines.
 - **SI-20 near the end.** A check written before the lines are final would need an exception list that changes in every pull request.
+- **SI-19 after #2999 (EPIC #2993).** Both change the same three `TraceLayer` blocks, and #2999 is a security fix.
 
 The coordinator may change the order when a sub-issue's specification shows a dependency this table does not have. It records the change in the progress log.
 
 ### Blocked sub-issues and the close-out
 
-`SI-21` waits for a release of `torrust-metrics` and `SI-22` waits for #2766. Neither is needed for the others. If one of them is still blocked when `SI-20` is done, the coordinator asks the maintainer whether the EPIC stays open for it or the sub-issue leaves the EPIC and continues alone. `SI-23` runs after that answer.
+`SI-21` waits for a release of `torrust-metrics`. It is not needed for the others. If it is still blocked when `SI-20` and `SI-22` are done, the coordinator asks the maintainer whether the EPIC stays open for it or the sub-issue leaves the EPIC and continues alone. `SI-23` runs after that answer.
 
 ### What every sub-issue does
 
 Besides its own change, a sub-issue that changes a log line:
 
-1. updates the readers of that line in the same pull request (see the table of readers in [decisions.md](decisions.md));
+1. updates the readers of that line in the same pull request (see the table of readers in [decisions.md](decisions.md)), including the tests of `packages/hung-component-tracker`;
 2. updates the catalogue of lifecycle lines in `docs/logging.md`;
 3. adds its operator-visible changes to "Changes in 4.0.0" in `docs/logging.md`;
 4. records a capture of the changed lines in its manual verification evidence.
@@ -194,9 +215,9 @@ For each subissue implementation in this EPIC, the default completion policy is:
 3. Re-review acceptance criteria after implementation and update verification evidence.
 4. Complete an evidence-based implementation review. Create or update an issue-local retrospective for reusable lessons, material design changes, or meaningful deviations from the plan; otherwise record why one was unnecessary in the issue progress log.
 
-### Phase 1: the defect and the rules
+### Phase 1: the defect, the format and the rules
 
-- Outcome: SI-1 to SI-4 merged.
+- Outcome: SI-1, #2766 (EPIC #2758), then SI-2 to SI-4 merged.
 - Exit criteria: a tracker with statistics disabled logs no `WARN` for a request; the ADR is accepted; `docs/logging.md` exists with the glossary, the targets, the fields, the levels and an empty catalogue ready to fill.
 
 ### Phase 2: targets and identity
@@ -211,7 +232,7 @@ For each subissue implementation in this EPIC, the default completion policy is:
 
 ### Phase 4: enforcement and acceptance
 
-- Outcome: SI-20 merged; SI-21 and SI-22 merged or detached by the maintainer; SI-23 done.
+- Outcome: SI-20 and SI-22 merged; SI-21 merged or detached by the maintainer; SI-23 done.
 - Exit criteria: the check runs in CI; the recapture is compared with the baseline line by line and every difference is in "Changes in 4.0.0".
 
 ## Progress Tracking
@@ -222,7 +243,7 @@ For each subissue implementation in this EPIC, the default completion policy is:
 - [x] GitHub issue #2387 created and issue number added to this spec
 - [x] Open questions answered by the maintainer and recorded in `decisions.md` (2026-11-23)
 - [x] Converted to an EPIC; sub-issue drafts written in `docs/issues/drafts/`
-- [ ] EPIC specification pull request reviewed and merged
+- [x] EPIC specification pull request reviewed and merged (PR 3010, 2026-11-24)
 - [ ] Subissues created and linked in this spec, one at a time as each starts
 - [ ] Subissue statuses kept up to date in the `Subissues` table
 - [ ] For each implemented subissue: automatic checks completed and recorded
@@ -244,6 +265,7 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 - 2026-11-23 16:20 UTC - Claude Code (Fable 5.2) - The maintainer approved the split into 23 sub-issues and the process (issue #2387 is the EPIC; drafts only for the sub-issues; a coordinator runs one sub-issue session at a time). Converted the specification from `ISSUE.md` to `EPIC.md`, set the status from `blocked` to `planned`, and wrote the 23 drafts. Updated the specification of #2766 and its row in EPIC #2758 to say that #2766 starts after this EPIC.
 - 2026-11-23 16:22 UTC - Claude Code (Fable 5.2) - Filed the two external issues as `josecelano-bot`: `torrust/torrust-net-primitives` issue 1 (`ServiceBinding` display without trailing slash) and `torrust/torrust-metrics` issue 4 (level and format of the metric description logs).
 - 2026-11-23 16:52 UTC - Claude Code (Fable 5.2) - Renumbered the sub-issues by working order (review finding F4 of PR 3010): the `si-{N}` segment of a sub-issue folder means the implementation order. The old numbers 2, 1, 15, 12, 3, 4, 5, 6, 10, 7, 8, 9, 13, 14, 17, 18, 19, 20, 11, 21, 16, 22, 23 are now 1 to 23 in that sequence. The draft folders, the decisions and the specification of #2766 use the new numbers.
+- 2026-11-24 12:46 UTC - Claude Code (Fable 5.2, then Opus 5.5), EPIC coordinator - The specification PR 3010 merged (45424f182); the EPIC is `in-progress` with `josecelano` as owner. Compared the EPIC, the decisions and the 23 drafts with the code at `develop` `6a058dd4d`: no drift since the drafts were written (no commit since `ff3600f10` changes a lifecycle log line, target, span, job name or log reader), but wrong facts and missing cases that were already there. The maintainer answered ten questions (the decisions of 2026-11-24 under Maintainer Decisions). Changed D1 to order B′ (his decision of 2026-11-24, taken in the session that wrote the specification); SI-22 is no longer blocked. Corrected the facts in `decisions.md` and the drafts, and added the missing cases to each draft.
 
 ## Acceptance Criteria
 
@@ -292,8 +314,9 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 - **Operators' parsers break.** Renamed targets and fields silently break queries and alerts. Mitigation: the break is in a major release, and "Changes in 4.0.0" lists each change (D12).
 - **The repository's own readers break.** The E2E runner, the test fixture and the lifecycle tests read log text. Mitigation: each sub-issue updates its readers in the same pull request, and SI-10 and SI-11 are split so the readers move in a pull request of their own.
 - **Many small pull requests touch the same files.** Mitigation: one sub-issue at a time, each cut from the current `develop`.
-- **Conflict with #2766.** Both rewrite the log parsers. Mitigation: D1 orders them, and both specifications say so.
-- **Other repositories release late.** SI-21 and SI-22 may wait a long time. Mitigation: they block nothing else, and the maintainer decides at the end whether they stay in the EPIC.
+- **Conflict with #2766.** Both rewrite the log parsers. Mitigation: D1 orders them (#2766 after SI-1, before SI-2), and both specifications say so. Between #2766 and SI-11 the readers take the service URL from the `message` field of a JSON record; SI-11 removes that.
+- **#2766 is late.** SI-2 to SI-23 wait for it. Mitigation: the coordinator reports to the maintainer if #2766 has not started when SI-1 and the `target =` bug are merged; the maintainer decides whether to wait.
+- **Other repositories release late.** SI-21 may wait a long time. Mitigation: it blocks nothing else, and the maintainer decides at the end whether it stays in the EPIC.
 - **Scope grows into request logs.** Mitigation: only `latency_ms` is in scope (SI-19); levels of request logs stay in #1166.
 - **A decision does not survive the code.** The start sequences of the REST API and the health check API were not traced line by line. Mitigation: SI-2's inventory verifies them before SI-10, and a sub-issue stops and asks when a decision does not hold.
 - **Behaviour changes hidden in a log EPIC.** SI-4 changes the configuration schema and SI-3 rejects a configuration that starts today. Mitigation: each is its own sub-issue with its own specification review, and SI-3 has its own ADR.
@@ -301,7 +324,7 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 ## References
 
 - Origin: PR #2382 Copilot review finding F4; issue #2370 (EPIC #1488 SI-15)
-- Related issues: #1166 (tracing level usage in request handling), #2766 (daemon JSON logs, after SI-1 to SI-20 of this EPIC), #2758 (EPIC of #2766), #1488 (shutdown overhaul, closed), closed #387 (syslog format)
+- Related issues: #1166 (tracing level usage in request handling), #2766 (daemon JSON logs, after SI-1 and before SI-2 of this EPIC), #2758 (EPIC of #2766), #2993 and its sub-issue #2999 (secrets in request logs, before SI-19), #1488 (shutdown overhaul, closed), closed #387 (syslog format)
 - Decisions: [decisions.md](decisions.md)
 - Baseline: [baseline-lifecycle-logs.md](baseline-lifecycle-logs.md), [baseline-lifecycle-logs-debug.md](baseline-lifecycle-logs-debug.md), [baseline-lifecycle-logs-statistics-disabled.md](baseline-lifecycle-logs-statistics-disabled.md)
 - Related ADRs: the logging ADR created by SI-2; the private-mode ADR created by SI-3

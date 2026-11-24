@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2387-si-13-job-names-from-role-and-index/ISSUE.md
 branch: "{issue-number}-2387-si-13-job-names-from-role-and-index-spec"
 related-pr: null
-last-updated-utc: "2026-11-23 17:30"
+last-updated-utc: "2026-11-24 12:46"
 semantic-links:
   skill-links:
     - create-issue
@@ -48,15 +48,24 @@ Service jobs are named `udp_instance_0_0.0.0.0:6868` and `http_instance_1_0.0.0.
 ### In Scope
 
 - Name UDP and HTTP tracker jobs `<service_role>_<instance_index>`.
-- Check the other job names (`http_api`, `health_check_api`, listeners, periodic jobs) for coherence with the service roles and propose renames in the specification pull request (for example `http_api` to `rest_api`).
-- Let the job manager know the identity of a service job, and add `service_role` and `instance_index` to its lines about that job (reserved, started, asked to stop, outcome).
-- Update the tests that match job names (`tests/lifecycle/signals.rs` and others).
+- Check the other job names (`http_api`, `health_check_api`, listeners, periodic jobs) for coherence with the service roles and propose renames in the specification pull request. The REST API's role string is `tracker_rest_api` (`packages/primitives/src/service_role.rs:32`) and its target will be `REST_API` (D2), so `http_api` has no single obvious new name.
+- Let the job manager know the identity of a service job, and add `service_role` and `instance_index` to its lines about that job. Today it logs nothing when a job is reserved or spawned; its lines about a job are the shutdown plan, the release, never-asked and the outcome.
+- Update the tests that match job names: the tests in `src/app.rs` and `src/bootstrap/jobs/manager.rs`, and `packages/hung-component-tracker/tests/hung_component_abort.rs:73-80`. `tests/lifecycle/signals.rs` matches no job name.
 - Update the catalogue of lifecycle lines and the section "Changes in 4.0.0" in `docs/logging.md` for every line this issue changes.
 
 ### Out of Scope
 
 - Levels of job manager lines (SI-14).
 - Durations (SI-9, SI-18).
+
+## Findings of the coordinator's check (2026-11-24)
+
+The EPIC coordinator compared this draft with the code at `develop` `6a058dd4d` on 2026-11-24. Nothing changed since the draft was written; these are cases the draft did not name. The session that completes the draft checks each one and decides how its specification uses it.
+
+- The 14 job names (`src/app.rs`): `health_check_api` (`:320`); five event listeners (`:402-461`); `udp_server_stats_event_listener`, `udp_server_banning_event_listener`, `udp_ban_cleanup` (`:510-533`); `udp_instance_{idx}_{bind_address}` (`:637`); `http_instance_{idx}_{bind_address}` (`:705`); `http_api` (`:734`); `torrent_cleanup` (`:765`); `peers_inactivity_update` (`:783`).
+- Job names also travel in the fields `waiting_for`, `last_completed_job` and `incomplete_components` (`src/app.rs:178`) and in the text of `SpawnError`.
+- The manager's API is `reserve<N: Into<String>>` and `JobIdentity { id, name }` (`src/bootstrap/jobs/manager.rs:603,677`). `ConfigurationInstanceId` is in `torrust-tracker-primitives`, so the manager can take it without depending on a service package.
+- Tests that match job names: `src/app.rs:1006,1072,1269-1343`, `src/bootstrap/jobs/manager.rs:1828-1897`, `packages/hung-component-tracker/tests/hung_component_abort.rs:73-80` (`job=health_check_api`, `job=hung_component`, sorted `incomplete_components`).
 
 ## Architectural Decisions
 
@@ -126,6 +135,7 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 - 2026-11-23 16:16 UTC - Claude Code (Fable 5.2) - Drafted with EPIC #2387 from the maintainer's decisions of 2026-11-21 and 2026-11-23. Not approved as a final specification; no GitHub issue created.
 - 2026-11-23 16:53 UTC - Claude Code (Fable 5.2) - Renumbered the sub-issues by working order after review round 1 of PR 3010 (finding F4); this draft's number and its references to other sub-issues follow the new numbers.
 - 2026-11-23 17:29 UTC - Claude Code (Fable 5.2) - Corrected after the CodeRabbit review of PR 3010 (audit findings F15 to F22): this draft now names the maintainer's approval before the GitHub issue is created; the drafts of SI-4, SI-8, SI-9, SI-13 and SI-23 have one more correction each.
+- 2026-11-24 12:46 UTC - Claude Code (Opus 5.5), EPIC coordinator - Compared with the code at `develop` `6a058dd4d`: corrected the claims the code contradicts, recorded the maintainer's answers of 2026-11-24 that concern this draft, and added "Findings of the coordinator's check" (order B′ of D1 places #2766 after SI-1 and before SI-2).
 
 ## Acceptance Criteria
 

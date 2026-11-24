@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2387-si-9-duration-fields-in-lifecycle-lines/ISSUE.md
 branch: "{issue-number}-2387-si-9-duration-fields-in-lifecycle-lines-spec"
 related-pr: null
-last-updated-utc: "2026-11-23 17:32"
+last-updated-utc: "2026-11-24 12:46"
 semantic-links:
   skill-links:
     - create-issue
@@ -60,6 +60,16 @@ The same kind of value appears as `timeout_seconds=25`, `drain_timeout=15s`, `re
 - `latency_ms` in request logs (SI-19).
 - Renaming the configuration keys (SI-4).
 - Adding durations that are not logged today (SI-17, SI-18).
+
+## Findings of the coordinator's check (2026-11-24)
+
+The EPIC coordinator compared this draft with the code at `develop` `6a058dd4d` on 2026-11-24. Nothing changed since the draft was written; these are cases the draft did not name. The session that completes the draft checks each one and decides how its specification uses it.
+
+- More durations without a unit: `?deadline` (`packages/udp-server/src/server/launcher.rs:88,134`), `?elapsed` (`:148,150`, `elapsed=3.005µs` in the baseline, so an integer `elapsed_in_ms` is `0`), `reset_interval_in_secs` (`src/bootstrap/jobs/udp_tracker_server.rs:97`, which D6 names `ip_bans_reset_interval_in_secs`).
+- Durations inside messages: `packages/axum-server/src/signals.rs:33,46,54`; `src/bootstrap/jobs/torrent_cleanup.rs:59,61`; `packages/swarm-coordination-registry/src/statistics/activity_metrics_updater.rs:69,84`.
+- `drain_timeout`, `request_drain_deadline`, `cookie_lifetime` and `max_peer_timeout` exist only as span fields today (`src/bootstrap/jobs/http_tracker.rs:53,102`, `tracker_apis.rs:72,116`, `health_check_api.rs:44`, `udp_tracker.rs:46`; `packages/udp-server/src/server/states.rs:73`, `launcher.rs:231`; `packages/axum-server/src/signals.rs:18`; `activity_metrics_updater.rs:22`). This issue logs the settings on the existing `Starting` lines (UDP and HTTP trackers); SI-10 creates the `Starting` lines of the REST API and the health check API and logs their drain setting there under the name this issue's rule gives it; SI-12 removes the span fields. AC1 excludes span fields for that reason (maintainer, 2026-11-24).
+- `event_listener_drain_in_secs` is not logged today, and adding a duration that is not logged today is out of scope, so M1 does not expect it.
+- Readers of `timeout_seconds=`: `tests/lifecycle/shutdown_policy.rs:110,146,176,219`, `tests/common/native_tracker/mod.rs:427,440`; no others.
 
 ## Architectural Decisions
 
@@ -131,10 +141,11 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 - 2026-11-23 16:16 UTC - Claude Code (Fable 5.2) - Drafted with EPIC #2387 from the maintainer's decisions of 2026-11-21 and 2026-11-23. Not approved as a final specification; no GitHub issue created.
 - 2026-11-23 16:53 UTC - Claude Code (Fable 5.2) - Renumbered the sub-issues by working order after review round 1 of PR 3010 (finding F4); this draft's number and its references to other sub-issues follow the new numbers.
 - 2026-11-23 17:29 UTC - Claude Code (Fable 5.2) - Corrected after the CodeRabbit review of PR 3010 (audit findings F15 to F22): this draft now names the maintainer's approval before the GitHub issue is created; the drafts of SI-4, SI-8, SI-9, SI-13 and SI-23 have one more correction each.
+- 2026-11-24 12:46 UTC - Claude Code (Opus 5.5), EPIC coordinator - Compared with the code at `develop` `6a058dd4d`: corrected the claims the code contradicts, recorded the maintainer's answers of 2026-11-24 that concern this draft, and added "Findings of the coordinator's check" (order B′ of D1 places #2766 after SI-1 and before SI-2).
 
 ## Acceptance Criteria
 
-- [ ] AC1: No lifecycle field value in a capture at `debug` is a duration with a unit suffix such as `15s` or `250ms`.
+- [ ] AC1: No lifecycle event field value in a capture at `debug` is a duration with a unit suffix such as `15s` or `250ms`. Span fields are excluded (SI-12 removes them; the settings they hold are logged by this issue on the `Starting` lines of the UDP and HTTP trackers, the only services that have one today, and by SI-10 on the new `Starting` lines of the REST API and the health check API), and so are lines of dependency targets such as `sqlx::query` (maintainer, 2026-11-24).
 - [ ] AC2: Each configured duration in the log has the name of its configuration key. The three keys of the exception in D6 (`max_peer_timeout`, `inactive_peer_cleanup_interval`, `cookie_lifetime`) are logged under the name SI-4 gives them, whether or not SI-4 is merged.
 - [ ] AC3: No lifecycle message contains a duration.
 - [ ] AC4: "Changes in 4.0.0" lists the renamed fields.
@@ -158,8 +169,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | Compare with the configuration | Start the release tracker; for each duration key of the configuration file, search the log for the key name | Each is found with the configured value | TODO | `manual-verification-evidence.md` section V1 |
+| M1 | Compare with the configuration | Start the release tracker; for each configured duration that a lifecycle line of the UDP or HTTP trackers, the job manager or a periodic job logs today (the configured entries of the list of T1), search the log for its configuration key name | Each is found with the configured value. Durations not logged today, such as `event_listener_drain_in_secs`, are not expected. Measured durations have no configuration key and are checked by M3 | TODO | `manual-verification-evidence.md` section V1 |
 | M2 | Shutdown deadline | Stop the tracker with `SIGTERM` | The shutdown lines show `shutdown_deadline_in_secs=25` | TODO | `manual-verification-evidence.md` section V2 |
+| M3 | Measured durations | Start the release tracker, send one UDP announce, and stop it with `SIGTERM` at `debug` | Every measured duration that the list of T1 names (for example the UDP drain `elapsed`) is logged as `elapsed_in_ms=<integer>`, with no unit in its value | TODO | `manual-verification-evidence.md` section V3 |
 
 Notes:
 

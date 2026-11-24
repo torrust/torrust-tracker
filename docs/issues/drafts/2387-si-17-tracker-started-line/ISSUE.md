@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2387-si-17-tracker-started-line/ISSUE.md
 branch: "{issue-number}-2387-si-17-tracker-started-line-spec"
 related-pr: null
-last-updated-utc: "2026-11-23 18:32"
+last-updated-utc: "2026-11-24 12:46"
 semantic-links:
   skill-links:
     - create-issue
@@ -56,6 +56,14 @@ Today the last line of a start is `Tracker shutdown signal handlers installed.`,
 
 - Changing readiness as the health check reports it.
 - The final line of a stop (SI-18).
+
+## Findings of the coordinator's check (2026-11-24)
+
+The EPIC coordinator compared this draft with the code at `develop` `6a058dd4d` on 2026-11-24. Nothing changed since the draft was written; these are cases the draft did not name. The session that completes the draft checks each one and decides how its specification uses it.
+
+- The handlers line is logged after the jobs start (`src/app.rs:214`), and the fixture waits for it (`tests/common/native_tracker/mod.rs:47,295`).
+- `run_until_shutdown_signal` (`src/app.rs:155`) has no start instant, and `JobManager` has no public job count. Callers that use only `app::start*` never reach it: `tests/common/workspace.rs:180`, `src/console/profiling.rs:202`.
+- Log the line from the library so the test-only executable `packages/hung-component-tracker` prints it too (maintainer, 2026-11-24). Its tests wait for the handlers line (`packages/hung-component-tracker/tests/common/mod.rs:17`).
 
 ## Architectural Decisions
 
@@ -123,6 +131,7 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 - 2026-11-23 16:16 UTC - Claude Code (Fable 5.2) - Drafted with EPIC #2387 from the maintainer's decisions of 2026-11-21 and 2026-11-23. Not approved as a final specification; no GitHub issue created.
 - 2026-11-23 16:53 UTC - Claude Code (Fable 5.2) - Renumbered the sub-issues by working order after review round 1 of PR 3010 (finding F4); this draft's number and its references to other sub-issues follow the new numbers.
 - 2026-11-23 17:29 UTC - Claude Code (Fable 5.2) - Corrected after the CodeRabbit review of PR 3010 (audit findings F15 to F22): this draft now names the maintainer's approval before the GitHub issue is created; the drafts of SI-4, SI-8, SI-9, SI-13 and SI-23 have one more correction each.
+- 2026-11-24 12:46 UTC - Claude Code (Opus 5.5), EPIC coordinator - Compared with the code at `develop` `6a058dd4d`: corrected the claims the code contradicts, recorded the maintainer's answers of 2026-11-24 that concern this draft, and added "Findings of the coordinator's check" (order B′ of D1 places #2766 after SI-1 and before SI-2).
 
 ## Acceptance Criteria
 

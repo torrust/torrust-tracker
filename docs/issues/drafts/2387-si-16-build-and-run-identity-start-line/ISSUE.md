@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2387-si-16-build-and-run-identity-start-line/ISSUE.md
 branch: "{issue-number}-2387-si-16-build-and-run-identity-start-line-spec"
 related-pr: null
-last-updated-utc: "2026-11-23 17:29"
+last-updated-utc: "2026-11-24 12:46"
 semantic-links:
   skill-links:
     - create-issue
@@ -60,6 +60,16 @@ The log does not say which version or commit is running, so a log file cannot be
 - `run_id` on every record (SI-22).
 - Exposing the build identity in the REST API or the health check.
 - Reproducible-build concerns beyond recording what the specification decides for a dirty tree.
+
+## Findings of the coordinator's check (2026-11-24)
+
+The EPIC coordinator compared this draft with the code at `develop` `6a058dd4d` on 2026-11-24. Nothing changed since the draft was written; these are cases the draft did not name. The session that completes the draft checks each one and decides how its specification uses it.
+
+- No `build.rs` exists in the workspace, and nothing logs a version or commit today. `request_id` is a UUID (`MakeRequestUuid`).
+- `uuid` is not a dependency of the root crate (only of four packages), so `run_id` adds a direct dependency; it is already in the lockfile.
+- Container build: `.dockerignore` is default-deny and admits neither `.git` nor a root `build.rs`; `Containerfile` has no commit build argument; `cargo chef` needs the declared files; `.github/workflows/container.yaml` must pass the value.
+- `Logging initialized` is logged inside `packages/configuration/src/v3_0_0/logging.rs:101`, under a `Once`; with `trace_filter = "off"` the setup returns before it (`:68`). A configuration failure happens before logging starts (`src/bootstrap/app.rs:56-62`), so such a run has no identity line.
+- Log the line from the library, not from `src/main.rs`, so the test-only executable `packages/hung-component-tracker` (its own `src/main.rs:36-43`) prints it too (maintainer, 2026-11-24).
 
 ## Architectural Decisions
 
@@ -129,6 +139,7 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 - 2026-11-23 16:16 UTC - Claude Code (Fable 5.2) - Drafted with EPIC #2387 from the maintainer's decisions of 2026-11-21 and 2026-11-23. Not approved as a final specification; no GitHub issue created.
 - 2026-11-23 16:53 UTC - Claude Code (Fable 5.2) - Renumbered the sub-issues by working order after review round 1 of PR 3010 (finding F4); this draft's number and its references to other sub-issues follow the new numbers.
 - 2026-11-23 17:29 UTC - Claude Code (Fable 5.2) - Corrected after the CodeRabbit review of PR 3010 (audit findings F15 to F22): this draft now names the maintainer's approval before the GitHub issue is created; the drafts of SI-4, SI-8, SI-9, SI-13 and SI-23 have one more correction each.
+- 2026-11-24 12:46 UTC - Claude Code (Opus 5.5), EPIC coordinator - Compared with the code at `develop` `6a058dd4d`: corrected the claims the code contradicts, recorded the maintainer's answers of 2026-11-24 that concern this draft, and added "Findings of the coordinator's check" (order B′ of D1 places #2766 after SI-1 and before SI-2).
 
 ## Acceptance Criteria
 

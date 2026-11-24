@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2387-si-6-rename-log-targets-to-underscore-style/ISSUE.md
 branch: "{issue-number}-2387-si-6-rename-log-targets-to-underscore-style-spec"
 related-pr: null
-last-updated-utc: "2026-11-23 17:29"
+last-updated-utc: "2026-11-24 12:46"
 semantic-links:
   skill-links:
     - create-issue
@@ -60,6 +60,15 @@ Targets with a space (`UDP TRACKER`, `HTTP TRACKER`, `HEALTH CHECK API`, `UDP CL
 - `METRICS`, which belongs to the crate `torrust-metrics` and already follows the style.
 - Adding targets (SI-5).
 - Messages, fields and levels.
+
+## Findings of the coordinator's check (2026-11-24)
+
+The EPIC coordinator compared this draft with the code at `develop` `6a058dd4d` on 2026-11-24. Nothing changed since the draft was written; these are cases the draft did not name. The session that completes the draft checks each one and decides how its specification uses it.
+
+- The renames match the constants: `UDP TRACKER` (`packages/udp-core/src/lib.rs:22`), `HTTP TRACKER` (`packages/http-core/src/lib.rs:19` and a second constant in `packages/axum-http-server/src/lib.rs:312`), `HEALTH CHECK API` (`packages/axum-health-check-api-server/src/lib.rs:8`), `UDP CLIENT` (`packages/tracker-client/src/udp/client.rs:15`), `API` (`packages/axum-rest-api-server/src/lib.rs:165`). `EVENTS_TARGET` (`packages/events/src/lib.rs:9`) is unused.
+- `docs/containers.md` and the package READMEs name no target.
+- Readers the draft does not name: `packages/udp-server/tests/server/contract.rs:310`; 29 `logs_contains_a_line_with(&["ERROR", "API", …])` calls in `packages/axum-rest-api-server/tests/server/v1/contract/` (substring matches: they keep passing after the rename and also match `HEALTH_CHECK_API`); `packages/http-core/src/lib.rs:142`; `tests/common/native_tracker/mod.rs:180` and `health.rs:10,79-112`; `src/console/ci/e2e/logs_parser.rs:25-37,118-165`; `.claude/skills/setup-dev-environment/SKILL.md:121-124`, `manual-http-download-completion-e2e/SKILL.md:54-55`, `manual-udp-download-completion-e2e/SKILL.md:48-49`; `docs/benchmarking.md:297`; `contrib/dev-tools/experiments/dual-stack-sockets/README.md:107-114`; `packages/axum-rest-api-server/src/lib.rs:45`.
+- `UDP CLIENT` lines are also logged inside the tracker process (10 in the `debug` baseline), by the health check's UDP probes.
 
 ## Architectural Decisions
 
@@ -129,6 +138,7 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 - 2026-11-23 16:16 UTC - Claude Code (Fable 5.2) - Drafted with EPIC #2387 from the maintainer's decisions of 2026-11-21 and 2026-11-23. Not approved as a final specification; no GitHub issue created.
 - 2026-11-23 16:53 UTC - Claude Code (Fable 5.2) - Renumbered the sub-issues by working order after review round 1 of PR 3010 (finding F4); this draft's number and its references to other sub-issues follow the new numbers.
 - 2026-11-23 17:29 UTC - Claude Code (Fable 5.2) - Corrected after the CodeRabbit review of PR 3010 (audit findings F15 to F22): this draft now names the maintainer's approval before the GitHub issue is created; the drafts of SI-4, SI-8, SI-9, SI-13 and SI-23 have one more correction each.
+- 2026-11-24 12:46 UTC - Claude Code (Opus 5.5), EPIC coordinator - Compared with the code at `develop` `6a058dd4d`: corrected the claims the code contradicts, recorded the maintainer's answers of 2026-11-24 that concern this draft, and added "Findings of the coordinator's check" (order B′ of D1 places #2766 after SI-1 and before SI-2).
 
 ## Acceptance Criteria
 
