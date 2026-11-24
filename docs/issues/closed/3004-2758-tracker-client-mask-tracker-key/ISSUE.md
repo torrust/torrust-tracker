@@ -9,7 +9,7 @@ github-issue: 3004
 spec-path: docs/issues/closed/3004-2758-tracker-client-mask-tracker-key/ISSUE.md
 branch: "3004-tracker-client-mask-tracker-key"
 related-pr: 3012
-last-updated-utc: "2026-11-24 11:54"
+last-updated-utc: "2026-11-24 13:02"
 semantic-links:
   skill-links:
     - create-issue
@@ -338,7 +338,7 @@ commit.
 - [x] Evidence-based implementation completion review recorded
 - [x] Reviewer validated acceptance criteria and updated checkboxes (PR #3012 merged after five review rounds)
 - [x] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
