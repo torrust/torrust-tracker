@@ -222,8 +222,11 @@ them first:
 2. If no check starts and the runs say `action_required`, a maintainer has to approve them (see
    "When Checks Never Start" in that skill). Ask for it and wait; this is not a failure and does not
    count toward the check limit.
-3. If a check failed, follow "When a Check Fails" in that skill: read the log, fix the change (or
-   re-run the jobs when the cause is outside it), push, and watch again.
+3. If a check failed, first see whether it is a workflow check: a review service's own check run
+   (no workflow) is not a failure, even though `--watch --fail-fast` stops on it (see
+   [Review-Service Check Runs](../watch-pull-request-checks/SKILL.md#review-service-check-runs)).
+   For a failed workflow check, follow "When a Check Fails" in that skill: read the log, fix the
+   change (or re-run the jobs when the cause is outside it), push, and watch again.
 4. Run the poller while the checks run, so a review that arrives first is not missed. Do not
    request a review (see [A Review a Maintainer Requested](#a-review-a-maintainer-requested)).
 

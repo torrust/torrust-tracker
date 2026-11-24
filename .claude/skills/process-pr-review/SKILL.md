@@ -62,7 +62,10 @@ A row's reply URL exists only after replying: create the record, reply, then fil
    identity and resolution state.
 2. **Record the reviewer and normalize.** Record the GitHub login of each finding's
    author as its `Reviewer`, for example `da2ce7` or `coderabbitai[bot]`, and
-   `unknown` when GitHub shows no author. Split each review body into
+   `unknown` when GitHub shows no author. The author is the account of the comment or
+   review body the finding comes from, as GitHub shows it: an inline Copilot comment
+   is `Copilot`, a finding in its review body is `copilot-pull-request-reviewer[bot]`.
+   Split each review body into
    one row per independently actionable assertion; do not make a row for a summary
    or verdict that contains no request. Preserve the source review ID and URL.
    Treat Copilot's collapsed `Suppressed comments` as findings only when their
