@@ -9,7 +9,7 @@ github-issue: 3052
 spec-path: docs/issues/open/3052-whitelist-add-remove-race/ISSUE.md
 branch: "3052-whitelist-add-remove-race"
 related-pr: null
-last-updated-utc: "2026-11-25 17:12"
+last-updated-utc: "2026-11-25 17:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -148,7 +148,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task                                                                    | Notes / Expected Output                                          |
 | --- | ------ | ----------------------------------------------------------------------- | ---------------------------------------------------------------- |
 | T1  | DONE   | Reproduce on SQLite and record it                                       | V1 recorded in `manual-verification-evidence.md`                 |
-| T2  | TODO   | Reproduce on MySQL and PostgreSQL (Docker)                              | V2 recorded, or infeasibility with attempted commands            |
+| T2  | DONE   | Reproduce on MySQL and PostgreSQL (Docker)                              | V2 recorded, or infeasibility with attempted commands            |
 | T3  | TODO   | Add the concurrency regression test and the concurrent store-level harness cases, and observe them red | Red run recorded on the unfixed code: the `persisted.rs` test fails for `add` and for `remove`; the harness cases fail on SQLite, and on MySQL and PostgreSQL via the Docker suites |
 | T4  | TODO   | Make the three drivers idempotent; update trait docs and `DatabaseWhitelist` | Regression test green                                       |
 | T5  | TODO   | Replace the three failure-documenting harness tests with no-op tests (the concurrent cases were added red in T3) | SQLite unit tests and Docker suites green |
@@ -202,6 +202,7 @@ with the narrow affected scope, and sign every commit with GPG.
 - 2026-11-25 14:18 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the spec; GitHub issue #3052 created; spec moved to open/
 - 2026-11-25 16:55 UTC - Claude Code (Claude Sonnet 5.5) - Spec PR #3053 merged; added the asserting `persisted.rs` concurrency tests (one for add, one for remove) and observed both red on SQLite - `manual-verification-evidence.md` T3
 - 2026-11-25 17:12 UTC - Claude Code (Claude Sonnet 5.5) - Added the concurrent store-level harness cases and observed them red on SQLite - `manual-verification-evidence.md` T3
+- 2026-11-25 17:30 UTC - Claude Code (Claude Sonnet 5.5) - Observed the concurrent harness cases red on MySQL and PostgreSQL (T2, V2 before-fix) - `manual-verification-evidence.md` V2
 
 ## Acceptance Criteria
 

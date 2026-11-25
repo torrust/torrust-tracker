@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/3052-whitelist-add-remove-race/ISSUE.md
-last-updated-utc: "2026-11-25 17:12"
+last-updated-utc: "2026-11-25 17:30"
 ---
 
 # Manual Verification Evidence
@@ -113,7 +113,26 @@ The red run on the MySQL and PostgreSQL Docker suites is recorded under V2.
 
 ### V2 - MySQL and PostgreSQL
 
-Status: `TODO` (T2).
+Status: before-fix result recorded; the after-fix rerun is pending (T6).
+
+Reproduced at store level with the concurrent harness cases of T3 (two concurrent identical
+`add_info_hash_to_whitelist` or `remove_info_hash_from_whitelist` calls on the Docker databases),
+against `torrust/develop` at the merge of #3053 plus the two T3 test commits. The suites are one test
+each, so the add case stops it first; the remove case was observed by keeping the add case unregistered
+for one local run (not committed). Commands:
+`TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST=true cargo test -p torrust-tracker-core --features db-compatibility-tests --lib run_mysql_driver_tests`
+and the same with `POSTGRES`. Docker containers were started by the suites.
+
+```text
+MySQL add:        InvalidQuery { source: Database(MySqlDatabaseError { code: Some("23000"), number: 1062, message: "Duplicate entry '...' for key 'whitelist.info_hash'" }), driver: MySQL }
+PostgreSQL add:   InvalidQuery { source: Database(PgDatabaseError { ... code: "23505", message: "duplicate key value violates unique constraint \"whitelist_info_hash_key\"" ... }), driver: PostgreSQL }
+MySQL remove:     DeleteFailed { error_code: 0, driver: MySQL }
+PostgreSQL remove: DeleteFailed { error_code: 0, driver: PostgreSQL }
+```
+
+The race therefore reproduces on all three drivers. The `DatabaseWhitelist` level test of
+`persisted.rs` runs on SQLite only. The MySQL affected-rows behavior of the planned
+`ON DUPLICATE KEY UPDATE` (0 rows on a no-op) is checked after the fix.
 
 ## Failures and Follow-up
 
