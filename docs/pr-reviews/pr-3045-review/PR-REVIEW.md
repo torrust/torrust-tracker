@@ -47,6 +47,8 @@ Round 2 covers review 6053927729 (da2ce7, CHANGES_REQUESTED) of the head `docs(p
 
 Round 3 covers review 6056979124 (CodeRabbit, COMMENTED) of the head `docs(issues): [#2392] record order 9 as done in the AC2 evidence`, with one inline finding, F7. CodeRabbit marks it Minor.
 
+Round 4 covers review 6057293370 (da2ce7, APPROVED at the head `docs(pr-reviews): [#2392] say the round 3 thread was already resolved`) with three inline Nits, as audit findings F8 to F10. The review body says none blocks.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3045-f1 | Unknown | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
@@ -56,6 +58,9 @@ Round 3 covers review 6056979124 (CodeRabbit, COMMENTED) of the head `docs(issue
 | F5 | review-finding:pr-3045-f5 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-3045-f6 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F7 | review-finding:pr-3045-f7 | Unknown | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-3045-f8 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F9 | review-finding:pr-3045-f9 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-3045-f10 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -150,6 +155,45 @@ Round 3 covers review 6056979124 (CodeRabbit, COMMENTED) of the head `docs(issue
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3045#discussion_r4694473643
 
+### F8 - The Round 3 paragraph named the wrong head
+
+- PR number: 3045
+- Source review ID: 6057293370
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3045#discussion_r4694624057
+- Concern: The paragraph said review 6056979124 is of the head named by the round 1 correction commit, but GitHub records its commit as the one that records order 9 in the AC2 evidence.
+- Solution: The paragraph names the head `docs(issues): [#2392] record order 9 as done in the AC2 evidence`.
+- Current-tree verification: `grep -c '^Round 3 covers review 6056979124 .*of the head .docs(issues): \[#2392\] record order 9 as done' docs/pr-reviews/pr-3045-review/PR-REVIEW.md` prints 1.
+- Resolution reference: `docs(pr-reviews): [#2392] restore the rewritten log entries of PR 3045 and name the right head`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3045#discussion_r4694758661
+
+### F9 - The record called its logs append-only while entries were rewritten in place
+
+- PR number: 3045
+- Source review ID: 6057293370
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3045#discussion_r4694624075
+- Concern: Two Solutions gave the append-only log as a reason, while the EPIC entry and two Processing Log entries had been rewritten in place after they were pushed.
+- Solution: The two reasons are dropped. The two rewritten Processing Log entries are restored to their first text, and an appended correction names the rewritten content and the EPIC entry that the F7 fix also rewrote.
+- Current-tree verification: `grep -c 'because the log is append[-]only' docs/pr-reviews/pr-3045-review/PR-REVIEW.md` prints 0, and `grep -c '^- 2026-11-25 [0-9:]* UTC - Correction after da2ce7 review 6057293370' docs/pr-reviews/pr-3045-review/PR-REVIEW.md` prints 1.
+- Resolution reference: `docs(pr-reviews): [#2392] restore the rewritten log entries of PR 3045 and name the right head`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3045#discussion_r4694759256
+
+### F10 - The description's second bullet counted one entry and misplaced the elimination
+
+- PR number: 3045
+- Source review ID: 6057293370
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3045#discussion_r4694624096
+- Concern: The bullet said the PR adds a progress-log entry, while it adds three, and its clause read as if order 10 moves the users by elimination.
+- Solution: The description says it adds three progress-log entries and puts the elimination on the clause about where the files come from. The description is outside the tree, so this fix has no commit.
+- Current-tree verification: `gh-bot pr view 3045 --repo torrust/torrust-tracker --json body --jq .body | grep -c 'Adds three progress-log entries'` prints 1 (the description is not in the tree; this ran at 12:18 UTC on 2026-11-25).
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3045#discussion_r4694759726
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3045#discussion_r4694759726
+
 ## Processing Log
 
 - 2026-11-24 19:18 UTC - Started audit. Round 1: review 6045674009 (Greptile, COMMENTED) with one finding, F1, valid. Committed and pushed the fix (`docs(issues): [#2392] scope the recheck count of order 9 to http-core`), then replied on the thread. The CodeRabbit comment is a rate-limit notice and needs no action.
@@ -159,6 +203,7 @@ Round 3 covers review 6056979124 (CodeRabbit, COMMENTED) of the head `docs(issue
 - 2026-11-25 11:53 UTC - Round 3: CodeRabbit review 6056979124 (COMMENTED) with one finding, F7, valid. Committed and pushed the fix (`docs(issues): [#2392] say the six-file attribution follows from excluding the direct caller`, then `docs(issues): [#2392] log the attribution change as its own entry`) and replied (about 11:53Z). Resolved the five round 2 threads at about 11:47Z.
 - 2026-11-25 11:53 UTC - The validator on the worktree record printed `{"status": "ok", "rows": 7, "log_entries": 5, "failures": 0}`. Resolved the round 3 thread (about 11:53Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread, and the newest review by a reviewer in the review list was 6056979124. Committed these entries.
 - 2026-11-25 12:12 UTC - Correction after da2ce7 review 6057293370, which found that two entries above were rewritten in place after they were pushed. Both are restored to their first text. The first one, the second entry of 2026-11-24 19:18, was rewritten by `docs(pr-reviews): [#2392] correct the round 1 log of PR 3045`: its last sentence said the validator result is in the commit that adds the entry, and it now has no such result; the validator printed `{"status": "ok", "rows": 1, "log_entries": 2, "failures": 0}` on the worktree record before that commit. The second one, the validator entry of 2026-11-25 11:53, was rewritten by `docs(pr-reviews): [#2392] say the round 3 thread was already resolved`: the round 3 thread was already resolved when I refreshed, so I did not resolve it. Also, the EPIC entry of 2026-11-24 18:57 was rewritten in place by `docs(issues): [#2392] say the six-file attribution follows from excluding the direct caller`, as the F7 solution says.
+- 2026-11-25 12:18 UTC - Round 4: da2ce7 review 6057293370 (APPROVED) with three Nits, F8 to F10, all valid. Edited the PR description for F10, committed and pushed the fix for F8 and F9 (`docs(pr-reviews): [#2392] restore the rewritten log entries of PR 3045 and name the right head`), and replied to the three threads (about 12:17Z). The validator on the worktree record printed `{"status": "ok", "rows": 10, "log_entries": 7, "failures": 0}`. Resolved the three threads, selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread, and the newest review by a reviewer in the review list was 6057293370. Committed these entries.
 
 ## Completion Rules
 
