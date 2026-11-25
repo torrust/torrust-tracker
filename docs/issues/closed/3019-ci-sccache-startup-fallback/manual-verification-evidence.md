@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/3019-ci-sccache-startup-fallback/ISSUE.md
-last-updated-utc: "2026-11-24 18:50"
+issue-spec: docs/issues/closed/3019-ci-sccache-startup-fallback/ISSUE.md
+last-updated-utc: "2026-11-25 08:37"
 ---
 
 # Manual Verification Evidence
@@ -239,10 +239,27 @@ reliable check, and the build passes without the wrapper.
 
 ### V6 - Hosted runs of jobs the PR checks do not run
 
-- Status: `TODO` (after the merge)
-- `coverage.yaml`: the run for the merge push to `develop`.
-- `testing.yaml` → `docker-e2e`: the next Dependabot branch push, the only event that runs its
-  `sccache` steps in `torrust/torrust-tracker`.
+- Status: `PARTIAL`: `coverage.yaml` done; `docker-e2e` not observed when the spec was archived.
+- `coverage.yaml`, run <https://github.com/torrust/torrust-tracker/actions/runs/45575925023>
+  for the merge push of PR #3040 to `develop` (2026-11-25):
+  - `Generate Coverage Report`, job 139073721007: **success** (08:24:20 to 08:35:05 UTC). No
+    `sccache disabled` warning annotation, so the server started.
+  - Its stats report `cache_location: ghac` and `version: 0.20.1`, but
+    `0 hits, 624 misses, 275 errors`, with `cache_read_errors` 275, `cache_write_errors` 624 and
+    `cache_writes` 0: the cache service failed every write and many reads.
+  - The cache service was degraded for the other jobs of the same push too: the
+    `OS Compatibility` builds had 0 % to 35 % hits with 135 to 441 errors each. The two
+    `coverage` runs before the change had 61 % and 66 % hits. The 0 hits come from the cache
+    service, not from the change: the backend, key inputs and `RUSTFLAGS` of the job did not
+    change.
+- `testing.yaml` → `docker-e2e`: its `sccache` steps run only for a Dependabot branch push in
+  `torrust/torrust-tracker`. The last ones (2026-11-24 17:04 UTC and earlier) ran before the
+  merge, and none ran between the merge and the archive. It runs the same composite action as
+  the `unit` job on the same `ubuntu-latest` image, which V4 and V5 verified.
+- Windows note: on the merge push, `Build on windows-latest (stable)` again had 0 hits, with
+  435 successful `cache_writes`. GitHub Actions caches written by a pull request branch are not
+  readable from `develop`, and `develop` had no Windows `sccache` entries before this push, so
+  a cold cache is expected there.
 
 ## Failures and Follow-up
 
