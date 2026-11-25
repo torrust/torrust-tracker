@@ -6,7 +6,7 @@ epic: null
 github-issue: 2392
 spec-path: docs/issues/open/2392-test-isolation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-25 11:35"
+last-updated-utc: "2026-11-25 11:47"
 semantic-links:
   skill-links:
     - create-issue
@@ -315,11 +315,14 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
   (about 15:20 UTC).
 - 2026-11-24 18:57 UTC - Claude Code (Claude Sonnet 5.5), EPIC coordinator - Order 9 (#2924) is DONE: PRs
   #3011, #3029 and #3035 merged and GitHub closed #2924. The guard and its factory are in
-  `torrust-tracker-test-helpers`. The `http-core` recheck still counts 6 `data_*.db` files, all from
-  `ephemeral*()` users that order 10 (#2925) moves. `tracker-core` keeps its own
+  `torrust-tracker-test-helpers`. The `http-core` recheck still counts 6 `data_*.db` files. The one
+  direct caller creates none, so the six come from `ephemeral*()` users that order 10 (#2925)
+  moves; the per-test attribution is not done. `tracker-core` keeps its own
   `EphemeralConfiguration` wrappers, and no subissue owns adopting the shared type there yet.
 - 2026-11-25 11:35 UTC - Claude Code (Claude Sonnet 5.5), EPIC coordinator - The review of PR #3045 changed the
   sync: the AC2 evidence now says orders 7 and 9 are done, and AC2 waits on orders 6 and 10.
+  The 2026-11-24 18:57 entry now says the six-file attribution follows from excluding the direct
+  caller.
 
 ## Acceptance Criteria
 
