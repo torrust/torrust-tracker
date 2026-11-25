@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/3060-udp-core-debug-log-target-field/ISSUE.md
-last-updated-utc: "2026-11-25 17:43"
+last-updated-utc: "2026-11-25 18:03"
 ---
 
 # Manual Verification Evidence
@@ -98,20 +98,43 @@ packages/udp-core/src/services/announce.rs:178:            tracing::debug!(targe
 packages/udp-core/src/services/scrape.rs:140:            tracing::debug!(target = crate::UDP_TRACKER_LOG_TARGET, "Sending UdpScrape event: {event:?}");
 ```
 
-Multi-line scan (the AC3 command; its output is NUL-separated, shown here through `tr '\0' '\n'`), which also matches a call written across several lines:
+Multi-line scan (the AC3 command; GNU `grep -z` reads a file as one record, so `(?s)` matches across lines; its output is NUL-separated, shown here through `tr '\0' '\n'`):
 
 ```text
-$ git grep -n -P -z -o '(?s)\b(?:trace|debug|info|warn|error|event|span|trace_span|debug_span|info_span|warn_span|error_span)!\s*\(\s*target\s*=[^=]' -- '*.rs' | tr '\0' '\n'
-packages/udp-core/src/services/announce.rs
-178
-debug!(target =
-packages/udp-core/src/services/scrape.rs
-140
-debug!(target =
+$ grep -rPzo '(?s)\b(?:trace|debug|info|warn|error|event|span|trace_span|debug_span|info_span|warn_span|error_span)!\s*\(\s*(?:[^;{}()]*?,\s*)?target\s*=[^=]' packages src --include=*.rs | tr '\0' '\n'
+packages/udp-core/src/services/scrape.rs:debug!(target =
+packages/udp-core/src/services/announce.rs:debug!(target =
 ```
 
-Both scans find only the two known sites. The match `debug!(target =` is printed by the command with one trailing space, omitted here.
+Both scans find only the two known sites. The match `debug!(target =` is printed with one trailing space, omitted here.
+
+#### Detection check of the multi-line scan (2026-11-25 2026-11-25 18:03 UTC)
+
+An earlier version of this scan used `git grep -n -P -z -o` with a pattern that allowed no other argument before `target =`. `git grep` matches line by line even with `-z`, so on a sample file it did not detect a call written across lines (`git grep --no-index -c -P -z '(?s)debug!\(\s*target\s*=' -- s.rs` printed nothing), and the pattern missed `event!(Level::DEBUG, target = ...)`. Both were pointed out in review (findings F11 and F12 of PR #3062) and the scan above replaces it. Its detection is shown on `evidence/scan-sample.rs`:
+
+```rust
+fn f(){
+    tracing::debug!(
+        target = "X",
+        "m"
+    );
+    tracing::event!(Level::DEBUG, target = "Y", "m");
+    tracing::info!(target: "Z", a = 1, "ok");
+    tracing::info!(a = 1, b = 2, "target = nope");
+}
+```
+
+```text
+$ grep -Pzo '(?s)\b(?:trace|debug|info|warn|error|event|span|trace_span|debug_span|info_span|warn_span|error_span)!\s*\(\s*(?:[^;{}()]*?,\s*)?target\s*=[^=]' evidence/scan-sample.rs | tr '\0' '\n'
+debug!(
+        target =
+event!(Level::DEBUG, target =
+```
+
+The multi-line `debug!` call and the `event!` call with a leading argument are found; `target: "Z"` (colon form) and the text `"target = nope"` inside a string are not.
 
 ## Failures and Follow-up
+
+The first scope scan of this file (a `git grep -z` form) could not match a call written across lines; the detection check in section V1 scope scans replaces it (finding F12 of PR #3062).
 
 The first V1 run (16:59 to 17:00 UTC, `capture_logs_while`, announce shortened with `...`, scrape cut) was replaced by the run above after review finding F6 of PR #3062 (`review-finding:pr-3062-f6`), which asked for verbatim code and output.
