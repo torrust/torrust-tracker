@@ -4,6 +4,7 @@ use reqwest::Response;
 use torrust_tracker_rest_api_protocol::v1::context::auth_key::resources::auth_key::AuthKey;
 use torrust_tracker_rest_api_protocol::v1::context::stats::resources::stats::Stats;
 use torrust_tracker_rest_api_protocol::v1::context::torrent::resources::torrent::{ListItem, Torrent};
+use torrust_tracker_test_helpers::assertions::assert_names_no_source_path;
 
 // Resource responses
 
@@ -182,25 +183,4 @@ async fn assert_unhandled_rejection(response: Response, reason: &str) {
         ":\n  response: `\"{response_text}\"`\n  does not contain: `\"{reason_text}\"`."
     );
     assert_names_no_source_path(&response_text);
-}
-
-/// Fails when `message` contains anything that looks like a source path: a workspace path, a
-/// registry checkout, the standard library sources, or a `file.rs:line` suffix, written with
-/// either path separator. It reports a failure at the caller's line.
-#[track_caller]
-pub fn assert_names_no_source_path(message: &str) {
-    for fragment in [
-        ".rs:",
-        "packages/",
-        "packages\\",
-        "src/",
-        "src\\",
-        ".cargo/registry",
-        "rustlib/src",
-    ] {
-        assert!(
-            !message.contains(fragment),
-            "the error message must not hold a source path, but it contains {fragment:?}: {message:?}"
-        );
-    }
 }

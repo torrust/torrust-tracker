@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p3
 epic: 2912
 github-issue: 2996
 spec-path: docs/issues/open/2996-2912-si-8-share-assert-names-no-source-path/ISSUE.md
 branch: "2996-share-assert-names-no-source-path-spec"
 related-pr: null
-last-updated-utc: "2026-11-23 15:53"
+last-updated-utc: "2026-11-25 11:37"
 semantic-links:
   skill-links:
     - create-issue
@@ -141,12 +141,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | TODO | Add the shared function with a unit test | In `packages/test-helpers`; one test per fragment and one for a clean message; doc comment names the other four definitions by path (copies 1, 2, 8 and 9) |
-| T2 | TODO | Switch `tracker-core` (copy 5) | Calls use the shared function; copy deleted |
-| T3 | TODO | Switch `axum-http-server` (copies 3 and 4) | Unit tests and integration tests use the shared function; copies deleted |
-| T4 | TODO | Switch `axum-rest-api-server` and `udp-server` (copies 6 and 7) | Copies deleted |
-| T5 | TODO | Cross-link the remaining copies | Doc comments on copies 1, 2, 8 and 9 name the other four by path and say to change all five together |
-| T6 | TODO | Verify | `grep -rn "fn assert_names_no_source_path" packages` finds exactly five definitions; no `Cargo.toml` or `deny.toml` change |
+| T1 | DONE | Add the shared function with a unit test | In `packages/test-helpers`; one test per fragment and one for a clean message; doc comment names the other four definitions by path (copies 1, 2, 8 and 9) |
+| T2 | DONE | Switch `tracker-core` (copy 5) | Calls use the shared function; copy deleted |
+| T3 | DONE | Switch `axum-http-server` (copies 3 and 4) | Unit tests and integration tests use the shared function; copies deleted |
+| T4 | DONE | Switch `axum-rest-api-server` and `udp-server` (copies 6 and 7) | Copies deleted |
+| T5 | DONE | Cross-link the remaining copies | Doc comments on copies 1, 2, 8 and 9 name the other four by path and say to change all five together |
+| T6 | DONE | Verify | `grep -rn "fn assert_names_no_source_path" packages` finds exactly five definitions; no `Cargo.toml` or `deny.toml` change |
 
 ## Commit Points
 
@@ -182,15 +182,15 @@ with the narrow affected scope, and sign every commit with GPG.
 - [x] Folder-style spec drafted in `docs/issues/open/2996-2912-si-8-share-assert-names-no-source-path/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -202,19 +202,21 @@ the model that produced them.
 - 2026-11-22 14:06 UTC - Claude Code (Claude Sonnet 5.5) - Drafted from finding F5 of PR #2991 and the maintainer's decision of 2026-11-22 (option E). Not yet approved; no GitHub issue created.
 - 2026-11-22 14:24 UTC - Claude Code (Claude Sonnet 5.5) - The maintainer approved the specification; issue #2996 created as `josecelano-bot`; the specification moved from `docs/issues/drafts/` to `docs/issues/open/`; row 8 added to the EPIC table.
 - 2026-11-23 13:31 UTC - Claude Code (Claude Sonnet 5.5) - Recorded copies 8 and 9, added by SI-5 (#2917, PR #3001) in `configuration` and `axum-server`: neither can use the shared function (`test-helpers` depends on `configuration`; `axum-server` has no `test-helpers` dev-dependency), so both stay and are cross-linked. Counts now read nine copies to five definitions (review finding F1 of PR #3001).
+- 2026-11-24 17:07 UTC - Claude Code (Claude Sonnet 5.5) - Implemented T1 to T6: shared function in `test-helpers`, five copies removed, four remaining copies cross-linked; manual verification V1 and V2 recorded; no Cargo or deny changes.
+- 2026-11-25 11:37 UTC - Claude Code (Claude Opus 5.5) - Review round 2 of PR 3041 (da2ce7): the shared test now pins each fragment (V4); four long cross-link doc lines wrapped; V1 re-run and V3 (identical wording) added; each acceptance row cites its own evidence; `last-updated-utc` refreshed.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `torrust-tracker-test-helpers` defines `assert_names_no_source_path` once, with a unit test for each of the seven fragments and for a clean message.
-- [ ] AC2: `tracker-core`, `axum-http-server`, `axum-rest-api-server` and `udp-server` use the shared function and hold no local definition.
-- [ ] AC3: Exactly five definitions remain (`test-helpers`, `http-protocol`, `primitives`, `configuration`, `axum-server`), each with a doc comment that names the other four and says to change them together.
-- [ ] AC4: The panic wording is the same in the five definitions.
-- [ ] AC5: No `Cargo.toml`, `Cargo.lock` or `deny.toml` changes, and no behavior change besides the unified failure wording.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior/workflow changes
+- [x] AC1: `torrust-tracker-test-helpers` defines `assert_names_no_source_path` once, with a unit test for each of the seven fragments and for a clean message.
+- [x] AC2: `tracker-core`, `axum-http-server`, `axum-rest-api-server` and `udp-server` use the shared function and hold no local definition.
+- [x] AC3: Exactly five definitions remain (`test-helpers`, `http-protocol`, `primitives`, `configuration`, `axum-server`), each with a doc comment that names the other four and says to change them together.
+- [x] AC4: The panic wording is the same in the five definitions.
+- [x] AC5: No `Cargo.toml`, `Cargo.lock` or `deny.toml` changes, and no behavior change besides the unified failure wording.
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated when behavior/workflow changes
 
 ## Verification Plan
 
@@ -233,8 +235,8 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | Count the definitions | `grep -rn "fn assert_names_no_source_path" packages` | Exactly five definitions, in `test-helpers`, `http-protocol`, `primitives`, `configuration` and `axum-server` | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | The shared helper still catches a path | On a scratch change, make one test in a switched package pass a message containing `packages/x.rs:1` to the helper | The test fails with the unified message at the test line (`#[track_caller]`); the scratch change is reverted | TODO | `manual-verification-evidence.md` section V2 |
+| M1 | Count the definitions | `grep -rn "fn assert_names_no_source_path" packages` | Exactly five definitions, in `test-helpers`, `http-protocol`, `primitives`, `configuration` and `axum-server` | DONE | `manual-verification-evidence.md` section V1 |
+| M2 | The shared helper still catches a path | On a scratch change, make one test in a switched package pass a message containing `packages/x.rs:1` to the helper | The test fails with the unified message at the test line (`#[track_caller]`); the scratch change is reverted | DONE | `manual-verification-evidence.md` section V2 |
 
 Notes:
 
@@ -259,11 +261,11 @@ None planned for this issue.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | --- | --- | --- |
-| AC1 | TODO | {test/log/PR link} |
-| AC2 | TODO | {test/log/PR link} |
-| AC3 | TODO | {test/log/PR link} |
-| AC4 | TODO | {test/log/PR link} |
-| AC5 | TODO | {test/log/PR link} |
+| AC1 | DONE | `manual-verification-evidence.md` V4 (each fragment pinned; red without `rustlib/src`); `cargo test -p torrust-tracker-test-helpers` passes |
+| AC2 | DONE | `manual-verification-evidence.md` V1 (no definition left in the four packages) and V2 (`tracker-core` uses the shared function); their tests pass |
+| AC3 | DONE | `manual-verification-evidence.md` V1 and its re-run (five definitions); the cross-link doc comments in the five files |
+| AC4 | DONE | `manual-verification-evidence.md` V3 (`grep -rn 'must not hold a source path' packages`: one identical line per definition) |
+| AC5 | DONE | `git diff --stat torrust/develop...HEAD -- '*.toml' Cargo.lock` is empty; the tests of the nine packages pass unchanged |
 
 ## Risks and Trade-offs
 
@@ -278,7 +280,7 @@ After implementation, compare the result with this specification. Record
 invalidated assumptions, material design changes, unexpected validation
 findings, and reusable lessons.
 
-- Retrospective: `Not yet assessed`
+- Retrospective: none needed. The implementation matched the specification; the only surprise was clippy `too_long_first_doc_paragraph` on the shared function, fixed with a one-line summary.
 - If needed, create `implementation-retrospective.md` from the repository
   template at `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this issue
   specification's directory.

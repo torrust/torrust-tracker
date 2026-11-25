@@ -324,27 +324,6 @@ pub(crate) mod tests {
     pub mod helpers {
         use torrust_info_hash::InfoHash;
 
-        /// Fails when `message` contains anything that looks like a source path: a workspace
-        /// path, a registry checkout, the standard library sources, or a `file.rs:line` suffix,
-        /// written with either path separator. It reports a failure at the caller's line.
-        #[track_caller]
-        pub fn assert_names_no_source_path(message: &str) {
-            for fragment in [
-                ".rs:",
-                "packages/",
-                "packages\\",
-                "src/",
-                "src\\",
-                ".cargo/registry",
-                "rustlib/src",
-            ] {
-                assert!(
-                    !message.contains(fragment),
-                    "the failure reason must not hold a source path, but it contains {fragment:?}: {message:?}"
-                );
-            }
-        }
-
         /// # Panics
         ///
         /// Will panic if the string representation of the info hash is not a valid info hash.

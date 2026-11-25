@@ -142,10 +142,10 @@ mod tests {
     use axum::response::{IntoResponse, Response};
     use axum::routing::get;
     use torrust_tracker_http_protocol::v1::responses::error::Error;
+    use torrust_tracker_test_helpers::assertions::assert_names_no_source_path;
     use tower::ServiceExt;
 
     use super::{Extract, Key, parse_key};
-    use crate::tests::helpers::assert_names_no_source_path;
 
     const MAX_RESPONSE_BODY_BYTES: usize = 64 * 1024;
 

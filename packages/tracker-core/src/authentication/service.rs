@@ -155,11 +155,12 @@ mod tests {
 
             use torrust_tracker_configuration::v3_0_0::core::Core;
             use torrust_tracker_primitives::PrivateMode;
+            use torrust_tracker_test_helpers::assertions::assert_names_no_source_path;
 
             use crate::authentication::key::repository::in_memory::InMemoryKeyRepository;
             use crate::authentication::service::AuthenticationService;
             use crate::authentication::{self, PeerKey};
-            use crate::test_helpers::tests::{assert_holds_no_secret, assert_names_no_source_path};
+            use crate::test_helpers::tests::assert_holds_no_secret;
 
             fn instantiate_authentication_for_private_tracker() -> AuthenticationService {
                 let config = Core {

@@ -12,9 +12,10 @@ use std::time::Duration;
 use torrust_tracker_axum_http_server::testing::environment::Started;
 use torrust_tracker_client::http::client::Client;
 use torrust_tracker_configuration::v3_0_0::Configuration;
+use torrust_tracker_test_helpers::assertions::assert_names_no_source_path;
 use torrust_tracker_test_helpers::{configuration, logging};
 
-use crate::server::asserts::{assert_names_no_source_path, failure_reason_of};
+use crate::server::asserts::failure_reason_of;
 
 const VALID_INFO_HASH: &str = "%3B%24U%04%CF%5F%11%BB%DB%E1%20%1C%EAjk%F4Z%EE%1B%C0";
 const VALID_PEER_ID: &str = "-qB00000000000000001";

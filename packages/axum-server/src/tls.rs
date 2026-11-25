@@ -55,7 +55,18 @@ mod tests {
 
     use super::{Error, make_rust_tls};
 
-    /// Fails when `message` holds a source path: a workspace or registry path, or a `file.rs:line` suffix.
+    /// Fails when `message` contains anything that looks like a source path: a workspace path, a
+    /// registry checkout, the standard library sources, or a `file.rs:line` suffix, written with
+    /// either path separator. It reports a failure at the caller's line.
+    ///
+    /// This definition is separate because this package has no dev-dependency on
+    /// `torrust-tracker-test-helpers`, and none is added.
+    /// Four other definitions exist; change all five together:
+    ///
+    /// - `packages/test-helpers/src/assertions.rs`
+    /// - `packages/http-protocol/src/test_helpers.rs`
+    /// - `packages/primitives/src/peer.rs`
+    /// - `packages/configuration/src/lib.rs`
     #[track_caller]
     fn assert_names_no_source_path(message: &str) {
         for fragment in [

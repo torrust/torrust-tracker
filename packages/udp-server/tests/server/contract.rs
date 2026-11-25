@@ -128,6 +128,7 @@ mod receiving_an_announce_request {
 
     use torrust_peer_id::PeerId;
     use torrust_tracker_client::udp::client::UdpTrackerClient;
+    use torrust_tracker_test_helpers::assertions::assert_names_no_source_path;
     use torrust_tracker_test_helpers::logging::logs_contains_a_line_with;
     use torrust_tracker_test_helpers::{configuration, logging};
     use torrust_tracker_udp_protocol::{
@@ -138,7 +139,7 @@ mod receiving_an_announce_request {
 
     use super::DEFAULT_UDP_TIMEOUT;
     use crate::common::fixtures::{random_info_hash, random_transaction_id};
-    use crate::server::asserts::{assert_names_no_source_path, get_error_response_message, is_ipv4_announce_response};
+    use crate::server::asserts::{get_error_response_message, is_ipv4_announce_response};
     use crate::server::contract::send_connection_request;
 
     pub async fn assert_send_and_get_announce(

@@ -701,12 +701,14 @@ mod tests {
         mod peer_key_errors {
             use std::error::Error as _;
 
+            use torrust_tracker_test_helpers::assertions::assert_names_no_source_path;
+
             use crate::authentication::handler::AddKeyRequest;
             use crate::authentication::handler::tests::the_keys_handler_when_the_tracker_is_configured_as_private::{
                 instantiate_keys_handler, private_tracker_configuration,
             };
             use crate::error::PeerKeyError;
-            use crate::test_helpers::tests::{assert_holds_no_secret, assert_names_no_source_path};
+            use crate::test_helpers::tests::assert_holds_no_secret;
 
             fn add_key_request(key: &str) -> AddKeyRequest {
                 AddKeyRequest {
