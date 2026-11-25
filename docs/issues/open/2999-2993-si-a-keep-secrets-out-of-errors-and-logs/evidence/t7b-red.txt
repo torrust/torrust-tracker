@@ -1,0 +1,41 @@
+test databases::error::tests::it_should_keep_only_the_kind_and_the_code_of_any_other_server_error_on_a_statement_that_binds_a_secret ... FAILED
+test databases::error::tests::it_should_keep_the_driver_it_was_converted_with::case_4_a_migration_failure ... ok
+test databases::error::tests::it_should_render_a_failed_delete_naming_the_driver_and_the_rows_removed ... ok
+--
+test databases::error::tests::it_should_turn_a_unique_violation_on_a_statement_that_binds_a_secret_into_a_key_already_exists_error ... FAILED
+test databases::setup::tests::it_should_panic_when_the_legacy_factory_gets_a_configuration_without_a_database - should panic ... ok
+test databases::setup::tests::it_should_return_an_error_instead_of_panicking_when_the_database_cannot_be_opened ... ok
+--
+test databases::driver::sqlite::tests::run_sqlite_driver_tests ... FAILED
+
+failures:
+--
+thread 'databases::error::tests::it_should_keep_only_the_kind_and_the_code_of_any_other_server_error_on_a_statement_that_binds_a_secret' (223896) panicked at packages/tracker-core/src/databases/error.rs:291:9:
+the error Display holds the test secret
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+--
+thread 'databases::error::tests::it_should_turn_a_unique_violation_on_a_statement_that_binds_a_secret_into_a_key_already_exists_error' (223905) panicked at packages/tracker-core/src/databases/error.rs:273:9:
+InvalidQuery { source: Database(ServerError { message: "Duplicate entry 'TestPeerKeyInTheServerMessage001' for key 'keys.key'", unique_violation: true, code: Some("23000") }), driver: MySQL }
+
+--
+thread 'databases::driver::sqlite::tests::run_sqlite_driver_tests' (223757) panicked at packages/tracker-core/src/databases/driver/mod.rs:318:13:
+InvalidQuery { source: Database(SqliteError { code: 2067, message: "UNIQUE constraint failed: keys.key" }), driver: Sqlite3 }
+
+--
+test result: FAILED. 88 passed; 3 failed; 0 ignored; 0 measured; 204 filtered out; finished in 0.12s
+
+error: test failed, to rerun pass `-p torrust-tracker-core --lib`
+
+### MySQL (testcontainers, mutation: server errors converted as before)
+test databases::driver::mysql::tests::run_mysql_driver_tests ... FAILED
+
+failures:
+--
+thread 'databases::driver::mysql::tests::run_mysql_driver_tests' (248148) panicked at packages/tracker-core/src/databases/driver/mod.rs:317:13:
+the error Display holds the test secret
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+--
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 296 filtered out; finished in 6.35s
+
+error: test failed, to rerun pass `-p torrust-tracker-core --lib`

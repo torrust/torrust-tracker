@@ -15,10 +15,12 @@ on:
     paths:
       - "packages/tracker-core/**"
       - ".github/workflows/db-compatibility.yaml"
+      - ".github/actions/enable-sccache/**"
   pull_request:
     paths:
       - "packages/tracker-core/**"
       - ".github/workflows/db-compatibility.yaml"
+      - ".github/actions/enable-sccache/**"
 
 env:
   CARGO_TERM_COLOR: always
@@ -49,10 +51,7 @@ jobs:
 
       - id: enable-sccache
         name: Enable sccache
-        run: |
-          echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
-          echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
-          echo "CARGO_INCREMENTAL=0" >> "$GITHUB_ENV"
+        uses: ./.github/actions/enable-sccache
 
       - id: database
         name: Run Database Compatibility Test
@@ -86,10 +85,7 @@ jobs:
 
       - id: enable-sccache
         name: Enable sccache
-        run: |
-          echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
-          echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
-          echo "CARGO_INCREMENTAL=0" >> "$GITHUB_ENV"
+        uses: ./.github/actions/enable-sccache
 
       - id: database
         name: Run Database Compatibility Test

@@ -103,7 +103,7 @@ See [`add-new-skill`](add-new-skill/SKILL.md).
 | --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | [`fetch-review-threads`](fetch-review-threads/SKILL.md)               | Fetch every GitHub pull request review thread, including resolved and outdated ones, for the torrust-tracker project.               |
 | [`process-copilot-suggestions`](process-copilot-suggestions/SKILL.md) | Deprecated compatibility redirect for Copilot pull-request review suggestions.                                                      |
-| [`process-pr-review`](process-pr-review/SKILL.md)                     | Process every pull-request review finding, regardless of whether it was authored by Copilot, a person, or another bot.              |
+| [`process-pr-review`](process-pr-review/SKILL.md)                     | Process every pull-request review finding the same way, whoever the reviewer is: a person or a bot.              |
 | [`process-pr-review-feedback`](process-pr-review-feedback/SKILL.md)   | Deprecated compatibility redirect for pull-request review feedback.                                                                 |
 | [`resolve-review-threads`](resolve-review-threads/SKILL.md)           | Resolve addressed GitHub pull request review threads for the torrust-tracker project.                                               |
 | [`review-pr`](review-pr/SKILL.md)                                     | Review an existing pull request for the torrust-tracker project.                                                                    |

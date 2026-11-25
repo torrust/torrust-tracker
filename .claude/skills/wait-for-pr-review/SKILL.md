@@ -1,9 +1,9 @@
 ---
 name: wait-for-pr-review
-description: Wait for Copilot or maintainer reviews with a deterministic Rust poller that spends no tokens, then run the review loop. Use when waiting for a review of an opened or updated PR.
+description: Wait for reviews from any reviewer with a deterministic Rust poller that spends no tokens, then run the review loop. Use when waiting for a review of an opened or updated PR.
 metadata:
   author: torrust
-  version: "1.4"
+  version: "1.5"
   semantic-links:
     related-artifacts:
       - .claude/skills/wait-for-pr-review/tool/Cargo.toml
@@ -13,6 +13,7 @@ metadata:
       - .claude/skills/merge-pull-request/SKILL.md
       - docs/adrs/20260519000000_define_global_cli_output_contract.md
       - docs/issues/closed/2581-2003-pr-review-wait-poller/ISSUE.md
+      - docs/adrs/20261124182709_review_pull_requests_without_a_mandatory_reviewer.md
 ---
 
 # Waiting for Pull-Request Reviews
@@ -54,7 +55,7 @@ cat .tmp/wait-for-pr-review.stdout
 | --------------------------- | ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
 | `--pr-number <N>`           | required                                             | Pull request to watch.                                                                                          |
 | `--owner`, `--repository`   | `torrust`, `torrust-tracker`                         | Repository.                                                                                                     |
-| `--reviewer <login>`        | `da2ce7`, `copilot-pull-request-reviewer[bot]`       | Whose reviews and comments count. Repeat the flag to watch several; passing it replaces the defaults.          |
+| `--reviewer <login>`        | every account except the pull request's author      | Whose reviews and comments count. Repeat the flag to watch only those logins. Without it, any reviewer, person or bot, wakes the poller, and the author's own replies do not. |
 | `--timeout-seconds <N>`     | 900 (15 minutes)                                     | Longest wait before a `timeout` result. At most 86400 (one day); a larger value is a usage error, exit `2`.    |
 | `--poll-interval-seconds N` | 120 (2 minutes)                                      | Pause between two looks at the pull request.                                                                    |
 | `--since-head-sha <sha>`    | the head at the start of the wait                    | The commit you have checked out. A pull request head that differs from it is reported as `head_changed`. Unless `--since` is given, reviews and comments created after this commit was made count as new. |
@@ -107,13 +108,17 @@ inline comment when made in the same second), then a head change. Reporting the 
 `cursor` honest: resuming from it never skips an item that was still unreported. The poller reports
 one event; the review loop reads the whole pull request afterward, so nothing is lost.
 
-Copilot's reviews come from `copilot-pull-request-reviewer[bot]`, but its inline comments come from
-the login `Copilot`. The default reviewer set therefore sees its reviews and not its inline comments,
-which is enough because the review result is the signal. Add `--reviewer Copilot` to be woken by each
-inline comment as well.
+Without `--reviewer`, no reviewer has to be named, so a new reviewer or review bot needs no
+configuration. The cost is more wake-ups: a review bot that answers your thread replies submits an
+empty `COMMENTED` review each time, and any comment, for example a maintainer's `ACK`, wakes the
+poller. Such an event needs no push: resume with `--since <cursor>`. When you pass `--reviewer`,
+list every login the reviewer uses: one reviewer's reviews and inline comments can come from
+different logins (Copilot reviews as `copilot-pull-request-reviewer[bot]` and comments inline as
+`Copilot`).
 
 Stderr is NDJSON, one record per line, each with a `kind`: `wait_started` at the start (with the
-`gh_command` that will run), then `gh_identity`, and on failure one diagnostic. `gh_identity` carries
+`gh_command` that will run, `watch` set to `all_except_author` or `listed`, and the listed
+`reviewers`), then `gh_identity`, and on failure one diagnostic. `gh_identity` carries
 `gh_command` and `gh_login`, the account that command is authenticated as (from `api user`), or `null`
 when the lookup fails or ends at its bound, `min(10 s, timeout / 4)`. Check `gh_login` against the account
 you act as before you act on the result. The lookup runs before the baseline snapshot, so without
@@ -146,11 +151,20 @@ of one `review` or `comment` event (step 2, from `process-pr-review` to the push
 resolved threads) to the [`pr-review-handler`](../../agents/pr-review-handler.md) agent, which runs
 on its pinned model and returns a short report. The session keeps the rest: the poller, bringing the
 branch to the commit the event is about before it delegates (the start of step 2), the checks of the
-new head, the re-request, the round count, the exit condition and the watching after it. A
+new head, the round count, the exit condition and the watching after it. A
 session that does not delegate, or runs in another tool, runs step 2 itself.
 
-1. Run the poller with `--since-head-sha "$(git rev-parse HEAD)"`. After an event that needed no
-   push, add `--since <cursor>` from that result.
+1. When a session starts or takes over the pull request, first list every review already on it,
+   from every author, because the poller reports only reviews created after the commit you pass:
+
+   ```sh
+   gh api repos/torrust/torrust-tracker/pulls/<PR>/reviews --paginate \
+     --jq '.[] | "\(.id) \(.user.login) \(.state) \(.commit_id[0:9]) \(.submitted_at)"'
+   ```
+
+   Process each review, other than your own replies, that the audit record does not cover yet, as
+   in step 2. Then run the poller with `--since-head-sha "$(git rev-parse HEAD)"`. After an event
+   that needed no push, add `--since <cursor>` from that result.
 2. Branch on `kind`:
    - `review` or `comment`: first make sure you are working on the commit the feedback is about.
      If `head_moved` is `true`, or `head_sha` differs from `git rev-parse HEAD`, run `git fetch` and
@@ -162,25 +176,30 @@ session that does not delegate, or runs in another tool, runs step 2 itself.
      [`fetch-review-threads`](../fetch-review-threads/SKILL.md) and read the new review body (a
      finding in a review body has no thread).
      - If you fixed something, commit, push, and reply. Then
-       [watch the checks](#watching-the-checks) of the new head and fix any failure. Re-request the
-       review only when the checks are green (see below), then go to step 1 with the commit you
-       pushed.
-     - If you pushed nothing, because the review was clean or the comment was informational, do not
-       re-request the review. Go to step 1 with your `HEAD` and the `cursor` of this result, so this
-       event is not reported again and nothing after it is missed.
+       [watch the checks](#watching-the-checks) of the new head and fix any failure, then go to
+       step 1 with the commit you pushed. Do not request a new review yourself (see
+       [A Review a Maintainer Requested](#a-review-a-maintainer-requested)).
+     - If you pushed nothing, because the review was clean or the comment was informational, go to
+       step 1 with your `HEAD` and the `cursor` of this result, so this event is not reported again
+       and nothing after it is missed.
    - `head_changed`: someone else pushed. Pull the branch, then go to step 1 with the new `HEAD`.
-   - `timeout`: check the exit condition. If it is not met, run the poller again with the same flags
-     as the run that timed out, since nothing was processed in between. After a few timeouts in a
-     row, tell the contributor the reviewer has not answered.
+   - `timeout`: check the exit condition. If it holds, go to step 5. If it is not met, run the
+     poller again with the same flags as the run that timed out, since nothing was processed in
+     between. After a few timeouts in a row, tell the contributor which condition is still unmet.
    - `pr_closed` or `pr_merged`: stop watching and tell the contributor which one happened.
 3. Count the round (see [Round Limit](#round-limit)) after each push, and stop and ask the
    contributor when the limit is exceeded.
 4. Check the exit condition after each return. The loop is done when all of these hold:
-   - Copilot's latest review is on the current head commit. Copilot never submits `APPROVED`, so its
-     last review is `COMMENTED`; do not wait for an approval state.
-   - Every check of the head commit finished and none failed, as
-     [`watch-pull-request-checks`](../watch-pull-request-checks/SKILL.md) reports (skipped
-     checks do not count as failures).
+   - Every review received so far is processed with `process-pr-review`: list the reviews as in
+     step 1, and each one either has its findings in the audit record or has none. No review from a named
+     reviewer is required and none is waited for: a pull request with no review at all can be
+     ready. A review that arrives later reopens the loop (step 6). Reviewers often submit only
+     `COMMENTED` reviews; do not wait for an approval state.
+   - Every workflow check of the head commit is `pass` or `skipping`, as
+     [`watch-pull-request-checks`](../watch-pull-request-checks/SKILL.md) reports; a cancelled
+     check needs attention like a failed one. A check run that a review service posts from its own GitHub
+     App, for example `CodeRabbit` or `Greptile Review`, does not count: see
+     [Review-Service Check Runs](../watch-pull-request-checks/SKILL.md#review-service-check-runs).
    - The pull request has no unresolved actionable review thread anywhere, including threads on
      earlier commits. Count them over the whole pull request with `fetch-review-threads`.
    - The other maintainer has commented `ACK <full head commit hash>` on the head commit, or the
@@ -204,26 +223,31 @@ thread is not counted by the thread check, so read each new review body through 
 
 ## Watching the Checks
 
-CI is part of the loop, not a separate task. Checks finish in minutes, long before Copilot answers,
-so run them first:
+CI is part of the loop, not a separate task. Checks often finish before a reviewer answers, so run
+them first:
 
-1. After the first push, and after every later push, run `gh pr checks <PR> --watch --fail-fast`
-   as [`watch-pull-request-checks`](../watch-pull-request-checks/SKILL.md) describes. It
-   spends no tokens while it waits.
+1. After the first push, and after every later push, wait for the workflow checks with the loop in
+   [Review-Service Check Runs](../watch-pull-request-checks/SKILL.md#review-service-check-runs),
+   which leaves out review services' own check runs; `gh pr checks <PR> --watch --fail-fast`, as
+   [`watch-pull-request-checks`](../watch-pull-request-checks/SKILL.md) describes, also waits for
+   them. Both spend no tokens while they wait.
 2. If no check starts and the runs say `action_required`, a maintainer has to approve them (see
    "When Checks Never Start" in that skill). Ask for it and wait; this is not a failure and does not
    count toward the check limit.
-3. If a check failed, follow "When a Check Fails" in that skill: read the log, fix the change (or
-   re-run the jobs when the cause is outside it), push, and watch again.
-4. Only when every check is green, request the review (Copilot reviews the head as of the request,
-   so a push after it is not covered) and run the poller.
+3. If a check failed, first see whether it is a workflow check: a review service's own check run
+   (no workflow) is not a failure, even though `--watch --fail-fast` stops on it (see
+   [Review-Service Check Runs](../watch-pull-request-checks/SKILL.md#review-service-check-runs)).
+   For a failed workflow check, follow "When a Check Fails" in that skill: read the log, fix the
+   change (or re-run the jobs when the cause is outside it), push, and watch again.
+4. Run the poller while the checks run, so a review that arrives first is not missed. Do not
+   request a review (see [A Review a Maintainer Requested](#a-review-a-maintainer-requested)).
 
 A review that arrives while checks are failing is still processed, but its fixes and the check fixes
 go in the same push when possible, so the checks run once.
 
 ## Round Limit
 
-A round is one push of fixes made in response to a review event. Stop the loop and ask the
+A round is one push of fixes made in response to a review event, whoever the reviewer was. Stop the loop and ask the
 contributor before starting round 6, that is, when more than 5 rounds of fixes have been pushed.
 Rounds that ended with a clean review and no push do not count, and neither do timeouts.
 
@@ -252,38 +276,48 @@ with the right count instead of starting at zero. When asking, say how many roun
 findings keep coming back, and what you suggest. The contributor can raise the limit for that pull
 request; record the new limit in the pull request conversation.
 
-## Re-Requesting a Review
+## A Review a Maintainer Requested
 
-After you push fixes for a reviewer, ask the same reviewer again. Do it only when new fixes need a
-new look; a clean review needs no re-request. The poller never does this. The same REST endpoint
-works for a maintainer and for Copilot; the Copilot reviewer is a bot, so its login ends in `[bot]`:
+No review from a named reviewer is required
+([ADR](../../../docs/adrs/20261124182709_review_pull_requests_without_a_mandatory_reviewer.md)).
+Reviewers come in two kinds, and their reviews are processed the same way, with
+[`process-pr-review`](../process-pr-review/SKILL.md):
+
+- **Reviewers that review by themselves**, for example a review service installed on the repository
+  that reviews each push. Nothing is requested: process each review it submits, including the new
+  findings it posts after your fixes.
+- **Reviewers that review only when asked**: a maintainer, or Copilot. Only a maintainer requests
+  their review, and decides whether to request it again after a round of fixes.
+
+An AI agent never triggers a review: no request through `requested_reviewers`, no review-service
+command in a comment (such as `@coderabbitai review`), and no `@`-mention that asks for one. An
+account without triage access cannot request reviewers anyway. When a new look after your fixes
+would help, tell the maintainer which reviewer to ask and whether the findings were substantive or
+minor; the maintainer decides. A person contributing may still ask a reviewer to look.
+
+What to know about a Copilot review that a maintainer requests (verified on PR #2683, 2026-10-28:
+the request was recorded as a `review_requested` timeline event one second later, and Copilot
+reviewed about 40 minutes after it):
+
+- Copilot reviews the head as of the request, not as of the moment it answers. On PR #2683 it was
+  requested at 14:13:25 UTC with head `d000f8881`, two commits were pushed at 14:18, and its review at
+  14:58 was of `d000f8881`. When you push after a request, tell the maintainer that the new commits
+  are not covered.
+- It can take 40 minutes or more, longer than the poller's 15-minute default. Pass
+  `--timeout-seconds 2700` (45 minutes) if your shell tool allows a call that long, or run the poller
+  again with the same flags after a `timeout`.
+- The `requested_reviewers` list of a pull request never shows a bot. To see a pending request,
+  read the timeline (`gh api repos/torrust/torrust-tracker/issues/<PR>/timeline`, event
+  `review_requested`) or the GraphQL `reviewRequests` of the pull request.
+- Pushing does not request a review by itself.
+
+For reference, the maintainer's request uses the same REST endpoint for a person and for Copilot,
+whose reviewer login ends in `[bot]`:
 
 ```sh
 gh api --method POST repos/torrust/torrust-tracker/pulls/<PR>/requested_reviewers \
-  -f 'reviewers[]=da2ce7' > .tmp/re-request.stdout 2> .tmp/re-request.stderr
-
-gh api --method POST repos/torrust/torrust-tracker/pulls/<PR>/requested_reviewers \
-  -f 'reviewers[]=copilot-pull-request-reviewer[bot]' > .tmp/re-request.stdout 2> .tmp/re-request.stderr
+  -f 'reviewers[]=copilot-pull-request-reviewer[bot]' > .tmp/request.stdout 2> .tmp/request.stderr
 ```
-
-The Copilot call was verified on PR #2683 (2026-10-28): it exited `0`, GitHub recorded a
-`review_requested` timeline event for `Copilot` one second later, and Copilot submitted a review
-about 40 minutes after the request. Four things follow:
-
-- **Push first, request last.** Copilot reviews the head as of the request, not as of the moment it
-  answers, so a push made after the request is not covered. On PR #2683 Copilot was requested at
-  14:13:25 UTC with head `d000f8881`, two more commits were pushed at 14:18, and its review at 14:58
-  was of `d000f8881`. Push every commit, including audit and evidence commits, and make the request
-  the last step. A commit pushed after it needs a new request.
-- The `requested_reviewers` list of the pull request never shows a bot, so do not use it to check
-  that the request worked. Read the timeline (`gh api repos/torrust/torrust-tracker/issues/<PR>/timeline`,
-  event `review_requested`) or the GraphQL `reviewRequests` of the pull request, which lists the bot
-  while the request is pending.
-- Copilot can take 40 minutes or more, longer than the poller's 15-minute default. When waiting for
-  Copilot, pass `--timeout-seconds 2700` (45 minutes) if your shell tool allows a call that long, or
-  run the poller again with the same flags after a `timeout`. A second request while the first is
-  pending adds nothing.
-- Pushing does not request a review by itself: the earlier push on that pull request produced none.
 
 ## Skill Links
 

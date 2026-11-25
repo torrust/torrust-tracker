@@ -206,6 +206,7 @@ cloneable
 codecov
 codegen
 codepoints
+coderabbitai
 colour
 colours
 commiter
@@ -617,6 +618,7 @@ unlockpt
 unparked
 unpushed
 unrecognised
+unredacted
 unrepresentable
 unreproduced
 unresolve

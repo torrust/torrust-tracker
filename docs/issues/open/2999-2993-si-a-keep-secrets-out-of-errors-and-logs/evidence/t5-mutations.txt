@@ -1,0 +1,48 @@
+### Mutation: span records the raw URI (HTTP tracker, DefaultMakeSpan)
+thread 'it_should_not_log_the_peer_key_of_an_announce_or_a_scrape_on_a_private_tracker' (1374358) panicked at packages/axum-http-server/tests/request_logging.rs:42:9:
+the log holds a test peer key of 32 characters
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+--
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.02s
+
+
+### Mutation: the event records the raw URI (HTTP tracker)
+thread 'it_should_not_log_the_peer_key_of_an_announce_or_a_scrape_on_a_private_tracker' (1374784) panicked at packages/axum-http-server/tests/request_logging.rs:42:9:
+the log holds a test peer key of 32 characters
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+--
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.02s
+
+
+### Mutation: path not redacted (redact_path returns its input)
+it_should_replace_the_secrets_of_a_uri_with_a_marker::case_01_an_announce_with_a_key ... FAILED
+it_should_replace_the_secrets_of_a_uri_with_a_marker::case_03_a_key_delete_with_a_token_in_the_query ... FAILED
+it_should_replace_the_secrets_of_a_uri_with_a_marker::case_02_a_scrape_with_a_key ... FAILED
+it_should_replace_the_secrets_of_a_uri_with_a_marker::case_12_a_percent_encoded_key ... FAILED
+it_should_replace_the_secrets_of_a_uri_with_a_marker::case_13_a_key_with_a_stray_character ... FAILED
+it_should_replace_the_secrets_of_a_uri_with_a_marker::case_14_a_key_of_the_wrong_length ... FAILED
+it_should_replace_the_secrets_of_a_uri_with_a_marker::case_15_a_key_delete_with_a_key_of_the_wrong_length ... FAILED
+it_should_replace_the_secrets_of_a_uri_with_a_marker::case_16_a_key_posted_where_the_seconds_go ... FAILED
+it_should_replace_the_secrets_of_a_uri_with_a_marker::case_17_more_segments_after_the_key ... FAILED
+it_should_replace_the_secrets_of_a_uri_with_a_marker::case_19_a_rest_prefix_other_than_the_default ... FAILED
+test result: FAILED. 9 passed; 10 failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.00s
+error: test failed, to rerun pass `-p torrust-tracker-axum-server --lib`
+
+### Mutation: query not redacted (redact_query returns its input)
+test request_log::tests::it_should_replace_the_secrets_of_a_uri_with_a_marker::case_04_a_token_in_the_query_only ... FAILED
+test request_log::tests::it_should_replace_the_secrets_of_a_uri_with_a_marker::case_03_a_key_delete_with_a_token_in_the_query ... FAILED
+test request_log::tests::it_should_replace_the_secrets_of_a_uri_with_a_marker::case_06_a_token_with_another_case ... FAILED
+test request_log::tests::it_should_replace_the_secrets_of_a_uri_with_a_marker::case_05_a_token_among_other_parameters ... FAILED
+test request_log::tests::it_should_replace_the_secrets_of_a_uri_with_a_marker::case_07_an_empty_token_value ... FAILED
+test result: FAILED. 14 passed; 5 failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.00s
+error: test failed, to rerun pass `-p torrust-tracker-axum-server --lib`
+
+### A5 red (generated key in the log)
+test authentication::key::tests::when_a_key_is_generated::it_should_not_write_an_expiring_key_to_the_log ... FAILED
+test authentication::key::tests::when_a_key_is_generated::it_should_not_write_a_permanent_key_to_the_log ... FAILED
+thread 'authentication::key::tests::when_a_key_is_generated::it_should_not_write_an_expiring_key_to_the_log' (1269626) panicked at packages/tracker-core/src/authentication/key/mod.rs:209:13:
+the log holds the generated key
+thread 'authentication::key::tests::when_a_key_is_generated::it_should_not_write_a_permanent_key_to_the_log' (1269625) panicked at packages/tracker-core/src/authentication/key/mod.rs:216:13:
+the log holds the generated key
+test result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 290 filtered out; finished in 0.00s
+error: test failed, to rerun pass `-p torrust-tracker-core --lib`

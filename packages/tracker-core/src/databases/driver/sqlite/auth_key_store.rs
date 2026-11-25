@@ -30,7 +30,7 @@ impl AuthKeyStore for Sqlite {
             .bind(key.to_string())
             .fetch_optional(&self.pool)
             .await
-            .map_err(|e| (e, DRIVER))?;
+            .map_err(|e| Error::from_statement_that_binds_a_secret(e, DRIVER))?;
 
         maybe_row
             .map(|row| {
@@ -58,7 +58,7 @@ impl AuthKeyStore for Sqlite {
             .bind(valid_until)
             .execute(&self.pool)
             .await
-            .map_err(|e| (e, DRIVER))?
+            .map_err(|e| Error::from_statement_that_binds_a_secret(e, DRIVER))?
             .rows_affected();
 
         if insert == 0 {
@@ -77,7 +77,7 @@ impl AuthKeyStore for Sqlite {
             .bind(key.to_string())
             .execute(&self.pool)
             .await
-            .map_err(|e| (e, DRIVER))?
+            .map_err(|e| Error::from_statement_that_binds_a_secret(e, DRIVER))?
             .rows_affected();
 
         if deleted == 1 {
@@ -228,7 +228,7 @@ mod tests {
         let result = store.add_key_to_keys(&duplicate).await;
 
         // Assert
-        assert!(matches!(result, Err(Error::InvalidQuery { .. })), "got {result:?}");
+        assert!(matches!(result, Err(Error::KeyAlreadyExists { .. })), "got {result:?}");
         assert_eq!(
             store.load_keys().await.unwrap(),
             vec![stored],

@@ -2,6 +2,7 @@ use std::time::Duration;
 
 use hyper::{HeaderMap, header};
 use reqwest::{Response, StatusCode};
+use secrecy::ExposeSecret;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 use thiserror::Error;
@@ -13,7 +14,7 @@ use torrust_tracker_rest_api_protocol::v1::context::torrent::resources::torrent:
 use url::Url;
 use uuid::Uuid;
 
-use crate::common::http::{Query, QueryParam, ReqwestQuery};
+use crate::common::http::{Query, ReqwestQuery};
 use crate::connection_info::ConnectionInfo;
 
 pub const TOKEN_PARAM_NAME: &str = "token";
@@ -49,8 +50,17 @@ pub enum ClientError {
 }
 
 impl From<reqwest::Error> for ClientError {
+    /// Wraps a `reqwest` error after removing its URL: the URL holds the peer key of a key delete
+    /// (`key/<key>`) and, for a caller that puts it there, a token in the query string.
     fn from(err: reqwest::Error) -> Self {
-        Self::TransportError(err)
+        Self::TransportError(err.without_url())
+    }
+}
+
+impl ClientError {
+    /// Wraps the error of a response body that cannot be deserialized, without its URL.
+    fn deserialization(err: reqwest::Error) -> Self {
+        Self::DeserializationError(err.without_url())
     }
 }
 
@@ -70,7 +80,7 @@ impl ApiClient {
     /// Returns [`ClientError::TransportError`] if the HTTP client cannot be built.
     pub fn new(connection_info: ConnectionInfo) -> Result<Self, ClientError> {
         Ok(Self {
-            inner: ApiHttpClient::new(connection_info).map_err(ClientError::TransportError)?,
+            inner: ApiHttpClient::new(connection_info).map_err(ClientError::from)?,
         })
     }
 
@@ -202,17 +212,17 @@ impl ApiClient {
     async fn parse_response<T: DeserializeOwned>(response: Response) -> Result<T, ClientError> {
         let status = response.status();
         if !status.is_success() {
-            let body = response.text().await.map_err(ClientError::TransportError)?;
+            let body = response.text().await.map_err(ClientError::from)?;
             return Err(ClientError::ApiError { status, body });
         }
-        response.json::<T>().await.map_err(ClientError::DeserializationError)
+        response.json::<T>().await.map_err(ClientError::deserialization)
     }
 
     /// Checks that the response has a 2xx status code, ignoring the body.
     async fn check_success(response: Response) -> Result<(), ClientError> {
         let status = response.status();
         if !status.is_success() {
-            let body = response.text().await.map_err(ClientError::TransportError)?;
+            let body = response.text().await.map_err(ClientError::from)?;
             return Err(ClientError::ApiError { status, body });
         }
         Ok(())
@@ -354,7 +364,8 @@ impl ApiHttpClient {
         self.get_result(path, params, headers).await
     }
 
-    /// Fallible method that also adds the API token to the query if one is configured.
+    /// Fallible method that also sends the API token, in the `Authorization` header, if one is
+    /// configured. The token is never put in the query string: a URL ends up in logs and proxies.
     ///
     /// Prefer [`Self::get`] for most use cases; use this when you need access to
     /// the raw token-injection logic.
@@ -364,13 +375,7 @@ impl ApiHttpClient {
         params: Query,
         headers: Option<HeaderMap>,
     ) -> Result<Response, ClientError> {
-        let mut query: Query = params;
-
-        if let Some(token) = &self.connection_info.api_token {
-            query.add_param(QueryParam::new(TOKEN_PARAM_NAME, token));
-        }
-
-        self.get_request_with_query_result(path, query, headers).await
+        self.get_request_with_query_result(path, params, headers).await
     }
 
     /// # Errors
@@ -393,7 +398,10 @@ impl ApiHttpClient {
         };
 
         let builder = match &self.connection_info.api_token {
-            Some(token) => builder.header(header::AUTHORIZATION, format!("{AUTH_BEARER_TOKEN_HEADER_PREFIX} {token}")),
+            Some(token) => builder.header(
+                header::AUTHORIZATION,
+                format!("{AUTH_BEARER_TOKEN_HEADER_PREFIX} {}", token.expose_secret()),
+            ),
             None => builder,
         };
 
@@ -430,7 +438,10 @@ impl ApiHttpClient {
         };
 
         let builder = match &self.connection_info.api_token {
-            Some(token) => builder.header(header::AUTHORIZATION, format!("{AUTH_BEARER_TOKEN_HEADER_PREFIX} {token}")),
+            Some(token) => builder.header(
+                header::AUTHORIZATION,
+                format!("{AUTH_BEARER_TOKEN_HEADER_PREFIX} {}", token.expose_secret()),
+            ),
             None => builder,
         };
 
@@ -447,7 +458,10 @@ impl ApiHttpClient {
         };
 
         let builder = match &self.connection_info.api_token {
-            Some(token) => builder.header(header::AUTHORIZATION, format!("{AUTH_BEARER_TOKEN_HEADER_PREFIX} {token}")),
+            Some(token) => builder.header(
+                header::AUTHORIZATION,
+                format!("{AUTH_BEARER_TOKEN_HEADER_PREFIX} {}", token.expose_secret()),
+            ),
             None => builder,
         };
 
@@ -466,7 +480,9 @@ impl ApiHttpClient {
         self.get_request_with_query_result(path, params, headers).await
     }
 
-    /// Fallible method that also adds the API token to headers or query if one is configured.
+    /// Fallible method that also adds the API token to the `Authorization` header if one is
+    /// configured and the caller did not supply its own `Authorization` header (a supplied one
+    /// is kept as it is).
     ///
     /// Prefer [`Self::get_request_with_query`] for most use cases; use this when you need
     /// access to the raw token-injection logic.
@@ -480,7 +496,7 @@ impl ApiHttpClient {
         match &self.connection_info.api_token {
             Some(token) => {
                 let headers = headers.map_or_else(
-                    || headers_with_auth_token(token),
+                    || headers_with_auth_token(token.expose_secret()),
                     |headers| {
                         // Headers provided -> add auth token if not already present
 
@@ -492,7 +508,7 @@ impl ApiHttpClient {
 
                             headers.insert(
                                 header::AUTHORIZATION,
-                                format!("{AUTH_BEARER_TOKEN_HEADER_PREFIX} {token}")
+                                format!("{AUTH_BEARER_TOKEN_HEADER_PREFIX} {}", token.expose_secret())
                                     .parse()
                                     .expect("the auth token is not a valid header value"),
                             );
@@ -508,6 +524,9 @@ impl ApiHttpClient {
         }
     }
 
+    /// Performs a GET request that sends no token at all, even when one is configured: it is for
+    /// the routes that need none.
+    ///
     /// # Errors
     ///
     /// Will return an error if the request can't be sent.
@@ -549,7 +568,7 @@ pub(crate) async fn get_result(path: Url, query: Option<Query>, headers: Option<
         request_builder = request_builder.headers(headers);
     }
 
-    request_builder.send().await.map_err(ClientError::TransportError)
+    request_builder.send().await.map_err(ClientError::from)
 }
 
 /// Returns a `HeaderMap` with a request id header.
@@ -585,4 +604,173 @@ pub fn headers_with_auth_token(token: &str) -> HeaderMap {
             .expect("the auth token is not a valid header value"),
     );
     headers
+}
+
+#[cfg(test)]
+mod tests {
+    //! A transport or deserialization error of the client must hold neither the URL (which carries
+    //! the peer key of a key delete) nor the admin token.
+    use std::error::Error as _;
+    use std::fmt::Write as _;
+    use std::net::SocketAddr;
+
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+    use tokio::net::TcpListener;
+    use tokio::task::JoinHandle;
+
+    use super::{ApiClient, ApiHttpClient, ClientError};
+    use crate::common::http::Query;
+    use crate::connection_info::{ConnectionInfo, Origin};
+
+    const TOKEN: &str = "TestAdminTokenOfTheClient0001";
+    const KEY: &str = "TestPeerKeyOfTheClientDelete0001";
+
+    /// An address nothing listens on: the connection is refused.
+    async fn closed_address() -> SocketAddr {
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        listener.local_addr().unwrap()
+    }
+
+    /// Answers one request with `200` and `body`; the task returns the head of the request.
+    async fn serve_one_request(body: &'static str) -> (SocketAddr, JoinHandle<String>) {
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let address = listener.local_addr().unwrap();
+
+        let served = tokio::spawn(async move {
+            let (mut socket, _) = listener.accept().await.unwrap();
+            let mut head = Vec::new();
+            let mut chunk = [0_u8; 1024];
+            while !head.windows(4).any(|window| window == b"\r\n\r\n") {
+                let read = socket.read(&mut chunk).await.unwrap();
+                head.extend_from_slice(&chunk[..read]);
+            }
+            let response = format!(
+                "HTTP/1.1 200 OK\r\ncontent-length: {}\r\nconnection: close\r\n\r\n{body}",
+                body.len()
+            );
+            socket.write_all(response.as_bytes()).await.unwrap();
+            String::from_utf8(head).unwrap()
+        });
+
+        (address, served)
+    }
+
+    fn authenticated_to(address: SocketAddr) -> ConnectionInfo {
+        let origin: Origin = format!("http://{address}/").parse().unwrap(); // DevSkim: ignore DS137138
+        ConnectionInfo::authenticated(origin, TOKEN)
+    }
+
+    /// Everything a reader of `error` can see: its `Display`, its `Debug` and the `Display` of its sources.
+    fn everything_shown_by(error: &ClientError) -> String {
+        let mut shown = format!("{error} {error:?}");
+        let mut source = error.source();
+        while let Some(inner) = source {
+            write!(shown, " {inner} {inner:?}").unwrap();
+            source = inner.source();
+        }
+        shown
+    }
+
+    #[tokio::test]
+    async fn it_should_not_hold_the_token_or_the_url_query_in_the_transport_error_of_a_get_request() {
+        // Arrange
+        let client = ApiHttpClient::new(authenticated_to(closed_address().await)).unwrap();
+
+        // Act
+        let error = client.get_tracker_statistics(None).await.unwrap_err();
+
+        // Assert
+        let shown = everything_shown_by(&error);
+        assert!(matches!(error, ClientError::TransportError(_)), "{error:?}");
+        assert!(!shown.contains(TOKEN), "the error holds the test token");
+        assert!(
+            !shown.contains("token="),
+            "the error holds the token query parameter: {shown}"
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_not_hold_the_key_in_the_transport_error_of_a_key_delete() {
+        // Arrange
+        let client = ApiHttpClient::new(authenticated_to(closed_address().await)).unwrap();
+
+        // Act
+        let error = client.delete_auth_key(KEY, None).await.unwrap_err();
+
+        // Assert
+        assert!(!everything_shown_by(&error).contains(KEY), "the error holds the test key");
+    }
+
+    #[tokio::test]
+    async fn it_should_not_hold_the_key_in_the_transport_error_of_the_typed_key_delete() {
+        // Arrange
+        let client = ApiClient::new(authenticated_to(closed_address().await)).unwrap();
+
+        // Act
+        let error = client.delete_auth_key(KEY).await.unwrap_err();
+
+        // Assert
+        assert!(!everything_shown_by(&error).contains(KEY), "the error holds the test key");
+    }
+
+    #[tokio::test]
+    async fn it_should_not_hold_the_token_or_the_url_in_the_transport_error_of_the_free_get_helper() {
+        // Arrange: a caller that puts the token in the query string of the URL it passes.
+        let address = closed_address().await;
+        let url = format!("http://{address}/api/v1/stats?token={TOKEN}").parse().unwrap(); // DevSkim: ignore DS137138
+
+        // Act
+        let error = super::get(url, Some(Query::default()), None).await.unwrap_err();
+
+        // Assert
+        let shown = everything_shown_by(&error);
+        assert!(!shown.contains(TOKEN), "the error holds the test token");
+        assert!(
+            !shown.contains("api/v1/stats"),
+            "the error holds the URL of the request: {shown}"
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_not_hold_the_token_or_the_url_in_the_error_of_a_response_that_cannot_be_deserialized() {
+        // Arrange
+        let (address, _served) = serve_one_request("this is not json").await;
+        let client = ApiClient::new(authenticated_to(address)).unwrap();
+
+        // Act
+        let error = client.get_tracker_statistics().await.unwrap_err();
+
+        // Assert
+        let shown = everything_shown_by(&error);
+        assert!(matches!(error, ClientError::DeserializationError(_)), "{error:?}");
+        assert!(!shown.contains(TOKEN), "the error holds the test token");
+        assert!(
+            !shown.contains(&address.port().to_string()),
+            "the error holds the URL of the request: {shown}"
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_send_the_token_in_the_authorization_header_and_not_in_the_query_of_a_get_request() {
+        // Arrange
+        let (address, served) = serve_one_request("{}").await;
+        let client = ApiHttpClient::new(authenticated_to(address)).unwrap();
+
+        // Act
+        client.get_tracker_statistics(None).await.ok();
+
+        // Assert
+        let request_head = served.await.unwrap();
+        let request_line = request_head.lines().next().unwrap();
+        assert!(
+            !request_line.contains("token"),
+            "the request line holds the token: {request_line}"
+        );
+        assert!(
+            request_head
+                .to_lowercase()
+                .contains(&format!("authorization: bearer {}", TOKEN.to_lowercase())),
+            "the request should carry the token in the Authorization header: {request_head}"
+        );
+    }
 }

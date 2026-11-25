@@ -1,0 +1,15 @@
+### t7-mut-tokens
+test secret_options::tests::it_should_name_the_option_and_the_expected_type_and_not_print_the_value_of_a_secret_option::case_3_a_boolean_access_token ... FAILED
+test secret_options::tests::it_should_name_the_option_and_the_expected_type_and_not_print_the_value_of_a_secret_option::case_2_a_numeric_access_token ... FAILED
+test result: FAILED. 5 passed; 2 failed; 0 ignored; 0 measured; 161 filtered out; finished in 0.00s
+error: test failed, to rerun pass `-p torrust-tracker-configuration --lib`
+
+### t7-mut-dsn
+test secret_options::tests::it_should_name_the_option_and_the_expected_type_and_not_print_the_value_of_a_secret_option::case_5_the_database_written_as_a_dsn ... FAILED
+test result: FAILED. 6 passed; 1 failed; 0 ignored; 0 measured; 161 filtered out; finished in 0.00s
+error: test failed, to rerun pass `-p torrust-tracker-configuration --lib`
+
+### t7-mut-below
+test secret_options::tests::it_should_still_print_the_value_of_an_option_that_is_not_a_secret ... FAILED
+test result: FAILED. 6 passed; 1 failed; 0 ignored; 0 measured; 161 filtered out; finished in 0.00s
+error: test failed, to rerun pass `-p torrust-tracker-configuration --lib`

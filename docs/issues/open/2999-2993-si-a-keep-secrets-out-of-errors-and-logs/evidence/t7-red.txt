@@ -1,0 +1,30 @@
+test secret_options::tests::it_should_name_the_option_and_the_expected_type_and_not_print_the_value_of_a_secret_option::case_1_a_numeric_database_password ... FAILED
+test secret_options::tests::it_should_name_the_option_and_the_expected_type_and_not_print_the_value_of_a_secret_option::case_2_a_numeric_access_token ... FAILED
+test secret_options::tests::it_should_name_the_option_and_the_expected_type_and_not_print_the_value_of_a_secret_option::case_5_the_database_written_as_a_dsn ... FAILED
+test secret_options::tests::it_should_name_the_option_and_the_expected_type_and_not_print_the_value_of_a_secret_option::case_4_the_access_tokens_written_as_a_string ... FAILED
+test secret_options::tests::it_should_name_the_option_and_the_expected_type_and_not_print_the_value_of_a_secret_option::case_3_a_boolean_access_token ... FAILED
+test secret_options::tests::it_should_still_print_the_value_of_an_option_that_is_not_a_secret ... ok
+--
+thread 'secret_options::tests::it_should_name_the_option_and_the_expected_type_and_not_print_the_value_of_a_secret_option::case_1_a_numeric_database_password' (1625147) panicked at packages/configuration/src/secret_options.rs:122:
+the error text holds the secret value
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+--
+thread 'secret_options::tests::it_should_name_the_option_and_the_expected_type_and_not_print_the_value_of_a_secret_option::case_2_a_numeric_access_token' (1625148) panicked at packages/configuration/src/secret_options.rs:122:9:
+the error text holds the secret value
+
+--
+thread 'secret_options::tests::it_should_name_the_option_and_the_expected_type_and_not_print_the_value_of_a_secret_option::case_5_the_database_written_as_a_dsn' (1625151) panicked at packages/configuration/src/secret_options.rs:12
+the error text holds the secret value
+
+--
+thread 'secret_options::tests::it_should_name_the_option_and_the_expected_type_and_not_print_the_value_of_a_secret_option::case_4_the_access_tokens_written_as_a_string' (1625150) panicked at packages/configuration/src/secret_optio
+the error text holds the secret value
+
+--
+thread 'secret_options::tests::it_should_name_the_option_and_the_expected_type_and_not_print_the_value_of_a_secret_option::case_3_a_boolean_access_token' (1625149) panicked at packages/configuration/src/secret_options.rs:122:9:
+the error text holds the secret value
+
+--
+test result: FAILED. 1 passed; 5 failed; 0 ignored; 0 measured; 161 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p torrust-tracker-configuration --lib`

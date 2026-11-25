@@ -95,6 +95,22 @@ mod tests {
         use crate::authentication::key::repository::in_memory::InMemoryKeyRepository;
 
         #[tokio::test]
+        async fn not_print_the_keys_it_holds_in_its_debug_output() {
+            let secret = "TestPeerKeyInTheRepository000001";
+            let repository = InMemoryKeyRepository::default();
+            repository
+                .insert(&PeerKey {
+                    key: Key::new(secret).unwrap(),
+                    valid_until: None,
+                })
+                .await;
+
+            let debug = format!("{repository:?}");
+
+            assert!(!debug.contains(secret), "the Debug output holds the test secret");
+        }
+
+        #[tokio::test]
         async fn insert_a_new_peer_key() {
             let repository = InMemoryKeyRepository::default();
 

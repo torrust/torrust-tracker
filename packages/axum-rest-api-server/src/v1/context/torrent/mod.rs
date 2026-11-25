@@ -25,7 +25,7 @@
 //! **Example request**
 //!
 //! ```bash
-//! curl "http://127.0.0.1:1212/api/v1/torrent/5452869be36f9f3350ccee6b4544e7e76caaadab?token=MyAccessToken"
+//! curl -H "Authorization: Bearer MyAccessToken" "http://127.0.0.1:1212/api/v1/torrent/5452869be36f9f3350ccee6b4544e7e76caaadab"
 //! ```
 //!
 //! **Example response** `200`
@@ -90,7 +90,7 @@
 //! **Example request**
 //!
 //! ```bash
-//! curl "http://127.0.0.1:1212/api/v1/torrents?token=MyAccessToken&offset=1&limit=1"
+//! curl -H "Authorization: Bearer MyAccessToken" "http://127.0.0.1:1212/api/v1/torrents?offset=1&limit=1"
 //! ```
 //!
 //! **Example response** `200`

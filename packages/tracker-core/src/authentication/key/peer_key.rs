@@ -8,6 +8,7 @@
 //! A `Key` is a 32-character alphanumeric token, while a `PeerKey` couples a
 //! `Key` with an optional expiration timestamp. If the expiration is set (via
 //! `valid_until`), the key will become invalid after that time.
+use std::fmt;
 use std::str::FromStr;
 use std::time::Duration;
 
@@ -68,11 +69,13 @@ impl PartialEq for PeerKey {
 
 impl Eq for PeerKey {}
 
-impl std::fmt::Display for PeerKey {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+/// Describes the key without printing it: the key is a secret, and nothing needs the whole
+/// `PeerKey` as text. Code that hands the key to its owner reads `PeerKey::key` instead.
+impl fmt::Display for PeerKey {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.expiry_time() {
-            Some(expire_time) => write!(f, "key: `{}`, valid until `{}`", self.key, expire_time),
-            None => write!(f, "key: `{}`, permanent", self.key),
+            Some(expire_time) => write!(f, "key: `[REDACTED]`, valid until `{expire_time}`"),
+            None => write!(f, "key: `[REDACTED]`, permanent"),
         }
     }
 }
@@ -124,8 +127,21 @@ impl PeerKey {
 /// use torrust_tracker_core::authentication::key::peer_key::Key;
 /// let random_key = Key::random();
 /// ```
-#[derive(Serialize, Deserialize, Debug, Eq, PartialEq, Clone, Display, Hash)]
+///
+/// # Secrecy
+///
+/// A key is a secret. `Debug` redacts it (`Key([REDACTED])`), so a type that derives `Debug` and
+/// holds a `Key` cannot print one by accident. `Display` and `Serialize` print the key and stay
+/// only where it is deliberately handed to its owner or persisted: the REST reply that returns a
+/// generated or added key, the database store, and the REST client building a key delete URL.
+#[derive(Serialize, Deserialize, Eq, PartialEq, Clone, Display, Hash)]
 pub struct Key(String);
+
+impl fmt::Debug for Key {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("Key([REDACTED])")
+    }
+}
 
 impl Key {
     /// Constructs a new `Key` from the given string.
@@ -137,8 +153,10 @@ impl Key {
     /// - The input string does not have exactly 32 characters.
     /// - The input string contains characters that are not ASCII alphanumeric.
     pub fn new(value: &str) -> Result<Self, ParseKeyError> {
-        if value.len() != AUTH_KEY_LENGTH {
-            return Err(ParseKeyError::InvalidKeyLength);
+        let length = value.chars().count();
+
+        if length != AUTH_KEY_LENGTH {
+            return Err(ParseKeyError::InvalidKeyLength { length });
         }
 
         if !value.chars().all(|c| c.is_ascii_alphanumeric()) {
@@ -187,17 +205,23 @@ impl Key {
 /// ```
 ///
 /// If the string does not contains a valid key, the parser function will return
-/// this error.
+/// this error. The error never holds the rejected string, because a malformed
+/// key is still the user's secret: it states the received length or the
+/// allowed characters instead.
 #[derive(Debug, Error, Clone, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum ParseKeyError {
-    /// The provided key does not have exactly 32 characters.
-    #[error("Invalid key length. Key must be have 32 chars")]
-    InvalidKeyLength,
+    /// The provided key does not have exactly 32 characters. It keeps the
+    /// number of characters received, never the key: the key is a secret.
+    #[error("expected 32 characters, got {length}")]
+    InvalidKeyLength {
+        /// The number of characters (not bytes) of the rejected key.
+        length: usize,
+    },
 
     /// The provided key contains invalid characters. Only ASCII alphanumeric
     /// characters are allowed.
-    #[error("Invalid chars for key. Key can only alphanumeric chars (0-9, a-z, A-Z)")]
+    #[error("only the characters 0-9, a-z and A-Z are allowed")]
     InvalidChars,
 }
 
@@ -228,6 +252,17 @@ mod tests {
         }
 
         #[test]
+        fn it_should_be_redacted_in_its_debug_output() {
+            let secret = "TestPeerKeyForDebugOutput0000001";
+            let key = Key::new(secret).unwrap();
+
+            let debug = format!("{key:?}");
+
+            assert_eq!(debug, "Key([REDACTED])");
+            assert!(!debug.contains(secret), "the Debug output holds the test secret");
+        }
+
+        #[test]
         fn should_be_generated_randomly() {
             let _key = Key::random();
         }
@@ -246,6 +281,45 @@ mod tests {
         fn should_only_include_alphanumeric_chars() {
             let key = Key::new("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
             assert!(key.is_err());
+        }
+
+        #[test]
+        fn it_should_name_the_received_length_when_the_key_has_the_wrong_length() {
+            let fourteen_characters = "ShortTestKey01";
+
+            let error = Key::new(fourteen_characters).unwrap_err();
+
+            assert_eq!(error.to_string(), "expected 32 characters, got 14");
+        }
+
+        #[test]
+        fn it_should_count_characters_not_bytes_when_naming_the_received_length() {
+            // 30 ASCII characters and one two-byte character: 31 characters, 32 bytes. Counting
+            // bytes would accept the length and reject the characters instead.
+            let thirty_one_characters = "TestPeerKeyWithAccent000000000é";
+
+            let error = Key::new(thirty_one_characters).unwrap_err();
+
+            assert_eq!(error.to_string(), "expected 32 characters, got 31");
+        }
+
+        #[test]
+        fn it_should_reject_a_32_character_key_with_a_non_ascii_character_for_its_characters() {
+            // 31 ASCII characters and one two-byte character: 32 characters, 33 bytes.
+            let thirty_two_characters = "TestPeerKeyWithAccent0000000000é";
+
+            let error = Key::new(thirty_two_characters).unwrap_err();
+
+            assert_eq!(error.to_string(), "only the characters 0-9, a-z and A-Z are allowed");
+        }
+
+        #[test]
+        fn it_should_name_the_allowed_characters_when_the_key_has_another_character() {
+            let key_with_a_dash = "TestPeerKey-00000000000000000001";
+
+            let error = Key::new(key_with_a_dash).unwrap_err();
+
+            assert_eq!(error.to_string(), "only the characters 0-9, a-z and A-Z are allowed");
         }
 
         #[test]
@@ -282,6 +356,22 @@ mod tests {
             assert_eq!(permanent_key.expiry_time(), None);
         }
 
+        #[test]
+        fn it_should_not_print_its_key_in_debug_or_display_output() {
+            let secret = "TestPeerKeyForPeerKeyOutput00001";
+            let peer_key = PeerKey {
+                key: Key::new(secret).unwrap(),
+                valid_until: Some(Duration::from_secs(100)),
+            };
+
+            let debug = format!("{peer_key:?}");
+            let display = peer_key.to_string();
+
+            assert!(!debug.contains(secret), "the Debug output holds the test secret");
+            assert!(!display.contains(secret), "the Display output holds the test secret");
+            assert!(debug.contains("Key([REDACTED])"), "{debug}");
+        }
+
         mod expiring {
             use std::time::Duration;
 
@@ -296,7 +386,7 @@ mod tests {
 
                 assert_eq!(
                     expiring_key.to_string(),
-                    format!("key: `{}`, valid until `1970-01-01 00:01:40 UTC`", expiring_key.key) // cspell:disable-line
+                    "key: `[REDACTED]`, valid until `1970-01-01 00:01:40 UTC`" // cspell:disable-line
                 );
             }
         }
@@ -312,10 +402,7 @@ mod tests {
                     valid_until: None,
                 };
 
-                assert_eq!(
-                    permanent_key.to_string(),
-                    format!("key: `{}`, permanent", permanent_key.key) // cspell:disable-line
-                );
+                assert_eq!(permanent_key.to_string(), "key: `[REDACTED]`, permanent"); // cspell:disable-line
             }
         }
     }

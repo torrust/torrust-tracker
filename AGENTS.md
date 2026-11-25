@@ -185,9 +185,10 @@ PR titles, bodies, issue-linking keywords, rebasing and history-rewrite rules ar
 is in the `merge-pull-request` skill.
 
 **After opening a PR**, an agent does not stop. It runs the review loop in the `wait-for-pr-review`
-skill: watch the CI checks and fix failures, wait with the poller, run `process-pr-review`, push,
-and re-request the review. Once everything is addressed, it keeps watching until the PR is merged or
-closed, so the contributor never has to tell it.
+skill: watch the CI checks and fix failures, wait with the poller, run `process-pr-review` on every
+review it receives, whoever the reviewer is, and push. No review from a named reviewer is required,
+and an agent never requests one; only a maintainer does. Once everything is addressed, it keeps
+watching until the PR is merged or closed, so the contributor never has to tell it.
 
 The agent asks the contributor only in these cases: more than 5 rounds of review fixes have been
 pushed, more than 5 head commits have failed checks, or the skill says to.

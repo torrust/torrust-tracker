@@ -31,7 +31,7 @@ so contributors can reproduce the flow without relying on a specific tracker cli
 Run all commands from repository root.
 
 - HTTP tracker: `http://127.0.0.1:7070`
-- Stats API: `http://127.0.0.1:1212/api/v1/stats?token=MyAccessToken`
+- Stats API: `http://127.0.0.1:1212/api/v1/stats` (send `Authorization: Bearer MyAccessToken`)
 
 Optional clean baseline:
 
@@ -63,7 +63,8 @@ In terminal B:
 INFO_HASH='TTTTTTTTTTTTTTTTTTTT'
 PEER_ID='HTTPCLIENTPEERID0000'
 BASE='http://127.0.0.1:7070'
-STATS='http://127.0.0.1:1212/api/v1/stats?token=MyAccessToken'
+STATS='http://127.0.0.1:1212/api/v1/stats'
+AUTH='Authorization: Bearer MyAccessToken'
 ```
 
 Notes:
@@ -78,7 +79,7 @@ Notes:
 Command:
 
 ```bash
-curl -s "$STATS"
+curl -s -H "$AUTH" "$STATS"
 ```
 
 Output captured during validation:
@@ -157,7 +158,7 @@ Then verify scrape and global stats:
 
 ```bash
 curl -sG "$BASE/scrape" --data-urlencode "info_hash=$INFO_HASH"
-curl -s "$STATS"
+curl -s -H "$AUTH" "$STATS"
 ```
 
 Outputs captured during validation:
@@ -232,7 +233,7 @@ Then verify scrape and global stats:
 
 ```bash
 curl -sG "$BASE/scrape" --data-urlencode "info_hash=$INFO_HASH"
-curl -s "$STATS"
+curl -s -H "$AUTH" "$STATS"
 ```
 
 Outputs captured during validation:
@@ -284,10 +285,10 @@ Expected meaning:
 
 ## 6. Browser option
 
-You can open global stats directly in a browser:
+A browser cannot send the `Authorization` header, so read the global stats with `curl`:
 
-```text
-http://127.0.0.1:1212/api/v1/stats?token=MyAccessToken
+```bash
+curl -s -H 'Authorization: Bearer MyAccessToken' http://127.0.0.1:1212/api/v1/stats
 ```
 
 Use page refresh between steps to observe the counter changes.

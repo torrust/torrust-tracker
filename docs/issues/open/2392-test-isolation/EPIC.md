@@ -6,7 +6,7 @@ epic: null
 github-issue: 2392
 spec-path: docs/issues/open/2392-test-isolation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-22 09:25"
+last-updated-utc: "2026-11-25 11:48"
 semantic-links:
   skill-links:
     - create-issue
@@ -20,7 +20,7 @@ semantic-links:
     - docs/issues/open/2906-2392-fixed-port-metrics-test-concurrent-runs/ISSUE.md
     - docs/issues/closed/2907-2392-remove-leaked-test-temporary-files/ISSUE.md
     - docs/issues/open/2908-2392-compose-cleanup-after-failed-start/ISSUE.md
-    - docs/issues/open/2924-2392-sqlite-test-database-guard/ISSUE.md
+    - docs/issues/closed/2924-2392-sqlite-test-database-guard/ISSUE.md
     - docs/issues/open/2925-2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md
     - docs/issues/open/2943-2392-figment-jail-process-environment/ISSUE.md
     - docs/issues/open/1840-improve-pr-workflow-performance-epic/EPIC.md
@@ -114,7 +114,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | 6 | #2906 - Let two runs of the fixed-port metrics test share a machine | `docs/issues/open/2906-2392-fixed-port-metrics-test-concurrent-runs/ISSUE.md` | TODO | Bug (#2394 D1, P2). `tests/metrics/fixed_ports.rs` binds `0.0.0.0:17091`-`17094`, so two runs on one machine collide (20 of 20 paired runs had one failure). The proposed fix uses the loopback helper beyond the 9 #2393 tests, which needs a maintainer decision before implementation starts (the Decisions section limits the helper to those 9 tests). |
 | 7 | #2907 - Remove the temporary TOML and PEM files tests leave behind | `docs/issues/closed/2907-2392-remove-leaked-test-temporary-files/ISSUE.md` | DONE | Bug (#2394 D2, F2). Narrowed on 2026-11-17 to the `test_config_*.toml` and PEM files that tests leave in the system temporary directory. The `data_*.db` files, 301 of the 303 files one full run leaves, moved to orders 9 and 10. PR #2938 moved the two TOML tests into a `TempDir` and made the TLS helper return a `NamedTempFile`; after it, a full run leaves 0 TOML and 0 PEM files (V2). Found during the work: 18 `figment::Jail` tests in `packages/configuration/src/lib.rs` call `clear_env()`, which removes `TMPDIR` from the whole process while they run, so leaked-file counts are lower bounds (no issue yet). |
 | 8 | #2908 - Tear down the qBittorrent E2E stack when it fails to start | `docs/issues/open/2908-2392-compose-cleanup-after-failed-start/ISSUE.md` | TODO | Bug (#2394 D3, C9). A failed `docker compose up` leaves the stack running on the Docker host. Touches the qBittorrent E2E runner, like order 4. |
-| 9 | #2924 - Add a guard-owned SQLite test database | `docs/issues/open/2924-2392-sqlite-test-database-guard/ISSUE.md` | TODO | Bug, split from order 7. Adds to the test helpers a guard that owns the SQLite database's directory and a factory that returns a configuration with its guard, next to the existing `ephemeral*()` functions; converts the helpers outside `tracker-core` that build the database path themselves. PR #2923 (#2902) fixes `tracker-core` with the same shape, and order 9 starts after it merges. |
+| 9 | #2924 - Add a guard-owned SQLite test database | `docs/issues/closed/2924-2392-sqlite-test-database-guard/ISSUE.md` | DONE | Bug, split from order 7. Adds to the test helpers a guard that owns the SQLite database's directory and a factory that returns a configuration with its guard, next to the existing `ephemeral*()` functions; converts the helpers outside `tracker-core` that build the database path themselves. PR #2923 (#2902) fixes `tracker-core` with the same shape. Done with PRs #3011 (spec), #3029 (guard, factory and the `http-core` conversion) and #3035 (close-out). |
 | 10 | #2925 - Move tests to the guard-owned SQLite database and default to no database | `docs/issues/open/2925-2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md` | TODO | Bug, split from order 7. Moves the tests that need persistence to order 9's factory, one pull request per package, then removes the database from `ephemeral*()`. Owns the check that a fresh `TMPDIR` is empty after the suite. Depends on order 9. |
 | 11 | #2943 - Keep `figment::Jail` tests from changing the environment other tests see | `docs/issues/open/2943-2392-figment-jail-process-environment/ISSUE.md` | TODO | Bug, found by #2907. The `Jail` tests of `packages/configuration` clear and set the process environment and change the current directory while tests of the same binary that do not use `Jail` run. The order 2 audit classified this resource (G2) as isolated; this issue corrects that row and rechecks G1. The maintainer chooses the design in its T2. Independent of the other orders. |
 
@@ -313,6 +313,17 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
   sync on 2026-11-21: the 13:24 entry now says when PR #2983 merged (about 15:14 UTC), and the
   Phase 4 outcome now says only #1419's remaining R8, AC8a and R9 were done under this EPIC
   (about 15:20 UTC).
+- 2026-11-24 18:57 UTC - Claude Code (Claude Sonnet 5.5), EPIC coordinator - Order 9 (#2924) is DONE: PRs
+  #3011, #3029 and #3035 merged and GitHub closed #2924. The guard and its factory are in
+  `torrust-tracker-test-helpers`. The `http-core` recheck still counts 6 `data_*.db` files. The one
+  direct caller creates none, so the six come from `ephemeral*()` users that order 10 (#2925)
+  moves; the per-test attribution is not done. `tracker-core` keeps its own
+  `EphemeralConfiguration` wrappers, and no subissue owns adopting the shared type there yet.
+- 2026-11-25 11:35 UTC - Claude Code (Claude Sonnet 5.5), EPIC coordinator - The review of PR #3045 changed the
+  sync: the AC2 evidence now says orders 7 and 9 are done, and AC2 waits on orders 6 and 10.
+- 2026-11-25 11:48 UTC - Claude Code (Claude Sonnet 5.5), EPIC coordinator - The CodeRabbit review of PR #3045 changed the
+  2026-11-24 18:57 entry: it now says the six-file attribution follows from excluding the direct
+  caller, with no per-test attribution.
 
 ## Acceptance Criteria
 
@@ -331,7 +342,7 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
 | AC1 | TODO | GitHub sub-issues of #2392: #2393, #2394, #2395, #2396, #1419; the audit added #2906, #2907 and #2908. The split of #2907 added #2924 and #2925, which are created but not yet linked as sub-issues (the maintainer links them). #2907 then found #2943 (order 11), created and also not yet linked. |
-| AC2 | TODO | Order 1 `manual-verification-evidence.md` (V6: 150 of 150 full-suite runs passed with no #2393 test ignored, after PR #2874). The order 2 audit found two more shared resources that make the suite fail: fixed ports that collide across concurrent runs (order 6) and leaked temporary files that fill the disk (order 7, split into orders 7, 9 and 10). Order 7 is done (PR #2938). Stays TODO until orders 6, 9 and 10 are done. |
+| AC2 | TODO | Order 1 `manual-verification-evidence.md` (V6: 150 of 150 full-suite runs passed with no #2393 test ignored, after PR #2874). The order 2 audit found two more shared resources that make the suite fail: fixed ports that collide across concurrent runs (order 6) and leaked temporary files that fill the disk (order 7, split into orders 7, 9 and 10). Orders 7 and 9 are done (PRs #2938 and #3029). Stays TODO until orders 6 and 10 are done. |
 | AC3 | TODO | Orders 3 and 4 `manual-verification-evidence.md` |
 | AC4 | DONE | Order 2 `inventory.md`: 38 findings: isolated (28), a deliberate exception (1), or tracked by a subissue (5 covered by orders 1, 3 and 4; 3 new problems, orders 6 to 8; and G2, order 11). The inventory itself still counts G2 as isolated (29) until order 11 corrects its row. |
 | AC5 | TODO | Documentation PR |

@@ -132,7 +132,7 @@ The sub-issues are drafts. Each gets its GitHub issue number when its session st
 
 | SI | Issue | Local Spec | Status | Decisions | Depends on |
 | --- | --- | --- | --- | --- | --- |
-| 1 | #[To be assigned] - Bug: statistics listeners log a `WARN` for every event when usage statistics are disabled | `docs/issues/drafts/2387-si-1-statistics-disabled-warning-per-event/ISSUE.md` | TODO | D8 | - |
+| 1 | #3031 - Bug: statistics listeners log a `WARN` for every event when usage statistics are disabled | `docs/issues/open/3031-2387-si-1-statistics-disabled-warning-per-event/ISSUE.md` | TODO | D8 | - |
 | 2 | #[To be assigned] - Record the logging convention: ADR, `docs/logging.md`, inventory and skill | `docs/issues/drafts/2387-si-2-logging-convention-adr-and-docs/ISSUE.md` | TODO | D2, D3, D4, D5, D6, D9, D11, D12 | #2766 |
 | 3 | #[To be assigned] - Reject private mode with UDP trackers configured at startup | `docs/issues/drafts/2387-si-3-reject-private-mode-with-udp-trackers/ISSUE.md` | TODO | D9 | - |
 | 4 | #[To be assigned] - Add the unit to the three duration configuration keys that have none | `docs/issues/drafts/2387-si-4-configuration-keys-with-units/ISSUE.md` | TODO | D6 | - |

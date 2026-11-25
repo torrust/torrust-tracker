@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: in-review
 priority: p1
 epic: 2993
 github-issue: 2999
 spec-path: docs/issues/open/2999-2993-si-a-keep-secrets-out-of-errors-and-logs/ISSUE.md
 branch: "2999-si-a-keep-secrets-out-of-errors-and-logs"
-related-pr: null
-last-updated-utc: "2026-11-24 12:38"
+related-pr: 3042
+last-updated-utc: "2026-11-25 11:34"
 semantic-links:
   skill-links:
     - create-issue
@@ -112,17 +112,17 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | TODO | Baseline reproduction | The EPIC cases A1 to A6, A10 and A12 reproduced on the starting commit (after #3001 merged); evidence recorded. |
-| T2 | TODO | Test plan | The list of tests per behavior area (T3 to T8), written before the first one. The tests themselves are written red-then-green inside each area, with a recorded test-design review after each passing increment. |
-| T3 | TODO | Key errors and messages | A1, A2 and the new peer-key messages; the REST responses stop echoing the key. |
-| T4 | TODO | `Key` type | Redacting `Debug`; remaining `Display` uses listed and justified. |
-| T5 | TODO | Request logging | The shared redaction function; custom `MakeSpan` and `on_request` in the three servers; the generated-key log lines removed. |
-| T6 | TODO | REST client | `without_url`, header token, `SecretString` where practical. |
-| T7 | TODO | Configuration errors | A10: no secret value in a configuration error. |
-| T7b | TODO | Database errors | A12: the key store errors keep and print no driver message that holds a key; MySQL duplicate-key regression test. |
-| T8 | TODO | Documentation | `handle-secrets` skill, the ADR change, `docs/containers.md`. |
-| T8b | TODO | Maintainer checkpoint | Stop for maintainer review after the last test increment, before final verification, the final commit and the pull request. |
-| T9 | TODO | Final recheck | The baseline reproduction repeated after the last production change. |
+| T1 | DONE | Baseline reproduction | The EPIC cases A1 to A6, A10 and A12 reproduced on the starting commit (after #3001 merged); evidence recorded. |
+| T2 | DONE | Test plan | The list of tests per behavior area (T3 to T8), written before the first one. The tests themselves are written red-then-green inside each area, with a recorded test-design review after each passing increment. |
+| T3 | DONE | Key errors and messages | A1, A2 and the new peer-key messages; the REST responses stop echoing the key. |
+| T4 | DONE | `Key` type | Redacting `Debug`; remaining `Display` uses listed and justified. |
+| T5 | DONE | Request logging | The shared redaction function; custom `MakeSpan` and `on_request` in the three servers; the generated-key log lines removed. |
+| T6 | DONE | REST client | `without_url`, header token, `SecretString` where practical. |
+| T7 | DONE | Configuration errors | A10: no secret value in a configuration error. |
+| T7b | DONE | Database errors | A12: the key store errors keep and print no driver message that holds a key; MySQL duplicate-key regression test. |
+| T8 | DONE | Documentation | `handle-secrets` skill, the ADR change, `docs/containers.md`. |
+| T8b | DONE | Maintainer checkpoint | Stop for maintainer review after the last test increment, before final verification, the final commit and the pull request. |
+| T9 | DONE | Final recheck | The baseline reproduction repeated after the last production change. |
 
 ## Commit Points
 
@@ -144,13 +144,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [x] Spec-only PR merged into `develop` before implementation (#2994; refreshed by #3014, which must merge before implementation too)
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -159,23 +159,30 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-23 11:06 UTC - Claude Code (Claude Sonnet 5.5) - The maintainer approved the specification; created #2999 and moved it to `docs/issues/open/`. Merged with the EPIC by pull request #2994.
 - 2026-11-23 18:08 UTC - Claude Code (Claude Opus 5.5), EPIC coordinator session - Rechecked against `develop` `6bc417424` before the start: nothing fixed. Added the missed sites (the third `InvalidKey` site, the other `reqwest` wrap sites and the peer key in the delete URL, the fifth key text, the other `?token=` teachers), corrected the REST client description and file paths, and recorded the maintainer's answers of 2026-11-23 (start after #3001, marker `***`, CI tools out of scope, one session with Claude Fable 5.2 at high effort).
 - 2026-11-23 19:29 UTC - Claude Code (Claude Opus 5.5), EPIC coordinator session - Review of PR 3014: added the axum path rejection of `POST /api/v1/key/<seconds>`, made the URI redaction cover every segment whatever its shape, and named the REST client's GET exceptions and the free GET helper's send error.
+- 2026-11-24 18:00 UTC - Claude Code (Claude Sonnet 5.5), implementation session - Implemented T1 to T9 in seven signed commits on the branch (`fix(auth)`, `fix(tracker-core)` for the `Key` type, `fix(servers)`, `fix(rest-api-client)`, `fix(configuration)`, `fix(tracker-core)` for the database errors, `docs(secrets)`). The maintainer checkpoint (T8b) was passed on 2026-11-24 after the last increment, by the maintainer's reply "Approve, continue" in the session; the final recheck (M1 to M7) ran afterwards on the finished build and is in the evidence file section T9. Decisions: the redaction function lives in `torrust-tracker-axum-server::request_log`; secret configuration options are detected by key path (`SECRET_OPTIONS`); the secrecy ADR was amended (no new ADR); `PeerKey`'s `Display` no longer prints the key; the generated-key log lines were removed. Public API changes: `ConnectionInfo::api_token` is `Option<SecretString>` (no `Clone`), `UnableToReadKey` and both `InvalidKey` variants lost their `key` field. Pull request: pending.
+- 2026-11-25 08:27 UTC - Claude Code (Claude Fable 5.2), implementation session - Review round 2 (da2ce7, approved with seven non-blocking findings, all accepted): the decoder requires two hexadecimal digits, the `use-rest-api` skill no longer shows the header command under the query heading, the configuration red-run count is corrected and its seventh test has a recorded mutation, two word fragments left the project dictionary, and the length test asserts the length. The recheck was repeated again (evidence section R2). The push of this round makes the two ACKs on the earlier head stale.
+- 2026-11-25 08:28 UTC - Claude Code (Claude Fable 5.2), implementation session - Recorded late, for 2026-11-24: pull request 3042 was opened after the entry above was written. Review round 1 (Greptile, two findings): the redaction now percent-decodes names before comparing them, and the imports this branch added follow the repository style. The real-tracker recheck was repeated after the fix (evidence section R1). The maintainer wrote his ACK on the head that held the audit record.
+- 2026-11-25 08:47 UTC - Claude Code (Claude Fable 5.2), implementation session - Review round 3 (CodeRabbit, three findings, all accepted): a key after an empty path segment (`/announce//<key>`) is redacted, the redaction of configuration errors also drops the source line of a TOML syntax error (which the loaders do not report today), and the documents no longer call the `Authorization` header "the safe form" without HTTPS. The recheck was repeated (evidence section R3).
+- 2026-11-25 08:56 UTC - Claude Code (Claude Fable 5.2), implementation session - Review round 4 (da2ce7, changes requested on the head before the round 3 fix): its two major findings are the ones CodeRabbit raised and round 3 fixed (the key after an empty path segment, the TOML syntax error), so they need no further change; its nit is fixed here: the two entries above stamped 08:27 and 08:28 are now in stamp order.
+- 2026-11-25 09:07 UTC - Claude Code (Claude Fable 5.2), implementation session - Review round 5 (Greptile, two findings; da2ce7, one): the path redaction finds the end of the secret once instead of scanning the rest of the path for every segment (a slash-only path of 60000 bytes took 658 ms in the logging callback, now 1 ms), the `use-rest-api` skill no longer says the header keeps a token out of the shell history, and the audit holds rows for every review thread. The recheck was repeated (evidence section R5). This is the fifth round of review fixes, the limit after which the session stops and asks the maintainer.
+- 2026-11-25 11:34 UTC - Claude Code (Claude Fable 5.2), implementation session - Review round 6, run on the maintainer's word ("Round 6 now") after the five-round limit: CodeRabbit's two minor findings and da2ce7's two nits (he approved the head). The documents say the header keeps the token out of the URL, not out of every log; a test comment and two audit details were corrected. No production code changed, so the round 5 recheck stands (evidence section R6).
 
 ## Acceptance Criteria
 
-- [ ] AC1: No error value keeps a peer key or an admin token, and no `Display` or `Debug` of an error prints one.
-- [ ] AC2: A failure reason for a bad, unknown, expired or missing key tells the user which of the four cases it is, and holds no key.
-- [ ] AC3: No log line written for a request to the HTTP tracker, the REST API or the health-check API holds a peer key or an admin token, shown on a running tracker with `trace_filter = "debug"`.
-- [ ] AC4: Generating a key does not write it to the log.
-- [ ] AC5: `Key` prints as `Key([REDACTED])` in `Debug`, and every remaining `Display` use is deliberate and listed.
-- [ ] AC6: A transport error of the REST client holds neither the token, the peer key nor the URL query.
-- [ ] AC7: A configuration error for a secret option names the option and the expected type and does not print the value.
-- [ ] AC8: The `handle-secrets` skill and an ADR state how the peer key and URL-borne secrets are handled, and `docs/containers.md`, the skills and the rustdoc no longer teach `?token=`, and `docs/containers.md` no longer teaches a `mysql://` `path`.
-- [ ] AC9: Adding a peer key that already exists leaves no key in the retained error, the REST reply or the log, on MySQL, PostgreSQL and SQLite.
-- [ ] AC10: Each test increment has a recorded test-design review, and the maintainer checkpoint after the last increment is recorded in the progress log.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] AC1: No error value keeps a peer key or an admin token, and no `Display` or `Debug` of an error prints one.
+- [x] AC2: A failure reason for a bad, unknown, expired or missing key tells the user which of the four cases it is, and holds no key.
+- [x] AC3: No log line written for a request to the HTTP tracker, the REST API or the health-check API holds a peer key or an admin token, shown on a running tracker with `trace_filter = "debug"`.
+- [x] AC4: Generating a key does not write it to the log.
+- [x] AC5: `Key` prints as `Key([REDACTED])` in `Debug`, and every remaining `Display` use is deliberate and listed.
+- [x] AC6: A transport error of the REST client holds neither the token, the peer key nor the URL query.
+- [x] AC7: A configuration error for a secret option names the option and the expected type and does not print the value.
+- [x] AC8: The `handle-secrets` skill and an ADR state how the peer key and URL-borne secrets are handled, and `docs/containers.md`, the skills and the rustdoc no longer teach `?token=`, and `docs/containers.md` no longer teaches a `mysql://` `path`.
+- [x] AC9: Adding a peer key that already exists leaves no key in the retained error, the REST reply or the log, on MySQL, PostgreSQL and SQLite.
+- [x] AC10: Each test increment has a recorded test-design review, and the maintainer checkpoint after the last increment is recorded in the progress log.
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 
 ## Verification Plan
 
@@ -191,13 +198,13 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | Wrong peer key on a private tracker | Announce with an unregistered key, a 14-character key, a key with a `-`, an expired key, and no key | Five failure reasons, one per case, none holding the key | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | REST key errors | `POST /api/v1/keys` with a short key; `DELETE /api/v1/key/<bad>` | 400 texts that state the length or the rule and not the key | TODO | `manual-verification-evidence.md` section V2 |
-| M3 | Request logs | With `trace_filter = "debug"`, send an announce with a key, a REST call with `?token=`, and a key delete; read the log | No line holds the key or the token; the `uri=` fields show the marker | TODO | `manual-verification-evidence.md` section V3 |
-| M4 | Generated key | `POST /api/v1/key/3600` with `trace_filter = "debug"` | The log has no `Generated key` line with the key | TODO | `manual-verification-evidence.md` section V4 |
-| M5 | Configuration error | Start the tracker with `password = 987654321` and with a numeric access token | The error names the option and the expected type, not the number | TODO | `manual-verification-evidence.md` section V5 |
-| M6 | REST client | Point the client at a closed port with a token; do a GET and a key delete | The error text holds no token and no key | TODO | `manual-verification-evidence.md` section V6 |
-| M7 | Duplicate key on MySQL | On a tracker with a MySQL database and `trace_filter = "debug"`, add the same key twice through the REST API; read the reply and the log | Neither holds the key | TODO | `manual-verification-evidence.md` section V7 |
+| M1 | Wrong peer key on a private tracker | Announce with an unregistered key, a 14-character key, a key with a `-`, an expired key, and no key | Five failure reasons, one per case, none holding the key | DONE | `manual-verification-evidence.md` section T9 (M1) |
+| M2 | REST key errors | `POST /api/v1/keys` with a short key; `DELETE /api/v1/key/<bad>` | 400 texts that state the length or the rule and not the key | DONE | `manual-verification-evidence.md` section T9 (M2) |
+| M3 | Request logs | With `trace_filter = "debug"`, send an announce with a key, a REST call with `?token=`, and a key delete; read the log | No line holds the key or the token; the `uri=` fields show the marker | DONE | `manual-verification-evidence.md` section T9 (M3) |
+| M4 | Generated key | `POST /api/v1/key/3600` with `trace_filter = "debug"` | The log has no `Generated key` line with the key | DONE | `manual-verification-evidence.md` section T9 (M4) |
+| M5 | Configuration error | Start the tracker with `password = 987654321` and with a numeric access token | The error names the option and the expected type, not the number | DONE | `manual-verification-evidence.md` section T9 (M5) |
+| M6 | REST client | Point the client at a closed port with a token; do a GET and a key delete | The error text holds no token and no key | DONE | `manual-verification-evidence.md` section T9 (M6) |
+| M7 | Duplicate key on MySQL | On a tracker with a MySQL database and `trace_filter = "debug"`, add the same key twice through the REST API; read the reply and the log | Neither holds the key | DONE | `manual-verification-evidence.md` section T9 (M7) |
 
 Notes: manual verification is mandatory even when automated tests pass. Record the toolchain for every command, and create `manual-verification-evidence.md` from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`.
 
@@ -209,16 +216,16 @@ None planned. The UDP and HTTP probes of the EPIC session were ad-hoc commands; 
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | --- | --- | --- |
-| AC1 | TODO | {test/log/PR link} |
-| AC2 | TODO | {test/log/PR link} |
-| AC3 | TODO | {test/log/PR link} |
-| AC4 | TODO | {test/log/PR link} |
-| AC5 | TODO | {test/log/PR link} |
-| AC6 | TODO | {test/log/PR link} |
-| AC7 | TODO | {test/log/PR link} |
-| AC8 | TODO | {test/log/PR link} |
-| AC9 | TODO | {test/log/PR link} |
-| AC10 | TODO | {test/log/PR link} |
+| AC1 | DONE | `manual-verification-evidence.md`: Evidence sections T3, T6, T7, T7b (tests assert Display, Debug and the source chain hold no test secret); final run M1, M2, M5, M7 |
+| AC2 | DONE | `manual-verification-evidence.md`: T3 section and T9 M1: five cases read differently; the expired and characters cases by unit and contract tests |
+| AC3 | DONE | `manual-verification-evidence.md`: T5 section (three `request_logging` test binaries) and T9 M3 |
+| AC4 | DONE | `manual-verification-evidence.md`: T5 section (generated-key tests) and T9 M4 |
+| AC5 | DONE | `manual-verification-evidence.md`: T4 section (redacting `Debug`, the list of remaining `Display` uses) |
+| AC6 | DONE | `manual-verification-evidence.md`: T6 section (six client tests; mutations) and T9 M6 |
+| AC7 | DONE | `manual-verification-evidence.md`: T7 section (five secret-option cases, mutations) and T9 M5 |
+| AC8 | DONE | `manual-verification-evidence.md`: T8 section (ADR amendment, `handle-secrets` 1.3, `docs/containers.md`, skills, rustdoc, grep check) |
+| AC9 | DONE | `manual-verification-evidence.md`: T7b section (SQLite, MySQL and PostgreSQL driver tests with Docker; REST reply test) and T9 M7 |
+| AC10 | DONE | `manual-verification-evidence.md`: Every increment section has its red run (or mutation) and prose-first AAA review; the T8b checkpoint is in the progress log |
 
 ## Risks and Trade-offs
 
@@ -230,7 +237,7 @@ None planned. The UDP and HTTP probes of the EPIC session were ad-hoc commands; 
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: not needed (see the "Completion Review" paragraph of the evidence file); no `implementation-retrospective.md`.
 - If needed, create `implementation-retrospective.md` from `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this directory; otherwise record in the progress log why none was needed.
 
 ## References

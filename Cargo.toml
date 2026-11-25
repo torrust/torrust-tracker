@@ -35,6 +35,10 @@ name = "metrics-udp-error-disabled-port-zero"
 path = "tests/metrics/udp_error_disabled_port_zero.rs"
 
 [[test]]
+name = "metrics-statistics-disabled-logs"
+path = "tests/metrics/statistics_disabled_logs.rs"
+
+[[test]]
 name = "banning-udp-metrics-disabled-port-zero"
 path = "tests/banning/udp_metrics_disabled_port_zero.rs"
 

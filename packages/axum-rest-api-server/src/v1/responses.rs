@@ -57,8 +57,8 @@ pub fn invalid_info_hash_param_response(info_hash: &str) -> Response {
 }
 
 #[must_use]
-pub fn invalid_auth_key_param_response(invalid_key: &str) -> Response {
-    bad_request_response(&format!("Invalid auth key id param \"{invalid_key}\""))
+pub fn invalid_auth_key_param_response(reason: &str) -> Response {
+    bad_request_response(&format!("Invalid auth key id param: {reason}"))
 }
 
 #[must_use]
@@ -127,7 +127,10 @@ mod tests {
         invalid_info_hash_param_response("abc"),
         r#"Invalid URL: invalid infohash param: string "abc", expected a 40 character long string"#
     )]
-    #[case::an_invalid_auth_key(invalid_auth_key_param_response("bad-key"), r#"Invalid auth key id param "bad-key""#)]
+    #[case::an_invalid_auth_key(
+        invalid_auth_key_param_response("expected 32 characters, got 7"),
+        "Invalid auth key id param: expected 32 characters, got 7"
+    )]
     #[case::a_custom_message(bad_request_response("custom"), "custom")]
     #[tokio::test]
     async fn it_should_answer_a_bad_request_with_the_message_as_plain_text(#[case] response: Response, #[case] message: &str) {

@@ -93,9 +93,7 @@ impl AuthenticationService {
     /// - The key fails the expiration check when such verification is required.
     async fn verify_auth_key(&self, key: &Key) -> Result<(), Error> {
         match self.in_memory_key_repository.get(key).await {
-            None => Err(Error::UnableToReadKey {
-                key: Box::new(key.clone()),
-            }),
+            None => Err(Error::UnableToReadKey),
             Some(key) => match self.config.private_mode {
                 Some(private_mode) => {
                     if private_mode.check_keys_expiration {
@@ -162,6 +160,7 @@ mod tests {
             use crate::authentication::key::repository::in_memory::InMemoryKeyRepository;
             use crate::authentication::service::AuthenticationService;
             use crate::authentication::{self, PeerKey};
+            use crate::test_helpers::tests::assert_holds_no_secret;
 
             fn instantiate_authentication_for_private_tracker() -> AuthenticationService {
                 let config = Core {
@@ -217,8 +216,21 @@ mod tests {
 
                 let error = authentication.authenticate(&unregistered_key).await.unwrap_err();
 
-                assert!(error.to_string().starts_with("Failed to read key"), "{error}");
+                assert_eq!(error.to_string(), "Authentication key not registered");
                 assert_names_no_source_path(&error.to_string());
+            }
+
+            #[tokio::test]
+            async fn it_should_neither_keep_nor_print_an_unregistered_key() {
+                let authentication = instantiate_authentication_for_private_tracker();
+                let unregistered_key = "TestPeerKeyNotRegistered00000001";
+
+                let error = authentication
+                    .authenticate(&authentication::Key::from_str(unregistered_key).unwrap())
+                    .await
+                    .unwrap_err();
+
+                assert_holds_no_secret(&error, unregistered_key);
             }
 
             #[tokio::test]
@@ -241,7 +253,7 @@ mod tests {
 
                 let error = authentication.authenticate(&key).await.unwrap_err();
 
-                assert_eq!(error.to_string(), "Key has expired");
+                assert_eq!(error.to_string(), "Authentication key expired");
             }
 
             #[tokio::test]

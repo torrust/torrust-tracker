@@ -3,11 +3,12 @@ name: watch-pull-request-checks
 description: Wait for a pull request's CI checks to finish with gh pr checks, then read which failed. Use when you need to know whether CI passed after pushing to a PR.
 metadata:
   author: torrust
-  version: "1.0"
+  version: "1.1"
   semantic-links:
     related-artifacts:
       - .claude/skills/wait-for-pr-review/SKILL.md
       - .claude/skills/open-pull-request/SKILL.md
+      - docs/adrs/20261124182709_review_pull_requests_without_a_mandatory_reviewer.md
 ---
 
 # Watching Pull-Request Checks
@@ -23,7 +24,13 @@ events, which `gh pr checks` does not report.
 
 ## Wait for the Checks
 
+After a push, wait for the workflow checks with the loop in
+[Review-Service Check Runs](#review-service-check-runs): this repository has review services that
+post check runs of their own, and `--watch` below waits for those too, although they do not count
+for readiness. Use `--watch` when every check run matters to you, or for a quick look at all of them:
+
 ```sh
+mkdir -p .tmp
 gh pr checks <PR> --repo torrust/torrust-tracker --watch --fail-fast --interval 60 \
   > .tmp/pr-checks.txt 2>&1
 echo "exit=$?"
@@ -54,6 +61,67 @@ gh pr checks <PR> --repo torrust/torrust-tracker --json name,bucket \
 gh pr checks <PR> --repo torrust/torrust-tracker --json name,bucket,link \
   --jq '.[] | select(.bucket == "fail") | "\(.name) \(.link)"'
 ```
+
+## Review-Service Check Runs
+
+A review service installed on the repository can post its own check run, for example `CodeRabbit`
+or `Greptile Review`. Such a check run comes from the service's GitHub App, not from a workflow of
+this repository, and it does not count for readiness: it neither blocks a pull request nor is waited
+for ([ADR](../../../docs/adrs/20261124182709_review_pull_requests_without_a_mandatory_reviewer.md)).
+Its review, if it posts one, goes through the review loop like any other.
+
+`gh pr checks` reports an empty `workflow` for these check runs, so they can be left out without
+naming any service. `--watch` waits for every check run, theirs included, so it can keep waiting
+for a slow review service after CI has finished, and its exit code counts a failed review-service
+check as a failure. To wait for the workflow checks alone, poll them instead. The loop spends no
+tokens. It ends when at least one workflow check exists and none is pending, or when the workflow
+runs of the head commit wait for a maintainer's approval (see
+[When Checks Never Start](#when-checks-never-start)), or when a `gh` call fails:
+
+```sh
+mkdir -p .tmp
+while :; do
+  # Read the head on every pass, so both commands below look at the same commit even after a push.
+  head=$(gh pr view <PR> --repo torrust/torrust-tracker --json headRefOid --jq .headRefOid) \
+    || { echo "gh pr view failed; see its error above" >&2; break; }
+  if ! ready=$(gh pr checks <PR> --repo torrust/torrust-tracker --json bucket,workflow \
+    --jq '[.[] | select(.workflow != "")] | length > 0 and all(.bucket != "pending")' \
+    2> .tmp/pr-checks-error.txt); then
+    grep -q "^no checks reported" .tmp/pr-checks-error.txt \
+      || { cat .tmp/pr-checks-error.txt; echo "gh pr checks failed" >&2; break; }
+    ready=false   # no check exists yet: see whether the runs wait for approval
+  fi
+  [ "$ready" = true ] && { echo "workflow checks finished"; break; }
+  waiting=$(gh run list --repo torrust/torrust-tracker --commit "$head" --json conclusion \
+    --jq 'any(.[]; .conclusion == "action_required")') \
+    || { echo "gh run list failed; see its error above" >&2; break; }
+  [ "$waiting" = true ] && { echo "workflow runs of $head wait for a maintainer's approval"; break; }
+  sleep 60
+done > .tmp/pr-checks-wait.txt 2>&1
+```
+
+Read the last line of the file when the loop exits. With `--json`, `gh pr checks` exits `0` whether
+the checks pass, fail or are pending. It exits non-zero with `no checks reported on the '<branch>'
+branch` when the head has no check at all, which the loop treats as "not yet"; any other non-zero
+exit is a real error, such as an expired login, denied access or a network failure. The loop then stops and keeps the error instead of retrying
+without end: fix the cause before waiting again. When the runs wait for approval, ask for it as
+"When Checks Never Start" says and run the loop again once they start. The loop reads the pull
+request's head on every pass, because `gh pr checks` always reports the current head: if someone
+pushes while it waits, the approval test follows the new commit too. `--commit` needs the full
+commit hash, which `headRefOid` is.
+
+Then decide with the workflow checks alone, and list the review-service check runs that were left
+out, for the report:
+
+```sh
+gh pr checks <PR> --repo torrust/torrust-tracker --json name,bucket,workflow \
+  --jq '[.[] | select(.workflow != "")] | group_by(.bucket) | map({(.[0].bucket): length}) | add'
+gh pr checks <PR> --repo torrust/torrust-tracker --json name,bucket,workflow \
+  --jq '.[] | select(.workflow == "") | "\(.name) \(.bucket)"'
+```
+
+The workflow checks pass only when every one of them is `pass` or `skipping`. A `cancel` needs
+attention, like a `fail`: the job did not check the change. A `pending` needs more waiting.
 
 ## When Checks Never Start
 

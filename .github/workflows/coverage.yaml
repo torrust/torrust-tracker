@@ -41,10 +41,7 @@ jobs:
 
       - id: enable-sccache
         name: Enable sccache
-        run: |
-          echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
-          echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
-          # CARGO_INCREMENTAL=0 already set in job env for coverage
+        uses: ./.github/actions/enable-sccache
 
       - id: tools
         name: Install Tools

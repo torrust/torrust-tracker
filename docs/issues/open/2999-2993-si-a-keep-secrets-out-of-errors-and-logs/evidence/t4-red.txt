@@ -1,0 +1,29 @@
+test authentication::handler::add_key_request_debug_tests::it_should_not_print_the_uploaded_key_in_its_debug_output ... FAILED
+test authentication::key::peer_key::tests::key::it_should_be_redacted_in_its_debug_output ... FAILED
+test authentication::key::peer_key::tests::peer_key::expiring::should_be_displayed_when_it_is_expiring ... FAILED
+test authentication::key::peer_key::tests::peer_key::it_should_not_print_its_key_in_debug_or_display_output ... FAILED
+test authentication::key::peer_key::tests::peer_key::permanent::should_be_displayed_when_it_is_permanent ... FAILED
+test authentication::key::tests::the_expiring_peer_key::should_be_displayed ... FAILED
+test authentication::key::tests::the_permanent_peer_key::should_be_displayed ... FAILED
+test authentication::key::repository::in_memory::tests::the_in_memory_key_repository_should::not_print_the_keys_it_holds_in_its_debug_output ... FAILED
+the Debug output holds the test secret
+  left: "Key(\"TestPeerKeyForDebugOutput0000001\")"
+ right: "Key([REDACTED])"
+  left: "key: `qescWK7GtFZSsLHvh2NzaTd7aAizS3Un`, valid until `1970-01-01 00:01:40 UTC`"
+ right: "key: `[REDACTED]`, valid until `1970-01-01 00:01:40 UTC`"
+the Debug output holds the test secret
+  left: "key: `TIdXbUP33KiUSiVSWtaAeWTFJ9AdrAZv`, permanent"
+ right: "key: `[REDACTED]`, permanent"
+  left: "key: `pjj3Jy73AaAorawdcr7Kw2XyWSetMw9E`, valid until `1970-01-01 00:00:00 UTC`"
+ right: "key: `[REDACTED]`, valid until `1970-01-01 00:00:00 UTC`"
+  left: "key: `5PN4nc8rUHdnVXcdMLN2bmzdRgIpTDmB`, valid until `1970-01-01 00:00:00 UTC`"
+ right: "key: `[REDACTED]`, valid until `1970-01-01 00:00:00 UTC`"
+the Debug output holds the test secret
+test result: FAILED. 60 passed; 8 failed; 0 ignored; 0 measured; 222 filtered out; finished in 0.06s
+error: test failed, to rerun pass `-p torrust-tracker-core --lib`
+test v1::context::auth_key::resources::auth_key::tests::it_should_not_print_the_key_in_its_debug_output ... FAILED
+test v1::context::auth_key::forms::add_key_form::tests::it_should_not_print_the_uploaded_key_in_its_debug_output ... FAILED
+the Debug output holds the test secret
+the Debug output holds the test secret
+test result: FAILED. 3 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+error: test failed, to rerun pass `-p torrust-tracker-rest-api-protocol --lib`

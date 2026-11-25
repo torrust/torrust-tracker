@@ -19,16 +19,20 @@ workspace = true
 [dependencies]
 axum-server = { version = "0.9", features = [ "tls-rustls-no-provider" ] }
 camino = { version = "1", features = [ "serde", "serde1" ] }
+http = "1"
 hyper-util = { version = "0", features = [ "http1", "http2", "tokio" ] }
 thiserror = "2"
 tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync" ] }
 tokio-util = { version = "0.7", features = [ "rt" ] }
+tower-http = { version = "0.7", features = [ "trace" ] }
 torrust-tracker-configuration = { version = "3.0.0", path = "../configuration" }
 tracing = "0"
 
 [dev-dependencies]
 axum = "0.8.9"
+rstest = { version = "0.28.0", default-features = false }
 rustls = { version = "0.23", default-features = false, features = [ "ring" ] }
 tempfile = "3.27.0"
+torrust-tracker-test-helpers = { version = "3.0.0", path = "../test-helpers" }
 tokio-rustls = { version = "0.26", default-features = false, features = [ "ring" ] }
 tokio = { version = "1", features = [ "io-util", "test-util" ] }

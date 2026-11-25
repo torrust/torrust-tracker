@@ -20,7 +20,7 @@ semantic-links:
     - docs/adrs/20261118045443_errors_do_not_record_source_locations.md
     - docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md
     - docs/issues/closed/2916-2912-si-4-tracker-core/ISSUE.md
-    - docs/issues/open/384-strip-location-from-errors-sent-to-clients/ISSUE.md
+    - docs/issues/closed/384-2912-si-7-strip-location-from-errors-sent-to-clients/ISSUE.md
 ---
 
 <!-- skill-link: create-issue -->

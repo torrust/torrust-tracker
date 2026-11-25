@@ -29,11 +29,11 @@ const REQUIRED_TEXT: &[(&str, &str)] = &[
         ".claude/skills/process-pr-review/SKILL.md",
         "docs/pr-reviews/pr-<PR_NUMBER>-review/PR-REVIEW.md",
     ),
-    ("docs/templates/PR-REVIEW-TEMPLATE.md", "| Author class |"),
+    ("docs/templates/PR-REVIEW-TEMPLATE.md", "| Reviewer |"),
     ("docs/templates/PR-REVIEW-TEMPLATE.md", "| Category |"),
     (
         "docs/templates/PR-REVIEW-TEMPLATE.md",
-        "| Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |",
+        "| Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |",
     ),
     ("docs/templates/PR-REVIEW-TEMPLATE.md", "## Finding Details"),
     ("docs/templates/PR-REVIEW-TEMPLATE.md", "### <FINDING_ID> - <SUMMARY>"),
@@ -86,15 +86,15 @@ const REQUIRED_TEXT: &[(&str, &str)] = &[
     ),
     (
         ".claude/skills/process-pr-review/SKILL.md",
-        "Classify `github-copilot[bot]` and",
+        "Record the GitHub login of each finding's",
     ),
     (
         ".claude/skills/process-pr-review/SKILL.md",
-        "`copilot-pull-request-reviewer` as `Copilot`, human accounts as `Human`, and",
+        "author as its `Reviewer`, for example `da2ce7` or `coderabbitai[bot]`, and",
     ),
     (
         ".claude/skills/process-pr-review/SKILL.md",
-        "every other bot or unavailable author as `Unknown`.",
+        "`unknown` when GitHub shows no author.",
     ),
     (
         ".claude/skills/process-pr-review/SKILL.md",
@@ -116,7 +116,7 @@ const REQUIRED_TEXT: &[(&str, &str)] = &[
     (".claude/skills/process-pr-review/SKILL.md", "- PR number"),
     (
         "docs/templates/PR-REVIEW-TEMPLATE.md",
-        "- Author class: `Copilot`, `Human`, `Unknown`",
+        "- Reviewer: the author's GitHub login, for example `da2ce7` or `coderabbitai[bot]`; `unknown`",
     ),
     (
         "docs/templates/PR-REVIEW-TEMPLATE.md",
@@ -152,7 +152,7 @@ const WRAPPED_TEXT: &[(&str, &str)] = &[
     ),
     (
         "docs/templates/PR-REVIEW-TEMPLATE.md",
-        "For every new audit row, record the source author's derived `Author class` and exactly one primary `Category`.",
+        "For every new audit row, record the source author's GitHub login as `Reviewer` and exactly one primary `Category`.",
     ),
     (
         ".claude/skills/process-pr-review/SKILL.md",
@@ -493,10 +493,15 @@ fn verify_audit_schema(workspace_root: &Path, failures: &mut Vec<String>) {
     let template = "docs/templates/PR-REVIEW-TEMPLATE.md";
     let workflow = ".claude/skills/process-pr-review/SKILL.md";
 
+    // New audit rows name the reviewer by login (issue #3037); the author classes must not return.
+    forbid(workspace_root, template, "- Author class:", failures);
+    forbid(workspace_root, template, "| Author class |", failures);
+    forbid(workspace_root, workflow, "as `Copilot`, human accounts as `Human`", failures);
+
     for text in [
-        "| Author class |",
+        "| Reviewer |",
         "| Category |",
-        "- Author class: `Copilot`, `Human`, `Unknown`",
+        "- Reviewer: the author's GitHub login, for example `da2ce7` or `coderabbitai[bot]`; `unknown`",
         "`link-integrity`, `formatting`, `metadata`, `testing`, `correctness`,",
         "`documentation`, `maintainability`, `security`, `other`",
         "exactly one primary",
@@ -506,7 +511,7 @@ fn verify_audit_schema(workspace_root: &Path, failures: &mut Vec<String>) {
     require_wrapped(
         workspace_root,
         template,
-        "For every new audit row, record the source author's derived `Author class` and exactly one primary `Category`.",
+        "For every new audit row, record the source author's GitHub login as `Reviewer` and exactly one primary `Category`.",
         failures,
     );
     require_wrapped(
@@ -516,9 +521,9 @@ fn verify_audit_schema(workspace_root: &Path, failures: &mut Vec<String>) {
         failures,
     );
     for text in [
-        "Classify `github-copilot[bot]` and",
-        "`copilot-pull-request-reviewer` as `Copilot`, human accounts as `Human`, and",
-        "every other bot or unavailable author as `Unknown`.",
+        "Record the GitHub login of each finding's",
+        "author as its `Reviewer`, for example `da2ce7` or `coderabbitai[bot]`, and",
+        "`unknown` when GitHub shows no author.",
         "**Categorize for future analysis.** For every new audit row, assign exactly one",
         "primary category: `link-integrity`, `formatting`, `metadata`, `testing`,",
         "`correctness`, `documentation`, `maintainability`, `security`, or `other`.",
@@ -547,7 +552,7 @@ fn verify_finding_details(workspace_root: &Path, failures: &mut Vec<String>) {
     require(
         workspace_root,
         template,
-        "| Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |",
+        "| Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |",
         failures,
     );
     require(workspace_root, template, "## Finding Details", failures);

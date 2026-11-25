@@ -1048,7 +1048,7 @@ mod tests {
                 result,
                 Err(HttpAnnounceError::TrackerCoreError {
                     source: TrackerCoreError::AuthenticationError {
-                        source: AuthenticationKeyError::UnableToReadKey { .. }
+                        source: AuthenticationKeyError::UnableToReadKey
                     }
                 })
             ),

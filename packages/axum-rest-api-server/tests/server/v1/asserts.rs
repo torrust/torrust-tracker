@@ -71,12 +71,6 @@ pub async fn assert_bad_request(response: Response, body: &str) {
     assert_eq!(response.text().await.unwrap(), body);
 }
 
-pub async fn assert_bad_request_with_text(response: Response, text: &str) {
-    assert_eq!(response.status(), 400);
-    assert_eq!(response.headers().get("content-type").unwrap(), "text/plain; charset=utf-8");
-    assert!(response.text().await.unwrap().contains(text));
-}
-
 pub async fn assert_unprocessable_content(response: Response, text: &str) {
     assert_eq!(response.status(), 422);
     assert_eq!(response.headers().get("content-type").unwrap(), "text/plain; charset=utf-8");
@@ -104,16 +98,22 @@ pub async fn assert_invalid_infohash_param(response: Response, invalid_infohash:
     .await;
 }
 
-pub async fn assert_invalid_auth_key_get_param(response: Response, invalid_auth_key: &str) {
-    assert_bad_request(response, &format!("Invalid auth key id param \"{invalid_auth_key}\"")).await;
+/// The reply to a `DELETE` of a malformed key states what is wrong with it (`expected_reason`)
+/// and never holds the key, because a malformed key is still the user's secret.
+pub async fn assert_invalid_auth_key_get_param(response: Response, invalid_auth_key: &str, expected_reason: &str) {
+    assert_eq!(response.status(), 400);
+    let body = response.text().await.unwrap();
+    assert_eq!(body, format!("Invalid auth key id param: {expected_reason}"));
+    assert!(!body.contains(invalid_auth_key), "the reply holds the key sent by the client");
 }
 
-pub async fn assert_invalid_auth_key_post_param(response: Response, invalid_auth_key: &str) {
-    assert_bad_request_with_text(
-        response,
-        &format!("Invalid URL: invalid auth key: string \"{invalid_auth_key}\""),
-    )
-    .await;
+/// The reply to a `POST` of a malformed key states what is wrong with it (`expected_reason`)
+/// and never holds the key.
+pub async fn assert_invalid_auth_key_post_param(response: Response, invalid_auth_key: &str, expected_reason: &str) {
+    assert_eq!(response.status(), 400);
+    let body = response.text().await.unwrap();
+    assert_eq!(body, format!("Invalid URL: invalid auth key: {expected_reason}"));
+    assert!(!body.contains(invalid_auth_key), "the reply holds the key sent by the client");
 }
 
 pub async fn assert_unprocessable_auth_key_duration_param(response: Response, _invalid_value: &str) {
@@ -124,12 +124,16 @@ pub async fn assert_unprocessable_auth_key_duration_param(response: Response, _i
     .await;
 }
 
+/// The reply to a `POST /api/v1/key/<seconds>` whose segment is not a number of seconds. A key
+/// posted to this route by mistake lands here, so the reply must not hold the rejected value.
 pub async fn assert_invalid_key_duration_param(response: Response, invalid_key_duration: &str) {
-    assert_bad_request(
-        response,
-        &format!("Invalid URL: Cannot parse `{invalid_key_duration}` to a `u64`"),
-    )
-    .await;
+    assert_eq!(response.status(), 400);
+    let body = response.text().await.unwrap();
+    assert_eq!(body, "Invalid URL: invalid auth key duration: expected a number of seconds");
+    assert!(
+        !body.contains(invalid_key_duration),
+        "the reply holds the value sent by the client"
+    );
 }
 
 pub async fn assert_token_not_valid(response: Response) {

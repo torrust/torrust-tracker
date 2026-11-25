@@ -9,7 +9,7 @@ github-issue: 2925
 spec-path: docs/issues/open/2925-2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md
 branch: "2392-split-test-temp-files-spec"
 related-pr: null
-last-updated-utc: "2026-11-18 13:39"
+last-updated-utc: "2026-11-24 17:06"
 semantic-links:
   skill-links:
     - create-issue
@@ -20,7 +20,7 @@ semantic-links:
     - .claude/skills/create-issue/SKILL.md
     - docs/issues/open/2392-test-isolation/EPIC.md
     - docs/issues/closed/2907-2392-remove-leaked-test-temporary-files/ISSUE.md
-    - docs/issues/open/2924-2392-sqlite-test-database-guard/ISSUE.md
+    - docs/issues/closed/2924-2392-sqlite-test-database-guard/ISSUE.md
     - packages/test-helpers/src/configuration.rs
 ---
 
@@ -34,7 +34,7 @@ Parent EPIC: #2392 - Test Isolation (`docs/issues/open/2392-test-isolation/EPIC.
 
 No test leaves a SQLite database behind: neither a `data_*.db` file nor a guard directory with
 its `data.db`. Tests that need persistence use the guard-owned SQLite
-database of #2924 (`docs/issues/open/2924-2392-sqlite-test-database-guard/ISSUE.md`),
+database of #2924 (`docs/issues/closed/2924-2392-sqlite-test-database-guard/ISSUE.md`),
 and the `ephemeral*()` configurations no longer configure a database. After this issue, a full
 test run leaves no SQLite database in a fresh temporary directory; with #2907 also done, the
 directory is empty.
@@ -241,6 +241,6 @@ evidence file is created from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`.
 ## References
 
 - Parent EPIC: #2392
-- Depends on: #2924, `docs/issues/open/2924-2392-sqlite-test-database-guard/ISSUE.md`
+- Depends on: #2924, `docs/issues/closed/2924-2392-sqlite-test-database-guard/ISSUE.md`
 - Found by: #2907 (T1 and T2), #2394 finding F2
 - Related: PR #2923 (#2902), the same fix inside `tracker-core`

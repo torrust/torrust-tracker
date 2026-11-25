@@ -2,7 +2,7 @@ use std::fmt::Display;
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use secrecy::ExposeSecret;
+use secrecy::{ExposeSecret, SecretString};
 use tokio::task::JoinHandle;
 use tokio_util::sync::{CancellationToken, DropGuard};
 use torrust_info_hash::InfoHash;
@@ -190,7 +190,7 @@ impl Environment<Running> {
                 .http_api_config
                 .access_tokens
                 .get("admin")
-                .map(|token| token.expose_secret().to_string()),
+                .map(|token| SecretString::from(token.expose_secret())),
         }
     }
 

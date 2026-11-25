@@ -529,12 +529,14 @@ The docker-compose configuration includes the MySQL service configuration. If yo
 ```toml
 [core.database]
 driver = "mysql"
-path = "mysql://db_user:db_user_secret_password@mysql:3306/torrust_tracker"
+host = "mysql"
+port = 3306
+user = "db_user"
+password = "db_user_secret_password"
+database = "torrust_tracker"
 ```
 
-Important: if the MySQL password contains reserved URL characters (for example `+`, `/`, `@`, or `:`), it must be percent-encoded in the DSN password component. For example, if the raw password is `a+b/c`, use `a%2Bb%2Fc` in the DSN.
-
-When generating secrets automatically, prefer URL-safe passwords (`A-Z`, `a-z`, `0-9`, `-`, `_`) to avoid DSN parsing issues.
+The password is a plain string: it needs no URL encoding. Write it as a quoted TOML string (a bare number is read as an integer and rejected). A configuration error names the option and never prints the password.
 
 ### Build and Run:
 
@@ -559,7 +561,11 @@ CONTAINER ID   IMAGE             COMMAND                  CREATED          STATU
 
 And you should be able to use the application, for example making a request to the API:
 
-<https://127.0.0.1:1212/api/v1/stats?token=MySecretToken>
+```sh
+curl -H "Authorization: Bearer MySecretToken" https://127.0.0.1:1212/api/v1/stats
+```
+
+Send the token in the `Authorization` header. The API also accepts a `?token=` query parameter, but a URL ends up in proxy, browser and server logs; the header keeps the token out of the URL. A proxy or server that is set to log request headers still records it, and the header does not protect the token in transit: use `https://` for any request that crosses a network.
 
 You can stop the containers with:
 
@@ -647,7 +653,9 @@ ssl_key_path = "/var/lib/torrust/tracker/tls/localhost.key"
 
 If you enable the SSL certificate for the API, for example, you can load the API with this URL:
 
-<https://localhost:1212/api/v1/stats?token=MyAccessToken>
+```sh
+curl -H "Authorization: Bearer MyAccessToken" https://localhost:1212/api/v1/stats
+```
 
 ## Prod environment
 
@@ -716,7 +724,7 @@ CONTAINER ID          IMAGE                                                     
 intelligent-hawking   registry.hub.docker.com/torrust/tracker:latest                       Running             4.236.213.57:6969->6969/udp, 4.236.213.57:1212->1212/tcp
 ```
 
-After a while, you can use the tracker API `http://4.236.213.57:1212/api/v1/stats?token=MyAccessToken` and the UDP tracker with your BitTorrent client using this tracker announce URL `udp://4.236.213.57:6969`.
+After a while, you can use the tracker API (`curl -H "Authorization: Bearer MyAccessToken" http://4.236.213.57:1212/api/v1/stats`; this example container serves plain HTTP, so anyone on the path can read the token: enable TLS, as described above, before sending a real token over an untrusted network) and the UDP tracker with your BitTorrent client using this tracker announce URL `udp://4.236.213.57:6969`.
 
 > NOTES:
 >

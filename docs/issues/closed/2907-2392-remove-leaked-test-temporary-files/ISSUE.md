@@ -9,7 +9,7 @@ github-issue: 2907
 spec-path: docs/issues/closed/2907-2392-remove-leaked-test-temporary-files/ISSUE.md
 branch: "2907-2392-remove-leaked-test-temporary-files"
 related-pr: 2938
-last-updated-utc: "2026-11-18 13:39"
+last-updated-utc: "2026-11-24 17:06"
 semantic-links:
   skill-links:
     - create-issue
@@ -20,7 +20,7 @@ semantic-links:
     - .claude/skills/create-issue/SKILL.md
     - docs/issues/open/2392-test-isolation/EPIC.md
     - docs/issues/closed/2394-2392-audit-shared-test-resources/inventory.md
-    - docs/issues/open/2924-2392-sqlite-test-database-guard/ISSUE.md
+    - docs/issues/closed/2924-2392-sqlite-test-database-guard/ISSUE.md
     - docs/issues/open/2925-2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md
     - packages/configuration/src/v2_0_0/mod.rs
     - packages/configuration/src/v3_0_0/mod.rs
@@ -77,7 +77,7 @@ and then unrelated tests fail.
 ### Out of Scope
 
 - The SQLite database leak (`data_*.db`). The maintainer split it out on 2026-11-17 (EPIC
-  Decisions): `docs/issues/open/2924-2392-sqlite-test-database-guard/ISSUE.md` adds a guard-owned
+  Decisions): `docs/issues/closed/2924-2392-sqlite-test-database-guard/ISSUE.md` adds a guard-owned
   database, and `docs/issues/open/2925-2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md` moves
   the tests to it and owns the check that a fresh `TMPDIR` is empty after the suite.
 - Deleting the files already leaked on any machine (a one-off cleanup for the machine's owner).
