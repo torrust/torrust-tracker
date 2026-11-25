@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2996-2912-si-8-share-assert-names-no-source-path/ISSUE.md
-last-updated-utc: "2026-11-25 11:37"
+last-updated-utc: "2026-11-25 11:48"
 ---
 
 # Manual Verification Evidence
@@ -24,7 +24,7 @@ packages/http-protocol/src/test_helpers.rs:15:pub fn assert_names_no_source_path
 Result: exactly five definitions, in `test-helpers`, `configuration`, `primitives`, `axum-server` and
 `http-protocol`. `git diff --stat -- '*.toml' Cargo.lock` shows no change. Status: DONE.
 
-Re-run on 2026-11-25, after the fix of review finding F4 of PR 3041 wrapped one doc line above four of the kept
+Re-run on 2026-11-25, after the fix of `review-finding:pr-3041-f5` wrapped one doc line above four of the kept
 copies, so their line numbers moved by one:
 
 ```console
@@ -62,7 +62,7 @@ removed (`git status` shows no trace of it). Status: DONE.
 
 ## V3 - The panic wording is the same in the five definitions (AC4)
 
-Run on 2026-11-25 (review finding F2 of PR 3041):
+Run on 2026-11-25 (`review-finding:pr-3041-f3`):
 
 ```console
 $ grep -rn 'must not hold a source path' packages
@@ -77,7 +77,7 @@ Result: one line per definition, the same text after indentation. Status: DONE.
 
 ## V4 - Each fragment of the shared function is pinned by its own test case (AC1)
 
-Run on 2026-11-25 (review finding F1 of PR 3041). The test `it_should_reject_a_message_holding_a_source_path_fragment`
+Run on 2026-11-25 (`review-finding:pr-3041-f2`). The test `it_should_reject_a_message_holding_a_source_path_fragment`
 gives each fragment a message that holds only that fragment and checks that the panic text names it. On a scratch
 change that removed `"rustlib/src"` from the fragment list of `assert_names_no_source_path`:
 
