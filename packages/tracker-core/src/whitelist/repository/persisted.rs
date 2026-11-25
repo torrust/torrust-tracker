@@ -27,12 +27,7 @@ impl DatabaseWhitelist {
     /// Returns a `database::Error` if unable to add the `info_hash` to the
     /// whitelist.
     pub(crate) async fn add(&self, info_hash: &InfoHash) -> Result<(), databases::error::Error> {
-        let is_whitelisted = self.database.is_info_hash_whitelisted(*info_hash).await?;
-
-        if is_whitelisted {
-            return Ok(());
-        }
-
+        // The store write is idempotent and atomic: no read before it, which would race.
         self.database.add_info_hash_to_whitelist(*info_hash).await?;
 
         Ok(())
@@ -43,12 +38,7 @@ impl DatabaseWhitelist {
     /// # Errors
     /// Returns a `database::Error` if unable to remove the `info_hash`.
     pub(crate) async fn remove(&self, info_hash: &InfoHash) -> Result<(), databases::error::Error> {
-        let is_whitelisted = self.database.is_info_hash_whitelisted(*info_hash).await?;
-
-        if !is_whitelisted {
-            return Ok(());
-        }
-
+        // The store write is idempotent and atomic: no read before it, which would race.
         self.database.remove_info_hash_from_whitelist(*info_hash).await?;
 
         Ok(())

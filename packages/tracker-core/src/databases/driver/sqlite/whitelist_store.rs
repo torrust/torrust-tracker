@@ -46,25 +46,22 @@ impl WhitelistStore for Sqlite {
     }
 
     async fn add_info_hash_to_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error> {
-        let insert = ::sqlx::query("INSERT INTO whitelist (info_hash) VALUES (?1)")
+        // A duplicate is not an error: the insert is a no-op and affects no rows.
+        let inserted = ::sqlx::query("INSERT INTO whitelist (info_hash) VALUES (?1) ON CONFLICT (info_hash) DO NOTHING")
             .bind(info_hash.to_string())
             .execute(&self.pool)
             .await
             .map_err(|e| (e, DRIVER))?
             .rows_affected();
 
-        if insert == 0 {
-            tracing::warn!(driver = %DRIVER, table = "whitelist", %info_hash, "the insert affected no rows");
-            Err(Error::InsertFailed { driver: DRIVER })
-        } else {
-            usize::try_from(insert).map_err(|e| Error::MalformedDatabaseRecord {
-                message: format!("rows_affected does not fit in usize: {e}"),
-                driver: DRIVER,
-            })
-        }
+        usize::try_from(inserted).map_err(|e| Error::MalformedDatabaseRecord {
+            message: format!("rows_affected does not fit in usize: {e}"),
+            driver: DRIVER,
+        })
     }
 
     async fn remove_info_hash_from_whitelist(&self, info_hash: InfoHash) -> Result<usize, Error> {
+        // Removing a torrent that is not listed is not an error: the delete affects no rows.
         let deleted = ::sqlx::query("DELETE FROM whitelist WHERE info_hash = ?1")
             .bind(info_hash.to_string())
             .execute(&self.pool)
@@ -72,16 +69,10 @@ impl WhitelistStore for Sqlite {
             .map_err(|e| (e, DRIVER))?
             .rows_affected();
 
-        if deleted == 1 {
-            // should only remove a single record.
-            Ok(1)
-        } else {
-            tracing::warn!(driver = %DRIVER, table = "whitelist", %info_hash, rows_deleted = deleted, "the delete did not remove exactly one row");
-            Err(Error::DeleteFailed {
-                error_code: usize::try_from(deleted).unwrap_or(0),
-                driver: DRIVER,
-            })
-        }
+        usize::try_from(deleted).map_err(|e| Error::MalformedDatabaseRecord {
+            message: format!("rows_affected does not fit in usize: {e}"),
+            driver: DRIVER,
+        })
     }
 }
 
