@@ -77,6 +77,9 @@ When a draft issue spec identifies source artifacts it will change, add an
 is high-signal. Once the GitHub issue is created, replace the draft-path marker
 with `issue: #<number>`; do not keep paths that will become stale when the spec
 moves from `drafts/` to `open/` or `closed/`.
+This applies to artifacts outside the issue folder. Evidence documents inside the issue folder
+(`manual-verification-evidence.md`) keep the `issue-spec` key from their template, pointing to the
+issue's own `ISSUE.md`.
 
 ## Repo Markdown vs. GitHub Markdown
 

@@ -50,6 +50,12 @@ issue: #1234
 Do not retain the draft file path after the issue is created: issue specs move from
 `drafts/` to `open/` and later to `closed/`, while the issue number remains stable.
 
+This lifecycle applies to markers on artifacts affected by an issue, such as source files and
+skills. Documents that live inside an issue's own folder, such as
+`docs/templates/MANUAL-VERIFICATION-EVIDENCE.md` evidence files, are not such artifacts: their
+`issue-spec` front-matter key points to the sibling `ISSUE.md` of the same issue and is updated
+when the folder moves (`open/` to `closed/`). Do not replace it with `issue:`.
+
 ### Review-finding references
 
 Use `review-finding:pr-<PR_NUMBER>-<FINDING_ID>` to cite one normalized finding from a
