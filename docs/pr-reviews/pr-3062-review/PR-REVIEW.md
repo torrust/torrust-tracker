@@ -30,7 +30,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-F1 is from claude[bot]'s inline comment in review 6061977982. F2 to F9 are da2ce7's inline comments in review 6062149260 and F10 is the finding in that review's body; F2 re-raises F1. F11 to F13 are from CodeRabbit's review 6062534811: F11 and F12 are the two findings of its inline comment 4698868795 (they share one thread and one reply) and F13 is its inline comment 4698868806. F14 is da2ce7's inline comment in review 6062583818 (dismissed; he posted it with an `ACK` of the previous head) and F15 is CodeRabbit's reply 4698953937 (review 6062636679) in the thread of F11 and F12, recorded against that thread's root comment; CodeRabbit's reply 4698953208 in the thread of F13 withdraws that finding and has no row. F16 is CodeRabbit's reply 4699066263 (review 6062770209) in the same thread, recorded against its root comment. The claude[bot] reviews 6061840285 and 6061977982 summaries, the CodeRabbit review-limit comment and the maintainer's `@claude review` and `ACK` comments contain no actionable assertion and have no rows.
+F1 is from claude[bot]'s inline comment in review 6061977982. F2 to F9 are da2ce7's inline comments in review 6062149260 and F10 is the finding in that review's body; F2 re-raises F1. F11 to F13 are from CodeRabbit's review 6062534811: F11 and F12 are the two findings of its inline comment 4698868795 (they share one thread and one reply) and F13 is its inline comment 4698868806. F14 is da2ce7's inline comment in review 6062583818 (dismissed; he posted it with an `ACK` of the previous head) and F15 is CodeRabbit's reply 4698953937 (review 6062636679) in the thread of F11 and F12, recorded against that thread's root comment; CodeRabbit's reply 4698953208 in the thread of F13 withdraws that finding and has no row. F16 is CodeRabbit's reply 4699066263 (review 6062770209) in the same thread, recorded against its root comment. F17 is CodeRabbit's inline comment 4699192373 in review 6062919002. The claude[bot] reviews 6061840285 and 6061977982 summaries, the CodeRabbit review-limit comment and the maintainer's `@claude review` and `ACK` comments contain no actionable assertion and have no rows.
 
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
@@ -50,6 +50,7 @@ F1 is from claude[bot]'s inline comment in review 6061977982. F2 to F9 are da2ce
 | F14 | review-finding:pr-3062-f14 | da2ce7 | Minor | correctness | RE_RAISE_OF:F12 | FIXED | RESOLVED |
 | F15 | review-finding:pr-3062-f15 | coderabbitai[bot] | Minor (inferred) | correctness | RE_RAISE_OF:F11 | FIXED | RESOLVED |
 | F16 | review-finding:pr-3062-f16 | coderabbitai[bot] | Minor (inferred) | correctness | RE_RAISE_OF:F15 | FIXED | RESOLVED |
+| F17 | review-finding:pr-3062-f17 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -261,6 +262,19 @@ F1 is from claude[bot]'s inline comment in review 6061977982. F2 to F9 are da2ce
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3062#discussion_r4699150146
 
+### F17 - The AC3 scan misses a comment before the first macro argument
+
+- PR number: 3062
+- Source review ID: 6062919002
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3062#discussion_r4699192373
+- Concern: `tracing::debug!(/* stats */ target = "X", "m")` uses `target` as a field, but the pattern accepts whitespace before `target`, not a comment without a comma. The reviewer asked to expand the check or document the limitation, and to add the case to the sample.
+- Solution: The limit is documented (not the pattern widened): AC3 and the evidence name comments inside the macro arguments, with nested parentheses, as known limits and say the scan is best effort while the regression tests of AC1 and AC2 protect the two call sites. The case is added to `evidence/scan-sample.rs` as its last function and the recorded output is unchanged, since it is not matched.
+- Current-tree verification: `grep -Pzo` with the current pattern on the sample, filtered with `grep -c stats`, printed 0; `grep -n 'comments inside the macro arguments' ISSUE.md` shows the stated limit.
+- Resolution reference: docs(issues): [#3060] document the comment-before-target limit of the AC3 scan
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3062#discussion_r4699236953
+
 ## Processing Log
 
 - 2026-11-25 17:21 UTC - claude[bot]'s review 6061977982 with its inline comment (F1) arrived.
@@ -279,6 +293,10 @@ F1 is from claude[bot]'s inline comment in review 6061977982. F2 to F9 are da2ce
 - 2026-11-25 18:23 UTC - Found CodeRabbit's reply 4699066263 (posted 18:19 UTC, F16) and committed the fix (`docs(issues): [#3060] limit the AC3 claim to one level of parentheses in earlier arguments`).
 - 2026-11-25 18:26 UTC - Pushed it and replied in the thread.
 - 2026-11-25 18:27 UTC - Added F16 to this record.
+- 2026-11-25 18:31 UTC - CodeRabbit's inline comment 4699192373 (F17) arrived.
+- 2026-11-25 18:32 UTC - Committed the F17 fix (`docs(issues): [#3060] document the comment-before-target limit of the AC3 scan`); this is the fifth round of fixes.
+- 2026-11-25 18:35 UTC - Pushed it and replied in the thread.
+- 2026-11-25 18:35 UTC - Added F17 to this record.
 
 ## Completion Rules
 
