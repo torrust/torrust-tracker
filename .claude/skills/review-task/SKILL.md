@@ -34,8 +34,10 @@ an issue/task is complete and ready to be pushed.
    retrospective. When a touched legacy single-file specification needs one,
    require migration to the documented folder layout first. `ISSUE.md` and
    `EPIC.md` are allowed primary-file exceptions in that layout.
-8. Confirm that every mandatory manual scenario was executed against the finished artifact and is
-   recorded in `manual-verification-evidence.md` (see the checklist).
+8. Confirm that every mandatory manual scenario of the task under review was executed against the
+   finished artifact and is recorded in `manual-verification-evidence.md` (see the checklist). A
+   scenario that belongs to a later task is not required yet: list it as `PENDING` with that reason,
+   as the result rule in the Output section says.
 9. Record the review (see [Recording The Review](#recording-the-review)), then report the overall
    result with remediation for any gaps.
 
