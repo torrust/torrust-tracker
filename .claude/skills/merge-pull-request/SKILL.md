@@ -62,7 +62,8 @@ these checks are repository convention rather than technical enforcement.
   [the ADR](../../../docs/adrs/20261124182709_review_pull_requests_without_a_mandatory_reviewer.md)):
   report which reviewers reviewed which commit, and which did not review, but do not hold the
   pull request for them.
-- **Checks:** every workflow check of the head commit passed. A check run that a review service
+- **Checks:** every workflow check of the head commit is `pass` or `skipping`; a cancelled check
+  needs attention like a failed one. A check run that a review service
   posts from its own GitHub App does not count (see
   [Review-Service Check Runs](../watch-pull-request-checks/SKILL.md#review-service-check-runs)).
 - **Reviewer ACK:** the other maintainer has commented `ACK <full head commit hash>` on the head
