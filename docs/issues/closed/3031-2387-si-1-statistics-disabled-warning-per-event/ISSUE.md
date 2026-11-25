@@ -31,10 +31,10 @@ semantic-links:
 
 **Approved by the maintainer on 2026-11-24.** The GitHub issue is #3031. This specification is added by a spec-only pull request; the implementation follows in a separate pull request after it is merged.
 
-- Implements: D8, in [decisions.md](../2387-review-tracker-lifecycle-logs/decisions.md).
+- Implements: D8, in [decisions.md](../../open/2387-review-tracker-lifecycle-logs/decisions.md).
 - Depends on: Nothing.
-- Working order and rules common to all sub-issues: [EPIC.md](../2387-review-tracker-lifecycle-logs/EPIC.md), section Delivery Strategy.
-- Evidence of today's behavior: [baseline-lifecycle-logs.md](../2387-review-tracker-lifecycle-logs/baseline-lifecycle-logs.md) and the two captures beside it.
+- Working order and rules common to all sub-issues: [EPIC.md](../../open/2387-review-tracker-lifecycle-logs/EPIC.md), section Delivery Strategy.
+- Evidence of today's behavior: [baseline-lifecycle-logs.md](../../open/2387-review-tracker-lifecycle-logs/baseline-lifecycle-logs.md) and the two captures beside it.
 
 ## Goal
 
@@ -213,7 +213,7 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 - 2026-11-24 18:11 UTC - Claude Code (Sonnet 5.5), SI-1 session - Implementation completion review: no material discovery changed the design. Differences from the plan: the log capture helper `capture_logs_in_scope` was added to `packages/test-helpers` (the global buffer there is shared by every test of a binary and captures only `WARN` and above) and `udp-core` gained that crate as a dev-dependency; the native fixture gained `with_statistics_disabled_udp_tracker`. The coordinator's claim about `tracker.container.no-persistence.toml` was already corrected in the specification. No retrospective file.
 - 2026-11-24 18:24 UTC - Claude Code (Sonnet 5.5), SI-1 session - Review round 1 of PR 3043: Greptile (import `Arc` in the log capture helper; assert the tracker exit status in the tracker-level test) and CodeRabbit (the evidence file names issue #3031 with `issue: 3031` instead of a spec path that goes stale when the spec moves to `closed/`). All three were valid and fixed.
 - 2026-11-25 08:22 UTC - Claude Code (Sonnet 5.5), SI-1 session - Review round 2 of PR 3043 (da2ce7, approved with three minor and three nit findings): the disabled-instance tests now also require the records of the instance to be at `TRACE`; the evidence frontmatter has the template key `issue-spec` again; the two statistics-enabled runs, their metrics and the scenario script are kept in `evidence/`; `an HTTP` in one message; the `dead_code` reasons of the fixture; trailing spaces. While looping the tests I found one flaky unit test caused by `tracing` caching "never interested" for a callsite first reached from a thread without a scoped subscriber, and fixed the helper (a second dispatcher kept alive). The release recheck (V2, V3) was repeated after the last production change.
-- 2026-11-25 12:04 UTC - Claude Code (Sonnet 5.5), SI-1 session - Archived. PR 3032 (specification) and PR 3043 (implementation, merge commit `41f294c9d` on `develop`, merged 2026-11-25 12:00 UTC) are merged and issue #3031 is closed. Moved the folder to `docs/issues/closed/`, set `status: done`, `related-pr: 3043` (the implementation pull request) and `branch` to the implementation branch, ticked the checkpoints that the merge and the checks support, and updated the EPIC #2387 table row. Two checkpoints stay unticked on purpose: "Reviewer validated acceptance criteria and updated checkboxes" (the reviewer approved the pull request and recomputed the evidence, but did not update this specification) and "Independent reviewer reports recorded in `agent-review-reports.md`" (no independent reviewer received this folder; the reviews of the implementation pull request are in the audit record `docs/pr-reviews/pr-3043-review/`; the one CodeRabbit finding of the specification pull request 3032, fixed and answered on that pull request, has no audit record, because I did not create one before it merged and the merged branch can no longer carry it). The checks that passed on the last implementation head: the CI checks of the pull request, the pre-commit gate of each commit, and the maintainer-side gate and workspace tests reported in the approving review.
+- 2026-11-25 12:04 UTC - Claude Code (Sonnet 5.5), SI-1 session - Archived. PR 3032 (specification) and PR 3043 (implementation, merge commit `41f294c9d` on `develop`, merged 2026-11-25 12:00 UTC) are merged and issue #3031 is closed. Moved the folder to `docs/issues/closed/`, set `status: done`, `related-pr: 3043` (the implementation pull request) and `branch` to the implementation branch, ticked the checkpoints that the merge and the checks support and the two acceptance criteria "`linter all` exits with code `0`" and "Relevant tests pass", and updated the EPIC #2387 table row. Two checkpoints stay unticked on purpose: "Reviewer validated acceptance criteria and updated checkboxes" (the reviewer approved the pull request and recomputed the evidence, but did not update this specification) and "Independent reviewer reports recorded in `agent-review-reports.md`" (no independent reviewer received this folder; the reviews of the implementation pull request are in the audit record `docs/pr-reviews/pr-3043-review/`; the one CodeRabbit finding of the specification pull request 3032, fixed and answered on that pull request, has no audit record, because I did not create one before it merged and the merged branch can no longer carry it). The checks that passed on the last implementation head: the CI checks of the pull request, the pre-commit gate of each commit, and the maintainer-side gate and workspace tests reported in the approving review.
 
 ## Acceptance Criteria
 
@@ -282,6 +282,6 @@ After implementation, compare the result with this specification. Record invalid
 
 ## References
 
-- Parent EPIC: #2387, [EPIC.md](../2387-review-tracker-lifecycle-logs/EPIC.md)
-- Decisions: [decisions.md](../2387-review-tracker-lifecycle-logs/decisions.md) (D8)
-- Baseline: [baseline-lifecycle-logs.md](../2387-review-tracker-lifecycle-logs/baseline-lifecycle-logs.md)
+- Parent EPIC: #2387, [EPIC.md](../../open/2387-review-tracker-lifecycle-logs/EPIC.md)
+- Decisions: [decisions.md](../../open/2387-review-tracker-lifecycle-logs/decisions.md) (D8)
+- Baseline: [baseline-lifecycle-logs.md](../../open/2387-review-tracker-lifecycle-logs/baseline-lifecycle-logs.md)
