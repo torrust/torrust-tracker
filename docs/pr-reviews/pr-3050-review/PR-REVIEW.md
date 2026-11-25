@@ -62,7 +62,7 @@ Review 6058988660 (da2ce7, approved, 2026-11-25 14:00 UTC) posted three inline c
 - Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/3050#discussion_r4695994123>
 - Concern: the corrected F21 detail of the PR 3042 audit said "the seven files the row names", but the Solution line names six; the secrecy ADR amendment is a seventh file that the row does not name. The log entry of 13:29 repeats "four of the seven".
-- Solution: the detail says "the six files the row names and the secrecy ADR amendment". The 13:29 entry belongs to a merged record, so it was not rewritten: a correction entry names it.
+- Solution: the detail says "the six files the row names and the secrecy ADR amendment". The 13:29 entry had been pushed for review by the archive commit of this pull request (it is not on `develop`; an earlier version of this detail and of the reply on the thread wrongly called it merged), and the rules say an entry that is already recorded is not rewritten, so a correction entry names it.
 - Current-tree verification: `grep -n 'six files the row names and the secrecy ADR' docs/pr-reviews/pr-3042-review/PR-REVIEW.md` prints the corrected detail; `validate-audit-record.py --pr-number 3042` prints 24 rows and 0 failures.
 - Resolution reference: docs(issues): [#2999] answer the review of the close-out pull request
 - Follow-up PR URL: N/A
@@ -101,7 +101,7 @@ Review 6058988660 (da2ce7, approved, 2026-11-25 14:00 UTC) posted three inline c
 - Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/3050#pullrequestreview-6058988660>
 - Concern: the title and the commit subject carry `[#2999]`, which `open-pull-request` keeps for the issue a pull request closes; this one is already closed and the body links it.
-- Solution: the pull request title is now `chore(issues): archive closed issue #2999 spec to docs/issues/closed`, like the recent archive pull requests (for example #3019, #2924, #3004 and #2917), which have no bracket; the merge commit copies the title. The pushed commit keeps its subject, because history is not rewritten. The first version of the reply cited a precedent that does not exist and was corrected in place; the reply says so.
+- Solution: the pull request title is now `chore(issues): archive closed issue #2999 spec to docs/issues/closed`, like the recent archive pull requests (for example #3046, #3035, #3021 and #3015, which archived the specs of #3019, #2924, #3004 and #2917), which have no bracket; the merge commit copies the title. The pushed commit keeps its subject, because history is not rewritten. The first version of the reply cited a precedent that does not exist and was corrected in place; the reply says so.
 - Current-tree verification: `gh pr view 3050 --json title` prints the new title; `git log torrust/develop --grep='archive closed issue'` shows the recent subjects without a bracket.
 - Resolution reference: <https://github.com/torrust/torrust-tracker/pull/3050#issuecomment-7164822271>
 - Follow-up PR URL: N/A
