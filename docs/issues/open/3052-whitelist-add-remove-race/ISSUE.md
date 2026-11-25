@@ -225,7 +225,7 @@ with the narrow affected scope, and sign every commit with GPG.
 
 | ID  | Scenario                                          | Human-oriented command/steps                                                                   | Expected Result                               | Status | Evidence                                     |
 | --- | ------------------------------------------------- | ---------------------------------------------------------------------------------------------- | --------------------------------------------- | ------ | -------------------------------------------- |
-| V1  | Concurrent add and remove on SQLite               | Temporary test: 200 rounds of two concurrent `add` then two concurrent `remove` of one hash    | Before fix: failures. After fix: none         | DONE (before fix) | `manual-verification-evidence.md` section V1 |
+| V1  | Concurrent add and remove on SQLite               | Temporary test: 200 rounds of two concurrent `add` then two concurrent `remove` of one hash    | Before fix: failures. After fix: none         | IN_PROGRESS | `manual-verification-evidence.md` section V1 (before-fix result recorded) |
 | V2  | Same on MySQL and PostgreSQL                      | Same temporary test against the Docker databases                                               | Before fix: failures. After fix: none         | TODO   | `manual-verification-evidence.md` section V2 |
 
 ### Disposable Verification Scripts
