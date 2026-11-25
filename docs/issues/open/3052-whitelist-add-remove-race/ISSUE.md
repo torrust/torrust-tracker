@@ -9,7 +9,7 @@ github-issue: 3052
 spec-path: docs/issues/open/3052-whitelist-add-remove-race/ISSUE.md
 branch: "3052-whitelist-add-remove-race-spec"
 related-pr: null
-last-updated-utc: "2026-11-25 16:01"
+last-updated-utc: "2026-11-25 16:02"
 semantic-links:
   skill-links:
     - create-issue
@@ -158,7 +158,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | Task | Coherent change set                                          | Commit policy                                        |
 | ---- | ------------------------------------------------------------ | ---------------------------------------------------- |
-| T3   | Regression test and concurrent harness cases plus red evidence                            | Commit after focused validation and required review. |
+| T3   | The `persisted.rs` regression test plus its red evidence    | Commit after focused validation and required review. |
+| T3   | The concurrent store-level harness cases plus their red evidence | Commit after focused validation and required review, as its own commit: each reviewed test-design increment is committed before the next planned file. |
 | T4   | Driver and `DatabaseWhitelist` change, trait docs            | Commit after focused validation and required review. |
 | T5   | Harness test updates                                         | Commit after focused validation and required review. |
 | T6   | Final evidence and spec progress                             | Commit after focused validation and required review. |
