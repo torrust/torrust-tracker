@@ -59,10 +59,10 @@ Review 6057270149 (da2ce7, APPROVED, 2026-11-25 12:04 UTC, on the head `docs(pr-
 | F5 | review-finding:pr-3041-f5 | Human | Nit | formatting | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-3041-f6 | Unknown | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F7 | review-finding:pr-3041-f7 | Unknown | Minor (inferred) | other | ORIGINAL | NO_ACTION | NON_RESOLVABLE |
-| F8 | review-finding:pr-3041-f8 | Human | Nit | documentation | ORIGINAL | FIXED | OPEN |
-| F9 | review-finding:pr-3041-f9 | Human | Nit | documentation | ORIGINAL | FIXED | OPEN |
-| F10 | review-finding:pr-3041-f10 | Human | Nit | metadata | ORIGINAL | FIXED | OPEN |
-| F11 | review-finding:pr-3041-f11 | Human | Nit | testing | ORIGINAL | FIXED | OPEN |
+| F8 | review-finding:pr-3041-f8 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F9 | review-finding:pr-3041-f9 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-3041-f10 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-3041-f11 | Human | Nit | testing | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -168,7 +168,7 @@ Review 6057270149 (da2ce7, APPROVED, 2026-11-25 12:04 UTC, on the head `docs(pr-
 - Current-tree verification: `git log -1 --format=%s` of the review's `commit_id` (from `gh api repos/torrust/torrust-tracker/pulls/3041/reviews/6057005909`) prints `docs(pr-reviews): [#2996] record review round 2 of PR 3041 in its audit`, the subject the intro now quotes.
 - Resolution reference: docs(pr-reviews): [#2996] record review round 4 of PR 3041 and correct three audit entries
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3041#discussion_r4694763427>
 
 ### F9 - Keep the F4 stamp check true for the current tree
 
@@ -181,7 +181,7 @@ Review 6057270149 (da2ce7, APPROVED, 2026-11-25 12:04 UTC, on the head `docs(pr-
 - Current-tree verification: `grep -n last-updated-utc docs/issues/open/2996-2912-si-8-share-assert-names-no-source-path/*.md` prints `2026-11-25 11:37` for `ISSUE.md` and `2026-11-25 12:11` for `manual-verification-evidence.md`.
 - Resolution reference: docs(pr-reviews): [#2996] record review round 4 of PR 3041 and correct three audit entries
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3041#discussion_r4694763965>
 
 ### F10 - Class da2ce7's findings as `Human`
 
@@ -194,7 +194,7 @@ Review 6057270149 (da2ce7, APPROVED, 2026-11-25 12:04 UTC, on the head `docs(pr-
 - Current-tree verification: `gh api users/da2ce7 --jq .type` prints `User`; `grep -n "^| F" docs/pr-reviews/pr-3041-review/PR-REVIEW.md` shows `Human` on F2 to F5 and F8 to F11.
 - Resolution reference: docs(pr-reviews): [#2996] record review round 4 of PR 3041 and correct three audit entries
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3041#discussion_r4694764349>
 
 ### F11 - Name the message a fragment case fails to reject
 
@@ -207,7 +207,7 @@ Review 6057270149 (da2ce7, APPROVED, 2026-11-25 12:04 UTC, on the head `docs(pr-
 - Current-tree verification: `cargo test -q -p torrust-tracker-test-helpers` passes (10 tests); with `"rustlib/src"` removed on a scratch change, the test failed with `it should reject "failed in /toolchain/lib/rustlib/src"` (V4 re-run in `manual-verification-evidence.md`); the file was restored.
 - Resolution reference: test(test-helpers): [#2996] name the message a fragment case fails to reject
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3041#discussion_r4694764807>
 
 ## Processing Log
 
@@ -218,6 +218,7 @@ Review 6057270149 (da2ce7, APPROVED, 2026-11-25 12:04 UTC, on the head `docs(pr-
 - 2026-11-25 11:49 UTC - Added F6 and F7 for review 6057005909 (CodeRabbit); F6 fixed in a signed commit, F7 declined (the audit record belongs to the PR by the `process-pr-review` skill); replies follow after the push.
 - 2026-11-25 11:53 UTC - Replied on the F6 thread after the push (CodeRabbit then resolved it) and answered F6 and F7 in a PR conversation comment; a GraphQL refresh shows all six threads resolved.
 - 2026-11-25 12:13 UTC - Added F8 to F11 for review 6057270149 (da2ce7, approved); F11 fixed in a signed test commit; F8, F9 and F10 corrected in this record (F10 also changed the author class of F2 to F5 to `Human`); replies follow after the push.
+- 2026-11-25 12:18 UTC - Replied on the F8 to F11 threads after pushing the fixes and the audit, and resolved the four threads; a GraphQL refresh shows 0 unresolved threads.
 
 ## Completion Rules
 
