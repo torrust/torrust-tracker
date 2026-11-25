@@ -42,7 +42,7 @@ info-hash that is already whitelisted returns `Ok`. It does so in two separate d
 2. Request B reads: hash H is not whitelisted.
 3. A inserts H and succeeds.
 4. B inserts H and the database rejects it. The store returns
-   `InvalidQuery { source: Database(SqliteError { code: 2067, message: "UNIQUE constraint failed: whitelist.info_hash" }) }`.
+   `InvalidQuery { source: Database(SqliteError { code: 2067, message: "UNIQUE constraint failed: whitelist.info_hash" }), driver: Sqlite3 }`.
 
 `remove` is the mirror image: both callers read "whitelisted", the first `DELETE` removes one row, and
 the second removes zero rows, which the store reports as `Error::DeleteFailed` (it requires exactly one
