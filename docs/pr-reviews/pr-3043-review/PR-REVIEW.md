@@ -1,7 +1,7 @@
 ---
 pr-number: 3043
 pr-url: https://github.com/torrust/torrust-tracker/pull/3043
-last-updated-utc: "2026-11-25 08:29"
+last-updated-utc: "2026-11-25 08:55"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -118,7 +118,7 @@ Round 2, on the head `docs(pr-reviews): [#3031] record the audit of PR 3043 revi
 - Concern: The evidence file carried `issue:` while `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md` and 134 other evidence files carry `issue-spec`; the round-1 change (F3) rested on a reading of `write-markdown-docs` that is about source artifacts of a draft specification.
 - Solution: The frontmatter has `issue-spec: docs/issues/open/3031-2387-si-1-statistics-disabled-warning-per-event/ISSUE.md` again. F3 above followed CodeRabbit's request without checking it against the template; its Solution now says it is superseded by this row.
 - Current-tree verification: `grep -n "^issue-spec:" docs/issues/open/3031-2387-si-1-statistics-disabled-warning-per-event/manual-verification-evidence.md` prints the line; the frontmatter check of the pre-commit script passed.
-- Resolution reference: docs(issues): [#3031] keep the statistics-enabled run evidence and the scenario script
+- Resolution reference: fix(statistics): [#3031] address review round 2 of the statistics-disabled fix
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3043#discussion_r4692213439
 
@@ -131,7 +131,7 @@ Round 2, on the head `docs(pr-reviews): [#3031] record the audit of PR 3043 revi
 - Concern: The two statistics-enabled runs and the scenario script were not in the issue folder, so AC4 could not be recomputed from the tree, and `ISSUE.md` said no script was planned.
 - Solution: The logs and metric responses of both runs and the script are in `evidence/`, linked from the evidence file; `ISSUE.md` names the script. The release recheck was run again on the rebuilt binary because production code changed (F7).
 - Current-tree verification: `ls docs/issues/open/3031-2387-si-1-statistics-disabled-warning-per-event/evidence` lists `v3-before-statistics-enabled.log`, `v3-after-statistics-enabled.log`, both `.metrics.txt` files and `run-scenario.sh`; `grep -cE ' (WARN|ERROR) '` on the three v2 and v3 logs prints 0 for each.
-- Resolution reference: docs(issues): [#3031] keep the statistics-enabled run evidence and the scenario script
+- Resolution reference: fix(statistics): [#3031] address review round 2 of the statistics-disabled fix; docs(issues): [#3031] keep the statistics-enabled run evidence and the scenario script
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3043#discussion_r4692213771
 
@@ -170,7 +170,7 @@ Round 2, on the head `docs(pr-reviews): [#3031] record the audit of PR 3043 revi
 - Concern: Three lines of the red unit test excerpt ended in a space.
 - Solution: The trailing spaces are removed.
 - Current-tree verification: `git diff --check torrust/develop...` printed nothing.
-- Resolution reference: docs(issues): [#3031] keep the statistics-enabled run evidence and the scenario script
+- Resolution reference: fix(statistics): [#3031] address review round 2 of the statistics-disabled fix
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3043#discussion_r4692215009
 
@@ -187,6 +187,7 @@ Round 2, on the head `docs(pr-reviews): [#3031] record the audit of PR 3043 revi
 - 2026-11-25 08:28 UTC - Replied on the six threads after the push (08:28:19 to 08:28:31) and resolved them.
 - 2026-11-25 08:29 UTC - F3 of round 1 rewrote its own Solution line to name its supersession by F5 (an appended sentence on the line; no earlier text was removed). During the round the helper `capture_logs_in_scope` was found flaky (one failure in about four runs of the http-core tests, `tracing` caching a callsite as never interested) and fixed in `fix(statistics): [#3031] address review round 2 of the statistics-disabled fix`; it is not a review finding.
 - 2026-11-25 08:29 UTC - Updated this audit record after the replies and the resolutions; the validation script ran after this entry.
+- 2026-11-25 08:55 UTC - Correction (review 6054395106, finding F7 of the reviewer): the Resolution references of F5, F6 and F9 named `docs(issues): [#3031] keep the statistics-enabled run evidence and the scenario script`, which carries only the quoting of the scenario script and one sentence of the evidence. The restored `issue-spec` key (F5), the five new evidence files and the `ISSUE.md` change (F6) and the trailing-space fix (F9) are in `fix(statistics): [#3031] address review round 2 of the statistics-disabled fix`; the three references now say so (F6 cites both subjects, because the second carries the quoting correction of the script). The 08:24 UTC entry above said the code fixes and the evidence went into two commits with the script corrected before both; what happened is that the first commit swept in the evidence with the unquoted script as it had run, and the second corrected the quoting. The 08:24 entry is left as written.
 
 ## Completion Rules
 
