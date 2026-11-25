@@ -4,7 +4,7 @@ semantic-links:
     - process-pr-review
   related-artifacts:
     - .claude/skills/process-pr-review/SKILL.md
-    - docs/issues/open/3051-random-expiring-key-duration-overflow-panic/ISSUE.md
+    - "issue #3051"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -44,7 +44,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Review 6059658951 (`claude[bot]`, 2026-11-25 14:36 UTC) posted one inline comment, F1. Review 6059932482 (`da2ce7`, `CHANGES_REQUESTED`) posted ten inline comments, F2 to F11; its body has no further actionable assertion. Review 6060302201 (`da2ce7`, `COMMENTED`, 2026-11-25 15:16 UTC) posted three more, F12 to F14. CodeRabbit posted only its review-limit notice.
+Review 6059658951 (`claude[bot]`, 2026-11-25 14:36 UTC) posted one inline comment, F1. Review 6059932482 (`da2ce7`, `CHANGES_REQUESTED`) posted ten inline comments, F2 to F11; its body has no further actionable assertion. Review 6060302201 (`da2ce7`, `COMMENTED`, 2026-11-25 15:16 UTC) posted three more, F12 to F14. Review 6060493901 (`coderabbitai[bot]`, `COMMENTED`, 15:28 UTC) has one finding in its body, F15, with no thread. CodeRabbit posted only its review-limit notice.
 
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
@@ -62,6 +62,7 @@ Review 6059658951 (`claude[bot]`, 2026-11-25 14:36 UTC) posted one inline commen
 | F12 | review-finding:pr-3054-f12 | da2ce7 | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F13 | review-finding:pr-3054-f13 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F14 | review-finding:pr-3054-f14 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-3054-f15 | coderabbitai[bot] | Minor | maintainability | ORIGINAL | FIXED | NON_RESOLVABLE |
 
 ## Finding Details
 
@@ -247,6 +248,19 @@ Review 6059658951 (`claude[bot]`, 2026-11-25 14:36 UTC) posted one inline commen
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/3054#discussion_r4697017419>
 
+### F15 - Cite issue 3051 by number, not by its open/ path
+
+- PR number: 3054
+- Source review ID: 6060493901
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/3054#pullrequestreview-6060493901>
+- Concern: the audit's `related-artifacts` cites the spec under `docs/issues/open/`, a path that goes stale when the issue closes and its spec moves to `closed/`. The reviewer marked the finding unverified.
+- Solution: accepted. The audit `pr-3046-review` cites its issue as `"issue #3019"`, so the frontmatter now cites `"issue #3051"`.
+- Current-tree verification: `sed -n 1,9p docs/pr-reviews/pr-3054-review/PR-REVIEW.md` shows `"issue #3051"` in `related-artifacts`, with no `docs/issues/open` path among the frontmatter lines.
+- Resolution reference: docs(pr-reviews): [#3051] cite issue 3051 by number in the PR 3054 audit
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
 ## Processing Log
 
 - 2026-11-25 14:41 UTC - Late start: the reply to F1 (reply `created_at` 14:41:01Z) was posted, and its thread resolved, before this record existed. F1 had been handled with the commit `docs(issues): [#3051] record the persistence range as out of scope` (committed 14:38:12Z) and the new issue #3055.
@@ -256,6 +270,8 @@ Review 6059658951 (`claude[bot]`, 2026-11-25 14:36 UTC) posted one inline commen
 - 2026-11-25 15:01 UTC - Wrote this record for F3. `validate-audit-record.py` has not been run: it calls plain `gh`, which acts as `josecelano`; running it as the bot needs the maintainer's permission, asked for in the PR report. The maintainer's `ACK` of the earlier head is stale after the spec commit and after this commit; the new head needs a new `ACK`.
 - 2026-11-25 15:16 UTC - Review 6060302201 (`da2ce7`, `COMMENTED`, `submitted_at` 15:16:08Z) arrived on head `docs(pr-reviews): [#3051] add the PR 3054 review audit`: F12 to F14. F12 found the F1 row's bare comment id; the replies to F12 to F14 were posted before the fix commit and say so.
 - 2026-11-25 15:18 UTC - Wrote the rows F12 to F14 and fixed the F1 row. `validate-audit-record.py` was not run by this session (it calls plain `gh`); the reviewer's run reported the two failures that F12 fixes.
+- 2026-11-25 15:28 UTC - Review 6060493901 (`coderabbitai[bot]`, `COMMENTED`, `submitted_at` 15:28:00Z) arrived on the head `docs(pr-reviews): [#3051] record review 6060302201 in the PR 3054 audit`: one finding in its body, F15 (no thread, so no reply).
+- 2026-11-25 15:29 UTC - Fixed F15 in the commit `docs(pr-reviews): [#3051] cite issue 3051 by number in the PR 3054 audit`.
 
 ## Completion Rules
 
