@@ -1,14 +1,14 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/3051-random-expiring-key-duration-overflow-panic/ISSUE.md
-last-updated-utc: "2026-11-25 15:48"
+last-updated-utc: "2026-11-25 19:14"
 ---
 
 # Manual Verification Evidence
 
 ## Purpose
 
-Evidence of the bug before the fix (V1, V2) and, after the fix, the like-for-like recheck (V3, `TODO`).
+Evidence of the bug before the fix (V1, V2) and, after the fix, the like-for-like recheck (V3).
 
 ## Environment and Prerequisites
 
@@ -153,8 +153,48 @@ passes (`2 passed`).
 
 ### V3 - Like-for-like recheck after the fix
 
-- Status: `TODO`. Repeat V1 steps 1 to 5 against the fixed build, after the last production change; name the commit
-  by its Conventional Commit subject. Stamp the start and the end of every request, request 5 included.
+- Goal: repeat V1 steps 1 to 5 against the fixed build and compare.
+- Initial state: fresh SQLite database (`.tmp/repro-keys.db` removed); artifact under test: the branch
+  `3051-random-expiring-key-duration-overflow-panic` at `0e94a2cfd`
+  (`fix(tracker-core): [#3051] return an error when a random key duration overflows the clock`), the last production
+  change; stable toolchain; `cargo build --bin torrust-tracker`; same configuration and requests as V1. The tracker
+  was started in the background with
+  `./target/debug/torrust-tracker --config-toml-path docs/issues/open/3051-random-expiring-key-duration-overflow-panic/evidence/tracker.repro.toml > .tmp/tracker.log 2>&1`
+  and answered `200` to the stats request at 19:13:41 UTC on 2026-11-25.
+- Status: `DONE` (outcome: **Fixed**)
+
+#### Steps Performed
+
+Run one at a time, in this order, all on 2026-11-25 (UTC); every request started and ended in the same second:
+
+1. 19:13:51 to 19:13:51 control, a valid random key.
+2. 19:13:51 to 19:13:51 random key, overflowing duration (`seconds_valid: 18446744073709551615`).
+3. 19:13:51 to 19:13:51 pre-generated key, overflowing duration.
+4. 19:13:51 to 19:13:51 generate-key endpoint (`POST /api/v1/key/18446744073709551615`).
+5. 19:13:51 to 19:13:51 stats request, to see that the tracker still serves.
+
+The commands are those of V1; each ran as one command that printed the time before and after it.
+
+#### Observed Result
+
+```text
+1. HTTP/1.1 200 OK
+   {"key":"<32-character random key, redacted>","valid_until":1795637631,"expiry_time":"2026-11-25 20:13:51 UTC"}
+2. HTTP/1.1 400 Bad Request
+   Invalid URL: invalid auth key duration: "18446744073709551615"
+3. HTTP/1.1 400 Bad Request
+   Invalid URL: invalid auth key duration: "18446744073709551615"
+4. HTTP/1.1 400 Bad Request
+   Invalid URL: invalid auth key duration: "18446744073709551615"
+5. 200
+```
+
+The tracker log holds no `panicked` line (`sed 's/\x1b\[[0-9;]*m//g' .tmp/tracker.log | grep -c panicked` printed `0`).
+
+#### Conclusion
+
+Both random-key paths now answer `400`, with the same body as the pre-generated path (request 3, unchanged), instead of
+dropping the connection. The control still answers `200`, and the tracker logs no panic. The bug is fixed.
 
 ## Failures and Follow-up
 

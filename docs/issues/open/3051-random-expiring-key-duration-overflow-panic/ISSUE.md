@@ -183,7 +183,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1  | DONE   | Write the `KeysHandler`, `generate_auth_key_handler` and two contract regression tests                                                      | Tests compile against the current API.                                                  |
 | T2  | DONE   | Run them red and record output                                                                               | `KeysHandler` test panics at `key/mod.rs`; the `generate_auth_key_handler` test and the contract tests fail. Output in the evidence file.   |
 | T3  | DONE   | Fix: `DurationOverflow`, new signatures, callers, REST mapping, handler arm and docs; rename `it_should_answer_an_internal_server_error_whatever_the_error_when_generating_a_key` to say that it covers the errors other than a duration overflow; add the `generate_key` unit test        | Mutate-then-restore proves the unit test.                                               |
-| T4  | TODO   | Green run, `linter all`, like-for-like recheck against a real tracker                                        | Requests that dropped the connection now return `400`.                                  |
+| T4  | DONE   | Green run, `linter all`, like-for-like recheck against a real tracker                                        | Requests that dropped the connection now return `400`.                                  |
 | T5  | TODO   | Review loop, completion review                                                                               | Checks green, reviews addressed.                                                        |
 
 ## Commit Points
@@ -205,10 +205,10 @@ commit.
 - [x] Folder-style spec drafted in `docs/issues/open/3051-random-expiring-key-duration-overflow-panic/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Spec-only PR merged into `develop` before implementation
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Implementation completion review recorded
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
@@ -224,20 +224,21 @@ commit.
 - 2026-11-25 15:18 UTC - Claude Code (Claude Sonnet 5.5) - Review 6060302201 of PR #3054: the generate-key handler test is planned in T1, T2 and T3, and the evidence names the log capture
 - 2026-11-25 19:06 UTC - Claude Code (Claude Sonnet 5.5) - T1-T2 done: four regression tests written and run red on branch 3051-random-expiring-key-duration-overflow-panic, no production change yet (evidence V2b)
 - 2026-11-25 19:12 UTC - Claude Code (Claude Sonnet 5.5) - T3 done: fix, callers and the generate_key unit tests; green run, mutation proof and linter all recorded (evidence V2c); the real-tracker recheck (V3) is next
+- 2026-11-25 19:14 UTC - Claude Code (Claude Sonnet 5.5) - T4 done: real-tracker recheck on 0e94a2cfd (evidence V3): requests 2 and 4 answer 400, no panic. Completion review: no material discovery, the implementation followed the spec (the REST handler arm, the benchmark caller and the renamed handler test were all planned)
 
 ## Acceptance Criteria
 
-- [ ] AC1: `key::generate_key(Some(d))` returns `Err(DurationOverflow)` when `now + d` overflows, and never panics.
-- [ ] AC2: `KeysHandler::add_peer_key` with `opt_key: None` and `opt_seconds_valid: Some(u64::MAX)` returns
+- [x] AC1: `key::generate_key(Some(d))` returns `Err(DurationOverflow)` when `now + d` overflows, and never panics.
+- [x] AC2: `KeysHandler::add_peer_key` with `opt_key: None` and `opt_seconds_valid: Some(u64::MAX)` returns
       `PeerKeyError::DurationOverflow`.
-- [ ] AC3: `KeysHandler::generate_expiring_peer_key` returns `DurationOverflow` on overflow and `DatabaseError` on a
+- [x] AC3: `KeysHandler::generate_expiring_peer_key` returns `DurationOverflow` on overflow and `DatabaseError` on a
       database failure.
-- [ ] AC4: `POST /api/v1/keys` (random key) and the generate-key endpoint answer `400` with "invalid auth key
+- [x] AC4: `POST /api/v1/keys` (random key) and the generate-key endpoint answer `400` with "invalid auth key
       duration" for `u64::MAX`.
 - [ ] AC5: The API change is stated in the PR description.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 - [ ] Documentation is updated when behavior/workflow changes
 
@@ -262,10 +263,10 @@ The M3 recheck runs after the last production change, including changes made for
 
 | AC ID | Status | Evidence |
 | ----- | ------ | -------- |
-| AC1   | TODO   |          |
-| AC2   | TODO   |          |
-| AC3   | TODO   |          |
-| AC4   | TODO   |          |
+| AC1   | DONE   | `when_the_lifetime_of_the_key_overflows_the_clock` unit tests (mutation-checked, evidence V2c) and the `generate_key` doctest |
+| AC2   | DONE   | `it_should_fail_adding_a_randomly_generated_key_when_the_key_duration_exceeds_the_maximum_duration`: red in V2b, green in V2c |
+| AC3   | DONE   | `DurationOverflow` by the handler test above; `DatabaseError` by the existing `it_should_fail_adding_a_randomly_generated_key_when_there_is_a_database_error`, green in V2c |
+| AC4   | DONE   | two contract tests and the handler test: red in V2b, green in V2c; real tracker in V3 (requests 2 and 4 answer `400`) |
 | AC5   | TODO   |          |
 
 ## Risks and Trade-offs
@@ -277,7 +278,7 @@ The M3 recheck runs after the last production change, including changes made for
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: `Not needed`: no material discovery (see the progress log)
 - After implementation, compare the result with this specification. Create `implementation-retrospective.md` from
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this folder when there are invalidated assumptions, material
   design changes, unexpected validation findings or reusable lessons; otherwise add a progress-log entry that says
