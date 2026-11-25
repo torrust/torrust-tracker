@@ -9,7 +9,7 @@ github-issue: 2904
 spec-path: docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md
 branch: "2904-t5-task-reviewer"
 related-pr: null
-last-updated-utc: "2026-11-25 13:47"
+last-updated-utc: "2026-11-25 16:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -436,6 +436,31 @@ Decided by the maintainer on 2026-11-15:
     specification folder legitimately, and must not recreate a folder under `open/` to write a
     reply. The caller then finds no valid reply file and stops, as for a path outside the
     specification folders.
+  - **A file name the validator rejects.** For a `Reply file:` path in the replies folder of a
+    specification whose file name is not a valid reply file name under D18 (a round above 3, a
+    leading zero, an unknown agent, no round, a subject that is not `t<task>` or `pr<number>`, or
+    not `.json`), the hook lets the agent finish, with a message that names the path and the
+    validator's reason. It keeps no count. The check comes after the checks for the specification
+    folder and its issue number, so a missing folder is reported first. The hook parses the name
+    with the validator's own parser (`ReplyFileName`), so the two cannot disagree. Decided by the
+    maintainer on 2026-11-25, on a finding of the review of pull request 3049 (F11), after scenario M7:
+    its continued run named `task-reviewer-t5-r4.json`, the hook refused three times for a file
+    that no content could make valid, and then reported only that the limit was reached.
+    Alternatives that were weighed:
+    - *Keep the guard as it was (hold the agent to any name in the replies folder).* It needs no
+      code. It was discarded because the refusals cannot succeed: the validator rejects the name
+      whatever the file holds, so the agent loses three turns and the final message hides the real
+      cause, a mistake of the caller.
+    - *Hold the agent but tell it the name is invalid.* The message would be better, but the agent
+      cannot change the name the caller wrote, so it would still be held three times for nothing,
+      the same reason D17 gives for letting it finish on a path outside the specification folders.
+      It was discarded for that reason.
+    - *Let the agent finish with a message that names the name (chosen).* It costs one more
+      branch with tests, and a caller mistake ends the review without a reply file, so the caller
+      must read the message. It was chosen because it follows the rule D17 already applies to
+      every request that the reviewer cannot satisfy (a draft, a path outside, a missing folder),
+      wastes no turns, states the cause, and cannot drift from the validator, since it uses the
+      same parser. The caller that finds no valid reply file stops, as the Requirements say.
   - **The program.** A binary `agent-reply-guard` in the crate `agent-reply-validator` (T3), so
     the hook runs the same checks as the validator and needs no new crate.
 - **D18 - The trace is one JSON reply file per reply, validated against a schema.** Only replies
@@ -720,6 +745,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - 2026-11-24 13:40 UTC - Claude Code (Claude Sonnet 5.5) - T5 implemented on its own branch. The program `agent-reply-guard` (crate `agent-reply-validator`) reads the latest `Reply file:` line from the agent's transcript, keeps a count of 3 refusals per agent and file in `.agents/issues/<issue-number>/reply-guard/` (ignored by Git and the linters), and lets the agent finish with a message in the cases of D17. The contributor proposed one consequence of D17 on the same day, not yet confirmed by the maintainer: a path under `open/` or `closed/` that is not exactly `<specification>/agent-replies/<file>` lets the agent finish like a draft path, because the agent cannot change such a path; the pull request asks for his confirmation. `task-reviewer` was added with the complexity item and the reply rule in `review-task`, and the rules only the removed profile held are in `removed-profile-rules.md`. Scenario M7 showed that Claude Code discards a `SubagentStop` refusal when the agent ends its turn with `SubagentHandback`, so by the maintainer's decision of the day the program is also registered as a `PreToolUse` hook on that tool (D17, V7); with both hooks the forced run was refused 3 times and let through on the fourth attempt. The program speaks Claude Code's hook protocol, which the CLI output contract does not allow for, so a new ADR adds the class `external-protocol` to the binary table. V7 records the runs.
 - 2026-11-25 13:23 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the CodeRabbit review `6058202792` on pull request #3049 (two findings): `review-task` now defines the overall result when a criterion is left `PENDING` for later evidence, and AC10 is back to unchecked with its row `TODO`, because scenario M5 (task T9) has not produced its reply files; the M7 evidence in section V7 stays recorded.
 - 2026-11-25 13:47 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the second review round of pull request #3049 (CodeRabbit review `6058425125`, `da2ce7` review `6058630615`), processed by `pr-review-handler`: the `external-protocol` override covers section 5 of the CLI output contract; `review-task` fails the review on any `PENDING` criterion that is not deferred; the new ADR lists its affected code and names both hooks; the guard's module docs link the hooks reference and the ADR; V7 records which transcript records carry the line and where the skill text sits; AC10 names the continuation of run A as a second exception; the audit record of the pull request is in `docs/pr-reviews/pr-3049-review/PR-REVIEW.md`. The guard's acceptance of a file name that the validator rejects waits on the maintainer's answer about the D17 consequence.
+- 2026-11-25 16:10 UTC - Claude Code (Claude Sonnet 5.5) - Decided with the maintainer, on a finding of the review of pull request 3049 (F11), that the stop hook lets the reviewer finish, with the validator's reason, when the file name of its request is not a valid reply file name, instead of refusing three times (D17, with the alternatives and the reasons they were discarded). The guard parses the name with the validator's `ReplyFileName`; six unit tests, one per kind of invalid name, and one for the order of the checks; a mutation check that disabled the branch made the six fail.
 
 ## Acceptance Criteria
 
