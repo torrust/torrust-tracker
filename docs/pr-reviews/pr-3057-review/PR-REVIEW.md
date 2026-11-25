@@ -29,7 +29,7 @@ Review 6061315413 (da2ce7, APPROVED, 2026-11-25 16:38 UTC) posted three inline c
 | F1 | review-finding:pr-3057-f1 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F2 | review-finding:pr-3057-f2 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-3057-f3 | Human | Nit | formatting | ORIGINAL | FIXED | RESOLVED |
-| F4 | review-finding:pr-3057-f4 | Unknown | Minor | documentation | ORIGINAL | FIXED | OPEN |
+| F4 | review-finding:pr-3057-f4 | Unknown | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -83,10 +83,11 @@ Review 6061315413 (da2ce7, APPROVED, 2026-11-25 16:38 UTC) posted three inline c
 - Current-tree verification: `grep -n "Independent reviewer reports" docs/issues/closed/2996-2912-si-8-share-assert-names-no-source-path/ISSUE.md` prints the new note.
 - Resolution reference: docs(issues): [#2996] state which reviews the SI-8 reviewer-reports checkpoint excludes
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3057#discussion_r4698078783>
 
 ## Processing Log
 
 - 2026-11-25 16:42 UTC - Started audit for review 6061315413 (da2ce7); F1 to F3 fixed, replies and thread resolution follow after the push.
 - 2026-11-25 16:46 UTC - Replied on the F1 to F3 threads after pushing the fixes and resolved all three; a GraphQL refresh shows no open thread.
 - 2026-11-25 16:55 UTC - Review 6061480325 (CodeRabbit) added F4, fixed in a signed commit; reply and thread resolution follow after the push.
+- 2026-11-25 16:58 UTC - Replied on the F4 thread after pushing the fix and resolved it; a GraphQL refresh shows no open thread.
