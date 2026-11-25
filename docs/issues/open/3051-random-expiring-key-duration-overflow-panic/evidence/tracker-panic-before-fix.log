@@ -1,0 +1,5 @@
+thread 'tokio-rt-worker' (4055249) panicked at packages/tracker-core/src/authentication/key/mod.rs:111:79:
+called `Option::unwrap()` on a `None` value
+--
+thread 'tokio-rt-worker' (4055249) panicked at packages/tracker-core/src/authentication/key/mod.rs:111:79:
+called `Option::unwrap()` on a `None` value
