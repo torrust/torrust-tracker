@@ -1,7 +1,7 @@
 ---
 pr-number: 3048
 pr-url: https://github.com/torrust/torrust-tracker/pull/3048
-last-updated-utc: "2026-11-25 12:50"
+last-updated-utc: "2026-11-25 13:02"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -41,11 +41,14 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 Round 1, on the head `chore(issues): archive closed issue #3031 spec to docs/issues/closed` (first commit): da2ce7 review 6057833343 (approved, two inline threads and one finding in the review body about the title). The `claude[bot]` reviews (6057334420, automated review disabled for forks; 6057711042, no issues found) and the CodeRabbit comment (rate limited) hold no request and have no row.
 
+Round 2, on the head `docs(pr-reviews): [#3031] record the audit of PR 3048 review round 1`: da2ce7 review 6058037592 (approved, one finding in the review body).
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3048-f1 | Human | Minor | link-integrity | ORIGINAL | FIXED | RESOLVED |
 | F2 | review-finding:pr-3048-f2 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-3048-f3 | Human | Nit | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F4 | review-finding:pr-3048-f4 | Human | Nit | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
 
 ## Finding Details
 
@@ -88,12 +91,28 @@ Round 1, on the head `chore(issues): archive closed issue #3031 spec to docs/iss
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3048#issuecomment-7162914983
 
+### F4 - `last-updated-utc` of the archived spec is stale
+
+- PR number: 3048
+- Source review ID: 6058037592
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3048#pullrequestreview-6058037592
+- Concern: Line 12 of the archived `ISSUE.md` read `2026-11-25 12:04` although the round-1 fix edited the file at 12:45 UTC.
+- Solution: The stamp is the commit time of the fix, `2026-11-25 12:58`.
+- Current-tree verification: `sed -n 12p docs/issues/closed/3031-2387-si-1-statistics-disabled-warning-per-event/ISSUE.md` prints `last-updated-utc: "2026-11-25 12:58"`.
+- Resolution reference: docs(issues): [#3031] refresh the last-updated stamp of the archived spec
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3048#issuecomment-7163197909
+
 ## Processing Log
 
 - 2026-11-25 12:44 UTC - Round 1: da2ce7 review 6057833343 (12:44:40) with two inline threads and one body finding. Rows F1 to F3. The audit record was created after the first fixes and replies; this is the late start.
 - 2026-11-25 12:45 UTC - Edited the pull request title (F3; timeline 12:45:40) and committed the fixes of F1 and F2 (`docs(issues): [#3031] point the archived spec at the parent EPIC in open/`, 12:45:45), then pushed.
 - 2026-11-25 12:49 UTC - Replied on the two threads after the push (12:49:33 and 12:49:35), resolved them, and posted the conversation response for F3 (12:49:48).
 - 2026-11-25 12:50 UTC - Created this audit record after the replies and resolutions; the validation script ran after this entry.
+- 2026-11-25 12:58 UTC - Round 2: da2ce7 review 6058037592 (12:58:24, approved) with one body finding. Row F4. Committed and pushed `docs(issues): [#3031] refresh the last-updated stamp of the archived spec` (12:58:51).
+- 2026-11-25 13:02 UTC - Posted the conversation response for F4 (13:02:05).
+- 2026-11-25 13:02 UTC - Updated this audit record after the push and the response; the validation script ran after this entry.
 
 ## Completion Rules
 
