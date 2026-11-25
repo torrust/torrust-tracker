@@ -1,7 +1,7 @@
 ---
 pr-number: 3049
 pr-url: https://github.com/torrust/torrust-tracker/pull/3049
-last-updated-utc: "2026-11-25 16:53"
+last-updated-utc: "2026-11-25 17:07"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -47,6 +47,8 @@ Round 3: `claude[bot]` review 6058972240 (F14), CodeRabbit review 6059084436 (F1
 
 Round 5: `da2ce7`'s review 6059677342, which round 3 did not record (F22, F23), and his review 6061172809 on the head of commit `docs(pr-reviews): [#2904] record the decision on the file-name finding of pull request 3049` (F24, F25). F24 repeats F23. The reply URLs of this round are recorded by the commit that follows the replies.
 
+Round 6: CodeRabbit review 6061625852 on the head of commit `docs(pr-reviews): [#2904] record the review of 6059677342 and 6061172809 on pull request 3049` (F26 to F28). The reply URLs of this round are recorded by the commit that follows the replies.
+
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3049-f1 | coderabbitai[bot] | Major | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -74,6 +76,9 @@ Round 5: `da2ce7`'s review 6059677342, which round 3 did not record (F22, F23), 
 | F23 | review-finding:pr-3049-f23 | da2ce7 | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F24 | review-finding:pr-3049-f24 | da2ce7 | Minor | metadata | RE_RAISE_OF:F23 | FIXED | RESOLVED |
 | F25 | review-finding:pr-3049-f25 | da2ce7 | Nit | testing | ORIGINAL | FIXED | RESOLVED |
+| F26 | review-finding:pr-3049-f26 | coderabbitai[bot] | Minor | documentation | ORIGINAL | FIXED | OPEN |
+| F27 | review-finding:pr-3049-f27 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | OPEN |
+| F28 | review-finding:pr-3049-f28 | coderabbitai[bot] | Minor | documentation | ORIGINAL | FIXED | OPEN |
 
 ## Finding Details
 
@@ -215,7 +220,7 @@ Round 5: `da2ce7`'s review 6059677342, which round 3 did not record (F22, F23), 
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4695708467
 - Concern: `guard.rs` accepts any file name in `agent-replies/`, so a name the validator's name rule rejects keeps the agent refused until the limit; the reviewer proposes treating such a name like a non-exact path, with a message that names the problem.
 - Solution: The maintainer decided (round 4, after the question this row first recorded) that the hook lets the agent finish, with the validator's reason, when the file name of its request is not a valid reply file name. `decide` in `guard.rs` now parses the name with the validator's `ReplyFileName`, after the checks for the specification folder and its issue number, and keeps no count; six unit tests, one per kind of invalid name, and one for the order of the checks; a mutation check that disabled the branch made the six fail. D17 records the case, the two alternatives that were discarded and the reasons.
-- Current-tree verification: read the arm in `contrib/dev-tools/checks/agent-reply-validator/src/guard.rs`: it accepts any name under `agent-replies/`, as the reviewer says; V7 shows the three refusals for `task-reviewer-t5-r4.json`.
+- Current-tree verification: at the head the reviewer read, the arm in `contrib/dev-tools/checks/agent-reply-validator/src/guard.rs` accepted any name under `agent-replies/` and V7 showed the three refusals for `task-reviewer-t5-r4.json`; that is the historical observation. At the current head `decide` parses the name with `ReplyFileName` before it counts anything, so the same name now makes the hook let the reviewer finish with the validator's reason and no count (the six unit tests and the order test).
 - Resolution reference: fix(agent-reply-validator): [#2904] let the reviewer finish when the reply file name is not a valid one
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4697632582
@@ -402,6 +407,45 @@ Round 5: `da2ce7`'s review 6059677342, which round 3 did not record (F22, F23), 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4698047355
 
+### F26 - The agent file does not state the invalid-file-name exception
+
+- PR number: 3049
+- Source review ID: 6061625852
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4698103238
+- Concern: `task-reviewer.md` says the hook refuses while the file is missing or invalid, but since the decision on F11 an invalid file name lets the reviewer finish with a diagnostic.
+- Solution: The paragraph now names the exception: the hook lets the reviewer finish at once with the reason and counts nothing when the file name is not a valid reply file name.
+- Current-tree verification: Read the paragraph of `.claude/agents/task-reviewer.md` after the edit and compared it with `decide` in `guard.rs`.
+- Resolution reference: docs(agents): [#2904] state that the stop hook lets the reviewer finish on an invalid file name
+- Follow-up PR URL: N/A
+- Reply URL: pending
+
+### F27 - Item 8 of `review-task` requires scenarios of later tasks
+
+- PR number: 3049
+- Source review ID: 6061625852
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4698103279
+- Concern: Item 8 asks that every mandatory manual scenario was executed, which requires M5 before the review of T5 although M5 belongs to T9 and the result rule lets a later task's `PENDING` criterion stand.
+- Solution: Item 8 now asks for the mandatory scenarios of the task under review and lists a scenario of a later task as `PENDING` with that reason, as the result rule says. The AS3 warning that the review quotes about skill enumeration at line 82 is a static-analysis note on the skill's existing instruction to read the repository's own skills and is not part of this finding.
+- Current-tree verification: Read item 8 and the result rule in the Output section after the edit.
+- Resolution reference: docs(skills): [#2904] require only the manual scenarios of the task under review
+- Follow-up PR URL: N/A
+- Reply URL: pending
+
+### F28 - The verification of F11 describes the previous behaviour
+
+- PR number: 3049
+- Source review ID: 6061625852
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4698103302
+- Concern: The Current-tree verification of F11 still said the guard accepts any name and showed the three refusals, which contradicts the solution text above it.
+- Solution: The verification now separates the historical observation (the head the reviewer read, V7) from the current check, in which `decide` parses the name before it counts anything.
+- Current-tree verification: Read `decide` in `guard.rs` and the F11 text after the edit.
+- Resolution reference: docs(pr-reviews): [#2904] record the sixth review round on pull request 3049
+- Follow-up PR URL: N/A
+- Reply URL: pending
+
 ## Processing Log
 
 - 2026-11-25 13:25 UTC - Started audit for review `6058202792` of `coderabbitai[bot]`; the review `6058085652` of `claude[bot]` (review disabled for forks) and the CodeRabbit walkthrough comment `7163196060` carry no finding.
@@ -420,6 +464,7 @@ Round 5: `da2ce7`'s review 6059677342, which round 3 did not record (F22, F23), 
 - 2026-11-25 16:22 UTC - Pushed the branch (head commit `docs(pr-reviews): [#2904] record the decision on the file-name finding of pull request 3049`), replied on the thread of F11 (GitHub reply `discussion_r4697632582`) and resolved it with the GraphQL mutation, which returned `isResolved: true`.
 - 2026-11-25 16:39 UTC - Round 5: started on review `6059677342` of `da2ce7`, which the poller never reported and the record lacked (F22, F23), and on his review `6061172809` (F24, F25); verified every finding against the current tree and committed the fixes locally. Replies follow the push.
 - 2026-11-25 16:53 UTC - Pushed round 5 (head commit `docs(pr-reviews): [#2904] record the review of 6059677342 and 6061172809 on pull request 3049`), replied on the four threads (GitHub `created_at` 16:53 UTC) and with the form of item 7 on the thread of F17, then resolved the four threads with the GraphQL mutation, each returning `isResolved: true`; the thread of F17 was already resolved by its reviewer. The reply URLs are recorded by this commit, which goes out with the next push.
+- 2026-11-25 17:07 UTC - Round 6: started on CodeRabbit review `6061625852` (three inline comments), which came after five rounds of fixes; the maintainer approved a sixth round. Verified each finding against the current tree and committed the fixes locally (F26 to F28). Replies follow the push.
 
 ## Completion Rules
 
