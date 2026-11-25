@@ -1,7 +1,7 @@
 ---
 pr-number: 3049
 pr-url: https://github.com/torrust/torrust-tracker/pull/3049
-last-updated-utc: "2026-11-25 14:29"
+last-updated-utc: "2026-11-25 16:39"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -45,6 +45,8 @@ Round 2: CodeRabbit review 6058425125 on the head of commit `docs(issues): [#290
 
 Round 3: `claude[bot]` review 6058972240 (F14), CodeRabbit review 6059084436 (F15 to F17) and `da2ce7`'s review 6059158630 (F18 to F21). F13 is the nit of review 6058630615's body that round 2 did not record. F19 repeats F14 and F21 repeats F13. F17 is declined with a reason and its thread stays open for the reviewer.
 
+Round 5: `da2ce7`'s review 6059677342, which round 3 did not record (F22, F23), and his review 6061172809 on the head of commit `docs(pr-reviews): [#2904] record the decision on the file-name finding of pull request 3049` (F24, F25). F24 repeats F23. The reply URLs of this round are recorded by the commit that follows the replies.
+
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3049-f1 | coderabbitai[bot] | Major | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -63,11 +65,15 @@ Round 3: `claude[bot]` review 6058972240 (F14), CodeRabbit review 6059084436 (F1
 | F14 | review-finding:pr-3049-f14 | claude[bot] | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 | F15 | review-finding:pr-3049-f15 | coderabbitai[bot] | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F16 | review-finding:pr-3049-f16 | coderabbitai[bot] | Major | correctness | ORIGINAL | FIXED | RESOLVED |
-| F17 | review-finding:pr-3049-f17 | coderabbitai[bot] | Minor | correctness | ORIGINAL | NO_ACTION | OPEN |
+| F17 | review-finding:pr-3049-f17 | coderabbitai[bot] | Minor | correctness | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F18 | review-finding:pr-3049-f18 | da2ce7 | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F19 | review-finding:pr-3049-f19 | da2ce7 | Suggestion | correctness | RE_RAISE_OF:F14 | FIXED | RESOLVED |
 | F20 | review-finding:pr-3049-f20 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F21 | review-finding:pr-3049-f21 | da2ce7 | Nit | maintainability | RE_RAISE_OF:F13 | NO_ACTION | NON_RESOLVABLE |
+| F22 | review-finding:pr-3049-f22 | da2ce7 | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F23 | review-finding:pr-3049-f23 | da2ce7 | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F24 | review-finding:pr-3049-f24 | da2ce7 | Minor | metadata | RE_RAISE_OF:F23 | FIXED | RESOLVED |
+| F25 | review-finding:pr-3049-f25 | da2ce7 | Nit | testing | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -286,7 +292,7 @@ Round 3: `claude[bot]` review 6058972240 (F14), CodeRabbit review 6059084436 (F1
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4696071057
 - Concern: When the guard cannot read the transcript it exits 1, which does not hold the agent; the reviewer asks that a task with a named reply file stays held, with a count, and the tests changed.
-- Solution: No change. The ADR of this pull request decides it: failures of the program itself (unreadable input, an unreadable transcript) are errors and not refusals, exit `1` and cannot keep an agent working; the caller then finds no valid reply file and stops (fails closed). Holding on an error the guard cannot attribute to a reply would also have no count to key on when the issue number cannot be read. Reversing it changes the decision and the tests together, so it is the maintainer's call. The thread stays open for the reviewer.
+- Solution: No change. The ADR of this pull request decides it: failures of the program itself (unreadable input, an unreadable transcript) are errors and not refusals, exit `1` and cannot keep an agent working; the caller then finds no valid reply file and stops (fails closed). Holding on an error the guard cannot attribute to a reply would also have no count to key on when the issue number cannot be read. Reversing it changes the decision and the tests together, so it is the maintainer's call. The reviewer then withdrew the request and resolved the thread.
 - Current-tree verification: Read the guard's `fail` path in `contrib/dev-tools/checks/agent-reply-validator/src/bin/agent-reply-guard/main.rs` and the sentence of the new ADR (section 2) that says such failures exit 1 and hold nothing; the tests at the lines the reviewer names assert exactly that.
 - Resolution reference: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4696351824
 - Follow-up PR URL: N/A
@@ -299,7 +305,7 @@ Round 3: `claude[bot]` review 6058972240 (F14), CodeRabbit review 6059084436 (F1
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4696122714
 - Concern: At the reviewed head the record had `Reply URL: pending` on ten rows, a `pending` resolution reference, no rows for the thread of review 6058972240 and the body nit of review 6058630615, an old `last-updated-utc`, and a verification that claimed an exit 0 the validator could not give.
-- Solution: The reply URLs, the resolution reference and the stamp were already recorded by the commit `docs(pr-reviews): [#2904] record the replies and resolved threads of the second review round on pull request 3049`, after the head the reviewer read. This round adds the missing rows (F13 and F14) and every row of round 3. Per the maintainer's rule, the commit that records the reply URLs of round 3 stays local and unpushed until he decides, so the pushed record has `pending` on this round's rows until then.
+- Solution: The reply URLs, the resolution reference and the stamp were already recorded by the commit `docs(pr-reviews): [#2904] record the replies and resolved threads of the second review round on pull request 3049`, after the head the reviewer read. This round adds the missing rows (F13 and F14) and every row of round 3. The commit that records the reply URLs of round 3 was kept local and went out with the push of round 4.
 - Current-tree verification: Ran the validator at the head before this round: exit 0, 12 rows and 0 failures; the rows and log entries of this round are checked by it again after the replies.
 - Resolution reference: docs(pr-reviews): [#2904] record the third review round on pull request 3049
 - Follow-up PR URL: N/A
@@ -344,6 +350,58 @@ Round 3: `claude[bot]` review 6058972240 (F14), CodeRabbit review 6059084436 (F1
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3049#issuecomment-7165325317
 
+### F22 - For a round above 3 the review-task sentence and the guard give opposite instructions
+
+- PR number: 3049
+- Source review ID: 6059677342
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4696485651
+- Concern: `review-task` tells the reviewer to write no file for a round above 3, while the guard refused three times with "the file does not exist" for such a name.
+- Solution: Already fixed by the decision on F11: the guard now lets the reviewer finish, with the validator's reason and no count, when the file name is not valid, so a round above 3 is no longer refused. The sentence of `review-task` stays as it is.
+- Current-tree verification: Read `decide` in `contrib/dev-tools/checks/agent-reply-validator/src/guard.rs` and the case `round_above_the_limit` of the test of the invalid file names.
+- Resolution reference: fix(agent-reply-validator): [#2904] let the reviewer finish when the reply file name is not a valid one
+- Follow-up PR URL: N/A
+- Reply URL: pending
+
+### F23 - The newest reply URLs are held back, citing a rule that is not in the tree
+
+- PR number: 3049
+- Source review ID: 6059677342
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4696485656
+- Concern: The record said the commit with the reply URLs stays local "by the maintainer's rule", and no such rule is in the tree; the offline validator failed with 10 failures at that head; the declined row (F17) needed the thread state the forge shows and the form of item 7.
+- Solution: The reply URLs of rounds 2 to 4 are recorded in the pushed record (21 rows, 0 failures offline). The two sentences that cited the rule now say what happened. The maintainer's way of working is one push per review round with several local commits; it is a working agreement and not a rule of the skill, so the record does not call it a rule. F17 is `NO_ACTION` and `SUPERSEDED` and has a reply in the form of item 7; its reviewer withdrew the request and resolved the thread.
+- Current-tree verification: Ran the validator on the pushed record; read the two sentences and the F17 row after the edit.
+- Resolution reference: docs(pr-reviews): [#2904] record the review of 6059677342 and 6061172809 on pull request 3049
+- Follow-up PR URL: N/A
+- Reply URL: pending
+
+### F24 - The record has no rows for review 6059677342 and two rows lag the forge
+
+- PR number: 3049
+- Source review ID: 6061172809
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4697718845
+- Concern: Two threads of review 6059677342 had no reply and no row, the F17 and F11 rows said `OPEN` while the forge shows them resolved, and the frontmatter stamp was older than the newest log entry.
+- Solution: F22 and F23 are the rows of review 6059677342, F17 and F11 show the forge's state, and the stamp is the output of `date -u` at this edit.
+- Current-tree verification: Compared every row's thread state with the GraphQL thread list after the edit; ran the validator.
+- Resolution reference: docs(pr-reviews): [#2904] record the review of 6059677342 and 6061172809 on pull request 3049
+- Follow-up PR URL: N/A
+- Reply URL: pending
+
+### F25 - The literal-line test does not cover the invalid file name
+
+- PR number: 3049
+- Source review ID: 6061172809
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4697718855
+- Concern: The test that no returned text carries the literal `Reply file:` line lacked the outcome of the invalid file name.
+- Solution: Added the case `invalid_file_name` with `task-reviewer-t5-r4.json` in the specification's replies folder.
+- Current-tree verification: Ran `cargo test -p agent-reply-validator never_write_the_literal`: 10 cases pass.
+- Resolution reference: test(agent-reply-validator): [#2904] cover the invalid file name in the test of the literal line
+- Follow-up PR URL: N/A
+- Reply URL: pending
+
 ## Processing Log
 
 - 2026-11-25 13:25 UTC - Started audit for review `6058202792` of `coderabbitai[bot]`; the review `6058085652` of `claude[bot]` (review disabled for forks) and the CodeRabbit walkthrough comment `7163196060` carry no finding.
@@ -357,9 +415,10 @@ Round 3: `claude[bot]` review 6058972240 (F14), CodeRabbit review 6059084436 (F1
 - 2026-11-25 14:18 UTC - Round 3: started on reviews `6058972240` of `claude[bot]`, `6059084436` of `coderabbitai[bot]` and `6059158630` of `da2ce7`; verified every finding against the current tree and committed two fixes (F14 to F16, F19, F20). F17 is declined with a reason, F13 and F21 need no change, F18 is answered by the record itself.
 - 2026-11-25 14:22 UTC - Pushed the two fixes and the record of this round with `git-bot-push`, no force.
 - 2026-11-25 14:28 UTC - Replied on the seven threads (GitHub `created_at` 14:27:47 to 14:28:03 UTC) and with one conversation comment for the body nits F13 and F21 (14:28:10 UTC), then resolved five threads (F14, F16, F18 to F20) with the GraphQL mutation; the thread of F15 was already resolved by `coderabbitai[bot]`. F17 stays open for its reviewer and F11 for the maintainer.
-- 2026-11-25 14:29 UTC - Recorded the reply URLs of this round; this commit is kept local and not pushed on its own, by the maintainer's rule.
+- 2026-11-25 14:29 UTC - Recorded the reply URLs of this round; this commit was kept local and went out with the push of round 4.
 - 2026-11-25 16:12 UTC - Round 4: the maintainer answered the question of F11; the fix and the record of D17 are committed, and the row is FIXED with the thread still open until the push and the reply.
 - 2026-11-25 16:22 UTC - Pushed the branch (head commit `docs(pr-reviews): [#2904] record the decision on the file-name finding of pull request 3049`), replied on the thread of F11 (GitHub reply `discussion_r4697632582`) and resolved it with the GraphQL mutation, which returned `isResolved: true`.
+- 2026-11-25 16:39 UTC - Round 5: started on review `6059677342` of `da2ce7`, which the poller never reported and the record lacked (F22, F23), and on his review `6061172809` (F24, F25); verified every finding against the current tree and committed the fixes locally. Replies follow the push.
 
 ## Completion Rules
 
