@@ -372,7 +372,7 @@ rows are ordered by slice, then by risk.
 | 23-27 | `databases/driver/postgres/{mod,auth_key_store,schema_migrator,torrent_metrics_store,whitelist_store}.rs` | S3 | 7 / 188, 0 / 55, 0 / 6, 0 / 46, 0 / 31 | Test candidate for the constructor only (`mod.rs`: 19 / 194 with 3 tests); the other four files are no change, as for MySQL ([plan](test-refactor-plans/databases-server-drivers-tests.md)) | DONE |
 | 28 | `authentication/handler.rs` | S4 | 373 / 373 (2 regions uncovered) | Test candidate: 466 / 466 lines, all regions, with 3 tests (a failed removal and a failed load leave memory untouched; a load replaces the in-memory keys) ([plan](test-refactor-plans/authentication-handler-tests.md)) | DONE |
 | 29 | `authentication/key/peer_key.rs` | S4 | 99 / 100 | Test candidate: 129 / 129 lines with 18 tests (key validation table and property, peer-key equality including the mixed-expiry arm); F3 checked, not reachable ([plan](test-refactor-plans/authentication-peer-key-tests.md)) | DONE |
-| 30 | `authentication/key/mod.rs` | S4 | 77 / 77 | Property candidate (expiry bounds) | PENDING |
+| 30 | `authentication/key/mod.rs` | S4 | 77 / 77 | Test candidate: 96 / 96 lines with 13 tests (the expiry boundary, a property on the comparison, the generated expiry, the error texts) and a misplaced test fixed; the overflow panic of `generate_key` is a separate bug ([plan](test-refactor-plans/authentication-key-mod-tests.md)) | DONE |
 | 31 | `authentication/key/repository/persisted.rs` | S4 | 73 / 74 | Failing-`Database` cases | PENDING |
 | 32 | `authentication/key/repository/in_memory.rs` | S4 | 91 / 91 | No change | PENDING |
 | 33 | `authentication/service.rs` | S4 | 143 / 143 | No change; review breadth | PENDING |

@@ -281,14 +281,11 @@ mod tests {
 
         #[test]
         fn should_be_displayed() {
-            // Set the time to the current time.
-            clock::Stopped::local_set_to_unix_epoch();
-
-            let expiring_key = authentication::key::generate_key(Some(Duration::from_secs(0)));
+            let permanent_key = authentication::key::generate_permanent_key();
 
             assert_eq!(
-                expiring_key.to_string(),
-                "key: `[REDACTED]`, valid until `1970-01-01 00:00:00 UTC`" // cspell:disable-line
+                permanent_key.to_string(),
+                "key: `[REDACTED]`, permanent" // cspell:disable-line
             );
         }
 
@@ -329,6 +326,101 @@ mod tests {
             assert_eq!(
                 err.to_string(),
                 "Key could not be verified: no rows returned by a query that expected to return at least one row"
+            );
+        }
+    }
+
+    mod the_expiration_of_a_key {
+        use std::time::Duration;
+
+        use quickcheck::TestResult;
+        use quickcheck_macros::quickcheck;
+        use rstest::rstest;
+        use torrust_clock::clock;
+        use torrust_clock::clock::stopped::Stopped as _;
+
+        use crate::authentication::key::{Error, generate_key, verify_key_expiration};
+        use crate::authentication::{Key, PeerKey};
+
+        const EXPIRY: Duration = Duration::new(1_000, 500);
+
+        fn key_expiring_at(valid_until: Duration) -> PeerKey {
+            PeerKey {
+                key: Key::random(),
+                valid_until: Some(valid_until),
+            }
+        }
+
+        #[rstest]
+        #[case::one_nanosecond_before_the_expiry(Duration::new(1_000, 499), false)]
+        #[case::exactly_at_the_expiry(Duration::new(1_000, 500), false)]
+        #[case::one_nanosecond_after_the_expiry(Duration::new(1_000, 501), true)]
+        fn it_should_expire_a_key_only_strictly_after_its_expiry_time(#[case] now: Duration, #[case] expired: bool) {
+            // Arrange
+            clock::Stopped::local_set(&now);
+            let peer_key = key_expiring_at(EXPIRY);
+
+            // Act
+            let result = verify_key_expiration(&peer_key);
+
+            // Assert
+            assert_eq!(
+                matches!(result, Err(Error::KeyExpired)),
+                expired,
+                "a key expiring at {EXPIRY:?} checked at {now:?} gave {result:?}"
+            );
+        }
+
+        #[rstest]
+        #[case::at_the_epoch(Duration::ZERO)]
+        #[case::after_a_year(Duration::from_secs(365 * 24 * 60 * 60))]
+        #[case::at_the_largest_time(Duration::new(u64::MAX, 0))]
+        fn it_should_never_expire_a_permanent_key(#[case] now: Duration) {
+            // Arrange
+            clock::Stopped::local_set(&now);
+            let permanent_key = generate_key(None);
+
+            // Act
+            let result = verify_key_expiration(&permanent_key);
+
+            // Assert
+            assert!(result.is_ok(), "a permanent key checked at {now:?} gave {result:?}");
+        }
+
+        #[quickcheck]
+        fn it_should_expire_a_key_exactly_when_its_expiry_is_before_now(
+            expiry_seconds: u32,
+            expiry_nanos: u32,
+            now_seconds: u32,
+            now_nanos: u32,
+        ) -> TestResult {
+            let expiry = Duration::new(u64::from(expiry_seconds), expiry_nanos % 1_000_000_000);
+            let now = Duration::new(u64::from(now_seconds), now_nanos % 1_000_000_000);
+            clock::Stopped::local_set(&now);
+
+            let result = verify_key_expiration(&key_expiring_at(expiry));
+
+            TestResult::from_bool(matches!(result, Err(Error::KeyExpired)) == (expiry < now))
+        }
+
+        #[rstest]
+        #[case::a_whole_number_of_seconds(Some(Duration::from_secs(500)), Some(Duration::from_secs(1_500)))]
+        #[case::with_nanoseconds(Some(Duration::new(500, 7)), Some(Duration::new(1_500, 7)))]
+        #[case::no_lifetime(None, None)]
+        fn it_should_generate_a_key_that_expires_at_now_plus_its_lifetime(
+            #[case] lifetime: Option<Duration>,
+            #[case] expected_valid_until: Option<Duration>,
+        ) {
+            // Arrange
+            clock::Stopped::local_set(&Duration::from_secs(1_000));
+
+            // Act
+            let peer_key = generate_key(lifetime);
+
+            // Assert
+            assert_eq!(
+                peer_key.valid_until, expected_valid_until,
+                "a key generated with lifetime {lifetime:?}"
             );
         }
     }
