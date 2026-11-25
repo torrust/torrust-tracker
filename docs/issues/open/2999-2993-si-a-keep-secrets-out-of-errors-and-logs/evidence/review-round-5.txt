@@ -1,0 +1,6 @@
+### Slash-only path of 60000 bytes through redact_path_and_query (test build), before the fix
+MEASURED redact of 60041 bytes: 887.762µs
+MEASURED slash-only path of 60000 bytes: 657.911822ms
+
+### The same, after the fix
+MEASURED slash-only path of 60000 bytes: 1.037854ms

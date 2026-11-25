@@ -9,7 +9,7 @@ github-issue: 2999
 spec-path: docs/issues/open/2999-2993-si-a-keep-secrets-out-of-errors-and-logs/ISSUE.md
 branch: "2999-si-a-keep-secrets-out-of-errors-and-logs"
 related-pr: 3042
-last-updated-utc: "2026-11-25 08:56"
+last-updated-utc: "2026-11-25 09:07"
 semantic-links:
   skill-links:
     - create-issue
@@ -164,6 +164,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-25 08:28 UTC - Claude Code (Claude Fable 5.2), implementation session - Recorded late, for 2026-11-24: pull request 3042 was opened after the entry above was written. Review round 1 (Greptile, two findings): the redaction now percent-decodes names before comparing them, and the imports this branch added follow the repository style. The real-tracker recheck was repeated after the fix (evidence section R1). The maintainer wrote his ACK on the head that held the audit record.
 - 2026-11-25 08:47 UTC - Claude Code (Claude Fable 5.2), implementation session - Review round 3 (CodeRabbit, three findings, all accepted): a key after an empty path segment (`/announce//<key>`) is redacted, the redaction of configuration errors also drops the source line of a TOML syntax error (which the loaders do not report today), and the documents no longer call the `Authorization` header "the safe form" without HTTPS. The recheck was repeated (evidence section R3).
 - 2026-11-25 08:56 UTC - Claude Code (Claude Fable 5.2), implementation session - Review round 4 (da2ce7, changes requested on the head before the round 3 fix): its two major findings are the ones CodeRabbit raised and round 3 fixed (the key after an empty path segment, the TOML syntax error), so they need no further change; its nit is fixed here: the two entries above stamped 08:27 and 08:28 are now in stamp order.
+- 2026-11-25 09:07 UTC - Claude Code (Claude Fable 5.2), implementation session - Review round 5 (Greptile, two findings; da2ce7, one): the path redaction finds the end of the secret once instead of scanning the rest of the path for every segment (a slash-only path of 60000 bytes took 658 ms in the logging callback, now 1 ms), the `use-rest-api` skill no longer says the header keeps a token out of the shell history, and the audit holds rows for every review thread. The recheck was repeated (evidence section R5). This is the fifth round of review fixes, the limit after which the session stops and asks the maintainer.
 
 ## Acceptance Criteria
 

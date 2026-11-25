@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2999-2993-si-a-keep-secrets-out-of-errors-and-logs/ISSUE.md
-last-updated-utc: "2026-11-25 08:47"
+last-updated-utc: "2026-11-25 09:07"
 ---
 
 # Manual Verification Evidence
@@ -664,3 +664,59 @@ request ids and the UDP cookie value, prints nothing. By hand on the private tra
 answered 404, the log held 0 lines with the key, and its `uri=` fields were
 `uri=/announce/***?port=1` and `uri=/api/v1/key/***`. Starting the tracker with the broken password
 line printed 0 occurrences of the password.
+
+## R4 - Review Round 4 (da2ce7)
+
+da2ce7 requested changes on the head before the round 3 fix (review 6054388295, 2026-11-25 08:49
+UTC) with three findings, recorded in the audit as F13 to F15. Two are the findings of round 3
+(the key after an empty path segment; the TOML syntax error), already fixed by the round 3 commit,
+so they changed nothing; their threads were answered as superseded. The third, two progress-log
+entries out of stamp order in `ISSUE.md`, was fixed by moving one entry. No production code
+changed in this round. For the reviewer's unterminated-string example, the tracker binary built
+after the round 3 fix was started with a configuration whose last line is
+`password = "TestDbPasswordUnterminated01` (no closing quote): the output ended with `Missing
+mandatory configuration option. Option path: metadata.schema_version` and held 0 occurrences of
+the password.
+
+## R5 - Review Round 5 (Greptile, da2ce7)
+
+Greptile reviewed the head with the round 3 fix (review 6054462408, 2026-11-25 08:55 UTC) with two
+findings, and da2ce7 commented on the same head (review 6054537873, 09:00 UTC) with one. They are
+F16 to F18 in the audit.
+
+- F16 (Greptile), slash-heavy requests: confirmed. The round 3 change looked at the rest of the
+  path for every segment, so a path of only slashes cost a quadratic number of comparisons in the
+  logging callback, which runs for every request, also a 404. Measured in a test build with a
+  temporary timing print (removed afterwards): a slash-only path of 60000 bytes took 657.9 ms
+  before the fix and 1.0 ms after it ([`evidence/review-round-5.txt`](evidence/review-round-5.txt)).
+  `redact_path` now finds the last segment that is not empty once and looks for a prefix before
+  it. The behaviour is unchanged: the 36 table and decoder cases pass, and two tests were added (a
+  key after 60000 slashes is redacted; a path of 60000 slashes is returned as it is). They assert
+  the result, not the time, so they do not fail on the old code; the measurement above is the
+  evidence for the cost.
+- F17 (Greptile), shell history: the `use-rest-api` skill said a URL is written to "shell-history
+  logs" and that the header keeps the token out of "those logs", but a header typed on a command
+  line is saved in the shell history too. The sentence now names proxy, browser and server logs
+  only, and a paragraph says neither form keeps a token out of the shell history and shows reading
+  it from a file inside the command. `grep -rn "shell-history"` over the Markdown and Rust files
+  outside `docs/issues/` and `docs/pr-reviews/` prints nothing.
+- F18 (da2ce7), audit rows: at the head he read, the audit had no rows for the three round 3
+  threads, although their replies named F10 to F12, and none for the three round 4 threads. The
+  rows F10 to F12 were committed after the replies (`docs(pr-reviews): [#2999] record the third
+  review round in the PR 3042 audit`) and F13 to F15 in `docs(pr-reviews): [#2999] record the
+  fourth review round in the PR 3042 audit`. Each round's replies were posted after its fix was
+  pushed and before its audit commit was pushed, so a review that reads the head in between sees
+  replies without rows.
+
+### Recheck after the fifth review fix (2026-11-25 09:06 UTC)
+
+Production code changed again (`redact_path`), so the recheck was repeated on a debug build of the
+tree that holds the fix commit with the subject `fix(axum-server): [#2999] find the end of the
+secret path once when redacting`: `reproduce.sh` with the same command as T9, output in
+[`evidence/final-output-after-review-round-5.txt`](evidence/final-output-after-review-round-5.txt).
+A `diff` with the round 3 output, leaving out the lines that hold timestamps, `valid_until`,
+request ids and the UDP cookie value, prints nothing. By hand on the private tracker of the
+script: `GET /announce//TestPeerKey000000000000000000009?port=1` answered 404 and
+`GET /announce/TestPeerKey000000000000000000009?port=1` answered 200 (a failure reason); the log
+held 0 lines with the key and its only `uri=/announce` field was `uri=/announce/***?port=1`. A
+`GET` of a path of 30000 slashes answered 404 in 0.0014 s (`curl`'s `time_total`).

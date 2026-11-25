@@ -11,7 +11,7 @@
 //! The rule redacts what follows `/announce/`, `/scrape/` and `/key/` whatever its shape, because
 //! a malformed key (a stray character, a wrong length) is still the user's secret. The seconds
 //! value of `POST /api/v1/key/<seconds>` is lost in the log with it; that is accepted.
-// cspell:ignore nnounce oken zzoken
+// cspell:ignore nnounce oken zzoken rposition
 use http::{Request, Uri};
 use tower_http::trace::MakeSpan;
 use tracing::{Level, Span};
@@ -50,11 +50,16 @@ pub fn redact_path_and_query(path: &str, query: Option<&str>) -> String {
 fn redact_path(path: &str) -> String {
     let segments: Vec<&str> = path.split('/').collect();
 
-    for (index, segment) in segments.iter().enumerate() {
-        // Anything after the prefix is the secret, also after empty segments (`/announce//<key>`).
-        let has_a_secret_after_it = segments[index + 1..].iter().any(|later| !later.is_empty());
+    // Anything after a prefix is the secret, also after empty segments (`/announce//<key>`), so a
+    // prefix matters only when it comes before the last segment that is not empty. That segment
+    // is found once: looking at the rest of the path for every segment would make a path of
+    // many slashes, which any client can send, cost a quadratic number of comparisons.
+    let Some(last_not_empty) = segments.iter().rposition(|segment| !segment.is_empty()) else {
+        return path.to_string();
+    };
 
-        if has_a_secret_after_it && SECRET_PATH_PREFIXES.contains(&percent_decoded(segment).as_str()) {
+    for (index, segment) in segments[..last_not_empty].iter().enumerate() {
+        if SECRET_PATH_PREFIXES.contains(&percent_decoded(segment).as_str()) {
             return format!("{}/{REDACTED}", segments[..=index].join("/"));
         }
     }
@@ -202,6 +207,29 @@ mod tests {
         let redacted = redact_path_and_query(path, query);
 
         assert_eq!(redacted, expected);
+    }
+
+    #[test]
+    fn it_should_redact_a_key_after_many_empty_segments() {
+        // A path of the size a client can send (tens of thousands of slashes). The scan must
+        // look at each segment once: a scan of the rest of the path for every segment makes
+        // this path cost billions of comparisons.
+        let key = "TestPeerKey000000000000000000001";
+        let slashes = "/".repeat(60_000);
+        let path = format!("/announce{slashes}{key}");
+
+        let redacted = redact_path_and_query(&path, None);
+
+        assert_eq!(redacted, "/announce/***");
+    }
+
+    #[test]
+    fn it_should_leave_a_path_of_only_slashes_as_it_is() {
+        let path = "/".repeat(60_000);
+
+        let redacted = redact_path_and_query(&path, None);
+
+        assert_eq!(redacted, path);
     }
 
     #[rstest]
