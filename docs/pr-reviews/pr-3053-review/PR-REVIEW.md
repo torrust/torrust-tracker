@@ -31,7 +31,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 ## Findings
 
 F1 is from CodeRabbit's inline comment. F2 to F10 are from da2ce7's review 6059881188: F2 to F8 are its
-inline comments and F9 and F10 its review-body findings. F11 is the Minor in the body of da2ce7's approval 6060214481. The reviews of `claude[bot]` (6059427646, 6059672293)
+inline comments and F9 and F10 its review-body findings. F11 is the Minor in the body of da2ce7's approval 6060214481, and F12 to F14 are the Nits in the body of da2ce7's approval 6060859817. The reviews of `claude[bot]` (6059427646, 6059672293)
 and the summary body of CodeRabbit's review 6059546450 contain no actionable assertion and have no rows.
 
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
@@ -47,6 +47,9 @@ and the summary body of CodeRabbit's review 6059546450 contain no actionable ass
 | F9 | review-finding:pr-3053-f9 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
 | F10 | review-finding:pr-3053-f10 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
 | F11 | review-finding:pr-3053-f11 | da2ce7 | Minor | testing | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F12 | review-finding:pr-3053-f12 | da2ce7 | Nit | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F13 | review-finding:pr-3053-f13 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F14 | review-finding:pr-3053-f14 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
 
 ## Finding Details
 
@@ -193,6 +196,45 @@ and the summary body of CodeRabbit's review 6059546450 contain no actionable ass
 - Follow-up PR URL: N/A
 - Reply URL: N/A
 
+### F12 - `ISSUE.md` keeps an old `last-updated-utc` after a change
+
+- PR number: 3053
+- Source review ID: 6060859817
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3053#pullrequestreview-6060859817
+- Concern: `987e8257c` changed ISSUE.md but left `last-updated-utc` at 14:57.
+- Solution: Moved `last-updated-utc` after the T3 change, and in the next ISSUE.md edit as well.
+- Current-tree verification: `sed -n 12p ISSUE.md` shows the new value, not earlier than the last commit that changed the file.
+- Resolution reference: docs(issues): [#3052] move the last-updated-utc after the T3 change
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
+### F13 - T3's single commit point covers two test files
+
+- PR number: 3053
+- Source review ID: 6060859817
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3053#pullrequestreview-6060859817
+- Concern: T3 covers `persisted.rs` and the shared harness, while the Commit Points paragraph commits each reviewed test-design increment before the next planned file.
+- Solution: Split the T3 commit point in two rows, one per file, and noted the per-file commit.
+- Current-tree verification: The Commit Points table shows two T3 rows.
+- Resolution reference: docs(issues): [#3052] commit the T3 tests per file
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
+### F14 - The audit commits cite the PR, not the issue, in their subjects
+
+- PR number: 3053
+- Source review ID: 6060859817
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3053#pullrequestreview-6060859817
+- Concern: The two audit commits cite `[#3053]`, where the repository's `docs(pr-reviews)` subjects cite the issue; for later audit commits only.
+- Solution: Cite the issue in this and later audit commits; the earlier two are not rewritten, as the reviewer asked.
+- Current-tree verification: `git log --format=%s` shows the new audit commit citing `[#3052]`.
+- Resolution reference: docs(pr-reviews): [#3052] record the third review round
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
 ## Processing Log
 
 - 2026-11-25 14:30 UTC - CodeRabbit's inline comment (F1) arrived.
@@ -202,6 +244,8 @@ and the summary body of CodeRabbit's review 6059546450 contain no actionable ass
 - 2026-11-25 15:01 UTC - Created this record from the template; the late start is the subject of F10.
 - 2026-11-25 15:10 UTC - da2ce7's approval 6060214481 arrived with one Minor (F11); the maintainer's ACK of the previous head followed.
 - 2026-11-25 15:12 UTC - Committed the F11 fix (`docs(issues): [#3052] plan the concurrent harness cases red before the fix`) and held the push until the maintainer chose between pushing it and merging as is.
+- 2026-11-25 15:58 UTC - da2ce7's approval 6060859817 arrived with three Nits (F12 to F14).
+- 2026-11-25 16:03 UTC - Committed the F12 and F13 fixes; recorded F12 to F14 in this audit.
 
 ## Completion Rules
 
