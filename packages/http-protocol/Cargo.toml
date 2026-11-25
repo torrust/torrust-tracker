@@ -35,4 +35,4 @@ torrust-bencode = "3.0.0"
 ignored = [ "serde_bytes" ]
 
 [dev-dependencies]
-rstest = "0.28.0"
+rstest = "0.29.0"

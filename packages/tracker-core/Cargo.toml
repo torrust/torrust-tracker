@@ -48,7 +48,7 @@ tracing = "0"
 mockall = "0"
 quickcheck = { version = "1", default-features = false }
 quickcheck_macros = "1"
-rstest = { version = "0.28.0", default-features = false }
+rstest = { version = "0.29.0", default-features = false }
 secrecy = "0.10.3"
 testcontainers = "0"
 tempfile = "3.27.0"
