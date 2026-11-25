@@ -49,10 +49,10 @@ Review 6054002314 (da2ce7, APPROVED, 2026-11-25 08:17 UTC) posted four inline co
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3041-f1 | Unknown | Minor (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
-| F2 | review-finding:pr-3041-f2 | Unknown | Minor | testing | ORIGINAL | FIXED | OPEN |
-| F3 | review-finding:pr-3041-f3 | Unknown | Nit | documentation | ORIGINAL | FIXED | OPEN |
-| F4 | review-finding:pr-3041-f4 | Unknown | Nit | metadata | ORIGINAL | FIXED | OPEN |
-| F5 | review-finding:pr-3041-f5 | Unknown | Nit | formatting | ORIGINAL | FIXED | OPEN |
+| F2 | review-finding:pr-3041-f2 | Unknown | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F3 | review-finding:pr-3041-f3 | Unknown | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F4 | review-finding:pr-3041-f4 | Unknown | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F5 | review-finding:pr-3041-f5 | Unknown | Nit | formatting | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -80,7 +80,7 @@ Review 6054002314 (da2ce7, APPROVED, 2026-11-25 08:17 UTC) posted four inline co
 - Current-tree verification: `cargo test -q -p torrust-tracker-test-helpers` passes (10 tests); on a scratch change that removed `"rustlib/src"` from the list, the test failed with "it should reject the message" (`manual-verification-evidence.md` V4); the file was restored.
 - Resolution reference: test(test-helpers): [#2996] check that each rejected message names its own fragment
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3041#discussion_r4694352682>
 
 ### F3 - Give each acceptance row its own evidence
 
@@ -93,7 +93,7 @@ Review 6054002314 (da2ce7, APPROVED, 2026-11-25 08:17 UTC) posted four inline co
 - Current-tree verification: `grep -n "AC[1-5] | DONE" docs/issues/open/2996-2912-si-8-share-assert-names-no-source-path/ISSUE.md` prints five different cells; the V3 command prints five identical lines.
 - Resolution reference: docs(issues): [#2996] cite each acceptance criterion's own evidence and refresh the SI-8 spec metadata
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3041#discussion_r4694353090>
 
 ### F4 - Refresh `last-updated-utc` of the spec
 
@@ -106,7 +106,7 @@ Review 6054002314 (da2ce7, APPROVED, 2026-11-25 08:17 UTC) posted four inline co
 - Current-tree verification: `grep -n last-updated-utc docs/issues/open/2996-2912-si-8-share-assert-names-no-source-path/*.md` prints `2026-11-25 11:37` for both files.
 - Resolution reference: docs(issues): [#2996] cite each acceptance criterion's own evidence and refresh the SI-8 spec metadata
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3041#discussion_r4694353579>
 
 ### F5 - Wrap the long cross-link doc lines
 
@@ -119,13 +119,14 @@ Review 6054002314 (da2ce7, APPROVED, 2026-11-25 08:17 UTC) posted four inline co
 - Current-tree verification: `awk 'length>130'` over the five files prints nothing; `cargo +nightly fmt --all -- --check` passes.
 - Resolution reference: docs(test-helpers): [#2996] wrap the long cross-link lines of the kept assert_names_no_source_path copies
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3041#discussion_r4694354098>
 
 ## Processing Log
 
 - 2026-11-24 18:01 UTC - Started audit for review 6044596970 (Greptile); F1 fixed in a signed commit, reply and thread resolution follow after the push.
 - 2026-11-24 18:04 UTC - Replied on the F1 thread (reply created 18:04:39 UTC) after pushing the fix and the audit, and resolved the thread; a GraphQL refresh shows it resolved and no other thread.
 - 2026-11-25 11:38 UTC - Added F2 to F5 for review 6054002314 (da2ce7, approved); all four fixed in three signed commits; replies and thread resolution follow after the push.
+- 2026-11-25 11:42 UTC - Replied on the F2 to F5 threads after pushing the fixes and the audit, and resolved the four threads; a GraphQL refresh shows 0 unresolved threads.
 
 ## Completion Rules
 
