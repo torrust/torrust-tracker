@@ -9,7 +9,7 @@ github-issue: 3019
 spec-path: docs/issues/closed/3019-ci-sccache-startup-fallback/ISSUE.md
 branch: "3019-ci-sccache-startup-fallback"
 related-pr: 3040
-last-updated-utc: "2026-11-25 08:37"
+last-updated-utc: "2026-11-25 08:46"
 semantic-links:
   skill-links:
     - create-issue
@@ -187,7 +187,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T4  | DONE   | Use it in the five workflows             | Nine `Enable sccache` steps replaced; `if:` conditions kept                             |
 | T5  | DONE   | Green: hosted run with the timeout forced | Same job passes and shows the warning (V4); temporary commit dropped                   |
 | T6  | DONE   | Normal hosted run                        | PR jobs pass and the sccache stats show cache hits (V5)                                 |
-| T6b | DONE   | Hosted runs of jobs the PR does not run  | After the merge: `coverage` and a Dependabot `docker-e2e` pass with cache hits (V6)                     |
+| T6b | IN_PROGRESS | Hosted runs of jobs the PR does not run | After the merge: `coverage` and a Dependabot `docker-e2e` pass with cache hits (V6). `coverage` passed with the GitHub Actions cache backend but 0 hits, because the cache service failed; `docker-e2e` waits for a Dependabot branch push |
 | T7  | DONE   | Amend the ADR                            | Fallback and the `SCCACHE_IGNORE_SERVER_IO_ERROR` analysis recorded                     |
 
 ## Commit Points
@@ -250,6 +250,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   stays open. No reviewer validated the acceptance criteria and no independent reviewer
   received this spec, so those two checkpoints stay unticked. Archived the spec to
   `docs/issues/closed/`
+- 2026-11-25 08:46 UTC - Claude Code (Claude Opus 5.5) - Greptile's review of PR #3046 noted
+  that T6b was marked `DONE` without its expected result; set it to `IN_PROGRESS` with the
+  observed state (V6)
 
 ## Acceptance Criteria
 
