@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/3060-udp-core-debug-log-target-field/ISSUE.md
-last-updated-utc: "2026-11-25 18:13"
+last-updated-utc: "2026-11-25 18:23"
 ---
 
 # Manual Verification Evidence
@@ -144,7 +144,7 @@ event!(
         target =
 ```
 
-The multi-line `debug!` call, the `event!` call with a leading argument and the `event!` call whose earlier argument contains parentheses are found (the third case was added after review finding F14 of PR #3062); `target: "Z"` (colon form) and the text `"target = nope"` inside a string are not.
+The multi-line `debug!` call, the `event!` call with a leading argument and the `event!` call whose earlier argument contains parentheses are found (the third case was added after review finding F14 of PR #3062); an earlier argument with nested parentheses, for example `count = ((1 + 1))`, is not matched: a regular expression cannot follow arbitrary nesting, so the claim of AC3 is limited to one level (finding F16 of PR #3062); `target: "Z"` (colon form) and the text `"target = nope"` inside a string are not.
 
 ## Failures and Follow-up
 

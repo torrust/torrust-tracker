@@ -9,7 +9,7 @@ github-issue: 3060
 spec-path: docs/issues/open/3060-udp-core-debug-log-target-field/ISSUE.md
 branch: "3060-udp-core-debug-log-target-field-spec"
 related-pr: null
-last-updated-utc: "2026-11-25 18:13"
+last-updated-utc: "2026-11-25 18:23"
 semantic-links:
   skill-links:
     - create-issue
@@ -49,7 +49,7 @@ In `tracing`, `target = value` (an equals sign) is an ordinary **field** named `
 
 **Impact.** Only DEBUG output is affected, and nothing is functionally wrong. A consumer that selects log lines by target (a `grep` for `UDP TRACKER`, the `target` key of the JSON log style, a log shipper's filter) misses these two lines, and for the JSON style the record carries a wrong `target` plus a stray `target` field. The EPIC #2387 logging conventions rely on named targets.
 
-**Verified scope (2026-11-25, `torrust/develop` at the merge of #3053).** Two scans find exactly these two sites: the single-line `git grep -nE '\(\s*target\s*=' -- '*.rs'` and the multi-line `grep -rPzo '(?s)\b(?:trace|debug|info|warn|error|event|span|trace_span|debug_span|info_span|warn_span|error_span)!\s*\(\s*(?:(?:[^;{}()]|\([^()]*\))*?,\s*)?target\s*=[^=]' packages src --include=*.rs`. The second uses GNU `grep -z`, which reads each file as one record so `(?s)` can match a call written across lines, and allows other arguments before `target =` (for example `event!(Level::DEBUG, target = ...)`), including after an earlier argument that contains parentheses; `git grep` matches line by line even with `-z`, so it cannot do that. The multi-line command is the check for AC3. Its detection of a multi-line call and of an `event!` call is shown on a sample file, and the outputs of both scans are recorded, in `manual-verification-evidence.md` (section V1 scope scans).
+**Verified scope (2026-11-25, `torrust/develop` at the merge of #3053).** Two scans find exactly these two sites: the single-line `git grep -nE '\(\s*target\s*=' -- '*.rs'` and the multi-line `grep -rPzo '(?s)\b(?:trace|debug|info|warn|error|event|span|trace_span|debug_span|info_span|warn_span|error_span)!\s*\(\s*(?:(?:[^;{}()]|\([^()]*\))*?,\s*)?target\s*=[^=]' packages src --include=*.rs`. The second uses GNU `grep -z`, which reads each file as one record so `(?s)` can match a call written across lines, and allows other arguments before `target =` (for example `event!(Level::DEBUG, target = ...)`), including after an earlier argument that contains one level of parentheses. A regular expression cannot follow arbitrary nesting, so an earlier argument with nested parentheses, for example `count = ((1 + 1))`, is a known limit of the scan and is not detected; `git grep` matches line by line even with `-z`, so it cannot do that. The multi-line command is the check for AC3. Its detection of a multi-line call and of an `event!` call is shown on a sample file, and the outputs of both scans are recorded, in `manual-verification-evidence.md` (section V1 scope scans).
 
 ## Scope
 
@@ -144,7 +144,7 @@ Record a justified no-change decision in the task's evidence without creating an
 
 - [ ] AC1: The `UdpAnnounce` DEBUG line is logged with target `UDP TRACKER` and has no `target` field (announce regression test).
 - [ ] AC2: The `UdpScrape` DEBUG line is logged with target `UDP TRACKER` and has no `target` field (scrape regression test).
-- [ ] AC3: the multi-line scan `grep -rPzo '(?s)\b(?:trace|debug|info|warn|error|event|span|trace_span|debug_span|info_span|warn_span|error_span)!\s*\(\s*(?:(?:[^;{}()]|\([^()]*\))*?,\s*)?target\s*=[^=]' packages src --include=*.rs` prints nothing, so no `tracing` macro call (one-line or spread over several lines, `target =` first or after other arguments) uses the field form; before the fix it printed exactly the two sites, and on the sample file in `evidence/scan-sample.rs` it prints the three field-form calls (one across lines, one after a leading argument, one after an argument with parentheses) and not the colon-form one.
+- [ ] AC3: the multi-line scan `grep -rPzo '(?s)\b(?:trace|debug|info|warn|error|event|span|trace_span|debug_span|info_span|warn_span|error_span)!\s*\(\s*(?:(?:[^;{}()]|\([^()]*\))*?,\s*)?target\s*=[^=]' packages src --include=*.rs` prints nothing, so no `tracing` macro call (one-line or spread over several lines, `target =` first or after other arguments) uses the field form; before the fix it printed exactly the two sites, and on the sample file in `evidence/scan-sample.rs` it prints the three field-form calls (one across lines, one after a leading argument, one after an argument with one level of parentheses) and not the colon-form one. AC3 claims only these cases; nested parentheses in an earlier argument are outside its reach.
 - [ ] AC4: Both regression tests were observed red before the fix and green after.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
