@@ -9,7 +9,7 @@ github-issue: 2996
 spec-path: docs/issues/closed/2996-2912-si-8-share-assert-names-no-source-path/ISSUE.md
 branch: "2996-share-assert-names-no-source-path-spec"
 related-pr: 3041
-last-updated-utc: "2026-11-25 16:41"
+last-updated-utc: "2026-11-25 16:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -189,7 +189,7 @@ with the narrow affected scope, and sign every commit with GPG.
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [x] Reviewer validated acceptance criteria and updated checkboxes
-- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification (not applicable: no independent reviewer received this folder; the pull request reviews are in `docs/pr-reviews/pr-3041-review/PR-REVIEW.md`)
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification (not applicable: no independent reviewer agent was asked to review this folder; the pull request reviews of PR 3041, by Greptile, da2ce7, CodeRabbit and the Claude app, are not independent-reviewer reports and are recorded in `docs/pr-reviews/pr-3041-review/PR-REVIEW.md`)
 - [x] Committer verified spec progress is up to date before commit
 - [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
