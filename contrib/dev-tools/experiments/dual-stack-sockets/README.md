@@ -58,7 +58,7 @@ both address families on the same ports. If it fails, the second bind will get
 With the tracker running, check the Prometheus metrics endpoint:
 
 ```bash
-curl -s "http://127.0.0.1:1212/api/v1/metrics?token=MyAccessToken&format=prometheus" | grep server_binding_address_ip_family
+curl -H "Authorization: Bearer MyAccessToken" -s "http://127.0.0.1:1212/api/v1/metrics?format=prometheus" | grep server_binding_address_ip_family
 ```
 
 You should see both `inet` and `inet6` entries for the same protocol+port:

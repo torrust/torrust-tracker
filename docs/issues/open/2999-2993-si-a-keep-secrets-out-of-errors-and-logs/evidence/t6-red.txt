@@ -1,0 +1,35 @@
+test v1::client::tests::it_should_not_hold_the_token_or_the_url_in_the_transport_error_of_the_free_get_helper ... FAILED
+test v1::client::tests::it_should_not_hold_the_key_in_the_transport_error_of_a_key_delete ... FAILED
+test v1::client::tests::it_should_not_hold_the_key_in_the_transport_error_of_the_typed_key_delete ... FAILED
+test v1::client::tests::it_should_not_hold_the_token_or_the_url_query_in_the_transport_error_of_a_get_request ... FAILED
+test v1::client::tests::it_should_send_the_token_in_the_authorization_header_and_not_in_the_query_of_a_get_request ... FAILED
+test v1::client::tests::it_should_not_hold_the_token_or_the_url_in_the_error_of_a_response_that_cannot_be_deserialized ... FAILED
+
+--
+thread 'v1::client::tests::it_should_not_hold_the_token_or_the_url_in_the_transport_error_of_the_free_get_helper' (1404553) panicked at packages/rest-api-client/src/v1/client.rs:706:9:
+the error holds the URL of the request
+
+--
+thread 'v1::client::tests::it_should_not_hold_the_key_in_the_transport_error_of_a_key_delete' (1404550) panicked at packages/rest-api-client/src/v1/client.rs:681:9:
+the error holds the test key
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+--
+thread 'v1::client::tests::it_should_not_hold_the_key_in_the_transport_error_of_the_typed_key_delete' (1404551) panicked at packages/rest-api-client/src/v1/client.rs:693:9:
+the error holds the test key
+
+--
+thread 'v1::client::tests::it_should_not_hold_the_token_or_the_url_query_in_the_transport_error_of_a_get_request' (1404554) panicked at packages/rest-api-client/src/v1/client.rs:665:9:
+the error holds the test token
+
+--
+thread 'v1::client::tests::it_should_send_the_token_in_the_authorization_header_and_not_in_the_query_of_a_get_request' (1404555) panicked at packages/rest-api-client/src/v1/client.rs:743:9:
+the request line holds the token: GET /api/v1/stats?token=TestAdminTokenOfTheClient0001 HTTP/1.1
+
+--
+thread 'v1::client::tests::it_should_not_hold_the_token_or_the_url_in_the_error_of_a_response_that_cannot_be_deserialized' (1404552) panicked at packages/rest-api-client/src/v1/client.rs:724:9:
+the error holds the test token
+
+--
+test result: FAILED. 7 passed; 6 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p torrust-tracker-rest-api-client --lib`

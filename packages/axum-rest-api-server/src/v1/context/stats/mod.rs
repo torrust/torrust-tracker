@@ -25,7 +25,7 @@
 //! **Example request**
 //!
 //! ```bash
-//! curl "http://127.0.0.1:1212/api/v1/stats?token=MyAccessToken"
+//! curl -H "Authorization: Bearer MyAccessToken" "http://127.0.0.1:1212/api/v1/stats"
 //! ```
 //!
 //! **Example response** `200`
@@ -60,7 +60,7 @@
 //! Each statistic has a `# HELP` line, a `# TYPE` line and a `name value` sample line:
 //!
 //! ```bash
-//! curl "http://127.0.0.1:1212/api/v1/stats?token=MyAccessToken&format=prometheus"
+//! curl -H "Authorization: Bearer MyAccessToken" "http://127.0.0.1:1212/api/v1/stats?format=prometheus"
 //! ```
 //!
 //! ```text

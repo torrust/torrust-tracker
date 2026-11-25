@@ -30,7 +30,7 @@ impl AuthKeyStore for Postgres {
             .bind(key.to_string())
             .fetch_optional(&self.pool)
             .await
-            .map_err(|e| (e, DRIVER))?;
+            .map_err(|e| Error::from_statement_that_binds_a_secret(e, DRIVER))?;
 
         maybe_row
             .map(|row| {
@@ -58,7 +58,7 @@ impl AuthKeyStore for Postgres {
             .bind(valid_until)
             .execute(&self.pool)
             .await
-            .map_err(|e| (e, DRIVER))?
+            .map_err(|e| Error::from_statement_that_binds_a_secret(e, DRIVER))?
             .rows_affected();
 
         if insert == 0 {
@@ -77,7 +77,7 @@ impl AuthKeyStore for Postgres {
             .bind(key.to_string())
             .execute(&self.pool)
             .await
-            .map_err(|e| (e, DRIVER))?
+            .map_err(|e| Error::from_statement_that_binds_a_secret(e, DRIVER))?
             .rows_affected();
 
         if deleted == 1 {

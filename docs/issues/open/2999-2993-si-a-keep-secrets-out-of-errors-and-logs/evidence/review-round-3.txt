@@ -1,0 +1,23 @@
+### TOML syntax error: red run before the fix (the loader test passed already; see the evidence)
+it_should_keep_the_location_and_drop_the_source_line_of_a_toml_syntax_error ... FAILED
+it_should_name_the_option_and_the_expected_type_and_not_print_the_value_of_a_secret_option::case_1_a_numeric_database_password ... ok
+it_should_name_the_option_and_the_expected_type_and_not_print_the_value_of_a_secret_option::case_3_a_boolean_access_token ... ok
+it_should_name_the_option_and_the_expected_type_and_not_print_the_value_of_a_secret_option::case_2_a_numeric_access_token ... ok
+it_should_name_the_option_and_the_expected_type_and_not_print_the_value_of_a_secret_option::case_5_the_database_written_as_a_dsn ... ok
+it_should_name_the_option_and_the_expected_type_and_not_print_the_value_of_a_secret_option::case_4_the_access_tokens_written_as_a_string ... ok
+it_should_not_print_a_password_on_a_line_with_a_syntax_error_when_loading ... ok
+it_should_not_print_a_numeric_database_password_that_comes_from_an_environment_override ... ok
+it_should_still_print_the_value_of_an_option_that_is_not_a_secret ... ok
+
+the error text holds the secret value
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test result: FAILED. 8 passed; 1 failed; 0 ignored; 0 measured; 161 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p torrust-tracker-configuration --lib`
+
+### Key after an empty path segment: red run before the fix
+it_should_replace_the_secrets_of_a_uri_with_a_marker::case_19_a_key_after_an_empty_segment ... FAILED
+it_should_replace_the_secrets_of_a_uri_with_a_marker::case_20_a_key_after_two_empty_segments ... FAILED
+it_should_replace_the_secrets_of_a_uri_with_a_marker::case_21_a_rest_key_after_an_empty_segment ... FAILED
+test result: FAILED. 33 passed; 3 failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.00s
+error: test failed, to rerun pass `-p torrust-tracker-axum-server --lib`

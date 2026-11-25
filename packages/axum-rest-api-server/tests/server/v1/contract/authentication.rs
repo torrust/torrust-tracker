@@ -1,5 +1,6 @@
 mod given_that_the_token_is_only_provided_in_the_authentication_header {
     use hyper::header;
+    use secrecy::ExposeSecret;
     use torrust_tracker_axum_rest_api_server::testing::environment::Started;
     use torrust_tracker_rest_api_client::common::http::Query;
     use torrust_tracker_rest_api_client::connection_info::ConnectionInfo;
@@ -18,7 +19,7 @@ mod given_that_the_token_is_only_provided_in_the_authentication_header {
 
         let env = Started::new(&configuration::ephemeral().into()).await;
 
-        let token = env.get_connection_info().api_token.unwrap();
+        let token = env.get_connection_info().api_token.unwrap().expose_secret().to_string();
 
         let response = ApiHttpClient::new(env.get_connection_info())
             .unwrap()
@@ -103,6 +104,7 @@ mod given_that_the_token_is_only_provided_in_the_authentication_header {
 }
 mod given_that_the_token_is_only_provided_in_the_query_param {
 
+    use secrecy::ExposeSecret;
     use torrust_tracker_axum_rest_api_server::testing::environment::Started;
     use torrust_tracker_rest_api_client::common::http::{Query, QueryParam};
     use torrust_tracker_rest_api_client::connection_info::ConnectionInfo;
@@ -119,7 +121,7 @@ mod given_that_the_token_is_only_provided_in_the_query_param {
 
         let env = Started::new(&configuration::ephemeral().into()).await;
 
-        let token = env.get_connection_info().api_token.unwrap();
+        let token = env.get_connection_info().api_token.unwrap().expose_secret().to_string();
 
         let connection_info = ConnectionInfo::anonymous(env.get_connection_info().origin);
 
@@ -204,7 +206,7 @@ mod given_that_the_token_is_only_provided_in_the_query_param {
 
         let env = Started::new(&configuration::ephemeral().into()).await;
 
-        let token = env.get_connection_info().api_token.unwrap();
+        let token = env.get_connection_info().api_token.unwrap().expose_secret().to_string();
 
         let connection_info = ConnectionInfo::anonymous(env.get_connection_info().origin);
 
@@ -270,6 +272,7 @@ mod given_that_not_token_is_provided {
 }
 
 mod given_that_token_is_provided_via_get_param_and_authentication_header {
+    use secrecy::ExposeSecret;
     use torrust_tracker_axum_rest_api_server::testing::environment::Started;
     use torrust_tracker_rest_api_client::common::http::{Query, QueryParam};
     use torrust_tracker_rest_api_client::v1::client::{ApiHttpClient, TOKEN_PARAM_NAME, headers_with_auth_token};
@@ -281,7 +284,7 @@ mod given_that_token_is_provided_via_get_param_and_authentication_header {
 
         let env = Started::new(&configuration::ephemeral().into()).await;
 
-        let authorized_token = env.get_connection_info().api_token.unwrap();
+        let authorized_token = env.get_connection_info().api_token.unwrap().expose_secret().to_string();
 
         let non_authorized_token = "NonAuthorizedToken";
 

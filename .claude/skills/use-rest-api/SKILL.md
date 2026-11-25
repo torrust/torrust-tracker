@@ -37,11 +37,18 @@ All API endpoints (except `/api/health_check`) require an access token.
 curl -H "Authorization: Bearer MyAccessToken" http://localhost:1212/api/v1/stats
 ```
 
-### Query Parameter Method
+### Query Parameter Method (accepted, not recommended)
 
-```bash
-curl "http://localhost:1212/api/v1/stats?token=MyAccessToken"
-```
+The server still accepts the token as a `?token=` query parameter, but a URL, with its query, is
+written to proxy, browser and server logs. Send the header instead: it keeps the token out of the
+URL. That is not every log (a proxy or server set to log request headers still records it), and
+it does not protect the token in transit, which needs HTTPS. Do not write the query form in
+examples (see the `handle-secrets` skill).
+
+Neither form keeps a token out of your shell history: a token typed on a command line is saved
+there, in a header as much as in a URL. For a real token, read it from a file or an environment
+variable inside the command (for example `-H "Authorization: Bearer $(cat token-file)"`), as the
+examples here use a placeholder only.
 
 ### Configuration
 

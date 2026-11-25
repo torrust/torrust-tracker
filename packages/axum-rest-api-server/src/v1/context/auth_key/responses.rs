@@ -50,8 +50,16 @@ pub fn failed_to_reload_keys_response<E: Error>(e: E) -> Response {
 }
 
 #[must_use]
-pub fn invalid_auth_key_response(auth_key: &str, reason: &str) -> Response {
-    bad_request_response(&format!("Invalid URL: invalid auth key: string \"{auth_key}\", {reason}"))
+pub fn invalid_auth_key_response(reason: &str) -> Response {
+    bad_request_response(&format!("Invalid URL: invalid auth key: {reason}"))
+}
+
+/// `400` response when the segment of `POST /api/v1/key/<seconds>` is not a
+/// number of seconds. The reply does not echo the segment: a peer key posted
+/// to this route by mistake would be echoed otherwise.
+#[must_use]
+pub fn invalid_auth_key_duration_param_response() -> Response {
+    bad_request_response("Invalid URL: invalid auth key duration: expected a number of seconds")
 }
 
 #[must_use]

@@ -252,8 +252,9 @@ pub(crate) mod tests {
         use std::time::Duration;
 
         use crate::authentication::key::{generate_expiring_key, generate_permanent_key};
+        use crate::databases::error::Error;
         use crate::databases::traits::Database;
-        use crate::test_helpers::tests::assert_names_no_source_path;
+        use crate::test_helpers::tests::{assert_holds_no_secret, assert_names_no_source_path};
 
         pub async fn it_should_load_the_keys(driver: &Arc<Box<dyn Database>>) {
             let permanent_peer_key = generate_permanent_key();
@@ -312,6 +313,9 @@ pub(crate) mod tests {
             let error = driver.add_key_to_keys(&peer_key).await.unwrap_err();
 
             assert_names_no_source_path(&error.to_string());
+            // The server text of a duplicate entry can hold the key (`MySQL` prints it).
+            assert_holds_no_secret(&error, peer_key.key.value());
+            assert!(matches!(error, Error::KeyAlreadyExists { .. }), "{error:?}");
         }
 
         pub async fn it_should_fail_without_a_source_path_trying_to_remove_a_missing_key(driver: &Arc<Box<dyn Database>>) {

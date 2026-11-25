@@ -120,9 +120,11 @@ pub enum PeerKeyError {
     #[error("Invalid peer key duration: {seconds_valid:?}, is not valid")]
     DurationOverflow { seconds_valid: u64 },
 
-    /// Returned when the provided peer key is invalid.
-    #[error("Invalid key: {key}")]
-    InvalidKey { key: String, source: ParseKeyError },
+    /// Returned when the provided peer key is invalid. It keeps the parse
+    /// error, which states what is wrong, and never the key: a malformed key
+    /// is still the user's secret.
+    #[error("Invalid authentication key: {source}")]
+    InvalidKey { source: ParseKeyError },
 
     /// Returned when persisting the peer key to the database fails.
     #[error("Can't persist key: {source}")]
@@ -171,19 +173,11 @@ mod tests {
 
         #[test]
         fn parsing_from_string() {
-            let err = authentication::key::ParseKeyError::InvalidKeyLength;
+            let err = authentication::key::ParseKeyError::InvalidKeyLength { length: 14 };
 
-            let err = PeerKeyError::InvalidKey {
-                key: "INVALID KEY".to_string(),
-                source: err,
-            };
+            let err = PeerKeyError::InvalidKey { source: err };
 
-            let err_msg = format!("{err}");
-
-            assert!(
-                err_msg.contains(&"Invalid key: INVALID KEY".to_string()),
-                "Error message did not contain expected text: {err_msg}"
-            );
+            assert_eq!(err.to_string(), "Invalid authentication key: expected 32 characters, got 14");
         }
 
         #[test]
@@ -248,7 +242,7 @@ mod tests {
         #[case::authentication(
             TrackerCoreError::from(authentication::key::Error::KeyExpired),
             "AuthenticationError",
-            "Tracker core authentication error: Key has expired"
+            "Tracker core authentication error: Authentication key expired"
         )]
         fn it_should_wrap_each_error_in_its_own_variant_and_name_its_area(
             #[case] error: TrackerCoreError,

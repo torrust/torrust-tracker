@@ -51,12 +51,16 @@ pub async fn get_torrent_handler(
 ///
 /// First page of torrents:
 ///
-/// <http://127.0.0.1:1212/api/v1/torrents?token=MyAccessToken>
+/// ```bash
+/// curl -H "Authorization: Bearer MyAccessToken" "http://127.0.0.1:1212/api/v1/torrents"
+/// ```
 ///
 ///
 /// Only two torrents:
 ///
-/// <http://127.0.0.1:1212/api/v1/torrents?token=MyAccessToken&info_hash=9c38422213e30bff212b30c360d26f9a02136422&info_hash=2b66980093bc11806fab50cb3cb41835b95a0362>
+/// ```bash
+/// curl -H "Authorization: Bearer MyAccessToken" "http://127.0.0.1:1212/api/v1/torrents?info_hash=9c38422213e30bff212b30c360d26f9a02136422&info_hash=2b66980093bc11806fab50cb3cb41835b95a0362"
+/// ```
 ///
 ///
 /// NOTICE: Pagination is ignored if array of infohashes is provided.

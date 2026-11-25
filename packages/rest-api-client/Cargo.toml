@@ -20,8 +20,12 @@ workspace = true
 [dependencies]
 hyper = "1"
 reqwest = { version = "0", features = [ "json", "query" ] }
+secrecy = "0.10.3"
 serde = { version = "1", features = [ "derive" ] }
 thiserror = "2"
 torrust-tracker-rest-api-protocol = { version = "0.1.0", path = "../rest-api-protocol" }
 url = { version = "2", features = [ "serde" ] }
 uuid = { version = "1", features = [ "v4" ] }
+
+[dev-dependencies]
+tokio = { version = "1", features = [ "io-util", "macros", "net", "rt" ] }

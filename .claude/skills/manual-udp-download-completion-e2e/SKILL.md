@@ -25,7 +25,7 @@ Run commands from repository root.
 
 - Tracker config: `./share/default/config/tracker.development.sqlite3.toml`
 - UDP tracker endpoint: `127.0.0.1:6969`
-- Stats API endpoint: `http://127.0.0.1:1212/api/v1/stats?token=MyAccessToken`
+- Stats API endpoint: `http://127.0.0.1:1212/api/v1/stats` (send `Authorization: Bearer MyAccessToken`)
 
 Optional (recommended for deterministic baseline):
 
@@ -57,7 +57,8 @@ In terminal B:
 INFO_HASH=1111111111111111111111111111111111111111
 PEER_ID=ABCDEFGHIJKLMNOPQRST
 TRACKER=127.0.0.1:6969
-STATS_URL='http://127.0.0.1:1212/api/v1/stats?token=MyAccessToken'
+STATS_URL='http://127.0.0.1:1212/api/v1/stats'
+AUTH='Authorization: Bearer MyAccessToken'
 ```
 
 ## 3. Capture baseline
@@ -65,7 +66,7 @@ STATS_URL='http://127.0.0.1:1212/api/v1/stats?token=MyAccessToken'
 ### 3.1 Global stats
 
 ```bash
-curl -s "$STATS_URL"
+curl -s -H "$AUTH" "$STATS_URL"
 ```
 
 Example output:
@@ -132,7 +133,7 @@ Verify after `started`:
 
 ```bash
 cargo run -q -p torrust-tracker-client --bin tracker_client -- udp scrape "$TRACKER" "$INFO_HASH" | jq .
-curl -s "$STATS_URL"
+curl -s -H "$AUTH" "$STATS_URL"
 ```
 
 Expected checks:
@@ -175,7 +176,7 @@ Verify after `completed`:
 
 ```bash
 cargo run -q -p torrust-tracker-client --bin tracker_client -- udp scrape "$TRACKER" "$INFO_HASH" | jq .
-curl -s "$STATS_URL"
+curl -s -H "$AUTH" "$STATS_URL"
 ```
 
 Expected checks:
@@ -191,7 +192,7 @@ Expected checks:
 If `jq` is available, use these helpers:
 
 ```bash
-curl -s "$STATS_URL" | jq '{torrents, seeders, completed, leechers}'
+curl -s -H "$AUTH" "$STATS_URL" | jq '{torrents, seeders, completed, leechers}'
 
 cargo run -q -p torrust-tracker-client --bin tracker_client -- udp scrape "$TRACKER" "$INFO_HASH" \
   | jq '.Scrape.torrent_stats[0]'

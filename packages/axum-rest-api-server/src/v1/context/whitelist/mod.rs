@@ -39,7 +39,7 @@
 //! **Example request**
 //!
 //! ```bash
-//! curl -X POST "http://127.0.0.1:1212/api/v1/whitelist/5452869be36f9f3350ccee6b4544e7e76caaadab?token=MyAccessToken"
+//! curl -H "Authorization: Bearer MyAccessToken" -X POST "http://127.0.0.1:1212/api/v1/whitelist/5452869be36f9f3350ccee6b4544e7e76caaadab"
 //! ```
 //!
 //! **Example response** `200`
@@ -65,7 +65,7 @@
 //! **Example request**
 //!
 //! ```bash
-//! curl -X DELETE "http://127.0.0.1:1212/api/v1/whitelist/5452869be36f9f3350ccee6b4544e7e76caaadab?token=MyAccessToken"
+//! curl -H "Authorization: Bearer MyAccessToken" -X DELETE "http://127.0.0.1:1212/api/v1/whitelist/5452869be36f9f3350ccee6b4544e7e76caaadab"
 //! ```
 //!
 //! **Example response** `200`
@@ -83,7 +83,7 @@
 //! **Example request**
 //!
 //! ```bash
-//! curl "http://127.0.0.1:1212/api/v1/whitelist/reload?token=MyAccessToken"
+//! curl -H "Authorization: Bearer MyAccessToken" "http://127.0.0.1:1212/api/v1/whitelist/reload"
 //! ```
 //!
 //! **Example response** `200`

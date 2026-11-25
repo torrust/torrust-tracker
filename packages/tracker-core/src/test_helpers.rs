@@ -268,4 +268,27 @@ pub mod tests {
             );
         }
     }
+
+    /// Fails when `error` keeps or prints `secret`: in its `Display`, its `Debug`, or the
+    /// `Display` of any error in its source chain. The failure message names where the secret
+    /// was found but never prints the secret or the text that holds it.
+    #[track_caller]
+    pub fn assert_holds_no_secret(error: &(dyn std::error::Error + 'static), secret: &str) {
+        assert!(!error.to_string().contains(secret), "the error Display holds the test secret");
+        assert!(
+            !format!("{error:?}").contains(secret),
+            "the error Debug holds the test secret"
+        );
+
+        let mut source = error.source();
+        let mut depth = 1;
+        while let Some(error) = source {
+            assert!(
+                !error.to_string().contains(secret),
+                "the Display of source {depth} in the error chain holds the test secret"
+            );
+            source = error.source();
+            depth += 1;
+        }
+    }
 }
