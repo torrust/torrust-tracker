@@ -77,6 +77,11 @@ the sub-issues of EPIC #2912 (see Consequences).
    not formatted into client text, because its text can change, and can contain a location, in a
    release the workspace does not review (for example `torrust_info_hash::ConversionError` prints its
    own location today).
+
+   Amended on 2026-11-25 by
+   [`20261125175726_tell_clients_what_they_can_act_on_and_keep_failure_detail_on_the_server.md`](20261125175726_tell_clients_what_they_can_act_on_and_keep_failure_detail_on_the_server.md)
+   (issue #3000): client text is chosen by the protocol layer from the error's class and variant,
+   and may use a workspace `Display` only when it holds nothing from a source error.
 5. **Developer diagnostics go to `tracing`.** When a developer needs to know where something failed,
    the code emits a `tracing` event at that site. The event records file and line on the server only
    and is never sent to a client.
