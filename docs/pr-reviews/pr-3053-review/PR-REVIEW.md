@@ -50,6 +50,7 @@ and the summary body of CodeRabbit's review 6059546450 contain no actionable ass
 | F12 | review-finding:pr-3053-f12 | da2ce7 | Nit | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
 | F13 | review-finding:pr-3053-f13 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
 | F14 | review-finding:pr-3053-f14 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F15 | review-finding:pr-3053-f15 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
 
 ## Finding Details
 
@@ -202,7 +203,7 @@ and the summary body of CodeRabbit's review 6059546450 contain no actionable ass
 - Source review ID: 6060859817
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3053#pullrequestreview-6060859817
-- Concern: `987e8257c` changed ISSUE.md but left `last-updated-utc` at 14:57.
+- Concern: The commit `docs(issues): [#3052] plan the concurrent harness cases red before the fix` changed ISSUE.md but left `last-updated-utc` at 14:57.
 - Solution: Moved `last-updated-utc` after the T3 change, and in the next ISSUE.md edit as well.
 - Current-tree verification: `sed -n 12p ISSUE.md` shows the new value, not earlier than the last commit that changed the file.
 - Resolution reference: docs(issues): [#3052] move the last-updated-utc after the T3 change
@@ -235,6 +236,19 @@ and the summary body of CodeRabbit's review 6059546450 contain no actionable ass
 - Follow-up PR URL: N/A
 - Reply URL: N/A
 
+### F15 - A branch commit id is cited in a tracked detail entry
+
+- PR number: 3053
+- Source review ID: 6061163565
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3053#pullrequestreview-6061163565
+- Concern: The F12 detail entry named a commit by its branch id; tracked files name a commit by its subject, which survives a rebase.
+- Solution: Replaced the id with the commit's Conventional Commit subject.
+- Current-tree verification: the entry names the commit by its subject and no branch commit id is cited in the record.
+- Resolution reference: docs(pr-reviews): [#3052] cite the commit by subject in the audit
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
 ## Processing Log
 
 - 2026-11-25 14:30 UTC - CodeRabbit's inline comment (F1) arrived.
@@ -246,6 +260,7 @@ and the summary body of CodeRabbit's review 6059546450 contain no actionable ass
 - 2026-11-25 15:12 UTC - Committed the F11 fix (`docs(issues): [#3052] plan the concurrent harness cases red before the fix`) and held the push until the maintainer chose between pushing it and merging as is.
 - 2026-11-25 15:58 UTC - da2ce7's approval 6060859817 arrived with three Nits (F12 to F14).
 - 2026-11-25 16:03 UTC - Committed the F12 and F13 fixes; recorded F12 to F14 in this audit.
+- 2026-11-25 16:31 UTC - da2ce7's approval 6061163565 arrived with one Minor (F15); fixed and recorded it here.
 
 ## Completion Rules
 
