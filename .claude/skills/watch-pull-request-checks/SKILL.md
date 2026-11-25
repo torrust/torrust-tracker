@@ -24,7 +24,13 @@ events, which `gh pr checks` does not report.
 
 ## Wait for the Checks
 
+After a push, wait for the workflow checks with the loop in
+[Review-Service Check Runs](#review-service-check-runs): this repository has review services that
+post check runs of their own, and `--watch` below waits for those too, although they do not count
+for readiness. Use `--watch` when every check run matters to you, or for a quick look at all of them:
+
 ```sh
+mkdir -p .tmp
 gh pr checks <PR> --repo torrust/torrust-tracker --watch --fail-fast --interval 60 \
   > .tmp/pr-checks.txt 2>&1
 echo "exit=$?"
@@ -73,6 +79,7 @@ runs of the head commit wait for a maintainer's approval (see
 [When Checks Never Start](#when-checks-never-start)), or when a `gh` call fails:
 
 ```sh
+mkdir -p .tmp
 while :; do
   # Read the head on every pass, so both commands below look at the same commit even after a push.
   head=$(gh pr view <PR> --repo torrust/torrust-tracker --json headRefOid --jq .headRefOid) \

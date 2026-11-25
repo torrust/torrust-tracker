@@ -226,10 +226,11 @@ thread is not counted by the thread check, so read each new review body through 
 CI is part of the loop, not a separate task. Checks often finish before a reviewer answers, so run
 them first:
 
-1. After the first push, and after every later push, run `gh pr checks <PR> --watch --fail-fast`
-   as [`watch-pull-request-checks`](../watch-pull-request-checks/SKILL.md) describes, or its
-   loop that waits for the workflow checks alone when a review service's check run is slow. Both
-   spend no tokens while they wait.
+1. After the first push, and after every later push, wait for the workflow checks with the loop in
+   [Review-Service Check Runs](../watch-pull-request-checks/SKILL.md#review-service-check-runs),
+   which leaves out review services' own check runs; `gh pr checks <PR> --watch --fail-fast`, as
+   [`watch-pull-request-checks`](../watch-pull-request-checks/SKILL.md) describes, also waits for
+   them. Both spend no tokens while they wait.
 2. If no check starts and the runs say `action_required`, a maintainer has to approve them (see
    "When Checks Never Start" in that skill). Ask for it and wait; this is not a failure and does not
    count toward the check limit.
