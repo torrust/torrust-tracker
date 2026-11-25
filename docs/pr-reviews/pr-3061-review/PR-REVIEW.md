@@ -30,7 +30,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-F1 to F9 are the inline comments of da2ce7's review 6062055409. The review of `claude[bot]` (6061783591) is the
+F10 is the pre-merge check in the review body of CodeRabbit's review 6064399158. F1 to F9 are the inline comments of da2ce7's review 6062055409. The review of `claude[bot]` (6061783591) is the
 notice that automated review is disabled for fork pull requests and has no row. The review body of
 6062055409 carries a summary, the checks and its own findings only as these inline comments.
 
@@ -45,6 +45,7 @@ notice that automated review is disabled for fork pull requests and has no row. 
 | F7 | review-finding:pr-3061-f7 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F8 | review-finding:pr-3061-f8 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F9 | review-finding:pr-3061-f9 | da2ce7 | Suggestion | maintainability | ORIGINAL | NO_ACTION | RESOLVED |
+| F10 | review-finding:pr-3061-f10 | coderabbitai[bot] | Minor | other | ORIGINAL | NO_ACTION | NON_RESOLVABLE |
 
 ## Finding Details
 
@@ -165,11 +166,25 @@ notice that automated review is disabled for fork pull requests and has no row. 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3061#discussion_r4698544290
 
+### F10 - The pre-merge check asks to remove the review audit record from this pull request
+
+- PR number: 3061
+- Source review ID: 6064399158
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3061#pullrequestreview-6064399158
+- Concern: CodeRabbit's "Out of Scope Changes" pre-merge check asks to remove `docs/pr-reviews/pr-3061-review/PR-REVIEW.md` from the diff.
+- Solution: None: `process-pr-review` makes the audit record a tracked file owned by the pull request author, validated before each audit commit, so it belongs in this pull request.
+- Current-tree verification: `.claude/skills/process-pr-review/SKILL.md` names the record and its validator; the maintainer reviewers check it in every round.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3061#issuecomment-7173571506
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3061#issuecomment-7173571506
+
 ## Processing Log
 
 - 2026-11-25 17:27 UTC - da2ce7's approval 6062055409 arrived with nine inline findings (F1 to F9).
 - 2026-11-25 17:38 UTC - Fixed F1 to F8 in one commit and pushed it; created this record from the template before replying; F9 needs no change here.
 - 2026-11-25 19:57 UTC - The branch was rebased onto develop after the maintainer merge failed its pre-push tests (see the spec progress log); commit ids cited in review texts before this entry belong to the pre-rebase history, and this record cites commits by subject.
+- 2026-11-25 20:22 UTC - CodeRabbit's review 6064399158 arrived on the rebased head with one review-body finding (F10); replied on the conversation and recorded it as NO_ACTION.
 
 ## Completion Rules
 
