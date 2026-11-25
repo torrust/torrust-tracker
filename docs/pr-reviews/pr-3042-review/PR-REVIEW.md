@@ -354,7 +354,7 @@ Review 6054779352 (CodeRabbit, 2026-11-25 09:17 UTC) posted two inline comments,
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692719075>
 - Concern: the `use-rest-api` skill and `docs/containers.md` said the header keeps the token out of proxy and server logs, but a proxy or server configured to log request headers can record the `Authorization` value.
 - Solution: the documents say the header keeps the token out of the URL and that a proxy or server set to log request headers still records it. Changed in `docs/containers.md`, the skills `use-rest-api` and `handle-secrets`, `src/lib.rs` and `axum-rest-api-server` (`lib.rs`, `v1/middlewares/auth.rs`). The tool note in the comment about a credential file concerns the line that reads a token from a file inside a command; that line stays.
-- Current-tree verification: `grep -n "out of the URL"` on those files prints the new sentences; the pre-commit gate passes.
+- Current-tree verification: `grep -n "out of the URL"` over the seven files the row names prints the new sentence in four of them (`docs/containers.md`, `src/lib.rs`, and the `lib.rs` and `v1/middlewares/auth.rs` of `axum-rest-api-server`); the `use-rest-api` skill wraps the phrase across two lines, and the `handle-secrets` skill and the secrecy ADR amendment word it "out of logged URLs" (an earlier version of this entry claimed the phrase in all of them); the pre-commit gate passes.
 - Resolution reference: docs(secrets): [#2999] say the header keeps the token out of the URL, not out of every log
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4694336176>
@@ -415,6 +415,7 @@ Review 6054779352 (CodeRabbit, 2026-11-25 09:17 UTC) posted two inline comments,
 - 2026-11-25 09:14 UTC - `validate-audit-record.py --pr-number 3042`, run with the bot token set for that one command (identity `josecelano-bot`), printed `{"status": "ok", "rows": 20, "log_entries": 12, "failures": 0}`. The five threads were then resolved by `josecelano-bot`; a refreshed GraphQL listing shows 20 threads and 0 unresolved.
 - 2026-11-25 11:40 UTC - Reviews 6054779352 (CodeRabbit, submitted at 09:17 UTC) and 6054897595 (da2ce7, approved, 09:25 UTC) were recorded as F21 to F24, in a sixth round the maintainer asked for after the five-round limit. Their four threads got their replies after the round 6 commit was pushed (replies 4694336176, 4694336597, 4694337174 and 4694337651). That commit also changed the details of F13 and F19, as F24 asks.
 - 2026-11-25 11:41 UTC - `validate-audit-record.py --pr-number 3042`, run with the bot token set for that one command (identity `josecelano-bot`), printed `{"status": "ok", "rows": 24, "log_entries": 14, "failures": 0}`. A GraphQL listing showed the F21 thread already resolved by `coderabbitai[bot]`; the F22, F23 and F24 threads were then resolved by `josecelano-bot`. A refreshed listing shows 24 threads and 0 unresolved.
+- 2026-11-25 13:29 UTC - After the merge of pull request 3042 (13:28 UTC), the F21 detail was corrected as da2ce7 noted in review 6057100569 (the verification `grep` matches four of the seven files it names; see the entry). The correction rides in the close-out pull request of issue #2999.
 
 ## Completion Rules
 

@@ -6,7 +6,7 @@ epic: null
 github-issue: 2993
 spec-path: docs/issues/open/2993-secrets-and-client-error-text/EPIC.md
 epic-owner: null
-last-updated-utc: "2026-11-24 12:38"
+last-updated-utc: "2026-11-25 13:29"
 semantic-links:
   skill-links:
     - create-issue
@@ -191,7 +191,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | Order | Issue | Local Spec | Status | Notes |
 | --- | --- | --- | --- | --- |
-| 1 | #2999 - SI-A Keep secrets out of errors, logs and output | [`2999-2993-si-a-keep-secrets-out-of-errors-and-logs/ISSUE.md`](../2999-2993-si-a-keep-secrets-out-of-errors-and-logs/ISSUE.md) | TODO | A bug class with the listed cases A1 to A10 and A12. Was to start after SI-5 of EPIC #2912 (#3001) merged; it merged on 2026-11-23 |
+| 1 | #2999 - SI-A Keep secrets out of errors, logs and output | [`2999-2993-si-a-keep-secrets-out-of-errors-and-logs/ISSUE.md`](../../closed/2999-2993-si-a-keep-secrets-out-of-errors-and-logs/ISSUE.md) | DONE | A bug class with the listed cases A1 to A10 and A12. Was to start after SI-5 of EPIC #2912 (#3001) merged; it merged on 2026-11-23 |
 | 2 | #3000 - SI-B Define and apply the client error text policy | [`3000-2993-si-b-client-error-text-policy/ISSUE.md`](../3000-2993-si-b-client-error-text-policy/ISSUE.md) | TODO | Starts with an ADR; implementation after the maintainer accepts the ADR. May start in parallel with SI-A, but it touches the same error types, so run them one after the other |
 
 Both sub-issue specifications were approved by the maintainer on 2026-11-23 and their GitHub issues created, #2999 (SI-A) and #3000 (SI-B).

@@ -275,7 +275,7 @@ None planned for this issue.
 - **AC2 and secret values.** The figment message this sub-issue keeps still prints a non-string
   value, for example the number of a numeric database password, as it did before. EPIC #2993
   (`docs/issues/open/2993-secrets-and-client-error-text/EPIC.md`, item A10) assigns that case to
-  SI-A (`docs/issues/open/2999-2993-si-a-keep-secrets-out-of-errors-and-logs/ISSUE.md`); the "or
+  SI-A (`docs/issues/closed/2999-2993-si-a-keep-secrets-out-of-errors-and-logs/ISSUE.md`); the "or
   value" of AC2 is read as the key and the value that are not secret. This sub-issue does not
   change the message.
 
