@@ -33,8 +33,8 @@ The caller gives you:
 
 - the path of the issue specification and the task or subject you review (for example task T5);
 - the scope the implementation claims, and the round, when the task was reviewed before;
-- the reply file you write: one line of the task, `Reply file: <path>`, whose path follows decision
-  D18 of issue #2904
+- the reply file you write: one line of the task, `Reply file: <path>`, written bare as plain text
+  and not as inline code, whose path follows decision D18 of issue #2904
   (`docs/issues/<open|closed>/<specification>/agent-replies/task-reviewer-<subject>-r<round>.json`).
   A task without that line has no folder-style specification: you write no file and say so in your
   final message.

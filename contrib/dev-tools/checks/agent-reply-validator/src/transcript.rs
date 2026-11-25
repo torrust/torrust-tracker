@@ -85,12 +85,22 @@ fn request_text(record: &Value) -> Option<&str> {
 }
 
 /// The path of the last line of the text that starts with the prefix; a line without a path is
-/// not one.
+/// not one. One pair of backticks or quotes around the path is not part of it, so a caller that
+/// writes the path as inline code still has its reply file enforced.
 fn reply_file_in(text: &str) -> Option<&str> {
     text.lines()
         .filter_map(|line| line.strip_prefix(LINE_PREFIX))
         .map(str::trim)
+        .map(unwrap_pair)
         .rfind(|path| !path.is_empty())
+}
+
+/// The text without one pair of backticks or quotes around it; other text is returned as it is.
+fn unwrap_pair(path: &str) -> &str {
+    ['`', '"', '\'']
+        .into_iter()
+        .find_map(|mark| path.strip_prefix(mark)?.strip_suffix(mark))
+        .unwrap_or(path)
 }
 
 #[cfg(test)]
@@ -323,6 +333,42 @@ mod tests {
             file.as_deref(),
             Some("x.json"),
             "the path must not keep the characters after it"
+        );
+    }
+
+    #[rstest]
+    #[case::backticks("Reply file: `x.json`")]
+    #[case::double_quotes("Reply file: \"x.json\"")]
+    #[case::single_quotes("Reply file: 'x.json'")]
+    #[case::quotes_and_trailing_space("Reply file: `x.json` ")]
+    fn it_should_not_keep_one_pair_of_backticks_or_quotes_around_the_path(#[case] text: &str) {
+        // Arrange
+        let transcript = jsonl(&[first_request(text)]);
+
+        // Act
+        let file = latest_reply_file(&transcript);
+
+        // Assert
+        assert_eq!(
+            file.as_deref(),
+            Some("x.json"),
+            "the marks around the path are not part of it"
+        );
+    }
+
+    #[test]
+    fn it_should_keep_a_mark_that_has_no_pair_around_the_path() {
+        // Arrange
+        let transcript = jsonl(&[first_request("Reply file: `x.json")]);
+
+        // Act
+        let file = latest_reply_file(&transcript);
+
+        // Assert
+        assert_eq!(
+            file.as_deref(),
+            Some("`x.json"),
+            "a lone mark is part of the text and is not removed"
         );
     }
 
