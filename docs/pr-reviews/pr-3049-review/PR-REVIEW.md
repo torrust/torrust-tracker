@@ -1,7 +1,7 @@
 ---
 pr-number: 3049
 pr-url: https://github.com/torrust/torrust-tracker/pull/3049
-last-updated-utc: "2026-11-25 16:39"
+last-updated-utc: "2026-11-25 16:53"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -294,9 +294,9 @@ Round 5: `da2ce7`'s review 6059677342, which round 3 did not record (F22, F23), 
 - Concern: When the guard cannot read the transcript it exits 1, which does not hold the agent; the reviewer asks that a task with a named reply file stays held, with a count, and the tests changed.
 - Solution: No change. The ADR of this pull request decides it: failures of the program itself (unreadable input, an unreadable transcript) are errors and not refusals, exit `1` and cannot keep an agent working; the caller then finds no valid reply file and stops (fails closed). Holding on an error the guard cannot attribute to a reply would also have no count to key on when the issue number cannot be read. Reversing it changes the decision and the tests together, so it is the maintainer's call. The reviewer then withdrew the request and resolved the thread.
 - Current-tree verification: Read the guard's `fail` path in `contrib/dev-tools/checks/agent-reply-validator/src/bin/agent-reply-guard/main.rs` and the sentence of the new ADR (section 2) that says such failures exit 1 and hold nothing; the tests at the lines the reviewer names assert exactly that.
-- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4696351824
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4698048062
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4696351824
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4698048062
 
 ### F18 - The audit record lags the forge
 
@@ -361,7 +361,7 @@ Round 5: `da2ce7`'s review 6059677342, which round 3 did not record (F22, F23), 
 - Current-tree verification: Read `decide` in `contrib/dev-tools/checks/agent-reply-validator/src/guard.rs` and the case `round_above_the_limit` of the test of the invalid file names.
 - Resolution reference: fix(agent-reply-validator): [#2904] let the reviewer finish when the reply file name is not a valid one
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4698045703
 
 ### F23 - The newest reply URLs are held back, citing a rule that is not in the tree
 
@@ -374,7 +374,7 @@ Round 5: `da2ce7`'s review 6059677342, which round 3 did not record (F22, F23), 
 - Current-tree verification: Ran the validator on the pushed record; read the two sentences and the F17 row after the edit.
 - Resolution reference: docs(pr-reviews): [#2904] record the review of 6059677342 and 6061172809 on pull request 3049
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4698046284
 
 ### F24 - The record has no rows for review 6059677342 and two rows lag the forge
 
@@ -387,7 +387,7 @@ Round 5: `da2ce7`'s review 6059677342, which round 3 did not record (F22, F23), 
 - Current-tree verification: Compared every row's thread state with the GraphQL thread list after the edit; ran the validator.
 - Resolution reference: docs(pr-reviews): [#2904] record the review of 6059677342 and 6061172809 on pull request 3049
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4698046832
 
 ### F25 - The literal-line test does not cover the invalid file name
 
@@ -400,7 +400,7 @@ Round 5: `da2ce7`'s review 6059677342, which round 3 did not record (F22, F23), 
 - Current-tree verification: Ran `cargo test -p agent-reply-validator never_write_the_literal`: 10 cases pass.
 - Resolution reference: test(agent-reply-validator): [#2904] cover the invalid file name in the test of the literal line
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4698047355
 
 ## Processing Log
 
@@ -419,6 +419,7 @@ Round 5: `da2ce7`'s review 6059677342, which round 3 did not record (F22, F23), 
 - 2026-11-25 16:12 UTC - Round 4: the maintainer answered the question of F11; the fix and the record of D17 are committed, and the row is FIXED with the thread still open until the push and the reply.
 - 2026-11-25 16:22 UTC - Pushed the branch (head commit `docs(pr-reviews): [#2904] record the decision on the file-name finding of pull request 3049`), replied on the thread of F11 (GitHub reply `discussion_r4697632582`) and resolved it with the GraphQL mutation, which returned `isResolved: true`.
 - 2026-11-25 16:39 UTC - Round 5: started on review `6059677342` of `da2ce7`, which the poller never reported and the record lacked (F22, F23), and on his review `6061172809` (F24, F25); verified every finding against the current tree and committed the fixes locally. Replies follow the push.
+- 2026-11-25 16:53 UTC - Pushed round 5 (head commit `docs(pr-reviews): [#2904] record the review of 6059677342 and 6061172809 on pull request 3049`), replied on the four threads (GitHub `created_at` 16:53 UTC) and with the form of item 7 on the thread of F17, then resolved the four threads with the GraphQL mutation, each returning `isResolved: true`; the thread of F17 was already resolved by its reviewer. The reply URLs are recorded by this commit, which goes out with the next push.
 
 ## Completion Rules
 
