@@ -1,7 +1,7 @@
 ---
 pr-number: 3043
 pr-url: https://github.com/torrust/torrust-tracker/pull/3043
-last-updated-utc: "2026-11-25 09:12"
+last-updated-utc: "2026-11-25 09:15"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -45,6 +45,8 @@ Round 2, on the head `docs(pr-reviews): [#3031] record the audit of PR 3043 revi
 
 Round 3, on the head `docs(issues): [#3031] keep the statistics-enabled run evidence and the scenario script` plus the audit commit of round 2: Greptile review 6054165927 (one thread, on the helper added in round 2) and da2ce7 review 6054395106 (changes requested, four threads: the reviewer's F7 Major, F8 Minor, F9 and F10 Nit). The reviewer's IDs F7 to F10 collide with audit rows, so the rows below are F10 to F14 and name the reviewer's ID.
 
+Round 4, on the head `docs(pr-reviews): [#3031] record the audit of PR 3043 review round 3`: da2ce7 review 6054669348 (approved, three inline threads on this audit record: the reviewer's F11 and F12 Minor, F13 Nit). The reviewer's IDs collide with audit rows, so the rows below are F15 to F17 and name the reviewer's ID.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3043-f1 | Unknown | Minor (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
@@ -61,6 +63,9 @@ Round 3, on the head `docs(issues): [#3031] keep the statistics-enabled run evid
 | F12 | review-finding:pr-3043-f12 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F13 | review-finding:pr-3043-f13 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F14 | review-finding:pr-3043-f14 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-3043-f15 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-3043-f16 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-3043-f17 | Human | Nit | formatting | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -246,6 +251,45 @@ Round 3, on the head `docs(issues): [#3031] keep the statistics-enabled run evid
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3043#discussion_r4692515053
 
+### F15 - A verification names a pull-request commit by id
+
+- PR number: 3043
+- Source review ID: 6054669348
+- Reviewer finding ID: F11
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3043#discussion_r4692636760
+- Concern: The verification of row F13 named a branch commit by its id, so the commit-id check of `open-pull-request` failed; I had not run that check before the earlier pushes.
+- Solution: The verification names the commit by its subject and the command `git log -1 --format=%cI --grep='address review round 2'`.
+- Current-tree verification: The commit-id check of `open-pull-request` (the `git diff -z ... | xargs ... grep ... | while read` pipeline against `torrust/develop`) printed nothing at this head.
+- Resolution reference: docs(pr-reviews): [#3031] state only what ran in the audit of PR 3043 and order its rounds
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3043#discussion_r4692693292
+
+### F16 - The stated output of the F10 verification is not what the command prints
+
+- PR number: 3043
+- Source review ID: 6054669348
+- Reviewer finding ID: F12
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3043#discussion_r4692636773
+- Concern: The row said `grep -n "tracing::\(Dispatch\|subscriber\)" ...` prints nothing, but it prints the two `use` lines the fix adds.
+- Solution: The row says what the command prints (lines 7 and 9) and adds the same command piped through `grep -v ":use "`, which prints nothing.
+- Current-tree verification: Both commands were run: the first prints lines 7 and 9, the second prints nothing (exit status 1).
+- Resolution reference: docs(pr-reviews): [#3031] state only what ran in the audit of PR 3043 and order its rounds
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3043#discussion_r4692693818
+
+### F17 - The Round 3 paragraph sits above Round 2
+
+- PR number: 3043
+- Source review ID: 6054669348
+- Reviewer finding ID: F13
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3043#discussion_r4692636778
+- Concern: The introduction of the findings read rounds 1, 3, 2.
+- Solution: The Round 3 paragraph is below the Round 2 paragraph.
+- Current-tree verification: `sed -n 40,50p docs/pr-reviews/pr-3043-review/PR-REVIEW.md` shows Round 1, Round 2, Round 3 in this order; the Round 4 paragraph follows them.
+- Resolution reference: docs(pr-reviews): [#3031] state only what ran in the audit of PR 3043 and order its rounds
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3043#discussion_r4692694226
+
 ## Processing Log
 
 - 2026-11-24 18:21 UTC - Round 1: Greptile review 6044956173 (18:21:43) with two threads.
@@ -265,6 +309,10 @@ Round 3, on the head `docs(issues): [#3031] keep the statistics-enabled run evid
 - 2026-11-25 08:55 UTC - Correction (review 6054395106, finding F7 of the reviewer): the Resolution references of F5, F6 and F9 named `docs(issues): [#3031] keep the statistics-enabled run evidence and the scenario script`, which carries only the quoting of the scenario script and one sentence of the evidence. The restored `issue-spec` key (F5), the five new evidence files and the `ISSUE.md` change (F6) and the trailing-space fix (F9) are in `fix(statistics): [#3031] address review round 2 of the statistics-disabled fix`; the three references now say so (F6 cites both subjects, because the second carries the quoting correction of the script). The 08:24 UTC entry above said the code fixes and the evidence went into two commits with the script corrected before both; what happened is that the first commit swept in the evidence with the unquoted script as it had run, and the second corrected the quoting. The 08:24 entry is left as written.
 - 2026-11-25 08:58 UTC - Replied on the five threads after the pushes (08:58:28 to 08:58:38) and resolved them.
 - 2026-11-25 08:59 UTC - Updated this audit record after the replies and the resolutions; the validation script ran after this entry. The correction entry of 08:55 UTC, pushed earlier at the end of the log, was moved below the round 3 entries stamped 08:31 to 08:55 so the log reads in time order (its text is unchanged), because the validator requires chronological order.
+- 2026-11-25 09:09 UTC - Round 4: da2ce7 review 6054669348 (approved, 09:09:51) with three threads on this record. Rows F15 to F17.
+- 2026-11-25 09:12 UTC - Committed `docs(pr-reviews): [#3031] state only what ran in the audit of PR 3043 and order its rounds` and pushed it.
+- 2026-11-25 09:15 UTC - Replied on the three threads after the push (09:15:04 to 09:15:09) and resolved them.
+- 2026-11-25 09:15 UTC - Updated this audit record after the replies and the resolutions; the validation script ran after this entry.
 
 ## Completion Rules
 
