@@ -149,16 +149,16 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | ------ | ----------------------------------------------------------------------- | ---------------------------------------------------------------- |
 | T1  | DONE   | Reproduce on SQLite and record it                                       | V1 recorded in `manual-verification-evidence.md`                 |
 | T2  | TODO   | Reproduce on MySQL and PostgreSQL (Docker)                              | V2 recorded, or infeasibility with attempted commands            |
-| T3  | TODO   | Add the concurrency regression test and observe it red                  | Red run recorded; test fails for `add` and for `remove`          |
+| T3  | TODO   | Add the concurrency regression test and the concurrent store-level harness cases, and observe them red | Red run recorded on the unfixed code: the `persisted.rs` test fails for `add` and for `remove`; the harness cases fail on SQLite, and on MySQL and PostgreSQL via the Docker suites |
 | T4  | TODO   | Make the three drivers idempotent; update trait docs and `DatabaseWhitelist` | Regression test green                                       |
-| T5  | TODO   | Replace the three failure-documenting harness tests with no-op tests; add the concurrent store-level cases | SQLite unit tests and Docker suites green |
+| T5  | TODO   | Replace the three failure-documenting harness tests with no-op tests (the concurrent cases were added red in T3) | SQLite unit tests and Docker suites green |
 | T6  | TODO   | Rerun V1 (and V2) after the last production change; run `linter all`    | Evidence names the commit by Conventional Commit subject         |
 
 ## Commit Points
 
 | Task | Coherent change set                                          | Commit policy                                        |
 | ---- | ------------------------------------------------------------ | ---------------------------------------------------- |
-| T3   | Regression test plus red evidence                            | Commit after focused validation and required review. |
+| T3   | Regression test and concurrent harness cases plus red evidence                            | Commit after focused validation and required review. |
 | T4   | Driver and `DatabaseWhitelist` change, trait docs            | Commit after focused validation and required review. |
 | T5   | Harness test updates                                         | Commit after focused validation and required review. |
 | T6   | Final evidence and spec progress                             | Commit after focused validation and required review. |
@@ -205,7 +205,7 @@ with the narrow affected scope, and sign every commit with GPG.
 - [ ] AC1: Two concurrent `DatabaseWhitelist::add` calls for the same info-hash both return `Ok` and the hash is whitelisted once (SQLite regression test in `persisted.rs`; the store-level concurrent harness case on SQLite, MySQL and PostgreSQL via the Docker suites).
 - [ ] AC2: Two concurrent `DatabaseWhitelist::remove` calls for the same info-hash both return `Ok` and the hash is no longer whitelisted (same two tests as AC1: `persisted.rs` on SQLite, the concurrent harness case on all three drivers).
 - [ ] AC3: `WhitelistStore::add_info_hash_to_whitelist` returns `Ok(1)` for a new hash and `Ok(0)` for an existing one; `remove_info_hash_from_whitelist` returns `Ok(1)` for a present hash and `Ok(0)` for a missing one, on all three drivers.
-- [ ] AC4: The regression test was observed red before the fix and green after.
+- [ ] AC4: The regression test and the concurrent store-level harness cases were observed red before the fix and green after.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
