@@ -6,12 +6,17 @@
 //! reads nothing itself: the facts about the repository come through [`Workspace`], so every
 //! outcome can be tested with plain values.
 //!
+//! The hook also lets the agent finish, with a message, when the file name the task gives is not a
+//! valid reply file name: the validator refuses such a name whatever the file holds, so refusing
+//! the agent could not make the request succeed.
+//!
 //! The text the hook returns never contains the literal line `Reply file:` that a task uses to name
 //! the file, because the transcript would then hold a second line for the hook to find.
 
 use std::fmt::Write as _;
 
 use crate::file::{Problem, check_reply_file};
+use crate::name::ReplyFileName;
 
 /// How many times the hook refuses to let the agent finish, for one request. The fourth attempt
 /// is allowed. It is the round limit of decision D18.
@@ -171,10 +176,16 @@ pub fn decide(agent_id: &str, reply_file: Option<&str>, workspace: &mut impl Wor
                     "The reply was not enforced: the name of the specification folder `{folder}` does not start with an issue number, so the count of refusals has no key."
                 ));
             };
+            let reply_file_name = path.rsplit('/').next().unwrap_or(path);
+            if let Err(error) = reply_file_name.parse::<ReplyFileName>() {
+                return Outcome::finish(format!(
+                    "The reply was not enforced: the file name of `{path}` is not a valid reply file name ({error}), so the validator refuses it whatever the file holds and the reviewer cannot satisfy the request. The caller must name the file as the name rule of decision D18 says and ask again."
+                ));
+            }
             let key = RefusalKey {
                 issue_number,
                 agent_id: agent_id.to_owned(),
-                reply_file_name: path.rsplit('/').next().unwrap_or(path).to_owned(),
+                reply_file_name: reply_file_name.to_owned(),
             };
             hold_to_the_reply(path, &key, workspace)
         }
@@ -540,6 +551,52 @@ mod tests {
             "the message must say why the reply was not enforced: {message}"
         );
         assert!(workspace.counts.is_empty(), "there is no issue number to key a count");
+    }
+
+    #[rstest]
+    #[case::round_above_the_limit("task-reviewer-t5-r4.json", "not a round")]
+    #[case::round_with_a_leading_zero("task-reviewer-t5-r01.json", "not a round")]
+    #[case::unknown_agent("code-reviewer-t5-r1.json", "does not start with the name of an agent")]
+    #[case::no_round("task-reviewer-t5.json", "has no round")]
+    #[case::not_json("task-reviewer-t5-r1.md", "does not end in `.json`")]
+    #[case::subject_that_is_not_a_task_or_a_pull_request("task-reviewer-x5-r1.json", "not a subject")]
+    fn it_should_let_the_agent_finish_with_the_reason_and_keep_no_count_when_the_file_name_is_not_a_valid_reply_file_name(
+        #[case] file_name: &str,
+        #[case] reason: &str,
+    ) {
+        // Arrange: the folder exists and the file is missing, so a valid name would be refused.
+        let path = format!("{SPECIFICATION}/agent-replies/{file_name}");
+        let mut workspace = FakeWorkspace::with_the_specification();
+
+        // Act
+        let message = finish_message(decide(AGENT, Some(&path), &mut workspace));
+
+        // Assert
+        assert!(
+            message.contains(file_name),
+            "the message must name the path with the file name the validator rejects: {message}"
+        );
+        assert!(
+            message.contains(reason),
+            "the message must give the validator's reason: {message}"
+        );
+        assert!(workspace.counts.is_empty(), "no count is kept for a name nothing can satisfy");
+    }
+
+    #[test]
+    fn it_should_check_the_file_name_after_the_specification_folder_and_its_issue_number() {
+        // Arrange: a folder that does not exist and a bad name; the folder is reported first.
+        let path = format!("{SPECIFICATION}/agent-replies/task-reviewer-t5-r4.json");
+        let mut workspace = FakeWorkspace::default();
+
+        // Act
+        let message = finish_message(decide(AGENT, Some(&path), &mut workspace));
+
+        // Assert
+        assert!(
+            message.contains("does not exist"),
+            "the missing folder is reported before the file name: {message}"
+        );
     }
 
     #[test]
