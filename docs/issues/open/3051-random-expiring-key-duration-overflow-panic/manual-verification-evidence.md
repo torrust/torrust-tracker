@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/3051-random-expiring-key-duration-overflow-panic/ISSUE.md
-last-updated-utc: "2026-11-25 14:18"
+last-updated-utc: "2026-11-25 14:55"
 ---
 
 # Manual Verification Evidence
@@ -33,15 +33,17 @@ Evidence of the bug before the fix (V1, V2) and, after the fix, the like-for-lik
 
 Run one at a time, in this order:
 
-1. 14:14:31 control, a valid random key:
+1. 14:14:31 control, a valid random key (the only request called the control in this file):
    `curl -sS -i -X POST 'http://127.0.0.1:18212/api/v1/keys?token=ReproToken' -H 'content-type: application/json' -d '{"key":null,"seconds_valid":3600}'`
 2. 14:14:34 random key, overflowing duration:
    `curl -sS -i -X POST 'http://127.0.0.1:18212/api/v1/keys?token=ReproToken' -H 'content-type: application/json' -d '{"key":null,"seconds_valid":18446744073709551615}'`
-3. 14:14:34 pre-generated key, overflowing duration:
+3. 14:14:34 pre-generated key, overflowing duration (the comparison that already returns `400`):
    `curl -sS -i -X POST 'http://127.0.0.1:18212/api/v1/keys?token=ReproToken' -H 'content-type: application/json' -d '{"key":"YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ","seconds_valid":18446744073709551615}'`
 4. 14:14:37 generate-key endpoint:
    `curl -sS -i -X POST 'http://127.0.0.1:18212/api/v1/key/18446744073709551615?token=ReproToken'`
-5. `curl -sS -o /dev/null -w '%{http_code}' 'http://127.0.0.1:18212/api/v1/stats?token=ReproToken'`
+5. Not timestamped: it ran in the same terminal command as request 4, which printed only its own start time
+   (14:14:37), so the end of request 4 and the start of request 5 were not recorded. V3 stamps both ends.
+   `curl -sS -o /dev/null -w '%{http_code}' 'http://127.0.0.1:18212/api/v1/stats?token=ReproToken'`
 
 #### Observed Result
 
@@ -55,10 +57,13 @@ Run one at a time, in this order:
 5. 200
 ```
 
-The tracker log has one panic per failing request ([`evidence/tracker-panic-before-fix.log`](evidence/tracker-panic-before-fix.log)):
+The tracker log has one panic per failing request. [`evidence/tracker-panic-before-fix.log`](evidence/tracker-panic-before-fix.log)
+is an extract made with
+`sed 's/\x1b\[[0-9;]*m//g' .tmp/tracker.log | grep -A1 "panicked" | cut -c1-250` (ANSI colors removed; the two matches are
+separated by `--`). One of them:
 
 ```text
-thread 'tokio-rt-worker' panicked at packages/tracker-core/src/authentication/key/mod.rs:111:79:
+thread 'tokio-rt-worker' (4055249) panicked at packages/tracker-core/src/authentication/key/mod.rs:111:79:
 called `Option::unwrap()` on a `None` value
 ```
 
@@ -72,7 +77,8 @@ pre-generated path returns the expected `400`. The tracker keeps serving (step 5
 - Goal: reproduce at `KeysHandler::add_peer_key` with a deterministic test.
 - Status: `DONE`
 
-The temporary test, added to the `randomly_generated` module in `packages/tracker-core/src/authentication/handler.rs`
+The temporary test, added to the `handling_expiring_peer_keys::randomly_generated` module (not the
+`handling_permanent_peer_keys` one) in `packages/tracker-core/src/authentication/handler.rs`
 and reverted afterwards (it becomes the maintained regression test, T1):
 
 ```rust
@@ -109,7 +115,7 @@ The same panic at the same line, reproduced deterministically.
 ### V3 - Like-for-like recheck after the fix
 
 - Status: `TODO`. Repeat V1 steps 1 to 5 against the fixed build, after the last production change; name the commit
-  by its Conventional Commit subject.
+  by its Conventional Commit subject. Stamp the start and the end of every request, request 5 included.
 
 ## Failures and Follow-up
 

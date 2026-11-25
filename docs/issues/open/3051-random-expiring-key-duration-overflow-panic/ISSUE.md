@@ -9,7 +9,7 @@ github-issue: 3051
 spec-path: docs/issues/open/3051-random-expiring-key-duration-overflow-panic/ISSUE.md
 branch: "3051-random-expiring-key-duration-overflow-panic-spec"
 related-pr: null
-last-updated-utc: "2026-11-25 14:37"
+last-updated-utc: "2026-11-25 14:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -95,7 +95,14 @@ which are whole seconds; the doc says so.
 
 The generation failure of `generate_expiring_peer_key` maps to `PeerKeyError::DurationOverflow`; a database
 failure maps to `PeerKeyError::DatabaseError`. The REST `generate_key` adapter reuses `map_peer_key_error`, so
-both REST paths yield `AuthKeyError::DurationOverflow` and the existing `400` response.
+both REST paths yield `AuthKeyError::DurationOverflow`.
+
+The deprecated generate-key endpoint needs one more change to answer `400`: `generate_auth_key_handler`
+(`axum-rest-api-server/src/v1/context/auth_key/handlers.rs`) answers every `AuthKeyError` with
+`failed_to_generate_key_response`, a `500`, and a test pins that. It gets a `DurationOverflow` arm that answers with the
+existing `invalid_auth_key_duration_response` (`400`), as `add_auth_key_handler` does; its doc comment lists the
+`400`. Until now the overflow could not reach this handler (it panicked first), so no response that clients get
+today changes: the other errors keep their `500`.
 
 ## Scope
 
@@ -103,18 +110,25 @@ both REST paths yield `AuthKeyError::DurationOverflow` and the existing `400` re
 
 - `key::generate_key`, `key::DurationOverflow` and the `From` impl; update the `# Panics` doc, the doctests and
   the `#[cfg(test)]` helpers in `key/mod.rs`.
-- `KeysHandler::generate_expiring_peer_key` and `add_peer_key` (random branch); the other callers: tests in
-  `tracker-core`, `axum-http-server`, `axum-rest-api-server`, `http-core` and `persistence-benchmark`.
+- `KeysHandler::generate_expiring_peer_key`, the `pub(crate)` `generate_permanent_peer_key` and `add_peer_key` (the
+  random branch, and the permanent branch, which calls `generate_permanent_peer_key`, whose error type changes
+  with `generate_expiring_peer_key`'s); the other callers: tests in `tracker-core`, `axum-http-server`,
+  `axum-rest-api-server` and `http-core`, and the `persistence-benchmark` binary
+  (`src/bin/persistence_benchmark/driver_bench/operations/keys.rs`).
 - `rest-api-runtime-adapter` `generate_key` error mapping.
+- `axum-rest-api-server` `generate_auth_key_handler`: the `DurationOverflow` arm, its doc comment and the
+  handler tests.
 - Regression tests listed below.
 
 ### Out of Scope
 
 - Splitting or renaming `PeerKeyError` (maintainer remark: it is generic and does not say whether a failure is a
   parse, construction or usage error). Candidate follow-up issue; not decided here.
-- Changing the REST response bodies or status codes.
+- Changing any REST response body or status code that clients receive today: the `400` for the overflow is new only
+  because the overflow panicked before (see the Decision).
 - Any other `unwrap()` in the workspace.
-- Durations above `i64::MAX` seconds that still fit the clock: the stores reject them on insert, so the client gets a
+- Keys whose expiry (now plus the duration) is above `i64::MAX` seconds but still fits the clock: the stores convert
+  the expiry, not the duration, so the `500` range starts at `i64::MAX` minus the current time; the client gets a
   `500` instead of a duration error, with no panic. A different root cause (the persistence range), found by the
   automated review of the spec PR and tracked in #3055. This issue's tests use `u64::MAX`, which overflows the clock.
 
@@ -151,6 +165,7 @@ servers:
 | `KeysHandler::generate_expiring_peer_key` (unit) | overflow returns `PeerKeyError::DurationOverflow`; a database failure still returns `DatabaseError` | The public API whose error type changes.                       |
 | REST contract: `POST /api/v1/keys` random key | `400` with "invalid auth key duration" for `u64::MAX`                               | Reachable behavior; the adapter mapping has no unit tests today. |
 | REST contract: generate-key endpoint   | the same `400` for `u64::MAX`                                                            | The second path, which today maps to `Database`.               |
+| `generate_auth_key_handler` (unit)     | `DurationOverflow` answers `400`; the existing `500` cases keep passing                     | The handler arm; the existing test pins `500` for the other errors. |
 
 The handler and contract tests are written first and run red against the unfixed code (the handler test panics;
 the contract tests get an empty reply or the wrong error). The `generate_key` unit test does not compile until the
@@ -177,7 +192,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3    | Production change, callers, the `generate_key` unit test      | Commit after focused validation and required review. |
 | T4    | Green and recheck evidence                                   | Commit after focused validation and required review. |
 
-Tests follow the `write-unit-test` skill; the test-design review is recorded in the PR description.
+Tests follow the `write-unit-test` skill. The test-design review (the prose-first Arrange-Act-Assert comparison) of
+each passing increment is recorded in `test-design-review.md` in this folder, before maintainer review and
+commit.
 
 ## Progress Tracking
 
@@ -201,6 +218,7 @@ Tests follow the `write-unit-test` skill; the test-design review is recorded in 
 - 2026-11-25 14:15 UTC - Claude Code (Claude Sonnet 5.5) - Drafted the spec, reproduced the bug, maintainer chose the fix at the seam with a dedicated `DurationOverflow` type - [evidence](manual-verification-evidence.md)
 - 2026-11-25 14:20 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the spec; GitHub issue #3051 created; spec-only PR next
 - 2026-11-25 14:37 UTC - Claude Code (Claude Sonnet 5.5) - Review finding on the persistence range accepted as a separate issue #3055; recorded under Out of Scope
+- 2026-11-25 14:55 UTC - Claude Code (Claude Sonnet 5.5) - Spec revised for the `da2ce7` review of PR #3054: generate-key handler arm added to the scope and the plan, review-location and evidence wording fixed
 
 ## Acceptance Criteria
 
@@ -229,9 +247,9 @@ Tests follow the `write-unit-test` skill; the test-design review is recorded in 
 
 | ID  | Scenario                                       | Human-oriented command/steps                                                                  | Expected Result                                          | Status | Evidence                                      |
 | --- | ---------------------------------------------- | --------------------------------------------------------------------------------------------- | -------------------------------------------------------- | ------ | --------------------------------------------- |
-| M1  | Before the fix: three requests on a real tracker | `curl` the two random-key requests and the pre-generated control (see evidence file)          | Empty replies for the random paths, `400` for the control | DONE   | `manual-verification-evidence.md` section V1   |
+| M1  | Before the fix: five requests on a real tracker | `curl` the five requests of V1: the control (request 1), the two random-key requests, the pre-generated request and the stats check | Empty replies for requests 2 and 4, `400` for request 3, `200` for 1 and 5 | DONE   | `manual-verification-evidence.md` section V1   |
 | M2  | Before the fix: handler test                   | Temporary test, `cargo test -p torrust-tracker-core`                                          | Panic at `key/mod.rs:111`                                | DONE   | `manual-verification-evidence.md` section V2   |
-| M3  | After the fix: the same requests as M1         | The same commands against the fixed build                                                     | `400` "invalid auth key duration" for all three          | TODO   | `manual-verification-evidence.md` section V3   |
+| M3  | After the fix: the same five requests as M1    | The same commands against the fixed build                                                     | `400` "invalid auth key duration" for requests 2, 3 and 4; `200` for 1 and 5 | TODO   | `manual-verification-evidence.md` section V3   |
 
 The M3 recheck runs after the last production change, including changes made for review findings.
 
@@ -255,6 +273,10 @@ The M3 recheck runs after the last production change, including changes made for
 ## Implementation Completion Review
 
 - Retrospective: `Not yet assessed`
+- After implementation, compare the result with this specification. Create `implementation-retrospective.md` from
+  `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this folder when there are invalidated assumptions, material
+  design changes, unexpected validation findings or reusable lessons; otherwise add a progress-log entry that says
+  why the work had no material discovery.
 
 ## References
 
