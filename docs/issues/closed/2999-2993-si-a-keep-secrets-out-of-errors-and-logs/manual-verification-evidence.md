@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2999-2993-si-a-keep-secrets-out-of-errors-and-logs/ISSUE.md
-last-updated-utc: "2026-11-25 11:34"
+issue-spec: docs/issues/closed/2999-2993-si-a-keep-secrets-out-of-errors-and-logs/ISSUE.md
+last-updated-utc: "2026-11-25 13:29"
 ---
 
 # Manual Verification Evidence
@@ -17,7 +17,7 @@ the finished build. Every output below comes from a command actually run.
 ## Preserving Verification Artifacts
 
 - [`evidence/baseline-output.txt`](evidence/baseline-output.txt): the complete output of the EPIC
-  script [`reproduce.sh`](../2993-secrets-and-client-error-text/evidence/reproduce.sh) on the
+  script [`reproduce.sh`](../../open/2993-secrets-and-client-error-text/evidence/reproduce.sh) on the
   starting commit. One edit: the scratch work directory is shown as `<work-dir>`. The script
   replaces the generated key of V4 by `<the generated key>` itself.
 

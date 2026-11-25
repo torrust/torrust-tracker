@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: in-review
+status: done
 priority: p1
 epic: 2993
 github-issue: 2999
-spec-path: docs/issues/open/2999-2993-si-a-keep-secrets-out-of-errors-and-logs/ISSUE.md
+spec-path: docs/issues/closed/2999-2993-si-a-keep-secrets-out-of-errors-and-logs/ISSUE.md
 branch: "2999-si-a-keep-secrets-out-of-errors-and-logs"
 related-pr: 3042
-last-updated-utc: "2026-11-25 11:34"
+last-updated-utc: "2026-11-25 13:29"
 semantic-links:
   skill-links:
     - create-issue
@@ -29,7 +29,7 @@ semantic-links:
 
 # Issue #2999 - SI-A Keep secrets out of errors, logs and output
 
-Parent EPIC: [Keep secrets out of errors, logs and client replies, and make client error text safe](../2993-secrets-and-client-error-text/EPIC.md) (#2993). Sub-issue SI-A.
+Parent EPIC: [Keep secrets out of errors, logs and client replies, and make client error text safe](../../open/2993-secrets-and-client-error-text/EPIC.md) (#2993). Sub-issue SI-A.
 
 ## Goal
 
@@ -37,7 +37,7 @@ No error value keeps a peer authentication key or a REST API admin token, no err
 
 ## Background
 
-The inventory of the EPIC (section "Inventory", items A1 to A12) lists every case found in the tree and reproduced on a running tracker. This issue owns the cases that are secrets: A1 to A8, A10 and A12 (a database server message that holds the key). A9, a documentation fix, belongs here too. A11 (database server messages that name the user and host) is owned by SI-B. The commands and output of the reproductions are in the EPIC's [`manual-verification-evidence.md`](../2993-secrets-and-client-error-text/manual-verification-evidence.md). The inventory was rechecked against `develop` `6bc417424` on 2026-11-23 (nothing fixed; corrections and missed cases folded into this specification and the EPIC rows).
+The inventory of the EPIC (section "Inventory", items A1 to A12) lists every case found in the tree and reproduced on a running tracker. This issue owns the cases that are secrets: A1 to A8, A10 and A12 (a database server message that holds the key). A9, a documentation fix, belongs here too. A11 (database server messages that name the user and host) is owned by SI-B. The commands and output of the reproductions are in the EPIC's [`manual-verification-evidence.md`](../../open/2993-secrets-and-client-error-text/manual-verification-evidence.md). The inventory was rechecked against `develop` `6bc417424` on 2026-11-23 (nothing fixed; corrections and missed cases folded into this specification and the EPIC rows).
 
 Start condition (maintainer, 2026-11-23): this issue starts after SI-5 of EPIC #2912 (#3001) merges, because both change `packages/configuration/src/lib.rs`. #3001 merged on 2026-11-23. Implementation session: Claude Fable 5.2 at high effort; no other implementation session of this EPIC runs at the same time.
 
@@ -149,9 +149,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -166,6 +166,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-25 08:56 UTC - Claude Code (Claude Fable 5.2), implementation session - Review round 4 (da2ce7, changes requested on the head before the round 3 fix): its two major findings are the ones CodeRabbit raised and round 3 fixed (the key after an empty path segment, the TOML syntax error), so they need no further change; its nit is fixed here: the two entries above stamped 08:27 and 08:28 are now in stamp order.
 - 2026-11-25 09:07 UTC - Claude Code (Claude Fable 5.2), implementation session - Review round 5 (Greptile, two findings; da2ce7, one): the path redaction finds the end of the secret once instead of scanning the rest of the path for every segment (a slash-only path of 60000 bytes took 658 ms in the logging callback, now 1 ms), the `use-rest-api` skill no longer says the header keeps a token out of the shell history, and the audit holds rows for every review thread. The recheck was repeated (evidence section R5). This is the fifth round of review fixes, the limit after which the session stops and asks the maintainer.
 - 2026-11-25 11:34 UTC - Claude Code (Claude Fable 5.2), implementation session - Review round 6, run on the maintainer's word ("Round 6 now") after the five-round limit: CodeRabbit's two minor findings and da2ce7's two nits (he approved the head). The documents say the header keeps the token out of the URL, not out of every log; a test comment and two audit details were corrected. No production code changed, so the round 5 recheck stands (evidence section R6).
+- 2026-11-25 13:29 UTC - Claude Code (Claude Sonnet 5.5), implementation session - Pull request 3042 was merged into `develop` on 2026-11-25 at 13:28 UTC (merge commit `cad54cb9b`, on `develop`) after six rounds of review fixes (evidence sections R1 to R6) and ACKs of the maintainer (<https://github.com/torrust/torrust-tracker/pull/3042#issuecomment-7161743992>) and of da2ce7 (<https://github.com/torrust/torrust-tracker/pull/3042#issuecomment-7161627380>) on the head of the pull request; the review findings are in the audit record `docs/pr-reviews/pr-3042-review/PR-REVIEW.md`; issue #2999 was closed by it at 13:28 UTC. This close-out moves the specification to `docs/issues/closed/`, sets `status: done`, repairs the links to the parent EPIC, and marks the sub-issue done in the EPIC's table.
 
 ## Acceptance Criteria
 
