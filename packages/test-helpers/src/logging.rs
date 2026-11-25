@@ -1,10 +1,12 @@
 //! Setup for logging in tests.
 use std::collections::VecDeque;
 use std::io;
-use std::sync::{Mutex, MutexGuard, Once, OnceLock};
+use std::sync::{Arc, Mutex, MutexGuard, Once, OnceLock};
 
 use torrust_tracker_configuration::v3_0_0::logging::TraceStyle;
+use tracing::Dispatch;
 use tracing::level_filters::LevelFilter;
+use tracing::subscriber::{DefaultGuard, NoSubscriber, set_default};
 use tracing_subscriber::fmt::MakeWriter;
 
 static INIT: Once = Once::new();
@@ -152,5 +154,83 @@ impl CircularBuffer {
     #[must_use]
     pub fn as_vec(&self) -> Vec<u8> {
         self.buffer.iter().copied().collect()
+    }
+}
+
+/// Log records captured on the current thread for the lifetime of this guard.
+///
+/// Unlike [`captured_logs_buffer`], which is global and shared by every test of a binary, the
+/// capture sees only the records the current thread emits while the guard lives, at every level.
+/// Use it with a single-threaded runtime (`#[tokio::test]`), where the code under test runs on the
+/// test thread.
+#[derive(Debug)]
+pub struct ScopedLogCapture {
+    records: Arc<Mutex<Vec<u8>>>,
+    _guard: DefaultGuard,
+}
+
+/// Starts capturing, as plain text without color codes, every record this thread emits until the
+/// returned guard is dropped.
+#[must_use]
+pub fn capture_logs_in_scope() -> ScopedLogCapture {
+    keep_a_second_dispatcher_alive();
+
+    let records = Arc::new(Mutex::new(Vec::new()));
+    let sink = records.clone();
+    let subscriber = tracing_subscriber::fmt()
+        .with_max_level(LevelFilter::TRACE)
+        .with_ansi(false)
+        .with_writer(move || SharedSink(sink.clone()))
+        .finish();
+
+    ScopedLogCapture {
+        records,
+        _guard: set_default(subscriber),
+    }
+}
+
+/// Keeps one more dispatcher registered for the life of the process.
+///
+/// While `tracing` knows a single dispatcher, a callsite reached for the first time from a thread
+/// that has no scoped subscriber caches "never interested", and a capture started on another
+/// thread then misses that callsite's records. With two live dispatchers `tracing` asks all of
+/// them, so tests that run in parallel see their own records.
+fn keep_a_second_dispatcher_alive() {
+    static SECOND_DISPATCHER: OnceLock<Dispatch> = OnceLock::new();
+
+    SECOND_DISPATCHER.get_or_init(|| Dispatch::new(NoSubscriber::default()));
+}
+
+impl ScopedLogCapture {
+    /// The records captured so far, one per line, oldest first.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the capture buffer is poisoned or holds invalid UTF-8.
+    #[must_use]
+    pub fn lines(&self) -> Vec<String> {
+        let records = self.records.lock().expect("the capture buffer is not poisoned");
+
+        String::from_utf8(records.clone())
+            .expect("captured records are UTF-8")
+            .lines()
+            .map(str::to_owned)
+            .collect()
+    }
+}
+
+struct SharedSink(Arc<Mutex<Vec<u8>>>);
+
+impl io::Write for SharedSink {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        self.0
+            .lock()
+            .map_err(|_| io::Error::from(io::ErrorKind::Other))?
+            .extend_from_slice(buf);
+        Ok(buf.len())
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        Ok(())
     }
 }

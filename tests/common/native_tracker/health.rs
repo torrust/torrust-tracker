@@ -7,6 +7,7 @@ use std::net::SocketAddr;
 use torrust_tracker_axum_health_check_api_server::resources::Report;
 
 const STARTED_ON_PREFIX: &str = "Started on: http://";
+const UDP_STARTED_ON_PREFIX: &str = "Started on: udp://";
 const HEALTH_CHECK_LOG_TARGET: &str = "HEALTH CHECK API";
 
 /// A deadline-bounded client for the tracker health-check endpoint.
@@ -62,10 +63,21 @@ pub(super) fn parse_health_check_address(line: &str) -> Option<SocketAddr> {
 
 /// Extracts the address a service logged as `Started on: http://<address>` under `log_target`.
 pub(super) fn parse_started_address(line: &str, log_target: &str) -> Option<SocketAddr> {
+    parse_address_after(line, log_target, STARTED_ON_PREFIX)
+}
+
+/// Extracts the address the UDP tracker logged as `Started on: udp://<address>`.
+// Only the statistics-disabled binary starts a UDP tracker.
+#[allow(dead_code)]
+pub(super) fn parse_started_udp_address(line: &str) -> Option<SocketAddr> {
+    parse_address_after(line, "UDP TRACKER", UDP_STARTED_ON_PREFIX)
+}
+
+fn parse_address_after(line: &str, log_target: &str, prefix: &str) -> Option<SocketAddr> {
     if !line.contains(log_target) {
         return None;
     }
-    let address = line.split_once(STARTED_ON_PREFIX)?.1;
+    let address = line.split_once(prefix)?.1;
     address.parse().ok()
 }
 

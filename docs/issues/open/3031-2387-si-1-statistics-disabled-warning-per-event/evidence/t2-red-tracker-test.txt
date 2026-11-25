@@ -1,0 +1,28 @@
+running 27 tests
+test it_should_not_log_a_warning_or_an_error_for_the_requests_of_trackers_with_statistics_disabled ... FAILED
+
+failures:
+
+---- it_should_not_log_a_warning_or_an_error_for_the_requests_of_trackers_with_statistics_disabled stdout ----
+
+thread 'it_should_not_log_a_warning_or_an_error_for_the_requests_of_trackers_with_statistics_disabled' (621566) panicked at tests/metrics/statistics_disabled_logs.rs:59:5:
+a tracker with statistics disabled logs no WARN and no ERROR for its requests, found:
+2026-11-24T18:08:45.574709Z  WARN UDP TRACKER: Ignoring UDP server event from an unknown or metrics-disabled listener configuration_instance_id=ConfigurationInstanceId { service_role: UdpTracker, instance_index: 0 }
+2026-11-24T18:08:45.574779Z  WARN UDP TRACKER: Ignoring UDP server event from an unknown or metrics-disabled listener configuration_instance_id=ConfigurationInstanceId { service_role: UdpTracker, instance_index: 0 }
+2026-11-24T18:08:45.574838Z  WARN UDP TRACKER: Ignoring UDP server event from an unknown or metrics-disabled listener configuration_instance_id=ConfigurationInstanceId { service_role: UdpTracker, instance_index: 0 }
+2026-11-24T18:08:45.574842Z  WARN UDP TRACKER: Ignoring UDP tracker event from an unknown or metrics-disabled listener configuration_instance_id=ConfigurationInstanceId { service_role: UdpTracker, instance_index: 0 }
+2026-11-24T18:08:45.575404Z  WARN UDP TRACKER: Ignoring UDP server event from an unknown or metrics-disabled listener configuration_instance_id=ConfigurationInstanceId { service_role: UdpTracker, instance_index: 0 }
+2026-11-24T18:08:45.575437Z  WARN UDP TRACKER: Ignoring UDP server event from an unknown or metrics-disabled listener configuration_instance_id=ConfigurationInstanceId { service_role: UdpTracker, instance_index: 0 }
+2026-11-24T18:08:45.575467Z  WARN UDP TRACKER: Ignoring UDP server event from an unknown or metrics-disabled listener configuration_instance_id=ConfigurationInstanceId { service_role: UdpTracker, instance_index: 0 }
+2026-11-24T18:08:45.575470Z  WARN UDP TRACKER: Ignoring UDP tracker event from an unknown or metrics-disabled listener configuration_instance_id=ConfigurationInstanceId { service_role: UdpTracker, instance_index: 0 }
+2026-11-24T18:08:45.575495Z  WARN UDP TRACKER: Ignoring UDP server event from an unknown or metrics-disabled listener configuration_instance_id=ConfigurationInstanceId { service_role: UdpTracker, instance_index: 0 }
+2026-11-24T18:08:45.575530Z  WARN UDP TRACKER: Ignoring UDP server event from an unknown or metrics-disabled listener configuration_instance_id=ConfigurationInstanceId { service_role: UdpTracker, instance_index: 0 }
+2026-11-24T18:08:45.575593Z  WARN UDP TRACKER: Ignoring UDP server event from an unknown or metrics-disabled listener configuration_instance_id=ConfigurationInstanceId { service_role: UdpTracker, instance_index: 0 }
+2026-11-24T18:08:45.575595Z  WARN UDP TRACKER: Ignoring UDP tracker event from an unknown or metrics-disabled listener configuration_instance_id=ConfigurationInstanceId { service_role: UdpTracker, instance_index: 0 }
+2026-11-24T18:08:45.579534Z  WARN HTTP TRACKER: Ignoring HTTP tracker event from an unknown or metrics-disabled listener configuration_instance_id=ConfigurationInstanceId { service_role: HttpTracker, instance_index: 0 }
+
+
+failures:
+    it_should_not_log_a_warning_or_an_error_for_the_requests_of_trackers_with_statistics_disabled
+
+test result: FAILED. 26 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.09s

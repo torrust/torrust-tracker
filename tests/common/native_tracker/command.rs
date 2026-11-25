@@ -34,6 +34,12 @@ tracker_usage_statistics = false
 bind_address = "127.0.0.1:{HEALTH_CHECK_PORT}"
 "#;
 
+const UDP_TRACKER_CONFIGURATION: &str = r#"
+[[udp_trackers]]
+bind_address = "127.0.0.1:0"
+tracker_usage_statistics = false
+"#;
+
 /// Shutdown budgets, in seconds, that a tracker child receives through its
 /// `TORRUST_TRACKER_CONFIG_OVERRIDE_APPLICATION__SHUTDOWN__*` environment variables.
 ///
@@ -63,6 +69,7 @@ pub struct NativeTrackerConfigurationSources {
     environment_toml: Option<u16>,
     health_check_api_bind_address_override: Option<SocketAddr>,
     shutdown_budgets: Option<NativeTrackerShutdownBudgets>,
+    statistics_disabled_udp_tracker: bool,
 }
 
 impl NativeTrackerConfigurationSources {
@@ -74,7 +81,17 @@ impl NativeTrackerConfigurationSources {
             environment_toml: None,
             health_check_api_bind_address_override: None,
             shutdown_budgets: None,
+            statistics_disabled_udp_tracker: false,
         }
+    }
+
+    /// Adds a UDP tracker on a port-zero address with `tracker_usage_statistics = false` to the
+    /// CLI-selected configuration, next to the HTTP tracker that already has it.
+    // See the type-level allowance: only the statistics-disabled binary uses it.
+    #[allow(dead_code)]
+    pub const fn with_statistics_disabled_udp_tracker(mut self) -> Self {
+        self.statistics_disabled_udp_tracker = true;
+        self
     }
 
     /// Adds child-only shutdown budgets; without them the tracker uses its defaults.
@@ -133,6 +150,9 @@ impl NativeTrackerWorkspace {
     pub(super) fn with_configuration_sources(sources: NativeTrackerConfigurationSources) -> Self {
         let workspace = tempfile::tempdir().expect("create temporary tracker workspace");
         let (configuration_path, storage_path) = write_configuration(&workspace, "cli", sources.cli);
+        if sources.statistics_disabled_udp_tracker {
+            append_udp_tracker(&configuration_path);
+        }
         let environment_configuration_path = sources
             .environment_path
             .map(|port| write_configuration(&workspace, "environment-path", port).0);
@@ -184,6 +204,12 @@ pub(super) fn write_configuration(workspace: &tempfile::TempDir, name: &str, hea
     let config_path = workspace.path().join(format!("{name}-tracker.toml"));
     write_configuration_at(&config_path, &storage_path, health_check_port);
     (config_path, storage_path)
+}
+
+fn append_udp_tracker(config_path: &Path) {
+    let mut config = std::fs::read_to_string(config_path).expect("read tracker configuration");
+    config.push_str(UDP_TRACKER_CONFIGURATION);
+    std::fs::write(config_path, config).expect("write tracker configuration with a UDP tracker");
 }
 
 /// Builds a child command whose base configuration is selected only by the CLI.

@@ -9,7 +9,7 @@ github-issue: 3031
 spec-path: docs/issues/open/3031-2387-si-1-statistics-disabled-warning-per-event/ISSUE.md
 branch: "3031-2387-si-1-statistics-disabled-warning-per-event-spec"
 related-pr: null
-last-updated-utc: "2026-11-24 17:00"
+last-updated-utc: "2026-11-25 08:22"
 semantic-links:
   skill-links:
     - create-issue
@@ -159,12 +159,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | TODO | Reproduce with the real binary | Capture of a statistics-disabled tracker that serves one UDP announce and one HTTP announce, showing the `WARN` lines, in `manual-verification-evidence.md` |
-| T2 | TODO | Write the failing regression test | Fixture gains a UDP tracker; tracker-level test and unit tests fail on `develop`; red output recorded |
-| T3 | TODO | Fix the three listeners | Three results, each handled in its own branch |
-| T4 | TODO | Report the state at startup | Start line of the three listeners carries `enabled_instances` and `disabled_instances` |
-| T5 | TODO | Test the unknown-listener case | A unit test asserts the `ERROR` and its fields |
-| T6 | TODO | Recheck with the real binary | Same scenario as T1: no `WARN`, no `ERROR` |
+| T1 | DONE | Reproduce with the real binary | Capture of a statistics-disabled tracker that serves one UDP announce and one HTTP announce, showing the `WARN` lines, in `manual-verification-evidence.md` |
+| T2 | DONE | Write the failing regression test | Fixture gains a UDP tracker; tracker-level test and unit tests fail on `develop`; red output recorded |
+| T3 | DONE | Fix the three listeners | Three results, each handled in its own branch |
+| T4 | DONE | Report the state at startup | Start line of the three listeners carries `enabled_instances` and `disabled_instances` |
+| T5 | DONE | Test the unknown-listener case | A unit test asserts the `ERROR` and its fields |
+| T6 | DONE | Recheck with the real binary | Same scenario as T1: no `WARN`, no `ERROR` |
 
 ## Commit Points
 
@@ -187,12 +187,12 @@ For test-producing work, use the `write-unit-test` skill and complete the design
 - [x] Draft completed by the sub-issue session
 - [x] Draft approved by the maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
+- [x] Spec-only PR merged into `develop` before implementation
+- [x] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
@@ -209,19 +209,23 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 - 2026-11-24 16:00 UTC - Claude Code (Sonnet 5.5), SI-1 session - Completed the draft against `torrust/develop` `23095e3a6`: checked each case of the coordinator, added the check results, the detailed design, the file list, the exact messages, the test boundaries and the operator-visible changes for SI-2. Waiting for the maintainer's approval; no GitHub issue yet.
 - 2026-11-24 16:20 UTC - Claude Code (Sonnet 5.5), SI-1 session - The maintainer approved the completed draft in the session. Created issue #3031 (label `bug`, "Part of EPIC #2387" in the body; the bot account cannot add it as a native sub-issue of #2387, the maintainer links it). Moved the specification to `docs/issues/open/3031-2387-si-1-statistics-disabled-warning-per-event/`.
 - 2026-11-24 17:00 UTC - Claude Code (Sonnet 5.5), SI-1 session - Review round 1 of PR 3032 (CodeRabbit): corrected the row of the check table for `tracker.container.no-persistence.toml`, which does declare one UDP and one HTTP tracker without the per-tracker key (I had read only the first 30 lines of the file).
+- 2026-11-24 18:11 UTC - Claude Code (Sonnet 5.5), SI-1 session - Implemented. Reproduced with the release binary (17 `WARN`), wrote the red tests (three listeners, tracker level), fixed the three listeners (three-way `match`, `TRACE`/`ERROR`, counts on the start lines), rechecked: 0 `WARN`, 0 `ERROR`, counters unchanged with statistics enabled. Evidence in `manual-verification-evidence.md`.
+- 2026-11-24 18:11 UTC - Claude Code (Sonnet 5.5), SI-1 session - Implementation completion review: no material discovery changed the design. Differences from the plan: the log capture helper `capture_logs_in_scope` was added to `packages/test-helpers` (the global buffer there is shared by every test of a binary and captures only `WARN` and above) and `udp-core` gained that crate as a dev-dependency; the native fixture gained `with_statistics_disabled_udp_tracker`. The coordinator's claim about `tracker.container.no-persistence.toml` was already corrected in the specification. No retrospective file.
+- 2026-11-24 18:24 UTC - Claude Code (Sonnet 5.5), SI-1 session - Review round 1 of PR 3043: Greptile (import `Arc` in the log capture helper; assert the tracker exit status in the tracker-level test) and CodeRabbit (the evidence file names issue #3031 with `issue: 3031` instead of a spec path that goes stale when the spec moves to `closed/`). All three were valid and fixed.
+- 2026-11-25 08:22 UTC - Claude Code (Sonnet 5.5), SI-1 session - Review round 2 of PR 3043 (da2ce7, approved with three minor and three nit findings): the disabled-instance tests now also require the records of the instance to be at `TRACE`; the evidence frontmatter has the template key `issue-spec` again; the two statistics-enabled runs, their metrics and the scenario script are kept in `evidence/`; `an HTTP` in one message; the `dead_code` reasons of the fixture; trailing spaces. While looping the tests I found one flaky unit test caused by `tracing` caching "never interested" for a callsite first reached from a thread without a scoped subscriber, and fixed the helper (a second dispatcher kept alive). The release recheck (V2, V3) was repeated after the last production change.
 
 ## Acceptance Criteria
 
-- [ ] AC1: With statistics disabled, handling UDP and HTTP requests logs no `WARN` and no `ERROR`.
-- [ ] AC2: An event from an unknown listener logs one `ERROR` with `service_role` and `instance_index` fields.
-- [ ] AC3: The startup log says for how many instances statistics are enabled and disabled.
-- [ ] AC4: With statistics enabled, the counted metrics are the same as before the change.
-- [ ] AC5: The regression test fails without the fix and passes with it.
+- [x] AC1: With statistics disabled, handling UDP and HTTP requests logs no `WARN` and no `ERROR`.
+- [x] AC2: An event from an unknown listener logs one `ERROR` with `service_role` and `instance_index` fields.
+- [x] AC3: The startup log says for how many instances statistics are enabled and disabled.
+- [x] AC4: With statistics enabled, the counted metrics are the same as before the change.
+- [x] AC5: The regression test fails without the fix and passes with it.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior/workflow changes
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated when behavior/workflow changes (the operator-visible changes are listed in this specification for SI-2; `docs/logging.md` does not exist yet)
 
 ## Verification Plan
 
@@ -237,9 +241,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | Reproduce the defect | Start the release tracker with `tracker_usage_statistics = false` in every tracker; send one UDP announce and one HTTP announce with the tracker client; stop it with `SIGTERM`; count the `WARN` lines | Before the fix: one or more `WARN` for each request | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | Recheck after the fix | Same steps on the fixed binary | No `WARN`, no `ERROR`; the start lines show the disabled state | TODO | `manual-verification-evidence.md` section V2 |
-| M3 | Statistics enabled | Same steps with the unchanged development configuration; read the metrics from the REST API | Counters increase as before the change | TODO | `manual-verification-evidence.md` section V3 |
+| M1 | Reproduce the defect | Start the release tracker with `tracker_usage_statistics = false` in every tracker; send one UDP announce and one HTTP announce with the tracker client; stop it with `SIGTERM`; count the `WARN` lines | Before the fix: one or more `WARN` for each request | DONE | `manual-verification-evidence.md` section V1 |
+| M2 | Recheck after the fix | Same steps on the fixed binary | No `WARN`, no `ERROR`; the start lines show the disabled state | DONE | `manual-verification-evidence.md` section V2 |
+| M3 | Statistics enabled | Same steps with the unchanged development configuration; read the metrics from the REST API | Counters increase as before the change | DONE | `manual-verification-evidence.md` section V3 |
 
 Notes:
 
@@ -249,17 +253,17 @@ Notes:
 
 ### Disposable Verification Scripts
 
-None planned. If one is needed, record its path, purpose and removal owner here before creating it.
+One scenario script was used for the manual runs: `evidence/run-scenario.sh` in this folder. Purpose: start the release binary with a configuration, send the requests of M1 to M3, stop it with `SIGTERM` and count the log lines. It is not an automatic test (the maintained tests are the unit tests and `tests/metrics/statistics_disabled_logs.rs`) and it stays with the evidence as the record of the steps; the owner of this issue removes it only if the evidence folder is pruned at archive time.
 
 ### Acceptance Verification
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | --- | --- | --- |
-| AC1 | TODO | {test/log/PR link} |
-| AC2 | TODO | {test/log/PR link} |
-| AC3 | TODO | {test/log/PR link} |
-| AC4 | TODO | {test/log/PR link} |
-| AC5 | TODO | {test/log/PR link} |
+| AC1 | DONE | `manual-verification-evidence.md` V1 (17 `WARN` before) and V2 (0 after); test `it_should_not_log_a_warning_or_an_error_for_the_requests_of_trackers_with_statistics_disabled` in `tests/metrics/statistics_disabled_logs.rs` |
+| AC2 | DONE | test `it_should_log_one_error_with_the_service_role_and_the_instance_index_for_an_event_of_an_unknown_instance` in each of the three listeners |
+| AC3 | DONE | V2: `enabled_instances=0 disabled_instances=2` on the three start lines; unit test `it_should_report_how_many_instances_have_statistics_enabled_and_disabled_when_starting`; the tracker-level test counts three such lines |
+| AC4 | DONE | V3: identical Prometheus counters before and after with statistics enabled; the existing enabled-instance tests still pass |
+| AC5 | DONE | `evidence/t2-red-unit-tests.txt` and `evidence/t2-red-tracker-test.txt` (red on `develop`), green after the fix |
 
 ## Risks and Trade-offs
 
@@ -270,7 +274,7 @@ None planned. If one is needed, record its path, purpose and removal owner here 
 
 After implementation, compare the result with this specification. Record invalidated assumptions, material design changes, unexpected validation findings, and reusable lessons.
 
-- Retrospective: `Not yet assessed`
+- Retrospective: Not needed; see the progress-log entry of the implementation completion review.
 - If needed, create `implementation-retrospective.md` from `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this issue specification's directory.
 - If no retrospective is needed, add a concise progress-log entry explaining why the work had no material discovery.
 - Send a short final report to the EPIC coordinator: the pull request links and anything that affects another sub-issue.
