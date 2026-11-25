@@ -4,7 +4,9 @@ use std::io;
 use std::sync::{Arc, Mutex, MutexGuard, Once, OnceLock};
 
 use torrust_tracker_configuration::v3_0_0::logging::TraceStyle;
+use tracing::Dispatch;
 use tracing::level_filters::LevelFilter;
+use tracing::subscriber::{DefaultGuard, NoSubscriber, set_default};
 use tracing_subscriber::fmt::MakeWriter;
 
 static INIT: Once = Once::new();
@@ -164,7 +166,7 @@ impl CircularBuffer {
 #[derive(Debug)]
 pub struct ScopedLogCapture {
     records: Arc<Mutex<Vec<u8>>>,
-    _guard: tracing::subscriber::DefaultGuard,
+    _guard: DefaultGuard,
 }
 
 /// Starts capturing, as plain text without color codes, every record this thread emits until the
@@ -183,7 +185,7 @@ pub fn capture_logs_in_scope() -> ScopedLogCapture {
 
     ScopedLogCapture {
         records,
-        _guard: tracing::subscriber::set_default(subscriber),
+        _guard: set_default(subscriber),
     }
 }
 
@@ -194,9 +196,9 @@ pub fn capture_logs_in_scope() -> ScopedLogCapture {
 /// thread then misses that callsite's records. With two live dispatchers `tracing` asks all of
 /// them, so tests that run in parallel see their own records.
 fn keep_a_second_dispatcher_alive() {
-    static SECOND_DISPATCHER: OnceLock<tracing::Dispatch> = OnceLock::new();
+    static SECOND_DISPATCHER: OnceLock<Dispatch> = OnceLock::new();
 
-    SECOND_DISPATCHER.get_or_init(|| tracing::Dispatch::new(tracing::subscriber::NoSubscriber::default()));
+    SECOND_DISPATCHER.get_or_init(|| Dispatch::new(NoSubscriber::default()));
 }
 
 impl ScopedLogCapture {
