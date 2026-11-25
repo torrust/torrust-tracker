@@ -409,6 +409,21 @@ mod tests {
                 }
 
                 #[tokio::test]
+                async fn it_should_fail_adding_a_randomly_generated_key_when_the_key_duration_exceeds_the_maximum_duration() {
+                    let ephemeral = private_tracker_configuration();
+                    let keys_handler = instantiate_keys_handler(&ephemeral.config).await;
+
+                    let result = keys_handler
+                        .add_peer_key(AddKeyRequest {
+                            opt_key: None,
+                            opt_seconds_valid: Some(u64::MAX),
+                        })
+                        .await;
+
+                    assert!(matches!(result.unwrap_err(), PeerKeyError::DurationOverflow { .. }));
+                }
+
+                #[tokio::test]
                 async fn it_should_fail_adding_a_randomly_generated_key_when_there_is_a_database_error() {
                     clock::Stopped::local_set(&Duration::from_secs(0));
 

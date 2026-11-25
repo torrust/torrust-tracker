@@ -115,6 +115,27 @@ test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 302 filtered out
 
 The same panic at the same line, reproduced deterministically.
 
+### V2b - Maintained regression tests, red before the fix
+
+- Goal: show that each regression test of the spec fails for the bug, before any production change.
+- Status: `DONE`
+
+Run on the branch `3051-random-expiring-key-duration-overflow-panic` with only the tests added (no production
+change), stable toolchain, from 19:06:33 to 19:06:34 UTC on 2026-11-25. Four tests of the spec's table fail
+(the `generate_key` unit test is added with the fix, T3, and proven by mutate-then-restore).
+
+| Test                                                                                                    | Command (`cargo test -q -p ...`)                                                | Red result                                                                                       |
+| ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `KeysHandler`: `it_should_fail_adding_a_randomly_generated_key_when_the_key_duration_exceeds_the_maximum_duration` | `torrust-tracker-core --lib duration_exceeds_the_maximum`                      | panics at `packages/tracker-core/src/authentication/key/mod.rs:111:79`                           |
+| `generate_auth_key_handler`: `it_should_answer_bad_request_when_the_duration_of_the_generated_key_overflows` | `torrust-tracker-axum-rest-api-server --lib duration_of_the_generated_key_overflows` | answers `500` `Unhandled rejection ... failed to generate key: duration overflow: 18446744073709551615`, expected `400` |
+| REST contract (`POST /api/v1/keys`): `should_fail_adding_a_random_auth_key_when_the_key_duration_overflows` | `torrust-tracker-axum-rest-api-server --test integration overflows`            | the request handler panics at `key/mod.rs:111:79`, the client gets no response                   |
+| REST contract (`POST /api/v1/key/{seconds}`): `should_fail_generating_an_auth_key_when_the_key_duration_overflows` | same command                                                                    | same panic at `key/mod.rs:111:79`                                                                |
+
+#### Conclusion
+
+All four fail for the reported bug: three on the panic, and the handler test on the missing `400` arm. The
+`it_should_fail_adding_a_randomly_generated_key...` filter also matched an unrelated passing test (`1 passed`).
+
 ### V3 - Like-for-like recheck after the fix
 
 - Status: `TODO`. Repeat V1 steps 1 to 5 against the fixed build, after the last production change; name the commit

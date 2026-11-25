@@ -398,6 +398,18 @@ mod tests {
         );
     }
 
+    #[tokio::test]
+    async fn it_should_answer_bad_request_when_the_duration_of_the_generated_key_overflows() {
+        let state = state_answering(|| Err(AuthKeyError::DurationOverflow { seconds_valid: u64::MAX }), nothing);
+
+        let response = generate_auth_key_handler(state, Path(u64::MAX.to_string())).await;
+
+        assert_eq!(
+            observed(response).await,
+            bad_request(r#"Invalid URL: invalid auth key duration: "18446744073709551615""#)
+        );
+    }
+
     #[rstest]
     #[case::a_database_error((|| Err(database_error())) as KeyOutcome, "failed to generate key: boom")]
     #[case::an_invalid_key(
