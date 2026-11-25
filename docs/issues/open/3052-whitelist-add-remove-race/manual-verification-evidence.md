@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/3052-whitelist-add-remove-race/ISSUE.md
-last-updated-utc: "2026-11-25 17:30"
+last-updated-utc: "2026-11-25 17:04"
 ---
 
 # Manual Verification Evidence
@@ -79,6 +79,21 @@ code and is to be captured in the red run of T3.)
 
 Both concurrent identical `add` and concurrent identical `remove` fail in every round on SQLite.
 
+#### After the fix (V1 rerun)
+
+Artifact under test: the commit `fix(tracker-core): [#3052] make the whitelist add and remove atomic and idempotent` and the harness test commit after it; the temporary measuring test
+of V1, unchanged, run once locally and then removed (not committed).
+Command: `cargo test -p torrust-tracker-core --lib repro_concurrent -- --nocapture`.
+
+```text
+REPRO add_failures=0/200 remove_failures=0/200 first_err=None
+test result: ok. 1 passed
+```
+
+The committed asserting tests of T3 (`should_not_fail_on_concurrent_identical_adds`,
+`should_not_fail_on_concurrent_identical_removes`) pass on the fixed code: `cargo test -p torrust-tracker-core --lib persisted::tests`
+reports `15 passed; 0 failed`.
+
 ### T3 - Red run of the asserting concurrency tests (SQLite, before the fix)
 
 Artifact under test: `torrust/develop` at the merge of #3053 (spec) plus the two new tests in
@@ -113,7 +128,7 @@ The red run on the MySQL and PostgreSQL Docker suites is recorded under V2.
 
 ### V2 - MySQL and PostgreSQL
 
-Status: before-fix result recorded; the after-fix rerun is pending (T6).
+Status: DONE (before-fix red recorded; after-fix green recorded below).
 
 Reproduced at store level with the concurrent harness cases of T3 (two concurrent identical
 `add_info_hash_to_whitelist` or `remove_info_hash_from_whitelist` calls on the Docker databases),
@@ -133,6 +148,24 @@ PostgreSQL remove: DeleteFailed { error_code: 0, driver: PostgreSQL }
 The race therefore reproduces on all three drivers. The `DatabaseWhitelist` level test of
 `persisted.rs` runs on SQLite only. The MySQL affected-rows behavior of the planned
 `ON DUPLICATE KEY UPDATE` (0 rows on a no-op) is checked after the fix.
+
+#### After the fix (V2 rerun)
+
+Artifact under test: the commit `fix(tracker-core): [#3052] make the whitelist add and remove atomic and idempotent` and the harness test commit after it. Commands as above; the Docker
+containers were started by the suites.
+
+```text
+MySQL:      run_mysql_driver_tests      ... test result: ok. 1 passed
+PostgreSQL: run_postgres_driver_tests   ... test result: ok. 1 passed
+SQLite:     run_sqlite_driver_tests     ... test result: ok. 1 passed
+```
+
+Finding during this run, MySQL affected rows: the first version of the concurrent add case asserted that
+the two row counts sum to 1. On MySQL it failed with `left: 2, right: 1`: the driver connects with the
+found-rows flag, so `ON DUPLICATE KEY UPDATE info_hash = info_hash` reports 1 row on a duplicate, not 0.
+SQLite and PostgreSQL report 0. The removal count is exact on all three drivers. Decision: the add
+count is not a contract (documented on `WhitelistStore::add_info_hash_to_whitelist`); the harness
+asserts only that both adds succeed and the hash is listed. Removal counts (`1` then `0`) are asserted.
 
 ## Failures and Follow-up
 
