@@ -241,6 +241,29 @@ drivers (S3) are the largest uncovered area left in the default scopes; the SQLi
 and the error conversions are covered, and the lines left in those files are recorded with their
 reasons in the [test-refactor plans](test-refactor-plans/README.md).
 
+### S3 (MySQL and PostgreSQL drivers)
+
+Measured on 2026-11-24. Base: `develop` at `b81e4512e`. Head: the S3 branch at its commit
+`test(tracker-core): [#2902] cover the constructors of the MySQL and PostgreSQL drivers` (the
+later commits change documentation only). The base columns apply the head without the two test modules.
+
+| Scope | Tests | Lines | Regions | Functions |
+| --- | ---: | ---: | ---: | ---: |
+| Unit-only, base | 281 unit | 5,152 / 5,913 (87.13%) | 5,694 / 6,607 (86.18%) | 901 / 1,097 (82.13%) |
+| Unit-only, S3 | 287 unit | 5,176 / 5,925 (87.36%) | 5,724 / 6,621 (86.45%) | 909 / 1,101 (82.56%) |
+| Integration-only, base and S3 | 15 integration | 827 / 1,876 (44.08%) | 712 / 1,997 (35.65%) | 145 / 477 (30.40%) |
+| Aggregate, base | 281 unit + 15 integration | 5,152 / 5,913 (87.13%) | 5,694 / 6,607 (86.18%) | 901 / 1,097 (82.13%) |
+| Aggregate, S3 | 287 unit + 15 integration | 5,186 / 5,935 (87.38%) | 5,724 / 6,621 (86.45%) | 909 / 1,101 (82.56%) |
+| Unit-only without `db-compatibility-tests`, base | 279 unit | 5,138 / 5,589 (91.93%) | 5,680 / 6,299 (90.17%) | 897 / 1,059 (84.70%) |
+| Unit-only without `db-compatibility-tests`, S3 | 285 unit | 5,172 / 5,611 (92.18%) | 5,710 / 6,313 (90.45%) | 905 / 1,063 (85.14%) |
+
+The slice adds six tests in `mysql/mod.rs` and `postgres/mod.rs` and nothing else is measured
+differently. The aggregate at S3 is ten lines above the unit-only figure (five per driver file) with
+identical regions and functions; at the base the two were equal. This was not investigated further: the
+extra lines are in the new test modules, and no region or function differs. The MySQL and PostgreSQL
+store files stay at 0% in every default scope; their coverage comes from the container suites run by
+`db-compatibility.yaml`, which the published coverage report leaves out (the separate issue of Q2).
+
 ## Test-Technique Assessment (initial)
 
 | Technique | Applicability | Initial decision |
