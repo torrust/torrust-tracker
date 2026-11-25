@@ -118,8 +118,8 @@ Return:
 5. Issue spec updates made
 6. Overall result: `REVIEW PASSED` when no required criterion fails and no blocking issue
    remains, `REVIEW FAILED` when any required criterion fails or a blocking issue remains. Only
-   one `PENDING` criterion does not fail the review: one whose evidence comes from a later task,
-   which is listed with that reason. Any other `PENDING` required criterion (partial, unclear or
+   one kind of `PENDING` criterion does not fail the review: one whose evidence comes from a
+   later task, which is listed with that reason. Any other `PENDING` required criterion (partial, unclear or
    without evidence) gives `REVIEW FAILED`.
 
 ## Recording The Review
@@ -133,7 +133,10 @@ When the task carries the line that names a reply file (decision D17 of issue #2
 review there as one JSON file, after you update the verified checkboxes and before you finish. The
 path is the one the line gives: `agent-replies/<agent>-<subject>-r<round>.json` in the folder of
 the issue specification, with `task-reviewer` as the agent, the task in lower case (`t5`) or
-`pr<number>` as the subject, and the round counted from 1 (decision D18). The fields:
+`pr<number>` as the subject, and the round counted from 1 (decision D18). The rounds go from 1
+to 3, and the validator refuses a name with a higher round: when the line names a round above 3,
+or a fourth review would be needed, write no file, say so in your final message and leave it to
+the caller to stop and ask the maintainer. The fields:
 
 - `schema-version`: 1; `agent`: `task-reviewer`; `model`: the full model ID you ran on;
   `subject` and `round`: the same as in the file name; `created-utc`: the time, from `date -u`.
@@ -144,7 +147,10 @@ the issue specification, with `task-reviewer` as the agent, the task in lower ca
   (`Blocker`, `Major`, `Minor`, `Nit` or `Suggestion`), a `location` and a `description` that
   carries the remediation.
 - `questions`: what the contributor must answer, one text each, or an empty list.
-- `evidence`: the commands you ran and what they showed, one text each.
+- `evidence`: the commands you ran and what they showed, one text each, and the acceptance
+  criteria matrix of the Output (item 2), one text per criterion with its `PASS`, `FAIL` or
+  `PENDING` result and its evidence, passing criteria included, so the mapping from criteria to
+  evidence stays in the reply even when `findings` is empty.
 
 Check the file with the validator before you finish:
 
