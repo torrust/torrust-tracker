@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/3052-whitelist-add-remove-race/ISSUE.md
-last-updated-utc: "2026-11-25 17:29"
+last-updated-utc: "2026-11-25 19:57"
 ---
 
 # Manual Verification Evidence

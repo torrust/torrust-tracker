@@ -169,6 +169,7 @@ notice that automated review is disabled for fork pull requests and has no row. 
 
 - 2026-11-25 17:27 UTC - da2ce7's approval 6062055409 arrived with nine inline findings (F1 to F9).
 - 2026-11-25 17:38 UTC - Fixed F1 to F8 in one commit and pushed it; created this record from the template before replying; F9 needs no change here.
+- 2026-11-25 19:57 UTC - The branch was rebased onto develop after the maintainer merge failed its pre-push tests (see the spec progress log); commit ids cited in review texts before this entry belong to the pre-rebase history, and this record cites commits by subject.
 
 ## Completion Rules
 
