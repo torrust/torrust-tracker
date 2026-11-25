@@ -42,6 +42,8 @@ approves it. A group of declaration-only files may share one plan.
 | 15 | [databases-setup-tests.md](databases-setup-tests.md) | DONE | Plan approved 2026-11-23; the server arms stay with S3; completed file approved 2026-11-23 |
 | 16 | [tracker-core-error-tests.md](tracker-core-error-tests.md) | DONE | Plan approved 2026-11-23; the four conversions and their messages; completed file approved 2026-11-23 |
 | 17 | [databases-driver-mod-and-traits-no-change.md](databases-driver-mod-and-traits-no-change.md) | DONE | No change for rows 16 and 17, approved 2026-11-23 |
+| 18 | [databases-server-drivers-tests.md](databases-server-drivers-tests.md) | DONE | Plan approved 2026-11-24 (instant tests only, Q8: an unreachable endpoint takes 30 s); completed file approved 2026-11-24 |
+| 19 | [authentication-handler-tests.md](authentication-handler-tests.md) | DONE | Plan approved 2026-11-25; the failure and replace orderings of remove and load; completed file approved 2026-11-25 |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 

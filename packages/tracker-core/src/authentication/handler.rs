@@ -762,4 +762,127 @@ mod tests {
             }
         }
     }
+
+    mod the_keys_handler_with_a_failing_or_changing_database {
+        use std::sync::Arc;
+
+        use torrust_tracker_primitives::Driver;
+
+        use crate::authentication::PeerKey;
+        use crate::authentication::handler::KeysHandler;
+        use crate::authentication::key::generate_key;
+        use crate::authentication::key::repository::in_memory::InMemoryKeyRepository;
+        use crate::authentication::key::repository::persisted::DatabaseKeyRepository;
+        use crate::databases::error::Error;
+        use crate::databases::{AuthKeyStore, MockAuthKeyStore};
+
+        /// A handler over `store` and an in-memory repository holding `keys`, which the test keeps.
+        async fn handler_over(store: MockAuthKeyStore, keys: &[&PeerKey]) -> (KeysHandler, Arc<InMemoryKeyRepository>) {
+            let store: Arc<dyn AuthKeyStore> = Arc::new(store);
+            let db_key_repository = Arc::new(DatabaseKeyRepository::new(&store));
+            let in_memory_key_repository = Arc::new(InMemoryKeyRepository::default());
+            for key in keys {
+                in_memory_key_repository.insert(key).await;
+            }
+
+            (
+                KeysHandler::new(&db_key_repository, &in_memory_key_repository),
+                in_memory_key_repository,
+            )
+        }
+
+        #[tokio::test]
+        async fn it_should_keep_the_key_in_memory_when_removing_it_from_the_database_fails() {
+            // Arrange
+            let peer_key = generate_key(None);
+            let mut store = MockAuthKeyStore::new();
+            store.expect_remove_key_from_keys().times(1).returning(|_key| {
+                Box::pin(async {
+                    Err(Error::DeleteFailed {
+                        error_code: 1,
+                        driver: Driver::Sqlite3,
+                    })
+                })
+            });
+            let (keys_handler, in_memory_keys) = handler_over(store, &[&peer_key]).await;
+
+            // Act
+            let result = keys_handler.remove_peer_key(&peer_key.key()).await;
+
+            // Assert
+            assert!(
+                matches!(
+                    result,
+                    Err(Error::DeleteFailed {
+                        driver: Driver::Sqlite3,
+                        ..
+                    })
+                ),
+                "a failed database removal should be returned, got {result:?}"
+            );
+            assert_eq!(
+                in_memory_keys.get(&peer_key.key()).await,
+                Some(peer_key),
+                "the key should stay in memory when the database could not remove it"
+            );
+        }
+
+        #[tokio::test]
+        async fn it_should_keep_the_in_memory_keys_when_loading_from_the_database_fails() {
+            // Arrange
+            let peer_key = generate_key(None);
+            let mut store = MockAuthKeyStore::new();
+            store.expect_load_keys().times(1).returning(|| {
+                Box::pin(async {
+                    Err(Error::MalformedDatabaseRecord {
+                        message: "corrupt key".to_string(),
+                        driver: Driver::Sqlite3,
+                    })
+                })
+            });
+            let (keys_handler, in_memory_keys) = handler_over(store, &[&peer_key]).await;
+
+            // Act
+            let result = keys_handler.load_peer_keys_from_database().await;
+
+            // Assert
+            assert!(
+                matches!(result, Err(Error::MalformedDatabaseRecord { .. })),
+                "a failed database load should be returned, got {result:?}"
+            );
+            assert_eq!(
+                in_memory_keys.get(&peer_key.key()).await,
+                Some(peer_key),
+                "the in-memory keys should stay when the database could not be loaded"
+            );
+        }
+
+        #[tokio::test]
+        async fn it_should_replace_the_in_memory_keys_with_the_keys_in_the_database() {
+            // Arrange
+            let stale_key = generate_key(None);
+            let stored_key = generate_key(None);
+            let keys_in_database = vec![stored_key.clone()];
+            let mut store = MockAuthKeyStore::new();
+            store
+                .expect_load_keys()
+                .times(1)
+                .return_once(move || Box::pin(std::future::ready(Ok(keys_in_database))));
+            let (keys_handler, in_memory_keys) = handler_over(store, &[&stale_key]).await;
+
+            // Act
+            let result = keys_handler.load_peer_keys_from_database().await;
+
+            // Assert
+            assert!(result.is_ok(), "loading the database keys should succeed, got {result:?}");
+            assert_eq!(
+                (
+                    in_memory_keys.get(&stale_key.key()).await,
+                    in_memory_keys.get(&stored_key.key()).await
+                ),
+                (None, Some(stored_key)),
+                "the keys in memory should be exactly the keys in the database"
+            );
+        }
+    }
 }
