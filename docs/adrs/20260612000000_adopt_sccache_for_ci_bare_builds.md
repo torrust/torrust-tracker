@@ -4,6 +4,8 @@ semantic-links:
     - create-adr
   related-artifacts:
     - issue #1726
+    - .github/actions/enable-sccache/action.yml
+    - "issue #3019"
     - .github/workflows/testing.yaml
     - .github/workflows/os-compatibility.yaml
     - .github/workflows/db-compatibility.yaml
@@ -78,6 +80,36 @@ Add `sccache` to all non-Docker CI jobs that compile Rust, specifically:
 **Risk**: The `CARGO_INCREMENTAL=0` env var disables incremental compilation, which may slow
 down iterative local development. Within CI, this is acceptable because every job starts from
 scratch anyway.
+
+### Amendment (2026-11-24): Build Without `sccache` When Its Server Does Not Start
+
+On 2026-11-23, four bare CI jobs failed before compiling anything, with
+`sccache: error: Timed out waiting for server startup` (issue #3019). The `sccache` client
+waits at most 10 seconds for its server, and with the GitHub Actions cache backend the server
+talks to the cache service while it starts. When that service is slow, the first `cargo`
+command fails, and so does the job. A cache is an optimization: when it is unavailable, the
+job must build slower, not fail.
+
+So the `Enable sccache` step above is replaced by the local composite action
+`.github/actions/enable-sccache`, used after `mozilla-actions/sccache-action`:
+
+- It runs `sccache --start-server` with `SCCACHE_GHA_ENABLED=true` and
+  `SCCACHE_IDLE_TIMEOUT=0` in the step environment, because the server selects its cache
+  backend when it starts.
+- When the server starts, it exports `RUSTC_WRAPPER=sccache`, `SCCACHE_GHA_ENABLED=true` and
+  `SCCACHE_IDLE_TIMEOUT=0`. With no idle timeout the server lives for the whole job, so no later
+  compile starts a new server without this check.
+- When the server does not start, it stops any server that may still come up late, exports
+  nothing for `sccache`, and shows a `sccache disabled` warning annotation. The job builds
+  without the cache.
+- It exports `CARGO_INCREMENTAL=0` in both cases.
+
+`SCCACHE_IGNORE_SERVER_IO_ERROR` was not used: in sccache v0.20.0 it only applies when the
+client fails to read a compile response from a server that is already running. The startup
+timeout returns from `connect_or_start_server` before that, so the variable does not prevent
+the failure. A local reproduction confirmed it (issue #3019, `manual-verification-evidence.md`).
+Retrying the startup was also rejected: each attempt adds up to 10 seconds against a service
+that is already failing, while a build without the cache has a known cost.
 
 ### Reject: Local development
 

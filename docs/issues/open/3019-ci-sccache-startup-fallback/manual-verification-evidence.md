@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/3019-ci-sccache-startup-fallback/ISSUE.md
-last-updated-utc: "2026-11-24 07:28"
+last-updated-utc: "2026-11-24 18:50"
 ---
 
 # Manual Verification Evidence
@@ -153,19 +153,96 @@ reliable check, and the build passes without the wrapper.
 
 ### V3 - Hosted red run
 
-- Status: `TODO`
+- Status: `DONE`
+- First attempt, on a `josecelano-bot` fork branch: branch `3019-verify-red`, upstream
+  `develop` at the merge of PR #3020 plus one temporary commit that adds a step to the `unit`
+  job of `testing.yaml`. The step writes `server_startup_timeout_ms = 1` to a config file and
+  exports `SCCACHE_CONF` before the sccache steps. On 2026-11-24 at 13:05 UTC the push
+  succeeded, but no workflow run started: the commit's only check suite belongs to the `claude`
+  app, with no GitHub Actions suite. The fork's Actions permissions report `enabled: true` and
+  `allowed_actions: all`, and the fork's latest workflow run on any branch is from 2026-10-30.
+- The maintainer then chose a throwaway draft PR from the same branch:
+  <https://github.com/torrust/torrust-tracker/pull/3033>. `Testing` run
+  <https://github.com/torrust/torrust-tracker/actions/runs/45444358221>:
+  - `Unit (nightly)`, job 138630276169: **failure** after 23 s. Its log shows
+    `sccache: error: Timed out waiting for server startup. Maybe the remote service is unreachable?`,
+    the error of the 2026-11-23 failures, and the post step reports
+    `Cache location ghac`, so the GitHub Actions cache backend was selected.
+  - `Unit (stable)`, job 138630276239: cancelled when the nightly job failed (matrix fail-fast),
+    so it gives no result of its own.
+- Conclusion: the forced timeout reproduces the original failure on the hosted runner with the
+  current `Enable sccache` step (red).
 
 ### V4 - Hosted green run
 
-- Status: `TODO`
+- Status: `DONE`
+- Throwaway draft PR <https://github.com/torrust/torrust-tracker/pull/3034>: the implementation
+  branch plus the same temporary commit as V3. `Testing` run
+  <https://github.com/torrust/torrust-tracker/actions/runs/45444371578>:
+  - `Unit (nightly)`, job 138630252048: **success** (17:16:33 to 17:30:15 UTC).
+  - `Unit (stable)`, job 138630251811: **success** (17:17:09 to 17:32:32 UTC).
+  - In both jobs the `Enable sccache` step logs
+    `sccache: error: Timed out waiting for server startup`, then the job keeps building. The run
+    shows the warning annotation `sccache disabled: The sccache server did not start, so this job
+    builds without the compilation cache. See issue #3019.`
+  - The post step reports `Cache location Local disk` and `0 hits, 0 misses`: no `sccache`
+    wrapper was used, and the post-step server did not need the cache service.
+- Conclusion: with the fix, the same forced timeout costs the cache, not the job (green).
 
 ### V5 - Hosted normal run
 
-- Status: `TODO`
+- Status: `DONE`
+- PR <https://github.com/torrust/torrust-tracker/pull/3040>, first head, no temporary commit.
+  All workflow runs passed: `Testing` 45452040750, `OS Compatibility` 45452040716,
+  `Database Compatibility` 45452040507, `Database Benchmarking` 45452040796. `Docker E2E` and
+  the coverage package jobs were skipped, as expected for a pull request to `develop` (V6).
+- No job showed the `sccache disabled` warning. The post step of each job reported these
+  `sccache stats` annotations:
+
+| Job                                       | Hit rate | Hits | Misses | Errors |
+| ----------------------------------------- | -------- | ---- | ------ | ------ |
+| `Unit (nightly)`                          | 36 %     | 1144 | 1434   | 607    |
+| `Unit (stable)`                           | 45 %     | 1348 | 1134   | 491    |
+| `Build on ubuntu-latest (nightly)`        | 59 %     | 623  | 307    | 124    |
+| `Build on ubuntu-latest (stable)`         | 48 %     | 572  | 356    | 262    |
+| `Build on macos-latest (nightly)`         | 21 %     | 243  | 687    | 222    |
+| `Build on macos-latest (stable)`          | 30 %     | 309  | 619    | 113    |
+| `Build on windows-latest (nightly)`       | 15 %     | 139  | 653    | 122    |
+| `Build on windows-latest (stable)`        | 0 %      | 0    | 790    | 244    |
+| `Database Compatibility MySQL (8.0)`      | 65 %     | 392  | 106    | 102    |
+| `Database Compatibility MySQL (8.4)`      | 27 %     | 190  | 308    | 208    |
+| `Database Compatibility PostgreSQL (14)`  | 89 %     | 466  | 32     | 28     |
+| `Database Compatibility PostgreSQL (15)`  | 68 %     | 400  | 98     | 94     |
+| `Database Compatibility PostgreSQL (16)`  | 67 %     | 399  | 99     | 99     |
+| `Database Compatibility PostgreSQL (17)`  | 65 %     | 384  | 114    | 96     |
+| `Persistence Benchmark SQLite3`           | 26 %     | 184  | 311    | 203    |
+| `Persistence Benchmark MySQL`             | 50 %     | 289  | 206    | 79     |
+| `Persistence Benchmark PostgreSQL`        | 29 %     | 201  | 294    | 206    |
+
+- The full stats of `Unit (nightly)` report `cache_location: ghac` (the GitHub Actions cache
+  backend) and `version: 0.20.1`: `mozilla-actions/sccache-action` now installs sccache v0.20.1,
+  not the v0.20.0 read for the analysis. The errors are `cache_read_errors` (607) and
+  `cache_write_errors` (789): the cache service failed requests.
+- Comparison with runs that do not have this change, read the same way at 18:4x UTC:
+  - `Unit` jobs of other pull requests between 17:40 and 18:08 UTC show the same pattern:
+    34 % to 61 % hits with 349 to 867 errors. A pull request run at 14:45 UTC had 98 % hits and
+    0 errors. The low hit rate and the errors come from the cache service at that time, not
+    from this change.
+  - On `windows-latest`, two other pull requests at 18:23 and 18:27 UTC report
+    `0 hits, 0 misses, 0 errors`: before this change no compilation went through `sccache` on
+    Windows. With the composite action (`shell: bash`) the Windows jobs use it. The cold cache
+    explains the low hit rates there. The old step was a `run:` step with the default Windows
+    shell, PowerShell; this was not investigated further.
+- Conclusion: when the server starts, the jobs use `sccache` with the GitHub Actions cache
+  backend, and every bare job that enabled `sccache` now uses the shared action and passes,
+  including the `windows-latest` jobs.
 
 ### V6 - Hosted runs of jobs the PR checks do not run
 
-- Status: `TODO`
+- Status: `TODO` (after the merge)
+- `coverage.yaml`: the run for the merge push to `develop`.
+- `testing.yaml` → `docker-e2e`: the next Dependabot branch push, the only event that runs its
+  `sccache` steps in `torrust/torrust-tracker`.
 
 ## Failures and Follow-up
 

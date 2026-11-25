@@ -14,11 +14,13 @@ on:
       - "packages/tracker-core/**"
       - "packages/persistence-benchmark/**"
       - ".github/workflows/db-benchmarking.yaml"
+      - ".github/actions/enable-sccache/**"
   pull_request:
     paths:
       - "packages/tracker-core/**"
       - "packages/persistence-benchmark/**"
       - ".github/workflows/db-benchmarking.yaml"
+      - ".github/actions/enable-sccache/**"
 
 env:
   CARGO_TERM_COLOR: always
@@ -45,10 +47,7 @@ jobs:
 
       - id: enable-sccache
         name: Enable sccache
-        run: |
-          echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
-          echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
-          echo "CARGO_INCREMENTAL=0" >> "$GITHUB_ENV"
+        uses: ./.github/actions/enable-sccache
 
       - id: benchmark
         name: Run Persistence Benchmark (SQLite3)
@@ -75,10 +74,7 @@ jobs:
 
       - id: enable-sccache
         name: Enable sccache
-        run: |
-          echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
-          echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
-          echo "CARGO_INCREMENTAL=0" >> "$GITHUB_ENV"
+        uses: ./.github/actions/enable-sccache
 
       - id: benchmark
         name: Run Persistence Benchmark (MySQL)
@@ -105,10 +101,7 @@ jobs:
 
       - id: enable-sccache
         name: Enable sccache
-        run: |
-          echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
-          echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
-          echo "CARGO_INCREMENTAL=0" >> "$GITHUB_ENV"
+        uses: ./.github/actions/enable-sccache
 
       - id: benchmark
         name: Run Persistence Benchmark (PostgreSQL)

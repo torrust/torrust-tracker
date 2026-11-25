@@ -71,10 +71,7 @@ jobs:
 
       - id: enable-sccache
         name: Enable sccache
-        run: |
-          echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
-          echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
-          echo "CARGO_INCREMENTAL=0" >> "$GITHUB_ENV"
+        uses: ./.github/actions/enable-sccache
 
       - id: fetch
         name: Download Dependencies
@@ -284,10 +281,7 @@ jobs:
       - id: enable-sccache
         name: Enable sccache
         if: runner.environment == 'github-hosted'
-        run: |
-          echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
-          echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
-          echo "CARGO_INCREMENTAL=0" >> "$GITHUB_ENV"
+        uses: ./.github/actions/enable-sccache
 
       # `actions/checkout` cleans the workspace, so keep host-side Cargo builds outside it.
       - id: persistent-target

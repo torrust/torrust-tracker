@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: in-progress
 priority: p1
 epic: null
 github-issue: 3019
 spec-path: docs/issues/open/3019-ci-sccache-startup-fallback/ISSUE.md
-branch: "3019-ci-sccache-startup-fallback-spec"
+branch: "3019-ci-sccache-startup-fallback"
 related-pr: null
-last-updated-utc: "2026-11-24 10:16"
+last-updated-utc: "2026-11-24 18:50"
 semantic-links:
   skill-links:
     - create-issue
@@ -89,7 +89,7 @@ set to `1`, the build still fails with the same error.
 - A fallback for every bare CI job that enables `sccache`: start the server explicitly, use
   `sccache` only if it started, and otherwise build without it and show a warning annotation.
 - One shared local composite action, `.github/actions/enable-sccache/action.yml`, that replaces
-  the ten copies of the `Enable sccache` step in `testing.yaml`, `os-compatibility.yaml`,
+  the nine copies of the `Enable sccache` step in `testing.yaml`, `os-compatibility.yaml`,
   `db-compatibility.yaml`, `coverage.yaml` and `db-benchmarking.yaml`. The action sets
   `shell: bash`, so the step also runs in Git Bash on the `windows-latest` jobs.
 - Keep the server alive for the whole job (`SCCACHE_IDLE_TIMEOUT=0`), so that the only server
@@ -116,9 +116,11 @@ set to `1`, the build still fails with the same error.
 - The `mozilla-actions/sccache-action` step stays in each workflow. It owns the install and its
   post step (`sccache --show-stats`). Keeping it a direct step of the job avoids depending on how
   a composite action runs the post steps of the actions it nests.
-- The new composite action owns the decision to enable `sccache`. Its only inputs are the
-  `SCCACHE_PATH` variable the install step exports and the runner; its only output is
-  `$GITHUB_ENV`.
+- The new composite action owns the decision to enable `sccache`. It runs the `sccache` that
+  the install step puts on `PATH`, the same one `RUSTC_WRAPPER=sccache` uses; its only output
+  is `$GITHUB_ENV`.
+- `db-compatibility.yaml` and `db-benchmarking.yaml` run only for listed paths, so their path
+  filters also list `.github/actions/enable-sccache/**`: a change to the action runs them.
 - Backend selection: the server reads its configuration, including the cache backend, when it
   starts. So the startup command itself runs with `SCCACHE_GHA_ENABLED=true` and
   `SCCACHE_IDLE_TIMEOUT=0` in its environment (the step's `env:`), and the server it starts uses
@@ -157,18 +159,19 @@ run. The strongest evidence is a hosted run of the real workflow with the timeou
 - A temporary commit sets `SCCACHE_CONF` to a config file with `server_startup_timeout_ms = 1`
   for the `unit` job. Before the fix it must fail with the original error (red); after the fix
   it must pass with the warning annotation (green).
-- The temporary commits live only on verification branches in the `josecelano-bot` fork, whose
-  Actions are enabled: a push there runs the push-triggered workflows in the fork. They never
-  enter the PR branch, so the PR needs no extra workflow-run approvals. The run links stay in
-  the evidence.
+- The temporary commits live only on throwaway draft PRs (red: #3033, green: #3034), closed
+  after their checks ran. They never enter the implementation PR. The run links stay in the
+  evidence. The plan was to use verification branches in the `josecelano-bot` fork, but pushes
+  there start no workflow run (V3), so the maintainer chose draft PRs instead.
 
-Hosted runs also cover the jobs that the PR checks do not run (V6):
+Two jobs that use the action do not run on a pull request to `develop`, and without fork runs
+they get their hosted evidence after the merge (V6):
 
-- `testing.yaml` → `docker-e2e` skips pull requests that target `develop`, but runs for a push
-  to a feature branch. Pushing the implementation branch to the fork runs it there, on a
-  GitHub-hosted runner, so the `sccache` steps run.
-- `coverage.yaml` only runs for pushes to `develop`. A temporary fork-only commit on a
-  verification branch adds that branch to its `push` trigger, so the job runs in the fork.
+- `coverage.yaml` only runs for pushes to `develop`, so the merge push runs it.
+- `testing.yaml` → `docker-e2e` skips pull requests that target `develop` and pushes to
+  `develop`. In `torrust/torrust-tracker` it runs its `sccache` steps only on a GitHub-hosted
+  runner, which it gets only for Dependabot branch pushes. The next Dependabot branch push runs
+  them.
 - `db-compatibility.yaml` and `db-benchmarking.yaml` run on the PR because their path filters
   include their own workflow file, which the change edits.
 
@@ -179,13 +182,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task                                     | Notes / Expected Output                                                                 |
 | --- | ------ | ---------------------------------------- | --------------------------------------------------------------------------------------- |
 | T1  | DONE   | Reproduce locally                        | V1 and V2 in `manual-verification-evidence.md`                                          |
-| T2  | TODO   | Red: hosted run with the timeout forced  | `unit` job fails with `Timed out waiting for server startup` on the current workflow (V3) |
-| T3  | TODO   | Add the `enable-sccache` composite action | Starts the server; exports the variables only on success; warns otherwise              |
-| T4  | TODO   | Use it in the five workflows             | Ten `Enable sccache` steps replaced; `if:` conditions kept                              |
-| T5  | TODO   | Green: hosted run with the timeout forced | Same job passes and shows the warning (V4); temporary commit dropped                   |
-| T6  | TODO   | Normal hosted run                        | PR jobs pass and the sccache stats show cache hits (V5)                                 |
-| T6b | TODO   | Hosted runs of jobs the PR does not run  | `docker-e2e` and `coverage` pass in the fork with cache hits (V6)                       |
-| T7  | TODO   | Amend the ADR                            | Fallback and the `SCCACHE_IGNORE_SERVER_IO_ERROR` analysis recorded                     |
+| T2  | DONE   | Red: hosted run with the timeout forced  | `unit` job fails with `Timed out waiting for server startup` on the current workflow (V3) |
+| T3  | DONE   | Add the `enable-sccache` composite action | Starts the server; exports the variables only on success; warns otherwise              |
+| T4  | DONE   | Use it in the five workflows             | Nine `Enable sccache` steps replaced; `if:` conditions kept                             |
+| T5  | DONE   | Green: hosted run with the timeout forced | Same job passes and shows the warning (V4); temporary commit dropped                   |
+| T6  | DONE   | Normal hosted run                        | PR jobs pass and the sccache stats show cache hits (V5)                                 |
+| T6b | TODO   | Hosted runs of jobs the PR does not run  | After the merge: `coverage` and a Dependabot `docker-e2e` pass with cache hits (V6)                     |
+| T7  | DONE   | Amend the ADR                            | Fallback and the `SCCACHE_IGNORE_SERVER_IO_ERROR` analysis recorded                     |
 
 ## Commit Points
 
@@ -194,8 +197,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1    | This spec and `manual-verification-evidence.md`             | Commit after `linter markdown` and `linter cspell`.  |
 | T3–T4 | Composite action and the five workflows                     | Commit after `linter yaml` and `git diff --check`.   |
 | T7    | ADR amendment                                               | Commit after focused validation.                     |
-| T2/T5 | Temporary forced-timeout commits                            | Fork verification branches only; never in the PR.    |
-| T6b   | Temporary `coverage.yaml` trigger commit                    | Fork verification branch only; never in the PR.     |
+| T2/T5 | Temporary forced-timeout commits                            | Throwaway draft PRs only; never in the PR.           |
+| T6b   | Evidence update with the post-merge run links               | Close-out commit after the merge.                    |
 | T6    | Evidence update with the hosted run links                   | Commit after focused validation.                     |
 
 ## Progress Tracking
@@ -205,7 +208,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Folder-style spec drafted in `docs/issues/drafts/ci-sccache-startup-fallback/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
+- [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -226,16 +229,31 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-24 10:16 UTC - Claude Code (Claude Opus 5.5) - Addressed CodeRabbit's review of PR
   #3020: the startup command sets `SCCACHE_GHA_ENABLED=true`; hosted runs move to fork
   verification branches and cover `docker-e2e` and `coverage` (V6)
+- 2026-11-24 13:07 UTC - Claude Code (Claude Opus 5.5) - Spec PR #3020 merged. Added the
+  `enable-sccache` composite action, used it in the nine `Enable sccache` steps (the spec said
+  ten; the `os-compatibility.yaml` matrix makes one step run in three jobs), and amended the
+  ADR. Pushing the red verification branch to the `josecelano-bot` fork started no workflow
+  run (see V3), so T2, T5 and T6b wait for a way to run them
+- 2026-11-24 17:04 UTC - Claude Code (Claude Opus 5.5) - The maintainer chose throwaway draft
+  PRs for the red and green runs: opened #3033 (red) and #3034 (green). `coverage` and
+  `docker-e2e` evidence (V6) moves to after the merge, because neither job runs on a PR to
+  `develop`
+- 2026-11-24 17:39 UTC - Claude Code (Claude Opus 5.5) - Red (#3033) and green (#3034) runs
+  done: the forced timeout fails the current workflow and passes with the fix, with the
+  warning annotation - `manual-verification-evidence.md` V3, V4
+- 2026-11-24 18:50 UTC - Claude Code (Claude Opus 5.5) - Normal run of PR #3040 passed; every
+  job but `Build on windows-latest (stable)`, whose cache was cold, had cache hits (V5). The Windows jobs now use `sccache`; before this change they
+  compiled nothing through it. AC2 and AC3 wait for the post-merge runs (V6)
 
 ## Acceptance Criteria
 
-- [ ] AC1: When the `sccache` server does not start, a bare CI job builds without `sccache` and
+- [x] AC1: When the `sccache` server does not start, a bare CI job builds without `sccache` and
       passes, and the run shows a warning annotation that says the cache was disabled.
 - [ ] AC2: When the server starts, the job uses `sccache` with the GitHub Actions cache backend
       as before (`RUSTC_WRAPPER=sccache`, cache hits in the sccache stats).
 - [ ] AC3: Every bare CI job that enabled `sccache` before uses the shared composite action, and
       the `windows-latest` jobs in `os-compatibility.yaml` still pass.
-- [ ] AC4: The sccache ADR records the fallback and why `SCCACHE_IGNORE_SERVER_IO_ERROR` is not
+- [x] AC4: The sccache ADR records the fallback and why `SCCACHE_IGNORE_SERVER_IO_ERROR` is not
       sufficient.
 - [ ] `linter all` exits with code `0`
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -256,19 +274,19 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | ------------------------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------- | ------ | -------------------------------------------- |
 | M1  | Local reproduction of the startup timeout   | `cargo build` with `RUSTC_WRAPPER=sccache` and `server_startup_timeout_ms = 1`               | Build fails with `Timed out waiting for server startup` | DONE   | `manual-verification-evidence.md` section V1 |
 | M2  | `SCCACHE_IGNORE_SERVER_IO_ERROR` and fallback, locally | Same build with the variable set; then the fallback commands and the same build     | Variable: still fails. Fallback: warning, build passes  | DONE   | `manual-verification-evidence.md` section V2 |
-| M3  | Hosted red run                              | Fork branch: temporary commit forcing the timeout on the current workflow                    | `unit` job fails with the original error                | TODO   | `manual-verification-evidence.md` section V3 |
-| M4  | Hosted green run                            | Fork branch: same temporary commit on top of the fix                                         | `unit` job passes with the warning annotation           | TODO   | `manual-verification-evidence.md` section V4 |
-| M5  | Hosted normal run                           | PR checks without any temporary commit                                                       | Jobs pass; sccache stats show cache hits                | TODO   | `manual-verification-evidence.md` section V5 |
-| M6  | Jobs the PR checks do not run               | Fork push of the implementation branch (`docker-e2e`); fork branch with a temporary `coverage.yaml` push trigger | Both jobs pass; sccache stats show cache hits | TODO | `manual-verification-evidence.md` section V6 |
+| M3  | Hosted red run                              | Draft PR #3033: temporary commit forcing the timeout on the current workflow                 | `unit` job fails with the original error                | DONE   | `manual-verification-evidence.md` section V3 |
+| M4  | Hosted green run                            | Draft PR #3034: same temporary commit on top of the fix                                      | `unit` job passes with the warning annotation           | DONE   | `manual-verification-evidence.md` section V4 |
+| M5  | Hosted normal run                           | PR checks without any temporary commit                                                       | Jobs pass; sccache stats show cache hits                | DONE   | `manual-verification-evidence.md` section V5 |
+| M6  | Jobs the PR checks do not run               | After the merge: the `coverage.yaml` run of the merge push; the next Dependabot branch push (`docker-e2e`) | Both jobs pass; sccache stats show cache hits | TODO | `manual-verification-evidence.md` section V6 |
 
 ### Acceptance Verification
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | TODO                   | V4       |
+| AC1   | DONE                   | V4       |
 | AC2   | TODO                   | V5, V6   |
 | AC3   | TODO                   | V5, V6   |
-| AC4   | TODO                   | PR diff  |
+| AC4   | DONE                   | PR diff  |
 
 ## Risks and Trade-offs
 
