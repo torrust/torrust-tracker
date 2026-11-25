@@ -73,8 +73,10 @@ runs of the head commit wait for a maintainer's approval (see
 [When Checks Never Start](#when-checks-never-start)), or when a `gh` call fails:
 
 ```sh
-head=$(git rev-parse HEAD)   # the commit you pushed
 while :; do
+  # Read the head on every pass, so both commands below look at the same commit even after a push.
+  head=$(gh pr view <PR> --repo torrust/torrust-tracker --json headRefOid --jq .headRefOid) \
+    || { echo "gh pr view failed; see its error above" >&2; break; }
   if ! ready=$(gh pr checks <PR> --repo torrust/torrust-tracker --json bucket,workflow \
     --jq '[.[] | select(.workflow != "")] | length > 0 and all(.bucket != "pending")' \
     2> .tmp/pr-checks-error.txt); then
@@ -96,8 +98,10 @@ the checks pass, fail or are pending. It exits non-zero with `no checks reported
 branch` when the head has no check at all, which the loop treats as "not yet"; any other non-zero
 exit is a real error, such as an expired login, denied access or a network failure. The loop then stops and keeps the error instead of retrying
 without end: fix the cause before waiting again. When the runs wait for approval, ask for it as
-"When Checks Never Start" says and run the loop again once they start. `--commit` needs the full
-commit hash.
+"When Checks Never Start" says and run the loop again once they start. The loop reads the pull
+request's head on every pass, because `gh pr checks` always reports the current head: if someone
+pushes while it waits, the approval test follows the new commit too. `--commit` needs the full
+commit hash, which `headRefOid` is.
 
 Then decide with the workflow checks alone, and list the review-service check runs that were left
 out, for the report:
