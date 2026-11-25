@@ -16,6 +16,12 @@
 //!   `1` too, never `2`, because `2` would keep the agent working.
 //!
 //! The rules are decision D17 of issue #2904, in `agent_reply_validator::guard`.
+//!
+//! The program follows Claude Code's hook protocol instead of the CLI output contract (plain text
+//! on standard error, exit `2` as a refusal), because it is an `external-protocol` program: see
+//! the ADR
+//! [Let Programs Follow the Protocol of the Host That Calls Them](../../../../../../../docs/adrs/20261124120307_let_programs_follow_the_protocol_of_the_host_that_calls_them.md).
+//! The protocol is the Claude Code hooks reference: <https://code.claude.com/docs/en/hooks>.
 
 use std::ffi::OsString;
 use std::io::{self, Read, Write};
