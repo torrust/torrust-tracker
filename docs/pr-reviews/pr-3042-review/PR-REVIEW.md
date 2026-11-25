@@ -55,6 +55,8 @@ Review 6054388295 (da2ce7, changes requested, 2026-11-25 08:49 UTC) read the hea
 
 Review 6054457576 (CodeRabbit, 2026-11-25 08:54 UTC) holds one comment, a reply on the F10 thread that accepts the answer; it adds no row. Review 6054462408 (Greptile, 08:55 UTC) posted two inline comments, F16 and F17; as in the first Greptile round, its `P1` badge is recorded as `Blocker` and its `P2` badge as `Nit`. Review 6054537873 (da2ce7, commented, 09:00 UTC) posted one inline comment with the reviewer id F12, the audit-local F18. Review 6054646814 (da2ce7, changes requested, 09:08 UTC) read the head before the round 5 fix and posted two inline comments with the reviewer ids F13 and F14, the audit-local F19 and F20; they ask for the changes F16 and F17 already made. The review bodies list the same findings and add none.
 
+Review 6054779352 (CodeRabbit, 2026-11-25 09:17 UTC) posted two inline comments, F21 and F22. Review 6054897595 (da2ce7, approved, 09:25 UTC) posted two inline comments without a reviewer id, F23 and F24; its body lists the same two nits and adds none. They were processed in a sixth round, which the maintainer asked for after the five-round limit.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3042-f1 | Unknown | Blocker | security | ORIGINAL | FIXED | RESOLVED |
@@ -77,6 +79,10 @@ Review 6054457576 (CodeRabbit, 2026-11-25 08:54 UTC) holds one comment, a reply 
 | F18 | review-finding:pr-3042-f18 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F19 | review-finding:pr-3042-f19 | Human | Major | correctness | RE_RAISE_OF:F16 | NO_ACTION | SUPERSEDED |
 | F20 | review-finding:pr-3042-f20 | Human | Minor | documentation | RE_RAISE_OF:F17 | NO_ACTION | SUPERSEDED |
+| F21 | review-finding:pr-3042-f21 | Unknown | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F22 | review-finding:pr-3042-f22 | Unknown | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F23 | review-finding:pr-3042-f23 | Human | Nit | testing | ORIGINAL | FIXED | RESOLVED |
+| F24 | review-finding:pr-3042-f24 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -340,6 +346,58 @@ Review 6054457576 (CodeRabbit, 2026-11-25 08:54 UTC) holds one comment, a reply 
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692674670>
 
+### F21 - Qualify the log-safety claim
+
+- PR number: 3042
+- Source review ID: 6054779352
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692719075>
+- Concern: the `use-rest-api` skill and `docs/containers.md` said the header keeps the token out of proxy and server logs, but a proxy or server configured to log request headers can record the `Authorization` value.
+- Solution: the documents say the header keeps the token out of the URL and that a proxy or server set to log request headers still records it. Changed in `docs/containers.md`, the skills `use-rest-api` and `handle-secrets`, `src/lib.rs` and `axum-rest-api-server` (`lib.rs`, `v1/middlewares/auth.rs`). The tool note in the comment about a credential file concerns the line that reads a token from a file inside a command; that line stays.
+- Current-tree verification: `grep -n "out of the URL"` on those files prints the new sentences; the pre-commit gate passes.
+- Resolution reference: docs(secrets): [#2999] say the header keeps the token out of the URL, not out of every log
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4694336176>
+
+### F22 - Record F16 to F18 in the audit
+
+- PR number: 3042
+- Source review ID: 6054779352
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692719083>
+- Concern: the evidence said F16 to F18 are in the audit, whose findings table and details ended at F15 at the head the review read.
+- Solution: the rows and their processing entries were added by the fifth audit commit, pushed after that head.
+- Current-tree verification: `grep -c '^| F1[6-8] ' docs/pr-reviews/pr-3042-review/PR-REVIEW.md` prints 3.
+- Resolution reference: docs(pr-reviews): [#2999] record the fifth review round in the PR 3042 audit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4694336597>
+
+### F23 - A test comment reads as a guard on the cost
+
+- PR number: 3042
+- Source review ID: 6054897595
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692811785>
+- Concern: the comment of `it_should_redact_a_key_after_many_empty_segments` said the scan must look at each segment once, but the test checks only the result and would pass on a quadratic scan.
+- Solution: the comment says the test checks the result for a path of the size a client can send, not the cost, and points at the measurement in section R5 of the evidence.
+- Current-tree verification: `cargo test -p torrust-tracker-axum-server --lib request_log` passes (38 passed); only the comment changed in that file.
+- Resolution reference: docs(secrets): [#2999] say the header keeps the token out of the URL, not out of every log
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4694337174>
+
+### F24 - Two audit details no longer describe the current tree
+
+- PR number: 3042
+- Source review ID: 6054897595
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692811799>
+- Concern: the F13 detail quoted the scan that the fix of F16 replaced, and the F19 detail said `grep -n "rposition"` prints the single search where it prints two lines.
+- Solution: the F13 detail says the quoted scan was the code when the row was written and what replaced it; the F19 detail says the command prints two lines and that an earlier version said one.
+- Current-tree verification: `grep -n "when this row was written\|prints two lines" docs/pr-reviews/pr-3042-review/PR-REVIEW.md` prints both details.
+- Resolution reference: docs(secrets): [#2999] say the header keeps the token out of the URL, not out of every log
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4694337651>
+
 ## Processing Log
 
 - 2026-11-24 18:06 UTC - Greptile review 6044736873 arrived with two inline findings.
@@ -355,6 +413,8 @@ Review 6054457576 (CodeRabbit, 2026-11-25 08:54 UTC) holds one comment, a reply 
 - 2026-11-25 09:02 UTC - `validate-audit-record.py --pr-number 3042`, run with the bot token set for that one command (identity `josecelano-bot`), first failed with `Processing Log entries are not in chronological order`: this record had two new entries, one stamped 08:49 for the arrival of the review and one stamped 09:00 for the replies, after the 08:53 entry. They were merged into the single 09:00 entry above before any commit, and the second run printed `{"status": "ok", "rows": 15, "log_entries": 10, "failures": 0}`. The F13, F14 and F15 threads were then resolved by `josecelano-bot`. A GraphQL listing taken before resolving showed three more unresolved threads, two by Greptile and one by da2ce7, which are not processed in this entry.
 - 2026-11-25 09:13 UTC - Reviews 6054462408 (Greptile, submitted at 08:55 UTC), 6054537873 (da2ce7, 09:00 UTC) and 6054646814 (da2ce7, 09:08 UTC) were recorded as F16 to F20, and their five threads got their replies after the round 5 fix commit was pushed (replies 4692673032, 4692673354, 4692673761, 4692674221 and 4692674670).
 - 2026-11-25 09:14 UTC - `validate-audit-record.py --pr-number 3042`, run with the bot token set for that one command (identity `josecelano-bot`), printed `{"status": "ok", "rows": 20, "log_entries": 12, "failures": 0}`. The five threads were then resolved by `josecelano-bot`; a refreshed GraphQL listing shows 20 threads and 0 unresolved.
+- 2026-11-25 11:40 UTC - Reviews 6054779352 (CodeRabbit, submitted at 09:17 UTC) and 6054897595 (da2ce7, approved, 09:25 UTC) were recorded as F21 to F24, in a sixth round the maintainer asked for after the five-round limit. Their four threads got their replies after the round 6 commit was pushed (replies 4694336176, 4694336597, 4694337174 and 4694337651). That commit also changed the details of F13 and F19, as F24 asks.
+- 2026-11-25 11:41 UTC - `validate-audit-record.py --pr-number 3042`, run with the bot token set for that one command (identity `josecelano-bot`), printed `{"status": "ok", "rows": 24, "log_entries": 14, "failures": 0}`. A GraphQL listing showed the F21 thread already resolved by `coderabbitai[bot]`; the F22, F23 and F24 threads were then resolved by `josecelano-bot`. A refreshed listing shows 24 threads and 0 unresolved.
 
 ## Completion Rules
 
