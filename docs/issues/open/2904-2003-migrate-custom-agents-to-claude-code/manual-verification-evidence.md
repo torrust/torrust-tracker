@@ -561,6 +561,17 @@ frontmatter):
   (`<agent id>--task-reviewer-t5-r4.json.count`, value `3`), and the continued reviewer was held
   3 times and let through on the fourth attempt. No file exists for round 4, and the agent's file
   for this execution is the round 3 one.
+- Run A, where the lines sit in the reviewer's transcript (`agent-<agent id>.jsonl`, read by line
+  number, the first line being 1; the same format as in V8): line 1 is the caller's first request,
+  a `user` record with neither `isMeta` nor `origin` whose content is a string carrying the
+  `Reply file:` line for round 3. Line 2 is the preloaded skill text (`review-task`), a `user` record
+  with `isMeta` true and no `origin`, two `text` blocks, directly after the first request and before
+  the agent's first action. Line 103 is the continued request, which carried the line that named
+  `task-reviewer-t5-r4.json`: a `user` record with `isMeta` true, `origin` `{"kind": "coordinator"}`
+  and a string as content, written after the agent had handed back. The skill text carries no
+  `Reply file:` line, and the line-anchored match finds one line in each of the records 1 and 103
+  (it also finds the first request's copy in an `api-request-blob` record, which the filter by
+  `type` removes, as in V8).
 - Run B: the reviewer called `SubagentHandback` four times with the same one-line answer. The
   `PreToolUse` hook exited 2 on the first three (234, 159 and 164 ms), each time with "refusal N
   of 3" and "the file does not exist"; on the fourth it exited 0 with the JSON
