@@ -1,6 +1,6 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/384-strip-location-from-errors-sent-to-clients/ISSUE.md
+issue-spec: docs/issues/closed/384-2912-si-7-strip-location-from-errors-sent-to-clients/ISSUE.md
 last-updated-utc: "2026-11-24 14:37"
 ---
 

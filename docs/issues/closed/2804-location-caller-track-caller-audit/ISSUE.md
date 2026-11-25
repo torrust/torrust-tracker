@@ -223,7 +223,7 @@ EPIC #2912, `docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md`:
 | --- | --- |
 | T6 Red regression tests per slice, T7 Fix slices, T8 Green and like-for-like recheck per slice | Sub-issues SI-2 (`primitives`), SI-3 (HTTP tracker request errors), SI-4 (`tracker-core`), SI-5 (configuration, TLS and UDP server errors), each with its own red test, fix and recheck |
 | T9 Enforcement and docs | SI-1 (ADR and `handle-errors-in-code` skill) and SI-6 (drop `torrust-located-error`, repository check, upstream issue drafts) |
-| Manual scenarios M1 and M2 of this specification (HTTP and UDP replies); M3 (`parse`) is covered by SI-2 | `docs/issues/open/384-strip-location-from-errors-sent-to-clients/ISSUE.md` (SI-7) |
+| Manual scenarios M1 and M2 of this specification (HTTP and UDP replies); M3 (`parse`) is covered by SI-2 | `docs/issues/closed/384-2912-si-7-strip-location-from-errors-sent-to-clients/ISSUE.md` (SI-7) |
 
 The EPIC is issue #2912 and its sub-issues are #2913 to #2918, created on 2026-11-17, and the
 existing #384, so the closing condition of this issue is met; its close-out is done by its own
