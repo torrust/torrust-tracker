@@ -1,7 +1,7 @@
 ---
 pr-number: 3059
 pr-url: https://github.com/torrust/torrust-tracker/pull/3059
-last-updated-utc: "2026-11-25 17:37"
+last-updated-utc: "2026-11-25 17:52"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -45,7 +45,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 ## Findings
 
 Round 1 is review 6061778095 (`claude[bot]`) and review 6061865252 (`da2ce7`, later dismissed by the
-push). Round 2 is review 6062023160 (`da2ce7`). F9 and F10 re-raise F5 and F6 in round 2.
+push). Round 2 is review 6062023160 (`da2ce7`). F9 and F10 re-raise F5 and F6 in round 2. Round 3 is review 6062267415 (`da2ce7`); F12 re-raises F7.
 
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
@@ -59,6 +59,8 @@ push). Round 2 is review 6062023160 (`da2ce7`). F9 and F10 re-raise F5 and F6 in
 | F8 | review-finding:pr-3059-f8 | da2ce7 | Minor | other | ORIGINAL | FIXED | NON_RESOLVABLE |
 | F9 | review-finding:pr-3059-f9 | da2ce7 | Minor | metadata | RE_RAISE_OF:F5 | FIXED | NON_RESOLVABLE |
 | F10 | review-finding:pr-3059-f10 | da2ce7 | Nit | metadata | RE_RAISE_OF:F6 | FIXED | NON_RESOLVABLE |
+| F11 | review-finding:pr-3059-f11 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-3059-f12 | da2ce7 | Minor | documentation | RE_RAISE_OF:F7 | FIXED | NON_RESOLVABLE |
 
 ## Finding Details
 
@@ -192,6 +194,32 @@ push). Round 2 is review 6062023160 (`da2ce7`). F9 and F10 re-raise F5 and F6 in
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3059#issuecomment-7169733295
 
+### F11 - The template criterion leaves out 18 in-folder documents
+
+- PR number: 3059
+- Source review ID: 6062267415
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3059#discussion_r4698649361
+- Concern: The criterion of the F2 fix (a template prescribes the key) drops 18 in-folder documents that carry an `issue-spec` key pointing at their issue's spec, so they fit neither the catalog row nor the exception.
+- Solution: Both files, the catalog row and Maintenance Workflow step 2 now cover a document inside the issue's own folder, or one whose template prescribes the key, whose key points at the issue's primary spec and is rewritten when it moves.
+- Current-tree verification: Read the four places in the tree after the fix; `git grep -n "inside the issue's" -- docs/skills .claude/skills/write-markdown-docs` finds the paragraph in each file.
+- Resolution reference: `docs(skills): extend the issue-spec exception to every in-folder document`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3059#discussion_r4698740473
+
+### F12 - No audit record at this head
+
+- PR number: 3059
+- Source review ID: 6062267415
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3059#pullrequestreview-6062267415
+- Concern: Restates F7 at head `1e3bbe6de`, which predates the audit record.
+- Solution: The audit record was added in the commit that followed; this round extends it.
+- Current-tree verification: `ls docs/pr-reviews/pr-3059-review` shows `PR-REVIEW.md` at the current head.
+- Resolution reference: `docs(pr-reviews): [#3059] add the review audit record`
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
 ## Processing Log
 
 - 2026-11-25 17:08 UTC - `claude[bot]` review 6061778095 with inline finding F1 (review 6061692305 at 17:02 was the fork notice only, no finding).
@@ -200,6 +228,9 @@ push). Round 2 is review 6062023160 (`da2ce7`). F9 and F10 re-raise F5 and F6 in
 - 2026-11-25 17:25 UTC - `da2ce7` review 6062023160: F7, F8, F9, F10 recorded. The audit was started after the first reply; this entry logs that late start.
 - 2026-11-25 17:32 UTC - Fix commit `docs(skills): state one criterion for template-prescribed issue-spec keys` pushed.
 - 2026-11-25 17:35 UTC - Replied to the threads of F2, F3 and F4 and resolved them; edited the reply of F1 (F8); edited the PR title and description (F5, F6); posted the consolidated response https://github.com/torrust/torrust-tracker/pull/3059#issuecomment-7169733295.
+- 2026-11-25 17:42 UTC - `da2ce7` review 6062267415: F11 and F12 recorded.
+- 2026-11-25 17:48 UTC - Fix commit `docs(skills): extend the issue-spec exception to every in-folder document` pushed.
+- 2026-11-25 17:50 UTC - Replied to and resolved the thread of F11.
 
 ## Completion Rules
 
