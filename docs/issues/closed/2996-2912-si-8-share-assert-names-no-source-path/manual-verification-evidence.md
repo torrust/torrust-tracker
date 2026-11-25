@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2996-2912-si-8-share-assert-names-no-source-path/ISSUE.md
-last-updated-utc: "2026-11-25 13:33"
+issue-spec: docs/issues/closed/2996-2912-si-8-share-assert-names-no-source-path/ISSUE.md
+last-updated-utc: "2026-11-25 15:59"
 ---
 
 # Manual Verification Evidence

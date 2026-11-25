@@ -6,7 +6,7 @@ epic: null
 github-issue: 2912
 spec-path: docs/issues/open/2912-remove-source-locations-from-errors/EPIC.md
 epic-owner: null
-last-updated-utc: "2026-11-24 17:33"
+last-updated-utc: "2026-11-25 16:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -122,7 +122,7 @@ existing issue #384. SI-8 is issue #2996, created by `josecelano-bot` on 2026-11
 | 5 | #2917 - SI-5 Remove source locations from the configuration, TLS and UDP server errors | `docs/issues/closed/2917-2912-si-5-startup-and-udp-server-errors/ISSUE.md` | DONE | After SI-1. Must land before `configuration` 4.0.0 is published |
 | 6 | #2918 - SI-6 Drop `torrust-located-error` from the workspace and enforce the rule | `docs/issues/closed/2918-2912-si-6-drop-located-error-and-enforce-the-rule/ISSUE.md` | DONE | After SI-2 to SI-5 |
 | 7 | #384 - Make Option to Strip Location from Errors sent to Clients | `docs/issues/closed/384-2912-si-7-strip-location-from-errors-sent-to-clients/ISSUE.md` | DONE | Existing issue. Recheck on running trackers found no source path in any client reply (PR #3028) |
-| 8 | #2996 - SI-8 Share the `assert_names_no_source_path` test helper | `docs/issues/open/2996-2912-si-8-share-assert-names-no-source-path/ISSUE.md` | TODO | Independent of SI-6; implement after SI-4 (PR #2991) and SI-5 (PR #3001), which add the last copies (copies 8 and 9 in `configuration` and `axum-server` stay, cross-linked). Reduces the nine copies to five definitions |
+| 8 | #2996 - SI-8 Share the `assert_names_no_source_path` test helper | `docs/issues/closed/2996-2912-si-8-share-assert-names-no-source-path/ISSUE.md` | DONE | Independent of SI-6; implemented after SI-4 (PR #2991) and SI-5 (PR #3001), which add the last copies (copies 8 and 9 in `configuration` and `axum-server` stay, cross-linked). Reduced the nine copies to five definitions (PR #3041) |
 
 ### External follow-ups (other repositories)
 
@@ -198,6 +198,7 @@ the model that produced them.
 - 2026-11-17 16:45 UTC - Claude Code (Claude Opus 5.5) - EPIC coordinator recorded the maintainer's decisions (remove the field; keep #384's title; one session at a time; Opus 5.5 for sub-issue sessions).
 - 2026-11-17 17:01 UTC - Claude Code (Claude Opus 5.5) - Maintainer approved the specification. Created EPIC #2912 and sub-issues #2913 to #2918 as `josecelano-bot`, commented on #384, and moved the specification and the six sub-issue specifications from `docs/issues/drafts/` to `docs/issues/open/`. GitHub sub-issue links wait for the maintainer (the bot account cannot add them).
 - 2026-11-22 14:24 UTC - Claude Code (Claude Sonnet 5.5) - Added SI-8 (#2996, share the `assert_names_no_source_path` test helper, finding F5 of PR #2991) as row 8 of the `Subissues` table with its specification; the maintainer approved the specification on 2026-11-22.
+- 2026-11-25 16:00 UTC - Claude Code (Claude Sonnet 5.5) - SI-8 (#2996) is done: PR #3041 merged on 2026-11-25 and the issue is closed. The helper is defined once in `torrust-tracker-test-helpers` for the four packages that use it, and the four other definitions (`http-protocol`, `primitives`, `configuration`, `axum-server`) are cross-linked; nine copies are now five definitions. Archived the SI-8 specification to `docs/issues/closed/` and marked row 8 DONE.
 
 ## Acceptance Criteria
 
