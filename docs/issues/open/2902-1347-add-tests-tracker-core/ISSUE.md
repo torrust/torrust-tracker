@@ -379,9 +379,9 @@ rows are ordered by slice, then by risk.
 | 34 | `authentication/mod.rs`, `authentication/key/repository/mod.rs` | S4 | 114 / 114, no entries | No change: declarations and combined tests ([record](test-refactor-plans/authentication-repositories-and-service-no-change.md)) | DONE |
 | 35 | `whitelist/repository/persisted.rs` | S4 | 74 / 74 | Test candidate: 193 / 193 lines with 5 tests (a store failure is returned and stops later writes); F4 confirmed as a bug, handled by its own issue ([plan](test-refactor-plans/whitelist-persisted-and-manager-tests.md)) | DONE |
 | 36 | `whitelist/manager.rs` | S4 | 97 / 97 | Test candidate: 212 / 212 lines with 4 tests (database first, memory untouched on a failure, a load replaces memory) ([plan](test-refactor-plans/whitelist-persisted-and-manager-tests.md)) | DONE |
-| 37 | `whitelist/authorization.rs` | S4 | 71 / 71 | No change (one test assertion line) | PENDING |
-| 38 | `whitelist/repository/in_memory.rs` | S4 | 51 / 51 | No change | PENDING |
-| 39 | `whitelist/{mod,setup,test_helpers}.rs`, `whitelist/repository/mod.rs` | S4 | 18 / 18, 7 / 7, 12 / 12, no entries | No change | PENDING |
+| 37 | `whitelist/authorization.rs` | S4 | 71 / 71 | No change: all three mutants killed ([record](test-refactor-plans/whitelist-authorization-and-setup-no-change.md)) | DONE |
+| 38 | `whitelist/repository/in_memory.rs` | S4 | 51 / 51 | Test candidate after the mutation check: `add` and `remove` could return `true` always and no test noticed; 4 cases pin the return values ([plan](test-refactor-plans/whitelist-in-memory-tests.md)) | DONE |
+| 39 | `whitelist/{mod,setup,test_helpers}.rs`, `whitelist/repository/mod.rs` | S4 | 18 / 18, 7 / 7, 12 / 12, no entries | No change: the setup wiring mutant is killed ([record](test-refactor-plans/whitelist-authorization-and-setup-no-change.md)) | DONE |
 | 40 | `torrent/repository/in_memory.rs` | S5 | 56 / 60 | Delegation of `get_torrent_peers` (owned by the registry) | PENDING |
 | 41 | `torrent/manager.rs`, `torrent/services.rs`, `torrent/persisted_downloads.rs`, `torrent/mod.rs`, `torrent/repository/mod.rs` | S5 | 150 / 156, 272 / 272, 22 / 22, no entries | `manager.rs`: failing-`Database` case (line 66); the others no change, review breadth | PENDING |
 | 42 | `announce_handler.rs` | S5 | 388 / 389 | Challenge the two `?` regions (one assertion line) | PENDING |

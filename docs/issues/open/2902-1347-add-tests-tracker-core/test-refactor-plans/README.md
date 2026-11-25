@@ -48,6 +48,8 @@ approves it. A group of declaration-only files may share one plan.
 | 21 | [authentication-key-mod-tests.md](authentication-key-mod-tests.md) | DONE | Plan approved 2026-11-25; the expiry boundary, the generated expiry and the error texts; completed file approved 2026-11-25 |
 | 22 | [authentication-repositories-and-service-no-change.md](authentication-repositories-and-service-no-change.md) | DONE | No change for rows 31-34 after 15 mutants, all killed; approved 2026-11-25 |
 | 23 | [whitelist-persisted-and-manager-tests.md](whitelist-persisted-and-manager-tests.md) | DONE | Plan approved 2026-11-25; store failures and the database-first order; F4 confirmed as a bug (own issue); completed files approved 2026-11-25 |
+| 24 | [whitelist-in-memory-tests.md](whitelist-in-memory-tests.md) | DONE | Plan approved 2026-11-25 (the ledger said no change; two mutants of the return values survived); completed file approved 2026-11-25 |
+| 25 | [whitelist-authorization-and-setup-no-change.md](whitelist-authorization-and-setup-no-change.md) | DONE | No change for rows 37 and 39 after four mutants, all killed; approved 2026-11-25 |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 
