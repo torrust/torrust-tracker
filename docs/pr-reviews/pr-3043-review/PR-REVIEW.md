@@ -1,7 +1,7 @@
 ---
 pr-number: 3043
 pr-url: https://github.com/torrust/torrust-tracker/pull/3043
-last-updated-utc: "2026-11-25 08:59"
+last-updated-utc: "2026-11-25 09:12"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -41,9 +41,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 Round 1, on the head `docs(issues): [#3031] record the manual verification evidence and complete the specification`: Greptile review 6044956173 (two threads, P2 badges) and CodeRabbit review 6044982742 (one thread). All three were fixed in one commit.
 
-Round 3, on the head `docs(issues): [#3031] keep the statistics-enabled run evidence and the scenario script` plus the audit commit of round 2: Greptile review 6054165927 (one thread, on the helper added in round 2) and da2ce7 review 6054395106 (changes requested, four threads: the reviewer's F7 Major, F8 Minor, F9 and F10 Nit). The reviewer's IDs F7 to F10 collide with audit rows, so the rows below are F10 to F14 and name the reviewer's ID.
-
 Round 2, on the head `docs(pr-reviews): [#3031] record the audit of PR 3043 review round 1`: da2ce7 review 6054010185 (approved, six inline threads, F1 to F3 Minor and F4 to F6 Nit in the reviewer's own numbering). The reviewer's IDs collide with the audit IDs F1 to F3 above, so the rows below are F4 to F9 and the detail entries name the reviewer's ID.
+
+Round 3, on the head `docs(issues): [#3031] keep the statistics-enabled run evidence and the scenario script` plus the audit commit of round 2: Greptile review 6054165927 (one thread, on the helper added in round 2) and da2ce7 review 6054395106 (changes requested, four threads: the reviewer's F7 Major, F8 Minor, F9 and F10 Nit). The reviewer's IDs F7 to F10 collide with audit rows, so the rows below are F10 to F14 and name the reviewer's ID.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -189,7 +189,7 @@ Round 2, on the head `docs(pr-reviews): [#3031] record the audit of PR 3043 revi
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3043#discussion_r4692241666
 - Concern: `keep_a_second_dispatcher_alive` used `tracing::Dispatch` and `tracing::subscriber::NoSubscriber` in full without a naming conflict, against the import rule of `AGENTS.md`; the reviewer of round 3 noted that the round-1 field and the guard used the same form.
 - Solution: `Dispatch`, `NoSubscriber`, `DefaultGuard` and `set_default` are imported at the top of `logging.rs` and used by their short names.
-- Current-tree verification: `grep -n "tracing::\(Dispatch\|subscriber\)" packages/test-helpers/src/logging.rs` prints nothing; `cargo clippy -p torrust-tracker-test-helpers --all-targets` printed nothing and the http-core listener tests passed (21).
+- Current-tree verification: `grep -n "tracing::\(Dispatch\|subscriber\)" packages/test-helpers/src/logging.rs` prints only the two `use` lines the fix adds (lines 7 and 9), and the same command piped through `grep -v ":use "` prints nothing; `cargo clippy -p torrust-tracker-test-helpers --all-targets` printed nothing and the http-core listener tests passed (21).
 - Resolution reference: fix(test-helpers): [#3031] import the tracing types of the scoped log capture
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3043#discussion_r4692513223
@@ -228,7 +228,7 @@ Round 2, on the head `docs(pr-reviews): [#3031] record the audit of PR 3043 revi
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3043#discussion_r4692419202
 - Concern: The evidence said the "after" runs were made after the round-2 commit, but the logs are stamped 08:22:20 to 08:22:25 and the commit was created at 08:24:18.
 - Solution: The environment section says the runs were made on the working tree whose production code that commit records, before the commit was created.
-- Current-tree verification: `git log -1 --format=%cI 95309076b` is 2026-11-25T08:24:18Z, later than the log stamps `2026-11-25T08:22:2x` of `evidence/v2-after-statistics-disabled.log`; the edited section names both times.
+- Current-tree verification: `git log -1 --format=%cI --grep='address review round 2'` prints 2026-11-25T08:24:18Z, the creation time of the round-2 `fix(statistics)` commit, later than the log stamps `2026-11-25T08:22:2x` of `evidence/v2-after-statistics-disabled.log`; the edited section names both times.
 - Resolution reference: docs(issues): [#3031] state which commit and working tree the evidence comes from
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3043#discussion_r4692514540
