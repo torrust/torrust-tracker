@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: in-review
 priority: p2
 epic: null
 github-issue: 3052
 spec-path: docs/issues/open/3052-whitelist-add-remove-race/ISSUE.md
 branch: "3052-whitelist-add-remove-race"
-related-pr: null
-last-updated-utc: "2026-11-25 17:04"
+related-pr: 3061
+last-updated-utc: "2026-11-25 17:29"
 semantic-links:
   skill-links:
     - create-issue
@@ -71,7 +71,7 @@ error-reclassification in `DatabaseWhitelist`.
 - Remove: `DELETE` already tolerates a missing row; accept zero affected rows instead of returning
   `DeleteFailed`.
 - `WhitelistStore::add_info_hash_to_whitelist` and `remove_info_hash_from_whitelist` keep returning
-  `Result<usize, Error>`, now documented as "number of rows changed; `0` means nothing to do".
+  `Result<usize, Error>`, now documented as "number of rows changed; `0` means nothing to do" (for the add on MySQL a duplicate reports `1`, see the Risks section and AC3, which supersede this for the add count).
 - `DatabaseWhitelist::add` and `remove` drop the read-before-write.
 - Contract change at the store level: a direct second insert, and a direct delete of a missing hash,
   no longer fail. The three shared-harness tests that document the failures
@@ -204,6 +204,7 @@ with the narrow affected scope, and sign every commit with GPG.
 - 2026-11-25 16:56 UTC - Claude Code (Claude Sonnet 5.5) - Added the concurrent store-level harness cases and observed them red on SQLite - `manual-verification-evidence.md` T3
 - 2026-11-25 16:58 UTC - Claude Code (Claude Sonnet 5.5) - Observed the concurrent harness cases red on MySQL and PostgreSQL (T2, V2 before-fix) - `manual-verification-evidence.md` V2
 - 2026-11-25 17:04 UTC - Claude Code (Claude Sonnet 5.5) - Made the three drivers idempotent, dropped the read in DatabaseWhitelist, replaced the failure harness tests; green on SQLite, MySQL and PostgreSQL; V1 and V2 rerun; MySQL add row count reported 1 on a duplicate (not a contract) - `manual-verification-evidence.md`
+- 2026-11-25 17:29 UTC - Claude Code (Claude Sonnet 5.5) - Addressed review 6062055409 of PR #3061: V2 row reworded to the harness cases, test-intent comparison and image tags recorded, status in-review, completion criteria checked - `manual-verification-evidence.md`
 
 ## Acceptance Criteria
 
@@ -211,11 +212,11 @@ with the narrow affected scope, and sign every commit with GPG.
 - [x] AC2: Two concurrent `DatabaseWhitelist::remove` calls for the same info-hash both return `Ok` and the hash is no longer whitelisted (same two tests as AC1: `persisted.rs` on SQLite, the concurrent harness case on all three drivers).
 - [x] AC3: `WhitelistStore::add_info_hash_to_whitelist` succeeds for a new and for an existing hash; `remove_info_hash_from_whitelist` returns `Ok(1)` for a present hash and `Ok(0)` for a missing one, on all three drivers. The add row count is not a contract: MySQL reports `1` for a duplicate (found-rows flag), SQLite and PostgreSQL `0` (documented on the trait).
 - [x] AC4: The regression test and the concurrent store-level harness cases were observed red before the fix and green after.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior/workflow changes (trait docs)
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated when behavior/workflow changes (trait docs)
 
 ## Verification Plan
 
@@ -230,8 +231,8 @@ with the narrow affected scope, and sign every commit with GPG.
 
 | ID  | Scenario                                          | Human-oriented command/steps                                                                   | Expected Result                               | Status | Evidence                                     |
 | --- | ------------------------------------------------- | ---------------------------------------------------------------------------------------------- | --------------------------------------------- | ------ | -------------------------------------------- |
-| V1  | Concurrent add and remove on SQLite               | Temporary test: 200 rounds of two concurrent `add` then two concurrent `remove` of one hash    | Before fix: failures. After fix: none         | DONE   | `manual-verification-evidence.md` section V1 (before-fix result recorded) |
-| V2  | Same on MySQL and PostgreSQL                      | Same temporary test against the Docker databases                                               | Before fix: failures. After fix: none         | DONE   | `manual-verification-evidence.md` section V2 |
+| V1  | Concurrent add and remove on SQLite               | Temporary test: 200 rounds of two concurrent `add` then two concurrent `remove` of one hash    | Before fix: failures. After fix: none         | DONE   | `manual-verification-evidence.md` section V1 (before and after the fix) |
+| V2  | Concurrent store-level add and remove on MySQL and PostgreSQL | The shared harness cases `it_should_not_fail_adding_the_same_infohash_concurrently` and `it_should_not_fail_removing_the_same_infohash_concurrently` through `run_mysql_driver_tests` and `run_postgres_driver_tests` (commands and image tags in the evidence file) | Before fix: the store rejects the duplicate write. After fix: both calls succeed | DONE   | `manual-verification-evidence.md` section V2 |
 
 ### Disposable Verification Scripts
 

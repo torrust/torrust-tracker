@@ -339,7 +339,9 @@ pub(crate) mod tests {
         use crate::databases::traits::Database;
         use crate::test_helpers::tests::random_info_hash;
 
-        /// Rounds of the concurrent cases: the race window is narrow, so one round can pass by luck.
+        /// Rounds of the concurrent cases. There is no read-then-write window at the store level, so a
+        /// single round already fails on a store that rejects a duplicate write; repeating the cases
+        /// also catches nondeterministic lock errors on `MySQL` and `PostgreSQL`.
         const CONCURRENT_ROUNDS: usize = 50;
 
         pub async fn it_should_load_the_whitelist(driver: &Arc<Box<dyn Database>>) {

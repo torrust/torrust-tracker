@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/3052-whitelist-add-remove-race/ISSUE.md
-last-updated-utc: "2026-11-25 17:04"
+last-updated-utc: "2026-11-25 17:29"
 ---
 
 # Manual Verification Evidence
@@ -145,9 +145,17 @@ MySQL remove:     DeleteFailed { error_code: 0, driver: MySQL }
 PostgreSQL remove: DeleteFailed { error_code: 0, driver: PostgreSQL }
 ```
 
-The race therefore reproduces on all three drivers. The `DatabaseWhitelist` level test of
-`persisted.rs` runs on SQLite only. The MySQL affected-rows behavior of the planned
-`ON DUPLICATE KEY UPDATE` (0 rows on a no-op) is checked after the fix.
+At store level there is no read-then-write window: a second identical `INSERT` always violates the
+unique constraint and a second `DELETE` always removes zero rows, so these cases fail in the first
+iteration whatever the interleaving, as the replaced sequential tests did. The red run therefore shows
+that all three drivers reject the duplicate write, which the fix changes. It does not show the
+`DatabaseWhitelist` read-then-write race: that was observed on SQLite only (V1 and the `persisted.rs`
+tests). The MySQL affected-rows behavior of `ON DUPLICATE KEY UPDATE` is checked after the fix.
+
+Container images: the suites ran with their default tags, `mysql:8.0` and `postgres:16`
+(overridable with `TORRUST_TRACKER_CORE_MYSQL_DRIVER_IMAGE_TAG` and
+`TORRUST_TRACKER_CORE_POSTGRES_DRIVER_IMAGE_TAG`, unset). CI runs the same suites on MySQL 8.0 and 8.4
+and PostgreSQL 14 to 17.
 
 #### After the fix (V2 rerun)
 
@@ -166,6 +174,30 @@ found-rows flag, so `ON DUPLICATE KEY UPDATE info_hash = info_hash` reports 1 ro
 SQLite and PostgreSQL report 0. The removal count is exact on all three drivers. Decision: the add
 count is not a contract (documented on `WhitelistStore::add_info_hash_to_whitelist`); the harness
 asserts only that both adds succeed and the hash is listed. Removal counts (`1` then `0`) are asserted.
+
+## Test intent (prose-first Arrange-Act-Assert)
+
+The prose was written from the requirement before comparing it with the test code. Each comparison
+found the code matching the prose.
+
+- `persisted.rs` `should_not_fail_on_concurrent_identical_adds`. Arrange: an empty persisted whitelist on
+  SQLite shared by two tasks, one info-hash. Act: both tasks `add` the hash at the same time, 200
+  rounds, removing it after each round. Assert: both calls return `Ok` and the hash is loaded from the
+  database.
+- `persisted.rs` `should_not_fail_on_concurrent_identical_removes`. Arrange: the hash is listed at the
+  start of each round. Act: two tasks `remove` it at the same time. Assert: both calls return `Ok` and the
+  hash is no longer loaded.
+- Harness `it_should_not_fail_adding_the_same_infohash_concurrently`. Arrange: a fresh random hash per
+  round. Act: two concurrent store `add` calls. Assert: both succeed and the hash is listed.
+- Harness `it_should_not_fail_removing_the_same_infohash_concurrently`. Arrange: a listed random hash.
+  Act: two concurrent store `remove` calls. Assert: both succeed, the removed counts sum to 1, and the
+  hash is gone.
+- Harness `it_should_not_fail_adding_the_same_infohash_twice`. Arrange: a fresh hash. Act: add it twice.
+  Assert: both succeed and the hash is listed.
+- Harness `it_should_not_fail_removing_a_missing_infohash`. Arrange: a hash never added. Act: remove
+  it. Assert: success with 0 rows removed.
+- Harness `it_should_not_fail_removing_the_same_infohash_twice`. Arrange: a listed hash. Act: remove it
+  twice. Assert: counts `1` then `0` and the hash is gone.
 
 ## Failures and Follow-up
 

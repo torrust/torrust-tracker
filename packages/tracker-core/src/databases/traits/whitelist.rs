@@ -55,8 +55,8 @@ pub trait WhitelistStore: Sync + Send {
     ///
     /// Idempotent: removing a torrent that is not listed is not an error. Returns
     /// the number of rows removed: `1`, or `0` when the torrent was not listed. It
-    /// is atomic, so concurrent calls for one torrent all succeed and their row
-    /// counts add up to `1`.
+    /// is atomic, so concurrent calls for one torrent all succeed and, when the
+    /// torrent was listed, their row counts add up to `1`.
     ///
     /// # Errors
     ///
