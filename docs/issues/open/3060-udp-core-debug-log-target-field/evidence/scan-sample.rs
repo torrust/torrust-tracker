@@ -16,3 +16,7 @@ fn g() {
         "message"
     );
 }
+
+fn h() {
+    tracing::debug!(/* stats */ target = "X", "m");
+}
