@@ -31,7 +31,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 ## Findings
 
 F1 is from CodeRabbit's inline comment. F2 to F10 are from da2ce7's review 6059881188: F2 to F8 are its
-inline comments and F9 and F10 its review-body findings. The reviews of `claude[bot]` (6059427646, 6059672293)
+inline comments and F9 and F10 its review-body findings. F11 is the Minor in the body of da2ce7's approval 6060214481. The reviews of `claude[bot]` (6059427646, 6059672293)
 and the summary body of CodeRabbit's review 6059546450 contain no actionable assertion and have no rows.
 
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
@@ -46,6 +46,7 @@ and the summary body of CodeRabbit's review 6059546450 contain no actionable ass
 | F8 | review-finding:pr-3053-f8 | da2ce7 | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F9 | review-finding:pr-3053-f9 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
 | F10 | review-finding:pr-3053-f10 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F11 | review-finding:pr-3053-f11 | da2ce7 | Minor | testing | ORIGINAL | FIXED | NON_RESOLVABLE |
 
 ## Finding Details
 
@@ -179,6 +180,19 @@ and the summary body of CodeRabbit's review 6059546450 contain no actionable ass
 - Follow-up PR URL: N/A
 - Reply URL: N/A
 
+### F11 - The concurrent store-level cases come after the fix, so no red run is planned for them
+
+- PR number: 3053
+- Source review ID: 6060214481
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3053#pullrequestreview-6060214481
+- Concern: T5 added the concurrent store-level harness cases after T4 made the drivers idempotent, while T3 and AC4 planned a red run only for the regression test, so nothing would show that the MySQL and PostgreSQL cases detect the race.
+- Solution: T3 now adds the concurrent harness cases and observes them red on the unfixed code (SQLite, and MySQL and PostgreSQL via the Docker suites); T5 only replaces the three failure-documenting tests; AC4 names the harness cases.
+- Current-tree verification: `grep -n 'T3\|T5\|AC4' ISSUE.md` shows the three places consistent.
+- Resolution reference: docs(issues): [#3052] plan the concurrent harness cases red before the fix
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
 ## Processing Log
 
 - 2026-11-25 14:30 UTC - CodeRabbit's inline comment (F1) arrived.
@@ -186,6 +200,8 @@ and the summary body of CodeRabbit's review 6059546450 contain no actionable ass
 - 2026-11-25 14:50 UTC - da2ce7's review 6059881188 arrived (F2 to F10).
 - 2026-11-25 15:00 UTC - Replied to F2 to F8 after pushing their fixes, and edited the PR description for F9 (comment 7166150355).
 - 2026-11-25 15:01 UTC - Created this record from the template; the late start is the subject of F10.
+- 2026-11-25 15:10 UTC - da2ce7's approval 6060214481 arrived with one Minor (F11); the maintainer's ACK of the previous head followed.
+- 2026-11-25 15:12 UTC - Committed the F11 fix (`docs(issues): [#3052] plan the concurrent harness cases red before the fix`) and held the push until the maintainer chose between pushing it and merging as is.
 
 ## Completion Rules
 
