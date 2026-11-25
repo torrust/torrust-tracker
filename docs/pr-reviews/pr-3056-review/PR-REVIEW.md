@@ -168,7 +168,7 @@ no issue and needs no row. CodeRabbit posted its summary comment only, with no f
 - Current-tree verification: `python3 .claude/skills/process-pr-review/scripts/validate-audit-record.py --pr-number 3056` passes.
 - Resolution reference: docs(pr-reviews): [#2902] record the first two review rounds of #3056
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/3056#discussion_rN/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3056#discussion_r4698380593
 
 ### F9 - The 15:53 log entry gained later facts in place
 
@@ -181,7 +181,7 @@ no issue and needs no row. CodeRabbit posted its summary comment only, with no f
 - Current-tree verification: `grep -c 'now #3051' docs/issues/open/2902-1347-add-tests-tracker-core/ISSUE.md` prints 0 in the 15:53 entry.
 - Resolution reference: docs(issues): [#2902] keep the S4 log entry to its stamp and add the lessons register
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/3056#discussion_rN/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3056#discussion_r4698381164
 
 ### F10 - The findings procedure's lessons.md row was missing
 
@@ -194,7 +194,7 @@ no issue and needs no row. CodeRabbit posted its summary comment only, with no f
 - Current-tree verification: `ls docs/issues/open/2902-1347-add-tests-tracker-core/lessons.md` finds the file.
 - Resolution reference: docs(issues): [#2902] keep the S4 log entry to its stamp and add the lessons register
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/3056#discussion_rN/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3056#discussion_r4698381594
 
 ## Processing Log
 
@@ -202,6 +202,7 @@ no issue and needs no row. CodeRabbit posted its summary comment only, with no f
 - 2026-11-25 16:56 UTC - Replied to the seven threads of round 1 and resolved them, without an audit record: the skill requires the record before the first reply.
 - 2026-11-25 17:08 UTC - Round 2 arrived (review `6061785377`); its first finding is the missing record.
 - 2026-11-25 17:12 UTC - Started this audit late from the template, covering both rounds.
+- 2026-11-25 17:20 UTC - Pushed the fixes of round 2 and the audit record, replied to its three threads and resolved them.
 
 ## Completion Rules
 
