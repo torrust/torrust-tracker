@@ -57,7 +57,7 @@ Round 3: `claude[bot]` review 6058972240 (F14), CodeRabbit review 6059084436 (F1
 | F8 | review-finding:pr-3049-f8 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F9 | review-finding:pr-3049-f9 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F10 | review-finding:pr-3049-f10 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
-| F11 | review-finding:pr-3049-f11 | da2ce7 | Suggestion | correctness | ORIGINAL | FOLLOW_UP | OPEN |
+| F11 | review-finding:pr-3049-f11 | da2ce7 | Suggestion | correctness | ORIGINAL | FIXED | OPEN |
 | F12 | review-finding:pr-3049-f12 | da2ce7 | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F13 | review-finding:pr-3049-f13 | da2ce7 | Nit | maintainability | ORIGINAL | NO_ACTION | NON_RESOLVABLE |
 | F14 | review-finding:pr-3049-f14 | claude[bot] | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -208,9 +208,9 @@ Round 3: `claude[bot]` review 6058972240 (F14), CodeRabbit review 6059084436 (F1
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4695708467
 - Concern: `guard.rs` accepts any file name in `agent-replies/`, so a name the validator's name rule rejects keeps the agent refused until the limit; the reviewer proposes treating such a name like a non-exact path, with a message that names the problem.
-- Solution: No change. It depends on the maintainer's answer about the D17 exact-path-shape consequence, which the pull request asks for; recorded as undecided and returned to the contributor as a question. The thread stays open.
+- Solution: The maintainer decided (round 4, after the question this row first recorded) that the hook lets the agent finish, with the validator's reason, when the file name of its request is not a valid reply file name. `decide` in `guard.rs` now parses the name with the validator's `ReplyFileName`, after the checks for the specification folder and its issue number, and keeps no count; six unit tests, one per kind of invalid name, and one for the order of the checks; a mutation check that disabled the branch made the six fail. D17 records the case, the two alternatives that were discarded and the reasons.
 - Current-tree verification: read the arm in `contrib/dev-tools/checks/agent-reply-validator/src/guard.rs`: it accepts any name under `agent-replies/`, as the reviewer says; V7 shows the three refusals for `task-reviewer-t5-r4.json`.
-- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4695989904
+- Resolution reference: fix(agent-reply-validator): [#2904] let the reviewer finish when the reply file name is not a valid one
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4695989904
 
@@ -358,6 +358,7 @@ Round 3: `claude[bot]` review 6058972240 (F14), CodeRabbit review 6059084436 (F1
 - 2026-11-25 14:22 UTC - Pushed the two fixes and the record of this round with `git-bot-push`, no force.
 - 2026-11-25 14:28 UTC - Replied on the seven threads (GitHub `created_at` 14:27:47 to 14:28:03 UTC) and with one conversation comment for the body nits F13 and F21 (14:28:10 UTC), then resolved five threads (F14, F16, F18 to F20) with the GraphQL mutation; the thread of F15 was already resolved by `coderabbitai[bot]`. F17 stays open for its reviewer and F11 for the maintainer.
 - 2026-11-25 14:29 UTC - Recorded the reply URLs of this round; this commit is kept local and not pushed on its own, by the maintainer's rule.
+- 2026-11-25 16:12 UTC - Round 4: the maintainer answered the question of F11; the fix and the record of D17 are committed, and the row is FIXED with the thread still open until the push and the reply.
 
 ## Completion Rules
 
