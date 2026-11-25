@@ -46,6 +46,12 @@ esac
 
 const OPEN_PULL: &str = r#"{"head": {"sha": "abc1234"}, "state": "open", "merged": false}"#;
 const MERGED_PULL: &str = r#"{"head": {"sha": "abc1234"}, "state": "closed", "merged": true}"#;
+/// An open pull request opened by `contributor`.
+const OPEN_PULL_BY_CONTRIBUTOR: &str =
+    r#"{"head": {"sha": "abc1234"}, "state": "open", "merged": false, "user": {"login": "contributor"}}"#;
+/// The author's own reply review, then a review by a bot that no `--reviewer` list names. The author's
+/// review is earlier, so a poller that did not skip the author would report it first.
+const AUTHOR_REPLY_THEN_NEW_BOT_REVIEW: &str = r#"[[{"id": 5, "user": {"login": "contributor"}, "state": "COMMENTED", "commit_id": "abc1234", "html_url": "https://example.test/review/5", "submitted_at": "2026-10-28T06:30:00Z"}, {"id": 6, "user": {"login": "new-reviewer[bot]"}, "state": "COMMENTED", "commit_id": "abc1234", "html_url": "https://example.test/review/6", "submitted_at": "2026-10-28T07:00:00Z"}]]"#;
 const REVIEW_BY_DA2CE7: &str = r#"[[{"id": 5, "user": {"login": "da2ce7"}, "state": "APPROVED", "commit_id": "abc1234", "html_url": "https://example.test/review/5", "submitted_at": "2026-10-28T07:00:00Z"}]]"#;
 
 struct Sandbox {
@@ -62,6 +68,11 @@ impl Sandbox {
         fs::write(directory.path().join("reviews-later.json"), REVIEW_BY_DA2CE7).unwrap();
 
         Self { directory }
+    }
+
+    fn with_later_reviews(self, reviews: &str) -> Self {
+        fs::write(self.directory.path().join("reviews-later.json"), reviews).unwrap();
+        self
     }
 
     fn flag(&self, name: &str) {
@@ -141,6 +152,44 @@ fn it_should_print_the_review_that_arrives_after_the_wait_began_as_one_json_obje
     assert_eq!(event["head_sha"], "abc1234");
     assert_eq!(event["cursor"], "2026-10-28T07:00:00Z");
     assert_eq!(kinds(&output), ["wait_started", "gh_identity"]);
+}
+
+#[test]
+fn it_should_report_a_reviewer_no_list_names_and_skip_the_authors_own_review_when_no_reviewer_is_given() {
+    let sandbox = Sandbox::with_pull(OPEN_PULL_BY_CONTRIBUTOR).with_later_reviews(AUTHOR_REPLY_THEN_NEW_BOT_REVIEW);
+
+    let output = sandbox.run(&["--pr-number", "7", "--poll-interval-seconds", "1", "--timeout-seconds", "30"]);
+
+    assert_eq!(output.status.code(), Some(0));
+    let event = json(&output.stdout);
+    assert_eq!(event["kind"], "review");
+    assert_eq!(event["reviewer"], "new-reviewer[bot]");
+    let started = &stderr_records(&output)[0];
+    assert_eq!(started["kind"], "wait_started");
+    assert_eq!(started["watch"], "all_except_author");
+    assert_eq!(started["reviewers"], serde_json::json!([]));
+}
+
+#[test]
+fn it_should_watch_only_the_listed_logins_when_a_reviewer_is_given() {
+    let sandbox = Sandbox::with_pull(OPEN_PULL_BY_CONTRIBUTOR).with_later_reviews(AUTHOR_REPLY_THEN_NEW_BOT_REVIEW);
+
+    let output = sandbox.run(&[
+        "--pr-number",
+        "7",
+        "--reviewer",
+        "da2ce7",
+        "--poll-interval-seconds",
+        "1",
+        "--timeout-seconds",
+        "2",
+    ]);
+
+    assert_eq!(output.status.code(), Some(0));
+    assert_eq!(json(&output.stdout)["kind"], "timeout");
+    let started = &stderr_records(&output)[0];
+    assert_eq!(started["watch"], "listed");
+    assert_eq!(started["reviewers"], serde_json::json!(["da2ce7"]));
 }
 
 #[test]

@@ -27,3 +27,20 @@ Review of the tests added or changed in T2 (the poller's default reviewer set), 
 - No temporary prose remained after the comparison; no helper was added.
 - Existing JSON fixtures without `user` still decode (`#[serde(default)]`), so the wait-loop tests
   did not change apart from the `Reviewers::Only` configuration.
+
+## CLI Tests Added After Review (PR 3044, da2ce7 F1)
+
+The `detect` tests above pass `Reviewers::AllExceptAuthor` directly, and the CLI fixtures had a pull
+request without `user`, so no test pinned the command-line default or the `watch` field. Two tests in
+`tests/cli.rs` close that gap. Toolchain: stable Rust (`cargo test -p wait-for-pr-review`: 73 + 3 + 40
+tests pass).
+
+| Test | Arrange (the one causal difference) | Act | Assert |
+| --- | --- | --- | --- |
+| `it_should_report_a_reviewer_no_list_names_and_skip_the_authors_own_review_when_no_reviewer_is_given` | The pull request's author is `contributor`; the author's reply review comes first in time, then a review by `new-reviewer[bot]` | The binary without `--reviewer` | A `review` event by `new-reviewer[bot]`; `wait_started` has `watch: all_except_author` and no listed reviewers |
+| `it_should_watch_only_the_listed_logins_when_a_reviewer_is_given` | The same reviews | The binary with `--reviewer da2ce7` | `timeout`; `wait_started` has `watch: listed` and `["da2ce7"]` |
+
+Mutation check, run and reverted: putting the old default (`da2ce7`,
+`copilot-pull-request-reviewer[bot]`) back on `--reviewer` fails the first test (it times out after
+30 s); swapping the two `watch` strings fails both. The shared fake gets one helper,
+`with_later_reviews`, that only replaces the reviews the fake returns after the first poll.
