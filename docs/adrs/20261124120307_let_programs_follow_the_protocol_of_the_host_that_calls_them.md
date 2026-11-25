@@ -80,7 +80,8 @@ protocol defines. Nothing else is relaxed:
 
 The table gets no new column. An `external-protocol` row has `Class` set to `external-protocol`, and
 its `Notes` cell starts with the protocol. `agent-reply-guard` gets the first row: Claude Code
-`Stop` hook (run as `SubagentStop` in an agent's frontmatter).
+`Stop` hook (run as `SubagentStop` in an agent's frontmatter) and `PreToolUse` hook on the tool
+that hands the agent's report back.
 
 No code check enforces the table today, so membership in this class is enforced by review.
 
@@ -126,6 +127,17 @@ records a decision at a date, and this one came later. The original gets a short
 - A host that changes its protocol can break the adapter silently. The scenarios recorded as
   evidence and the boundary tests reduce this; they do not remove it.
 - Membership is enforced by review, not by a check.
+
+## Affected Code
+
+- [`docs/adrs/20260519000000_define_global_cli_output_contract.md`](20260519000000_define_global_cli_output_contract.md):
+  the binary table, whose `agent-reply-guard` row is the first `external-protocol` member.
+- [`contrib/dev-tools/checks/agent-reply-validator/src/bin/agent-reply-guard/main.rs`](../../contrib/dev-tools/checks/agent-reply-validator/src/bin/agent-reply-guard/main.rs):
+  the program; its module documentation names Claude Code's protocol and points back to this ADR.
+- [`contrib/dev-tools/checks/agent-reply-validator/src/guard.rs`](../../contrib/dev-tools/checks/agent-reply-validator/src/guard.rs):
+  the decision of the guard.
+- [`.claude/agents/task-reviewer.md`](../../.claude/agents/task-reviewer.md): the agent whose
+  frontmatter registers the program as the two hooks.
 
 ## Date
 
