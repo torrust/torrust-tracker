@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2996-2912-si-8-share-assert-names-no-source-path/ISSUE.md
-last-updated-utc: "2026-11-25 12:11"
+last-updated-utc: "2026-11-25 13:33"
 ---
 
 # Manual Verification Evidence
@@ -31,10 +31,13 @@ copies, so their line numbers moved by one:
 $ grep -rn "fn assert_names_no_source_path" packages
 packages/test-helpers/src/assertions.rs:24:pub fn assert_names_no_source_path(message: &str) {
 packages/http-protocol/src/test_helpers.rs:16:pub fn assert_names_no_source_path(message: &str) {
-packages/configuration/src/lib.rs:397:    fn assert_names_no_source_path(message: &str) {
+packages/configuration/src/lib.rs:400:    fn assert_names_no_source_path(message: &str) {
 packages/primitives/src/peer.rs:674:    fn assert_names_no_source_path(message: &str) {
 packages/axum-server/src/tls.rs:71:    fn assert_names_no_source_path(message: &str) {
 ```
+
+The `configuration` line reads 400 here and 412 in V3 because the merge of `develop` with #3042 added three lines above it
+in `packages/configuration/src/lib.rs`; the other four files did not change.
 
 ## V2 - The shared helper still catches a path (M2)
 
@@ -68,7 +71,7 @@ Run on 2026-11-25 (`review-finding:pr-3041-f3`):
 $ grep -rn 'must not hold a source path' packages
 packages/test-helpers/src/assertions.rs:36:            "the error message must not hold a source path, but it contains {fragment:?}: {message:?}"
 packages/http-protocol/src/test_helpers.rs:28:            "the error message must not hold a source path, but it contains {fragment:?}: {message:?}"
-packages/configuration/src/lib.rs:409:                "the error message must not hold a source path, but it contains {fragment:?}: {message:?}"
+packages/configuration/src/lib.rs:412:                "the error message must not hold a source path, but it contains {fragment:?}: {message:?}"
 packages/primitives/src/peer.rs:686:                "the error message must not hold a source path, but it contains {fragment:?}: {message:?}"
 packages/axum-server/src/tls.rs:83:                "the error message must not hold a source path, but it contains {fragment:?}: {message:?}"
 ```
