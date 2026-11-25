@@ -11,6 +11,7 @@
 //! The rule redacts what follows `/announce/`, `/scrape/` and `/key/` whatever its shape, because
 //! a malformed key (a stray character, a wrong length) is still the user's secret. The seconds
 //! value of `POST /api/v1/key/<seconds>` is lost in the log with it; that is accepted.
+// cspell:ignore nnounce oken zzoken
 use http::{Request, Uri};
 use tower_http::trace::MakeSpan;
 use tracing::{Level, Span};
@@ -81,8 +82,10 @@ fn is_a_secret_query_param(name: &str) -> bool {
     SECRET_QUERY_PARAMS.iter().any(|secret| decoded.eq_ignore_ascii_case(secret))
 }
 
-/// Decodes the `%XX` escapes of `text`. A malformed escape stays as written, and bytes that are not
-/// UTF-8 become the replacement character: the result is only compared with known names.
+/// Decodes the `%XX` escapes of `text`, where `XX` is two hexadecimal digits. Anything else after a
+/// `%` (one digit, a sign, another letter) is not an escape and stays as written, as the server's
+/// form decoder leaves it. Bytes that are not UTF-8 become the replacement character: the result
+/// is only compared with known names.
 fn percent_decoded(text: &str) -> String {
     let bytes = text.as_bytes();
     let mut decoded = Vec::with_capacity(bytes.len());
@@ -92,6 +95,8 @@ fn percent_decoded(text: &str) -> String {
         let escaped = (bytes[index] == b'%')
             .then(|| bytes.get(index + 1..index + 3))
             .flatten()
+            // `from_str_radix` alone would accept a sign (`+4`), which is not an escape.
+            .filter(|hex| hex.iter().all(u8::is_ascii_hexdigit))
             .and_then(|hex| std::str::from_utf8(hex).ok())
             .and_then(|hex| u8::from_str_radix(hex, 16).ok());
 
@@ -131,7 +136,7 @@ mod tests {
     use torrust_tracker_test_helpers::logging::capture_logs_while;
     use tower_http::trace::MakeSpan as _;
 
-    use super::{RedactedMakeSpan, redact_path_and_query};
+    use super::{RedactedMakeSpan, percent_decoded, redact_path_and_query};
 
     // The tests use made-up keys and tokens. Each case states the whole expected text.
     #[rstest]
@@ -169,6 +174,7 @@ mod tests {
         Some("to%6ben=TestAdminToken0001"),
         "/api/v1/stats?to%6ben=***"
     )]
+    #[case::names_with_a_malformed_escape_stay_as_written("/api/v1/stats", Some("%7=1&%+4=2"), "/api/v1/stats?%7=1&%+4=2")]
     #[case::a_name_that_is_not_valid_utf8_after_decoding("/api/v1/stats", Some("%FF=1&limit=2"), "/api/v1/stats?%FF=1&limit=2")]
     #[case::an_encoded_path_segment_name("/%61nnounce/TestPeerKey000000000000000000001", None, "/%61nnounce/***")]
     #[case::a_uri_without_a_secret("/api/v1/stats", Some("limit=10"), "/api/v1/stats?limit=10")]
@@ -191,6 +197,17 @@ mod tests {
         let redacted = redact_path_and_query(path, query);
 
         assert_eq!(redacted, expected);
+    }
+
+    #[rstest]
+    #[case::a_valid_escape("%74oken", "token")]
+    #[case::a_valid_escape_with_lower_case_hex("to%6ben", "token")]
+    #[case::a_percent_with_one_hex_digit_at_the_end("to%7", "to%7")]
+    #[case::a_percent_at_the_end("token%", "token%")]
+    #[case::a_percent_followed_by_a_sign("%+4oken", "%+4oken")]
+    #[case::a_percent_followed_by_a_letter_that_is_not_hex("%zzoken", "%zzoken")]
+    fn it_should_decode_only_a_percent_followed_by_two_hex_digits(#[case] text: &str, #[case] expected: &str) {
+        assert_eq!(percent_decoded(text), expected);
     }
 
     #[test]

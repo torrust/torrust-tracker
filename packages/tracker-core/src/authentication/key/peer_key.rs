@@ -294,16 +294,23 @@ mod tests {
 
         #[test]
         fn it_should_count_characters_not_bytes_when_naming_the_received_length() {
+            // 30 ASCII characters and one two-byte character: 31 characters, 32 bytes. Counting
+            // bytes would accept the length and reject the characters instead.
+            let thirty_one_characters = "TestPeerKeyWithAccent000000000é";
+
+            let error = Key::new(thirty_one_characters).unwrap_err();
+
+            assert_eq!(error.to_string(), "expected 32 characters, got 31");
+        }
+
+        #[test]
+        fn it_should_reject_a_32_character_key_with_a_non_ascii_character_for_its_characters() {
             // 31 ASCII characters and one two-byte character: 32 characters, 33 bytes.
             let thirty_two_characters = "TestPeerKeyWithAccent0000000000é";
 
             let error = Key::new(thirty_two_characters).unwrap_err();
 
-            assert_eq!(
-                error.to_string(),
-                "only the characters 0-9, a-z and A-Z are allowed",
-                "a 32-character key with a non-ASCII character is rejected for its characters, not its length"
-            );
+            assert_eq!(error.to_string(), "only the characters 0-9, a-z and A-Z are allowed");
         }
 
         #[test]

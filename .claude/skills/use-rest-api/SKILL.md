@@ -37,11 +37,11 @@ All API endpoints (except `/api/health_check`) require an access token.
 curl -H "Authorization: Bearer MyAccessToken" http://localhost:1212/api/v1/stats
 ```
 
-### Query Parameter Method
+### Query Parameter Method (accepted, not recommended)
 
-```bash
-curl -H "Authorization: Bearer MyAccessToken" "http://localhost:1212/api/v1/stats"
-```
+The server still accepts the token as a `?token=` query parameter, but a URL, with its query, is
+written to proxy, browser and shell-history logs. Send the header instead, and do not write the
+query form in examples (see the `handle-secrets` skill).
 
 ### Configuration
 

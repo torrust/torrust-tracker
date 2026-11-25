@@ -14,4 +14,3 @@ test v1::client::tests::it_should_not_hold_the_key_in_the_transport_error_of_a_k
 test v1::client::tests::it_should_not_hold_the_key_in_the_transport_error_of_the_typed_key_delete ... FAILED
 test result: FAILED. 10 passed; 3 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
 error: test failed, to rerun pass `-p torrust-tracker-rest-api-client --lib`
-

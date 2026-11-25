@@ -8,8 +8,8 @@ epic: 2993
 github-issue: 2999
 spec-path: docs/issues/open/2999-2993-si-a-keep-secrets-out-of-errors-and-logs/ISSUE.md
 branch: "2999-si-a-keep-secrets-out-of-errors-and-logs"
-related-pr: null
-last-updated-utc: "2026-11-24 18:00"
+related-pr: 3042
+last-updated-utc: "2026-11-25 08:27"
 semantic-links:
   skill-links:
     - create-issue
@@ -160,6 +160,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-23 18:08 UTC - Claude Code (Claude Opus 5.5), EPIC coordinator session - Rechecked against `develop` `6bc417424` before the start: nothing fixed. Added the missed sites (the third `InvalidKey` site, the other `reqwest` wrap sites and the peer key in the delete URL, the fifth key text, the other `?token=` teachers), corrected the REST client description and file paths, and recorded the maintainer's answers of 2026-11-23 (start after #3001, marker `***`, CI tools out of scope, one session with Claude Fable 5.2 at high effort).
 - 2026-11-23 19:29 UTC - Claude Code (Claude Opus 5.5), EPIC coordinator session - Review of PR 3014: added the axum path rejection of `POST /api/v1/key/<seconds>`, made the URI redaction cover every segment whatever its shape, and named the REST client's GET exceptions and the free GET helper's send error.
 - 2026-11-24 18:00 UTC - Claude Code (Claude Sonnet 5.5), implementation session - Implemented T1 to T9 in seven signed commits on the branch (`fix(auth)`, `fix(tracker-core)` for the `Key` type, `fix(servers)`, `fix(rest-api-client)`, `fix(configuration)`, `fix(tracker-core)` for the database errors, `docs(secrets)`). The maintainer checkpoint (T8b) was passed on 2026-11-24 after the last increment, by the maintainer's reply "Approve, continue" in the session; the final recheck (M1 to M7) ran afterwards on the finished build and is in the evidence file section T9. Decisions: the redaction function lives in `torrust-tracker-axum-server::request_log`; secret configuration options are detected by key path (`SECRET_OPTIONS`); the secrecy ADR was amended (no new ADR); `PeerKey`'s `Display` no longer prints the key; the generated-key log lines were removed. Public API changes: `ConnectionInfo::api_token` is `Option<SecretString>` (no `Clone`), `UnableToReadKey` and both `InvalidKey` variants lost their `key` field. Pull request: pending.
+- 2026-11-25 08:28 UTC - Claude Code (Claude Fable 5.2), implementation session - Recorded late, for 2026-11-24: pull request 3042 was opened after the entry above was written. Review round 1 (Greptile, two findings): the redaction now percent-decodes names before comparing them, and the imports this branch added follow the repository style. The real-tracker recheck was repeated after the fix (evidence section R1). The maintainer wrote his ACK on the head that held the audit record.
+- 2026-11-25 08:27 UTC - Claude Code (Claude Fable 5.2), implementation session - Review round 2 (da2ce7, approved with seven non-blocking findings, all accepted): the decoder requires two hexadecimal digits, the `use-rest-api` skill no longer shows the header command under the query heading, the configuration red-run count is corrected and its seventh test has a recorded mutation, two word fragments left the project dictionary, and the length test asserts the length. The recheck was repeated again (evidence section R2). The push of this round makes the two ACKs on the earlier head stale.
 
 ## Acceptance Criteria
 

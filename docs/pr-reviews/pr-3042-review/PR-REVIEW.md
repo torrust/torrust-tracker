@@ -9,6 +9,8 @@ semantic-links:
 
 <!-- skill-link: process-pr-review -->
 
+<!-- cspell:ignore nnounce oken -->
+
 # PR #3042 Review Audit
 
 Source: pull-request reviews and inline review threads for

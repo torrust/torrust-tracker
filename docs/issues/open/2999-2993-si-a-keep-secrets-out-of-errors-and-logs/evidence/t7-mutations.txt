@@ -13,4 +13,3 @@ error: test failed, to rerun pass `-p torrust-tracker-configuration --lib`
 test secret_options::tests::it_should_still_print_the_value_of_an_option_that_is_not_a_secret ... FAILED
 test result: FAILED. 6 passed; 1 failed; 0 ignored; 0 measured; 161 filtered out; finished in 0.00s
 error: test failed, to rerun pass `-p torrust-tracker-configuration --lib`
-

@@ -1,12 +1,12 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2999-2993-si-a-keep-secrets-out-of-errors-and-logs/ISSUE.md
-last-updated-utc: "2026-11-24 16:41"
+last-updated-utc: "2026-11-25 08:27"
 ---
 
 # Manual Verification Evidence
 
-<!-- cspell:ignore nnounce -->
+<!-- cspell:ignore nnounce oken zzoken -->
 
 ## Purpose
 
@@ -383,8 +383,12 @@ the module loads an invalid value for each current entry.
 
 ### Red run
 
-Five of seven tests failed on the starting loader ([`evidence/t7-red.txt`](evidence/t7-red.txt));
-for each: `the error text holds the secret value`. The non-secret control test passed.
+Five of the six tests the module had at that point failed on the starting loader
+([`evidence/t7-red.txt`](evidence/t7-red.txt), `1 passed; 5 failed`); for each: `the error text
+holds the secret value`. The non-secret control test passed. The seventh test (the
+environment-override case) was added after that red run, with the fix already in place, so it
+was not seen red then; its guard was shown later by mutation (section R2, finding F3 of the
+second review). An earlier version of this paragraph said "five of seven", which was wrong.
 
 ### Green run
 
@@ -538,8 +542,10 @@ acceptance evidence` and reported two findings, both accepted:
    redaction now percent-decodes query parameter names and path segment names before comparing
    (the logged text keeps the original spelling). Red run: four new cases failed
    (`%74oken`, `%74%6F%6B%65%6E`, `to%6ben`, `/%61nnounce/<key>`; 21 passed, 4 failed); green: 25
-   passed. A malformed escape stays as written and a name that is not UTF-8 after decoding is not
-   treated as `token` (both cases are in the table).
+   passed. A name that is not UTF-8 after decoding is not treated as `token` (that case is in the
+   table). An earlier version of this entry also said a malformed-escape case was in the table;
+   it was not, and the decoder accepted a sign after the `%` (section R2, finding F1 of the second
+   review, fixes both).
 2. **P2, import style**: the code this branch added used `std::fmt::...`, `std::borrow::Cow` and an
    `Arc` import inside a function. Imports moved to the file headers with short names in
    `handler.rs`, `peer_key.rs`, `add_key_form.rs`, `databases/error.rs` and `test-helpers/logging.rs`
@@ -559,3 +565,52 @@ PostgreSQL answers `already holds this authentication key`). By hand, on a priva
 script's configuration, `GET /api/v1/stats?%74oken=TestAdminToken0001` returned the statistics JSON
 (the server decodes the name, so the request authenticated) and the log held
 `uri=/api/v1/stats?%74oken=***` and 0 lines with the test token.
+
+## R2 - Review Round 2 (da2ce7)
+
+da2ce7 approved the head with the subject `docs(pr-reviews): [#2999] add the PR 3042 review audit`
+(review 6054012280, 2026-11-25 08:18 UTC) with seven findings, none blocking. All were accepted.
+The audit record assigns them the audit-local ids F3 to F9, because F1 and F2 are taken by the
+first round. Red and mutation output: [`evidence/review-round-2.txt`](evidence/review-round-2.txt).
+
+- Reviewer F1 (Minor), `percent_decoded` decodes `%+1`: `u8::from_str_radix` accepts a sign, so
+  `%+4` was decoded to the byte 0x04, while the comment called it malformed and the evidence
+  claimed a table case that did not exist. Nothing leaked (such an escape yields only 0x00 to
+  0x0F). The decoder now requires two ASCII hexadecimal digits. Red run of a new test of the
+  decoder: `left: "\u{4}oken"`, `right: "%+4oken"` (30 passed, 1 failed); green: 32 passed. The
+  redaction table gained the row `%7=1&%+4=2`, which stays as written.
+- Reviewer F2 (Minor), `use-rest-api` skill: the "Query Parameter Method" section showed the
+  header command. It now says in one paragraph that the server still accepts `?token=` and why the
+  header is the safe form, with no query example.
+- Reviewer F3 (Minor), the configuration red run: corrected in section T7 above ("five of the six
+  tests"). The environment-override test now has a recorded mutation: with the
+  `core.database.password` entry removed from `SECRET_OPTIONS`, it and the numeric-password case
+  fail with `the error text holds the secret value` (5 passed, 2 failed); the file was restored
+  from a copy and the 7 tests pass.
+- Reviewer F4 (Nit), dictionary: `nnounce` and `oken` are removed from `project-words.txt` and
+  ignored inline (`cspell:ignore`) in `request_log.rs`, this file and the audit. `unredacted` stays.
+- Reviewer F5 (Nit): the blank line at the end of `evidence/t6-mutations.txt` and
+  `evidence/t7-mutations.txt` is removed; `git diff --check` against `develop` prints nothing.
+- Reviewer F6 (Nit): `last-updated-utc` of this file and of `ISSUE.md` are current, `related-pr`
+  is 3042, and the progress log has entries for the pull request and both review rounds.
+- Reviewer F7 (Nit), the length test: `it_should_count_characters_not_bytes_when_naming_the_received_length`
+  now uses a 31-character, 32-byte key and asserts `expected 32 characters, got 31`; the former
+  32-character case keeps its assertion under the name
+  `it_should_reject_a_32_character_key_with_a_non_ascii_character_for_its_characters`. Mutation
+  (the length counts bytes): both fail (`left: "only the characters ..."`, `right: "expected 32
+  characters, got 31"`); restored, 50 passed.
+
+### Recheck after the second review fix (2026-11-25 08:26 UTC)
+
+Production code changed again (`percent_decoded`), so the recheck was repeated on a debug build of
+the tree that holds the fix commit with the subject `fix(axum-server): [#2999] decode only a
+percent followed by two hex digits when redacting`: `reproduce.sh` with the same command as T9,
+output in [`evidence/final-output-after-review-round-2.txt`](evidence/final-output-after-review-round-2.txt).
+A `diff` of this output with the round 1 output, leaving out the lines that hold timestamps,
+`valid_until`, request ids and the UDP cookie value, prints nothing: M1 to M7 are unchanged. By
+hand on the private tracker of the script: `GET /api/v1/stats?%74oken=TestAdminToken0001` returned
+the statistics and was logged as `uri=/api/v1/stats?%74oken=***`;
+`GET /api/v1/stats?%+4oken=TestAdminToken0001` answered `unauthorized` (the server does not read
+that name as `token`) and was logged as written, value included. That is the intended rule: only
+a parameter the server reads as `token` is redacted, so a value sent under any other name is
+logged like any other parameter.

@@ -403,7 +403,6 @@ nghttp
 ngtcp
 nightlies
 nmap
-nnounce
 nocapture
 nologin
 nonblocking
@@ -420,7 +419,6 @@ nvCFlJCq7fz7Qx6KoKTDiMZvns8l5Kw7
 objcopy
 obra
 octocat
-oken
 oldpwd
 oneline
 oneshot

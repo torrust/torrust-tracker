@@ -1,0 +1,24 @@
+### F1 (reviewer): percent_decoded accepted a sign after the percent - red run before the fix
+it_should_decode_only_a_percent_followed_by_two_hex_digits::case_5_a_percent_followed_by_a_sign ... FAILED
+  left: "\u{4}oken"
+ right: "%+4oken"
+test result: FAILED. 30 passed; 1 failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.00s
+error: test failed, to rerun pass `-p torrust-tracker-axum-server --lib`
+
+### F3 (reviewer): mutation for the environment-override test - no rule for the database password
+test secret_options::tests::it_should_name_the_option_and_the_expected_type_and_not_print_the_value_of_a_secret_option::case_1_a_numeric_database_password ... FAILED
+test secret_options::tests::it_should_not_print_a_numeric_database_password_that_comes_from_an_environment_override ... FAILED
+the error text holds the secret value
+the error text holds the secret value
+test result: FAILED. 5 passed; 2 failed; 0 ignored; 0 measured; 161 filtered out; finished in 0.00s
+error: test failed, to rerun pass `-p torrust-tracker-configuration --lib`
+
+### F7 (reviewer): mutation - the key length counts bytes
+test authentication::key::peer_key::tests::key::it_should_count_characters_not_bytes_when_naming_the_received_length ... FAILED
+test authentication::key::peer_key::tests::key::it_should_reject_a_32_character_key_with_a_non_ascii_character_for_its_characters ... FAILED
+  left: "only the characters 0-9, a-z and A-Z are allowed"
+ right: "expected 32 characters, got 31"
+  left: "expected 32 characters, got 33"
+ right: "only the characters 0-9, a-z and A-Z are allowed"
+test result: FAILED. 48 passed; 2 failed; 0 ignored; 0 measured; 246 filtered out; finished in 0.04s
+error: test failed, to rerun pass `-p torrust-tracker-core --lib`
