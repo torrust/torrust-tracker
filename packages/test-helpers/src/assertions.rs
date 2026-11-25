@@ -51,18 +51,26 @@ mod tests {
 
     #[test]
     fn it_should_reject_a_message_holding_a_source_path_fragment() {
-        for message in [
-            "failed at lib.rs:12",
-            "failed in packages/core/lib",
-            "failed in packages\\core\\lib",
-            "failed in src/lib",
-            "failed in src\\lib",
-            "failed in /home/u/.cargo/registry/index",
-            "failed in /toolchain/lib/rustlib/src/rust",
+        // Each message holds exactly one fragment, so the panic text names the fragment that
+        // was caught, and a fragment removed from the list fails its own case.
+        for (fragment, message) in [
+            (".rs:", "failed at lib.rs:12"),
+            ("packages/", "failed in packages/core/lib"),
+            ("packages\\", "failed in packages\\core\\lib"),
+            ("src/", "failed in src/lib"),
+            ("src\\", "failed in src\\lib"),
+            (".cargo/registry", "failed in /home/u/.cargo/registry"),
+            ("rustlib/src", "failed in /toolchain/lib/rustlib/src"),
         ] {
-            let outcome = catch_unwind(|| assert_names_no_source_path(message));
+            let panic_payload = catch_unwind(|| assert_names_no_source_path(message)).expect_err("it should reject the message");
 
-            assert!(outcome.is_err(), "it should reject {message:?}");
+            let panic_text = panic_payload
+                .downcast_ref::<String>()
+                .expect("the panic text should be a String");
+            assert!(
+                panic_text.contains(&format!("it contains {fragment:?}")),
+                "it should name {fragment:?} for {message:?}, but it panicked with {panic_text:?}"
+            );
         }
     }
 }
