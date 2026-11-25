@@ -565,7 +565,7 @@ And you should be able to use the application, for example making a request to t
 curl -H "Authorization: Bearer MySecretToken" https://127.0.0.1:1212/api/v1/stats
 ```
 
-Send the token in the `Authorization` header. The API also accepts a `?token=` query parameter, but a URL ends up in proxy, browser and server logs, so the header is the safe form.
+Send the token in the `Authorization` header. The API also accepts a `?token=` query parameter, but a URL ends up in proxy, browser and server logs; the header keeps the token out of them. The header does not protect the token in transit: use `https://` for any request that crosses a network.
 
 You can stop the containers with:
 
@@ -724,7 +724,7 @@ CONTAINER ID          IMAGE                                                     
 intelligent-hawking   registry.hub.docker.com/torrust/tracker:latest                       Running             4.236.213.57:6969->6969/udp, 4.236.213.57:1212->1212/tcp
 ```
 
-After a while, you can use the tracker API (`curl -H "Authorization: Bearer MyAccessToken" http://4.236.213.57:1212/api/v1/stats`) and the UDP tracker with your BitTorrent client using this tracker announce URL `udp://4.236.213.57:6969`.
+After a while, you can use the tracker API (`curl -H "Authorization: Bearer MyAccessToken" http://4.236.213.57:1212/api/v1/stats`; this example container serves plain HTTP, so anyone on the path can read the token: enable TLS, as described above, before sending a real token over an untrusted network) and the UDP tracker with your BitTorrent client using this tracker announce URL `udp://4.236.213.57:6969`.
 
 > NOTES:
 >

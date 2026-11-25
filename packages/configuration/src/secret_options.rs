@@ -5,6 +5,11 @@
 //! ``invalid type: found signed int `987654321`, expected a string``. The error reaches stderr and
 //! the log. [`redact_secret_values`] replaces the value in such an error by a fixed text and keeps
 //! the option path and the expected type, so the user still learns what to fix.
+//!
+//! A TOML syntax error is different: it has no option path and quotes the whole source line, which
+//! can be the line of a secret. Its location is kept and the line is dropped. The loaders report
+//! a syntax error as a missing mandatory option today, so this text does not reach a user yet; the
+//! redaction keeps it safe when that changes.
 use figment::error::{Actual, Kind};
 
 /// How much of the configuration tree below a path holds secret values.
@@ -30,6 +35,20 @@ const SECRET_OPTIONS: [(&[&str], Scope); 3] = [
 
 /// What replaces the value of a secret option in an error.
 const NOT_SHOWN: &str = "a value of another type (not shown: the option is a secret)";
+
+/// What follows the location of a TOML syntax error instead of the source line.
+const SOURCE_LINE_NOT_SHOWN: &str = " (the line is not shown: it can hold a secret)";
+
+/// The first line of a TOML syntax error (`TOML parse error at line 2, column 37`).
+///
+/// The parser quotes the whole offending source line after it, and a syntax error has no option
+/// path, so the line can be the one that holds a password or a token. Only the location is kept.
+fn toml_syntax_error_location(message: &str) -> Option<&str> {
+    message
+        .starts_with("TOML parse error")
+        .then(|| message.lines().next())
+        .flatten()
+}
 
 fn is_secret_option(path: &[String]) -> bool {
     SECRET_OPTIONS.iter().any(|(secret_path, scope)| match scope {
@@ -57,6 +76,13 @@ pub fn redact_secret_values(error: figment::Error) -> figment::Error {
 }
 
 fn redact_one(mut error: figment::Error) -> figment::Error {
+    if let Kind::Message(message) = &error.kind
+        && let Some(location) = toml_syntax_error_location(message)
+    {
+        error.kind = Kind::Message(format!("{location}{SOURCE_LINE_NOT_SHOWN}"));
+        return error;
+    }
+
     if !is_secret_option(&error.path) {
         return error;
     }
@@ -74,8 +100,11 @@ fn redact_one(mut error: figment::Error) -> figment::Error {
 
 #[cfg(test)]
 mod tests {
+    use figment::Figment;
+    use figment::providers::{Format, Toml};
     use rstest::rstest;
 
+    use super::redact_secret_values;
     use crate::Info;
     use crate::v3_0_0::Configuration;
 
@@ -188,6 +217,43 @@ mod tests {
             displayed.to_lowercase().contains("core.database.password"),
             "the error should name the option: {displayed}"
         );
+    }
+
+    #[test]
+    fn it_should_keep_the_location_and_drop_the_source_line_of_a_toml_syntax_error() {
+        // Arrange: a syntax error on the line of the password. The parser quotes the whole line.
+        let secret_value = "TestDbPasswordOnABrokenLine01";
+        let malformed = format!("[core.database]\npassword = \"{secret_value}\" extra\n");
+        let syntax_error = Figment::from(Toml::string(&malformed))
+            .extract::<Configuration>()
+            .expect_err("the malformed TOML should be rejected");
+
+        // Act
+        let redacted = redact_secret_values(syntax_error);
+
+        // Assert
+        let displayed = redacted.to_string();
+        assert!(!displayed.contains(secret_value), "the error text holds the secret value");
+        assert!(
+            !format!("{redacted:?}").contains(secret_value),
+            "the error Debug holds the secret value"
+        );
+        assert!(
+            displayed.contains("TOML parse error at line 2, column"),
+            "the error should still say where the syntax error is: {displayed}"
+        );
+    }
+
+    #[test]
+    fn it_should_not_print_a_password_on_a_line_with_a_syntax_error_when_loading() {
+        let secret_value = "TestDbPasswordOnABrokenLine02";
+
+        let (displayed, debugged) = load_error_for(&format!(
+            "[core]\nlisted = false\nprivate = false\n[core.database]\ndriver = \"mysql\"\npassword = \"{secret_value}\" extra\n"
+        ));
+
+        assert!(!displayed.contains(secret_value), "the error text holds the secret value");
+        assert!(!debugged.contains(secret_value), "the error Debug holds the secret value");
     }
 
     #[test]

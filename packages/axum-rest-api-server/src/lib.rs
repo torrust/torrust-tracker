@@ -88,7 +88,8 @@
 //! ```
 //!
 //! The server also accepts a `token` GET parameter (`?token=<token>`), but a URL, with its query,
-//! is written to proxy and browser logs, so the header is the safe form.
+//! is written to proxy and browser logs; the header keeps the token out of them. Neither form
+//! protects the token in transit: use HTTPS when the request crosses a network.
 //!
 //! You can set as many tokens as you want in the configuration file:
 //!

@@ -63,7 +63,8 @@ sensitive in-memory values.
     (`torrust_tracker_axum_server::request_log`), which replaces what follows `/announce/`,
     `/scrape/` and `/key/` and the `token` query value with `***`, in the log event and in the span.
     The token travels in the `Authorization: Bearer` header; a client and the documentation use the
-    header, never the query.
+    header, never the query. The header keeps the token out of logged URLs; protecting it in
+    transit needs HTTPS.
   - An error from a library that prints the value it rejected is made safe at the boundary: a
     `figment` configuration error for a secret option is redacted by option path, and a database
     server message for a statement that binds a secret is replaced by its error kind and code (a

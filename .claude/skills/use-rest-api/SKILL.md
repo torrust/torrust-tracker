@@ -40,8 +40,9 @@ curl -H "Authorization: Bearer MyAccessToken" http://localhost:1212/api/v1/stats
 ### Query Parameter Method (accepted, not recommended)
 
 The server still accepts the token as a `?token=` query parameter, but a URL, with its query, is
-written to proxy, browser and shell-history logs. Send the header instead, and do not write the
-query form in examples (see the `handle-secrets` skill).
+written to proxy, browser and shell-history logs. Send the header instead (it keeps the token out
+of those logs; use HTTPS to protect it in transit), and do not write the query form in examples
+(see the `handle-secrets` skill).
 
 ### Configuration
 

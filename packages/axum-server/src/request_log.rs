@@ -51,7 +51,8 @@ fn redact_path(path: &str) -> String {
     let segments: Vec<&str> = path.split('/').collect();
 
     for (index, segment) in segments.iter().enumerate() {
-        let has_a_secret_after_it = segments.get(index + 1).is_some_and(|next| !next.is_empty());
+        // Anything after the prefix is the secret, also after empty segments (`/announce//<key>`).
+        let has_a_secret_after_it = segments[index + 1..].iter().any(|later| !later.is_empty());
 
         if has_a_secret_after_it && SECRET_PATH_PREFIXES.contains(&percent_decoded(segment).as_str()) {
             return format!("{}/{REDACTED}", segments[..=index].join("/"));
@@ -181,6 +182,10 @@ mod tests {
     #[case::a_path_without_a_query("/health_check", None, "/health_check")]
     #[case::an_announce_without_a_key("/announce", Some("info_hash=%00%00"), "/announce?info_hash=%00%00")]
     #[case::an_announce_with_an_empty_key_segment("/announce/", None, "/announce/")]
+    #[case::an_announce_with_only_empty_segments("/announce//", None, "/announce//")]
+    #[case::a_key_after_an_empty_segment("/announce//TestPeerKey000000000000000000001", Some("port=1"), "/announce/***?port=1")]
+    #[case::a_key_after_two_empty_segments("/scrape///TestPeerKey000000000000000000001", None, "/scrape/***")]
+    #[case::a_rest_key_after_an_empty_segment("/api/v1/key//TestPeerKey000000000000000000001", None, "/api/v1/key/***")]
     #[case::a_percent_encoded_key("/announce/Test%50eerKey000000000000000000001", None, "/announce/***")]
     #[case::a_key_with_a_stray_character("/announce/TestPeerKey-0000000000000000001", None, "/announce/***")]
     #[case::a_key_of_the_wrong_length("/announce/ShortTestKey01", Some("port=1"), "/announce/***?port=1")]

@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2999-2993-si-a-keep-secrets-out-of-errors-and-logs/ISSUE.md
-last-updated-utc: "2026-11-25 08:27"
+last-updated-utc: "2026-11-25 08:47"
 ---
 
 # Manual Verification Evidence
@@ -614,3 +614,53 @@ the statistics and was logged as `uri=/api/v1/stats?%74oken=***`;
 that name as `token`) and was logged as written, value included. That is the intended rule: only
 a parameter the server reads as `token` is redacted, so a value sent under any other name is
 logged like any other parameter.
+
+## R3 - Review Round 3 (CodeRabbit)
+
+CodeRabbit reviewed the head with the subject `fix(axum-server): [#2999] decode only a percent
+followed by two hex digits when redacting` (review 6054287756, 2026-11-25 08:40 UTC) and posted
+three findings, recorded in the audit as F10 to F12. Red output:
+[`evidence/review-round-3.txt`](evidence/review-round-3.txt).
+
+- F10 (Major), TOML syntax errors: confirmed in part. A `figment` error for a TOML syntax error
+  has no option path and quotes the whole source line, so for a broken password line the error
+  object held the password and `redact_secret_values` did not change it. It did not reach a user:
+  both loaders check the mandatory options first, and that check replaces any parse error by
+  `Missing mandatory configuration option. Option path: metadata.schema_version` (observed on the
+  binary before the fix, with `password = "TestDbPasswordSyntax01" extra`: given through
+  `TORRUST_TRACKER_CONFIG_TOML`, the last line of the startup error ended with that message; given
+  as a file, the first 400 characters of that line were read and end inside the same message. The
+  occurrences of the password were counted only after the fix: 0, see the recheck below). The
+  redaction now keeps the location of a syntax error (`TOML parse error at line N, column M`) and
+  drops the quoted line, so the text stays safe if the loaders start reporting syntax errors. Red:
+  the new unit test of `redact_secret_values` failed with `the error text holds the secret value`
+  (8 passed, 1 failed); the new test through the loader passed before the fix, for the reason
+  above, and guards that path. Green: 170 passed in the package. The sentence in
+  `docs/containers.md` ("A configuration error names the option and never prints the password")
+  stays: both paths are covered and tested.
+- F11 (Minor), "the safe form": the documents said the header is the safe form. They now say what
+  it does (it keeps the token out of logged URLs) and that it does not protect the token in
+  transit without HTTPS: `docs/containers.md` (and a warning on its plain-HTTP Azure example, which
+  has no TLS to switch to), `src/lib.rs`, `axum-rest-api-server` (`lib.rs`,
+  `v1/middlewares/auth.rs`), the skills `handle-secrets` and `use-rest-api`, and the ADR amendment.
+  `grep -rn "safe form"` over the Markdown and Rust files outside `docs/issues/` and
+  `docs/pr-reviews/` prints nothing.
+- F12 (Major), a key after an empty path segment: confirmed. `/announce//<key>` was logged whole,
+  because only the next segment was looked at. Anything that is not empty after the prefix is now
+  redacted; `/announce`, `/announce/` and `/announce//` are unchanged. Red: three new table rows
+  failed (33 passed, 3 failed); green: 36 passed.
+
+### Recheck after the third review fix (2026-11-25 08:46 UTC)
+
+Production code changed again (`request_log.rs`, `secret_options.rs`), so the recheck was repeated
+on a debug build of the tree that holds the fix commit with the subject `fix(secrets): [#2999]
+redact a key after an empty path segment and the source line of a TOML syntax error`:
+`reproduce.sh` with the same command as T9, output in
+[`evidence/final-output-after-review-round-3.txt`](evidence/final-output-after-review-round-3.txt).
+A `diff` with the round 2 output, leaving out the lines that hold timestamps, `valid_until`,
+request ids and the UDP cookie value, prints nothing. By hand on the private tracker of the script:
+`GET /announce//TestPeerKey000000000000000000009?port=1` (HTTP tracker) and
+`DELETE /api/v1/key//TestPeerKey000000000000000000009` (REST API, token in the header) both
+answered 404, the log held 0 lines with the key, and its `uri=` fields were
+`uri=/announce/***?port=1` and `uri=/api/v1/key/***`. Starting the tracker with the broken password
+line printed 0 occurrences of the password.
