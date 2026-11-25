@@ -9,7 +9,7 @@ semantic-links:
 
 <!-- skill-link: process-pr-review -->
 
-<!-- cspell:ignore nnounce oken -->
+<!-- cspell:ignore nnounce oken coderabbitai -->
 
 # PR #3042 Review Audit
 
@@ -49,6 +49,8 @@ Review 6044736873 (Greptile, 2026-11-24 18:06 UTC) posted two inline comments, F
 
 Review 6054012280 (da2ce7, approved, 2026-11-25 08:18 UTC) posted seven inline comments with the reviewer ids F1 to F7. F1 and F2 are taken in this record, so they are the audit-local F3 to F9; each detail entry records the reviewer's id. The review body lists the same seven findings and adds none.
 
+Review 6054287756 (CodeRabbit, 2026-11-25 08:40 UTC) posted three inline comments, F10 to F12. Its body only repeats them, so it adds no row.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3042-f1 | Unknown | Blocker | security | ORIGINAL | FIXED | RESOLVED |
@@ -60,6 +62,9 @@ Review 6054012280 (da2ce7, approved, 2026-11-25 08:18 UTC) posted seven inline c
 | F7 | review-finding:pr-3042-f7 | Human | Nit | formatting | ORIGINAL | FIXED | RESOLVED |
 | F8 | review-finding:pr-3042-f8 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F9 | review-finding:pr-3042-f9 | Human | Nit | testing | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-3042-f10 | Unknown | Major | security | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-3042-f11 | Unknown | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-3042-f12 | Unknown | Major | security | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -180,6 +185,45 @@ Review 6054012280 (da2ce7, approved, 2026-11-25 08:18 UTC) posted seven inline c
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692251259>
 
+### F10 - Keep secret values out of TOML syntax errors
+
+- PR number: 3042
+- Source review ID: 6054287756
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692330999>
+- Concern: `redact_one` redacts only typed value errors whose path matches a secret option; a TOML syntax error has no option path, so for a malformed password line the printed parser text can hold the password. The reviewer asked for the parse-error path to be covered and tested before `docs/containers.md` keeps its guarantee.
+- Solution: confirmed in part. The `figment` error object for a syntax error did quote the source line and was left unchanged; it did not reach a user, because both loaders replace any parse error with a missing-mandatory-option error before extracting. The redaction now keeps the location of a syntax error and drops the quoted line. Two tests were added: one on `redact_secret_values` with a real syntax error, one through `Configuration::load`. The documentation sentence stays.
+- Current-tree verification: `cargo test -p torrust-tracker-configuration --lib secret_options` failed on the new unit test before the change (8 passed, 1 failed; `the error text holds the secret value`) and the package passes after it (170 passed); starting the tracker with a broken password line prints 0 occurrences of the password.
+- Resolution reference: fix(secrets): [#2999] redact a key after an empty path segment and the source line of a TOML syntax error
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692447625>
+
+### F11 - Do not describe the header as safe without requiring TLS
+
+- PR number: 3042
+- Source review ID: 6054287756
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692331016>
+- Concern: `docs/containers.md` called the `Authorization` header "the safe form", although it only keeps the token out of URLs and does not protect it in transit; the Azure example sends a bearer token over `http://`.
+- Solution: the sentence states what the header does and that HTTPS is needed in transit; the Azure example, whose container serves no TLS, says so and warns not to send a real token over an untrusted network. The same wording was changed in `src/lib.rs`, `axum-rest-api-server` (`lib.rs`, `v1/middlewares/auth.rs`), the skills `handle-secrets` and `use-rest-api`, and the secrecy ADR amendment.
+- Current-tree verification: `grep -rn "safe form"` over the Markdown and Rust files outside `docs/issues/` and `docs/pr-reviews/` prints nothing; the pre-commit gate passes.
+- Resolution reference: fix(secrets): [#2999] redact a key after an empty path segment and the source line of a TOML syntax error
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692448018>
+
+### F12 - Redact secret suffixes after empty path segments
+
+- PR number: 3042
+- Source review ID: 6054287756
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692331029>
+- Concern: for `/announce//<key>` the segment right after `announce` is empty, so `redact_path` skipped the prefix and returned the whole key; the same for `/scrape//<key>` and `/api/v1/key//<key>`.
+- Solution: `redact_path` redacts when anything that is not empty follows the prefix; `/announce`, `/announce/` and `/announce//` are unchanged. Four rows were added to the redaction table.
+- Current-tree verification: `cargo test -p torrust-tracker-axum-server --lib request_log` failed on three new rows before the change (33 passed, 3 failed) and passes after it (36 passed); on a running tracker `GET /announce//<key>` and `DELETE /api/v1/key//<key>` were logged as `uri=/announce/***?port=1` and `uri=/api/v1/key/***` with 0 lines holding the key.
+- Resolution reference: fix(secrets): [#2999] redact a key after an empty path segment and the source line of a TOML syntax error
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692448364>
+
 ## Processing Log
 
 - 2026-11-24 18:06 UTC - Greptile review 6044736873 arrived with two inline findings.
@@ -188,6 +232,9 @@ Review 6054012280 (da2ce7, approved, 2026-11-25 08:18 UTC) posted seven inline c
 - 2026-11-25 08:18 UTC - Review 6054012280 by da2ce7 (approved) arrived with seven inline findings, recorded as F3 to F9.
 - 2026-11-25 08:32 UTC - Replied on the seven threads after the fix commit was pushed (replies 4692248924, 4692249265, 4692249686, 4692250021, 4692250349, 4692250732 and 4692251259).
 - 2026-11-25 08:33 UTC - `validate-audit-record.py --pr-number 3042`, run with the bot token set for that one command (identity `josecelano-bot`), printed `{"status": "ok", "rows": 9, "log_entries": 5, "failures": 0}`. The seven threads were then resolved by `josecelano-bot`; a refreshed GraphQL listing shows the nine threads of the pull request resolved.
+- 2026-11-25 08:40 UTC - Review 6054287756 by CodeRabbit arrived with three inline findings, recorded as F10 to F12.
+- 2026-11-25 08:52 UTC - Replied on the three threads after the fix commit was pushed (replies 4692447625, 4692448018 and 4692448364).
+- 2026-11-25 08:53 UTC - `validate-audit-record.py --pr-number 3042`, run with the bot token set for that one command (identity `josecelano-bot`), printed `{"status": "ok", "rows": 12, "log_entries": 8, "failures": 0}`. A GraphQL listing showed the F11 thread already resolved by `coderabbitai[bot]`; the F10 and F12 threads were then resolved by `josecelano-bot`. The same listing showed three new unresolved threads of a later review by da2ce7 (6054388295), which are not processed in this entry.
 
 ## Completion Rules
 
