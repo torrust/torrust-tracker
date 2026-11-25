@@ -21,11 +21,11 @@
     {
       "severity": "Minor",
       "location": "docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md, Progress Log",
-      "description": "The last entry is 2026-11-24 07:47 UTC (M8). Commits 5874f2905 to b4dae2d85 have no entry: the transcript reader, the decision logic, the count on disk, the binary, the agent file, the review-task changes, the inventory rows, the ADR and the D17 change. The ISSUE.md last-updated-utc is still 07:47, although commit 96e3e433d edited ISSUE.md. The checkpoint 'Spec progress verified as up to date before each commit' is therefore not met for that commit. Remediation: add a factual progress-log entry for the T5 implementation, with the four recorded test-design reviews, the D17 extension and the ADR, and update last-updated-utc."
+      "description": "The last entry is 2026-11-24 07:47 UTC (M8). Commits 'read the reply file a task names from an agent's transcript' to 'let programs follow the protocol of the host that calls them' have no entry: the transcript reader, the decision logic, the count on disk, the binary, the agent file, the review-task changes, the inventory rows, the ADR and the D17 change. The ISSUE.md last-updated-utc is still 07:47, although commit 'decide what the stop hook does with the reply file of a task' edited ISSUE.md. The checkpoint 'Spec progress verified as up to date before each commit' is therefore not met for that commit. Remediation: add a factual progress-log entry for the T5 implementation, with the four recorded test-design reviews, the D17 extension and the ADR, and update last-updated-utc."
     },
     {
       "severity": "Minor",
-      "location": "docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md, D17 'A path outside the specification folders' (added in commit 96e3e433d)",
+      "location": "docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md, D17 'A path outside the specification folders' (added in commit 'decide what the stop hook does with the reply file of a task')",
       "description": "D17 is a maintainer decision (maintainer, 2026-11-23). An implementation commit extended it: a path under open/ or closed/ that is not exactly <specification>/agent-replies/<file>, an absolute path, and a path with an empty, '.' or '..' component now also let the agent finish unenforced. The rule is sound and the tests cover it (classify's 19 'outside' cases). No entry records who approved it, though. Remediation: record in the progress log that the maintainer approved the extension, with the date. If he has not seen it, ask him before the pull request."
     },
     {
@@ -41,7 +41,7 @@
   ],
   "questions": [],
   "evidence": [
-    "git log --oneline a44dde2fa..HEAD: 12 commits, 255caeead (M8 evidence) first, before any of the hook's code (5874f2905 onward); git log --format=%G? shows every commit signed",
+    "git log --oneline a44dde2fa..HEAD: 12 commits, 'record scenario M8, the transcript format of continued requests' (M8 evidence) first, before any of the hook's code ('read the reply file a task names from an agent's transcript' onward); git log --format=%G? shows every commit signed",
     "git diff --stat a44dde2fa..HEAD: 27 files, all in the T5 row's scope except the new ADR 20261124120307 and its amendment note in ADR 20260519000000 (see the Nit)",
     "cargo test -p agent-reply-validator: lib 263, agent-reply-guard bin 5, agent-reply-validator bin 6, tests/cli.rs 23, tests/guard.rs 15, tests/schema.rs 2; all passed",
     "Tests named by the T5 row exist: refusal limit (guard.rs it_should_count_each_refusal_up_to_the_limit, it_should_let_the_agent_finish_with_the_limit_reported..., tests/guard.rs it_should_refuse_three_times_and_then_let_the_agent_finish_with_a_message); latest line and continued run (transcript.rs it_should_find_the_line_of_the_latest_request_when_the_agent_was_continued, tests/guard.rs it_should_hold_a_continued_agent_to_the_file_of_its_latest_request...); continued run without a line (it_should_keep_the_earlier_line_when_the_latest_request_has_none); preloaded skill text after the task (case preloaded_skill_text); no line, draft, outside, missing folder (guard.rs decide tests and tests/guard.rs it_should_let_the_agent_finish_with_one_message_and_keep_no_state...)",
