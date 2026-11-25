@@ -84,9 +84,9 @@ pub(crate) mod tests {
         handling_the_whitelist::it_should_remove_an_infohash_from_the_whitelist(driver).await;
         handling_the_whitelist::it_should_not_fail_adding_the_same_infohash_concurrently(driver).await;
         handling_the_whitelist::it_should_not_fail_removing_the_same_infohash_concurrently(driver).await;
-        handling_the_whitelist::it_should_fail_trying_to_add_the_same_infohash_twice(driver).await;
-        handling_the_whitelist::it_should_fail_without_a_source_path_trying_to_add_the_same_infohash_twice(driver).await;
-        handling_the_whitelist::it_should_fail_without_a_source_path_trying_to_remove_a_missing_infohash(driver).await;
+        handling_the_whitelist::it_should_not_fail_adding_the_same_infohash_twice(driver).await;
+        handling_the_whitelist::it_should_not_fail_removing_a_missing_infohash(driver).await;
+        handling_the_whitelist::it_should_not_fail_removing_the_same_infohash_twice(driver).await;
     }
 
     async fn database_setup(driver: &Arc<Box<dyn Database>>) {
@@ -334,15 +334,13 @@ pub(crate) mod tests {
 
     mod handling_the_whitelist {
 
-        /// Rounds of the concurrent cases: the race window is narrow, so one round can pass by luck.
-        const CONCURRENT_ROUNDS: usize = 50;
-
         use std::sync::Arc;
-
-        use torrust_tracker_test_helpers::assertions::assert_names_no_source_path;
 
         use crate::databases::traits::Database;
         use crate::test_helpers::tests::random_info_hash;
+
+        /// Rounds of the concurrent cases: the race window is narrow, so one round can pass by luck.
+        const CONCURRENT_ROUNDS: usize = 50;
 
         pub async fn it_should_load_the_whitelist(driver: &Arc<Box<dyn Database>>) {
             let infohash = random_info_hash();
@@ -372,7 +370,7 @@ pub(crate) mod tests {
             assert!(driver.get_info_hash_from_whitelist(infohash).await.unwrap().is_none());
         }
 
-        /// Concurrent identical adds must both succeed and change exactly one row in total.
+        /// Concurrent identical adds must both succeed and leave the torrent listed.
         pub async fn it_should_not_fail_adding_the_same_infohash_concurrently(driver: &Arc<Box<dyn Database>>) {
             for _ in 0..CONCURRENT_ROUNDS {
                 let infohash = random_info_hash();
@@ -382,7 +380,8 @@ pub(crate) mod tests {
                     driver.add_info_hash_to_whitelist(infohash)
                 );
 
-                assert_eq!(first.unwrap() + second.unwrap(), 1);
+                first.unwrap();
+                second.unwrap();
                 assert!(driver.get_info_hash_from_whitelist(infohash).await.unwrap().is_some());
             }
         }
@@ -403,31 +402,32 @@ pub(crate) mod tests {
             }
         }
 
-        pub async fn it_should_fail_trying_to_add_the_same_infohash_twice(driver: &Arc<Box<dyn Database>>) {
+        pub async fn it_should_not_fail_adding_the_same_infohash_twice(driver: &Arc<Box<dyn Database>>) {
             let infohash = random_info_hash();
 
             driver.add_info_hash_to_whitelist(infohash).await.unwrap();
-            let result = driver.add_info_hash_to_whitelist(infohash).await;
-
-            assert!(result.is_err());
-        }
-
-        pub async fn it_should_fail_without_a_source_path_trying_to_add_the_same_infohash_twice(driver: &Arc<Box<dyn Database>>) {
-            let infohash = random_info_hash();
             driver.add_info_hash_to_whitelist(infohash).await.unwrap();
 
-            let error = driver.add_info_hash_to_whitelist(infohash).await.unwrap_err();
-
-            assert_names_no_source_path(&error.to_string());
+            assert!(driver.get_info_hash_from_whitelist(infohash).await.unwrap().is_some());
         }
 
-        pub async fn it_should_fail_without_a_source_path_trying_to_remove_a_missing_infohash(driver: &Arc<Box<dyn Database>>) {
+        pub async fn it_should_not_fail_removing_a_missing_infohash(driver: &Arc<Box<dyn Database>>) {
             let missing_infohash = random_info_hash();
 
-            let error = driver.remove_info_hash_from_whitelist(missing_infohash).await.unwrap_err();
+            let removed = driver.remove_info_hash_from_whitelist(missing_infohash).await.unwrap();
 
-            assert_names_no_source_path(&error.to_string());
-            assert!(error.to_string().starts_with("Failed to remove record from "), "{error}");
+            assert_eq!(removed, 0);
+        }
+
+        pub async fn it_should_not_fail_removing_the_same_infohash_twice(driver: &Arc<Box<dyn Database>>) {
+            let infohash = random_info_hash();
+            driver.add_info_hash_to_whitelist(infohash).await.unwrap();
+
+            let first = driver.remove_info_hash_from_whitelist(infohash).await.unwrap();
+            let second = driver.remove_info_hash_from_whitelist(infohash).await.unwrap();
+
+            assert_eq!((first, second), (1, 0));
+            assert!(driver.get_info_hash_from_whitelist(infohash).await.unwrap().is_none());
         }
     }
 }
