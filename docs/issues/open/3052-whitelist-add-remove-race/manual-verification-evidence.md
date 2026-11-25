@@ -68,7 +68,7 @@ async fn repro_concurrent_add_and_remove() {
 
 ```text
 REPRO add_failures=200/200 remove_failures=200/200 first_err=Some("InvalidQuery { source: Database(SqliteError { code: 2067, message: \"UNIQUE constraint failed: whitelist.info_hash\" }), driver: Sqlite3 }")
-test ... repro_concurrent_add_and_remove ... ok
+test whitelist::repository::persisted::tests::the_persisted_whitelist_repository::repro_concurrent_add_and_remove ... ok
 ```
 
 (`add_failures` counts failed calls: one per round. The first error is the UNIQUE violation. The error variant of the failing
