@@ -46,6 +46,8 @@ Review 6044596970 (Greptile, 2026-11-24 17:57 UTC) posted one inline comment, F1
 
 Review 6054002314 (da2ce7, APPROVED, 2026-11-25 08:17 UTC) posted four inline comments, F2 to F5 here (its own F1 to F4). Its body lists the same four findings and says none blocks, so it adds no row.
 
+Review 6057005909 (CodeRabbit, 2026-11-25 11:45 UTC, on the head `docs(issues): [#2996] cite each acceptance criterion's own evidence and refresh the SI-8 spec metadata`) posted one inline comment, F6. Its body repeats F6 and adds a failed "Out of Scope Changes" pre-merge check, F7, which has no thread.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3041-f1 | Unknown | Minor (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
@@ -53,6 +55,8 @@ Review 6054002314 (da2ce7, APPROVED, 2026-11-25 08:17 UTC) posted four inline co
 | F3 | review-finding:pr-3041-f3 | Unknown | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F4 | review-finding:pr-3041-f4 | Unknown | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F5 | review-finding:pr-3041-f5 | Unknown | Nit | formatting | ORIGINAL | FIXED | RESOLVED |
+| F6 | review-finding:pr-3041-f6 | Unknown | Minor | documentation | ORIGINAL | FIXED | OPEN |
+| F7 | review-finding:pr-3041-f7 | Unknown | Minor (inferred) | other | ORIGINAL | NO_ACTION | NON_RESOLVABLE |
 
 ## Finding Details
 
@@ -121,12 +125,39 @@ Review 6054002314 (da2ce7, APPROVED, 2026-11-25 08:17 UTC) posted four inline co
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/3041#discussion_r4694354098>
 
+### F6 - Cite the round-2 findings by their audit references
+
+- PR number: 3041
+- Source review ID: 6057005909
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/3041#discussion_r4694393004>
+- Concern: `manual-verification-evidence.md` cited "review finding F4", "F2" and "F1" of PR 3041, which are da2ce7's own numbers; in this audit those findings are F5, F3 and F2, and F4, F2 and F1 name other findings.
+- Solution: the three citations now use the audit references `review-finding:pr-3041-f5`, `review-finding:pr-3041-f3` and `review-finding:pr-3041-f2`, and the file's `last-updated-utc` is refreshed. The round-2 commit bodies keep da2ce7's numbers, prefixed with the reviewer's name; they are history and stay unchanged.
+- Current-tree verification: `grep -n "review-finding\|finding F" docs/issues/open/2996-2912-si-8-share-assert-names-no-source-path/manual-verification-evidence.md` prints only the three `review-finding:pr-3041-f*` references.
+- Resolution reference: docs(issues): [#2996] cite the PR 3041 review findings by their audit references in the SI-8 evidence
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
+### F7 - Remove the review audit record from this PR
+
+- PR number: 3041
+- Source review ID: 6057005909
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/3041#pullrequestreview-6057005909>
+- Concern: the review body's failed "Out of Scope Changes" pre-merge check asks to remove `docs/pr-reviews/pr-3041-review/PR-REVIEW.md` from this PR or move it to a separate review-process change.
+- Solution: no change. The repository's `process-pr-review` skill makes the PR author own this tracked audit record at `docs/pr-reviews/pr-<PR_NUMBER>-review/PR-REVIEW.md` on the PR's own branch, created before the first reply; moving it out would break that workflow. CodeRabbit read no configuration file from this repository, so its scope check does not know the rule.
+- Current-tree verification: `.claude/skills/process-pr-review/SKILL.md` opens with "The PR author owns one tracked audit record at `docs/pr-reviews/pr-<PR_NUMBER>-review/PR-REVIEW.md`".
+- Resolution reference: N/A
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
 ## Processing Log
 
 - 2026-11-24 18:01 UTC - Started audit for review 6044596970 (Greptile); F1 fixed in a signed commit, reply and thread resolution follow after the push.
 - 2026-11-24 18:04 UTC - Replied on the F1 thread (reply created 18:04:39 UTC) after pushing the fix and the audit, and resolved the thread; a GraphQL refresh shows it resolved and no other thread.
 - 2026-11-25 11:38 UTC - Added F2 to F5 for review 6054002314 (da2ce7, approved); all four fixed in three signed commits; replies and thread resolution follow after the push.
 - 2026-11-25 11:42 UTC - Replied on the F2 to F5 threads after pushing the fixes and the audit, and resolved the four threads; a GraphQL refresh shows 0 unresolved threads.
+- 2026-11-25 11:49 UTC - Added F6 and F7 for review 6057005909 (CodeRabbit); F6 fixed in a signed commit, F7 declined (the audit record belongs to the PR by the `process-pr-review` skill); replies follow after the push.
 
 ## Completion Rules
 
