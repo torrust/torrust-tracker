@@ -97,7 +97,7 @@ Round 2: CodeRabbit review 6058425125 on the head of commit `docs(issues): [#290
 - Current-tree verification: read both places in `docs/adrs/20260519000000_define_global_cli_output_contract.md` after the edit; the new ADR's section 2 already names the replaced parts by topic (the content of stdout and stderr), so it needed no change; the commit passed the pre-commit hook.
 - Resolution reference: docs(adrs): [#2904] extend the external-protocol override to section 5 of the CLI output contract
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4695984260
 
 ### F4 - No audit record at this head for the two answered threads
 
@@ -110,7 +110,7 @@ Round 2: CodeRabbit review 6058425125 on the head of commit `docs(issues): [#290
 - Current-tree verification: `docs/pr-reviews/pr-3049-review/PR-REVIEW.md` exists on the branch with F1 and F2 and their reply URLs; the validator exits 0 on it (run after the replies of this round are recorded).
 - Resolution reference: docs(pr-reviews): [#2904] record the audit of the first review round on pull request 3049
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4695984803
 
 ### F5 - The review-task result passes any `PENDING` criterion
 
@@ -123,7 +123,7 @@ Round 2: CodeRabbit review 6058425125 on the head of commit `docs(issues): [#290
 - Current-tree verification: read item 6 of the skill and the inventory row after the edit; `grep` for the old wording found no other copy; the agent file only says each `FAIL` or `PENDING` gets a remediation line.
 - Resolution reference: docs(skills): [#2904] fail the review-task result on a pending criterion that is not deferred
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4695985435
 
 ### F6 - The override names sections 1 and 2, but section 5 also forbids plain text
 
@@ -136,7 +136,7 @@ Round 2: CodeRabbit review 6058425125 on the head of commit `docs(issues): [#290
 - Current-tree verification: as F3: both places now name sections 1, 2 and 5.
 - Resolution reference: docs(adrs): [#2904] extend the external-protocol override to section 5 of the CLI output contract
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4695985961
 
 ### F7 - Section 3 of the new ADR quotes the row as a `Stop` hook only
 
@@ -149,7 +149,7 @@ Round 2: CodeRabbit review 6058425125 on the head of commit `docs(issues): [#290
 - Current-tree verification: compared the sentence with the `agent-reply-guard` row in the amended ADR after the edit.
 - Resolution reference: docs(adrs): [#2904] name the Stop and PreToolUse hooks in the external-protocol ADR and list its affected code
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4695986693
 
 ### F8 - The guard's documentation links neither the hooks reference nor the ADR
 
@@ -162,7 +162,7 @@ Round 2: CodeRabbit review 6058425125 on the head of commit `docs(issues): [#290
 - Current-tree verification: checked that the relative path in the module documentation resolves to the ADR file; read the new section; the commits passed the pre-commit hook.
 - Resolution reference: docs(agent-reply-validator): [#2904] link the hooks reference and the ADR from the guard's module docs
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4695987572
 
 ### F9 - M7 is `DONE` but V7 omits two of the four items its row says it records
 
@@ -175,7 +175,7 @@ Round 2: CodeRabbit review 6058425125 on the head of commit `docs(issues): [#290
 - Current-tree verification: read the transcript `agent-<agent id>.jsonl` of that run with a short Python script that prints, per line, `type`, `isMeta`, `origin`, the content shape and the matches of `^Reply file: (.+)$`; the facts in V7 are those it printed.
 - Resolution reference: docs(issues): [#2904] record in V7 which records carry the reply-file line and where the skill text sits
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4695988671
 
 ### F10 - AC10's exceptions do not cover the continued run that ended without its file
 
@@ -188,7 +188,7 @@ Round 2: CodeRabbit review 6058425125 on the head of commit `docs(issues): [#290
 - Current-tree verification: read AC10 and its row after the edit; V7 describes the run.
 - Resolution reference: docs(issues): [#2904] name the continued M7 run as a second AC10 exception and update the timestamp
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4695989256
 
 ### F11 - The guard holds an agent to a file name the validator rejects
 
@@ -199,9 +199,9 @@ Round 2: CodeRabbit review 6058425125 on the head of commit `docs(issues): [#290
 - Concern: `guard.rs` accepts any file name in `agent-replies/`, so a name the validator's name rule rejects keeps the agent refused until the limit; the reviewer proposes treating such a name like a non-exact path, with a message that names the problem.
 - Solution: No change. It depends on the maintainer's answer about the D17 exact-path-shape consequence, which the pull request asks for; recorded as undecided and returned to the contributor as a question. The thread stays open.
 - Current-tree verification: read the arm in `contrib/dev-tools/checks/agent-reply-validator/src/guard.rs`: it accepts any name under `agent-replies/`, as the reviewer says; V7 shows the three refusals for `task-reviewer-t5-r4.json`.
-- Resolution reference: pending
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4695989904
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4695989904
 
 ### F12 - `last-updated-utc` predates the newest progress-log entry
 
@@ -214,7 +214,7 @@ Round 2: CodeRabbit review 6058425125 on the head of commit `docs(issues): [#290
 - Current-tree verification: read the frontmatter and the last progress-log entry after the edit; the stamp equals the entry's.
 - Resolution reference: docs(issues): [#2904] name the continued M7 run as a second AC10 exception and update the timestamp
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4695990612
 
 ## Processing Log
 
@@ -224,6 +224,8 @@ Round 2: CodeRabbit review 6058425125 on the head of commit `docs(issues): [#290
 - 2026-11-25 13:31 UTC - A refresh showed both threads already resolved (not by this session) after the replies; no resolve mutation was needed.
 - 2026-11-25 13:49 UTC - Round 2: started on reviews `6058425125` of `coderabbitai[bot]` and `6058630615` of `da2ce7`, nine inline comments plus one; verified every finding against the current tree and committed the fixes (F3 to F10, F12). F11 is undecided: no code change.
 - 2026-11-25 13:49 UTC - Correction: the `## Findings` introduction written in round 1 described findings F1 to F19 of another pull request's record (reviews 6045345701 to 6054114265) and not this one; it was replaced by one that describes rounds 1 and 2 of this record. The Processing Log entries above were not changed.
+- 2026-11-25 14:00 UTC - Pushed the fixes and the record of this round, replied on the ten threads (GitHub `created_at` 13:59:39 to 14:00:06 UTC) and recorded the reply URLs; the validator exited 0.
+- 2026-11-25 14:01 UTC - Resolved nine threads (F3 to F10 and F12) with the GraphQL mutation, each returning `isResolved: true`. F11 stays open as undecided, waiting on the maintainer.
 
 ## Completion Rules
 
