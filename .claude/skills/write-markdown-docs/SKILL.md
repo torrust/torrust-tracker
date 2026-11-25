@@ -79,7 +79,7 @@ with `issue: #<number>`; do not keep paths that will become stale when the spec
 moves from `drafts/` to `open/` or `closed/`.
 This applies to artifacts outside the issue folder. Evidence documents inside the issue folder
 (`manual-verification-evidence.md`) keep the `issue-spec` key from their template, pointing to the
-issue's own `ISSUE.md`.
+folder's own spec (`ISSUE.md`, or `EPIC.md` in an EPIC folder).
 
 ## Repo Markdown vs. GitHub Markdown
 
