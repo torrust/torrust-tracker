@@ -7,9 +7,9 @@ priority: p2
 epic: 1347
 github-issue: 2902
 spec-path: docs/issues/open/2902-1347-add-tests-tracker-core/ISSUE.md
-branch: "2902-1347-add-tests-tracker-core-server-drivers"
+branch: "2902-1347-add-tests-tracker-core-auth-whitelist"
 related-pr: 3036
-last-updated-utc: "2026-11-24 17:03"
+last-updated-utc: "2026-11-25 15:53"
 semantic-links:
   skill-links:
     - create-issue
@@ -300,7 +300,7 @@ is the proposal for the maintainer's approval (questions Q5, Q6):
 | S1 | T2, then `statistics/`: `repository.rs`, `metrics.rs`, `persisted/mod.rs`, `persisted/downloads.rs`, `event/listener.rs`, `event/handler.rs`, `mod.rs` (the only area reached just by the integration binary) | 1-7 | `2902-1347-add-tests-tracker-core-statistics` | #2988 | DONE |
 | S2 | The SQLite persistence boundary: `sqlite/{auth_key_store,torrent_metrics_store,whitelist_store,mod,schema_migrator}.rs`, `databases/{error,setup}.rs`, `error.rs`, the extraction of `parse_valid_until` and the row mapping (Q4, F2), plus the `databases/traits` and `driver/mod.rs` no-change decisions | 8-17 | `2902-1347-add-tests-tracker-core-sqlite` | #3009 | IN_PROGRESS |
 | S3 | MySQL and PostgreSQL drivers: Docker-free error-path tests if non-flaky, otherwise no-change rows with the `db-compatibility` workflow as owner (Q3); the README and `packages/AGENTS.md` driver-test commands (Q2) | 18-27 | `2902-1347-add-tests-tracker-core-server-drivers` | #3036 | IN_PROGRESS |
-| S4 | Authentication and whitelist: failing-`Database` propagation, `Key` property decision (F3, F4 checks) | 28-39 | `2902-1347-add-tests-tracker-core-auth-whitelist` | TBD | TODO |
+| S4 | Authentication and whitelist: failing-`Database` propagation, `Key` property decision (F3, F4 checks) | 28-39 | `2902-1347-add-tests-tracker-core-auth-whitelist` | TBD | IN_PROGRESS |
 | S5 | `torrent/`, `announce_handler.rs`, `scrape_handler.rs`, `container.rs`, `lib.rs`, `test_helpers.rs`, `peer_tests.rs`, then T4-T6; updates the EPIC tables; the spec moves to `docs/issues/closed/` in a separate `cleanup-completed-issues` PR after the issue closes | 40-45 | `2902-1347-add-tests-tracker-core-final` | TBD | TODO |
 
 Rules: S0 to S4 use `Related to #2902`; only S5 uses `Closes #2902`. Do not stack branches; keep
@@ -442,6 +442,7 @@ The first slice's record checks the grouping against `find packages/tracker-core
 - 2026-11-23 16:27 UTC - Claude Code (Sonnet 5.5) - Opened the S2 PR #3009 (`Related to #2902`).
 - 2026-11-24 17:03 UTC - Claude Code (Sonnet 5.5) - S3 (MySQL and PostgreSQL drivers) done on `2902-1347-add-tests-tracker-core-server-drivers`, from `develop` `b81e4512e`: an unreachable endpoint measured at 30.0 s, so only the constructors are tested (Q8): 6 tests, 6 mutants killed on both drivers, unit-only lines 87.13% to 87.36%, aggregate 87.13% to 87.38% ([slice measurements](coverage-evidence.md#slice-measurements)); the README and `packages/AGENTS.md` commands (Q2) corrected. Rows 19-22 and 24-27 are no change. Next: the S3 PR.
 - 2026-11-25 12:55 UTC - Claude Code (Sonnet 5.5) - Rows 28 (`authentication/handler.rs`) and 29 (`authentication/key/peer_key.rs`) done on `2902-1347-add-tests-tracker-core-auth-whitelist`, both approved by the maintainer. Row 28: 3 tests (a failed removal and a failed load leave memory untouched; a load replaces the in-memory keys), M1-M5 killed. Row 29: 18 tests, M1-M7 killed. F3 checked: no code deserializes a `Key` or `PeerKey` from untrusted input, so the unvalidated `Deserialize` derive is a latent bypass, not a bug; recorded without change (maintainer decision).
+- 2026-11-25 15:53 UTC - Claude Code (Sonnet 5.5) - S4 (authentication and whitelist) done on `2902-1347-add-tests-tracker-core-auth-whitelist`, from `develop` `41f294c9d`, every plan and completed file approved by the maintainer: 47 new unit tests (287 to 334) in the keys handler, key validation and equality, key expiry, the persisted whitelist, the whitelist manager and the in-memory whitelist; rows 31-34, 37 and 39 no change after 19 mutants, all killed; unit-only lines 87.38% to 88.12%, aggregate 87.38% to 88.14% ([slice measurements](coverage-evidence.md#slice-measurements)). The mutation checks found two production bugs, each handed to its own issue and session (a panic when a random expiring key has an overflowing duration; concurrent identical whitelist adds fail with a unique-constraint error, finding F4) and one latent hazard recorded without change (F3, the unvalidated `Deserialize` of `Key`, not reachable). Next: the S4 PR.
 
 ## Open Design Questions
 

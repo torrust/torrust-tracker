@@ -267,6 +267,30 @@ measurement session. The MySQL and PostgreSQL
 store files stay at 0% in every default scope; their coverage comes from the container suites run by
 `db-compatibility.yaml`, which the published coverage report leaves out (the separate issue of Q2).
 
+### S4 (authentication and whitelist)
+
+Measured on 2026-11-25. Base: `develop` at `41f294c9d`. Head: the S4 branch at its commit
+`test(tracker-core): [#2902] pin what the in-memory whitelist reports on add and remove` (the later commits change
+documentation only). The base columns apply the head without the slice's changes under `packages/`.
+
+| Scope | Tests | Lines | Regions | Functions |
+| --- | ---: | ---: | ---: | ---: |
+| Unit-only, base | 287 unit | 5,186 / 5,935 (87.38%) | 5,724 / 6,621 (86.45%) | 909 / 1,101 (82.56%) |
+| Unit-only, S4 | 334 unit | 5,557 / 6,306 (88.12%) | 6,084 / 6,970 (87.29%) | 978 / 1,170 (83.59%) |
+| Integration-only, base and S4 | 15 integration | 827 / 1,876 (44.08%) | 712 / 1,997 (35.65%) | 145 / 477 (30.40%) |
+| Aggregate, base | 287 unit + 15 integration | 5,186 / 5,935 (87.38%) | 5,724 / 6,621 (86.45%) | 909 / 1,101 (82.56%) |
+| Aggregate, S4 | 334 unit + 15 integration | 5,558 / 6,306 (88.14%) | 6,085 / 6,970 (87.30%) | 978 / 1,170 (83.59%) |
+| Unit-only without `db-compatibility-tests`, base | 285 unit | 5,172 / 5,611 (92.18%) | 5,710 / 6,313 (90.45%) | 905 / 1,063 (85.14%) |
+| Unit-only without `db-compatibility-tests`, S4 | 332 unit | 5,544 / 5,982 (92.68%) | 6,071 / 6,662 (91.13%) | 974 / 1,132 (86.04%) |
+
+All the files of the slice were already covered by line (the authentication and whitelist files stood at 100% or
+one line short), so the lines gained are almost all the new test modules; what the slice adds is protection, not
+line coverage: the uncovered error-arm regions (nine, in the keys handler, the persisted whitelist and its manager) now run, and the mutation checks found two production bugs and
+three behaviors no test pinned (a swallowed remove or load error, a reset that does not clear, the return values
+of the in-memory whitelist). The aggregate is one line above the unit-only figure, as noted for S3: line counts of
+test modules differ by a few lines between builds, and regions and functions are equal. The integration scope is
+the same at base and head because the slice changes only unit-test modules.
+
 ## Test-Technique Assessment (initial)
 
 | Technique | Applicability | Initial decision |
