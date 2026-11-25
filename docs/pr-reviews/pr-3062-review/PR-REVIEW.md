@@ -30,7 +30,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-F1 is from claude[bot]'s inline comment in review 6061977982. F2 to F9 are da2ce7's inline comments in review 6062149260 and F10 is the finding in that review's body; F2 re-raises F1. F11 to F13 are from CodeRabbit's review 6062534811: F11 and F12 are the two findings of its inline comment 4698868795 (they share one thread and one reply) and F13 is its inline comment 4698868806. F14 is da2ce7's inline comment in review 6062583818 (dismissed; he posted it with an `ACK` of the previous head) and F15 is CodeRabbit's reply 4698953937 (review 6062636679) in the thread of F11 and F12, recorded against that thread's root comment; CodeRabbit's reply 4698953208 in the thread of F13 withdraws that finding and has no row. The claude[bot] reviews 6061840285 and 6061977982 summaries, the CodeRabbit review-limit comment and the maintainer's `@claude review` and `ACK` comments contain no actionable assertion and have no rows.
+F1 is from claude[bot]'s inline comment in review 6061977982. F2 to F9 are da2ce7's inline comments in review 6062149260 and F10 is the finding in that review's body; F2 re-raises F1. F11 to F13 are from CodeRabbit's review 6062534811: F11 and F12 are the two findings of its inline comment 4698868795 (they share one thread and one reply) and F13 is its inline comment 4698868806. F14 is da2ce7's inline comment in review 6062583818 (dismissed; he posted it with an `ACK` of the previous head) and F15 is CodeRabbit's reply 4698953937 (review 6062636679) in the thread of F11 and F12, recorded against that thread's root comment; CodeRabbit's reply 4698953208 in the thread of F13 withdraws that finding and has no row. F16 is CodeRabbit's reply 4699066263 (review 6062770209) in the same thread, recorded against its root comment. The claude[bot] reviews 6061840285 and 6061977982 summaries, the CodeRabbit review-limit comment and the maintainer's `@claude review` and `ACK` comments contain no actionable assertion and have no rows.
 
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
@@ -49,6 +49,7 @@ F1 is from claude[bot]'s inline comment in review 6061977982. F2 to F9 are da2ce
 | F13 | review-finding:pr-3062-f13 | coderabbitai[bot] | Minor | metadata | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F14 | review-finding:pr-3062-f14 | da2ce7 | Minor | correctness | RE_RAISE_OF:F12 | FIXED | RESOLVED |
 | F15 | review-finding:pr-3062-f15 | coderabbitai[bot] | Minor (inferred) | correctness | RE_RAISE_OF:F11 | FIXED | RESOLVED |
+| F16 | review-finding:pr-3062-f16 | coderabbitai[bot] | Minor (inferred) | correctness | RE_RAISE_OF:F15 | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -247,6 +248,19 @@ F1 is from claude[bot]'s inline comment in review 6061977982. F2 to F9 are da2ce
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3062#discussion_r4699051172
 
+### F16 - AC3 still claims broader coverage than the scan provides
+
+- PR number: 3062
+- Source review ID: 6062534811
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3062#discussion_r4698868795
+- Concern: Restated by CodeRabbit in its reply 4699066263 (review 6062770209) in the thread of F11 and F12: the scan misses a field after nested parentheses, for example `count = ((1 + 1)), target = ...`. The reviewer asked to narrow the claim to the supported cases or to handle nested expressions.
+- Solution: A regular expression cannot follow arbitrary nesting, so the claim was narrowed: AC3, the Verified scope paragraph and the evidence file state the supported cases (across lines, a leading argument, one level of parentheses) and that deeper nesting is a known limit.
+- Current-tree verification: `grep -Pzc` with the current pattern on a line `tracing::event!(tracing::Level::DEBUG, count = ((1 + 1)), target = "UDP TRACKER", "message");` printed 0 matches; `grep -n 'nested parentheses' ISSUE.md` shows the stated limit.
+- Resolution reference: docs(issues): [#3060] limit the AC3 claim to one level of parentheses in earlier arguments
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3062#discussion_r4699150146
+
 ## Processing Log
 
 - 2026-11-25 17:21 UTC - claude[bot]'s review 6061977982 with its inline comment (F1) arrived.
@@ -262,6 +276,9 @@ F1 is from claude[bot]'s inline comment in review 6061977982. F2 to F9 are da2ce
 - 2026-11-25 18:14 UTC - Found, in this order, da2ce7's review 6062583818 (posted 18:05 UTC, F14, with an `ACK` of the previous head after he dismissed review 6062149260) and CodeRabbit's replies (posted 18:09 UTC) in the thread of F13 (it withdraws that finding) and in the thread of F11 and F12 (F11 remains, F15). Then committed the F15 fix (`docs(issues): [#3060] let the AC3 scan skip earlier arguments that contain parentheses`).
 - 2026-11-25 18:17 UTC - Pushed it and replied to the threads of F14 and F15.
 - 2026-11-25 18:18 UTC - Added F14 and F15 to this record.
+- 2026-11-25 18:23 UTC - Found CodeRabbit's reply 4699066263 (posted 18:19 UTC, F16) and committed the fix (`docs(issues): [#3060] limit the AC3 claim to one level of parentheses in earlier arguments`).
+- 2026-11-25 18:26 UTC - Pushed it and replied in the thread.
+- 2026-11-25 18:27 UTC - Added F16 to this record.
 
 ## Completion Rules
 
