@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2999-2993-si-a-keep-secrets-out-of-errors-and-logs/ISSUE.md
-last-updated-utc: "2026-11-25 09:07"
+last-updated-utc: "2026-11-25 11:34"
 ---
 
 # Manual Verification Evidence
@@ -720,3 +720,28 @@ script: `GET /announce//TestPeerKey000000000000000000009?port=1` answered 404 an
 `GET /announce/TestPeerKey000000000000000000009?port=1` answered 200 (a failure reason); the log
 held 0 lines with the key and its only `uri=/announce` field was `uri=/announce/***?port=1`. A
 `GET` of a path of 30000 slashes answered 404 in 0.0014 s (`curl`'s `time_total`).
+
+## R6 - Review Round 6 (CodeRabbit, da2ce7)
+
+The fifth round reached the limit of rounds a session runs on its own; the maintainer asked for a
+sixth ("Round 6 now", in the session, 2026-11-25). CodeRabbit reviewed the head with the round 5
+fix (review 6054779352, 09:17 UTC) with two findings, and da2ce7 approved the head with the round 5
+audit commit (review 6054897595, 09:25 UTC) with two nits. They are F21 to F24 in the audit.
+
+- F21 (CodeRabbit, Minor), log-safety claim: the documents said the header keeps the token out of
+  proxy and server logs. A proxy or server set to log request headers still records it. They now
+  say the header keeps the token out of the URL and name that limit: `docs/containers.md`, the
+  skills `use-rest-api` and `handle-secrets`, `src/lib.rs` and `axum-rest-api-server`
+  (`lib.rs`, `v1/middlewares/auth.rs`).
+- F22 (CodeRabbit, Minor), rows F16 to F18: at the head it read, this file said they were in the
+  audit, whose table ended at F15. They were added by the round 5 audit commit, pushed after that
+  head; nothing else changed.
+- F23 (da2ce7, Nit), the comment on the 60000-slash test: it read as a guard on the cost, but the
+  test checks the result only. The comment now says so and points at the measurement in section R5.
+- F24 (da2ce7, Nit), two audit details: the F13 detail quoted the scan that round 5 replaced, and
+  the F19 detail said its `grep` prints a single line where it prints two. Both details carry a
+  note now.
+
+No production code changed in this round (documentation, a test comment and the audit record), so
+the real-tracker recheck of section R5 stands. `cargo test -p torrust-tracker-axum-server --lib
+request_log` passes (38 passed) and the pre-commit gate passes.

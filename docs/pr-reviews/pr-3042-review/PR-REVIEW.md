@@ -244,7 +244,7 @@ Review 6054457576 (CodeRabbit, 2026-11-25 08:54 UTC) holds one comment, a reply 
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692413532>
 - Concern: `/announce//<key>`, `/scrape//<key>` and `/api/v1/key//<key>` are logged with the key, because `has_a_secret_after_it` looks only at the segment right after the prefix.
 - Solution: no further change. It is the change F12 made, in a commit pushed after the head this review read.
-- Current-tree verification: `redact_path` uses `segments[index + 1..].iter().any(|later| !later.is_empty())`, and the redaction table holds the rows for the three double-slash paths; `cargo test -p torrust-tracker-axum-server --lib request_log` passed with them (36 passed) in round 3.
+- Current-tree verification: when this row was written, `redact_path` used `segments[index + 1..].iter().any(|later| !later.is_empty())` (the fix of F16 later replaced that scan by a single search for the last segment that is not empty, with the same results), and the redaction table holds the rows for the three double-slash paths; `cargo test -p torrust-tracker-axum-server --lib request_log` passed with them (36 passed) in round 3.
 - Resolution reference: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692540318>
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692540318>
@@ -322,7 +322,7 @@ Review 6054457576 (CodeRabbit, 2026-11-25 08:54 UTC) holds one comment, a reply 
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692618613>
 - Concern: for each segment, `segments[index + 1..].iter().any(..)` walks the rest of the path, which is quadratic on a run of empty segments, for every request, before routing and without a credential.
 - Solution: no further change. It is the change F16 made, in a commit pushed after the head this review read.
-- Current-tree verification: `grep -n "rposition" packages/axum-server/src/request_log.rs` prints the single search for the last segment that is not empty, and the loop runs over `segments[..last_not_empty]`.
+- Current-tree verification: `grep -n "rposition" packages/axum-server/src/request_log.rs` prints two lines, the `cspell:ignore` comment and the search for the last segment that is not empty (an earlier version of this entry said it prints one), and the loop runs over `segments[..last_not_empty]`.
 - Resolution reference: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692674221>
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692674221>

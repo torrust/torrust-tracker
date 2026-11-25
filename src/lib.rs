@@ -278,7 +278,7 @@
 //! curl -H "Authorization: Bearer MyAccessToken" "http://127.0.0.1:1212/api/v1/stats"
 //! ```
 //!
-//! The server also accepts the token as a `?token=` query parameter, but a URL ends up in proxy and browser logs: send the header, which stays out of them. Neither form protects the token in transit; use HTTPS when the request crosses a network.
+//! The server also accepts the token as a `?token=` query parameter, but a URL ends up in proxy and browser logs: send the header, which keeps the token out of the URL (a proxy set to log headers still sees it). Neither form protects the token in transit; use HTTPS when the request crosses a network.
 //!
 //! That endpoint will give you the tracker metrics:
 //!

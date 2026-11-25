@@ -211,9 +211,10 @@ mod tests {
 
     #[test]
     fn it_should_redact_a_key_after_many_empty_segments() {
-        // A path of the size a client can send (tens of thousands of slashes). The scan must
-        // look at each segment once: a scan of the rest of the path for every segment makes
-        // this path cost billions of comparisons.
+        // The result for a path of the size a client can send (tens of thousands of slashes).
+        // The test checks the result only, not the cost: the cost of such a path (a scan of the
+        // rest of the path for every segment took 0.66 s) is recorded as a measurement in the
+        // evidence of issue 2999, section R5.
         let key = "TestPeerKey000000000000000000001";
         let slashes = "/".repeat(60_000);
         let path = format!("/announce{slashes}{key}");

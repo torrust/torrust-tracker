@@ -565,7 +565,7 @@ And you should be able to use the application, for example making a request to t
 curl -H "Authorization: Bearer MySecretToken" https://127.0.0.1:1212/api/v1/stats
 ```
 
-Send the token in the `Authorization` header. The API also accepts a `?token=` query parameter, but a URL ends up in proxy, browser and server logs; the header keeps the token out of them. The header does not protect the token in transit: use `https://` for any request that crosses a network.
+Send the token in the `Authorization` header. The API also accepts a `?token=` query parameter, but a URL ends up in proxy, browser and server logs; the header keeps the token out of the URL. A proxy or server that is set to log request headers still records it, and the header does not protect the token in transit: use `https://` for any request that crosses a network.
 
 You can stop the containers with:
 

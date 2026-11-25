@@ -15,8 +15,9 @@
 //! curl -H "Authorization: Bearer MyAccessToken" http://<host>:<port>/api/v1/<context>
 //! ```
 //!
-//! Using the `token` GET param (accepted, but a URL ends up in proxy and browser logs, which the
-//! header above avoids; neither form protects the token in transit without HTTPS):
+//! Using the `token` GET param (accepted, but a URL ends up in proxy and browser logs, and the
+//! header above keeps the token out of the URL; neither form protects the token in transit
+//! without HTTPS):
 //!
 //! `http://<host>:<port>/api/v1/<context>?token=<token>`.
 //!

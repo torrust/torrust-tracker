@@ -81,8 +81,9 @@ The peer authentication key, a REST API key and the admin token are secrets wher
   replaces them with `***`. Never log `request.uri()` directly.
 - **The admin token goes in the `Authorization: Bearer` header**, in clients, scripts and
   documentation. `?token=` is still accepted by the server but it ends up in proxy and browser
-  logs. Do not write it in an example. The header only keeps the token out of logged URLs; it
-  does not protect it in transit, so do not call it safe without HTTPS.
+  logs. Do not write it in an example. The header only keeps the token out of logged URLs (a proxy
+  set to log headers still sees it); it does not protect it in transit, so do not call it safe
+  without HTTPS.
 - **Library errors that print the value they rejected**: a `reqwest` error holds the URL, so wrap
   it with `without_url()`; a `figment` error echoes a value of the wrong type, so a new secret
   option must be added to `SECRET_OPTIONS` in `packages/configuration/src/secret_options.rs`; a
