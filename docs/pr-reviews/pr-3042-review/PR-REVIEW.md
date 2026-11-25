@@ -51,6 +51,8 @@ Review 6054012280 (da2ce7, approved, 2026-11-25 08:18 UTC) posted seven inline c
 
 Review 6054287756 (CodeRabbit, 2026-11-25 08:40 UTC) posted three inline comments, F10 to F12. Its body only repeats them, so it adds no row.
 
+Review 6054388295 (da2ce7, changes requested, 2026-11-25 08:49 UTC) read the head before the round 3 fix and posted three inline comments with the reviewer ids F10, F11 and F9. F10 and F11 are taken in this record by CodeRabbit's findings and F9 by an earlier one, so they are the audit-local F13 to F15. F13 and F14 ask for the changes F12 and F10 already made. The review body lists the same three findings and adds none; it also says the reviewer's earlier F8 is fixed.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3042-f1 | Unknown | Blocker | security | ORIGINAL | FIXED | RESOLVED |
@@ -65,6 +67,9 @@ Review 6054287756 (CodeRabbit, 2026-11-25 08:40 UTC) posted three inline comment
 | F10 | review-finding:pr-3042-f10 | Unknown | Major | security | ORIGINAL | FIXED | RESOLVED |
 | F11 | review-finding:pr-3042-f11 | Unknown | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-3042-f12 | Unknown | Major | security | ORIGINAL | FIXED | RESOLVED |
+| F13 | review-finding:pr-3042-f13 | Human | Major | security | RE_RAISE_OF:F12 | NO_ACTION | SUPERSEDED |
+| F14 | review-finding:pr-3042-f14 | Human | Major | security | RE_RAISE_OF:F10 | NO_ACTION | SUPERSEDED |
+| F15 | review-finding:pr-3042-f15 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -224,6 +229,45 @@ Review 6054287756 (CodeRabbit, 2026-11-25 08:40 UTC) posted three inline comment
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692448364>
 
+### F13 - A key after an empty segment is logged in full
+
+- PR number: 3042
+- Source review ID: 6054388295
+- Reviewer finding ID: F10
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692413532>
+- Concern: `/announce//<key>`, `/scrape//<key>` and `/api/v1/key//<key>` are logged with the key, because `has_a_secret_after_it` looks only at the segment right after the prefix.
+- Solution: no further change. It is the change F12 made, in a commit pushed after the head this review read.
+- Current-tree verification: `redact_path` uses `segments[index + 1..].iter().any(|later| !later.is_empty())`, and the redaction table holds the rows for the three double-slash paths; `cargo test -p torrust-tracker-axum-server --lib request_log` passed with them (36 passed) in round 3.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692540318>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692540318>
+
+### F14 - The containers guide overstates the configuration-error guarantee
+
+- PR number: 3042
+- Source review ID: 6054388295
+- Reviewer finding ID: F11
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692413539>
+- Concern: "A configuration error names the option and never prints the password" is not true for a TOML syntax error on the password line, whose parser text quotes the source line (read from the locked crates, not run).
+- Solution: no further change. It is the change F10 made, in a commit pushed after the head this review read: the redaction drops the quoted line of a syntax error. The reply also records that the text does not reach stderr at either head, because the loaders replace a parse error with a missing-mandatory-option error.
+- Current-tree verification: the tracker binary built after the round 3 fix, started with a configuration whose last line is an unterminated `password = "TestDbPasswordUnterminated01`, ended with `Missing mandatory configuration option. Option path: metadata.schema_version` and its output held 0 occurrences of the password.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692540743>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692540743>
+
+### F15 - The progress log is not in stamp order
+
+- PR number: 3042
+- Source review ID: 6054388295
+- Reviewer finding ID: F9
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692413546>
+- Concern: an entry of the spec's progress log stamped 08:28 came before one stamped 08:27.
+- Solution: the entry recorded late (08:28) was moved after the 08:27 entry.
+- Current-tree verification: `grep -n '^- 2026-11-2[45]' docs/issues/open/2999-2993-si-a-keep-secrets-out-of-errors-and-logs/ISSUE.md` prints the stamps 18:00, 08:27, 08:28, 08:47 and 08:56 in that order.
+- Resolution reference: docs(issues): [#2999] put the progress log entries in stamp order
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692541219>
+
 ## Processing Log
 
 - 2026-11-24 18:06 UTC - Greptile review 6044736873 arrived with two inline findings.
@@ -235,6 +279,8 @@ Review 6054287756 (CodeRabbit, 2026-11-25 08:40 UTC) posted three inline comment
 - 2026-11-25 08:40 UTC - Review 6054287756 by CodeRabbit arrived with three inline findings, recorded as F10 to F12.
 - 2026-11-25 08:52 UTC - Replied on the three threads after the fix commit was pushed (replies 4692447625, 4692448018 and 4692448364).
 - 2026-11-25 08:53 UTC - `validate-audit-record.py --pr-number 3042`, run with the bot token set for that one command (identity `josecelano-bot`), printed `{"status": "ok", "rows": 12, "log_entries": 8, "failures": 0}`. A GraphQL listing showed the F11 thread already resolved by `coderabbitai[bot]`; the F10 and F12 threads were then resolved by `josecelano-bot`. The same listing showed three new unresolved threads of a later review by da2ce7 (6054388295), which are not processed in this entry.
+- 2026-11-25 09:00 UTC - Review 6054388295 by da2ce7 (changes requested, submitted at 08:49 UTC) with three inline findings was recorded as F13 to F15, and the three threads got their replies after the log-order commit was pushed (replies 4692540318, 4692540743 and 4692541219).
+- 2026-11-25 09:02 UTC - `validate-audit-record.py --pr-number 3042`, run with the bot token set for that one command (identity `josecelano-bot`), first failed with `Processing Log entries are not in chronological order`: this record had two new entries, one stamped 08:49 for the arrival of the review and one stamped 09:00 for the replies, after the 08:53 entry. They were merged into the single 09:00 entry above before any commit, and the second run printed `{"status": "ok", "rows": 15, "log_entries": 10, "failures": 0}`. The F13, F14 and F15 threads were then resolved by `josecelano-bot`. A GraphQL listing taken before resolving showed three more unresolved threads, two by Greptile and one by da2ce7, which are not processed in this entry.
 
 ## Completion Rules
 
