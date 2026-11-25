@@ -785,6 +785,10 @@ mod tests {
         Some(REPLY),
         FakeWorkspace { counts_cannot_be_kept: true, ..FakeWorkspace::with_the_specification() }
     )]
+    #[case::invalid_file_name(
+        Some("docs/issues/open/2904-2003-migrate-custom-agents/agent-replies/task-reviewer-t5-r4.json"),
+        FakeWorkspace::with_the_specification()
+    )]
     fn it_should_never_write_the_literal_line_that_names_the_reply_file_in_any_text_it_returns(
         #[case] path: Option<&str>,
         #[case] mut workspace: FakeWorkspace,
