@@ -46,6 +46,7 @@ approves it. A group of declaration-only files may share one plan.
 | 19 | [authentication-handler-tests.md](authentication-handler-tests.md) | DONE | Plan approved 2026-11-25; the failure and replace orderings of remove and load; completed file approved 2026-11-25 |
 | 20 | [authentication-peer-key-tests.md](authentication-peer-key-tests.md) | DONE | Plan approved 2026-11-25; key validation table and property, peer-key equality; F3 recorded, not reachable; completed file approved 2026-11-25 |
 | 21 | [authentication-key-mod-tests.md](authentication-key-mod-tests.md) | DONE | Plan approved 2026-11-25; the expiry boundary, the generated expiry and the error texts; completed file approved 2026-11-25 |
+| 22 | [authentication-repositories-and-service-no-change.md](authentication-repositories-and-service-no-change.md) | DONE | No change for rows 31-34 after 15 mutants, all killed; approved 2026-11-25 |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 

@@ -373,10 +373,10 @@ rows are ordered by slice, then by risk.
 | 28 | `authentication/handler.rs` | S4 | 373 / 373 (2 regions uncovered) | Test candidate: 466 / 466 lines, all regions, with 3 tests (a failed removal and a failed load leave memory untouched; a load replaces the in-memory keys) ([plan](test-refactor-plans/authentication-handler-tests.md)) | DONE |
 | 29 | `authentication/key/peer_key.rs` | S4 | 99 / 100 | Test candidate: 129 / 129 lines with 18 tests (key validation table and property, peer-key equality including the mixed-expiry arm); F3 checked, not reachable ([plan](test-refactor-plans/authentication-peer-key-tests.md)) | DONE |
 | 30 | `authentication/key/mod.rs` | S4 | 77 / 77 | Test candidate: 96 / 96 lines with 13 tests (the expiry boundary, a property on the comparison, the generated expiry, the error texts) and a misplaced test fixed; the overflow panic of `generate_key` is a separate bug ([plan](test-refactor-plans/authentication-key-mod-tests.md)) | DONE |
-| 31 | `authentication/key/repository/persisted.rs` | S4 | 73 / 74 | Failing-`Database` cases | PENDING |
-| 32 | `authentication/key/repository/in_memory.rs` | S4 | 91 / 91 | No change | PENDING |
-| 33 | `authentication/service.rs` | S4 | 143 / 143 | No change; review breadth | PENDING |
-| 34 | `authentication/mod.rs`, `authentication/key/repository/mod.rs` | S4 | 114 / 114, no entries | No change | PENDING |
+| 31 | `authentication/key/repository/persisted.rs` | S4 | 73 / 74 | No change: the failing-`Database` cases are reached through the handler tests of row 28; all three mutants killed ([record](test-refactor-plans/authentication-repositories-and-service-no-change.md)) | DONE |
+| 32 | `authentication/key/repository/in_memory.rs` | S4 | 91 / 91 | No change: all six mutants killed ([record](test-refactor-plans/authentication-repositories-and-service-no-change.md)) | DONE |
+| 33 | `authentication/service.rs` | S4 | 143 / 143 | No change; breadth reviewed, all six mutants killed ([record](test-refactor-plans/authentication-repositories-and-service-no-change.md)) | DONE |
+| 34 | `authentication/mod.rs`, `authentication/key/repository/mod.rs` | S4 | 114 / 114, no entries | No change: declarations and combined tests ([record](test-refactor-plans/authentication-repositories-and-service-no-change.md)) | DONE |
 | 35 | `whitelist/repository/persisted.rs` | S4 | 74 / 74 | Failing-`Database` cases; finding F4 check | PENDING |
 | 36 | `whitelist/manager.rs` | S4 | 97 / 97 | Failing-`Database` cases | PENDING |
 | 37 | `whitelist/authorization.rs` | S4 | 71 / 71 | No change (one test assertion line) | PENDING |
