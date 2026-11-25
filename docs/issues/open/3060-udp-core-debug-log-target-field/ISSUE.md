@@ -41,7 +41,7 @@ tracing::debug!(target = crate::UDP_TRACKER_LOG_TARGET, "Sending UdpAnnounce eve
 
 In `tracing`, `target = value` (an equals sign) is an ordinary **field** named `target`; the log target is set only with `target: value` (a colon). So:
 
-1. `send_event` publishes a statistics event and logs the DEBUG line.
+1. `send_event` logs the DEBUG line and then publishes the statistics event.
 2. `tracing` records the target as the default, the module path (`torrust_tracker_udp_core::services::announce`).
 3. The intended value `UDP TRACKER` is recorded as a stray field `target="UDP TRACKER"` at the end of the line.
 
