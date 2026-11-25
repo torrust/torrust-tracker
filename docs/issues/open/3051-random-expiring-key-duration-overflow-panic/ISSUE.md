@@ -9,7 +9,7 @@ github-issue: 3051
 spec-path: docs/issues/open/3051-random-expiring-key-duration-overflow-panic/ISSUE.md
 branch: "3051-random-expiring-key-duration-overflow-panic-spec"
 related-pr: null
-last-updated-utc: "2026-11-25 14:55"
+last-updated-utc: "2026-11-25 15:18"
 semantic-links:
   skill-links:
     - create-issue
@@ -167,8 +167,10 @@ servers:
 | REST contract: generate-key endpoint   | the same `400` for `u64::MAX`                                                            | The second path, which today maps to `Database`.               |
 | `generate_auth_key_handler` (unit)     | `DurationOverflow` answers `400`; the existing `500` cases keep passing                     | The handler arm; the existing test pins `500` for the other errors. |
 
-The handler and contract tests are written first and run red against the unfixed code (the handler test panics;
-the contract tests get an empty reply or the wrong error). The `generate_key` unit test does not compile until the
+The `KeysHandler`, `generate_auth_key_handler` and contract tests are written first and run red against the unfixed
+code: the `KeysHandler` test panics; the contract tests get an empty reply or the wrong error; the
+`generate_auth_key_handler` test (a fake port returning `AuthKeyError::DurationOverflow`) fails because the handler
+answers `500`. The `generate_key` unit test does not compile until the
 signature changes, so it is added with the fix and proven by mutate-then-restore (reintroduce the `unwrap()`).
 
 ## Implementation Plan
@@ -178,9 +180,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task                                                                                                         | Notes / Expected Output                                                                 |
 | --- | ------ | ------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
 | T0  | DONE   | Analyze, reproduce against a real tracker and at the unit seam                                               | Evidence file sections V1 and V2.                                                       |
-| T1  | TODO   | Write the handler and the two contract regression tests                                                      | Tests compile against the current API.                                                  |
-| T2  | TODO   | Run them red and record output                                                                               | Handler test panics at `key/mod.rs`; contract tests fail. Output in the evidence file.   |
-| T3  | TODO   | Fix: `DurationOverflow`, new signatures, callers, REST mapping, docs; add the `generate_key` unit test        | Mutate-then-restore proves the unit test.                                               |
+| T1  | TODO   | Write the `KeysHandler`, `generate_auth_key_handler` and two contract regression tests                                                      | Tests compile against the current API.                                                  |
+| T2  | TODO   | Run them red and record output                                                                               | `KeysHandler` test panics at `key/mod.rs`; the `generate_auth_key_handler` test and the contract tests fail. Output in the evidence file.   |
+| T3  | TODO   | Fix: `DurationOverflow`, new signatures, callers, REST mapping, handler arm and docs; rename `it_should_answer_an_internal_server_error_whatever_the_error_when_generating_a_key` to say that it covers the errors other than a duration overflow; add the `generate_key` unit test        | Mutate-then-restore proves the unit test.                                               |
 | T4  | TODO   | Green run, `linter all`, like-for-like recheck against a real tracker                                        | Requests that dropped the connection now return `400`.                                  |
 | T5  | TODO   | Review loop, completion review                                                                               | Checks green, reviews addressed.                                                        |
 
@@ -219,6 +221,7 @@ commit.
 - 2026-11-25 14:20 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the spec; GitHub issue #3051 created; spec-only PR next
 - 2026-11-25 14:37 UTC - Claude Code (Claude Sonnet 5.5) - Review finding on the persistence range accepted as a separate issue #3055; recorded under Out of Scope
 - 2026-11-25 14:55 UTC - Claude Code (Claude Sonnet 5.5) - Spec revised for the `da2ce7` review of PR #3054: generate-key handler arm added to the scope and the plan, review-location and evidence wording fixed
+- 2026-11-25 15:18 UTC - Claude Code (Claude Sonnet 5.5) - Review 6060302201 of PR #3054: the generate-key handler test is planned in T1, T2 and T3, and the evidence names the log capture
 
 ## Acceptance Criteria
 

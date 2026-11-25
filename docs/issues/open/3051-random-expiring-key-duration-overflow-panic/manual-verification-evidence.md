@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/3051-random-expiring-key-duration-overflow-panic/ISSUE.md
-last-updated-utc: "2026-11-25 14:55"
+last-updated-utc: "2026-11-25 15:18"
 ---
 
 # Manual Verification Evidence
@@ -25,8 +25,10 @@ Evidence of the bug before the fix (V1, V2) and, after the fix, the like-for-lik
 ### V1 - Real tracker, before the fix
 
 - Goal: observe what a client gets for an overflowing duration on each path.
-- Initial state: fresh SQLite database; the tracker started with
-  `./target/debug/torrust-tracker --config-toml-path docs/issues/open/3051-random-expiring-key-duration-overflow-panic/evidence/tracker.repro.toml`.
+- Initial state: fresh SQLite database; the tracker started in the background with
+  `./target/debug/torrust-tracker --config-toml-path docs/issues/open/3051-random-expiring-key-duration-overflow-panic/evidence/tracker.repro.toml > .tmp/tracker.log 2>&1`,
+  so `.tmp/tracker.log` holds its output (stdout and stderr). When it ran, the folder was still under
+  `docs/issues/drafts/`; the configuration file is the one in `evidence/`.
 - Status: `DONE` (outcome: **Reproduced**)
 
 #### Steps Performed
