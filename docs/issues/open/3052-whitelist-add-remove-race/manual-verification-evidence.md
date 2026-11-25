@@ -1,0 +1,84 @@
+---
+doc-type: manual-verification-evidence
+issue-spec: docs/issues/open/3052-whitelist-add-remove-race/ISSUE.md
+last-updated-utc: "2026-11-25 14:18"
+---
+
+# Manual Verification Evidence
+
+## Environment and Prerequisites
+
+- Date and time (UTC): 2026-11-25 (V1 run before 14:15)
+- Artifact under test: `torrust/develop` at merge commit 11c54fb48 ("Merge torrust/torrust-tracker#3047: chore: update dependencies"), unmodified production code plus the temporary test below.
+- Operating system / environment: Linux, stable Rust toolchain `rustc 1.100.0`, SQLite on a temporary database created by `ephemeral_configuration_for_listed_tracker()`.
+
+## Verification Processes
+
+### V1 - Concurrent identical add and remove on SQLite (before the fix)
+
+- Goal: observe the wrong outcome (a failure for an idempotent operation).
+- Initial state: empty whitelist, fresh temporary SQLite database.
+- Status: `DONE`
+- Outcome: **Reproduced** (the wrong outcome itself was observed).
+
+#### Steps Performed
+
+1. Temporarily added the test below to `packages/tracker-core/src/whitelist/repository/persisted.rs`.
+2. Ran `cargo test -p torrust-tracker-core --lib repro_concurrent -- --nocapture`.
+3. Reverted the test (`git checkout` of the file); it becomes the maintained regression test (T3).
+
+```rust
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn repro_concurrent_add_and_remove() {
+    use std::sync::Arc;
+    let ephemeral = ephemeral_configuration_for_listed_tracker();
+    let whitelist = Arc::new(initialize_database_whitelist(&ephemeral.config).await);
+    let infohash = sample_info_hash();
+    let (mut add_fail, mut rem_fail) = (0, 0);
+    let mut first_err = None;
+    for _ in 0..200 {
+        whitelist.remove(&infohash).await.unwrap();
+        let (a, b) = (whitelist.clone(), whitelist.clone());
+        let (ra, rb) = tokio::join!(
+            tokio::spawn(async move { a.add(&infohash).await }),
+            tokio::spawn(async move { b.add(&infohash).await })
+        );
+        for r in [ra.unwrap(), rb.unwrap()] {
+            if let Err(e) = r { add_fail += 1; first_err.get_or_insert(format!("{e:?}")); }
+        }
+        let (a, b) = (whitelist.clone(), whitelist.clone());
+        let (ra, rb) = tokio::join!(
+            tokio::spawn(async move { a.remove(&infohash).await }),
+            tokio::spawn(async move { b.remove(&infohash).await })
+        );
+        for r in [ra.unwrap(), rb.unwrap()] {
+            if let Err(e) = r { rem_fail += 1; first_err.get_or_insert(format!("{e:?}")); }
+        }
+        whitelist.add(&infohash).await.unwrap();
+    }
+    println!("REPRO add_failures={add_fail}/200 remove_failures={rem_fail}/200 first_err={first_err:?}");
+}
+```
+
+#### Observed Result
+
+```text
+REPRO add_failures=200/200 remove_failures=200/200 first_err=Some("InvalidQuery { source: Database(SqliteError { code: 2067, message: \"UNIQUE constraint failed: whitelist.info_hash\" }), driver: Sqlite3 }")
+test ... repro_concurrent_add_and_remove ... ok
+```
+
+(`add_failures` counts failed calls: one per round. The first error is the UNIQUE violation. The error variant of the failing
+removes was not printed in this run (only the first error was kept); `DeleteFailed` is predicted from the
+code and is to be captured in the red run of T3.)
+
+#### Conclusion
+
+Both concurrent identical `add` and concurrent identical `remove` fail in every round on SQLite.
+
+### V2 - MySQL and PostgreSQL
+
+Status: `TODO` (T2).
+
+## Failures and Follow-up
+
+None yet.
