@@ -1,7 +1,7 @@
 ---
 pr-number: 3044
 pr-url: https://github.com/torrust/torrust-tracker/pull/3044
-last-updated-utc: "2026-11-25 08:08"
+last-updated-utc: "2026-11-25 09:04"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -51,6 +51,11 @@ review-body finding (F7) that repeats F5.
 Round 4, on head `9d1946125`: CodeRabbit review 6045717795, its answer in the F6 thread (F8).
 Round 5, on head `146179e79`: CodeRabbit review 6045878013 with one thread (F9). It came after the
 fifth round of fixes; the contributor allowed a sixth round on 2026-11-25.
+Round 6, on head `9e743e54f`: CodeRabbit review 6053945210 with one thread (F10) and one
+outside-diff finding in its body (F11). On head `2b9de50df`: CodeRabbit review 6054013798, a
+follow-up in the F9 thread (F12), and da2ce7's review 6054114265 (`APPROVED`, findings F1 to F7,
+recorded as F13 to F19 because their ids collide with this record's). The contributor allowed one
+seventh round for all of them on 2026-11-25.
 
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
@@ -63,6 +68,16 @@ fifth round of fixes; the contributor allowed a sixth round on 2026-11-25.
 | F7 | review-finding:pr-3044-f7 | coderabbitai[bot] | Minor | correctness | RE_RAISE_OF:F5 | FIXED | NON_RESOLVABLE |
 | F8 | review-finding:pr-3044-f8 | coderabbitai[bot] | Major | correctness | RE_RAISE_OF:F6 | FIXED | RESOLVED |
 | F9 | review-finding:pr-3044-f9 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-3044-f10 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-3044-f11 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F12 | review-finding:pr-3044-f12 | coderabbitai[bot] | Minor | correctness | ORIGINAL | NO_ACTION | RESOLVED |
+| F13 | review-finding:pr-3044-f13 | da2ce7 | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-3044-f14 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-3044-f15 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-3044-f16 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-3044-f17 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-3044-f18 | da2ce7 | Nit | link-integrity | ORIGINAL | NO_ACTION | RESOLVED |
+| F19 | review-finding:pr-3044-f19 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -234,6 +249,136 @@ fifth round of fixes; the contributor allowed a sixth round on 2026-11-25.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3044#discussion_r4692027547
 
+### F10 - The wait loop wrote into a `.tmp/` that may not exist
+
+- PR number: 3044
+- Source review ID: 6053945210
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3044#discussion_r4692064192
+- Concern: In a fresh checkout without `.tmp/`, the redirect of the workflow-check loop fails before its body runs, so the loop never starts. da2ce7 confirmed it independently (his F2).
+- Solution: Added `mkdir -p .tmp` before the loop and before the `--watch` example, whose redirect had the same problem.
+- Current-tree verification: `grep -c "mkdir -p .tmp" .claude/skills/watch-pull-request-checks/SKILL.md` prints `2`.
+- Resolution reference: docs(watch-pull-request-checks): [#3037] create .tmp and make the workflow-check loop the wait after a push
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3044#discussion_r4692560498
+
+### F11 - `--watch` was still the primary wait after a push
+
+- PR number: 3044
+- Source review ID: 6053945210
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3044#pullrequestreview-6053945210
+- Concern: Outside-diff finding on lines 28-29 of `watch-pull-request-checks`: the `--watch` command keeps waiting for a pending review-service check run, which does not count for readiness, so the workflow-only loop should be the wait after a push.
+- Solution: "Wait for the Checks" now sends the reader to the workflow-check loop after a push and keeps `--watch` for when every check run matters; step 1 of "Watching the Checks" in `wait-for-pr-review` says the same. Answered in a conversation comment, because a review-body finding has no thread.
+- Current-tree verification: Both sections in the current tree name the loop in "Review-Service Check Runs" first.
+- Resolution reference: docs(watch-pull-request-checks): [#3037] create .tmp and make the workflow-check loop the wait after a push
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3044#issuecomment-7157815185
+
+### F12 - A push inside one pass of the wait loop
+
+- PR number: 3044
+- Source review ID: 6054013798
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3044#pullrequestreview-6054013798
+- Concern: CodeRabbit's follow-up in the F9 thread (comment r4692120426): a push between `gh pr view` and `gh pr checks` in one pass can still make the two commands look at different commits, so the loop can report that the replaced commit needs approval.
+- Solution: Not changed, by the contributor's decision on 2026-11-25. The window is the few seconds between two calls; its worst outcome is one approval line about the commit just replaced, after which the poller reports `head_changed` and the next wait reads the new head. Another re-read would make the loop harder to follow. The reply went in the F9 thread, whose replies GitHub attaches to its first comment, so the source URL is the review.
+- Current-tree verification: The loop in the current tree reads the head once per pass, as F9 left it.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3044#discussion_r4692560907
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3044#discussion_r4692560907
+
+### F13 - No test pinned the command-line default or the `watch` field
+
+- PR number: 3044
+- Source review ID: 6054114265
+- Reviewer finding ID: F1
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3044#discussion_r4692200511
+- Concern: Restoring the old two-login default on `--reviewer`, or swapping the two `watch` strings, still passed every test: the CLI fixtures had a pull request without `user`, and the unit tests pass `Reviewers::AllExceptAuthor` directly.
+- Solution: Two CLI tests run the binary against a fake pull request opened by `contributor`, with the author's reply review first and a review by `new-reviewer[bot]` after it: without `--reviewer` they expect the bot's review and `watch: all_except_author`; with `--reviewer da2ce7`, a timeout and `watch: listed`. The test-design review records them.
+- Current-tree verification: Mutation check, run and reverted: the old default fails the first test; swapped `watch` strings fail both. `cargo test -p wait-for-pr-review` (stable Rust) passes 73 + 3 + 40 tests.
+- Resolution reference: test(wait-for-pr-review): [#3037] pin the default reviewer set and the watch field at the command line
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3044#discussion_r4692561312
+
+### F14 - The audit record stopped before review 6053945210
+
+- PR number: 3044
+- Source review ID: 6054114265
+- Reviewer finding ID: F2
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3044#discussion_r4692200519
+- Concern: Review 6053945210 (its thread and its outside-diff finding) had no row, no reply and no resolution in this record.
+- Solution: Rows F10 to F19 record review 6053945210, the follow-up 6054013798 and review 6054114265.
+- Current-tree verification: `validate-audit-record.py --pr-number 3044` passes on this record.
+- Resolution reference: docs(pr-reviews): [#3037] record review rounds 6 and 7 of PR 3044
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3044#discussion_r4692567012
+
+### F15 - The pull request description no longer matched the branch
+
+- PR number: 3044
+- Source review ID: 6054114265
+- Reviewer finding ID: F3
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3044#discussion_r4692200530
+- Concern: The description, which the merge tool copies into the merge commit, said nothing about the workflow-check wait, the session-start review listing or the audit record, and pointed the V5 fixes to "the last skill commit".
+- Solution: The description now covers them, names the V5 fix by its commit subject and has a Review section. A fix outside the tree, so the resolution reference is the reply that states it.
+- Current-tree verification: `gh-bot pr view 3044 --json body` shows the new sections.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3044#discussion_r4692561631
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3044#discussion_r4692561631
+
+### F16 - Merge Readiness stated a stricter checks rule than the other skills
+
+- PR number: 3044
+- Source review ID: 6054114265
+- Reviewer finding ID: F4
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3044#discussion_r4692200537
+- Concern: "every workflow check of the head commit passed" could hold a pull request for a skipped job, unlike `wait-for-pr-review` and `watch-pull-request-checks`.
+- Solution: Merge Readiness now says each workflow check is `pass` or `skipping` and a cancelled one needs attention.
+- Current-tree verification: The Checks bullet of Merge Readiness in the current tree has that wording.
+- Resolution reference: docs(merge-pull-request): [#3037] state the workflow-check readiness rule as pass or skipping
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3044#discussion_r4692562037
+
+### F17 - The raised round limit was not in the pull request conversation
+
+- PR number: 3044
+- Source review ID: 6054114265
+- Reviewer finding ID: F5
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3044#discussion_r4692200543
+- Concern: `wait-for-pr-review` asks for a raised round limit to be recorded in the pull request conversation; only this record had it.
+- Solution: A conversation comment records the limit raised to 6 and then to 7 rounds. A fix outside the tree, so the resolution reference is the reply that links it.
+- Current-tree verification: https://github.com/torrust/torrust-tracker/pull/3044#issuecomment-7157627998 exists.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3044#discussion_r4692562438
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3044#discussion_r4692562438
+
+### F18 - The record cites commit ids
+
+- PR number: 3044
+- Source review ID: 6054114265
+- Reviewer finding ID: F6
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3044#discussion_r4692200552
+- Concern: The `open-pull-request` commit-id check prints the head ids this record and the evidence cite; a rebase would make them wrong.
+- Solution: Not changed. The ids record which head each review saw, the branch merges cleanly and will not be rebased, so they become `develop` commits on merge, and every fix is also cited by its commit subject.
+- Current-tree verification: da2ce7 found the merge with `develop` clean; no rebase is planned.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3044#discussion_r4692562895
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3044#discussion_r4692562895
+
+### F19 - The ADR had no Affected Code section and no link from the code
+
+- PR number: 3044
+- Source review ID: 6054114265
+- Reviewer finding ID: F7
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3044#discussion_r4692200557
+- Concern: `create-adr` asks an ADR that affects specific code for an Affected Code section and a back-link from that code.
+- Solution: The ADR lists the poller's `Reviewers` and `--reviewer`/`watch`, the contract check, the skills and the template; the doc comment on `Reviewers` names the ADR.
+- Current-tree verification: The ADR has an "Affected Code" section, and `event.rs` names the ADR file above `pub enum Reviewers`.
+- Resolution reference: docs(adrs): [#3037] list the affected code of the mandatory-reviewer ADR and link it from Reviewers
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3044#discussion_r4692563271
+
 ## Processing Log
 
 - 2026-11-24 18:50 UTC - Round 1: Greptile review 6045345701 (18:50:22) with two threads, after its summary comment (18:50:17).
@@ -248,6 +393,9 @@ fifth round of fixes; the contributor allowed a sixth round on 2026-11-25.
 - 2026-11-24 19:25 UTC - Round 5: CodeRabbit review 6045878013 (19:25:08, on `146179e79`) with one thread (F9). Its fix needs a sixth round: asked the contributor and pushed nothing. CodeRabbit review 6045921280 (19:28:04, on `69b440e23`) only confirmed F8 in the F6 thread; no finding.
 - 2026-11-25 08:01 UTC - The maintainer ACKed `69b440e23`; asked whether to fix or defer F9.
 - 2026-11-25 08:08 UTC - The contributor chose to fix F9 now (sixth round). Pushed the fix (head `9e743e54f`), replied (r4692027547) and resolved the thread. A review listing shows no other review, and a GraphQL refresh shows no unresolved thread. Rounds with a `FIXED` finding: 6, the sixth allowed by the contributor.
+- 2026-11-25 08:12 UTC - Round 6: CodeRabbit review 6053945210 (08:12:10, on `9e743e54f`) with one thread (F10) and an outside-diff finding (F11); a seventh round was needed, so asked the contributor and pushed nothing.
+- 2026-11-25 08:27 UTC - CodeRabbit review 6054013798 (08:18:21, on `2b9de50df`), a follow-up in the F9 thread (F12). da2ce7's review 6054114265 (08:27:00, `APPROVED`, on `2b9de50df`) with seven threads (F13 to F19), and his ACK of `2b9de50df`.
+- 2026-11-25 09:04 UTC - The contributor allowed one batched seventh round; recorded in the conversation (issuecomment-7157627998). Pushed the fixes (head `407203788`), updated the pull request description, replied on every thread and on F11 in the conversation, and resolved da2ce7's seven threads; CodeRabbit had resolved the F10 thread. Rounds with a `FIXED` finding: 7, the limit the contributor set.
 
 ## Completion Rules
 
