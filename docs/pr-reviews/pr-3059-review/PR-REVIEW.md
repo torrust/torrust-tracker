@@ -1,7 +1,7 @@
 ---
 pr-number: 3059
 pr-url: https://github.com/torrust/torrust-tracker/pull/3059
-last-updated-utc: "2026-11-25 17:52"
+last-updated-utc: "2026-11-25 18:10"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -45,7 +45,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 ## Findings
 
 Round 1 is review 6061778095 (`claude[bot]`) and review 6061865252 (`da2ce7`, later dismissed by the
-push). Round 2 is review 6062023160 (`da2ce7`). F9 and F10 re-raise F5 and F6 in round 2. Round 3 is review 6062267415 (`da2ce7`); F12 re-raises F7.
+push). Round 2 is review 6062023160 (`da2ce7`). F9 and F10 re-raise F5 and F6 in round 2. Round 3 is review 6062267415 (`da2ce7`); F12 re-raises F7. Round 4 is review 6062581226 (`da2ce7`, approved).
 
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
@@ -61,6 +61,9 @@ push). Round 2 is review 6062023160 (`da2ce7`). F9 and F10 re-raise F5 and F6 in
 | F10 | review-finding:pr-3059-f10 | da2ce7 | Nit | metadata | RE_RAISE_OF:F6 | FIXED | NON_RESOLVABLE |
 | F11 | review-finding:pr-3059-f11 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-3059-f12 | da2ce7 | Minor | documentation | RE_RAISE_OF:F7 | FIXED | NON_RESOLVABLE |
+| F13 | review-finding:pr-3059-f13 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-3059-f14 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-3059-f15 | da2ce7 | Minor | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
 
 ## Finding Details
 
@@ -85,7 +88,7 @@ push). Round 2 is review 6062023160 (`da2ce7`). F9 and F10 re-raise F5 and F6 in
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3059#discussion_r4698306593
 - Concern: The skill draws the line by location, the convention by role; they disagree on the security report.
 - Solution: One criterion in both files: a document whose template prescribes an `issue-spec` key that points at the issue's primary spec and is rewritten when it moves keeps the key.
-- Current-tree verification: `git grep -n "template prescribes" -- docs/skills .claude/skills/write-markdown-docs` finds one paragraph in each file.
+- Current-tree verification: Read the paragraph in each file in the tree. The `git grep -n "template prescribes"` run at that fix found the skill paragraph, the convention catalog row and Maintenance Workflow step 2; the lifecycle paragraph wraps the phrase across two lines and does not match a one-line grep.
 - Resolution reference: `docs(skills): state one criterion for template-prescribed issue-spec keys`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3059#discussion_r4698561309
@@ -202,7 +205,7 @@ push). Round 2 is review 6062023160 (`da2ce7`). F9 and F10 re-raise F5 and F6 in
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3059#discussion_r4698649361
 - Concern: The criterion of the F2 fix (a template prescribes the key) drops 18 in-folder documents that carry an `issue-spec` key pointing at their issue's spec, so they fit neither the catalog row nor the exception.
 - Solution: Both files, the catalog row and Maintenance Workflow step 2 now cover a document inside the issue's own folder, or one whose template prescribes the key, whose key points at the issue's primary spec and is rewritten when it moves.
-- Current-tree verification: Read the four places in the tree after the fix; `git grep -n "inside the issue's" -- docs/skills .claude/skills/write-markdown-docs` finds the paragraph in each file.
+- Current-tree verification: Read the four places in the tree after the fix; Read the lifecycle paragraph, the catalog row and step 2 of the convention and the paragraph of the skill; a one-line `git grep` does not match the wrapped lifecycle paragraph.
 - Resolution reference: `docs(skills): extend the issue-spec exception to every in-folder document`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3059#discussion_r4698740473
@@ -213,12 +216,51 @@ push). Round 2 is review 6062023160 (`da2ce7`). F9 and F10 re-raise F5 and F6 in
 - Source review ID: 6062267415
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3059#pullrequestreview-6062267415
-- Concern: Restates F7 at head `1e3bbe6de`, which predates the audit record.
+- Concern: Restates F7 at the head `docs(skills): state one criterion for template-prescribed issue-spec keys`, which predates the audit record.
 - Solution: The audit record was added in the commit that followed; this round extends it.
 - Current-tree verification: `ls docs/pr-reviews/pr-3059-review` shows `PR-REVIEW.md` at the current head.
 - Resolution reference: `docs(pr-reviews): [#3059] add the review audit record`
 - Follow-up PR URL: N/A
 - Reply URL: N/A
+
+### F13 - The record cites a branch commit id
+
+- PR number: 3059
+- Source review ID: 6062581226
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3059#discussion_r4698908514
+- Concern: F12 cited a branch commit id of the first fix commit.
+- Solution: F12 now cites the commit subject.
+- Current-tree verification: Read the F12 Concern line in the tree; it names the commit subject.
+- Resolution reference: `docs(pr-reviews): [#3059] correct the audit record after review round 4`
+- Follow-up PR URL: N/A
+- Reply URL: REPLY13
+
+### F14 - Two lines do not match the bytes, and the late start is dated wrongly
+
+- PR number: 3059
+- Source review ID: 6062581226
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3059#discussion_r4698908524
+- Concern: The F11 and F2 verification sentences claim a `git grep` result that the command does not print, and the late start was logged at 17:25 although the record was created after the 17:35 replies.
+- Solution: Rewrote the two verification sentences to say what the command prints. The Processing Log is append-only, so a correction entry names the creation time (commit at 17:39 UTC) instead of rewriting the 17:25 entry.
+- Current-tree verification: Read the two details and the log in the tree.
+- Resolution reference: `docs(pr-reviews): [#3059] correct the audit record after review round 4`
+- Follow-up PR URL: N/A
+- Reply URL: REPLY14
+
+### F15 - The description ends with an automated summary that contradicts the text
+
+- PR number: 3059
+- Source review ID: 6062581226
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3059#pullrequestreview-6062581226
+- Concern: The description ends with a CodeRabbit summary whose first bullet says template-prescribed keys remain unchanged when a primary spec moves; the text says the key is rewritten, and the exception covers in-folder documents too.
+- Solution: Edited the description: updated the criterion to the current wording and removed the automated block.
+- Current-tree verification: Fetched the description with `gh pr view` after the edit and read it.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3059#issuecomment-7170471703
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3059#issuecomment-7170471703
 
 ## Processing Log
 
@@ -231,6 +273,8 @@ push). Round 2 is review 6062023160 (`da2ce7`). F9 and F10 re-raise F5 and F6 in
 - 2026-11-25 17:42 UTC - `da2ce7` review 6062267415: F11 and F12 recorded.
 - 2026-11-25 17:48 UTC - Fix commit `docs(skills): extend the issue-spec exception to every in-folder document` pushed.
 - 2026-11-25 17:50 UTC - Replied to and resolved the thread of F11.
+- 2026-11-25 18:05 UTC - `da2ce7` review 6062581226 (approved) with three findings: F13 (commit id in F12), F14 (two lines of the record that do not match the bytes, and the late-start date) and F15 (description summary block). Correction to the 17:25 entry: it logged the late start, but the record was first created by commit `docs(pr-reviews): [#3059] add the review audit record` at 17:39 UTC, after the replies of 17:35. F14 corrects the F2 and F11 verification sentences.
+- 2026-11-25 18:07 UTC - Edited the PR description and posted the consolidated response https://github.com/torrust/torrust-tracker/pull/3059#issuecomment-7170471703
 
 ## Completion Rules
 
