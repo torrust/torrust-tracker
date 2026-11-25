@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/3052-whitelist-add-remove-race/ISSUE.md
-last-updated-utc: "2026-11-25 16:55"
+last-updated-utc: "2026-11-25 17:12"
 ---
 
 # Manual Verification Evidence
@@ -93,7 +93,23 @@ concurrent remove failed in round 1: Err(DeleteFailed { error_code: 0, driver: S
 ```
 
 This confirms the predicted `DeleteFailed` for a concurrent `remove`, which V1 did not print.
-The concurrent store-level harness cases (second T3 commit) have their red run recorded below when added.
+
+#### Concurrent store-level harness cases (SQLite, before the fix)
+
+Added to the shared harness in `packages/tracker-core/src/databases/driver/mod.rs`
+(`it_should_not_fail_adding_the_same_infohash_concurrently`,
+`it_should_not_fail_removing_the_same_infohash_concurrently`): two concurrent identical store calls
+(`tokio::join!`), 50 rounds, both must return `Ok` and their row counts must sum to 1.
+Command: `cargo test -p torrust-tracker-core --lib run_sqlite_driver_tests`. The suite is one test, so the
+add case stops it first; the remove case was observed by keeping the add case unregistered for one local
+run (not committed).
+
+```text
+add:    called `Result::unwrap()` on an `Err` value: InvalidQuery { source: Database(SqliteError { code: 2067, message: "UNIQUE constraint failed: whitelist.info_hash" }), driver: Sqlite3 }
+remove: called `Result::unwrap()` on an `Err` value: DeleteFailed { error_code: 0, driver: Sqlite3 }
+```
+
+The red run on the MySQL and PostgreSQL Docker suites is recorded under V2.
 
 ### V2 - MySQL and PostgreSQL
 

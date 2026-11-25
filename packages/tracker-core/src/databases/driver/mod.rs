@@ -82,6 +82,8 @@ pub(crate) mod tests {
         handling_the_whitelist::it_should_load_the_whitelist(driver).await;
         handling_the_whitelist::it_should_add_and_get_infohashes(driver).await;
         handling_the_whitelist::it_should_remove_an_infohash_from_the_whitelist(driver).await;
+        handling_the_whitelist::it_should_not_fail_adding_the_same_infohash_concurrently(driver).await;
+        handling_the_whitelist::it_should_not_fail_removing_the_same_infohash_concurrently(driver).await;
         handling_the_whitelist::it_should_fail_trying_to_add_the_same_infohash_twice(driver).await;
         handling_the_whitelist::it_should_fail_without_a_source_path_trying_to_add_the_same_infohash_twice(driver).await;
         handling_the_whitelist::it_should_fail_without_a_source_path_trying_to_remove_a_missing_infohash(driver).await;
@@ -332,6 +334,9 @@ pub(crate) mod tests {
 
     mod handling_the_whitelist {
 
+        /// Rounds of the concurrent cases: the race window is narrow, so one round can pass by luck.
+        const CONCURRENT_ROUNDS: usize = 50;
+
         use std::sync::Arc;
 
         use torrust_tracker_test_helpers::assertions::assert_names_no_source_path;
@@ -365,6 +370,37 @@ pub(crate) mod tests {
             driver.remove_info_hash_from_whitelist(infohash).await.unwrap();
 
             assert!(driver.get_info_hash_from_whitelist(infohash).await.unwrap().is_none());
+        }
+
+        /// Concurrent identical adds must both succeed and change exactly one row in total.
+        pub async fn it_should_not_fail_adding_the_same_infohash_concurrently(driver: &Arc<Box<dyn Database>>) {
+            for _ in 0..CONCURRENT_ROUNDS {
+                let infohash = random_info_hash();
+
+                let (first, second) = tokio::join!(
+                    driver.add_info_hash_to_whitelist(infohash),
+                    driver.add_info_hash_to_whitelist(infohash)
+                );
+
+                assert_eq!(first.unwrap() + second.unwrap(), 1);
+                assert!(driver.get_info_hash_from_whitelist(infohash).await.unwrap().is_some());
+            }
+        }
+
+        /// Concurrent identical removes must both succeed and change exactly one row in total.
+        pub async fn it_should_not_fail_removing_the_same_infohash_concurrently(driver: &Arc<Box<dyn Database>>) {
+            for _ in 0..CONCURRENT_ROUNDS {
+                let infohash = random_info_hash();
+                driver.add_info_hash_to_whitelist(infohash).await.unwrap();
+
+                let (first, second) = tokio::join!(
+                    driver.remove_info_hash_from_whitelist(infohash),
+                    driver.remove_info_hash_from_whitelist(infohash)
+                );
+
+                assert_eq!(first.unwrap() + second.unwrap(), 1);
+                assert!(driver.get_info_hash_from_whitelist(infohash).await.unwrap().is_none());
+            }
         }
 
         pub async fn it_should_fail_trying_to_add_the_same_infohash_twice(driver: &Arc<Box<dyn Database>>) {
