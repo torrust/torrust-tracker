@@ -30,7 +30,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-F1 is from claude[bot]'s inline comment in review 6061977982. F2 to F9 are da2ce7's inline comments in review 6062149260 and F10 is the finding in that review's body; F2 re-raises F1. F11 to F13 are from CodeRabbit's review 6062534811: F11 and F12 are the two findings of its inline comment 4698868795 (they share one thread and one reply) and F13 is its inline comment 4698868806. The claude[bot] reviews 6061840285 and 6061977982 summaries, the CodeRabbit review-limit comment and the maintainer's `@claude review` and `ACK` comments contain no actionable assertion and have no rows.
+F1 is from claude[bot]'s inline comment in review 6061977982. F2 to F9 are da2ce7's inline comments in review 6062149260 and F10 is the finding in that review's body; F2 re-raises F1. F11 to F13 are from CodeRabbit's review 6062534811: F11 and F12 are the two findings of its inline comment 4698868795 (they share one thread and one reply) and F13 is its inline comment 4698868806. F14 is da2ce7's inline comment in review 6062583818 (dismissed; he posted it with an `ACK` of the previous head) and F15 is CodeRabbit's reply 4698953937 (review 6062636679) in the thread of F11 and F12, recorded against that thread's root comment; CodeRabbit's reply 4698953208 in the thread of F13 withdraws that finding and has no row. The claude[bot] reviews 6061840285 and 6061977982 summaries, the CodeRabbit review-limit comment and the maintainer's `@claude review` and `ACK` comments contain no actionable assertion and have no rows.
 
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
@@ -47,6 +47,8 @@ F1 is from claude[bot]'s inline comment in review 6061977982. F2 to F9 are da2ce
 | F11 | review-finding:pr-3062-f11 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-3062-f12 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F13 | review-finding:pr-3062-f13 | coderabbitai[bot] | Minor | metadata | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F14 | review-finding:pr-3062-f14 | da2ce7 | Minor | correctness | RE_RAISE_OF:F12 | FIXED | RESOLVED |
+| F15 | review-finding:pr-3062-f15 | coderabbitai[bot] | Minor (inferred) | correctness | RE_RAISE_OF:F11 | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -219,6 +221,32 @@ F1 is from claude[bot]'s inline comment in review 6061977982. F2 to F9 are da2ce
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3062#discussion_r4698935340
 
+### F14 - The AC3 scan still matches one line at a time
+
+- PR number: 3062
+- Source review ID: 6062583818
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3062#discussion_r4698910699
+- Concern: The reviewed head still carried the `git grep -n -P -z -o` scan, which has no multi-line mode (`-z` only separates output fields); on a sample it missed calls with `target = ...` or `= ...` on the next line. The same claim was in the Verified scope paragraph and in the evidence file. He suggested a scan that reads each file whole, with its output recorded.
+- Solution: The scan was already replaced by GNU `grep -rPzo` in the commit named below (pushed before this review landed on its head) together with the sample-file detection check and the repository output; the later commit for F15 only widens the pattern. It is the same idea as his `perl -0777` example.
+- Current-tree verification: `grep -Pzo` with the current pattern on `evidence/scan-sample.rs` prints the multi-line `debug!(` call and two `event!` calls; the repository scan prints only `announce.rs` and `scrape.rs`.
+- Resolution reference: docs(issues): [#3060] scan for the field form with GNU grep so calls across lines and later arguments are found
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3062#discussion_r4699050783
+
+### F15 - The AC3 scan misses a later `target` field after an argument with parentheses
+
+- PR number: 3062
+- Source review ID: 6062534811
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3062#discussion_r4698868795
+- Concern: Restated by CodeRabbit in its reply 4698953937 (review 6062636679) in the thread of F11 and F12: after F12's fix, F11 remained: the pattern `[^;{}()]*?` before `target =` stops at parentheses, so `event!(tracing::Level::DEBUG, count = (1 + 1), target = "UDP TRACKER", "message")` is not matched. The reviewer asked to extend the scan and the sample, or narrow AC3.
+- Solution: The pattern now skips an earlier argument with one level of parentheses (`(?:[^;{}()]|\([^()]*\))*?`); the case is in `evidence/scan-sample.rs` and its recorded output; AC3 and the Verified scope paragraph describe the three cases.
+- Current-tree verification: `grep -Pzo` with the current pattern on the sample prints three field-form calls (across lines, after a leading argument, after an argument with parentheses); the repository scan prints only `announce.rs` and `scrape.rs`.
+- Resolution reference: docs(issues): [#3060] let the AC3 scan skip earlier arguments that contain parentheses
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3062#discussion_r4699051172
+
 ## Processing Log
 
 - 2026-11-25 17:21 UTC - claude[bot]'s review 6061977982 with its inline comment (F1) arrived.
@@ -231,6 +259,9 @@ F1 is from claude[bot]'s inline comment in review 6061977982. F2 to F9 are da2ce
 - 2026-11-25 18:04 UTC - Committed the F11 and F12 fix (`docs(issues): [#3060] scan for the field form with GNU grep so calls across lines and later arguments are found`).
 - 2026-11-25 18:07 UTC - Pushed it, then replied to both threads (F13 is a no-change reply, thread to be resolved).
 - 2026-11-25 18:07 UTC - Added F11 to F13 and the F5 correction to this record.
+- 2026-11-25 18:14 UTC - Found, in this order, da2ce7's review 6062583818 (posted 18:05 UTC, F14, with an `ACK` of the previous head after he dismissed review 6062149260) and CodeRabbit's replies (posted 18:09 UTC) in the thread of F13 (it withdraws that finding) and in the thread of F11 and F12 (F11 remains, F15). Then committed the F15 fix (`docs(issues): [#3060] let the AC3 scan skip earlier arguments that contain parentheses`).
+- 2026-11-25 18:17 UTC - Pushed it and replied to the threads of F14 and F15.
+- 2026-11-25 18:18 UTC - Added F14 and F15 to this record.
 
 ## Completion Rules
 
