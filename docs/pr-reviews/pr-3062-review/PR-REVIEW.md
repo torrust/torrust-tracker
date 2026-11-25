@@ -30,7 +30,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-F1 is from claude[bot]'s inline comment in review 6061977982. F2 to F9 are da2ce7's inline comments in review 6062149260 and F10 is the finding in that review's body; F2 re-raises F1. The claude[bot] reviews 6061840285 and 6061977982 summaries, the CodeRabbit review-limit comment and the maintainer's `@claude review` and `ACK` comments contain no actionable assertion and have no rows.
+F1 is from claude[bot]'s inline comment in review 6061977982. F2 to F9 are da2ce7's inline comments in review 6062149260 and F10 is the finding in that review's body; F2 re-raises F1. F11 to F13 are from CodeRabbit's review 6062534811: F11 and F12 are the two findings of its inline comment 4698868795 (they share one thread and one reply) and F13 is its inline comment 4698868806. The claude[bot] reviews 6061840285 and 6061977982 summaries, the CodeRabbit review-limit comment and the maintainer's `@claude review` and `ACK` comments contain no actionable assertion and have no rows.
 
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
@@ -44,6 +44,9 @@ F1 is from claude[bot]'s inline comment in review 6061977982. F2 to F9 are da2ce
 | F8 | review-finding:pr-3062-f8 | da2ce7 | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F9 | review-finding:pr-3062-f9 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F10 | review-finding:pr-3062-f10 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F11 | review-finding:pr-3062-f11 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-3062-f12 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F13 | review-finding:pr-3062-f13 | coderabbitai[bot] | Minor | metadata | ORIGINAL | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -106,7 +109,7 @@ F1 is from claude[bot]'s inline comment in review 6061977982. F2 to F9 are da2ce
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3062#discussion_r4698547985
 - Concern: `\(\s*target\s*=` matches only on one line; the multi-line variant was never written down and neither scan output was recorded.
-- Solution: AC3 now uses the multi-line `git grep -n -P -z -o` scan, written out in full; both scans and their output are recorded in the evidence file (that recording is in the commit named in F6).
+- Solution: AC3 now uses the multi-line `git grep -n -P -z -o` scan, written out in full; both scans and their output are recorded in the evidence file (that recording is in the commit named in F6). Correction (round 2, finding F12): the `git grep -z` scan named here did not match across lines; it was replaced by a GNU `grep -rPzo` scan.
 - Current-tree verification: Ran both scans at 2026-11-25 17:37 UTC: both print only `announce.rs:178` and `scrape.rs:140`; the evidence file section "V1 scope scans" holds the output.
 - Resolution reference: docs(issues): [#3060] make AC3 a multi-line scan and state the guard as an open question
 - Follow-up PR URL: N/A
@@ -177,6 +180,45 @@ F1 is from claude[bot]'s inline comment in review 6061977982. F2 to F9 are da2ce
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3062#issuecomment-7170096506
 
+### F11 - The AC3 scan misses `target` fields that are not the first macro argument
+
+- PR number: 3062
+- Source review ID: 6062534811
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3062#discussion_r4698868795
+- Concern: The pattern required `target` immediately after `!(`, so `tracing::event!(Level::DEBUG, target = "UDP TRACKER", "message")` is not matched.
+- Solution: The pattern now allows other arguments before `target =`; AC3 and the Verified scope paragraph state it.
+- Current-tree verification: ran the scan on `evidence/scan-sample.rs`, which holds an `event!(Level::DEBUG, target = ...)` call: it is matched; on the repository it prints only `announce.rs` and `scrape.rs`.
+- Resolution reference: docs(issues): [#3060] scan for the field form with GNU grep so calls across lines and later arguments are found
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3062#discussion_r4698934742
+
+### F12 - The AC3 `git grep -z` scan does not match across newline boundaries
+
+- PR number: 3062
+- Source review ID: 6062534811
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3062#discussion_r4698868795
+- Concern: `git grep -z` alone does not match across lines; the scan was never shown to detect a call with the macro name and `target =` on separate lines.
+- Solution: AC3 uses GNU `grep -rPzo`, which reads each file as one record, and the evidence file shows its detection on a sample file with a multi-line call. This also corrects my own earlier statement (replies to F5, the F5 entry below, and the first scan recorded in the evidence file) that the `git grep -z` scan was a multi-line scan; it was not, and the earlier evidence section was replaced.
+- Current-tree verification: `git grep --no-index -c -P -z '(?s)debug!\(\s*target\s*=' -- s.rs` printed nothing on the sample; `grep -Pzo` with the new pattern prints the multi-line `debug!(` call and the `event!` call and not the colon form or the string `"target = nope"`; the repository scan prints only the two known sites.
+- Resolution reference: docs(issues): [#3060] scan for the field form with GNU grep so calls across lines and later arguments are found
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3062#discussion_r4698934742
+
+### F13 - The evidence frontmatter keeps the `issue-spec` marker
+
+- PR number: 3062
+- Source review ID: 6062534811
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3062#discussion_r4698868806
+- Concern: Issue #3060 exists, so the evidence file should use `issue: "#3060"` instead of `issue-spec`, per a coding guideline the reviewer quotes.
+- Solution: No change. `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md` prescribes `issue-spec: docs/issues/open/{number}-{short-description}/ISSUE.md`, the field already holds the `open/3060-...` path, and all 16 open evidence files use `issue-spec`. I found no rule in the tree that asks for an `issue:` key here, and asked the reviewer to point to one.
+- Current-tree verification: `sed -n 3p docs/templates/MANUAL-VERIFICATION-EVIDENCE.md` prints the `issue-spec:` line; `grep -l '^issue-spec:' docs/issues/open/*/manual-verification-evidence.md | wc -l` printed 16, the number of open evidence files.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3062#discussion_r4698935340
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3062#discussion_r4698935340
+
 ## Processing Log
 
 - 2026-11-25 17:21 UTC - claude[bot]'s review 6061977982 with its inline comment (F1) arrived.
@@ -185,6 +227,10 @@ F1 is from claude[bot]'s inline comment in review 6061977982. F2 to F9 are da2ce
 - 2026-11-25 17:51 UTC - Replied to the nine inline threads and edited the PR description and posted the conversation response for F10 (comment 7170096506).
 - 2026-11-25 17:52 UTC - Committed a wording fix found while re-checking the spec: `docs(issues): [#3060] capitalize the Verified scope sentence`.
 - 2026-11-25 17:53 UTC - Created this record from the template. It was started after the replies were posted, not before the first reply as `process-pr-review` requires; the late start is logged here. The `ACK` of the maintainer names the previous head, so the head needs a new `ACK` after this push.
+- 2026-11-25 18:01 UTC - CodeRabbit's review 6062534811 arrived with F11 to F13.
+- 2026-11-25 18:04 UTC - Committed the F11 and F12 fix (`docs(issues): [#3060] scan for the field form with GNU grep so calls across lines and later arguments are found`).
+- 2026-11-25 18:07 UTC - Pushed it, then replied to both threads (F13 is a no-change reply, thread to be resolved).
+- 2026-11-25 18:07 UTC - Added F11 to F13 and the F5 correction to this record.
 
 ## Completion Rules
 
