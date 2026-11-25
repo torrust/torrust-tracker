@@ -36,8 +36,8 @@ an issue/task is complete and ready to be pushed.
    `EPIC.md` are allowed primary-file exceptions in that layout.
 8. Confirm that every mandatory manual scenario was executed against the finished artifact and is
    recorded in `manual-verification-evidence.md` (see the checklist).
-9. Record the review (see [Recording The Review](#recording-the-review)), then report pass/fail
-   with remediation for any gaps.
+9. Record the review (see [Recording The Review](#recording-the-review)), then report the overall
+   result with remediation for any gaps.
 
 ## Task Review Checklist
 
@@ -116,8 +116,10 @@ Return:
 3. Repository-convention findings
 4. Completion-review finding
 5. Issue spec updates made
-6. Overall result: `REVIEW PASSED` when every required criterion passes and no blocking issue
-   remains, `REVIEW FAILED` when any required criterion fails or a blocking issue remains
+6. Overall result: `REVIEW PASSED` when no required criterion fails and no blocking issue
+   remains, `REVIEW FAILED` when any required criterion fails or a blocking issue remains. A
+   criterion left `PENDING` because its evidence comes from a later task is listed with that
+   reason and does not by itself fail the review
 
 ## Recording The Review
 
