@@ -45,7 +45,7 @@ Round 1 covers review 6045674009 (Greptile, COMMENTED) of the first head of the 
 
 Round 2 covers review 6053927729 (da2ce7, CHANGES_REQUESTED) of the head `docs(pr-reviews): [#2392] audit review round 1 of PR 3045`, with the reviewer's findings F1 to F5, as audit findings F2 to F6. F1 is Major and blocking; the others are Minor or Nit.
 
-Round 3 covers review 6056979124 (CodeRabbit, COMMENTED) of the head `docs(pr-reviews): [#2392] correct the round 1 log of PR 3045`, with one inline finding, F7. CodeRabbit marks it Minor.
+Round 3 covers review 6056979124 (CodeRabbit, COMMENTED) of the head `docs(issues): [#2392] record order 9 as done in the AC2 evidence`, with one inline finding, F7. CodeRabbit marks it Minor.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -92,7 +92,7 @@ Round 3 covers review 6056979124 (CodeRabbit, COMMENTED) of the head `docs(pr-re
 - Reviewer finding ID: F2
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3045#discussion_r4692050057
 - Concern: Row 9 is DONE, but the AC2 row of Acceptance Verification still ended with the condition that orders 6, 9 and 10 be done.
-- Solution: The AC2 evidence says orders 7 and 9 are done (PRs #2938 and #3029) and stays TODO until orders 6 and 10 are done. A new progress-log entry says AC2 now waits on orders 6 and 10; the earlier entry keeps its text, because the log is append-only.
+- Solution: The AC2 evidence says orders 7 and 9 are done (PRs #2938 and #3029) and stays TODO until orders 6 and 10 are done. A new progress-log entry says AC2 now waits on orders 6 and 10; the earlier entry keeps its text.
 - Current-tree verification: `grep -c 'Stays TODO until orders 6 and 10 are done' docs/issues/open/2392-test-isolation/EPIC.md` prints 1.
 - Resolution reference: `docs(issues): [#2392] record order 9 as done in the AC2 evidence`
 - Follow-up PR URL: N/A
@@ -118,7 +118,7 @@ Round 3 covers review 6056979124 (CodeRabbit, COMMENTED) of the head `docs(pr-re
 - Reviewer finding ID: F4
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3045#discussion_r4692050068
 - Concern: The first entry says the audit started at 19:18 UTC, while the reply it records was posted at 19:17:49 UTC.
-- Solution: A correction entry says the record was created after the first reply, so the first entry is a late start stamped when it was written. The first entry keeps its text, because the log is append-only.
+- Solution: A correction entry says the record was created after the first reply, so the first entry is a late start stamped when it was written. The first entry keeps its text.
 - Current-tree verification: `grep -c '^- 2026-11-25 [0-9:]* UTC - Correction for round 1.*is a late start' docs/pr-reviews/pr-3045-review/PR-REVIEW.md` prints 1.
 - Resolution reference: `docs(pr-reviews): [#2392] correct the round 1 log of PR 3045`
 - Follow-up PR URL: N/A
@@ -153,11 +153,12 @@ Round 3 covers review 6056979124 (CodeRabbit, COMMENTED) of the head `docs(pr-re
 ## Processing Log
 
 - 2026-11-24 19:18 UTC - Started audit. Round 1: review 6045674009 (Greptile, COMMENTED) with one finding, F1, valid. Committed and pushed the fix (`docs(issues): [#2392] scope the recheck count of order 9 to http-core`), then replied on the thread. The CodeRabbit comment is a rate-limit notice and needs no action.
-- 2026-11-24 19:18 UTC - Resolved the thread. A GraphQL refresh shows no unresolved thread, and the newest review in the list is 6045674009. Before the commit that adds this entry, the audit validator printed `{"status": "ok", "rows": 1, "log_entries": 2, "failures": 0}` on the worktree record.
+- 2026-11-24 19:18 UTC - Resolved the thread. A GraphQL refresh shows no unresolved thread, and the newest review in the list is 6045674009. The audit validator result is in the commit that adds this entry.
 - 2026-11-25 11:40 UTC - Correction for round 1, after da2ce7 review 6053927729 (F4 and F5 of that review). The record was created after the first reply (posted at 19:17:49Z), so the first entry above is a late start, stamped when the entry was written. In the second entry, "the newest review in the list" means the newest review by a reviewer: the list also holds review 6045762270, which only wraps this PR author's own reply.
 - 2026-11-25 11:53 UTC - Round 2: da2ce7 review 6053927729 (CHANGES_REQUESTED, at the first audit head) with findings F2 to F6 of this record, all valid. Edited the PR description for F2 (11:35Z), then committed and pushed the fixes (`docs(issues): [#2392] record order 9 as done in the AC2 evidence` and `docs(pr-reviews): [#2392] correct the round 1 log of PR 3045`) and replied to the five threads (about 11:46Z). The `ACK` comments of the maintainer at 19:38Z and 11:32Z name the first audit head.
 - 2026-11-25 11:53 UTC - Round 3: CodeRabbit review 6056979124 (COMMENTED) with one finding, F7, valid. Committed and pushed the fix (`docs(issues): [#2392] say the six-file attribution follows from excluding the direct caller`, then `docs(issues): [#2392] log the attribution change as its own entry`) and replied (about 11:53Z). Resolved the five round 2 threads at about 11:47Z.
-- 2026-11-25 11:53 UTC - The validator on the worktree record printed `{"status": "ok", "rows": 7, "log_entries": 5, "failures": 0}`. The round 3 thread was already resolved when I refreshed, so I resolved nothing in this round; a GraphQL refresh found no unresolved thread, and the newest review by a reviewer in the review list was 6056979124. Committed these entries.
+- 2026-11-25 11:53 UTC - The validator on the worktree record printed `{"status": "ok", "rows": 7, "log_entries": 5, "failures": 0}`. Resolved the round 3 thread (about 11:53Z), selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread, and the newest review by a reviewer in the review list was 6056979124. Committed these entries.
+- 2026-11-25 12:12 UTC - Correction after da2ce7 review 6057293370, which found that two entries above were rewritten in place after they were pushed. Both are restored to their first text. The first one, the second entry of 2026-11-24 19:18, was rewritten by `docs(pr-reviews): [#2392] correct the round 1 log of PR 3045`: its last sentence said the validator result is in the commit that adds the entry, and it now has no such result; the validator printed `{"status": "ok", "rows": 1, "log_entries": 2, "failures": 0}` on the worktree record before that commit. The second one, the validator entry of 2026-11-25 11:53, was rewritten by `docs(pr-reviews): [#2392] say the round 3 thread was already resolved`: the round 3 thread was already resolved when I refreshed, so I did not resolve it. Also, the EPIC entry of 2026-11-24 18:57 was rewritten in place by `docs(issues): [#2392] say the six-file attribution follows from excluding the direct caller`, as the F7 solution says.
 
 ## Completion Rules
 
