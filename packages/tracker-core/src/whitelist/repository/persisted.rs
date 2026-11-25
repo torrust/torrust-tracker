@@ -212,34 +212,27 @@ mod tests {
         }
 
         #[tokio::test]
-        async fn it_should_not_write_when_the_check_before_adding_fails() {
-            // Arrange
+        async fn it_should_not_read_the_whitelist_before_adding() {
+            // Arrange: a read before the write would race with a concurrent identical add.
             let mut store = MockWhitelistStore::new();
+            store.expect_is_info_hash_whitelisted().never();
             store
-                .expect_is_info_hash_whitelisted()
+                .expect_add_info_hash_to_whitelist()
                 .times(1)
-                .returning(|_| Box::pin(async { Err(failed_insert()) }));
-            store.expect_add_info_hash_to_whitelist().never();
+                .returning(|_| Box::pin(async { Ok(1) }));
             let whitelist = whitelist_over(store);
 
             // Act
             let result = whitelist.add(&sample_info_hash()).await;
 
             // Assert
-            assert!(
-                matches!(result, Err(Error::InsertFailed { .. })),
-                "a failed check should be returned, got {result:?}"
-            );
+            assert!(result.is_ok(), "the add should succeed, got {result:?}");
         }
 
         #[tokio::test]
         async fn it_should_return_the_error_when_the_write_of_an_add_fails() {
             // Arrange
             let mut store = MockWhitelistStore::new();
-            store
-                .expect_is_info_hash_whitelisted()
-                .times(1)
-                .returning(|_| Box::pin(async { Ok(false) }));
             store
                 .expect_add_info_hash_to_whitelist()
                 .times(1)
@@ -257,34 +250,27 @@ mod tests {
         }
 
         #[tokio::test]
-        async fn it_should_not_delete_when_the_check_before_removing_fails() {
-            // Arrange
+        async fn it_should_not_read_the_whitelist_before_removing() {
+            // Arrange: a read before the delete would race with a concurrent identical remove.
             let mut store = MockWhitelistStore::new();
+            store.expect_is_info_hash_whitelisted().never();
             store
-                .expect_is_info_hash_whitelisted()
+                .expect_remove_info_hash_from_whitelist()
                 .times(1)
-                .returning(|_| Box::pin(async { Err(failed_delete()) }));
-            store.expect_remove_info_hash_from_whitelist().never();
+                .returning(|_| Box::pin(async { Ok(0) }));
             let whitelist = whitelist_over(store);
 
             // Act
             let result = whitelist.remove(&sample_info_hash()).await;
 
             // Assert
-            assert!(
-                matches!(result, Err(Error::DeleteFailed { .. })),
-                "a failed check should be returned, got {result:?}"
-            );
+            assert!(result.is_ok(), "the remove should succeed, got {result:?}");
         }
 
         #[tokio::test]
         async fn it_should_return_the_error_when_the_delete_of_a_remove_fails() {
             // Arrange
             let mut store = MockWhitelistStore::new();
-            store
-                .expect_is_info_hash_whitelisted()
-                .times(1)
-                .returning(|_| Box::pin(async { Ok(true) }));
             store
                 .expect_remove_info_hash_from_whitelist()
                 .times(1)

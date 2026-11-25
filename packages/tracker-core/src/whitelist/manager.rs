@@ -223,10 +223,6 @@ mod tests {
             let info_hash = sample_info_hash_one();
             let mut store = MockWhitelistStore::new();
             store
-                .expect_is_info_hash_whitelisted()
-                .times(1)
-                .returning(|_| Box::pin(async { Ok(false) }));
-            store
                 .expect_add_info_hash_to_whitelist()
                 .times(1)
                 .returning(|_| Box::pin(async { Err(failed_insert()) }));
@@ -251,10 +247,6 @@ mod tests {
             // Arrange
             let info_hash = sample_info_hash_one();
             let mut store = MockWhitelistStore::new();
-            store
-                .expect_is_info_hash_whitelisted()
-                .times(1)
-                .returning(|_| Box::pin(async { Ok(true) }));
             store.expect_remove_info_hash_from_whitelist().times(1).returning(|_| {
                 Box::pin(async {
                     Err(Error::DeleteFailed {
