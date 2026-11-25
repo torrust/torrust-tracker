@@ -77,9 +77,10 @@ When a draft issue spec identifies source artifacts it will change, add an
 is high-signal. Once the GitHub issue is created, replace the draft-path marker
 with `issue: #<number>`; do not keep paths that will become stale when the spec
 moves from `drafts/` to `open/` or `closed/`.
-This applies to artifacts outside the issue folder. Evidence documents inside the issue folder
-(`manual-verification-evidence.md`) keep the `issue-spec` key from their template, pointing to the
-folder's own spec (`ISSUE.md`, or `EPIC.md` in an EPIC folder).
+This does not apply to a document whose template prescribes an `issue-spec` key that points at the
+issue's primary spec (`ISSUE.md`, or `EPIC.md` for an EPIC) and is rewritten when that spec moves,
+such as `manual-verification-evidence.md` and the security report. That key stays `issue-spec`.
+See the Issue-spec lifecycle in the convention above.
 
 ## Repo Markdown vs. GitHub Markdown
 
