@@ -199,6 +199,11 @@ mod tests {
             let peer_key = repository.get(&new_peer_key.key).await;
 
             assert_eq!(peer_key, Some(new_peer_key));
+            assert_eq!(
+                repository.get(&old_peer_key.key).await,
+                None,
+                "resetting with a new list should drop the keys that are not in it"
+            );
         }
     }
 }

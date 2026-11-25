@@ -406,4 +406,133 @@ mod tests {
             }
         }
     }
+
+    mod key_validation {
+        use std::str::FromStr;
+
+        use quickcheck::TestResult;
+        use quickcheck_macros::quickcheck;
+        use rstest::rstest;
+
+        use crate::authentication::Key;
+        use crate::authentication::key::peer_key::ParseKeyError;
+
+        #[rstest]
+        #[case::letters_and_digits("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ", None)]
+        #[case::only_digits("01234567890123456789012345678901", None)]
+        #[case::one_character_short("YZSl4lMZupRuOpSRC3krIKR5BPB14nr", Some(ParseKeyError::InvalidKeyLength { length: 31 }))]
+        #[case::one_character_long("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJx", Some(ParseKeyError::InvalidKeyLength { length: 33 }))]
+        #[case::empty("", Some(ParseKeyError::InvalidKeyLength { length: 0 }))]
+        #[case::a_hyphen("YZSl4lMZupRuOpSRC3krIKR5BPB14n-J", Some(ParseKeyError::InvalidChars))]
+        #[case::a_space("YZSl4lMZupRuOpSRC3krIKR5BPB14n J", Some(ParseKeyError::InvalidChars))]
+        #[case::sixteen_two_byte_letters(
+            "\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}",
+            Some(ParseKeyError::InvalidKeyLength { length: 16 })
+        )]
+        #[case::thirty_two_two_byte_letters(
+            "\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}",
+            Some(ParseKeyError::InvalidChars)
+        )]
+        #[case::too_long_and_with_a_hyphen("YZSl4lMZupRuOpSRC3krIKR5BPB14n-Jx", Some(ParseKeyError::InvalidKeyLength { length: 33 }))]
+        fn it_should_accept_only_thirty_two_ascii_alphanumeric_characters(
+            #[case] input: &str,
+            #[case] expected: Option<ParseKeyError>,
+        ) {
+            // Act
+            let from_new = Key::new(input).err();
+            let from_str = Key::from_str(input).err();
+
+            // Assert
+            assert_eq!(from_new, expected, "Key::new({input:?})");
+            assert_eq!(from_str, expected, "Key::from_str({input:?}) should agree with Key::new");
+        }
+
+        #[quickcheck]
+        #[expect(
+            clippy::needless_pass_by_value,
+            reason = "quickcheck passes each generated argument by value"
+        )]
+        fn it_should_accept_a_string_exactly_when_it_is_thirty_two_ascii_alphanumeric_characters(
+            seed: Vec<u8>,
+            extra: u8,
+        ) -> TestResult {
+            // Strings of 31 to 33 characters from an alphabet that is mostly valid, so the accepted and the
+            // rejected cases both come up often.
+            const ALPHABET: &str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789- \u{e9}";
+            if seed.is_empty() {
+                return TestResult::discard();
+            }
+            let alphabet: Vec<char> = ALPHABET.chars().collect();
+            let input: String = seed
+                .iter()
+                .cycle()
+                .take(31 + usize::from(extra % 3))
+                .map(|byte| alphabet[usize::from(*byte) % alphabet.len()])
+                .collect();
+            let is_valid = input.chars().count() == 32 && input.chars().all(|c| c.is_ascii_alphanumeric());
+
+            TestResult::from_bool(Key::new(&input).map_or(!is_valid, |key| is_valid && key.value() == input))
+        }
+
+        #[test]
+        fn it_should_generate_only_valid_random_keys() {
+            for _ in 0..100 {
+                // Act
+                let key = Key::random();
+
+                // Assert
+                assert!(Key::new(key.value()).is_ok(), "a random key should be valid: {}", key.value());
+            }
+        }
+    }
+
+    mod peer_key_equality {
+        use std::time::Duration;
+
+        use rstest::rstest;
+
+        use crate::authentication::{Key, PeerKey};
+
+        const KEY: &str = "YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ";
+        const OTHER_KEY: &str = "ZYSl4lMZupRuOpSRC3krIKR5BPB14nrJ";
+
+        fn a_peer_key(key: &str, valid_until: Option<Duration>) -> PeerKey {
+            PeerKey {
+                key: key.parse::<Key>().unwrap(),
+                valid_until,
+            }
+        }
+
+        #[rstest]
+        #[case::the_same_key_and_expiry(KEY, Some(Duration::new(100, 0)), KEY, Some(Duration::new(100, 0)), true)]
+        #[case::the_same_second_with_other_nanoseconds(
+            KEY,
+            Some(Duration::new(100, 1)),
+            KEY,
+            Some(Duration::new(100, 999)),
+            true
+        )]
+        #[case::another_second(KEY, Some(Duration::new(100, 0)), KEY, Some(Duration::new(101, 0)), false)]
+        #[case::permanent_and_expiring(KEY, None, KEY, Some(Duration::new(100, 0)), false)]
+        #[case::expiring_and_permanent(KEY, Some(Duration::new(100, 0)), KEY, None, false)]
+        #[case::another_key(KEY, Some(Duration::new(100, 0)), OTHER_KEY, Some(Duration::new(100, 0)), false)]
+        #[case::both_permanent(KEY, None, KEY, None, true)]
+        fn it_should_compare_the_key_and_the_expiry_in_whole_seconds(
+            #[case] key: &str,
+            #[case] valid_until: Option<Duration>,
+            #[case] other_key: &str,
+            #[case] other_valid_until: Option<Duration>,
+            #[case] expected: bool,
+        ) {
+            // Arrange
+            let peer_key = a_peer_key(key, valid_until);
+            let other = a_peer_key(other_key, other_valid_until);
+
+            // Act
+            let equal = peer_key == other;
+
+            // Assert
+            assert_eq!(equal, expected, "{peer_key} == {other}");
+        }
+    }
 }

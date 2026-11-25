@@ -42,6 +42,14 @@ approves it. A group of declaration-only files may share one plan.
 | 15 | [databases-setup-tests.md](databases-setup-tests.md) | DONE | Plan approved 2026-11-23; the server arms stay with S3; completed file approved 2026-11-23 |
 | 16 | [tracker-core-error-tests.md](tracker-core-error-tests.md) | DONE | Plan approved 2026-11-23; the four conversions and their messages; completed file approved 2026-11-23 |
 | 17 | [databases-driver-mod-and-traits-no-change.md](databases-driver-mod-and-traits-no-change.md) | DONE | No change for rows 16 and 17, approved 2026-11-23 |
+| 18 | [databases-server-drivers-tests.md](databases-server-drivers-tests.md) | DONE | Plan approved 2026-11-24 (instant tests only, Q8: an unreachable endpoint takes 30 s); completed file approved 2026-11-24 |
+| 19 | [authentication-handler-tests.md](authentication-handler-tests.md) | DONE | Plan approved 2026-11-25; the failure and replace orderings of remove and load; completed file approved 2026-11-25 |
+| 20 | [authentication-peer-key-tests.md](authentication-peer-key-tests.md) | DONE | Plan approved 2026-11-25; key validation table and property, peer-key equality; F3 recorded, not reachable; completed file approved 2026-11-25 |
+| 21 | [authentication-key-mod-tests.md](authentication-key-mod-tests.md) | DONE | Plan approved 2026-11-25; the expiry boundary and the generated expiry; completed file approved 2026-11-25 |
+| 22 | [authentication-repositories-and-service-no-change.md](authentication-repositories-and-service-no-change.md) | DONE | No change for rows 31, 33 and 34 and one added assertion for row 32 (a reset drops the keys not in the new list) after 15 mutants, all killed; approved 2026-11-25 |
+| 23 | [whitelist-persisted-and-manager-tests.md](whitelist-persisted-and-manager-tests.md) | DONE | Plan approved 2026-11-25; store failures and the database-first order; F4 confirmed as a bug (own issue); completed files approved 2026-11-25 |
+| 24 | [whitelist-in-memory-tests.md](whitelist-in-memory-tests.md) | DONE | Plan approved 2026-11-25 (the ledger said no change; two mutants of the return values survived); completed file approved 2026-11-25 |
+| 25 | [whitelist-authorization-and-setup-no-change.md](whitelist-authorization-and-setup-no-change.md) | DONE | No change for rows 37 and 39 after four mutants, all killed; approved 2026-11-25 |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 

@@ -94,4 +94,63 @@ mod tests {
 
         assert!(whitelist.contains(&info_hash).await);
     }
+
+    mod the_return_values {
+        use rstest::rstest;
+
+        use crate::test_helpers::tests::sample_info_hash;
+        use crate::whitelist::repository::in_memory::InMemoryWhitelist;
+
+        #[rstest]
+        #[case::a_new_hash(false, true)]
+        #[case::a_hash_already_there(true, false)]
+        #[tokio::test]
+        async fn it_should_report_on_adding_whether_the_hash_was_new(#[case] already_there: bool, #[case] expected_new: bool) {
+            // Arrange
+            let info_hash = sample_info_hash();
+            let whitelist = InMemoryWhitelist::default();
+            if already_there {
+                whitelist.add(&info_hash).await;
+            }
+
+            // Act
+            let was_new = whitelist.add(&info_hash).await;
+
+            // Assert
+            assert_eq!(was_new, expected_new, "adding a hash that was there already: {already_there}");
+            assert!(
+                whitelist.contains(&info_hash).await,
+                "the hash should be whitelisted after adding it"
+            );
+        }
+
+        #[rstest]
+        #[case::a_present_hash(true, true)]
+        #[case::an_absent_hash(false, false)]
+        #[tokio::test]
+        async fn it_should_report_on_removing_whether_the_hash_was_present(
+            #[case] already_there: bool,
+            #[case] expected_present: bool,
+        ) {
+            // Arrange
+            let info_hash = sample_info_hash();
+            let whitelist = InMemoryWhitelist::default();
+            if already_there {
+                whitelist.add(&info_hash).await;
+            }
+
+            // Act
+            let was_present = whitelist.remove(&info_hash).await;
+
+            // Assert
+            assert_eq!(
+                was_present, expected_present,
+                "removing a hash that was there already: {already_there}"
+            );
+            assert!(
+                !whitelist.contains(&info_hash).await,
+                "the hash should not be whitelisted after removing it"
+            );
+        }
+    }
 }
