@@ -7,3 +7,12 @@ fn f(){
     tracing::info!(target: "Z", a = 1, "ok");
     tracing::info!(a = 1, b = 2, "target = nope");
 }
+
+fn g() {
+    tracing::event!(
+        tracing::Level::DEBUG,
+        count = (1 + 1),
+        target = "UDP TRACKER",
+        "message"
+    );
+}

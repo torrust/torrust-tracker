@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/3060-udp-core-debug-log-target-field/ISSUE.md
-last-updated-utc: "2026-11-25 18:03"
+last-updated-utc: "2026-11-25 18:13"
 ---
 
 # Manual Verification Evidence
@@ -101,16 +101,16 @@ packages/udp-core/src/services/scrape.rs:140:            tracing::debug!(target 
 Multi-line scan (the AC3 command; GNU `grep -z` reads a file as one record, so `(?s)` matches across lines; its output is NUL-separated, shown here through `tr '\0' '\n'`):
 
 ```text
-$ grep -rPzo '(?s)\b(?:trace|debug|info|warn|error|event|span|trace_span|debug_span|info_span|warn_span|error_span)!\s*\(\s*(?:[^;{}()]*?,\s*)?target\s*=[^=]' packages src --include=*.rs | tr '\0' '\n'
+$ grep -rPzo '(?s)\b(?:trace|debug|info|warn|error|event|span|trace_span|debug_span|info_span|warn_span|error_span)!\s*\(\s*(?:(?:[^;{}()]|\([^()]*\))*?,\s*)?target\s*=[^=]' packages src --include=*.rs | tr '\0' '\n'
 packages/udp-core/src/services/scrape.rs:debug!(target =
 packages/udp-core/src/services/announce.rs:debug!(target =
 ```
 
 Both scans find only the two known sites. The match `debug!(target =` is printed with one trailing space, omitted here.
 
-#### Detection check of the multi-line scan (2026-11-25 2026-11-25 18:03 UTC)
+#### Detection check of the multi-line scan (first run 2026-11-25 18:03 UTC, rerun with the parenthesis case at 18:13 UTC)
 
-An earlier version of this scan used `git grep -n -P -z -o` with a pattern that allowed no other argument before `target =`. `git grep` matches line by line even with `-z`, so on a sample file it did not detect a call written across lines (`git grep --no-index -c -P -z '(?s)debug!\(\s*target\s*=' -- s.rs` printed nothing), and the pattern missed `event!(Level::DEBUG, target = ...)`. Both were pointed out in review (findings F11 and F12 of PR #3062) and the scan above replaces it. Its detection is shown on `evidence/scan-sample.rs`:
+An earlier version of this scan used `git grep -n -P -z -o` with a pattern that allowed no other argument before `target =`. `git grep` matches line by line even with `-z`, so on a sample file it did not detect a call written across lines (`git grep --no-index -c -P -z '(?s)debug!\(\s*target\s*=' -- s.rs` printed nothing), and the pattern missed `event!(Level::DEBUG, target = ...)`. Both were pointed out in review (findings F11 and F12 of PR #3062) and the scan above replaces it. Its detection (a call across lines, a leading argument, and an earlier argument with parentheses) is shown on `evidence/scan-sample.rs`:
 
 ```rust
 fn f(){
@@ -122,16 +122,29 @@ fn f(){
     tracing::info!(target: "Z", a = 1, "ok");
     tracing::info!(a = 1, b = 2, "target = nope");
 }
+
+fn g() {
+    tracing::event!(
+        tracing::Level::DEBUG,
+        count = (1 + 1),
+        target = "UDP TRACKER",
+        "message"
+    );
+}
 ```
 
 ```text
-$ grep -Pzo '(?s)\b(?:trace|debug|info|warn|error|event|span|trace_span|debug_span|info_span|warn_span|error_span)!\s*\(\s*(?:[^;{}()]*?,\s*)?target\s*=[^=]' evidence/scan-sample.rs | tr '\0' '\n'
+$ grep -Pzo '(?s)\b(?:trace|debug|info|warn|error|event|span|trace_span|debug_span|info_span|warn_span|error_span)!\s*\(\s*(?:(?:[^;{}()]|\([^()]*\))*?,\s*)?target\s*=[^=]' evidence/scan-sample.rs | tr '\0' '\n'
 debug!(
         target =
 event!(Level::DEBUG, target =
+event!(
+        tracing::Level::DEBUG,
+        count = (1 + 1),
+        target =
 ```
 
-The multi-line `debug!` call and the `event!` call with a leading argument are found; `target: "Z"` (colon form) and the text `"target = nope"` inside a string are not.
+The multi-line `debug!` call, the `event!` call with a leading argument and the `event!` call whose earlier argument contains parentheses are found (the third case was added after review finding F14 of PR #3062); `target: "Z"` (colon form) and the text `"target = nope"` inside a string are not.
 
 ## Failures and Follow-up
 
