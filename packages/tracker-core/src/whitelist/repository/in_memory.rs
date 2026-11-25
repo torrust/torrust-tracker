@@ -105,7 +105,7 @@ mod tests {
         #[case::a_new_hash(false, true)]
         #[case::a_hash_already_there(true, false)]
         #[tokio::test]
-        async fn adding_should_report_whether_the_hash_was_new(#[case] already_there: bool, #[case] expected_new: bool) {
+        async fn it_should_report_on_adding_whether_the_hash_was_new(#[case] already_there: bool, #[case] expected_new: bool) {
             // Arrange
             let info_hash = sample_info_hash();
             let whitelist = InMemoryWhitelist::default();
@@ -128,7 +128,7 @@ mod tests {
         #[case::a_present_hash(true, true)]
         #[case::an_absent_hash(false, false)]
         #[tokio::test]
-        async fn removing_should_report_whether_the_hash_was_present(
+        async fn it_should_report_on_removing_whether_the_hash_was_present(
             #[case] already_there: bool,
             #[case] expected_present: bool,
         ) {

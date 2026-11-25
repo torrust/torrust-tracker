@@ -763,6 +763,9 @@ mod tests {
         }
     }
 
+    // A collaboration test: it pins what the handler does when a database call fails or the stored keys change (the
+    // error is returned unchanged and the in-memory keys stay as they were). What each repository does with its own
+    // data is pinned in the repositories' tests.
     mod the_keys_handler_with_a_failing_or_changing_database {
         use std::sync::Arc;
 
