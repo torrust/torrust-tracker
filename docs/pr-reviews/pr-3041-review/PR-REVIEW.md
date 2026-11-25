@@ -44,9 +44,15 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 Review 6044596970 (Greptile, 2026-11-24 17:57 UTC) posted one inline comment, F1. Its summary comment 7139941117 only repeats it, so it adds no row.
 
+Review 6054002314 (da2ce7, APPROVED, 2026-11-25 08:17 UTC) posted four inline comments, F2 to F5 here (its own F1 to F4). Its body lists the same four findings and says none blocks, so it adds no row.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3041-f1 | Unknown | Minor (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F2 | review-finding:pr-3041-f2 | Unknown | Minor | testing | ORIGINAL | FIXED | OPEN |
+| F3 | review-finding:pr-3041-f3 | Unknown | Nit | documentation | ORIGINAL | FIXED | OPEN |
+| F4 | review-finding:pr-3041-f4 | Unknown | Nit | metadata | ORIGINAL | FIXED | OPEN |
+| F5 | review-finding:pr-3041-f5 | Unknown | Nit | formatting | ORIGINAL | FIXED | OPEN |
 
 ## Finding Details
 
@@ -63,10 +69,63 @@ Review 6044596970 (Greptile, 2026-11-24 17:57 UTC) posted one inline comment, F1
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/3041#discussion_r4684386574>
 
+### F2 - Pin the `rustlib/src` fragment in the shared test
+
+- PR number: 3041
+- Source review ID: 6054002314
+- Reviewer finding ID: F1
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/3041#discussion_r4692111193>
+- Concern: the test message for `rustlib/src` also held `src/`, which the loop checks first, so the test still passed with `"rustlib/src"` removed from the fragment list, while AC1 and the description claim a test for each of the seven fragments.
+- Solution: the test now pairs each fragment with a message that holds only that fragment (the `rustlib/src` message ends at the fragment) and checks that the panic text names the expected fragment, so a fragment removed from the list fails its own case.
+- Current-tree verification: `cargo test -q -p torrust-tracker-test-helpers` passes (10 tests); on a scratch change that removed `"rustlib/src"` from the list, the test failed with "it should reject the message" (`manual-verification-evidence.md` V4); the file was restored.
+- Resolution reference: test(test-helpers): [#2996] check that each rejected message names its own fragment
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
+### F3 - Give each acceptance row its own evidence
+
+- PR number: 3041
+- Source review ID: 6054002314
+- Reviewer finding ID: F2
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/3041#discussion_r4692111203>
+- Concern: the five acceptance-verification cells all read "V1, V2; tests green", and neither V1 nor V2 shows AC4's claim that the panic wording is the same in all five definitions.
+- Solution: `manual-verification-evidence.md` gains V3 (`grep -rn 'must not hold a source path' packages`: one identical line per definition) and V4 (the F2 red check), and each acceptance row now cites the evidence that shows it.
+- Current-tree verification: `grep -n "AC[1-5] | DONE" docs/issues/open/2996-2912-si-8-share-assert-names-no-source-path/ISSUE.md` prints five different cells; the V3 command prints five identical lines.
+- Resolution reference: docs(issues): [#2996] cite each acceptance criterion's own evidence and refresh the SI-8 spec metadata
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
+### F4 - Refresh `last-updated-utc` of the spec
+
+- PR number: 3041
+- Source review ID: 6054002314
+- Reviewer finding ID: F3
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/3041#discussion_r4692111210>
+- Concern: the spec frontmatter still read `last-updated-utc: "2026-11-23 15:53"` although this PR changes the file.
+- Solution: the frontmatter now reads `2026-11-25 11:37`, the time of this round's spec update, and the evidence file's stamp moved with it.
+- Current-tree verification: `grep -n last-updated-utc docs/issues/open/2996-2912-si-8-share-assert-names-no-source-path/*.md` prints `2026-11-25 11:37` for both files.
+- Resolution reference: docs(issues): [#2996] cite each acceptance criterion's own evidence and refresh the SI-8 spec metadata
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
+### F5 - Wrap the long cross-link doc lines
+
+- PR number: 3041
+- Source review ID: 6054002314
+- Reviewer finding ID: F4
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/3041#discussion_r4692111217>
+- Concern: the "This definition is separate because ..." doc line ran to 171, 166, 140 and 132 columns in `primitives`, `http-protocol`, `configuration` and `axum-server`, past `max_width = 130`, while the shared function's copy is wrapped.
+- Solution: each of the four lines is wrapped near 100 columns, like the rest of its paragraph. V1 was re-run because the wrap moved four definitions by one line.
+- Current-tree verification: `awk 'length>130'` over the five files prints nothing; `cargo +nightly fmt --all -- --check` passes.
+- Resolution reference: docs(test-helpers): [#2996] wrap the long cross-link lines of the kept assert_names_no_source_path copies
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
 ## Processing Log
 
 - 2026-11-24 18:01 UTC - Started audit for review 6044596970 (Greptile); F1 fixed in a signed commit, reply and thread resolution follow after the push.
 - 2026-11-24 18:04 UTC - Replied on the F1 thread (reply created 18:04:39 UTC) after pushing the fix and the audit, and resolved the thread; a GraphQL refresh shows it resolved and no other thread.
+- 2026-11-25 11:38 UTC - Added F2 to F5 for review 6054002314 (da2ce7, approved); all four fixed in three signed commits; replies and thread resolution follow after the push.
 
 ## Completion Rules
 
