@@ -44,7 +44,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Review 6059658951 (`claude[bot]`, 2026-11-25 14:36 UTC) posted one inline comment, F1. Review 6059932482 (`da2ce7`, `CHANGES_REQUESTED`) posted ten inline comments, F2 to F11; its body has no further actionable assertion. CodeRabbit posted only its review-limit notice.
+Review 6059658951 (`claude[bot]`, 2026-11-25 14:36 UTC) posted one inline comment, F1. Review 6059932482 (`da2ce7`, `CHANGES_REQUESTED`) posted ten inline comments, F2 to F11; its body has no further actionable assertion. Review 6060302201 (`da2ce7`, `COMMENTED`, 2026-11-25 15:16 UTC) posted three more, F12 to F14. CodeRabbit posted only its review-limit notice.
 
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
@@ -59,6 +59,9 @@ Review 6059658951 (`claude[bot]`, 2026-11-25 14:36 UTC) posted one inline commen
 | F9 | review-finding:pr-3054-f9 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F10 | review-finding:pr-3054-f10 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F11 | review-finding:pr-3054-f11 | da2ce7 | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-3054-f12 | da2ce7 | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F13 | review-finding:pr-3054-f13 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-3054-f14 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -71,9 +74,9 @@ Review 6059658951 (`claude[bot]`, 2026-11-25 14:36 UTC) posted one inline commen
 - Concern: The spec checks only clock overflow, but the stores convert the expiry with `i64::try_from`, so an admin who sends 2^63 seconds still gets a 500 instead of the 400. The reviewer marked it pre-existing and not blocking, and suggested bounding the check or replying.
 - Solution: Verified in `sqlite/auth_key_store.rs:49` (the same conversion is in the other stores) and filed it as a separate issue, #3055: a different root cause (the persistence range, not the clock), no panic. Recorded under Out of Scope in the spec. The issue's tests use `u64::MAX`, which overflows the clock.
 - Current-tree verification: `sed -n 44,56p packages/tracker-core/src/databases/driver/sqlite/auth_key_store.rs` shows `i64::try_from(value.as_secs())`; `gh issue view 3055` shows the issue open.
-- Resolution reference: 4696525898
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/3054#discussion_r4696525898>
 - Follow-up PR URL: N/A
-- Reply URL: <4696525898>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3054#discussion_r4696525898>
 
 ### F2 - The generate-key endpoint cannot answer 400 through the adapter alone
 
@@ -96,7 +99,7 @@ Review 6059658951 (`claude[bot]`, 2026-11-25 14:36 UTC) posted one inline commen
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/3054#discussion_r4696694182>
 - Concern: `process-pr-review` has the author create the audit record before the first reply; the branch has none.
 - Solution: Created this record, with a row for the earlier `claude[bot]` finding. The first reply (to the `claude[bot]` thread) was posted before the record existed; the Processing Log says so.
-- Current-tree verification: `ls docs/pr-reviews/pr-3054-review/PR-REVIEW.md`; `validate-audit-record.py --pr-number 3054` result in the Processing Log.
+- Current-tree verification: `ls docs/pr-reviews/pr-3054-review/PR-REVIEW.md` lists the file.
 - Resolution reference: docs(pr-reviews): [#3051] add the PR 3054 review audit
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/3054#discussion_r4696770887>
@@ -205,6 +208,45 @@ Review 6059658951 (`claude[bot]`, 2026-11-25 14:36 UTC) posted one inline commen
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/3054#discussion_r4696775350>
 
+### F12 - The validator fails on the persistence-range row
+
+- PR number: 3054
+- Source review ID: 6060302201
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/3054#discussion_r4696993091>
+- Concern: The F1 row had a bare comment id in `Resolution reference` and `Reply URL`, and its verification pointed at a validator result that the log says does not exist.
+- Solution: Both fields hold the full discussion URL of the F1 reply, and the F3 verification no longer cites a validator result.
+- Current-tree verification: `grep -n "4696525898" docs/pr-reviews/pr-3054-review/PR-REVIEW.md` prints only URL forms.
+- Resolution reference: docs(issues): [#3051] plan the handler test and name the log capture
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3054#discussion_r4697016215>
+
+### F13 - The generate-key handler test is not in the plan
+
+- PR number: 3054
+- Source review ID: 6060302201
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/3054#discussion_r4696993105>
+- Concern: T1, T2 and the red-run paragraph list only the `KeysHandler` and contract tests, and the existing handler test would no longer match its name once the arm lands.
+- Solution: The spec lists the `generate_auth_key_handler` test in T1, T2 and the red-run paragraph, and plans the rename in T3.
+- Current-tree verification: `grep -n "generate_auth_key_handler" docs/issues/open/3051-random-expiring-key-duration-overflow-panic/ISSUE.md` prints the plan lines.
+- Resolution reference: docs(issues): [#3051] plan the handler test and name the log capture
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3054#discussion_r4697016795>
+
+### F14 - The log capture is not shown in the start command
+
+- PR number: 3054
+- Source review ID: 6060302201
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/3054#discussion_r4696993113>
+- Concern: The panic extract reads `.tmp/tracker.log`, but the start command shows no redirect to it.
+- Solution: The start command shows `> .tmp/tracker.log 2>&1`, and the text says what the file holds and that the folder was under `drafts/` when it ran.
+- Current-tree verification: `grep -n "tracker.log 2>&1" docs/issues/open/3051-random-expiring-key-duration-overflow-panic/manual-verification-evidence.md`.
+- Resolution reference: docs(issues): [#3051] plan the handler test and name the log capture
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3054#discussion_r4697017419>
+
 ## Processing Log
 
 - 2026-11-25 14:41 UTC - Late start: the reply to F1 (reply `created_at` 14:41:01Z) was posted, and its thread resolved, before this record existed. F1 had been handled with the commit `docs(issues): [#3051] record the persistence range as out of scope` (committed 14:38:12Z) and the new issue #3055.
@@ -212,6 +254,8 @@ Review 6059658951 (`claude[bot]`, 2026-11-25 14:36 UTC) posted one inline commen
 - 2026-11-25 14:55 UTC - The fixes for F2 and F4 to F11 were committed in one commit, `docs(issues): [#3051] add the generate-key handler to the spec scope`, and pushed (`git ls-remote` showed that head on the fork branch before the replies). #3055 was edited for F6.
 - 2026-11-25 14:59 UTC - Replied on the ten `da2ce7` threads (reply `created_at` 14:59:22Z to 14:59:46Z) and resolved them. The reply to F3 said the record would be added in the next commit.
 - 2026-11-25 15:01 UTC - Wrote this record for F3. `validate-audit-record.py` has not been run: it calls plain `gh`, which acts as `josecelano`; running it as the bot needs the maintainer's permission, asked for in the PR report. The maintainer's `ACK` of the earlier head is stale after the spec commit and after this commit; the new head needs a new `ACK`.
+- 2026-11-25 15:16 UTC - Review 6060302201 (`da2ce7`, `COMMENTED`, `submitted_at` 15:16:08Z) arrived on head `docs(pr-reviews): [#3051] add the PR 3054 review audit`: F12 to F14. F12 found the F1 row's bare comment id; the replies to F12 to F14 were posted before the fix commit and say so.
+- 2026-11-25 15:18 UTC - Wrote the rows F12 to F14 and fixed the F1 row. `validate-audit-record.py` was not run by this session (it calls plain `gh`); the reviewer's run reported the two failures that F12 fixes.
 
 ## Completion Rules
 
