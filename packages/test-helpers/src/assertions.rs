@@ -62,7 +62,9 @@ mod tests {
             (".cargo/registry", "failed in /home/u/.cargo/registry"),
             ("rustlib/src", "failed in /toolchain/lib/rustlib/src"),
         ] {
-            let panic_payload = catch_unwind(|| assert_names_no_source_path(message)).expect_err("it should reject the message");
+            let Err(panic_payload) = catch_unwind(|| assert_names_no_source_path(message)) else {
+                panic!("it should reject {message:?}");
+            };
 
             let panic_text = panic_payload
                 .downcast_ref::<String>()
