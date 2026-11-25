@@ -104,13 +104,13 @@ Multi-line scan (the AC3 command; its output is NUL-separated, shown here throug
 $ git grep -n -P -z -o '(?s)\b(?:trace|debug|info|warn|error|event|span|trace_span|debug_span|info_span|warn_span|error_span)!\s*\(\s*target\s*=[^=]' -- '*.rs' | tr '\0' '\n'
 packages/udp-core/src/services/announce.rs
 178
-debug!(target = 
+debug!(target =
 packages/udp-core/src/services/scrape.rs
 140
-debug!(target = 
+debug!(target =
 ```
 
-Both scans find only the two known sites.
+Both scans find only the two known sites. The match `debug!(target =` is printed by the command with one trailing space, omitted here.
 
 ## Failures and Follow-up
 
