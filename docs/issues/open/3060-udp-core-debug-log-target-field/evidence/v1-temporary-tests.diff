@@ -1,0 +1,40 @@
+diff --git a/packages/udp-core/src/services/announce.rs b/packages/udp-core/src/services/announce.rs
+index d94379f05..8506dd951 100644
+--- a/packages/udp-core/src/services/announce.rs
++++ b/packages/udp-core/src/services/announce.rs
+@@ -694,0 +695,15 @@ mod tests {
++
++    #[tokio::test]
++    async fn temp_repro_announce_log_target() {
++        use torrust_tracker_test_helpers::logging::capture_logs_in_scope;
++        let mut event_sender = MockUdpCoreStatsEventSender::new();
++        event_sender.expect_send().returning(|_| Box::pin(future::ready(Some(Ok(1)))));
++        let service = AnnounceServiceFixture::public_tracker_publishing_events_to(event_sender).service;
++        let request = announce_request(valid_connection_id_for(client_socket_addr()));
++        let capture = capture_logs_in_scope();
++        service
++            .handle_announce(client_socket_addr(), server_service_binding(), &request, cookie_valid_range(), VALIDATE_COOKIE)
++            .await
++            .unwrap();
++        println!("CAPTURED>>>{}<<<", capture.lines().join("\n"));
++    }
+diff --git a/packages/udp-core/src/services/scrape.rs b/packages/udp-core/src/services/scrape.rs
+index 790d14472..b9ed9873d 100644
+--- a/packages/udp-core/src/services/scrape.rs
++++ b/packages/udp-core/src/services/scrape.rs
+@@ -483,0 +484,15 @@ mod tests {
++
++    #[tokio::test]
++    async fn temp_repro_scrape_log_target() {
++        use torrust_tracker_test_helpers::logging::capture_logs_in_scope;
++        let mut event_sender = MockUdpCoreStatsEventSender::new();
++        event_sender.expect_send().returning(|_| Box::pin(future::ready(Some(Ok(1)))));
++        let service = ScrapeServiceFixture::public_tracker_publishing_events_to(event_sender).service;
++        let request = scrape_request(valid_connection_id_for(client_socket_addr()));
++        let capture = capture_logs_in_scope();
++        service
++            .handle_scrape(client_socket_addr(), server_service_binding(), &request, cookie_valid_range(), VALIDATE_COOKIE)
++            .await
++            .unwrap();
++        println!("CAPTURED>>>{}<<<", capture.lines().join("\n"));
++    }

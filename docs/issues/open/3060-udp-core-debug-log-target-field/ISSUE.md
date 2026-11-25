@@ -164,7 +164,7 @@ Record a justified no-change decision in the task's evidence without creating an
 
 | ID  | Scenario                                      | Human-oriented command/steps                                                                          | Expected Result                                                  | Status | Evidence                                     |
 | --- | --------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- | ------ | -------------------------------------------- |
-| V1  | Captured DEBUG lines of announce and scrape   | Temporary test: run each service once inside `capture_logs_in_scope` and print the captured text          | Before fix: module-path target and a `target="UDP TRACKER"` field. After fix: `UDP TRACKER:` prefix, no field | DONE (before-fix result); after-fix rerun TODO | `manual-verification-evidence.md` section V1 |
+| V1  | Captured DEBUG lines of announce and scrape   | Temporary test: run each service once inside `capture_logs_in_scope` and print the captured text          | Before fix: module-path target and a `target="UDP TRACKER"` field. After fix: `UDP TRACKER:` prefix, no field | IN_PROGRESS | `manual-verification-evidence.md` section V1 (before-fix result recorded; after-fix rerun TODO) |
 
 ### Disposable Verification Scripts
 
