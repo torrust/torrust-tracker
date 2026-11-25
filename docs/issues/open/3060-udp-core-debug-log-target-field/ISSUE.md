@@ -49,7 +49,7 @@ In `tracing`, `target = value` (an equals sign) is an ordinary **field** named `
 
 **Impact.** Only DEBUG output is affected, and nothing is functionally wrong. A consumer that selects log lines by target (a `grep` for `UDP TRACKER`, the `target` key of the JSON log style, a log shipper's filter) misses these two lines, and for the JSON style the record carries a wrong `target` plus a stray `target` field. The EPIC #2387 logging conventions rely on named targets.
 
-**Verified scope (2026-11-25, `torrust/develop` at the merge of #3053).** `git grep -nE '\(\s*target\s*=' -- '*.rs'` and a multi-line variant find exactly these two sites; no other `tracing` macro, `span!` or `event!` in `packages` or `src` has the mistake. The grep is the check for AC3.
+**Verified scope (2026-11-25, `torrust/develop` at the merge of #3053).** two scans find exactly these two sites: the single-line `git grep -nE '\(\s*target\s*=' -- '*.rs'` and the multi-line `git grep -n -P -z -o '(?s)\b(?:trace|debug|info|warn|error|event|span|trace_span|debug_span|info_span|warn_span|error_span)!\s*\(\s*target\s*=[^=]' -- '*.rs'`, whose `-z -P (?s)` form matches a call written across lines. The multi-line command is the check for AC3; both outputs are recorded in `manual-verification-evidence.md` (section V1).
 
 ## Scope
 
@@ -57,7 +57,7 @@ In `tracing`, `target = value` (an equals sign) is an ordinary **field** named `
 
 - Change the two call sites to `target: crate::UDP_TRACKER_LOG_TARGET`.
 - Two maintained regression tests (announce and scrape) asserting the captured line carries the `UDP TRACKER` target.
-- A guard against the mistake coming back (see Design Decision).
+- Decide whether to add a repository-wide guard against the mistake coming back (open question, see Design Decision); none is planned by default.
 
 ### Out of Scope
 
@@ -144,7 +144,7 @@ Record a justified no-change decision in the task's evidence without creating an
 
 - [ ] AC1: The `UdpAnnounce` DEBUG line is logged with target `UDP TRACKER` and has no `target` field (announce regression test).
 - [ ] AC2: The `UdpScrape` DEBUG line is logged with target `UDP TRACKER` and has no `target` field (scrape regression test).
-- [ ] AC3: `git grep -nE '\(\s*target\s*=' -- '*.rs'` finds no `tracing` call site using the field form (the same check, run with a multi-line variant, was empty apart from these two sites before the fix).
+- [ ] AC3: the multi-line scan `git grep -n -P -z -o '(?s)\b(?:trace|debug|info|warn|error|event|span|trace_span|debug_span|info_span|warn_span|error_span)!\s*\(\s*target\s*=[^=]' -- '*.rs'` prints nothing, so no `tracing` macro call, one-line or spread over several lines, uses the field form (before the fix it printed exactly the two sites).
 - [ ] AC4: Both regression tests were observed red before the fix and green after.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
