@@ -25,7 +25,7 @@ Current markers:
 | ------------------- | ---------------------- | ---------------------------------------------------------------------------------------------- |
 | `skill-link`        | `<skill-name>`         | This artifact affects the linked skill and should trigger a skill review when changed.         |
 | `related-artifacts` | `<repo-relative-path>` or `review-finding:pr-<number>-<id>` | List of artifacts related to this file; linked files should be reviewed when this one changes. |
-| `issue-spec`        | `<repo-relative-path>` | This artifact is affected by a draft issue specification at the given temporary path, or (see Issue-spec lifecycle) is a document whose template prescribes the key. |
+| `issue-spec`        | `<repo-relative-path>` | This artifact is affected by a draft issue specification at the given temporary path, or (see Issue-spec lifecycle) is a document in the issue's own folder or whose template prescribes the key. |
 | `issue`             | `#<number>`            | This artifact is affected by the GitHub issue with the given number.                           |
 | `review-finding`    | `pr-<number>-<id>`     | Repository-controlled identifier for one normalized pull-request review finding.               |
 
@@ -51,11 +51,11 @@ Do not retain the draft file path after the issue is created: issue specs move f
 `drafts/` to `open/` and later to `closed/`, while the issue number remains stable.
 
 This lifecycle applies to markers on artifacts affected by an issue, such as source files and
-skills. It does not apply to a document whose template prescribes an `issue-spec` key that points
-at the issue's primary spec (`ISSUE.md`, or `EPIC.md` for an EPIC) and is rewritten when that spec
-moves, for example `manual-verification-evidence.md` (see
-`docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`) and the security report template. Such a key
-stays `issue-spec`; do not replace it with `issue:`.
+skills. It does not apply to a document inside the issue's own folder, or one whose template
+prescribes the key (for example `manual-verification-evidence.md`, see
+`docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`, and the security report), whose `issue-spec` key
+points at the issue's primary spec (`ISSUE.md`, or `EPIC.md` for an EPIC) and is rewritten when
+that spec moves. Such a key stays `issue-spec`; do not replace it with `issue:`.
 
 ### Review-finding references
 
@@ -298,7 +298,7 @@ do not add a marker merely because a file is mentioned incidentally in an issue.
 1. Add or update `skill-link`, `issue-spec`, or `issue` markers in touched artifacts.
 2. When moving a draft spec to an issue, replace all of its `issue-spec` markers
    with `issue: #<number>` markers.
-   Keep the `issue-spec` key where its template prescribes it (see
+   Keep the `issue-spec` key in a document inside the issue's folder or whose template prescribes it (see
    [Issue-spec lifecycle](#issue-spec-lifecycle)).
 3. Update the skill instructions if semantics changed.
 4. Validate links and markers.
