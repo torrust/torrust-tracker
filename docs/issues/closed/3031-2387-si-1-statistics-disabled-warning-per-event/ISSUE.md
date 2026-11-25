@@ -9,7 +9,7 @@ github-issue: 3031
 spec-path: docs/issues/closed/3031-2387-si-1-statistics-disabled-warning-per-event/ISSUE.md
 branch: "3031-2387-si-1-statistics-disabled-warning-per-event"
 related-pr: 3043
-last-updated-utc: "2026-11-25 12:04"
+last-updated-utc: "2026-11-25 12:58"
 semantic-links:
   skill-links:
     - create-issue
