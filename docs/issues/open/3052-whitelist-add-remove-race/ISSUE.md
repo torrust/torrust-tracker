@@ -9,7 +9,7 @@ github-issue: 3052
 spec-path: docs/issues/open/3052-whitelist-add-remove-race/ISSUE.md
 branch: "3052-whitelist-add-remove-race"
 related-pr: null
-last-updated-utc: "2026-11-25 14:18"
+last-updated-utc: "2026-11-25 14:32"
 semantic-links:
   skill-links:
     - create-issue
@@ -212,7 +212,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 ### Disposable Verification Scripts
 
 None. The reproduction is a temporary Rust test whose code is recorded verbatim in the evidence file;
-it becomes the maintained regression test.
+it only measures (it counts failures and never asserts). The maintained regression test (T3) is a separate
+asserting test and the red evidence comes from it.
 
 ### Acceptance Verification
 

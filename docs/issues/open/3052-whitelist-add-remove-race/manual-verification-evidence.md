@@ -25,7 +25,11 @@ last-updated-utc: "2026-11-25 14:18"
 
 1. Temporarily added the test below to `packages/tracker-core/src/whitelist/repository/persisted.rs`.
 2. Ran `cargo test -p torrust-tracker-core --lib repro_concurrent -- --nocapture`.
-3. Reverted the test (`git checkout` of the file); it becomes the maintained regression test (T3).
+3. Reverted the test (`git checkout` of the file). This temporary test is a measuring instrument: it counts
+   failures and prints them, and it never asserts, so it passes even when every call fails. It is not the
+   maintained regression test. T3 writes a separate asserting test (both concurrent `add` calls return
+   `Ok` and the hash is whitelisted afterwards; both concurrent `remove` calls return `Ok` and the hash
+   is gone afterwards, checked in every round), and the red evidence comes from that version.
 
 ```rust
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
