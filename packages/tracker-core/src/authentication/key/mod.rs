@@ -416,7 +416,7 @@ mod tests {
         fn it_should_never_expire_a_permanent_key(#[case] now: Duration) {
             // Arrange
             clock::Stopped::local_set(&now);
-            let permanent_key = generate_key(None);
+            let permanent_key = generate_key(None).unwrap();
 
             // Act
             let result = verify_key_expiration(&permanent_key);
@@ -453,7 +453,7 @@ mod tests {
             clock::Stopped::local_set(&Duration::from_secs(1_000));
 
             // Act
-            let peer_key = generate_key(lifetime);
+            let peer_key = generate_key(lifetime).unwrap();
 
             // Assert
             assert_eq!(

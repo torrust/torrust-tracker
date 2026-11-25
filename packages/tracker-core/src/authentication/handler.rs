@@ -811,7 +811,7 @@ mod tests {
         #[tokio::test]
         async fn it_should_keep_the_key_in_memory_when_removing_it_from_the_database_fails() {
             // Arrange
-            let peer_key = generate_key(None);
+            let peer_key = generate_key(None).unwrap();
             let mut store = MockAuthKeyStore::new();
             store.expect_remove_key_from_keys().times(1).returning(|_key| {
                 Box::pin(async {
@@ -847,7 +847,7 @@ mod tests {
         #[tokio::test]
         async fn it_should_keep_the_in_memory_keys_when_loading_from_the_database_fails() {
             // Arrange
-            let peer_key = generate_key(None);
+            let peer_key = generate_key(None).unwrap();
             let mut store = MockAuthKeyStore::new();
             store.expect_load_keys().times(1).returning(|| {
                 Box::pin(async {
@@ -877,8 +877,8 @@ mod tests {
         #[tokio::test]
         async fn it_should_replace_the_in_memory_keys_with_the_keys_in_the_database() {
             // Arrange
-            let stale_key = generate_key(None);
-            let stored_key = generate_key(None);
+            let stale_key = generate_key(None).unwrap();
+            let stored_key = generate_key(None).unwrap();
             let keys_in_database = vec![stored_key.clone()];
             let mut store = MockAuthKeyStore::new();
             store

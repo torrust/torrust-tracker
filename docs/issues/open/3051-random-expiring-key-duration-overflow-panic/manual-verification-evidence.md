@@ -151,6 +151,10 @@ Mutation proof for `when_the_lifetime_of_the_key_overflows_the_clock`: with the 
 replaced by the old `unwrap()` the test fails (`1 passed; 1 failed`, panic in `key/mod.rs`); with the fix restored it
 passes (`2 passed`).
 
+After the rebase onto `develop` (which had gained the tests of #3056 that call `generate_key`), those callers were
+updated and the same tests and `linter all` were run again at 19:25 UTC: all pass. The production code is unchanged by
+the rebase, so V3 below still describes it.
+
 ### V3 - Like-for-like recheck after the fix
 
 - Goal: repeat V1 steps 1 to 5 against the fixed build and compare.
