@@ -420,17 +420,21 @@ mod tests {
         #[rstest]
         #[case::letters_and_digits("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJ", None)]
         #[case::only_digits("01234567890123456789012345678901", None)]
-        #[case::one_character_short("YZSl4lMZupRuOpSRC3krIKR5BPB14nr", Some(ParseKeyError::InvalidKeyLength))]
-        #[case::one_character_long("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJx", Some(ParseKeyError::InvalidKeyLength))]
-        #[case::empty("", Some(ParseKeyError::InvalidKeyLength))]
+        #[case::one_character_short("YZSl4lMZupRuOpSRC3krIKR5BPB14nr", Some(ParseKeyError::InvalidKeyLength { length: 31 }))]
+        #[case::one_character_long("YZSl4lMZupRuOpSRC3krIKR5BPB14nrJx", Some(ParseKeyError::InvalidKeyLength { length: 33 }))]
+        #[case::empty("", Some(ParseKeyError::InvalidKeyLength { length: 0 }))]
         #[case::a_hyphen("YZSl4lMZupRuOpSRC3krIKR5BPB14n-J", Some(ParseKeyError::InvalidChars))]
         #[case::a_space("YZSl4lMZupRuOpSRC3krIKR5BPB14n J", Some(ParseKeyError::InvalidChars))]
         #[case::sixteen_two_byte_letters(
             "\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}",
+            Some(ParseKeyError::InvalidKeyLength { length: 16 })
+        )]
+        #[case::thirty_two_two_byte_letters(
+            "\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}",
             Some(ParseKeyError::InvalidChars)
         )]
-        #[case::too_long_and_with_a_hyphen("YZSl4lMZupRuOpSRC3krIKR5BPB14n-Jx", Some(ParseKeyError::InvalidKeyLength))]
-        fn it_should_accept_only_thirty_two_ascii_alphanumeric_bytes(
+        #[case::too_long_and_with_a_hyphen("YZSl4lMZupRuOpSRC3krIKR5BPB14n-Jx", Some(ParseKeyError::InvalidKeyLength { length: 33 }))]
+        fn it_should_accept_only_thirty_two_ascii_alphanumeric_characters(
             #[case] input: &str,
             #[case] expected: Option<ParseKeyError>,
         ) {
@@ -448,7 +452,7 @@ mod tests {
             clippy::needless_pass_by_value,
             reason = "quickcheck passes each generated argument by value"
         )]
-        fn it_should_accept_a_string_exactly_when_it_is_thirty_two_ascii_alphanumeric_bytes(
+        fn it_should_accept_a_string_exactly_when_it_is_thirty_two_ascii_alphanumeric_characters(
             seed: Vec<u8>,
             extra: u8,
         ) -> TestResult {
@@ -465,7 +469,7 @@ mod tests {
                 .take(31 + usize::from(extra % 3))
                 .map(|byte| alphabet[usize::from(*byte) % alphabet.len()])
                 .collect();
-            let is_valid = input.len() == 32 && input.chars().all(|c| c.is_ascii_alphanumeric());
+            let is_valid = input.chars().count() == 32 && input.chars().all(|c| c.is_ascii_alphanumeric());
 
             TestResult::from_bool(Key::new(&input).map_or(!is_valid, |key| is_valid && key.value() == input))
         }
