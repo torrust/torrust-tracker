@@ -44,7 +44,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Review 6059658951 (`claude[bot]`, 2026-11-25 14:36 UTC) posted one inline comment, F1. Review 6059932482 (`da2ce7`, `CHANGES_REQUESTED`) posted ten inline comments, F2 to F11; its body has no further actionable assertion. Review 6060302201 (`da2ce7`, `COMMENTED`, 2026-11-25 15:16 UTC) posted three more, F12 to F14. Review 6060493901 (`coderabbitai[bot]`, `COMMENTED`, 15:28 UTC) has one finding in its body, F15, with no thread. CodeRabbit posted only its review-limit notice.
+Review 6059658951 (`claude[bot]`, 2026-11-25 14:36 UTC) posted one inline comment, F1. Review 6059932482 (`da2ce7`, `CHANGES_REQUESTED`) posted ten inline comments, F2 to F11; its body has no further actionable assertion. Review 6060302201 (`da2ce7`, `COMMENTED`, 2026-11-25 15:16 UTC) posted three more, F12 to F14. Review 6060493901 (`coderabbitai[bot]`, `COMMENTED`, 15:28 UTC) has one finding in its body, F15, with no thread. Review 6060544492 (`da2ce7`, 15:31 UTC, later dismissed) posted three inline comments, F16 to F18. CodeRabbit posted only its review-limit notice.
 
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
@@ -63,6 +63,9 @@ Review 6059658951 (`claude[bot]`, 2026-11-25 14:36 UTC) posted one inline commen
 | F13 | review-finding:pr-3054-f13 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F14 | review-finding:pr-3054-f14 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F15 | review-finding:pr-3054-f15 | coderabbitai[bot] | Minor | maintainability | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F16 | review-finding:pr-3054-f16 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-3054-f17 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-3054-f18 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -218,7 +221,7 @@ Review 6059658951 (`claude[bot]`, 2026-11-25 14:36 UTC) posted one inline commen
 - Concern: The F1 row had a bare comment id in `Resolution reference` and `Reply URL`, and its verification pointed at a validator result that the log says does not exist.
 - Solution: Both fields hold the full discussion URL of the F1 reply, and the F3 verification no longer cites a validator result.
 - Current-tree verification: `grep -n "4696525898" docs/pr-reviews/pr-3054-review/PR-REVIEW.md` prints only URL forms.
-- Resolution reference: docs(issues): [#3051] plan the handler test and name the log capture
+- Resolution reference: docs(pr-reviews): [#3051] record review 6060302201 in the PR 3054 audit
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/3054#discussion_r4697016215>
 
@@ -261,6 +264,45 @@ Review 6059658951 (`claude[bot]`, 2026-11-25 14:36 UTC) posted one inline commen
 - Follow-up PR URL: N/A
 - Reply URL: N/A
 
+### F16 - The F12 row credits the wrong commit
+
+- PR number: 3054
+- Source review ID: 6060544492
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/3054#discussion_r4697191766>
+- Concern: The F12 row's resolution reference names the commit that changed only the spec and the evidence file, and my reply named the same commit; the audit edit came from the commit that recorded review 6060302201.
+- Solution: The F12 row now names `docs(pr-reviews): [#3051] record review 6060302201 in the PR 3054 audit`. The reply cannot be edited; the reply to F16 states the correction.
+- Current-tree verification: `git log --format=%s -- docs/pr-reviews/pr-3054-review/PR-REVIEW.md` lists that subject, and the F12 detail entry cites it.
+- Resolution reference: docs(pr-reviews): [#3051] record review 6060544492 in the PR 3054 audit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3054#discussion_r4697424395>
+
+### F17 - The evidence shows a command that did not run as written
+
+- PR number: 3054
+- Source review ID: 6060544492
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/3054#discussion_r4697191787>
+- Concern: The note that the folder was under `drafts/` when the tracker ran meant the command shown (with the `open/` path) was not the command that ran.
+- Solution: The evidence shows the command as run, with the `drafts/` path, and says the folder has since moved to `open/`.
+- Current-tree verification: `grep -n "issues/drafts/random-expiring" docs/issues/open/3051-random-expiring-key-duration-overflow-panic/manual-verification-evidence.md` prints the command.
+- Resolution reference: docs(issues): [#3051] show the tracker start command as it ran
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3054#discussion_r4697458638>
+
+### F18 - The PR description does not list the audit record
+
+- PR number: 3054
+- Source review ID: 6060544492
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/3054#discussion_r4697191801>
+- Concern: The description's Files list names only the issue folder, but the pull request also adds the audit record.
+- Solution: The description's Files list and Summary now name the audit record. The fix is outside the repository tree (the pull request description), so the reply URL is the durable reference.
+- Current-tree verification: `gh api repos/torrust/torrust-tracker/pulls/3054 --jq .body` contains `docs/pr-reviews/pr-3054-review/PR-REVIEW.md`.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/3054#discussion_r4697438606>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3054#discussion_r4697438606>
+
 ## Processing Log
 
 - 2026-11-25 14:41 UTC - Late start: the reply to F1 (reply `created_at` 14:41:01Z) was posted, and its thread resolved, before this record existed. F1 had been handled with the commit `docs(issues): [#3051] record the persistence range as out of scope` (committed 14:38:12Z) and the new issue #3055.
@@ -272,6 +314,10 @@ Review 6059658951 (`claude[bot]`, 2026-11-25 14:36 UTC) posted one inline commen
 - 2026-11-25 15:18 UTC - Wrote the rows F12 to F14 and fixed the F1 row. `validate-audit-record.py` was not run by this session (it calls plain `gh`); the reviewer's run reported the two failures that F12 fixes.
 - 2026-11-25 15:28 UTC - Review 6060493901 (`coderabbitai[bot]`, `COMMENTED`, `submitted_at` 15:28:00Z) arrived on the head `docs(pr-reviews): [#3051] record review 6060302201 in the PR 3054 audit`: one finding in its body, F15 (no thread, so no reply).
 - 2026-11-25 15:29 UTC - Fixed F15 in the commit `docs(pr-reviews): [#3051] cite issue 3051 by number in the PR 3054 audit`.
+- 2026-11-25 15:31 UTC - Review 6060544492 (`da2ce7`, `submitted_at` 15:31:08Z, later dismissed) posted F16 to F18; the maintainer's `ACK` of 15:31:12Z named the head before the audit-only commit `docs(pr-reviews): [#3051] cite issue 3051 by number in the PR 3054 audit`.
+- 2026-11-25 15:47 UTC - Edited the pull request description for F18 (`pulls/3054` PATCH).
+- 2026-11-25 16:13 UTC - GitHub answered 5xx to most reply requests from 15:48 UTC, and some requests that looked failed had posted: the threads of F16 and F17 each have a second identical reply (`4697558202`, `4697504758`, posted 16:13:25Z and 16:05:11Z), which the bot wrapper cannot delete. The rows cite the first reply of each thread.
+- 2026-11-25 16:14 UTC - Wrote the rows F16 to F18 and corrected the F12 resolution reference in the commit `docs(pr-reviews): [#3051] record review 6060544492 in the PR 3054 audit`. `validate-audit-record.py` was not run by this session (it calls plain `gh`).
 
 ## Completion Rules
 
