@@ -163,6 +163,20 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T5   | Harness test updates                                         | Commit after focused validation and required review. |
 | T6   | Final evidence and spec progress                             | Commit after focused validation and required review. |
 
+Record a justified no-change decision in the task's evidence without creating an empty commit. For
+test-producing work, use the `write-unit-test` skill and complete an explicit design review after
+each passing test increment, before maintainer review and commit. Confirm that the test exposes the
+one causal initial-state difference; its fixture owns only incidental mechanics; and the production
+Act plus independently specified expected result remain visible. The review must use the mandatory
+prose-first Arrange-Act-Assert comparison: write temporary prose for each section, refactor until
+the code expresses it, remove redundant prose, and retain only irreducible context. Record this
+review in task evidence or a file-local test plan. Assess helper boundaries by meaningful named
+actions and abstraction-level alignment, not caller count: a single-use helper is valid when it
+keeps the test readable and hides only incidental mechanics. Commit each reviewed test-design
+increment before starting the next planned file or behavior area. Keep final verification and
+completion evidence separate when it improves reviewability. Use a Conventional Commit message
+with the narrow affected scope, and sign every commit with GPG.
+
 ## Progress Tracking
 
 ### Workflow Checkpoints
@@ -177,6 +191,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
@@ -241,7 +256,21 @@ asserting test and the red evidence comes from it.
 
 ## Implementation Completion Review
 
+After implementation, compare the result with this specification. Record
+invalidated assumptions, material design changes, unexpected validation
+findings, and reusable lessons.
+
 - Retrospective: `Not yet assessed`
+- If needed, create `implementation-retrospective.md` from the repository
+  template at `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this issue
+  specification's directory.
+- If no retrospective is needed, add a concise progress-log entry explaining
+  why the work had no material discovery.
+- When an independent reviewer receives this folder-style specification, it
+  records its result in `agent-review-reports.md` using
+  `docs/templates/AGENT-REVIEW-REPORTS.md`. Do not create that artifact for a
+  legacy standalone specification or when no folder-style specification was
+  supplied.
 
 ## References
 
