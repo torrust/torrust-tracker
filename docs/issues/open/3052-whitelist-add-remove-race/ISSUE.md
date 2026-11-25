@@ -9,7 +9,7 @@ github-issue: 3052
 spec-path: docs/issues/open/3052-whitelist-add-remove-race/ISSUE.md
 branch: "3052-whitelist-add-remove-race-spec"
 related-pr: null
-last-updated-utc: "2026-11-25 14:57"
+last-updated-utc: "2026-11-25 16:01"
 semantic-links:
   skill-links:
     - create-issue
