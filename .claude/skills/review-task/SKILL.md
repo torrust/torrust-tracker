@@ -56,10 +56,11 @@ an issue/task is complete and ready to be pushed.
 - [ ] Required tests/lint checks pass.
 - [ ] Docs updates are present when behavior changed.
 - [ ] New terms are added to `project-words.txt` when needed.
-- [ ] Every mandatory manual scenario was executed against the finished artifact and is recorded
-      in `manual-verification-evidence.md` with the actual commands or interactions, the observed
-      output, the relevant logs and the conclusions. Output of automated tests or of a disposable
-      script is not manual evidence.
+- [ ] Every mandatory manual scenario of the task under review was executed against the finished
+      artifact and is recorded in `manual-verification-evidence.md` with the actual commands or
+      interactions, the observed output, the relevant logs and the conclusions. A scenario that
+      belongs to a later task is listed as `PENDING` with that reason. Output of automated tests or
+      of a disposable script is not manual evidence.
 
 ### Function Length And Nesting
 
