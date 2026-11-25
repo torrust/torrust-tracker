@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2996-2912-si-8-share-assert-names-no-source-path/ISSUE.md
-last-updated-utc: "2026-11-25 11:48"
+last-updated-utc: "2026-11-25 12:11"
 ---
 
 # Manual Verification Evidence
@@ -90,6 +90,18 @@ test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 8 filtered out; 
 
 The file was restored from a copy taken before the change, and `cargo test -q -p torrust-tracker-test-helpers` then
 passed (10 tests). Status: DONE.
+
+Re-run on 2026-11-25 after `review-finding:pr-3041-f11`, which makes a case that is not rejected name its message, with
+the same scratch change:
+
+```console
+$ cargo test -q -p torrust-tracker-test-helpers assertions
+assertions::tests::it_should_reject_a_message_holding_a_source_path_fragment --- FAILED
+it should reject "failed in /toolchain/lib/rustlib/src"
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.00s
+```
+
+The file was restored from a copy, and `cargo test -q -p torrust-tracker-test-helpers` then passed (10 tests).
 
 ## Automatic checks
 
