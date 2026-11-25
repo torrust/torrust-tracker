@@ -189,4 +189,153 @@ mod tests {
             }
         }
     }
+
+    mod with_a_failing_or_changing_database {
+        use std::sync::Arc;
+
+        use torrust_tracker_primitives::Driver;
+
+        use crate::databases::error::Error;
+        use crate::databases::{MockWhitelistStore, WhitelistStore};
+        use crate::test_helpers::tests::{sample_info_hash_one, sample_info_hash_two};
+        use crate::whitelist::manager::WhitelistManager;
+        use crate::whitelist::repository::in_memory::InMemoryWhitelist;
+        use crate::whitelist::repository::persisted::DatabaseWhitelist;
+
+        fn manager_over(store: MockWhitelistStore) -> (WhitelistManager, Arc<InMemoryWhitelist>) {
+            let store: Arc<dyn WhitelistStore> = Arc::new(store);
+            let database_whitelist = Arc::new(DatabaseWhitelist::new(store));
+            let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
+
+            (
+                WhitelistManager::new(database_whitelist, in_memory_whitelist.clone()),
+                in_memory_whitelist,
+            )
+        }
+
+        fn failed_insert() -> Error {
+            Error::InsertFailed { driver: Driver::Sqlite3 }
+        }
+
+        #[tokio::test]
+        async fn it_should_not_add_the_torrent_to_memory_when_persisting_it_fails() {
+            // Arrange
+            let info_hash = sample_info_hash_one();
+            let mut store = MockWhitelistStore::new();
+            store
+                .expect_is_info_hash_whitelisted()
+                .times(1)
+                .returning(|_| Box::pin(async { Ok(false) }));
+            store
+                .expect_add_info_hash_to_whitelist()
+                .times(1)
+                .returning(|_| Box::pin(async { Err(failed_insert()) }));
+            let (manager, in_memory) = manager_over(store);
+
+            // Act
+            let result = manager.add_torrent_to_whitelist(&info_hash).await;
+
+            // Assert
+            assert!(
+                matches!(result, Err(Error::InsertFailed { .. })),
+                "a failed persistence should be returned, got {result:?}"
+            );
+            assert!(
+                !in_memory.contains(&info_hash).await,
+                "the torrent should not be in memory when it could not be persisted"
+            );
+        }
+
+        #[tokio::test]
+        async fn it_should_keep_the_torrent_in_memory_when_removing_it_from_the_database_fails() {
+            // Arrange
+            let info_hash = sample_info_hash_one();
+            let mut store = MockWhitelistStore::new();
+            store
+                .expect_is_info_hash_whitelisted()
+                .times(1)
+                .returning(|_| Box::pin(async { Ok(true) }));
+            store.expect_remove_info_hash_from_whitelist().times(1).returning(|_| {
+                Box::pin(async {
+                    Err(Error::DeleteFailed {
+                        error_code: 1,
+                        driver: Driver::Sqlite3,
+                    })
+                })
+            });
+            let (manager, in_memory) = manager_over(store);
+            in_memory.add(&info_hash).await;
+
+            // Act
+            let result = manager.remove_torrent_from_whitelist(&info_hash).await;
+
+            // Assert
+            assert!(
+                matches!(result, Err(Error::DeleteFailed { .. })),
+                "a failed persistence should be returned, got {result:?}"
+            );
+            assert!(
+                in_memory.contains(&info_hash).await,
+                "the torrent should stay in memory when the database could not remove it"
+            );
+        }
+
+        #[tokio::test]
+        async fn it_should_keep_the_in_memory_whitelist_when_loading_it_from_the_database_fails() {
+            // Arrange
+            let info_hash = sample_info_hash_one();
+            let mut store = MockWhitelistStore::new();
+            store.expect_load_whitelist().times(1).returning(|| {
+                Box::pin(async {
+                    Err(Error::MalformedDatabaseRecord {
+                        message: "corrupt info-hash".to_string(),
+                        driver: Driver::Sqlite3,
+                    })
+                })
+            });
+            let (manager, in_memory) = manager_over(store);
+            in_memory.add(&info_hash).await;
+
+            // Act
+            let result = manager.load_whitelist_from_database().await;
+
+            // Assert
+            assert!(
+                matches!(result, Err(Error::MalformedDatabaseRecord { .. })),
+                "a failed load should be returned, got {result:?}"
+            );
+            assert!(
+                in_memory.contains(&info_hash).await,
+                "the in-memory whitelist should stay when the database could not be loaded"
+            );
+        }
+
+        #[tokio::test]
+        async fn it_should_replace_the_in_memory_whitelist_with_the_one_in_the_database() {
+            // Arrange
+            let stale = sample_info_hash_one();
+            let stored = sample_info_hash_two();
+            let mut store = MockWhitelistStore::new();
+            store
+                .expect_load_whitelist()
+                .times(1)
+                .returning(move || Box::pin(std::future::ready(Ok(vec![stored]))));
+            let (manager, in_memory) = manager_over(store);
+            in_memory.add(&stale).await;
+
+            // Act
+            let result = manager.load_whitelist_from_database().await;
+
+            // Assert
+            assert!(
+                result.is_ok(),
+                "loading the database whitelist should succeed, got {result:?}"
+            );
+            assert_eq!(
+                (in_memory.contains(&stale).await, in_memory.contains(&stored).await),
+                (false, true),
+                "the in-memory whitelist should be exactly the database whitelist"
+            );
+        }
+    }
 }

@@ -144,4 +144,145 @@ mod tests {
             assert!(result.is_ok());
         }
     }
+
+    mod the_persisted_whitelist_repository_with_a_failing_store {
+        use std::sync::Arc;
+
+        use torrust_tracker_primitives::Driver;
+
+        use crate::databases::error::Error;
+        use crate::databases::{MockWhitelistStore, WhitelistStore};
+        use crate::test_helpers::tests::sample_info_hash;
+        use crate::whitelist::repository::persisted::DatabaseWhitelist;
+
+        fn failed_insert() -> Error {
+            Error::InsertFailed { driver: Driver::Sqlite3 }
+        }
+
+        fn failed_delete() -> Error {
+            Error::DeleteFailed {
+                error_code: 1,
+                driver: Driver::Sqlite3,
+            }
+        }
+
+        fn whitelist_over(store: MockWhitelistStore) -> DatabaseWhitelist {
+            let store: Arc<dyn WhitelistStore> = Arc::new(store);
+            DatabaseWhitelist::new(store)
+        }
+
+        #[tokio::test]
+        async fn it_should_not_write_when_the_check_before_adding_fails() {
+            // Arrange
+            let mut store = MockWhitelistStore::new();
+            store
+                .expect_is_info_hash_whitelisted()
+                .times(1)
+                .returning(|_| Box::pin(async { Err(failed_insert()) }));
+            store.expect_add_info_hash_to_whitelist().never();
+            let whitelist = whitelist_over(store);
+
+            // Act
+            let result = whitelist.add(&sample_info_hash()).await;
+
+            // Assert
+            assert!(
+                matches!(result, Err(Error::InsertFailed { .. })),
+                "a failed check should be returned, got {result:?}"
+            );
+        }
+
+        #[tokio::test]
+        async fn it_should_return_the_error_when_the_write_of_an_add_fails() {
+            // Arrange
+            let mut store = MockWhitelistStore::new();
+            store
+                .expect_is_info_hash_whitelisted()
+                .times(1)
+                .returning(|_| Box::pin(async { Ok(false) }));
+            store
+                .expect_add_info_hash_to_whitelist()
+                .times(1)
+                .returning(|_| Box::pin(async { Err(failed_insert()) }));
+            let whitelist = whitelist_over(store);
+
+            // Act
+            let result = whitelist.add(&sample_info_hash()).await;
+
+            // Assert
+            assert!(
+                matches!(result, Err(Error::InsertFailed { .. })),
+                "a failed write should be returned, got {result:?}"
+            );
+        }
+
+        #[tokio::test]
+        async fn it_should_not_delete_when_the_check_before_removing_fails() {
+            // Arrange
+            let mut store = MockWhitelistStore::new();
+            store
+                .expect_is_info_hash_whitelisted()
+                .times(1)
+                .returning(|_| Box::pin(async { Err(failed_delete()) }));
+            store.expect_remove_info_hash_from_whitelist().never();
+            let whitelist = whitelist_over(store);
+
+            // Act
+            let result = whitelist.remove(&sample_info_hash()).await;
+
+            // Assert
+            assert!(
+                matches!(result, Err(Error::DeleteFailed { .. })),
+                "a failed check should be returned, got {result:?}"
+            );
+        }
+
+        #[tokio::test]
+        async fn it_should_return_the_error_when_the_delete_of_a_remove_fails() {
+            // Arrange
+            let mut store = MockWhitelistStore::new();
+            store
+                .expect_is_info_hash_whitelisted()
+                .times(1)
+                .returning(|_| Box::pin(async { Ok(true) }));
+            store
+                .expect_remove_info_hash_from_whitelist()
+                .times(1)
+                .returning(|_| Box::pin(async { Err(failed_delete()) }));
+            let whitelist = whitelist_over(store);
+
+            // Act
+            let result = whitelist.remove(&sample_info_hash()).await;
+
+            // Assert
+            assert!(
+                matches!(result, Err(Error::DeleteFailed { .. })),
+                "a failed delete should be returned, got {result:?}"
+            );
+        }
+
+        #[tokio::test]
+        async fn it_should_return_the_error_when_loading_the_whitelist_fails() {
+            // Arrange
+            let mut store = MockWhitelistStore::new();
+            store.expect_load_whitelist().times(1).returning(|| {
+                Box::pin(async {
+                    Err(Error::MalformedDatabaseRecord {
+                        message: "corrupt info-hash".to_string(),
+                        driver: Driver::Sqlite3,
+                    })
+                })
+            });
+            let whitelist = whitelist_over(store);
+
+            // Act
+            let result = whitelist.load_from_database().await;
+
+            // Assert
+            assert!(
+                matches!(result, Err(Error::MalformedDatabaseRecord { .. })),
+                "a failed load should be returned, got {result:?}"
+            );
+        }
+    }
 }
