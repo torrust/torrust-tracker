@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/3031-2387-si-1-statistics-disabled-warning-per-event/ISSUE.md
-last-updated-utc: "2026-11-25 08:50"
+issue-spec: docs/issues/closed/3031-2387-si-1-statistics-disabled-warning-per-event/ISSUE.md
+last-updated-utc: "2026-11-25 12:04"
 ---
 
 # Manual Verification Evidence
