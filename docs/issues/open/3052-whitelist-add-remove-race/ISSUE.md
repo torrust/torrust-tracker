@@ -7,9 +7,9 @@ priority: p2
 epic: null
 github-issue: 3052
 spec-path: docs/issues/open/3052-whitelist-add-remove-race/ISSUE.md
-branch: "3052-whitelist-add-remove-race-spec"
+branch: "3052-whitelist-add-remove-race"
 related-pr: null
-last-updated-utc: "2026-11-25 16:02"
+last-updated-utc: "2026-11-25 16:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -185,7 +185,7 @@ with the narrow affected scope, and sign every commit with GPG.
 - [x] Folder-style spec drafted in `docs/issues/open/3052-whitelist-add-remove-race/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created (#3052) and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
+- [x] Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -200,6 +200,7 @@ with the narrow affected scope, and sign every commit with GPG.
 
 - 2026-11-25 14:15 UTC - Claude Code (Claude Sonnet 5.5) - Reproduced on SQLite (V1), drafted the spec after the maintainer chose idempotent store writes - `manual-verification-evidence.md` V1
 - 2026-11-25 14:18 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the spec; GitHub issue #3052 created; spec moved to open/
+- 2026-11-25 16:55 UTC - Claude Code (Claude Sonnet 5.5) - Spec PR #3053 merged; added the asserting `persisted.rs` concurrency tests (one for add, one for remove) and observed both red on SQLite - `manual-verification-evidence.md` T3
 
 ## Acceptance Criteria
 

@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/3052-whitelist-add-remove-race/ISSUE.md
-last-updated-utc: "2026-11-25 14:57"
+last-updated-utc: "2026-11-25 16:55"
 ---
 
 # Manual Verification Evidence
@@ -78,6 +78,22 @@ code and is to be captured in the red run of T3.)
 #### Conclusion
 
 Both concurrent identical `add` and concurrent identical `remove` fail in every round on SQLite.
+
+### T3 - Red run of the asserting concurrency tests (SQLite, before the fix)
+
+Artifact under test: `torrust/develop` at the merge of #3053 (spec) plus the two new tests in
+`packages/tracker-core/src/whitelist/repository/persisted.rs`
+(`should_not_fail_on_concurrent_identical_adds`, `should_not_fail_on_concurrent_identical_removes`).
+Both fail in the first rounds on the unfixed code. Command:
+`cargo test -p torrust-tracker-core --lib persisted::tests`. Result: `13 passed; 2 failed`.
+
+```text
+concurrent add failed in round 0: Err(InvalidQuery { source: Database(SqliteError { code: 2067, message: "UNIQUE constraint failed: whitelist.info_hash" }), driver: Sqlite3 })
+concurrent remove failed in round 1: Err(DeleteFailed { error_code: 0, driver: Sqlite3 })
+```
+
+This confirms the predicted `DeleteFailed` for a concurrent `remove`, which V1 did not print.
+The concurrent store-level harness cases (second T3 commit) have their red run recorded below when added.
 
 ### V2 - MySQL and PostgreSQL
 

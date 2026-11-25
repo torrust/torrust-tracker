@@ -68,6 +68,8 @@ impl DatabaseWhitelist {
 mod tests {
     mod the_persisted_whitelist_repository {
 
+        use std::sync::Arc;
+
         use torrust_tracker_configuration::v3_0_0::core::Core;
 
         use crate::databases::setup::initialize_database;
@@ -142,6 +144,54 @@ mod tests {
             let result = whitelist.remove(&infohash).await;
 
             assert!(result.is_ok());
+        }
+
+        // Concurrent identical calls must all succeed: both operations are idempotent.
+        //
+        // The race window is the gap between the read and the write, so these tests need a
+        // multi-threaded runtime and many rounds to fail reliably on the racy code.
+        const CONCURRENT_ROUNDS: usize = 200;
+
+        #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+        async fn should_not_fail_on_concurrent_identical_adds() {
+            let ephemeral = ephemeral_configuration_for_listed_tracker();
+            let whitelist = Arc::new(initialize_database_whitelist(&ephemeral.config).await);
+            let infohash = sample_info_hash();
+
+            for round in 0..CONCURRENT_ROUNDS {
+                let (first, second) = (whitelist.clone(), whitelist.clone());
+                let (first, second) = tokio::join!(
+                    tokio::spawn(async move { first.add(&infohash).await }),
+                    tokio::spawn(async move { second.add(&infohash).await })
+                );
+                for result in [first.unwrap(), second.unwrap()] {
+                    assert!(result.is_ok(), "concurrent add failed in round {round}: {result:?}");
+                }
+                assert!(whitelist.load_from_database().await.unwrap().contains(&infohash));
+
+                whitelist.remove(&infohash).await.unwrap();
+            }
+        }
+
+        #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+        async fn should_not_fail_on_concurrent_identical_removes() {
+            let ephemeral = ephemeral_configuration_for_listed_tracker();
+            let whitelist = Arc::new(initialize_database_whitelist(&ephemeral.config).await);
+            let infohash = sample_info_hash();
+
+            for round in 0..CONCURRENT_ROUNDS {
+                whitelist.add(&infohash).await.unwrap();
+
+                let (first, second) = (whitelist.clone(), whitelist.clone());
+                let (first, second) = tokio::join!(
+                    tokio::spawn(async move { first.remove(&infohash).await }),
+                    tokio::spawn(async move { second.remove(&infohash).await })
+                );
+                for result in [first.unwrap(), second.unwrap()] {
+                    assert!(result.is_ok(), "concurrent remove failed in round {round}: {result:?}");
+                }
+                assert!(!whitelist.load_from_database().await.unwrap().contains(&infohash));
+            }
         }
     }
 
