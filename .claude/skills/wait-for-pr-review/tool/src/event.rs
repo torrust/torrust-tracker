@@ -8,6 +8,9 @@ use crate::snapshot::{Comment, PullState, Review, Snapshot, User};
 use crate::timestamp::parse_utc;
 
 /// Whose reviews and comments count as events.
+///
+/// No reviewer login is built in: see
+/// `docs/adrs/20261124182709_review_pull_requests_without_a_mandatory_reviewer.md` (decision 4).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Reviewers {
     /// Every account except the pull request's author: the default, so a new reviewer needs no

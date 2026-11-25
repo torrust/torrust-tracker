@@ -83,6 +83,17 @@ rate-limited reviewer block every pull request, which is the problem the change 
   merged or closed.
 - Recognizing a review-bot check run relies on GitHub reporting no workflow for it.
 
+## Affected Code
+
+- `.claude/skills/wait-for-pr-review/tool/src/event.rs`: `Reviewers`, the reviewer set the poller
+  watches (decision 4).
+- `.claude/skills/wait-for-pr-review/tool/src/main.rs`: the `--reviewer` flag with no default
+  logins, and the `watch` field of the `wait_started` record.
+- `contrib/dev-tools/checks/agent-review-report-contract/src/main.rs`: the pinned sentences of the
+  `Reviewer` column and the forbidden author classes (decision 5).
+- The skills `wait-for-pr-review`, `watch-pull-request-checks`, `merge-pull-request` and
+  `process-pr-review`, and `docs/templates/PR-REVIEW-TEMPLATE.md` (decisions 1 to 6).
+
 ## Date
 
 2026-11-24
