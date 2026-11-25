@@ -16,6 +16,7 @@ use clap::{Parser, value_parser};
 use serde::Serialize;
 use signal_hook::consts::{SIGINT, SIGTERM};
 use signal_hook::flag;
+use wait_for_pr_review::event::Reviewers;
 use wait_for_pr_review::timestamp::parse_utc;
 use wait_for_pr_review::{Config, GhCli, PullRequest, SystemClock, wait};
 
@@ -45,8 +46,9 @@ struct Cli {
     /// Repository name.
     #[arg(long, default_value = "torrust-tracker")]
     repository: String,
-    /// Login whose reviews and comments count as events. Repeat to watch several. Replaces the defaults.
-    #[arg(long = "reviewer", default_values = ["da2ce7", "copilot-pull-request-reviewer[bot]"])]
+    /// Login whose reviews and comments count as events. Repeat to watch several. Without it, every
+    /// account except the pull request's author counts.
+    #[arg(long = "reviewer")]
     reviewers: Vec<String>,
     /// Longest wait before a `timeout` result, in seconds. At most 86400 (one day).
     #[arg(long, default_value_t = 900, value_parser = value_parser!(u64).range(1..=MAX_TIMEOUT_SECONDS))]
@@ -105,6 +107,8 @@ struct WaitStarted<'a> {
     kind: &'static str,
     gh_command: &'a str,
     pr_number: u64,
+    /// `all_except_author` when no `--reviewer` was given, otherwise `listed`.
+    watch: &'static str,
     reviewers: &'a [String],
     timeout_seconds: u64,
     poll_interval_seconds: u64,
@@ -146,6 +150,11 @@ fn main() -> ExitCode {
         kind: "wait_started",
         gh_command: &cli.gh_command,
         pr_number: cli.pr_number,
+        watch: if cli.reviewers.is_empty() {
+            "all_except_author"
+        } else {
+            "listed"
+        },
         reviewers: &cli.reviewers,
         timeout_seconds: cli.timeout_seconds,
         poll_interval_seconds: cli.poll_interval_seconds,
@@ -163,7 +172,7 @@ fn main() -> ExitCode {
         number: cli.pr_number,
     };
     let config = Config {
-        reviewers: cli.reviewers,
+        reviewers: Reviewers::from_logins(cli.reviewers),
         timeout,
         poll_interval: Duration::from_secs(cli.poll_interval_seconds),
         since_head_sha: cli.since_head_sha,

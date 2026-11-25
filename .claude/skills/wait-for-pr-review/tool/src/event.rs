@@ -7,6 +7,44 @@ use serde::Serialize;
 use crate::snapshot::{Comment, PullState, Review, Snapshot, User};
 use crate::timestamp::parse_utc;
 
+/// Whose reviews and comments count as events.
+///
+/// No reviewer login is built in: see
+/// `docs/adrs/20261124182709_review_pull_requests_without_a_mandatory_reviewer.md` (decision 4).
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum Reviewers {
+    /// Every account except the pull request's author: the default, so a new reviewer needs no
+    /// configuration. When GitHub shows no author (a deleted account), every account counts.
+    AllExceptAuthor,
+    /// Only these logins, compared without regard to case.
+    Only(Vec<String>),
+}
+
+impl Reviewers {
+    /// [`Reviewers::AllExceptAuthor`] when `logins` is empty, otherwise [`Reviewers::Only`] those logins.
+    #[must_use]
+    pub fn from_logins(logins: Vec<String>) -> Self {
+        if logins.is_empty() {
+            Self::AllExceptAuthor
+        } else {
+            Self::Only(logins)
+        }
+    }
+
+    /// Whether a review or comment by `login`, on a pull request opened by `author`, counts. An item
+    /// whose account GitHub no longer shows never counts.
+    fn watches(&self, login: Option<&str>, author: Option<&str>) -> bool {
+        let Some(login) = login else {
+            return false;
+        };
+
+        match self {
+            Self::AllExceptAuthor => !author.is_some_and(|author| author.eq_ignore_ascii_case(login)),
+            Self::Only(logins) => logins.iter().any(|reviewer| reviewer.eq_ignore_ascii_case(login)),
+        }
+    }
+}
+
 /// Which items count as new.
 #[derive(Clone, Debug, Eq, PartialEq)]
 enum Cutoff {
@@ -176,9 +214,9 @@ pub enum Event {
 /// A closed or merged pull request wins. Next comes the earliest new review or comment, in time
 /// order, so the `cursor` of the result never skips an item that is still unreported: a review and
 /// a comment made in the same second are reported review first. A new head commit comes last. Only
-/// logins in `reviewers` count, compared without regard to case.
+/// the accounts that `reviewers` watches count.
 #[must_use]
-pub fn detect(baseline: &Baseline, snapshot: &Snapshot, reviewers: &[String]) -> Option<Event> {
+pub fn detect(baseline: &Baseline, snapshot: &Snapshot, reviewers: &Reviewers) -> Option<Event> {
     let head_sha = snapshot.head_sha.clone();
 
     match snapshot.state {
@@ -193,10 +231,6 @@ pub fn detect(baseline: &Baseline, snapshot: &Snapshot, reviewers: &[String]) ->
             head_sha: snapshot.head_sha.clone(),
         })
     })
-}
-
-fn is_watched(login: Option<&str>, reviewers: &[String]) -> bool {
-    login.is_some_and(|login| reviewers.iter().any(|reviewer| reviewer.eq_ignore_ascii_case(login)))
 }
 
 /// A new review or comment from a watched reviewer.
@@ -252,8 +286,9 @@ impl Feedback<'_> {
     }
 }
 
-fn earliest_feedback(baseline: &Baseline, snapshot: &Snapshot, reviewers: &[String]) -> Option<Event> {
-    let watched = |user: &Option<User>| is_watched(user.as_ref().map(|user| user.login.as_str()), reviewers);
+fn earliest_feedback(baseline: &Baseline, snapshot: &Snapshot, reviewers: &Reviewers) -> Option<Event> {
+    let author = snapshot.author.as_deref();
+    let watched = |user: &Option<User>| reviewers.watches(user.as_ref().map(|user| user.login.as_str()), author);
 
     let reviews = snapshot
         .reviews
@@ -280,11 +315,17 @@ fn earliest_feedback(baseline: &Baseline, snapshot: &Snapshot, reviewers: &[Stri
 
 #[cfg(test)]
 mod tests {
-    use super::{Baseline, CommentKind, Event, detect};
+    use super::{Baseline, CommentKind, Event, Reviewers, detect};
     use crate::snapshot::{Comment, PullState, Review, Snapshot, User};
 
-    fn reviewers() -> Vec<String> {
-        vec!["da2ce7".to_owned(), "copilot-pull-request-reviewer[bot]".to_owned()]
+    /// The pull request's author in [`snapshot`].
+    const AUTHOR: &str = "contributor";
+
+    /// A review bot that comments by itself and never approves.
+    const REVIEW_BOT: &str = "review-bot[bot]";
+
+    fn reviewers() -> Reviewers {
+        Reviewers::Only(vec!["da2ce7".to_owned(), REVIEW_BOT.to_owned()])
     }
 
     fn user(login: &str) -> User {
@@ -315,6 +356,7 @@ mod tests {
         Snapshot {
             head_sha: "head".to_owned(),
             state: PullState::Open,
+            author: Some(AUTHOR.to_owned()),
             reviews: vec![review(10, "da2ce7", "APPROVED")],
             issue_comments: vec![comment(20, "da2ce7", "2026-10-28T06:00:00Z")],
             review_comments: vec![comment(30, "da2ce7", "2026-10-28T06:00:00Z")],
@@ -354,9 +396,7 @@ mod tests {
     #[test]
     fn it_should_report_a_review_submitted_later_with_a_lower_id_than_one_already_submitted() {
         let mut before = snapshot();
-        before
-            .reviews
-            .push(review(12, "copilot-pull-request-reviewer[bot]", "COMMENTED"));
+        before.reviews.push(review(12, REVIEW_BOT, "COMMENTED"));
         let mut after = before.clone();
         // A draft started before review 12 keeps its lower ID when it is finally submitted.
         after.reviews.push(review(11, "da2ce7", "CHANGES_REQUESTED"));
@@ -408,12 +448,10 @@ mod tests {
     }
 
     #[test]
-    fn it_should_report_a_new_copilot_review_even_though_copilot_never_approves() {
+    fn it_should_report_a_new_commented_review_from_a_bot_that_never_approves() {
         let before = snapshot();
         let mut after = before.clone();
-        after
-            .reviews
-            .push(review(11, "copilot-pull-request-reviewer[bot]", "COMMENTED"));
+        after.reviews.push(review(11, REVIEW_BOT, "COMMENTED"));
 
         assert!(matches!(
             detect(&Baseline::from_snapshot(&before), &after, &reviewers()),
@@ -439,6 +477,58 @@ mod tests {
         after.review_comments.push(comment(31, "josecelano", "2026-10-28T08:00:00Z"));
 
         assert_eq!(detect(&Baseline::from_snapshot(&before), &after, &reviewers()), None);
+    }
+
+    #[test]
+    fn it_should_report_a_review_from_an_account_in_no_list_when_no_reviewer_is_listed() {
+        let before = snapshot();
+        let mut after = before.clone();
+        after.reviews.push(review(11, "new-reviewer[bot]", "COMMENTED"));
+
+        assert!(matches!(
+            detect(&Baseline::from_snapshot(&before), &after, &Reviewers::AllExceptAuthor),
+            Some(Event::Review { reviewer, .. }) if reviewer == "new-reviewer[bot]"
+        ));
+    }
+
+    #[test]
+    fn it_should_ignore_the_authors_own_reviews_and_comments_when_no_reviewer_is_listed() {
+        let before = snapshot();
+        let mut after = before.clone();
+        after.reviews.push(review(11, AUTHOR, "COMMENTED"));
+        after.issue_comments.push(comment(21, AUTHOR, "2026-10-28T08:00:00Z"));
+        after
+            .review_comments
+            .push(comment(31, &AUTHOR.to_uppercase(), "2026-10-28T08:00:00Z"));
+
+        assert_eq!(
+            detect(&Baseline::from_snapshot(&before), &after, &Reviewers::AllExceptAuthor),
+            None
+        );
+    }
+
+    #[test]
+    fn it_should_count_every_account_when_github_shows_no_author_and_no_reviewer_is_listed() {
+        let before = Snapshot {
+            author: None,
+            ..snapshot()
+        };
+        let mut after = before.clone();
+        after.issue_comments.push(comment(21, AUTHOR, "2026-10-28T08:00:00Z"));
+
+        assert!(matches!(
+            detect(&Baseline::from_snapshot(&before), &after, &Reviewers::AllExceptAuthor),
+            Some(Event::Comment { reviewer, .. }) if reviewer == AUTHOR
+        ));
+    }
+
+    #[test]
+    fn it_should_watch_every_account_except_the_author_when_built_from_no_logins() {
+        assert_eq!(Reviewers::from_logins(Vec::new()), Reviewers::AllExceptAuthor);
+        assert_eq!(
+            Reviewers::from_logins(vec!["da2ce7".to_owned()]),
+            Reviewers::Only(vec!["da2ce7".to_owned()])
+        );
     }
 
     #[test]
