@@ -4,7 +4,8 @@
 /// registry checkout, the standard library sources, or a `file.rs:line` suffix, written with
 /// either path separator. It reports a failure at the caller's line.
 ///
-/// This definition is separate because a dev-dependency on `torrust-tracker-test-helpers` would pull tracker configuration and logging into a protocol crate's tests.
+/// This definition is separate because a dev-dependency on `torrust-tracker-test-helpers` would
+/// pull tracker configuration and logging into a protocol crate's tests.
 /// Four other definitions exist; change all five together:
 ///
 /// - `packages/test-helpers/src/assertions.rs`

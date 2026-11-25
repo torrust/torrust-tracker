@@ -385,7 +385,8 @@ mod tests {
     /// registry checkout, the standard library sources, or a `file.rs:line` suffix, written with
     /// either path separator. It reports a failure at the caller's line.
     ///
-    /// This definition is separate because `torrust-tracker-test-helpers` depends on `configuration`, so a dev-dependency would be a cycle.
+    /// This definition is separate because `torrust-tracker-test-helpers` depends on
+    /// `configuration`, so a dev-dependency would be a cycle.
     /// Four other definitions exist; change all five together:
     ///
     /// - `packages/test-helpers/src/assertions.rs`

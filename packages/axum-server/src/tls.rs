@@ -59,7 +59,8 @@ mod tests {
     /// registry checkout, the standard library sources, or a `file.rs:line` suffix, written with
     /// either path separator. It reports a failure at the caller's line.
     ///
-    /// This definition is separate because this package has no dev-dependency on `torrust-tracker-test-helpers`, and none is added.
+    /// This definition is separate because this package has no dev-dependency on
+    /// `torrust-tracker-test-helpers`, and none is added.
     /// Four other definitions exist; change all five together:
     ///
     /// - `packages/test-helpers/src/assertions.rs`
