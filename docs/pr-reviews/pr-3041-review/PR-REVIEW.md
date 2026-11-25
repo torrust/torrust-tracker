@@ -46,17 +46,23 @@ Review 6044596970 (Greptile, 2026-11-24 17:57 UTC) posted one inline comment, F1
 
 Review 6054002314 (da2ce7, APPROVED, 2026-11-25 08:17 UTC) posted four inline comments, F2 to F5 here (its own F1 to F4). Its body lists the same four findings and says none blocks, so it adds no row.
 
-Review 6057005909 (CodeRabbit, 2026-11-25 11:45 UTC, on the head `docs(issues): [#2996] cite each acceptance criterion's own evidence and refresh the SI-8 spec metadata`) posted one inline comment, F6. Its body repeats F6 and adds a failed "Out of Scope Changes" pre-merge check, F7, which has no thread.
+Review 6057005909 (CodeRabbit, 2026-11-25 11:45 UTC, on the head `docs(pr-reviews): [#2996] record review round 2 of PR 3041 in its audit`) posted one inline comment, F6. Its body repeats F6 and adds a failed "Out of Scope Changes" pre-merge check, F7, which has no thread.
+
+Review 6057270149 (da2ce7, APPROVED, 2026-11-25 12:04 UTC, on the head `docs(pr-reviews): [#2996] record the replies of round 3 in the PR 3041 audit`) posted four inline Nits, F8 to F11. Its body lists the same four and says none blocks, so it adds no row. Its body also notes reply 4694522201 (CodeRabbit, 11:57 UTC) on the F6 thread, which confirms the fix and raises nothing new, so it adds no row either.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3041-f1 | Unknown | Minor (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
-| F2 | review-finding:pr-3041-f2 | Unknown | Minor | testing | ORIGINAL | FIXED | RESOLVED |
-| F3 | review-finding:pr-3041-f3 | Unknown | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
-| F4 | review-finding:pr-3041-f4 | Unknown | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
-| F5 | review-finding:pr-3041-f5 | Unknown | Nit | formatting | ORIGINAL | FIXED | RESOLVED |
+| F2 | review-finding:pr-3041-f2 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F3 | review-finding:pr-3041-f3 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F4 | review-finding:pr-3041-f4 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F5 | review-finding:pr-3041-f5 | Human | Nit | formatting | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-3041-f6 | Unknown | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F7 | review-finding:pr-3041-f7 | Unknown | Minor (inferred) | other | ORIGINAL | NO_ACTION | NON_RESOLVABLE |
+| F8 | review-finding:pr-3041-f8 | Human | Nit | documentation | ORIGINAL | FIXED | OPEN |
+| F9 | review-finding:pr-3041-f9 | Human | Nit | documentation | ORIGINAL | FIXED | OPEN |
+| F10 | review-finding:pr-3041-f10 | Human | Nit | metadata | ORIGINAL | FIXED | OPEN |
+| F11 | review-finding:pr-3041-f11 | Human | Nit | testing | ORIGINAL | FIXED | OPEN |
 
 ## Finding Details
 
@@ -107,7 +113,7 @@ Review 6057005909 (CodeRabbit, 2026-11-25 11:45 UTC, on the head `docs(issues): 
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/3041#discussion_r4692111210>
 - Concern: the spec frontmatter still read `last-updated-utc: "2026-11-23 15:53"` although this PR changes the file.
 - Solution: the frontmatter now reads `2026-11-25 11:37`, the time of this round's spec update, and the evidence file's stamp moved with it.
-- Current-tree verification: `grep -n last-updated-utc docs/issues/open/2996-2912-si-8-share-assert-names-no-source-path/*.md` prints `2026-11-25 11:37` for both files.
+- Current-tree verification: `grep -n last-updated-utc docs/issues/open/2996-2912-si-8-share-assert-names-no-source-path/*.md` prints the time of each file's last change: `2026-11-25 11:37` for `ISSUE.md`, and a later stamp for `manual-verification-evidence.md`, which F6 and F11 changed again.
 - Resolution reference: docs(issues): [#2996] cite each acceptance criterion's own evidence and refresh the SI-8 spec metadata
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/3041#discussion_r4694353579>
@@ -151,6 +157,58 @@ Review 6057005909 (CodeRabbit, 2026-11-25 11:45 UTC, on the head `docs(issues): 
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/3041#issuecomment-7161636511>
 
+### F8 - Name the head that review 6057005909 saw
+
+- PR number: 3041
+- Source review ID: 6057270149
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/3041#discussion_r4694605342>
+- Concern: the Findings intro named the head of CodeRabbit review 6057005909 by the subject of its parent commit; the review was posted on the commit `docs(pr-reviews): [#2996] record review round 2 of PR 3041 in its audit`.
+- Solution: the intro now names that commit's subject.
+- Current-tree verification: `git log -1 --format=%s` of the review's `commit_id` (from `gh api repos/torrust/torrust-tracker/pulls/3041/reviews/6057005909`) prints `docs(pr-reviews): [#2996] record review round 2 of PR 3041 in its audit`, the subject the intro now quotes.
+- Resolution reference: docs(pr-reviews): [#2996] record review round 4 of PR 3041 and correct three audit entries
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
+### F9 - Keep the F4 stamp check true for the current tree
+
+- PR number: 3041
+- Source review ID: 6057270149
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/3041#discussion_r4694605359>
+- Concern: F4's verification said the `last-updated-utc` grep prints `2026-11-25 11:37` for both spec files, but F6 later refreshed the evidence file's stamp, so the sentence no longer described the current tree.
+- Solution: the sentence now says each file carries the time of its last change, `2026-11-25 11:37` for `ISSUE.md` and a later stamp for the evidence file, which F6 and F11 changed again.
+- Current-tree verification: `grep -n last-updated-utc docs/issues/open/2996-2912-si-8-share-assert-names-no-source-path/*.md` prints `2026-11-25 11:37` for `ISSUE.md` and `2026-11-25 12:11` for `manual-verification-evidence.md`.
+- Resolution reference: docs(pr-reviews): [#2996] record review round 4 of PR 3041 and correct three audit entries
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
+### F10 - Class da2ce7's findings as `Human`
+
+- PR number: 3041
+- Source review ID: 6057270149
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/3041#discussion_r4694605367>
+- Concern: rows F2 to F5, from review 6054002314, gave the author class `Unknown`, but the `process-pr-review` skill classes a human account as `Human` and its author is a `User` account.
+- Solution: rows F2 to F5, and the new rows F8 to F11 of the same account, read `Human`. F1, F6 and F7 (Greptile and CodeRabbit, bot accounts that are not Copilot) stay `Unknown`.
+- Current-tree verification: `gh api users/da2ce7 --jq .type` prints `User`; `grep -n "^| F" docs/pr-reviews/pr-3041-review/PR-REVIEW.md` shows `Human` on F2 to F5 and F8 to F11.
+- Resolution reference: docs(pr-reviews): [#2996] record review round 4 of PR 3041 and correct three audit entries
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
+### F11 - Name the message a fragment case fails to reject
+
+- PR number: 3041
+- Source review ID: 6057270149
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/3041#discussion_r4694605383>
+- Concern: when a case was not rejected, the test reported only `it should reject the message: ()`, without naming which of the seven messages slipped through.
+- Solution: the test binds the panic payload with `let Err(panic_payload) = catch_unwind(...) else { panic!("it should reject {message:?}") };`, so an accepted message is named.
+- Current-tree verification: `cargo test -q -p torrust-tracker-test-helpers` passes (10 tests); with `"rustlib/src"` removed on a scratch change, the test failed with `it should reject "failed in /toolchain/lib/rustlib/src"` (V4 re-run in `manual-verification-evidence.md`); the file was restored.
+- Resolution reference: test(test-helpers): [#2996] name the message a fragment case fails to reject
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
 ## Processing Log
 
 - 2026-11-24 18:01 UTC - Started audit for review 6044596970 (Greptile); F1 fixed in a signed commit, reply and thread resolution follow after the push.
@@ -159,6 +217,7 @@ Review 6057005909 (CodeRabbit, 2026-11-25 11:45 UTC, on the head `docs(issues): 
 - 2026-11-25 11:42 UTC - Replied on the F2 to F5 threads after pushing the fixes and the audit, and resolved the four threads; a GraphQL refresh shows 0 unresolved threads.
 - 2026-11-25 11:49 UTC - Added F6 and F7 for review 6057005909 (CodeRabbit); F6 fixed in a signed commit, F7 declined (the audit record belongs to the PR by the `process-pr-review` skill); replies follow after the push.
 - 2026-11-25 11:53 UTC - Replied on the F6 thread after the push (CodeRabbit then resolved it) and answered F6 and F7 in a PR conversation comment; a GraphQL refresh shows all six threads resolved.
+- 2026-11-25 12:13 UTC - Added F8 to F11 for review 6057270149 (da2ce7, approved); F11 fixed in a signed test commit; F8, F9 and F10 corrected in this record (F10 also changed the author class of F2 to F5 to `Human`); replies follow after the push.
 
 ## Completion Rules
 
