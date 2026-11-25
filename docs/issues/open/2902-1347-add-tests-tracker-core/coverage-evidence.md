@@ -258,9 +258,12 @@ later commits change documentation only). The base columns apply the head withou
 | Unit-only without `db-compatibility-tests`, S3 | 285 unit | 5,172 / 5,611 (92.18%) | 5,710 / 6,313 (90.45%) | 905 / 1,063 (85.14%) |
 
 The slice adds six tests in `mysql/mod.rs` and `postgres/mod.rs` and nothing else is measured
-differently. The aggregate at S3 is ten lines above the unit-only figure (five per driver file) with
-identical regions and functions; at the base the two were equal. This was not investigated further: the
-extra lines are in the new test modules, and no region or function differs. The MySQL and PostgreSQL
+differently. The aggregate at S3 counts ten lines more than the unit-only row (five per driver file)
+with identical regions and functions. A later clean `--all-features --lib` run of the same code (the S4
+base, 2026-11-25) gave 5,186 / 5,935 lines, equal to the aggregate: the line count of the new test
+modules is not stable between two runs of the same code (regions and functions are), so the difference
+was a counting artifact, not extra covered code. Compare line figures of a slice only within one
+measurement session. The MySQL and PostgreSQL
 store files stay at 0% in every default scope; their coverage comes from the container suites run by
 `db-compatibility.yaml`, which the published coverage report leaves out (the separate issue of Q2).
 
