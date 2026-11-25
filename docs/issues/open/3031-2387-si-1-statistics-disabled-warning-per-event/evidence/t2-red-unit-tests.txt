@@ -1,4 +1,4 @@
-     Running unittests src/lib.rs 
+     Running unittests src/lib.rs
 test statistics::event::listener::tests::it_should_report_how_many_instances_have_statistics_enabled_and_disabled_when_starting ... FAILED
 test statistics::event::listener::tests::it_should_log_one_error_with_the_service_role_and_the_instance_index_for_an_event_of_an_unknown_instance ... FAILED
 test statistics::event::listener::tests::it_should_not_log_a_warning_or_an_error_for_an_event_of_a_metrics_disabled_instance ... FAILED
@@ -6,7 +6,7 @@ thread 'statistics::event::listener::tests::it_should_report_how_many_instances_
 thread 'statistics::event::listener::tests::it_should_log_one_error_with_the_service_role_and_the_instance_index_for_an_event_of_an_unknown_instance' (604067) panicked at packages/http-core/src/statistics/event/listener.rs:689:9:
 thread 'statistics::event::listener::tests::it_should_not_log_a_warning_or_an_error_for_an_event_of_a_metrics_disabled_instance' (604068) panicked at packages/http-core/src/statistics/event/listener.rs:664:9:
 test result: FAILED. 18 passed; 3 failed; 0 ignored; 0 measured; 174 filtered out; finished in 0.00s
-     Running unittests src/lib.rs 
+     Running unittests src/lib.rs
 test statistics::event::listener::tests::it_should_not_log_a_warning_or_an_error_for_an_event_of_a_metrics_disabled_instance ... FAILED
 test statistics::event::listener::tests::it_should_report_how_many_instances_have_statistics_enabled_and_disabled_when_starting ... FAILED
 test statistics::event::listener::tests::it_should_log_one_error_with_the_service_role_and_the_instance_index_for_an_event_of_an_unknown_instance ... FAILED
@@ -14,7 +14,7 @@ thread 'statistics::event::listener::tests::it_should_not_log_a_warning_or_an_er
 thread 'statistics::event::listener::tests::it_should_report_how_many_instances_have_statistics_enabled_and_disabled_when_starting' (604089) panicked at packages/udp-core/src/statistics/event/listener.rs:543:9:
 thread 'statistics::event::listener::tests::it_should_log_one_error_with_the_service_role_and_the_instance_index_for_an_event_of_an_unknown_instance' (604086) panicked at packages/udp-core/src/statistics/event/listener.rs:511:9:
 test result: FAILED. 10 passed; 3 failed; 0 ignored; 0 measured; 99 filtered out; finished in 0.00s
-     Running unittests src/lib.rs 
+     Running unittests src/lib.rs
 test statistics::event::listener::tests::it_should_report_how_many_instances_have_statistics_enabled_and_disabled_when_starting ... FAILED
 test statistics::event::listener::tests::it_should_log_one_error_with_the_service_role_and_the_instance_index_for_an_event_of_an_unknown_instance ... FAILED
 test statistics::event::listener::tests::it_should_not_log_a_warning_or_an_error_for_an_event_of_a_metrics_disabled_instance ... FAILED

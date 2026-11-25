@@ -145,7 +145,7 @@ async fn handle_received_event(
             target: HTTP_TRACKER_LOG_TARGET,
             service_role = %configuration_instance_id.service_role(),
             instance_index = configuration_instance_id.instance_index(),
-            "Received a HTTP tracker event from an instance that has no statistics policy entry"
+            "Received an HTTP tracker event from an instance that has no statistics policy entry"
         ),
     }
 }
@@ -676,6 +676,11 @@ mod tests {
 
         // Assert
         let records = logs.lines();
+        let records_of_the_instance: Vec<_> = records.iter().filter(|record| record.contains("instance_index=1")).collect();
+        assert!(
+            !records_of_the_instance.is_empty() && records_of_the_instance.iter().all(|record| record.contains(" TRACE ")),
+            "the event of the disabled instance is logged at TRACE only, in {records:?}"
+        );
         assert!(!has_a_record_at_level(&records, " WARN "), "unexpected WARN in {records:?}");
         assert!(!has_a_record_at_level(&records, " ERROR "), "unexpected ERROR in {records:?}");
     }

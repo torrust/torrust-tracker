@@ -171,6 +171,8 @@ pub struct ScopedLogCapture {
 /// returned guard is dropped.
 #[must_use]
 pub fn capture_logs_in_scope() -> ScopedLogCapture {
+    keep_a_second_dispatcher_alive();
+
     let records = Arc::new(Mutex::new(Vec::new()));
     let sink = records.clone();
     let subscriber = tracing_subscriber::fmt()
@@ -183,6 +185,18 @@ pub fn capture_logs_in_scope() -> ScopedLogCapture {
         records,
         _guard: tracing::subscriber::set_default(subscriber),
     }
+}
+
+/// Keeps one more dispatcher registered for the life of the process.
+///
+/// While `tracing` knows a single dispatcher, a callsite reached for the first time from a thread
+/// that has no scoped subscriber caches "never interested", and a capture started on another
+/// thread then misses that callsite's records. With two live dispatchers `tracing` asks all of
+/// them, so tests that run in parallel see their own records.
+fn keep_a_second_dispatcher_alive() {
+    static SECOND_DISPATCHER: OnceLock<tracing::Dispatch> = OnceLock::new();
+
+    SECOND_DISPATCHER.get_or_init(|| tracing::Dispatch::new(tracing::subscriber::NoSubscriber::default()));
 }
 
 impl ScopedLogCapture {

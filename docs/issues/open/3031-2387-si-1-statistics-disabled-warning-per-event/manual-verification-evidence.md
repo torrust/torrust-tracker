@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue: 3031
-last-updated-utc: "2026-11-24 18:24"
+issue-spec: docs/issues/open/3031-2387-si-1-statistics-disabled-warning-per-event/ISSUE.md
+last-updated-utc: "2026-11-25 08:22"
 ---
 
 # Manual Verification Evidence
@@ -12,12 +12,12 @@ Real runs of the release `torrust-tracker` binary before and after the fix of is
 
 ## Environment and Prerequisites
 
-- Date and time (UTC): 2026-11-24, runs between 18:06 and 18:11 (the timestamps of the log lines).
+- Date and time (UTC): the "before" runs (V1 and the first run of V3) on 2026-11-24 between 18:06 and 18:11; the "after" runs (V2 and the second run of V3) on 2026-11-25 at 08:22, repeated after review round 2 (see below). The timestamps are those of the log lines.
 - Artifact under test: release build (`cargo build --release -p torrust-tracker --bin torrust-tracker`, `rustc 1.100.0 (0ef1bc386 2026-11-09)`, Linux x86_64).
   - Before: `develop` at `392d97775` (a commit on `develop`), no change.
-  - After: the implementation branch with the commit `fix(statistics): [#3031] stop warning for each event of a statistics-disabled instance` and its tests.
+  - After: the implementation branch after the commit `fix(statistics): [#3031] address review round 2 of the statistics-disabled fix`, the last commit that changed production code (the article of one message, `a HTTP` to `an HTTP`). The first "after" runs, on 2026-11-24 at 18:10 with the commit `fix(statistics): [#3031] stop warning for each event of a statistics-disabled instance`, gave the same counts (0 `WARN`, 0 `ERROR`, 258 lines, identical counters); they were repeated because the production code changed afterwards.
 - Configurations, stored verbatim beside this file: [evidence/enabled.toml](evidence/enabled.toml) is `share/default/config/tracker.development.sqlite3.toml` with only the SQLite path changed to a scratch directory. [evidence/disabled.toml](evidence/disabled.toml) is the same with `tracker_usage_statistics = false` in the two `[[udp_trackers]]` and the two `[[http_trackers]]` tables (4 lines changed).
-- Scenario script (kept outside the repository, run from the repository root, one step after the other): start the binary with `--config-toml-path <config>`; poll `curl -fsS http://127.0.0.1:1313/health_check` until it succeeds; wait 1 s; `tracker_client udp announce 127.0.0.1:6868 443c7602b4fde83d1154d6d9da48808418b181b6 --event started`; `tracker_client http announce http://127.0.0.1:7070 443c7602b4fde83d1154d6d9da48808418b181b6 --event started`; read `/api/v1/metrics?format=prometheus` with the admin token; wait 1 s; `SIGTERM`; wait for exit; strip ANSI codes. The health check itself sends one UDP check to each UDP tracker, so it also produces events.
+- Scenario script, stored in [evidence/run-scenario.sh](evidence/run-scenario.sh) (it was run from the repository root and kept the logs in a scratch directory, which the stored copies of the logs name as `<scratch>`), one step after the other: start the binary with `--config-toml-path <config>`; poll `curl -fsS http://127.0.0.1:1313/health_check` until it succeeds; wait 1 s; `tracker_client udp announce 127.0.0.1:6868 443c7602b4fde83d1154d6d9da48808418b181b6 --event started`; `tracker_client http announce http://127.0.0.1:7070 443c7602b4fde83d1154d6d9da48808418b181b6 --event started`; read `/api/v1/metrics?format=prometheus` with the admin token; wait 1 s; `SIGTERM`; wait for exit; strip ANSI codes. The health check itself sends one UDP check to each UDP tracker, so it also produces events.
 
 ## Verification Processes
 
@@ -57,7 +57,7 @@ The new tests failed on the unfixed production code.
 
 #### Observed Result
 
-Exit status `0`, 258 log lines, **0 `WARN` and 0 `ERROR`** ([full log](evidence/v2-after-statistics-disabled.log)). The start lines show the state once:
+Exit status `0`, 258 log lines, **0 `WARN` and 0 `ERROR`** ([full log](evidence/v2-after-statistics-disabled.log), run on 2026-11-25 at 08:22 UTC). The start lines show the state once:
 
 ```text
 INFO HTTP TRACKER: Starting HTTP tracker core event listener enabled_instances=0 disabled_instances=2
@@ -77,7 +77,7 @@ Met: no per-event line, and the operator sees at startup that statistics are dis
 
 #### Observed Result
 
-Both runs: 0 `WARN`, 0 `ERROR`, 258 lines. The sums of the Prometheus counters read from the REST API after the requests are identical:
+Both runs: 0 `WARN`, 0 `ERROR`, 258 lines ([before](evidence/v3-before-statistics-enabled.log), [after](evidence/v3-after-statistics-enabled.log)). The sums of the Prometheus counters read from the REST API after the requests ([before](evidence/v3-before-statistics-enabled.metrics.txt), [after](evidence/v3-after-statistics-enabled.metrics.txt)) are identical:
 
 | Counter | Before | After |
 | --- | --- | --- |

@@ -9,7 +9,7 @@ github-issue: 3031
 spec-path: docs/issues/open/3031-2387-si-1-statistics-disabled-warning-per-event/ISSUE.md
 branch: "3031-2387-si-1-statistics-disabled-warning-per-event-spec"
 related-pr: null
-last-updated-utc: "2026-11-24 18:24"
+last-updated-utc: "2026-11-25 08:22"
 semantic-links:
   skill-links:
     - create-issue
@@ -212,6 +212,7 @@ Append one line per meaningful update. When an AI agent did the work, name its m
 - 2026-11-24 18:11 UTC - Claude Code (Sonnet 5.5), SI-1 session - Implemented. Reproduced with the release binary (17 `WARN`), wrote the red tests (three listeners, tracker level), fixed the three listeners (three-way `match`, `TRACE`/`ERROR`, counts on the start lines), rechecked: 0 `WARN`, 0 `ERROR`, counters unchanged with statistics enabled. Evidence in `manual-verification-evidence.md`.
 - 2026-11-24 18:11 UTC - Claude Code (Sonnet 5.5), SI-1 session - Implementation completion review: no material discovery changed the design. Differences from the plan: the log capture helper `capture_logs_in_scope` was added to `packages/test-helpers` (the global buffer there is shared by every test of a binary and captures only `WARN` and above) and `udp-core` gained that crate as a dev-dependency; the native fixture gained `with_statistics_disabled_udp_tracker`. The coordinator's claim about `tracker.container.no-persistence.toml` was already corrected in the specification. No retrospective file.
 - 2026-11-24 18:24 UTC - Claude Code (Sonnet 5.5), SI-1 session - Review round 1 of PR 3043: Greptile (import `Arc` in the log capture helper; assert the tracker exit status in the tracker-level test) and CodeRabbit (the evidence file names issue #3031 with `issue: 3031` instead of a spec path that goes stale when the spec moves to `closed/`). All three were valid and fixed.
+- 2026-11-25 08:22 UTC - Claude Code (Sonnet 5.5), SI-1 session - Review round 2 of PR 3043 (da2ce7, approved with three minor and three nit findings): the disabled-instance tests now also require the records of the instance to be at `TRACE`; the evidence frontmatter has the template key `issue-spec` again; the two statistics-enabled runs, their metrics and the scenario script are kept in `evidence/`; `an HTTP` in one message; the `dead_code` reasons of the fixture; trailing spaces. While looping the tests I found one flaky unit test caused by `tracing` caching "never interested" for a callsite first reached from a thread without a scoped subscriber, and fixed the helper (a second dispatcher kept alive). The release recheck (V2, V3) was repeated after the last production change.
 
 ## Acceptance Criteria
 
@@ -252,7 +253,7 @@ Notes:
 
 ### Disposable Verification Scripts
 
-None planned. If one is needed, record its path, purpose and removal owner here before creating it.
+One scenario script was used for the manual runs: `evidence/run-scenario.sh` in this folder. Purpose: start the release binary with a configuration, send the requests of M1 to M3, stop it with `SIGTERM` and count the log lines. It is not an automatic test (the maintained tests are the unit tests and `tests/metrics/statistics_disabled_logs.rs`) and it stays with the evidence as the record of the steps; the owner of this issue removes it only if the evidence folder is pruned at archive time.
 
 ### Acceptance Verification
 

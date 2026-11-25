@@ -464,6 +464,11 @@ mod tests {
 
         // Assert
         let records = logs.lines();
+        let records_of_the_instance: Vec<_> = records.iter().filter(|record| record.contains("instance_index=1")).collect();
+        assert!(
+            !records_of_the_instance.is_empty() && records_of_the_instance.iter().all(|record| record.contains(" TRACE ")),
+            "the event of the disabled instance is logged at TRACE only, in {records:?}"
+        );
         assert!(!has_a_record_at_level(&records, " WARN "), "unexpected WARN in {records:?}");
         assert!(!has_a_record_at_level(&records, " ERROR "), "unexpected ERROR in {records:?}");
     }

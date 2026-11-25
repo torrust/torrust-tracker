@@ -56,7 +56,7 @@ pub struct NativeTrackerExit {
 impl NativeTrackerExit {
     /// The output without the ANSI color escapes that the tracker's log formatter writes around
     /// field names, so assertions can match `name=value`.
-    // Only the shutdown-policy binary matches log fields.
+    // Only the shutdown-policy and statistics-disabled binaries match log fields.
     #[allow(dead_code)]
     pub fn plain_output(&self) -> String {
         strip_ansi_escapes(&self.output)
@@ -171,7 +171,7 @@ impl NativeTracker {
     }
 
     /// Returns the address the HTTP tracker logged as started, once it has logged it.
-    // Only the shutdown-policy binary holds connections open on the HTTP tracker.
+    // Only the shutdown-policy and statistics-disabled binaries use the HTTP tracker address.
     #[allow(dead_code)]
     pub async fn http_tracker_address(&self) -> Result<SocketAddr, String> {
         self.output_ref()
@@ -229,7 +229,7 @@ impl NativeTracker {
 
     /// Waits for the child to exit, by itself or after a signal, and returns its exit status and
     /// output. The child is force-killed and reaped only after the fixture's shutdown deadline.
-    // Only the shutdown-policy binary inspects non-zero exit statuses.
+    // Only the shutdown-policy and statistics-disabled binaries inspect the exit status and output.
     #[allow(dead_code)]
     pub async fn wait_for_exit(mut self) -> Result<NativeTrackerExit, String> {
         let mut child = self.child.take().expect("tracker child must be available before shutdown");
