@@ -9,7 +9,7 @@ github-issue: 3051
 spec-path: docs/issues/open/3051-random-expiring-key-duration-overflow-panic/ISSUE.md
 branch: "3051-random-expiring-key-duration-overflow-panic-spec"
 related-pr: null
-last-updated-utc: "2026-11-25 14:18"
+last-updated-utc: "2026-11-25 14:37"
 semantic-links:
   skill-links:
     - create-issue
@@ -114,6 +114,9 @@ both REST paths yield `AuthKeyError::DurationOverflow` and the existing `400` re
   parse, construction or usage error). Candidate follow-up issue; not decided here.
 - Changing the REST response bodies or status codes.
 - Any other `unwrap()` in the workspace.
+- Durations above `i64::MAX` seconds that still fit the clock: the stores reject them on insert, so the client gets a
+  `500` instead of a duration error, with no panic. A different root cause (the persistence range), found by the
+  automated review of the spec PR and tracked in #3055. This issue's tests use `u64::MAX`, which overflows the clock.
 
 ## Architectural Decisions
 
@@ -197,6 +200,7 @@ Tests follow the `write-unit-test` skill; the test-design review is recorded in 
 
 - 2026-11-25 14:15 UTC - Claude Code (Claude Sonnet 5.5) - Drafted the spec, reproduced the bug, maintainer chose the fix at the seam with a dedicated `DurationOverflow` type - [evidence](manual-verification-evidence.md)
 - 2026-11-25 14:20 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the spec; GitHub issue #3051 created; spec-only PR next
+- 2026-11-25 14:37 UTC - Claude Code (Claude Sonnet 5.5) - Review finding on the persistence range accepted as a separate issue #3055; recorded under Out of Scope
 
 ## Acceptance Criteria
 
