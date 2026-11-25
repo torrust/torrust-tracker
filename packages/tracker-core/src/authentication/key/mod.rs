@@ -20,7 +20,7 @@
 //! use torrust_tracker_core::authentication;
 //! use std::time::Duration;
 //!
-//! let expiring_key = authentication::key::generate_key(Some(Duration::new(9999, 0)));
+//! let expiring_key = authentication::key::generate_key(Some(Duration::new(9999, 0))).unwrap();
 //!
 //! // Later, verify that the key is still valid.
 //! assert!(authentication::key::verify_key_expiration(&expiring_key).is_ok());
@@ -66,14 +66,14 @@ pub(crate) const AUTH_KEY_LENGTH: usize = 32;
 #[cfg(test)]
 #[must_use]
 pub(crate) fn generate_permanent_key() -> PeerKey {
-    generate_key(None)
+    generate_key(None).expect("a permanent key has no lifetime to overflow")
 }
 
 /// It generates a new expiring random key [`PeerKey`].
 #[cfg(test)]
 #[must_use]
 pub(crate) fn generate_expiring_key(lifetime: Duration) -> PeerKey {
-    generate_key(Some(lifetime))
+    generate_key(Some(lifetime)).expect("the lifetime of a test key must not overflow the clock")
 }
 
 /// Generates a new random 32-character authentication key (`PeerKey`).
@@ -81,10 +81,10 @@ pub(crate) fn generate_expiring_key(lifetime: Duration) -> PeerKey {
 /// If a lifetime is provided, the generated key will expire after the specified
 ///  duration; otherwise, the key is permanent (i.e., it never expires).
 ///
-/// # Panics
+/// # Errors
 ///
-/// Panics if the addition of the lifetime to the current time overflows
-/// (an extremely unlikely event).
+/// Returns [`DurationOverflow`] if adding the lifetime to the current time
+/// overflows the clock. A permanent key (`None`) never fails.
 ///
 /// # Arguments
 ///
@@ -98,18 +98,36 @@ pub(crate) fn generate_expiring_key(lifetime: Duration) -> PeerKey {
 /// use std::time::Duration;
 ///
 /// // Generate an expiring key valid for 3600 seconds.
-/// let expiring_key = key::generate_key(Some(Duration::from_secs(3600)));
+/// let expiring_key = key::generate_key(Some(Duration::from_secs(3600))).unwrap();
 ///
 /// // Generate a permanent key.
-/// let permanent_key = key::generate_key(None);
+/// let permanent_key = key::generate_key(None).unwrap();
+///
+/// // A lifetime that overflows the clock is an error, not a panic.
+/// assert!(key::generate_key(Some(Duration::MAX)).is_err());
 /// ```
-#[must_use]
-pub fn generate_key(lifetime: Option<Duration>) -> PeerKey {
+pub fn generate_key(lifetime: Option<Duration>) -> Result<PeerKey, DurationOverflow> {
+    let valid_until = match lifetime {
+        Some(lifetime) => Some(CurrentClock::now_add(&lifetime).ok_or(DurationOverflow {
+            seconds_valid: lifetime.as_secs(),
+        })?),
+        None => None,
+    };
+
     // The key is a secret: nothing logs it, so the log says nothing about the generation.
-    PeerKey {
+    Ok(PeerKey {
         key: Key::random(),
-        valid_until: lifetime.map(|lifetime| CurrentClock::now_add(&lifetime).unwrap()),
-    }
+        valid_until,
+    })
+}
+
+/// Returned by [`generate_key`] when the lifetime added to the current time
+/// overflows the clock.
+#[derive(thiserror::Error, Debug, Clone, PartialEq, Eq)]
+#[error("Invalid peer key duration: {seconds_valid:?}, is not valid")]
+pub struct DurationOverflow {
+    /// The requested lifetime, in seconds.
+    pub seconds_valid: u64,
 }
 
 /// Verifies whether a given authentication key (`PeerKey`) is still valid.
@@ -128,7 +146,7 @@ pub fn generate_key(lifetime: Option<Duration>) -> PeerKey {
 /// use torrust_tracker_core::authentication::key;
 /// use std::time::Duration;
 ///
-/// let expiring_key = key::generate_key(Some(Duration::from_secs(100)));
+/// let expiring_key = key::generate_key(Some(Duration::from_secs(100))).unwrap();
 ///
 /// // If the key's expiration time has passed, the verification will fail.
 /// assert!(key::verify_key_expiration(&expiring_key).is_ok());
@@ -192,16 +210,36 @@ mod tests {
 
         #[test]
         fn it_should_not_write_an_expiring_key_to_the_log() {
-            let (key, logs) = capture_logs_while(|| generate_key(Some(Duration::from_secs(60))));
+            let (key, logs) = capture_logs_while(|| generate_key(Some(Duration::from_secs(60))).unwrap());
 
             assert!(!logs.contains(key.key.value()), "the log holds the generated key");
         }
 
         #[test]
         fn it_should_not_write_a_permanent_key_to_the_log() {
-            let (key, logs) = capture_logs_while(|| generate_key(None));
+            let (key, logs) = capture_logs_while(|| generate_key(None).unwrap());
 
             assert!(!logs.contains(key.key.value()), "the log holds the generated key");
+        }
+    }
+
+    mod when_the_lifetime_of_the_key_overflows_the_clock {
+        use std::time::Duration;
+
+        use crate::authentication::key::{DurationOverflow, generate_key};
+
+        #[test]
+        fn it_should_return_an_error_with_the_requested_seconds_instead_of_panicking() {
+            let result = generate_key(Some(Duration::from_secs(u64::MAX)));
+
+            assert_eq!(result.unwrap_err(), DurationOverflow { seconds_valid: u64::MAX });
+        }
+
+        #[test]
+        fn it_should_state_the_requested_seconds_in_the_error_message() {
+            let error = DurationOverflow { seconds_valid: 100 };
+
+            assert_eq!(error.to_string(), "Invalid peer key duration: 100, is not valid");
         }
     }
 
@@ -235,7 +273,7 @@ mod tests {
             // Set the time to the current time.
             clock::Stopped::local_set_to_unix_epoch();
 
-            let expiring_key = authentication::key::generate_key(Some(Duration::from_secs(0)));
+            let expiring_key = authentication::key::generate_key(Some(Duration::from_secs(0))).unwrap();
 
             assert_eq!(
                 expiring_key.to_string(),
@@ -245,7 +283,7 @@ mod tests {
 
         #[test]
         fn should_be_generated_with_a_expiration_time() {
-            let expiring_key = authentication::key::generate_key(Some(Duration::new(9999, 0)));
+            let expiring_key = authentication::key::generate_key(Some(Duration::new(9999, 0))).unwrap();
 
             assert!(authentication::key::verify_key_expiration(&expiring_key).is_ok());
         }
@@ -256,7 +294,7 @@ mod tests {
             clock::Stopped::local_set_to_system_time_now();
 
             // Make key that is valid for 19 seconds.
-            let expiring_key = authentication::key::generate_key(Some(Duration::from_secs(19)));
+            let expiring_key = authentication::key::generate_key(Some(Duration::from_secs(19))).unwrap();
 
             // Mock the time has passed 10 sec.
             clock::Stopped::local_add(&Duration::from_secs(10)).unwrap();

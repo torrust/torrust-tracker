@@ -131,6 +131,14 @@ pub enum PeerKeyError {
     DatabaseError { source: databases::error::Error },
 }
 
+impl From<authentication::key::DurationOverflow> for PeerKeyError {
+    fn from(overflow: authentication::key::DurationOverflow) -> Self {
+        Self::DurationOverflow {
+            seconds_valid: overflow.seconds_valid,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
 

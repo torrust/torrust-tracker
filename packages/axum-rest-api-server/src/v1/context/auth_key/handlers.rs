@@ -77,6 +77,7 @@ pub async fn generate_auth_key_handler(
     };
     match auth_key_service.generate_key(seconds_valid).await {
         Ok(auth_key) => auth_key_response(&auth_key),
+        Err(AuthKeyError::DurationOverflow { seconds_valid }) => invalid_auth_key_duration_response(seconds_valid),
         Err(e) => failed_to_generate_key_response(AuthKeyErrorDisplay(&e)),
     }
 }
@@ -417,7 +418,7 @@ mod tests {
         "failed to generate key: invalid key: y"
     )]
     #[tokio::test]
-    async fn it_should_answer_an_internal_server_error_whatever_the_error_when_generating_a_key(
+    async fn it_should_answer_an_internal_server_error_when_generating_a_key_fails_for_any_other_error(
         #[case] outcome: KeyOutcome,
         #[case] reason: &str,
     ) {

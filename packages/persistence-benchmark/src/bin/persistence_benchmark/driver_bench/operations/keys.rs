@@ -19,7 +19,7 @@ pub(super) async fn benchmark_key_operations(
         measure_operation_async(
             "add_key_to_keys",
             ops,
-            |_| async move { Ok(authentication::key::generate_key(None)) },
+            |_| async move { authentication::key::generate_key(None).context("generate_key failed") },
             |peer_key| async move {
                 let _added_rows = database.add_key_to_keys(&peer_key).await.context("add_key_to_keys failed")?;
                 Ok(())
@@ -28,7 +28,7 @@ pub(super) async fn benchmark_key_operations(
         .await?,
     );
 
-    let persisted_peer_key = authentication::key::generate_key(None);
+    let persisted_peer_key = authentication::key::generate_key(None).context("generate_key failed")?;
     let _added_rows = database
         .add_key_to_keys(&persisted_peer_key)
         .await
@@ -73,7 +73,7 @@ pub(super) async fn benchmark_key_operations(
             "remove_key_from_keys",
             ops,
             |_| async move {
-                let peer_key = authentication::key::generate_key(None);
+                let peer_key = authentication::key::generate_key(None).context("generate_key failed")?;
                 let _added_rows = database
                     .add_key_to_keys(&peer_key)
                     .await

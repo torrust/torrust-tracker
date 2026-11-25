@@ -136,6 +136,21 @@ change), stable toolchain, from 19:06:33 to 19:06:34 UTC on 2026-11-25. Four tes
 All four fail for the reported bug: three on the panic, and the handler test on the missing `400` arm. The
 `it_should_fail_adding_a_randomly_generated_key...` filter also matched an unrelated passing test (`1 passed`).
 
+### V2c - Green run and mutation proof after the fix
+
+- Goal: show the four regression tests of V2b pass with the fix, and that the new `generate_key` unit test fails for the
+  old behaviour.
+- Status: `DONE`
+
+Green, from 19:08:57 UTC on 2026-11-25 (stable toolchain): `cargo test -q -p torrust-tracker-core` (305 passed),
+`cargo test -q -p torrust-tracker-axum-rest-api-server` (170 lib, 63 integration passed), and the tests of
+`http-core`, `axum-http-server`, `rest-api-runtime-adapter` and `persistence-benchmark`. `cargo test --workspace
+--doc` passes, including the new doctest on `generate_key`. `linter all` exits `0`.
+
+Mutation proof for `when_the_lifetime_of_the_key_overflows_the_clock`: with the `ok_or(..)?` in `generate_key`
+replaced by the old `unwrap()` the test fails (`1 passed; 1 failed`, panic in `key/mod.rs`); with the fix restored it
+passes (`2 passed`).
+
 ### V3 - Like-for-like recheck after the fix
 
 - Status: `TODO`. Repeat V1 steps 1 to 5 against the fixed build, after the last production change; name the commit
