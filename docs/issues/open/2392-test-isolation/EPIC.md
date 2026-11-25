@@ -6,7 +6,7 @@ epic: null
 github-issue: 2392
 spec-path: docs/issues/open/2392-test-isolation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-25 11:47"
+last-updated-utc: "2026-11-25 11:48"
 semantic-links:
   skill-links:
     - create-issue
@@ -321,8 +321,9 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
   `EphemeralConfiguration` wrappers, and no subissue owns adopting the shared type there yet.
 - 2026-11-25 11:35 UTC - Claude Code (Claude Sonnet 5.5), EPIC coordinator - The review of PR #3045 changed the
   sync: the AC2 evidence now says orders 7 and 9 are done, and AC2 waits on orders 6 and 10.
-  The 2026-11-24 18:57 entry now says the six-file attribution follows from excluding the direct
-  caller.
+- 2026-11-25 11:48 UTC - Claude Code (Claude Sonnet 5.5), EPIC coordinator - The CodeRabbit review of PR #3045 changed the
+  2026-11-24 18:57 entry: it now says the six-file attribution follows from excluding the direct
+  caller, with no per-test attribution.
 
 ## Acceptance Criteria
 
