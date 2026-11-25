@@ -133,8 +133,12 @@ Follows `.claude/skills/fix-bug/SKILL.md`:
   This is the smallest boundary that exercises the causal seam (the repository's read-then-write over
   the real constraint).
 - **Store-level tests:** the shared driver harness cases (run on SQLite in unit tests, and on MySQL and
-  PostgreSQL by the Docker suites) assert the new idempotent behavior and row counts, so the other two
-  drivers are covered.
+  PostgreSQL by the Docker suites) assert the new idempotent behavior and row counts, sequentially (AC3).
+  The harness also gets maintained concurrent cases at the store level: two concurrent
+  `add_info_hash_to_whitelist` calls of one hash both return `Ok` and their row counts sum to `1`; two
+  concurrent `remove_info_hash_from_whitelist` calls of one hash both return `Ok` and their row counts
+  sum to `1`. These run on all three drivers, so MySQL and PostgreSQL have maintained concurrency
+  coverage of the causal write (AC1 and AC2); V2 is the one-off reproduction before the fix.
 - **Evidence:** red and green output in `manual-verification-evidence.md`.
 
 ## Implementation Plan
@@ -147,7 +151,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2  | TODO   | Reproduce on MySQL and PostgreSQL (Docker)                              | V2 recorded, or infeasibility with attempted commands            |
 | T3  | TODO   | Add the concurrency regression test and observe it red                  | Red run recorded; test fails for `add` and for `remove`          |
 | T4  | TODO   | Make the three drivers idempotent; update trait docs and `DatabaseWhitelist` | Regression test green                                       |
-| T5  | TODO   | Replace the three failure-documenting harness tests with no-op tests    | SQLite unit tests and Docker suites green                        |
+| T5  | TODO   | Replace the three failure-documenting harness tests with no-op tests; add the concurrent store-level cases | SQLite unit tests and Docker suites green |
 | T6  | TODO   | Rerun V1 (and V2) after the last production change; run `linter all`    | Evidence names the commit by Conventional Commit subject         |
 
 ## Commit Points
@@ -183,8 +187,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ## Acceptance Criteria
 
-- [ ] AC1: Two concurrent `DatabaseWhitelist::add` calls for the same info-hash both return `Ok` and the hash is whitelisted once (SQLite regression test; MySQL and PostgreSQL via the Docker suites).
-- [ ] AC2: Two concurrent `DatabaseWhitelist::remove` calls for the same info-hash both return `Ok` and the hash is no longer whitelisted.
+- [ ] AC1: Two concurrent `DatabaseWhitelist::add` calls for the same info-hash both return `Ok` and the hash is whitelisted once (SQLite regression test in `persisted.rs`; the store-level concurrent harness case on SQLite, MySQL and PostgreSQL via the Docker suites).
+- [ ] AC2: Two concurrent `DatabaseWhitelist::remove` calls for the same info-hash both return `Ok` and the hash is no longer whitelisted (same two tests as AC1: `persisted.rs` on SQLite, the concurrent harness case on all three drivers).
 - [ ] AC3: `WhitelistStore::add_info_hash_to_whitelist` returns `Ok(1)` for a new hash and `Ok(0)` for an existing one; `remove_info_hash_from_whitelist` returns `Ok(1)` for a present hash and `Ok(0)` for a missing one, on all three drivers.
 - [ ] AC4: The regression test was observed red before the fix and green after.
 - [ ] `linter all` exits with code `0`
