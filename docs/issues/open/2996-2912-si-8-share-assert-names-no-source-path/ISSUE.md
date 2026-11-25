@@ -9,7 +9,7 @@ github-issue: 2996
 spec-path: docs/issues/open/2996-2912-si-8-share-assert-names-no-source-path/ISSUE.md
 branch: "2996-share-assert-names-no-source-path-spec"
 related-pr: null
-last-updated-utc: "2026-11-23 15:53"
+last-updated-utc: "2026-11-25 11:37"
 semantic-links:
   skill-links:
     - create-issue
@@ -203,6 +203,7 @@ the model that produced them.
 - 2026-11-22 14:24 UTC - Claude Code (Claude Sonnet 5.5) - The maintainer approved the specification; issue #2996 created as `josecelano-bot`; the specification moved from `docs/issues/drafts/` to `docs/issues/open/`; row 8 added to the EPIC table.
 - 2026-11-23 13:31 UTC - Claude Code (Claude Sonnet 5.5) - Recorded copies 8 and 9, added by SI-5 (#2917, PR #3001) in `configuration` and `axum-server`: neither can use the shared function (`test-helpers` depends on `configuration`; `axum-server` has no `test-helpers` dev-dependency), so both stay and are cross-linked. Counts now read nine copies to five definitions (review finding F1 of PR #3001).
 - 2026-11-24 17:07 UTC - Claude Code (Claude Sonnet 5.5) - Implemented T1 to T6: shared function in `test-helpers`, five copies removed, four remaining copies cross-linked; manual verification V1 and V2 recorded; no Cargo or deny changes.
+- 2026-11-25 11:37 UTC - Claude Code (Claude Opus 5.5) - Review round 2 of PR 3041 (da2ce7): the shared test now pins each fragment (V4); four long cross-link doc lines wrapped; V1 re-run and V3 (identical wording) added; each acceptance row cites its own evidence; `last-updated-utc` refreshed.
 
 ## Acceptance Criteria
 
@@ -260,11 +261,11 @@ None planned for this issue.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | --- | --- | --- |
-| AC1 | DONE | `manual-verification-evidence.md` V1, V2; tests green |
-| AC2 | DONE | `manual-verification-evidence.md` V1, V2; tests green |
-| AC3 | DONE | `manual-verification-evidence.md` V1, V2; tests green |
-| AC4 | DONE | `manual-verification-evidence.md` V1, V2; tests green |
-| AC5 | DONE | `manual-verification-evidence.md` V1, V2; tests green |
+| AC1 | DONE | `manual-verification-evidence.md` V4 (each fragment pinned; red without `rustlib/src`); `cargo test -p torrust-tracker-test-helpers` passes |
+| AC2 | DONE | `manual-verification-evidence.md` V1 (no definition left in the four packages) and V2 (`tracker-core` uses the shared function); their tests pass |
+| AC3 | DONE | `manual-verification-evidence.md` V1 and its re-run (five definitions); the cross-link doc comments in the five files |
+| AC4 | DONE | `manual-verification-evidence.md` V3 (`grep -rn 'must not hold a source path' packages`: one identical line per definition) |
+| AC5 | DONE | `git diff --stat torrust/develop...HEAD -- '*.toml' Cargo.lock` is empty; the tests of the nine packages pass unchanged |
 
 ## Risks and Trade-offs
 
