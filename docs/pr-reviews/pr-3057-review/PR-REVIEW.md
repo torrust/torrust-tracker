@@ -118,7 +118,7 @@ Review 6061315413 (da2ce7, APPROVED, 2026-11-25 16:38 UTC) posted three inline c
 - Current-tree verification: `grep -n "^## " docs/pr-reviews/pr-3057-review/PR-REVIEW.md` lists Ownership, Status Values, Findings, Finding Details, Processing Log and Completion Rules; the validator reports ok.
 - Resolution reference: docs(pr-reviews): [#2996] bring the PR 3057 audit in line with the review template
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3057#discussion_r4698329245>
 
 ## Processing Log
 
@@ -127,6 +127,7 @@ Review 6061315413 (da2ce7, APPROVED, 2026-11-25 16:38 UTC) posted three inline c
 - 2026-11-25 16:55 UTC - Review 6061480325 (CodeRabbit) added F4, fixed in a signed commit; reply and thread resolution follow after the push.
 - 2026-11-25 16:58 UTC - Replied on the F4 thread after pushing the fix and resolved it; a GraphQL refresh shows no open thread.
 - 2026-11-25 17:20 UTC - Review 6061793903 (Claude app) added F5, which also covers the two Minor points in the body of review 6061765866 (da2ce7); fixed in a signed commit. The findings table now names reviewers by login, and the F1 resolution reference names its reply URL; reply and thread resolution follow after the push.
+- 2026-11-25 17:25 UTC - Replied on the F5 thread after pushing the fix and resolved it; a GraphQL refresh shows no open thread.
 
 ## Completion Rules
 
