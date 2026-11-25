@@ -1,5 +1,5 @@
 #!/bin/bash
-# usage: run.sh <config> <out.log>   (run from the repo root; real release binary)
+# usage: run-scenario.sh <config> <out.log>   (run from the repo root; real release binary)
 set -u
 CFG=$1; OUT=$2; HASH=443c7602b4fde83d1154d6d9da48808418b181b6
 rm -f "$(dirname "$CFG")/sqlite3.db"
