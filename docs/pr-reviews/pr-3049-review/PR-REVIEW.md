@@ -1,7 +1,7 @@
 ---
 pr-number: 3049
 pr-url: https://github.com/torrust/torrust-tracker/pull/3049
-last-updated-utc: "2026-11-25 17:07"
+last-updated-utc: "2026-11-25 17:17"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -76,9 +76,9 @@ Round 6: CodeRabbit review 6061625852 on the head of commit `docs(pr-reviews): [
 | F23 | review-finding:pr-3049-f23 | da2ce7 | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F24 | review-finding:pr-3049-f24 | da2ce7 | Minor | metadata | RE_RAISE_OF:F23 | FIXED | RESOLVED |
 | F25 | review-finding:pr-3049-f25 | da2ce7 | Nit | testing | ORIGINAL | FIXED | RESOLVED |
-| F26 | review-finding:pr-3049-f26 | coderabbitai[bot] | Minor | documentation | ORIGINAL | FIXED | OPEN |
-| F27 | review-finding:pr-3049-f27 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | OPEN |
-| F28 | review-finding:pr-3049-f28 | coderabbitai[bot] | Minor | documentation | ORIGINAL | FIXED | OPEN |
+| F26 | review-finding:pr-3049-f26 | coderabbitai[bot] | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F27 | review-finding:pr-3049-f27 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F28 | review-finding:pr-3049-f28 | coderabbitai[bot] | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -418,7 +418,7 @@ Round 6: CodeRabbit review 6061625852 on the head of commit `docs(pr-reviews): [
 - Current-tree verification: Read the paragraph of `.claude/agents/task-reviewer.md` after the edit and compared it with `decide` in `guard.rs`.
 - Resolution reference: docs(agents): [#2904] state that the stop hook lets the reviewer finish on an invalid file name
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4698336954
 
 ### F27 - Item 8 of `review-task` requires scenarios of later tasks
 
@@ -431,7 +431,7 @@ Round 6: CodeRabbit review 6061625852 on the head of commit `docs(pr-reviews): [
 - Current-tree verification: Read item 8 and the result rule in the Output section after the edit.
 - Resolution reference: docs(skills): [#2904] require only the manual scenarios of the task under review
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4698337653
 
 ### F28 - The verification of F11 describes the previous behaviour
 
@@ -444,7 +444,7 @@ Round 6: CodeRabbit review 6061625852 on the head of commit `docs(pr-reviews): [
 - Current-tree verification: Read `decide` in `guard.rs` and the F11 text after the edit.
 - Resolution reference: docs(pr-reviews): [#2904] record the sixth review round on pull request 3049
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4698338347
 
 ## Processing Log
 
@@ -465,6 +465,7 @@ Round 6: CodeRabbit review 6061625852 on the head of commit `docs(pr-reviews): [
 - 2026-11-25 16:39 UTC - Round 5: started on review `6059677342` of `da2ce7`, which the poller never reported and the record lacked (F22, F23), and on his review `6061172809` (F24, F25); verified every finding against the current tree and committed the fixes locally. Replies follow the push.
 - 2026-11-25 16:53 UTC - Pushed round 5 (head commit `docs(pr-reviews): [#2904] record the review of 6059677342 and 6061172809 on pull request 3049`), replied on the four threads (GitHub `created_at` 16:53 UTC) and with the form of item 7 on the thread of F17, then resolved the four threads with the GraphQL mutation, each returning `isResolved: true`; the thread of F17 was already resolved by its reviewer. The reply URLs are recorded by this commit, which goes out with the next push.
 - 2026-11-25 17:07 UTC - Round 6: started on CodeRabbit review `6061625852` (three inline comments), which came after five rounds of fixes; the maintainer approved a sixth round. Verified each finding against the current tree and committed the fixes locally (F26 to F28). Replies follow the push.
+- 2026-11-25 17:17 UTC - Pushed round 6 (head commit `docs(pr-reviews): [#2904] record the sixth review round on pull request 3049`), replied on the three threads (GitHub `created_at` 17:16 UTC) and resolved them with the GraphQL mutation, each returning `isResolved: true`. The reply URLs are recorded by this commit, which goes out with the next push.
 
 ## Completion Rules
 
