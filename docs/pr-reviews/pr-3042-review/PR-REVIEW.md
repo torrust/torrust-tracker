@@ -9,7 +9,7 @@ semantic-links:
 
 <!-- skill-link: process-pr-review -->
 
-<!-- cspell:ignore nnounce oken coderabbitai -->
+<!-- cspell:ignore nnounce oken coderabbitai rposition -->
 
 # PR #3042 Review Audit
 
@@ -53,6 +53,8 @@ Review 6054287756 (CodeRabbit, 2026-11-25 08:40 UTC) posted three inline comment
 
 Review 6054388295 (da2ce7, changes requested, 2026-11-25 08:49 UTC) read the head before the round 3 fix and posted three inline comments with the reviewer ids F10, F11 and F9. F10 and F11 are taken in this record by CodeRabbit's findings and F9 by an earlier one, so they are the audit-local F13 to F15. F13 and F14 ask for the changes F12 and F10 already made. The review body lists the same three findings and adds none; it also says the reviewer's earlier F8 is fixed.
 
+Review 6054457576 (CodeRabbit, 2026-11-25 08:54 UTC) holds one comment, a reply on the F10 thread that accepts the answer; it adds no row. Review 6054462408 (Greptile, 08:55 UTC) posted two inline comments, F16 and F17; as in the first Greptile round, its `P1` badge is recorded as `Blocker` and its `P2` badge as `Nit`. Review 6054537873 (da2ce7, commented, 09:00 UTC) posted one inline comment with the reviewer id F12, the audit-local F18. Review 6054646814 (da2ce7, changes requested, 09:08 UTC) read the head before the round 5 fix and posted two inline comments with the reviewer ids F13 and F14, the audit-local F19 and F20; they ask for the changes F16 and F17 already made. The review bodies list the same findings and add none.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3042-f1 | Unknown | Blocker | security | ORIGINAL | FIXED | RESOLVED |
@@ -70,6 +72,11 @@ Review 6054388295 (da2ce7, changes requested, 2026-11-25 08:49 UTC) read the hea
 | F13 | review-finding:pr-3042-f13 | Human | Major | security | RE_RAISE_OF:F12 | NO_ACTION | SUPERSEDED |
 | F14 | review-finding:pr-3042-f14 | Human | Major | security | RE_RAISE_OF:F10 | NO_ACTION | SUPERSEDED |
 | F15 | review-finding:pr-3042-f15 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-3042-f16 | Unknown | Blocker | correctness | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-3042-f17 | Unknown | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-3042-f18 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F19 | review-finding:pr-3042-f19 | Human | Major | correctness | RE_RAISE_OF:F16 | NO_ACTION | SUPERSEDED |
+| F20 | review-finding:pr-3042-f20 | Human | Minor | documentation | RE_RAISE_OF:F17 | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -268,6 +275,71 @@ Review 6054388295 (da2ce7, changes requested, 2026-11-25 08:49 UTC) read the hea
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692541219>
 
+### F16 - Slash-heavy requests waste CPU
+
+- PR number: 3042
+- Source review ID: 6054462408
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692474095>
+- Concern: `redact_path` scanned every remaining segment for each segment, so a path with thousands of trailing slashes made the loop do quadratic work in the request logging callback, also for a 404 and without authentication.
+- Solution: `redact_path` finds the last segment that is not empty once and looks for a prefix only before it; the empty-segment fix of F12 is kept. Two tests with a run of 60000 slashes were added.
+- Current-tree verification: with a temporary timing print in a test build, a slash-only path of 60000 bytes took 657.9 ms before the change and 1.0 ms after it (`evidence/review-round-5.txt`); `cargo test -p torrust-tracker-axum-server --lib request_log` passes (38 passed); on a running tracker a `GET` of 30000 slashes answered 404 in 0.0014 s.
+- Resolution reference: fix(axum-server): [#2999] find the end of the secret path once when redacting
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692673032>
+
+### F17 - Header commands remain in shell history
+
+- PR number: 3042
+- Source review ID: 6054462408
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692474106>
+- Concern: the `use-rest-api` skill said the header keeps the token out of logs that included the shell history, but the shown `curl -H "Authorization: Bearer ..."` command puts the token in the shell history when typed.
+- Solution: the sentence names proxy, browser and server logs only; a new paragraph says neither form keeps a typed token out of the shell history and shows reading it from a file inside the command.
+- Current-tree verification: `grep -rn "shell-history"` over the Markdown and Rust files outside `docs/issues/` and `docs/pr-reviews/` prints nothing; `grep -n shell .claude/skills/use-rest-api/SKILL.md` prints only the new paragraph.
+- Resolution reference: fix(axum-server): [#2999] find the end of the secret path once when redacting
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692673354>
+
+### F18 - Six review threads have no audit row
+
+- PR number: 3042
+- Source review ID: 6054537873
+- Reviewer finding ID: F12
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692534562>
+- Concern: at the head the review read, the three threads of review 6054287756 were answered with replies naming F10 to F12 but had no row, and the three threads of review 6054388295 had neither a reply nor a row.
+- Solution: the rows F10 to F12 and F13 to F15 were committed in the third and fourth audit commits, and the three threads of review 6054388295 were answered and resolved. The cause is recorded in the reply: each round's replies were posted after its fix was pushed and before its audit commit was pushed.
+- Current-tree verification: `grep -c '^| F1[0-5] ' docs/pr-reviews/pr-3042-review/PR-REVIEW.md` prints 6 at the pushed head.
+- Resolution reference: docs(pr-reviews): [#2999] record the fourth review round in the PR 3042 audit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692673761>
+
+### F19 - `redact_path` is quadratic in the number of empty segments
+
+- PR number: 3042
+- Source review ID: 6054646814
+- Reviewer finding ID: F13
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692618613>
+- Concern: for each segment, `segments[index + 1..].iter().any(..)` walks the rest of the path, which is quadratic on a run of empty segments, for every request, before routing and without a credential.
+- Solution: no further change. It is the change F16 made, in a commit pushed after the head this review read.
+- Current-tree verification: `grep -n "rposition" packages/axum-server/src/request_log.rs` prints the single search for the last segment that is not empty, and the loop runs over `segments[..last_not_empty]`.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692674221>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692674221>
+
+### F20 - The header does not keep a typed token out of shell history
+
+- PR number: 3042
+- Source review ID: 6054646814
+- Reviewer finding ID: F14
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692618621>
+- Concern: "it keeps the token out of those logs" included the shell history, where a typed header lands just as a URL does.
+- Solution: no further change. It is the change F17 made, in a commit pushed after the head this review read.
+- Current-tree verification: `grep -n shell .claude/skills/use-rest-api/SKILL.md` prints only the paragraph that says neither form keeps a typed token out of the shell history.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692674670>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3042#discussion_r4692674670>
+
 ## Processing Log
 
 - 2026-11-24 18:06 UTC - Greptile review 6044736873 arrived with two inline findings.
@@ -281,6 +353,8 @@ Review 6054388295 (da2ce7, changes requested, 2026-11-25 08:49 UTC) read the hea
 - 2026-11-25 08:53 UTC - `validate-audit-record.py --pr-number 3042`, run with the bot token set for that one command (identity `josecelano-bot`), printed `{"status": "ok", "rows": 12, "log_entries": 8, "failures": 0}`. A GraphQL listing showed the F11 thread already resolved by `coderabbitai[bot]`; the F10 and F12 threads were then resolved by `josecelano-bot`. The same listing showed three new unresolved threads of a later review by da2ce7 (6054388295), which are not processed in this entry.
 - 2026-11-25 09:00 UTC - Review 6054388295 by da2ce7 (changes requested, submitted at 08:49 UTC) with three inline findings was recorded as F13 to F15, and the three threads got their replies after the log-order commit was pushed (replies 4692540318, 4692540743 and 4692541219).
 - 2026-11-25 09:02 UTC - `validate-audit-record.py --pr-number 3042`, run with the bot token set for that one command (identity `josecelano-bot`), first failed with `Processing Log entries are not in chronological order`: this record had two new entries, one stamped 08:49 for the arrival of the review and one stamped 09:00 for the replies, after the 08:53 entry. They were merged into the single 09:00 entry above before any commit, and the second run printed `{"status": "ok", "rows": 15, "log_entries": 10, "failures": 0}`. The F13, F14 and F15 threads were then resolved by `josecelano-bot`. A GraphQL listing taken before resolving showed three more unresolved threads, two by Greptile and one by da2ce7, which are not processed in this entry.
+- 2026-11-25 09:13 UTC - Reviews 6054462408 (Greptile, submitted at 08:55 UTC), 6054537873 (da2ce7, 09:00 UTC) and 6054646814 (da2ce7, 09:08 UTC) were recorded as F16 to F20, and their five threads got their replies after the round 5 fix commit was pushed (replies 4692673032, 4692673354, 4692673761, 4692674221 and 4692674670).
+- 2026-11-25 09:14 UTC - `validate-audit-record.py --pr-number 3042`, run with the bot token set for that one command (identity `josecelano-bot`), printed `{"status": "ok", "rows": 20, "log_entries": 12, "failures": 0}`. The five threads were then resolved by `josecelano-bot`; a refreshed GraphQL listing shows 20 threads and 0 unresolved.
 
 ## Completion Rules
 
