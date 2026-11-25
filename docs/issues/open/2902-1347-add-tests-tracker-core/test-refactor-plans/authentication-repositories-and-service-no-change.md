@@ -17,8 +17,8 @@ semantic-links:
 
 Follow the shared [guidance](README.md). This record covers ledger rows 31 to 34 together, as the spec allows for
 no-change files: `key/repository/persisted.rs` (row 31), `key/repository/in_memory.rs` (row 32),
-`service.rs` (row 33), and `authentication/mod.rs` with `key/repository/mod.rs` (row 34). Decision for all of
-them: **no change**, after a mutation check of each file's logic.
+`service.rs` (row 33), and `authentication/mod.rs` with `key/repository/mod.rs` (row 34). Decision: **no change** for rows 31, 33 and 34 and
+one added assertion for row 32 (see Decision), after a mutation check of each file's logic.
 
 ## Current State
 
@@ -50,7 +50,7 @@ A mutant that did not compile was rewritten.
 | I2 | `in_memory.rs` | `remove` removes nothing | Killed by 2 tests |
 | I3 | `in_memory.rs` | `get` finds nothing | Killed by 12 tests |
 | I4 | `in_memory.rs` | `clear` clears nothing | Killed by `clear_all_peer_keys` |
-| I5 | `in_memory.rs` | `reset_with` does not clear first | Killed by the row 28 replace test **alone** |
+| I5 | `in_memory.rs` | `reset_with` does not clear first | Killed by the row 28 replace test and, since the review of the pull request, by the repository's own reset test |
 | I6 | `in_memory.rs` | `reset_with` inserts none of the new keys (first draft did not compile) | Killed by 3 tests |
 | S1 | `service.rs` | `authenticate` checks the key only on a public tracker | Killed by 7 tests |
 | S2 | `service.rs` | `tracker_is_private` is inverted | Killed by 7 tests |
@@ -61,9 +61,13 @@ A mutant that did not compile was rewritten.
 
 ## Decision
 
-- **No change** for all four rows: every mutant is killed. The three that only a row 28 test kills (P2, P3, I5)
-  show that the files' own tests did not pin those behaviors before S4; the handler tests now do, and a test of the
-  pass-through or of `reset_with` in their own files would only repeat them.
+- **No change** for rows 31, 33 and 34: every mutant is killed. The two that only a row 28 test kills (P2, P3) show
+  that the persisted repository's own tests did not pin its pass-through of a store error; the handler tests do, and
+  the repository is a one-line delegation of each call, so a test of it would only repeat them.
+- **Row 32 gains one assertion** (review of the pull request): the clearing done by `reset_with` is a rule of the
+  in-memory repository, so its own `reset_the_peer_keys_with_a_new_list_of_keys` now asserts that the old key is
+  gone, and mutant I5 is killed there as well as by the handler's replace test. The mutant was applied alone and the
+  file restored.
 - `authentication/mod.rs` is declarations and the combined service-and-handler tests; `key/repository/mod.rs` has
   no logic. Nothing to test.
 - **Review of breadth (row 33):** the service tests cover the public tracker, an unregistered key, a registered key,

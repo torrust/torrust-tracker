@@ -20,8 +20,9 @@ Follow the shared [guidance](README.md). This plan covers ledger row 30,
 ## Current State
 
 - **Unit-only coverage** (`--all-features --lib`, stable Rust 1.100.0, `cargo-llvm-cov 0.9.1`, S4 base
-  `develop` at `39d6d7e1b`, measured 2026-11-25): 79 / 79 lines, 92 / 95 regions. The uncovered regions are the
-  two `tracing::debug!` calls of `generate_key` (lines 111 and 118): a test run has no logger.
+  `develop` at `39d6d7e1b`, measured 2026-11-25): 79 / 79 lines, 92 / 95 regions. The uncovered regions were the
+  two `tracing::debug!` calls of `generate_key`: a test run has no logger. #3042 removed both calls (they logged the
+  generated key), so after the rebase the file has no uncovered region.
 - **Existing tests:** 7: an expiring key is displayed (lifetime 0 at the epoch); an expiring key verifies
   while valid and fails after its lifetime (+10 s ok, +20 s expired for a 19 s key); a permanent key is
   generated without expiry and always verifies; the database-error conversion and its text. Smells: the
@@ -54,7 +55,7 @@ Tests join the file's `tests` module; the clock is `clock::Stopped`.
 | a generated key expires at now plus its lifetime | now at 1,000 s; lifetime 500 s and lifetime 500 s 7 ns; no lifetime | `valid_until` is 1,500 s, 1,500 s 7 ns, and `None` |
 | the permanent key display (replaces the misplaced test) | a key from `generate_permanent_key` | the text is ``key: `[REDACTED]`, permanent`` (a key's display is redacted since #3042) |
 
-**Not in this plan:** lines 111 and 118, the debug logs; no behavior to assert without a logger.
+**Not in this plan:** the debug logs of `generate_key` that this plan was written against; #3042 removed them.
 
 ## Property-Test Decision
 
@@ -99,8 +100,8 @@ spelled again, as a property does; its random times rarely hit equality, so the 
 
 - **Coverage** (stable Rust 1.100.0, `cargo-llvm-cov 0.9.1`, `--all-features --lib`, clean coverage target
   directory, 2026-11-25): the file 79 / 79 lines to 96 / 96, regions 92 / 95 to 108 / 111, functions
-  (with the test module) 17 / 17. The three regions left are the two `tracing::debug!` calls of
-  `generate_key` (lines 111 and 118): a test run has no logger. The package's unit-only lines
+  (with the test module) 17 / 17. The three regions left were the two `tracing::debug!` calls of
+  `generate_key`, which #3042 removed after the rebase: the file now has no uncovered region. The package's unit-only lines
   5,326 / 6,074 (87.69%), regions 5,861 / 6,753 (86.79%), functions 930 / 1,122 (82.89%).
 - **Tests:** 10 added (3 boundary cases, 3 permanent cases, 1 property, 3 generated-expiry cases) and one
   existing test fixed. A first draft also had a table of the key error texts (3 cases, mutant M7); after the

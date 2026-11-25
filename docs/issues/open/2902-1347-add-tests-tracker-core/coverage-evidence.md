@@ -269,31 +269,40 @@ store files stay at 0% in every default scope; their coverage comes from the con
 
 ### S4 (authentication and whitelist)
 
-Measured on 2026-11-25, after the branch was rebased on `develop`. Base: `develop` at `8f8202582`, which includes
-the secrets-redaction fix #3042 (keys are redacted, counted in characters, and their errors changed). Head: the S4
-branch at its commit `test(tracker-core): [#2902] adapt the key tests to keys counted in characters` (the later
-commits change documentation only). The base columns apply the head without the slice's changes under
-`packages/`. The per-file figures in the plans of rows 28 to 39 were measured before the rebase, on the previous
-base; these slice figures are the re-measurement.
+Measured on 2026-11-25 at 16:50 UTC, after the branch was rebased on `develop` and after the first review of its pull
+request. Each scope was measured from an empty coverage target directory, first at the head and then at the base.
+Base: `develop` at `8f8202582`, which includes the secrets-redaction fix #3042 (keys are redacted, counted in
+characters, and their errors changed). Head: the S4 branch at its commit
+`test(tracker-core): [#2902] pin the clearing of a key reset where it is owned` (the later commits change
+documentation only). The base columns are the head with the slice's changes under `packages/` reverted (`git apply -R`
+of the diff from the base to the head, restored afterwards). The per-file figures in the plans of rows 28 to 39 were
+measured before the rebase, on the previous base; these slice figures replace the figures of the earlier measurement
+at the rebased head, which was taken before the last test change and which the review found equal, cell for cell, to
+the rebased base plus the pre-rebase deltas.
 
 | Scope | Tests | Lines | Regions | Functions |
 | --- | ---: | ---: | ---: | ---: |
 | Unit-only, base | 304 unit | 5,324 / 6,088 (87.45%) | 5,918 / 6,833 (86.61%) | 936 / 1,133 (82.61%) |
-| Unit-only, S4 | 349 unit | 5,695 / 6,459 (88.17%) | 6,278 / 7,182 (87.41%) | 1,005 / 1,202 (83.61%) |
+| Unit-only, S4 | 349 unit | 5,703 / 6,466 (88.20%) | 6,283 / 7,186 (87.43%) | 1,005 / 1,202 (83.61%) |
 | Integration-only, base and S4 | 15 integration | 827 / 1,881 (43.97%) | 712 / 2,021 (35.23%) | 145 / 481 (30.15%) |
 | Aggregate, base | 304 unit + 15 integration | 5,324 / 6,088 (87.45%) | 5,918 / 6,833 (86.61%) | 936 / 1,133 (82.61%) |
-| Aggregate, S4 | 349 unit + 15 integration | 5,696 / 6,459 (88.19%) | 6,279 / 7,182 (87.43%) | 1,005 / 1,202 (83.61%) |
+| Aggregate, S4 | 349 unit + 15 integration | 5,703 / 6,466 (88.20%) | 6,283 / 7,186 (87.43%) | 1,005 / 1,202 (83.61%) |
 | Unit-only without `db-compatibility-tests`, base | 302 unit | 5,310 / 5,764 (92.12%) | 5,904 / 6,525 (90.48%) | 932 / 1,095 (85.11%) |
-| Unit-only without `db-compatibility-tests`, S4 | 347 unit | 5,682 / 6,135 (92.62%) | 6,265 / 6,874 (91.14%) | 1,001 / 1,164 (86.00%) |
+| Unit-only without `db-compatibility-tests`, S4 | 347 unit | 5,689 / 6,142 (92.62%) | 6,269 / 6,878 (91.15%) | 1,001 / 1,164 (86.00%) |
+
+The test counts come from `cargo test -p torrust-tracker-core --all-features --lib` (349 passed at the head).
+Every figure above was read from the coverage summary of that run, none is derived from another row. The functions
+of the head and of the base are the same as in the earlier measurement while the lines and regions moved (the last
+test change added an assertion and a comment), which is expected: the slice added 45 tests, and a test change that
+adds a line to an existing test adds no function. The aggregate equals the unit-only row in all three counts in this
+run, so the one-line difference noted for S3 did not recur.
 
 All the files of the slice were already covered by line (the authentication and whitelist files stood at 100% or
 one line short), so the lines gained are almost all the new test modules; what the slice adds is protection, not
 line coverage: the uncovered error-arm regions of the keys handler, the persisted whitelist and its manager now
 run, and the mutation checks found two production bugs and three behaviors no test pinned (a swallowed remove or
-load error, a reset that does not clear, the return values of the in-memory whitelist). The aggregate is one line
-above the unit-only figure, as noted for S3: line counts of test modules differ by a few lines between builds, and
-regions and functions are equal. The integration scope is the same at base and head because the slice changes only
-unit-test modules.
+load error, a reset that does not clear, the return values of the in-memory whitelist). The integration scope is the
+same at base and head because the slice changes only unit-test modules.
 
 ## Test-Technique Assessment (initial)
 
