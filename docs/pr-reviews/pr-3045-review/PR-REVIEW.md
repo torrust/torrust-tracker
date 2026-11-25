@@ -65,7 +65,8 @@ Round 1 covers review 6045674009 (Greptile, COMMENTED) of the first head of the 
 ## Processing Log
 
 - 2026-11-24 19:18 UTC - Started audit. Round 1: review 6045674009 (Greptile, COMMENTED) with one finding, F1, valid. Committed and pushed the fix (`docs(issues): [#2392] scope the recheck count of order 9 to http-core`), then replied on the thread. The CodeRabbit comment is a rate-limit notice and needs no action.
-- 2026-11-24 19:18 UTC - Resolved the thread. A GraphQL refresh shows no unresolved thread, and the newest review in the list is 6045674009. The audit validator result is in the commit that adds this entry.
+- 2026-11-24 19:18 UTC - Resolved the thread. A GraphQL refresh shows no unresolved thread, and the newest review in the list is 6045674009. Before the commit that adds this entry, the audit validator printed `{"status": "ok", "rows": 1, "log_entries": 2, "failures": 0}` on the worktree record.
+- 2026-11-25 11:40 UTC - Correction for round 1, after da2ce7 review 6053927729 (F4 and F5 of that review). The record was created after the first reply (posted at 19:17:49Z), so the first entry above is a late start, stamped when the entry was written. In the second entry, "the newest review in the list" means the newest review by a reviewer: the list also holds review 6045762270, which only wraps this PR author's own reply.
 
 ## Completion Rules
 
