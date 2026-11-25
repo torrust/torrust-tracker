@@ -117,9 +117,10 @@ Return:
 4. Completion-review finding
 5. Issue spec updates made
 6. Overall result: `REVIEW PASSED` when no required criterion fails and no blocking issue
-   remains, `REVIEW FAILED` when any required criterion fails or a blocking issue remains. A
-   criterion left `PENDING` because its evidence comes from a later task is listed with that
-   reason and does not by itself fail the review
+   remains, `REVIEW FAILED` when any required criterion fails or a blocking issue remains. Only
+   one `PENDING` criterion does not fail the review: one whose evidence comes from a later task,
+   which is listed with that reason. Any other `PENDING` required criterion (partial, unclear or
+   without evidence) gives `REVIEW FAILED`.
 
 ## Recording The Review
 
