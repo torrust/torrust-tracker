@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p3
 epic: 2912
 github-issue: 2996
-spec-path: docs/issues/open/2996-2912-si-8-share-assert-names-no-source-path/ISSUE.md
+spec-path: docs/issues/closed/2996-2912-si-8-share-assert-names-no-source-path/ISSUE.md
 branch: "2996-share-assert-names-no-source-path-spec"
-related-pr: null
-last-updated-utc: "2026-11-25 11:37"
+related-pr: 3041
+last-updated-utc: "2026-11-25 16:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -32,7 +32,7 @@ semantic-links:
 
 # Issue #2996 - Share the `assert_names_no_source_path` test helper
 
-Parent EPIC: [Remove source locations from errors](../2912-remove-source-locations-from-errors/EPIC.md) (#2912). Sub-issue SI-8 (#2996) of the EPIC (after SI-6 in the table, but independent of it).
+Parent EPIC: [Remove source locations from errors](../../open/2912-remove-source-locations-from-errors/EPIC.md) (#2912). Sub-issue SI-8 (#2996) of the EPIC (after SI-6 in the table, but independent of it).
 
 ## Goal
 
@@ -188,10 +188,10 @@ with the narrow affected scope, and sign every commit with GPG.
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
+- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification (not applicable: no independent reviewer agent was asked to review this folder; the pull request reviews of PR 3041, by Greptile, da2ce7, CodeRabbit and the Claude app, are not independent-reviewer reports and are recorded in `docs/pr-reviews/pr-3041-review/PR-REVIEW.md`)
 - [x] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -204,6 +204,7 @@ the model that produced them.
 - 2026-11-23 13:31 UTC - Claude Code (Claude Sonnet 5.5) - Recorded copies 8 and 9, added by SI-5 (#2917, PR #3001) in `configuration` and `axum-server`: neither can use the shared function (`test-helpers` depends on `configuration`; `axum-server` has no `test-helpers` dev-dependency), so both stay and are cross-linked. Counts now read nine copies to five definitions (review finding F1 of PR #3001).
 - 2026-11-24 17:07 UTC - Claude Code (Claude Sonnet 5.5) - Implemented T1 to T6: shared function in `test-helpers`, five copies removed, four remaining copies cross-linked; manual verification V1 and V2 recorded; no Cargo or deny changes.
 - 2026-11-25 11:37 UTC - Claude Code (Claude Opus 5.5) - Review round 2 of PR 3041 (da2ce7): the shared test now pins each fragment (V4); four long cross-link doc lines wrapped; V1 re-run and V3 (identical wording) added; each acceptance row cites its own evidence; `last-updated-utc` refreshed.
+- 2026-11-25 15:59 UTC - Claude Code (Claude Sonnet 5.5) - PR #3041 merged on 2026-11-25 (merge commit message `Merge torrust/torrust-tracker#3041: test(test-helpers): [#2996] share the assert_names_no_source_path test helper`) and issue #2996 closed on 2026-11-25 15:58 UTC; four rounds of review (Greptile, da2ce7, CodeRabbit; the Claude app found no issue) recorded 11 findings (10 fixed, one declined) in `docs/pr-reviews/pr-3041-review/PR-REVIEW.md`; archived the specification to `docs/issues/closed/` and marked row 8 DONE in the EPIC.
 
 ## Acceptance Criteria
 
