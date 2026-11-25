@@ -9,7 +9,7 @@ github-issue: 3000
 spec-path: docs/issues/open/3000-2993-si-b-client-error-text-policy/ISSUE.md
 branch: "3000-si-b-client-error-text-policy"
 related-pr: null
-last-updated-utc: "2026-11-23 21:56"
+last-updated-utc: "2026-11-25 17:59"
 semantic-links:
   skill-links:
     - create-issue
@@ -118,7 +118,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | TODO | Draft the ADR | The decisions listed in the scope, with the options and the reasons; a table of every current client text and its proposed text. Its own pull request. |
+| T1 | IN_PROGRESS | Draft the ADR | The decisions listed in the scope, with the options and the reasons; a table of every current client text and its proposed text. Its own pull request. |
 | T2 | TODO | Maintainer accepts the ADR | No code before this. Update this specification with the approved texts. |
 | T3 | TODO | Baseline reproduction and test plan | Evidence recorded; the list of tests per behavior area (T4 to T7) written. The tests are written red-then-green inside each area, with a recorded test-design review after each passing increment. |
 | T4 | TODO | Database errors and the server-side event | Non-secret driver text stays in the source and the log (SI-A has already removed driver messages that hold a secret); the `tracing` event exists; the `InvalidQuery` label is right. |
@@ -166,6 +166,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-23 11:06 UTC - Claude Code (Claude Sonnet 5.5) - The maintainer approved the specification; created #3000 and moved it to `docs/issues/open/`. Merged with the EPIC by pull request #2994.
 - 2026-11-23 18:08 UTC - Claude Code (Claude Opus 5.5), EPIC coordinator session - Rechecked against `develop` `6bc417424`: nothing fixed. Listed the client texts section B of the EPIC missed, and recorded the maintainer's answers of 2026-11-23: the health-check API joins the scope, and the implementation session runs after SI-A with Claude Fable 5.2 at high effort.
 - 2026-11-23 19:29 UTC - Claude Code (Claude Opus 5.5), EPIC coordinator session - Review of PR 3014: limited AC2 to the three servers that can reach the database and added AC2b for the health-check API.
+- 2026-11-25 17:59 UTC - Claude Code (Claude Opus 5.5), SI-B session - T1: drafted the ADR `docs/adrs/20261125175726_tell_clients_what_they_can_act_on_and_keep_failure_detail_on_the_server.md` with the table of current and proposed client texts, rechecked against `develop` `ebe9e42b9`, and the rule-4 amendment note in the errors ADR. One point is left open in the ADR for the maintainer: the status of a duplicate REST key (keep 500, or 409). No code changes before the ADR is accepted (T2).
 
 ## Acceptance Criteria
 
