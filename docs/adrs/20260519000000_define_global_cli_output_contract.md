@@ -19,7 +19,7 @@ semantic-links:
 >
 > **Amended by** [Let Programs Follow the Protocol of the Host That Calls Them](20261124120307_let_programs_follow_the_protocol_of_the_host_that_calls_them.md):
 > a program whose input, output and exit codes are set by a host application we do not control is
-> classed `external-protocol` and follows that host's protocol instead of sections 1 and 2.
+> classed `external-protocol` and follows that host's protocol instead of sections 1, 2 and 5.
 
 ## Description
 
@@ -112,8 +112,9 @@ the tool; the close-out issue (#2770) removes the notes once the tools are migra
 
 **`external-protocol`** — a host application that the repository does not control defines the
 program's input, output and exit codes, and the program exists to be called by that host. The host's
-documented protocol replaces sections 1 and 2 where it defines them; the program's own failures
-still exit `1`, never `2` when `2` has another meaning in the protocol. See
+documented protocol replaces sections 1, 2 and 5 where it defines them (section 5 forbids plain
+text, which a host protocol can require); section 5 stays binding for every other class. The
+program's own failures still exit `1`, never `2` when `2` has another meaning in the protocol. See
 [the amendment](20261124120307_let_programs_follow_the_protocol_of_the_host_that_calls_them.md).
 
 The `profiling` binary is a developer-only diagnostic harness and is excluded from the
