@@ -61,7 +61,10 @@ the second hook is what holds you when you hand back directly. Each reads the re
 request of the caller names and checks it with the reply validator. While the file is missing or
 invalid it refuses and tells you what is wrong, at most three times for one request, counting both
 hooks together; the fourth attempt is allowed and the caller then finds no valid reply file and
-stops. A caller that continues you for another round gives you a new file and a new count. Write the
+stops. One case is not refused: when the file name of the request is not a valid reply file name
+(a round above 3, for example), the hook lets you finish at once with the reason in its message and
+counts nothing, because no file you write could satisfy it; the caller must name the file as the
+name rule says and ask again. A caller that continues you for another round gives you a new file and a new count. Write the
 file before you try to finish or to hand back, and check it with the validator command the skill
 gives.
 
