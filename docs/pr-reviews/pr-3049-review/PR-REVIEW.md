@@ -1,7 +1,7 @@
 ---
 pr-number: 3049
 pr-url: https://github.com/torrust/torrust-tracker/pull/3049
-last-updated-utc: "2026-11-25 13:30"
+last-updated-utc: "2026-11-25 13:31"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -59,8 +59,8 @@ seventh round for all of them on 2026-11-25.
 
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
-| F1 | review-finding:pr-3049-f1 | coderabbitai[bot] | Major | correctness | ORIGINAL | FIXED | OPEN |
-| F2 | review-finding:pr-3049-f2 | coderabbitai[bot] | Minor | documentation | ORIGINAL | FIXED | OPEN |
+| F1 | review-finding:pr-3049-f1 | coderabbitai[bot] | Major | correctness | ORIGINAL | FIXED | RESOLVED |
+| F2 | review-finding:pr-3049-f2 | coderabbitai[bot] | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -95,6 +95,7 @@ seventh round for all of them on 2026-11-25.
 - 2026-11-25 13:25 UTC - Started audit for review `6058202792` of `coderabbitai[bot]`; the review `6058085652` of `claude[bot]` (review disabled for forks) and the CodeRabbit walkthrough comment `7163196060` carry no finding.
 - 2026-11-25 13:25 UTC - Verified both findings against the current tree and committed the two fixes.
 - 2026-11-25 13:30 UTC - Pushed the fixes and replied on both threads, then recorded the reply URLs.
+- 2026-11-25 13:31 UTC - A refresh showed both threads already resolved (not by this session) after the replies; no resolve mutation was needed.
 
 ## Completion Rules
 
