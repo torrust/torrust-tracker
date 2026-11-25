@@ -1,7 +1,7 @@
 ---
 pr-number: 3049
 pr-url: https://github.com/torrust/torrust-tracker/pull/3049
-last-updated-utc: "2026-11-25 14:18"
+last-updated-utc: "2026-11-25 14:29"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -236,9 +236,9 @@ Round 3: `claude[bot]` review 6058972240 (F14), CodeRabbit review 6059084436 (F1
 - Concern: Three commits of the branch have no body, and the review lists them as a nit.
 - Solution: No change. No rule in the tree requires a body, the reviewer says so, and the branch history is kept as it is (`AGENTS.md`, Commit history); a commit cannot gain a body without rewriting history.
 - Current-tree verification: Read `AGENTS.md` and the `commit-changes` skill: a Conventional Commit subject is required, a body is not.
-- Resolution reference: pending
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3049#issuecomment-7165325317
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3049#issuecomment-7165325317
 
 ### F14 - A reply path in backticks or quotes is never enforced
 
@@ -251,7 +251,7 @@ Round 3: `claude[bot]` review 6058972240 (F14), CodeRabbit review 6059084436 (F1
 - Current-tree verification: Read `reply_file_in` and `unwrap_pair` in `contrib/dev-tools/checks/agent-reply-validator/src/transcript.rs` after the edit; `cargo test -p agent-reply-validator` passed with the new cases and clippy was clean; the pre-commit hook passed.
 - Resolution reference: fix(agent-reply-validator): [#2904] read a reply path written in backticks or quotes and tell the caller to write the line bare
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4696350026
 
 ### F15 - The round limit is not stated
 
@@ -264,7 +264,7 @@ Round 3: `claude[bot]` review 6058972240 (F14), CodeRabbit review 6059084436 (F1
 - Current-tree verification: Round limit read from `Round::MAX` in `contrib/dev-tools/checks/agent-reply-validator/src/name.rs`, whose tests refuse `r4`; read the paragraph in the skill after the edit; the pre-commit hook passed.
 - Resolution reference: docs(skills): [#2904] state the round limit, keep the criteria matrix in the reply and say one kind of pending criterion
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4696350665
 
 ### F16 - The reply drops the acceptance-criteria matrix
 
@@ -277,7 +277,7 @@ Round 3: `claude[bot]` review 6058972240 (F14), CodeRabbit review 6059084436 (F1
 - Current-tree verification: Read the `evidence` bullet after the edit; the reply schema in the validator takes a list of texts for `evidence`, so the matrix validates; the pre-commit hook passed.
 - Resolution reference: docs(skills): [#2904] state the round limit, keep the criteria matrix in the reply and say one kind of pending criterion
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4696351189
 
 ### F17 - An unreadable transcript lets the agent finish unvalidated
 
@@ -288,9 +288,9 @@ Round 3: `claude[bot]` review 6058972240 (F14), CodeRabbit review 6059084436 (F1
 - Concern: When the guard cannot read the transcript it exits 1, which does not hold the agent; the reviewer asks that a task with a named reply file stays held, with a count, and the tests changed.
 - Solution: No change. The ADR of this pull request decides it: failures of the program itself (unreadable input, an unreadable transcript) are errors and not refusals, exit `1` and cannot keep an agent working; the caller then finds no valid reply file and stops (fails closed). Holding on an error the guard cannot attribute to a reply would also have no count to key on when the issue number cannot be read. Reversing it changes the decision and the tests together, so it is the maintainer's call. The thread stays open for the reviewer.
 - Current-tree verification: Read the guard's `fail` path in `contrib/dev-tools/checks/agent-reply-validator/src/bin/agent-reply-guard/main.rs` and the sentence of the new ADR (section 2) that says such failures exit 1 and hold nothing; the tests at the lines the reviewer names assert exactly that.
-- Resolution reference: pending
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4696351824
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4696351824
 
 ### F18 - The audit record lags the forge
 
@@ -303,7 +303,7 @@ Round 3: `claude[bot]` review 6058972240 (F14), CodeRabbit review 6059084436 (F1
 - Current-tree verification: Ran the validator at the head before this round: exit 0, 12 rows and 0 failures; the rows and log entries of this round are checked by it again after the replies.
 - Resolution reference: docs(pr-reviews): [#2904] record the third review round on pull request 3049
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4696352434
 
 ### F19 - The reply-line reader drops a wrapped path or line
 
@@ -316,7 +316,7 @@ Round 3: `claude[bot]` review 6058972240 (F14), CodeRabbit review 6059084436 (F1
 - Current-tree verification: As F14; the agent file shows `Reply file: <path>` with the sentence that it is written bare and not as inline code.
 - Resolution reference: fix(agent-reply-validator): [#2904] read a reply path written in backticks or quotes and tell the caller to write the line bare
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4696353236
 
 ### F20 - "Only one `PENDING` criterion" reads as a count
 
@@ -329,7 +329,7 @@ Round 3: `claude[bot]` review 6058972240 (F14), CodeRabbit review 6059084436 (F1
 - Current-tree verification: Read item 6 of the Output in `.claude/skills/review-task/SKILL.md` after the edit; no other copy of the old wording (`grep`).
 - Resolution reference: docs(skills): [#2904] state the round limit, keep the criteria matrix in the reply and say one kind of pending criterion
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4696353768
 
 ### F21 - Commits without a body, again
 
@@ -340,9 +340,9 @@ Round 3: `claude[bot]` review 6058972240 (F14), CodeRabbit review 6059084436 (F1
 - Concern: The review body repeats the nit of F13: six of the nine new commits have no body, and no rule requires one.
 - Solution: No change, for the reason of F13.
 - Current-tree verification: As F13.
-- Resolution reference: pending
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3049#issuecomment-7165325317
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3049#issuecomment-7165325317
 
 ## Processing Log
 
@@ -355,6 +355,9 @@ Round 3: `claude[bot]` review 6058972240 (F14), CodeRabbit review 6059084436 (F1
 - 2026-11-25 14:00 UTC - Pushed the fixes and the record of this round, replied on the ten threads (GitHub `created_at` 13:59:39 to 14:00:06 UTC) and recorded the reply URLs; the validator exited 0.
 - 2026-11-25 14:01 UTC - Resolved nine threads (F3 to F10 and F12) with the GraphQL mutation, each returning `isResolved: true`. F11 stays open as undecided, waiting on the maintainer.
 - 2026-11-25 14:18 UTC - Round 3: started on reviews `6058972240` of `claude[bot]`, `6059084436` of `coderabbitai[bot]` and `6059158630` of `da2ce7`; verified every finding against the current tree and committed two fixes (F14 to F16, F19, F20). F17 is declined with a reason, F13 and F21 need no change, F18 is answered by the record itself.
+- 2026-11-25 14:22 UTC - Pushed the two fixes and the record of this round with `git-bot-push`, no force.
+- 2026-11-25 14:28 UTC - Replied on the seven threads (GitHub `created_at` 14:27:47 to 14:28:03 UTC) and with one conversation comment for the body nits F13 and F21 (14:28:10 UTC), then resolved five threads (F14, F16, F18 to F20) with the GraphQL mutation; the thread of F15 was already resolved by `coderabbitai[bot]`. F17 stays open for its reviewer and F11 for the maintainer.
+- 2026-11-25 14:29 UTC - Recorded the reply URLs of this round; this commit is kept local and not pushed on its own, by the maintainer's rule.
 
 ## Completion Rules
 
