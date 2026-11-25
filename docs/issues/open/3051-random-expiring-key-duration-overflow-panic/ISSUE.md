@@ -224,7 +224,7 @@ commit.
 - 2026-11-25 15:18 UTC - Claude Code (Claude Sonnet 5.5) - Review 6060302201 of PR #3054: the generate-key handler test is planned in T1, T2 and T3, and the evidence names the log capture
 - 2026-11-25 19:06 UTC - Claude Code (Claude Sonnet 5.5) - T1-T2 done: four regression tests written and run red on branch 3051-random-expiring-key-duration-overflow-panic, no production change yet (evidence V2b)
 - 2026-11-25 19:12 UTC - Claude Code (Claude Sonnet 5.5) - T3 done: fix, callers and the generate_key unit tests; green run, mutation proof and linter all recorded (evidence V2c); the real-tracker recheck (V3) is next
-- 2026-11-25 19:14 UTC - Claude Code (Claude Sonnet 5.5) - T4 done: real-tracker recheck on 0e94a2cfd (evidence V3): requests 2 and 4 answer 400, no panic. Completion review: no material discovery, the implementation followed the spec (the REST handler arm, the benchmark caller and the renamed handler test were all planned)
+- 2026-11-25 19:14 UTC - Claude Code (Claude Sonnet 5.5) - T4 done: real-tracker recheck on the fix commit (evidence V3): requests 2 and 4 answer 400, no panic. Completion review: no material discovery, the implementation followed the spec (the REST handler arm, the benchmark caller and the renamed handler test were all planned)
 
 ## Acceptance Criteria
 

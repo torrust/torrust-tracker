@@ -155,7 +155,7 @@ passes (`2 passed`).
 
 - Goal: repeat V1 steps 1 to 5 against the fixed build and compare.
 - Initial state: fresh SQLite database (`.tmp/repro-keys.db` removed); artifact under test: the branch
-  `3051-random-expiring-key-duration-overflow-panic` at `0e94a2cfd`
+  `3051-random-expiring-key-duration-overflow-panic`, at the commit
   (`fix(tracker-core): [#3051] return an error when a random key duration overflows the clock`), the last production
   change; stable toolchain; `cargo build --bin torrust-tracker`; same configuration and requests as V1. The tracker
   was started in the background with
