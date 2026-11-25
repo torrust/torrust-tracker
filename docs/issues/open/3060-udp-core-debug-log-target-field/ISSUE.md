@@ -49,7 +49,7 @@ In `tracing`, `target = value` (an equals sign) is an ordinary **field** named `
 
 **Impact.** Only DEBUG output is affected, and nothing is functionally wrong. A consumer that selects log lines by target (a `grep` for `UDP TRACKER`, the `target` key of the JSON log style, a log shipper's filter) misses these two lines, and for the JSON style the record carries a wrong `target` plus a stray `target` field. The EPIC #2387 logging conventions rely on named targets.
 
-**Verified scope (2026-11-25, `torrust/develop` at the merge of #3053).** two scans find exactly these two sites: the single-line `git grep -nE '\(\s*target\s*=' -- '*.rs'` and the multi-line `git grep -n -P -z -o '(?s)\b(?:trace|debug|info|warn|error|event|span|trace_span|debug_span|info_span|warn_span|error_span)!\s*\(\s*target\s*=[^=]' -- '*.rs'`, whose `-z -P (?s)` form matches a call written across lines. The multi-line command is the check for AC3; both outputs are recorded in `manual-verification-evidence.md` (section V1).
+**Verified scope (2026-11-25, `torrust/develop` at the merge of #3053).** Two scans find exactly these two sites: the single-line `git grep -nE '\(\s*target\s*=' -- '*.rs'` and the multi-line `git grep -n -P -z -o '(?s)\b(?:trace|debug|info|warn|error|event|span|trace_span|debug_span|info_span|warn_span|error_span)!\s*\(\s*target\s*=[^=]' -- '*.rs'`, whose `-z -P (?s)` form matches a call written across lines. The multi-line command is the check for AC3; both outputs are recorded in `manual-verification-evidence.md` (section V1).
 
 ## Scope
 
