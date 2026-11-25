@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 ## Findings
 
 Round 1: CodeRabbit review 6058202792 (F1, F2), answered before the audit record existed.
-Round 2: CodeRabbit review 6058425125 on the head of commit `docs(issues): [#2904] cite commits by subject in the task reviewer reply files` (F3) and `da2ce7`'s review 6058630615 on the head of commit `docs(issues): [#2904] reopen AC10 until scenario M5 has its reply files` (F4 to F12). F6 repeats F3. F11 is undecided: it waits on the maintainer's answer about the D17 exact-path-shape consequence. The two reviews of `josecelano-bot` (6058508511, 6058509193) carry the replies of round 1 and no finding.
+Round 2: CodeRabbit review 6058425125 on the head of commit `docs(issues): [#2904] cite commits by subject in the task reviewer reply files` (F3) and `da2ce7`'s review 6058630615 on the head of commit `docs(issues): [#2904] reopen AC10 until scenario M5 has its reply files` (F4 to F12). F6 repeats F3. F11 was undecided until round 4, when the maintainer decided it. The two reviews of `josecelano-bot` (6058508511, 6058509193) carry the replies of round 1 and no finding.
 
 Round 3: `claude[bot]` review 6058972240 (F14), CodeRabbit review 6059084436 (F15 to F17) and `da2ce7`'s review 6059158630 (F18 to F21). F13 is the nit of review 6058630615's body that round 2 did not record. F19 repeats F14 and F21 repeats F13. F17 is declined with a reason and its thread stays open for the reviewer.
 
@@ -57,7 +57,7 @@ Round 3: `claude[bot]` review 6058972240 (F14), CodeRabbit review 6059084436 (F1
 | F8 | review-finding:pr-3049-f8 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F9 | review-finding:pr-3049-f9 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F10 | review-finding:pr-3049-f10 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
-| F11 | review-finding:pr-3049-f11 | da2ce7 | Suggestion | correctness | ORIGINAL | FIXED | OPEN |
+| F11 | review-finding:pr-3049-f11 | da2ce7 | Suggestion | correctness | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-3049-f12 | da2ce7 | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F13 | review-finding:pr-3049-f13 | da2ce7 | Nit | maintainability | ORIGINAL | NO_ACTION | NON_RESOLVABLE |
 | F14 | review-finding:pr-3049-f14 | claude[bot] | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -212,7 +212,7 @@ Round 3: `claude[bot]` review 6058972240 (F14), CodeRabbit review 6059084436 (F1
 - Current-tree verification: read the arm in `contrib/dev-tools/checks/agent-reply-validator/src/guard.rs`: it accepts any name under `agent-replies/`, as the reviewer says; V7 shows the three refusals for `task-reviewer-t5-r4.json`.
 - Resolution reference: fix(agent-reply-validator): [#2904] let the reviewer finish when the reply file name is not a valid one
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4695989904
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4697632582
 
 ### F12 - `last-updated-utc` predates the newest progress-log entry
 
@@ -359,6 +359,7 @@ Round 3: `claude[bot]` review 6058972240 (F14), CodeRabbit review 6059084436 (F1
 - 2026-11-25 14:28 UTC - Replied on the seven threads (GitHub `created_at` 14:27:47 to 14:28:03 UTC) and with one conversation comment for the body nits F13 and F21 (14:28:10 UTC), then resolved five threads (F14, F16, F18 to F20) with the GraphQL mutation; the thread of F15 was already resolved by `coderabbitai[bot]`. F17 stays open for its reviewer and F11 for the maintainer.
 - 2026-11-25 14:29 UTC - Recorded the reply URLs of this round; this commit is kept local and not pushed on its own, by the maintainer's rule.
 - 2026-11-25 16:12 UTC - Round 4: the maintainer answered the question of F11; the fix and the record of D17 are committed, and the row is FIXED with the thread still open until the push and the reply.
+- 2026-11-25 16:22 UTC - Pushed the branch (head commit `docs(pr-reviews): [#2904] record the decision on the file-name finding of pull request 3049`), replied on the thread of F11 (GitHub reply `discussion_r4697632582`) and resolved it with the GraphQL mutation, which returned `isResolved: true`.
 
 ## Completion Rules
 
