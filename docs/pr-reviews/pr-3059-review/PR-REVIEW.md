@@ -1,7 +1,7 @@
 ---
 pr-number: 3059
 pr-url: https://github.com/torrust/torrust-tracker/pull/3059
-last-updated-utc: "2026-11-25 18:10"
+last-updated-utc: "2026-11-25 18:13"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -234,7 +234,7 @@ push). Round 2 is review 6062023160 (`da2ce7`). F9 and F10 re-raise F5 and F6 in
 - Current-tree verification: Read the F12 Concern line in the tree; it names the commit subject.
 - Resolution reference: `docs(pr-reviews): [#3059] correct the audit record after review round 4`
 - Follow-up PR URL: N/A
-- Reply URL: REPLY13
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3059#discussion_r4698989084
 
 ### F14 - Two lines do not match the bytes, and the late start is dated wrongly
 
@@ -247,7 +247,7 @@ push). Round 2 is review 6062023160 (`da2ce7`). F9 and F10 re-raise F5 and F6 in
 - Current-tree verification: Read the two details and the log in the tree.
 - Resolution reference: `docs(pr-reviews): [#3059] correct the audit record after review round 4`
 - Follow-up PR URL: N/A
-- Reply URL: REPLY14
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3059#discussion_r4698989517
 
 ### F15 - The description ends with an automated summary that contradicts the text
 
@@ -275,6 +275,7 @@ push). Round 2 is review 6062023160 (`da2ce7`). F9 and F10 re-raise F5 and F6 in
 - 2026-11-25 17:50 UTC - Replied to and resolved the thread of F11.
 - 2026-11-25 18:05 UTC - `da2ce7` review 6062581226 (approved) with three findings: F13 (commit id in F12), F14 (two lines of the record that do not match the bytes, and the late-start date) and F15 (description summary block). Correction to the 17:25 entry: it logged the late start, but the record was first created by commit `docs(pr-reviews): [#3059] add the review audit record` at 17:39 UTC, after the replies of 17:35. F14 corrects the F2 and F11 verification sentences.
 - 2026-11-25 18:07 UTC - Edited the PR description and posted the consolidated response https://github.com/torrust/torrust-tracker/pull/3059#issuecomment-7170471703
+- 2026-11-25 18:11 UTC - Fix commit `docs(pr-reviews): [#3059] correct the audit record after review round 4` pushed; replied to and resolved the threads of F13 and F14.
 
 ## Completion Rules
 
