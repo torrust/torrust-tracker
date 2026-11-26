@@ -7,13 +7,16 @@ semantic-links:
     - .github/agents/implementer.agent.md
     - .github/agents/committer.agent.md
     - .github/agents/planner.agent.md
+    - .github/agents/pr-reviewer.agent.md
     - .claude/agents/pr-review-handler.md
     - .claude/agents/task-reviewer.md
     - .claude/agents/implementer.md
+    - .claude/agents/pr-reviewer.md
     - .claude/skills/process-pr-review/SKILL.md
     - .claude/skills/review-task/SKILL.md
     - .claude/skills/commit-changes/SKILL.md
     - .claude/skills/implement-task/SKILL.md
+    - .claude/skills/review-pr/SKILL.md
     - .claude/skills/create-issue/SKILL.md
 ---
 
@@ -28,7 +31,7 @@ says so.
 
 Task T4 created this file with the rows of `copilot-suggestions-handler`. Each of T5 to T9 adds the
 rows of the profiles its agent replaces, and T10 completes it before it removes the profiles. Task T6
-adds `implementer`, `committer` and `planner`.
+adds `implementer`, `committer` and `planner`, and task T7 adds `pr-reviewer`.
 
 ## `copilot-suggestions-handler`
 
@@ -210,3 +213,35 @@ profile held, and the orchestrator (task T9) takes the delegation.
 | Do not delegate without an explicit scope and success criteria. | Dropped | The orchestrator briefs the implementer (task T9). |
 | Answer the implementer's clarifying questions promptly and update the specification before implementation resumes. | Skill `create-issue`, "Plan The Work" (last paragraph) | Moved by task T6. The orchestrator relays the question to the contributor (decision D3). |
 | Tools: `execute`, `read`, `search`, `edit`, `todo`, `agent`; `argument-hint`; `user-invocable` and `disable-model-invocation`. | Dropped | There is no agent. |
+
+## `pr-reviewer`
+
+Replaced by the agent `pr-reviewer` (task T7), pinned to the full model ID of Opus 5.5 (decision
+D13), which starts no agent (decision D3) and posts nothing on GitHub. The skill `review-pr` already
+held the checklist and the findings format; T7 moves into it the rules that only the profile held
+(the output and its verdicts, the merged pull request, the recording of a review).
+
+| Rule of the profile | Destination | Notes |
+| --- | --- | --- |
+| Identity: review an already-open pull request and give merge-focused feedback. | Agent file (identity) and skill `review-pr` (already held it) | |
+| Follow `AGENTS.md`. | `AGENTS.md`; agent file, "Workflow" | |
+| Use the `review-pr` skill as the checklist source. | Agent file, `skills` field (preloaded) | |
+| Review against the actual diff and the CI context, not local intent. | Agent file, "Workflow" | |
+| Workflow 1: confirm that a pull request exists; a number or a URL is required. | Skill `review-pr`, "Output"; agent file, "Inputs" | A missing number or URL is returned as a question. |
+| Workflow 2: gather the title, the description, the linked issue, the base branch, the merge state and time, and the checks. | Skill `review-pr`, "Output" | Moved by task T7; the quick overview of the skill already read the title, the description and the diff. |
+| Workflow 3: review the changed files and classify the findings by severity. | Skill `review-pr`, "Output" and "Providing Feedback" (already held it) | The skill's finding format has five severities; the output of the profile had three. |
+| Workflow 4: verify the tests and documentation expectations of the checklist. | Skill `review-pr`, "PR Review Checklist" (already held it) | |
+| Workflow 5: return a clear merge-readiness verdict. | Skill `review-pr`, "Output" | Moved by task T7. |
+| A merged pull request: label the result `POST_MERGE_FINDINGS`, give no readiness verdict, implement nothing, create no branch, and direct the caller to the post-merge workflow of `process-pr-review`, which needs the maintainer's approval. | Skill `review-pr`, "A Merged Pull Request" | Moved by task T7. |
+| Persist the independent review in `agent-review-reports.md` of a folder-style specification, before returning the verdict, including a `POST_MERGE_FINDINGS` result. | Skill `review-pr`, "A Reply File" | Decision D5 and D18: the record is now a JSON reply file, `pr-reviewer-pr<number>-r<round>.json`, that the validator checks. |
+| Read the whole report before editing; keep earlier entries unchanged and in order; a correction is a new timestamped entry. | Skill `review-pr`, "A Branch Without The `pr-reviewer` Agent", which points to the same section of `review-task` | A reply file is one file per round and is never edited in place. |
+| Record the pull-request number, the base branch, the reviewed files, the checks, the findings by severity, the checklist gaps, the verdict and the follow-up owner and action. | Skill `review-pr`, "A Reply File" (the fields) and "A Branch Without The `pr-reviewer` Agent" | |
+| The record is independent of the Copilot review-thread handling and does not replace the handler's tracker. | Skill `review-pr`, "A Reply File" | Now: independent of the handling of the review threads, and of the audit record of `process-pr-review`. |
+| Do not invoke the Committer or commit the report; the caller requests the Committer for the change set or a focused documentation commit. | Agent file, "Workflow" | Decision D14: there is no `committer` agent; the caller commits the reply file with the work it describes. |
+| With no folder-style specification (a diff or package review, a legacy standalone specification), create no report and state `Issue-local report skipped: no folder-style issue specification was supplied.` | Skill `review-pr`, "No Folder-Style Specification" | |
+| Output format: the scope, the findings by severity, the checklist gaps, the overall verdict (`APPROVE`, `REQUEST_CHANGES`, `COMMENT`, `POST_MERGE_FINDINGS`). | Skill `review-pr`, "Output"; agent file, "Final message" | The reply file maps the verdicts to the closed list of the schema. |
+| Do not run the pre-pull-request task acceptance review. | Skill `review-pr`, "Recording The Review" and its first paragraph (already held it) | |
+| Do not mark the issue specification's workflow checkpoints unless asked and evidenced. | Skill `review-pr`, "Recording The Review" | Moved by task T7. |
+| Do not approve while a blocker is unresolved. | Skill `review-pr`, "Output" | Moved by task T7. |
+| Tools: `execute`, `read`, `search`, `edit`, `todo`, `agent`. | Agent file (tools) | `Bash`, `Read`, `Write`, `Grep`, `Glob`. `Write` is for the reply file; `Edit` is dropped because the reviewer changes no file of the pull request; `agent` is dropped (decision D3); `todo` has no use in one review. |
+| `argument-hint`; `user-invocable: true` and `disable-model-invocation: false`. | Agent file ("Inputs", `description`) | The hint becomes the "Inputs" section. The visibility keys have no Claude Code meaning. |
