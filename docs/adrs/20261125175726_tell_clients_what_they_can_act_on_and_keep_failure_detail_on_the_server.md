@@ -6,12 +6,9 @@ semantic-links:
   related-artifacts:
     - .claude/skills/create-adr/SKILL.md
     - .claude/skills/handle-errors-in-code/SKILL.md
-    - docs/issues/open/3000-2993-si-b-client-error-text-policy/ISSUE.md
-    - docs/issues/open/2993-secrets-and-client-error-text/EPIC.md
     - docs/adrs/20261118045443_errors_do_not_record_source_locations.md
     - docs/adrs/20260822094338_adopt_secrecy_for_sensitive_values.md
     - docs/adrs/20260727000000_events_are_objective_facts.md
-    - docs/issues/open/144-api-v2-correct-response-codes/EPIC.md
 ---
 
 <!-- skill-link: create-adr -->
@@ -34,8 +31,7 @@ Rule 4 of the errors ADR (`20261118045443_errors_do_not_record_source_locations.
 client text is the `Display` of the workspace error and that the text of a source error from a
 crate the workspace does not control is not formatted into it. It does not say how much a
 workspace `Display` may reveal, and the code breaks the second half of the rule today. The EPIC
-inventory (`docs/issues/open/2993-secrets-and-client-error-text/EPIC.md`, section B) and the recheck
-in the SI-B specification found, on a running tracker:
+inventory (EPIC #2993, section B) and the recheck in the SI-B specification (issue #3000) found, on a running tracker:
 
 - **Database driver text.** `databases::error::Error` keeps the `sqlx` error as its source and
   prints it, and every protocol forwards that `Display`. An HTTP announce can answer
@@ -348,10 +344,9 @@ failed: <join error>`.
 ## References
 
 - Issue [#3000](https://github.com/torrust/torrust-tracker/issues/3000) (SI-B) and its
-  specification `docs/issues/open/3000-2993-si-b-client-error-text-policy/ISSUE.md`.
-- EPIC [#2993](https://github.com/torrust/torrust-tracker/issues/2993) and its inventory,
-  `docs/issues/open/2993-secrets-and-client-error-text/EPIC.md` and
-  `manual-verification-evidence.md`.
+  specification, found by the issue number under `docs/issues/`.
+- EPIC [#2993](https://github.com/torrust/torrust-tracker/issues/2993) and its inventory and
+  `manual-verification-evidence.md`, found by the issue number under `docs/issues/`.
 - Issue [#2999](https://github.com/torrust/torrust-tracker/issues/2999) (SI-A), which removed
   secrets from errors, logs and replies, and its amendment of
   `20260822094338_adopt_secrecy_for_sensitive_values.md`.
