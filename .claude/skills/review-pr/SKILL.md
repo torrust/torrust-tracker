@@ -20,8 +20,8 @@ If there is no PR yet and you need to validate task completion on a local branch
    base branch, the merge state and time, and the checks when they are available.
 3. Check the diff for scope of change. Review the real diff and the checks of the pull request, not
    the intent of the caller.
-4. Identify the affected packages and components
-5. Apply the checklist below and classify the findings by severity
+4. Identify the affected packages and components.
+5. Apply the checklist below and classify the findings by severity.
 
 ## PR Review Checklist
 
