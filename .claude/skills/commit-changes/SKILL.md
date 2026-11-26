@@ -119,7 +119,9 @@ automatically on every `git commit`. Install it once after cloning:
 ./contrib/dev-tools/git/install-git-hooks.sh
 ```
 
-Once installed, the hook fires on every commit and you do not need to run the script manually.
+Once installed, the hook fires on every commit and you do not need to run the script manually. To
+check whether it is installed, run `./contrib/dev-tools/git/check-git-hooks.sh`: when it is, do not
+run the script first, because `git commit -S` would run every check a second time.
 
 ### Automated Checks
 
@@ -161,6 +163,28 @@ whose exit status replaces the script's: a failed check would then no longer blo
 TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-commit.sh --format=json \
   > .tmp/pre-commit.json && git commit -S -m "<type>(<scope>): <description>"
 ```
+
+### Checks Before The Commit
+
+Run these before you stage, so a commit never lands under a stale or wrong issue:
+
+1. **The issue specification is current.** When the commit relates to a specification in
+   `docs/issues/`, check that every completed acceptance criterion is ticked and that the progress
+   log and the task list show the current state. When the specification is out of date, update it
+   first. For a completion commit, check that the manual verification the specification requires is
+   backed by the issue-local `manual-verification-evidence.md`, not only by test output or a
+   disposable script (see the [verification types](../../../docs/testing.md#verification-types)).
+2. **The branch's issue number has an open specification.** When the branch name starts with an
+   issue number (for example `42-some-description`), `docs/issues/open/` must hold a file or folder
+   that starts with that number. When it does not, the issue may be closed (look in
+   `docs/issues/closed/`, then the branch belongs on another base or needs another name), or the
+   number may be wrong. Ask the caller to confirm the number, or rename the branch with a `chore/`
+   prefix for work that has no issue.
+3. **Commit the dictionary first when one change is split.** When one change becomes several
+   commits and `project-words.txt` has new entries that belong to different ones, do not split the
+   dictionary additions. Commit all of them first as one `chore(cspell): add <words>` commit, or fold
+   them into the first logical commit when that is more natural. Then make the focused commits.
+   This keeps the spell check green at every commit and keeps the other commits about their intent.
 
 ### Manual Checks (Cannot Be Automated)
 
@@ -220,6 +244,9 @@ Use ordered Markdown lists or plain numbers instead of `#N` step labels.
 ### Commits to Avoid (❌)
 
 - Too large: multiple unrelated changes in one commit
+- Skill, agent or workflow documentation changes mixed with implementation changes: make them
+  separate commits
+- Secrets, backup files or other accidental files
 - Vague messages like "fix stuff" or "WIP"
 - Missing scope when a package is clearly affected
 - Unsigned commits

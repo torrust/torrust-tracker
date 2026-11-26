@@ -186,7 +186,8 @@ Verify these by hand before committing:
   verify that `docs/issues/open/` contains a matching spec file or directory. This prevents committing
   under a non-existent, closed, or wrong issue number.
   - **Future**: a `TODO` is recorded in `contrib/dev-tools/git/hooks/pre-commit.sh` to automate this
-    check. Until then, AI agents must verify branch names manually (see the committer agent spec).
+    check. Until then, AI agents must verify branch names manually (see "Checks Before The Commit" in the
+    [`commit-changes`](../commit-changes/SKILL.md) skill).
 
 ## Before Opening a PR (Recommended)
 
