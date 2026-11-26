@@ -9,7 +9,7 @@ github-issue: 2925
 spec-path: docs/issues/open/2925-2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md
 branch: "2925-migrate-tests-to-guarded-sqlite-database"
 related-pr: null
-last-updated-utc: "2026-11-26 16:36"
+last-updated-utc: "2026-11-26 16:53"
 semantic-links:
   skill-links:
     - create-issue
@@ -137,7 +137,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | IN_PROGRESS | Reproduce and classify | Before-count (V1); table of failing tests with their class; package order, naming and remaining SQLite start-up coverage approved by the maintainer. |
+| T1 | DONE | Reproduce and classify | Before-count (V1); table of failing tests with their class; package order, naming and remaining SQLite start-up coverage approved by the maintainer. |
 | T2 | TODO | Migrate one package | First pull request; migration pattern reviewed before T3. |
 | T3 | TODO | Migrate the remaining packages | One pull request per package; each records its package count. |
 | T4 | TODO | Default to no database | `ephemeral*()` set no database; `ephemeral_sqlite_database()` removed; `ephemeral_with_no_services()` renamed to `ephemeral_without_services()` in every caller. |
@@ -190,7 +190,7 @@ Record of the approvals, with the maintainer's words: https://github.com/torrust
   `ephemeral_with_sqlite_database()` (or a wrapper that takes the config) and keeps the guard in
   its fixture struct for the whole test body.
 
-### SQLite start-up coverage that remains (AC4) - proposal, not yet approved
+### SQLite start-up coverage that remains (AC4) - approved by the maintainer, 2026-11-26
 
 After T4, only these tests open a SQLite database (derived from a search for `Database::Sqlite3`,
 `ephemeral_with_sqlite_database` and a `sqlite3` driver in test configurations on `develop`
@@ -225,8 +225,7 @@ private and listed modes, and the public-mode contract tests), `axum-health-chec
 built on `api_container`, which compose the core over `core_config.database`), the root `torrust-tracker` tests that use
 `ephemeral*()`. The coverage of the production start-up path with a real database therefore
 rests mainly on the main-application integration tests, which are the nearest coverage of it, and
-on the other groups above. This list needs the maintainer's
-approval before T1 is done.
+on the other groups above. The maintainer approved this list (record: https://github.com/torrust/torrust-tracker/pull/3067#issuecomment-7198218832).
 
 ## Commit Points
 
@@ -286,6 +285,11 @@ approval before T1 is done.
   `docs(issues): [#2925] record the T1 reproduction and the classification of tests that need
   persistence` (2026-11-26T08:09:21Z), which carries the entry, so the work it records was done
   before 08:09 UTC. The entry is not rewritten.
+- 2026-11-26 16:53 UTC - Claude Code (Claude Sonnet 5.5), #2925 implementer - The maintainer approved the
+  corrected coverage list (AC4) ("Approve it", relayed by the EPIC coordinator; record: https://github.com/torrust/torrust-tracker/pull/3067#issuecomment-7198218832).
+  The list he approved was the summary in that record; the main-application integration tests
+  named in the spec widen it. All T1 outputs are approved: T1 is `DONE`, and T2 starts with
+  `udp-server` after this pull request merges.
 
 ## Acceptance Criteria
 
