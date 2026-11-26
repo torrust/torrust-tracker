@@ -54,9 +54,9 @@ Review 6075748165 (`da2ce7`, `CHANGES_REQUESTED`, 2026-11-26 14:23 UTC) posted f
 | F4 | review-finding:pr-3072-f4 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F5 | review-finding:pr-3072-f5 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-3072-f6 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
-| F7 | review-finding:pr-3072-f7 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | OPEN |
+| F7 | review-finding:pr-3072-f7 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F8 | review-finding:pr-3072-f8 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
-| F9 | review-finding:pr-3072-f9 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | OPEN |
+| F9 | review-finding:pr-3072-f9 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F10 | review-finding:pr-3072-f10 | da2ce7 | Nit | documentation | RE_RAISE_OF:F8 | FIXED | NON_RESOLVABLE |
 
 ## Finding Details
@@ -150,7 +150,7 @@ Review 6075748165 (`da2ce7`, `CHANGES_REQUESTED`, 2026-11-26 14:23 UTC) posted f
 - Current-tree verification: `grep -n "F8" docs/pr-reviews/pr-3072-review/PR-REVIEW.md` prints the row and its details; the summary line says the review was dismissed.
 - Resolution reference: docs(pr-reviews): [#3051] record review 6078748782 in the PR 3072 audit
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3072#discussion_r4712495745>
 
 ### F8 - The description's Files list omits the audit record
 
@@ -176,7 +176,7 @@ Review 6075748165 (`da2ce7`, `CHANGES_REQUESTED`, 2026-11-26 14:23 UTC) posted f
 - Current-tree verification: `sed -n '/^## Acceptance Criteria/,/^## Verification Plan/p' docs/issues/closed/3051-random-expiring-key-duration-overflow-panic/ISSUE.md | grep -c "\[x\]"` prints 0.
 - Resolution reference: docs(issues): [#3051] leave the remaining criteria for a reviewer to tick
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3072#discussion_r4712496028>
 
 ### F10 - The description's Files list omits the audit record (repeated)
 
@@ -198,6 +198,7 @@ Review 6075748165 (`da2ce7`, `CHANGES_REQUESTED`, 2026-11-26 14:23 UTC) posted f
 - 2026-11-26 17:13 UTC - Review 6077711472 (`da2ce7`, `APPROVED`) arrived on the head `docs(pr-reviews): [#3051] record the replies to review 6075748165 in the PR 3072 audit`: F5 and F6. This record was updated before the first reply. `validate-audit-record.py` was not run by this session.
 - 2026-11-26 17:19 UTC - Pushed the fix commit `docs(issues): [#3051] leave the acceptance criteria for a reviewer to tick` and the record (`git ls-remote` showed the head on the fork branch before the replies), replied on the two threads and resolved them. `validate-audit-record.py` was not run by this session.
 - 2026-11-26 18:57 UTC - Review 6078748782 (`da2ce7`, `APPROVED`) arrived on the head `docs(pr-reviews): [#3051] record the replies to review 6077711472 in the PR 3072 audit`: F7, F9 and F10; it showed that the body of review 6077711472 had a finding, F8, that this record had not captured, so F8 was added late. The description was edited for F8 and F10 (`pulls/3072` PATCH). `validate-audit-record.py` was not run by this session.
+- 2026-11-26 19:05 UTC - Pushed the fix commit `docs(issues): [#3051] leave the remaining criteria for a reviewer to tick` and the record (`git ls-remote` showed the head on the fork branch before the replies), replied on the two threads and resolved them. `validate-audit-record.py` was not run by this session.
 
 ## Completion Rules
 
