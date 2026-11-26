@@ -9,7 +9,7 @@ github-issue: 3037
 spec-path: docs/issues/closed/3037-2003-reviewer-neutral-pr-review/ISSUE.md
 branch: "3037-reviewer-neutral-pr-review"
 related-pr: 3044
-last-updated-utc: "2026-11-25 12:26"
+last-updated-utc: "2026-11-26 17:04"
 semantic-links:
   skill-links:
     - create-issue
@@ -242,9 +242,9 @@ the narrow affected scope, and sign every commit with GPG.
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [ ] Reviewer validated acceptance criteria and updated checkboxes (not ticked: the author ticked the acceptance criteria in PR #3044; da2ce7's ACK on its final head names what it verified, the audit record's new rows, the trial merge and the validator logic, not the acceptance criteria)
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [x] Committer verified spec progress is up to date before commit
+- [ ] Committer verified spec progress is up to date before commit (not ticked: no Committer agent was used; the author checked the spec's ticks against the merged tree and ran the pre-commit checks)
 - [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -274,8 +274,9 @@ the narrow affected scope, and sign every commit with GPG.
   reply, recorded in `docs/pr-reviews/pr-3044-review/PR-REVIEW.md`. The review rounds hardened the
   new workflow-check wait (cancelled checks, review-service runs, `gh` errors, runs waiting for
   approval, a head with no checks, the head read on every pass, `.tmp/`), added the session-start
-  review listing and two CLI tests. da2ce7 approved and ACKed the final head; his review is the
-  reviewer validation of the acceptance criteria. No independent reviewer received this
+  review listing and two CLI tests. da2ce7 approved and ACKed the final head; his ACK names the
+  audit record's new rows, the trial merge and the validator logic, not the acceptance criteria, so
+  the reviewer-validation checkpoint stays open. No independent reviewer received this
   specification, so there is no `agent-review-reports.md`. Archived the specification to
   `docs/issues/closed/`.
 
