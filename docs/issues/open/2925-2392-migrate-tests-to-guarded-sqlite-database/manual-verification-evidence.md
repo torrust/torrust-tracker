@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2925-2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md
-last-updated-utc: "2026-11-26 08:30"
+last-updated-utc: "2026-11-26 16:04"
 ---
 
 # Manual Verification Evidence
@@ -18,9 +18,11 @@ classification are embedded below; the random file names are not recorded (they 
 
 ## Environment and Prerequisites
 
-- Date and time (UTC): 2026-11-26, 08:05 to 08:30
-- Artifact under test: `torrust/develop` at `f5329f758`, no code change for V1 and V1b; V1b
-  changed one line of `ephemeral()` in the working tree and reverted it
+- Date and time (UTC): 2026-11-26; V1 08:05:50 to 08:07:08, V1c finished 08:07:20 (the time of its
+  output file), V1b rerun 16:01:51 to 16:03:05. The first V1b run (finished 08:05:15 by the
+  modification time of its log) is replaced by the rerun; its times were not stamped.
+- Artifact under test: `torrust/develop` at `f5329f758`, no code change for V1 and V1c; V1b
+  changed one line of `ephemeral()` in the working tree and restored it
 - Operating system / environment: Linux 7.0.0-44-generic; `cargo +stable` 1.100.0
 - Prerequisites and setup performed: a fresh directory from `mktemp -d`, exported as `TMPDIR`
   inside the script that ran the command
@@ -59,23 +61,39 @@ the `ephemeral*()` configurations account for these 249.
 
 #### Steps Performed
 
-In the working tree `ephemeral()` was changed to `config.core.database = None;` (the patch was
-not kept; it is the T4 change). Then `TMPDIR=$(mktemp -d) cargo +stable test --workspace --all-targets --all-features --no-fail-fast`.
+The first V1b run set `TMPDIR` inline for `cargo` only and then looked for the directory by name
+afterwards, so its count of 0 did not provably describe the run's directory (review thread on
+this file, CodeRabbit and da2ce7). It was replaced by this rerun, one script run in order:
+
+1. `git apply` of the one-line patch that sets `config.core.database = None;` in `ephemeral()`
+   (the patch is the T4 change and is not kept).
+2. `export TMPDIR=$(mktemp -d)` (16:01:51 UTC, directory `/tmp/tmp.NdIoYb6g2u`).
+3. `cargo +stable test --tests --benches --examples --workspace --all-targets --all-features --no-fail-fast`
+   (exit 101 because tests fail, finished 16:03:05).
+4. `ls -A "$TMPDIR" | wc -l` and `ls "$TMPDIR" | grep -c '^data_.*\.db$'` in the same shell.
+5. `git checkout packages/test-helpers/src/configuration.rs`, then
+   `git diff --quiet HEAD -- packages/test-helpers/src/configuration.rs` exited 0 (16:03:05).
 
 #### Observed Result
 
-77 tests failed in 7 test binaries and the `http_tracker_core_benchmark` bench failed, and the
-temporary directory held 0 entries afterwards (`ls "$TMPDIR" | wc -l`, 0). `tracker-core` does not
-fail: it already uses its own guard-owned wrappers.
+```text
+entries=0 data_db=0
+```
+
+77 tests failed (`grep -cE "^test .* FAILED$"` on the log), in 7 test binaries and the
+`http_tracker_core_benchmark` bench (8 `error: test failed` lines). `tracker-core` does not fail:
+it already uses its own guard-owned wrappers.
 
 #### Conclusion
 
-The failing tests, with the class each one belongs to, are listed in the appendix. 48 need
-persistence, 29 only run a helper that unwraps the database configuration. The reasons seen in the
-panic messages: `database configuration is required to initialize persistence`
-(`initialize_database`, 30), the REST API and HTTP tests expecting `persistence` to be present (the
-rest), and `HttpTrackerCoreContainer::initialize` falling back to the default SQLite path
-(2, "unable to open database file").
+The failing tests, with the class each one belongs to, are listed in the appendix (taken from the
+first run; the rerun counts the same 77 failures and 8 failing binaries). 48 need persistence, 29
+only run a helper that unwraps the database configuration. The reasons seen in the panic
+messages: `database configuration is required to initialize persistence` (`initialize_database`,
+30), tests of the REST API, the HTTP tracker and the `app` module that expect persistence to be
+composed (the rest), and `HttpTrackerCoreContainer::initialize` falling back to the default
+SQLite path (2, "unable to open database file"). With no database in `ephemeral()` the suite
+leaves no entry in the temporary directory.
 
 ### V1c - Per-test attribution of the `http-core` leaks (#2924 recheck)
 
@@ -84,7 +102,7 @@ rest), and `HttpTrackerCoreContainer::initialize` falling back to the default SQ
 
 #### Steps Performed
 
-Each test of the `http-core` lib binary was run alone (`<binary> --exact <test>`) with its own
+Run at about 08:07 UTC (output file time 08:07:20); start and end were not stamped. Each test of the `http-core` lib binary was run alone (`<binary> --exact <test>`) with its own
 `mktemp -d` `TMPDIR`, counting `data_*.db`; the bench binary was run once the same way.
 
 #### Observed Result
@@ -99,6 +117,12 @@ bench http_tracker_core_benchmark: 4 files
 
 6 = 2 (the two container tests) + 4 (the benchmark, `benches/helpers/util.rs`). No other
 `http-core` test leaves a file.
+
+## Failures and Follow-up
+
+No process failed. V1b was rerun once (see its steps) because the first run's directory was not
+provably the one counted. The V1c run has no start and end stamps; its result is a per-test count
+that the output file records.
 
 ## Appendix: tests that fail without a database (V1b)
 
