@@ -261,6 +261,7 @@ preloads it, as the implementer preloads `implement-task`.
 | --- | --- | --- |
 | Identity: research external projects, source code, issue trackers and documentation to answer specific questions with concrete evidence; gather facts, make no implementation decisions and write no production code. | Agent file (identity) and skill `research-external-evidence`, introduction | |
 | Follow `AGENTS.md` for repository-wide conventions. | `AGENTS.md`; agent file, "Workflow" | |
+| Description: not for codebase-internal exploration, use the Explore subagent for that. | Agent file (`description`) and skill `research-external-evidence`, introduction | Kept, with the pointer to the Explore subagent worded for Claude Code (the skill is provider-neutral and says the repository's own code is searched in the repository). |
 | Report findings in a format the Planner or the Implementer can directly incorporate. | Skill `research-external-evidence`, "Report"; agent file, "Reply file" | There is no Planner or Implementer agent to address: the report is for the caller, and the reply file carries it when the research belongs to an issue. |
 | Clone external repositories into a temporary directory outside the workspace, such as `/tmp/tracker-research/`, or into the git-ignored `.tmp/` when `/tmp` is not available or the caller prefers it. | Skill `research-external-evidence`, "Workflow" step 3 | |
 | Responsibility 1: clone external trackers (opentracker, chihaya and others) and search their source for patterns, behaviors or options. | Skill `research-external-evidence`, "Workflow" step 3 | |
@@ -274,12 +275,12 @@ preloads it, as the implementer preloads `implement-task`.
 | Workflow 3: gather evidence (a shallow clone with `grep`, `find` and `git log`; the search tools or `gh`; fetch and read documentation). | Skill `research-external-evidence`, "Workflow" step 3 | |
 | Workflow 4: cross-reference the evidence and note the agreements and disagreements. | Skill `research-external-evidence`, "Workflow" step 4 | |
 | Workflow 5 and output format: restate the question, list the sources, give the findings with paths, lines and URLs, the cross-project comparison, the conclusion with a confidence level, and the open questions. | Skill `research-external-evidence`, "Workflow" step 5 and "Report" | |
-| Do not modify any file of the workspace: a read-only role. | Skill `research-external-evidence`, "Boundaries" | The reply file is the one exception, and the agent file says so. |
+| Do not modify any file of the workspace: a read-only role. | Skill `research-external-evidence`, "Boundaries" | Now: no tracked file. The exceptions are the reply file and the clones in the git-ignored `.tmp/`, which the old rule contradicted by asking for clones there. |
 | Do not make implementation recommendations: report facts, not decisions. | Skill `research-external-evidence`, "Boundaries" | |
 | Do not clone repositories inside the workspace. | Skill `research-external-evidence`, "Workflow" step 3 | |
 | Do not guess or assume behavior: every claim rests on evidence found in the session. | Skill `research-external-evidence`, "Boundaries" | |
 | Do not spend time on tangents. | Skill `research-external-evidence`, "Boundaries" | |
-| Clean up cloned repositories after reporting, unless the caller needs them. | Skill `research-external-evidence`, "Workflow" step 5 | |
+| Clean up cloned repositories after reporting, unless the caller needs them. | Skill `research-external-evidence`, "Workflow" step 5 | The agent's report ends its run, so the clones are deleted before the report. |
 | When the source code is ambiguous, say so instead of over-interpreting it. | Skill `research-external-evidence`, "Workflow" step 4 | |
 | Prefer shallow clones (`--depth 1`). | Skill `research-external-evidence`, "Workflow" step 3 and "Boundaries" | |
 | Tools: `execute`, `read`, `search`, `todo`. | Agent file (tools) | `Bash`, `Read`, `Write`, `Grep`, `Glob`, `WebFetch` and `WebSearch`. `Write` is for the reply file only; the web tools are what the workflow needs to read documentation; `todo` has no use in one research question. |
