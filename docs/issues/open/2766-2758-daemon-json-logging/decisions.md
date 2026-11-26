@@ -220,7 +220,7 @@ identity (EPIC #2387 convention), never as a `spans` list. No ANSI codes. Conseq
   or a name an earlier field took) is written with the prefix `field_`, repeated until the name is
   free (`target` becomes `field_target`, or `field_field_target` if the event also has a
   `field_target`), so a record never has a duplicate key and no field is dropped. The two `target = …` events of `udp-core` are a mistake for `target:`;
-  issue #3060 (open) already corrects them, so this issue does not touch them.
+  issue #3060 (open, its spec is `planned`) corrects them, so this issue does not touch them.
 - **Two shapes in the repository until the others follow.** `tracker_client` keeps
   tracing-subscriber's default shape and its direct `panic` record, and the e2e runners are not
   migrated yet. The ADR names the flat shape as the one for Torrust tools; #2769 uses this
