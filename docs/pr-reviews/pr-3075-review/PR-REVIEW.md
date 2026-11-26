@@ -6,7 +6,7 @@ semantic-links:
     - process-pr-review
   related-artifacts:
     - .claude/skills/process-pr-review/SKILL.md
-last-updated-utc: "2026-11-26 17:53"
+last-updated-utc: "2026-11-26 18:08"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -54,6 +54,8 @@ Round 3: `da2ce7`'s review 6078167335 on the head of commit `docs(issues): [#144
 
 Round 4: `da2ce7`'s review 6078600500 (an approval) on the head of commit `docs(pr-reviews): [#144] record the third review round on pull request 3075` (F13, F14).
 
+Round 5: `da2ce7`'s review 6078775967 (an approval) on the head of commit `docs(pr-reviews): [#144] record the replies of the fourth review round on pull request 3075` (F15).
+
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3075-f1 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -70,6 +72,7 @@ Round 4: `da2ce7`'s review 6078600500 (an approval) on the head of commit `docs(
 | F12 | review-finding:pr-3075-f12 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
 | F13 | review-finding:pr-3075-f13 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F14 | review-finding:pr-3075-f14 | da2ce7 | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-3075-f15 | da2ce7 | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -255,6 +258,19 @@ Round 4: `da2ce7`'s review 6078600500 (an approval) on the head of commit `docs(
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3075#discussion_r4711937236
 
+### F15 - The description says the ADR is not merged yet
+
+- PR number: 3075
+- Source review ID: 6078775967
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3075#discussion_r4712043822
+- Concern: With the ADR of #3063 on `develop`, the description's "not merged yet" goes into the merge commit and should say it has merged.
+- Solution: The PR description now says the ADR has merged to `develop` and that the spec cites it by name only. The spec note is unchanged, as the reviewer said it can stay.
+- Current-tree verification: Read the PR description on GitHub after the edit.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3075#discussion_r4712057430
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3075#discussion_r4712057430
+
 ## Processing Log
 
 - 2026-11-26 16:34 UTC - Replied to F1 on its thread and resolved it, before this record existed (late start, F2).
@@ -267,6 +283,8 @@ Round 4: `da2ce7`'s review 6078600500 (an approval) on the head of commit `docs(
 - 2026-11-26 17:48 UTC - `da2ce7`'s review 6078600500 (approval) arrived (F13, F14).
 - 2026-11-26 17:49 UTC - Reordered the round paragraphs and added the template's `semantic-links` to the frontmatter (F13, F14).
 - 2026-11-26 17:53 UTC - Replied to F13 and F14 on their threads, resolved them and recorded the reply URLs.
+- 2026-11-26 18:06 UTC - `da2ce7`'s review 6078775967 (approval) arrived (F15).
+- 2026-11-26 18:08 UTC - Edited the PR description, replied to F15 on its thread, resolved it and recorded the reply URL.
 
 Append entries only. If an entry was rewritten in place, restore the prior entries, then append a correction that names the rewritten content; do not rewrite the record again.
 
