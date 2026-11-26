@@ -1,7 +1,7 @@
 ---
 pr-number: 3075
 pr-url: https://github.com/torrust/torrust-tracker/pull/3075
-last-updated-utc: "2026-11-26 17:07"
+last-updated-utc: "2026-11-26 17:17"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -48,7 +48,7 @@ Round 2: `da2ce7`'s review 6077981724 on the head of commit `docs(issues): [#144
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3075-f1 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
-| F2 | review-finding:pr-3075-f2 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | OPEN |
+| F2 | review-finding:pr-3075-f2 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-3075-f3 | da2ce7 | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F4 | review-finding:pr-3075-f4 | da2ce7 | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F5 | review-finding:pr-3075-f5 | da2ce7 | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -82,7 +82,7 @@ Round 2: `da2ce7`'s review 6077981724 on the head of commit `docs(issues): [#144
 - Current-tree verification: `ls docs/pr-reviews/pr-3075-review/PR-REVIEW.md` and `validate-audit-record.py --pr-number 3075` after the commit.
 - Resolution reference: docs(pr-reviews): [#144] record the review rounds on pull request 3075
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3075#discussion_r4711597665
 
 ### F3 - R5 puts the #3055 bound on the duration instead of the expiry
 
@@ -168,6 +168,7 @@ Round 2: `da2ce7`'s review 6077981724 on the head of commit `docs(issues): [#144
 - 2026-11-26 17:00 UTC - `da2ce7`'s review 6077981724 arrived (F2 to F8).
 - 2026-11-26 17:07 UTC - Replied on the threads of F3 to F6 after pushing their fix (`docs(issues): [#144] address da2ce7 review: state today's v1 behavior in R3, R4, R5`), and resolved them.
 - 2026-11-26 17:07 UTC - Created this record from the template (late start, F2), with every finding of both rounds. F2's reply URL is recorded by the commit that follows its reply.
+- 2026-11-26 17:17 UTC - Replied to F2 on its thread and resolved it; recorded its reply URL.
 
 Append entries only. If an entry was rewritten in place, restore the prior entries, then append a correction that names the rewritten content; do not rewrite the record again.
 
