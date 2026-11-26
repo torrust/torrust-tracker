@@ -9,7 +9,7 @@ github-issue: 2925
 spec-path: docs/issues/open/2925-2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md
 branch: "2925-migrate-tests-to-guarded-sqlite-database"
 related-pr: null
-last-updated-utc: "2026-11-26 14:09"
+last-updated-utc: "2026-11-26 16:05"
 semantic-links:
   skill-links:
     - create-issue
@@ -135,7 +135,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | DONE | Reproduce and classify | Before-count (V1); table of failing tests with their class; package order, naming and remaining SQLite start-up coverage approved by the maintainer. |
+| T1 | IN_PROGRESS | Reproduce and classify | Before-count (V1); table of failing tests with their class; package order, naming and remaining SQLite start-up coverage approved by the maintainer. |
 | T2 | TODO | Migrate one package | First pull request; migration pattern reviewed before T3. |
 | T3 | TODO | Migrate the remaining packages | One pull request per package; each records its package count. |
 | T4 | TODO | Default to no database | `ephemeral*()` set no database; `ephemeral_sqlite_database()` removed. |
@@ -183,20 +183,35 @@ Measured on `develop` `f5329f758`, 2026-11-26 (details and the full list of fail
   `ephemeral_with_sqlite_database()` (or a wrapper that takes the config) and keeps the guard in
   its fixture struct for the whole test body.
 
-### SQLite start-up coverage that remains (AC4)
+### SQLite start-up coverage that remains (AC4) - proposal, not yet approved
 
-After T4 the SQLite start-up path stays covered by these tests; every other test of the suite
-runs without a database:
+After T4, only these tests open a SQLite database (derived from a search for `Database::Sqlite3`,
+`ephemeral_with_sqlite_database` and a `sqlite3` driver in test configurations on `develop`
+`f5329f758`; each package pull request re-checks its own part):
 
 - the 48 migrated tests listed in the evidence appendix, which use the guard-owned database;
 - the `tracker-core` tests and its restart tests (`packages/tracker-core/tests/integration.rs`),
   which use that package's own guard;
-- the `torrust-tracker-test-helpers` factory tests and the `src/bootstrap/persistence.rs` and
-  `src/container.rs` unit tests.
+- tests that already set their own database: the `src/bootstrap/jobs/http_tracker.rs` test that
+  builds its own directory, the `http-core` container test that points at a missing directory, and
+  the `hung-component-tracker` integration tests, which write `driver = "sqlite3"` in their
+  configuration file.
 
-The tests that no longer start SQLite are the public-mode contract and handler tests of the
-`udp-server`, `axum-http-server` and `axum-health-check-api-server` packages. The coverage of the
-production start-up path with a real database stays with the tests above and the end-to-end runs.
+These do not open a database, so they are not coverage: the `torrust-tracker-test-helpers`
+factory tests (they check the guard directory and the configured path only), the
+`src/bootstrap/persistence.rs` tests (they validate configuration requirements) and the
+`src/container.rs` tests (they start from `Configuration::default()`, whose database is `None`).
+
+The tests that stop opening a database are every test that used `ephemeral*()` without needing
+persistence, in these packages: `udp-server` (the 24 helper-only tests and the rest of its
+handler and server tests), `axum-http-server` (the 5 helper-only handler tests, which include
+private and listed modes, and the public-mode contract tests), `axum-health-check-api-server`,
+`axum-rest-api-server` (the `torrent`, `stats` and `health_check` contract contexts and the tests
+built on `api_container`, which compose the core over `core_config.database`), `http-core`
+(the services tests that use `ephemeral*()`) and the root `torrust-tracker` tests that use
+`ephemeral*()`. The coverage of the production start-up path with a real database therefore
+rests on the three groups above and the end-to-end runs. This list needs the maintainer's
+approval before T1 is done.
 
 ## Commit Points
 
@@ -247,6 +262,10 @@ production start-up path with a real database stays with the tests above and the
 - 2026-11-26 14:09 UTC - Claude Code (Claude Sonnet 5.5), #2925 implementer - The maintainer approved the
   package order and the helper pattern ("Approve both", relayed by the EPIC coordinator). T1 is
   done; T2 starts with `udp-server` after this pull request merges.
+- 2026-11-26 16:05 UTC - Claude Code (Claude Sonnet 5.5), #2925 implementer - Correction of the entry above after
+  review: T1 is not done. Its expected output includes the maintainer's approval of the remaining
+  SQLite start-up coverage (AC4), the list was wrong (three groups never open a database) and is
+  corrected now, and no approval of it exists yet. T1 is back to `IN_PROGRESS`.
 
 ## Acceptance Criteria
 
