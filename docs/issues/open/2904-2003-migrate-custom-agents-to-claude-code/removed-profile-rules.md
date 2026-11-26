@@ -8,15 +8,18 @@ semantic-links:
     - .github/agents/committer.agent.md
     - .github/agents/planner.agent.md
     - .github/agents/pr-reviewer.agent.md
+    - .github/agents/researcher.agent.md
     - .claude/agents/pr-review-handler.md
     - .claude/agents/task-reviewer.md
     - .claude/agents/implementer.md
     - .claude/agents/pr-reviewer.md
+    - .claude/agents/researcher.md
     - .claude/skills/process-pr-review/SKILL.md
     - .claude/skills/review-task/SKILL.md
     - .claude/skills/commit-changes/SKILL.md
     - .claude/skills/implement-task/SKILL.md
     - .claude/skills/review-pr/SKILL.md
+    - .claude/skills/research-external-evidence/SKILL.md
     - .claude/skills/create-issue/SKILL.md
 ---
 
@@ -31,7 +34,7 @@ says so.
 
 Task T4 created this file with the rows of `copilot-suggestions-handler`. Each of T5 to T9 adds the
 rows of the profiles its agent replaces, and T10 completes it before it removes the profiles. Task T6
-adds `implementer`, `committer` and `planner`, and task T7 adds `pr-reviewer`.
+adds `implementer`, `committer` and `planner`, task T7 adds `pr-reviewer`, and task T8 adds `researcher`.
 
 ## `copilot-suggestions-handler`
 
@@ -244,4 +247,40 @@ held the checklist and the findings format; T7 moves into it the rules that only
 | Do not mark the issue specification's workflow checkpoints unless asked and evidenced. | Skill `review-pr`, "Recording The Review" | Moved by task T7. |
 | Do not approve while a blocker is unresolved. | Skill `review-pr`, "Output" | Moved by task T7. |
 | Tools: `execute`, `read`, `search`, `edit`, `todo`, `agent`. | Agent file (tools) | `Bash`, `Read`, `Write`, `Grep`, `Glob`. `Write` is for the reply file; `Edit` is dropped because the reviewer changes no file of the pull request; `agent` is dropped (decision D3); `todo` has no use in one review. |
+| `argument-hint`; `user-invocable: true` and `disable-model-invocation: false`. | Agent file ("Inputs", `description`) | The hint becomes the "Inputs" section. The visibility keys have no Claude Code meaning. |
+
+## `researcher`
+
+Replaced by the agent `researcher` (task T8), which uses the model of the session (decision D13) and
+starts no agent (decision D3). No skill held the research workflow ("Still happening? Ad hoc,
+without the facts-not-decisions rule", in the specification), so task T8 adds the skill
+`research-external-evidence`, which holds the workflow, the report and the boundaries; the agent
+preloads it, as the implementer preloads `implement-task`.
+
+| Rule of the profile | Destination | Notes |
+| --- | --- | --- |
+| Identity: research external projects, source code, issue trackers and documentation to answer specific questions with concrete evidence; gather facts, make no implementation decisions and write no production code. | Agent file (identity) and skill `research-external-evidence`, introduction | |
+| Follow `AGENTS.md` for repository-wide conventions. | `AGENTS.md`; agent file, "Workflow" | |
+| Report findings in a format the Planner or the Implementer can directly incorporate. | Skill `research-external-evidence`, "Report"; agent file, "Reply file" | There is no Planner or Implementer agent to address: the report is for the caller, and the reply file carries it when the research belongs to an issue. |
+| Clone external repositories into a temporary directory outside the workspace, such as `/tmp/tracker-research/`, or into the git-ignored `.tmp/` when `/tmp` is not available or the caller prefers it. | Skill `research-external-evidence`, "Workflow" step 3 | |
+| Responsibility 1: clone external trackers (opentracker, chihaya and others) and search their source for patterns, behaviors or options. | Skill `research-external-evidence`, "Workflow" step 3 | |
+| Responsibility 2: search external GitHub repositories for issues, pull requests and discussions with the search tools, or with `gh issue list` and `gh search issues` when they are not available. | Skill `research-external-evidence`, "Workflow" step 3 | |
+| Responsibility 3: read external documentation (BEPs, wiki pages, READMEs) to verify claims. | Skill `research-external-evidence`, "Workflow" step 3 | |
+| Responsibility 4: compare implementations across trackers and identify the de-facto standard. | Skill `research-external-evidence`, "Workflow" step 4 and "Report" item 4 | |
+| Responsibility 5: return structured, evidence-backed findings with source references (paths, line numbers, issue URLs, commit hashes). | Skill `research-external-evidence`, "Report" item 3 | |
+| Research domains: how other trackers handle a BEP requirement, the de-facto standard of a behavior, whether a feature exists in opentracker or chihaya, which options other trackers expose, known issues and discussions. | Skill `research-external-evidence`, introduction | The examples are kept in one sentence of the introduction. |
+| Workflow 1: clarify the question, what evidence is needed and from which sources. | Skill `research-external-evidence`, "Workflow" step 1 | The agent cannot ask the contributor; it returns the question in its reply with the verdict `QUESTION`. |
+| Workflow 2: plan the investigation (repositories to clone, queries, documentation). | Skill `research-external-evidence`, "Workflow" step 2 | |
+| Workflow 3: gather evidence (a shallow clone with `grep`, `find` and `git log`; the search tools or `gh`; fetch and read documentation). | Skill `research-external-evidence`, "Workflow" step 3 | |
+| Workflow 4: cross-reference the evidence and note the agreements and disagreements. | Skill `research-external-evidence`, "Workflow" step 4 | |
+| Workflow 5 and output format: restate the question, list the sources, give the findings with paths, lines and URLs, the cross-project comparison, the conclusion with a confidence level, and the open questions. | Skill `research-external-evidence`, "Workflow" step 5 and "Report" | |
+| Do not modify any file of the workspace: a read-only role. | Skill `research-external-evidence`, "Boundaries" | The reply file is the one exception, and the agent file says so. |
+| Do not make implementation recommendations: report facts, not decisions. | Skill `research-external-evidence`, "Boundaries" | |
+| Do not clone repositories inside the workspace. | Skill `research-external-evidence`, "Workflow" step 3 | |
+| Do not guess or assume behavior: every claim rests on evidence found in the session. | Skill `research-external-evidence`, "Boundaries" | |
+| Do not spend time on tangents. | Skill `research-external-evidence`, "Boundaries" | |
+| Clean up cloned repositories after reporting, unless the caller needs them. | Skill `research-external-evidence`, "Workflow" step 5 | |
+| When the source code is ambiguous, say so instead of over-interpreting it. | Skill `research-external-evidence`, "Workflow" step 4 | |
+| Prefer shallow clones (`--depth 1`). | Skill `research-external-evidence`, "Workflow" step 3 and "Boundaries" | |
+| Tools: `execute`, `read`, `search`, `todo`. | Agent file (tools) | `Bash`, `Read`, `Write`, `Grep`, `Glob`, `WebFetch` and `WebSearch`. `Write` is for the reply file only; the web tools are what the workflow needs to read documentation; `todo` has no use in one research question. |
 | `argument-hint`; `user-invocable: true` and `disable-model-invocation: false`. | Agent file ("Inputs", `description`) | The hint becomes the "Inputs" section. The visibility keys have no Claude Code meaning. |
