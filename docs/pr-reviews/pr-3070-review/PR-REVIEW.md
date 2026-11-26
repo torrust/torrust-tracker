@@ -1,7 +1,7 @@
 ---
 pr-number: 3070
 pr-url: https://github.com/torrust/torrust-tracker/pull/3070
-last-updated-utc: "2026-11-26 12:40"
+last-updated-utc: "2026-11-26 13:13"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -44,7 +44,7 @@ Round 1: CodeRabbit review 6074263774 on the head of commit `docs(issues): [#290
 
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
-| F1 | review-finding:pr-3070-f1 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | OPEN |
+| F1 | review-finding:pr-3070-f1 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -59,11 +59,12 @@ Round 1: CodeRabbit review 6074263774 on the head of commit `docs(issues): [#290
 - Current-tree verification: Read "A Reply File" in `.claude/skills/review-pr/SKILL.md` after the edit.
 - Resolution reference: docs(skills): [#2904] require the review context in the reply file of review-pr
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3070#discussion_r4708850770
 
 ## Processing Log
 
 - 2026-11-26 12:40 UTC - Round 1: started on CodeRabbit review `6074263774` (one inline comment); the record was created before the first reply, and the fix is committed locally. The reply follows the push.
+- 2026-11-26 13:13 UTC - Pushed round 1 (head commit `docs(pr-reviews): [#2904] record the first review round on pull request 3070`), replied on the thread (F1) and resolved it with the GraphQL mutation, which returned `isResolved: true`. The reply URL is recorded by this commit, which goes out with the next push.
 
 ## Completion Rules
 
