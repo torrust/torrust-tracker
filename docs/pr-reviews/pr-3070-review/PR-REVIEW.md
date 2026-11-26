@@ -1,7 +1,7 @@
 ---
 pr-number: 3070
 pr-url: https://github.com/torrust/torrust-tracker/pull/3070
-last-updated-utc: "2026-11-26 13:13"
+last-updated-utc: "2026-11-26 13:17"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -13,7 +13,8 @@ Source: pull-request reviews and inline review threads for https://github.com/to
 ## Ownership
 
 The PR author owns this tracked audit record. Reviewers, including repository review agents,
-deliver findings through GitHub and have no repository-artifact obligation.
+deliver findings through GitHub and do not own this record. A reply file that an issue-linked
+review task names is a separate artifact, which the reviewer writes (see the `review-pr` skill).
 
 - Post-merge workflow approval: N/A (pre-merge review).
 
@@ -42,9 +43,12 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 Round 1: CodeRabbit review 6074263774 on the head of commit `docs(issues): [#2904] correct the finding count of the T7 review and record its second round` (F1). The review of `claude[bot]` (6074206099) says that automated review is disabled for fork pull requests and carries no finding.
 
+Round 2: CodeRabbit review 6074765233 on the head of commit `docs(pr-reviews): [#2904] record the first review round on pull request 3070` (F2). The reply URL of this round is recorded by the commit that follows the reply.
+
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3070-f1 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F2 | review-finding:pr-3070-f2 | coderabbitai[bot] | Minor | documentation | ORIGINAL | FIXED | OPEN |
 
 ## Finding Details
 
@@ -61,10 +65,24 @@ Round 1: CodeRabbit review 6074263774 on the head of commit `docs(issues): [#290
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3070#discussion_r4708850770
 
+### F2 - The ownership statement of this record contradicts the reply file of `review-pr`
+
+- PR number: 3070
+- Source review ID: 6074765233
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3070#discussion_r4708873507
+- Concern: The Ownership section said that reviewers have no repository-artifact obligation, while `review-pr` now requires a reviewer to write the reply file that an issue-linked review task names, so a reviewer could omit it.
+- Solution: In this record the statement says that reviewers do not own this audit record, and names the reply file as a separate artifact that the reviewer writes. The sentence comes from the shared template `docs/templates/PR-REVIEW-TEMPLATE.md`, which carries it for every record; the template is not changed here, and the reply says so.
+- Current-tree verification: Read the Ownership section of this record after the edit and "A Reply File" in `.claude/skills/review-pr/SKILL.md`.
+- Resolution reference: docs(pr-reviews): [#2904] limit the ownership statement of the record of pull request 3070 to the record
+- Follow-up PR URL: N/A
+- Reply URL: pending
+
 ## Processing Log
 
 - 2026-11-26 12:40 UTC - Round 1: started on CodeRabbit review `6074263774` (one inline comment); the record was created before the first reply, and the fix is committed locally. The reply follows the push.
 - 2026-11-26 13:13 UTC - Pushed round 1 (head commit `docs(pr-reviews): [#2904] record the first review round on pull request 3070`), replied on the thread (F1) and resolved it with the GraphQL mutation, which returned `isResolved: true`. The reply URL is recorded by this commit, which goes out with the next push.
+- 2026-11-26 13:17 UTC - Round 2: started on CodeRabbit review `6074765233` (one inline comment, F2), after the push of round 1; the fix is committed locally. The reply follows the next push.
 
 ## Completion Rules
 
