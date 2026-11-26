@@ -87,7 +87,7 @@ Round 1: `da2ce7`'s review 6077983778 (approved, with four inline findings) on t
 - Concern: The entry and the pull-request description said "six minor findings and one suggestion", but the reply holds four minor findings, two nits and one suggestion.
 - Solution: The entry and the pull-request description say "four minor findings, two nits and one suggestion".
 - Current-tree verification: Compared the entry with `agent-replies/task-reviewer-t8-r1.json` and edited the description.
-- Resolution reference: docs(agents): [#2904] make the final message of the researcher carry the report and limit the read-only boundary to the reply file and the clones
+- Resolution reference: docs(issues): [#2904] correct the finding count and a quotation in the researcher inventory
 - Follow-up PR URL: N/A
 - Reply URL: pending
 
@@ -100,7 +100,7 @@ Round 1: `da2ce7`'s review 6077983778 (approved, with four inline findings) on t
 - Concern: The introduction quoted "facts-not-decisions" as the specification's cell, which reads "Ad hoc, without the \"facts, not decisions\" rule".
 - Solution: The quotation is the cell as it is.
 - Current-tree verification: Read the table "What the ten profiles did" of `ISSUE.md` and the introduction after the edit.
-- Resolution reference: docs(agents): [#2904] make the final message of the researcher carry the report and limit the read-only boundary to the reply file and the clones
+- Resolution reference: docs(issues): [#2904] correct the finding count and a quotation in the researcher inventory
 - Follow-up PR URL: N/A
 - Reply URL: pending
 
