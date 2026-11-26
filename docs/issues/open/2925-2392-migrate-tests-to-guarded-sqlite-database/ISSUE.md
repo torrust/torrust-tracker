@@ -9,7 +9,7 @@ github-issue: 2925
 spec-path: docs/issues/open/2925-2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md
 branch: "2925-migrate-tests-to-guarded-sqlite-database"
 related-pr: null
-last-updated-utc: "2026-11-26 13:59"
+last-updated-utc: "2026-11-26 14:09"
 semantic-links:
   skill-links:
     - create-issue
@@ -135,7 +135,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | IN_PROGRESS | Reproduce and classify | Before-count (V1); table of failing tests with their class; package order, naming and remaining SQLite start-up coverage approved by the maintainer. |
+| T1 | DONE | Reproduce and classify | Before-count (V1); table of failing tests with their class; package order, naming and remaining SQLite start-up coverage approved by the maintainer. |
 | T2 | TODO | Migrate one package | First pull request; migration pattern reviewed before T3. |
 | T3 | TODO | Migrate the remaining packages | One pull request per package; each records its package count. |
 | T4 | TODO | Default to no database | `ephemeral*()` set no database; `ephemeral_sqlite_database()` removed. |
@@ -170,7 +170,7 @@ Measured on `develop` `f5329f758`, 2026-11-26 (details and the full list of fail
 
 ### Proposals for the maintainer (T1 approval)
 
-- **Pull-request order:** `udp-server` first (it shows both patterns: a helper that stops
+- **Pull-request order (approved by the maintainer, 2026-11-26):** `udp-server` first (it shows both patterns: a helper that stops
   unwrapping, and one test that opts in), then `http-core`, `axum-http-server`,
   `axum-rest-api-server`, `torrust-tracker` (root `src/`), then the T4 default change. The
   design-review checkpoint of the spec happens after the `udp-server` pull request.
@@ -178,7 +178,7 @@ Measured on `develop` `f5329f758`, 2026-11-26 (details and the full list of fail
   without a database they describe the configuration more accurately (OS-assigned ports, nothing
   survives the test). Rename only `ephemeral_with_no_services()` to `ephemeral_without_services()`,
   to match `ephemeral_without_reverse_proxy()`; the rename goes in the T4 pull request.
-- **Helper pattern:** a helper that only assumed persistence initializes it only when
+- **Helper pattern (approved by the maintainer, 2026-11-26):** a helper that only assumed persistence initializes it only when
   `core.database` is set, so it works before and after T4. A test that needs persistence calls
   `ephemeral_with_sqlite_database()` (or a wrapper that takes the config) and keeps the guard in
   its fixture struct for the whole test body.
@@ -244,6 +244,9 @@ production start-up path with a real database stays with the tests above and the
   session, agreed with the problem and the solution and approved the naming: keep `ephemeral*()`,
   rename only `ephemeral_with_no_services()` to `ephemeral_without_services()` in the T4 pull
   request. The package order and the helper pattern were explained to him in the same exchange.
+- 2026-11-26 14:09 UTC - Claude Code (Claude Sonnet 5.5), #2925 implementer - The maintainer approved the
+  package order and the helper pattern ("Approve both", relayed by the EPIC coordinator). T1 is
+  done; T2 starts with `udp-server` after this pull request merges.
 
 ## Acceptance Criteria
 
