@@ -44,11 +44,14 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 Round 1 covers review 6077978896 (da2ce7, APPROVED) of the head `docs(issues): [#2392] record the 2026-11-26 decisions for #2925`, with three inline findings, F1 to F3: two Minor and one Nit. The review body says none blocks. The CodeRabbit comment and the Claude bot review on the PR are a summary and a fork notice, not findings.
 
+Round 2 covers review 6078598857 (da2ce7, APPROVED at the head `docs(pr-reviews): [#2392] audit review round 1 of PR 3074`) with one inline Minor finding, F4. The review body says nothing blocks.
+
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3074-f1 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F2 | review-finding:pr-3074-f2 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-3074-f3 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F4 | review-finding:pr-3074-f4 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -91,10 +94,25 @@ Round 1 covers review 6077978896 (da2ce7, APPROVED) of the head `docs(issues): [
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3074#discussion_r4711569083
 
+### F4 - The record used the column only older records keep
+
+- PR number: 3074
+- Source review ID: 6078598857
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3074#discussion_r4711890180
+- Concern: The Findings table and the Status Values list used the `Author class` column, which the skill and the template keep only for records created before issue #3037. A new record names the finding author's login as `Reviewer`.
+- Solution: The table has the `Reviewer` column with the login `da2ce7` for every row, and the Status Values list has the template's `Reviewer` line.
+- Current-tree verification: `grep -c '^- Reviewer: the author' docs/pr-reviews/pr-3074-review/PR-REVIEW.md` prints 1.
+- Resolution reference: `docs(pr-reviews): [#2392] use the Reviewer column in the audit record of PR 3074`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3074#discussion_r4712471706
+
 ## Processing Log
 
 - 2026-11-26 17:14 UTC - Started audit. Round 1: da2ce7 review 6077978896 (APPROVED) with three findings, F1 to F3, all valid. Pushed the fix (`docs(issues): [#2392] set order 10 in progress and reword the 2026-11-26 decision entry`) and replied to the three threads. Entries are appended, never rewritten.
 - 2026-11-26 17:15 UTC - The validator on the worktree record printed `{"status": "ok", "rows": 3, "log_entries": 1, "failures": 0}`. Resolved the three round 1 threads, selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread, and the newest review by a reviewer in the review list was 6077978896. Committed these entries.
+- 2026-11-26 19:01 UTC - Round 2: da2ce7 review 6078598857 (APPROVED) with one Minor finding, F4, valid: I copied the structure of an older record instead of the template. Pushed the fix (`docs(pr-reviews): [#2392] use the Reviewer column in the audit record of PR 3074`) and replied to the thread. Entries are appended, never rewritten.
+- 2026-11-26 19:02 UTC - The validator on the worktree record printed `{"status": "ok", "rows": 4, "log_entries": 3, "failures": 0}`. Resolved the round 2 thread, selecting only unresolved threads whose last comment is a `josecelano-bot` reply; a GraphQL refresh found no unresolved thread, and the newest review by a reviewer in the review list was 6078598857. Committed these entries.
 
 ## Completion Rules
 
