@@ -48,10 +48,10 @@ Review 6075748165 (`da2ce7`, `CHANGES_REQUESTED`, 2026-11-26 14:23 UTC) posted f
 
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
-| F1 | review-finding:pr-3072-f1 | da2ce7 | Major | documentation | ORIGINAL | FIXED | OPEN |
-| F2 | review-finding:pr-3072-f2 | da2ce7 | Major | documentation | ORIGINAL | FIXED | OPEN |
-| F3 | review-finding:pr-3072-f3 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | OPEN |
-| F4 | review-finding:pr-3072-f4 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | OPEN |
+| F1 | review-finding:pr-3072-f1 | da2ce7 | Major | documentation | ORIGINAL | FIXED | RESOLVED |
+| F2 | review-finding:pr-3072-f2 | da2ce7 | Major | documentation | ORIGINAL | FIXED | RESOLVED |
+| F3 | review-finding:pr-3072-f3 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F4 | review-finding:pr-3072-f4 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -66,7 +66,7 @@ Review 6075748165 (`da2ce7`, `CHANGES_REQUESTED`, 2026-11-26 14:23 UTC) posted f
 - Current-tree verification: `grep -n "TODO" docs/issues/closed/3051-random-expiring-key-duration-overflow-panic/ISSUE.md` prints only the legend line of the status values.
 - Resolution reference: docs(issues): [#3051] make the archived spec agree with its record
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3072#discussion_r4711109104>
 
 ### F2 - The "acceptance criteria updated with evidence" tick contradicts AC5
 
@@ -79,7 +79,7 @@ Review 6075748165 (`da2ce7`, `CHANGES_REQUESTED`, 2026-11-26 14:23 UTC) posted f
 - Current-tree verification: `grep -n "AC5" docs/issues/closed/3051-random-expiring-key-duration-overflow-panic/ISSUE.md` shows the ticked criterion and a `DONE` row with its evidence.
 - Resolution reference: docs(issues): [#3051] make the archived spec agree with its record
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3072#discussion_r4711109527>
 
 ### F3 - The reason for the unticked reviewer checkpoint reads the wrong way
 
@@ -92,7 +92,7 @@ Review 6075748165 (`da2ce7`, `CHANGES_REQUESTED`, 2026-11-26 14:23 UTC) posted f
 - Current-tree verification: `grep -n "approved the head commit" docs/issues/closed/3051-random-expiring-key-duration-overflow-panic/ISSUE.md` prints the progress-log entry.
 - Resolution reference: docs(issues): [#3051] make the archived spec agree with its record
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3072#discussion_r4711109999>
 
 ### F4 - The V3 start command keeps the old path without a note
 
@@ -105,11 +105,12 @@ Review 6075748165 (`da2ce7`, `CHANGES_REQUESTED`, 2026-11-26 14:23 UTC) posted f
 - Current-tree verification: `grep -n "As in V1" docs/issues/closed/3051-random-expiring-key-duration-overflow-panic/manual-verification-evidence.md` prints the note.
 - Resolution reference: docs(issues): [#3051] make the archived spec agree with its record
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3072#discussion_r4711110404>
 
 ## Processing Log
 
 - 2026-11-26 16:23 UTC - Review 6075748165 (`da2ce7`, `CHANGES_REQUESTED`, `submitted_at` 14:23:02Z) arrived on the head `chore(issues): archive closed issue #3051 spec to docs/issues/closed`: F1 to F4. This record was written before the first reply. `validate-audit-record.py` was not run by this session (it calls plain `gh`, which acts as `josecelano`).
+- 2026-11-26 16:28 UTC - Pushed the fix commit `docs(issues): [#3051] make the archived spec agree with its record` and this record (`git ls-remote` showed the head on the fork branch before the replies), replied on the four threads and resolved them. `validate-audit-record.py` was not run by this session.
 
 ## Completion Rules
 
