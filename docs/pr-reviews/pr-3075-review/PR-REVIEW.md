@@ -1,7 +1,12 @@
 ---
 pr-number: 3075
 pr-url: https://github.com/torrust/torrust-tracker/pull/3075
-last-updated-utc: "2026-11-26 17:27"
+semantic-links:
+  skill-links:
+    - process-pr-review
+  related-artifacts:
+    - .claude/skills/process-pr-review/SKILL.md
+last-updated-utc: "2026-11-26 17:49"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -43,9 +48,11 @@ review task names is a separate artifact, which the reviewer writes (see the `re
 
 Round 1: CodeRabbit review 6077575588 on the head of commit `docs(issues): [#144] record EPIC state and inputs reported by SI-B` (F1). The review of `claude[bot]` (6077541485) says that automated review is disabled for fork pull requests and carries no finding.
 
+Round 2: `da2ce7`'s review 6077981724 on the head of commit `docs(issues): [#144] address CodeRabbit: align invalid-token status candidates` (F2 to F8); F7 and F8 are findings of its review body without an inline thread.
+
 Round 3: `da2ce7`'s review 6078167335 on the head of commit `docs(issues): [#144] address da2ce7 review: state today's v1 behavior in R3, R4, R5` (F9 to F12); F10 to F12 are findings of its review body without an inline thread, and F10 re-raises F2 for a head that predates the record.
 
-Round 2: `da2ce7`'s review 6077981724 on the head of commit `docs(issues): [#144] address CodeRabbit: align invalid-token status candidates` (F2 to F8); F7 and F8 are findings of its review body without an inline thread.
+Round 4: `da2ce7`'s review 6078600500 (an approval) on the head of commit `docs(pr-reviews): [#144] record the third review round on pull request 3075` (F13, F14).
 
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
@@ -61,6 +68,8 @@ Round 2: `da2ce7`'s review 6077981724 on the head of commit `docs(issues): [#144
 | F10 | review-finding:pr-3075-f10 | da2ce7 | Minor | documentation | RE_RAISE_OF:F2 | FIXED | NON_RESOLVABLE |
 | F11 | review-finding:pr-3075-f11 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
 | F12 | review-finding:pr-3075-f12 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F13 | review-finding:pr-3075-f13 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-3075-f14 | da2ce7 | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -84,7 +93,7 @@ Round 2: `da2ce7`'s review 6077981724 on the head of commit `docs(issues): [#144
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3075#discussion_r4711430398
 - Concern: The thread of F1 was answered and resolved, but the head had no `docs/pr-reviews/pr-3075-review/PR-REVIEW.md`, which `process-pr-review` requires before the first reply.
-- Solution: This record was created from the template of a recent audit. The reply to F1 was posted before it existed: the late start is logged in the Processing Log.
+- Solution: This record was created from the template of a recent audit. The reply to F1 was posted before it existed: the late start is logged in the Processing Log. The frontmatter was aligned with the template afterwards (see F14 and the Processing Log).
 - Current-tree verification: `ls docs/pr-reviews/pr-3075-review/PR-REVIEW.md` and `validate-audit-record.py --pr-number 3075` after the commit.
 - Resolution reference: docs(pr-reviews): [#144] record the review rounds on pull request 3075
 - Follow-up PR URL: N/A
@@ -220,6 +229,32 @@ Round 2: `da2ce7`'s review 6077981724 on the head of commit `docs(issues): [#144
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3075#issuecomment-7199057391
 
+### F13 - The round paragraph of review 6078167335 is out of order
+
+- PR number: 3075
+- Source review ID: 6078600500
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3075#discussion_r4711891666
+- Concern: The Round 3 paragraph sat between the paragraphs for the first two reviews.
+- Solution: The paragraphs now follow the order the reviews arrived: rounds 1, 2, 3, 4.
+- Current-tree verification: Read the Findings introduction of this record after the edit.
+- Resolution reference: docs(pr-reviews): [#144] address da2ce7 fourth round: order the rounds and add the template frontmatter
+- Follow-up PR URL: N/A
+- Reply URL: pending
+
+### F14 - The record does not follow the template form
+
+- PR number: 3075
+- Source review ID: 6078600500
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3075#discussion_r4711891675
+- Concern: The record was created from an earlier audit, so its frontmatter lacks the template's `semantic-links` and its Ownership paragraph is not the template's text.
+- Solution: The frontmatter now has the template's `semantic-links`. The Ownership paragraph stays as it is: the template's sentence says reviewers have no repository-artifact obligation, which `review-pr` contradicts (the same contradiction was found on PR 3070), so aligning the template and the records is a change of its own. The late start stays recorded in F2.
+- Current-tree verification: Read the frontmatter of this record after the edit; ran `validate-audit-record.py`.
+- Resolution reference: docs(pr-reviews): [#144] address da2ce7 fourth round: order the rounds and add the template frontmatter
+- Follow-up PR URL: N/A
+- Reply URL: pending
+
 ## Processing Log
 
 - 2026-11-26 16:34 UTC - Replied to F1 on its thread and resolved it, before this record existed (late start, F2).
@@ -229,6 +264,8 @@ Round 2: `da2ce7`'s review 6077981724 on the head of commit `docs(issues): [#144
 - 2026-11-26 17:14 UTC - `da2ce7`'s review 6078167335 arrived (F9 to F12).
 - 2026-11-26 17:17 UTC - Replied to F2 on its thread and resolved it; recorded its reply URL.
 - 2026-11-26 17:27 UTC - Replied to F9 on its thread and resolved it, posted the conversation response for F10 to F12, and recorded both reply URLs.
+- 2026-11-26 17:48 UTC - `da2ce7`'s review 6078600500 (approval) arrived (F13, F14).
+- 2026-11-26 17:49 UTC - Reordered the round paragraphs and added the template's `semantic-links` to the frontmatter (F13, F14).
 
 Append entries only. If an entry was rewritten in place, restore the prior entries, then append a correction that names the rewritten content; do not rewrite the record again.
 
