@@ -287,7 +287,7 @@ request; the first version of this decision kept `101`).
 
 | Alternative | Pros | Cons |
 | --- | --- | --- |
-| A. Create `docs/logging.md` with the output format (stream, record shape, `kind` values, a `jq` recipe) and a "Changes in 4.0.0" section (stdout to stderr, JSON only, `trace_style` removed, exit `2` for configuration errors, migration steps); the 4.0.0 GitHub release notes copy that section | One place in the repository that an operator and the release notes use. EPIC #2387 SI-2 extends the same file (convention, catalogue) and its AC16 expects this section | SI-2's spec must start from an existing file instead of creating it (tell the #2387 coordinator) |
+| A. Create `docs/logging.md` with the output format (stream, record shape, `kind` values, a `jq` recipe) and a "Changes in 4.0.0" section (stdout to stderr, `json` as the new default of `trace_style` with the text styles still available, the records that are JSON in every style, no colour codes, exit `2` for configuration errors, migration steps); the 4.0.0 GitHub release notes copy that section | One place in the repository that an operator and the release notes use. EPIC #2387 SI-2 extends the same file (convention, catalogue) and its AC16 expects this section | SI-2's spec must start from an existing file instead of creating it (tell the #2387 coordinator) |
 | B. Only the GitHub release notes, written at release time | Nothing to keep in sync | Nothing in the repository until the release; easy to forget; no reference page for the format |
 
 **Requirement from D9 (maintainer):** review every place where the tracker's documentation tells an
