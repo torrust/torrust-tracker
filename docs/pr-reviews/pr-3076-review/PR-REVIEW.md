@@ -1,7 +1,7 @@
 ---
 pr-number: 3076
 pr-url: https://github.com/torrust/torrust-tracker/pull/3076
-last-updated-utc: "2026-11-26 17:03"
+last-updated-utc: "2026-11-26 17:15"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -45,10 +45,10 @@ Round 1: `da2ce7`'s review 6077983778 (approved, with four inline findings) on t
 
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
-| F1 | review-finding:pr-3076-f1 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | OPEN |
-| F2 | review-finding:pr-3076-f2 | da2ce7 | Minor | correctness | ORIGINAL | FIXED | OPEN |
-| F3 | review-finding:pr-3076-f3 | da2ce7 | Nit | metadata | ORIGINAL | FIXED | OPEN |
-| F4 | review-finding:pr-3076-f4 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | OPEN |
+| F1 | review-finding:pr-3076-f1 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F2 | review-finding:pr-3076-f2 | da2ce7 | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F3 | review-finding:pr-3076-f3 | da2ce7 | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F4 | review-finding:pr-3076-f4 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -63,7 +63,7 @@ Round 1: `da2ce7`'s review 6077983778 (approved, with four inline findings) on t
 - Current-tree verification: Read "Final message" and "Reply file" of `.claude/agents/researcher.md` after the edit.
 - Resolution reference: docs(agents): [#2904] make the final message of the researcher carry the report and limit the read-only boundary to the reply file and the clones
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3076#discussion_r4711580907
 
 ### F2 - The read-only boundary's exceptions are not cases of its rule
 
@@ -76,7 +76,7 @@ Round 1: `da2ce7`'s review 6077983778 (approved, with four inline findings) on t
 - Current-tree verification: Read the Boundaries of the skill, line 14 of the agent file and the inventory row after the edit.
 - Resolution reference: docs(agents): [#2904] make the final message of the researcher carry the report and limit the read-only boundary to the reply file and the clones
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3076#discussion_r4711581448
 
 ### F3 - The finding count of the progress log does not match the reply
 
@@ -89,7 +89,7 @@ Round 1: `da2ce7`'s review 6077983778 (approved, with four inline findings) on t
 - Current-tree verification: Compared the entry with `agent-replies/task-reviewer-t8-r1.json` and edited the description.
 - Resolution reference: docs(issues): [#2904] correct the finding count and a quotation in the researcher inventory
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3076#discussion_r4711581999
 
 ### F4 - A quotation does not match the specification's text
 
@@ -102,11 +102,12 @@ Round 1: `da2ce7`'s review 6077983778 (approved, with four inline findings) on t
 - Current-tree verification: Read the table "What the ten profiles did" of `ISSUE.md` and the introduction after the edit.
 - Resolution reference: docs(issues): [#2904] correct the finding count and a quotation in the researcher inventory
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3076#discussion_r4711582459
 
 ## Processing Log
 
 - 2026-11-26 17:03 UTC - Round 1: started on `da2ce7`'s review `6077983778` (four inline comments); the record was created before the first reply, and the fixes are committed locally. Replies follow the push.
+- 2026-11-26 17:15 UTC - Pushed round 1 (head commit `docs(pr-reviews): [#2904] point the resolution references of F3 and F4 to their fix on pull request 3076`), replied on the four threads (GitHub `created_at` 17:16 UTC) and resolved them with the GraphQL mutation, each returning `isResolved: true`. The reply URLs are recorded by this commit, which goes out with the next push.
 
 ## Completion Rules
 
