@@ -169,9 +169,9 @@ TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-commit.sh --for
 Run these before you stage, so a commit never lands under a stale or wrong issue:
 
 1. **The issue specification is current.** When the commit relates to a specification in
-   `docs/issues/`, check that every completed acceptance criterion is ticked and that the progress
-   log and the task list show the current state. When the specification is out of date, update it
-   first. For a completion commit, check that the manual verification the specification requires is
+   `docs/issues/`, check that the progress log, the task table and the evidence show the current
+   state, and that only criteria a reviewer verified are ticked (the author of the work never ticks
+   a criterion itself). When the specification is out of date, update it first. For a completion commit, check that the manual verification the specification requires is
    backed by the issue-local `manual-verification-evidence.md`, not only by test output or a
    disposable script (see the [verification types](../../../docs/testing.md#verification-types)).
 2. **The branch's issue number has an open specification.** When the branch name starts with an
