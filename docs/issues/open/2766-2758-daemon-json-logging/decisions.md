@@ -1,7 +1,7 @@
 ---
 doc-type: decision-record
 issue-spec: docs/issues/open/2766-2758-daemon-json-logging/ISSUE.md
-last-updated-utc: "2026-11-26 17:09"
+last-updated-utc: "2026-11-26 19:20"
 ---
 
 # Decisions of issue #2766

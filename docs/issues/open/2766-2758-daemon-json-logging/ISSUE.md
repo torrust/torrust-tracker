@@ -9,7 +9,7 @@ github-issue: 2766
 spec-path: docs/issues/open/2766-2758-daemon-json-logging/ISSUE.md
 branch: "2766-daemon-json-logging"
 related-pr: null
-last-updated-utc: "2026-11-26 17:09"
+last-updated-utc: "2026-11-26 19:20"
 semantic-links:
   skill-links:
     - create-issue
@@ -213,6 +213,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-23 16:38 UTC - Claude Code (Claude Opus 5.5) - Updated the EPIC total to 13 after #3004 and #3006 were added (PR 3007 review).
 - 2026-11-24 13:23 UTC - Claude Code (Claude Opus 5.5) - Recorded the maintainer's decision of 2026-11-24: this issue waits only for SI-1 of EPIC #2387, and moves today's log readers to JSON (section Dependencies, task T0).
 - 2026-11-26 17:09 UTC - Claude Code (Claude Opus 5.5, then Fable 5.2) - T0 and T1: refreshed the spec against `develop` (#3004 closed, #2387 SI-1 merged, references corrected, new readers and callers added) and recorded the maintainer's decisions D1 to D9 in `decisions.md`; the plan is now four pull requests.
+- 2026-11-26 19:20 UTC - Claude Code (Fable 5.2) - Addressed the first review round on PR 3081 (CodeRabbit and da2ce7, twelve findings, audit in `docs/pr-reviews/pr-3081-review/PR-REVIEW.md`): a panic that unwinds out of `main` exits `1`; the records that are not log records ignore `trace_filter`; the collision rule of the formatter is complete; the binary table of the contract ADR is left to issue #2770; three example records corrected.
 
 ## Acceptance Criteria
 
