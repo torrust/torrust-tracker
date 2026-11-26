@@ -250,7 +250,7 @@ container runtime or an orchestrator launches it). How the codes behave there:
 
 Codes `1` and `2` collide with nothing a runtime reserves: `125` to `127` belong to the container
 runtime, `128 + n` means killed by signal `n` (`137` for `SIGKILL` or out of memory, `143` for
-`SIGTERM`), and Rust uses `101` for a panic in `main`. The BSD exit codes (`78` for a
+`SIGTERM`), and Rust's own `101` for a panic in `main` is not used (D6 maps it to `1`). The BSD exit codes (`78` for a
 configuration error) were not considered further: the contract ADR fixes `0`, `1` and `2`. A clean
 stop after `SIGTERM` or `SIGINT` keeps exit `0`, which `docker stop` and Kubernetes pod termination
 rely on. `docs/logging.md` (D7) documents the codes with these examples.
@@ -278,7 +278,10 @@ new variant cannot be added without choosing its code.
 
 **Choice: A** (confirmed by the maintainer, 2026-11-26). The hook changes only how a panic is
 reported: a panic inside a task still does not stop the process (the job supervisor decides), and a
-panic in `main` still exits with Rust's code `101`.
+panic that unwinds out of `main` exits `1` ("could not do its job"), not Rust's `101`, because the
+contract allows only `0`, `1` and `2`: `main` catches the unwind of the application future and
+returns `1` after the hook has written the record (changed after the review of the spec pull
+request; the first version of this decision kept `101`).
 
 ## D7 - Where the operator-visible change is documented
 
@@ -360,7 +363,7 @@ formats without colour codes (D8).
 | Configuration error (missing file, bad TOML, unknown `trace_style` value, semantic validation) | JSON `log` records of configuration loading, then one JSON `startup_failure` | same as `json`: the style was never applied | same as `json` | same as `json` | `2` |
 | Normal run | JSON only | JSON until the configuration is loaded, then `full` text | JSON, then `pretty` text | JSON, then `compact` text | `0` at a clean stop |
 | Runtime startup failure (port in use) | JSON `log` records, then one JSON `startup_failure` | JSON, then text, then one JSON `startup_failure` | same pattern | same pattern | `1` |
-| Panic | one JSON `panic` record | one JSON `panic` record among the text | same | same | `101` (Rust's code for a panic in `main`) or the process continues if a task panicked |
+| Panic | one JSON `panic` record | one JSON `panic` record among the text | same | same | `1` if the panic unwinds out of `main`; the process continues if a task panicked |
 | Tools that read the logs (e2e runner, test harness, `jq`) | Work | Do not work | Do not work | Do not work | |
 
 ### `--help` and argument errors (every style)

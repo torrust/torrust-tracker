@@ -78,7 +78,7 @@ The maintainer decided the migration detail on 2026-11-26. `decisions.md` in thi
 | D3 | The setup code moves from the configuration crate to the tracker application (`src/bootstrap/logging.rs`). The configuration crate keeps only data (`trace_filter`, `TraceStyle`) and loses its `tracing-subscriber` dependency. No package gains a dependency. A shared crate comes later, with the follow-up that moves `tracker_client` to the same shape |
 | D4 | JSON records are flat, with `kind` on every record: key order `timestamp`, `level`, `kind`, `target`, `message`, then the event fields. `kind` is `log`, `startup_failure`, `usage_error`, `help` or `panic`. Reserved keys cannot be duplicated: an event field with a name already in the record is written with the prefix `field_` |
 | D5 | Exit `2` for argument and configuration errors, exit `1` for runtime startup failures; the mapping is a tested method on the error types (table in `decisions.md`) |
-| D6 | A panic hook writes one `panic` record through the same formatter |
+| D6 | A panic hook writes one `panic` record through the same formatter; a panic that unwinds out of `main` exits `1` |
 | D7 | This issue creates `docs/logging.md` (where the logs go and how to get them, styles, record shape, exit codes, "Changes in 4.0.0") and reviews the other documents that show how to run the tracker or what it prints |
 | D8 | No ANSI colour codes in any style. A configuration key for colours is postponed until a need is shown |
 | D9 | Every style writes to stderr; stdout is always empty. An operator who wants stdout redirects (`2>&1`) |
@@ -94,7 +94,7 @@ D1, D2, D4, D6 and D8 become one ADR (task T2).
 - **Default (D1).** `trace_style` defaults to `json`. The default configs under `share/default/config/` and the config that `tests/common/native_tracker/command.rs` writes do not set a text style.
 - **Startup failure (D5).** One `startup_failure` record instead of the two reports of today, with the `exit_code` it returns. `exit_code()` on `app::Error` and `bootstrap::app::Error`, one unit test per variant.
 - **Arguments.** Fallible parsing in `src/main.rs`: an argument error is a `usage_error` record and exit `2`; `--help` is a `help` record on stderr and exit `0`.
-- **Panics (D6).** A panic hook that writes a `panic` record.
+- **Panics (D6).** A panic hook that writes a `panic` record; a panic that unwinds out of `main` exits `1`.
 - **The other entry points.** `packages/hung-component-tracker/src/main.rs` and `src/console/profiling.rs` use the same install function and failure report, and stop using `eprintln!`.
 - **Readers.** `src/console/ci/e2e/logs_parser.rs` and its tests parse JSON records (`target`, `level`, `message`); `Docker::logs` in `src/console/ci/e2e/docker.rs` returns the container's stderr (or both streams) and its tests follow. `tests/common/native_tracker/health.rs` reads `target` and `message` from the JSON record for both the HTTP and the UDP reader. `tests/lifecycle/shutdown_policy.rs` reads the `timeout_seconds` key (four assertions). `packages/hung-component-tracker/tests/common/mod.rs` and the other lifecycle tests are checked and changed only if they fail.
 - **Root tests that pin today's behavior.** `tests/configuration/cli_configuration/invalid_sources.rs` (lines 60, 76, 92, 109, 127) asserts exit `1` through `STARTUP_FAILURE_EXIT_CODE` (`tests/common/native_tracker/failed_start.rs:21`) and becomes exit `2` for configuration failures; its usage-error cases (lines 28, 44) keep exit `2` and assert the JSON record.
@@ -223,7 +223,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - [ ] AC5: The operator-visible change is documented: `docs/logging.md` says where the logs go and how to get them, shows every style, the record shape, the exit codes and the "Changes in 4.0.0" section, and no reviewed document shows an example that no longer works.
 - [ ] AC6: Argument errors (`--unknown`, `-c ""`) and `--help` follow the contract (JSON on stderr, stdout empty, usage errors exit `2`), proven by M2c.
 - [ ] AC7: A text style (`full`, `pretty`, `compact`) still works as an opt-in: the log records are text on stderr without ANSI codes, and the records of D1 that are always JSON are JSON.
-- [ ] AC8: A panic writes one `panic` record on stderr and no plain text.
+- [ ] AC8: A panic writes one `panic` record on stderr and no plain text, and a panic that unwinds out of `main` exits `1`.
 - [ ] AC9: `torrust-tracker-configuration` has no function that installs a subscriber and no `tracing-subscriber` dependency, and no package gained a dependency.
 - [ ] AC10: The ADR exists and the follow-up issues are filed.
 - [ ] `linter all` exits with code `0`
