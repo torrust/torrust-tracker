@@ -203,6 +203,7 @@ mod tests {
     use torrust_tracker_primitives::peer::fixture::PeerBuilder;
     use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
     use torrust_tracker_primitives::{ConfigurationInstanceId, Driver, ServiceRole};
+    use torrust_tracker_test_helpers::logging::capture_logs_in_scope;
     use torrust_tracker_udp_protocol::{ConnectionId, ScrapeRequest, TransactionId};
 
     use super::{ScrapeService, UdpScrapeError};
@@ -480,5 +481,48 @@ mod tests {
 
         // Assert: the mock verifies the single expected event when it is dropped.
         assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn it_should_log_the_sent_event_under_the_udp_tracker_log_target() {
+        // Arrange
+        let mut event_sender = MockUdpCoreStatsEventSender::new();
+        event_sender.expect_send().returning(|_| Box::pin(future::ready(Some(Ok(1)))));
+        let service = ScrapeServiceFixture::public_tracker_publishing_events_to(event_sender).service;
+        let request = scrape_request(valid_connection_id_for(client_socket_addr()));
+        let capture = capture_logs_in_scope();
+
+        // Act
+        service
+            .handle_scrape(
+                client_socket_addr(),
+                server_service_binding(),
+                &request,
+                cookie_valid_range(),
+                VALIDATE_COOKIE,
+            )
+            .await
+            .unwrap();
+
+        // Assert: a capture with no event line would pass the negative checks, so require one line.
+        let event_lines: Vec<String> = capture
+            .lines()
+            .into_iter()
+            .filter(|line| line.contains("Sending UdpScrape event"))
+            .collect();
+        assert_eq!(event_lines.len(), 1, "captured lines: {:?}", capture.lines());
+        let line = &event_lines[0];
+        assert!(
+            line.contains("UDP TRACKER: Sending UdpScrape event"),
+            "unexpected target: {line}"
+        );
+        assert!(
+            !line.contains("torrust_tracker_udp_core::services::scrape"),
+            "logged under the module path: {line}"
+        );
+        assert!(
+            !line.contains(r#"target="UDP TRACKER""#),
+            "target recorded as a field: {line}"
+        );
     }
 }

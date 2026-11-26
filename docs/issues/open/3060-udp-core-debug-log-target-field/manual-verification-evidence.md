@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/3060-udp-core-debug-log-target-field/ISSUE.md
-last-updated-utc: "2026-11-26 11:12"
+last-updated-utc: "2026-11-26 16:39"
 ---
 
 # Manual Verification Evidence
@@ -158,6 +158,34 @@ info!("message, target =
 ```
 
 The multi-line `debug!` call, the `event!` call with a leading argument and the `event!` call whose earlier argument contains parentheses are found (the third case was added after review finding F14 of PR #3062); an earlier argument with nested parentheses, for example `count = ((1 + 1))`, is not matched: a regular expression cannot follow arbitrary nesting, so the claim of AC3 is limited to one level (finding F16 of PR #3062); a comment inside the macro arguments before `target =` (the last function of the sample) is not matched either and is documented as a known limit (finding F17 of PR #3062); `target: "Z"` (colon form) is not. Two cases of the sample show the limits of the scan: the brace-delimited `debug! { target = ... }` call (function `i`) is not matched, which is why AC3 covers parenthesized calls only (finding F18 of PR #3062), and `info!("message, target = nope")` (function `j`) is a false match, because the pattern takes the string up to its comma as an earlier argument and matches `target =` inside the string, so every match must be inspected by hand (finding F20). The commands of this section run from the repository root (finding F19). A false match only makes AC3 fail, the safe direction. The text `"target = nope"` of function `f`, with no comma before it, is not matched.
+
+### T2 - Regression tests, red before the fix
+
+- Goal: show that the two maintained regression tests fail on the unfixed code, for the right reason.
+- Artifact under test: `torrust/develop` at the merge of #3070 (`66c12ffe1`, already on `develop`) plus the two new tests `it_should_log_the_sent_event_under_the_udp_tracker_log_target` in `announce.rs` and `scrape.rs`; the production call sites are unchanged. Stable Rust toolchain.
+- Status: `DONE` (red run recorded; the green run is recorded after the fix)
+
+#### Steps Performed
+
+1. Added the two tests (one `it_should_log_the_sent_event_under_the_udp_tracker_log_target` in each of `announce.rs` and `scrape.rs`): each starts `capture_logs_in_scope()`, sends one announce (resp. scrape) through a service with a mock event sender, and asserts that exactly one captured line holds `Sending UdpAnnounce event` (resp. `UdpScrape`), that this line contains `UDP TRACKER: Sending ... event`, and that it contains neither the module-path target nor `target="UDP TRACKER"`.
+2. Ran `cargo test -p torrust-tracker-udp-core it_should_log_the_sent_event -- --test-threads=1` at 2026-11-26 16:38:54 UTC. The saved lines (`running`, `test ...`, the panic messages and `test result`) are in `evidence/t2-red-before-fix.txt`.
+
+#### Observed Result
+
+```text
+running 2 tests
+test services::announce::tests::it_should_log_the_sent_event_under_the_udp_tracker_log_target ... FAILED
+test services::scrape::tests::it_should_log_the_sent_event_under_the_udp_tracker_log_target ... FAILED
+thread 'services::announce::tests::it_should_log_the_sent_event_under_the_udp_tracker_log_target' (1018165) panicked at packages/udp-core/src/services/announce.rs:726:9:
+unexpected target: 2026-11-26T16:38:54.357108Z DEBUG torrust_tracker_udp_core::services::announce: Sending UdpAnnounce event: UdpAnnounce { connection: ConnectionContext { configuration_instance_id: ConfigurationInstanceId { service_role: UdpTracker, instance_index: 0 }, client_socket_addr: 203.0.113.10:51000, server_service_binding: ServiceBinding { protocol: UDP, bind_address: 203.0.113.196:6969 }, public_url: None }, info_hash: InfoHash([17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17]), announcement: Peer { peer_id: PeerId([45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45]), peer_addr: 203.0.113.10:6881, updated: 1795711134.357090495s, uploaded: NumberOfBytes(0), downloaded: NumberOfBytes(0), left: NumberOfBytes(0), event: Started } } target="UDP TRACKER"
+thread 'services::scrape::tests::it_should_log_the_sent_event_under_the_udp_tracker_log_target' (1018166) panicked at packages/udp-core/src/services/scrape.rs:515:9:
+unexpected target: 2026-11-26T16:38:54.357432Z DEBUG torrust_tracker_udp_core::services::scrape: Sending UdpScrape event: UdpScrape { connection: ConnectionContext { configuration_instance_id: ConfigurationInstanceId { service_role: UdpTracker, instance_index: 0 }, client_socket_addr: 203.0.113.10:51000, server_service_binding: ServiceBinding { protocol: UDP, bind_address: 203.0.113.196:6969 }, public_url: None } } target="UDP TRACKER"
+test result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 112 filtered out; finished in 0.00s
+```
+
+#### Conclusion
+
+Both tests fail on the unfixed code at the `UDP TRACKER: Sending ... event` assertion, after the capture had exactly one event line, so the red run is caused by the wrong target (the line is logged under the module path) and not by an empty capture. A failed `assert!` stops the test, so the later assertions (no module-path target, no stray field) were not evaluated in this run; the green run after the fix shows that they pass.
 
 ## Failures and Follow-up
 
