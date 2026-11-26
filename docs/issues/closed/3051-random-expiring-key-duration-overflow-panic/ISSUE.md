@@ -9,7 +9,7 @@ github-issue: 3051
 spec-path: docs/issues/closed/3051-random-expiring-key-duration-overflow-panic/ISSUE.md
 branch: "3051-random-expiring-key-duration-overflow-panic-spec"
 related-pr: 3064
-last-updated-utc: "2026-11-26 17:13"
+last-updated-utc: "2026-11-26 18:57"
 semantic-links:
   skill-links:
     - create-issue
@@ -227,6 +227,7 @@ commit.
 - 2026-11-25 19:14 UTC - Claude Code (Claude Sonnet 5.5) - T4 done: real-tracker recheck on the fix commit (evidence V3): requests 2 and 4 answer 400, no panic. Completion review: no material discovery, the implementation followed the spec (the REST handler arm, the benchmark caller and the renamed handler test were all planned)
 - 2026-11-26 13:50 UTC - Claude Code (Claude Sonnet 5.5) - Fix PR #3064 merged and issue #3051 closed; spec archived to `docs/issues/closed/` with the references repaired. The checkpoint "Reviewer validated acceptance criteria" stays unticked: the maintainer's ACK approved the head commit of each PR, and no reviewer checked the criteria against their checkboxes.
 - 2026-11-26 17:13 UTC - Claude Code (Claude Sonnet 5.5) - After review 6075748165 of the archive PR the T5, M3 and AC5 rows were set to `DONE` with their evidence, so the ticked checkpoints agree with the record. After review 6077711472, AC1 to AC5 and the criteria re-review checkbox were unticked: only a reviewer ticks acceptance criteria, and the `DONE` rows of the Acceptance Verification table keep the evidence.
+- 2026-11-26 18:57 UTC - Claude Code (Claude Sonnet 5.5) - After review 6078748782 the criteria `linter all` exits with code `0`, Relevant tests pass and Manual verification scenarios are executed were unticked as well, to be ticked by a reviewer like AC1 to AC5; the Workflow Checkpoints above record that those checks ran.
 
 ## Acceptance Criteria
 
@@ -238,9 +239,9 @@ commit.
 - [ ] AC4: `POST /api/v1/keys` (random key) and the generate-key endpoint answer `400` with "invalid auth key
       duration" for `u64::MAX`.
 - [ ] AC5: The API change is stated in the PR description.
-- [x] `linter all` exits with code `0`
-- [x] Relevant tests pass
-- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [ ] `linter all` exits with code `0`
+- [ ] Relevant tests pass
+- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 - [ ] Documentation is updated when behavior/workflow changes
 
