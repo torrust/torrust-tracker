@@ -42,7 +42,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Findings F1 to F7 come from review 6070914967 and findings F8 to F10 from review 6075692867, both by `da2ce7`; F11 to F13 come from review 6075857869 by `coderabbitai[bot]`; F14 is an inline comment of `da2ce7` (14:32 UTC) in review 6075885313, F15 and F16 come from review 6076348650 by `da2ce7`, and F17 to F19 are follow-up replies of `coderabbitai[bot]` (14:46 UTC, reviews 6076107248, 6076112434 and 6076112623) to the replies on the threads of F12, F13 and F11, which the poller did not report. The
+Findings F1 to F7 come from review 6070914967 and findings F8 to F10 from review 6075692867, both by `da2ce7`; F11 to F13 come from review 6075857869 by `coderabbitai[bot]`; F14 is an inline comment of `da2ce7` (14:32 UTC) in review 6075885313, F15 and F16 come from review 6076348650 by `da2ce7`, F20 from review 6077528205 by `da2ce7`, and F17 to F19 are follow-up replies of `coderabbitai[bot]` (14:46 UTC, reviews 6076107248, 6076112434 and 6076112623) to the replies on the threads of F12, F13 and F11, which the poller did not report. The
 `claude[bot]` review (6062721178, automated review is disabled for fork pull requests) and the
 `coderabbitai[bot]` rate-limit notice hold no actionable assertion and have no row, and neither does the `coderabbitai[bot]` reply of 15:23 UTC (4710387901, review 6076691282), which concedes F19 and asks for nothing.
 
@@ -66,7 +66,8 @@ Findings F1 to F7 come from review 6070914967 and findings F8 to F10 from review
 | F16 | review-finding:pr-3063-f16 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F17 | review-finding:pr-3063-f17 | coderabbitai[bot] | Minor (inferred) | other | RE_RAISE_OF:F12 | NO_ACTION | SUPERSEDED |
 | F18 | review-finding:pr-3063-f18 | coderabbitai[bot] | Minor (inferred) | security | RE_RAISE_OF:F13 | NO_ACTION | SUPERSEDED |
-| F19 | review-finding:pr-3063-f19 | coderabbitai[bot] | Minor (inferred) | metadata | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F19 | review-finding:pr-3063-f19 | coderabbitai[bot] | Minor (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-3063-f20 | da2ce7 | Minor | correctness | RE_RAISE_OF:F19 | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -312,11 +313,24 @@ Findings F1 to F7 come from review 6070914967 and findings F8 to F10 from review
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3063#pullrequestreview-6076112623
 - Concern: After the stale paths were removed (F11), CodeRabbit asked to add `issue #3000`, `issue #2993` and `issue #144` to the ADR's `related-artifacts` list, saying the semantic-link convention specifies issue numbers in that list. (The source is the reply `discussion_r4709955819` inside an existing thread, the only comment of its review; the row cites the review because the audit validator anchors a discussion row to the first comment of its thread.)
-- Solution: No change. The marker table of `docs/skills/semantic-skill-link-convention.md` gives `related-artifacts` the values `<repo-relative-path>` or `review-finding:pr-<number>-<id>`, and `issue` is a separate marker; no ADR puts `issue #N` strings in `related-artifacts`. The ADR's Description and References name the issues by number, which is what the stability warning asks for.
-- Current-tree verification: read the marker table (lines 22-31 of the convention) and `grep -rn 'issue #' docs/adrs/*.md` frontmatter blocks: none lists an issue in `related-artifacts`.
-- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3063#discussion_r4710376279
+- Solution: First declined (reply `discussion_r4710376279`, recorded then as `NO_ACTION`) on the reading that the marker table of the convention allows only paths and review findings. That reading was wrong: the convention's section From ADR to workflows and issue specs tells an ADR to list quoted `"issue #NNNN"` entries in `related-artifacts`, and eight ADRs do. The three entries were added to the ADR and the earlier reply was corrected on the thread (F20 is da2ce7's report of the same mistake).
+- Current-tree verification: `docs/skills/semantic-skill-link-convention.md` lines 217-240 and `grep -l '"issue #' docs/adrs/*.md` (8 ADRs); the ADR's frontmatter now lists `"issue #3000"`, `"issue #2993"` and `"issue #144"`.
+- Resolution reference: docs(adrs): [#3000] list the issues as quoted issue entries in related-artifacts
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/3063#discussion_r4710376279
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3063#discussion_r4711154901
+
+### F20 - The convention and existing ADRs contradict the disposition of F19
+
+- PR number: 3063
+- Source review ID: 6077528205
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3063#discussion_r4711088669
+- Concern: The disposition of F19 was wrong: the convention (`docs/skills/semantic-skill-link-convention.md:217-240`) tells an ADR to list issue specs as quoted `"issue #NNNN"` entries in `related-artifacts`, and eight ADRs carry such entries. The row should add the entries, or say why the marker table wins, and the reply that conceded the premise should be corrected.
+- Solution: Added the three entries to the ADR (F19), corrected the earlier reply with a new reply on its thread, and changed the F19 row to `FIXED`.
+- Current-tree verification: Read the ADR's frontmatter and the convention lines named in the finding; the pre-commit gate, which includes the staged-frontmatter check, passed on the fix commit.
+- Resolution reference: docs(adrs): [#3000] list the issues as quoted issue entries in related-artifacts
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3063#discussion_r4711154470
 
 ## Processing Log
 
@@ -333,6 +347,7 @@ Findings F1 to F7 come from review 6070914967 and findings F8 to F10 from review
 - 2026-11-26 15:20 UTC - `da2ce7` approved at head `2819aae20` (review 6076660183) and noted that three follow-up comments of `coderabbitai[bot]` from 14:46 UTC (4709952021, 4709955681, 4709955819) had no reply and no row, and that the F16 row cited the wrong commit for the log correction.
 - 2026-11-26 15:22 UTC - Read the three follow-ups, replied to each with the `Superseded by` form (15:22 UTC), recorded them as F17 to F19, and corrected the resolution reference of F16 to the commit that carries the log correction. The threads were already resolved and stay resolved. The poller did not report these comments because I restarted it with the time of my own reply (14:46:49 UTC) as its cursor, which is later than the three comments (14:46:15 to 14:46:34 UTC); the cursor should come from the last reported event, and all reviews should be listed before a round is recorded.
 - 2026-11-26 15:57 UTC - Recorded the maintainer decision on the `public_url` discussion (F13 and F18) in the detail of F13 and in the specification's Risks section and progress log, in the commit `docs(issues): [#3000] record the decision on secrets in copied values`.
+- 2026-11-26 16:33 UTC - Recorded after the events. `da2ce7` commented at 16:25 UTC (4711088669, F20) that the disposition of F19 contradicts the convention and eight ADRs. Correct: my verification of F19 read the marker table only and said no ADR lists an issue in `related-artifacts`, which was false. Fix committed and pushed in `docs(adrs): [#3000] list the issues as quoted issue entries in related-artifacts`; replies posted at 16:32 UTC (on the F20 thread and, as a correction of reply 4710376279, on the F19 thread). The F19 row changed from `NO_ACTION`/`SUPERSEDED` to `FIXED`/`RESOLVED`.
 
 ## Completion Rules
 
