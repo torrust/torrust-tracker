@@ -42,7 +42,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Findings F1 to F7 come from review 6070914967 and findings F8 to F10 from review 6075692867, both by `da2ce7`; F11 to F13 come from review 6075857869 by `coderabbitai[bot]`; F14 is an inline comment of `da2ce7` (14:32 UTC) that belongs to no submitted review of its own. The
+Findings F1 to F7 come from review 6070914967 and findings F8 to F10 from review 6075692867, both by `da2ce7`; F11 to F13 come from review 6075857869 by `coderabbitai[bot]`; F14 is an inline comment of `da2ce7` (14:32 UTC) in review 6075885313. The
 `claude[bot]` review (6062721178, automated review is disabled for fork pull requests) and the
 `coderabbitai[bot]` rate-limit notice hold no actionable assertion and have no row.
 
@@ -237,7 +237,7 @@ Findings F1 to F7 come from review 6070914967 and findings F8 to F10 from review
 ### F14 - The audit record was still missing though a reply said a commit created it
 
 - PR number: 3063
-- Source review ID: N/A
+- Source review ID: 6075885313
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3063#discussion_r4709795338
 - Concern: Reply 4709719639 (14:26 UTC) named a commit that created the audit record, but the force-push of 14:25 UTC carried four commits and none of them did, so the reply described work the branch did not hold. The review asked that, when the record lands, the commit ids the reviews cite are mapped to their commit subjects.
