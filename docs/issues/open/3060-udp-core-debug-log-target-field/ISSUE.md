@@ -9,7 +9,7 @@ github-issue: 3060
 spec-path: docs/issues/open/3060-udp-core-debug-log-target-field/ISSUE.md
 branch: "3060-udp-core-debug-log-target-field-spec"
 related-pr: null
-last-updated-utc: "2026-11-26 11:12"
+last-updated-utc: "2026-11-26 18:54"
 semantic-links:
   skill-links:
     - create-issue
@@ -103,9 +103,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task                                                         | Notes / Expected Output                                         |
 | --- | ------ | ------------------------------------------------------------ | --------------------------------------------------------------- |
 | T1  | DONE   | Reproduce on both services and record it                     | V1 recorded in `manual-verification-evidence.md`                |
-| T2  | TODO   | Add the announce and scrape regression tests and observe them red | Red run recorded on the unfixed code, both tests failing   |
-| T3  | TODO   | Change `=` to `:` at both call sites                        | Regression tests green                                          |
-| T4  | TODO   | Rerun V1 after the last production change; run `linter all`  | Evidence names the commit by Conventional Commit subject        |
+| T2  | DONE   | Add the announce and scrape regression tests and observe them red | Red run recorded on the unfixed code, both tests failing   |
+| T3  | DONE   | Change `=` to `:` at both call sites                        | Regression tests green                                          |
+| T4  | DONE   | Rerun V1 after the last production change; run `linter all`  | Evidence names the commit by Conventional Commit subject        |
 
 ## Commit Points
 
@@ -124,10 +124,10 @@ Record a justified no-change decision in the task's evidence without creating an
 - [x] Folder-style spec drafted in `docs/issues/open/3060-udp-core-debug-log-target-field/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created (#3060) and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
+- [x] Spec-only PR merged into `develop` before implementation (PR #3062)
+- [x] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
@@ -139,6 +139,7 @@ Record a justified no-change decision in the task's evidence without creating an
 
 - 2026-11-25 17:01 UTC - Claude Code (Claude Sonnet 5.5) - Verified the bug on current `develop`, reproduced it on both services (V1), drafted the spec - `manual-verification-evidence.md` V1
 - 2026-11-25 17:06 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the draft in session; GitHub issue #3060 created (type Bug could not be set by the bot, maintainer to set it); spec moved to open/
+- 2026-11-26 16:43 UTC - Claude Code (Claude Sonnet 5.5) - Implemented after the spec PR #3062 merged: the two regression tests were red on the unfixed code (T2), then the two-site fix made them green (T3), V1 and the AC3 scan were rerun on the fixed code (T4); linter checks ran in the pre-commit script. No retrospective is needed: no assumption of the specification changed - `manual-verification-evidence.md`
 
 ## Acceptance Criteria
 
@@ -164,7 +165,7 @@ Record a justified no-change decision in the task's evidence without creating an
 
 | ID  | Scenario                                      | Human-oriented command/steps                                                                          | Expected Result                                                  | Status | Evidence                                     |
 | --- | --------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- | ------ | -------------------------------------------- |
-| V1  | Captured DEBUG lines of announce and scrape   | Temporary test: run each service once inside `capture_logs_in_scope` and print the captured text          | Before fix: module-path target and a `target="UDP TRACKER"` field. After fix: `UDP TRACKER:` prefix, no field | IN_PROGRESS | `manual-verification-evidence.md` section V1 (before-fix result recorded; after-fix rerun TODO) |
+| V1  | Captured DEBUG lines of announce and scrape   | Temporary test: run each service once inside `capture_logs_in_scope` and print the captured text          | Before fix: module-path target and a `target="UDP TRACKER"` field. After fix: `UDP TRACKER:` prefix, no field | DONE | `manual-verification-evidence.md` section V1 (before and after the fix) |
 
 ### Disposable Verification Scripts
 
@@ -174,10 +175,10 @@ None. The reproduction is a temporary Rust test (code recorded verbatim in the e
 
 | AC ID | Status | Evidence |
 | ----- | ------ | -------- |
-| AC1   | TODO   | -        |
-| AC2   | TODO   | -        |
-| AC3   | TODO   | -        |
-| AC4   | TODO   | -        |
+| AC1   | TODO   | `manual-verification-evidence.md`, section "T2 green run and V1 final recheck, after the fix" (the reviewer ticks the criterion) |
+| AC2   | TODO   | `manual-verification-evidence.md`, section "T2 green run and V1 final recheck, after the fix" (the reviewer ticks the criterion) |
+| AC3   | TODO   | `manual-verification-evidence.md`, section "T2 green run and V1 final recheck, after the fix" (the reviewer ticks the criterion) |
+| AC4   | TODO   | `manual-verification-evidence.md`, sections "T2 - Regression tests, red before the fix" and "T2 green run and V1 final recheck, after the fix" (the reviewer ticks the criterion) |
 
 ## Risks and Trade-offs
 
