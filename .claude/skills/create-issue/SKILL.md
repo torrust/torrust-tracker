@@ -50,6 +50,19 @@ Lifecycle docs:
 4. **Move the spec directory to `docs/issues/open/`** and include the issue number
 5. **Pre-commit checks** and commit the spec
 
+For complex or high-impact issues, a **spec-first PR** is recommended:
+
+- Open a branch containing only issue-spec/EPIC documentation changes
+- Submit and merge that PR into `develop` first
+- Start implementation only after the specification PR has been reviewed and merged
+- Use `Related to #<number>` (not `Closes #<number>`) in the spec-only PR body to avoid
+  auto-closing the issue on merge (see the `open-pull-request` skill)
+
+This improves visibility and allows maintainers/contributors to review scope and acceptance
+criteria before code changes begin.
+
+**Never create the GitHub issue before the user reviews and approves the specification.**
+
 ## Plan The Work
 
 When you draft the specification, also plan the work it describes:
@@ -70,19 +83,6 @@ Leave no acceptance criterion ambiguous and no task vague: a criterion or a task
 verified is rewritten before the draft is reviewed. When the person who implements the work asks a
 question because the specification is incomplete or does not match the code, answer it and update
 the specification before implementation resumes.
-
-For complex or high-impact issues, a **spec-first PR** is recommended:
-
-- Open a branch containing only issue-spec/EPIC documentation changes
-- Submit and merge that PR into `develop` first
-- Start implementation only after the specification PR has been reviewed and merged
-- Use `Related to #<number>` (not `Closes #<number>`) in the spec-only PR body to avoid
-  auto-closing the issue on merge (see the `open-pull-request` skill)
-
-This improves visibility and allows maintainers/contributors to review scope and acceptance
-criteria before code changes begin.
-
-**Never create the GitHub issue before the user reviews and approves the specification.**
 
 ## Step-by-Step Process
 
