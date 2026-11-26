@@ -1,7 +1,7 @@
 ---
 pr-number: 3077
 pr-url: https://github.com/torrust/torrust-tracker/pull/3077
-last-updated-utc: "2026-11-26 17:51"
+last-updated-utc: "2026-11-26 17:56"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -45,9 +45,12 @@ Round 1, on the first head of the pull request (`a05870195`): da2ce7's review 60
 no row.
 
 Round 2, on head `dbe1c213a`: CodeRabbit review 6078161355 with one inline thread (F5).
+Round 3, on head `73975031a`: da2ce7's review 6078616888 (`APPROVED`) with two inline threads (F6,
+F7). Its body lists the same two findings, so it adds no row.
 
 Commit ids in this record name the heads the reviews saw. The branch is merged without a rebase,
-so they stay reachable from `develop`; every fix is cited by its commit subject.
+so they stay reachable from `develop`; every fix in the tree is cited by its commit subject, and
+the description edits (F3, F6) by their reply URL.
 
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
@@ -56,6 +59,8 @@ so they stay reachable from `develop`; every fix is cited by its commit subject.
 | F3 | review-finding:pr-3077-f3 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F4 | review-finding:pr-3077-f4 | da2ce7 | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F5 | review-finding:pr-3077-f5 | coderabbitai[bot] | Minor | link-integrity | ORIGINAL | FIXED | RESOLVED |
+| F6 | review-finding:pr-3077-f6 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-3077-f7 | da2ce7 | Nit | maintainability | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -145,6 +150,40 @@ so they stay reachable from `develop`; every fix is cited by its commit subject.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3077#discussion_r4711685354
 
+### F6 - The description no longer matched the branch
+
+- PR number: 3077
+- Source review ID: 6078616888
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3077#discussion_r4711905629
+- Concern: After the F1 and F5 fixes the description still said "the last checkpoints ticked" and
+  that the ADR's spec path was updated, while two checkpoints are now open with their reasons and
+  the ADR links `"issue #3037"`. The merge commit copies the description.
+- Solution: The description now says which checkpoint is ticked and which stay open, that the ADR
+  links the issue by number, and names the evidence-file stamp, the test-design-review frontmatter
+  and this audit record.
+- Current-tree verification: `gh-bot pr view 3077 --json body` shows the new bullets.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3077#discussion_r4711956449
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3077#discussion_r4711956449
+
+### F7 - The record cited head commits by id without saying why
+
+- PR number: 3077
+- Source review ID: 6078616888
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3077#discussion_r4711905639
+- Concern: The record names three heads by id, which the commit-id check of `open-pull-request`
+  prints; a review audit should name commits by subject, or say why an id is kept.
+- Solution: The Findings introduction now says the ids name the heads the reviews saw, which stay
+  reachable from `develop` because the branch is merged without a rebase, and that every fix in
+  the tree is cited by its subject.
+- Current-tree verification: the sentence follows the round summaries in `## Findings`; every
+  `Resolution reference` of a `FIXED` row in the tree is a commit subject or a reply URL.
+- Resolution reference: docs(pr-reviews): [#3037] say why the PR 3077 audit names head commits by id
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3077#discussion_r4711956756
+
 ## Processing Log
 
 - 2026-11-26 17:03 UTC - Round 1: da2ce7's review 6078022494 (17:03:45, `APPROVED`, on `a05870195`) with four threads.
@@ -152,6 +191,8 @@ so they stay reachable from `develop`; every fix is cited by its commit subject.
 - 2026-11-26 17:11 UTC - Replied on the four threads (r4711531588, r4711532128, r4711532676, r4711533091) and resolved them; created this audit record.
 - 2026-11-26 17:13 UTC - Round 2: CodeRabbit review 6078161355 (17:13:38, on `dbe1c213a`) with one thread (F5).
 - 2026-11-26 17:18 UTC - Committed the F5 fix (17:18:44), pushed it (head `efcd82c11`), replied (r4711685354) and resolved the thread.
+- 2026-11-26 17:49 UTC - Round 3: da2ce7's review 6078616888 (17:49:50, `APPROVED`, on `73975031a`) with two threads (F6, F7).
+- 2026-11-26 17:56 UTC - Edited the description for F6, committed the F7 fix (17:51:49) and pushed it (head `d7f7b9bd6`), replied on both threads (r4711956449, r4711956756) and resolved them.
 
 ## Completion Rules
 
