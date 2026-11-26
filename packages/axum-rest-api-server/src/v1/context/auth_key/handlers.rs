@@ -77,6 +77,7 @@ pub async fn generate_auth_key_handler(
     };
     match auth_key_service.generate_key(seconds_valid).await {
         Ok(auth_key) => auth_key_response(&auth_key),
+        Err(AuthKeyError::DurationOverflow { seconds_valid }) => invalid_auth_key_duration_response(seconds_valid),
         Err(e) => failed_to_generate_key_response(AuthKeyErrorDisplay(&e)),
     }
 }
@@ -398,6 +399,18 @@ mod tests {
         );
     }
 
+    #[tokio::test]
+    async fn it_should_answer_bad_request_when_the_duration_of_the_generated_key_overflows() {
+        let state = state_answering(|| Err(AuthKeyError::DurationOverflow { seconds_valid: u64::MAX }), nothing);
+
+        let response = generate_auth_key_handler(state, Path(u64::MAX.to_string())).await;
+
+        assert_eq!(
+            observed(response).await,
+            bad_request(r#"Invalid URL: invalid auth key duration: "18446744073709551615""#)
+        );
+    }
+
     #[rstest]
     #[case::a_database_error((|| Err(database_error())) as KeyOutcome, "failed to generate key: boom")]
     #[case::an_invalid_key(
@@ -405,7 +418,7 @@ mod tests {
         "failed to generate key: invalid key: y"
     )]
     #[tokio::test]
-    async fn it_should_answer_an_internal_server_error_whatever_the_error_when_generating_a_key(
+    async fn it_should_answer_an_internal_server_error_when_generating_a_key_fails_for_any_other_error(
         #[case] outcome: KeyOutcome,
         #[case] reason: &str,
     ) {

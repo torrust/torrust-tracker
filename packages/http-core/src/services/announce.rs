@@ -544,7 +544,7 @@ mod tests {
 
         /// Registers a permanent key and returns it.
         async fn register_a_key(&self) -> Key {
-            let peer_key = generate_key(None);
+            let peer_key = generate_key(None).unwrap();
             let key = peer_key.key();
             self.in_memory_key_repository.reset_with(vec![peer_key]).await;
             key

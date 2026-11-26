@@ -131,20 +131,12 @@ impl KeysHandler {
             if let Some(seconds_valid) = add_key_req.opt_seconds_valid {
                 // Expiring key
 
-                match self
-                    .generate_expiring_peer_key(Some(Duration::from_secs(seconds_valid)))
+                self.generate_expiring_peer_key(Some(Duration::from_secs(seconds_valid)))
                     .await
-                {
-                    Ok(auth_key) => Ok(auth_key),
-                    Err(err) => Err(PeerKeyError::DatabaseError { source: err }),
-                }
             } else {
                 // Permanent key
 
-                match self.generate_permanent_peer_key().await {
-                    Ok(auth_key) => Ok(auth_key),
-                    Err(err) => Err(PeerKeyError::DatabaseError { source: err }),
-                }
+                self.generate_permanent_peer_key().await
             }
         }
     }
@@ -155,9 +147,9 @@ impl KeysHandler {
     ///
     /// # Errors
     ///
-    /// Returns a `databases::error::Error` if the key cannot be persisted in
-    /// the database.
-    pub(crate) async fn generate_permanent_peer_key(&self) -> Result<PeerKey, databases::error::Error> {
+    /// Returns a [`PeerKeyError::DatabaseError`] if the key cannot be persisted
+    /// in the database.
+    pub(crate) async fn generate_permanent_peer_key(&self) -> Result<PeerKey, PeerKeyError> {
         self.generate_expiring_peer_key(None).await
     }
 
@@ -172,12 +164,19 @@ impl KeysHandler {
     ///
     /// # Errors
     ///
-    /// Returns a `databases::error::Error` if there is an issue adding the key
-    /// to the database.
-    pub async fn generate_expiring_peer_key(&self, lifetime: Option<Duration>) -> Result<PeerKey, databases::error::Error> {
-        let peer_key = key::generate_key(lifetime);
+    /// Returns an error if:
+    ///
+    /// - The `lifetime` added to the current time overflows the clock
+    ///   ([`PeerKeyError::DurationOverflow`]).
+    /// - There is an issue adding the key to the database
+    ///   ([`PeerKeyError::DatabaseError`]).
+    pub async fn generate_expiring_peer_key(&self, lifetime: Option<Duration>) -> Result<PeerKey, PeerKeyError> {
+        let peer_key = key::generate_key(lifetime)?;
 
-        self.db_key_repository.add(&peer_key).await?;
+        self.db_key_repository
+            .add(&peer_key)
+            .await
+            .map_err(|source| PeerKeyError::DatabaseError { source })?;
 
         self.in_memory_key_repository.insert(&peer_key).await;
 
@@ -406,6 +405,21 @@ mod tests {
                         peer_key.valid_until,
                         Some(CurrentClock::now_add(&Duration::from_secs(100)).unwrap())
                     );
+                }
+
+                #[tokio::test]
+                async fn it_should_fail_adding_a_randomly_generated_key_when_the_key_duration_exceeds_the_maximum_duration() {
+                    let ephemeral = private_tracker_configuration();
+                    let keys_handler = instantiate_keys_handler(&ephemeral.config).await;
+
+                    let result = keys_handler
+                        .add_peer_key(AddKeyRequest {
+                            opt_key: None,
+                            opt_seconds_valid: Some(u64::MAX),
+                        })
+                        .await;
+
+                    assert!(matches!(result.unwrap_err(), PeerKeyError::DurationOverflow { .. }));
                 }
 
                 #[tokio::test]
@@ -797,7 +811,7 @@ mod tests {
         #[tokio::test]
         async fn it_should_keep_the_key_in_memory_when_removing_it_from_the_database_fails() {
             // Arrange
-            let peer_key = generate_key(None);
+            let peer_key = generate_key(None).unwrap();
             let mut store = MockAuthKeyStore::new();
             store.expect_remove_key_from_keys().times(1).returning(|_key| {
                 Box::pin(async {
@@ -833,7 +847,7 @@ mod tests {
         #[tokio::test]
         async fn it_should_keep_the_in_memory_keys_when_loading_from_the_database_fails() {
             // Arrange
-            let peer_key = generate_key(None);
+            let peer_key = generate_key(None).unwrap();
             let mut store = MockAuthKeyStore::new();
             store.expect_load_keys().times(1).returning(|| {
                 Box::pin(async {
@@ -863,8 +877,8 @@ mod tests {
         #[tokio::test]
         async fn it_should_replace_the_in_memory_keys_with_the_keys_in_the_database() {
             // Arrange
-            let stale_key = generate_key(None);
-            let stored_key = generate_key(None);
+            let stale_key = generate_key(None).unwrap();
+            let stored_key = generate_key(None).unwrap();
             let keys_in_database = vec![stored_key.clone()];
             let mut store = MockAuthKeyStore::new();
             store

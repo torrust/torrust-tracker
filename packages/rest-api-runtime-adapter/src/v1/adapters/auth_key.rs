@@ -44,9 +44,7 @@ impl AuthKeyPort for TrackerAuthKeyAdapter {
             .generate_expiring_peer_key(Some(std::time::Duration::from_secs(seconds_valid)))
             .await;
 
-        result
-            .map(peer_key_to_auth_key)
-            .map_err(|e| AuthKeyError::Database(e.to_string()))
+        result.map(peer_key_to_auth_key).map_err(map_peer_key_error)
     }
 
     async fn delete_key(&self, key: &str) -> Result<(), AuthKeyError> {

@@ -11,9 +11,10 @@ use uuid::Uuid;
 use crate::server::connection_info::{connection_with_invalid_token, connection_with_no_token};
 use crate::server::force_database_error;
 use crate::server::v1::asserts::{
-    assert_auth_key_utf8, assert_disabled_by_configuration, assert_failed_to_add_key, assert_failed_to_delete_key,
-    assert_failed_to_reload_keys, assert_invalid_auth_key_get_param, assert_invalid_auth_key_post_param, assert_ok,
-    assert_token_not_valid, assert_unauthorized, assert_unprocessable_auth_key_duration_param,
+    assert_auth_key_utf8, assert_bad_request, assert_disabled_by_configuration, assert_failed_to_add_key,
+    assert_failed_to_delete_key, assert_failed_to_reload_keys, assert_invalid_auth_key_get_param,
+    assert_invalid_auth_key_post_param, assert_ok, assert_token_not_valid, assert_unauthorized,
+    assert_unprocessable_auth_key_duration_param,
 };
 
 #[tokio::test]
@@ -353,6 +354,29 @@ async fn should_fail_generating_a_new_auth_key_when_the_key_duration_is_invalid(
 }
 
 #[tokio::test]
+async fn should_fail_adding_a_random_auth_key_when_the_key_duration_overflows() {
+    logging::setup();
+
+    let env = Started::new(&configuration::ephemeral_private().into()).await;
+
+    let response = ApiHttpClient::new(env.get_connection_info())
+        .unwrap()
+        .add_auth_key(
+            AddKeyForm {
+                opt_key: None,
+                opt_seconds_valid: Some(u64::MAX),
+            },
+            None,
+        )
+        .await
+        .unwrap();
+
+    assert_bad_request(response, r#"Invalid URL: invalid auth key duration: "18446744073709551615""#).await;
+
+    env.stop().await;
+}
+
+#[tokio::test]
 async fn should_fail_deleting_an_auth_key_when_the_key_id_is_invalid() {
     logging::setup();
 
@@ -667,8 +691,8 @@ mod deprecated_generate_key_endpoint {
     use crate::server::connection_info::{connection_with_invalid_token, connection_with_no_token};
     use crate::server::force_database_error;
     use crate::server::v1::asserts::{
-        assert_auth_key_utf8, assert_failed_to_generate_key, assert_invalid_key_duration_param, assert_token_not_valid,
-        assert_unauthorized,
+        assert_auth_key_utf8, assert_bad_request, assert_failed_to_generate_key, assert_invalid_key_duration_param,
+        assert_token_not_valid, assert_unauthorized,
     };
 
     #[tokio::test]
@@ -756,6 +780,23 @@ mod deprecated_generate_key_endpoint {
 
             assert_invalid_key_duration_param(response, invalid_key_duration).await;
         }
+
+        env.stop().await;
+    }
+
+    #[tokio::test]
+    async fn should_fail_generating_an_auth_key_when_the_key_duration_overflows() {
+        logging::setup();
+
+        let env = Started::new(&configuration::ephemeral_private().into()).await;
+
+        let response = ApiHttpClient::new(env.get_connection_info())
+            .unwrap()
+            .post_empty(&format!("key/{}", u64::MAX), None)
+            .await
+            .unwrap();
+
+        assert_bad_request(response, r#"Invalid URL: invalid auth key duration: "18446744073709551615""#).await;
 
         env.stop().await;
     }
