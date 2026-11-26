@@ -1,7 +1,7 @@
 ---
 pr-number: 3077
 pr-url: https://github.com/torrust/torrust-tracker/pull/3077
-last-updated-utc: "2026-11-26 17:24"
+last-updated-utc: "2026-11-26 17:51"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -45,6 +45,9 @@ Round 1, on the first head of the pull request (`a05870195`): da2ce7's review 60
 no row.
 
 Round 2, on head `dbe1c213a`: CodeRabbit review 6078161355 with one inline thread (F5).
+
+Commit ids in this record name the heads the reviews saw. The branch is merged without a rebase,
+so they stay reachable from `develop`; every fix is cited by its commit subject.
 
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
