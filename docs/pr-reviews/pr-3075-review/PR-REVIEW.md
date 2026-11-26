@@ -1,7 +1,7 @@
 ---
 pr-number: 3075
 pr-url: https://github.com/torrust/torrust-tracker/pull/3075
-last-updated-utc: "2026-11-26 17:17"
+last-updated-utc: "2026-11-26 17:27"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -43,6 +43,8 @@ review task names is a separate artifact, which the reviewer writes (see the `re
 
 Round 1: CodeRabbit review 6077575588 on the head of commit `docs(issues): [#144] record EPIC state and inputs reported by SI-B` (F1). The review of `claude[bot]` (6077541485) says that automated review is disabled for fork pull requests and carries no finding.
 
+Round 3: `da2ce7`'s review 6078167335 on the head of commit `docs(issues): [#144] address da2ce7 review: state today's v1 behavior in R3, R4, R5` (F9 to F12); F10 to F12 are findings of its review body without an inline thread, and F10 re-raises F2 for a head that predates the record.
+
 Round 2: `da2ce7`'s review 6077981724 on the head of commit `docs(issues): [#144] address CodeRabbit: align invalid-token status candidates` (F2 to F8); F7 and F8 are findings of its review body without an inline thread.
 
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
@@ -55,6 +57,10 @@ Round 2: `da2ce7`'s review 6077981724 on the head of commit `docs(issues): [#144
 | F6 | review-finding:pr-3075-f6 | da2ce7 | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F7 | review-finding:pr-3075-f7 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
 | F8 | review-finding:pr-3075-f8 | da2ce7 | Nit | other | ORIGINAL | NO_ACTION | NON_RESOLVABLE |
+| F9 | review-finding:pr-3075-f9 | da2ce7 | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-3075-f10 | da2ce7 | Minor | documentation | RE_RAISE_OF:F2 | FIXED | NON_RESOLVABLE |
+| F11 | review-finding:pr-3075-f11 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F12 | review-finding:pr-3075-f12 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
 
 ## Finding Details
 
@@ -162,13 +168,67 @@ Round 2: `da2ce7`'s review 6077981724 on the head of commit `docs(issues): [#144
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3075#issuecomment-7198533402
 
+### F9 - R5 names the duration where the clock check is on the expiry
+
+- PR number: 3075
+- Source review ID: 6078167335
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3075#discussion_r4711563297
+- Concern: `now_add` checks now plus the duration, so the `500` needs the expiry to fit the clock; an expiry that overflows the clock answers `400`.
+- Solution: R5 now says a key whose expiry is above `i64::MAX` seconds but still fits the clock returns `500`, and an expiry that overflows the clock already answers `400`.
+- Current-tree verification: Read `handler.rs:102` and `key/mod.rs:111` (`now_add` of the duration).
+- Resolution reference: docs(issues): [#144] address da2ce7 third round: bound the R5 500 by the expiry
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3075#discussion_r4711710887
+
+### F10 - The head has no PR-REVIEW.md and its thread has no reply
+
+- PR number: 3075
+- Source review ID: 6078167335
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3075#pullrequestreview-6078167335
+- Concern: The reviewed head had no audit record while five threads were answered; this re-raises F2.
+- Solution: No new change: the record was pushed after that head (see F2).
+- Current-tree verification: `ls docs/pr-reviews/pr-3075-review/PR-REVIEW.md` and `validate-audit-record.py --pr-number 3075`.
+- Resolution reference: docs(pr-reviews): [#144] record the review rounds on pull request 3075
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3075#issuecomment-7199057391
+
+### F11 - The description lists a record the branch lacked and keeps the old #3055 line
+
+- PR number: 3075
+- Source review ID: 6078167335
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3075#pullrequestreview-6078167335
+- Concern: The description listed the record under files touched but the reviewed head did not contain it, and its #3055 line still said a key duration above `i64::MAX` returns `500`.
+- Solution: The record is on the branch (F2). The #3055 line of the description now names the expiry.
+- Current-tree verification: Read the PR description on GitHub after the edit.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3075#issuecomment-7199057391
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3075#issuecomment-7199057391
+
+### F12 - Replies cite branch commit ids
+
+- PR number: 3075
+- Source review ID: 6078167335
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3075#pullrequestreview-6078167335
+- Concern: Replies 4711178118, 4711488325, 4711488732, 4711489097 and 4711489480 cited branch commit ids instead of commit subjects.
+- Solution: The five replies, and reply 4711597665 which had the same fault, were edited to cite commit subjects only.
+- Current-tree verification: Fetched each reply body after the edit and found no commit id in it.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3075#issuecomment-7199057391
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3075#issuecomment-7199057391
+
 ## Processing Log
 
 - 2026-11-26 16:34 UTC - Replied to F1 on its thread and resolved it, before this record existed (late start, F2).
 - 2026-11-26 17:00 UTC - `da2ce7`'s review 6077981724 arrived (F2 to F8).
 - 2026-11-26 17:07 UTC - Replied on the threads of F3 to F6 after pushing their fix (`docs(issues): [#144] address da2ce7 review: state today's v1 behavior in R3, R4, R5`), and resolved them.
 - 2026-11-26 17:07 UTC - Created this record from the template (late start, F2), with every finding of both rounds. F2's reply URL is recorded by the commit that follows its reply.
+- 2026-11-26 17:14 UTC - `da2ce7`'s review 6078167335 arrived (F9 to F12).
 - 2026-11-26 17:17 UTC - Replied to F2 on its thread and resolved it; recorded its reply URL.
+- 2026-11-26 17:27 UTC - Replied to F9 on its thread and resolved it, posted the conversation response for F10 to F12, and recorded both reply URLs.
 
 Append entries only. If an entry was rewritten in place, restore the prior entries, then append a correction that names the rewritten content; do not rewrite the record again.
 
