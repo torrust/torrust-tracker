@@ -41,7 +41,10 @@ Follow `AGENTS.md` for the repository's rules: the Beck rules of simple design, 
    (green), then refactor to remove duplication while the tests stay green. The
    [`write-unit-test`](../write-unit-test/SKILL.md) skill holds the naming and the Arrange/Act/Assert
    pattern. When TDD is not practical (command-line wiring, configuration plumbing), implement
-   defensively and add the tests as the next step. Run `cargo test -p <package>` before moving on.
+   defensively and add the tests as the next step. Before moving on, run `cargo test -p <package>` when
+   a Cargo package is affected; for a task that changes no package (documentation, skills, agents),
+   run the checks that apply to the files changed, such as `linter all` and the validators the
+   pre-commit gate runs for them.
 4. **Apply the policies of the change.** For a new dependency, follow
    [`add-rust-dependency`](../add-rust-dependency/SKILL.md) and run `cargo machete` after it. For
    error handling, follow [`handle-errors-in-code`](../handle-errors-in-code/SKILL.md). For container
