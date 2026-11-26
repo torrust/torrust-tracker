@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p1
 epic: 2003
 github-issue: 3037
-spec-path: docs/issues/open/3037-2003-reviewer-neutral-pr-review/ISSUE.md
+spec-path: docs/issues/closed/3037-2003-reviewer-neutral-pr-review/ISSUE.md
 branch: "3037-reviewer-neutral-pr-review"
-related-pr: null
-last-updated-utc: "2026-11-24 18:42"
+related-pr: 3044
+last-updated-utc: "2026-11-26 17:04"
 semantic-links:
   skill-links:
     - create-issue
@@ -242,10 +242,10 @@ the narrow affected scope, and sign every commit with GPG.
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [ ] Reviewer validated acceptance criteria and updated checkboxes (not ticked: the author ticked the acceptance criteria in PR #3044; da2ce7's ACK on its final head names what it verified, the audit record's new rows, the trial merge and the validator logic, not the acceptance criteria)
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [ ] Committer verified spec progress is up to date before commit (not ticked: no Committer agent was used; the author checked the spec's ticks against the merged tree and ran the pre-commit checks)
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -268,6 +268,17 @@ the narrow affected scope, and sign every commit with GPG.
   lists only the manual-request description, Copilot as a coding tool, the legacy profile owned by
   #2904 and the deprecated redirect. No retrospective: the plan held, and the deviations are recorded
   here.
+- 2026-11-25 12:26 UTC - Claude Code (Claude Opus 5.5) - PR #3044 merged on 2026-11-25 and GitHub closed
+  #3037. The pull request had seven review rounds with fixes (the maintainer raised the limit from 5
+  to 7 for it): 19 findings from Greptile, CodeRabbit and da2ce7, 17 fixed and 2 declined with a
+  reply, recorded in `docs/pr-reviews/pr-3044-review/PR-REVIEW.md`. The review rounds hardened the
+  new workflow-check wait (cancelled checks, review-service runs, `gh` errors, runs waiting for
+  approval, a head with no checks, the head read on every pass, `.tmp/`), added the session-start
+  review listing and two CLI tests. da2ce7 approved and ACKed the final head; his ACK names the
+  audit record's new rows, the trial merge and the validator logic, not the acceptance criteria, so
+  the reviewer-validation checkpoint stays open. No independent reviewer received this
+  specification, so there is no `agent-review-reports.md`. Archived the specification to
+  `docs/issues/closed/`.
 
 ## Acceptance Criteria
 

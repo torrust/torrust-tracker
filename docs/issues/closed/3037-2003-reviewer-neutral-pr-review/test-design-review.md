@@ -1,3 +1,11 @@
+---
+spec-path: docs/issues/closed/3037-2003-reviewer-neutral-pr-review/ISSUE.md
+last-updated-utc: "2026-11-26 17:04"
+semantic-links:
+  related-artifacts:
+    - docs/issues/closed/3037-2003-reviewer-neutral-pr-review/ISSUE.md
+---
+
 # Test Design Review - Issue #3037
 
 Review of the tests added or changed in T2 (the poller's default reviewer set), done with the
