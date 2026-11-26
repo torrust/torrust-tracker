@@ -1,0 +1,68 @@
+{
+  "schema-version": 1,
+  "agent": "task-reviewer",
+  "model": "claude-opus-5-5",
+  "subject": "t6",
+  "round": 2,
+  "created-utc": "2026-11-26 08:02",
+  "verdict": "REVIEW_PASSED",
+  "summary": "REVIEW PASSED for task T6 in round 2. Round 1's two Major findings are resolved. The new skill `implement-task` holds the implementation sequence, the agent preloads it and keeps only its identity, inputs, reply and report (P2, AC6, AGENTS.md policy 7). `commit-changes` 'Checks Before The Commit' item 1 now says only reviewer-verified criteria are ticked. Round 1's findings 3 to 7 are fixed: the create-issue section citations, the missing inventory rows, the branch field, the skill links of fix-bug and add-rust-dependency, and the note on the 'bypass failing checks' row. Finding 8 stays with T9 and T10. linter all, the frontmatter validator checks, the reply validator --all and the contract check pass. Four non-blocking findings remain. Three implementer inventory rows still cite agent-file sections that no longer exist. The T6 progress-log entry is stamped 07:18 but records a decision taken after round 1. One line in commit-changes is 169 characters. AGENTS.md's list of implementation workflow skills does not name `implement-task`. No checkbox was ticked: AC6 completes in T10, and T6 satisfies no other criterion fully.",
+  "findings": [
+    {
+      "severity": "Minor",
+      "location": "docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/removed-profile-rules.md, section `implementer`, lines 132, 147 and 150",
+      "description": "Three rows still name destinations that the commit 'make the implementer preload implement-task instead of holding the workflow' removed from the agent file. 'Step 3.5: check base images ...' cites 'agent file, \"Workflow\" step 4'. 'Do not commit code that fails the pre-commit script.' cites 'agent file, \"Constraints\"'. 'Do not leave meaningful behavior untested ...' cites 'agent file, \"Workflow\" step 5'. The agent file now has no numbered steps and no Constraints section. Each row also cites AGENTS.md, which holds the rule, so no rule is lost. Remediation: replace the three agent-file citations with skill `implement-task`, step 4, \"Boundaries\" and step 5."
+    },
+    {
+      "severity": "Minor",
+      "location": "docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md, Progress Log entry '2026-11-26 07:18 UTC' and frontmatter last-updated-utc",
+      "description": "Two round-2 commits rewrote the 07:18 entry: 'correct and complete the inventory rows of the task review of T6' at 07:27 and 'point the implementer inventory rows to the implement-task skill and record the decision' at 08:01. The entry now records the decision taken with the maintainer after the first task review, so its timestamp is earlier than the event it describes. last-updated-utc still says 07:18 although the file changed at 08:01. Stamps are to come from `date -u` at writing time. Remediation: restore the 07:18 entry to what was true at 07:18, or leave it as it is. Add a new entry stamped with `date -u` for round 1 of the task review and the maintainer's choice of option (a), and set last-updated-utc to that time."
+    },
+    {
+      "severity": "Nit",
+      "location": ".claude/skills/commit-changes/SKILL.md line 174 ('Checks Before The Commit' item 1)",
+      "description": "The commit 'say that only reviewer-verified criteria are ticked and link the implementer agent' left a 169-character line inside a list item whose other lines wrap near 100. markdownlint accepts it. Remediation: rewrap the item."
+    },
+    {
+      "severity": "Suggestion",
+      "location": "AGENTS.md, Engineering Policies, 'Implementation workflow skills' line; .claude/skills/implement-task/SKILL.md description",
+      "description": "AGENTS.md lists the implementation workflow skills as `update-dependencies`, `add-rust-dependency`, `write-unit-test` and `implement-workflow`, without the new `implement-task`, which is now the skill that owns the sequence. Separately, the description of `implement-task` ends 'Use when implementing a task or a bug fix', which shares the trigger 'bug' with `fix-bug`. add-new-skill's 'Related skills' rule asks a description to say what sets it apart. Remediation: add `implement-task` to that AGENTS.md line, and consider saying in the description that it is the overall sequence and that a bug's analysis follows `fix-bug`. Keep the description at 200 characters or less."
+    },
+    {
+      "severity": "Minor",
+      "location": "docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md, Acceptance Criteria AC1, AC4 to AC10 and the issue-level items",
+      "description": "PENDING because their evidence comes from later tasks, not because of a T6 gap. AC1 needs every agreed agent and M1 rerun (T9/T10). AC4, AC7 and AC10 need the orchestrator and M5 (T9). AC5 and AC8 need the removal of .github/agents/ and the ADRs (T10). AC6 is complete only when T10 adds the other profiles; T6's rows now meet it. AC9 needs the measurement (T11). The issue-level items close at T12. Remediation: none in T6."
+    }
+  ],
+  "questions": [],
+  "evidence": [
+    "git status --short: clean. git log torrust/develop..HEAD --format='%s %G?': ten commits, all signed (U), including the five round-2 commits named by the coordinator; the PR 3049 audit commit is ignored.",
+    "linter all (log .tmp/t6r2-linter.log): 'All linters passed', EXIT 0.",
+    "frontmatter-validator --skill-layout: EXIT 0 (the index row of implement-task in .claude/skills/README.md matches the folder). --skill-descriptions: EXIT 0. On every .md file changed since torrust/develop: EXIT 0.",
+    "agent-reply-validator --all: {\"kind\":\"summary\",\"files\":4,\"problems\":0} (t5 r1 to r3 and the committed t6 r1).",
+    "agent-review-report-contract: 'Agent review report contract check passed.'",
+    "Round-1 finding 1 (Major), resolved. .claude/skills/implement-task/SKILL.md holds the seven steps and a Boundaries section, and links fix-bug, write-unit-test, add-rust-dependency, handle-errors-in-code, commit-changes and review-task. .claude/agents/implementer.md preloads implement-task, commit-changes and write-unit-test and keeps identity, inputs, the no-agent rule, the QUESTION rule, the reply file and the final message. The inventory's implementer workflow rows point to implement-task steps 1 to 6 and Boundaries. The T6 row and the progress log record the decision.",
+    "Round-1 finding 2 (Major), resolved. commit-changes 'Checks Before The Commit' item 1 now reads: the progress log, the task table and the evidence are current, and only criteria a reviewer verified are ticked; the author never ticks a criterion. The inventory row 'Workflow 1' explains why.",
+    "Round-1 finding 3, resolved: both rows now cite create-issue 'Verification Requirements for Issue Specs' item 5, which holds the rule.",
+    "Round-1 finding 4, resolved: rows added for the routine-work and blameless rule (docs/templates/IMPLEMENTATION-RETROSPECTIVE.md, lines 18 to 20, holds it), for the legacy-migration prerequisite (review-task step 7, create-issue 'Migrating Legacy Specifications'), and for the planner's quality-standards rule (AGENTS.md).",
+    "Round-1 finding 5, resolved: ISSUE.md frontmatter branch is '2904-t6-implementer'.",
+    "Round-1 finding 6, resolved: fix-bug and add-rust-dependency list .claude/agents/implementer.md in related-artifacts and in Skill Links, beside the old profile.",
+    "Round-1 finding 7, resolved: the row 'Do not bypass failing checks ...' now says that only the signing part tells the user, and that the implementer reports failing commands in its reply.",
+    "Round-1 finding 8, deferred: live documents that name the old profiles belong to T9 (docs/agents/orchestration.md, the docs/templates/ISSUE.md checkpoint) and T10 (contract strings, ADR 20260420200013).",
+    "Inventory re-check against the three profiles. Committer: every row's skill section exists and holds the rule ('Checks Before The Commit' 1 to 3, 'Git Hook', 'Commits to Avoid', 'GPG Commit Signing', 'GPG Timeout Handling', 'Automated Checks', 'Manual Checks', 'Commit Quality Guidelines'). Planner: 'Plan The Work' 1 to 5 and its last paragraph, and create-issue Step 1 and 'Verification Requirements for Issue Specs'. Implementer: implement-task steps and Boundaries, AGENTS.md sections, and create-adr 'Step 3.5: Cross-link ADR and Affected Code'. Three implementer rows also keep a stale agent-file citation (finding).",
+    "Function length, nesting and test design: not applicable; no code or test changed.",
+    "AC1 PENDING: all agents and M1 (T9/T10).",
+    "AC2 PASS: unchanged since T4 (V2).",
+    "AC3 PASS: unchanged since T4 (V3).",
+    "AC4 PENDING: orchestrator and M5 (T9).",
+    "AC5 PENDING: removal of .github/agents/ (T10).",
+    "AC6 PENDING (T10 completes it for all ten profiles). T6's rows for implementer, committer and planner meet it: each rule has a destination in a named skill, in AGENTS.md or a template that already held it, in the agent file only for identity, inputs and reply, or is dropped with a reason.",
+    "AC7 PENDING: orchestration guide (T9).",
+    "AC8 PENDING: ADRs (T10).",
+    "AC9 PENDING: measurement (T11).",
+    "AC10 PENDING: M5 reply files (T9).",
+    "AC11 PASS: unchanged since T5 (V7).",
+    "AC12 PASS: unchanged since T2 (V4).",
+    "Issue-level items PENDING to T12. For T6, linter all passes and the documentation changes are present."
+  ]
+}

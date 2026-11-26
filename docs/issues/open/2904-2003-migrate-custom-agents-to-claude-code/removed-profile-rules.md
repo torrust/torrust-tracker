@@ -129,7 +129,7 @@ starts the reviewer (task T9), and the implementer commits itself (decision D14)
 | Step 2: break each task into the smallest independent, verifiable steps, each fit for one commit. | Skill `implement-task`, step 2 | The agent follows the Commit Points of the specification. |
 | Step 3: write a failing test, minimal code, refactor; run `cargo test -p <package>`; when TDD is not practical, implement defensively and add tests as the next step. | Skill `implement-task`, step 3; skill `write-unit-test` | |
 | Step 3.5: check the standard library and the workspace before a new crate, start from the latest stable version, document an older choice. | `AGENTS.md`, "Engineering Policies" 1, and skill `add-rust-dependency` (already held it) | |
-| Step 3.5: check base images when touching container artifacts; document the Rust API and the invariants; keep shell for orchestration. | `AGENTS.md`, "Engineering Policies" 2, 3 and 5 (already held it); agent file, "Workflow" step 4 | |
+| Step 3.5: check base images when touching container artifacts; document the Rust API and the invariants; keep shell for orchestration. | `AGENTS.md`, "Engineering Policies" 2, 3 and 5 (already held it); skill `implement-task`, step 4 | |
 | Step 4: invoke the Complexity Auditor after every step and do not go on while it reports a blocking issue. | Dropped | Decision D12: no agent audits code; the length and nesting items are checked once, by the task reviewer. |
 | Step 5: compare the result with the specification; decide whether `implementation-retrospective.md` is needed; otherwise log why not; send a lesson that applies beyond the issue to the skill, agent, template or document it concerns. | Skill `implement-task`, step 6; skill `create-issue`, "Verification Requirements for Issue Specs" item 5 (already held it) | |
 | Step 5: do not create retrospectives for routine work with no material discovery; keep them evidence-based and blameless, and not a substitute for verifying the criteria. | `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` (already held it) | Skill `implement-task`, step 6, keeps only the condition for creating one. |
@@ -144,10 +144,10 @@ starts the reviewer (task T9), and the implementer commits itself (decision D14)
 | Do not suppress a warning or a Clippy lint without a documented reason. | `AGENTS.md`, "Code Style" (already held it) | |
 | Do not add a dependency without running `cargo machete`. | `AGENTS.md`, "Essential Rules" 4 (already held it) | |
 | Do not add a dependency without checking the latest stable version. | `AGENTS.md`, "Engineering Policies" 1 (already held it) | |
-| Do not commit code that fails the pre-commit script. | `AGENTS.md`, "Essential Rules" 1; agent file, "Constraints" | |
+| Do not commit code that fails the pre-commit script. | `AGENTS.md`, "Essential Rules" 1; skill `implement-task`, "Boundaries" | |
 | Do not skip the audit step, even for a small change. | Dropped | Decision D12. |
 | Do not self-verify the acceptance criteria and do not tick them in the specification. | Agent file, "Workflow" (last paragraph); skill `implement-task`, "Boundaries" | The task reviewer verifies and ticks (skill `review-task`, step 5). |
-| Do not leave meaningful behavior untested without documenting the reason. | `AGENTS.md`, "Engineering Policies" 4; agent file, "Workflow" step 5 | |
+| Do not leave meaningful behavior untested without documenting the reason. | `AGENTS.md`, "Engineering Policies" 4; skill `implement-task`, step 5 | |
 | Tools: `execute`, `read`, `search`, `edit`, `todo`, `agent`. | Agent file (tools) | `Bash`, `Read`, `Edit`, `Write`, `Grep`, `Glob`. `agent` is dropped because the implementer starts no agent (decision D3); `todo` has no use in a run that the caller supervises through its reply. |
 | `argument-hint` and `user-invocable: true`, `disable-model-invocation: false`; `semantic-links` to `fix-bug`. | Agent file (inputs, `description`) | The hint becomes the "Inputs" section. The visibility keys have no Claude Code meaning. The link to `fix-bug` is step 1 of the workflow. |
 
