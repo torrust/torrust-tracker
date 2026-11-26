@@ -58,6 +58,7 @@ Review 6078267704 (`claude[bot]`) has no finding: it only says that automated re
 | F10 | review-finding:pr-3081-f10 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F11 | review-finding:pr-3081-f11 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-3081-f12 | coderabbitai[bot] | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F13 | review-finding:pr-3081-f13 | da2ce7 | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -217,6 +218,19 @@ Review 6078267704 (`claude[bot]`) has no finding: it only says that automated re
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3081#discussion_r4712609299
 
+### F13 - Read literally, the reserved-key rule renames the fields the formatter takes as its own keys
+
+- PR number: 3081
+- Source review ID: 6079585902
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3081#discussion_r4712712642
+- Concern: The event's `kind` field and tracing's `message` field are "already in the record" once the formatter has written its keys, so the rule as worded would add `field_kind` and `field_message`. The reviewer said it could wait for the implementation pull request.
+- Solution: D4 says the `message` key is the event's own `message` field, so that field is not renamed. `kind` is not exempt, unlike the reviewer's suggestion: since F11 the kinds other than `log` are written directly, so a record from a `tracing` event is always `log`, an event cannot set the kind, and an event field named `kind` is renamed like any other. The sentence "An event sets the kind with a `kind` field" is removed. The first reply on the thread promised the fix for the implementation pull request; the maintainer then asked for it now, and the second reply says so.
+- Current-tree verification: `grep -n "so that field is not renamed" docs/issues/open/2766-2758-daemon-json-logging/decisions.md` finds the sentence; `grep -c "An event sets the kind"` on the same file prints 0; `grep -c "event's own .message. field"` on `ISSUE.md` prints 1.
+- Resolution reference: docs(issues): [#2766] say that the message field keeps its key and that an event cannot set the kind
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3081#discussion_r4712896421
+
 ## Processing Log
 
 - 2026-11-26 17:20 UTC - Review 6078267704 (`claude[bot]`) arrived; it has no finding.
@@ -238,6 +252,13 @@ Review 6078267704 (`claude[bot]`) has no finding: it only says that automated re
 - 2026-11-26 19:17 UTC - CodeRabbit answered on the thread of F11 (review 6079426841): the spec now covers the direct output and the filter-off checks; it asks for nothing more.
 - 2026-11-26 19:19 UTC - Pushed the F12 fix and replied on the thread of F1, which CodeRabbit had already resolved.
 - 2026-11-26 19:20 UTC - Added F11 and F12 to this record and resolved the thread of F11; its last comment is CodeRabbit's confirmation, which asks for nothing. A GraphQL listing shows no unresolved thread.
+- 2026-11-26 19:25 UTC - Pushed the spec log commit and the second version of this record.
+- 2026-11-26 19:33 UTC - da2ce7's review 6079585902 arrived: approval, with F13 (a Nit that could wait), followed by his `ACK` of that head.
+- 2026-11-26 19:34 UTC - Replied on the thread of F13 that the fix would come with the first implementation pull request, and left the thread open.
+- 2026-11-26 19:55 UTC - The maintainer commented `ACK` on that head, after asking in the session for F13 to be fixed now.
+- 2026-11-26 19:56 UTC - Committed the fix for F13.
+- 2026-11-26 19:59 UTC - Pushed it, which makes both `ACK`s and the approval stale, and replied on the thread of F13 again.
+- 2026-11-26 20:00 UTC - Added F13 to this record and resolved its thread. A GraphQL listing shows no unresolved thread.
 
 ## Completion Rules
 
