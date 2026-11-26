@@ -66,8 +66,8 @@ See [`add-new-skill`](add-new-skill/SKILL.md).
 
 ## Implementation
 
-| Skill | Purpose |
-| ----- | ------- |
+| Skill                                       | Purpose                                                                                                                                             |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [`implement-task`](implement-task/SKILL.md) | Implement one task of an approved issue specification with TDD: analyse, decompose, red-green-refactor, manual evidence, completion review, commit. |
 
 ## Logging
@@ -114,6 +114,12 @@ See [`add-new-skill`](add-new-skill/SKILL.md).
 | [`resolve-review-threads`](resolve-review-threads/SKILL.md)           | Resolve addressed GitHub pull request review threads for the torrust-tracker project.                                               |
 | [`review-pr`](review-pr/SKILL.md)                                     | Review an existing pull request for the torrust-tracker project.                                                                    |
 | [`wait-for-pr-review`](wait-for-pr-review/SKILL.md)                   | Wait for pull-request reviewers without spending tokens, using a deterministic Rust poller, then run the review loop on each event. |
+
+## Research
+
+| Skill                                                               | Purpose                                                                                                    |
+| ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| [`research-external-evidence`](research-external-evidence/SKILL.md) | Gather evidence from other trackers' source, issue trackers, BEPs and docs, and report facts with sources. |
 
 ## Rust code quality
 

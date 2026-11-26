@@ -1,0 +1,77 @@
+{
+  "schema-version": 1,
+  "agent": "task-reviewer",
+  "model": "claude-opus-5-5",
+  "subject": "t8",
+  "round": 1,
+  "created-utc": "2026-11-26 16:21",
+  "verdict": "REVIEW_PASSED",
+  "summary": "REVIEW PASSED. Task T8 adds the agent researcher (model inherit per D13, starts no agent per D3, reply file per D18 with the verdicts DONE, QUESTION and BLOCKED) and the skill research-external-evidence, which holds the workflow, the report and the boundaries (P2, policy 7); the agent file keeps only identity, tools, inputs, reply format and final message. Every cited destination of the 25 inventory rows exists and says what the row claims. No required criterion fails; AC1, AC5, AC6 and AC7 stay PENDING on later tasks (T9, T10). Four minor findings and two nits should be fixed before the pull request: one rule of the profile's description has no inventory row, the clean-up step comes after the report that ends the run, the read-only boundary contradicts the .tmp/ clone location, and the web tools of the agent are not yet shown to load.",
+  "findings": [
+    {
+      "severity": "Minor",
+      "location": "docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/removed-profile-rules.md, section researcher",
+      "description": "The profile's description holds the rule 'Not for codebase-internal exploration - use the Explore subagent for that'. Its first half is kept (agent description 'Not for exploring this repository's own code', skill introduction 'search the repository, not this skill'), but no row lists it and the pointer to the Explore subagent is dropped without a reason. Remediation: add a row for it, with the agent description and the skill introduction as destinations and the reason the Explore pointer is dropped (a harness-specific agent name) or keep the pointer."
+    },
+    {
+      "severity": "Minor",
+      "location": ".claude/skills/research-external-evidence/SKILL.md, Workflow step 5",
+      "description": "'Delete the clones you made once you have reported' cannot be followed by the agent: its report is its final message (or SubagentHandback), which ends the run, so the clones are never deleted. Remediation: delete the clones after writing the reply file and before the final report, unless the caller asked to keep them (and say in the report which clones were kept and where)."
+    },
+    {
+      "severity": "Minor",
+      "location": ".claude/skills/research-external-evidence/SKILL.md, Boundaries and Workflow step 3",
+      "description": "Boundaries says 'Do not change any file of the workspace ... The one exception is the reply file', while step 3 allows cloning into the git-ignored .tmp/ of the workspace. The contradiction was inherited from the profile. Remediation: name the clone directory (.tmp/ or /tmp/tracker-research/) as a second exception, or say 'Do not change any tracked file of the workspace'."
+    },
+    {
+      "severity": "Minor",
+      "location": ".claude/agents/researcher.md, frontmatter tools",
+      "description": "WebFetch and WebSearch are the tools the workflow needs most, and in this Claude Code build they are deferred tools (loaded through ToolSearch, which the agent does not list). Section V1 of manual-verification-evidence.md showed that a listed tool the build does not offer is dropped silently. Nothing on the branch shows the researcher actually receives them. Remediation: when M1 is rerun for the full roster (AC1, T9 or T10), check the tools the researcher's transcript lists; if WebFetch or WebSearch is missing, add ToolSearch or record the limitation. A short probe now would close it earlier."
+    },
+    {
+      "severity": "Nit",
+      "location": ".claude/skills/research-external-evidence/SKILL.md, frontmatter semantic-links",
+      "description": "related-artifacts lists .claude/skills/create-issue/SKILL.md, but neither file links or names the other. Remediation: either say in the introduction that research usually precedes create-issue and link it, or drop the entry."
+    },
+    {
+      "severity": "Nit",
+      "location": ".claude/skills/README.md, section Research",
+      "description": "The new table's columns are not padded like every other table of the index (the linter accepts it). Remediation: align it as the other sections are."
+    },
+    {
+      "severity": "Suggestion",
+      "location": ".claude/skills/research-external-evidence/SKILL.md, Report",
+      "description": "The repository has docs/research/ (timestamped research documents, input to design decisions) and docs/external-snapshots/ (immutable copies of sources). The skill does not say where research goes when the caller wants it kept. The profile did not say either, so this is optional: one sentence linking docs/research/AGENTS.md would connect the two."
+    }
+  ],
+  "questions": [],
+  "evidence": [
+    "git log torrust/develop..HEAD: three commits, 'feat(skills): [#2904] add the research-external-evidence skill that holds the research workflow', 'feat(agents): [#2904] add the researcher agent', 'docs(issues): [#2904] record the rules of the researcher profile and task T8'. git diff --stat: 5 files, 186 insertions, 4 deletions; the claimed scope matches, no feature code changed.",
+    "cargo run --package frontmatter-validator -- --skill-layout: exit 0 (index and skill folders agree).",
+    "cargo run --package frontmatter-validator -- --skill-descriptions: exit 0; the new description is 192 characters (limit 200) and says 'Use when'.",
+    "cargo run --package frontmatter-validator -- on the skill, the agent, ISSUE.md and removed-profile-rules.md: exit 0.",
+    "cargo run --package agent-reply-validator -- --all: {\"kind\":\"summary\",\"files\":7,\"problems\":0} before this reply was written.",
+    "linter all: exit 0 (markdown, lychee local links and fragments, yaml, toml, cspell, clippy, rustfmt, shellcheck all passed).",
+    "Links: .claude/agents/researcher.md -> ../skills/research-external-evidence/SKILL.md and the skill -> ../../agents/researcher.md resolve (lychee passed and the files exist).",
+    "Reply mapping: contrib/dev-tools/checks/agent-reply-validator/src/name.rs has Agent::Researcher => \"researcher\" and a test researcher-pr7-r1.json; the schema enum Agent includes researcher; Verdict is the closed list REVIEW_PASSED, REVIEW_FAILED, DONE, BLOCKED, QUESTION, so DONE, QUESTION and BLOCKED are valid; subject pattern ^(t|pr)[1-9][0-9]*$ accepts t8 and pr3070; the schema describes findings as 'The problems found' and evidence as 'other facts the reply rests on', matching the agent's mapping (sources in evidence, contradictions in findings).",
+    "Tools: Bash, Read, Write, Grep, Glob, WebFetch, WebSearch are Claude Code tool names; Write only for the reply file, and the skill's Boundaries names the reply file as the one exception to read-only, so Write is consistent; Edit is not needed because each round writes a new file. Grep and Glob are absent in this build (V1) as for the other agents; WebFetch and WebSearch loading is unverified (finding).",
+    "Back-links: git grep -i researcher outside .github/agents, docs/issues and docs/pr-reviews finds only the new files, the validator and schema, and docs/agents/orchestration.md (lines 90, 91, 204, Researcher feeding Planner/Implementer). orchestration.md is rewritten by T9 (AC7) and .github/agents/README.md is removed by T10, so neither is in T8's scope. No skill names the old profile.",
+    "Inventory: each of the 25 researcher rows of removed-profile-rules.md was checked against the cited section; the skill introduction, Workflow steps 1 to 5, Report items 1 to 6 and Boundaries hold what the rows say, and the agent file holds identity, 'Follow AGENTS.md' (Workflow), tools, inputs (from argument-hint) and the reply file. One rule of the profile description has no row (finding).",
+    "P2 and policy 7: the agent file has no workflow steps; its Reply file section is the report format (allowed by P2 and the Implementation Plan note on AC6), as in the implementer agent of T6. The skill is self-contained for a session that follows it without the agent.",
+    "AC matrix - D3 PASS: the agent says 'You start no other agent' and has no Agent tool.",
+    "AC matrix - D13 PASS: model: inherit, and the body cites D13.",
+    "AC matrix - D14 PASS (not applicable beyond: the researcher does not commit; the agent says the caller commits the reply file).",
+    "AC matrix - D16 PASS: additive; .github/agents/researcher.agent.md stays because docs/agents/orchestration.md and .github/agents/README.md still name it (T9, T10).",
+    "AC matrix - D18 PASS: path agent-replies/researcher-<subject>-r<round>.json, rounds from 1, validator command given, closed verdicts used.",
+    "AC matrix - P1 PASS: researcher from researcher. P2 PASS: thin agent, workflow in a preloaded skill.",
+    "AC matrix - Ownership table PASS: talks to the contributor No (questions go to the reply), starts no agent, writes only its reply file when given an issue folder.",
+    "AC matrix - AC1 PENDING: M1 rerun for the full roster belongs to a later task (T9/T10); the web-tools check is added to it by a finding.",
+    "AC matrix - AC5 PENDING: removal of .github/agents/ is T10.",
+    "AC matrix - AC6 PENDING: the inventory is completed by T10; T8's rows are present and accurate except one missing row (Minor finding).",
+    "AC matrix - AC7 PENDING: docs/agents/orchestration.md rewrite is T9.",
+    "AC matrix - AC4, AC8, AC9, AC10 PENDING: later tasks (T9, T10, T11). AC2, AC3, AC11, AC12 PASS, ticked earlier and unaffected.",
+    "AC matrix - 'linter all exits 0' PASS on this branch (not ticked: the checkbox covers the whole issue). 'Documentation is updated' PASS for T8: the skills index has the new row.",
+    "Spec hygiene: T8 row DONE, branch field 2904-t8-researcher, progress-log entry at 2026-11-26 16:17 UTC records the decision to add the skill and why. The issue-level retrospective is the Implementation Completion Review of T12. No manual scenario is assigned to T8.",
+    "Checkboxes ticked: none (AC6 and AC1 are not fully verifiable until T10)."
+  ]
+}
