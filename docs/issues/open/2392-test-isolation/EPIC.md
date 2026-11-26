@@ -6,7 +6,7 @@ epic: null
 github-issue: 2392
 spec-path: docs/issues/open/2392-test-isolation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-26 07:04"
+last-updated-utc: "2026-11-26 17:07"
 semantic-links:
   skill-links:
     - create-issue
@@ -115,7 +115,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | 7 | #2907 - Remove the temporary TOML and PEM files tests leave behind | `docs/issues/closed/2907-2392-remove-leaked-test-temporary-files/ISSUE.md` | DONE | Bug (#2394 D2, F2). Narrowed on 2026-11-17 to the `test_config_*.toml` and PEM files that tests leave in the system temporary directory. The `data_*.db` files, 301 of the 303 files one full run leaves, moved to orders 9 and 10. PR #2938 moved the two TOML tests into a `TempDir` and made the TLS helper return a `NamedTempFile`; after it, a full run leaves 0 TOML and 0 PEM files (V2). Found during the work: 18 `figment::Jail` tests in `packages/configuration/src/lib.rs` call `clear_env()`, which removes `TMPDIR` from the whole process while they run, so leaked-file counts are lower bounds (no issue yet). |
 | 8 | #2908 - Tear down the qBittorrent E2E stack when it fails to start | `docs/issues/open/2908-2392-compose-cleanup-after-failed-start/ISSUE.md` | TODO | Bug (#2394 D3, C9). A failed `docker compose up` leaves the stack running on the Docker host. Touches the qBittorrent E2E runner, like order 4. |
 | 9 | #2924 - Add a guard-owned SQLite test database | `docs/issues/closed/2924-2392-sqlite-test-database-guard/ISSUE.md` | DONE | Bug, split from order 7. Adds to the test helpers a guard that owns the SQLite database's directory and a factory that returns a configuration with its guard, next to the existing `ephemeral*()` functions; converts the helpers outside `tracker-core` that build the database path themselves. PR #2923 (#2902) fixes `tracker-core` with the same shape. Done with PRs #3011 (spec), #3029 (guard, factory and the `http-core` conversion) and #3035 (close-out). |
-| 10 | #2925 - Move tests to the guard-owned SQLite database and default to no database | `docs/issues/open/2925-2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md` | TODO | Bug, split from order 7. Moves the tests that need persistence to order 9's factory, one pull request per package, then removes the database from `ephemeral*()`. Owns the check that a fresh `TMPDIR` is empty after the suite. Depends on order 9. |
+| 10 | #2925 - Move tests to the guard-owned SQLite database and default to no database | `docs/issues/open/2925-2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md` | IN_PROGRESS | Bug, split from order 7. Moves the tests that need persistence to order 9's factory, one pull request per package, then removes the database from `ephemeral*()`. Owns the check that a fresh `TMPDIR` is empty after the suite. Depends on order 9. |
 | 11 | #2943 - Keep `figment::Jail` tests from changing the environment other tests see | `docs/issues/open/2943-2392-figment-jail-process-environment/ISSUE.md` | TODO | Bug, found by #2907. The `Jail` tests of `packages/configuration` clear and set the process environment and change the current directory while tests of the same binary that do not use `Jail` run. The order 2 audit classified this resource (G2) as isolated; this issue corrects that row and rechecks G1. The maintainer chooses the design in its T2. Independent of the other orders. |
 
 ## Delivery Strategy
@@ -225,6 +225,13 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
   because some tests start a second environment on the same database.
 - 2026-11-18 (maintainer, recorded in the archived EPIC #1488 spec): EPIC #1488 closes without
   waiting for #1419, and #1419 continues under this EPIC with its remaining R8, AC8a and R9.
+- 2026-11-26 (maintainer, #2925 T1): the migration to the guard-owned SQLite database goes one pull
+  request per package, in this order: `udp-server`, `http-core`, `axum-http-server`,
+  `axum-rest-api-server`, the root `torrust-tracker` package, then T4. The helper pattern is to
+  initialize persistence only when `core.database` is set. The `ephemeral*()` names stay; only
+  `ephemeral_with_no_services()` becomes `ephemeral_without_services()`, in the T4 pull request.
+  The maintainer approved the order and the pattern ("Approve both") and, separately, the naming,
+  in the #2925 session. Pull request 3067 records them in the #2925 spec.
 
 ## Progress Tracking
 
@@ -327,6 +334,13 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
 - 2026-11-26 07:04 UTC - Claude Code (Claude Sonnet 5.5), EPIC coordinator - AC1 is DONE. The maintainer
   linked #2924, #2925 and #2943 as sub-issues of #2392 and closed #2394, and the sub-issue list
   was checked on GitHub. Order 2's row now says #2394 is closed. AC2, AC3 and AC5 stay TODO.
+- 2026-11-26 16:11 UTC - Claude Code (Claude Sonnet 5.5), EPIC coordinator - Recorded the 2026-11-26 #2925 decisions
+  (package order, helper pattern, naming) in the Decisions section, at the request of the #2925
+  session and so that review can trace them.
+- 2026-11-26 17:07 UTC - Claude Code (Claude Sonnet 5.5), EPIC coordinator - The review of PR #3074 changed the
+  sync: order 10 is IN_PROGRESS because its T1 spec pull request (3067) is open, and the 2026-11-26
+  decision entry now says pull request 3067 records the decisions, which holds before or after it
+  merges. The 16:11 entry keeps its text.
 
 ## Acceptance Criteria
 
