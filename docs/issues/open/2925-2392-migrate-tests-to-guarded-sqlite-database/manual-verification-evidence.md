@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2925-2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md
-last-updated-utc: "2026-11-26 16:04"
+last-updated-utc: "2026-11-26 16:36"
 ---
 
 # Manual Verification Evidence
@@ -87,7 +87,8 @@ it already uses its own guard-owned wrappers.
 #### Conclusion
 
 The failing tests, with the class each one belongs to, are listed in the appendix (taken from the
-first run; the rerun counts the same 77 failures and 8 failing binaries). 48 need persistence, 29
+first run; the failing test names of the rerun, sorted from `grep -E "^test .* FAILED$"` on both
+logs, are identical (`diff` exit 0), 77 each, in 8 failing binaries). 48 need persistence, 29
 only run a helper that unwraps the database configuration. The reasons seen in the panic
 messages: `database configuration is required to initialize persistence` (`initialize_database`,
 30), tests of the REST API, the HTTP tracker and the `app` module that expect persistence to be
