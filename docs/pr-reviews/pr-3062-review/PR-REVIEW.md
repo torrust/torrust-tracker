@@ -30,7 +30,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-F1 is from claude[bot]'s inline comment in review 6061977982. F2 to F9 are da2ce7's inline comments in review 6062149260 and F10 is the finding in that review's body; F2 re-raises F1. F11 to F13 are from CodeRabbit's review 6062534811: F11 and F12 are the two findings of its inline comment 4698868795 (they share one thread and one reply) and F13 is its inline comment 4698868806. F14 is da2ce7's inline comment in review 6062583818 (dismissed; he posted it with an `ACK` of the previous head) and F15 is CodeRabbit's reply 4698953937 (review 6062636679) in the thread of F11 and F12, recorded against that thread's root comment; CodeRabbit's reply 4698953208 in the thread of F13 withdraws that finding and has no row. F16 is CodeRabbit's reply 4699066263 (review 6062770209) in the same thread, recorded against its root comment. F17 is CodeRabbit's inline comment 4699192373 in review 6062919002. The claude[bot] reviews 6061840285 and 6061977982 summaries, the CodeRabbit review-limit comment and the maintainer's `@claude review` and `ACK` comments contain no actionable assertion and have no rows.
+F1 is from claude[bot]'s inline comment in review 6061977982. F2 to F9 are da2ce7's inline comments in review 6062149260 and F10 is the finding in that review's body; F2 re-raises F1. F11 to F13 are from CodeRabbit's review 6062534811: F11 and F12 are the two findings of its inline comment 4698868795 (they share one thread and one reply) and F13 is its inline comment 4698868806. F14 is da2ce7's inline comment in review 6062583818 (dismissed; he posted it with an `ACK` of the previous head) and F15 is CodeRabbit's reply 4698953937 (review 6062636679) in the thread of F11 and F12, recorded against that thread's root comment; CodeRabbit's reply 4698953208 in the thread of F13 withdraws that finding and has no row. F16 is CodeRabbit's reply 4699066263 (review 6062770209) in the same thread, recorded against its root comment. F17 is CodeRabbit's inline comment 4699192373 in review 6062919002. F18 to F20 are the other three inline comments of CodeRabbit's review 6062919002 (4699192386, 4699192398, 4699192407), which the poller did not return and I resolved in round 5 without a reply or a row; F21 is da2ce7's inline comment 4705705862 in review 6070826223 that points this out. The claude[bot] reviews 6061840285 and 6061977982 summaries, the CodeRabbit review-limit comment and the maintainer's `@claude review` and `ACK` comments contain no actionable assertion and have no rows.
 
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
@@ -51,6 +51,10 @@ F1 is from claude[bot]'s inline comment in review 6061977982. F2 to F9 are da2ce
 | F15 | review-finding:pr-3062-f15 | coderabbitai[bot] | Minor (inferred) | correctness | RE_RAISE_OF:F11 | FIXED | RESOLVED |
 | F16 | review-finding:pr-3062-f16 | coderabbitai[bot] | Minor (inferred) | correctness | RE_RAISE_OF:F15 | FIXED | RESOLVED |
 | F17 | review-finding:pr-3062-f17 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-3062-f18 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F19 | review-finding:pr-3062-f19 | coderabbitai[bot] | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-3062-f20 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F21 | review-finding:pr-3062-f21 | da2ce7 | Minor | other | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -275,6 +279,58 @@ F1 is from claude[bot]'s inline comment in review 6061977982. F2 to F9 are da2ce
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3062#discussion_r4699236953
 
+### F18 - AC3 claims more than its scan detects: brace-delimited calls are not checked
+
+- PR number: 3062
+- Source review ID: 6062919002
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3062#discussion_r4699192386
+- Concern: `tracing::debug! { target = "X", "m" }` is not matched because the scan needs `(` after the macro name, so a future call of that form would pass AC3. The reviewer asked to extend the scan or narrow AC3 to parenthesized calls and list brace-delimited calls as out of scope, in both files.
+- Solution: AC3 now covers parenthesized calls only, and brace-delimited calls are listed among the known limits in `ISSUE.md` and in the evidence; the call is function `i` of `evidence/scan-sample.rs`.
+- Current-tree verification: `grep -Pzo` with the current pattern on the sample does not print the brace-delimited call; `grep -n "brace-delimited" ISSUE.md manual-verification-evidence.md` shows the wording in both files.
+- Resolution reference: docs(issues): [#3060] state the brace-call and string limits of the AC3 scan and run its detection check from the repository root
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3062#discussion_r4707604941
+
+### F19 - The detection command uses a sample path that does not resolve from the repository root
+
+- PR number: 3062
+- Source review ID: 6062919002
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3062#discussion_r4699192398
+- Concern: The scan above it runs from the repository root, but the detection check names `evidence/scan-sample.rs`, which GNU grep cannot open from there.
+- Solution: The command uses the repository-relative sample path and the section says its commands run from the repository root.
+- Current-tree verification: Ran the recorded command from the repository root: it prints the recorded output.
+- Resolution reference: docs(issues): [#3060] state the brace-call and string limits of the AC3 scan and run its detection check from the repository root
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3062#discussion_r4707605448
+
+### F20 - Strings can produce false scan matches and this is not disclosed
+
+- PR number: 3062
+- Source review ID: 6062919002
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3062#discussion_r4699192407
+- Concern: `tracing::info!("message, target = nope")` matches because the pattern takes the string up to its comma as an earlier argument. The reviewer asked to document the limit and require manual inspection, or exclude string contents.
+- Solution: The limit is disclosed in `ISSUE.md` and in the evidence, with the case added to the sample (function `j`) and its false match in the recorded output; every match must be inspected by hand, and a false match only makes AC3 fail. The pattern was not changed.
+- Current-tree verification: The recorded output of the detection check ends with `info!("message, target =`; `grep -n "false match" ISSUE.md manual-verification-evidence.md` shows the wording.
+- Resolution reference: docs(issues): [#3060] state the brace-call and string limits of the AC3 scan and run its detection check from the repository root
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3062#discussion_r4707605953
+
+### F21 - Three threads of review 6062919002 have no reply and no row
+
+- PR number: 3062
+- Source review ID: 6070826223
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3062#discussion_r4705705862
+- Concern: Review 6062919002 posted four findings and only 4699192373 has a row and a reply; threads 4699192386, 4699192398 and 4699192407 were resolved with neither. The validator passes because it checks only rows that exist.
+- Solution: Rows F18 to F20 and a reply on each of the three threads were added; I list all comments of a review by hand before recording a round. Checked by listing every root comment of the PR: each has a reply from josecelano-bot.
+- Current-tree verification: The listing of all review comments of the PR shows 17 root comments, each with a reply from josecelano-bot; the validator was run on this record.
+- Resolution reference: docs(pr-reviews): [#3060] record the sixth review round of PR 3062
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3062#discussion_r4707606535
+
 ## Processing Log
 
 - 2026-11-25 17:21 UTC - claude[bot]'s review 6061977982 with its inline comment (F1) arrived.
@@ -297,6 +353,10 @@ F1 is from claude[bot]'s inline comment in review 6061977982. F2 to F9 are da2ce
 - 2026-11-25 18:32 UTC - Committed the F17 fix (`docs(issues): [#3060] document the comment-before-target limit of the AC3 scan`); this is the fifth round of fixes.
 - 2026-11-25 18:35 UTC - Pushed it and replied in the thread.
 - 2026-11-25 18:35 UTC - Added F17 to this record.
+- 2026-11-26 08:38 UTC - da2ce7's review 6070826223 (F21) arrived on the head of round 5; it was found on 2026-11-26, after the CI follow-up.
+- 2026-11-26 11:14 UTC - Committed the F18 to F20 fix (`docs(issues): [#3060] state the brace-call and string limits of the AC3 scan and run its detection check from the repository root`); this is the sixth round of fixes, started on the maintainer's word.
+- 2026-11-26 11:17 UTC - Pushed it and replied on the four threads (F18 to F21).
+- 2026-11-26 11:18 UTC - Added F18 to F21 to this record, after listing every review comment of the PR by hand.
 
 ## Completion Rules
 
