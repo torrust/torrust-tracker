@@ -137,7 +137,7 @@ impl ScrapeService {
                     .with_public_url(self.public_url.clone()),
             };
 
-            tracing::debug!(target = crate::UDP_TRACKER_LOG_TARGET, "Sending UdpScrape event: {event:?}");
+            tracing::debug!(target: crate::UDP_TRACKER_LOG_TARGET, "Sending UdpScrape event: {event:?}");
 
             udp_stats_event_sender.send(event).await;
         }
