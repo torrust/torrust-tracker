@@ -6,7 +6,7 @@ epic: null
 github-issue: 144
 spec-path: docs/issues/open/144-api-v2-correct-response-codes/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-09 10:48"
+last-updated-utc: "2026-11-26 16:20"
 semantic-links:
   skill-links:
     - create-issue
@@ -74,12 +74,34 @@ Problems with the current (v1) API that v1 cannot fix without breaking clients:
   `rest-api-protocol` → `rest-api-application` → `rest-api-runtime-adapter` →
   `axum-rest-api-server`, plus `rest-api-client`. v2 is a new versioned module next to `v1`, not
   an in-place change of v1.
-- **Timing.** No development starts before tracker **4.0.0** is released. Until then the only
-  allowed work is specification-only pull requests (this spec, sub-issue specs, ADR drafts) and
-  answering questions from other sessions about v2 intent.
+- **Timing.** No _implementation_ starts before tracker **4.0.0** is released. Until then the
+  allowed work is specification-only pull requests (this spec, sub-issue specs, ADR drafts),
+  answering questions from other sessions about v2 intent, and collecting inputs (see
+  [EPIC state](#epic-state-implementation-on-hold-input-collection-open)).
 - **No v2 contract decision is binding until it is recorded** in a sub-issue spec or an ADR
   merged to `develop`. Items marked _candidate_ below come from the original issue text and need
   a decision before implementation.
+
+## EPIC state: implementation on hold, input collection open
+
+The maintainer postponed the **implementation** of this EPIC until after tracker 4.0.0 is
+released. The EPIC stays **active as a collection point**: errors, frictions, design ideas and
+wrong or inconsistent API behavior found by any contributor or agent session while working on v1
+are recorded here, so the v2 design starts with all of them in one place.
+
+Rules for reporting an input:
+
+- A **critical** problem (a security issue, data loss, a crash, a bug that hurts users) is not
+  parked here: it is fixed in v1 immediately, in its own issue. Only the part that cannot be
+  fixed without breaking v1 (a status code, a body shape, a field) is recorded here as a v2
+  input.
+- Report it to the EPIC coordinator session, which adds it to this spec in a small spec-only PR,
+  or comment on #144. Give the v1 behavior, why it is wrong, the proposed v2 behavior, and the
+  issue or PR it came from.
+- An input is a _candidate_ until an ADR or sub-issue spec records the decision (see
+  [Constraints](#constraints)). Collecting an input does not change v1.
+- Each input names the sub-issue that will absorb it (see
+  [Inputs reported by other work](#inputs-reported-by-other-work)).
 
 ## Scope
 
@@ -153,6 +175,27 @@ These items are deprecated in v1 and are removed (not merely renamed) in v2:
   versioned JSON contract needs an ADR under this EPIC before the I2P implementation exposes
   anything over REST.
 
+### Inputs reported by other work
+
+Reported on 2026-11-26 by the session working on #3000 (SI-B of EPIC #2993, "client error text
+policy", PR #3063). Its ADR changes only the **text** of v1 errors; v1 statuses and body shapes
+stay as they are (a v1 status change is breaking, so this EPIC owns it). All items are
+_candidates_ until recorded in an ADR or sub-issue spec.
+
+| #   | v1 behavior today                                                                                                                                            | Proposed v2 behavior                                                                                                                                       | Absorbed by sub-issue                 |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| R1  | `POST /api/v1/keys` with a key the tracker already holds answers `500` (`Unhandled rejection: Err { reason: "failed to add key: ..." }`). It is a client mistake. | `409 Conflict`. The ADR in PR #3063 (rule 10) records it as a known v1 limitation and names `409` for v2.                                                   | 2 (error model), 5 (auth keys)        |
+| R2  | A missing, wrong or malformed admin token answers `500` `Unhandled rejection ...`.                                                                           | `401` or `403` with the structured error body (the `401` for an invalid token is already a candidate above; the ADR picks `401` versus `403`).             | 2, 3                                  |
+| R3  | A malformed key, info-hash, JSON body or query gets axum or serde text with mixed `400`, `422` and `415` statuses.                                           | One structured error body and the three classes of the #3063 ADR: bad request (`400`, `409` or another `4xx`), refused (`401`, `403`, `404`, `409`), internal failure (`5xx`). | 2, 3                                  |
+| R4  | An internal failure (for example a database failure) answers a fixed text with the request id (v1 text policy of #3063).                                     | The v2 error body carries the request id as a structured field, so the v1 text and the v2 body tell the client the same thing.                             | 2, 3                                  |
+| R5  | [#3055](https://github.com/torrust/torrust-tracker/issues/3055): a key duration above `i64::MAX` seconds returns `500`. Same class as R1: a client mistake answered as `500`. | A `4xx` bad-request error (a duration error), never `5xx`.                                                                                                 | 2, 5                                  |
+
+The general rule these items share: **a client mistake is never a `5xx`, and an internal failure
+never leaks detail to the client**. The v2 error ADR (sub-issue 2) must state it, and the
+acceptance criteria below check it. Source: the SI-B note for this EPIC and the ADR text in
+PR 3063 (`docs/adrs/20261125175726_tell_clients_what_they_can_act_on_and_keep_failure_detail_on_the_server.md`
+on branch `3000-si-b-client-error-text-policy` until the PR merges).
+
 ## Subissues
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
@@ -164,10 +207,10 @@ maintainer's approval before issues are created.
 | Order | Issue                                                   | Local Spec                                                        | Status | Notes                                                                                                                                                                                                                                                                      |
 | ----- | ------------------------------------------------------- | ----------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1     | #[To be assigned] - Make the REST API persistence-aware | `docs/issues/drafts/144-make-rest-api-persistence-aware/ISSUE.md` | TODO   | Draft only, no GitHub issue yet. Defines completed-metric provenance DTOs.                                                                                                                                                                                                 |
-| 2     | #[To be assigned] - ADR: v2 contract and error model    | not drafted                                                       | TODO   | Candidate: prefix form, error body, status-code policy (including the invalid-token response: `401` or `404`, which interacts with the auth middleware that rejects before any handler runs), versioning, deprecation/migration policy, I2P collections, stats regrouping. |
-| 3     | #[To be assigned] - v2 skeleton and error handling      | not drafted                                                       | TODO   | Depends on 2. Candidate: `/v2` module in all five packages, shared error type, fix the `500` on unmatched paths (fallback).                                                                                                                                                |
+| 2     | #[To be assigned] - ADR: v2 contract and error model    | not drafted                                                       | TODO   | Candidate: prefix form, error body, status-code policy (including the invalid-token response: `401` or `404`, which interacts with the auth middleware that rejects before any handler runs), versioning, deprecation/migration policy, I2P collections, stats regrouping. Must also decide inputs R1-R5: the three error classes, client mistakes never `5xx`, `409` for a duplicate key, request id in the error body. |
+| 3     | #[To be assigned] - v2 skeleton and error handling      | not drafted                                                       | TODO   | Depends on 2. Candidate: `/v2` module in all five packages, shared error type with the request id field (R3, R4), `401`/`403` for token failures (R2), fix the `500` on unmatched paths (fallback).                                                                                                                                                |
 | 4     | #[To be assigned] - v2 health_check, stats, torrent     | not drafted                                                       | TODO   | Depends on 1 and 3.                                                                                                                                                                                                                                                        |
-| 5     | #[To be assigned] - v2 whitelist and auth keys          | not drafted                                                       | TODO   | Depends on 3. Covers `201`, `204`, `404`, `Location` and the reload endpoints.                                                                                                                                                                                             |
+| 5     | #[To be assigned] - v2 whitelist and auth keys          | not drafted                                                       | TODO   | Depends on 3. Covers `201`, `204`, `404`, `Location` and the reload endpoints, `409` for a duplicate key (R1) and a `4xx` for an out-of-range key duration (R5).                                                                                                                                                                                             |
 | 6     | #[To be assigned] - v2 client and migration guide       | not drafted                                                       | TODO   | Depends on 4 and 5.                                                                                                                                                                                                                                                        |
 | 7     | #[To be assigned] - v2 I2P peer representation          | not drafted                                                       | TODO   | Depends on the #2491 I2P work and ADR (2).                                                                                                                                                                                                                                 |
 
@@ -197,6 +240,8 @@ Across the EPIC, the scenarios must cover at least:
 | Unauthorized torrent lookups     | Missing/invalid token: same non-disclosing response for an existing and an absent one. | TODO   | -        |
 | Authorized absent torrent lookup | `404` with the structured error body.                                                  | TODO   | -        |
 | Disabled key/whitelist ops       | Return the agreed code (`409` in v1), not `404` or an authorization failure.           | TODO   | -        |
+| Client mistakes versus failures  | Duplicate key, bad token, malformed input, out-of-range duration: `4xx`, never `5xx`.  | TODO   | -        |
+| Internal failure body            | `5xx` body has the request id field and no internal detail (database or driver text).  | TODO   | -        |
 | Persistence-free reads           | Stats and torrent reads stay supported and return `200` (as in v1), not `409`.         | TODO   | -        |
 | Completed-metric availability    | Session, persisted and unavailable values are distinguishable, no numeric sentinel.    | TODO   | -        |
 
@@ -255,6 +300,9 @@ starting parallel sessions. Do not start any implementation session before 4.0.0
 - 2026-11-09 10:48 UTC - EPIC coordinator session (Claude Sonnet 5.5) - Addressed da2ce7's review
   F1-F11 (prefix form left to the ADR, torrent `completed` not deprecated, unmatched-path `500`,
   current whitelist reload path, ADR decision list, acceptance criteria table).
+- 2026-11-26 16:20 UTC - EPIC coordinator session (Claude Sonnet 5.5) - Recorded the EPIC state
+  (implementation on hold until 4.0.0, input collection open, maintainer decision) and the five
+  inputs R1-R5 reported by the #3000 session (PR #3063); added AC14 and two verification rows.
 
 ## Acceptance Criteria
 
@@ -271,6 +319,9 @@ starting parallel sessions. Do not start any implementation session before 4.0.0
 - [ ] AC11: Every completed subissue includes post-implementation acceptance criteria review.
 - [ ] AC12: Every completed subissue includes an implementation completion review.
 - [ ] AC13: Documentation and governance updates are included when required.
+- [ ] AC14: In v2 a client mistake (duplicate key, bad token, malformed input, out-of-range
+      duration) never answers `5xx`, and every `5xx` body carries the request id and no internal
+      detail.
 
 ### Acceptance Verification
 
@@ -289,6 +340,7 @@ starting parallel sessions. Do not start any implementation session before 4.0.0
 | AC11  | TODO                   | -        |
 | AC12  | TODO                   | -        |
 | AC13  | TODO                   | -        |
+| AC14  | TODO                   | -        |
 
 ## Risks and Trade-offs
 
@@ -305,7 +357,8 @@ starting parallel sessions. Do not start any implementation session before 4.0.0
 ## References
 
 - Related issues: #144 (this EPIC), #141, #143, #999, #1228, #1938, #1978, #2107, #2122, #2130,
-  #2491
+  #2491, #2993, #3000, #3055
+- Related PRs: #3063 (client error text policy ADR; source of inputs R1-R5)
 - Related ADRs:
   - `docs/adrs/20260623200526_adopt_contract-first_architecture_for_rest_api.md`
   - `docs/adrs/20260825193119_make_persistence_an_optional_application_composition_capability.md`
