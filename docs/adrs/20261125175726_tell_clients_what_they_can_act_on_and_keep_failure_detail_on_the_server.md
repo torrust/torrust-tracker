@@ -192,6 +192,13 @@ application stops. Each failed probe reports a fixed reason of its own, never li
 The report keeps the service bindings and URLs it shows today; they identify the probed service and
 are already the operator's configuration. The library text goes to a `tracing` event (rule 7).
 
+The result text of a failed probe carries no request id, because the report keeps its shape. The
+reference for an internal failure (the panicked or cancelled job) is the `x-request-id` header that
+the health-check API sets on every reply, as the other two servers do. The `tracing` event of rule 7
+is emitted inside the request span, so it carries the same id, and it records the service binding
+that the report shows for the failed service. An operator relates the report to the event by that
+id or by that binding.
+
 ### 10. REST API v1 and v2
 
 API v1 is additive-only, so this ADR changes v1 **text** and keeps v1 **statuses and body shapes**:
