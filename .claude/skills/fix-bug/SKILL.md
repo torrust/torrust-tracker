@@ -8,7 +8,7 @@ metadata:
     related-artifacts:
       - .claude/skills/create-issue/SKILL.md
       - .claude/skills/write-unit-test/SKILL.md
-      - .claude/agents/implementer.md
+      - .claude/skills/implement-task/SKILL.md
       - .github/agents/implementer.agent.md
       - docs/templates/ISSUE.md
       - "issue #2226"
@@ -186,8 +186,8 @@ Review this skill when changing:
   policy.
 - `.claude/skills/write-unit-test/SKILL.md` — maintained regression-test design and red
   test evidence.
-- `.claude/agents/implementer.md` and `.github/agents/implementer.agent.md` — bug workflow
-  invocation by implementation agents.
+- `.claude/skills/implement-task/SKILL.md` and `.github/agents/implementer.agent.md` — bug
+  workflow invocation by implementation agents.
 - `docs/templates/ISSUE.md` — bug-only issue sections and manual evidence requirements.
 - issue #2226 — worked example reference.
 - issue #2345 — worked example reference for an internal wrong outcome; re-check the reference
