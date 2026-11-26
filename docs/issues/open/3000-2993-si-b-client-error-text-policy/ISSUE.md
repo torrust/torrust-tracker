@@ -9,7 +9,7 @@ github-issue: 3000
 spec-path: docs/issues/open/3000-2993-si-b-client-error-text-policy/ISSUE.md
 branch: "3000-si-b-client-error-text-policy"
 related-pr: null
-last-updated-utc: "2026-11-26 14:21"
+last-updated-utc: "2026-11-26 15:57"
 semantic-links:
   skill-links:
     - create-issue
@@ -169,6 +169,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-25 17:59 UTC - Claude Code (Claude Opus 5.5), SI-B session - T1: drafted the ADR `docs/adrs/20261125175726_tell_clients_what_they_can_act_on_and_keep_failure_detail_on_the_server.md` with the table of current and proposed client texts, rechecked against `develop` `ebe9e42b9`, and the rule-4 amendment note in the errors ADR. One point is left open in the ADR for the maintainer: the status of a duplicate REST key (keep 500, or 409). No code changes before the ADR is accepted (T2).
 - 2026-11-26 14:03 UTC - Claude Code (Claude Sonnet 5.5), SI-B session - Review round 1 of PR 3063 (da2ce7): recorded that a duplicate REST key keeps its 500 in v1 with a new text, because a v1 status change is breaking and belongs to API v2 (EPIC #144); a duplicate key is a `409` in v2. Fixed six smaller findings in the ADR and its index row.
 - 2026-11-26 14:21 UTC - Claude Code (Claude Sonnet 5.5), SI-B session - Maintainer decision (josecelano, in the SI-B session chat of 2026-11-26): a duplicate REST key keeps its `500` in v1 because a v1 status change is breaking and the correct statuses are the scope of EPIC #144; the maintainer's words were a question, "is that not a breaking change and precisely the scope of EPIC 144?", which I took as the decision and recorded in rule 10 of the ADR. Rebased the branch onto `develop` to resolve the conflict in `docs/adrs/index.md`.
+- 2026-11-26 15:57 UTC - Claude Code (Claude Sonnet 5.5), SI-B session - Maintainer decision (josecelano, in the SI-B session chat of 2026-11-26) on CodeRabbit's `public_url` finding of PR 3063: no issue and no ADR change. A secret in an operator-supplied value that a reply or report copies cannot be detected in general (only userinfo is certain; query parameters and path segments are not), and no inference-based test is wanted; the check belongs to the two review passes (self-review in the implementation workflow, then the pull request review). The self-review of each SI-B change asks, for every field a reply or report carries, where its value comes from and whether an operator or a client can put a secret in it. Known-kind leaks are made structurally hard instead (redacting types, as SI-A did, and a canary test over `SECRET_OPTIONS` if a later issue wants one).
 
 ## Acceptance Criteria
 
@@ -232,6 +233,7 @@ A short UDP probe (connect, announce, raw packet) is needed for M2 and M3, becau
 - **Divergence from API v2.** Mitigation: the ADR names how the v2 error model (EPIC #144) relates to the policy.
 - **Over-generic messages that help nobody.** Mitigation: the maintainer's principle; a known client mistake keeps a specific message.
 - **Conflict with SI-A and SI-4.** All three touch the tracker-core errors. Mitigation: SI-4 has merged; run SI-A before this issue's code.
+- **Secrets in operator-supplied or client-supplied values that a reply or report copies** (for example the `public_url` of a service in the health-check report). A secret cannot be detected in a free-form URL part, so the policy does not promise it. Mitigation: the self-review question of the progress log entry of 2026-11-26 15:57 for every field of every changed reply or report, redacting types where a secret kind is known, and the pull request review. Rejecting userinfo in `public_url` at configuration validation is the one certain rule and is not part of this issue (maintainer decision, 2026-11-26).
 
 ## Implementation Completion Review
 
