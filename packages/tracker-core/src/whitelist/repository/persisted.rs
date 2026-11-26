@@ -27,12 +27,7 @@ impl DatabaseWhitelist {
     /// Returns a `database::Error` if unable to add the `info_hash` to the
     /// whitelist.
     pub(crate) async fn add(&self, info_hash: &InfoHash) -> Result<(), databases::error::Error> {
-        let is_whitelisted = self.database.is_info_hash_whitelisted(*info_hash).await?;
-
-        if is_whitelisted {
-            return Ok(());
-        }
-
+        // The store write is idempotent and atomic: no read before it, which would race.
         self.database.add_info_hash_to_whitelist(*info_hash).await?;
 
         Ok(())
@@ -43,12 +38,7 @@ impl DatabaseWhitelist {
     /// # Errors
     /// Returns a `database::Error` if unable to remove the `info_hash`.
     pub(crate) async fn remove(&self, info_hash: &InfoHash) -> Result<(), databases::error::Error> {
-        let is_whitelisted = self.database.is_info_hash_whitelisted(*info_hash).await?;
-
-        if !is_whitelisted {
-            return Ok(());
-        }
-
+        // The store write is idempotent and atomic: no read before it, which would race.
         self.database.remove_info_hash_from_whitelist(*info_hash).await?;
 
         Ok(())
@@ -67,6 +57,8 @@ impl DatabaseWhitelist {
 #[cfg(test)]
 mod tests {
     mod the_persisted_whitelist_repository {
+
+        use std::sync::Arc;
 
         use torrust_tracker_configuration::v3_0_0::core::Core;
 
@@ -143,6 +135,54 @@ mod tests {
 
             assert!(result.is_ok());
         }
+
+        // Concurrent identical calls must all succeed: both operations are idempotent.
+        //
+        // The race window is the gap between the read and the write, so these tests need a
+        // multi-threaded runtime and many rounds to fail reliably on the racy code.
+        const CONCURRENT_ROUNDS: usize = 200;
+
+        #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+        async fn should_not_fail_on_concurrent_identical_adds() {
+            let ephemeral = ephemeral_configuration_for_listed_tracker();
+            let whitelist = Arc::new(initialize_database_whitelist(&ephemeral.config).await);
+            let infohash = sample_info_hash();
+
+            for round in 0..CONCURRENT_ROUNDS {
+                let (first, second) = (whitelist.clone(), whitelist.clone());
+                let (first, second) = tokio::join!(
+                    tokio::spawn(async move { first.add(&infohash).await }),
+                    tokio::spawn(async move { second.add(&infohash).await })
+                );
+                for result in [first.unwrap(), second.unwrap()] {
+                    assert!(result.is_ok(), "concurrent add failed in round {round}: {result:?}");
+                }
+                assert!(whitelist.load_from_database().await.unwrap().contains(&infohash));
+
+                whitelist.remove(&infohash).await.unwrap();
+            }
+        }
+
+        #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+        async fn should_not_fail_on_concurrent_identical_removes() {
+            let ephemeral = ephemeral_configuration_for_listed_tracker();
+            let whitelist = Arc::new(initialize_database_whitelist(&ephemeral.config).await);
+            let infohash = sample_info_hash();
+
+            for round in 0..CONCURRENT_ROUNDS {
+                whitelist.add(&infohash).await.unwrap();
+
+                let (first, second) = (whitelist.clone(), whitelist.clone());
+                let (first, second) = tokio::join!(
+                    tokio::spawn(async move { first.remove(&infohash).await }),
+                    tokio::spawn(async move { second.remove(&infohash).await })
+                );
+                for result in [first.unwrap(), second.unwrap()] {
+                    assert!(result.is_ok(), "concurrent remove failed in round {round}: {result:?}");
+                }
+                assert!(!whitelist.load_from_database().await.unwrap().contains(&infohash));
+            }
+        }
     }
 
     mod the_persisted_whitelist_repository_with_a_failing_store {
@@ -172,34 +212,27 @@ mod tests {
         }
 
         #[tokio::test]
-        async fn it_should_not_write_when_the_check_before_adding_fails() {
-            // Arrange
+        async fn it_should_not_read_the_whitelist_before_adding() {
+            // Arrange: a read before the write would race with a concurrent identical add.
             let mut store = MockWhitelistStore::new();
+            store.expect_is_info_hash_whitelisted().never();
             store
-                .expect_is_info_hash_whitelisted()
+                .expect_add_info_hash_to_whitelist()
                 .times(1)
-                .returning(|_| Box::pin(async { Err(failed_insert()) }));
-            store.expect_add_info_hash_to_whitelist().never();
+                .returning(|_| Box::pin(async { Ok(1) }));
             let whitelist = whitelist_over(store);
 
             // Act
             let result = whitelist.add(&sample_info_hash()).await;
 
             // Assert
-            assert!(
-                matches!(result, Err(Error::InsertFailed { .. })),
-                "a failed check should be returned, got {result:?}"
-            );
+            assert!(result.is_ok(), "the add should succeed, got {result:?}");
         }
 
         #[tokio::test]
         async fn it_should_return_the_error_when_the_write_of_an_add_fails() {
             // Arrange
             let mut store = MockWhitelistStore::new();
-            store
-                .expect_is_info_hash_whitelisted()
-                .times(1)
-                .returning(|_| Box::pin(async { Ok(false) }));
             store
                 .expect_add_info_hash_to_whitelist()
                 .times(1)
@@ -217,34 +250,27 @@ mod tests {
         }
 
         #[tokio::test]
-        async fn it_should_not_delete_when_the_check_before_removing_fails() {
-            // Arrange
+        async fn it_should_not_read_the_whitelist_before_removing() {
+            // Arrange: a read before the delete would race with a concurrent identical remove.
             let mut store = MockWhitelistStore::new();
+            store.expect_is_info_hash_whitelisted().never();
             store
-                .expect_is_info_hash_whitelisted()
+                .expect_remove_info_hash_from_whitelist()
                 .times(1)
-                .returning(|_| Box::pin(async { Err(failed_delete()) }));
-            store.expect_remove_info_hash_from_whitelist().never();
+                .returning(|_| Box::pin(async { Ok(0) }));
             let whitelist = whitelist_over(store);
 
             // Act
             let result = whitelist.remove(&sample_info_hash()).await;
 
             // Assert
-            assert!(
-                matches!(result, Err(Error::DeleteFailed { .. })),
-                "a failed check should be returned, got {result:?}"
-            );
+            assert!(result.is_ok(), "the remove should succeed, got {result:?}");
         }
 
         #[tokio::test]
         async fn it_should_return_the_error_when_the_delete_of_a_remove_fails() {
             // Arrange
             let mut store = MockWhitelistStore::new();
-            store
-                .expect_is_info_hash_whitelisted()
-                .times(1)
-                .returning(|_| Box::pin(async { Ok(true) }));
             store
                 .expect_remove_info_hash_from_whitelist()
                 .times(1)
