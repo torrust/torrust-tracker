@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/3060-udp-core-debug-log-target-field/ISSUE.md
-last-updated-utc: "2026-11-26 16:43"
+last-updated-utc: "2026-11-26 18:56"
 ---
 
 # Manual Verification Evidence
@@ -228,6 +228,19 @@ $ grep -rPzo '<the AC3 pattern>' packages src --include=*.rs | tr '\0' '\n'
 ```
 
 It printed nothing (before the fix it printed `announce.rs` and `scrape.rs`, see section V1 scope scans). The pattern is the one written out in AC3 of `ISSUE.md`.
+
+### Prose-first Arrange-Act-Assert record of the two new tests
+
+This record was written after review finding F2 of PR #3078; the comparison was not recorded before the tests were committed, as `write-unit-test` requires. The prose below is the specification I compared the committed code with, and it is the same for `it_should_log_the_sent_event_under_the_udp_tracker_log_target` in `announce.rs` (event `UdpAnnounce`) and in `scrape.rs` (event `UdpScrape`).
+
+- **Arrange (prose):** a UDP core service whose statistics event sender accepts any event, and a valid request from a client; log capture is active on the test thread.
+  **Code:** `MockUdpCoreStatsEventSender` with `expect_send().returning(...)`, the fixture `AnnounceServiceFixture` (resp. `ScrapeServiceFixture`)`::public_tracker_publishing_events_to(...)`, `announce_request(valid_connection_id_for(client_socket_addr()))` (resp. `scrape_request`), and `capture_logs_in_scope()`. The only causal difference from the other event test is that the mock accepts any event and the capture is on; the rest is incidental fixture mechanics.
+- **Act (prose):** handle one announce (resp. scrape) request, which makes the service log that it is sending the event.
+  **Code:** the visible `service.handle_announce(...)` (resp. `handle_scrape(...)`) call, awaited and unwrapped.
+- **Assert (prose):** exactly one log line says the event is being sent, and that line is logged under the `UDP TRACKER` target: the `fmt` subscriber prints `UDP TRACKER: Sending ... event`, the line does not carry the module-path target, and it has no `target="UDP TRACKER"` field.
+  **Code:** a filter on the message text, `assert_eq!` on the count (so an empty capture cannot pass the negative checks), then three `assert!`s whose expected strings are literals, not derived from production code.
+
+Result of the comparison: the code expresses each paragraph, so no refactor followed. One comment is retained, on the count: it says why the count assertion exists, which the code cannot say. Helper boundaries: no new helper was added; the capture helper and the fixtures were reused as they are.
 
 ## Failures and Follow-up
 
