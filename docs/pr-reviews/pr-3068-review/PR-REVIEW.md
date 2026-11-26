@@ -1,7 +1,7 @@
 ---
 pr-number: 3068
 pr-url: https://github.com/torrust/torrust-tracker/pull/3068
-last-updated-utc: "2026-11-26 09:26"
+last-updated-utc: "2026-11-26 09:29"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -40,11 +40,11 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1: CodeRabbit review 6070621282 on the head of commit `docs(agents): [#2904] make the implementer preload implement-task instead of holding the workflow` (F1). The review of `claude[bot]` (6070567718) says that automated review is disabled for fork pull requests and carries no finding.
+Round 1: CodeRabbit review 6070621282 on the head of commit `docs(issues): [#2904] fix the inventory citations and record the task review of T6` (F1). The review of `claude[bot]` (6070567718) says that automated review is disabled for fork pull requests and carries no finding.
 
 Round 2: `da2ce7`'s review 6071195581 on the head of commit `docs(skills): [#2904] give implement-task an applicable check for a task without a Cargo package` (F2 to F8). F8 is the review body's finding that this record was missing; the record was written before the review and kept local until this push. The reply URLs of this round are recorded by the commit that follows the replies.
 
-Round 3: CodeRabbit review 6071517983 on the head of commit `docs(pr-reviews): [#2904] record the second review round on pull request 3068` (F9). The reply URL of this round is recorded by the commit that follows the reply.
+Round 3: CodeRabbit review 6071517983 on the head of commit `docs(pr-reviews): [#2904] record the second review round on pull request 3068` (F9). The reply URL of this round is recorded by the commit that follows the reply. `da2ce7`'s review 6071541933 on the head of the same commit (F10), and its body finding that six rows still read `Reply URL: pending` at that head, which the local commit with the replies of round 2 already answers.
 
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
@@ -57,6 +57,7 @@ Round 3: CodeRabbit review 6071517983 on the head of commit `docs(pr-reviews): [
 | F7 | review-finding:pr-3068-f7 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F8 | review-finding:pr-3068-f8 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
 | F9 | review-finding:pr-3068-f9 | coderabbitai[bot] | Minor | documentation | ORIGINAL | FIXED | OPEN |
+| F10 | review-finding:pr-3068-f10 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | OPEN |
 
 ## Finding Details
 
@@ -177,13 +178,27 @@ Round 3: CodeRabbit review 6071517983 on the head of commit `docs(pr-reviews): [
 - Follow-up PR URL: N/A
 - Reply URL: pending
 
+### F10 - Three statements of the record do not match the forge or the history
+
+- PR number: 3068
+- Source review ID: 6071541933
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3068#discussion_r4706262298
+- Concern: The record put review 6070621282 on the head of the wrong commit, said it was created at 09:07 UTC while its commit is dated 09:01:30 UTC, and gave the source review as the Reply URL of F8 (a placeholder written before the comment existed).
+- Solution: Round 1 now names the commit of the head the review read (`docs(issues): [#2904] fix the inventory citations and record the task review of T6`), the late-start entry takes its time from the commit date, and the Reply URL of F8 is the conversation comment (already fixed in the local commit that records the replies of round 2, as F9 says). The review body's remark that six rows read `pending` at the reviewed head is answered by the same commit: the URLs are recorded in the branch since this push.
+- Current-tree verification: Compared the three statements with `git log --format=%cI` and with the review's `commit_id` after the edit; ran the validator.
+- Resolution reference: docs(pr-reviews): [#2904] record the third review round on pull request 3068
+- Follow-up PR URL: N/A
+- Reply URL: pending
+
 ## Processing Log
 
 - 2026-11-26 09:01 UTC - Round 1: processed CodeRabbit review `6070621282` (one inline comment); the fix was pushed and the reply posted, then the thread was resolved with the GraphQL mutation, which returned `isResolved: true`.
-- 2026-11-26 09:09 UTC - Late start: the first reply and resolution (09:01 UTC) were posted before this record existed; it was created at 09:07 UTC and kept local until the push of round 2.
+- 2026-11-26 09:09 UTC - Late start: the first reply and resolution (09:01 UTC) were posted before this record existed; the commit that adds it is dated 09:01:30 UTC (the reply was at 09:01:12 UTC and the resolution right after) and it was kept local until the push of round 2.
 - 2026-11-26 09:09 UTC - Round 2: started on review `6071195581` of `da2ce7` (six inline comments and one body finding); verified every finding against the current tree and committed the fixes locally. Replies follow the push.
 - 2026-11-26 09:20 UTC - Pushed round 2 (head commit `docs(pr-reviews): [#2904] record the second review round on pull request 3068`), replied on the six threads (GitHub `created_at` 09:20 UTC) and with one conversation comment for the body finding F8, then resolved the six threads with the GraphQL mutation, each returning `isResolved: true`. The reply URLs are recorded by this commit, which goes out with the next push.
 - 2026-11-26 09:26 UTC - Round 3: started on CodeRabbit review `6071517983` (one inline comment, F9), which came after the push of round 2; the fix was already committed locally with the replies of round 2. The reply follows the push.
+- 2026-11-26 09:29 UTC - Round 3 (continued): `da2ce7`'s review `6071541933` arrived before the push; the three statements of F10 are corrected and the fix is committed locally. Replies follow the push of rounds 2 and 3 together.
 
 ## Completion Rules
 
