@@ -1,7 +1,7 @@
 ---
 pr-number: 3076
 pr-url: https://github.com/torrust/torrust-tracker/pull/3076
-last-updated-utc: "2026-11-26 17:15"
+last-updated-utc: "2026-11-26 17:52"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -43,12 +43,17 @@ review task names is a separate artifact, which the reviewer writes (see the `re
 
 Round 1: `da2ce7`'s review 6077983778 (approved, with four inline findings) on the head of commit `docs(issues): [#2904] complete the inventory rows of the researcher profile and record the task review of T8` (F1 to F4). The review of `claude[bot]` (6077611100) says that automated review is disabled for fork pull requests and carries no finding.
 
+Round 2: `da2ce7`'s review 6078625708 on the head of commit `docs(pr-reviews): [#2904] point the resolution references of F3 and F4 to their fix on pull request 3076` (F5 to F7). F5 is its Minor finding that the record read `Reply URL: pending` and `OPEN` at that head, which the local commit with the replies of round 1 already answers.
+
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3076-f1 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F2 | review-finding:pr-3076-f2 | da2ce7 | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-3076-f3 | da2ce7 | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F4 | review-finding:pr-3076-f4 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F5 | review-finding:pr-3076-f5 | da2ce7 | Minor | metadata | ORIGINAL | FIXED | OPEN |
+| F6 | review-finding:pr-3076-f6 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | OPEN |
+| F7 | review-finding:pr-3076-f7 | da2ce7 | Nit | metadata | ORIGINAL | FIXED | OPEN |
 
 ## Finding Details
 
@@ -74,7 +79,7 @@ Round 1: `da2ce7`'s review 6077983778 (approved, with four inline findings) on t
 - Concern: The boundary said "do not change any tracked file" but its two exceptions are an untracked file and clones in a git-ignored folder, so it let a session create any untracked file; the agent file listed only the reply file as an exception.
 - Solution: The boundary says "do not create or change any file of the workspace" with the same two exceptions, in the skill and in the agent file, and the inventory row says so.
 - Current-tree verification: Read the Boundaries of the skill, line 14 of the agent file and the inventory row after the edit.
-- Resolution reference: docs(agents): [#2904] make the final message of the researcher carry the report and limit the read-only boundary to the reply file and the clones
+- Resolution reference: docs(agents): [#2904] make the final message of the researcher carry the report and limit the read-only boundary to the reply file and the clones; docs(issues): [#2904] correct the finding count and a quotation in the researcher inventory
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3076#discussion_r4711581448
 
@@ -104,10 +109,50 @@ Round 1: `da2ce7`'s review 6077983778 (approved, with four inline findings) on t
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3076#discussion_r4711582459
 
+### F5 - The record read pending and open at the reviewed head
+
+- PR number: 3076
+- Source review ID: 6078625708
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3076#discussion_r4711913380
+- Concern: The four rows of round 1 carried `Reply URL: pending` and `OPEN` at the head under review, although the replies and the resolutions existed.
+- Solution: The commit that records the four reply URLs, the resolved state and the log entry is on the branch with this push.
+- Current-tree verification: Ran the audit validator after the edit.
+- Resolution reference: docs(pr-reviews): [#2904] record the replies and resolved threads of the first review round on pull request 3076
+- Follow-up PR URL: N/A
+- Reply URL: pending
+
+### F6 - The boundary leaves no exception for the research document
+
+- PR number: 3076
+- Source review ID: 6078625708
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3076#discussion_r4711913389
+- Concern: The skill said that research kept as a document goes under `docs/research/`, but its boundary no longer allows a session to create a file there.
+- Solution: The skill says that the caller writes that document from the report.
+- Current-tree verification: Read the introduction of `.claude/skills/research-external-evidence/SKILL.md` after the edit.
+- Resolution reference: docs(skills): [#2904] say that the caller writes the research document of research-external-evidence
+- Follow-up PR URL: N/A
+- Reply URL: pending
+
+### F7 - A row credits its inventory change to the wrong commit
+
+- PR number: 3076
+- Source review ID: 6078625708
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3076#discussion_r4711913395
+- Concern: The Resolution reference of F2 and the reply credited the inventory change to the commit of the agent file, while `docs(issues): [#2904] correct the finding count and a quotation in the researcher inventory` made it.
+- Solution: The Resolution reference of F2 lists both subjects, separated by `;`.
+- Current-tree verification: Read the row after the edit and ran the validator.
+- Resolution reference: docs(pr-reviews): [#2904] record the second review round on pull request 3076
+- Follow-up PR URL: N/A
+- Reply URL: pending
+
 ## Processing Log
 
 - 2026-11-26 17:03 UTC - Round 1: started on `da2ce7`'s review `6077983778` (four inline comments); the record was created before the first reply, and the fixes are committed locally. Replies follow the push.
 - 2026-11-26 17:15 UTC - Pushed round 1 (head commit `docs(pr-reviews): [#2904] point the resolution references of F3 and F4 to their fix on pull request 3076`), replied on the four threads (GitHub `created_at` 17:16 UTC) and resolved them with the GraphQL mutation, each returning `isResolved: true`. The reply URLs are recorded by this commit, which goes out with the next push.
+- 2026-11-26 17:52 UTC - Round 2: started on `da2ce7`'s review `6078625708` (three inline comments); the fixes are committed locally, F5 being answered by the commit of the replies of round 1. Replies follow the push.
 
 ## Completion Rules
 
