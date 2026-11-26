@@ -56,6 +56,8 @@ Review 6078267704 (`claude[bot]`) has no finding: it only says that automated re
 | F8 | review-finding:pr-3081-f8 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F9 | review-finding:pr-3081-f9 | da2ce7 | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 | F10 | review-finding:pr-3081-f10 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-3081-f11 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-3081-f12 | coderabbitai[bot] | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -189,6 +191,32 @@ Review 6078267704 (`claude[bot]`) has no finding: it only says that automated re
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3081#discussion_r4712523553
 
+### F11 - The spec does not say whether the failure records bypass trace_filter
+
+- PR number: 3081
+- Source review ID: 6079316164
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3081#discussion_r4712502681
+- Concern: After the configuration is loaded, `trace_filter` would apply to every record, so a runtime startup failure with the filter at `off` could write no `startup_failure` record, while a configuration failure keeps its record; the spec had to say, for `startup_failure` and `panic`, whether they are exempt and whether the panic hook writes through the subscriber.
+- Solution: D1 says that `help`, `usage_error`, `startup_failure` and `panic` ignore `trace_filter`: they are not `tracing` events but records built with the formatter code and written to stderr directly; only `log` records pass through the subscriber and its filter. D6 says the panic hook writes directly. AC3 and AC8 require the records with every `trace_filter`, and manual scenario M2d repeats the failures with the filter off. The author chose the behavior from the maintainer's decision that a supervisor must always be able to read why the process stopped, and told the maintainer.
+- Current-tree verification: `grep -n "ignore .trace_filter." docs/issues/open/2766-2758-daemon-json-logging/decisions.md` finds the D1 bullet; `grep -n "M2d" docs/issues/open/2766-2758-daemon-json-logging/ISSUE.md` finds the scenario; `grep -c "with every .trace_filter."` on `ISSUE.md` prints 1.
+- Resolution reference: docs(issues): [#2766] write the failure, usage, help and panic records whatever the trace filter is
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3081#discussion_r4712576914
+
+### F12 - The collision example does not say which field is renamed
+
+- PR number: 3081
+- Source review ID: 6078339285
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3081#discussion_r4711695467
+- Concern: Raised in a reply on the thread of F1 (comment 4712539137, review 6079358212), so the source URL is that thread and the source review is the one that opened it. CodeRabbit accepted the rule and added that the example holds only in one order: `target` becomes `field_field_target` only if `field_target` was written first; otherwise the later `field_target` is the one renamed. The comment has no severity; `Nit` is inferred.
+- Solution: D4 states the order: fields are written in the order the event records them and the later field is renamed, with the example reworded to match.
+- Current-tree verification: `grep -n "the field that comes later is the one renamed" docs/issues/open/2766-2758-daemon-json-logging/decisions.md` finds the sentence.
+- Resolution reference: docs(issues): [#2766] say which field is renamed when two event fields collide
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3081#discussion_r4712609299
+
 ## Processing Log
 
 - 2026-11-26 17:20 UTC - Review 6078267704 (`claude[bot]`) arrived; it has no finding.
@@ -203,6 +231,13 @@ Review 6078267704 (`claude[bot]`) has no finding: it only says that automated re
 - 2026-11-26 19:09 UTC - Pushed the four fix commits and replied on da2ce7's five threads.
 - 2026-11-26 19:09 UTC - Created this record from the template. It was started after the replies were posted, not before the first reply as `process-pr-review` requires; the late start is logged here.
 - 2026-11-26 19:10 UTC - Resolved da2ce7's five threads (F6 to F10). A GraphQL listing then showed one unresolved thread, a new CodeRabbit finding from review 6079316164 on the head of the first push; it is processed next.
+- 2026-11-26 19:11 UTC - CodeRabbit answered on the threads of F1, F2 and F3 (reviews 6079358212, 6079353833 and 6079343771): it confirmed the three fixes and added F12 on the thread of F1.
+- 2026-11-26 19:12 UTC - Committed the fix for F11 and this record (first version, F1 to F10).
+- 2026-11-26 19:15 UTC - Pushed both commits and replied on the thread of F11.
+- 2026-11-26 19:16 UTC - Committed the fix for F12.
+- 2026-11-26 19:17 UTC - CodeRabbit answered on the thread of F11 (review 6079426841): the spec now covers the direct output and the filter-off checks; it asks for nothing more.
+- 2026-11-26 19:19 UTC - Pushed the F12 fix and replied on the thread of F1, which CodeRabbit had already resolved.
+- 2026-11-26 19:20 UTC - Added F11 and F12 to this record and resolved the thread of F11; its last comment is CodeRabbit's confirmation, which asks for nothing. A GraphQL listing shows no unresolved thread.
 
 ## Completion Rules
 
