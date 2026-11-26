@@ -3,32 +3,18 @@
 //! Every git invocation, including the binary's, clears inherited `GIT_*` variables and sets a
 //! ceiling directory, so a test run from a git hook can never read or change the real repository.
 
+mod support;
+
 use std::fs;
 use std::path::Path;
 use std::process::Command;
 
 use serde_json::{Value, json};
+use support::isolated;
 use tempfile::TempDir;
 
 /// The replies folder of an open specification, where a reply file belongs.
 const FOLDER: &str = "docs/issues/open/2904-slug/agent-replies";
-
-/// Inherited variables that would redirect git away from the disposable repository.
-const GIT_ENVIRONMENT: &[&str] = &[
-    "GIT_DIR",
-    "GIT_WORK_TREE",
-    "GIT_INDEX_FILE",
-    "GIT_OBJECT_DIRECTORY",
-    "GIT_ALTERNATE_OBJECT_DIRECTORIES",
-    "GIT_COMMON_DIR",
-    "GIT_PREFIX",
-    "GIT_CONFIG_PARAMETERS",
-    "GIT_CONFIG_COUNT",
-    "GIT_LITERAL_PATHSPECS",
-    "GIT_GLOB_PATHSPECS",
-    "GIT_NOGLOB_PATHSPECS",
-    "GIT_ICASE_PATHSPECS",
-];
 
 /// A valid reply whose round is the given one; the agent is `task-reviewer` and the subject `t3`.
 fn reply(round: u8) -> String {
@@ -136,17 +122,6 @@ fn run_in(directory: &Path, arguments: &[&str]) -> Outcome {
         exit_code: output.status.code().unwrap(),
         records,
     }
-}
-
-/// Every disposable repository lives below the temp directory, so git never searches above it.
-fn isolated(mut command: Command, directory: &Path) -> Command {
-    for variable in GIT_ENVIRONMENT {
-        command.env_remove(variable);
-    }
-    command
-        .current_dir(directory)
-        .env("GIT_CEILING_DIRECTORIES", std::env::temp_dir());
-    command
 }
 
 #[test]

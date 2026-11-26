@@ -12,6 +12,7 @@
 /storage/
 /target
 /.tmp/
+/.agents/issues/
 /tracker.*
 /tracker.toml
 callgrind.out

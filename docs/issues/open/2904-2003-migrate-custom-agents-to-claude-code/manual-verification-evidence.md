@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md
-last-updated-utc: "2026-11-19 16:57"
+last-updated-utc: "2026-11-24 13:40"
 ---
 
 # Manual Verification Evidence
@@ -408,6 +408,196 @@ mechanism; the behaviour is that of Claude Code 2.1.318.
 | Pull request | Rounds with fixes | Model of each round | Count final |
 | --- | --- | --- | --- |
 | #2963 (T4) | 4 so far, answering 5 reviews with a `FIXED` finding. Round 1: review `5972182565`, F1 to F6, all fixed (see V3). Round 2: review `5974337471`, F8 to F13, five fixed and F8 with no change. Round 3: reviews `5974503813` and `5974634671`, F14 to F18, all fixed. Round 4: review `5976833863`, F20, fixed | Round 1: `claude-opus-5-5` (three runs). Round 2: `claude-opus-5-5`. Round 3: `claude-opus-5-5` (two runs). Round 4: `claude-opus-5-5` (two runs) | No, the pull request is open |
+
+### V8 - The transcript shows each request's line (scenario M8)
+
+- Goal: before any of T5's code, observe how the transcript file of an agent that already exists
+  records a first request and a continued request that each carry a `Reply file:` line, and
+  decide whether the stop hook of D17 can tell the caller's requests apart from tool results,
+  preloaded skill text and harness messages.
+- Initial state: `develop` at the merge of pull request #3002, on the branch of T5 before any
+  of its code; neither `task-reviewer` nor `agent-reply-guard` exists.
+- Status: `DONE`
+
+#### Steps Performed
+
+One non-interactive Claude Code session started in the checkout, on `claude-sonnet-5-5`, with the
+agent `pr-review-handler` (pinned to `claude-opus-5-5`, four preloaded skills):
+
+```text
+CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0 claude -p --model sonnet --debug-file <file> --output-format json "<prompt>" < /dev/null
+```
+
+The prompt told the session to do two things and nothing else. Step 1: start one
+`pr-review-handler` in the foreground with a task that asks for no file change, no command and no
+tool, and for the answer `FIRST`, and whose second line is `Reply file: <path of round 1>`. Step
+2: continue the same agent with `SendMessage` (the schema loaded with `ToolSearch`), with a task
+that asks for the answer `SECOND` and whose second line is `Reply file: <path of round 2>`. Both
+paths name files under this specification's `agent-replies/` folder that the probe never writes
+(`pr-review-handler-m8probe-r1.json` and `pr-review-handler-m8probe-r2.json`). The session printed
+the agent id and the answers `FIRST` and `SECOND`. The transcript file of the agent is
+`<projects folder>/<project>/<session id>/subagents/agent-<agent id>.jsonl`, with a sibling
+`agent-<agent id>.meta.json`. Each record was read with a short Python script that prints, per
+record, `type`, `isMeta`, `origin`, the role, the shape of `message.content` and the paths that a
+line-anchored match `^Reply file: (.+)$` finds in its text.
+
+#### Results
+
+Claude Code 2.1.318 (`claude --version`). The agent's `model` lines were all `claude-opus-5-5`.
+The agent had finished its first request and handed its report back (record 25 below, 07:45:18Z)
+before the continuation was recorded (record 26, 07:45:20Z), so the second request resumed a
+finished agent. The transcript has 35 records:
+
+| Records | Kind | `type` | `isMeta` | `origin` | `message.content` | Carries a `Reply file:` line |
+| ------- | ---- | ------ | -------- | -------- | ----------------- | ----------------------------- |
+| 0 | The first request | `user` | absent | absent | a string, the task as written | yes, round 1 |
+| 1 to 4 | The four preloaded skills, one record each, after the first request | `user` | `true` | absent | two `text` blocks (the skill's command line and its body) | no (none of these skills shows the line) |
+| 5 | A harness reminder about the final report | `user` | `true` | absent | a string | no |
+| 6 to 13 | Attachments | `attachment` | n/a | n/a | none | no |
+| 14, 17, 22, 28, 32 | Request markers | `api-request-shape`, `api-request` | n/a | n/a | none | no |
+| 15 | A copy of the whole request sent to the model, with the first task in its content | `api-request-blob` | n/a | n/a | blocks, one of them the first task | yes, round 1 (a copy) |
+| 16, 27 | Copies of the system prompt and of a response | `api-request-blob` | n/a | n/a | blocks | no |
+| 18, 19, 23, 24, 29, 30, 33 | The agent's thinking, text and tool calls | `assistant` | n/a | n/a | blocks | no |
+| 21, 31 | A harness message after each answer: "[handback-send-enforce] Your report has not been delivered ..." | `user` | `true` | absent | a string | no |
+| 25, 34 | Results of the tool call that hands the report back | `user` | absent | absent | one `tool_result` block | no |
+| 26 | The continued request | `user` | `true` | `{"kind": "coordinator"}` | a string: the line "The coordinator sent a message while you were working:", then the task as written | yes, round 2 |
+
+The three records that carry a line are 0, 15 and 26. Taken by the discriminators above, the
+caller's requests are record 0 (a `user` record with neither `isMeta` nor `origin`, and a string
+as content) and record 26 (a `user` record whose `origin.kind` is `coordinator`); the last one
+carries the round-2 path, which is the file the continued request names. The line is on its own
+line in both, so the line-anchored match finds it; in record 26 it follows the one-line prefix.
+Preloaded skill text sits in records 1 to 4, directly after the first request and before the
+agent's first action, as `isMeta` records with no `origin`. Tool results have a `tool_result` block
+and no `isMeta`. The `api-request-blob` record 15 repeats the first task, so a search that did not
+filter by `type` would find the round-1 line there too; the filter by `type` and by the
+discriminators removes it.
+
+#### Conclusion
+
+The lines can be told apart from tool results, preloaded skill text and harness messages, so D17
+stands (it was to be revised only if they could not). What the hook relies on is a format that
+Claude Code does not document, observed here on one version and for one kind of caller:
+
+- the `origin.kind` of a continued request was `coordinator` for a session that continues a
+  finished agent with `SendMessage` in a `claude -p` run; another caller (an interactive session,
+  another way of continuing an agent) may record another kind, and a version other than 2.1.318
+  may change the field names. The hook accepts only the kinds observed, and a request recorded in
+  another way is not found: the hook then reads the earlier request's line, as for an omitted
+  line (D17), which the caller rule covers.
+- the hook's tests pin this format with fixtures shaped like the records above, and scenario M7
+  checks the hook against the real transcript of a fresh run and of a continued run.
+
+### V7 - The hooks hold the reviewer (scenario M7)
+
+- Goal: check `task-reviewer`'s hooks against a real run of Claude Code: that a reviewer that tries
+  to finish without its reply file is refused and told what is missing, that it finishes after it
+  writes a valid file, that after 3 refusals the fourth attempt is allowed with the limit reported,
+  and that a continued reviewer is held to the file of its new request.
+- Initial state: the branch of T5 with the agent `task-reviewer`, its two hooks (see below) and
+  the program `agent-reply-guard` built; `.agents/` absent.
+- Status: `DONE`
+
+#### Steps Performed
+
+Claude Code 2.1.318 (`claude --version`), non-interactive sessions on `claude-sonnet-5-5` started
+in the checkout, each as in V8 (`CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0 claude -p --model sonnet
+--debug-file <file> --output-format json "<prompt>" < /dev/null`). The agent `task-reviewer` ran
+on `claude-opus-5-5`. Two sessions ran twice, once with the stop hook alone and once after the
+second hook was added (see Results):
+
+- **Run A, first the reviewer, then its continuation.** The session started one `task-reviewer` in
+  the foreground, on a real review of task T5 (`git log --oneline a44dde2fa..HEAD`), with a
+  `Reply file:` line naming the round's file and an instruction to try to finish at once before
+  any review work; when it finished, the session continued the same agent with `SendMessage`,
+  with a new request carrying a `Reply file:` line for the next round.
+- **Run B, the forced case.** The session started one `task-reviewer` on a task that said it was
+  a hook test, with a `Reply file:` line for subject `t4`, round 1, and the instruction not to
+  review, not to write the file and to try to finish again after every refusal.
+
+The reply files of run A are the evidence that a real review ended with a valid file; the files
+of rounds 1 and 2 are from the first execution and the file of round 3 is from the second.
+
+#### Results
+
+**First execution, with the stop hook alone** (`SubagentStop`, from the `Stop` entry of the
+frontmatter):
+
+- Run A: the reviewer first tried to finish with a plain message. Claude Code ran the hook, which
+  exited 2 with the text of refusal 1 of 3 and "the file does not exist", and gave it to the
+  reviewer as a `user` record of the transcript, "Stop hook feedback: ..." (with `isMeta` true),
+  after a harness record "[handback-send-enforce] Your report has not been delivered ...". The
+  reviewer then did the review, wrote `task-reviewer-t5-r1.json`, and finished; the hook exited 0
+  with no output. The continuation, with a new `Reply file:` line for round 2, produced the valid
+  `task-reviewer-t5-r2.json`; the agent wrote it before it tried to finish, so this execution does
+  not show a refusal in the continued run.
+- Run B: the reviewer ended its turn by calling the tool that hands its report back,
+  `SubagentHandback`, which Claude Code tells every subagent to use (a harness record in its
+  transcript says so). The hook ran, exited 2 and counted refusal 1 (the count file held `1`), and
+  Claude Code then logged "Stop hook block discarded (turn ended by tool result, no model
+  re-invoke)": the reviewer finished at once, without a reply file. **A stop hook alone does not
+  hold a reviewer that hands back directly**, which decision D17 now records. This is the result
+  that led to the second hook.
+- Probe, with a throwaway agent that was not committed: a `PreToolUse` hook on `SubagentHandback`,
+  declared in an agent's frontmatter, refused the first call with exit 2, and the agent called the
+  tool again and was let through. Its input has `agent_id`, `agent_type`, `tool_name`,
+  `tool_input`, `session_id`, `cwd` and `transcript_path`, which is the transcript of the session
+  that started the agent, not the agent's; it has no `agent_transcript_path`. The agent's file is
+  at `<folder>/<session id>/subagents/agent-<agent id>.jsonl` beside the session's
+  `<folder>/<session id>.jsonl`.
+
+**Second execution, with both hooks** (`Stop` and `PreToolUse` on `SubagentHandback`, one count):
+
+- Run A: the reviewer was told to try to hand back at once. The `PreToolUse` hook exited 2 with
+  refusal 1 of 3 ("the file does not exist"), 221 ms after the call; the transcript holds it as a
+  `tool_result` "PreToolUse:SubagentHandback hook error: [<command>]: <text>". The reviewer then
+  did the review, wrote the valid `task-reviewer-t5-r3.json` (verdict `REVIEW_PASSED`, six
+  findings, three of them pending on this scenario), handed back, and both hooks exited 0. The
+  reviewer's report listed what was still open (V7 itself, the progress log, a missing approval).
+- Run A, continuation: the session continued the finished reviewer with a new line naming
+  `task-reviewer-t5-r4.json`. The validator rejects that name (D18 allows rounds 1 to 3), which was
+  a mistake in the prompt, not planned. It showed two things anyway: the hook **read the new
+  request's path**, since the count file is keyed by that file name
+  (`<agent id>--task-reviewer-t5-r4.json.count`, value `3`), and the continued reviewer was held
+  3 times and let through on the fourth attempt. No file exists for round 4, and the agent's file
+  for this execution is the round 3 one.
+- Run A, where the lines sit in the reviewer's transcript (`agent-<agent id>.jsonl`, read by line
+  number, the first line being 1; the same format as in V8): line 1 is the caller's first request,
+  a `user` record with neither `isMeta` nor `origin` whose content is a string carrying the
+  `Reply file:` line for round 3. Line 2 is the preloaded skill text (`review-task`), a `user` record
+  with `isMeta` true and no `origin`, two `text` blocks, directly after the first request and before
+  the agent's first action. Line 103 is the continued request, which carried the line that named
+  `task-reviewer-t5-r4.json`: a `user` record with `isMeta` true, `origin` `{"kind": "coordinator"}`
+  and a string as content, written after the agent had handed back. The skill text carries no
+  `Reply file:` line, and the line-anchored match finds one line in each of the records 1 and 103
+  (it also finds the first request's copy in an `api-request-blob` record, which the filter by
+  `type` removes, as in V8).
+- Run B: the reviewer called `SubagentHandback` four times with the same one-line answer. The
+  `PreToolUse` hook exited 2 on the first three (234, 159 and 164 ms), each time with "refusal N
+  of 3" and "the file does not exist"; on the fourth it exited 0 with the JSON
+  `{"systemMessage": "The reply file <path> is still not valid after 3 refusals, so the stop hook
+  lets the agent finish without it. ..."}`, which Claude Code parsed, and the reviewer finished
+  with no reply file. The count file held `3`. The `SubagentStop` hook then ran as the agent
+  stopped, found the same count and printed the same message (exit 0), so the limit is reported
+  twice: harmless. The reviewer's last message reported the 3 refusals and quoted the last one.
+- Standard error of both sessions was empty. The hook runs through `cargo run`: with a warm build
+  it took 82 to 234 ms per call. A cold build or a wait for cargo's lock was not tried, so
+  whether the hook's default timeout is long enough then is not shown.
+- Not shown here: whether Claude Code displays the `systemMessage` to a user in an interactive
+  session (the headless run logs that it parsed it), and the behavior on a Claude Code version
+  other than 2.1.318.
+
+The count files were in `.agents/issues/2904/reply-guard/`, git-ignored, and the validator run on
+`agent-replies/` printed `{"kind":"summary","files":3,"problems":0}`.
+
+#### Conclusion
+
+D17 stands, with one change: the program is registered twice, as `Stop` and as `PreToolUse` on
+`SubagentHandback`, because Claude Code discards a stop hook's refusal when the agent ends its
+turn with that tool. With both, a reviewer that hands back, or that finishes with a message, is
+held until its reply file is valid, for at most three refusals per request, counted together; the
+fourth attempt is allowed, the limit is reported, and a continued reviewer is held to the file of
+its new request.
 
 ## Failures and Follow-up
 

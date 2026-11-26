@@ -1,0 +1,59 @@
+{
+  "schema-version": 1,
+  "agent": "task-reviewer",
+  "model": "claude-opus-5-5",
+  "subject": "t5",
+  "round": 3,
+  "created-utc": "2026-11-24 13:37",
+  "verdict": "REVIEW_PASSED",
+  "summary": "REVIEW PASSED for the scope a44dde2fa..HEAD (14 commits, HEAD 'record the hand-back hook in D17, the schema docs and the ADR'). Three criteria are PENDING only because they depend on scenario M7 and on the reply files this run writes (the M7 row, AC10, AC11). Since round 2 the branch adds the PreToolUse registration of agent-reply-guard on SubagentHandback, the code that finds the agent's transcript from the session's, its tests, and the D17, ADR and schema-README updates. The crate tests, clippy, linter all, the reply validator and the contract check pass. In this run the PreToolUse hook refused the first hand-back (refusal 1 of 3, 'the file does not exist'). That is live evidence that the new registration holds an agent that hands back directly. Non-blocking findings: the spec and D17 cite manual-verification-evidence.md section V7, which does not exist yet. Round 1's progress-log and last-updated-utc finding is still open and now also covers the two new commits. Round 1's question on who approved the D17 path extension is still open. Two nits on line wrapping.",
+  "findings": [
+    {
+      "severity": "Minor",
+      "location": "docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md, Manual Verification Scenarios, row M7; manual-verification-evidence.md (no section V7)",
+      "description": "PENDING, not FAIL: M7 is still TODO and V7 does not exist, and this run is part of M7, so it cannot be recorded before the run ends. Observed in this run: the first SubagentHandback call, made before any review, was refused by the PreToolUse hook with 'The review is not finished: the reply file `docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/agent-replies/task-reviewer-t5-r3.json` is not valid (refusal 1 of 3).' and '- the file does not exist'. The file .agents/issues/2904/reply-guard/a2de7a3e01bad45d2--task-reviewer-t5-r3.json.count held 1. Remediation: write V7 with the Claude Code version (2.1.318), the earlier run in which the SubagentStop refusal was discarded on hand-back, this run's PreToolUse refusal, the forced case (3 refusals, then the fourth attempt allowed with the limit reported), and the continued run with a new round's line. Then set M7 to DONE."
+    },
+    {
+      "severity": "Minor",
+      "location": "docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md, Acceptance Criteria AC10 and AC11",
+      "description": "PENDING, not FAIL: AC10 needs every agent started in M7 to have a valid reply file, and this file is one of them. AC11 needs the forced case of M7 recorded in V7. Neither can be verified before this run ends. Remediation: after M7, run agent-reply-validator --all on the committed reply files, check AC11 against V7, and fill both rows of Acceptance Verification."
+    },
+    {
+      "severity": "Minor",
+      "location": "docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md, facts table row 'Observed in scenario M7 ... (V7)' and D17 'Two registrations of the program'",
+      "description": "Commit 'record the hand-back hook in D17, the schema docs and the ADR' cites manual-verification-evidence.md section V7 as the evidence for an observed, undocumented behaviour: the SubagentStop refusal is discarded on SubagentHandback, the PreToolUse input has no agent_transcript_path, and the subagents/ layout. That section does not exist (grep V7 in the evidence file finds nothing). So the spec now states, as observed fact, a claim whose cited evidence is missing, and the hook's transcript lookup depends on that claim. Remediation: write V7 before the pull request, with the hook input that was seen and the transcript paths, or reword both places as 'to be recorded in V7' until it exists."
+    },
+    {
+      "severity": "Minor",
+      "location": "docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md, Progress Log and frontmatter last-updated-utc",
+      "description": "Still open from round 1, and wider now. The last entry is still 2026-11-24 07:47 UTC (M8), and last-updated-utc is still 07:47. Since then 'decide what the stop hook does with the reply file of a task' and 'record the hand-back hook in D17, the schema docs and the ADR' edited ISSUE.md, and thirteen commits changed the implementation, including the M7 finding that led to the second hook registration. The checkpoint 'Spec progress verified as up to date before each commit' is not met. Remediation: add a factual entry for the T5 implementation (the transcript reader, the decision logic, the count on disk, the binary, the agent file, the review-task changes, the inventory rows, the new ADR, the D17 path extension), and one for the M7 finding and the PreToolUse registration with its test-design review. Update last-updated-utc."
+    },
+    {
+      "severity": "Minor",
+      "location": "docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md, D17 'A path outside the specification folders' (commit 'decide what the stop hook does with the reply file of a task')",
+      "description": "Still open from round 1: an implementation commit extended a maintainer decision to cover non-exact paths under open/ or closed/, absolute paths, and empty, '.' or '..' components, and nothing records his approval. The 'Two registrations' paragraph does name the maintainer and the date; this extension does not. Remediation: record the approval with its date in the progress log, or ask the maintainer before the pull request."
+    },
+    {
+      "severity": "Nit",
+      "location": "contrib/dev-tools/checks/agent-reply-validator/src/bin/agent-reply-guard/main.rs line 6; docs/schemas/README.md line 113",
+      "description": "Commit 'hold the reviewer when it hands its report back' left a module-doc line of 121 characters, and commit 'record the hand-back hook in D17, the schema docs and the ADR' left a README line of 125 characters ('... counting both hooks together, and keeps its'). The paragraphs around them wrap near 100. rustfmt and markdownlint accept both. Remediation: rewrap the two paragraphs."
+    }
+  ],
+  "questions": [],
+  "evidence": [
+    "git log --oneline a44dde2fa..HEAD: 14 commits, 'record scenario M8, the transcript format of continued requests' (M8) first, then the hook's code; 'hold the reviewer when it hands its report back' and 'record the hand-back hook in D17, the schema docs and the ADR' are new since round 2",
+    "git diff --stat a44dde2fa..HEAD: 29 files, all in the T5 row's scope apart from the new ADR 20261124120307 and the CLI output contract amendment, which round 1 already reported",
+    "cargo test -q -p agent-reply-validator: lib 277, agent-reply-guard bin 11, agent-reply-validator bin 6, tests/cli.rs 23, tests/guard.rs 22, tests/schema.rs 2; all passed",
+    "cargo clippy -q -p agent-reply-validator --all-targets: exit 0",
+    "linter all: exit 0 ('All linters passed')",
+    "cargo run -q -p agent-reply-validator --bin agent-reply-validator -- --all: {\"kind\":\"summary\",\"files\":2,\"problems\":0}, exit 0 (the r1 and r2 reply files)",
+    "cargo run -q -p agent-review-report-contract: 'Agent review report contract check passed.'",
+    ".claude/agents/task-reviewer.md: model claude-opus-5-5, skills [review-task], hooks Stop and PreToolUse (matcher SubagentHandback), both running agent-reply-guard",
+    "PreToolUse hook in this run: the first SubagentHandback, sent before any review, was refused with 'refusal 1 of 3' and '- the file does not exist'; .agents/issues/2904/reply-guard/a2de7a3e01bad45d2--task-reviewer-t5-r3.json.count held 1; claude --version: 2.1.318",
+    "New code of 'hold the reviewer when it hands its report back': agent_transcript_path (main.rs) and subagent_transcript_path (transcript.rs) are each under 20 lines with at most 2 nesting levels; the id is limited to ASCII letters, digits, '-' and '_', so it cannot leave the session folder",
+    "Test design of 'hold the reviewer when it hands its report back': the unit tests cover the named path winning, the session-derived path, neither path, a null agent path, eight rejected ids and the stem cases; tests/guard.rs covers a refusal before hand-back, a silent hand-back with a valid file, refusals shared between the two hooks up to the limit, and precedence. Arrange-Act-Assert is visible, TempDir fixtures, no sleep or wall clock. The prose-first test-design review is recorded in agent-review-reports.md at 2026-11-24 13:33 UTC (REVIEW PASSED); it ran on Sonnet 5.5, and the entry says so",
+    "grep -n V7 manual-verification-evidence.md: no match; ISSUE.md cites section V7 in the facts table and in D17",
+    "ISSUE.md Progress Log: last entry 2026-11-24 07:47 UTC; frontmatter last-updated-utc '2026-11-24 07:47'",
+    "Issue spec updates made: none. AC10, AC11 and M7 depend on this run; AC1, AC6 and the issue-wide checklist items belong to later tasks or to the close-out"
+  ]
+}

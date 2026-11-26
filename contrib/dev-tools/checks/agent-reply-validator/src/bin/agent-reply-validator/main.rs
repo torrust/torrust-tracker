@@ -3,7 +3,6 @@
 //! Output class `no-stdout-result`: stdout stays empty; exit codes are `0` when every file is
 //! valid, `1` for an invalid file or a runtime failure, and `2` for invalid invocation.
 
-mod git;
 mod record;
 
 use std::ffi::OsString;
@@ -13,9 +12,9 @@ use std::process::ExitCode;
 use std::{env, fs};
 
 use agent_reply_validator::file::{check_reply_file, is_reply_file_candidate};
+use agent_reply_validator::git::Git;
 use clap::error::ErrorKind;
 use clap::{ArgGroup, Parser};
-use git::Git;
 use record::{EXIT_FAILURE, EXIT_SUCCESS, EXIT_USAGE, Record, emit};
 
 /// The message for a reply file that is a symbolic link, in either mode.

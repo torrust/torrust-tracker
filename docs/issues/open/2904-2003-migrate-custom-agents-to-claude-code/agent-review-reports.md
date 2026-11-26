@@ -325,3 +325,204 @@ semantic-links:
     the session keeps; AC2 is checked with its evidence.
   - Not changed: `Grep` and `Glob` stay in `tools`, as V1 records, for the builds that have them. The M3
     cautions apply to its run.
+
+### 2026-11-24 07:56 UTC - Test-design reviewer (Claude Code subagent, Claude Opus 5.5, `write-unit-test` skill)
+
+- Invocation scope: Read-only review of task T5, increment 1, on branch `2904-t5-task-reviewer`
+  before its commit: the transcript reader `src/transcript.rs` of the crate
+  `agent-reply-validator`, with its unit tests. One round, then the author's fixes.
+- Inputs: D17 ("How the hook works") and section V8 of `manual-verification-evidence.md`, which
+  give the record format the fixtures must model; `.claude/skills/write-unit-test/SKILL.md`;
+  `AGENTS.md`; the uncommitted file.
+- Evidence: `cargo test -q -p agent-reply-validator --lib transcript` passed with 20 tests in the
+  review and 21 after the fixes; clippy with the workspace lints and nightly rustfmt were clean.
+  The author ran nine mutations of the production code, and each made at least one test fail:
+  accepting any origin kind, accepting `isMeta` records, dropping the type check, reading the
+  first request instead of the latest, matching the prefix anywhere in a line, taking the first
+  line of a request, no trim, accepting an empty path, and treating a null origin as present. Two
+  of them first survived or did not compile: the type check was killed by no case, because the copy
+  of a request has block content, which the string check already rejects, and the origin mutation
+  left a constant unused. The author added a case whose record is not of type `user` and has
+  string content, and reran both. After the review's fixes the author reran the trim, type and
+  `isMeta` mutations, and each was killed.
+- Findings:
+  - Minor: the `windows_line_ending` case could not fail on the trim rule, because `lines()` strips
+    `\r\n` before the trim. Fixed: the case is a lone `\r` at the end of the text.
+  - Minor: the case named `preloaded_skill_text` used the shape of a harness reminder (a string),
+    not the two text blocks of V8. Fixed: it is now `harness_reminder`, and `preloaded_skill_text`
+    builds the two-block record.
+  - Minor: the case of the copy of a request cannot fail for the reason its name gives, and the
+    type check is pinned only by the agent message. Fixed in the comments of both fixtures.
+  - Minor: no assertion had a message. Fixed in the groups and the multi-record tests, where the
+    case label alone does not say which record won.
+  - Nit: the null-origin test pins a tolerance that V8 did not observe. Fixed: its doc comment
+    says so.
+  - Nit: the helper `transcript` was shadowed by the variable of the same name in every test.
+    Fixed: the helper is `jsonl`.
+- Verdict: REVIEW PASSED
+- Follow-up actions:
+  - Author, done before the commit: the six fixes above; the word `rfind` added to
+    `project-words.txt`.
+
+### 2026-11-24 08:06 UTC - Test-design reviewer (Claude Code subagent, Claude Opus 5.5, `write-unit-test` skill)
+
+- Invocation scope: Read-only review of task T5, increment 2, on branch `2904-t5-task-reviewer`
+  before its commit: the decision logic of the stop hook, `src/guard.rs` of the crate
+  `agent-reply-validator`, with its unit tests, which run against an in-memory `Workspace`. One
+  round, then the author's fixes.
+- Inputs: D17 ("How the hook works"); `.claude/skills/write-unit-test/SKILL.md`; `AGENTS.md`; the
+  uncommitted file.
+- Evidence: `cargo test -q -p agent-reply-validator --lib guard` passed with 41 tests in the review
+  and 53 after the fixes; clippy with the workspace lints and nightly rustfmt were clean. The
+  author ran thirteen mutations of the production code before the review, and each made at least
+  one test fail: the limit off by one in both directions, the count not cleared when the reply is
+  valid, the missing-folder branch dropped, the key ignoring the agent, the key ignoring the file
+  name, a draft treated as outside, `..` allowed, a junk suffix after the issue number allowed, a
+  failed count write turned into a refusal, and a task with no line still enforced. Some of them
+  first did not compile, because they left a variable unused, and were rewritten. After the fixes
+  the author ran five more: a path of any depth under the replies folder, any folder name before
+  the file, the validator's messages replaced, a literal line in the refusal, and a literal line in
+  the reason of an unreadable file. Each was killed.
+- Findings:
+  - Major: `classify` returned a specification for any path below its folder, so a reviewer given a
+    path of the wrong shape (deeper, or directly in the folder) was refused three times for a path
+    it cannot change, and the validator would refuse it whatever the file held. Fixed: under
+    `open/` and `closed/` only `<specification>/agent-replies/<file>` is a specification; every
+    other shape is outside, and the hook lets the agent finish with a message. D17 says so (a
+    consequence of the maintainer's decision for a path outside the folders, not a new
+    decision); the cases moved to the outside group, with new ones.
+  - Minor: a check on the missing-folder message could not fail, because the path already contains
+    the folder. Fixed: it looks for the folder in backticks.
+  - Minor: the helper `key` hid the issue number and the file name that the count tests depend
+    on. Fixed: two constants, next to the specification and the reply.
+  - Minor: the test of the literal line looped over seven runs, stopped at the first failure and
+    missed the invalid-content and unreadable cases. Fixed: a test with nine named cases.
+  - Minor: two tests copied the wording of the validator's dependency. Fixed: they compute the
+    validator's messages for the same content and check that each appears.
+  - Nit: an assertion message about the draft path said it has no issue number, although it has one.
+    Reworded.
+  - Nit: the case of another issue adds little; kept.
+- Verdict: REVIEW PASSED
+- Follow-up actions:
+  - Author, done before the commit: the six fixes above, and the sentence of D17.
+
+### 2026-11-24 08:11 UTC - Test-design reviewer (Claude Code subagent, Claude Opus 5.5, `write-unit-test` skill)
+
+- Invocation scope: Read-only review of task T5, increment 3, on branch `2904-t5-task-reviewer`
+  before its commit: the file-system workspace `src/workspace.rs` of the crate
+  `agent-reply-validator` (the count of refusals in `.agents/issues/<issue-number>/reply-guard/`
+  and the reading of the reply file), with its unit tests on a disposable folder. One round, then
+  the author's fixes.
+- Inputs: D17 ("The count of refusals"); `src/guard.rs` for the trait;
+  `.claude/skills/write-unit-test/SKILL.md`; `AGENTS.md`; the uncommitted file.
+- Evidence: `cargo test -q -p agent-reply-validator --lib workspace` passed with 31 tests in the
+  review and 32 after the fixes; clippy with the workspace lints and nightly rustfmt were clean.
+  The author ran fourteen mutations before the review, and each made at least one test fail:
+  `exists` instead of `is_dir`, a symbolic link read through, a folder not rejected up front, a
+  garbage count read as one, the key ignoring the run, the file name or the issue, a slash allowed
+  in a name, a leading dot kept, clearing doing nothing, the state folder not created, the failure
+  reason not relative to the root, and invalid UTF-8 read with substitute characters. One of them first did not
+  compile, because it left a function unused, and was rewritten. After the fixes the author ran
+  two more, appending instead of replacing the count and not reducing the names, and each was
+  killed.
+- Findings:
+  - Minor: no test replaced a count that was already there, so writing by appending would have
+    passed every test, and the file `1` then `2` would parse as no count. Fixed: a test writes
+    twice and reads the file.
+  - Minor: one assertion of the test about names that are paths could not fail (the folder
+    `escape` was never the target). Fixed: the test compares the folder's listing with the one
+    expected name.
+  - Minor: the issue number of the keys was hidden in the fixture. Fixed: a constant, with the
+    expected paths spelling the number out.
+  - Nit: the assertion of the test that clears a count never kept was true from the start. Kept,
+    with a message that says the test exists for the absence of a panic.
+  - Nit: the test of the failure reason did not check that a reason follows the file name. Fixed.
+  - The reviewer judged that real disk use is justified here, since the file system is the
+    behaviour under test, each test has its own folder, and the pure part (the safe names) is
+    tested without disk.
+- Verdict: REVIEW PASSED
+- Follow-up actions:
+  - Author, done before the commit: the four fixes above.
+
+### 2026-11-24 08:17 UTC - Test-design reviewer (Claude Code subagent, Claude Opus 5.5, `write-unit-test` skill)
+
+- Invocation scope: Read-only review of task T5, increment 4, on branch `2904-t5-task-reviewer`
+  before its commit: the binary `agent-reply-guard` (`src/bin/agent-reply-guard/main.rs`) with
+  its unit tests, the command-boundary tests `tests/guard.rs` (the built binary in a disposable
+  git repository, fed hook input on standard input and a real transcript file), and the move of
+  the git-isolation helper of `tests/cli.rs` into `tests/support/mod.rs`. One round, then the
+  author's fixes.
+- Inputs: D17 ("How the hook works"); `.claude/skills/write-unit-test/SKILL.md`; `AGENTS.md`; the
+  uncommitted files.
+- Evidence: `cargo test -q -p agent-reply-validator --test guard --bin agent-reply-guard` passed
+  with 18 and 4 tests in the review, and 15 and 5 after the fixes; the `cli` tests still pass;
+  clippy with the workspace lints and nightly rustfmt were clean. The author ran nine mutations
+  of `main.rs` before the review, and each made at least one test fail: a refusal exiting 1, a
+  failure exiting 2, the message key renamed, the transcript ignored, the input directory
+  ignored, the agent id ignored, the refusal on standard output, arguments accepted, and an empty
+  agent id accepted. After the fixes the author ran three more: a strict UTF-8 transcript, the
+  process directory ignored, and a failed read of standard input ignored. Each was killed. The
+  mutation of the input directory first did not compile (the field became unused) and was
+  rewritten.
+- Findings:
+  - Minor: two command-boundary tests repeated unit tests of `main.rs` (an argument given, input
+    that is not JSON). Fixed: the command-boundary copies were deleted, and the unit tests now share
+    one assertion of the contract for a failure of the hook itself (exit 1, empty standard output,
+    a reason on standard error).
+  - Minor: the fallback to the process directory, when the input has no directory, was untested,
+    and the subfolder test could not tell which directory was used. Fixed: a test without a
+    directory in the input, and the subfolder test starts the process at the root.
+  - Minor: a transcript that is not UTF-8 was untested, so a strict decoding would have survived.
+    Fixed: a test with an invalid byte in another record, and a unit test for standard input that
+    is not UTF-8.
+  - Minor: text assertions were tied to wording owned by the committed decision logic. Fixed: they
+    check the exit code, the stream, the file the test chose and the count files, and keep the one
+    property that belongs to the boundary, that the refusal never carries the literal line.
+  - Minor (optional): the table of five paths at the boundary re-tested decision rules. Fixed: two
+    cases remain, a draft (the shape of the message) and a path that leaves the repository (nothing
+    outside is read).
+  - Nit: two failure tests did not check that standard output is empty; one test name was
+    imprecise. Fixed.
+  - Not tested, as the reviewer accepted: a failed write of the message to standard output, which
+    exits 1.
+- Verdict: REVIEW PASSED
+- Follow-up actions:
+  - Author, done before the commit: the fixes above.
+
+### 2026-11-24 13:33 UTC - Test-design reviewer (Claude Code subagent `general-purpose`, Claude Sonnet 5.5, `write-unit-test` conventions)
+
+- Invocation scope: Test-design review of the uncommitted change that makes `agent-reply-guard` also
+  the program of a `PreToolUse` hook on `SubagentHandback` (decision D17, "Two registrations of the
+  program"): `subagent_transcript_path` in `src/transcript.rs`, `HookInput` and
+  `agent_transcript_path` in the binary, and the new command-boundary tests of `tests/guard.rs`.
+  One round, then the author's fixes. The reviewer inherited the session's model, which is
+  weaker than the Opus 5.5 of the earlier entries; the review is independent of the author's
+  reasoning but not of its model.
+- Inputs: `.claude/skills/write-unit-test/SKILL.md`; `AGENTS.md`; the uncommitted files.
+- Evidence: `cargo test -q -p agent-reply-validator` passed before and after the fixes (277 and
+  22 tests after, among others); clippy with the workspace lints and nightly rustfmt were clean.
+  The author ran five mutations before the review (the `subagents` folder renamed, `.` allowed in
+  an id, an empty id allowed, the session's transcript preferred, the id left out of the file
+  name), and each made a test fail.
+- Findings:
+  - Major: the precedence test passed for a guard that read neither file. Fixed: a table of two
+    cases, the named file valid and the derived one missing, and the reverse, each asserting the
+    exit code and an empty standard output.
+  - Major: the choice between the two paths was tested only at the process level. Fixed: unit tests
+    of `agent_transcript_path` for both fields, only the session's, and neither, and for a `null`
+    agent transcript.
+  - Minor: the session folder was a literal repeated in two places. Fixed: a constant and a helper.
+  - Minor: the shared count was tested in one order and never to the limit. Fixed: a test in which
+    the two hooks take turns, three refusals and a fourth attempt that is allowed with the message.
+  - Minor: the id and session-path cases were incomplete. Fixed: a backslash, a newline and a
+    non-ASCII id; an empty session path, a relative one, one without an extension and one with a
+    dotted stem.
+  - Minor: the failure test did not name the path the session leads to. Fixed.
+  - Nit: a test name still said the input lacks the transcript path; the valid hand-back test did
+    not check that no state is kept. Fixed. An empty `agent_transcript_path` is pinned as a failure
+    that names the empty path.
+  - Not applied: the overlap between `../x` and `a/b` in different layers was kept, because the
+    boundary case pins the message and the unit cases pin the rule.
+- Verdict: REVIEW PASSED
+- Follow-up actions:
+  - Author, done before the commit: the fixes above.

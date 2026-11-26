@@ -18,6 +18,7 @@
     ],
     "ignorePaths": [
         ".tmp/**",
+        ".agents/issues/**",
         "target",
         "docs/media/*.svg",
         "contrib/bencode/benches/*.bencode",
