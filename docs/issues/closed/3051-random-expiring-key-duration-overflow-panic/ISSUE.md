@@ -9,7 +9,7 @@ github-issue: 3051
 spec-path: docs/issues/closed/3051-random-expiring-key-duration-overflow-panic/ISSUE.md
 branch: "3051-random-expiring-key-duration-overflow-panic-spec"
 related-pr: 3064
-last-updated-utc: "2026-11-26 16:21"
+last-updated-utc: "2026-11-26 17:13"
 semantic-links:
   skill-links:
     - create-issue
@@ -225,22 +225,23 @@ commit.
 - 2026-11-25 19:06 UTC - Claude Code (Claude Sonnet 5.5) - T1-T2 done: four regression tests written and run red on branch 3051-random-expiring-key-duration-overflow-panic, no production change yet (evidence V2b)
 - 2026-11-25 19:12 UTC - Claude Code (Claude Sonnet 5.5) - T3 done: fix, callers and the generate_key unit tests; green run, mutation proof and linter all recorded (evidence V2c); the real-tracker recheck (V3) is next
 - 2026-11-25 19:14 UTC - Claude Code (Claude Sonnet 5.5) - T4 done: real-tracker recheck on the fix commit (evidence V3): requests 2 and 4 answer 400, no panic. Completion review: no material discovery, the implementation followed the spec (the REST handler arm, the benchmark caller and the renamed handler test were all planned)
-- 2026-11-26 13:50 UTC - Claude Code (Claude Sonnet 5.5) - Fix PR #3064 merged and issue #3051 closed; spec archived to `docs/issues/closed/` with the references repaired. The checkpoint "Reviewer validated acceptance criteria" stays unticked: the maintainer's ACK approved the head commit of each PR, and no reviewer checked the criteria against their checkboxes. After review 6075748165 of the archive PR the T5, M3 and AC5 rows were set to `DONE` with their evidence, so the ticked checkpoints agree with the record.
+- 2026-11-26 13:50 UTC - Claude Code (Claude Sonnet 5.5) - Fix PR #3064 merged and issue #3051 closed; spec archived to `docs/issues/closed/` with the references repaired. The checkpoint "Reviewer validated acceptance criteria" stays unticked: the maintainer's ACK approved the head commit of each PR, and no reviewer checked the criteria against their checkboxes.
+- 2026-11-26 17:13 UTC - Claude Code (Claude Sonnet 5.5) - After review 6075748165 of the archive PR the T5, M3 and AC5 rows were set to `DONE` with their evidence, so the ticked checkpoints agree with the record. After review 6077711472, AC1 to AC5 and the criteria re-review checkbox were unticked: only a reviewer ticks acceptance criteria, and the `DONE` rows of the Acceptance Verification table keep the evidence.
 
 ## Acceptance Criteria
 
-- [x] AC1: `key::generate_key(Some(d))` returns `Err(DurationOverflow)` when `now + d` overflows, and never panics.
-- [x] AC2: `KeysHandler::add_peer_key` with `opt_key: None` and `opt_seconds_valid: Some(u64::MAX)` returns
+- [ ] AC1: `key::generate_key(Some(d))` returns `Err(DurationOverflow)` when `now + d` overflows, and never panics.
+- [ ] AC2: `KeysHandler::add_peer_key` with `opt_key: None` and `opt_seconds_valid: Some(u64::MAX)` returns
       `PeerKeyError::DurationOverflow`.
-- [x] AC3: `KeysHandler::generate_expiring_peer_key` returns `DurationOverflow` on overflow and `DatabaseError` on a
+- [ ] AC3: `KeysHandler::generate_expiring_peer_key` returns `DurationOverflow` on overflow and `DatabaseError` on a
       database failure.
-- [x] AC4: `POST /api/v1/keys` (random key) and the generate-key endpoint answer `400` with "invalid auth key
+- [ ] AC4: `POST /api/v1/keys` (random key) and the generate-key endpoint answer `400` with "invalid auth key
       duration" for `u64::MAX`.
-- [x] AC5: The API change is stated in the PR description.
+- [ ] AC5: The API change is stated in the PR description.
 - [x] `linter all` exits with code `0`
 - [x] Relevant tests pass
 - [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 - [ ] Documentation is updated when behavior/workflow changes
 
 ## Verification Plan
