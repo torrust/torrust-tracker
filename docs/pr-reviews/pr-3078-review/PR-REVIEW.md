@@ -30,13 +30,14 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-F1 to F3 are da2ce7's three inline comments in review 6078692302 (an approval on the head whose last commit is `docs(issues): [#3060] record the green run, the V1 recheck and the AC3 scan on the fixed code`); the three findings of its body are the same three. The claude[bot] review 6077829784 (automated review is disabled for fork PRs), CodeRabbit's status comment and the maintainer's `ACK` contain no actionable assertion and have no rows. I listed every review, issue comment and inline comment of the PR by hand before recording this round.
+F1 to F3 are da2ce7's three inline comments in review 6078692302 (an approval on the head whose last commit is `docs(issues): [#3060] record the green run, the V1 recheck and the AC3 scan on the fixed code`); the three findings of its body are the same three. F4 is the "Out of Scope Changes" pre-merge check in the body of CodeRabbit's review 6079403289 (no inline thread). The claude[bot] review 6077829784 (automated review is disabled for fork PRs), CodeRabbit's status comment and the maintainer's `ACK` contain no actionable assertion and have no rows. I listed every review, issue comment and inline comment of the PR by hand before recording this round.
 
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3078-f1 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F2 | review-finding:pr-3078-f2 | da2ce7 | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-3078-f3 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F4 | review-finding:pr-3078-f4 | coderabbitai[bot] | Suggestion (inferred) | other | ORIGINAL | NO_ACTION | NON_RESOLVABLE |
 
 ## Finding Details
 
@@ -79,6 +80,19 @@ F1 to F3 are da2ce7's three inline comments in review 6078692302 (an approval on
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3078#discussion_r4712469814
 
+### F4 - The audit record is out of scope for this pull request
+
+- PR number: 3078
+- Source review ID: 6079403289
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3078#pullrequestreview-6079403289
+- Concern: CodeRabbit's "Out of Scope Changes" pre-merge check failed and asks to remove `docs/pr-reviews/pr-3078-review/PR-REVIEW.md` from the pull request, keep the audit outside the tracked repository, or move it to a separate pull request.
+- Solution: No action. `process-pr-review` makes the PR author own the tracked audit record `docs/pr-reviews/pr-<PR_NUMBER>-review/PR-REVIEW.md`, committed separately from product fixes, in the same pull request; the merged pull request 3062 carried its audit the same way. The review body has no inline thread, so the reply is a PR conversation comment.
+- Current-tree verification: `grep -n "docs/pr-reviews" .claude/skills/process-pr-review/SKILL.md` shows the rule (the record path is stated at the top of the skill and in its workflow).
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3078#issuecomment-7201388614
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3078#issuecomment-7201388614
+
 ## Processing Log
 
 - 2026-11-26 17:57 UTC - da2ce7's review 6078692302 arrived with F1 to F3 (approval).
@@ -87,6 +101,9 @@ F1 to F3 are da2ce7's three inline comments in review 6078692302 (an approval on
 - 2026-11-26 19:01 UTC - Pushed both, then replied on the three threads.
 - 2026-11-26 19:01 UTC - Created this record from the template. It was started after the replies were posted, not before the first reply as `process-pr-review` requires; the late start is logged here. The maintainer's `ACK` of the previous head (the commit `docs(issues): [#3060] record the green run, the V1 recheck and the AC3 scan on the fixed code`) is stale after this push.
 - 2026-11-26 19:08 UTC - Correction: the commit-id check printed the id of the previous head, which the Findings introduction and the 19:01 UTC entry above cited; I replaced it there with the commit subject (commit `docs(pr-reviews): [#3060] cite the audited head by commit subject, not by id`), so those two texts differ from what was first pushed.
+- 2026-11-26 19:15 UTC - CodeRabbit's review 6079403289 arrived on the head with a failed pre-merge check (F4).
+- 2026-11-26 19:16 UTC - Replied in a PR conversation comment (no action).
+- 2026-11-26 19:16 UTC - Added F4 to this record.
 
 ## Completion Rules
 
