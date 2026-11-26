@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: done
 priority: p1
 epic: null
 github-issue: 3051
-spec-path: docs/issues/open/3051-random-expiring-key-duration-overflow-panic/ISSUE.md
+spec-path: docs/issues/closed/3051-random-expiring-key-duration-overflow-panic/ISSUE.md
 branch: "3051-random-expiring-key-duration-overflow-panic-spec"
-related-pr: null
-last-updated-utc: "2026-11-25 15:18"
+related-pr: 3064
+last-updated-utc: "2026-11-26 13:50"
 semantic-links:
   skill-links:
     - create-issue
@@ -202,18 +202,18 @@ commit.
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/open/3051-random-expiring-key-duration-overflow-panic/ISSUE.md`
+- [x] Folder-style spec drafted in `docs/issues/closed/3051-random-expiring-key-duration-overflow-panic/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [x] Spec-only PR merged into `develop` before implementation
 - [x] Implementation completed
 - [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Implementation completion review recorded
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Implementation completion review recorded
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -225,6 +225,7 @@ commit.
 - 2026-11-25 19:06 UTC - Claude Code (Claude Sonnet 5.5) - T1-T2 done: four regression tests written and run red on branch 3051-random-expiring-key-duration-overflow-panic, no production change yet (evidence V2b)
 - 2026-11-25 19:12 UTC - Claude Code (Claude Sonnet 5.5) - T3 done: fix, callers and the generate_key unit tests; green run, mutation proof and linter all recorded (evidence V2c); the real-tracker recheck (V3) is next
 - 2026-11-25 19:14 UTC - Claude Code (Claude Sonnet 5.5) - T4 done: real-tracker recheck on the fix commit (evidence V3): requests 2 and 4 answer 400, no panic. Completion review: no material discovery, the implementation followed the spec (the REST handler arm, the benchmark caller and the renamed handler test were all planned)
+- 2026-11-26 13:50 UTC - Claude Code (Claude Sonnet 5.5) - Fix PR #3064 merged and issue #3051 closed; spec archived to `docs/issues/closed/` with the references repaired. The checkpoint "Reviewer validated acceptance criteria" stays unticked: no reviewer other than the maintainer's ACK validated the criteria.
 
 ## Acceptance Criteria
 

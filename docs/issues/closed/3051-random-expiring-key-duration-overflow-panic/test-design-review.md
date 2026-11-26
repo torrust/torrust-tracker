@@ -1,7 +1,7 @@
 ---
 doc-type: test-design-review
-issue-spec: docs/issues/open/3051-random-expiring-key-duration-overflow-panic/ISSUE.md
-last-updated-utc: "2026-11-25 19:10"
+issue-spec: docs/issues/closed/3051-random-expiring-key-duration-overflow-panic/ISSUE.md
+last-updated-utc: "2026-11-26 13:50"
 ---
 
 # Test design review: random expiring key duration overflow
