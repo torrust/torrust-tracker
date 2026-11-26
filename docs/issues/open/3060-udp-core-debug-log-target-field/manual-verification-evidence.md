@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/3060-udp-core-debug-log-target-field/ISSUE.md
-last-updated-utc: "2026-11-26 16:39"
+last-updated-utc: "2026-11-26 16:43"
 ---
 
 # Manual Verification Evidence
@@ -19,7 +19,7 @@ last-updated-utc: "2026-11-26 16:39"
 
 - Goal: see the log target of the two DEBUG lines as an operator would.
 - Initial state: unfixed code.
-- Status: `IN_PROGRESS` (before-fix result recorded; after-fix rerun TODO)
+- Status: `DONE` (before-fix result here; the after-fix recheck is in the section "T2 green run and V1 final recheck, after the fix")
 - Outcome class: **Reproduced** (the wrong target itself was observed, for both services).
 
 #### Steps Performed
@@ -86,7 +86,7 @@ In both lines the target printed before the message is the module path (`torrust
 
 #### Conclusion
 
-Both lines are logged under the module-path target with the stray field, as the spec describes. The after-fix rerun is TODO (task T4).
+Both lines are logged under the module-path target with the stray field, as the spec describes. The after-fix recheck is in the section "T2 green run and V1 final recheck, after the fix".
 
 ### V1 scope scans (same tree, 2026-11-25 17:37 UTC)
 
@@ -186,6 +186,48 @@ test result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 112 filtered out
 #### Conclusion
 
 Both tests fail on the unfixed code at the `UDP TRACKER: Sending ... event` assertion, after the capture had exactly one event line, so the red run is caused by the wrong target (the line is logged under the module path) and not by an empty capture. A failed `assert!` stops the test, so the later assertions (no module-path target, no stray field) were not evaluated in this run; the green run after the fix shows that they pass.
+
+### T2 green run and V1 final recheck, after the fix
+
+- Artifact under test: `torrust/develop` at the merge of #3070 plus the commits `test(udp-core): [#3060] assert the UDP core event DEBUG lines are logged under the UDP TRACKER target` and `fix(udp-core): [#3060] set the UDP TRACKER log target of the event DEBUG lines instead of recording a field` (the last production change of this branch at the time of this run). Stable Rust toolchain. If a review fix changes production code later, this section is rerun and says so.
+- Status: `DONE`
+
+#### Green regression tests
+
+`cargo test -p torrust-tracker-udp-core it_should_log_the_sent_event -- --test-threads=1` at 2026-11-26 16:41:04 UTC (saved lines in `evidence/t2-green-after-fix.txt`):
+
+```text
+running 2 tests
+test services::announce::tests::it_should_log_the_sent_event_under_the_udp_tracker_log_target ... ok
+test services::scrape::tests::it_should_log_the_sent_event_under_the_udp_tracker_log_target ... ok
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 112 filtered out; finished in 0.00s
+```
+
+The whole library suite of the package, `cargo test -p torrust-tracker-udp-core --lib` at the same time, printed `test result: ok. 114 passed; 0 failed` (112 existing tests and the two new ones).
+
+#### V1 recheck (same two temporary tests as in V1, on the fixed code)
+
+The temporary tests of section V1 were recreated with the same code, run with `cargo test -p torrust-tracker-udp-core temp_repro_ -- --nocapture --test-threads=1` (16:42:50 to 16:42:51 UTC; saved in `evidence/v1-after-fix.txt`) and reverted with `git checkout -- packages` (`git status --short` printed nothing afterwards):
+
+```text
+running 2 tests
+test services::announce::tests::temp_repro_announce_log_target ... CAPTURED>>>2026-11-26T16:42:51.578541Z DEBUG UDP TRACKER: Sending UdpAnnounce event: UdpAnnounce { connection: ConnectionContext { configuration_instance_id: ConfigurationInstanceId { service_role: UdpTracker, instance_index: 0 }, client_socket_addr: 203.0.113.10:51000, server_service_binding: ServiceBinding { protocol: UDP, bind_address: 203.0.113.196:6969 }, public_url: None }, info_hash: InfoHash([17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17]), announcement: Peer { peer_id: PeerId([45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45]), peer_addr: 203.0.113.10:6881, updated: 1795711371.578526054s, uploaded: NumberOfBytes(0), downloaded: NumberOfBytes(0), left: NumberOfBytes(0), event: Started } }<<<
+test services::scrape::tests::temp_repro_scrape_log_target ... CAPTURED>>>2026-11-26T16:42:51.578737Z DEBUG UDP TRACKER: Sending UdpScrape event: UdpScrape { connection: ConnectionContext { configuration_instance_id: ConfigurationInstanceId { service_role: UdpTracker, instance_index: 0 }, client_socket_addr: 203.0.113.10:51000, server_service_binding: ServiceBinding { protocol: UDP, bind_address: 203.0.113.196:6969 }, public_url: None } }<<<
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 114 filtered out; finished in 0.00s
+```
+
+Both lines are now logged under the `UDP TRACKER` target and carry no `target="UDP TRACKER"` field (`grep -c 'target=' evidence/v1-after-fix.txt` printed 0).
+
+#### AC3 scan on the fixed code
+
+The AC3 command of the specification, run from the repository root after the fix commit:
+
+```text
+$ grep -rPzo '<the AC3 pattern>' packages src --include=*.rs | tr '\0' '\n'
+(no output)
+```
+
+It printed nothing (before the fix it printed `announce.rs` and `scrape.rs`, see section V1 scope scans). The pattern is the one written out in AC3 of `ISSUE.md`.
 
 ## Failures and Follow-up
 

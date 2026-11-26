@@ -1,0 +1,4 @@
+running 2 tests
+test services::announce::tests::it_should_log_the_sent_event_under_the_udp_tracker_log_target ... ok
+test services::scrape::tests::it_should_log_the_sent_event_under_the_udp_tracker_log_target ... ok
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 112 filtered out; finished in 0.00s
