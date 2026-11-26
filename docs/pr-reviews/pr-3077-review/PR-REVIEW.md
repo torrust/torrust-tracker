@@ -1,7 +1,7 @@
 ---
 pr-number: 3077
 pr-url: https://github.com/torrust/torrust-tracker/pull/3077
-last-updated-utc: "2026-11-26 17:11"
+last-updated-utc: "2026-11-26 17:24"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -44,12 +44,15 @@ Round 1, on the first head of the pull request (`a05870195`): da2ce7's review 60
 (`APPROVED`) with four inline threads (F1 to F4). Its body lists the same four findings, so it adds
 no row.
 
+Round 2, on head `dbe1c213a`: CodeRabbit review 6078161355 with one inline thread (F5).
+
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3077-f1 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F2 | review-finding:pr-3077-f2 | da2ce7 | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-3077-f3 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F4 | review-finding:pr-3077-f4 | da2ce7 | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F5 | review-finding:pr-3077-f5 | coderabbitai[bot] | Minor | link-integrity | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -121,11 +124,31 @@ no row.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3077#discussion_r4711533091
 
+### F5 - The ADR linked the issue spec by its path
+
+- PR number: 3077
+- Source review ID: 6078161355
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3077#discussion_r4711558645
+- Concern: The ADR listed the spec path in its `related-artifacts` and again under References, so
+  each move of the spec changes two entries. The semantic-link convention asks a long-lived
+  artifact to use `"issue #NNNN"` and not to repeat `related-artifacts` under References.
+- Solution: The frontmatter lists `"issue #3037"`, and the References entry with the spec path is
+  removed.
+- Current-tree verification: `rg -n 3037-2003` on
+  `docs/adrs/20261124182709_review_pull_requests_without_a_mandatory_reviewer.md` prints nothing,
+  and its frontmatter lists `- "issue #3037"`.
+- Resolution reference: docs(adrs): [#3037] link the issue by number instead of its spec path
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3077#discussion_r4711685354
+
 ## Processing Log
 
 - 2026-11-26 17:03 UTC - Round 1: da2ce7's review 6078022494 (17:03:45, `APPROVED`, on `a05870195`) with four threads.
 - 2026-11-26 17:06 UTC - Committed the fixes for F1, F2 and F4 (last commit 17:06:55), pushed them (head `dbe1c213a`) before the replies, and edited the description for F3.
 - 2026-11-26 17:11 UTC - Replied on the four threads (r4711531588, r4711532128, r4711532676, r4711533091) and resolved them; created this audit record.
+- 2026-11-26 17:13 UTC - Round 2: CodeRabbit review 6078161355 (17:13:38, on `dbe1c213a`) with one thread (F5).
+- 2026-11-26 17:18 UTC - Committed the F5 fix (17:18:44), pushed it (head `efcd82c11`), replied (r4711685354) and resolved the thread.
 
 ## Completion Rules
 
