@@ -12,7 +12,7 @@ semantic-links:
     - .claude/skills/process-pr-review/SKILL.md
     - .claude/skills/merge-pull-request/SKILL.md
     - .claude/skills/watch-pull-request-checks/SKILL.md
-    - docs/issues/closed/3037-2003-reviewer-neutral-pr-review/ISSUE.md
+    - "issue #3037"
 ---
 
 <!-- skill-link: create-adr -->
@@ -100,8 +100,6 @@ rate-limited reviewer block every pull request, which is the problem the change 
 
 ## References
 
-- Issue #3037 and its specification
-  (`docs/issues/closed/3037-2003-reviewer-neutral-pr-review/ISSUE.md`)
 - EPIC #2003 - Overhaul: Automation Tools and AI Agent Guardrails
 - Issue #2977 (reviewer deadline and hand-over report)
 - [`20260821172000_establish_ai_agent_context_capability_and_portability_governance.md`](20260821172000_establish_ai_agent_context_capability_and_portability_governance.md)
