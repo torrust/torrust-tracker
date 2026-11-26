@@ -103,12 +103,13 @@ to stop and ask the maintainer. The fields:
   (which has no blocker); `REVIEW_FAILED` for `REQUEST_CHANGES`; `DONE` for
   `POST_MERGE_FINDINGS`, with the label at the start of the `summary`; `QUESTION` when only the
   contributor can answer something; `BLOCKED` when you cannot review.
-- `summary`: the verdict in a few sentences.
+- `summary`: the verdict in a few sentences, with the base branch of the pull request.
 - `findings`: one for each finding, with a `severity` (`Blocker`, `Major`, `Minor`, `Nit` or
   `Suggestion`), a `location` and a `description` that carries the remediation.
 - `questions`: what the contributor must answer, one text each, or an empty list.
-- `evidence`: the commands you ran and what they showed, the checks you read, and the checklist
-  gaps, one text each.
+- `evidence`: the commands you ran and what they showed, the checks you read, the files you
+  reviewed, the checklist gaps, and the follow-up owner and action (write `none` when no follow-up
+  applies), one text each.
 
 Check the file with the validator before you finish:
 
