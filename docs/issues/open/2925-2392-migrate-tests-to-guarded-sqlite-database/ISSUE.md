@@ -7,9 +7,9 @@ priority: p2
 epic: 2392
 github-issue: 2925
 spec-path: docs/issues/open/2925-2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md
-branch: "2392-split-test-temp-files-spec"
+branch: "2925-migrate-tests-to-guarded-sqlite-database"
 related-pr: null
-last-updated-utc: "2026-11-24 17:06"
+last-updated-utc: "2026-11-26 08:35"
 semantic-links:
   skill-links:
     - create-issue
@@ -135,11 +135,66 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | TODO | Reproduce and classify | Before-count (V1); table of failing tests with their class; package order, naming and remaining SQLite start-up coverage approved by the maintainer. |
+| T1 | IN_PROGRESS | Reproduce and classify | Before-count (V1); table of failing tests with their class; package order, naming and remaining SQLite start-up coverage approved by the maintainer. |
 | T2 | TODO | Migrate one package | First pull request; migration pattern reviewed before T3. |
 | T3 | TODO | Migrate the remaining packages | One pull request per package; each records its package count. |
 | T4 | TODO | Default to no database | `ephemeral*()` set no database; `ephemeral_sqlite_database()` removed. |
 | T5 | TODO | Recheck | Fresh `TMPDIR` has no SQLite database file or directory after the suite (V2); `linter all` passes. |
+
+## T1 Findings and Proposals
+
+Measured on `develop` `f5329f758`, 2026-11-26 (details and the full list of failing tests in
+`manual-verification-evidence.md`).
+
+- **Before (V1):** 249 `data_*.db` files and no other entry in a fresh `TMPDIR` after the full suite.
+- **Classification (V1b):** with `ephemeral()` set to no database, 77 tests in 7 test binaries
+  and the `http_tracker_core_benchmark` bench fail. 48 tests need persistence; 29 only run a helper
+  that unwraps the database configuration. `tracker-core` does not fail (its own guard wrappers).
+  The 100 failures of the #2907 count dropped because `tracker-core` is already migrated.
+
+  | Package (test binary) | Failing | Need persistence | Helper only | Cause of the helper-only ones |
+  | --- | --- | --- | --- | --- |
+  | `udp-server` (`--lib`) | 25 | 1 (`scrape` persisted downloads) | 24 | `initialize_core_tracker_services` calls `initialize_database` |
+  | `axum-http-server` (`--lib`) | 5 | 0 | 5 | the same helper in `v1/handlers/announce.rs` |
+  | `axum-http-server` (`--test integration`) | 9 | 9 (private, listed, private and listed) | 0 | |
+  | `axum-rest-api-server` (`--lib`) | 2 | 2 (routes that need keys or whitelist persistence) | 0 | |
+  | `axum-rest-api-server` (`--test integration`) | 31 | 31 (`auth_key`, `whitelist`, one persisted metric) | 0 | |
+  | `http-core` (`--lib`) | 2 | 2 (`HttpTrackerCoreContainer::initialize` composes persistence) | 0 | |
+  | `http-core` (bench) | 1 | 1 (`benches/helpers/util.rs` initializes the database) | 0 | |
+  | `torrust-tracker` (`--lib`) | 3 | 3 (`app` tests that set `persistent_torrent_completed_stat`) | 0 | |
+
+- **`http-core` leaks:** the 6 files of the #2924 recheck come from the two container tests (1
+  each) and from the benchmark (4); no other `http-core` test leaks one.
+- **Not owned by this issue:** `tracker-core` keeps its own `EphemeralConfiguration` wrappers and
+  no issue owns adopting the shared type there. Reported to the EPIC coordinator.
+
+### Proposals for the maintainer (T1 approval)
+
+- **Pull-request order:** `udp-server` first (it shows both patterns: a helper that stops
+  unwrapping, and one test that opts in), then `http-core`, `axum-http-server`,
+  `axum-rest-api-server`, `torrust-tracker` (root `src/`), then the T4 default change. The
+  design-review checkpoint of the spec happens after the `udp-server` pull request.
+- **Naming:** keep the `ephemeral*()` names. A rename touches about 280 call sites for no
+  behavioural gain; the doc comment of `ephemeral()` states that it configures no database.
+- **Helper pattern:** a helper that only assumed persistence initializes it only when
+  `core.database` is set, so it works before and after T4. A test that needs persistence calls
+  `ephemeral_with_sqlite_database()` (or a wrapper that takes the config) and keeps the guard in
+  its fixture struct for the whole test body.
+
+### SQLite start-up coverage that remains (AC4)
+
+After T4 the SQLite start-up path stays covered by these tests; every other test of the suite
+runs without a database:
+
+- the 48 migrated tests listed in the evidence appendix, which use the guard-owned database;
+- the `tracker-core` tests and its restart tests (`packages/tracker-core/tests/integration.rs`),
+  which use that package's own guard;
+- the `torrust-tracker-test-helpers` factory tests and the `src/bootstrap/persistence.rs` and
+  `src/container.rs` unit tests.
+
+The tests that no longer start SQLite are the public-mode contract and handler tests of the
+`udp-server`, `axum-http-server` and `axum-health-check-api-server` packages. The coverage of the
+production start-up path with a real database stays with the tests above and the end-to-end runs.
 
 ## Commit Points
 
@@ -179,6 +234,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   the goal, AC1, T5 and V2 now also exclude a leftover guard directory, because the guard keeps
   the database as `data.db` inside a directory and a check for `data_*.db` alone would miss it.
 
+- 2026-11-26 08:35 UTC - Claude Code (Claude Sonnet 5.5), #2925 implementer - T1: recorded V1 (249 files),
+  the no-database classification (77 failing tests, 48 need persistence) and the per-test
+  attribution of the 6 `http-core` files. Proposed the package order and kept names. Waiting for
+  the maintainer's approval (relayed by the EPIC coordinator) before T2.
+
 ## Acceptance Criteria
 
 - [ ] AC1: After the full test suite with a fresh `TMPDIR`, no SQLite database remains:
@@ -203,7 +263,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| V1 | Reproduce | `TMPDIR=$(mktemp -d) cargo +stable test --tests --benches --examples --workspace --all-targets --all-features`, then count the files | Leaked files counted | TODO | `manual-verification-evidence.md` |
+| V1 | Reproduce | `TMPDIR=$(mktemp -d) cargo +stable test --tests --benches --examples --workspace --all-targets --all-features`, then count the files | Leaked files counted | DONE (249) | `manual-verification-evidence.md` |
 | V2 | Recheck | Same command after T4 | No `data_*.db` file and no leftover guard directory, with or without its `data.db` file; no entry at all once #2907 is done | TODO | `manual-verification-evidence.md` |
 
 Evidence policy: every recorded command result names the toolchain that produced it, and the
