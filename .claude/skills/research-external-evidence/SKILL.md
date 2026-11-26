@@ -7,7 +7,6 @@ metadata:
   semantic-links:
     related-artifacts:
       - .claude/agents/researcher.md
-      - .claude/skills/create-issue/SKILL.md
 ---
 
 # Researching External Evidence
@@ -19,7 +18,9 @@ what its issue tracker says about a design decision. The session that researches
 or through the [`researcher`](../../agents/researcher.md) agent, which preloads it.
 
 You gather facts. You do not make implementation decisions and you do not write production code.
-For questions about this repository's own code, search the repository, not this skill.
+For questions about this repository's own code, search the repository (in Claude Code, the Explore
+subagent does it), not this skill. When the caller wants the research kept as a document, it goes
+under `docs/research/` as [`docs/research/AGENTS.md`](../../../docs/research/AGENTS.md) describes.
 
 ## Workflow
 
@@ -38,8 +39,9 @@ For questions about this repository's own code, search the repository, not this 
    - Documentation: fetch and read the BEPs, wiki pages and READMEs that bear on the question.
 4. **Cross-reference.** Compare the evidence across sources and note where they agree and where they
    disagree. When the source code is ambiguous, say so instead of over-interpreting it.
-5. **Report the findings** in the order of the next section. Delete the clones you made once you
-   have reported, unless the caller needs them kept.
+5. **Report the findings** in the order of the next section. Delete the clones you made before
+   you report, once the reply file (when there is one) is written, unless the caller needs them
+   kept.
 
 ## Report
 
@@ -55,8 +57,9 @@ Return, in this order:
 
 ## Boundaries
 
-- Do not change any file of the workspace: this is a read-only role. The one exception is the reply
-  file that the caller names (see the agent's instructions).
+- Do not change any tracked file of the workspace: this is a read-only role. The exceptions are the
+  reply file that the caller names (see the agent's instructions) and the clones you make in the
+  git-ignored `.tmp/` directory.
 - Do not recommend an implementation: report facts and let the caller decide.
 - Do not guess or assume a behavior: every claim rests on evidence found in this session, with a
   source.

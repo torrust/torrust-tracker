@@ -66,8 +66,8 @@ See [`add-new-skill`](add-new-skill/SKILL.md).
 
 ## Implementation
 
-| Skill | Purpose |
-| ----- | ------- |
+| Skill                                       | Purpose                                                                                                                                             |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [`implement-task`](implement-task/SKILL.md) | Implement one task of an approved issue specification with TDD: analyse, decompose, red-green-refactor, manual evidence, completion review, commit. |
 
 ## Logging
@@ -117,8 +117,8 @@ See [`add-new-skill`](add-new-skill/SKILL.md).
 
 ## Research
 
-| Skill | Purpose |
-| ----- | ------- |
+| Skill                                                               | Purpose                                                                                                    |
+| ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
 | [`research-external-evidence`](research-external-evidence/SKILL.md) | Gather evidence from other trackers' source, issue trackers, BEPs and docs, and report facts with sources. |
 
 ## Rust code quality
