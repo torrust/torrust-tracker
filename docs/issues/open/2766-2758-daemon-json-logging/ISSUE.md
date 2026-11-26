@@ -181,7 +181,7 @@ The issue is delivered as several pull requests of this one issue: the tasks are
 | T9 | Manual verification evidence | Commit after focused validation and required review. |
 | T10 | Follow-up issues and spec update | One documentation commit. |
 
-Use a Conventional Commit message with the narrow affected scope, and sign every commit with GPG. For test-producing work, use the `write-unit-test` skill and complete the design review it requires before each commit.
+For the test-producing tasks (T4 to T7), use the `write-unit-test` skill and work in the smallest behavior-focused increments: one behavior, its red test, the change that makes it pass. Complete an explicit design review after each passing test increment, before maintainer review and commit. Confirm that the test exposes the one causal initial-state difference; its fixture owns only incidental mechanics; and the production Act plus independently specified expected result remain visible. The review uses the prose-first Arrange-Act-Assert comparison of the skill, and it is recorded in the task's evidence (`manual-verification-evidence.md` or a file-local test plan). Commit each reviewed test-design increment before starting the next planned file or behavior area. After the final increment of a pull request, stop for maintainer review before the final verification, the last commit and the pull request. Use a Conventional Commit message with the narrow affected scope, and sign every commit with GPG.
 
 ## Progress Tracking
 
