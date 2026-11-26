@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/closed/3051-random-expiring-key-duration-overflow-panic/ISSUE.md
-last-updated-utc: "2026-11-26 13:50"
+last-updated-utc: "2026-11-26 16:21"
 ---
 
 # Manual Verification Evidence
@@ -164,7 +164,8 @@ the rebase, so V3 below still describes it.
   change; stable toolchain; `cargo build --bin torrust-tracker`; same configuration and requests as V1. The tracker
   was started in the background with
   `./target/debug/torrust-tracker --config-toml-path docs/issues/open/3051-random-expiring-key-duration-overflow-panic/evidence/tracker.repro.toml > .tmp/tracker.log 2>&1`
-  and answered `200` to the stats request at 19:13:41 UTC on 2026-11-25.
+  and answered `200` to the stats request at 19:13:41 UTC on 2026-11-25. As in V1, the command is shown as it ran:
+  the folder has since moved to `docs/issues/closed/`, and the configuration file is the one in its `evidence/` folder.
 - Status: `DONE` (outcome: **Fixed**)
 
 #### Steps Performed
