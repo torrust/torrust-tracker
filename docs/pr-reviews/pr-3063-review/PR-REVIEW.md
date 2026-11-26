@@ -42,7 +42,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Findings F1 to F7 come from review 6070914967 and findings F8 to F10 from review 6075692867, both by `da2ce7`; F11 to F13 come from review 6075857869 by `coderabbitai[bot]`; F14 is an inline comment of `da2ce7` (14:32 UTC) in review 6075885313. The
+Findings F1 to F7 come from review 6070914967 and findings F8 to F10 from review 6075692867, both by `da2ce7`; F11 to F13 come from review 6075857869 by `coderabbitai[bot]`; F14 is an inline comment of `da2ce7` (14:32 UTC) in review 6075885313, and F15 and F16 come from review 6076348650 by `da2ce7`. The
 `claude[bot]` review (6062721178, automated review is disabled for fork pull requests) and the
 `coderabbitai[bot]` rate-limit notice hold no actionable assertion and have no row.
 
@@ -62,6 +62,8 @@ Findings F1 to F7 come from review 6070914967 and findings F8 to F10 from review
 | F12 | review-finding:pr-3063-f12 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F13 | review-finding:pr-3063-f13 | coderabbitai[bot] | Minor | security | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F14 | review-finding:pr-3063-f14 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-3063-f15 | da2ce7 | Major | correctness | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-3063-f16 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -216,8 +218,8 @@ Findings F1 to F7 come from review 6070914967 and findings F8 to F10 from review
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3063#discussion_r4709773192
 - Concern: Rules 1, 2 and 7 require an operator-searchable reference for internal failures, but the fixed health-check result for a panicked probe job carries no request id and rule 9 named no other reference.
 - Solution: Rule 9 now says the report keeps its shape, the reference is the `x-request-id` header the health-check API sets on every reply, and the rule 7 event carries the same id and the service binding.
-- Current-tree verification: Read rule 9 of the ADR; `packages/axum-health-check-api-server/src/server.rs` sets `SetRequestIdLayer` and `PropagateHeaderLayer` for `x-request-id`.
-- Resolution reference: docs(adrs): [#3000] say how a health-check internal failure is correlated with its event
+- Current-tree verification: Read rule 9 of the ADR; `packages/axum-health-check-api-server/src/server.rs` sets `SetRequestIdLayer` and `PropagateHeaderLayer` for `x-request-id`. This first check named only the two layers and missed that the span does not declare `request_id`; F15 corrected it, and rule 9 now relies on the span field that rule 7 requires (`request_id = tracing::field::Empty` in `RedactedMakeSpan`, `packages/axum-server/src/request_log.rs`).
+- Resolution reference: docs(adrs): [#3000] require the request span to declare request_id
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3063#discussion_r4709888992
 
@@ -247,6 +249,32 @@ Findings F1 to F7 come from review 6070914967 and findings F8 to F10 from review
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3063#discussion_r4709958980
 
+### F15 - The request span declares no request_id, so an event in it does not carry the id
+
+- PR number: 3063
+- Source review ID: 6076348650
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3063#discussion_r4710122588
+- Concern: All three axum servers build the span with `RedactedMakeSpan`, which declares only `method`, `uri` and `version`, so `span.record("request_id", ...)` records nothing; rules 2, 7 and 9 of the ADR claimed the event carries the id. The audit row of F12 verified only the header.
+- Solution: Rule 7 now says the span must declare the field (`request_id = tracing::field::Empty` added to `RedactedMakeSpan` by the implementation) and that the event is emitted inside it; rule 2's option 3 and rule 9 follow, and "the other two servers" is "the HTTP tracker and the REST API". The F12 row cites this commit and verifies the span field.
+- Current-tree verification: `packages/axum-server/src/request_log.rs` lines 126-135 declare only `method`, `uri` and `version`; the UDP handler (`packages/udp-server/src/handlers/mod.rs`) declares `request_id` in `#[instrument(fields(request_id))]`; read rules 2, 7 and 9 of the ADR.
+- Resolution reference: docs(adrs): [#3000] require the request span to declare request_id
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3063#discussion_r4710185694
+
+### F16 - The log entry dates the fixes of review 6070914967 by their rebase
+
+- PR number: 3063
+- Source review ID: 6076348650
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3063#discussion_r4710122605
+- Concern: The entry of 14:21 UTC dates the fixes of F1 to F7 by the committer date of `docs(adrs): [#3000] keep the v1 status of a duplicate key and fix the review findings` after the rebase; its author date is 14:04:41Z, so the log puts the fixes after the replies of 14:07 that announced them.
+- Solution: A correcting entry is appended to the Processing Log (the log is append-only and chronological) with the author date and the explanation; the earlier entry is not rewritten.
+- Current-tree verification: `git log --format='%aI %cI %s'` shows author date 14:04:41Z and committer date 14:21:33Z for that commit.
+- Resolution reference: docs(adrs): [#3000] require the request span to declare request_id
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3063#discussion_r4710186181
+
 ## Processing Log
 
 - 2026-11-26 14:07 UTC - Late start: the seven replies to review 6070914967 were posted (14:07 UTC) before this record existed; the replies carry the dispositions, and this record was created after review 6075692867 noted its absence.
@@ -257,6 +285,8 @@ Findings F1 to F7 come from review 6070914967 and findings F8 to F10 from review
 - 2026-11-26 14:30 UTC - Review 6075857869 (`coderabbitai[bot]`, three inline findings F11 to F13) arrived; the poller reported only its first comment, and a listing of the review's comments showed all three.
 - 2026-11-26 14:40 UTC - Fixes for F11 and F12 committed in `docs(adrs): [#3000] link the issues by number in the ADR metadata and references` and `docs(adrs): [#3000] say how a health-check internal failure is correlated with its event` and pushed; replies to F11, F12 and F13 posted (14:40 UTC). F13 is `NO_ACTION` with the `Superseded by F13` reply form.
 - 2026-11-26 14:47 UTC - Recorded after the events. `da2ce7` commented at 14:32 UTC (4709795338, F14) that reply 4709719639 described an audit commit the branch did not hold: correct, the reply was posted at 14:26 UTC while the commit existed only locally, and the audit was first pushed at 14:45 UTC. At 14:43 UTC I resolved every open thread in one loop, including the F14 thread before it had a reply, which was out of order; the refreshed GraphQL list then showed all fourteen threads resolved. At 14:46 UTC I replied on the F14 thread (the reply states the mistake and maps the cited commit ids to subjects); the thread stays resolved.
+- 2026-11-26 15:02 UTC - Review 6076348650 (`da2ce7`, F15 and F16) arrived at 15:00 UTC. Fix for F15 committed in `docs(adrs): [#3000] require the request span to declare request_id` and pushed; replies to F15 and F16 posted (15:06 UTC).
+- 2026-11-26 15:07 UTC - Correction for F16: the fixes of F1 to F7 and F9 are in `docs(adrs): [#3000] keep the v1 status of a duplicate key and fix the review findings`, authored at 14:04 UTC (before the 14:07 replies); the 14:21 UTC stamp of the earlier entry is that commit's committer date after the rebase onto `develop`. The F12 row was updated in place to cite the F15 commit and to verify the span field.
 
 ## Completion Rules
 
