@@ -6,7 +6,7 @@ epic: null
 github-issue: 2392
 spec-path: docs/issues/open/2392-test-isolation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-26 07:04"
+last-updated-utc: "2026-11-26 16:11"
 semantic-links:
   skill-links:
     - create-issue
@@ -225,6 +225,13 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
   because some tests start a second environment on the same database.
 - 2026-11-18 (maintainer, recorded in the archived EPIC #1488 spec): EPIC #1488 closes without
   waiting for #1419, and #1419 continues under this EPIC with its remaining R8, AC8a and R9.
+- 2026-11-26 (maintainer, #2925 T1): the migration to the guard-owned SQLite database goes one pull
+  request per package, in this order: `udp-server`, `http-core`, `axum-http-server`,
+  `axum-rest-api-server`, the root `torrust-tracker` package, then T4. The helper pattern is to
+  initialize persistence only when `core.database` is set. The `ephemeral*()` names stay; only
+  `ephemeral_with_no_services()` becomes `ephemeral_without_services()`, in the T4 pull request.
+  The maintainer approved the order and the pattern with "Approve both" and the naming in the
+  #2925 session; the #2925 spec records them (pull request 3067).
 
 ## Progress Tracking
 
@@ -327,6 +334,9 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
 - 2026-11-26 07:04 UTC - Claude Code (Claude Sonnet 5.5), EPIC coordinator - AC1 is DONE. The maintainer
   linked #2924, #2925 and #2943 as sub-issues of #2392 and closed #2394, and the sub-issue list
   was checked on GitHub. Order 2's row now says #2394 is closed. AC2, AC3 and AC5 stay TODO.
+- 2026-11-26 16:11 UTC - Claude Code (Claude Sonnet 5.5), EPIC coordinator - Recorded the 2026-11-26 #2925 decisions
+  (package order, helper pattern, naming) in the Decisions section, at the request of the #2925
+  session and so that review can trace them.
 
 ## Acceptance Criteria
 
