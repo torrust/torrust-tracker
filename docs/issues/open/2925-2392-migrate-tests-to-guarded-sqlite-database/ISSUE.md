@@ -9,7 +9,7 @@ github-issue: 2925
 spec-path: docs/issues/open/2925-2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md
 branch: "2925-migrate-tests-to-guarded-sqlite-database"
 related-pr: null
-last-updated-utc: "2026-11-26 08:50"
+last-updated-utc: "2026-11-26 13:59"
 semantic-links:
   skill-links:
     - create-issue
@@ -240,7 +240,7 @@ production start-up path with a real database stays with the tests above and the
   the no-database classification (77 failing tests, 48 need persistence) and the per-test
   attribution of the 6 `http-core` files. Proposed the package order and kept names. Waiting for
   the maintainer's approval (relayed by the EPIC coordinator) before T2.
-- 2026-11-26 08:50 UTC - Claude Code (Claude Sonnet 5.5), #2925 implementer - The maintainer, in this
+- 2026-11-26 13:59 UTC - Claude Code (Claude Sonnet 5.5), #2925 implementer - The maintainer, in this
   session, agreed with the problem and the solution and approved the naming: keep `ephemeral*()`,
   rename only `ephemeral_with_no_services()` to `ephemeral_without_services()` in the T4 pull
   request. The package order and the helper pattern were explained to him in the same exchange.
