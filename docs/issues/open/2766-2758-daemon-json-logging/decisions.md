@@ -145,8 +145,9 @@ same shape (D4). Consequences found in the code:
 - The install function is public in `torrust_tracker_lib`, because `hung-component-tracker` has the
   same `main` and must behave like the daemon (the lifecycle tests read its output), and `profiling`
   calls it too. Both stop using `eprintln!` for the startup failure.
-- `initialize_global_services` no longer installs a subscriber; it only sets the level, and does
-  nothing when no subscriber was installed (in-process tests). Tests that want log output use
+- `initialize_global_services` no longer installs a subscriber; it sets the level and the style of
+  the log records from the configuration (`trace_filter` and `trace_style`), and does nothing when
+  no subscriber was installed (in-process tests). Tests that want log output use
   `torrust_tracker_test_helpers::logging::setup()`, as most already do.
 
 ## D3 - Where the logging setup code lives
