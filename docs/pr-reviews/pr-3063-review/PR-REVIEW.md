@@ -42,7 +42,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Findings F1 to F7 come from review 6070914967 and findings F8 to F10 from review 6075692867, both by `da2ce7`; F11 to F13 come from review 6075857869 by `coderabbitai[bot]`; F14 is an inline comment of `da2ce7` (14:32 UTC) in review 6075885313, F15 and F16 come from review 6076348650 by `da2ce7`, F20 from review 6077528205 by `da2ce7`, and F17 to F19 are follow-up replies of `coderabbitai[bot]` (14:46 UTC, reviews 6076107248, 6076112434 and 6076112623) to the replies on the threads of F12, F13 and F11, which the poller did not report. The
+Findings F1 to F7 come from review 6070914967 and findings F8 to F10 from review 6075692867, both by `da2ce7`; F11 to F13 come from review 6075857869 by `coderabbitai[bot]`; F14 is an inline comment of `da2ce7` (14:32 UTC) in review 6075885313, F15 and F16 come from review 6076348650 by `da2ce7`, F20 and F21 from review 6077528205 by `da2ce7`, and F17 to F19 are follow-up replies of `coderabbitai[bot]` (14:46 UTC, reviews 6076107248, 6076112434 and 6076112623) to the replies on the threads of F12, F13 and F11, which the poller did not report. The
 `claude[bot]` review (6062721178, automated review is disabled for fork pull requests) and the
 `coderabbitai[bot]` rate-limit notice hold no actionable assertion and have no row, and neither does the `coderabbitai[bot]` reply of 15:23 UTC (4710387901, review 6076691282), which concedes F19 and asks for nothing.
 
@@ -68,6 +68,7 @@ Findings F1 to F7 come from review 6070914967 and findings F8 to F10 from review
 | F18 | review-finding:pr-3063-f18 | coderabbitai[bot] | Minor (inferred) | security | RE_RAISE_OF:F13 | NO_ACTION | SUPERSEDED |
 | F19 | review-finding:pr-3063-f19 | coderabbitai[bot] | Minor (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
 | F20 | review-finding:pr-3063-f20 | da2ce7 | Minor | correctness | RE_RAISE_OF:F19 | FIXED | RESOLVED |
+| F21 | review-finding:pr-3063-f21 | da2ce7 | Minor | link-integrity | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -332,6 +333,19 @@ Findings F1 to F7 come from review 6070914967 and findings F8 to F10 from review
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3063#discussion_r4711154470
 
+### F21 - The log entry cites a branch commit by id
+
+- PR number: 3063
+- Source review ID: 6077528205
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3063#discussion_r4711088680
+- Concern: The Processing Log entry of 15:20 UTC cited the branch commit `2819aae20` by id; the `open-pull-request` skill allows no durable reference to a PR-branch commit by id, because a rebase changes it, and its commit-id check flags it.
+- Solution: The entry now names the approved head by its newest commit's subject and cites review 6076660183. This edits an existing log entry in place, which the skill's append-only rule normally forbids, so the edit is logged in an appended correction that names the rewritten content.
+- Current-tree verification: `grep -n '2819aae20' docs/pr-reviews/pr-3063-review/PR-REVIEW.md docs/issues/open/3000-*/ISSUE.md` prints nothing.
+- Resolution reference: docs(pr-reviews): [#3000] cite the approved head by commit subject instead of id
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3063#discussion_r4711225747
+
 ## Processing Log
 
 - 2026-11-26 14:07 UTC - Late start: the seven replies to review 6070914967 were posted (14:07 UTC) before this record existed; the replies carry the dispositions, and this record was created after review 6075692867 noted its absence.
@@ -348,6 +362,7 @@ Findings F1 to F7 come from review 6070914967 and findings F8 to F10 from review
 - 2026-11-26 15:22 UTC - Read the three follow-ups, replied to each with the `Superseded by` form (15:22 UTC), recorded them as F17 to F19, and corrected the resolution reference of F16 to the commit that carries the log correction. The threads were already resolved and stay resolved. The poller did not report these comments because I restarted it with the time of my own reply (14:46:49 UTC) as its cursor, which is later than the three comments (14:46:15 to 14:46:34 UTC); the cursor should come from the last reported event, and all reviews should be listed before a round is recorded.
 - 2026-11-26 15:57 UTC - Recorded the maintainer decision on the `public_url` discussion (F13 and F18) in the detail of F13 and in the specification's Risks section and progress log, in the commit `docs(issues): [#3000] record the decision on secrets in copied values`.
 - 2026-11-26 16:33 UTC - Recorded after the events. `da2ce7` commented at 16:25 UTC (4711088669, F20) that the disposition of F19 contradicts the convention and eight ADRs. Correct: my verification of F19 read the marker table only and said no ADR lists an issue in `related-artifacts`, which was false. Fix committed and pushed in `docs(adrs): [#3000] list the issues as quoted issue entries in related-artifacts`; replies posted at 16:32 UTC (on the F20 thread and, as a correction of reply 4710376279, on the F19 thread). The F19 row changed from `NO_ACTION`/`SUPERSEDED` to `FIXED`/`RESOLVED`.
+- 2026-11-26 16:40 UTC - Recorded after the events. Review 6077528205 (`da2ce7`, 16:25 UTC) held a second inline comment, F21 (4711088680), which the poller did not report and which I read only at 16:36 UTC, when the thread list showed it open. Fix committed and pushed in `docs(pr-reviews): [#3000] cite the approved head by commit subject instead of id`, reply posted at 16:39 UTC. Correction naming the rewritten content: the entry of 2026-11-26 15:20 UTC was edited in place in that commit, replacing the commit id it cited by a commit subject; nothing else in it changed.
 
 ## Completion Rules
 
