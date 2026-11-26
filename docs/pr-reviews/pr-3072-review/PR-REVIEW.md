@@ -44,7 +44,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Review 6075748165 (`da2ce7`, `CHANGES_REQUESTED`, 2026-11-26 14:23 UTC) posted four inline comments, F1 to F4; its body repeats the same four findings. Review 6077711472 (`da2ce7`, `APPROVED`, on head `docs(pr-reviews): [#3051] record the replies to review 6075748165 in the PR 3072 audit`) posted two inline comments, F5 and F6. Review 6075322623 (`claude[bot]`) only says that automated review is disabled for fork pull requests and has no finding.
+Review 6075748165 (`da2ce7`, `CHANGES_REQUESTED`, 2026-11-26 14:23 UTC) posted four inline comments, F1 to F4; its body repeats the same four findings. Review 6077711472 (`da2ce7`, `APPROVED`, on head `docs(pr-reviews): [#3051] record the replies to review 6075748165 in the PR 3072 audit`; dismissed by GitHub at 17:18:40 UTC when the commit `docs(pr-reviews): [#3051] record review 6077711472 in the PR 3072 audit` was pushed) posted two inline comments, F5 and F6, and in its body a finding of its own, F8. Review 6078748782 (`da2ce7`, `APPROVED`, on head `docs(pr-reviews): [#3051] record the replies to review 6077711472 in the PR 3072 audit`) posted two inline comments, F7 and F9, and repeats F8 in its body, F10. Review 6075322623 (`claude[bot]`) only says that automated review is disabled for fork pull requests and has no finding.
 
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
@@ -54,6 +54,10 @@ Review 6075748165 (`da2ce7`, `CHANGES_REQUESTED`, 2026-11-26 14:23 UTC) posted f
 | F4 | review-finding:pr-3072-f4 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F5 | review-finding:pr-3072-f5 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-3072-f6 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-3072-f7 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | OPEN |
+| F8 | review-finding:pr-3072-f8 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F9 | review-finding:pr-3072-f9 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | OPEN |
+| F10 | review-finding:pr-3072-f10 | da2ce7 | Nit | documentation | RE_RAISE_OF:F8 | FIXED | NON_RESOLVABLE |
 
 ## Finding Details
 
@@ -135,12 +139,65 @@ Review 6075748165 (`da2ce7`, `CHANGES_REQUESTED`, 2026-11-26 14:23 UTC) posted f
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/3072#discussion_r4711619894>
 
+### F7 - No audit row for the finding raised in the body of review 6077711472
+
+- PR number: 3072
+- Source review ID: 6078748782
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/3072#discussion_r4712020698>
+- Concern: The record lists only the two inline comments of review 6077711472, but its body raised a third finding, the description's Files list; it also does not say the review was dismissed at 17:18:40 UTC when the audit commit was pushed.
+- Solution: Added F8 for that body finding, with the review's URL as its source, and the dismissal to the summary line of the Findings section.
+- Current-tree verification: `grep -n "F8" docs/pr-reviews/pr-3072-review/PR-REVIEW.md` prints the row and its details; the summary line says the review was dismissed.
+- Resolution reference: docs(pr-reviews): [#3051] record review 6078748782 in the PR 3072 audit
+- Follow-up PR URL: N/A
+- Reply URL: pending
+
+### F8 - The description's Files list omits the audit record
+
+- PR number: 3072
+- Source review ID: 6077711472
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/3072#pullrequestreview-6077711472>
+- Concern: The description of the pull request lists only the moved spec folder, while the branch also adds `docs/pr-reviews/pr-3072-review/PR-REVIEW.md`; the description becomes the merge commit's body.
+- Solution: Added the audit record to the Files list and to the Summary of the description (`pulls/3072` PATCH). The review was a body-only finding, so no thread exists.
+- Current-tree verification: `gh-bot pr view 3072 --repo torrust/torrust-tracker --json body --jq .body` shows the audit record in the Files list.
+- Resolution reference: the edited pull request description
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
+### F9 - Three criteria still ticked by the author
+
+- PR number: 3072
+- Source review ID: 6078748782
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/3072#discussion_r4712020710>
+- Concern: `linter all` exits with code `0`, Relevant tests pass and Manual verification scenarios are executed are criteria in the same list and are still ticked by the author, while the log says only a reviewer ticks acceptance criteria.
+- Solution: Unticked the three, like AC1 to AC5, and added a progress-log entry; the Workflow Checkpoints already record that those checks ran. Swept the list: no other criterion is ticked.
+- Current-tree verification: `sed -n '/^## Acceptance Criteria/,/^## Verification Plan/p' docs/issues/closed/3051-random-expiring-key-duration-overflow-panic/ISSUE.md | grep -c "\[x\]"` prints 0.
+- Resolution reference: docs(issues): [#3051] leave the remaining criteria for a reviewer to tick
+- Follow-up PR URL: N/A
+- Reply URL: pending
+
+### F10 - The description's Files list omits the audit record (repeated)
+
+- PR number: 3072
+- Source review ID: 6078748782
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/3072#pullrequestreview-6078748782>
+- Concern: The body of review 6078748782 repeats F8 as a nit: the description's Files list still omits the audit record.
+- Solution: Fixed together with F8, by the same description edit.
+- Current-tree verification: same command as F8.
+- Resolution reference: the edited pull request description
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
 ## Processing Log
 
 - 2026-11-26 16:23 UTC - Review 6075748165 (`da2ce7`, `CHANGES_REQUESTED`, `submitted_at` 14:23:02Z) arrived on the head `chore(issues): archive closed issue #3051 spec to docs/issues/closed`: F1 to F4. This record was written before the first reply. `validate-audit-record.py` was not run by this session (it calls plain `gh`, which acts as `josecelano`).
 - 2026-11-26 16:28 UTC - Pushed the fix commit `docs(issues): [#3051] make the archived spec agree with its record` and this record (`git ls-remote` showed the head on the fork branch before the replies), replied on the four threads and resolved them. `validate-audit-record.py` was not run by this session.
 - 2026-11-26 17:13 UTC - Review 6077711472 (`da2ce7`, `APPROVED`) arrived on the head `docs(pr-reviews): [#3051] record the replies to review 6075748165 in the PR 3072 audit`: F5 and F6. This record was updated before the first reply. `validate-audit-record.py` was not run by this session.
 - 2026-11-26 17:19 UTC - Pushed the fix commit `docs(issues): [#3051] leave the acceptance criteria for a reviewer to tick` and the record (`git ls-remote` showed the head on the fork branch before the replies), replied on the two threads and resolved them. `validate-audit-record.py` was not run by this session.
+- 2026-11-26 18:57 UTC - Review 6078748782 (`da2ce7`, `APPROVED`) arrived on the head `docs(pr-reviews): [#3051] record the replies to review 6077711472 in the PR 3072 audit`: F7, F9 and F10; it showed that the body of review 6077711472 had a finding, F8, that this record had not captured, so F8 was added late. The description was edited for F8 and F10 (`pulls/3072` PATCH). `validate-audit-record.py` was not run by this session.
 
 ## Completion Rules
 
