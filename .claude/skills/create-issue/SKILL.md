@@ -50,6 +50,27 @@ Lifecycle docs:
 4. **Move the spec directory to `docs/issues/open/`** and include the issue number
 5. **Pre-commit checks** and commit the spec
 
+## Plan The Work
+
+When you draft the specification, also plan the work it describes:
+
+1. **Classify the issue** as `task`, `bug` or `feature`, and give the reason in one sentence.
+2. **Choose the implementation strategy** that fits the risk and the coupling, and say why:
+   parallel work streams for independent changes, progressive implementation for high-risk
+   changes, a spike first when the requirements are unclear.
+3. **Break the work into tasks** that are small, independent and verifiable. A task is about a day
+   of focused work or less and has one deliverable. For each task write its intent, its expected
+   output, how it is verified and what it depends on. The implementation steps inside a task are
+   for whoever implements it.
+4. **State the risks and the assumptions** the plan rests on in the `Risks and Trade-offs` section.
+5. Follow the [verification types](../../../docs/testing.md#verification-types) when you write the
+   verification plan.
+
+Leave no acceptance criterion ambiguous and no task vague: a criterion or a task that cannot be
+verified is rewritten before the draft is reviewed. When the person who implements the work asks a
+question because the specification is incomplete or does not match the code, answer it and update
+the specification before implementation resumes.
+
 For complex or high-impact issues, a **spec-first PR** is recommended:
 
 - Open a branch containing only issue-spec/EPIC documentation changes
