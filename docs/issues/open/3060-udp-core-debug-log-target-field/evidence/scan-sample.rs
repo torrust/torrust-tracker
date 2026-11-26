@@ -20,3 +20,11 @@ fn g() {
 fn h() {
     tracing::debug!(/* stats */ target = "X", "m");
 }
+
+fn i() {
+    tracing::debug! { target = "X", "m" };
+}
+
+fn j() {
+    tracing::info!("message, target = nope");
+}

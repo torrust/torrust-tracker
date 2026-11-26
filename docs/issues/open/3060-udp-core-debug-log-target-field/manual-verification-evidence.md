@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/3060-udp-core-debug-log-target-field/ISSUE.md
-last-updated-utc: "2026-11-25 18:31"
+last-updated-utc: "2026-11-26 11:12"
 ---
 
 # Manual Verification Evidence
@@ -135,10 +135,18 @@ fn g() {
 fn h() {
     tracing::debug!(/* stats */ target = "X", "m");
 }
+
+fn i() {
+    tracing::debug! { target = "X", "m" };
+}
+
+fn j() {
+    tracing::info!("message, target = nope");
+}
 ```
 
 ```text
-$ grep -Pzo '(?s)\b(?:trace|debug|info|warn|error|event|span|trace_span|debug_span|info_span|warn_span|error_span)!\s*\(\s*(?:(?:[^;{}()]|\([^()]*\))*?,\s*)?target\s*=[^=]' evidence/scan-sample.rs | tr '\0' '\n'
+$ grep -Pzo '(?s)\b(?:trace|debug|info|warn|error|event|span|trace_span|debug_span|info_span|warn_span|error_span)!\s*\(\s*(?:(?:[^;{}()]|\([^()]*\))*?,\s*)?target\s*=[^=]' docs/issues/open/3060-udp-core-debug-log-target-field/evidence/scan-sample.rs | tr '\0' '\n'
 debug!(
         target =
 event!(Level::DEBUG, target =
@@ -146,9 +154,10 @@ event!(
         tracing::Level::DEBUG,
         count = (1 + 1),
         target =
+info!("message, target =
 ```
 
-The multi-line `debug!` call, the `event!` call with a leading argument and the `event!` call whose earlier argument contains parentheses are found (the third case was added after review finding F14 of PR #3062); an earlier argument with nested parentheses, for example `count = ((1 + 1))`, is not matched: a regular expression cannot follow arbitrary nesting, so the claim of AC3 is limited to one level (finding F16 of PR #3062); a comment inside the macro arguments before `target =` (the last function of the sample) is not matched either and is documented as a known limit (finding F17 of PR #3062); `target: "Z"` (colon form) and the text `"target = nope"` inside a string are not.
+The multi-line `debug!` call, the `event!` call with a leading argument and the `event!` call whose earlier argument contains parentheses are found (the third case was added after review finding F14 of PR #3062); an earlier argument with nested parentheses, for example `count = ((1 + 1))`, is not matched: a regular expression cannot follow arbitrary nesting, so the claim of AC3 is limited to one level (finding F16 of PR #3062); a comment inside the macro arguments before `target =` (the last function of the sample) is not matched either and is documented as a known limit (finding F17 of PR #3062); `target: "Z"` (colon form) is not. Two cases of the sample show the limits of the scan: the brace-delimited `debug! { target = ... }` call (function `i`) is not matched, which is why AC3 covers parenthesized calls only (finding F18 of PR #3062), and `info!("message, target = nope")` (function `j`) is a false match, because the pattern takes the string up to its comma as an earlier argument and matches `target =` inside the string, so every match must be inspected by hand (finding F20). The commands of this section run from the repository root (finding F19). A false match only makes AC3 fail, the safe direction. The text `"target = nope"` of function `f`, with no comma before it, is not matched.
 
 ## Failures and Follow-up
 
