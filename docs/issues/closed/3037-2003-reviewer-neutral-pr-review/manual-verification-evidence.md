@@ -1,6 +1,6 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/3037-2003-reviewer-neutral-pr-review/ISSUE.md
+issue-spec: docs/issues/closed/3037-2003-reviewer-neutral-pr-review/ISSUE.md
 last-updated-utc: "2026-11-24 18:41"
 ---
 
