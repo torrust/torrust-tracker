@@ -9,7 +9,7 @@ github-issue: 3073
 spec-path: docs/issues/open/3073-2003-close-text-only-friction-register-rows/ISSUE.md
 branch: "3073-close-text-only-friction-register-rows-spec"
 related-pr: null
-last-updated-utc: "2026-11-26 16:46"
+last-updated-utc: "2026-11-26 17:12"
 semantic-links:
   skill-links:
     - create-issue
@@ -333,6 +333,7 @@ Each commit uses a Conventional Commit message with the narrow affected scope. N
 - 2026-11-26 15:21 UTC - Specification author - The maintainer approved the specification, including Decision 6. Issue #3073 was created with the label `task` and linked as a sub-issue of #2003 (`parent_issue_url` verified). Moved the specification to `docs/issues/open/3073-2003-close-text-only-friction-register-rows/` on the spec-only branch `3073-close-text-only-friction-register-rows-spec`, set `status: planned`, set `branch:` to that branch and filled in the issue number. Corrected the descriptions of T1 to T14 against the fourteen commits prepared for the first pull request, which change 29 files; the 65 rows, the decisions and the acceptance criteria are unchanged. A search of the tree found no reference to the former draft path. The spec-only pull request comes next.
 - 2026-11-26 16:22 UTC - Specification author - Pull request #3070 merged at `develop` `66c12ffe1`. Re-anchored T15 against the merged reviewer skill; all seven rows still hold. The implementation branch carries 72 rows in sixteen prepared commits across 30 files, including the separate formatter-path correction. Updated the delivery plan and acceptance criteria for one implementation pull request. The earlier entries describe the branch before this merge.
 - 2026-11-26 16:46 UTC - Specification author - Clarified the implementation pull request as sixteen prepared commits plus one evidence commit across 32 files; the review audit correction is scoped to its Processing Log, bases resolve at the branch head unless a revision is named, and the register report follows the merge.
+- 2026-11-26 17:12 UTC - Specification author - Assigned the separate formatter-path correction to T6, allowed an issue-local retrospective when the completion review requires it, and corrected the AC5 evidence wording after checking the T14 discussion-guide change.
 
 ## Acceptance Criteria
 
@@ -380,7 +381,7 @@ No disposable verification script is planned.
 | AC2 | TODO | Commit bodies; M1 |
 | AC3 | TODO | `git diff --stat develop...HEAD`; `git diff develop...HEAD -- contrib/dev-tools/git/hooks/pre-commit.sh`; M2 |
 | AC4 | TODO | `git diff develop...HEAD -- .claude/skills` shows no `version:` line |
-| AC5 | TODO | The lines the out-of-scope rows name are unchanged at the branch head |
+| AC5 | TODO | The passages the out-of-scope rows ask about keep their current text at the branch head; in-scope edits may touch the same lines |
 | AC6 | TODO | The closing-keyword scan of `open-pull-request` on both pull requests |
 | AC7 | TODO | The implementation pull request; M1 rows for T15 |
 
