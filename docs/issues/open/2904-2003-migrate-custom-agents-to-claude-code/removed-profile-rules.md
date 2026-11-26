@@ -13,6 +13,7 @@ semantic-links:
     - .claude/skills/process-pr-review/SKILL.md
     - .claude/skills/review-task/SKILL.md
     - .claude/skills/commit-changes/SKILL.md
+    - .claude/skills/implement-task/SKILL.md
     - .claude/skills/create-issue/SKILL.md
 ---
 
@@ -108,44 +109,44 @@ checked once before the pull request, and a follow-up issue evaluates Clippy's `
 ## `implementer`
 
 Replaced by the agent `implementer` (task T6), which uses the model of the session (decision D13) and
-starts no agent (decision D3). No skill owns the sequence of an implementation, so the agent file
-holds the workflow of the role, in seven steps, and refers to the skills that own each practice.
+starts no agent (decision D3). No skill owned the sequence of an implementation, so task T6 adds the skill `implement-task`,
+which holds the seven steps and links the skills that own each practice; the agent preloads it.
 The handoffs to `complexity-auditor`, `task-reviewer` and `committer` are dropped: the orchestrator
 starts the reviewer (task T9), and the implementer commits itself (decision D14).
 
 | Rule of the profile | Destination | Notes |
 | --- | --- | --- |
-| Identity: implement tasks correctly, simply and verifiably, with test-driven development whenever practical and the simplest solution that passes. | Agent file (identity) | |
+| Identity: implement tasks correctly, simply and verifiably, with test-driven development whenever practical and the simplest solution that passes. | Skill `implement-task` and the agent file (identity) | |
 | Follow Beck's four rules of simple design, in priority order. | `AGENTS.md`, "Development Principles" (already held it) | The agent file points to `AGENTS.md`. |
 | Follow `AGENTS.md` for repository-wide conventions. | `AGENTS.md`; agent file, "Workflow" | |
 | The pre-commit command, `--format=json` first and `--format=text --verbosity=verbose` for diagnostics. | `AGENTS.md`, "Build, Test, and Lint", and skills `run-pre-commit-checks` and `commit-changes` (already held it) | |
-| Skills to load when needed: `add-rust-dependency`, `fix-bug`, `write-unit-test`, `handle-errors-in-code`, `commit-changes`. | Agent file, `skills` field and "Workflow" steps 1, 3, 4 and 7 | `commit-changes` (decision D14) and `write-unit-test` are preloaded; the other three are read when the work needs them, so the agent does not start with their whole text. |
-| Follow the verification types: durable automatic checks in Rust, manual verification against the finished artifact, a disposable script only with the rationale the template requires. | Agent file, "Workflow" step 5; skill `create-issue`, "Plan The Work" | The rationale is required of the specification by `create-issue` (already held it). |
+| Skills to load when needed: `add-rust-dependency`, `fix-bug`, `write-unit-test`, `handle-errors-in-code`, `commit-changes`. | Agent file, `skills` field; skill `implement-task`, steps 1, 3, 4 and 7 | `implement-task`, `commit-changes` (decision D14) and `write-unit-test` are preloaded; the other three are read when the work needs them, so the agent does not start with their whole text. |
+| Follow the verification types: durable automatic checks in Rust, manual verification against the finished artifact, a disposable script only with the rationale the template requires. | Skill `implement-task`, step 5; skill `create-issue`, "Plan The Work" | The rationale is required of the specification by `create-issue` (already held it). |
 | ADR discoverability: link the ADR to the affected code and add module comments that link back. | Skill `create-adr` (already held it) | |
-| Step 1: read `AGENTS.md`, the skills of the area and the whole task; state what must change and what must not. | Agent file, "Workflow" step 1 | |
-| Step 1: decide whether the work is substantively a bug, whatever its labels, and then follow `fix-bug` in order. | Agent file, "Workflow" step 1; skill `fix-bug` (already held it) | |
-| Step 1: ask rather than guess; raise a specification that is ambiguous, incomplete or out of line with the code with the Planner or the user. | Agent file ("Inputs" and "Workflow") | There is no Planner and the implementer cannot ask the contributor: it returns the question in its reply with the verdict `QUESTION`, and the caller answers (decision D3). |
-| Step 2: break each task into the smallest independent, verifiable steps, each fit for one commit. | Agent file, "Workflow" step 2 | The agent follows the Commit Points of the specification. |
-| Step 3: write a failing test, minimal code, refactor; run `cargo test -p <package>`; when TDD is not practical, implement defensively and add tests as the next step. | Agent file, "Workflow" step 3; skill `write-unit-test` | |
+| Step 1: read `AGENTS.md`, the skills of the area and the whole task; state what must change and what must not. | Skill `implement-task`, step 1 | |
+| Step 1: decide whether the work is substantively a bug, whatever its labels, and then follow `fix-bug` in order. | Skill `implement-task`, step 1; skill `fix-bug` (already held it) | |
+| Step 1: ask rather than guess; raise a specification that is ambiguous, incomplete or out of line with the code with the Planner or the user. | Skill `implement-task`, step 1; agent file ("Inputs" and "Workflow") | There is no Planner and the implementer cannot ask the contributor: it returns the question in its reply with the verdict `QUESTION`, and the caller answers (decision D3). |
+| Step 2: break each task into the smallest independent, verifiable steps, each fit for one commit. | Skill `implement-task`, step 2 | The agent follows the Commit Points of the specification. |
+| Step 3: write a failing test, minimal code, refactor; run `cargo test -p <package>`; when TDD is not practical, implement defensively and add tests as the next step. | Skill `implement-task`, step 3; skill `write-unit-test` | |
 | Step 3.5: check the standard library and the workspace before a new crate, start from the latest stable version, document an older choice. | `AGENTS.md`, "Engineering Policies" 1, and skill `add-rust-dependency` (already held it) | |
 | Step 3.5: check base images when touching container artifacts; document the Rust API and the invariants; keep shell for orchestration. | `AGENTS.md`, "Engineering Policies" 2, 3 and 5 (already held it); agent file, "Workflow" step 4 | |
 | Step 4: invoke the Complexity Auditor after every step and do not go on while it reports a blocking issue. | Dropped | Decision D12: no agent audits code; the length and nesting items are checked once, by the task reviewer. |
-| Step 5: compare the result with the specification; decide whether `implementation-retrospective.md` is needed; otherwise log why not; send a lesson that applies beyond the issue to the skill, agent, template or document it concerns. | Agent file, "Workflow" step 6; skill `create-issue`, "Verification Requirements for Issue Specs" item 5 (already held it) | |
-| Step 5: do not create retrospectives for routine work with no material discovery; keep them evidence-based and blameless, and not a substitute for verifying the criteria. | `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` (already held it) | Agent file step 6 keeps only the condition for creating one. |
+| Step 5: compare the result with the specification; decide whether `implementation-retrospective.md` is needed; otherwise log why not; send a lesson that applies beyond the issue to the skill, agent, template or document it concerns. | Skill `implement-task`, step 6; skill `create-issue`, "Verification Requirements for Issue Specs" item 5 (already held it) | |
+| Step 5: do not create retrospectives for routine work with no material discovery; keep them evidence-based and blameless, and not a substitute for verifying the criteria. | `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` (already held it) | Skill `implement-task`, step 6, keeps only the condition for creating one. |
 | Step 5: a retrospective needs a folder-style specification; migrate a touched legacy single-file specification first, and `ISSUE.md` and `EPIC.md` are the allowed primary files. | Skill `review-task`, workflow step 7, and skill `create-issue`, "Migrating Legacy Specifications" (already held it) | |
 | Step 5: review the collaborators, the resource ownership, the deadlines and the passive infrastructure of fixtures with child processes, asynchronous I/O or network readiness. | Skill `create-issue`, the design-review checkpoint it requires of such specifications (already held it) | |
-| Step 5: perform the manual scenarios against the finished artifact before the independent verification and record the commands, output, logs and conclusions in `manual-verification-evidence.md`; for a bug, the first reproduction and the final recheck; test output is not a substitute. | Agent file, "Workflow" step 5; skills `create-issue` and `fix-bug` (already held it) | |
+| Step 5: perform the manual scenarios against the finished artifact before the independent verification and record the commands, output, logs and conclusions in `manual-verification-evidence.md`; for a bug, the first reproduction and the final recheck; test output is not a substitute. | Skill `implement-task`, step 5; skills `create-issue` and `fix-bug` (already held it) | |
 | Step 6: invoke the Task Reviewer with the specification path, the criteria, a summary of what changed per criterion, and a request to tick the verified items; wait for its report. | Dropped from the implementer | The orchestrator starts the task reviewer (decision D3, task T9) and gives it these inputs; the implementer reports what it changed in its reply. |
 | Step 6: include the reviewer's report and checkbox changes in the change set for the Committer; a failed report may be committed as durable evidence. | Skill `review-task`, "Recording The Review" (already held it) | The caller commits the reply file with the work it describes. |
 | Step 6: when the reviewer reports gaps, address them and ask for review again. | Dropped from the implementer | The orchestrator loops, with the round limit of 3 (decision D18, task T9). |
 | Step 7: after the reviewer approves, invoke the Committer; never commit directly. | Dropped | Decision D14: there is no `committer` agent; the implementer commits under the skill `commit-changes`. |
-| Do not do more than was asked: scope creep is a defect. | Agent file, "Constraints" | |
+| Do not do more than was asked: scope creep is a defect. | Skill `implement-task`, "Boundaries" | |
 | Do not suppress a warning or a Clippy lint without a documented reason. | `AGENTS.md`, "Code Style" (already held it) | |
 | Do not add a dependency without running `cargo machete`. | `AGENTS.md`, "Essential Rules" 4 (already held it) | |
 | Do not add a dependency without checking the latest stable version. | `AGENTS.md`, "Engineering Policies" 1 (already held it) | |
 | Do not commit code that fails the pre-commit script. | `AGENTS.md`, "Essential Rules" 1; agent file, "Constraints" | |
 | Do not skip the audit step, even for a small change. | Dropped | Decision D12. |
-| Do not self-verify the acceptance criteria and do not tick them in the specification. | Agent file, "Workflow" (last paragraph) | The task reviewer verifies and ticks (skill `review-task`, step 5). |
+| Do not self-verify the acceptance criteria and do not tick them in the specification. | Agent file, "Workflow" (last paragraph); skill `implement-task`, "Boundaries" | The task reviewer verifies and ticks (skill `review-task`, step 5). |
 | Do not leave meaningful behavior untested without documenting the reason. | `AGENTS.md`, "Engineering Policies" 4; agent file, "Workflow" step 5 | |
 | Tools: `execute`, `read`, `search`, `edit`, `todo`, `agent`. | Agent file (tools) | `Bash`, `Read`, `Edit`, `Write`, `Grep`, `Glob`. `agent` is dropped because the implementer starts no agent (decision D3); `todo` has no use in a run that the caller supervises through its reply. |
 | `argument-hint` and `user-invocable: true`, `disable-model-invocation: false`; `semantic-links` to `fix-bug`. | Agent file (inputs, `description`) | The hint becomes the "Inputs" section. The visibility keys have no Claude Code meaning. The link to `fix-bug` is step 1 of the workflow. |
