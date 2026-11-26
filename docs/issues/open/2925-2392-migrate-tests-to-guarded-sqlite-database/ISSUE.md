@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: in-progress
 priority: p2
 epic: 2392
 github-issue: 2925
 spec-path: docs/issues/open/2925-2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md
 branch: "2925-migrate-tests-to-guarded-sqlite-database"
 related-pr: null
-last-updated-utc: "2026-11-26 16:05"
+last-updated-utc: "2026-11-26 16:06"
 semantic-links:
   skill-links:
     - create-issue
@@ -150,7 +150,9 @@ Measured on `develop` `f5329f758`, 2026-11-26 (details and the full list of fail
 - **Classification (V1b):** with `ephemeral()` set to no database, 77 tests in 7 test binaries
   and the `http_tracker_core_benchmark` bench fail. 48 tests need persistence; 29 only run a helper
   that unwraps the database configuration. `tracker-core` does not fail (its own guard wrappers).
-  The 100 failures of the #2907 count dropped because `tracker-core` is already migrated.
+  The 100 failures of the #2907 count dropped mostly because `tracker-core` is already migrated;
+  the `axum-rest-api-server` count also moved (36 in `server::v1::contract` then, 31 now), because
+  its test files changed between the two counts.
 
   | Package (test binary) | Failing | Need persistence | Helper only | Cause of the helper-only ones |
   | --- | --- | --- | --- | --- |
@@ -160,8 +162,9 @@ Measured on `develop` `f5329f758`, 2026-11-26 (details and the full list of fail
   | `axum-rest-api-server` (`--lib`) | 2 | 2 (routes that need keys or whitelist persistence) | 0 | |
   | `axum-rest-api-server` (`--test integration`) | 31 | 31 (`auth_key`, `whitelist`, one persisted metric) | 0 | |
   | `http-core` (`--lib`) | 2 | 2 (`HttpTrackerCoreContainer::initialize` composes persistence) | 0 | |
-  | `http-core` (bench) | 1 | 1 (`benches/helpers/util.rs` initializes the database) | 0 | |
-  | `torrust-tracker` (`--lib`) | 3 | 3 (`app` tests that set `persistent_torrent_completed_stat`) | 0 | |
+  | `http-core` (bench, 1 bench, not a test) | 1 bench | 1 bench (`benches/helpers/util.rs` initializes the database) | 0 | |
+  | `torrust-tracker` (`--lib`) | 3 | 3 (two `app` tests set `persistent_torrent_completed_stat`; the third uses `ephemeral_private()` and expects persistence) | 0 | |
+  | Total | 77 tests and 1 bench | 48 tests and 1 bench | 29 | |
 
 - **`http-core` leaks:** the 6 files of the #2924 recheck come from the two container tests (1
   each) and from the benchmark (4); no other `http-core` test leaks one.
