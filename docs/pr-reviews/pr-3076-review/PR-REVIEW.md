@@ -1,7 +1,7 @@
 ---
 pr-number: 3076
 pr-url: https://github.com/torrust/torrust-tracker/pull/3076
-last-updated-utc: "2026-11-26 18:01"
+last-updated-utc: "2026-11-26 18:09"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -45,6 +45,8 @@ Round 1: `da2ce7`'s review 6077983778 (approved, with four inline findings) on t
 
 Round 2: `da2ce7`'s review 6078625708 on the head of commit `docs(pr-reviews): [#2904] point the resolution references of F3 and F4 to their fix on pull request 3076` (F5 to F7). F5 is its Minor finding that the record read `Reply URL: pending` and `OPEN` at that head, which the local commit with the replies of round 1 already answers.
 
+Round 3: `da2ce7`'s review 6078787946 on the head of commit `docs(pr-reviews): [#2904] record the second review round on pull request 3076` (F8, F9), given in the review body and not inline, so that they have no thread.
+
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3076-f1 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
@@ -54,6 +56,8 @@ Round 2: `da2ce7`'s review 6078625708 on the head of commit `docs(pr-reviews): [
 | F5 | review-finding:pr-3076-f5 | da2ce7 | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-3076-f6 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F7 | review-finding:pr-3076-f7 | da2ce7 | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-3076-f8 | da2ce7 | Minor | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F9 | review-finding:pr-3076-f9 | da2ce7 | Nit | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
 
 ## Finding Details
 
@@ -148,12 +152,39 @@ Round 2: `da2ce7`'s review 6078625708 on the head of commit `docs(pr-reviews): [
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3076#discussion_r4712003552
 
+### F8 - The rows of round 2 read pending and open at the reviewed head
+
+- PR number: 3076
+- Source review ID: 6078787946
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3076#pullrequestreview-6078787946
+- Concern: The three rows of round 2 carried the placeholder for the reply URL and the open state at the head under review, and the log ended before the replies.
+- Solution: The commit that records the three reply URLs, the resolved state and the log entry, and the commit that repairs the reply URL of F5, are on the branch with this push.
+- Current-tree verification: Ran the audit validator after the edits.
+- Resolution reference: docs(pr-reviews): [#2904] record the replies and resolved threads of the second review round on pull request 3076; docs(pr-reviews): [#2904] repair the reply URL of F5 on pull request 3076
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
+### F9 - A log entry gives the reply time as 17:16 UTC
+
+- PR number: 3076
+- Source review ID: 6078787946
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3076#pullrequestreview-6078787946
+- Concern: The entry of round 1 said the replies have `created_at` 17:16 UTC, while the forge gives 17:15:32Z to 17:15:39Z.
+- Solution: The entry says 17:15:32 UTC to 17:15:39 UTC.
+- Current-tree verification: Compared the entry with the `created_at` of the four replies.
+- Resolution reference: docs(pr-reviews): [#2904] record the third review round on pull request 3076
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
 ## Processing Log
 
 - 2026-11-26 17:03 UTC - Round 1: started on `da2ce7`'s review `6077983778` (four inline comments); the record was created before the first reply, and the fixes are committed locally. Replies follow the push.
-- 2026-11-26 17:15 UTC - Pushed round 1 (head commit `docs(pr-reviews): [#2904] point the resolution references of F3 and F4 to their fix on pull request 3076`), replied on the four threads (GitHub `created_at` 17:16 UTC) and resolved them with the GraphQL mutation, each returning `isResolved: true`. The reply URLs are recorded by this commit, which goes out with the next push.
+- 2026-11-26 17:15 UTC - Pushed round 1 (head commit `docs(pr-reviews): [#2904] point the resolution references of F3 and F4 to their fix on pull request 3076`), replied on the four threads (GitHub `created_at` 17:15:32 UTC to 17:15:39 UTC) and resolved them with the GraphQL mutation, each returning `isResolved: true`. The reply URLs are recorded by this commit, which goes out with the next push.
 - 2026-11-26 17:52 UTC - Round 2: started on `da2ce7`'s review `6078625708` (three inline comments); the fixes are committed locally, F5 being answered by the commit of the replies of round 1. Replies follow the push.
 - 2026-11-26 18:01 UTC - Pushed round 2 (head commit `docs(pr-reviews): [#2904] record the second review round on pull request 3076`), replied on the three threads (F5 to F7; GitHub `created_at` 18:02 UTC) and resolved them with the GraphQL mutation, each returning `isResolved: true`. The reply URLs are recorded by this commit.
+- 2026-11-26 18:09 UTC - Round 3: `da2ce7`'s review `6078787946` gave two findings in its body, F8 (answered by the commits of the replies of round 2, which go out with this push) and F9 (the time of an entry, corrected); they have no thread, so no reply URL is recorded.
 
 ## Completion Rules
 
