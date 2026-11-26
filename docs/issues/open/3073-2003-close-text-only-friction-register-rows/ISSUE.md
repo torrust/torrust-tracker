@@ -283,7 +283,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3 | TODO | Pull-request skill | The 7 T3 rows applied, with Decisions 4 and 6. Verified by `linter all`. No dependency. |
 | T4 | TODO | Commit skill | The 4 T4 rows applied. Verified by `linter all`. No dependency; its `commit-changes` hunks and T5's do not overlap. |
 | T5 | TODO | Hook and check skills | The 5 T5 rows applied. Verified by `linter all`, M2 and the dictionary-formatter test, which copies the hook. Either order with T4. |
-| T6 | TODO | Lint-level location | The 2 T6 rows applied, with Decision 3. Verified by `linter all`. No dependency. |
+| T6 | TODO | Lint-level location | The 2 T6 rows applied, with Decision 3; a separate final commit corrects the dictionary-formatter path and closes no row. Verified by `linter all`. No dependency. |
 | T7 | TODO | Issue-spec skills | The 9 T7 rows applied, with Decision 2. Verified by `linter all`. No dependency. |
 | T8 | TODO | Specification templates | The 5 T8 rows applied. Verified by `linter all` and the frontmatter validator of the hook. No dependency. |
 | T9 | TODO | Record templates | The 2 T9 rows applied. Verified by `linter all` and the report-contract check. No dependency. |
@@ -302,6 +302,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ---- | ------------------- | ------------- |
 | T1 to T14 | One file family, as listed under its task | One commit per task, after the pre-commit hook passes. The body lists the labels the commit closes and, for each, the basis its change rests on: a passage or code at the implementation branch head (`path:line`), or an earlier revision (`rev:path:line`) or commit that shows the practice. |
 | T15 | The reviewer skill | One commit after T1 in the implementation pull request, with the same body. |
+| T6 formatter-path correction | The run-linters skill and its reference | One separate commit after T15, last among the sixteen prepared commits. It closes no register row and carries no `Friction:` line. |
 | T16 | `manual-verification-evidence.md` and this specification's tracking sections | One `docs(issues)` commit in the implementation pull request. |
 | T17 | None | A GitHub comment; no repository change. |
 
