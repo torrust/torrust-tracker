@@ -32,7 +32,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Reviews processed: CodeRabbit 6070552226 (F1) and da2ce7 6071125410, 6075566793 and 6075682135. Review 6070518939 (claude[bot], fork notice) contains no finding and has no row. Findings without an inline thread come from review bodies and are `NON_RESOLVABLE`.
+Reviews processed: CodeRabbit 6070552226 (F1) and da2ce7 6071125410, 6075566793 and 6075682135 (round 1), then da2ce7 6077629605 (F20 to F22) and CodeRabbit 6077355518 (F19; its thread was opened before the audit and was resolved without a reply, so it is recorded in the second round). Review 6070518939 (claude[bot], fork notice) contains no finding and has no row. Findings without an inline thread come from review bodies and are `NON_RESOLVABLE`.
 
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
@@ -54,6 +54,10 @@ Reviews processed: CodeRabbit 6070552226 (F1) and da2ce7 6071125410, 6075566793 
 | F16 | review-finding:pr-3067-f16 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F17 | review-finding:pr-3067-f17 | da2ce7 | Nit | maintainability | ORIGINAL | NO_ACTION | NON_RESOLVABLE |
 | F18 | review-finding:pr-3067-f18 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F19 | review-finding:pr-3067-f19 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-3067-f20 | da2ce7 | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F21 | review-finding:pr-3067-f21 | da2ce7 | Minor | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F22 | review-finding:pr-3067-f22 | da2ce7 | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -291,11 +295,65 @@ Reviews processed: CodeRabbit 6070552226 (F1) and da2ce7 6071125410, 6075566793 
 - Follow-up PR URL: N/A
 - Reply URL: N/A
 
+### F19 - http-core missing-directory test listed as opening SQLite
+
+- PR number: 3067
+- Source review ID: 6077355518
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3067#discussion_r4710945881
+- Concern: The `http-core` test at `packages/http-core/src/container.rs` expects a panic and does not open a database, yet the AC4 bullet lists it beside tests that open SQLite.
+- Solution: Removed it from the list of tests that open a database and described it as an initialization failure-path test, outside the coverage that AC4 counts.
+- Current-tree verification: Read the AC4 section of `ISSUE.md`; `grep -n it_should_panic_when_the_configured_database_cannot_be_initialized packages/http-core/src/container.rs` finds the test, which expects a panic.
+- Resolution reference: docs(issues): [#2925] add the main-application tests to the SQLite coverage list and cite a commit by subject
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3067#discussion_r4711313004
+
+### F20 - AC4 list omits the main-application integration tests
+
+- PR number: 3067
+- Source review ID: 6077629605
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3067#discussion_r4711175561
+- Concern: The list omitted the main-application integration tests that start the application over a `sqlite3` database, listed the `http-core` missing-directory test as an open, and counted the `http-core` services tests among tests that stop opening a database although they open none.
+- Solution: Added the main-application tests (the nearest coverage of the production start-up path), described the missing-directory test as a failure-path test, dropped the `http-core` services tests from the stop-opening list and corrected the conclusion.
+- Current-tree verification: Read the AC4 section of `ISSUE.md`; each of the seven named files under `tests/` contains `sqlite3`; the `http-core` test name exists at `packages/http-core/src/container.rs`.
+- Resolution reference: docs(issues): [#2925] add the main-application tests to the SQLite coverage list and cite a commit by subject
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3067#discussion_r4711311914
+
+### F21 - Branch commit ids in the spec and the audit record
+
+- PR number: 3067
+- Source review ID: 6077629605
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3067#discussion_r4711175574
+- Concern: The PR-branch commit-id check printed three branch commit ids in the spec and in the audit record (lines 92, 274 and 297), which would point at commits no clone of `develop` carries after a rebase.
+- Solution: Replaced each id with the commit subject in `ISSUE.md` and in the audit record (log entry included, see the correction in the Processing Log), and swept my posted replies: the reply on F3 and the consolidated response were edited to cite subjects.
+- Current-tree verification: grep for 7 to 40 hex characters in `ISSUE.md`, the evidence file and the audit record finds no branch commit id; the edited replies contain none.
+- Resolution reference: docs(pr-reviews): [#2925] cite commit subjects instead of branch commit ids in the audit record
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3067#discussion_r4711312279
+
+### F22 - Same 77 failures asserted from a count
+
+- PR number: 3067
+- Source review ID: 6077629605
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3067#discussion_r4711175584
+- Concern: The rerun recorded only counts, so 'the same 77 failures' was asserted from a count.
+- Solution: The evidence file now says the sorted failing test names of both logs are identical (`diff` exit 0), 77 each, in 8 failing binaries.
+- Current-tree verification: Read the V1b conclusion in the evidence file; the comparison was run by the coordinator session in the pushed commit and was not rerun here.
+- Resolution reference: docs(issues): [#2925] compare the failing test names of the two classification runs
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3067#discussion_r4711312635
+
 ## Processing Log
 
 - 2026-11-26 16:18 UTC - Started audit for reviews 6070552226, 6071125410, 6075566793 and 6075682135.
 - 2026-11-26 16:18 UTC - Pushed the head with the commit `docs(issues): [#2925] mark the 08:35 progress log stamp as an estimate` (`git ls-remote` showed it) before any reply; the fix commit added in this round is the 08:35 estimate correction. The audit record was created after the replies, and the log of the start is therefore late.
 - 2026-11-26 16:18 UTC - Replies on the 14 inline threads were posted from 16:16:38 to 16:17:10 UTC, then the consolidated response https://github.com/torrust/torrust-tracker/pull/3067#issuecomment-7197444126 at 16:17:22 UTC (GitHub `created_at`). Thread resolution follows the audit commit push.
+- 2026-11-26 16:49 UTC - Round 2: the commits `docs(issues): [#2925] add the main-application tests to the SQLite coverage list and cite a commit by subject` and `docs(issues): [#2925] compare the failing test names of the two classification runs` were pushed by the coordinator session; the commit `docs(pr-reviews): [#2925] cite commit subjects instead of branch commit ids in the audit record` was pushed by this session (head `git ls-remote` equal to local HEAD) before the replies to the threads of F19 to F22 (16:48 UTC). CodeRabbit review 6077355518 has one inline finding (F19) and no other actionable assertion.
+- 2026-11-26 16:49 UTC - Correction: the audit rows and log entry that named three branch commit ids (F3, F17 and the 16:18 push entry) were rewritten in place in round 2 to cite commit subjects, as F21 asked. The meaning of each entry is unchanged.
 
 ## Completion Rules
 
