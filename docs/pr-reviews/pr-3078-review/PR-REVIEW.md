@@ -30,7 +30,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-F1 to F3 are da2ce7's three inline comments in review 6078692302 (an approval on the head `6e6d78c7b`); the three findings of its body are the same three. The claude[bot] review 6077829784 (automated review is disabled for fork PRs), CodeRabbit's status comment and the maintainer's `ACK` contain no actionable assertion and have no rows. I listed every review, issue comment and inline comment of the PR by hand before recording this round.
+F1 to F3 are da2ce7's three inline comments in review 6078692302 (an approval on the head whose last commit is `docs(issues): [#3060] record the green run, the V1 recheck and the AC3 scan on the fixed code`); the three findings of its body are the same three. The claude[bot] review 6077829784 (automated review is disabled for fork PRs), CodeRabbit's status comment and the maintainer's `ACK` contain no actionable assertion and have no rows. I listed every review, issue comment and inline comment of the PR by hand before recording this round.
 
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
@@ -85,7 +85,7 @@ F1 to F3 are da2ce7's three inline comments in review 6078692302 (an approval on
 - 2026-11-26 18:55 UTC - Found it after the maintainer's message, and committed the F1 and F3 fix (`docs(issues): [#3060] leave the acceptance criteria to the reviewer to tick and name both AC4 evidence sections`).
 - 2026-11-26 18:57 UTC - Committed the F2 fix (`docs(issues): [#3060] record the prose-first Arrange-Act-Assert comparison of the two new tests`).
 - 2026-11-26 19:01 UTC - Pushed both, then replied on the three threads.
-- 2026-11-26 19:01 UTC - Created this record from the template. It was started after the replies were posted, not before the first reply as `process-pr-review` requires; the late start is logged here. The maintainer's `ACK` of the previous head `6e6d78c7b` is stale after this push.
+- 2026-11-26 19:01 UTC - Created this record from the template. It was started after the replies were posted, not before the first reply as `process-pr-review` requires; the late start is logged here. The maintainer's `ACK` of the previous head (the commit `docs(issues): [#3060] record the green run, the V1 recheck and the AC3 scan on the fixed code`) is stale after this push.
 
 ## Completion Rules
 
