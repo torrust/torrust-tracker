@@ -266,7 +266,7 @@ pub(crate) mod tests {
     use torrust_tracker_events::bus::SenderStatus;
     use torrust_tracker_events::sender::SendError;
     use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
-    use torrust_tracker_test_helpers::configuration::{self, SqliteDatabaseGuard};
+    use torrust_tracker_test_helpers::configuration;
     use torrust_tracker_udp_core::connection_cookie::{gen_remote_fingerprint, make};
     use torrust_tracker_udp_core::crypto::cookie_cipher::CookieCipher;
     use torrust_tracker_udp_core::event::bus::EventBus;
@@ -292,9 +292,6 @@ pub(crate) mod tests {
         pub whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
         /// Present only when the test configuration sets a database.
         pub torrent_metrics_store: Option<Arc<dyn TorrentMetricsStore>>,
-        /// Keeps the directory of a guard-owned `SQLite` database alive for as long as the services are. It is
-        /// declared last, so it is dropped after the stores that use the database.
-        pub sqlite_database_guard: Option<SqliteDatabaseGuard>,
     }
 
     pub struct CoreUdpTrackerServices {
@@ -329,17 +326,6 @@ pub(crate) mod tests {
         config: &Configuration,
     ) -> (CoreTrackerServices, CoreUdpTrackerServices, ServerUdpTrackerServices) {
         initialize_core_tracker_services(config).await
-    }
-
-    /// Like [`initialize_core_tracker_services_with_config`] for a test that needs persistence: the configuration
-    /// comes from `ephemeral_with_sqlite_database()` and the services keep its guard.
-    pub async fn initialize_core_tracker_services_with_sqlite_database(
-        config: &Configuration,
-        guard: SqliteDatabaseGuard,
-    ) -> (CoreTrackerServices, CoreUdpTrackerServices, ServerUdpTrackerServices) {
-        let (mut core, udp, server) = initialize_core_tracker_services(config).await;
-        core.sqlite_database_guard = Some(guard);
-        (core, udp, server)
     }
 
     async fn initialize_core_tracker_services(
@@ -431,7 +417,6 @@ pub(crate) mod tests {
                 in_memory_whitelist,
                 whitelist_authorization,
                 torrent_metrics_store: database.map(|database| database.torrent_metrics_store),
-                sqlite_database_guard: None,
             },
             CoreUdpTrackerServices {
                 announce_service,
