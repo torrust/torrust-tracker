@@ -32,7 +32,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Reviews processed: CodeRabbit 6070552226 (F1) and da2ce7 6071125410, 6075566793 and 6075682135 (round 1), then da2ce7 6077629605 (F20 to F22) and CodeRabbit 6077355518 (F19; its thread was opened before the audit and was resolved without a reply, so it is recorded in the second round). Review 6070518939 (claude[bot], fork notice) contains no finding and has no row. Findings without an inline thread come from review bodies and are `NON_RESOLVABLE`.
+Reviews processed: CodeRabbit 6070552226 (F1) and da2ce7 6071125410, 6075566793 and 6075682135 (round 1), then da2ce7 6077629605 (F20 to F22) and 6078078921 (F23) and CodeRabbit 6077355518 (F19; its thread was opened before the audit and was resolved without a reply, so it is recorded in the second round). Review 6070518939 (claude[bot], fork notice) contains no finding and has no row. Findings without an inline thread come from review bodies and are `NON_RESOLVABLE`.
 
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
@@ -58,6 +58,7 @@ Reviews processed: CodeRabbit 6070552226 (F1) and da2ce7 6071125410, 6075566793 
 | F20 | review-finding:pr-3067-f20 | da2ce7 | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F21 | review-finding:pr-3067-f21 | da2ce7 | Minor | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F22 | review-finding:pr-3067-f22 | da2ce7 | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F23 | review-finding:pr-3067-f23 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -347,6 +348,19 @@ Reviews processed: CodeRabbit 6070552226 (F1) and da2ce7 6071125410, 6075566793 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3067#discussion_r4711312635
 
+### F23 - Coverage list omits the child-process test binaries
+
+- PR number: 3067
+- Source review ID: 6078078921
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3067#discussion_r4711497133
+- Concern: The AC4 list left out the main-application test binaries that start the tracker as a child process, whose configuration in `tests/common/native_tracker/command.rs` also sets `driver = "sqlite3"`.
+- Solution: Named the harness file and the four test binaries (`cli-configuration`, `lifecycle-shutdown-policy`, `lifecycle-signals`, `metrics-statistics-disabled-logs`) in the list.
+- Current-tree verification: `command.rs` contains `driver = "sqlite3"`; the four `[[test]]` targets exist in `Cargo.toml`; read the AC4 section of `ISSUE.md`.
+- Resolution reference: docs(issues): [#2925] name the child-process test harness in the SQLite coverage list
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3067#discussion_r4711572057
+
 ## Processing Log
 
 - 2026-11-26 16:18 UTC - Started audit for reviews 6070552226, 6071125410, 6075566793 and 6075682135.
@@ -354,6 +368,7 @@ Reviews processed: CodeRabbit 6070552226 (F1) and da2ce7 6071125410, 6075566793 
 - 2026-11-26 16:18 UTC - Replies on the 14 inline threads were posted from 16:16:38 to 16:17:10 UTC, then the consolidated response https://github.com/torrust/torrust-tracker/pull/3067#issuecomment-7197444126 at 16:17:22 UTC (GitHub `created_at`). Thread resolution follows the audit commit push.
 - 2026-11-26 16:49 UTC - Round 2: the commits `docs(issues): [#2925] add the main-application tests to the SQLite coverage list and cite a commit by subject` and `docs(issues): [#2925] compare the failing test names of the two classification runs` were pushed by the coordinator session; the commit `docs(pr-reviews): [#2925] cite commit subjects instead of branch commit ids in the audit record` was pushed by this session (head `git ls-remote` equal to local HEAD) before the replies to the threads of F19 to F22 (16:48 UTC). CodeRabbit review 6077355518 has one inline finding (F19) and no other actionable assertion.
 - 2026-11-26 16:49 UTC - Correction: the audit rows and log entry that named three branch commit ids (F3, F17 and the 16:18 push entry) were rewritten in place in round 2 to cite commit subjects, as F21 asked. The meaning of each entry is unchanged.
+- 2026-11-26 17:14 UTC - Round 3: da2ce7 review 6078078921 (APPROVED) has no finding in its body and one inline Nit (F23). The commit `docs(issues): [#2925] name the child-process test harness in the SQLite coverage list` was pushed (`git ls-remote` equal to local HEAD) before the reply.
 
 ## Completion Rules
 
