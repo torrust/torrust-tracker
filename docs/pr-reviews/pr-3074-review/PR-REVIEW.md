@@ -28,7 +28,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
   bulk migration.
 - Severity: `Blocker`, `Major`, `Minor`, `Nit`, `Suggestion`; append `(inferred)` when derived
   from free prose.
-- Author class: `Copilot`, `Human`, `Unknown`
+- Reviewer: the author's GitHub login, for example `da2ce7` or `coderabbitai[bot]`; `unknown`
+  when GitHub shows no author
 - Category: `link-integrity`, `formatting`, `metadata`, `testing`, `correctness`,
   `documentation`, `maintainability`, `security`, `other`
 - An outdated thread whose concern was fixed is `FIXED`/`RESOLVED`, even when GitHub marks the
@@ -43,11 +44,11 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 Round 1 covers review 6077978896 (da2ce7, APPROVED) of the head `docs(issues): [#2392] record the 2026-11-26 decisions for #2925`, with three inline findings, F1 to F3: two Minor and one Nit. The review body says none blocks. The CodeRabbit comment and the Claude bot review on the PR are a summary and a fork notice, not findings.
 
-| Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
+| Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
-| F1 | review-finding:pr-3074-f1 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
-| F2 | review-finding:pr-3074-f2 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
-| F3 | review-finding:pr-3074-f3 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F1 | review-finding:pr-3074-f1 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F2 | review-finding:pr-3074-f2 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F3 | review-finding:pr-3074-f3 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
