@@ -52,8 +52,8 @@ Review 6075748165 (`da2ce7`, `CHANGES_REQUESTED`, 2026-11-26 14:23 UTC) posted f
 | F2 | review-finding:pr-3072-f2 | da2ce7 | Major | documentation | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-3072-f3 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F4 | review-finding:pr-3072-f4 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
-| F5 | review-finding:pr-3072-f5 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | OPEN |
-| F6 | review-finding:pr-3072-f6 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | OPEN |
+| F5 | review-finding:pr-3072-f5 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F6 | review-finding:pr-3072-f6 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -120,7 +120,7 @@ Review 6075748165 (`da2ce7`, `CHANGES_REQUESTED`, 2026-11-26 14:23 UTC) posted f
 - Current-tree verification: `grep -n "^- 2026-11-26" docs/issues/closed/3051-random-expiring-key-duration-overflow-panic/ISSUE.md` prints the 13:50 entry without that sentence and the new entry after it.
 - Resolution reference: docs(issues): [#3051] leave the acceptance criteria for a reviewer to tick
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3072#discussion_r4711619330>
 
 ### F6 - Acceptance criteria ticked by the author of the work
 
@@ -133,13 +133,14 @@ Review 6075748165 (`da2ce7`, `CHANGES_REQUESTED`, 2026-11-26 14:23 UTC) posted f
 - Current-tree verification: `grep -n "^- \[x\] AC" docs/issues/closed/3051-random-expiring-key-duration-overflow-panic/ISSUE.md` prints nothing.
 - Resolution reference: docs(issues): [#3051] leave the acceptance criteria for a reviewer to tick
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3072#discussion_r4711619894>
 
 ## Processing Log
 
 - 2026-11-26 16:23 UTC - Review 6075748165 (`da2ce7`, `CHANGES_REQUESTED`, `submitted_at` 14:23:02Z) arrived on the head `chore(issues): archive closed issue #3051 spec to docs/issues/closed`: F1 to F4. This record was written before the first reply. `validate-audit-record.py` was not run by this session (it calls plain `gh`, which acts as `josecelano`).
 - 2026-11-26 16:28 UTC - Pushed the fix commit `docs(issues): [#3051] make the archived spec agree with its record` and this record (`git ls-remote` showed the head on the fork branch before the replies), replied on the four threads and resolved them. `validate-audit-record.py` was not run by this session.
 - 2026-11-26 17:13 UTC - Review 6077711472 (`da2ce7`, `APPROVED`) arrived on the head `docs(pr-reviews): [#3051] record the replies to review 6075748165 in the PR 3072 audit`: F5 and F6. This record was updated before the first reply. `validate-audit-record.py` was not run by this session.
+- 2026-11-26 17:19 UTC - Pushed the fix commit `docs(issues): [#3051] leave the acceptance criteria for a reviewer to tick` and the record (`git ls-remote` showed the head on the fork branch before the replies), replied on the two threads and resolved them. `validate-audit-record.py` was not run by this session.
 
 ## Completion Rules
 
