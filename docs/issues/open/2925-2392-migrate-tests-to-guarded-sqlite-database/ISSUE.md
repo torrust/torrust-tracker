@@ -9,7 +9,7 @@ github-issue: 2925
 spec-path: docs/issues/open/2925-2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md
 branch: "2925-migrate-tests-to-guarded-sqlite-database"
 related-pr: null
-last-updated-utc: "2026-11-26 16:12"
+last-updated-utc: "2026-11-26 16:36"
 semantic-links:
   skill-links:
     - create-issue
@@ -200,24 +200,32 @@ After T4, only these tests open a SQLite database (derived from a search for `Da
 - the `tracker-core` tests and its restart tests (`packages/tracker-core/tests/integration.rs`),
   which use that package's own guard;
 - tests that already set their own database: the `src/bootstrap/jobs/http_tracker.rs` test that
-  builds its own directory, the `http-core` container test that points at a missing directory, and
-  the `hung-component-tracker` integration tests, which write `driver = "sqlite3"` in their
-  configuration file.
+  builds its own directory, the `hung-component-tracker` integration tests, which write
+  `driver = "sqlite3"` in their configuration file, and the main-application integration tests,
+  which start the full application over a `driver = "sqlite3"` database in their own workspace
+  (`tests/persistence/scrape_after_restart.rs`, which restarts on that database,
+  `tests/persistence/completed_downloads_on_shutdown.rs`, `tests/common/configuration.rs`,
+  `tests/metrics/fixed_ports.rs`, `tests/scaffold.rs`,
+  `tests/lifecycle/fixture_shutdown_assertion.rs` and
+  `tests/banning/udp_shared_connection_id_error_limit.rs`).
 
 These do not open a database, so they are not coverage: the `torrust-tracker-test-helpers`
 factory tests (they check the guard directory and the configured path only), the
 `src/bootstrap/persistence.rs` tests (they validate configuration requirements) and the
 `src/container.rs` tests (they start from `Configuration::default()`, whose database is `None`).
+The `http-core` container test that points at a missing directory
+(`it_should_panic_when_the_configured_database_cannot_be_initialized`) covers the initialization
+failure path, not an open.
 
 The tests that stop opening a database are every test that used `ephemeral*()` without needing
 persistence, in these packages: `udp-server` (the 24 helper-only tests and the rest of its
 handler and server tests), `axum-http-server` (the 5 helper-only handler tests, which include
 private and listed modes, and the public-mode contract tests), `axum-health-check-api-server`,
 `axum-rest-api-server` (the `torrent`, `stats` and `health_check` contract contexts and the tests
-built on `api_container`, which compose the core over `core_config.database`), `http-core`
-(the services tests that use `ephemeral*()`) and the root `torrust-tracker` tests that use
+built on `api_container`, which compose the core over `core_config.database`), the root `torrust-tracker` tests that use
 `ephemeral*()`. The coverage of the production start-up path with a real database therefore
-rests on the three groups above and the end-to-end runs. This list needs the maintainer's
+rests mainly on the main-application integration tests, which are the nearest coverage of it, and
+on the other groups above. This list needs the maintainer's
 approval before T1 is done.
 
 ## Commit Points
@@ -275,7 +283,8 @@ approval before T1 is done.
   corrected now, and no approval of it exists yet. T1 is back to `IN_PROGRESS`.
 - 2026-11-26 16:12 UTC - Claude Code (Claude Sonnet 5.5), #2925 implementer - Correction of the
   2026-11-26 08:35 UTC entry above after review: that stamp is an estimate and is later than commit
-  `3bb76d813` (2026-11-26T08:09:21Z), which carries the entry, so the work it records was done
+  `docs(issues): [#2925] record the T1 reproduction and the classification of tests that need
+  persistence` (2026-11-26T08:09:21Z), which carries the entry, so the work it records was done
   before 08:09 UTC. The entry is not rewritten.
 
 ## Acceptance Criteria
