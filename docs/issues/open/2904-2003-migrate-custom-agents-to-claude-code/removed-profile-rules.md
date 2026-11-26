@@ -253,7 +253,7 @@ held the checklist and the findings format; T7 moves into it the rules that only
 
 Replaced by the agent `researcher` (task T8), which uses the model of the session (decision D13) and
 starts no agent (decision D3). No skill held the research workflow ("Still happening? Ad hoc,
-without the facts-not-decisions rule", in the specification), so task T8 adds the skill
+without the "facts, not decisions" rule", in the specification), so task T8 adds the skill
 `research-external-evidence`, which holds the workflow, the report and the boundaries; the agent
 preloads it, as the implementer preloads `implement-task`.
 
@@ -275,7 +275,7 @@ preloads it, as the implementer preloads `implement-task`.
 | Workflow 3: gather evidence (a shallow clone with `grep`, `find` and `git log`; the search tools or `gh`; fetch and read documentation). | Skill `research-external-evidence`, "Workflow" step 3 | |
 | Workflow 4: cross-reference the evidence and note the agreements and disagreements. | Skill `research-external-evidence`, "Workflow" step 4 | |
 | Workflow 5 and output format: restate the question, list the sources, give the findings with paths, lines and URLs, the cross-project comparison, the conclusion with a confidence level, and the open questions. | Skill `research-external-evidence`, "Workflow" step 5 and "Report" | |
-| Do not modify any file of the workspace: a read-only role. | Skill `research-external-evidence`, "Boundaries" | Now: no tracked file. The exceptions are the reply file and the clones in the git-ignored `.tmp/`, which the old rule contradicted by asking for clones there. |
+| Do not modify any file of the workspace: a read-only role. | Skill `research-external-evidence`, "Boundaries" | Now: no file may be created or changed, except the reply file and the clones in the git-ignored `.tmp/`, which the old rule contradicted by asking for clones there. |
 | Do not make implementation recommendations: report facts, not decisions. | Skill `research-external-evidence`, "Boundaries" | |
 | Do not clone repositories inside the workspace. | Skill `research-external-evidence`, "Workflow" step 3 | |
 | Do not guess or assume behavior: every claim rests on evidence found in the session. | Skill `research-external-evidence`, "Boundaries" | |
