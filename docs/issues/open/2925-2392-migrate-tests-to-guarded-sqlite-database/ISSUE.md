@@ -9,7 +9,7 @@ github-issue: 2925
 spec-path: docs/issues/open/2925-2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md
 branch: "2925-migrate-tests-to-guarded-sqlite-database"
 related-pr: null
-last-updated-utc: "2026-11-26 16:53"
+last-updated-utc: "2026-11-26 17:09"
 semantic-links:
   skill-links:
     - create-issue
@@ -207,7 +207,11 @@ After T4, only these tests open a SQLite database (derived from a search for `Da
   `tests/persistence/completed_downloads_on_shutdown.rs`, `tests/common/configuration.rs`,
   `tests/metrics/fixed_ports.rs`, `tests/scaffold.rs`,
   `tests/lifecycle/fixture_shutdown_assertion.rs` and
-  `tests/banning/udp_shared_connection_id_error_limit.rs`).
+  `tests/banning/udp_shared_connection_id_error_limit.rs`), and the main-application test
+  binaries that start the tracker as a child process through the harness
+  `tests/common/native_tracker/command.rs`, which also sets `driver = "sqlite3"`
+  (`cli-configuration`, `lifecycle-shutdown-policy`, `lifecycle-signals` and
+  `metrics-statistics-disabled-logs`).
 
 These do not open a database, so they are not coverage: the `torrust-tracker-test-helpers`
 factory tests (they check the guard directory and the configured path only), the
