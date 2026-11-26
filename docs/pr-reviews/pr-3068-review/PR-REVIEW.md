@@ -187,7 +187,7 @@ Round 3: CodeRabbit review 6071517983 on the head of commit `docs(pr-reviews): [
 - Concern: The record put review 6070621282 on the head of the wrong commit, said it was created at 09:07 UTC while its commit is dated 09:01:30 UTC, and gave the source review as the Reply URL of F8 (a placeholder written before the comment existed).
 - Solution: Round 1 now names the commit of the head the review read (`docs(issues): [#2904] fix the inventory citations and record the task review of T6`), the late-start entry takes its time from the commit date, and the Reply URL of F8 is the conversation comment (already fixed in the local commit that records the replies of round 2, as F9 says). The review body's remark that six rows read `pending` at the reviewed head is answered by the same commit: the URLs are recorded in the branch since this push.
 - Current-tree verification: Compared the three statements with `git log --format=%cI` and with the review's `commit_id` after the edit; ran the validator.
-- Resolution reference: docs(pr-reviews): [#2904] record the third review round on pull request 3068
+- Resolution reference: docs(pr-reviews): [#2904] correct three statements of the record of pull request 3068
 - Follow-up PR URL: N/A
 - Reply URL: pending
 
