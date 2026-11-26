@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2925-2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md
-last-updated-utc: "2026-11-26 16:36"
+last-updated-utc: "2026-11-26 18:50"
 ---
 
 # Manual Verification Evidence
@@ -118,6 +118,26 @@ bench http_tracker_core_benchmark: 4 files
 
 6 = 2 (the two container tests) + 4 (the benchmark, `benches/helpers/util.rs`). No other
 `http-core` test leaves a file.
+
+## T2: udp-server
+
+Branch `2925-udp-server-guarded-sqlite-database` on `torrust/develop` at `a4c12dc37`, 2026-11-26
+(one shell, in order):
+
+1. `git apply` of the T4 one-line patch (`ephemeral()` sets no database), then
+   `export TMPDIR=$(mktemp -d)` and
+   `cargo +stable test -p torrust-tracker-udp-server --all-targets --all-features --no-fail-fast`:
+   all test binaries pass (230 lib tests, 17 integration tests), and
+   `ls -A "$TMPDIR" | wc -l` printed 0. Before the change the same package had 25 failing
+   tests under that patch (V1b appendix). Then `git checkout packages/test-helpers/src/configuration.rs`
+   and `git diff --quiet HEAD -- packages/test-helpers` exited 0.
+2. Without the patch (the current default), a fresh `mktemp -d` `TMPDIR` and the same command:
+   all pass, `data_*.db` count 67, total entries 67. The package still leaks until T4 changes the
+   default; the migration makes it independent of the default.
+
+The converted test `public_with_persistent_completed_statistics` passes with the guard-owned
+database. Per-package count recorded for the table of T3: `udp-server` leaves 67 files before T4
+and 0 after.
 
 ## Failures and Follow-up
 
