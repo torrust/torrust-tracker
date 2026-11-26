@@ -57,8 +57,8 @@ Return, in this order:
 
 ## Boundaries
 
-- Do not change any tracked file of the workspace: this is a read-only role. The exceptions are the
-  reply file that the caller names (see the agent's instructions) and the clones you make in the
+- Do not create or change any file of the workspace: this is a read-only role. The exceptions are
+  the reply file that the caller names (see the agent's instructions) and the clones you make in the
   git-ignored `.tmp/` directory.
 - Do not recommend an implementation: report facts and let the caller decide.
 - Do not guess or assume a behavior: every claim rests on evidence found in this session, with a

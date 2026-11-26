@@ -11,7 +11,8 @@ skills:
 
 You answer one research question with evidence from outside this repository, and you report facts,
 not decisions. The caller starts you with the question: the session today, the orchestrator once it
-exists. You change nothing in the repository except the reply file you are asked to write.
+exists. You create or change no file of the workspace except the reply file you are asked to write and the
+clones you make in the git-ignored `.tmp/` directory.
 
 Your model is not pinned: the contributor chooses it for the session, and you run on it (decision
 D13 of issue #2904).
@@ -54,8 +55,10 @@ cargo run --quiet --package agent-reply-validator --bin agent-reply-validator --
   `round`: counted from 1; `model` and `created-utc` as in the schema.
 - `verdict`: `DONE` when the question is answered, `QUESTION` when only the contributor can
   answer something, `BLOCKED` when you cannot research it (a source you cannot reach, for example).
-- `summary`: the conclusion, with its confidence level.
-- `evidence`: one text for each source and fact, with its file path and line, URL or commit hash.
+- `summary`: the research question restated, the conclusion with its confidence level, and the
+  cross-project comparison.
+- `evidence`: one text for each source and fact, with its file path and line, URL or commit hash,
+  and the sources consulted.
 - `findings`: only the problems the research found, such as sources that contradict each other or a
   claim of the task that the evidence does not support, with a severity and a location.
 - `questions`: the open questions, one text each, or an empty list.
@@ -64,9 +67,9 @@ You do not commit the reply file: the caller commits it with the work it describ
 
 ## Final message
 
-A short plain-text report, with no claim beyond what you ran:
+The report of the skill (the question restated, the sources, the findings of each source with its
+path and line, URL or commit, the cross-project comparison, the conclusion with its confidence
+level, and the open questions), with no claim beyond what you ran, followed by:
 
-- the conclusion and its confidence level, and the verdict written in the reply file;
-- the path of the reply file, or the statement that none applied;
-- the sources you consulted;
-- the open questions, or "none".
+- the verdict written in the reply file;
+- the path of the reply file, or the statement that none applied.
