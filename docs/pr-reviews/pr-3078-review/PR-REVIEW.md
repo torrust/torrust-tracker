@@ -30,7 +30,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-F1 to F3 are da2ce7's three inline comments in review 6078692302 (an approval on the head whose last commit is `docs(issues): [#3060] record the green run, the V1 recheck and the AC3 scan on the fixed code`); the three findings of its body are the same three. F4 is the "Out of Scope Changes" pre-merge check in the body of CodeRabbit's review 6079403289 (no inline thread). The claude[bot] review 6077829784 (automated review is disabled for fork PRs), and the following issue comments contain no actionable assertion and have no rows: CodeRabbit's status comment 7198155624, the maintainer's `ACK` comments 7198979430 and 7200974779, the reviewer's `ACK` comments 7199898165 and 7201656233, and my own conversation reply 7201388614. I listed every review, issue comment and inline comment of the PR by hand before recording this round.
+F1 to F3 are da2ce7's three inline comments in review 6078692302 (an approval on the head whose last commit is `docs(issues): [#3060] record the green run, the V1 recheck and the AC3 scan on the fixed code`); the three findings of its body are the same three. F5 is da2ce7's inline comment 4712686249 in review 6079554126 (an approval of the next head). F4 is the "Out of Scope Changes" pre-merge check in the body of CodeRabbit's review 6079403289 (no inline thread). The claude[bot] review 6077829784 (automated review is disabled for fork PRs), and the following issue comments contain no actionable assertion and have no rows: CodeRabbit's status comment 7198155624, the maintainer's `ACK` comments 7198979430 and 7200974779, the reviewer's `ACK` comments 7199898165 and 7201656233, and my own conversation reply 7201388614. I listed every review, issue comment and inline comment of the PR by hand before recording this round.
 
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
@@ -38,6 +38,7 @@ F1 to F3 are da2ce7's three inline comments in review 6078692302 (an approval on
 | F2 | review-finding:pr-3078-f2 | da2ce7 | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-3078-f3 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F4 | review-finding:pr-3078-f4 | coderabbitai[bot] | Suggestion (inferred) | other | ORIGINAL | NO_ACTION | NON_RESOLVABLE |
+| F5 | review-finding:pr-3078-f5 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -93,6 +94,19 @@ F1 to F3 are da2ce7's three inline comments in review 6078692302 (an approval on
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3078#issuecomment-7201388614
 
+### F5 - The list of comments without rows is incomplete
+
+- PR number: 3078
+- Source review ID: 6079554126
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3078#discussion_r4712686249
+- Concern: The Findings introduction named "the maintainer's `ACK`", but the pull request has two maintainer ACK comments and a reviewer ACK comment; none is actionable, so no row is missing, but naming all of them makes the claim that every comment was listed checkable.
+- Solution: The introduction names every issue comment without a row by its id: the CodeRabbit status comment, the two maintainer `ACK` comments, the two reviewer `ACK` comments and my own conversation reply.
+- Current-tree verification: `gh-bot api repos/torrust/torrust-tracker/issues/3078/comments` lists six comments at this time (ids 7198155624, 7198979430, 7199898165, 7200974779, 7201388614 and 7201656233); each is named in the introduction.
+- Resolution reference: docs(pr-reviews): [#3060] name every issue comment without a row in the audit of PR 3078
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3078#discussion_r4712710314
+
 ## Processing Log
 
 - 2026-11-26 17:57 UTC - da2ce7's review 6078692302 arrived with F1 to F3 (approval).
@@ -104,6 +118,9 @@ F1 to F3 are da2ce7's three inline comments in review 6078692302 (an approval on
 - 2026-11-26 19:15 UTC - CodeRabbit's review 6079403289 arrived on the head with a failed pre-merge check (F4).
 - 2026-11-26 19:16 UTC - Replied in a PR conversation comment (no action).
 - 2026-11-26 19:16 UTC - Added F4 to this record.
+- 2026-11-26 19:29 UTC - da2ce7's review 6079554126 arrived with an approval and one Nit (F5).
+- 2026-11-26 19:33 UTC - Committed the F5 fix (`docs(pr-reviews): [#3060] name every issue comment without a row in the audit of PR 3078`) and replied on the thread.
+- 2026-11-26 19:33 UTC - Added F5 to this record.
 
 ## Completion Rules
 
