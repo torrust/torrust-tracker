@@ -115,12 +115,12 @@ Round 2: `da2ce7`'s review 6078625708 on the head of commit `docs(pr-reviews): [
 - Source review ID: 6078625708
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3076#discussion_r4711913380
-- Concern: The four rows of round 1 carried `Reply URL: https://github.com/torrust/torrust-tracker/pull/3076#discussion_r4712002860` and `OPEN` at the head under review, although the replies and the resolutions existed.
+- Concern: The four rows of round 1 carried `Reply URL: pending` and `OPEN` at the head under review, although the replies and the resolutions existed.
 - Solution: The commit that records the four reply URLs, the resolved state and the log entry is on the branch with this push.
 - Current-tree verification: Ran the audit validator after the edit.
 - Resolution reference: docs(pr-reviews): [#2904] record the replies and resolved threads of the first review round on pull request 3076
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3076#discussion_r4712002860
 
 ### F6 - The boundary leaves no exception for the research document
 
