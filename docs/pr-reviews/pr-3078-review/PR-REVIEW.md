@@ -86,6 +86,7 @@ F1 to F3 are da2ce7's three inline comments in review 6078692302 (an approval on
 - 2026-11-26 18:57 UTC - Committed the F2 fix (`docs(issues): [#3060] record the prose-first Arrange-Act-Assert comparison of the two new tests`).
 - 2026-11-26 19:01 UTC - Pushed both, then replied on the three threads.
 - 2026-11-26 19:01 UTC - Created this record from the template. It was started after the replies were posted, not before the first reply as `process-pr-review` requires; the late start is logged here. The maintainer's `ACK` of the previous head (the commit `docs(issues): [#3060] record the green run, the V1 recheck and the AC3 scan on the fixed code`) is stale after this push.
+- 2026-11-26 19:08 UTC - Correction: the commit-id check printed the id of the previous head, which the Findings introduction and the 19:01 UTC entry above cited; I replaced it there with the commit subject (commit `docs(pr-reviews): [#3060] cite the audited head by commit subject, not by id`), so those two texts differ from what was first pushed.
 
 ## Completion Rules
 
