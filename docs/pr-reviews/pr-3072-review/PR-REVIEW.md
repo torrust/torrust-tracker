@@ -44,7 +44,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Review 6075748165 (`da2ce7`, `CHANGES_REQUESTED`, 2026-11-26 14:23 UTC) posted four inline comments, F1 to F4; its body repeats the same four findings. Review 6075322623 (`claude[bot]`) only says that automated review is disabled for fork pull requests and has no finding.
+Review 6075748165 (`da2ce7`, `CHANGES_REQUESTED`, 2026-11-26 14:23 UTC) posted four inline comments, F1 to F4; its body repeats the same four findings. Review 6077711472 (`da2ce7`, `APPROVED`, on head `docs(pr-reviews): [#3051] record the replies to review 6075748165 in the PR 3072 audit`) posted two inline comments, F5 and F6. Review 6075322623 (`claude[bot]`) only says that automated review is disabled for fork pull requests and has no finding.
 
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
@@ -52,6 +52,8 @@ Review 6075748165 (`da2ce7`, `CHANGES_REQUESTED`, 2026-11-26 14:23 UTC) posted f
 | F2 | review-finding:pr-3072-f2 | da2ce7 | Major | documentation | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-3072-f3 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F4 | review-finding:pr-3072-f4 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F5 | review-finding:pr-3072-f5 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | OPEN |
+| F6 | review-finding:pr-3072-f6 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | OPEN |
 
 ## Finding Details
 
@@ -107,10 +109,37 @@ Review 6075748165 (`da2ce7`, `CHANGES_REQUESTED`, 2026-11-26 14:23 UTC) posted f
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/3072#discussion_r4711110404>
 
+### F5 - A progress-log entry stamped before the change it records
+
+- PR number: 3072
+- Source review ID: 6077711472
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/3072#discussion_r4711242879>
+- Concern: The 13:50 UTC entry also records the rows set to `DONE` after review 6075748165, a change made at 16:21 UTC, so the log's order is not true.
+- Solution: Moved that sentence out of the 13:50 UTC entry into its own entry stamped when the edit was made, which also records this round's change.
+- Current-tree verification: `grep -n "^- 2026-11-26" docs/issues/closed/3051-random-expiring-key-duration-overflow-panic/ISSUE.md` prints the 13:50 entry without that sentence and the new entry after it.
+- Resolution reference: docs(issues): [#3051] leave the acceptance criteria for a reviewer to tick
+- Follow-up PR URL: N/A
+- Reply URL: pending
+
+### F6 - Acceptance criteria ticked by the author of the work
+
+- PR number: 3072
+- Source review ID: 6077711472
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/3072#discussion_r4711242890>
+- Concern: AC5 and the "criteria re-reviewed" checkbox are ticked by the author, while the log says no reviewer checked the criteria; only a reviewer ticks acceptance criteria.
+- Solution: Unticked the re-review checkbox and AC5, and AC1 to AC4 as well, because the same rule applies to them; the `DONE` rows of the Acceptance Verification table keep the evidence.
+- Current-tree verification: `grep -n "^- \[x\] AC" docs/issues/closed/3051-random-expiring-key-duration-overflow-panic/ISSUE.md` prints nothing.
+- Resolution reference: docs(issues): [#3051] leave the acceptance criteria for a reviewer to tick
+- Follow-up PR URL: N/A
+- Reply URL: pending
+
 ## Processing Log
 
 - 2026-11-26 16:23 UTC - Review 6075748165 (`da2ce7`, `CHANGES_REQUESTED`, `submitted_at` 14:23:02Z) arrived on the head `chore(issues): archive closed issue #3051 spec to docs/issues/closed`: F1 to F4. This record was written before the first reply. `validate-audit-record.py` was not run by this session (it calls plain `gh`, which acts as `josecelano`).
 - 2026-11-26 16:28 UTC - Pushed the fix commit `docs(issues): [#3051] make the archived spec agree with its record` and this record (`git ls-remote` showed the head on the fork branch before the replies), replied on the four threads and resolved them. `validate-audit-record.py` was not run by this session.
+- 2026-11-26 17:13 UTC - Review 6077711472 (`da2ce7`, `APPROVED`) arrived on the head `docs(pr-reviews): [#3051] record the replies to review 6075748165 in the PR 3072 audit`: F5 and F6. This record was updated before the first reply. `validate-audit-record.py` was not run by this session.
 
 ## Completion Rules
 
