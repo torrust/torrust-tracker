@@ -9,7 +9,7 @@ github-issue: 3060
 spec-path: docs/issues/open/3060-udp-core-debug-log-target-field/ISSUE.md
 branch: "3060-udp-core-debug-log-target-field-spec"
 related-pr: null
-last-updated-utc: "2026-11-26 16:43"
+last-updated-utc: "2026-11-26 18:54"
 semantic-links:
   skill-links:
     - create-issue
@@ -143,10 +143,10 @@ Record a justified no-change decision in the task's evidence without creating an
 
 ## Acceptance Criteria
 
-- [x] AC1: The `UdpAnnounce` DEBUG line is logged with target `UDP TRACKER` and has no `target` field (announce regression test).
-- [x] AC2: The `UdpScrape` DEBUG line is logged with target `UDP TRACKER` and has no `target` field (scrape regression test).
-- [x] AC3: the multi-line scan `grep -rPzo '(?s)\b(?:trace|debug|info|warn|error|event|span|trace_span|debug_span|info_span|warn_span|error_span)!\s*\(\s*(?:(?:[^;{}()]|\([^()]*\))*?,\s*)?target\s*=[^=]' packages src --include=*.rs` prints nothing, so no `tracing` macro call (one-line or spread over several lines, `target =` first or after other arguments) uses the field form; before the fix it printed exactly the two sites, and on the sample file in `evidence/scan-sample.rs` it prints the three field-form calls (one across lines, one after a leading argument, one after an argument with one level of parentheses), one false match on a string (see the known limits), and not the colon-form one. AC3 claims only these cases; AC3 covers parenthesized calls only; nested parentheses in an earlier argument, comments inside the macro arguments and brace-delimited calls are outside its reach. The scan is a best-effort check of the current tree; the regression tests (AC1, AC2) are what protect the two call sites.
-- [x] AC4: Both regression tests were observed red before the fix and green after.
+- [ ] AC1: The `UdpAnnounce` DEBUG line is logged with target `UDP TRACKER` and has no `target` field (announce regression test).
+- [ ] AC2: The `UdpScrape` DEBUG line is logged with target `UDP TRACKER` and has no `target` field (scrape regression test).
+- [ ] AC3: the multi-line scan `grep -rPzo '(?s)\b(?:trace|debug|info|warn|error|event|span|trace_span|debug_span|info_span|warn_span|error_span)!\s*\(\s*(?:(?:[^;{}()]|\([^()]*\))*?,\s*)?target\s*=[^=]' packages src --include=*.rs` prints nothing, so no `tracing` macro call (one-line or spread over several lines, `target =` first or after other arguments) uses the field form; before the fix it printed exactly the two sites, and on the sample file in `evidence/scan-sample.rs` it prints the three field-form calls (one across lines, one after a leading argument, one after an argument with one level of parentheses), one false match on a string (see the known limits), and not the colon-form one. AC3 claims only these cases; AC3 covers parenthesized calls only; nested parentheses in an earlier argument, comments inside the macro arguments and brace-delimited calls are outside its reach. The scan is a best-effort check of the current tree; the regression tests (AC1, AC2) are what protect the two call sites.
+- [ ] AC4: Both regression tests were observed red before the fix and green after.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -175,10 +175,10 @@ None. The reproduction is a temporary Rust test (code recorded verbatim in the e
 
 | AC ID | Status | Evidence |
 | ----- | ------ | -------- |
-| AC1   | DONE   | `manual-verification-evidence.md`, section "T2 green run and V1 final recheck, after the fix" |
-| AC2   | DONE   | `manual-verification-evidence.md`, section "T2 green run and V1 final recheck, after the fix" |
-| AC3   | DONE   | `manual-verification-evidence.md`, section "T2 green run and V1 final recheck, after the fix" |
-| AC4   | DONE   | `manual-verification-evidence.md`, section "T2 green run and V1 final recheck, after the fix" |
+| AC1   | TODO   | `manual-verification-evidence.md`, section "T2 green run and V1 final recheck, after the fix" (the reviewer ticks the criterion) |
+| AC2   | TODO   | `manual-verification-evidence.md`, section "T2 green run and V1 final recheck, after the fix" (the reviewer ticks the criterion) |
+| AC3   | TODO   | `manual-verification-evidence.md`, section "T2 green run and V1 final recheck, after the fix" (the reviewer ticks the criterion) |
+| AC4   | TODO   | `manual-verification-evidence.md`, sections "T2 - Regression tests, red before the fix" and "T2 green run and V1 final recheck, after the fix" (the reviewer ticks the criterion) |
 
 ## Risks and Trade-offs
 
