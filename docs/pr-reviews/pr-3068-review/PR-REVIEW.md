@@ -1,7 +1,7 @@
 ---
 pr-number: 3068
 pr-url: https://github.com/torrust/torrust-tracker/pull/3068
-last-updated-utc: "2026-11-26 09:09"
+last-updated-utc: "2026-11-26 09:20"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -47,12 +47,12 @@ Round 2: `da2ce7`'s review 6071195581 on the head of commit `docs(skills): [#290
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3068-f1 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
-| F2 | review-finding:pr-3068-f2 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | OPEN |
-| F3 | review-finding:pr-3068-f3 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | OPEN |
-| F4 | review-finding:pr-3068-f4 | da2ce7 | Minor | metadata | ORIGINAL | FIXED | OPEN |
-| F5 | review-finding:pr-3068-f5 | da2ce7 | Nit | metadata | ORIGINAL | FIXED | OPEN |
-| F6 | review-finding:pr-3068-f6 | da2ce7 | Nit | formatting | ORIGINAL | FIXED | OPEN |
-| F7 | review-finding:pr-3068-f7 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | OPEN |
+| F2 | review-finding:pr-3068-f2 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F3 | review-finding:pr-3068-f3 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F4 | review-finding:pr-3068-f4 | da2ce7 | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F5 | review-finding:pr-3068-f5 | da2ce7 | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F6 | review-finding:pr-3068-f6 | da2ce7 | Nit | formatting | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-3068-f7 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F8 | review-finding:pr-3068-f8 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
 
 ## Finding Details
@@ -81,7 +81,7 @@ Round 2: `da2ce7`'s review 6071195581 on the head of commit `docs(skills): [#290
 - Current-tree verification: Read the headings of `.claude/skills/create-issue/SKILL.md` after the edit.
 - Resolution reference: docs(skills): [#2904] keep Plan The Work out of the Workflow Overview of create-issue
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3068#discussion_r4706172271
 
 ### F3 - The hook check was already held by `run-pre-commit-checks`
 
@@ -94,7 +94,7 @@ Round 2: `da2ce7`'s review 6071195581 on the head of commit `docs(skills): [#290
 - Current-tree verification: Read "Git Hook (Recommended Setup)" in `run-pre-commit-checks` and the edited rows and sentence.
 - Resolution reference: docs(issues): [#2904] correct the inventory row of the hook check and the progress log of T6
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3068#discussion_r4706173092
 
 ### F4 - The back-links of `fix-bug` and `add-rust-dependency` name an agent that does not invoke them
 
@@ -107,7 +107,7 @@ Round 2: `da2ce7`'s review 6071195581 on the head of commit `docs(skills): [#290
 - Current-tree verification: `grep` for `implement-task` in the two skills after the edit.
 - Resolution reference: docs(skills): [#2904] link implement-task from fix-bug and add-rust-dependency and say Use when in its description
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3068#discussion_r4706173996
 
 ### F5 - The description of `implement-task` drops the `Use when` shape
 
@@ -120,7 +120,7 @@ Round 2: `da2ce7`'s review 6071195581 on the head of commit `docs(skills): [#290
 - Current-tree verification: Ran the skill-description check of the frontmatter validator.
 - Resolution reference: docs(skills): [#2904] link implement-task from fix-bug and add-rust-dependency and say Use when in its description
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3068#discussion_r4706174812
 
 ### F6 - A line of `commit-changes` is still 173 characters
 
@@ -133,7 +133,7 @@ Round 2: `da2ce7`'s review 6071195581 on the head of commit `docs(skills): [#290
 - Current-tree verification: Read the item after the edit.
 - Resolution reference: docs(skills): [#2904] link the hook check of run-pre-commit-checks from commit-changes and rewrap a line
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3068#discussion_r4706175765
 
 ### F7 - The 07:18 progress-log entry records a decision taken after 07:25
 
@@ -146,7 +146,7 @@ Round 2: `da2ce7`'s review 6071195581 on the head of commit `docs(skills): [#290
 - Current-tree verification: Read the two entries after the edit.
 - Resolution reference: docs(issues): [#2904] correct the inventory row of the hook check and the progress log of T6
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3068#discussion_r4706176520
 
 ### F8 - This record was missing at the reviewed head
 
@@ -159,13 +159,14 @@ Round 2: `da2ce7`'s review 6071195581 on the head of commit `docs(skills): [#290
 - Current-tree verification: Read `docs/pr-reviews/pr-3068-review/PR-REVIEW.md` after the push and ran the validator.
 - Resolution reference: docs(pr-reviews): [#2904] record the second review round on pull request 3068
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/3068#pullrequestreview-6071195581
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3068#issuecomment-7187828838
 
 ## Processing Log
 
 - 2026-11-26 09:01 UTC - Round 1: processed CodeRabbit review `6070621282` (one inline comment); the fix was pushed and the reply posted, then the thread was resolved with the GraphQL mutation, which returned `isResolved: true`.
 - 2026-11-26 09:09 UTC - Late start: the first reply and resolution (09:01 UTC) were posted before this record existed; it was created at 09:07 UTC and kept local until the push of round 2.
 - 2026-11-26 09:09 UTC - Round 2: started on review `6071195581` of `da2ce7` (six inline comments and one body finding); verified every finding against the current tree and committed the fixes locally. Replies follow the push.
+- 2026-11-26 09:20 UTC - Pushed round 2 (head commit `docs(pr-reviews): [#2904] record the second review round on pull request 3068`), replied on the six threads (GitHub `created_at` 09:20 UTC) and with one conversation comment for the body finding F8, then resolved the six threads with the GraphQL mutation, each returning `isResolved: true`. The reply URLs are recorded by this commit, which goes out with the next push.
 
 ## Completion Rules
 
