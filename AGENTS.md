@@ -122,7 +122,7 @@ These policies are repository-wide and apply to all agents and workflows.
    follow the repository guidance unless a higher-priority instruction prevents it.
 
 Implementation workflow skills (same location): `update-dependencies`, `add-rust-dependency`,
-`write-unit-test`, `implement-workflow`.
+`write-unit-test`, `implement-task`, `implement-workflow`.
 
 ## 🔧 Essential Rules
 

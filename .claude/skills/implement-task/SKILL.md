@@ -1,6 +1,6 @@
 ---
 name: implement-task
-description: "Implement one task of an approved issue spec with TDD, manual evidence, a completion review and signed commits. Use when implementing a task or a bug fix on a local branch."
+description: "Implement one task of an approved issue spec with TDD, manual evidence and signed commits. Use for the overall sequence on a local branch; a bug's analysis follows fix-bug."
 metadata:
   author: torrust
   version: "1.0"
