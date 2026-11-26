@@ -57,6 +57,84 @@ If there is no PR yet and you need to validate task completion on a local branch
 - [ ] Line length within `max_width = 130`
 - [ ] GPG-signed commits
 
+## Output
+
+Return:
+
+1. Scope reviewed (the pull-request number and the key files)
+2. Findings by severity (`Blocker`, `Suggestion`, `Nit`)
+3. Checklist gaps
+4. Overall verdict: `APPROVE`, `REQUEST_CHANGES`, `COMMENT` or `POST_MERGE_FINDINGS`
+
+Confirm that the pull request exists (a number or a URL is required), then gather its metadata:
+the title, the description, the linked issue, the base branch, the merge state and time, and the
+checks when they are available. Review the changed files and classify the findings. Do not
+approve while a blocker is unresolved.
+
+## A Merged Pull Request
+
+When the pull request is already merged, label the result `POST_MERGE_FINDINGS` and give no
+merge-readiness verdict. Do not implement the findings and do not create a follow-up branch.
+Direct the caller to the post-merge workflow of
+[`process-pr-review`](../process-pr-review/SKILL.md), which needs the maintainer's explicit
+approval before any action that changes something.
+
+## Recording The Review
+
+The task you were given tells you which case applies. The review is not a review of a task of a
+branch (use [`review-task`](../review-task/SKILL.md) for that): do not run the acceptance review
+of a task, and do not mark the workflow checkpoints of an issue specification unless the caller
+asks for it and the evidence is there.
+
+### A Reply File
+
+When the task carries the line that names a reply file (decision D17 of issue #2904), write the
+review there as one JSON file before you finish. The path is the one the line gives:
+`agent-replies/<agent>-<subject>-r<round>.json` in the folder of the issue specification, with
+`pr-reviewer` as the agent, `pr<number>` as the subject, and the round counted from 1 (decision
+D18). The rounds go from 1 to 3, and the validator refuses a name with a higher round: when the
+line names a round above 3, write no file, say so in your final message and leave it to the caller
+to stop and ask the maintainer. The fields:
+
+- `schema-version`: 1; `agent`: `pr-reviewer`; `model`: the full model ID you ran on; `subject`
+  and `round`: the same as in the file name; `created-utc`: the time, from `date -u`.
+- `verdict`, from the verdict of the Output: `REVIEW_PASSED` for `APPROVE`, and for `COMMENT`
+  when no blocker remains; `REVIEW_FAILED` for `REQUEST_CHANGES`; `DONE` for
+  `POST_MERGE_FINDINGS`, with the label at the start of the `summary`; `QUESTION` when only the
+  contributor can answer something; `BLOCKED` when you cannot review.
+- `summary`: the verdict in a few sentences.
+- `findings`: one for each finding, with a `severity` (`Blocker`, `Major`, `Minor`, `Nit` or
+  `Suggestion`), a `location` and a `description` that carries the remediation.
+- `questions`: what the contributor must answer, one text each, or an empty list.
+- `evidence`: the commands you ran and what they showed, the checks you read, and the checklist
+  gaps, one text each.
+
+Check the file with the validator before you finish:
+
+```sh
+cargo run --quiet --package agent-reply-validator --bin agent-reply-validator -- <reply file>
+```
+
+A reply file is committed by the caller with the work it describes. It is independent of the
+handling of the review threads of the pull request, and does not replace the audit record of
+`process-pr-review`.
+
+### No Folder-Style Specification
+
+When the task names no reply file, because no folder-style issue specification was supplied (a
+direct diff or package review, or a legacy standalone specification), write no file. Do not create,
+migrate or modify an issue-local report. State in the result: `Issue-local report skipped: no
+folder-style issue specification was supplied.`
+
+### A Branch Without The `pr-reviewer` Agent
+
+A review made on a branch that does not have the `pr-reviewer` agent yet is recorded in
+`agent-review-reports.md` in the specification's folder, as the same section of `review-task`
+describes: create it from `docs/templates/AGENT-REVIEW-REPORTS.md` when absent, otherwise read it
+whole and append one complete entry. Record the pull-request number, the base branch, the reviewed
+files, the checks, the findings by severity, the checklist gaps, the verdict and the follow-up
+owner and action. Do not commit the report.
+
 ## Providing Feedback
 
 Finding formatting is advisory. Do not reject a review because it omits the format; the PR author
