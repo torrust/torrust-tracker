@@ -120,8 +120,8 @@ automatically on every `git commit`. Install it once after cloning:
 ```
 
 Once installed, the hook fires on every commit and you do not need to run the script manually. To
-check whether it is installed, run `./contrib/dev-tools/git/check-git-hooks.sh`: when it is, do not
-run the script first, because `git commit -S` would run every check a second time.
+check whether it is installed before you run the script by hand, see the
+[`run-pre-commit-checks`](../run-pre-commit-checks/SKILL.md) skill.
 
 ### Automated Checks
 
@@ -173,7 +173,8 @@ Run these before you stage, so a commit never lands under a stale or wrong issue
    state, and that only criteria a reviewer verified are ticked (the author of the work never ticks
    a criterion itself). When the specification is out of date, update it first. For a completion
    commit, check that the manual verification the specification requires is backed by the
-   issue-local `manual-verification-evidence.md`, not only by test output or a disposable script (see the [verification types](../../../docs/testing.md#verification-types)).
+   issue-local `manual-verification-evidence.md`, not only by test output or a disposable script
+   (see the [verification types](../../../docs/testing.md#verification-types)).
 2. **The branch's issue number has an open specification.** When the branch name starts with an
    issue number (for example `42-some-description`), `docs/issues/open/` must hold a file or folder
    that starts with that number. When it does not, the issue may be closed (look in
