@@ -7,6 +7,7 @@ metadata:
   semantic-links:
     related-artifacts:
       - AGENTS.md
+      - .claude/skills/implement-task/SKILL.md
       - .github/agents/implementer.agent.md
       - .claude/skills/update-dependencies/SKILL.md
 ---
@@ -23,6 +24,7 @@ reviewable, justified, and maintainable.
 ## Skill Links
 
 - `AGENTS.md`
+- `.claude/skills/implement-task/SKILL.md`
 - `.github/agents/implementer.agent.md`
 - `.claude/skills/update-dependencies/SKILL.md`
 

@@ -1,7 +1,7 @@
 ---
 pr-number: 3049
 pr-url: https://github.com/torrust/torrust-tracker/pull/3049
-last-updated-utc: "2026-11-25 17:28"
+last-updated-utc: "2026-11-25 17:37"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -81,7 +81,7 @@ Round 7: `da2ce7`'s review 6062016870 on the head of commit `docs(pr-reviews): [
 | F26 | review-finding:pr-3049-f26 | coderabbitai[bot] | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F27 | review-finding:pr-3049-f27 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F28 | review-finding:pr-3049-f28 | coderabbitai[bot] | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
-| F29 | review-finding:pr-3049-f29 | da2ce7 | Nit | documentation | RE_RAISE_OF:F27 | FIXED | OPEN |
+| F29 | review-finding:pr-3049-f29 | da2ce7 | Nit | documentation | RE_RAISE_OF:F27 | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -460,7 +460,7 @@ Round 7: `da2ce7`'s review 6062016870 on the head of commit `docs(pr-reviews): [
 - Current-tree verification: Read the checklist item and item 8 after the edit; `grep` for "mandatory manual scenario" in the skill shows both scoped.
 - Resolution reference: docs(skills): [#2904] scope the manual scenario checklist item to the task under review
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3049#discussion_r4698582087
 
 ## Processing Log
 
@@ -483,6 +483,7 @@ Round 7: `da2ce7`'s review 6062016870 on the head of commit `docs(pr-reviews): [
 - 2026-11-25 17:07 UTC - Round 6: started on CodeRabbit review `6061625852` (three inline comments), which came after five rounds of fixes; the maintainer approved a sixth round. Verified each finding against the current tree and committed the fixes locally (F26 to F28). Replies follow the push.
 - 2026-11-25 17:17 UTC - Pushed round 6 (head commit `docs(pr-reviews): [#2904] record the sixth review round on pull request 3049`), replied on the three threads (GitHub `created_at` 17:16 UTC) and resolved them with the GraphQL mutation, each returning `isResolved: true`. The reply URLs are recorded by this commit, which goes out with the next push.
 - 2026-11-25 17:28 UTC - Round 7: started on review `6062016870` of `da2ce7` (one nit, F29), which came after the sixth round; the maintainer approved a seventh round. Verified the finding against the current tree and committed the fix locally. The reply follows the push.
+- 2026-11-25 17:37 UTC - Pushed round 7 (head commit `docs(pr-reviews): [#2904] record the seventh review round on pull request 3049`), replied on the thread of F29 and resolved it with the GraphQL mutation, which returned `isResolved: true`. The reply URL is recorded by this commit, which goes out with the next push.
 
 ## Completion Rules
 

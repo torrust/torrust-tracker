@@ -64,6 +64,12 @@ See [`add-new-skill`](add-new-skill/SKILL.md).
 | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | [`link-subissue-to-parent-issue`](link-subissue-to-parent-issue/SKILL.md) | Guide for linking an existing GitHub issue as a sub-issue of a parent issue in the torrust-tracker project. |
 
+## Implementation
+
+| Skill | Purpose |
+| ----- | ------- |
+| [`implement-task`](implement-task/SKILL.md) | Implement one task of an approved issue specification with TDD: analyse, decompose, red-green-refactor, manual evidence, completion review, commit. |
+
 ## Logging
 
 | Skill                                                               | Purpose                                                                                                                        |
