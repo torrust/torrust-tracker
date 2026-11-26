@@ -4,10 +4,16 @@ semantic-links:
     - .github/agents/copilot-suggestions-handler.agent.md
     - .github/agents/task-reviewer.agent.md
     - .github/agents/complexity-auditor.agent.md
+    - .github/agents/implementer.agent.md
+    - .github/agents/committer.agent.md
+    - .github/agents/planner.agent.md
     - .claude/agents/pr-review-handler.md
     - .claude/agents/task-reviewer.md
+    - .claude/agents/implementer.md
     - .claude/skills/process-pr-review/SKILL.md
     - .claude/skills/review-task/SKILL.md
+    - .claude/skills/commit-changes/SKILL.md
+    - .claude/skills/create-issue/SKILL.md
 ---
 
 # Rules of the Removed Copilot Profiles
@@ -20,7 +26,8 @@ nowhere, with the reason it is dropped. A rule whose destination already held it
 says so.
 
 Task T4 created this file with the rows of `copilot-suggestions-handler`. Each of T5 to T9 adds the
-rows of the profiles its agent replaces, and T10 completes it before it removes the profiles.
+rows of the profiles its agent replaces, and T10 completes it before it removes the profiles. Task T6
+adds `implementer`, `committer` and `planner`.
 
 ## `copilot-suggestions-handler`
 
@@ -97,3 +104,105 @@ checked once before the pull request, and a follow-up issue evaluates Clippy's `
 | Persist the audit in `agent-review-reports.md`, with the same append-only rules and the skipped-report statement. | Dropped | The audit is an item of the task review, which is recorded as `review-task` says. |
 | Do not rewrite code, do not alter the reviewed implementation, do not invoke the Committer; keep the report to one line per function. | Dropped | No agent audits code any more; the reviewer reports findings with remediation and changes no feature code (agent file), and there is no `committer` agent (decision D14). |
 | Tools: `execute`, `read`, `search`, `edit`; `user-invocable: true` and `disable-model-invocation: false`. | Dropped | There is no agent; the keys have no Claude Code meaning. |
+
+## `implementer`
+
+Replaced by the agent `implementer` (task T6), which uses the model of the session (decision D13) and
+starts no agent (decision D3). No skill owns the sequence of an implementation, so the agent file
+holds the workflow of the role, in seven steps, and refers to the skills that own each practice.
+The handoffs to `complexity-auditor`, `task-reviewer` and `committer` are dropped: the orchestrator
+starts the reviewer (task T9), and the implementer commits itself (decision D14).
+
+| Rule of the profile | Destination | Notes |
+| --- | --- | --- |
+| Identity: implement tasks correctly, simply and verifiably, with test-driven development whenever practical and the simplest solution that passes. | Agent file (identity) | |
+| Follow Beck's four rules of simple design, in priority order. | `AGENTS.md`, "Development Principles" (already held it) | The agent file points to `AGENTS.md`. |
+| Follow `AGENTS.md` for repository-wide conventions. | `AGENTS.md`; agent file, "Workflow" | |
+| The pre-commit command, `--format=json` first and `--format=text --verbosity=verbose` for diagnostics. | `AGENTS.md`, "Build, Test, and Lint", and skills `run-pre-commit-checks` and `commit-changes` (already held it) | |
+| Skills to load when needed: `add-rust-dependency`, `fix-bug`, `write-unit-test`, `handle-errors-in-code`, `commit-changes`. | Agent file, `skills` field and "Workflow" steps 1, 3, 4 and 7 | `commit-changes` (decision D14) and `write-unit-test` are preloaded; the other three are read when the work needs them, so the agent does not start with their whole text. |
+| Follow the verification types: durable automatic checks in Rust, manual verification against the finished artifact, a disposable script only with the rationale the template requires. | Agent file, "Workflow" step 5; skill `create-issue`, "Plan The Work" | The rationale is required of the specification by `create-issue` (already held it). |
+| ADR discoverability: link the ADR to the affected code and add module comments that link back. | Skill `create-adr` (already held it) | |
+| Step 1: read `AGENTS.md`, the skills of the area and the whole task; state what must change and what must not. | Agent file, "Workflow" step 1 | |
+| Step 1: decide whether the work is substantively a bug, whatever its labels, and then follow `fix-bug` in order. | Agent file, "Workflow" step 1; skill `fix-bug` (already held it) | |
+| Step 1: ask rather than guess; raise a specification that is ambiguous, incomplete or out of line with the code with the Planner or the user. | Agent file ("Inputs" and "Workflow") | There is no Planner and the implementer cannot ask the contributor: it returns the question in its reply with the verdict `QUESTION`, and the caller answers (decision D3). |
+| Step 2: break each task into the smallest independent, verifiable steps, each fit for one commit. | Agent file, "Workflow" step 2 | The agent follows the Commit Points of the specification. |
+| Step 3: write a failing test, minimal code, refactor; run `cargo test -p <package>`; when TDD is not practical, implement defensively and add tests as the next step. | Agent file, "Workflow" step 3; skill `write-unit-test` | |
+| Step 3.5: check the standard library and the workspace before a new crate, start from the latest stable version, document an older choice. | `AGENTS.md`, "Engineering Policies" 1, and skill `add-rust-dependency` (already held it) | |
+| Step 3.5: check base images when touching container artifacts; document the Rust API and the invariants; keep shell for orchestration. | `AGENTS.md`, "Engineering Policies" 2, 3 and 5 (already held it); agent file, "Workflow" step 4 | |
+| Step 4: invoke the Complexity Auditor after every step and do not go on while it reports a blocking issue. | Dropped | Decision D12: no agent audits code; the length and nesting items are checked once, by the task reviewer. |
+| Step 5: compare the result with the specification; decide whether `implementation-retrospective.md` is needed; otherwise log why not; send a lesson that applies beyond the issue to the skill, agent, template or document it concerns. | Agent file, "Workflow" step 6; skill `create-issue`, "Implementation Completion Review" (already held it) | |
+| Step 5: review the collaborators, the resource ownership, the deadlines and the passive infrastructure of fixtures with child processes, asynchronous I/O or network readiness. | Skill `create-issue`, the design-review checkpoint it requires of such specifications (already held it) | |
+| Step 5: perform the manual scenarios against the finished artifact before the independent verification and record the commands, output, logs and conclusions in `manual-verification-evidence.md`; for a bug, the first reproduction and the final recheck; test output is not a substitute. | Agent file, "Workflow" step 5; skills `create-issue` and `fix-bug` (already held it) | |
+| Step 6: invoke the Task Reviewer with the specification path, the criteria, a summary of what changed per criterion, and a request to tick the verified items; wait for its report. | Dropped from the implementer | The orchestrator starts the task reviewer (decision D3, task T9) and gives it these inputs; the implementer reports what it changed in its reply. |
+| Step 6: include the reviewer's report and checkbox changes in the change set for the Committer; a failed report may be committed as durable evidence. | Skill `review-task`, "Recording The Review" (already held it) | The caller commits the reply file with the work it describes. |
+| Step 6: when the reviewer reports gaps, address them and ask for review again. | Dropped from the implementer | The orchestrator loops, with the round limit of 3 (decision D18, task T9). |
+| Step 7: after the reviewer approves, invoke the Committer; never commit directly. | Dropped | Decision D14: there is no `committer` agent; the implementer commits under the skill `commit-changes`. |
+| Do not do more than was asked: scope creep is a defect. | Agent file, "Constraints" | |
+| Do not suppress a warning or a Clippy lint without a documented reason. | `AGENTS.md`, "Code Style" (already held it) | |
+| Do not add a dependency without running `cargo machete`. | `AGENTS.md`, "Essential Rules" 4 (already held it) | |
+| Do not add a dependency without checking the latest stable version. | `AGENTS.md`, "Engineering Policies" 1 (already held it) | |
+| Do not commit code that fails the pre-commit script. | `AGENTS.md`, "Essential Rules" 1; agent file, "Constraints" | |
+| Do not skip the audit step, even for a small change. | Dropped | Decision D12. |
+| Do not self-verify the acceptance criteria and do not tick them in the specification. | Agent file, "Workflow" (last paragraph) | The task reviewer verifies and ticks (skill `review-task`, step 5). |
+| Do not leave meaningful behavior untested without documenting the reason. | `AGENTS.md`, "Engineering Policies" 4; agent file, "Workflow" step 5 | |
+| Tools: `execute`, `read`, `search`, `edit`, `todo`, `agent`. | Agent file (tools) | `Bash`, `Read`, `Edit`, `Write`, `Grep`, `Glob`. `agent` is dropped because the implementer starts no agent (decision D3); `todo` has no use in a run that the caller supervises through its reply. |
+| `argument-hint` and `user-invocable: true`, `disable-model-invocation: false`; `semantic-links` to `fix-bug`. | Agent file (inputs, `description`) | The hint becomes the "Inputs" section. The visibility keys have no Claude Code meaning. The link to `fix-bug` is step 1 of the workflow. |
+
+## `committer`
+
+Not ported as an agent (decision D14): the implementer commits itself, with the skill `commit-changes`
+preloaded. The skill already held most of the workflow; task T6 moves into it the three rules that
+no other document held (the specification's progress, the branch's issue number, the dictionary
+first when one change is split) and three smaller ones.
+
+| Rule of the profile | Destination | Notes |
+| --- | --- | --- |
+| Identity: a commit specialist that treats every request as a review-and-verify workflow. | Dropped | Decision D14: a gate in front of every commit costs one agent run and two trace entries per commit. |
+| Follow `AGENTS.md` and the skill `commit-changes`. | Skill `commit-changes` (already held it) | |
+| The pre-commit command, with the JSON format first. | Skill `commit-changes`, "Automated Checks" (already held it) | |
+| Create GPG-signed Conventional Commits, and on a GPG timeout stop, notify the user and never use `--no-gpg-sign`. | Skill `commit-changes`, "GPG Commit Signing" and "GPG Timeout Handling"; `AGENTS.md`, "Essential Rules" 2 (already held it) | |
+| Workflow 1: check that the issue specification's progress is current, and that a completion commit has its manual verification evidence; stop when the specification is stale. | Skill `commit-changes`, "Checks Before The Commit" 1 | The first of the three rules moved by task T6. |
+| Workflow 2: check that the branch's issue number has an open specification; otherwise look in `closed/`, then confirm or rename with `chore/`. | Skill `commit-changes`, "Checks Before The Commit" 2; skill `run-pre-commit-checks` now points to it | The second rule. `run-pre-commit-checks` pointed to "the committer agent spec". |
+| Workflow 3 to 5: read the branch, the status and the diff; summarize the scope; keep it coherent and free of unrelated changes. | Skill `commit-changes`, "Manual Checks" (self-review the diff) and "Commit Quality Guidelines" (atomic) (already held it) | |
+| Workflow 6: stop on a policy violation in the diff and return it to the implementer or the reviewer. | Skill `commit-changes`, "Manual Checks"; skill `review-task` (already held it) | The implementer is the author; the task reviewer catches what it misses. |
+| Workflow 7: check whether the pre-commit hook is installed before running the script by hand, so the checks do not run twice. | Skill `commit-changes`, "Git Hook" | Moved by task T6 (`check-git-hooks.sh`). |
+| Workflow 7: may fix formatting, linting, spelling and import order that come from the commit's scope; must not fix build or test failures, which go back to the implementer. | Dropped | The implementer is the author of the code, so a failure is its own to fix; there is no one to hand it back to. |
+| Workflow 8 to 10: propose a precise message, commit with `git commit -S` once the scope is clear, verify the result afterwards. | Skill `commit-changes`, "Conventional Commit Format" and "One Signed Commit per Step" (already held it) | |
+| Do not write code. | Dropped | The role is gone. |
+| Do not bypass failing checks without telling the user what failed. | Skill `commit-changes`, "Automated Checks" and "GPG Timeout Handling" (already held it) | |
+| Do not rewrite or revert unrelated changes of the user. | Dropped | The implementer commits only the changes of its task; `AGENTS.md`, "Commit history", forbids rewriting a branch. |
+| Do not create empty, vague or non-conventional messages. | Skill `commit-changes`, "Commits to Avoid" (already held it) | |
+| Do not commit secrets, backup files or accidental files. | Skill `commit-changes`, "Commits to Avoid" | Moved by task T6. |
+| Do not mix skill or workflow documentation changes with implementation changes: separate commits. | Skill `commit-changes`, "Commits to Avoid" | Moved by task T6. |
+| Splitting commits: commit the `project-words.txt` changes first, as one `chore(cspell)` commit or folded into the first logical commit. | Skill `commit-changes`, "Checks Before The Commit" 3 | The third rule. |
+| Output format: scope summary, blockers, checks, proposed message, status, post-commit verification. | Dropped | There is no agent to report; the implementer's reply and final message list the commits. |
+| Tools: `execute`, `read`, `search`, `todo`; `argument-hint`; `user-invocable` and `disable-model-invocation`. | Dropped | There is no agent. |
+
+## `planner`
+
+Not ported as an agent: the session that plans works under the skill `create-issue`, which already held
+the specification rules. Task T6 adds its section "Plan The Work" with the rules that only the
+profile held, and the orchestrator (task T9) takes the delegation.
+
+| Rule of the profile | Destination | Notes |
+| --- | --- | --- |
+| Identity: transform ambiguous work into clear, actionable and verifiable plans, and do not implement. | Dropped | There is no planner agent; the session drafts the specification under `create-issue`, and the implementer implements. |
+| Follow `AGENTS.md`; use the issue specifications under `docs/issues/`. | Skill `create-issue` (already held it) | |
+| Responsibility 1: write or refine specifications, simple issues and EPICs. | Skill `create-issue` (already held it) | |
+| Responsibility 2 and workflow 4: classify the issue as `task`, `bug` or `feature`, with one sentence of reason. | Skill `create-issue`, "Plan The Work" 1 | Moved by task T6. |
+| Responsibility 3 and workflow 5: choose the strategy by risk and coupling (parallel streams, progressive implementation, a spike first) and say why. | Skill `create-issue`, "Plan The Work" 2 | Moved by task T6. |
+| Responsibility 4 and workflow 6 and 7: break the work into coarse tasks of about a day, each with a deliverable, and define for each its intent, output, verification and dependencies. | Skill `create-issue`, "Plan The Work" 3 | Moved by task T6. |
+| Responsibility 5 and workflow 8: delegate the tasks to the implementer in an order, with a precise scope and success criteria. | Dropped | The orchestrator starts the implementer and gives it the scope (decision D3, task T9). |
+| Workflow 1 and 2: clarify the objective, constraints and success criteria; inspect the repository and the existing specifications. | Skill `create-issue`, steps 1 and 2 (draft, then the user reviews) | |
+| Workflow 3: the specification holds the problem, the scope, the acceptance criteria, and the risks and assumptions. | The issue template; skill `create-issue`, "Plan The Work" 4 | Moved by task T6 for the risks and assumptions. |
+| Workflow 3: a responsibility and ownership map and a design review after the first vertical slice, when child processes, asynchronous I/O, network readiness or cleanup are involved. | Skill `create-issue` (already held it) | |
+| Workflow 3: manual verification scenarios with their evidence in `manual-verification-evidence.md`; a disposable script needs a rationale, a path, an owner and, for Python, a reason. | Skill `create-issue` (already held it) | |
+| Use folder-style specifications for new work, `ISSUE.md` or `EPIC.md` as the primary file, and migrate a legacy single-file specification when it is materially updated. | Skill `create-issue`, step 1 (already held it) | |
+| Require an evidence-based completion review, with an `implementation-retrospective.md` or the reason it is not needed. | Skill `create-issue`, "Implementation Completion Review" (already held it) | |
+| Follow the verification types. | Skill `create-issue`, "Plan The Work" 5 | Moved by task T6. |
+| Output format: classification, planning summary, strategy, task breakdown, delegation plan, open questions and risks. | Dropped | The drafted specification is the output; there is no delegation plan to print. |
+| Do not implement production code while planning. | Dropped | There is no planner role to restrict. |
+| Do not leave acceptance criteria ambiguous, do not decompose into vague units, and do not bypass the conventions. | Skill `create-issue`, "Plan The Work"; `AGENTS.md` | Moved by task T6 for the first two. |
+| Do not delegate without an explicit scope and success criteria. | Dropped | The orchestrator briefs the implementer (task T9). |
+| Answer the implementer's clarifying questions promptly and update the specification before implementation resumes. | Skill `create-issue`, "Plan The Work" (last paragraph) | Moved by task T6. The orchestrator relays the question to the contributor (decision D3). |
+| Tools: `execute`, `read`, `search`, `edit`, `todo`, `agent`; `argument-hint`; `user-invocable` and `disable-model-invocation`. | Dropped | There is no agent. |
