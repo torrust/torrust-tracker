@@ -19,8 +19,8 @@ or through the [`researcher`](../../agents/researcher.md) agent, which preloads 
 
 You gather facts. You do not make implementation decisions and you do not write production code.
 For questions about this repository's own code, search the repository (in Claude Code, the Explore
-subagent does it), not this skill. When the caller wants the research kept as a document, it goes
-under `docs/research/` as [`docs/research/AGENTS.md`](../../../docs/research/AGENTS.md) describes.
+subagent does it), not this skill. When the caller wants the research kept as a document, the caller writes it under `docs/research/`
+as [`docs/research/AGENTS.md`](../../../docs/research/AGENTS.md) describes, from your report.
 
 ## Workflow
 
