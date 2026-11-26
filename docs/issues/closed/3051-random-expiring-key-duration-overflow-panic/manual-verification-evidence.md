@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/3051-random-expiring-key-duration-overflow-panic/ISSUE.md
-last-updated-utc: "2026-11-25 19:14"
+issue-spec: docs/issues/closed/3051-random-expiring-key-duration-overflow-panic/ISSUE.md
+last-updated-utc: "2026-11-26 16:21"
 ---
 
 # Manual Verification Evidence
@@ -28,7 +28,7 @@ Evidence of the bug before the fix (V1, V2) and, after the fix, the like-for-lik
 - Initial state: fresh SQLite database; the tracker started in the background, as run, with
   `./target/debug/torrust-tracker --config-toml-path docs/issues/drafts/random-expiring-key-duration-overflow-panic/evidence/tracker.repro.toml > .tmp/tracker.log 2>&1`,
   so `.tmp/tracker.log` holds its output (stdout and stderr). The folder has since moved to
-  `docs/issues/open/3051-random-expiring-key-duration-overflow-panic/`; the configuration file is the one in its
+  `docs/issues/closed/3051-random-expiring-key-duration-overflow-panic/` (after `open/`); the configuration file is the one in its
   `evidence/` folder.
 - Status: `DONE` (outcome: **Reproduced**)
 
@@ -164,7 +164,8 @@ the rebase, so V3 below still describes it.
   change; stable toolchain; `cargo build --bin torrust-tracker`; same configuration and requests as V1. The tracker
   was started in the background with
   `./target/debug/torrust-tracker --config-toml-path docs/issues/open/3051-random-expiring-key-duration-overflow-panic/evidence/tracker.repro.toml > .tmp/tracker.log 2>&1`
-  and answered `200` to the stats request at 19:13:41 UTC on 2026-11-25.
+  and answered `200` to the stats request at 19:13:41 UTC on 2026-11-25. As in V1, the command is shown as it ran:
+  the folder has since moved to `docs/issues/closed/`, and the configuration file is the one in its `evidence/` folder.
 - Status: `DONE` (outcome: **Fixed**)
 
 #### Steps Performed

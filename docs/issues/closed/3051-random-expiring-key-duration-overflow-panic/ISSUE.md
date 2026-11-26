@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: done
 priority: p1
 epic: null
 github-issue: 3051
-spec-path: docs/issues/open/3051-random-expiring-key-duration-overflow-panic/ISSUE.md
+spec-path: docs/issues/closed/3051-random-expiring-key-duration-overflow-panic/ISSUE.md
 branch: "3051-random-expiring-key-duration-overflow-panic-spec"
-related-pr: null
-last-updated-utc: "2026-11-25 15:18"
+related-pr: 3064
+last-updated-utc: "2026-11-26 18:57"
 semantic-links:
   skill-links:
     - create-issue
@@ -184,7 +184,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2  | DONE   | Run them red and record output                                                                               | `KeysHandler` test panics at `key/mod.rs`; the `generate_auth_key_handler` test and the contract tests fail. Output in the evidence file.   |
 | T3  | DONE   | Fix: `DurationOverflow`, new signatures, callers, REST mapping, handler arm and docs; rename `it_should_answer_an_internal_server_error_whatever_the_error_when_generating_a_key` to say that it covers the errors other than a duration overflow; add the `generate_key` unit test        | Mutate-then-restore proves the unit test.                                               |
 | T4  | DONE   | Green run, `linter all`, like-for-like recheck against a real tracker                                        | Requests that dropped the connection now return `400`.                                  |
-| T5  | TODO   | Review loop, completion review                                                                               | Checks green, reviews addressed.                                                        |
+| T5  | DONE   | Review loop, completion review                                                                               | Checks green, reviews addressed.                                                        |
 
 ## Commit Points
 
@@ -202,18 +202,18 @@ commit.
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/open/3051-random-expiring-key-duration-overflow-panic/ISSUE.md`
+- [x] Folder-style spec drafted in `docs/issues/closed/3051-random-expiring-key-duration-overflow-panic/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [x] Spec-only PR merged into `develop` before implementation
 - [x] Implementation completed
 - [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Implementation completion review recorded
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Implementation completion review recorded
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -225,20 +225,23 @@ commit.
 - 2026-11-25 19:06 UTC - Claude Code (Claude Sonnet 5.5) - T1-T2 done: four regression tests written and run red on branch 3051-random-expiring-key-duration-overflow-panic, no production change yet (evidence V2b)
 - 2026-11-25 19:12 UTC - Claude Code (Claude Sonnet 5.5) - T3 done: fix, callers and the generate_key unit tests; green run, mutation proof and linter all recorded (evidence V2c); the real-tracker recheck (V3) is next
 - 2026-11-25 19:14 UTC - Claude Code (Claude Sonnet 5.5) - T4 done: real-tracker recheck on the fix commit (evidence V3): requests 2 and 4 answer 400, no panic. Completion review: no material discovery, the implementation followed the spec (the REST handler arm, the benchmark caller and the renamed handler test were all planned)
+- 2026-11-26 13:50 UTC - Claude Code (Claude Sonnet 5.5) - Fix PR #3064 merged and issue #3051 closed; spec archived to `docs/issues/closed/` with the references repaired. The checkpoint "Reviewer validated acceptance criteria" stays unticked: the maintainer's ACK approved the head commit of each PR, and no reviewer checked the criteria against their checkboxes.
+- 2026-11-26 17:13 UTC - Claude Code (Claude Sonnet 5.5) - After review 6075748165 of the archive PR the T5, M3 and AC5 rows were set to `DONE` with their evidence, so the ticked checkpoints agree with the record. After review 6077711472, AC1 to AC5 and the criteria re-review checkbox were unticked: only a reviewer ticks acceptance criteria, and the `DONE` rows of the Acceptance Verification table keep the evidence.
+- 2026-11-26 18:57 UTC - Claude Code (Claude Sonnet 5.5) - After review 6078748782 the criteria `linter all` exits with code `0`, Relevant tests pass and Manual verification scenarios are executed were unticked as well, to be ticked by a reviewer like AC1 to AC5; the Workflow Checkpoints above record that those checks ran.
 
 ## Acceptance Criteria
 
-- [x] AC1: `key::generate_key(Some(d))` returns `Err(DurationOverflow)` when `now + d` overflows, and never panics.
-- [x] AC2: `KeysHandler::add_peer_key` with `opt_key: None` and `opt_seconds_valid: Some(u64::MAX)` returns
+- [ ] AC1: `key::generate_key(Some(d))` returns `Err(DurationOverflow)` when `now + d` overflows, and never panics.
+- [ ] AC2: `KeysHandler::add_peer_key` with `opt_key: None` and `opt_seconds_valid: Some(u64::MAX)` returns
       `PeerKeyError::DurationOverflow`.
-- [x] AC3: `KeysHandler::generate_expiring_peer_key` returns `DurationOverflow` on overflow and `DatabaseError` on a
+- [ ] AC3: `KeysHandler::generate_expiring_peer_key` returns `DurationOverflow` on overflow and `DatabaseError` on a
       database failure.
-- [x] AC4: `POST /api/v1/keys` (random key) and the generate-key endpoint answer `400` with "invalid auth key
+- [ ] AC4: `POST /api/v1/keys` (random key) and the generate-key endpoint answer `400` with "invalid auth key
       duration" for `u64::MAX`.
 - [ ] AC5: The API change is stated in the PR description.
-- [x] `linter all` exits with code `0`
-- [x] Relevant tests pass
-- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [ ] `linter all` exits with code `0`
+- [ ] Relevant tests pass
+- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 - [ ] Documentation is updated when behavior/workflow changes
 
@@ -255,7 +258,7 @@ commit.
 | --- | ---------------------------------------------- | --------------------------------------------------------------------------------------------- | -------------------------------------------------------- | ------ | --------------------------------------------- |
 | M1  | Before the fix: five requests on a real tracker | `curl` the five requests of V1: the control (request 1), the two random-key requests, the pre-generated request and the stats check | Empty replies for requests 2 and 4, `400` for request 3, `200` for 1 and 5 | DONE   | `manual-verification-evidence.md` section V1   |
 | M2  | Before the fix: handler test                   | Temporary test, `cargo test -p torrust-tracker-core`                                          | Panic at `key/mod.rs:111`                                | DONE   | `manual-verification-evidence.md` section V2   |
-| M3  | After the fix: the same five requests as M1    | The same commands against the fixed build                                                     | `400` "invalid auth key duration" for requests 2, 3 and 4; `200` for 1 and 5 | TODO   | `manual-verification-evidence.md` section V3   |
+| M3  | After the fix: the same five requests as M1    | The same commands against the fixed build                                                     | `400` "invalid auth key duration" for requests 2, 3 and 4; `200` for 1 and 5 | DONE   | `manual-verification-evidence.md` section V3   |
 
 The M3 recheck runs after the last production change, including changes made for review findings.
 
@@ -267,7 +270,7 @@ The M3 recheck runs after the last production change, including changes made for
 | AC2   | DONE   | `it_should_fail_adding_a_randomly_generated_key_when_the_key_duration_exceeds_the_maximum_duration`: red in V2b, green in V2c |
 | AC3   | DONE   | `DurationOverflow` by the handler test above; `DatabaseError` by the existing `it_should_fail_adding_a_randomly_generated_key_when_there_is_a_database_error`, green in V2c |
 | AC4   | DONE   | two contract tests and the handler test: red in V2b, green in V2c; real tracker in V3 (requests 2 and 4 answer `400`) |
-| AC5   | TODO   |          |
+| AC5   | DONE   | the description of the merged fix PR #3064 has the section "Breaking public API change" listing the `generate_key`, `generate_expiring_peer_key` and `DurationOverflow` changes |
 
 ## Risks and Trade-offs
 
