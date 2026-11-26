@@ -188,7 +188,7 @@ consumes the old behavior (named in its spec). No issue edits the ADR table exce
 ## Risks and Trade-offs
 
 - **The daemon's log format is operator-visible.** Existing deployments parse the plain text. Mitigation: a release
-  note, and the issue decides the migration detail with the maintainer before code. Whether the other `trace_style` values keep working depends on that decision: the contract allows no plain text at any verbosity, so the plain styles cannot simply stay.
+  note, and the migration detail the maintainer decided on 2026-11-26 (`decisions.md` of issue 7): `json` becomes the default of `trace_style`, and the plain styles stay as an operator's explicit opt-in for the log records. The contract allows no plain text at any verbosity, so the opt-in is an exception for the daemon that the ADR of issue 7 records; the default configuration meets the contract.
 - **The `check` output shape changes.** `tracker_client check` emits a top-level array today and the contract requires one object; issue 9 wraps it in an envelope, which breaks consumers of the array (the README documents it). Mitigation: release note and the tracker-client contract doc.
 - **Health check semantics.** The container `HEALTHCHECK` must keep failing on an unhealthy service. Mitigation: the
   `no-stdout-result` reclassification, and a manual verification that `docker inspect` reports `unhealthy`.
