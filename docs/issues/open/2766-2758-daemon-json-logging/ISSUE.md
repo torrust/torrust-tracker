@@ -124,7 +124,7 @@ Files this issue may touch (a sibling issue in the same wave must not touch them
 
 ## Architectural Decisions
 
-Related ADRs: `docs/adrs/20260519000000_define_global_cli_output_contract.md`, `docs/adrs/20261106102632_scope_the_cli_output_contract_and_keep_exit_codes_to_zero_one_two.md`. ADR to create (task T2, `create-adr` skill): how the daemon meets the output contract: JSON by default with the text styles as an operator's exception (D1), logging installed before the configuration (D2), the record shape and `kind` values (D4), the panic record (D6), no colour codes (D8). It also updates the daemon's row in the binary table of the contract ADR.
+Related ADRs: `docs/adrs/20260519000000_define_global_cli_output_contract.md`, `docs/adrs/20261106102632_scope_the_cli_output_contract_and_keep_exit_codes_to_zero_one_two.md`. ADR to create (task T2, `create-adr` skill): how the daemon meets the output contract: JSON by default with the text styles as an operator's exception (D1), logging installed before the configuration (D2), the record shape and `kind` values (D4), the panic record (D6), no colour codes (D8). It does not edit the binary table of the contract ADR: the EPIC reserves that table for its issues 1 and 11, so the daemon's row is updated by the close-out issue (#2770).
 
 During implementation, stop and create an ADR when a decision affects project architecture or design patterns, selects an approach among meaningful alternatives, or has consequences future contributors need to understand. Do not create ADRs for routine implementation details.
 
@@ -156,7 +156,7 @@ The issue is delivered as several pull requests of this one issue: the tasks are
 | --- | ------ | ---- | -- | ----------------------- |
 | T0 | DONE | Refresh this spec against `develop` | spec | Dependencies, Background, Scope and file references corrected (2026-11-26). |
 | T1 | DONE | Agree the migration detail with the maintainer | spec | `decisions.md` (D1 to D9), summary in section Decisions. |
-| T2 | TODO | Write the ADR | 1 | ADR created with `create-adr`; row of the daemon in the contract ADR updated. |
+| T2 | TODO | Write the ADR | 1 | ADR created with `create-adr`. The binary table of the contract ADR is not edited here (EPIC issue 11, #2770, updates the daemon's row). |
 | T3 | TODO | Record the real-artifact reproduction of a normal run and a bind failure | 1 | `manual-verification-evidence.md` R0 completed (it has only the configuration and argument cases). |
 | T4 | TODO | Move the logging setup to the application and install it first (D2, D3) | 1 | Tests first. Same text output and stream as today; "Loading … configuration" records now visible; configuration crate without `tracing-subscriber`; the other entry points and the package tests follow. |
 | T5 | TODO | JSON formatter, stderr, no colour codes, `json` default (D1, D4, D8, D9), with the readers | 2 | Tests first. `logs_parser.rs`, `Docker::logs`, `health.rs`, `shutdown_policy.rs` and the default configs change in the same pull request. |
