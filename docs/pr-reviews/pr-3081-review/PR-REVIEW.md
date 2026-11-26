@@ -59,6 +59,8 @@ Review 6078267704 (`claude[bot]`) has no finding: it only says that automated re
 | F11 | review-finding:pr-3081-f11 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-3081-f12 | coderabbitai[bot] | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F13 | review-finding:pr-3081-f13 | da2ce7 | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-3081-f14 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-3081-f15 | coderabbitai[bot] | Minor | maintainability | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -231,6 +233,32 @@ Review 6078267704 (`claude[bot]`) has no finding: it only says that automated re
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3081#discussion_r4712896421
 
+### F14 - D2 says initialize_global_services only sets the level
+
+- PR number: 3081
+- Source review ID: 6079935603
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3081#discussion_r4712931139
+- Concern: The consequence of D2 said `initialize_global_services` only sets the level, while the Scope of `ISSUE.md` gives it the level and the style; an implementation that follows D2 alone would never select a text style.
+- Solution: The consequence now says it sets the level and the style of the log records from the configuration.
+- Current-tree verification: `grep -n "it sets the level and the style" docs/issues/open/2766-2758-daemon-json-logging/decisions.md` finds the sentence; `grep -c "it only sets the level"` on the same file prints 0.
+- Resolution reference: docs(issues): [#2766] say that initialize_global_services sets the level and the style
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3081#discussion_r4713726048
+
+### F15 - The test-workflow paragraph omits parts of the test-development loop
+
+- PR number: 3081
+- Source review ID: 6079935603
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3081#discussion_r4712931146
+- Concern: The paragraph under Commit Points did not state the smallest behavior-focused increment, did not require the design review to be recorded in task evidence, and did not stop for maintainer review after the final increment.
+- Solution: The paragraph now carries the loop of `docs/templates/ISSUE.md` for tasks T4 to T7, with the three parts named.
+- Current-tree verification: `grep -c "smallest behavior-focused increments" docs/issues/open/2766-2758-daemon-json-logging/ISSUE.md` prints 1; the same paragraph contains "recorded in the task's evidence" and "stop for maintainer review".
+- Resolution reference: docs(issues): [#2766] state the full test-development loop for tasks T4 to T7
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3081#discussion_r4713726263
+
 ## Processing Log
 
 - 2026-11-26 17:20 UTC - Review 6078267704 (`claude[bot]`) arrived; it has no finding.
@@ -259,6 +287,12 @@ Review 6078267704 (`claude[bot]`) has no finding: it only says that automated re
 - 2026-11-26 19:56 UTC - Committed the fix for F13.
 - 2026-11-26 19:59 UTC - Pushed it, which makes both `ACK`s and the approval stale, and replied on the thread of F13 again.
 - 2026-11-26 20:00 UTC - Added F13 to this record and resolved its thread. A GraphQL listing shows no unresolved thread.
+- 2026-11-26 20:03 UTC - Pushed the third version of this record.
+- 2026-11-26 20:04 UTC - CodeRabbit's review 6079935603 arrived with F14 and F15, on the head of the F13 fix.
+- 2026-11-26 22:02 UTC - Committed the fixes for F14 and F15, after the maintainer chose a push over carrying them to the first implementation pull request.
+- 2026-11-26 22:05 UTC - Pushed both commits.
+- 2026-11-26 22:06 UTC - Replied on the threads of F14 and F15.
+- 2026-11-26 22:06 UTC - Added F14 and F15 to this record. CodeRabbit resolved both threads itself after the replies; a GraphQL listing shows no unresolved thread. da2ce7 had commented `ACK` on the previous head at 20:10.
 
 ## Completion Rules
 
