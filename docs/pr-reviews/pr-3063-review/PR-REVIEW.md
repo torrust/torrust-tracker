@@ -42,9 +42,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Findings F1 to F7 come from review 6070914967 and findings F8 to F10 from review 6075692867, both by `da2ce7`; F11 to F13 come from review 6075857869 by `coderabbitai[bot]`; F14 is an inline comment of `da2ce7` (14:32 UTC) in review 6075885313, and F15 and F16 come from review 6076348650 by `da2ce7`. The
+Findings F1 to F7 come from review 6070914967 and findings F8 to F10 from review 6075692867, both by `da2ce7`; F11 to F13 come from review 6075857869 by `coderabbitai[bot]`; F14 is an inline comment of `da2ce7` (14:32 UTC) in review 6075885313, F15 and F16 come from review 6076348650 by `da2ce7`, and F17 to F19 are follow-up replies of `coderabbitai[bot]` (14:46 UTC, reviews 6076107248, 6076112434 and 6076112623) to the replies on the threads of F12, F13 and F11, which the poller did not report. The
 `claude[bot]` review (6062721178, automated review is disabled for fork pull requests) and the
-`coderabbitai[bot]` rate-limit notice hold no actionable assertion and have no row.
+`coderabbitai[bot]` rate-limit notice hold no actionable assertion and have no row, and neither does the `coderabbitai[bot]` reply of 15:23 UTC (4710387901, review 6076691282), which concedes F19 and asks for nothing.
 
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
@@ -64,6 +64,9 @@ Findings F1 to F7 come from review 6070914967 and findings F8 to F10 from review
 | F14 | review-finding:pr-3063-f14 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F15 | review-finding:pr-3063-f15 | da2ce7 | Major | correctness | ORIGINAL | FIXED | RESOLVED |
 | F16 | review-finding:pr-3063-f16 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-3063-f17 | coderabbitai[bot] | Minor (inferred) | other | RE_RAISE_OF:F12 | NO_ACTION | SUPERSEDED |
+| F18 | review-finding:pr-3063-f18 | coderabbitai[bot] | Minor (inferred) | security | RE_RAISE_OF:F13 | NO_ACTION | SUPERSEDED |
+| F19 | review-finding:pr-3063-f19 | coderabbitai[bot] | Minor (inferred) | metadata | ORIGINAL | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -271,9 +274,48 @@ Findings F1 to F7 come from review 6070914967 and findings F8 to F10 from review
 - Concern: The entry of 14:21 UTC dates the fixes of F1 to F7 by the committer date of `docs(adrs): [#3000] keep the v1 status of a duplicate key and fix the review findings` after the rebase; its author date is 14:04:41Z, so the log puts the fixes after the replies of 14:07 that announced them.
 - Solution: A correcting entry is appended to the Processing Log (the log is append-only and chronological) with the author date and the explanation; the earlier entry is not rewritten.
 - Current-tree verification: `git log --format='%aI %cI %s'` shows author date 14:04:41Z and committer date 14:21:33Z for that commit.
-- Resolution reference: docs(adrs): [#3000] require the request span to declare request_id
+- Resolution reference: docs(pr-reviews): [#3000] record the third review round of da2ce7 on pull request 3063
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3063#discussion_r4710186181
+
+### F17 - CodeRabbit asks for the audit validator to be run before the F12 thread is resolved
+
+- PR number: 3063
+- Source review ID: 6076107248
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3063#pullrequestreview-6076107248
+- Concern: CodeRabbit could not run the repository's audit validator in its sandbox and asked for it to be run for PR 3063 after the reply URLs were recorded, before the thread of F12 is resolved. (The source is the reply `discussion_r4709952021` inside an existing thread, the only comment of its review; the row cites the review because the audit validator anchors a discussion row to the first comment of its thread.)
+- Solution: No change. The validator was run before the thread was resolved (`status: ok`, 13 rows at 14:41 UTC) and passes at the current head; the reply says so. Replied with the `Superseded by F12` form; the thread was already resolved and stays resolved.
+- Current-tree verification: `validate-audit-record.py --pr-number 3063` prints `status: ok` with 16 rows and 0 failures.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3063#discussion_r4710375345
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3063#discussion_r4710375345
+
+### F18 - CodeRabbit withdraws its public_url request and says the inventory does not prove every URL secret-free
+
+- PR number: 3063
+- Source review ID: 6076112434
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3063#pullrequestreview-6076112434
+- Concern: CodeRabbit withdrew the request to change the ADR, and added that the EPIC inventory's safety statement does not establish that every configured `public_url` is secret-free, because the value is checked for its scheme and serialized into the report. (The source is the reply `discussion_r4709955681` inside an existing thread, the only comment of its review; the row cites the review because the audit validator anchors a discussion row to the first comment of its thread.)
+- Solution: No change; the decision of F13 stands. Whether to reject credentials in a configured `public_url` is a configuration-validation question left to the maintainer, who is told in the hand-over report. Replied with the `Superseded by F13` form; the thread stays resolved.
+- Current-tree verification: `packages/axum-health-check-api-server/src/resources.rs` holds `public_url: Option<String>`; the ADR's rule 9 changes only the failure results.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3063#discussion_r4710375832
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3063#discussion_r4710375832
+
+### F19 - CodeRabbit asks for issue entries in related-artifacts
+
+- PR number: 3063
+- Source review ID: 6076112623
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3063#pullrequestreview-6076112623
+- Concern: After the stale paths were removed (F11), CodeRabbit asked to add `issue #3000`, `issue #2993` and `issue #144` to the ADR's `related-artifacts` list, saying the semantic-link convention specifies issue numbers in that list. (The source is the reply `discussion_r4709955819` inside an existing thread, the only comment of its review; the row cites the review because the audit validator anchors a discussion row to the first comment of its thread.)
+- Solution: No change. The marker table of `docs/skills/semantic-skill-link-convention.md` gives `related-artifacts` the values `<repo-relative-path>` or `review-finding:pr-<number>-<id>`, and `issue` is a separate marker; no ADR puts `issue #N` strings in `related-artifacts`. The ADR's Description and References name the issues by number, which is what the stability warning asks for.
+- Current-tree verification: read the marker table (lines 22-31 of the convention) and `grep -rn 'issue #' docs/adrs/*.md` frontmatter blocks: none lists an issue in `related-artifacts`.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3063#discussion_r4710376279
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3063#discussion_r4710376279
 
 ## Processing Log
 
@@ -287,6 +329,8 @@ Findings F1 to F7 come from review 6070914967 and findings F8 to F10 from review
 - 2026-11-26 14:47 UTC - Recorded after the events. `da2ce7` commented at 14:32 UTC (4709795338, F14) that reply 4709719639 described an audit commit the branch did not hold: correct, the reply was posted at 14:26 UTC while the commit existed only locally, and the audit was first pushed at 14:45 UTC. At 14:43 UTC I resolved every open thread in one loop, including the F14 thread before it had a reply, which was out of order; the refreshed GraphQL list then showed all fourteen threads resolved. At 14:46 UTC I replied on the F14 thread (the reply states the mistake and maps the cited commit ids to subjects); the thread stays resolved.
 - 2026-11-26 15:02 UTC - Review 6076348650 (`da2ce7`, F15 and F16) arrived at 15:00 UTC. Fix for F15 committed in `docs(adrs): [#3000] require the request span to declare request_id` and pushed; replies to F15 and F16 posted (15:06 UTC).
 - 2026-11-26 15:07 UTC - Correction for F16: the fixes of F1 to F7 and F9 are in `docs(adrs): [#3000] keep the v1 status of a duplicate key and fix the review findings`, authored at 14:04 UTC (before the 14:07 replies); the 14:21 UTC stamp of the earlier entry is that commit's committer date after the rebase onto `develop`. The F12 row was updated in place to cite the F15 commit and to verify the span field.
+- 2026-11-26 15:20 UTC - `da2ce7` approved at head `2819aae20` (review 6076660183) and noted that three follow-up comments of `coderabbitai[bot]` from 14:46 UTC (4709952021, 4709955681, 4709955819) had no reply and no row, and that the F16 row cited the wrong commit for the log correction.
+- 2026-11-26 15:22 UTC - Read the three follow-ups, replied to each with the `Superseded by` form (15:22 UTC), recorded them as F17 to F19, and corrected the resolution reference of F16 to the commit that carries the log correction. The threads were already resolved and stay resolved. The poller did not report these comments because I restarted it with the time of my own reply (14:46:49 UTC) as its cursor, which is later than the three comments (14:46:15 to 14:46:34 UTC); the cursor should come from the last reported event, and all reviews should be listed before a round is recorded.
 
 ## Completion Rules
 
