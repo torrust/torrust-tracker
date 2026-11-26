@@ -9,7 +9,7 @@ github-issue: 2925
 spec-path: docs/issues/open/2925-2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md
 branch: "2925-migrate-tests-to-guarded-sqlite-database"
 related-pr: null
-last-updated-utc: "2026-11-26 16:07"
+last-updated-utc: "2026-11-26 16:12"
 semantic-links:
   skill-links:
     - create-issue
@@ -273,6 +273,10 @@ approval before T1 is done.
   review: T1 is not done. Its expected output includes the maintainer's approval of the remaining
   SQLite start-up coverage (AC4), the list was wrong (three groups never open a database) and is
   corrected now, and no approval of it exists yet. T1 is back to `IN_PROGRESS`.
+- 2026-11-26 16:12 UTC - Claude Code (Claude Sonnet 5.5), #2925 implementer - Correction of the
+  2026-11-26 08:35 UTC entry above after review: that stamp is an estimate and is later than commit
+  `3bb76d813` (2026-11-26T08:09:21Z), which carries the entry, so the work it records was done
+  before 08:09 UTC. The entry is not rewritten.
 
 ## Acceptance Criteria
 
