@@ -1,7 +1,7 @@
 ---
 pr-number: 3068
 pr-url: https://github.com/torrust/torrust-tracker/pull/3068
-last-updated-utc: "2026-11-26 09:29"
+last-updated-utc: "2026-11-26 09:38"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -56,8 +56,8 @@ Round 3: CodeRabbit review 6071517983 on the head of commit `docs(pr-reviews): [
 | F6 | review-finding:pr-3068-f6 | da2ce7 | Nit | formatting | ORIGINAL | FIXED | RESOLVED |
 | F7 | review-finding:pr-3068-f7 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F8 | review-finding:pr-3068-f8 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
-| F9 | review-finding:pr-3068-f9 | coderabbitai[bot] | Minor | documentation | ORIGINAL | FIXED | OPEN |
-| F10 | review-finding:pr-3068-f10 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | OPEN |
+| F9 | review-finding:pr-3068-f9 | coderabbitai[bot] | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-3068-f10 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -176,7 +176,7 @@ Round 3: CodeRabbit review 6071517983 on the head of commit `docs(pr-reviews): [
 - Current-tree verification: Read the Reply URL of F8 and the comment it names after the push.
 - Resolution reference: docs(pr-reviews): [#2904] record the replies and resolved threads of the second review round on pull request 3068
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3068#discussion_r4706382390
 
 ### F10 - Three statements of the record do not match the forge or the history
 
@@ -189,7 +189,7 @@ Round 3: CodeRabbit review 6071517983 on the head of commit `docs(pr-reviews): [
 - Current-tree verification: Compared the three statements with `git log --format=%cI` and with the review's `commit_id` after the edit; ran the validator.
 - Resolution reference: docs(pr-reviews): [#2904] correct three statements of the record of pull request 3068
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3068#discussion_r4706382872
 
 ## Processing Log
 
@@ -199,6 +199,7 @@ Round 3: CodeRabbit review 6071517983 on the head of commit `docs(pr-reviews): [
 - 2026-11-26 09:20 UTC - Pushed round 2 (head commit `docs(pr-reviews): [#2904] record the second review round on pull request 3068`), replied on the six threads (GitHub `created_at` 09:20 UTC) and with one conversation comment for the body finding F8, then resolved the six threads with the GraphQL mutation, each returning `isResolved: true`. The reply URLs are recorded by this commit, which goes out with the next push.
 - 2026-11-26 09:26 UTC - Round 3: started on CodeRabbit review `6071517983` (one inline comment, F9), which came after the push of round 2; the fix was already committed locally with the replies of round 2. The reply follows the push.
 - 2026-11-26 09:29 UTC - Round 3 (continued): `da2ce7`'s review `6071541933` arrived before the push; the three statements of F10 are corrected and the fix is committed locally. Replies follow the push of rounds 2 and 3 together.
+- 2026-11-26 09:38 UTC - Pushed rounds 2 and 3 together (head commit `docs(pr-reviews): [#2904] point the resolution reference of F10 to its fix on pull request 3068`), replied on the two threads (F9, F10) and resolved them with the GraphQL mutation, each returning `isResolved: true`. The reply URLs are recorded by this commit, which goes out with the next push.
 
 ## Completion Rules
 
