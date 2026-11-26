@@ -97,7 +97,7 @@ Facts from the #2907 session, measured before PR #2923 and to be rechecked in T1
 - Decided in T1 with the maintainer's approval (record: https://github.com/torrust/torrust-tracker/pull/3067#issuecomment-7197208715): the `ephemeral*()`
   names stay, except `ephemeral_with_no_services()`, which becomes `ephemeral_without_services()`
   in T4; the pull-request order of the packages and the helper pattern are in the T1 decisions
-  below. The coverage list (AC4) is still open.
+  below. The coverage list (AC4) was approved too (see its section).
 
 ## Design and Ownership Review
 
