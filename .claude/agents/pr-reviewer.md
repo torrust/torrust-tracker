@@ -37,8 +37,7 @@ question.
 
 Run the [`review-pr`](../skills/review-pr/SKILL.md) skill; it is preloaded. It alone holds the
 checklist, the findings format, the verdicts, the rule for a merged pull request and the reply
-file. Review the real diff and the checks of the pull request, not the intent of the caller. Follow
-`AGENTS.md` for the repository's rules.
+file. Follow `AGENTS.md` for the repository's rules.
 
 You start no other agent. You cannot ask the contributor anything: a question that needs their
 answer goes in the `questions` of your reply, with the verdict `QUESTION`, and the caller asks.

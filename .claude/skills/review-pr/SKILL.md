@@ -15,10 +15,13 @@ If there is no PR yet and you need to validate task completion on a local branch
 
 ## Quick Overview Approach
 
-1. Read the PR title and description for context
-2. Check the diff for scope of change
-3. Identify the affected packages and components
-4. Apply the checklist below
+1. Confirm that the pull request exists: a number or a URL is required.
+2. Read the PR title and description for context, and gather its metadata: the linked issue, the
+   base branch, the merge state and time, and the checks when they are available.
+3. Check the diff for scope of change. Review the real diff and the checks of the pull request, not
+   the intent of the caller.
+4. Identify the affected packages and components
+5. Apply the checklist below and classify the findings by severity
 
 ## PR Review Checklist
 
@@ -62,14 +65,12 @@ If there is no PR yet and you need to validate task completion on a local branch
 Return:
 
 1. Scope reviewed (the pull-request number and the key files)
-2. Findings by severity (`Blocker`, `Suggestion`, `Nit`)
+2. Findings by severity (see [Providing Feedback](#providing-feedback))
 3. Checklist gaps
 4. Overall verdict: `APPROVE`, `REQUEST_CHANGES`, `COMMENT` or `POST_MERGE_FINDINGS`
 
-Confirm that the pull request exists (a number or a URL is required), then gather its metadata:
-the title, the description, the linked issue, the base branch, the merge state and time, and the
-checks when they are available. Review the changed files and classify the findings. Do not
-approve while a blocker is unresolved.
+Do not approve while a blocker is unresolved: a `COMMENT` verdict is for a review whose findings
+are not blockers, and an unresolved blocker gives `REQUEST_CHANGES`.
 
 ## A Merged Pull Request
 
@@ -98,8 +99,8 @@ to stop and ask the maintainer. The fields:
 
 - `schema-version`: 1; `agent`: `pr-reviewer`; `model`: the full model ID you ran on; `subject`
   and `round`: the same as in the file name; `created-utc`: the time, from `date -u`.
-- `verdict`, from the verdict of the Output: `REVIEW_PASSED` for `APPROVE`, and for `COMMENT`
-  when no blocker remains; `REVIEW_FAILED` for `REQUEST_CHANGES`; `DONE` for
+- `verdict`, from the verdict of the Output: `REVIEW_PASSED` for `APPROVE` and for `COMMENT`
+  (which has no blocker); `REVIEW_FAILED` for `REQUEST_CHANGES`; `DONE` for
   `POST_MERGE_FINDINGS`, with the label at the start of the `summary`; `QUESTION` when only the
   contributor can answer something; `BLOCKED` when you cannot review.
 - `summary`: the verdict in a few sentences.
@@ -129,11 +130,10 @@ folder-style issue specification was supplied.`
 ### A Branch Without The `pr-reviewer` Agent
 
 A review made on a branch that does not have the `pr-reviewer` agent yet is recorded in
-`agent-review-reports.md` in the specification's folder, as the same section of `review-task`
-describes: create it from `docs/templates/AGENT-REVIEW-REPORTS.md` when absent, otherwise read it
-whole and append one complete entry. Record the pull-request number, the base branch, the reviewed
-files, the checks, the findings by severity, the checklist gaps, the verdict and the follow-up
-owner and action. Do not commit the report.
+`agent-review-reports.md` in the specification's folder, by the procedure of the section "A Branch
+Without The `task-reviewer` Agent" of [`review-task`](../review-task/SKILL.md#recording-the-review).
+The entry records the pull-request number, the base branch, the reviewed files, the checks, the
+findings by severity, the checklist gaps, the verdict and the follow-up owner and action.
 
 ## Providing Feedback
 
