@@ -6,7 +6,7 @@ semantic-links:
     - process-pr-review
   related-artifacts:
     - .claude/skills/process-pr-review/SKILL.md
-last-updated-utc: "2026-11-26 17:49"
+last-updated-utc: "2026-11-26 17:53"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -240,7 +240,7 @@ Round 4: `da2ce7`'s review 6078600500 (an approval) on the head of commit `docs(
 - Current-tree verification: Read the Findings introduction of this record after the edit.
 - Resolution reference: docs(pr-reviews): [#144] address da2ce7 fourth round: order the rounds and add the template frontmatter
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3075#discussion_r4711936923
 
 ### F14 - The record does not follow the template form
 
@@ -253,7 +253,7 @@ Round 4: `da2ce7`'s review 6078600500 (an approval) on the head of commit `docs(
 - Current-tree verification: Read the frontmatter of this record after the edit; ran `validate-audit-record.py`.
 - Resolution reference: docs(pr-reviews): [#144] address da2ce7 fourth round: order the rounds and add the template frontmatter
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3075#discussion_r4711937236
 
 ## Processing Log
 
@@ -266,6 +266,7 @@ Round 4: `da2ce7`'s review 6078600500 (an approval) on the head of commit `docs(
 - 2026-11-26 17:27 UTC - Replied to F9 on its thread and resolved it, posted the conversation response for F10 to F12, and recorded both reply URLs.
 - 2026-11-26 17:48 UTC - `da2ce7`'s review 6078600500 (approval) arrived (F13, F14).
 - 2026-11-26 17:49 UTC - Reordered the round paragraphs and added the template's `semantic-links` to the frontmatter (F13, F14).
+- 2026-11-26 17:53 UTC - Replied to F13 and F14 on their threads, resolved them and recorded the reply URLs.
 
 Append entries only. If an entry was rewritten in place, restore the prior entries, then append a correction that names the rewritten content; do not rewrite the record again.
 
