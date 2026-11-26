@@ -9,7 +9,7 @@ github-issue: 2925
 spec-path: docs/issues/open/2925-2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md
 branch: "2925-migrate-tests-to-guarded-sqlite-database"
 related-pr: null
-last-updated-utc: "2026-11-26 08:35"
+last-updated-utc: "2026-11-26 08:50"
 semantic-links:
   skill-links:
     - create-issue
@@ -174,8 +174,10 @@ Measured on `develop` `f5329f758`, 2026-11-26 (details and the full list of fail
   unwrapping, and one test that opts in), then `http-core`, `axum-http-server`,
   `axum-rest-api-server`, `torrust-tracker` (root `src/`), then the T4 default change. The
   design-review checkpoint of the spec happens after the `udp-server` pull request.
-- **Naming:** keep the `ephemeral*()` names. A rename touches about 280 call sites for no
-  behavioural gain; the doc comment of `ephemeral()` states that it configures no database.
+- **Naming (approved by the maintainer, 2026-11-26):** keep the `ephemeral*()` names, because
+  without a database they describe the configuration more accurately (OS-assigned ports, nothing
+  survives the test). Rename only `ephemeral_with_no_services()` to `ephemeral_without_services()`,
+  to match `ephemeral_without_reverse_proxy()`; the rename goes in the T4 pull request.
 - **Helper pattern:** a helper that only assumed persistence initializes it only when
   `core.database` is set, so it works before and after T4. A test that needs persistence calls
   `ephemeral_with_sqlite_database()` (or a wrapper that takes the config) and keeps the guard in
@@ -238,6 +240,10 @@ production start-up path with a real database stays with the tests above and the
   the no-database classification (77 failing tests, 48 need persistence) and the per-test
   attribution of the 6 `http-core` files. Proposed the package order and kept names. Waiting for
   the maintainer's approval (relayed by the EPIC coordinator) before T2.
+- 2026-11-26 08:50 UTC - Claude Code (Claude Sonnet 5.5), #2925 implementer - The maintainer, in this
+  session, agreed with the problem and the solution and approved the naming: keep `ephemeral*()`,
+  rename only `ephemeral_with_no_services()` to `ephemeral_without_services()` in the T4 pull
+  request. The package order and the helper pattern were explained to him in the same exchange.
 
 ## Acceptance Criteria
 
