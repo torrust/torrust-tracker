@@ -1,7 +1,7 @@
 ---
 pr-number: 3070
 pr-url: https://github.com/torrust/torrust-tracker/pull/3070
-last-updated-utc: "2026-11-26 13:29"
+last-updated-utc: "2026-11-26 13:39"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -48,10 +48,10 @@ Round 2: CodeRabbit review 6074765233 on the head of commit `docs(pr-reviews): [
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3070-f1 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
-| F2 | review-finding:pr-3070-f2 | coderabbitai[bot] | Minor | documentation | ORIGINAL | FIXED | OPEN |
-| F3 | review-finding:pr-3070-f3 | da2ce7 | Minor | correctness | ORIGINAL | FIXED | OPEN |
-| F4 | review-finding:pr-3070-f4 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | OPEN |
-| F5 | review-finding:pr-3070-f5 | da2ce7 | Nit | link-integrity | ORIGINAL | FIXED | OPEN |
+| F2 | review-finding:pr-3070-f2 | coderabbitai[bot] | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F3 | review-finding:pr-3070-f3 | da2ce7 | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F4 | review-finding:pr-3070-f4 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F5 | review-finding:pr-3070-f5 | da2ce7 | Nit | link-integrity | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-3070-f6 | da2ce7 | Minor | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
 
 ## Finding Details
@@ -80,7 +80,7 @@ Round 2: CodeRabbit review 6074765233 on the head of commit `docs(pr-reviews): [
 - Current-tree verification: Read the Ownership section of this record after the edit and "A Reply File" in `.claude/skills/review-pr/SKILL.md`.
 - Resolution reference: docs(pr-reviews): [#2904] limit the ownership statement of the record of pull request 3070 to the record
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3070#discussion_r4709150390
 
 ### F3 - The skill does not say which severities block
 
@@ -93,7 +93,7 @@ Round 2: CodeRabbit review 6074765233 on the head of commit `docs(pr-reviews): [
 - Current-tree verification: Read the Output and "A Reply File" of `.claude/skills/review-pr/SKILL.md` after the edit.
 - Resolution reference: docs(skills): [#2904] say which severities block in review-pr and fix a link
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3070#discussion_r4709150804
 
 ### F4 - The progress log of T7 ends at the failed first review
 
@@ -106,7 +106,7 @@ Round 2: CodeRabbit review 6074765233 on the head of commit `docs(pr-reviews): [
 - Current-tree verification: Read the entries of T7 after the edit.
 - Resolution reference: docs(issues): [#2904] record the second task review of T7 and the first review round of pull request 3070
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3070#discussion_r4709151257
 
 ### F5 - A link names a subsection but points to its parent
 
@@ -119,9 +119,9 @@ Round 2: CodeRabbit review 6074765233 on the head of commit `docs(pr-reviews): [
 - Current-tree verification: Checked that the heading exists in `review-task` and that the link resolves.
 - Resolution reference: docs(skills): [#2904] say which severities block in review-pr and fix a link
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3070#discussion_r4709151749
 
-### F6 - The record read `Reply URL: pending` at the reviewed head
+### F6 - The record read `Reply URL: https://github.com/torrust/torrust-tracker/pull/3070#issuecomment-7193642603` at the reviewed head
 
 - PR number: 3070
 - Source review ID: 6074951727
@@ -140,6 +140,7 @@ Round 2: CodeRabbit review 6074765233 on the head of commit `docs(pr-reviews): [
 - 2026-11-26 13:13 UTC - Pushed round 1 (head commit `docs(pr-reviews): [#2904] record the first review round on pull request 3070`), replied on the thread (F1) and resolved it with the GraphQL mutation, which returned `isResolved: true`. The reply URL is recorded by this commit, which goes out with the next push.
 - 2026-11-26 13:17 UTC - Round 2: started on CodeRabbit review `6074765233` (one inline comment, F2), after the push of round 1; the fix is committed locally. The reply follows the next push.
 - 2026-11-26 13:29 UTC - Round 2 (continued): `da2ce7`'s review `6074951727` arrived before the push; F3 to F5 are fixed and committed locally, and F6 is answered by the commit of the replies of round 1. Replies follow the push.
+- 2026-11-26 13:39 UTC - Pushed round 2 (head commit `docs(pr-reviews): [#2904] record the second review round on pull request 3070`), replied on the four threads (F2 to F5; GitHub `created_at` 13:39 UTC) and with one conversation comment for the body finding F6, then resolved the four threads with the GraphQL mutation, each returning `isResolved: true`. The reply URLs are recorded by this commit, which goes out with the next push.
 
 ## Completion Rules
 
