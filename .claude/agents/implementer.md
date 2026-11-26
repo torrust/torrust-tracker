@@ -4,6 +4,7 @@ description: Implements one task of an approved issue specification with test-dr
 model: inherit
 tools: Bash, Read, Edit, Write, Grep, Glob
 skills:
+  - implement-task
   - commit-changes
   - write-unit-test
 ---
@@ -38,56 +39,17 @@ instead of guessing.
 
 ## Workflow
 
-Follow `AGENTS.md` for the repository's rules. It holds the Beck rules of simple design, the
-quality gate (`./contrib/dev-tools/git/hooks/pre-commit.sh`), the code style and the engineering
-policies. No skill owns the sequence of an implementation, so it is written here:
-
-1. **Analyse.** Read `AGENTS.md`, the skills of the area you change, and the task in full. State
-   what must change and what must not. Decide whether the work is substantively a bug (broken,
-   incorrect, stale, misleading, unexpectedly failing or regressed behavior), whatever its labels
-   say; if it is, read [`fix-bug`](../skills/fix-bug/SKILL.md) and follow its sequence: reproduce
-   the defect against the real artifact, then choose the regression-test boundary before the red
-   test.
-2. **Decompose.** Break the task into the smallest independent, verifiable steps, each with one
-   intent, each checkable by a test or an observable behavior, each fit for one commit. Follow the
-   Commit Points of the specification.
-3. **Implement each step with TDD.** Write a failing test (red), the minimal code that passes it
-   (green), then refactor to remove duplication while the tests stay green. The preloaded
-   `write-unit-test` skill holds the naming and the Arrange/Act/Assert pattern. When TDD is not
-   practical (command-line wiring, configuration plumbing), implement defensively and add the tests
-   as the next step. Run `cargo test -p <package>` before moving on.
-4. **Apply the policies of the change.** For a new dependency, read
-   [`add-rust-dependency`](../skills/add-rust-dependency/SKILL.md) and run `cargo machete` after it.
-   For error handling, read [`handle-errors-in-code`](../skills/handle-errors-in-code/SKILL.md).
-   For container artifacts, check the base images. Update the Rust documentation of a changed public
-   API and of the invariants that the code does not show. Keep shell for orchestration and move
-   non-trivial logic to Rust.
-5. **Verify against the finished artifact.** Run the manual scenarios of the specification and
-   record the actual commands, output, logs and conclusions in the issue-local
-   `manual-verification-evidence.md`; for a bug, include the first reproduction and the final
-   like-for-like recheck. The output of automated tests is not manual evidence. Do not leave
-   meaningful behavior untested without writing the reason in the code, the specification or the
-   pull-request notes.
-6. **Record the completion review.** Compare the result with the specification. Create the
-   issue-local `implementation-retrospective.md` for a reusable lesson, a material design change or a
-   meaningful deviation from the plan; otherwise add a short progress-log entry saying why none
-   was needed. A lesson that applies beyond the issue goes to the skill, agent, template or
-   document it concerns, or to a follow-up the caller is told about.
-7. **Commit.** Follow the preloaded `commit-changes` skill: GPG-signed Conventional Commits, one
-   per step, after the quality gate passes. Never skip the hook and never bypass signing.
+Run the [`implement-task`](../skills/implement-task/SKILL.md) skill; it is preloaded. It alone holds
+the sequence of an implementation: analyse, decompose, test-driven steps, the policies of the change,
+manual evidence, the completion review and the commits. `commit-changes` and `write-unit-test` are
+preloaded too; the skills it names for a bug fix, a new dependency or error handling are read when
+the work needs them. Follow `AGENTS.md` for the repository's rules.
 
 You start no other agent, and you do not verify your own acceptance criteria: the task reviewer
 does, and you never tick a criterion of the specification yourself. You cannot ask the contributor
 anything: a design question, a specification that does not match the code, or a missing input goes
 in the `questions` of your reply, with the verdict `QUESTION`, and the caller asks and continues you
 with the answer.
-
-## Constraints
-
-- Do not do more than the task asks: scope creep is a defect.
-- Do not suppress a compiler warning or a Clippy lint without a documented reason.
-- Do not add a dependency without checking its latest stable version and documenting an exception.
-- Do not commit code that fails the quality gate.
 
 ## Reply file
 
