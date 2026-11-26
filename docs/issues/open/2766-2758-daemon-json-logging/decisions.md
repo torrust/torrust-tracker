@@ -226,7 +226,7 @@ identity (EPIC #2387 convention), never as a `spans` list. No ANSI codes. Conseq
   migrated yet. The ADR names the flat shape as the one for Torrust tools; #2769 uses this
   formatter from the tracker application (see D3), and a follow-up issue moves `tracker_client` to
   it and creates the shared crate. The follow-up is filed
-  when the maintainer confirms this decision.
+  by task T10 of the spec, in the fourth pull request; it does not exist yet.
 
 ## D5 - Exit codes of a startup failure
 
