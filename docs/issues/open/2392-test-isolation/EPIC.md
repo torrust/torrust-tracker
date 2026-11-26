@@ -6,7 +6,7 @@ epic: null
 github-issue: 2392
 spec-path: docs/issues/open/2392-test-isolation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-25 11:48"
+last-updated-utc: "2026-11-26 07:04"
 semantic-links:
   skill-links:
     - create-issue
@@ -107,7 +107,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | Order | Issue | Local Spec | Status | Notes |
 | ----- | ----- | ---------- | ------ | ----- |
 | 1 | #2393 - Eliminate parallel test port allocation races | `docs/issues/closed/2393-2392-test-port-allocation-races/ISSUE.md` | DONE | Bug. PR #2859 ignored 21 racing tests and rewrote 4 that never needed a racing port. PR #2874 applied the T5 decisions: deleted 9 tests of test-support code, rewrote the 3 health-check contract tests to probe an address the test holds, and restored 9 socket-release tests on a unique loopback address, picked at random from `127.0.0.0/8` (ignored off Linux). The full suite then passed 150 of 150 runs with no #2393 test ignored (V6). Found during the work: #2867 (UDP health check panics on a malformed reply). |
-| 2 | #2394 - Audit shared test resources | `docs/issues/closed/2394-2392-audit-shared-test-resources/ISSUE.md` | DONE | Task. PR #2891 recorded 38 findings in `inventory.md`: 29 isolated, 1 deliberate exception (P3), 5 covered (P1, P9, C1, C2, C3; C3 through order 4, whose scope now includes the local default image tags) and 3 new problems, now orders 6 to 8: D1 (P2) is #2906, D2 (F2) is #2907 and D3 (C9) is #2908. The close-out PR #2898 has merged; GitHub issue #2394 is still open until the maintainer closes it. |
+| 2 | #2394 - Audit shared test resources | `docs/issues/closed/2394-2392-audit-shared-test-resources/ISSUE.md` | DONE | Task. PR #2891 recorded 38 findings in `inventory.md`: 29 isolated, 1 deliberate exception (P3), 5 covered (P1, P9, C1, C2, C3; C3 through order 4, whose scope now includes the local default image tags) and 3 new problems, now orders 6 to 8: D1 (P2) is #2906, D2 (F2) is #2907 and D3 (C9) is #2908. The close-out PR #2898 has merged, and the maintainer closed GitHub issue #2394 on 2026-11-26. |
 | 3 | #2395 - Use dynamic host ports in the E2E runner | `docs/issues/open/2395-2392-e2e-runner-dynamic-host-ports/ISSUE.md` | TODO | Task. Removes fixed E2E host ports. Independent of orders 1 and 2. |
 | 4 | #2396 - Use a unique tracker image tag per CI run | `docs/issues/open/2396-2392-e2e-unique-tracker-image-tag/ISSUE.md` | TODO | Task. Prevents one run from testing another run's image. Latent today (one runner instance per server). Independent of order 3. |
 | 5 | #1419 - Allow multiple integration tests at the main app level | `docs/issues/closed/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md` | DONE | Existing issue, linked as a subissue. R8, AC8a and R9 completed; PRs #2961, #2971, #2983. |
@@ -324,10 +324,13 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
 - 2026-11-25 11:48 UTC - Claude Code (Claude Sonnet 5.5), EPIC coordinator - The CodeRabbit review of PR #3045 changed the
   2026-11-24 18:57 entry: it now says the six-file attribution follows from excluding the direct
   caller, with no per-test attribution.
+- 2026-11-26 07:04 UTC - Claude Code (Claude Sonnet 5.5), EPIC coordinator - AC1 is DONE. The maintainer
+  linked #2924, #2925 and #2943 as sub-issues of #2392 and closed #2394, and the sub-issue list
+  was checked on GitHub. Order 2's row now says #2394 is closed. AC2, AC3 and AC5 stay TODO.
 
 ## Acceptance Criteria
 
-- [ ] AC1: All required subissues are created and linked, and #1419 is linked as an existing
+- [x] AC1: All required subissues are created and linked, and #1419 is linked as an existing
   subissue.
 - [ ] AC2: The full nextest suite runs repeatedly without failures caused by shared resources.
 - [ ] AC3: Two E2E runs on one Docker host run concurrently, and each tests its own image.
@@ -341,7 +344,7 @@ Decisions taken while delivering the EPIC. They apply to every subissue.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1 | TODO | GitHub sub-issues of #2392: #2393, #2394, #2395, #2396, #1419; the audit added #2906, #2907 and #2908. The split of #2907 added #2924 and #2925, which are created but not yet linked as sub-issues (the maintainer links them). #2907 then found #2943 (order 11), created and also not yet linked. |
+| AC1 | DONE | GitHub sub-issues of #2392 (checked on 2026-11-26): #2393, #2394, #2395, #2396, #1419; the audit added #2906, #2907 and #2908; the split of #2907 added #2924 and #2925; #2907 then found #2943 (order 11). The maintainer linked #2924, #2925 and #2943 and closed #2394. |
 | AC2 | TODO | Order 1 `manual-verification-evidence.md` (V6: 150 of 150 full-suite runs passed with no #2393 test ignored, after PR #2874). The order 2 audit found two more shared resources that make the suite fail: fixed ports that collide across concurrent runs (order 6) and leaked temporary files that fill the disk (order 7, split into orders 7, 9 and 10). Orders 7 and 9 are done (PRs #2938 and #3029). Stays TODO until orders 6 and 10 are done. |
 | AC3 | TODO | Orders 3 and 4 `manual-verification-evidence.md` |
 | AC4 | DONE | Order 2 `inventory.md`: 38 findings: isolated (28), a deliberate exception (1), or tracked by a subissue (5 covered by orders 1, 3 and 4; 3 new problems, orders 6 to 8; and G2, order 11). The inventory itself still counts G2 as isolated (29) until order 11 corrects its row. |
