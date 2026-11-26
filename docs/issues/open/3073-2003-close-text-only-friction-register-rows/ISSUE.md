@@ -9,7 +9,7 @@ github-issue: 3073
 spec-path: docs/issues/open/3073-2003-close-text-only-friction-register-rows/ISSUE.md
 branch: "3073-close-text-only-friction-register-rows-spec"
 related-pr: null
-last-updated-utc: "2026-11-26 17:12"
+last-updated-utc: "2026-11-26 17:22"
 semantic-links:
   skill-links:
     - create-issue
@@ -96,6 +96,7 @@ This issue falls under the EPIC's Scope exception for low-risk, additive, indepe
 - The six rows that would choose between forms the repository already uses: `create-issue-commit-subject-example-off-practice`, `commit-changes-body-hash-line-unwarned`, `git-workflow-upstream-remote-idiom-split`, `link-convention-issue-key-loads-null`, `create-issue-completion-review-vs-closing-keyword` and `implementation-retrospective-template-guidance-unmarked`. Each needs a maintainer's choice first.
 - `actions-update-commit-subject-fixed-or-illustrative`: the recent Actions-update commits use more than one subject form, so practice does not fix the subject it would state.
 - `epic-2003-known-issue-hold-no-exit`: it edits the EPIC's own record and the three paused specifications #1768, #1774 and #1843, and is left to the EPIC owner.
+- Repairing `contrib/dev-tools/checks/tests/test-format-project-words.sh`: its project-root path stops at `contrib/`, so fixture copies look under `contrib/contrib/dev-tools/` and the test exits before exercising the formatter. The script repair belongs in a separate issue.
 - The 66 rows that need a tooling change and the 286 questions for a maintainer, including text-only pieces that ride on such a row without closing it (for example the list indent of `markdownlint-list-continuity-unchecked`).
 - The two rows whose friction no longer holds: `run-pre-commit-checks-doc-build-skips-libraries` and `triage-github-security-findings-sarif-source-unrouted`.
 - Changing how the edited passages are wrapped. Each keeps its file's current wrapping; how prose is wrapped is the open question `write-markdown-docs-line-wrap-rule-unstated`, best answered by its own sweep afterwards.
@@ -282,7 +283,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2 | TODO | Thread resolution | The 2 T2 rows applied. Verified by `linter all`. No dependency. |
 | T3 | TODO | Pull-request skill | The 7 T3 rows applied, with Decisions 4 and 6. Verified by `linter all`. No dependency. |
 | T4 | TODO | Commit skill | The 4 T4 rows applied. Verified by `linter all`. No dependency; its `commit-changes` hunks and T5's do not overlap. |
-| T5 | TODO | Hook and check skills | The 5 T5 rows applied. Verified by `linter all`, M2 and the dictionary-formatter test, which copies the hook. Either order with T4. |
+| T5 | TODO | Hook and check skills | The 5 T5 rows applied. Verified by `linter all` and M2's comparison of the hook steps. Either order with T4. |
 | T6 | TODO | Lint-level location | The 2 T6 rows applied, with Decision 3; a separate final commit corrects the dictionary-formatter path and closes no row. Verified by `linter all`. No dependency. |
 | T7 | TODO | Issue-spec skills | The 9 T7 rows applied, with Decision 2. Verified by `linter all`. No dependency. |
 | T8 | TODO | Specification templates | The 5 T8 rows applied. Verified by `linter all` and the frontmatter validator of the hook. No dependency. |
@@ -334,6 +335,7 @@ Each commit uses a Conventional Commit message with the narrow affected scope. N
 - 2026-11-26 16:22 UTC - Torrust Contributors - Pull request #3070 merged at `develop` `66c12ffe1`. Re-anchored T15 against the merged reviewer skill; all seven rows still hold. The implementation branch carries 72 rows in sixteen prepared commits across 30 files, including the separate formatter-path correction. Updated the delivery plan and acceptance criteria for one implementation pull request. The earlier entries describe the branch before this merge.
 - 2026-11-26 16:46 UTC - Torrust Contributors - Clarified the implementation pull request as sixteen prepared commits plus one evidence commit across 32 files; the review audit correction is scoped to its Processing Log, bases resolve at the branch head unless a revision is named, and the register report follows the merge.
 - 2026-11-26 17:12 UTC - Torrust Contributors - Assigned the separate formatter-path correction to T6, allowed an issue-local retrospective when the completion review requires it, and corrected the AC5 evidence wording after checking the T14 discussion-guide change.
+- 2026-11-26 17:22 UTC - Torrust Contributors - Ran the dictionary-formatter test; it exited 1 after fixture copies looked under `contrib/contrib/dev-tools/`. T5 now uses `linter all` and M2 for verification, and the test-script repair is outside this issue.
 
 ## Acceptance Criteria
 
@@ -345,7 +347,7 @@ Each commit uses a Conventional Commit message with the narrow affected scope. N
 - [ ] AC6: The specification-only pull request uses `Related to #3073` without an issue-closing keyword; the implementation pull request closes the issue (Decision 7).
 - [ ] AC7: The 7 labels of T15 land in the implementation pull request, each re-anchored to the text merged by #3070 with its basis read again there.
 - [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass (`contrib/dev-tools/checks/tests/test-format-project-words.sh`, which copies the pre-commit hook; no other code changes)
+- [ ] T5's hook comment is verified by M2's comparison of the pre-commit steps; no formatter-test result is required for these text-only edits
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 - [ ] Documentation is updated when behavior/workflow changes
@@ -356,7 +358,6 @@ Each commit uses a Conventional Commit message with the narrow affected scope. N
 
 - `TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-commit.sh` before each commit, which runs `linter all` and the frontmatter validator on the staged files
 - `cargo run --quiet --package agent-review-report-contract` after T1 and T9, which edit files whose sentences it pins; no hook runs it
-- `contrib/dev-tools/checks/tests/test-format-project-words.sh` after T5
 - Pre-push checks before each push
 
 Record the version of the `linter` binary, and the Rust toolchain of the `cargo` commands, with each result.
