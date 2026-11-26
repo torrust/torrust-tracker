@@ -58,8 +58,8 @@ Review 6075748165 (`da2ce7`, `CHANGES_REQUESTED`, 2026-11-26 14:23 UTC) posted f
 | F8 | review-finding:pr-3072-f8 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
 | F9 | review-finding:pr-3072-f9 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F10 | review-finding:pr-3072-f10 | da2ce7 | Nit | documentation | RE_RAISE_OF:F8 | FIXED | NON_RESOLVABLE |
-| F11 | review-finding:pr-3072-f11 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | OPEN |
-| F12 | review-finding:pr-3072-f12 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | OPEN |
+| F11 | review-finding:pr-3072-f11 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-3072-f12 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F13 | review-finding:pr-3072-f13 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
 
 ## Finding Details
@@ -205,7 +205,7 @@ Review 6075748165 (`da2ce7`, `CHANGES_REQUESTED`, 2026-11-26 14:23 UTC) posted f
 - Current-tree verification: `grep -n "Resolution reference: <https://github.com/torrust/torrust-tracker/pull/3072#issuecomment-" docs/pr-reviews/pr-3072-review/PR-REVIEW.md` prints the two rows.
 - Resolution reference: <https://github.com/torrust/torrust-tracker/pull/3072#issuecomment-7201632439>
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3072#discussion_r4712709306>
 
 ### F12 - The severity of F8 differs from the review's label
 
@@ -218,7 +218,7 @@ Review 6075748165 (`da2ce7`, `CHANGES_REQUESTED`, 2026-11-26 14:23 UTC) posted f
 - Current-tree verification: `grep -n "^| F8 " docs/pr-reviews/pr-3072-review/PR-REVIEW.md` prints `Nit`.
 - Resolution reference: docs(pr-reviews): [#3051] record review 6079505913 in the PR 3072 audit
 - Follow-up PR URL: N/A
-- Reply URL: pending
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/3072#discussion_r4712709557>
 
 ### F13 - The summary does not note the dismissal of review 6078748782
 
@@ -242,6 +242,7 @@ Review 6075748165 (`da2ce7`, `CHANGES_REQUESTED`, 2026-11-26 14:23 UTC) posted f
 - 2026-11-26 18:57 UTC - Review 6078748782 (`da2ce7`, `APPROVED`) arrived on the head `docs(pr-reviews): [#3051] record the replies to review 6077711472 in the PR 3072 audit`: F7, F9 and F10; it showed that the body of review 6077711472 had a finding, F8, that this record had not captured, so F8 was added late. The description was edited for F8 and F10 (`pulls/3072` PATCH). `validate-audit-record.py` was not run by this session.
 - 2026-11-26 19:05 UTC - Pushed the fix commit `docs(issues): [#3051] leave the remaining criteria for a reviewer to tick` and the record (`git ls-remote` showed the head on the fork branch before the replies), replied on the two threads and resolved them. `validate-audit-record.py` was not run by this session.
 - 2026-11-26 19:28 UTC - Review 6079505913 (`da2ce7`, `COMMENTED`) arrived on the head `docs(pr-reviews): [#3051] record the replies to review 6078748782 in the PR 3072 audit`: F11, F12 and F13. The consolidated conversation response for F8 and F10 was posted before the commit that cites it. `validate-audit-record.py` was not run by this session (it calls plain `gh`).
+- 2026-11-26 19:33 UTC - Pushed the fix commit `docs(pr-reviews): [#3051] record review 6079505913 in the PR 3072 audit` (`git ls-remote` showed the head on the fork branch before the replies), replied on the two threads and resolved them. `validate-audit-record.py` was not run by this session.
 
 ## Completion Rules
 
