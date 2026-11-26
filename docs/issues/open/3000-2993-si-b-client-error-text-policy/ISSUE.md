@@ -9,7 +9,7 @@ github-issue: 3000
 spec-path: docs/issues/open/3000-2993-si-b-client-error-text-policy/ISSUE.md
 branch: "3000-si-b-client-error-text-policy"
 related-pr: null
-last-updated-utc: "2026-11-26 14:03"
+last-updated-utc: "2026-11-26 14:21"
 semantic-links:
   skill-links:
     - create-issue
@@ -168,6 +168,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-23 19:29 UTC - Claude Code (Claude Opus 5.5), EPIC coordinator session - Review of PR 3014: limited AC2 to the three servers that can reach the database and added AC2b for the health-check API.
 - 2026-11-25 17:59 UTC - Claude Code (Claude Opus 5.5), SI-B session - T1: drafted the ADR `docs/adrs/20261125175726_tell_clients_what_they_can_act_on_and_keep_failure_detail_on_the_server.md` with the table of current and proposed client texts, rechecked against `develop` `ebe9e42b9`, and the rule-4 amendment note in the errors ADR. One point is left open in the ADR for the maintainer: the status of a duplicate REST key (keep 500, or 409). No code changes before the ADR is accepted (T2).
 - 2026-11-26 14:03 UTC - Claude Code (Claude Sonnet 5.5), SI-B session - Review round 1 of PR 3063 (da2ce7): recorded that a duplicate REST key keeps its 500 in v1 with a new text, because a v1 status change is breaking and belongs to API v2 (EPIC #144); a duplicate key is a `409` in v2. Fixed six smaller findings in the ADR and its index row.
+- 2026-11-26 14:21 UTC - Claude Code (Claude Sonnet 5.5), SI-B session - Maintainer decision (josecelano, in the SI-B session chat of 2026-11-26): a duplicate REST key keeps its `500` in v1 because a v1 status change is breaking and the correct statuses are the scope of EPIC #144; the maintainer's words were a question, "is that not a breaking change and precisely the scope of EPIC 144?", which I took as the decision and recorded in rule 10 of the ADR. Rebased the branch onto `develop` to resolve the conflict in `docs/adrs/index.md`.
 
 ## Acceptance Criteria
 

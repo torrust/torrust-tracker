@@ -207,8 +207,7 @@ v2 (EPIC #144).
 text becomes `failed to add key: the tracker already holds this authentication key`, but a v1
 status does not change: answering `409 Conflict` instead would break clients that handle the 500,
 and the correct statuses are the purpose of API v2 (EPIC #144). So in v1 a bad request can still
-arrive as a 500, a known limitation that the v2 error model removes (the maintainer decided this on
-2026-11-26).
+arrive as a 500, a known limitation that the v2 error model removes.
 
 The v2 error model must follow the three classes of rule 1 (bad request `400`, `409` or another
 `4xx`, refused `401`, `403`, `404` or `409`, internal failure `5xx`; a duplicate key is a `409`)
