@@ -42,16 +42,18 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Three inline findings from source review 6078083300 and one from source review 6078251304 are
-tracked below. All four replies were posted; the threads remain open pending validation and
-resolution.
+Three inline findings from source review 6078083300, one from source review 6078251304 and one
+from source review 6078413481 are tracked below. All five replies were posted and all five threads
+are resolved. The validator run at 17:46 covered the four-row record; the five-row record awaits
+validation.
 
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
-| F1 | review-finding:pr-3079-f1 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | OPEN |
-| F2 | review-finding:pr-3079-f2 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | OPEN |
-| F3 | review-finding:pr-3079-f3 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | OPEN |
-| F4 | review-finding:pr-3079-f4 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | OPEN |
+| F1 | review-finding:pr-3079-f1 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F2 | review-finding:pr-3079-f2 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F3 | review-finding:pr-3079-f3 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F4 | review-finding:pr-3079-f4 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F5 | review-finding:pr-3079-f5 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -107,12 +109,30 @@ resolution.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3079#discussion_r4711726454
 
+### F5 - Allow conditional reviewer reports in AC3
+
+- PR number: 3079
+- Source review ID: 6078413481
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3079#discussion_r4711748598
+- Concern: AC3 excluded the issue-local `agent-review-reports.md` required when an independent reviewer receives the folder-style specification.
+- Solution: T16 and AC3 now allow the conditional report alongside the conditional retrospective; the scope and EPIC row state 32 files without either, 33 with one and 34 with both.
+- Current-tree verification: The specification and `docs/templates/ISSUE.md` require the report under that condition. The specification's Scope, T16 and AC3 now include it, and the EPIC row states the same file counts.
+- Resolution reference: docs(issues): [#3073] allow conditional reviewer reports in AC3
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3079#discussion_r4711881982
+
 ## Processing Log
 
 - 2026-11-26 17:13 UTC - Started the audit from captured review data after committing three specification corrections locally. Reply URLs and final thread states await publication and replies.
 - 2026-11-26 17:23 UTC - Added F4 from review 6078251304 after the dictionary-formatter test exited 1; the specification correction is committed locally. The reply URL awaits publication and reply.
 - 2026-11-26 17:29 UTC - Six specification commits were pushed to PR #3079; the push returned at 17:29:12Z.
 - 2026-11-26 17:29 UTC - Replies to comments 4711500081, 4711500089, 4711500105 and 4711628915 were posted at 17:29:14Z, 17:29:16Z, 17:29:19Z and 17:29:22Z, respectively. The threads remain open.
+- 2026-11-26 17:35 UTC - A capture taken at 17:35Z showed the F1, F2 and F3 threads resolved by `coderabbitai[bot]`; their exact resolution times are unavailable.
+- 2026-11-26 17:46 UTC - The validator run reported `ok` at 17:46:34Z against the committed four-row record: 4 rows, 4 log entries and 0 failures. It did not cover F5.
+- 2026-11-26 17:46 UTC - The review-record commit and the reviewer-reports fix were pushed; the push completed at 17:46:56Z.
+- 2026-11-26 17:46 UTC - The reply to comment 4711748598 was posted at 17:46:57Z.
+- 2026-11-26 17:47 UTC - `da2ce7` resolved F4 at 17:47:00Z and F5 at 17:47:01Z. The thread capture at 17:47:22Z shows all five resolved.
 
 ## Completion Rules
 
