@@ -156,7 +156,7 @@ starts the reviewer (task T9), and the implementer commits itself (decision D14)
 Not ported as an agent (decision D14): the implementer commits itself, with the skill `commit-changes`
 preloaded. The skill already held most of the workflow; task T6 moves into it the three rules that
 no other document held (the specification's progress, the branch's issue number, the dictionary
-first when one change is split) and three smaller ones.
+first when one change is split) and two smaller ones (accidental files, and separate commits for skill and workflow documents).
 
 | Rule of the profile | Destination | Notes |
 | --- | --- | --- |
@@ -168,7 +168,7 @@ first when one change is split) and three smaller ones.
 | Workflow 2: check that the branch's issue number has an open specification; otherwise look in `closed/`, then confirm or rename with `chore/`. | Skill `commit-changes`, "Checks Before The Commit" 2; skill `run-pre-commit-checks` now points to it | The second rule. `run-pre-commit-checks` pointed to "the committer agent spec". |
 | Workflow 3 to 5: read the branch, the status and the diff; summarize the scope; keep it coherent and free of unrelated changes. | Skill `commit-changes`, "Manual Checks" (self-review the diff) and "Commit Quality Guidelines" (atomic) (already held it) | |
 | Workflow 6: stop on a policy violation in the diff and return it to the implementer or the reviewer. | Skill `commit-changes`, "Manual Checks"; skill `review-task` (already held it) | The implementer is the author; the task reviewer catches what it misses. |
-| Workflow 7: check whether the pre-commit hook is installed before running the script by hand, so the checks do not run twice. | Skill `commit-changes`, "Git Hook" | Moved by task T6 (`check-git-hooks.sh`). |
+| Workflow 7: check whether the pre-commit hook is installed before running the script by hand, so the checks do not run twice. | Skill `run-pre-commit-checks`, "Git Hook (Recommended Setup)" (already held it) | `run-pre-push-checks` and `push-changes` say the same. The skill `commit-changes` links to it. |
 | Workflow 7: may fix formatting, linting, spelling and import order that come from the commit's scope; must not fix build or test failures, which go back to the implementer. | Dropped | The implementer is the author of the code, so a failure is its own to fix; there is no one to hand it back to. |
 | Workflow 8 to 10: propose a precise message, commit with `git commit -S` once the scope is clear, verify the result afterwards. | Skill `commit-changes`, "Conventional Commit Format" and "One Signed Commit per Step" (already held it) | |
 | Do not write code. | Dropped | The role is gone. |
