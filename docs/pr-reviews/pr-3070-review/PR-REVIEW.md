@@ -1,7 +1,7 @@
 ---
 pr-number: 3070
 pr-url: https://github.com/torrust/torrust-tracker/pull/3070
-last-updated-utc: "2026-11-26 13:17"
+last-updated-utc: "2026-11-26 13:29"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -43,12 +43,16 @@ review task names is a separate artifact, which the reviewer writes (see the `re
 
 Round 1: CodeRabbit review 6074263774 on the head of commit `docs(issues): [#2904] correct the finding count of the T7 review and record its second round` (F1). The review of `claude[bot]` (6074206099) says that automated review is disabled for fork pull requests and carries no finding.
 
-Round 2: CodeRabbit review 6074765233 on the head of commit `docs(pr-reviews): [#2904] record the first review round on pull request 3070` (F2). The reply URL of this round is recorded by the commit that follows the reply.
+Round 2: CodeRabbit review 6074765233 on the head of commit `docs(pr-reviews): [#2904] record the first review round on pull request 3070` (F2). The reply URL of this round is recorded by the commit that follows the reply. `da2ce7`'s review 6074951727 on the head of commit `docs(pr-reviews): [#2904] record the first review round on pull request 3070` (F3 to F6); F6 is its body finding that the record read `Reply URL: pending` for F1, which the local commit with the reply of round 1 already answers.
 
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3070-f1 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F2 | review-finding:pr-3070-f2 | coderabbitai[bot] | Minor | documentation | ORIGINAL | FIXED | OPEN |
+| F3 | review-finding:pr-3070-f3 | da2ce7 | Minor | correctness | ORIGINAL | FIXED | OPEN |
+| F4 | review-finding:pr-3070-f4 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | OPEN |
+| F5 | review-finding:pr-3070-f5 | da2ce7 | Nit | link-integrity | ORIGINAL | FIXED | OPEN |
+| F6 | review-finding:pr-3070-f6 | da2ce7 | Minor | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
 
 ## Finding Details
 
@@ -78,11 +82,64 @@ Round 2: CodeRabbit review 6074765233 on the head of commit `docs(pr-reviews): [
 - Follow-up PR URL: N/A
 - Reply URL: pending
 
+### F3 - The skill does not say which severities block
+
+- PR number: 3070
+- Source review ID: 6074951727
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3070#discussion_r4709030731
+- Concern: `review-pr` depended on the word "blocker" without saying which of the five severities blocks, so a `COMMENT` with a `Major` finding could map to `REVIEW_PASSED`, the field the orchestrator reads.
+- Solution: The Output says that a `Blocker` or a `Major` finding is a blocker, that `COMMENT` is for `Minor`, `Nit` and `Suggestion` findings, and the reply mapping repeats it.
+- Current-tree verification: Read the Output and "A Reply File" of `.claude/skills/review-pr/SKILL.md` after the edit.
+- Resolution reference: docs(skills): [#2904] say which severities block in review-pr and fix a link
+- Follow-up PR URL: N/A
+- Reply URL: pending
+
+### F4 - The progress log of T7 ends at the failed first review
+
+- PR number: 3070
+- Source review ID: 6074951727
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3070#discussion_r4709030739
+- Concern: The last T7 entry ended at `REVIEW_FAILED`; nothing recorded the passed second review, its two nits and their fixes.
+- Solution: A new entry records the second review, its verdict, the two nits and their fixes, names both reply files, and records this round.
+- Current-tree verification: Read the entries of T7 after the edit.
+- Resolution reference: docs(issues): [#2904] record the second task review of T7 and the first review round of pull request 3070
+- Follow-up PR URL: N/A
+- Reply URL: pending
+
+### F5 - A link names a subsection but points to its parent
+
+- PR number: 3070
+- Source review ID: 6074951727
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3070#discussion_r4709030745
+- Concern: The sentence cites "A Branch Without The `task-reviewer` Agent" but the anchor was `#recording-the-review`.
+- Solution: The anchor is `#a-branch-without-the-task-reviewer-agent`.
+- Current-tree verification: Checked that the heading exists in `review-task` and that the link resolves.
+- Resolution reference: docs(skills): [#2904] say which severities block in review-pr and fix a link
+- Follow-up PR URL: N/A
+- Reply URL: pending
+
+### F6 - The record read `Reply URL: pending` at the reviewed head
+
+- PR number: 3070
+- Source review ID: 6074951727
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3070#pullrequestreview-6074951727
+- Concern: The detail of F1 still read `Reply URL: pending` and `OPEN` at the head under review, although the reply and the resolution existed.
+- Solution: The commit that records the reply and the resolution of round 1 is on the branch with this push.
+- Current-tree verification: Ran the audit validator after the edit.
+- Resolution reference: docs(pr-reviews): [#2904] record the reply and the resolved thread of the first review round on pull request 3070
+- Follow-up PR URL: N/A
+- Reply URL: pending
+
 ## Processing Log
 
 - 2026-11-26 12:40 UTC - Round 1: started on CodeRabbit review `6074263774` (one inline comment); the record was created before the first reply, and the fix is committed locally. The reply follows the push.
 - 2026-11-26 13:13 UTC - Pushed round 1 (head commit `docs(pr-reviews): [#2904] record the first review round on pull request 3070`), replied on the thread (F1) and resolved it with the GraphQL mutation, which returned `isResolved: true`. The reply URL is recorded by this commit, which goes out with the next push.
 - 2026-11-26 13:17 UTC - Round 2: started on CodeRabbit review `6074765233` (one inline comment, F2), after the push of round 1; the fix is committed locally. The reply follows the next push.
+- 2026-11-26 13:29 UTC - Round 2 (continued): `da2ce7`'s review `6074951727` arrived before the push; F3 to F5 are fixed and committed locally, and F6 is answered by the commit of the replies of round 1. Replies follow the push.
 
 ## Completion Rules
 
