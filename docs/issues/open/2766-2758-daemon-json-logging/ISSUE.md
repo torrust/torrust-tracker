@@ -273,7 +273,7 @@ Manual verification is mandatory even when automated tests pass. Record actual c
 
 ## Risks and Trade-offs
 
-- Operators parse the old text or read stdout. Mitigation: `docs/logging.md` with the "Changes in 4.0.0" section; `trace_style = "full"` and `2>&1` give back the old lines (without colour codes).
+- Operators parse the old text or read stdout. Mitigation: `docs/logging.md` with the "Changes in 4.0.0" section; `trace_style = "full"` and `2>&1` give back the old lines (without colour codes), but not a text-only stream: the configuration-loading records and the `startup_failure` and `panic` records stay JSON, and the section says that a consumer of the text must handle both.
 - The e2e suite depends on log text. Mitigation: the readers change in the same pull request as the output (T5).
 - A stream with a text style mixes JSON and text records (D1). Accepted by the maintainer; documented in `docs/logging.md`.
 - `tracker_client` keeps another JSON shape until its follow-up. Mitigation: the follow-up issue is filed by T10 and the ADR names the shape.
