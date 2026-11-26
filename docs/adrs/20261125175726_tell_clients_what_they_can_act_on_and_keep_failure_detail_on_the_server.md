@@ -40,8 +40,9 @@ in the SI-B specification found, on a running tracker:
 - **Database driver text.** `databases::error::Error` keeps the `sqlx` error as its source and
   prints it, and every protocol forwards that `Display`. An HTTP announce can answer
   `Tracker announce error: Database error: The Sqlite3 query was malformed: error returned from
-  database: ...`, and the REST API answers a duplicate key with a 500 that holds
-  `UNIQUE constraint failed: keys.key`. A database server message can name the database user and
+  database: ...`, and before #2999 the REST API answered a duplicate key with a 500 that held
+  `UNIQUE constraint failed: keys.key` (since #2999 it holds `The <driver> database already holds
+  this authentication key`, still a 500 for the client's own mistake). A database server message can name the database user and
   the client address (`Access denied for user 'db_user'@'172.17.0.1'`, EPIC item A11). The same
   conversion labels every error raised by the server as `InvalidQuery`, so an authentication
   failure reads `The MySQL query was malformed`.
@@ -124,8 +125,9 @@ the health-check probes), not from the `Display` chain of the outer error.
 No error text of the four servers is a contract that clients may match. Clients must rely on the
 signal each protocol defines: the presence of `failure reason` (HTTP tracker), action 3 (UDP
 tracker), the status code (REST API and health-check API) and the `status` field of a health-check
-report. Any text may change in any release; a release that changes one says so in its changelog.
-Tests pin the texts to keep this policy, not to promise them.
+report. Any text may change in any release. The tracker keeps no changelog, so the pull request
+that changes a text lists the old and the new one in its description (the SI-B specification does
+for this change), and the notes of the GitHub release summarize them. Tests pin the texts to keep this policy, not to promise them.
 
 ### 5. Echoing the client's input
 
@@ -134,11 +136,13 @@ limits:
 
 - Never a secret, even a malformed one (the `handle-secrets` skill and the SI-A amendment of the
   secrecy ADR): the text names the parameter and the expected form instead.
-- At most 64 characters of the value; a longer value is cut and ends with `...`. 64 is longer than
+- At most 64 characters of the value, counted on the value as the client sent it, before escaping;
+  a longer value is cut and ends with `...`. 64 is longer than
   any well-formed tracker value (a hex info-hash is 40), so a value that needs cutting is already
   wrong.
-- Control characters are escaped (Rust `char::escape_default`), so the text stays one line in a
-  log, a terminal or a client's status bar.
+- Control characters are escaped after the cut (Rust `char::escape_debug`, which keeps printable
+  Unicode as sent and escapes control characters, `'`, `"` and `\`), so the text stays one line in
+  a log, a terminal or a client's status bar.
 
 ### 6. The UDP connection-id error
 
@@ -172,8 +176,10 @@ changes. The general error-event contract is the draft `docs/issues/drafts/gener
 
 ### 9. The health-check API
 
-The health-check API is reached by orchestrators and operators, but the container configurations
-bind it to `0.0.0.0:1313`, so the policy treats it as reachable by anyone. Its statuses stay: `200`
+The health-check API is reached by orchestrators and operators. Its default bind address is
+`127.0.0.1:1313`, but the no-persistence container configuration and the e2e container
+configuration bind it to `0.0.0.0:1313`, and an operator can bind it publicly, so the policy treats
+it as reachable by anyone. Its statuses stay: `200`
 with the report `health check failed` when a probe fails, and `503` with `shutting down` while the
 application stops. Each failed probe reports a fixed reason of its own, never library text:
 
@@ -197,20 +203,16 @@ the plain-text `Unhandled rejection: Err { reason: "<reason>" }` frame of a v1 5
 the reason changes. The frame is the v1 body, and replacing it is the structured error body of API
 v2 (EPIC #144).
 
-> **Open for the maintainer**: the duplicate authentication key. Rule 1 makes it a bad request, so
-> its text becomes `failed to add key: the tracker already holds this authentication key`. Its
-> status is a separate decision:
->
-> - **(a) Keep the 500** (the default of the SI-B specification, which leaves v1 statuses to
->   EPIC #144). Monitoring keeps counting a client mistake as a server failure.
-> - **(b) Answer `409 Conflict`** with the JSON body v1 already uses for a 409
->   (`{"status":"err","reason":"..."}`). A 500 for a client mistake is a bug, and v1 already
->   answers 409 for a disabled capability, so no new shape appears; but it changes a v1 status.
->
-> The author recommends (b). The ADR is updated to the chosen option before it merges.
+**The duplicate authentication key keeps its 500 in v1.** Rule 1 makes it a bad request, and its
+text becomes `failed to add key: the tracker already holds this authentication key`, but a v1
+status does not change: answering `409 Conflict` instead would break clients that handle the 500,
+and the correct statuses are the purpose of API v2 (EPIC #144). So in v1 a bad request can still
+arrive as a 500, a known limitation that the v2 error model removes (the maintainer decided this on
+2026-11-26).
 
-The v2 error model must follow the three classes of rule 1 (bad request `4xx`, refused `401`,
-`403`, `404` or `409`, internal failure `5xx`) and carry the request id in its structured body, so
+The v2 error model must follow the three classes of rule 1 (bad request `400`, `409` or another
+`4xx`, refused `401`, `403`, `404` or `409`, internal failure `5xx`; a duplicate key is a `409`)
+and carry the request id in its structured body, so
 v1 text and v2 bodies tell a client the same thing.
 
 ### 11. The database error labels
@@ -272,7 +274,7 @@ UDP tracker (error packet message; the event column is the `ErrorKind` payload):
 | `AuthRequired` (nothing builds it in production) | Refused | `domain tracker requires authentication but is not supported in current UDP implementation` | unchanged | unchanged |
 | Banned IP | - | no reply | unchanged | unchanged |
 
-REST API (statuses unchanged unless the open decision of rule 10 says otherwise):
+REST API (v1 statuses and body shapes unchanged, rule 10):
 
 | Case | Class | Status | Current text | Proposed text |
 | --- | --- | --- | --- | --- |
@@ -280,7 +282,7 @@ REST API (statuses unchanged unless the open decision of rule 10 says otherwise)
 | Wrong token | Refused | 500 | `... reason: "token not valid" }` | `... reason: "unauthorized: the token is not valid" }` |
 | Malformed `Authorization` header | Bad request | 500 | `... reason: "unknown token provided" }` | `... reason: "unauthorized: the Authorization header must be Bearer <token>" }` |
 | Key add, generate, delete or reload fails in the database | Internal | 500 | `... reason: "failed to <op>: <driver text>" }` | `... reason: "failed to <op>: internal tracker error (request id: <id>)" }` |
-| Duplicate key | Bad request | 500, or 409 (rule 10) | `... reason: "failed to add key: The <driver> database already holds this authentication key" }` | (a) `... reason: "failed to add key: the tracker already holds this authentication key" }`; (b) 409 `{"status":"err","reason":"failed to add key: the tracker already holds this authentication key"}` |
+| Duplicate key | Bad request | 500 (rule 10) | `... reason: "failed to add key: The <driver> database already holds this authentication key" }` | `... reason: "failed to add key: the tracker already holds this authentication key" }` |
 | Whitelist add, remove or reload fails in the database | Internal | 500 | `... reason: "failed to <op>: <driver text>" }` | `... reason: "failed to <op>: internal tracker error (request id: <id>)" }` |
 | Malformed key | Bad request | 400 | `Invalid URL: invalid auth key: <reason>` and `Invalid auth key id param: <reason>` (SI-A) | unchanged |
 | Key duration not a number | Bad request | 400 | `Invalid URL: invalid auth key duration: expected a number of seconds` | unchanged |
