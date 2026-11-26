@@ -42,9 +42,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Findings 1 to 7 come from review 6070914967 and findings 8 to 10 from review 6075692867, both by `da2ce7`. The
+Findings F1 to F7 come from review 6070914967 and findings F8 to F10 from review 6075692867, both by `da2ce7`; F11 to F13 come from review 6075857869 by `coderabbitai[bot]`. The
 `claude[bot]` review (6062721178, automated review is disabled for fork pull requests) and the
-`coderabbitai[bot]` comment (a rate-limit notice) hold no actionable assertion and have no row.
+`coderabbitai[bot]` rate-limit notice hold no actionable assertion and have no row.
 
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
@@ -58,6 +58,9 @@ Findings 1 to 7 come from review 6070914967 and findings 8 to 10 from review 607
 | F8 | review-finding:pr-3063-f8 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F9 | review-finding:pr-3063-f9 | da2ce7 | Minor | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F10 | review-finding:pr-3063-f10 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-3063-f11 | coderabbitai[bot] | Minor | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-3063-f12 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F13 | review-finding:pr-3063-f13 | coderabbitai[bot] | Minor | security | ORIGINAL | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -191,6 +194,45 @@ Findings 1 to 7 come from review 6070914967 and findings 8 to 10 from review 607
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3063#discussion_r4709720583
 
+### F11 - Use stable issue references in the ADR metadata
+
+- PR number: 3063
+- Source review ID: 6075857869
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3063#discussion_r4709773181
+- Concern: The ADR's frontmatter links three issue specifications under `docs/issues/open/`, which move to `docs/issues/closed/` when the issues close; a long-lived artifact should name the issues by number.
+- Solution: Removed the three paths from `related-artifacts` and named the issues by number in the Description and the References section.
+- Current-tree verification: `grep -n 'docs/issues/open'` on the ADR prints nothing.
+- Resolution reference: docs(adrs): [#3000] link the issues by number in the ADR metadata and references
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3063#discussion_r4709888558
+
+### F12 - Specify correlation for health-check internal failures
+
+- PR number: 3063
+- Source review ID: 6075857869
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3063#discussion_r4709773192
+- Concern: Rules 1, 2 and 7 require an operator-searchable reference for internal failures, but the fixed health-check result for a panicked probe job carries no request id and rule 9 named no other reference.
+- Solution: Rule 9 now says the report keeps its shape, the reference is the `x-request-id` header the health-check API sets on every reply, and the rule 7 event carries the same id and the service binding.
+- Current-tree verification: Read rule 9 of the ADR; `packages/axum-health-check-api-server/src/server.rs` sets `SetRequestIdLayer` and `PropagateHeaderLayer` for `x-request-id`.
+- Resolution reference: docs(adrs): [#3000] say how a health-check internal failure is correlated with its event
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3063#discussion_r4709888992
+
+### F13 - The health-check report can return credentials from public_url
+
+- PR number: 3063
+- Source review ID: 6075857869
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3063#discussion_r4709773200
+- Concern: The `public_url` of a service is serialized unchanged into the health-check report and may hold userinfo, query or fragment; the ADR should state that it must not expose credentials.
+- Solution: No change. The field is not an error text and appears in every report, so it is outside this policy; the EPIC #2993 inventory checked the health-check output and found it safe; the URL is the one clients use, so credentials in it are an operator misconfiguration. Rejecting such a URL in configuration validation would be a separate issue if the maintainer wants it.
+- Current-tree verification: `packages/axum-health-check-api-server/src/resources.rs` holds `public_url: Option<String>` copied from the service metadata; the ADR's rule 9 changes only the failure results.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3063#discussion_r4709889463
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3063#discussion_r4709889463
+
 ## Processing Log
 
 - 2026-11-26 14:07 UTC - Late start: the seven replies to review 6070914967 were posted (14:07 UTC) before this record existed; the replies carry the dispositions, and this record was created after review 6075692867 noted its absence.
@@ -198,6 +240,8 @@ Findings 1 to 7 come from review 6070914967 and findings 8 to 10 from review 607
 - 2026-11-26 14:22 UTC - Fix for F10 committed in `docs(adrs): [#3000] drop the decision attribution from rule 10 and record it in the specification`; the branch was pushed with `--force-with-lease` after the rebase.
 - 2026-11-26 14:26 UTC - Replies to F8, F9 and F10 posted.
 - 2026-11-26 14:29 UTC - Ran `validate-audit-record.py --pr-number 3063` (`status: ok`, 10 rows, 0 failures), resolved the threads of F8, F9 and F10, and refreshed GraphQL: all ten review threads are resolved.
+- 2026-11-26 14:30 UTC - Review 6075857869 (`coderabbitai[bot]`, three inline findings F11 to F13) arrived; the poller reported only its first comment, and a listing of the review's comments showed all three.
+- 2026-11-26 14:40 UTC - Fixes for F11 and F12 committed in `docs(adrs): [#3000] link the issues by number in the ADR metadata and references` and `docs(adrs): [#3000] say how a health-check internal failure is correlated with its event` and pushed; replies to F11, F12 and F13 posted (14:40 UTC). F13 is `NO_ACTION` with the `Superseded by F13` reply form.
 
 ## Completion Rules
 
