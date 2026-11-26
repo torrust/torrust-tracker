@@ -272,7 +272,7 @@ new variant cannot be added without choosing its code.
 
 | Alternative | Example | Pros | Cons |
 | --- | --- | --- | --- |
-| A. In this issue: a panic hook writes one record through the same formatter | `{"timestamp":"…","level":"ERROR","kind":"panic","target":"torrust_tracker","message":"called Option::unwrap() on a None value","location":"src/…:42:9","thread":"main"}` | Closes the last plain-text path; AC2 ("every stderr line is JSON") holds without exceptions. Small, in the same files. Same `kind`, `message` and `location` fields as the `panic` record of `tracker_client` | A little more scope. A backtrace (`RUST_BACKTRACE=1`) goes in one `backtrace` field |
+| A. In this issue: a panic hook writes one record through the same formatter | `{"timestamp":"…","level":"ERROR","kind":"panic","target":"torrust_tracker","message":"called Option::unwrap() on a None value","location":"src/…:42","thread":"main"}` | Closes the last plain-text path; AC2 ("every stderr line is JSON") holds without exceptions. Small, in the same files. Same `kind`, `message` and `location` fields as the `panic` record of `tracker_client` | A little more scope. A backtrace (`RUST_BACKTRACE=1`) goes in one `backtrace` field |
 | B. A follow-up issue | — | Smaller PR | AC2 holds only until something panics |
 | C. Not done | — | — | Plain text on stderr; breaks the contract |
 
@@ -360,7 +360,7 @@ formats without colour codes (D8).
 | --- | --- | --- | --- | --- | --- |
 | `--help` | JSON `help` record | same as `json` | same as `json` | same as `json` | `0` |
 | Argument error (`--unknown`, `-c ""`) | JSON `usage_error` record | same as `json` | same as `json` | same as `json` | `2` |
-| Configuration error (missing file, bad TOML, unknown `trace_style` value, semantic validation) | JSON `log` records of configuration loading, then one JSON `startup_failure` | same as `json`: the style was never applied | same as `json` | same as `json` | `2` |
+| Configuration error (missing file, bad TOML, unknown `trace_style` value, semantic validation) | One JSON `startup_failure`; for a file that could be read (bad TOML, unknown value, semantic validation) the JSON `log` record of configuration loading comes first | same as `json`: the style was never applied | same as `json` | same as `json` | `2` |
 | Normal run | JSON only | JSON until the configuration is loaded, then `full` text | JSON, then `pretty` text | JSON, then `compact` text | `0` at a clean stop |
 | Runtime startup failure (port in use) | JSON `log` records, then one JSON `startup_failure` | JSON, then text, then one JSON `startup_failure` | same pattern | same pattern | `1` |
 | Panic | one JSON `panic` record | one JSON `panic` record among the text | same | same | `1` if the panic unwinds out of `main`; the process continues if a task panicked |
@@ -370,7 +370,7 @@ formats without colour codes (D8).
 
 ```text
 $ torrust-tracker --help
-{"timestamp":"…","level":"INFO","kind":"help","target":"torrust_tracker","message":"Usage: torrust-tracker [OPTIONS]\n\nOptions:\n  -c, --config-toml-path <CONFIG_TOML_PATH>  Path to the TOML configuration file to load\n  -h, --help  Print help"}
+{"timestamp":"…","level":"INFO","kind":"help","target":"torrust_tracker","message":"Command-line arguments accepted by the tracker executable\n\nUsage: torrust-tracker [OPTIONS]\n\nOptions:\n  -c, --config-toml-path <CONFIG_TOML_PATH>  Path to the TOML configuration file to load\n  -h, --help  Print help"}
 exit 0
 
 $ torrust-tracker --unknown
@@ -382,13 +382,15 @@ exit 2
 
 ```text
 $ torrust-tracker -c /nonexistent.toml
-{"timestamp":"…","level":"INFO","kind":"log","target":"torrust_tracker_configuration","message":"Loading base configuration from explicit configuration file","path":"/nonexistent.toml"}
 {"timestamp":"…","level":"ERROR","kind":"startup_failure","target":"torrust_tracker","message":"Tracker startup failed","error":"Tracker setup failed. … Unable to load explicit configuration file `/nonexistent.toml`: No such file or directory (os error 2)","exit_code":2}
 exit 2
 ```
 
-The same happens with `trace_style = "fancy"` (unknown value): the configuration is rejected, so
-no style is applied and the failure is JSON.
+A missing file gives only the failure: the configuration crate reads the explicit file before it
+logs that it is loading it (`packages/configuration/src/lib.rs:196-197`). With a file that can be
+read but is rejected, for example `trace_style = "fancy"` (unknown value) or bad TOML, the
+"Loading base configuration from explicit configuration file" record comes first, then the failure;
+no style is applied, so both are JSON.
 
 ### Normal run, `json` (default, or `trace_style = "json"`)
 
