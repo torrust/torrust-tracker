@@ -63,7 +63,7 @@ What the daemon does on `develop` (checked 2026-11-26):
 - **Test helpers.** `packages/test-helpers/src/logging.rs` has its own subscribers: `setup` and `setup_capturing_every_level` (global capture buffer) and, since #3031, `capture_logs_in_scope` (line 245; a scoped plain-text capture). They capture in-process events and never read the daemon's output, so their format does not have to change. `setup` imports `TraceStyle` from the configuration crate and only ever uses `Full`.
 - **Configs and docs.** Every default config under `share/default/config/` sets `trace_style = "full"`. The decision record lists the documents that show `trace_style` or sample log lines (D7).
 - **Precedent.** `tracker_client` (#2768) writes its tracing with tracing-subscriber's built-in JSON (text under `fields.message`) and a direct `{"kind":"panic",…}` record. The e2e runners still use the plain `fmt()` (issue #2769).
-- **Two mistaken events.** `packages/udp-core/src/services/announce.rs:178` and `scrape.rs:140` pass `target = crate::UDP_TRACKER_LOG_TARGET` as a field instead of `target:`.
+- **Two mistaken events.** `packages/udp-core/src/services/announce.rs:178` and `scrape.rs:140` pass `target = crate::UDP_TRACKER_LOG_TARGET` as a field instead of `target:`. Issue #3060 (open) corrects them.
 
 Maintainer decision (2026-11-06): migrate now, not deferred. This is operator-visible just after the 3.0.0 release: deployments that parse the plain text or read stdout break.
 
@@ -100,7 +100,7 @@ D1, D2, D4, D6 and D8 become one ADR (task T2).
 - **Root tests that pin today's behavior.** `tests/configuration/cli_configuration/invalid_sources.rs` (lines 60, 76, 92, 109, 127) asserts exit `1` through `STARTUP_FAILURE_EXIT_CODE` (`tests/common/native_tracker/failed_start.rs:21`) and becomes exit `2` for configuration failures; its usage-error cases (lines 28, 44) keep exit `2` and assert the JSON record.
 - **Test helpers.** `packages/test-helpers/src/logging.rs` keeps working and keeps its plain-text captures; `setup` stops importing `TraceStyle`.
 - **Docs (D7).** `docs/logging.md`, the review of the documents listed in `decisions.md` (D7), the rustdoc of the configuration and of `logs_parser.rs`, `docs/index.md`, and the ADR.
-- **Follow-ups filed as issues by this issue (T10).** Move `tracker_client` to the D4 record shape and create the shared crate; report the two `target =` events to the coordinator of EPIC #2387.
+- **Follow-ups filed as issues by this issue (T10).** Move `tracker_client` to the D4 record shape and create the shared crate.
 
 ### Out of Scope
 
@@ -164,7 +164,7 @@ The issue is delivered as several pull requests of this one issue: the tasks are
 | T7 | TODO | Argument errors and help as JSON; panic hook (D6) | 3 | Tests first. |
 | T8 | TODO | `docs/logging.md` and the review of the other documents (D7) | 4 | The page, the corrected examples, the "Changes in 4.0.0" section. |
 | T9 | TODO | Run the tracker locally and in a container | 4 | M1 to M5 recorded in `manual-verification-evidence.md`. |
-| T10 | TODO | File the follow-ups | 4 | Issue for `tracker_client` and the shared crate; the two `target =` events reported to the coordinator of EPIC #2387; final report to the coordinator of EPIC #2758. |
+| T10 | TODO | File the follow-ups | 4 | Issue for `tracker_client` and the shared crate; final report to the coordinator of EPIC #2758. |
 
 ## Commit Points
 

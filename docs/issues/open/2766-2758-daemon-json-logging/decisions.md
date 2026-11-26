@@ -217,7 +217,7 @@ identity (EPIC #2387 convention), never as a `spans` list. No ANSI codes. Conseq
   An event sets the kind with a `kind` field (that is how `startup_failure` and `panic` are
   written). An event field with another reserved name is written as `field_<name>`, so a record
   never has a duplicate key. The two `target = …` events of `udp-core` are a mistake for `target:`;
-  they are reported to the coordinator of EPIC #2387, which owns the content of the lines.
+  issue #3060 (open) already corrects them, so this issue does not touch them.
 - **Two shapes in the repository until the others follow.** `tracker_client` keeps
   tracing-subscriber's default shape and its direct `panic` record, and the e2e runners are not
   migrated yet. The ADR names the flat shape as the one for Torrust tools; #2769 uses this
