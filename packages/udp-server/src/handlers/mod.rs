@@ -256,7 +256,7 @@ pub(crate) mod tests {
     use torrust_tracker_configuration::v3_0_0::core::Core;
     use torrust_tracker_core::announce_handler::AnnounceHandler;
     use torrust_tracker_core::databases::TorrentMetricsStore;
-    use torrust_tracker_core::databases::setup::initialize_database;
+    use torrust_tracker_core::databases::setup::initialize_database_from_configuration;
     use torrust_tracker_core::scrape_handler::ScrapeHandler;
     use torrust_tracker_core::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
     use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
@@ -266,7 +266,7 @@ pub(crate) mod tests {
     use torrust_tracker_events::bus::SenderStatus;
     use torrust_tracker_events::sender::SendError;
     use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
-    use torrust_tracker_test_helpers::configuration;
+    use torrust_tracker_test_helpers::configuration::{self, SqliteDatabaseGuard};
     use torrust_tracker_udp_core::connection_cookie::{gen_remote_fingerprint, make};
     use torrust_tracker_udp_core::crypto::cookie_cipher::CookieCipher;
     use torrust_tracker_udp_core::event::bus::EventBus;
@@ -290,7 +290,11 @@ pub(crate) mod tests {
         pub in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
         pub in_memory_whitelist: Arc<InMemoryWhitelist>,
         pub whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
-        pub torrent_metrics_store: Arc<dyn TorrentMetricsStore>,
+        /// Present only when the test configuration sets a database.
+        pub torrent_metrics_store: Option<Arc<dyn TorrentMetricsStore>>,
+        /// Keeps the directory of a guard-owned `SQLite` database alive for as long as the services are. It is
+        /// declared last, so it is dropped after the stores that use the database.
+        pub sqlite_database_guard: Option<SqliteDatabaseGuard>,
     }
 
     pub struct CoreUdpTrackerServices {
@@ -327,17 +331,40 @@ pub(crate) mod tests {
         initialize_core_tracker_services(config).await
     }
 
+    /// Like [`initialize_core_tracker_services_with_config`] for a test that needs persistence: the configuration
+    /// comes from `ephemeral_with_sqlite_database()` and the services keep its guard.
+    pub async fn initialize_core_tracker_services_with_sqlite_database(
+        config: &Configuration,
+        guard: SqliteDatabaseGuard,
+    ) -> (CoreTrackerServices, CoreUdpTrackerServices, ServerUdpTrackerServices) {
+        let (mut core, udp, server) = initialize_core_tracker_services(config).await;
+        core.sqlite_database_guard = Some(guard);
+        (core, udp, server)
+    }
+
     async fn initialize_core_tracker_services(
         config: &Configuration,
     ) -> (CoreTrackerServices, CoreUdpTrackerServices, ServerUdpTrackerServices) {
         let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
         let core_config = Arc::new(config.core.clone());
-        let database = initialize_database(&config.core).await;
+        // Persistence is initialized only when the configuration sets a database.
+        let database = match config.core.database.as_ref() {
+            Some(database) => Some(
+                initialize_database_from_configuration(database)
+                    .await
+                    .expect("the test database should be initialized"),
+            ),
+            None => None,
+        };
         let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
         let whitelist_authorization = Arc::new(WhitelistAuthorization::new(&config.core, &in_memory_whitelist));
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
-        let db_downloads_metric_repository = Arc::new(DatabaseDownloadsMetricRepository::new(&database.torrent_metrics_store));
         let (announce_handler, scrape_handler) = if config.core.tracker_policy.persistent_torrent_completed_stat {
+            let database = database
+                .as_ref()
+                .expect("persistent completed statistics need a database in the test configuration");
+            let db_downloads_metric_repository =
+                Arc::new(DatabaseDownloadsMetricRepository::new(&database.torrent_metrics_store));
             (
                 Arc::new(AnnounceHandler::new_with_persistent_completed_statistics(
                     &config.core,
@@ -403,7 +430,8 @@ pub(crate) mod tests {
                 in_memory_torrent_repository,
                 in_memory_whitelist,
                 whitelist_authorization,
-                torrent_metrics_store: database.torrent_metrics_store,
+                torrent_metrics_store: database.map(|database| database.torrent_metrics_store),
+                sqlite_database_guard: None,
             },
             CoreUdpTrackerServices {
                 announce_service,

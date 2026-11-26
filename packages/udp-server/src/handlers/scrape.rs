@@ -148,7 +148,7 @@ mod tests {
         use crate::handlers::tests::{
             CoreTrackerServices, CoreUdpTrackerServices, connection_id_issued_to,
             initialize_core_tracker_services_for_listed_tracker, initialize_core_tracker_services_for_public_tracker,
-            initialize_core_tracker_services_with_config, sample_ipv4_remote_addr, sample_strict_cookie_validation,
+            initialize_core_tracker_services_with_sqlite_database, sample_ipv4_remote_addr, sample_strict_cookie_validation,
         };
         use crate::handlers::{CookieValidationContext, handle_scrape};
 
@@ -181,16 +181,19 @@ mod tests {
             }
 
             async fn public_with_persistent_completed_statistics() -> Self {
-                let mut configuration = configuration::ephemeral_public();
+                let (mut configuration, guard) = configuration::ephemeral_with_sqlite_database();
+                configuration.core.private = false;
                 configuration.core.tracker_policy.persistent_torrent_completed_stat = true;
                 let (core_tracker_services, core_udp_tracker_services, _server_udp_tracker_services) =
-                    initialize_core_tracker_services_with_config(&configuration).await;
+                    initialize_core_tracker_services_with_sqlite_database(&configuration, guard).await;
                 Self::with_services(core_tracker_services, core_udp_tracker_services, sample_ipv4_remote_addr())
             }
 
             async fn with_persisted_downloads(self, info_hash: &InfoHash, downloads: u32) -> Self {
                 self.core_tracker_services
                     .torrent_metrics_store
+                    .as_ref()
+                    .expect("the test database should be configured")
                     .save_torrent_downloads(&info_hash.0.into(), downloads)
                     .await
                     .unwrap();
