@@ -103,7 +103,8 @@ Options weighed:
 2. The failed operation without driver text (`could not read the database`). Rejected: naming the
    component adds nothing the client can act on, and ties the text to the implementation.
 3. **The operation plus a request id (chosen).** The HTTP tracker and the REST API already set
-   `x-request-id` on every reply and record it in the request span; the UDP server already makes a
+   `x-request-id` on every reply and attempt to record it in the request span (rule 7 says what is
+   missing); the UDP server already makes a
    `request_id` for every request and logs it. Putting the id in the text lets a BitTorrent user,
    who never sees response headers, quote it to the operator.
 
@@ -155,8 +156,12 @@ The decoded cookie value and the server's time bounds stay in the server log and
 
 Every internal failure emits one `tracing` event at `ERROR` at the place where the reply is built,
 with the full `Display` of the error (its source included), the operation and the request id. For
-the HTTP tracker and the REST API the event runs inside the request span, which already records
-`request_id`; the UDP server logs its own `request_id` and adds it to the reply. An operator who
+the HTTP tracker, the REST API and the health-check API the event runs inside the request span, and
+the span must declare the field: `RedactedMakeSpan` (`packages/axum-server/src/request_log.rs`)
+declares only `method`, `uri` and `version` today, so the `span.record("request_id", ...)` calls of
+the three servers record nothing, and the implementation adds `request_id = tracing::field::Empty`
+to it. The UDP server declares and records its own `request_id` in the handler span and adds it to
+the reply. An operator who
 gets a request id from a user finds the event by it. Non-secret driver text belongs in this event;
 a secret never does (SI-A).
 
@@ -194,8 +199,9 @@ are already the operator's configuration. The library text goes to a `tracing` e
 
 The result text of a failed probe carries no request id, because the report keeps its shape. The
 reference for an internal failure (the panicked or cancelled job) is the `x-request-id` header that
-the health-check API sets on every reply, as the other two servers do. The `tracing` event of rule 7
-is emitted inside the request span, so it carries the same id, and it records the service binding
+the health-check API sets on every reply, as the HTTP tracker and the REST API do. The `tracing`
+event of rule 7 is emitted inside the request span, which declares the `request_id` field (rule 7),
+so it carries the same id, and it records the service binding
 that the report shows for the failed service. An operator relates the report to the event by that
 id or by that binding.
 
