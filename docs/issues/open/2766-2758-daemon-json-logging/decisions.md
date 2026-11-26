@@ -221,11 +221,12 @@ with a `kind` discriminator is the simplest contract for a reader. Key order: `t
 identity (EPIC #2387 convention), never as a `spans` list. No ANSI codes. Consequences:
 
 - **Reserved keys.** `timestamp`, `level`, `kind`, `target` and `message` belong to the formatter.
-  An event sets the kind with a `kind` field (that is how `startup_failure` and `panic` are
-  written). The formatter writes its own keys first and remembers every key
-  it has written in the record. An event field whose name is already in the record (a reserved name,
-  or a name an earlier field took) is written with the prefix `field_`, repeated until the name is
-  free, so a record never has a duplicate key and no field is dropped. Fields are written in the
+  The `message` key is the event's own `message` field, which `tracing` fills from the format
+  string, so that field is not renamed. The `kind` of a record that comes from a `tracing` event is
+  always `log`; the other kinds are written directly (D1), so an event cannot set it. The formatter
+  writes its own keys first and remembers every key it has written in the record. Any other event
+  field whose name is already in the record (a reserved name, `kind` included, or a name an earlier
+  field took) is written with the prefix `field_`, repeated until the name is free, so a record never has a duplicate key and no field is dropped. Fields are written in the
   order the event records them, and the field that comes later is the one renamed: an event field
   `target` becomes `field_target`; if the event also has a field `field_target`, the one of the two
   that is recorded second gets one more prefix (`field_field_target`). The two `target = …` events of `udp-core` are a mistake for `target:`;
