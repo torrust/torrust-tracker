@@ -1,7 +1,7 @@
 ---
 pr-number: 3068
 pr-url: https://github.com/torrust/torrust-tracker/pull/3068
-last-updated-utc: "2026-11-26 09:20"
+last-updated-utc: "2026-11-26 09:26"
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -44,6 +44,8 @@ Round 1: CodeRabbit review 6070621282 on the head of commit `docs(agents): [#290
 
 Round 2: `da2ce7`'s review 6071195581 on the head of commit `docs(skills): [#2904] give implement-task an applicable check for a task without a Cargo package` (F2 to F8). F8 is the review body's finding that this record was missing; the record was written before the review and kept local until this push. The reply URLs of this round are recorded by the commit that follows the replies.
 
+Round 3: CodeRabbit review 6071517983 on the head of commit `docs(pr-reviews): [#2904] record the second review round on pull request 3068` (F9). The reply URL of this round is recorded by the commit that follows the reply.
+
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-3068-f1 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -54,6 +56,7 @@ Round 2: `da2ce7`'s review 6071195581 on the head of commit `docs(skills): [#290
 | F6 | review-finding:pr-3068-f6 | da2ce7 | Nit | formatting | ORIGINAL | FIXED | RESOLVED |
 | F7 | review-finding:pr-3068-f7 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F8 | review-finding:pr-3068-f8 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F9 | review-finding:pr-3068-f9 | coderabbitai[bot] | Minor | documentation | ORIGINAL | FIXED | OPEN |
 
 ## Finding Details
 
@@ -161,12 +164,26 @@ Round 2: `da2ce7`'s review 6071195581 on the head of commit `docs(skills): [#290
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3068#issuecomment-7187828838
 
+### F9 - The reply URL of F8 repeats its source review URL
+
+- PR number: 3068
+- Source review ID: 6071517983
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3068#discussion_r4706242652
+- Concern: At the pushed head the Reply URL of F8 was the URL of the review that raised it, a placeholder I wrote before the conversation comment existed, so it did not point to a response.
+- Solution: Already fixed in the local commit that records the replies of round 2: the Reply URL of F8 is the conversation comment that answers it.
+- Current-tree verification: Read the Reply URL of F8 and the comment it names after the push.
+- Resolution reference: docs(pr-reviews): [#2904] record the replies and resolved threads of the second review round on pull request 3068
+- Follow-up PR URL: N/A
+- Reply URL: pending
+
 ## Processing Log
 
 - 2026-11-26 09:01 UTC - Round 1: processed CodeRabbit review `6070621282` (one inline comment); the fix was pushed and the reply posted, then the thread was resolved with the GraphQL mutation, which returned `isResolved: true`.
 - 2026-11-26 09:09 UTC - Late start: the first reply and resolution (09:01 UTC) were posted before this record existed; it was created at 09:07 UTC and kept local until the push of round 2.
 - 2026-11-26 09:09 UTC - Round 2: started on review `6071195581` of `da2ce7` (six inline comments and one body finding); verified every finding against the current tree and committed the fixes locally. Replies follow the push.
 - 2026-11-26 09:20 UTC - Pushed round 2 (head commit `docs(pr-reviews): [#2904] record the second review round on pull request 3068`), replied on the six threads (GitHub `created_at` 09:20 UTC) and with one conversation comment for the body finding F8, then resolved the six threads with the GraphQL mutation, each returning `isResolved: true`. The reply URLs are recorded by this commit, which goes out with the next push.
+- 2026-11-26 09:26 UTC - Round 3: started on CodeRabbit review `6071517983` (one inline comment, F9), which came after the push of round 2; the fix was already committed locally with the replies of round 2. The reply follows the push.
 
 ## Completion Rules
 
