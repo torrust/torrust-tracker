@@ -89,7 +89,7 @@ Reviews processed: CodeRabbit 6070552226 (F1) and da2ce7 6071125410, 6075566793 
 - Source review ID: 6071125410
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3067#discussion_r4705938525
-- Concern: The evidence file and ISSUE.md recorded 08:30 and 08:35 stamps, later than commit 3bb76d813 (08:09:21 UTC), while claiming nothing is invented.
+- Concern: The evidence file and ISSUE.md recorded 08:30 and 08:35 stamps, later than the commit `docs(issues): [#2925] record the T1 reproduction and the classification of tests that need persistence` (08:09:21 UTC), while claiming nothing is invented.
 - Solution: The rerun commit replaced the evidence-file times with the actual script times and set both `last-updated-utc` values from the clock. The remaining 08:35 progress-log entry is marked as an estimate by an appended correction entry; the log is not rewritten.
 - Current-tree verification: Read the Environment section of the evidence file, the frontmatter of both files and the last progress-log entry of `ISSUE.md` (stamped 16:12, not later than its commit at 16:13:34 UTC).
 - Resolution reference: docs(issues): [#2925] mark the 08:35 progress log stamp as an estimate
@@ -271,7 +271,7 @@ Reviews processed: CodeRabbit 6070552226 (F1) and da2ce7 6071125410, 6075566793 
 - Source review ID: 6075682135
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3067#pullrequestreview-6075682135
-- Concern: The subject of 4ec424810 names the two approvals but not the change of T1 to `DONE`.
+- Concern: The subject of the commit `docs(issues): [#2925] record the approved package order and helper pattern` names the two approvals but not the change of T1 to `DONE`.
 - Solution: No change: history is not rewritten. T1 is back to `IN_PROGRESS` and the correction is in the spec progress log.
 - Current-tree verification: `git log` shows the subject unchanged; the T1 row is `IN_PROGRESS` and the 16:05 progress-log entry records the correction.
 - Resolution reference: https://github.com/torrust/torrust-tracker/pull/3067#issuecomment-7197444126
@@ -294,7 +294,7 @@ Reviews processed: CodeRabbit 6070552226 (F1) and da2ce7 6071125410, 6075566793 
 ## Processing Log
 
 - 2026-11-26 16:18 UTC - Started audit for reviews 6070552226, 6071125410, 6075566793 and 6075682135.
-- 2026-11-26 16:18 UTC - Pushed head `674a5e225` (`git ls-remote` showed it) before any reply; the fix commit added in this round is the 08:35 estimate correction. The audit record was created after the replies, and the log of the start is therefore late.
+- 2026-11-26 16:18 UTC - Pushed the head with the commit `docs(issues): [#2925] mark the 08:35 progress log stamp as an estimate` (`git ls-remote` showed it) before any reply; the fix commit added in this round is the 08:35 estimate correction. The audit record was created after the replies, and the log of the start is therefore late.
 - 2026-11-26 16:18 UTC - Replies on the 14 inline threads were posted from 16:16:38 to 16:17:10 UTC, then the consolidated response https://github.com/torrust/torrust-tracker/pull/3067#issuecomment-7197444126 at 16:17:22 UTC (GitHub `created_at`). Thread resolution follows the audit commit push.
 
 ## Completion Rules
