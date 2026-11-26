@@ -42,7 +42,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Findings F1 to F7 come from review 6070914967 and findings F8 to F10 from review 6075692867, both by `da2ce7`; F11 to F13 come from review 6075857869 by `coderabbitai[bot]`. The
+Findings F1 to F7 come from review 6070914967 and findings F8 to F10 from review 6075692867, both by `da2ce7`; F11 to F13 come from review 6075857869 by `coderabbitai[bot]`; F14 is an inline comment of `da2ce7` (14:32 UTC) that belongs to no submitted review of its own. The
 `claude[bot]` review (6062721178, automated review is disabled for fork pull requests) and the
 `coderabbitai[bot]` rate-limit notice hold no actionable assertion and have no row.
 
@@ -61,6 +61,7 @@ Findings F1 to F7 come from review 6070914967 and findings F8 to F10 from review
 | F11 | review-finding:pr-3063-f11 | coderabbitai[bot] | Minor | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-3063-f12 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F13 | review-finding:pr-3063-f13 | coderabbitai[bot] | Minor | security | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F14 | review-finding:pr-3063-f14 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -233,6 +234,19 @@ Findings F1 to F7 come from review 6070914967 and findings F8 to F10 from review
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3063#discussion_r4709889463
 
+### F14 - The audit record was still missing though a reply said a commit created it
+
+- PR number: 3063
+- Source review ID: N/A
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3063#discussion_r4709795338
+- Concern: Reply 4709719639 (14:26 UTC) named a commit that created the audit record, but the force-push of 14:25 UTC carried four commits and none of them did, so the reply described work the branch did not hold. The review asked that, when the record lands, the commit ids the reviews cite are mapped to their commit subjects.
+- Solution: The record landed on the branch with the push of 14:45 UTC. The ids cited by the reviews map to these subjects: `8f16e324a` is `docs(issues): [#3000] record the ADR draft (T1) in the SI-B specification`, and `b2942ac31` is `docs(adrs): [#3000] keep the v1 status of a duplicate key and fix the review findings`. The reply was posted before the push, and the thread was resolved before the reply; the Processing Log records both.
+- Current-tree verification: `git log torrust/develop..HEAD` lists the commit with the subject below and `validate-audit-record.py --pr-number 3063` passes with this row.
+- Resolution reference: docs(pr-reviews): [#3000] record the review rounds of pull request 3063
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3063#discussion_r4709958980
+
 ## Processing Log
 
 - 2026-11-26 14:07 UTC - Late start: the seven replies to review 6070914967 were posted (14:07 UTC) before this record existed; the replies carry the dispositions, and this record was created after review 6075692867 noted its absence.
@@ -242,6 +256,7 @@ Findings F1 to F7 come from review 6070914967 and findings F8 to F10 from review
 - 2026-11-26 14:29 UTC - Ran `validate-audit-record.py --pr-number 3063` (`status: ok`, 10 rows, 0 failures), resolved the threads of F8, F9 and F10, and refreshed GraphQL: all ten review threads are resolved.
 - 2026-11-26 14:30 UTC - Review 6075857869 (`coderabbitai[bot]`, three inline findings F11 to F13) arrived; the poller reported only its first comment, and a listing of the review's comments showed all three.
 - 2026-11-26 14:40 UTC - Fixes for F11 and F12 committed in `docs(adrs): [#3000] link the issues by number in the ADR metadata and references` and `docs(adrs): [#3000] say how a health-check internal failure is correlated with its event` and pushed; replies to F11, F12 and F13 posted (14:40 UTC). F13 is `NO_ACTION` with the `Superseded by F13` reply form.
+- 2026-11-26 14:47 UTC - Recorded after the events. `da2ce7` commented at 14:32 UTC (4709795338, F14) that reply 4709719639 described an audit commit the branch did not hold: correct, the reply was posted at 14:26 UTC while the commit existed only locally, and the audit was first pushed at 14:45 UTC. At 14:43 UTC I resolved every open thread in one loop, including the F14 thread before it had a reply, which was out of order; the refreshed GraphQL list then showed all fourteen threads resolved. At 14:46 UTC I replied on the F14 thread (the reply states the mistake and maps the cited commit ids to subjects); the thread stays resolved.
 
 ## Completion Rules
 
