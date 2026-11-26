@@ -9,6 +9,9 @@ semantic-links:
     - docs/adrs/20261118045443_errors_do_not_record_source_locations.md
     - docs/adrs/20260822094338_adopt_secrecy_for_sensitive_values.md
     - docs/adrs/20260727000000_events_are_objective_facts.md
+    - "issue #3000"
+    - "issue #2993"
+    - "issue #144"
 ---
 
 <!-- skill-link: create-adr -->
