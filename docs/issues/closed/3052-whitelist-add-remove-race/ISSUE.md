@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: in-review
+status: done
 priority: p2
 epic: null
 github-issue: 3052
-spec-path: docs/issues/open/3052-whitelist-add-remove-race/ISSUE.md
+spec-path: docs/issues/closed/3052-whitelist-add-remove-race/ISSUE.md
 branch: "3052-whitelist-add-remove-race"
 related-pr: 3061
-last-updated-utc: "2026-11-25 19:57"
+last-updated-utc: "2026-11-26 08:38"
 semantic-links:
   skill-links:
     - create-issue
@@ -182,7 +182,7 @@ with the narrow affected scope, and sign every commit with GPG.
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/open/3052-whitelist-add-remove-race/ISSUE.md`
+- [x] Folder-style spec drafted in `docs/issues/closed/3052-whitelist-add-remove-race/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created (#3052) and issue number added to this spec
 - [x] Spec-only PR merged into `develop` before implementation
@@ -190,11 +190,11 @@ with the narrow affected scope, and sign every commit with GPG.
 - [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Evidence-based implementation completion review recorded
+- [x] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -206,6 +206,7 @@ with the narrow affected scope, and sign every commit with GPG.
 - 2026-11-25 17:04 UTC - Claude Code (Claude Sonnet 5.5) - Made the three drivers idempotent, dropped the read in DatabaseWhitelist, replaced the failure harness tests; green on SQLite, MySQL and PostgreSQL; V1 and V2 rerun; MySQL add row count reported 1 on a duplicate (not a contract) - `manual-verification-evidence.md`
 - 2026-11-25 17:29 UTC - Claude Code (Claude Sonnet 5.5) - Addressed review 6062055409 of PR #3061: V2 row reworded to the harness cases, test-intent comparison and image tags recorded, status in-review, completion criteria checked - `manual-verification-evidence.md`
 - 2026-11-25 19:57 UTC - Claude Code (Claude Sonnet 5.5) - The maintainer merge failed its pre-push tests: six failing-store tests added to develop by #3056 expected the read before the write. Rebased onto develop and adapted them in `test(tracker-core): [#3052] adapt the failing-store whitelist tests to the write without a read`
+- 2026-11-26 08:38 UTC - Claude Code (Claude Sonnet 5.5) - Fix PR #3061 merged and issue #3052 closed; spec archived to docs/issues/closed/ (status done)
 
 ## Acceptance Criteria
 
