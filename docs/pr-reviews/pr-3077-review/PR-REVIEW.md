@@ -1,0 +1,147 @@
+---
+pr-number: 3077
+pr-url: https://github.com/torrust/torrust-tracker/pull/3077
+last-updated-utc: "2026-11-26 17:11"
+---
+
+<!-- skill-link: process-pr-review -->
+
+# PR #3077 Review Audit
+
+Source: pull-request reviews and inline review threads for https://github.com/torrust/torrust-tracker/pull/3077.
+
+## Ownership
+
+The PR author owns this tracked audit record. Reviewers, including repository review agents,
+deliver findings through GitHub and have no repository-artifact obligation.
+
+- Post-merge workflow approval: N/A (the findings were fixed before the merge).
+
+## Status Values
+
+- Relationship: `ORIGINAL`, `RE_RAISE_OF:<FindingId>`
+- Disposition: `FIXED`, `NO_ACTION`, `SUPERSEDED`, `FOLLOW_UP`
+- Thread state: `OPEN`, `RESOLVED`, `NON_RESOLVABLE`, `SUPERSEDED`. `OPEN` applies prospectively
+  to audits created or updated for approved follow-up work; historical audits remain valid without
+  bulk migration.
+- Severity: `Blocker`, `Major`, `Minor`, `Nit`, `Suggestion`; append `(inferred)` when derived
+  from free prose.
+- Reviewer: the author's GitHub login, for example `da2ce7` or `coderabbitai[bot]`; `unknown`
+  when GitHub shows no author
+- Category: `link-integrity`, `formatting`, `metadata`, `testing`, `correctness`,
+  `documentation`, `maintainability`, `security`, `other`
+- An outdated thread whose concern was fixed is `FIXED`/`RESOLVED`, even when GitHub marks the
+  original thread outdated after the push. For in-PR feedback, use `NO_ACTION`/`SUPERSEDED` only
+  for a duplicate, superseded, or no-change concern. A post-merge `NO_ACTION` requires maintainer
+  approval to decline the follow-up work.
+- When the current identity cannot resolve a thread (`viewerCanResolve` is `false`), keep the
+  disposition established from the current tree and record `Thread state=OPEN`. The reviewer or PR
+  author resolves it; permission says nothing about whether the concern was fixed.
+
+## Findings
+
+Round 1, on the first head of the pull request (`a05870195`): da2ce7's review 6078022494
+(`APPROVED`) with four inline threads (F1 to F4). Its body lists the same four findings, so it adds
+no row.
+
+| Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
+| ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
+| F1 | review-finding:pr-3077-f1 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F2 | review-finding:pr-3077-f2 | da2ce7 | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F3 | review-finding:pr-3077-f3 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F4 | review-finding:pr-3077-f4 | da2ce7 | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+
+## Finding Details
+
+### F1 - A ticked checkpoint claimed a reviewer validation that did not happen
+
+- PR number: 3077
+- Source review ID: 6078022494
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3077#discussion_r4711457944
+- Concern: The spec ticked "Reviewer validated acceptance criteria and updated checkboxes", and its
+  progress log called da2ce7's review the reviewer validation, but the author ticked the acceptance
+  criteria in PR #3044 and the ACK on its final head names what it verified, not the acceptance
+  criteria.
+- Solution: The checkpoint is unticked with the reason, as in the spec of #2618, and the progress
+  log entry says why it stays open. The sweep the skill asks for found the committer checkpoint
+  ticked although no Committer agent was used; it is unticked with its reason in the same commit.
+- Current-tree verification: `grep -n 'Reviewer validated\|Committer verified'` on the spec shows
+  both checkpoints as `- [ ]` with a reason in parentheses.
+- Resolution reference: docs(issues): [#3037] leave the reviewer and committer checkpoints open with the reason
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3077#discussion_r4711531588
+
+### F2 - The evidence file stamp was not refreshed
+
+- PR number: 3077
+- Source review ID: 6078022494
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3077#discussion_r4711457964
+- Concern: The archive move changed the evidence file's frontmatter, but its `last-updated-utc`
+  still read `2026-11-24 18:41`; Step 4 of `cleanup-completed-issues` says to refresh it.
+- Solution: The stamp now reads `2026-11-26 17:04`, taken from `date -u` when the fix was written.
+- Current-tree verification: line 4 of
+  `docs/issues/closed/3037-2003-reviewer-neutral-pr-review/manual-verification-evidence.md` reads
+  `last-updated-utc: "2026-11-26 17:04"`.
+- Resolution reference: docs(issues): [#3037] refresh the evidence file stamp after the archive move
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3077#discussion_r4711532128
+
+### F3 - The description had no issue link and no issue-state check
+
+- PR number: 3077
+- Source review ID: 6078022494
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3077#discussion_r4711457974
+- Concern: The description mentioned #3037 without a `Related to #3037` line and did not say the
+  issue's state was checked, as Step 7 of `cleanup-completed-issues` and `open-pull-request` ask.
+- Solution: The description now starts with `Related to #3037` and says the issue was already
+  closed when PR #3044 merged, checked with `gh issue view 3037`.
+- Current-tree verification: `gh-bot pr view 3077 --json body` shows the new first line;
+  `gh-bot issue view 3037 --json state,closedAt` prints `CLOSED 2026-11-25T12:25:10Z`.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3077#discussion_r4711532676
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3077#discussion_r4711532676
+
+### F4 - The test design review had no frontmatter
+
+- PR number: 3077
+- Source review ID: 6078022494
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3077#discussion_r4711457984
+- Concern: Step 3 of `cleanup-completed-issues` says a supplementary document without frontmatter
+  gets a minimal block linking back to the spec, and `test-design-review.md` moved without one.
+- Solution: The file now has `spec-path`, `last-updated-utc` and `semantic-links` back to the
+  spec. The older archives the reviewer named are left as they are.
+- Current-tree verification: `head -7` of
+  `docs/issues/closed/3037-2003-reviewer-neutral-pr-review/test-design-review.md` shows the block,
+  and the frontmatter validator of the pre-commit checks passed on it.
+- Resolution reference: docs(issues): [#3037] add frontmatter to the test design review
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3077#discussion_r4711533091
+
+## Processing Log
+
+- 2026-11-26 17:03 UTC - Round 1: da2ce7's review 6078022494 (17:03:45, `APPROVED`, on `a05870195`) with four threads.
+- 2026-11-26 17:06 UTC - Committed the fixes for F1, F2 and F4 (last commit 17:06:55), pushed them (head `dbe1c213a`) before the replies, and edited the description for F3.
+- 2026-11-26 17:11 UTC - Replied on the four threads (r4711531588, r4711532128, r4711532676, r4711533091) and resolved them; created this audit record.
+
+## Completion Rules
+
+- Re-derive the reply claim against the current tree before replying or resolving a thread.
+- Reply on every resolvable thread before resolving it.
+- For an outdated thread whose concern was fixed, record `Disposition=FIXED` and
+  `Thread state=RESOLVED`, even if GitHub marks the thread outdated after the push. For a
+  duplicate, superseded, or no-change in-PR thread, reply exactly
+  `Superseded by <FindingId>: <reason>.`, record `Disposition=NO_ACTION` and
+  `Thread state=SUPERSEDED`, then resolve it. A post-merge `NO_ACTION` requires maintainer
+  approval to decline the follow-up work. When the current identity cannot resolve a thread
+  (`viewerCanResolve` is `false`), still reply, keep the disposition established from the current
+  tree, and record `Thread state=OPEN`; the reviewer or PR author resolves it.
+- A consolidated PR conversation response may cover multiple review rounds only when it names
+  every review ID and every finding ID with its disposition and resolution reference. Record its
+  durable URL in each related row.
+- Cite a fix by its unique Conventional Commit subject or durable reply URL, never by a branch SHA
+  that can change after a rebase.
+- Refresh review threads using GraphQL and confirm that no unresolved actionable thread remains.
