@@ -6,7 +6,7 @@ epic: null
 github-issue: 144
 spec-path: docs/issues/open/144-api-v2-correct-response-codes/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-26 16:20"
+last-updated-utc: "2026-11-26 17:03"
 semantic-links:
   skill-links:
     - create-issue
@@ -186,9 +186,9 @@ _candidates_ until recorded in an ADR or sub-issue spec.
 | --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
 | R1  | `POST /api/v1/keys` with a key the tracker already holds answers `500` (`Unhandled rejection: Err { reason: "failed to add key: ..." }`). It is a client mistake. | `409 Conflict`. The ADR in PR #3063 (rule 10) records it as a known v1 limitation and names `409` for v2.                                                   | 2 (error model), 5 (auth keys)        |
 | R2  | A missing, wrong or malformed admin token answers `500` `Unhandled rejection ...`.                                                                           | A `401`, `403` or `404` with the structured error body (the invalid-token response is an open ADR decision, `401` or `404`; a missing token or an insufficient role may be `401` or `403`).             | 2, 3                                  |
-| R3  | A malformed key, info-hash, JSON body or query gets axum or serde text with mixed `400`, `422` and `415` statuses.                                           | One structured error body and the three classes of the #3063 ADR: bad request (`400`, `409` or another `4xx`), refused (`401`, `403`, `404`, `409`), internal failure (`5xx`). | 2, 3                                  |
-| R4  | An internal failure (for example a database failure) answers a fixed text with the request id (v1 text policy of #3063).                                     | The v2 error body carries the request id as a structured field, so the v1 text and the v2 body tell the client the same thing.                             | 2, 3                                  |
-| R5  | [#3055](https://github.com/torrust/torrust-tracker/issues/3055): a key duration above `i64::MAX` seconds returns `500`. Same class as R1: a client mistake answered as `500`. | A `4xx` bad-request error (a duration error), never `5xx`.                                                                                                 | 2, 5                                  |
+| R3  | A malformed key or info-hash answers `400` with the tracker's own text (`Invalid URL: invalid infohash param: ...`, `Invalid auth key id param: ...`). A malformed JSON body gets the axum extractor's text with mixed `400`, `422` and `415` statuses.                                           | One structured error body and the three classes of the #3063 ADR: bad request (`400`, `409` or another `4xx`), refused (`401`, `403`, `404`, `409`), internal failure (`5xx`). | 2, 3                                  |
+| R4  | An internal failure (for example a database failure) answers `500` with `Unhandled rejection: Err { reason: "..." }`, which carries the underlying reason. The request id is only the `x-request-id` response header, never in the body. A fixed text with the request id is the planned v1 text policy of #3000 (code follows the ADR in PR #3063).                                     | The v2 error body carries the request id as a structured field, so the v1 text and the v2 body tell the client the same thing.                             | 2, 3                                  |
+| R5  | [#3055](https://github.com/torrust/torrust-tracker/issues/3055): a key whose expiry (now plus the duration) is above `i64::MAX` seconds, while the duration itself still fits the clock, returns `500`. A duration that overflows the clock already answers `400`. Same class as R1: a client mistake answered as `500`. | A `4xx` bad-request error (a duration error), never `5xx`.                                                                                                 | 2, 5                                  |
 
 The general rule these items share: **a client mistake is never a `5xx`, and an internal failure
 never leaks detail to the client**. The v2 error ADR (sub-issue 2) must state it, and the
@@ -303,6 +303,10 @@ starting parallel sessions. Do not start any implementation session before 4.0.0
 - 2026-11-26 16:20 UTC - EPIC coordinator session (Claude Sonnet 5.5) - Recorded the EPIC state
   (implementation on hold until 4.0.0, input collection open, maintainer decision) and the five
   inputs R1-R5 reported by the #3000 session (PR #3063); added AC14 and two verification rows.
+- 2026-11-26 17:03 UTC - EPIC coordinator session (Claude Sonnet 5.5) - Addressed the review of PR #3075:
+  CodeRabbit (the invalid-token candidates now keep `404`, commit `docs(issues): [#144] address
+  CodeRabbit: align invalid-token status candidates`) and da2ce7 (R3, R4 and R5 now state today's
+  v1 behavior as the code shows it).
 
 ## Acceptance Criteria
 
