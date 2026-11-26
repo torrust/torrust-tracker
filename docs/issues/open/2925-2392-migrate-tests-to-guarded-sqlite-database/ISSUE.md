@@ -9,7 +9,7 @@ github-issue: 2925
 spec-path: docs/issues/open/2925-2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md
 branch: "2925-migrate-tests-to-guarded-sqlite-database"
 related-pr: null
-last-updated-utc: "2026-11-26 18:50"
+last-updated-utc: "2026-11-26 19:04"
 semantic-links:
   skill-links:
     - create-issue
@@ -301,6 +301,12 @@ on the other groups above. The maintainer approved this list (record: https://gi
   configuration from `ephemeral_with_sqlite_database()` and hands the guard to the services struct
   (`CoreTrackerServices.sqlite_database_guard`, declared last so it drops after the stores).
   Evidence in `manual-verification-evidence.md`, section "T2: udp-server".
+- 2026-11-26 19:04 UTC - Claude Code (Claude Sonnet 5.5), #2925 implementer - Correction of the entry above
+  after a review of PR 3082: the guard is not part of `CoreTrackerServices`. A fixture drops its
+  fields in declaration order, and `CoreTrackerServices` drops before `CoreUdpTrackerServices`,
+  which also holds the database. The guard now lives in the test fixture (`Tracker` in
+  `handlers/scrape.rs`), declared after both service bundles. The migration pattern for the next
+  packages is: the fixture struct owns the guard as its last field.
 
 ## Acceptance Criteria
 
