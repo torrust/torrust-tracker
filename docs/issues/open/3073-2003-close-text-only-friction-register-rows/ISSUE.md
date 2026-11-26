@@ -9,7 +9,7 @@ github-issue: 3073
 spec-path: docs/issues/open/3073-2003-close-text-only-friction-register-rows/ISSUE.md
 branch: "3073-close-text-only-friction-register-rows-spec"
 related-pr: null
-last-updated-utc: "2026-11-26 17:22"
+last-updated-utc: "2026-11-26 17:34"
 semantic-links:
   skill-links:
     - create-issue
@@ -86,7 +86,7 @@ This issue falls under the EPIC's Scope exception for low-risk, additive, indepe
 
 ### In Scope
 
-- The 72 rows listed under T1 to T15 in [Rows This Issue Closes](#rows-this-issue-closes), in one implementation pull request with sixteen prepared commits across 30 files, plus the T16 evidence commit and its two files (17 commits and 32 files, or 33 if an implementation retrospective is required): one row commit per file family, plus a separate formatter-path correction.
+- The 72 rows listed under T1 to T15 in [Rows This Issue Closes](#rows-this-issue-closes), in one implementation pull request with sixteen prepared commits across 30 files, plus the T16 evidence commit and its two files (17 commits and 32 files, 33 if either conditional issue-local file is required, or 34 if both are required): one row commit per file family, plus a separate formatter-path correction.
 - One comment line in `contrib/dev-tools/git/hooks/pre-commit.sh`, inside the `STEPS` array, which changes no step. Every other change is Markdown prose.
 - For each row, a record of the passage, code or commit its change rests on.
 - One comment on #2003, after the implementation merges, that lists each closed label with the file and line on `develop` and the landing commit, so the register index can record it as `ADOPTED`.
@@ -294,7 +294,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T13 | TODO | Other skills | The 3 T13 rows applied. Verified by `linter all`. No dependency. |
 | T14 | TODO | Guides, ADR and release notes | The 4 T14 rows applied. Verified by `linter all`. No dependency. |
 | T15 | TODO | Reviewer skill | The 7 T15 rows applied in the same implementation pull request, against the text merged by #3070. Verified by `linter all` and M1 on those rows. |
-| T16 | TODO | Verification and evidence | M1 to M3 recorded in `manual-verification-evidence.md`; acceptance criteria re-reviewed; `implementation-retrospective.md` included if the completion-review conditions require it. Depends on T1 to T15. |
+| T16 | TODO | Verification and evidence | M1 to M3 recorded in `manual-verification-evidence.md`; acceptance criteria re-reviewed; `implementation-retrospective.md` included if the completion-review conditions require it, and `agent-review-reports.md` included if an independent reviewer receives this folder-style specification. Depends on T1 to T15. |
 | T17 | TODO | Report to the register | One comment on #2003 listing each closed label with its file and line on `develop` and its landing commit. Depends on the implementation merge. |
 
 ## Commit Points
@@ -304,7 +304,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1 to T14 | One file family, as listed under its task | One commit per task, after the pre-commit hook passes. The body lists the labels the commit closes and, for each, the basis its change rests on: a passage or code at the implementation branch head (`path:line`), or an earlier revision (`rev:path:line`) or commit that shows the practice. |
 | T15 | The reviewer skill | One commit after T1 in the implementation pull request, with the same body. |
 | T6 formatter-path correction | The run-linters skill and its reference | One separate commit after T15, last among the sixteen prepared commits. It closes no register row and carries no `Friction:` line. |
-| T16 | `manual-verification-evidence.md`, this specification's tracking sections and, if required, `implementation-retrospective.md` | One `docs(issues)` commit in the implementation pull request. |
+| T16 | `manual-verification-evidence.md`, this specification's tracking sections, plus whichever of `implementation-retrospective.md` and `agent-review-reports.md` their conditions require | One `docs(issues)` commit in the implementation pull request. |
 | T17 | None | A GitHub comment; no repository change. |
 
 Each commit uses a Conventional Commit message with the narrow affected scope. No task adds tests, so the progressive test-development loop of `create-issue` does not apply.
@@ -336,12 +336,13 @@ Each commit uses a Conventional Commit message with the narrow affected scope. N
 - 2026-11-26 16:46 UTC - Torrust Contributors - Clarified the implementation pull request as sixteen prepared commits plus one evidence commit across 32 files; the review audit correction is scoped to its Processing Log, bases resolve at the branch head unless a revision is named, and the register report follows the merge.
 - 2026-11-26 17:12 UTC - Torrust Contributors - Assigned the separate formatter-path correction to T6, allowed an issue-local retrospective when the completion review requires it, and corrected the AC5 evidence wording after checking the T14 discussion-guide change.
 - 2026-11-26 17:22 UTC - Torrust Contributors - Ran the dictionary-formatter test; it exited 1 after fixture copies looked under `contrib/contrib/dev-tools/`. T5 now uses `linter all` and M2 for verification, and the test-script repair is outside this issue.
+- 2026-11-26 17:34 UTC - Torrust Contributors - Allowed `agent-review-reports.md` in T16 and AC3 when an independent reviewer receives the folder-style specification: 32 files in the base plan, 33 with either conditional issue-local file, and 34 with both.
 
 ## Acceptance Criteria
 
 - [ ] AC1: Each of the 72 labels of T1 to T15 is closed by the implementation pull request, in the commit of its task, with the amended text where its row says *amended* and with Decisions 2 to 4 applied.
 - [ ] AC2: No change states a rule the repository does not already state. Each commit body names, for every label it closes, the passage, code or commit its change rests on, and M1 finds every changed passage carried by that basis.
-- [ ] AC3: The implementation pull request changes only the 30 files named under T1 to T15, plus this specification and its issue-local evidence file under T16 (32 files), and `implementation-retrospective.md` if the completion-review conditions require it (33 files). In `contrib/dev-tools/git/hooks/pre-commit.sh` it adds one comment line inside `STEPS` and nothing else, and the hook runs the same steps (M2).
+- [ ] AC3: The implementation pull request changes only the 30 files named under T1 to T15, plus this specification and its issue-local evidence file under T16 (32 files), `implementation-retrospective.md` if the completion-review conditions require it, and `agent-review-reports.md` if an independent reviewer receives this folder-style specification (33 files with either conditional file, 34 with both). In `contrib/dev-tools/git/hooks/pre-commit.sh` it adds one comment line inside `STEPS` and nothing else, and the hook runs the same steps (M2).
 - [ ] AC4: No skill's `metadata.version` changes (Decision 5).
 - [ ] AC5: None of the rows under Out of Scope is applied; the commit-id snippet of `open-pull-request` keeps its `UPSTREAM_REMOTE=torrust` line.
 - [ ] AC6: The specification-only pull request uses `Related to #3073` without an issue-closing keyword; the implementation pull request closes the issue (Decision 7).
@@ -388,7 +389,7 @@ No disposable verification script is planned.
 
 ## Risks and Trade-offs
 
-- **A large documentation pull request.** 72 rows in 30 row-series files, plus the specification and evidence file and a retrospective if required, is a lot to review. Mitigation: one commit per file family, each readable in one sitting, and each commit body naming its labels and their bases.
+- **A large documentation pull request.** 72 rows in 30 row-series files, plus the specification and evidence file and either conditional issue-local file if required, is a lot to review. Mitigation: one commit per file family, each readable in one sitting, and each commit body naming its labels and their bases.
 - **An open question may later reword a changed passage.** `create-issue-branch-key-vs-epic-template` keeps the `-spec` branch sentence that `create-issue-branch-field-spec-vs-template` may overturn; `discussions-index-registration-step-missing` edits the lines `discussions-round-and-outcome-cases-unruled` asks about; `process-pr-review-validator-limit-sentence-inverted` may need the clock `process-pr-review-stamp-source-not-rebase-stable` chooses. Mitigation: each edit keeps the current text where the question is open and adds nothing on it, so an answer edits it once more rather than undoing it.
 - **An accepted ADR changes in place.** T14 corrects `docs/adrs/20261021190318_share_workspace_test_support_through_testing_features.md` for accuracy; whether editorial changes to an accepted ADR are allowed is `create-adr-editorial-change-unruled`. Mitigation: the ADR has been corrected for accuracy since it merged, and the change touches no decision.
 - **A tooling row may move a fixed snippet.** If the commit-id check becomes a tool, the three T3 snippet fixes move into it. Mitigation: they are small, and the tool's own specification takes them over.

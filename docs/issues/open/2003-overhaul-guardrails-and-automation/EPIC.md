@@ -6,7 +6,7 @@ epic: null
 github-issue: 2003
 spec-path: docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-26 17:19"
+last-updated-utc: "2026-11-26 17:34"
 semantic-links:
   skill-links:
     - create-issue
@@ -202,7 +202,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | 23 | #2904 - Migrate the custom agents to Claude Code and add an explicit orchestrator | `docs/issues/open/2904-2003-migrate-custom-agents-to-claude-code/ISSUE.md` | IN_PROGRESS | Replaces the ten Copilot profiles in `.github/agents/` with six Claude Code agents in `.claude/agents/`, led by an `orchestrator` that is the session the contributor talks to. Started agents write JSON reply files validated against a schema; a stop hook holds the task reviewer until its reply is valid. Delivered in small pull requests that merge independently, after #2866. Selects no shared runner, cache or policy engine. |
 | 24 | #2949 - Keep the strict ACK and document the re-ACK after an audit-only commit | `docs/issues/closed/2949-2003-keep-reviewer-ack-after-audit-only-commits/ISSUE.md` | DONE | The maintainer decided on 2026-11-19 that an `ACK <hash>` counts only on the commit it names: after a commit that changes only the pull request's own audit record, the reviewer and the maintainer ACK the new head. The rule first proposed here (keep the ACK valid) and da2ce7's metadata branch are recorded as rejected alternatives. The specification merged with PR #2950 and the skill text with PR #2989 (2026-11-22): `merge-pull-request` has the section "An ACK Names One Commit", and `wait-for-pr-review` and `process-pr-review` point to it; the merge tool did not change. Reported on PR #2947; earlier on PR #2363. |
 | 25 | #3037 - PR review without a mandatory Copilot review: make the review process reviewer-neutral | `docs/issues/open/3037-2003-reviewer-neutral-pr-review/ISSUE.md` | IN_PROGRESS | Goes before #2977 (maintainer, 2026-11-24): every agent session reads the Copilot-centred skills today. No skill, tool default or document requires a review from a named reviewer; the `wait-for-pr-review` poller watches every account except the pull request's author; audit records name the reviewer by login; review-bot check runs do not gate readiness; AI agents never trigger a review. Takes "who re-requests a review" from #2977, which keeps the 60-minute deadline and the hand-over report. Does not edit `.github/agents/` (#2904). Selects no shared runner, cache or policy engine. Specification approved on 2026-11-24. |
-| 26 | #3073 - Close the text-only rows of the EPIC #2003 friction register | `docs/issues/open/3073-2003-close-text-only-friction-register-rows/ISSUE.md` | IN_PROGRESS | Text-only edits to skills, templates and guides that restate what the repository already decides: 72 register rows in one implementation pull request of sixteen prepared commits plus an evidence commit (17 commits, 32 files), including the 7 `review-pr` rows re-anchored after #3070 merged. Falls under the Scope exception: prose and one shell comment, no new check, and it selects no shared runner, cache or policy engine. Leaves `epic-2003-known-issue-hold-no-exit` to the EPIC owner, and the tooling rows and maintainer questions to their owners. Specification approved on 2026-11-26. |
+| 26 | #3073 - Close the text-only rows of the EPIC #2003 friction register | `docs/issues/open/3073-2003-close-text-only-friction-register-rows/ISSUE.md` | IN_PROGRESS | Text-only edits to skills, templates and guides that restate what the repository already decides: 72 register rows in one implementation pull request of sixteen prepared commits plus an evidence commit (17 commits, 32 files in the base plan, 33 with either conditional issue-local file and 34 with both), including the 7 `review-pr` rows re-anchored after #3070 merged. Falls under the Scope exception: prose and one shell comment, no new check, and it selects no shared runner, cache or policy engine. Leaves `epic-2003-known-issue-hold-no-exit` to the EPIC owner, and the tooling rows and maintainer questions to their owners. Specification approved on 2026-11-26. |
 
 Also linked as GitHub sub-issues, outside the order:
 
@@ -476,6 +476,7 @@ For each completed subissue in this EPIC, the default completion policy is:
 - 2026-11-24 17:38 UTC - AI assistant (Claude Code, Claude Opus 5.5, issue #3037 session) - Added row 25 for #3037 (reviewer-neutral PR review, no mandatory Copilot review), `IN_PROGRESS` with its specification PR. The maintainer approved the specification on 2026-11-24 and placed it before #2977.
 - 2026-11-26 15:22 UTC - Specification author - Added row 26 for #3073 (the friction register's text-only rows), `TODO` with its specification pull request. The maintainer approved the specification on 2026-11-26.
 - 2026-11-26 17:19 UTC - Torrust Contributors - Row 26 is `IN_PROGRESS`: specification PR #3079 is open.
+- 2026-11-26 17:34 UTC - Torrust Contributors - Row 26 now states the 32-file base plan and the 33- or 34-file cases for conditional issue-local artifacts.
 
 ## Acceptance Criteria
 
