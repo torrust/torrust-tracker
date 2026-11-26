@@ -69,8 +69,9 @@ Return:
 3. Checklist gaps
 4. Overall verdict: `APPROVE`, `REQUEST_CHANGES`, `COMMENT` or `POST_MERGE_FINDINGS`
 
-Do not approve while a blocker is unresolved: a `COMMENT` verdict is for a review whose findings
-are not blockers, and an unresolved blocker gives `REQUEST_CHANGES`.
+A `Blocker` or a `Major` finding is a blocker: the pull request is not ready to merge while one is
+unresolved. Do not approve then. A `COMMENT` verdict is for a review whose findings are not
+blockers (`Minor`, `Nit` or `Suggestion`), and an unresolved blocker gives `REQUEST_CHANGES`.
 
 ## A Merged Pull Request
 
@@ -100,7 +101,7 @@ to stop and ask the maintainer. The fields:
 - `schema-version`: 1; `agent`: `pr-reviewer`; `model`: the full model ID you ran on; `subject`
   and `round`: the same as in the file name; `created-utc`: the time, from `date -u`.
 - `verdict`, from the verdict of the Output: `REVIEW_PASSED` for `APPROVE` and for `COMMENT`
-  (which has no blocker); `REVIEW_FAILED` for `REQUEST_CHANGES`; `DONE` for
+  (which has no `Blocker` or `Major` finding); `REVIEW_FAILED` for `REQUEST_CHANGES`; `DONE` for
   `POST_MERGE_FINDINGS`, with the label at the start of the `summary`; `QUESTION` when only the
   contributor can answer something; `BLOCKED` when you cannot review.
 - `summary`: the verdict in a few sentences, with the base branch of the pull request.
@@ -132,7 +133,7 @@ folder-style issue specification was supplied.`
 
 A review made on a branch that does not have the `pr-reviewer` agent yet is recorded in
 `agent-review-reports.md` in the specification's folder, by the procedure of the section "A Branch
-Without The `task-reviewer` Agent" of [`review-task`](../review-task/SKILL.md#recording-the-review).
+Without The `task-reviewer` Agent" of [`review-task`](../review-task/SKILL.md#a-branch-without-the-task-reviewer-agent).
 The entry records the pull-request number, the base branch, the reviewed files, the checks, the
 findings by severity, the checklist gaps, the verdict and the follow-up owner and action.
 
