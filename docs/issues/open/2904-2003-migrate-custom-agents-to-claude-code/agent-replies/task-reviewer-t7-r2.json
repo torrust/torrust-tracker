@@ -1,0 +1,51 @@
+{
+  "schema-version": 1,
+  "agent": "task-reviewer",
+  "model": "claude-opus-5-5",
+  "subject": "t7",
+  "round": 2,
+  "created-utc": "2026-11-26 12:23",
+  "verdict": "REVIEW_PASSED",
+  "summary": "REVIEW PASSED. All six findings of round 1 are fixed in the current tree: the diff-and-checks rule moved from the agent file into review-pr (Quick Overview Approach step 3), the review steps are one list, an unresolved blocker now gives REQUEST_CHANGES so every Output verdict maps to the closed schema list, the Output refers to the five severities of Providing Feedback, the branch-without-agent section links the review-task procedure instead of restating it, and the inventory rows name the sections that now hold each rule. Every pr-reviewer inventory row was re-checked against its destination. linter all, the frontmatter checks and the reply validator pass. Two non-blocking nits remain. AC1, AC4 to AC10 and the issue-level checkboxes wait on later tasks.",
+  "findings": [
+    {
+      "severity": "Nit",
+      "location": "ISSUE.md, progress-log entry 2026-11-26 12:21 UTC",
+      "description": "The entry says round 1 had 'one Major and four smaller findings'; the round-1 reply has six findings (one Major, three Minor, two Nit). Remediation: write 'one Major and five smaller findings'."
+    },
+    {
+      "severity": "Nit",
+      "location": ".claude/skills/review-pr/SKILL.md, Quick Overview Approach steps 4 and 5",
+      "description": "Steps 1 to 3 end with a period and steps 4 and 5 do not. Remediation: end steps 4 and 5 with a period."
+    }
+  ],
+  "questions": [],
+  "evidence": [
+    "git log torrust/develop..HEAD: five commits, all GPG-signed (%G? prints U); the two new ones are 'docs(skills): [#2904] keep the review steps of review-pr in one list and its verdicts consistent' and 'docs(issues): [#2904] fix the inventory rows of the pr-reviewer profile and record the task review of T7'. git status is clean; task-reviewer-t7-r1.json is tracked.",
+    "linter all: exit 0 ('All linters passed'), log in .tmp/t7-r2-linter.log.",
+    "frontmatter-validator --skill-layout: exit 0; --skill-descriptions: exit 0.",
+    "agent-reply-validator --all: {\"kind\":\"summary\",\"files\":6,\"problems\":0}, exit 0 (before this reply file).",
+    "Round-1 Major (workflow text in the agent file): FIXED. grep finds no 'Review the real diff' or 'intent' in .claude/agents/pr-reviewer.md; review-pr Quick Overview Approach step 3 says 'Review the real diff and the checks of the pull request, not the intent of the caller.'; the inventory row points to that step.",
+    "Round-1 Minor (COMMENT with a blocker unmapped): FIXED. Output now says an unresolved blocker gives REQUEST_CHANGES and COMMENT is for findings that are not blockers; A Reply File maps APPROVE and COMMENT to REVIEW_PASSED, REQUEST_CHANGES to REVIEW_FAILED, POST_MERGE_FINDINGS to DONE, plus QUESTION and BLOCKED; all are in the schema's closed Verdict list and every Output verdict is mapped.",
+    "Round-1 Minor (three versus five severities): FIXED. Output item 2 reads 'Findings by severity (see Providing Feedback)', which lists Blocker, Major, Minor, Nit, Suggestion.",
+    "Round-1 Minor (two procedures): FIXED. The paragraph under Output is gone; Quick Overview Approach has five steps covering PR existence, metadata and checks, the diff, components, checklist and severity classification.",
+    "Round-1 Nit (restated append procedure): FIXED. The section links review-task#recording-the-review ('A Branch Without The task-reviewer Agent', which holds create-from-template, read whole, append, preserve earlier entries, do not commit) and keeps only the PR-specific fields; the anchor exists (lychee passed).",
+    "Round-1 Nit (inventory note 'already held it'): FIXED. The row now says 'Moved by task T7; the skill already redirected a branch without a pull request to review-task.'",
+    "Inventory re-check, every pr-reviewer row against its destination: identity (agent file and skill intro); AGENTS.md (agent Workflow); review-pr preloaded (skills field); diff and checks (Quick Overview step 3); PR existence (step 1, agent Inputs); metadata and checks (step 2); classify findings (step 5, Providing Feedback); tests and docs (PR Review Checklist); merge-readiness verdict and no approval with a blocker (Output); merged PR (A Merged Pull Request); persistence (A Reply File); append-only rule (linked review-task section); record fields (A Reply File and the branch-without section); independence from thread handling and PR-REVIEW.md (A Reply File); no commit (agent Workflow; review-task procedure; 'committed by the caller'); no folder-style spec (exact skip sentence present); output format (Output, agent Final message); no acceptance review and no checkpoints (Recording The Review); tools and argument-hint (agent frontmatter and Inputs). All destinations hold the rule; no workflow rule lives only in the agent file.",
+    "Agent file unchanged otherwise: model claude-opus-5-5 (D13), tools Bash, Read, Write, Grep, Glob (no Agent tool, D3), skills [review-pr], reply name pr-reviewer-pr<number>-r<round>.json consistent with name.rs and the schema.",
+    "AC matrix - AC1 PENDING: M1 rerun for the full roster comes in T9/T10.",
+    "AC matrix - AC2 PASS (ticked in T4; unaffected).",
+    "AC matrix - AC3 PASS (ticked in T4; unaffected).",
+    "AC matrix - AC4 PENDING: scenario M5, task T9.",
+    "AC matrix - AC5 PENDING: removal of .github/agents/, task T10.",
+    "AC matrix - AC6 PENDING (later task): T7's pr-reviewer rows now pass; the inventory for all ten profiles is completed in T10.",
+    "AC matrix - AC7 PENDING: task T9.",
+    "AC matrix - AC8 PENDING: task T10.",
+    "AC matrix - AC9 PENDING: task T11.",
+    "AC matrix - AC10 PENDING: scenario M5, task T9.",
+    "AC matrix - AC11 PASS (ticked in T5; unaffected).",
+    "AC matrix - AC12 PASS (ticked in T2; unaffected).",
+    "AC matrix - issue-level checkboxes PENDING: they close in T12; linter all passes on this branch.",
+    "Completion review: progress log records the T7 implementation and its round-1 review; the issue-level completion review is T12. Checkboxes ticked by this review: none (no T7-verifiable criterion is still unticked)."
+  ]
+}

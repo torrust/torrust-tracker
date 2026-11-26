@@ -1,0 +1,71 @@
+{
+  "schema-version": 1,
+  "agent": "task-reviewer",
+  "model": "claude-opus-5-5",
+  "subject": "t7",
+  "round": 1,
+  "created-utc": "2026-11-26 12:19",
+  "verdict": "REVIEW_FAILED",
+  "summary": "REVIEW FAILED. Task T7 adds the pr-reviewer agent (model claude-opus-5-5 pinned, no Agent tool, review-pr preloaded, reply file pr-reviewer-pr<number>-r<round>.json that agrees with name.rs and the schema), moves the profile's output, merged-PR and recording rules into review-pr, and records 21 inventory rows; linter all and the validators pass. One rule fails AC6 and P2 as T7 applies them: 'review against the actual diff and the CI context, not local intent' is workflow text that lives only in the agent file, so a session that runs review-pr without the agent loses it. Three minor and two nit findings concern the verdict mapping, the severity list of the Output and small duplication. AC1, AC5 to AC10 and the issue-level checkboxes wait on later tasks.",
+  "findings": [
+    {
+      "severity": "Major",
+      "location": ".claude/agents/pr-reviewer.md, section Workflow; removed-profile-rules.md, row 'Review against the actual diff and the CI context, not local intent'",
+      "description": "Workflow text in the agent file (P2, AC6, policy 7 of AGENTS.md; the same kind of finding that failed T6 round 1). The sentence 'Review the real diff and the checks of the pull request, not the intent of the caller' is a review rule, not identity, tools, inputs or report format, and review-pr does not hold it (its Quick Overview only says 'Check the diff for scope of change'). Remediation: move the rule into review-pr (for example the Quick Overview or the Output paragraph that gathers the checks), keep the agent file pointing to the skill, and change the inventory row's destination to the skill section."
+    },
+    {
+      "severity": "Minor",
+      "location": ".claude/skills/review-pr/SKILL.md, A Reply File, the verdict bullet",
+      "description": "The mapping to the closed verdict list is incomplete: it maps COMMENT only 'when no blocker remains', so a COMMENT with an unresolved blocker has no verdict, and the orchestrator reads only that field. Remediation: map every Output verdict, for example 'COMMENT with an unresolved blocker gives REVIEW_FAILED', or state that a review with an unresolved blocker is always REQUEST_CHANGES (which the Output's 'Do not approve while a blocker is unresolved' does not say for COMMENT)."
+    },
+    {
+      "severity": "Minor",
+      "location": ".claude/skills/review-pr/SKILL.md, Output item 2",
+      "description": "Output lists three severities (Blocker, Suggestion, Nit) while Providing Feedback and the reply file's findings use five (Blocker, Major, Minor, Nit, Suggestion); the inventory notes the difference but leaves the skill inconsistent with itself. Remediation: make item 2 'Findings by severity (the five severities of Providing Feedback)' or list all five."
+    },
+    {
+      "severity": "Minor",
+      "location": ".claude/skills/review-pr/SKILL.md, Quick Overview Approach and the procedural paragraph under Output",
+      "description": "Two procedures in one skill: the Quick Overview steps (read title and description, check the diff, apply the checklist) and the new paragraph under the Output heading (confirm the PR exists, gather the metadata and checks, review and classify) describe the same sequence, and the second sits under a heading about what to return. Remediation: merge the steps into one ordered list (the Quick Overview, renamed if needed) and keep Output for what is returned."
+    },
+    {
+      "severity": "Nit",
+      "location": ".claude/skills/review-pr/SKILL.md, A Branch Without The pr-reviewer Agent",
+      "description": "The section says 'as the same section of review-task describes' and then restates part of that procedure (create from the template, read whole, append one entry). Remediation: keep only the link plus the PR-specific fields to record, so the append-only procedure has one source."
+    },
+    {
+      "severity": "Nit",
+      "location": "removed-profile-rules.md, row 'Do not run the pre-pull-request task acceptance review'",
+      "description": "The note says review-pr 'already held it', but before T7 the skill only redirected a branch without a PR to review-task; the sentence 'do not run the acceptance review of a task' was added by T7. Remediation: say 'Moved by task T7; the redirect at the top of the skill already existed'."
+    }
+  ],
+  "questions": [],
+  "evidence": [
+    "git log torrust/develop..HEAD: three commits ('docs(skills): [#2904] move the rules that only the pr-reviewer profile held into review-pr', 'feat(agents): [#2904] add the pr-reviewer agent', 'docs(issues): [#2904] record the rules of the pr-reviewer profile and task T7'); git log --format=%G? prints U for each (good signature, unknown trust), so all are signed. Commit split matches Commit Points for T4 to T8 (agent file; skill change; inventory rows).",
+    "git diff torrust/develop...HEAD --stat: 4 files (.claude/agents/pr-reviewer.md new, .claude/skills/review-pr/SKILL.md, ISSUE.md, removed-profile-rules.md); scope matches the T7 row, no feature code, no scope creep.",
+    "linter all: exit 0 ('All linters passed'), log in .tmp/t7-linter.log.",
+    "cargo run --package frontmatter-validator -- --skill-layout: exit 0; -- --skill-descriptions: exit 0 (review-pr description is 148 characters, under 200).",
+    "cargo run --package agent-reply-validator --bin agent-reply-validator -- --all: {\"kind\":\"summary\",\"files\":5,\"problems\":0}, exit 0 (before this reply file).",
+    "Agent file frontmatter: name pr-reviewer, model claude-opus-5-5 (full ID, D13), tools Bash, Read, Write, Grep, Glob (no Agent tool, D3; no Edit, consistent with the ownership table 'Writes: its reply file'), skills [review-pr]. No stop hook, which D17 requires only of task-reviewer.",
+    "Reply file name: pr-reviewer-pr<number>-r<round>.json agrees with name.rs (Agent::PrReviewer => 'pr-reviewer', Subject::PullRequest 'pr<n>', Round 1..=3) and the schema (Agent enum contains pr-reviewer; Subject pattern ^(t|pr)[1-9][0-9]*$; Round 1 to 3).",
+    "Verdict mapping in review-pr: APPROVE and COMMENT without blocker -> REVIEW_PASSED, REQUEST_CHANGES -> REVIEW_FAILED, POST_MERGE_FINDINGS -> DONE, QUESTION, BLOCKED; all targets are in the schema's closed Verdict list; COMMENT with a blocker is unmapped (finding).",
+    "Inventory: each of the 21 pr-reviewer rows opened against its destination. Confirmed present: Output (PR existence, metadata and checks, no approval with a blocker, the four verdicts), A Merged Pull Request (POST_MERGE_FINDINGS, no branch, link to process-pr-review), A Reply File (fields, independence from thread handling and PR-REVIEW.md), No Folder-Style Specification (the exact skip sentence), A Branch Without The pr-reviewer Agent (fields; append-only rule via review-task line 182 'Preserve every earlier entry unchanged'), Recording The Review (no acceptance review, no checkpoints unless asked), checklist (tests and docs). The only row whose destination is a workflow rule in the agent file is 'Review against the actual diff and the CI context' (finding).",
+    "git grep -i 'pr[ -]reviewer' outside .github/agents, docs/issues, docs/pr-reviews: remaining references are contrib/dev-tools/checks/agent-review-report-contract/src/main.rs, docs/templates/AGENT-REVIEW-REPORTS.md semantic-links, docs/templates/README.md (T10 scope), docs/agents/orchestration.md (T9 rewrite). review-pr has no semantic-links; no skill T7 touches names the old profile. The old profile stays until T10 because the contract check reads it (D16).",
+    "Links in the changed files (../process-pr-review/SKILL.md, ../review-task/SKILL.md, ../skills/review-pr/SKILL.md) resolve; lychee in linter all passed.",
+    "ISSUE.md: T7 row DONE, branch '2904-t7-pr-reviewer', last-updated-utc '2026-11-26 12:15', progress-log entry factual. No manual scenario is assigned to T7.",
+    "AC matrix - AC1 PENDING: evidence that every agent loads with no ignored key comes from M1 rerun for the full roster (T9/T10); pr-reviewer.md uses only documented keys (name, description, model, tools, skills).",
+    "AC matrix - AC2 PASS (already ticked, T4; not affected).",
+    "AC matrix - AC3 PASS (already ticked, T4; not affected).",
+    "AC matrix - AC4 PENDING: orchestrator scenario M5 is task T9.",
+    "AC matrix - AC5 PENDING: removal of .github/agents/ is task T10.",
+    "AC matrix - AC6 FAIL for T7's rows: 20 of 21 pr-reviewer rows land in a skill or in the agent file for role matters; the diff-and-CI-context rule is workflow text placed in the agent file only. Completion of the inventory for all ten profiles remains T10.",
+    "AC matrix - AC7 PENDING: orchestration.md rewrite is task T9.",
+    "AC matrix - AC8 PENDING: ADR is task T10.",
+    "AC matrix - AC9 PENDING: measurement is task T11.",
+    "AC matrix - AC10 PENDING: scenario M5 is task T9.",
+    "AC matrix - AC11 PASS (already ticked, T5; not affected).",
+    "AC matrix - AC12 PASS (already ticked, T2; not affected).",
+    "AC matrix - issue-level checkboxes (linter all, relevant tests, manual scenarios, AC re-review, documentation) PENDING: they describe the whole issue and close in T12; linter all passes on this branch.",
+    "Completion review: no retrospective needed for T7 on its own; the issue-level completion review is task T12. Checkboxes ticked by this review: none."
+  ]
+}

@@ -15,10 +15,13 @@ If there is no PR yet and you need to validate task completion on a local branch
 
 ## Quick Overview Approach
 
-1. Read the PR title and description for context
-2. Check the diff for scope of change
-3. Identify the affected packages and components
-4. Apply the checklist below
+1. Confirm that the pull request exists: a number or a URL is required.
+2. Read the PR title and description for context, and gather its metadata: the linked issue, the
+   base branch, the merge state and time, and the checks when they are available.
+3. Check the diff for scope of change. Review the real diff and the checks of the pull request, not
+   the intent of the caller.
+4. Identify the affected packages and components.
+5. Apply the checklist below and classify the findings by severity.
 
 ## PR Review Checklist
 
@@ -56,6 +59,83 @@ If there is no PR yet and you need to validate task completion on a local branch
 - [ ] Imports grouped: std → external → internal
 - [ ] Line length within `max_width = 130`
 - [ ] GPG-signed commits
+
+## Output
+
+Return:
+
+1. Scope reviewed (the pull-request number and the key files)
+2. Findings by severity (see [Providing Feedback](#providing-feedback))
+3. Checklist gaps
+4. Overall verdict: `APPROVE`, `REQUEST_CHANGES`, `COMMENT` or `POST_MERGE_FINDINGS`
+
+A `Blocker` or a `Major` finding is a blocker: the pull request is not ready to merge while one is
+unresolved. Do not approve then. A `COMMENT` verdict is for a review whose findings are not
+blockers (`Minor`, `Nit` or `Suggestion`), and an unresolved blocker gives `REQUEST_CHANGES`.
+
+## A Merged Pull Request
+
+When the pull request is already merged, label the result `POST_MERGE_FINDINGS` and give no
+merge-readiness verdict. Do not implement the findings and do not create a follow-up branch.
+Direct the caller to the post-merge workflow of
+[`process-pr-review`](../process-pr-review/SKILL.md), which needs the maintainer's explicit
+approval before any action that changes something.
+
+## Recording The Review
+
+The task you were given tells you which case applies. The review is not a review of a task of a
+branch (use [`review-task`](../review-task/SKILL.md) for that): do not run the acceptance review
+of a task, and do not mark the workflow checkpoints of an issue specification unless the caller
+asks for it and the evidence is there.
+
+### A Reply File
+
+When the task carries the line that names a reply file (decision D17 of issue #2904), write the
+review there as one JSON file before you finish. The path is the one the line gives:
+`agent-replies/<agent>-<subject>-r<round>.json` in the folder of the issue specification, with
+`pr-reviewer` as the agent, `pr<number>` as the subject, and the round counted from 1 (decision
+D18). The rounds go from 1 to 3, and the validator refuses a name with a higher round: when the
+line names a round above 3, write no file, say so in your final message and leave it to the caller
+to stop and ask the maintainer. The fields:
+
+- `schema-version`: 1; `agent`: `pr-reviewer`; `model`: the full model ID you ran on; `subject`
+  and `round`: the same as in the file name; `created-utc`: the time, from `date -u`.
+- `verdict`, from the verdict of the Output: `REVIEW_PASSED` for `APPROVE` and for `COMMENT`
+  (which has no `Blocker` or `Major` finding); `REVIEW_FAILED` for `REQUEST_CHANGES`; `DONE` for
+  `POST_MERGE_FINDINGS`, with the label at the start of the `summary`; `QUESTION` when only the
+  contributor can answer something; `BLOCKED` when you cannot review.
+- `summary`: the verdict in a few sentences, with the base branch of the pull request.
+- `findings`: one for each finding, with a `severity` (`Blocker`, `Major`, `Minor`, `Nit` or
+  `Suggestion`), a `location` and a `description` that carries the remediation.
+- `questions`: what the contributor must answer, one text each, or an empty list.
+- `evidence`: the commands you ran and what they showed, the checks you read, the files you
+  reviewed, the checklist gaps, and the follow-up owner and action (write `none` when no follow-up
+  applies), one text each.
+
+Check the file with the validator before you finish:
+
+```sh
+cargo run --quiet --package agent-reply-validator --bin agent-reply-validator -- <reply file>
+```
+
+A reply file is committed by the caller with the work it describes. It is independent of the
+handling of the review threads of the pull request, and does not replace the audit record of
+`process-pr-review`.
+
+### No Folder-Style Specification
+
+When the task names no reply file, because no folder-style issue specification was supplied (a
+direct diff or package review, or a legacy standalone specification), write no file. Do not create,
+migrate or modify an issue-local report. State in the result: `Issue-local report skipped: no
+folder-style issue specification was supplied.`
+
+### A Branch Without The `pr-reviewer` Agent
+
+A review made on a branch that does not have the `pr-reviewer` agent yet is recorded in
+`agent-review-reports.md` in the specification's folder, by the procedure of the section "A Branch
+Without The `task-reviewer` Agent" of [`review-task`](../review-task/SKILL.md#a-branch-without-the-task-reviewer-agent).
+The entry records the pull-request number, the base branch, the reviewed files, the checks, the
+findings by severity, the checklist gaps, the verdict and the follow-up owner and action.
 
 ## Providing Feedback
 
