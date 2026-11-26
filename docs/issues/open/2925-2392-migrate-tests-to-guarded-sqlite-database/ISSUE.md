@@ -9,7 +9,7 @@ github-issue: 2925
 spec-path: docs/issues/open/2925-2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md
 branch: "2925-migrate-tests-to-guarded-sqlite-database"
 related-pr: null
-last-updated-utc: "2026-11-26 16:06"
+last-updated-utc: "2026-11-26 16:07"
 semantic-links:
   skill-links:
     - create-issue
@@ -94,8 +94,10 @@ Facts from the #2907 session, measured before PR #2923 and to be rechecked in T1
   opt-in through a factory that returns a guard the test keeps.
 - Consequence to record in T1: about 180 tests stop exercising the SQLite start-up path. List
   which tests still cover it, so the coverage that remains is a decision and not an accident.
-- Open, decided in T1 with the maintainer's approval: whether the `ephemeral*()` functions are
-  renamed when they lose the database, and the pull-request order of the packages.
+- Decided in T1 with the maintainer's approval (record: https://github.com/torrust/torrust-tracker/pull/3067#issuecomment-7197208715): the `ephemeral*()`
+  names stay, except `ephemeral_with_no_services()`, which becomes `ephemeral_without_services()`
+  in T4; the pull-request order of the packages and the helper pattern are in the T1 decisions
+  below. The coverage list (AC4) is still open.
 
 ## Design and Ownership Review
 
@@ -138,7 +140,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1 | IN_PROGRESS | Reproduce and classify | Before-count (V1); table of failing tests with their class; package order, naming and remaining SQLite start-up coverage approved by the maintainer. |
 | T2 | TODO | Migrate one package | First pull request; migration pattern reviewed before T3. |
 | T3 | TODO | Migrate the remaining packages | One pull request per package; each records its package count. |
-| T4 | TODO | Default to no database | `ephemeral*()` set no database; `ephemeral_sqlite_database()` removed. |
+| T4 | TODO | Default to no database | `ephemeral*()` set no database; `ephemeral_sqlite_database()` removed; `ephemeral_with_no_services()` renamed to `ephemeral_without_services()` in every caller. |
 | T5 | TODO | Recheck | Fresh `TMPDIR` has no SQLite database file or directory after the suite (V2); `linter all` passes. |
 
 ## T1 Findings and Proposals
@@ -171,7 +173,9 @@ Measured on `develop` `f5329f758`, 2026-11-26 (details and the full list of fail
 - **Not owned by this issue:** `tracker-core` keeps its own `EphemeralConfiguration` wrappers and
   no issue owns adopting the shared type there. Reported to the EPIC coordinator.
 
-### Proposals for the maintainer (T1 approval)
+### Decisions approved by the maintainer
+
+Record of the approvals, with the maintainer's words: https://github.com/torrust/torrust-tracker/pull/3067#issuecomment-7197208715.
 
 - **Pull-request order (approved by the maintainer, 2026-11-26):** `udp-server` first (it shows both patterns: a helper that stops
   unwrapping, and one test that opts in), then `http-core`, `axum-http-server`,
@@ -259,7 +263,7 @@ approval before T1 is done.
   attribution of the 6 `http-core` files. Proposed the package order and kept names. Waiting for
   the maintainer's approval (relayed by the EPIC coordinator) before T2.
 - 2026-11-26 13:59 UTC - Claude Code (Claude Sonnet 5.5), #2925 implementer - The maintainer, in this
-  session, agreed with the problem and the solution and approved the naming: keep `ephemeral*()`,
+  session, agreed with the problem and the solution and approved the naming (record: https://github.com/torrust/torrust-tracker/pull/3067#issuecomment-7197208715): keep `ephemeral*()`,
   rename only `ephemeral_with_no_services()` to `ephemeral_without_services()` in the T4 pull
   request. The package order and the helper pattern were explained to him in the same exchange.
 - 2026-11-26 14:09 UTC - Claude Code (Claude Sonnet 5.5), #2925 implementer - The maintainer approved the
@@ -274,8 +278,8 @@ approval before T1 is done.
 
 - [ ] AC1: After the full test suite with a fresh `TMPDIR`, no SQLite database remains:
   no `data_*.db` file and no leftover guard directory, with or without its `data.db` file.
-- [ ] AC2: The `ephemeral*()` configurations set no database, and `ephemeral_sqlite_database()`
-  no longer exists.
+- [ ] AC2: The `ephemeral*()` configurations set no database, `ephemeral_sqlite_database()`
+  no longer exists, and `ephemeral_with_no_services()` is renamed `ephemeral_without_services()`.
 - [ ] AC3: Every test that needs persistence gets its database from the guard-owned factory.
 - [ ] AC4: The spec lists the tests that still cover the SQLite start-up path.
 - [ ] AC5: With #2907 done, the fresh `TMPDIR` is empty after the suite.
