@@ -197,6 +197,7 @@ Findings 1 to 7 come from review 6070914967 and findings 8 to 10 from review 607
 - 2026-11-26 14:21 UTC - Fixes for F1 to F7 committed in `docs(adrs): [#3000] keep the v1 status of a duplicate key and fix the review findings`; F9 resolved by the rebase onto `develop` in the same commit.
 - 2026-11-26 14:22 UTC - Fix for F10 committed in `docs(adrs): [#3000] drop the decision attribution from rule 10 and record it in the specification`; the branch was pushed with `--force-with-lease` after the rebase.
 - 2026-11-26 14:26 UTC - Replies to F8, F9 and F10 posted.
+- 2026-11-26 14:29 UTC - Ran `validate-audit-record.py --pr-number 3063` (`status: ok`, 10 rows, 0 failures), resolved the threads of F8, F9 and F10, and refreshed GraphQL: all ten review threads are resolved.
 
 ## Completion Rules
 
