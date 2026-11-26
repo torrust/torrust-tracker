@@ -74,7 +74,7 @@ The maintainer decided the migration detail on 2026-11-26. `decisions.md` in thi
 | ID | Decision |
 | --- | --- |
 | D1 | `trace_style` stays, with `json` as the new default. `full`, `pretty` and `compact` remain an operator's opt-in for the log records. The default follows the contract; the operator is not forced to. Records written before the configuration is known, and the `startup_failure` and `panic` records, are JSON in every style |
-| D2 | The logging is installed first thing in `main`, in JSON at level `info`. When the configuration is loaded, the level and the style of the log records are replaced. One writer for every stderr record |
+| D2 | The logging is installed first thing in `main`, in JSON at level `info`. When the configuration is loaded, the level and the style of the log records are replaced. One formatter for every stderr record |
 | D3 | The setup code moves from the configuration crate to the tracker application (`src/bootstrap/logging.rs`). The configuration crate keeps only data (`trace_filter`, `TraceStyle`) and loses its `tracing-subscriber` dependency. No package gains a dependency. A shared crate comes later, with the follow-up that moves `tracker_client` to the same shape |
 | D4 | JSON records are flat, with `kind` on every record: key order `timestamp`, `level`, `kind`, `target`, `message`, then the event fields. `kind` is `log`, `startup_failure`, `usage_error`, `help` or `panic`. Reserved keys cannot be duplicated: an event field with a name already in the record is written with the prefix `field_` |
 | D5 | Exit `2` for argument and configuration errors, exit `1` for runtime startup failures; the mapping is a tested method on the error types (table in `decisions.md`) |
@@ -92,7 +92,7 @@ D1, D2, D4, D6 and D8 become one ADR (task T2).
 - **Logging setup (D2, D3).** A public install function in `torrust_tracker_lib` that `main` calls before argument parsing; a level and a log-record style that are set after the configuration is loaded; `initialize_global_services` sets them and does nothing when no subscriber is installed. Remove `setup` and `tracing_init` from `v3_0_0/logging.rs` and `v2_0_0/logging.rs`, delete `packages/configuration/src/logging.rs`, and remove `tracing-subscriber` from `packages/configuration/Cargo.toml`. The tests of `udp-server`, `axum-http-server` and `axum-rest-api-server` that called the removed function use `torrust_tracker_test_helpers::logging::setup()`; the `testing` environment of `axum-rest-api-server` stops installing logging.
 - **Formatter (D4, D8, D9).** A JSON formatter in its own module, depending only on `tracing`, `tracing-subscriber` and `serde_json`, with the reserved-key rule and one place to add a per-record field. All output on stderr, no ANSI codes in any style.
 - **Default (D1).** `trace_style` defaults to `json`. The default configs under `share/default/config/` and the config that `tests/common/native_tracker/command.rs` writes do not set a text style.
-- **Startup failure (D5).** One `startup_failure` record instead of the two reports of today, with the `exit_code` it returns. `exit_code()` on `app::Error` and `bootstrap::app::Error`, one unit test per variant.
+- **Startup failure (D5).** One `startup_failure` record instead of the two reports of today, with the `exit_code` it returns. The `startup_failure`, `usage_error`, `help` and `panic` records are built by the formatter code and written to stderr directly, so `trace_filter` never hides them (D1). `exit_code()` on `app::Error` and `bootstrap::app::Error`, one unit test per variant.
 - **Arguments.** Fallible parsing in `src/main.rs`: an argument error is a `usage_error` record and exit `2`; `--help` is a `help` record on stderr and exit `0`.
 - **Panics (D6).** A panic hook that writes a `panic` record; a panic that unwinds out of `main` exits `1`.
 - **The other entry points.** `packages/hung-component-tracker/src/main.rs` and `src/console/profiling.rs` use the same install function and failure report, and stop using `eprintln!`.
@@ -218,12 +218,12 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 
 - [ ] AC1: Running the tracker writes nothing to stdout, in every `trace_style`.
 - [ ] AC2: With the default configuration (`json`), every stderr line is a JSON object with the keys `timestamp`, `level`, `kind`, `target` and `message`, and no line has ANSI codes.
-- [ ] AC3: A configuration error exits `2` and a runtime startup failure (for example a bind error) exits `1`; in both, exactly one record on stderr has the kind `startup_failure`, in every `trace_style`.
+- [ ] AC3: A configuration error exits `2` and a runtime startup failure (for example a bind error) exits `1`; in both, exactly one record on stderr has the kind `startup_failure`, in every `trace_style` and with every `trace_filter`, `off` included.
 - [ ] AC4: `logs_parser.rs`, `Docker::logs`, the native test harness and their tests follow the new format and stream.
 - [ ] AC5: The operator-visible change is documented: `docs/logging.md` says where the logs go and how to get them, shows every style, the record shape, the exit codes and the "Changes in 4.0.0" section, and no reviewed document shows an example that no longer works.
 - [ ] AC6: Argument errors (`--unknown`, `-c ""`) and `--help` follow the contract (JSON on stderr, stdout empty, usage errors exit `2`), proven by M2c.
 - [ ] AC7: A text style (`full`, `pretty`, `compact`) still works as an opt-in: the log records are text on stderr without ANSI codes, and the records of D1 that are always JSON are JSON.
-- [ ] AC8: A panic writes one `panic` record on stderr and no plain text, and a panic that unwinds out of `main` exits `1`.
+- [ ] AC8: A panic writes one `panic` record on stderr and no plain text, and a panic that unwinds out of `main` exits `1`; the record is also written with `trace_filter = "off"`.
 - [ ] AC9: `torrust-tracker-configuration` has no function that installs a subscriber and no `tracing-subscriber` dependency, and no package gained a dependency.
 - [ ] AC10: The ADR exists and the follow-up issues are filed.
 - [ ] `linter all` exits with code `0`
@@ -251,6 +251,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | M2b | Runtime startup failure | Run with a port already in use | Exactly one failure record, exit `1` | TODO | `manual-verification-evidence.md` section V2b |
 | M2c | Argument errors and help | `torrust-tracker --unknown`, `torrust-tracker -c ""` and `torrust-tracker --help`, each with stdout and stderr redirected to files | Usage errors: JSON diagnostic on stderr, exit `2`, stdout empty; `--help`: JSON help on stderr, exit `0`, stdout empty (the ADR puts help text on stderr and gives the daemon no stdout), no plain text | TODO | `manual-verification-evidence.md` section V2c |
 | M3 | Container | Run the container image and read `docker logs` | JSON lines; e2e parser still finds the services | TODO | `manual-verification-evidence.md` section V3 |
+| M2d | Failure with the filter off | Repeat M2 and M2b with `trace_filter = "off"` | The `startup_failure` record is still written; no `log` record after the configuration is loaded | TODO | `manual-verification-evidence.md` section V2d |
 | M4 | Text styles | Run with `trace_style` set to `full`, `pretty` and `compact`; repeat M2 and M2b with `full` | `out` empty; log records are text without ANSI codes; the first records and the `startup_failure` record are JSON | TODO | `manual-verification-evidence.md` section V4 |
 | M5 | Panic | Run a build with a forced panic (test-only trigger) or the unit test of the hook against the real binary | One `panic` record on stderr, no plain text | TODO | `manual-verification-evidence.md` section V5 |
 

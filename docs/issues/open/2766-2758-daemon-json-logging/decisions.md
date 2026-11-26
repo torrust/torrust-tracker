@@ -118,6 +118,13 @@ choice of style for operators. What B means exactly:
   The maintainer confirmed this on 2026-11-26 over the alternative (the two records follow the
   configured style: a uniform text stream, but no tool can parse the exit reason and a configuration
   failure would still be JSON, so failures would look different depending on when they happen).
+- **The records that are not log records ignore `trace_filter`.** `help`, `usage_error`,
+  `startup_failure` and `panic` are always written, also with `trace_filter = "off"` or `"error"`:
+  the filter chooses how much the tracker logs, not whether it says why it stopped. A configuration
+  failure and a runtime failure therefore behave the same. To make this independent of the
+  subscriber's state, these four kinds are not `tracing` events: a small function builds the record
+  with the same formatter code (same keys, same order) and writes it to stderr directly. Only `log`
+  records pass through the subscriber and its filter.
 - The shipped configs under `share/default/config/` and the example in `docs/benchmarking.md` drop
   `trace_style = "full"`, so they get the default.
 - The text styles are tracing-subscriber's own formats, unchanged. The record shape of D4 is the
@@ -130,7 +137,7 @@ See "Combinations" below for what each style prints in each situation.
 | Alternative | Pros | Cons |
 | --- | --- | --- |
 | A. As today: after the configuration is loaded and validated; failures before that are written by a separate direct JSON writer in `main` | Small change | Two writers with two shapes on one stream. Everything before the subscriber (argument errors, configuration errors, panics during loading) needs its own code path |
-| B. First thing in `main`, before argument parsing, with a level filter that can be changed later (`tracing_subscriber::reload`) at a default of `info`; after the configuration is loaded, the filter is set to `logging.trace_filter` | One formatter writes every stderr record of the process: help, usage errors, configuration errors, startup failures, panics and logs. One shape, one place to add a field (SI-22's `run_id`). The process starts in JSON; when the configuration is loaded, the level and, if a text style is configured, the formatter of log records are replaced (D1). The "Loading … configuration" records, lost today, become visible | Records written before the configuration is read use the default level, so a `trace_filter = "error"` config still lets the few `info` records of configuration loading through. A reload handle has to be carried to where the filter is set |
+| B. First thing in `main`, before argument parsing, with a level filter that can be changed later (`tracing_subscriber::reload`) at a default of `info`; after the configuration is loaded, the filter is set to `logging.trace_filter` | One formatter builds every stderr record of the process: help, usage errors, configuration errors, startup failures, panics and logs (the log records through the subscriber, the others directly, see D1). One shape, one place to add a field (SI-22's `run_id`). The process starts in JSON; when the configuration is loaded, the level and, if a text style is configured, the formatter of log records are replaced (D1). The "Loading … configuration" records, lost today, become visible | Records written before the configuration is read use the default level, so a `trace_filter = "error"` config still lets the few `info` records of configuration loading through. A reload handle has to be carried to where the filter is set |
 
 **Choice: B** (confirmed by the maintainer, 2026-11-26). It removes the "before logging" special case completely and gives every record the
 same shape (D4). Consequences found in the code:
@@ -276,8 +283,10 @@ new variant cannot be added without choosing its code.
 | B. A follow-up issue | — | Smaller PR | AC2 holds only until something panics |
 | C. Not done | — | — | Plain text on stderr; breaks the contract |
 
-**Choice: A** (confirmed by the maintainer, 2026-11-26). The hook changes only how a panic is
-reported: a panic inside a task still does not stop the process (the job supervisor decides), and a
+**Choice: A** (confirmed by the maintainer, 2026-11-26). The hook builds the `panic` record with the
+formatter code and writes it to stderr directly, not through the subscriber, so the record does not
+depend on `trace_filter` (D1) and a panic inside the subscriber cannot lose it. The hook changes only
+how a panic is reported: a panic inside a task still does not stop the process (the job supervisor decides), and a
 panic that unwinds out of `main` exits `1` ("could not do its job"), not Rust's `101`, because the
 contract allows only `0`, `1` and `2`: `main` catches the unwind of the application future and
 returns `1` after the hook has written the record (changed after the review of the spec pull
@@ -463,7 +472,9 @@ lines; a reader finds the reason of the exit with `grep '"kind":"startup_failure
   JSON, the rest is text. This is the price of knowing the style only after the configuration is
   read and of keeping the exit reason parseable. The docs say so in the description of
   `trace_style`.
-- **`trace_filter` applies in every style** once the configuration is loaded. Before that the level
+- **`trace_filter` applies to the `log` records in every style** once the configuration is loaded;
+  the `startup_failure`, `usage_error`, `help` and `panic` records are written whatever the filter
+  is (D1). Before that the level
   is `info`, so the "Loading … configuration" records appear even with `trace_filter = "error"`.
 - **Tools need `json`.** The e2e log parser, the native test harness and the SI-20 check of EPIC
   #2387 read JSON only; the configs they use do not set a text style.
