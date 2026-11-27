@@ -14,6 +14,49 @@ last-updated-utc: "2026-11-27 06:47"
 - Prerequisites and setup performed: none beyond the build
 - Second session (R0b and R0c, task T3): 2026-11-27 06:29 UTC; the unchanged tool built from the `develop` merge commit `786b46fee` (the merge of the spec pull request, no code of this issue yet) with `rustc 1.100.0` and `cargo 1.100.0`; binary `target/debug/torrust-tracker` built with `cargo build --bin torrust-tracker` and run with stdout and stderr redirected to files; configuration: one HTTP tracker and the health check API on `127.0.0.1` ports, `trace_filter = "info"`, an SQLite database in a scratch directory
 
+### Setup of R0b, R0c and R1
+
+A scratch directory with two subdirectories, `ok` and `busy`, each with a `tracker.toml` (below, with `<SCRATCH>` standing for the scratch directory; no secret is involved), and a variant `off.toml` of the first with `trace_filter = "off"` and the ports `17072` and `17315`.
+
+```toml
+[metadata]
+app = "torrust-tracker"
+purpose = "configuration"
+schema_version = "3.0.0"
+
+[logging]
+trace_filter = "info"
+
+[core]
+listed = false
+private = false
+
+[core.database]
+driver = "sqlite3"
+path = "<SCRATCH>/ok/sqlite3.db"
+
+[[http_trackers]]
+bind_address = "127.0.0.1:17070"
+tracker_usage_statistics = false
+
+[health_check_api]
+bind_address = "127.0.0.1:17313"
+```
+
+The file of `busy` is the same with the database path in `busy` and the ports `17071` (HTTP tracker) and `17314` (health check API). The commands, from the scratch directory, with `B` the path of `target/debug/torrust-tracker`:
+
+```text
+$ cd ok && $B -c tracker.toml > out 2> err & P=$!
+$ sleep 3; curl -s -o /dev/null -w "health=%{http_code}\n" http://127.0.0.1:17313/health_check
+$ kill -TERM $P; wait $P; echo "exit=$?"          # only in R1; R0b did not record the exit code
+
+# R0c: a listener holds the port of the HTTP tracker of `busy` for 8 seconds, then the tracker starts
+$ python3 -c 'import socket,time; s=socket.socket(); s.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1); s.bind(("127.0.0.1",17071)); s.listen(); time.sleep(8)' &
+$ cd busy && timeout 20 $B -c tracker.toml > out 2> err; echo "exit=$?"
+```
+
+Nothing needs to be cleaned up: the listener ends by itself after 8 seconds and the tracker of R0b and R1 is stopped by the `SIGTERM`.
+
 ## Verification Processes
 
 ### R0 - Reproduction of the deviation before the change (torrust-tracker daemon)
