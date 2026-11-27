@@ -400,23 +400,25 @@ mod tests {
     }
 
     #[test]
-    fn it_should_write_text_records_in_the_full_style() {
+    fn it_should_write_the_span_and_its_fields_before_the_message_in_the_full_style() {
         // Arrange
         let configuration = logging(Threshold::Info, TraceStyle::Full);
 
         // Act
         let captured = written_by(|controls| {
             controls.apply(&configuration);
+            let span = tracing::info_span!("outer", answer = 42);
+            let _entered = span.enter();
             tracing::info!("a text record");
         });
 
-        // Assert
+        // Assert: only the `full` style writes `span{field=value}:` before the target and the message
         let lines = captured.lines();
         let line = lines
             .iter()
             .find(|line| line.contains("a text record"))
             .expect("the record is written");
-        assert!(!line.starts_with('{'), "written: {line}");
+        assert!(line.contains("outer{answer=42}: "), "written: {line}");
     }
 
     #[test]
