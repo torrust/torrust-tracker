@@ -14,6 +14,7 @@
 // cspell:ignore nnounce oken zzoken rposition
 use http::{Request, Uri};
 use tower_http::trace::MakeSpan;
+use tracing::field::Empty;
 use tracing::{Level, Span};
 
 /// What replaces a secret in a logged URI. It is the marker the configuration redaction uses.
@@ -119,7 +120,8 @@ fn percent_decoded(text: &str) -> String {
 }
 
 /// Makes the span of a request like `tower_http`'s `DefaultMakeSpan` at the `INFO` level, with
-/// the redacted URI instead of the raw one.
+/// the redacted URI instead of the raw one and an empty `request_id` field for request layers to
+/// record.
 #[derive(Clone, Copy, Debug, Default)]
 pub struct RedactedMakeSpan;
 
@@ -131,6 +133,7 @@ impl<B> MakeSpan<B> for RedactedMakeSpan {
             method = %request.method(),
             uri = %redact_uri(request.uri()),
             version = ?request.version(),
+            request_id = Empty,
         )
     }
 }
@@ -139,7 +142,7 @@ impl<B> MakeSpan<B> for RedactedMakeSpan {
 mod tests {
     use http::Request;
     use rstest::rstest;
-    use torrust_tracker_test_helpers::logging::capture_logs_while;
+    use torrust_tracker_test_helpers::logging::{capture_logs_in_scope, capture_logs_while};
     use tower_http::trace::MakeSpan as _;
 
     use super::{RedactedMakeSpan, percent_decoded, redact_path_and_query};
@@ -268,5 +271,40 @@ mod tests {
         );
         assert!(!logs.contains(peer_key), "the span holds the test peer key");
         assert!(!logs.contains(admin_token), "the span holds the test token");
+    }
+
+    #[test]
+    fn it_should_record_the_request_id_in_the_span_of_a_request() {
+        // Arrange
+        let request_id = "test-request-id-0001";
+        let request = Request::builder()
+            .uri("/health_check")
+            .header("x-request-id", request_id)
+            .body(())
+            .expect("the test request should be valid");
+        let capture = capture_logs_in_scope();
+
+        // Act
+        {
+            let span = RedactedMakeSpan.make_span(&request);
+            let _entered = span.enter();
+            span.record("request_id", request_id);
+            tracing::info!("an event inside the request span");
+        }
+
+        // Assert
+        let lines = capture.lines();
+        let event_line = lines
+            .iter()
+            .find(|line| line.contains("an event inside the request span"))
+            .expect("the inner event inside the request span should be captured");
+        let Some((span_fields, _)) = event_line.split_once("request{").and_then(|(_, rest)| rest.split_once('}')) else {
+            panic!("expected a request{{...}} span on the event line, got: {event_line}");
+        };
+        let expected_field = format!(r#"request_id="{request_id}""#);
+        assert!(
+            span_fields.contains(&expected_field),
+            "expected the request span to contain {expected_field}, got span fields `{span_fields}` in line: {event_line}"
+        );
     }
 }
