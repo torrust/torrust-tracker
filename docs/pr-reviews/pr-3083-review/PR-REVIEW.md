@@ -51,6 +51,7 @@ Review 6084545579 (`claude[bot]`) has no finding: it only says that automated re
 | F3 | review-finding:pr-3083-f3 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F4 | review-finding:pr-3083-f4 | coderabbitai[bot] | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 | F5 | review-finding:pr-3083-f5 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F6 | review-finding:pr-3083-f6 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -119,6 +120,19 @@ Review 6084545579 (`claude[bot]`) has no finding: it only says that automated re
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3083#discussion_r4716707735
 
+### F6 - A failed wait for the listener looks like a successful one
+
+- PR number: 3083
+- Source review ID: 6084834974
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3083#discussion_r4716726170
+- Concern: In the bounded loop of the fix for F5 the last `sleep` succeeds, so a loop in which every attempt failed ends with the same status and output as one that succeeded; the reader cannot tell whether to start the tracker, and the reviewer asks to report the failure and stop before the tracker starts.
+- Solution: The loop is removed. The text gives one script that binds and listens on the port first, runs the tracker while it holds the port, with a 20-second timeout, and prints the exit code; if the port cannot be bound it fails with an error and the tracker is not started. The author ran it against the real binary: `exit=1`, 17305 bytes on stdout, 290 on stderr, as in the recorded bind failure. `returncode` is added to `project-words.txt`.
+- Current-tree verification: `grep -c "seq 50" docs/issues/open/2766-2758-daemon-json-logging/manual-verification-evidence.md` prints 0; `grep -c "subprocess.run"` on the same file finds the script.
+- Resolution reference: docs(issues): [#2766] replace the readiness wait of the reproduction setup with one script that holds the port
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3083#discussion_r4716778913
+
 ## Processing Log
 
 - 2026-11-27 06:53 UTC - Review 6084545579 (`claude[bot]`) arrived; it has no finding.
@@ -138,6 +152,10 @@ Review 6084545579 (`claude[bot]`) has no finding: it only says that automated re
 - 2026-11-27 07:27 UTC - Pushed it and replied on the thread of F5.
 - 2026-11-27 07:28 UTC - Added F5 to this record.
 - 2026-11-27 07:28 UTC - Resolved the thread of F5, whose last comment was my reply. A GraphQL listing shows no unresolved thread.
+- 2026-11-27 07:30 UTC - CodeRabbit's review 6084834974 arrived with F6, on the head of the F5 fix.
+- 2026-11-27 07:34 UTC - Committed the fix for F6.
+- 2026-11-27 07:38 UTC - Pushed it and replied on the thread of F6.
+- 2026-11-27 07:38 UTC - Added F6 to this record and resolved its thread, whose last comment was my reply. A GraphQL listing shows no unresolved thread.
 
 ## Completion Rules
 
