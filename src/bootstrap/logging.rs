@@ -139,14 +139,14 @@ where
 }
 
 /// The handles that change the logging of the installed subscriber.
-pub struct Controls {
+struct Controls {
     level: reload::Handle<LevelFilter, Registry>,
     style: Arc<AtomicU8>,
 }
 
 impl Controls {
     /// Sets the level and the style of the records from the configuration.
-    pub fn apply(&self, logging: &Logging) {
+    fn apply(&self, logging: &Logging) {
         self.style.store(style_position(&logging.trace_style), Ordering::Relaxed);
 
         if let Err(error) = self.level.reload(map_to_tracing_level_filter(&logging.trace_filter)) {
@@ -161,7 +161,7 @@ impl Controls {
 ///
 /// It starts at level `info`, in the `full` style. `make_writer` is called once for every style,
 /// and every record is written to the writer of its style.
-pub fn build(make_writer: impl Fn() -> BoxMakeWriter) -> (impl Subscriber + Send + Sync + 'static, Controls) {
+fn build(make_writer: impl Fn() -> BoxMakeWriter) -> (impl Subscriber + Send + Sync + 'static, Controls) {
     let (level_layer, level) = reload::Layer::new(LevelFilter::INFO);
     let style = Arc::new(AtomicU8::new(FULL));
     let style_layers = StyleLayers::new(&make_writer, Arc::clone(&style));
