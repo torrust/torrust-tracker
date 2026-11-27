@@ -6,8 +6,6 @@ semantic-links:
     - .claude/skills/create-adr/SKILL.md
     - docs/adrs/20260519000000_define_global_cli_output_contract.md
     - docs/adrs/20261106102632_scope_the_cli_output_contract_and_keep_exit_codes_to_zero_one_two.md
-    - docs/issues/open/2766-2758-daemon-json-logging/ISSUE.md
-    - docs/issues/open/2766-2758-daemon-json-logging/decisions.md
 ---
 
 <!-- skill-link: create-adr -->
@@ -45,9 +43,9 @@ repository that read the logs (the end-to-end runners, the native test harness, 
 tests) need a format a program can read.
 
 The maintainer decided the migration detail on 2026-11-26, one question at a time. The record of
-the alternatives, with their pros and cons and example output, is
-[decisions.md](../issues/open/2766-2758-daemon-json-logging/decisions.md) in the folder of the
-issue 2766; this ADR states what was decided.
+the alternatives, with their pros and cons and example output, is the file `decisions.md` that
+stays with the specification of issue #2766 (the path changes when the issue is closed, so it is
+not linked here); this ADR states what was decided.
 
 ## Agreement
 
