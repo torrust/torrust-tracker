@@ -169,6 +169,7 @@ use tokio::time::sleep;
 
 use crate::app;
 use crate::bootstrap::jobs::manager::JobManager;
+use crate::bootstrap::logging;
 
 /// Errors that cause the profiling executable to exit unsuccessfully.
 #[derive(Debug, thiserror::Error)]
@@ -184,6 +185,8 @@ pub enum Error {
 ///
 /// Returns an error if initial tracker startup fails.
 pub async fn run() -> Result<(), Error> {
+    logging::install();
+
     // Parse command line arguments
     let args: Vec<String> = env::args().collect();
 
