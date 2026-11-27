@@ -9,7 +9,7 @@ github-issue: 2925
 spec-path: docs/issues/open/2925-2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md
 branch: "2925-migrate-tests-to-guarded-sqlite-database"
 related-pr: null
-last-updated-utc: "2026-11-26 19:04"
+last-updated-utc: "2026-11-27 11:13"
 semantic-links:
   skill-links:
     - create-issue
@@ -307,6 +307,11 @@ on the other groups above. The maintainer approved this list (record: https://gi
   which also holds the database. The guard now lives in the test fixture (`Tracker` in
   `handlers/scrape.rs`), declared after both service bundles. The migration pattern for the next
   packages is: the fixture struct owns the guard as its last field.
+- 2026-11-27 11:13 UTC - Claude Code (Claude Sonnet 5.5), #2925 implementer - Correction after review of PR 3082:
+  `public_with_persistent_completed_statistics` is the constructor of the `Tracker` fixture, not
+  a test. The test that needs persistence is
+  `it_should_return_the_persisted_downloads_of_torrents_absent_from_memory_in_request_order`. The
+  T2 evidence was rerun at the final head with stamps (evidence file, section "T2: udp-server").
 
 ## Acceptance Criteria
 

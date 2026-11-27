@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2925-2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md
-last-updated-utc: "2026-11-26 18:50"
+last-updated-utc: "2026-11-27 11:13"
 ---
 
 # Manual Verification Evidence
@@ -121,23 +121,34 @@ bench http_tracker_core_benchmark: 4 files
 
 ## T2: udp-server
 
-Branch `2925-udp-server-guarded-sqlite-database` on `torrust/develop` at `a4c12dc37`, 2026-11-26
-(one shell, in order):
+Artifact under test: the head of the `udp-server` branch, whose newest commit is
+`docs(pr-reviews): [#2925] add the audit record of the PR 3082 review round` on top of
+`test(udp-server): [#2925] keep the database guard in the fixture, after both service bundles`
+and `test(udp-server): [#2925] initialize test persistence only when the configuration sets a database`,
+on `torrust/develop` at the merge of PR 3067. Rerun on 2026-11-27 (UTC) with `cargo +stable`
+1.100.0, after review of PR 3082 found that the first record, made before the guard moved into the
+fixture, described an earlier tree. Its counts were the same. One script ran the steps in order:
 
 1. `git apply` of the T4 one-line patch (`ephemeral()` sets no database), then
    `export TMPDIR=$(mktemp -d)` and
-   `cargo +stable test -p torrust-tracker-udp-server --all-targets --all-features --no-fail-fast`:
-   all test binaries pass (230 lib tests, 17 integration tests), and
-   `ls -A "$TMPDIR" | wc -l` printed 0. Before the change the same package had 25 failing
-   tests under that patch (V1b appendix). Then `git checkout packages/test-helpers/src/configuration.rs`
-   and `git diff --quiet HEAD -- packages/test-helpers` exited 0.
-2. Without the patch (the current default), a fresh `mktemp -d` `TMPDIR` and the same command:
-   all pass, `data_*.db` count 67, total entries 67. The package still leaks until T4 changes the
-   default; the migration makes it independent of the default.
+   `cargo +stable test -p torrust-tracker-udp-server --all-targets --all-features --no-fail-fast`
+   (11:12:35 to 11:12:43, exit 0): 230 lib tests and 17 integration tests pass, and
+   `ls -A "$TMPDIR" | wc -l` printed 0. Before the change the package had 25 failing tests under
+   that patch (V1b appendix).
+2. `git checkout packages/test-helpers/src/configuration.rs`, then
+   `git diff --quiet HEAD -- packages/test-helpers` exited 0 (11:12:43).
+3. Without the patch (the current default), a second `mktemp -d` `TMPDIR` (created inside the first
+   one, which was empty) and the same command (11:12:43 to 11:12:50, exit 0): the same 230 and 17
+   tests pass, and `data_*.db` count 67, total entries 67. The package still leaks until T4
+   changes the default; the migration makes it independent of the default.
+4. The one test that needs persistence,
+   `handlers::scrape::tests::scrape_request::it_should_return_the_persisted_downloads_of_torrents_absent_from_memory_in_request_order`,
+   passes alone (`cargo +stable test -p torrust-tracker-udp-server --lib <name>`, 1 passed). It
+   calls the fixture constructor `Tracker::public_with_persistent_completed_statistics`, which
+   takes its configuration from `ephemeral_with_sqlite_database()`.
 
-The converted test `public_with_persistent_completed_statistics` passes with the guard-owned
-database. Per-package count recorded for the table of T3: `udp-server` leaves 67 files before T4
-and 0 after.
+Per-package count recorded for the table of T3: `udp-server` leaves 67 files before T4 and 0
+after.
 
 ## Failures and Follow-up
 
