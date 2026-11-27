@@ -256,7 +256,7 @@ pub(crate) mod tests {
     use torrust_tracker_configuration::v3_0_0::core::Core;
     use torrust_tracker_core::announce_handler::AnnounceHandler;
     use torrust_tracker_core::databases::TorrentMetricsStore;
-    use torrust_tracker_core::databases::setup::initialize_database;
+    use torrust_tracker_core::databases::setup::initialize_database_from_configuration;
     use torrust_tracker_core::scrape_handler::ScrapeHandler;
     use torrust_tracker_core::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
     use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
@@ -290,7 +290,8 @@ pub(crate) mod tests {
         pub in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
         pub in_memory_whitelist: Arc<InMemoryWhitelist>,
         pub whitelist_authorization: Arc<whitelist::authorization::WhitelistAuthorization>,
-        pub torrent_metrics_store: Arc<dyn TorrentMetricsStore>,
+        /// Present only when the test configuration sets a database.
+        pub torrent_metrics_store: Option<Arc<dyn TorrentMetricsStore>>,
     }
 
     pub struct CoreUdpTrackerServices {
@@ -332,12 +333,24 @@ pub(crate) mod tests {
     ) -> (CoreTrackerServices, CoreUdpTrackerServices, ServerUdpTrackerServices) {
         let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
         let core_config = Arc::new(config.core.clone());
-        let database = initialize_database(&config.core).await;
+        // Persistence is initialized only when the configuration sets a database.
+        let database = match config.core.database.as_ref() {
+            Some(database) => Some(
+                initialize_database_from_configuration(database)
+                    .await
+                    .expect("the test database should be initialized"),
+            ),
+            None => None,
+        };
         let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
         let whitelist_authorization = Arc::new(WhitelistAuthorization::new(&config.core, &in_memory_whitelist));
         let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
-        let db_downloads_metric_repository = Arc::new(DatabaseDownloadsMetricRepository::new(&database.torrent_metrics_store));
         let (announce_handler, scrape_handler) = if config.core.tracker_policy.persistent_torrent_completed_stat {
+            let database = database
+                .as_ref()
+                .expect("persistent completed statistics need a database in the test configuration");
+            let db_downloads_metric_repository =
+                Arc::new(DatabaseDownloadsMetricRepository::new(&database.torrent_metrics_store));
             (
                 Arc::new(AnnounceHandler::new_with_persistent_completed_statistics(
                     &config.core,
@@ -403,7 +416,7 @@ pub(crate) mod tests {
                 in_memory_torrent_repository,
                 in_memory_whitelist,
                 whitelist_authorization,
-                torrent_metrics_store: database.torrent_metrics_store,
+                torrent_metrics_store: database.map(|database| database.torrent_metrics_store),
             },
             CoreUdpTrackerServices {
                 announce_service,

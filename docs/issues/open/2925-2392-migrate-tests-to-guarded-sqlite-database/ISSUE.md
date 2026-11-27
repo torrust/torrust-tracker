@@ -9,7 +9,7 @@ github-issue: 2925
 spec-path: docs/issues/open/2925-2392-migrate-tests-to-guarded-sqlite-database/ISSUE.md
 branch: "2925-migrate-tests-to-guarded-sqlite-database"
 related-pr: null
-last-updated-utc: "2026-11-26 17:09"
+last-updated-utc: "2026-11-27 11:13"
 semantic-links:
   skill-links:
     - create-issue
@@ -138,7 +138,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
 | T1 | DONE | Reproduce and classify | Before-count (V1); table of failing tests with their class; package order, naming and remaining SQLite start-up coverage approved by the maintainer. |
-| T2 | TODO | Migrate one package | First pull request; migration pattern reviewed before T3. |
+| T2 | IN_PROGRESS | Migrate one package | First pull request (`udp-server`); migration pattern reviewed before T3. |
 | T3 | TODO | Migrate the remaining packages | One pull request per package; each records its package count. |
 | T4 | TODO | Default to no database | `ephemeral*()` set no database; `ephemeral_sqlite_database()` removed; `ephemeral_with_no_services()` renamed to `ephemeral_without_services()` in every caller. |
 | T5 | TODO | Recheck | Fresh `TMPDIR` has no SQLite database file or directory after the suite (V2); `linter all` passes. |
@@ -294,6 +294,24 @@ on the other groups above. The maintainer approved this list (record: https://gi
   The list he approved was the summary in that record; the main-application integration tests
   named in the spec widen it. All T1 outputs are approved: T1 is `DONE`, and T2 starts with
   `udp-server` after this pull request merges.
+- 2026-11-26 18:50 UTC - Claude Code (Claude Sonnet 5.5), #2925 implementer - T2 started with `udp-server`
+  (pull request pending). Pattern: the test helper `initialize_core_tracker_services` initializes
+  persistence only when `core.database` is set (it was unconditional); the one test that needs
+  persistence (`public_with_persistent_completed_statistics` in `handlers/scrape.rs`) takes its
+  configuration from `ephemeral_with_sqlite_database()` and hands the guard to the services struct
+  (`CoreTrackerServices.sqlite_database_guard`, declared last so it drops after the stores).
+  Evidence in `manual-verification-evidence.md`, section "T2: udp-server".
+- 2026-11-26 19:04 UTC - Claude Code (Claude Sonnet 5.5), #2925 implementer - Correction of the entry above
+  after a review of PR 3082: the guard is not part of `CoreTrackerServices`. A fixture drops its
+  fields in declaration order, and `CoreTrackerServices` drops before `CoreUdpTrackerServices`,
+  which also holds the database. The guard now lives in the test fixture (`Tracker` in
+  `handlers/scrape.rs`), declared after both service bundles. The migration pattern for the next
+  packages is: the fixture struct owns the guard as its last field.
+- 2026-11-27 11:13 UTC - Claude Code (Claude Sonnet 5.5), #2925 implementer - Correction after review of PR 3082:
+  `public_with_persistent_completed_statistics` is the constructor of the `Tracker` fixture, not
+  a test. The test that needs persistence is
+  `it_should_return_the_persisted_downloads_of_torrents_absent_from_memory_in_request_order`. The
+  T2 evidence was rerun at the final head with stamps (evidence file, section "T2: udp-server").
 
 ## Acceptance Criteria
 

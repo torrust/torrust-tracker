@@ -133,7 +133,7 @@ mod tests {
         use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
         use torrust_tracker_primitives::ScrapeData;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
-        use torrust_tracker_test_helpers::configuration;
+        use torrust_tracker_test_helpers::configuration::{self, SqliteDatabaseGuard};
         use torrust_tracker_udp_core::event::ConnectionContext;
         use torrust_tracker_udp_core::services::scrape::UdpScrapeError;
         use torrust_tracker_udp_protocol::{
@@ -161,6 +161,9 @@ mod tests {
             server_service_binding: ServiceBinding,
             udp_server_broadcaster: Broadcaster,
             udp_server_stats_event_sender: crate::event::sender::Sender,
+            /// Keeps the directory of a guard-owned `SQLite` database alive until the test ends. It is declared
+            /// last, so it is dropped after both service bundles that use the database.
+            _sqlite_database_guard: Option<SqliteDatabaseGuard>,
         }
 
         impl Tracker {
@@ -181,16 +184,22 @@ mod tests {
             }
 
             async fn public_with_persistent_completed_statistics() -> Self {
-                let mut configuration = configuration::ephemeral_public();
+                let (mut configuration, guard) = configuration::ephemeral_with_sqlite_database();
+                configuration.core.private = false;
                 configuration.core.tracker_policy.persistent_torrent_completed_stat = true;
                 let (core_tracker_services, core_udp_tracker_services, _server_udp_tracker_services) =
                     initialize_core_tracker_services_with_config(&configuration).await;
-                Self::with_services(core_tracker_services, core_udp_tracker_services, sample_ipv4_remote_addr())
+                Self {
+                    _sqlite_database_guard: Some(guard),
+                    ..Self::with_services(core_tracker_services, core_udp_tracker_services, sample_ipv4_remote_addr())
+                }
             }
 
             async fn with_persisted_downloads(self, info_hash: &InfoHash, downloads: u32) -> Self {
                 self.core_tracker_services
                     .torrent_metrics_store
+                    .as_ref()
+                    .expect("the test database should be configured")
                     .save_torrent_downloads(&info_hash.0.into(), downloads)
                     .await
                     .unwrap();
@@ -217,6 +226,7 @@ mod tests {
                     server_service_binding,
                     udp_server_stats_event_sender: Some(Arc::new(udp_server_broadcaster.clone())),
                     udp_server_broadcaster,
+                    _sqlite_database_guard: None,
                 }
             }
 
