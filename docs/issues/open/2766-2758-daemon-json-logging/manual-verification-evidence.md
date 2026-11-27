@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2766-2758-daemon-json-logging/ISSUE.md
-last-updated-utc: "2026-11-27 06:30"
+last-updated-utc: "2026-11-27 06:47"
 ---
 
 # Manual Verification Evidence
@@ -117,3 +117,71 @@ Tracker startup failed: Configured HTTP tracker startup failed. Correct its conf
 #### Observed Result
 
 The failure is reported twice: as an `ERROR` record on stdout, after the startup records, and as a plain-text line on stderr. The exit code is `1`, which fits a runtime failure (decision D5 keeps `1` for it). The stderr line is plain text, not JSON, and the stdout record is not JSON either.
+
+### R1 - Logging installed first: red and green tests, and the recheck of R0b and R0c (first pull request)
+
+- Goal: show that the tests of the new `bootstrap::logging` module and of the instrumentation fail before the change and pass after it, and that the real binary writes the same lines as in R0b and R0c, plus the records of the configuration loading.
+- Status: `DONE` for the first pull request (tasks T2 to T4). The other scenarios of this file belong to the later pull requests.
+
+#### Red
+
+The module was first written as a stub that builds a subscriber without formatters and ignores the configuration (`cargo test --lib bootstrap::logging`):
+
+```text
+test result: FAILED. 4 passed; 9 failed; 0 ignored; 0 measured; 180 filtered out
+```
+
+The four that passed are the ones that expect nothing to be written (no debug record before the configuration, nothing when the filter is off), the mapping of the thresholds and the call of `configure` without an installed logging; the nine failures are the ones that expect a record. After the implementation, one test still failed, because the ANSI colour codes split `answer=42` in the captured text; the test helper now removes them. With the field formatter of the `compact` style temporarily replaced by the one of the `full` style, the test of the fields of a span fails (`left: 2`, `right: 1`: the fields are written twice), which is the reason for the separate field formatter in the module.
+
+The two tests that guard the instrumentation, with the instrumentation as it was (`cargo test --lib bootstrap::app::tests`):
+
+```text
+the span records the fields ["configuration"]
+the span records the fields ["explicit_config_toml_path"]
+test result: FAILED. 2 passed; 2 failed; 0 ignored; 0 measured; 191 filtered out
+```
+
+The configuration appeared as a span field because the logging, now installed first, records the span of `initialize_global_services`: a real run showed the record `Logging initialized` prefixed with `setup{explicit_config_toml_path=Some("tracker.toml")}:initialize_global_services{configuration=Configuration { metadata: …`, the `Debug` form of the whole configuration, which holds the API access tokens.
+
+#### Green
+
+```text
+$ cargo test --lib bootstrap
+test result: ok. 101 passed; 0 failed
+$ cargo test -p torrust-tracker-configuration -p torrust-tracker-udp-server -p torrust-tracker-axum-http-server -p torrust-tracker-axum-rest-api-server -p torrust-tracker-test-helpers -p torrust-tracker-http-core -p torrust-tracker-udp-core
+(every test result: ok, 0 failed)
+$ cargo test --test lifecycle-signals --test lifecycle-shutdown-policy --test lifecycle-fixture-shutdown-assertion --test cli-configuration --test metrics-statistics-disabled-logs --test metrics-port-zero
+test result: ok. (35, 1, 35, 30, 1 and 27 tests) 0 failed
+$ cargo clippy --workspace --all-targets   (no warning)
+$ cargo machete   (nothing unused)
+```
+
+The six root test binaries start the real binary and read its output; they ran with the first code commit and again, with the same results, on the final tree of this pull request (2026-11-27 06:46 UTC).
+
+#### Recheck of the real binary
+
+Same configuration and commands as R0b and R0c, with the binary built from the final tree of this pull request (2026-11-27 06:45 UTC):
+
+```text
+normal run (stopped with SIGTERM, started with `& P=$!` so the exit code is known):
+health=200
+exit=0, stdout 27232 bytes, stderr 0 bytes
+2026-11-27T06:45:04.694309Z  INFO torrust_tracker_configuration: Loading base configuration from explicit configuration file path="tracker.toml"
+2026-11-27T06:45:04.694495Z  INFO torrust_tracker_lib::bootstrap::logging: Logging initialized
+2026-11-27T06:45:04.694512Z  INFO torrust_tracker_lib::bootstrap::app: Configuration:
+2026-11-27T06:45:07.701890Z  INFO torrust_tracker: Torrust tracker shutting down (SIGTERM) ...
+2026-11-27T06:45:07.702096Z  INFO torrust_tracker: Torrust tracker successfully shutdown.
+
+bind failure (127.0.0.1:17071 in use):
+exit=1, stdout 17305 bytes, stderr 290 bytes
+ERROR torrust_tracker: Tracker startup failed error=Configured HTTP tracker startup failed. …
+stderr: Tracker startup failed: Configured HTTP tracker startup failed. …
+
+trace_filter = "off":
+exit=0, stdout 190 bytes, stderr 0 bytes
+2026-11-27T06:45:08.765914Z  INFO torrust_tracker_configuration: Loading base configuration from explicit configuration file path="off.toml"
+```
+
+#### Observed Result
+
+The lines are those of R0b and R0c: same stream (stdout), same `full` style, no span prefix on the records written during the setup (`Logging initialized`, `Configuration:`), the same exit codes (`0` after `SIGTERM`, `1` for the bind failure) and the same double report of the failure. The difference is the first record, `Loading base configuration from explicit configuration file`, which was lost before. With `trace_filter = "off"` that one record is still written, because the level is `info` until the configuration is applied (decision D2); before this change the tracker wrote nothing in that case. Nothing of the configuration, secrets included, appears in a span.
