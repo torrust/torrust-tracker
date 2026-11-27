@@ -57,6 +57,7 @@ Reviews processed: CodeRabbit 6079274055 (F1). Review 6079228215 (claude[bot], f
 
 - 2026-11-26 19:09 UTC - Started audit for CodeRabbit review 6079274055 (one inline finding, F1; the review body has no other actionable assertion).
 - 2026-11-26 19:09 UTC - The commits `test(udp-server): [#2925] keep the database guard in the fixture, after both service bundles` and `docs(issues): [#2925] correct where the udp-server guard lives` were pushed (`git ls-remote` equal to local HEAD) before the reply (19:09:30 UTC, GitHub `created_at`); the thread was resolved after the audit push. The audit record was created after the reply, so this start entry is late.
+- 2026-11-27 11:17 UTC - Correction of the 19:09 UTC entry above, which said the thread "was resolved after the audit push" before that push and the resolution had happened. Order from the data: the commit `docs(pr-reviews): [#2925] add the audit record of the PR 3082 review round` was committed at 2026-11-26T19:09:48Z and pushed after that; the reply on the thread was created at 2026-11-26T19:09:30Z; CodeRabbit then posted its own reply on the same thread at 2026-11-26T19:10:42Z (review 6079350735, an automated reply with no new finding); the thread was resolved by this account after the push. GitHub's thread data exposes no resolution time, so none is stated; `isResolved` was first read as `true` in the refresh that followed. The earlier entry is kept, not rewritten.
 
 ## Completion Rules
 
