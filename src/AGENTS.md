@@ -8,11 +8,12 @@ the bootstrap sequence, and the dependency-injection container. All domain logic
 
 | Path                        | Purpose                                                                                                                                                                                            |
 | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `main.rs`                   | Main binary entry point. Parses `-c` / `--config-toml-path`, starts the app, then calls `app::run_until_shutdown_signal`.                                                                          |
+| `main.rs`                   | Main binary entry point. Installs the logging, parses `-c` / `--config-toml-path`, starts the app, then calls `app::run_until_shutdown_signal`.                                                                          |
 | `lib.rs`                    | Library crate root and crate-level documentation. Re-exports the public API used by integration tests and other binaries.                                                                          |
 | `app.rs`                    | Environment-compatible `start()`, parameterized startup, and `complete_startup()` — orchestrate the full startup sequence; `run_until_shutdown_signal()` runs the shutdown sequence.               |
 | `container.rs`              | `AppContainer` — dependency-injection struct that holds `Arc`-wrapped instances of every per-layer container.                                                                                      |
 | `bootstrap/app.rs`          | `setup()` — receives optional explicit path, loads config, validates it, initializes services, builds `AppContainer`.                                                                              |
+| `bootstrap/logging.rs`      | `install()` installs the logging first thing in the entry point; `configure()` applies `trace_filter` and `trace_style` when the configuration is loaded.                                         |
 | `bootstrap/config.rs`       | `initialize_configuration()` — loads config from an optional explicit path or existing environment/default sources.                                                                                |
 | `bootstrap/jobs/`           | One module per service: each module exposes a starter function called from `app::start_jobs`.                                                                                                      |
 | `bootstrap/jobs/manager.rs` | `JobManager` — directly owns named component futures in a `JoinSet`, issues each component its own `CancellationToken` through `reserve`, and drives graceful shutdown. |
@@ -25,11 +26,12 @@ the bootstrap sequence, and the dependency-injection container. All domain logic
 
 ```text
 main()
+   ├─ bootstrap::logging::install()                           ← first: the logging, at level info
    └─ app::start_with_explicit_config_toml_path()
       ├─ bootstrap::app::setup(explicit_config_toml_path)
       │    ├─ bootstrap::config::initialize_configuration()   ← explicit path / TOML / env vars
       │    ├─ configuration.validate()                        ← returns typed startup errors
-       │    ├─ initialize_global_services()                    ← logging, clock
+       │    ├─ initialize_global_services()                    ← clock; applies the logging configuration
        │    └─ AppContainer::initialize(&configuration)        ← builds all containers and the UDP cookie key
        │
        └─ app::start(&config, &app_container)

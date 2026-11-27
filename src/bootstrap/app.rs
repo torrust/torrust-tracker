@@ -9,7 +9,8 @@
 //!
 //! 1. Load the global application configuration.
 //! 2. Initialize static variables.
-//! 3. Initialize logging.
+//! 3. Apply the logging configuration (the entry point installs the logging before the setup, see
+//!    [`super::logging`]).
 //! 4. Initialize the domain tracker.
 use std::path::PathBuf;
 
