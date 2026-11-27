@@ -52,6 +52,7 @@ Review 6084545579 (`claude[bot]`) has no finding: it only says that automated re
 | F4 | review-finding:pr-3083-f4 | coderabbitai[bot] | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 | F5 | review-finding:pr-3083-f5 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-3083-f6 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-3083-f7 | coderabbitai[bot] | Minor (inferred) | correctness | RE_RAISE_OF:F6 | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -133,6 +134,19 @@ Review 6084545579 (`claude[bot]`) has no finding: it only says that automated re
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3083#discussion_r4716778913
 
+### F7 - The bounded loop still gives no message, and its listener can expire
+
+- PR number: 3083
+- Source review ID: 6084763933
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3083#discussion_r4716667173
+- Concern: Raised in a reply on the thread of F5 (comment 4716742352, review 6084854408), about the head of the F5 fix, so the source is the thread and the review that opened it: the loop prints nothing on success or on timeout, and the 60-second listener can expire before a manually entered tracker command runs; the reviewer asks to report readiness or timeout and to keep the listener alive until the tracker attempt finishes. The comment has no severity; `Minor` is inferred. It requests what F6 requested (an explicit report of a failed wait) and adds the listener lifetime, which the fix for F6 also removes.
+- Solution: Fixed by the change of F6, which was already pushed when the comment was read: the loop and the 60-second listener are replaced by one script that holds the port while it runs the tracker and prints the exit code.
+- Current-tree verification: Same as F6: `grep -c "seq 50" docs/issues/open/2766-2758-daemon-json-logging/manual-verification-evidence.md` prints 0 and `grep -c "subprocess.run"` on the same file prints 1.
+- Resolution reference: docs(issues): [#2766] replace the readiness wait of the reproduction setup with one script that holds the port
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3083#discussion_r4716817327
+
 ## Processing Log
 
 - 2026-11-27 06:53 UTC - Review 6084545579 (`claude[bot]`) arrived; it has no finding.
@@ -156,6 +170,8 @@ Review 6084545579 (`claude[bot]`) has no finding: it only says that automated re
 - 2026-11-27 07:34 UTC - Committed the fix for F6.
 - 2026-11-27 07:38 UTC - Pushed it and replied on the thread of F6.
 - 2026-11-27 07:38 UTC - Added F6 to this record and resolved its thread, whose last comment was my reply. A GraphQL listing shows no unresolved thread.
+- 2026-11-27 07:43 UTC - Read CodeRabbit's reply on the thread of F5 (comment 4716742352, review 6084854408), posted at 07:32 about the head of the F5 fix, after the F6 fix was pushed. Replied on the thread of F5 that the loop and the listener it is about no longer exist (F7, a re-raise of F6). The thread stayed resolved.
+- 2026-11-27 07:44 UTC - Added F7 to this record.
 
 ## Completion Rules
 
