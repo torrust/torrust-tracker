@@ -50,6 +50,7 @@ Review 6084545579 (`claude[bot]`) has no finding: it only says that automated re
 | F2 | review-finding:pr-3083-f2 | coderabbitai[bot] | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-3083-f3 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F4 | review-finding:pr-3083-f4 | coderabbitai[bot] | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F5 | review-finding:pr-3083-f5 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -105,6 +106,19 @@ Review 6084545579 (`claude[bot]`) has no finding: it only says that automated re
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3083#discussion_r4716647035
 
+### F5 - The wait for the listener in the reproduction setup has no limit
+
+- PR number: 3083
+- Source review ID: 6084763933
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3083#discussion_r4716667173
+- Concern: The loop that waits for the listener of R0c to accept a connection waits forever if the listener, which lives for eight seconds, has already ended, for example when a reader types the commands one by one; the reviewer asks to keep the listener alive through the tracker attempt and to stop the wait at a deadline.
+- Solution: The loop is bounded (50 tries of 0.2 seconds, about ten seconds) and the text says to stop and look at the listener if it is not accepting after that. The variant for a reader who types the commands one by one starts a listener that lives for 60 seconds. The recorded runs used the 8-second listener and a one-second pause, which the text keeps and says plainly.
+- Current-tree verification: `grep -n "seq 50" docs/issues/open/2766-2758-daemon-json-logging/manual-verification-evidence.md` finds the bounded loop; `grep -c "until python3"` on the same file prints 0.
+- Resolution reference: docs(issues): [#2766] bound the wait for the listener in the reproduction setup
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3083#discussion_r4716707735
+
 ## Processing Log
 
 - 2026-11-27 06:53 UTC - Review 6084545579 (`claude[bot]`) arrived; it has no finding.
@@ -118,6 +132,12 @@ Review 6084545579 (`claude[bot]`) has no finding: it only says that automated re
 - 2026-11-27 07:15 UTC - Committed the fix for F4.
 - 2026-11-27 07:18 UTC - Pushed it and replied on the thread of F2; a GraphQL listing then showed the thread resolved with my reply as its last comment, and the three threads of this pull request resolved.
 - 2026-11-27 07:19 UTC - Added F4 to this record.
+- 2026-11-27 07:19 UTC - CodeRabbit's reply on the thread of F2 (comment 4716655322, review 6084749816) confirmed the setup fix and asks for nothing more (no row). The poller reported it with the next event.
+- 2026-11-27 07:21 UTC - CodeRabbit's review 6084763933 arrived with F5, on the head of the F4 fix.
+- 2026-11-27 07:23 UTC - Committed the fix for F5.
+- 2026-11-27 07:27 UTC - Pushed it and replied on the thread of F5.
+- 2026-11-27 07:28 UTC - Added F5 to this record.
+- 2026-11-27 07:28 UTC - Resolved the thread of F5, whose last comment was my reply. A GraphQL listing shows no unresolved thread.
 
 ## Completion Rules
 
