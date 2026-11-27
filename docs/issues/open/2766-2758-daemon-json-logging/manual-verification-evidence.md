@@ -43,16 +43,25 @@ tracker_usage_statistics = false
 bind_address = "127.0.0.1:17313"
 ```
 
-The file of `busy` is the same with the database path in `busy` and the ports `17071` (HTTP tracker) and `17314` (health check API). The commands, from the scratch directory, with `B` the path of `target/debug/torrust-tracker`:
+The file of `busy` is the same with the database path in `busy` and the ports `17071` (HTTP tracker) and `17314` (health check API). The commands, from the scratch directory, with `B` the absolute path of `target/debug/torrust-tracker`. The directory is changed in its own command, not in the list that starts the tracker: in `cd ok && $B … &` the `&` applies to the whole list, `$!` is the shell that runs it, and the `kill` stops that shell and leaves the tracker running (this happened with the first run of R0b, which had to be stopped by its process id).
 
 ```text
-$ cd ok && $B -c tracker.toml > out 2> err & P=$!
+$ cd ok
+$ $B -c tracker.toml > out 2> err & P=$!
 $ sleep 3; curl -s -o /dev/null -w "health=%{http_code}\n" http://127.0.0.1:17313/health_check
 $ kill -TERM $P; wait $P; echo "exit=$?"          # only in R1; R0b did not record the exit code
 
 # R0c: a listener holds the port of the HTTP tracker of `busy` for 8 seconds, then the tracker starts
+$ cd ../busy
 $ python3 -c 'import socket,time; s=socket.socket(); s.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1); s.bind(("127.0.0.1",17071)); s.listen(); time.sleep(8)' &
-$ cd busy && timeout 20 $B -c tracker.toml > out 2> err; echo "exit=$?"
+$ sleep 1                                          # what the runs used to let the listener bind
+$ timeout 20 $B -c tracker.toml > out 2> err; echo "exit=$?"
+```
+
+The one-second pause is not a readiness check. To repeat R0c without relying on it, wait until the listener accepts a connection before starting the tracker:
+
+```text
+until python3 -c 'import socket; socket.create_connection(("127.0.0.1",17071),1)' 2>/dev/null; do sleep 0.2; done
 ```
 
 Nothing needs to be cleaned up: the listener ends by itself after 8 seconds and the tracker of R0b and R1 is stopped by the `SIGTERM`.
