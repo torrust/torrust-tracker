@@ -9,7 +9,7 @@ use torrust_info_hash::InfoHash;
 use torrust_server_lib::registar::Registar;
 use torrust_tracker_axum_server::signals::GracefulShutdownOutcome;
 use torrust_tracker_axum_server::tls::make_rust_tls;
-use torrust_tracker_configuration::v3_0_0::{Configuration, logging};
+use torrust_tracker_configuration::v3_0_0::Configuration;
 use torrust_tracker_core::container::TrackerCoreContainer;
 use torrust_tracker_http_core::container::HttpTrackerCoreContainer;
 use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole, peer};
@@ -65,7 +65,7 @@ impl Environment<Stopped> {
     /// configuration.
     #[must_use]
     pub async fn new(configuration: &Arc<Configuration>) -> Self {
-        initialize_global_services(configuration);
+        initialize_static();
 
         let container = Arc::new(EnvContainer::initialize(configuration).await);
 
@@ -272,11 +272,6 @@ impl EnvContainer {
             tracker_http_api_core_container,
         }
     }
-}
-
-fn initialize_global_services(configuration: &Configuration) {
-    initialize_static();
-    logging::setup(&configuration.logging);
 }
 
 fn initialize_static() {

@@ -321,18 +321,13 @@ mod tests {
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
     use torrust_server_lib::registar::{Registar, RegistrationError, ServiceRegistration};
     use torrust_tracker_axum_server::signals::GracefulShutdownOutcome;
-    use torrust_tracker_configuration::v3_0_0::{Configuration, logging};
+    use torrust_tracker_configuration::v3_0_0::Configuration;
     use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
     use torrust_tracker_test_helpers::random;
 
     use crate::server::{ApiServer, CancellationRunning, Error, Launcher, check_fn, check_fn_with_client, health_check_url};
     use crate::test_support::{TEST_DEADLINE, TestApiContainer, api_container, within_deadline};
-
-    fn initialize_global_services(configuration: &Configuration) {
-        initialize_static();
-        logging::setup(&configuration.logging);
-    }
 
     fn initialize_static() {
         torrust_clock::initialize_static();
@@ -406,7 +401,7 @@ mod tests {
     async fn it_should_close_a_plaintext_connection_that_sends_nothing() {
         // Arrange
         let configuration = Arc::new(ephemeral_public());
-        initialize_global_services(&configuration);
+        initialize_static();
         let cancellation_token = CancellationToken::new();
         let (_api, running) = start_plain(&configuration, &Registar::default(), &cancellation_token).await;
         // Cancels the server even if an assertion below panics, so no task outlives the test.
@@ -423,7 +418,7 @@ mod tests {
     async fn it_should_close_a_tls_connection_that_completes_the_handshake_and_sends_nothing() {
         // Arrange
         let configuration = Arc::new(ephemeral_public());
-        initialize_global_services(&configuration);
+        initialize_static();
         install_rustls_crypto_provider();
         let http_api_config = configuration.http_api.as_ref().expect("missing HTTP API configuration");
         let tls = RustlsConfig::from_pem(TEST_CERTIFICATE.to_vec(), TEST_KEY.to_vec())
@@ -473,7 +468,7 @@ mod tests {
     async fn it_should_drain_the_token_aware_rest_api_when_its_cancellation_token_is_cancelled() {
         // Arrange
         let configuration = Arc::new(ephemeral_public());
-        initialize_global_services(&configuration);
+        initialize_static();
         let http_api_config = configuration.http_api.as_ref().expect("missing HTTP API configuration");
         let cancellation_token = CancellationToken::new();
         let (_api, running) = start_plain(&configuration, &Registar::default(), &cancellation_token).await;
@@ -503,7 +498,7 @@ mod tests {
         // it. A second request that completes proves the server has accepted the first connection.
         let configured_drain_timeout = Duration::from_millis(300);
         let configuration = Arc::new(ephemeral_public());
-        initialize_global_services(&configuration);
+        initialize_static();
         let http_api_config = configuration.http_api.as_ref().expect("missing HTTP API configuration");
         let cancellation_token = CancellationToken::new();
         let api = within_deadline(api_container(&configuration)).await;
@@ -564,7 +559,7 @@ mod tests {
             .expect("test configuration enables REST API")
             .bind_address = bind_to;
         let configuration = Arc::new(configuration);
-        initialize_global_services(&configuration);
+        initialize_static();
         let registar = Registar::default();
         registar
             .give_form()
@@ -643,7 +638,7 @@ mod tests {
     async fn it_should_report_a_tls_rest_api_as_healthy_when_the_check_trusts_the_test_certificate() {
         // Arrange
         let configuration = Arc::new(ephemeral_public());
-        initialize_global_services(&configuration);
+        initialize_static();
         install_rustls_crypto_provider();
         let http_api_config = configuration.http_api.as_ref().expect("missing HTTP API configuration");
         let tls = RustlsConfig::from_pem(TEST_CERTIFICATE.to_vec(), TEST_KEY.to_vec())
@@ -694,7 +689,7 @@ mod tests {
     async fn it_should_fail_to_start_with_a_bind_error_when_the_address_is_already_in_use() {
         // Arrange
         let configuration = Arc::new(ephemeral_public());
-        initialize_global_services(&configuration);
+        initialize_static();
         let http_api_config = configuration.http_api.as_ref().expect("missing HTTP API configuration");
         let occupying_listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).expect("select an address to occupy");
         let occupied_address = occupying_listener.local_addr().expect("read the occupied address");
@@ -731,7 +726,7 @@ mod tests {
     async fn it_should_register_the_plain_rest_api_with_an_http_binding_on_the_address_it_serves() {
         // Arrange
         let configuration = ephemeral_public();
-        initialize_global_services(&configuration);
+        initialize_static();
         let registar = Registar::<RuntimeServiceMetadata>::default();
         let cancellation_token = CancellationToken::new();
 
@@ -756,7 +751,7 @@ mod tests {
     async fn it_should_report_a_plain_rest_api_as_healthy_with_the_default_health_check() {
         // Arrange
         let configuration = ephemeral_public();
-        initialize_global_services(&configuration);
+        initialize_static();
         let registar = Registar::<RuntimeServiceMetadata>::default();
         let cancellation_token = CancellationToken::new();
         let (_api, running) = start_plain(&configuration, &registar, &cancellation_token).await;

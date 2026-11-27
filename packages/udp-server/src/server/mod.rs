@@ -54,13 +54,6 @@ where
 
 #[cfg(test)]
 mod tests {
-    use torrust_tracker_configuration::v3_0_0::{Configuration, logging};
-
-    fn initialize_global_services(configuration: &Configuration) {
-        initialize_static();
-        logging::setup(&configuration.logging);
-    }
-
     fn initialize_static() {
         torrust_clock::initialize_static();
     }
@@ -80,7 +73,7 @@ mod tests {
         use torrust_tracker_udp_core::ConnectionIdValidationPolicy;
         use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
 
-        use super::initialize_global_services;
+        use super::initialize_static;
         use crate::container::UdpTrackerServerContainer;
         use crate::server::spawner::Spawner;
         use crate::server::states::CancellationRunning;
@@ -117,7 +110,7 @@ mod tests {
             async fn bound_to(bind_to: SocketAddr) -> Self {
                 let mut configuration = ephemeral_public();
                 configuration.udp_trackers.as_mut().expect("test configuration enables UDP")[0].bind_address = bind_to;
-                initialize_global_services(&configuration);
+                initialize_static();
                 let core_config = Arc::new(configuration.core.clone());
                 let udp_tracker_config =
                     Arc::new(configuration.udp_trackers.as_ref().expect("test configuration enables UDP")[0].clone());
