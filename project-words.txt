@@ -497,6 +497,7 @@ reqwest
 rerequests
 rescope
 retag
+returncode
 reuseaddr
 rfind
 ringbuf

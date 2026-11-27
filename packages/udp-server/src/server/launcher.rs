@@ -474,7 +474,6 @@ mod tests {
     use std::time::Duration;
 
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
-    use torrust_tracker_configuration::v3_0_0::logging;
     use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
     use torrust_tracker_udp_core::ConnectionIdValidationPolicy;
@@ -531,7 +530,6 @@ mod tests {
                     .expect("UDP test configuration should include one tracker"),
             );
             torrust_clock::initialize_static();
-            logging::setup(&configuration.logging);
 
             let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
             let udp_tracker_core_container = UdpTrackerCoreContainer::initialize(

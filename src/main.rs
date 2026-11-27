@@ -3,6 +3,7 @@ use std::process::ExitCode;
 
 use clap::Parser;
 use torrust_tracker_lib::app;
+use torrust_tracker_lib::bootstrap::logging;
 
 /// Command-line arguments accepted by the tracker executable.
 #[derive(Debug, Parser)]
@@ -24,6 +25,8 @@ fn parse_non_empty_path(value: &str) -> Result<PathBuf, String> {
 
 #[tokio::main]
 async fn main() -> ExitCode {
+    logging::install();
+
     let cli = Cli::parse();
 
     match app::start_with_explicit_config_toml_path(cli.config_toml_path).await {

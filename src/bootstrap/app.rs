@@ -9,11 +9,12 @@
 //!
 //! 1. Load the global application configuration.
 //! 2. Initialize static variables.
-//! 3. Initialize logging.
+//! 3. Apply the logging configuration (the entry point installs the logging before the setup, see
+//!    [`super::logging`]).
 //! 4. Initialize the domain tracker.
 use std::path::PathBuf;
 
-use torrust_tracker_configuration::v3_0_0::{Configuration, logging};
+use torrust_tracker_configuration::v3_0_0::Configuration;
 use torrust_tracker_configuration::validator::Validator;
 use tracing::instrument;
 
@@ -50,7 +51,8 @@ pub enum Error {
 ///
 /// Returns a typed error when configuration, validation, or dependency composition fails.
 ///
-#[instrument(skip())]
+// No `#[instrument]`: the logging is installed before the setup runs, so a span of the setup would
+// be recorded and its name (and arguments) would prefix every record written inside it.
 // issue: #2151
 pub async fn setup(explicit_config_toml_path: Option<PathBuf>) -> Result<(Configuration, AppContainer), Error> {
     let configuration = initialize_configuration(explicit_config_toml_path).map_err(|source| Error::Configuration { source })?;
@@ -72,11 +74,13 @@ pub async fn setup(explicit_config_toml_path: Option<PathBuf>) -> Result<(Config
     Ok((configuration, app_container))
 }
 
-/// It initializes the global services.
-#[instrument(skip())]
+/// It initializes the global services: the clock and the logging configuration (the logging itself
+/// is installed by the entry point, see [`super::logging`]).
+// No `#[instrument]`: it would record the configuration, which holds secrets (the API access
+// tokens), as a span field, and its `Debug` form would appear in the records written inside the span.
 pub fn initialize_global_services(configuration: &Configuration) {
     initialize_static();
-    logging::setup(&configuration.logging);
+    super::logging::configure(&configuration.logging);
 }
 
 /// It initializes the application static values.
@@ -94,13 +98,18 @@ pub fn initialize_static() {
 
 #[cfg(test)]
 mod tests {
+    use std::sync::{Arc, Mutex};
+
     use torrust_tracker_configuration::v3_0_0::Configuration;
     use torrust_tracker_configuration::v3_0_0::core::Core;
     use torrust_tracker_configuration::v3_0_0::tracker_api::HttpApi;
     use torrust_tracker_configuration::validator::{SemanticValidationError, Validator};
     use torrust_tracker_primitives::PrivateMode;
+    use torrust_tracker_test_helpers::configuration::ephemeral_public;
+    use tracing_subscriber::Layer;
+    use tracing_subscriber::layer::{Context, SubscriberExt as _};
 
-    use super::Error;
+    use super::{Error, initialize_global_services, setup};
     use crate::bootstrap::persistence::PersistenceRequirementError;
 
     #[test]
@@ -152,5 +161,70 @@ mod tests {
                 source: PersistenceRequirementError::PrivateRequiresDatabase
             })
         ));
+    }
+
+    /// The name of a span and the names of its fields.
+    type SpanRecord = (String, Vec<String>);
+
+    /// Records every span that is created.
+    #[derive(Clone, Default)]
+    struct SpanFields(Arc<Mutex<Vec<SpanRecord>>>);
+
+    impl<S: tracing::Subscriber> Layer<S> for SpanFields {
+        fn on_new_span(&self, attributes: &tracing::span::Attributes<'_>, _id: &tracing::span::Id, _context: Context<'_, S>) {
+            let metadata = attributes.metadata();
+            let fields = metadata.fields().iter().map(|field| field.name().to_owned()).collect();
+
+            self.0
+                .lock()
+                .expect("the record is not poisoned")
+                .push((metadata.name().to_owned(), fields));
+        }
+    }
+
+    #[test]
+    fn it_should_not_record_the_configuration_in_any_span_of_the_global_services_initialization() {
+        // Arrange: the logging is installed before the configuration is loaded, so the spans of
+        // the setup are recorded, and the configuration holds secrets (the API access tokens)
+        let configuration = ephemeral_public();
+        let spans = SpanFields::default();
+        let subscriber = tracing_subscriber::registry().with(spans.clone());
+
+        // Act
+        tracing::subscriber::with_default(subscriber, || initialize_global_services(&configuration));
+
+        // Assert
+        let spans = spans.0.lock().expect("the record is not poisoned").clone();
+        assert!(
+            spans
+                .iter()
+                .all(|(_name, fields)| !fields.iter().any(|field| field == "configuration")),
+            "a span records the configuration: {spans:?}"
+        );
+    }
+
+    #[test]
+    fn it_should_not_record_the_explicit_configuration_path_in_any_span_of_the_setup() {
+        // Arrange
+        let spans = SpanFields::default();
+        let subscriber = tracing_subscriber::registry().with(spans.clone());
+
+        // Act: the setup fails at once, because the file does not exist
+        let result = tracing::subscriber::with_default(subscriber, || {
+            tokio::runtime::Builder::new_current_thread()
+                .build()
+                .expect("a runtime")
+                .block_on(setup(Some(std::path::PathBuf::from("/nonexistent/tracker.toml"))))
+        });
+
+        // Assert
+        assert!(result.is_err());
+        let spans = spans.0.lock().expect("the record is not poisoned").clone();
+        assert!(
+            spans
+                .iter()
+                .all(|(_name, fields)| !fields.iter().any(|field| field == "explicit_config_toml_path")),
+            "a span records the path: {spans:?}"
+        );
     }
 }

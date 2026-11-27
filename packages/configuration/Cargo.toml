@@ -29,7 +29,6 @@ thiserror = "2"
 toml = "1"
 torrust-tracker-primitives = { version = "3.0.0", path = "../primitives" }
 tracing = "0"
-tracing-subscriber = { version = "0", features = [ "json" ] }
 url = "2"
 
 [dev-dependencies]

@@ -9,7 +9,7 @@ github-issue: 2766
 spec-path: docs/issues/open/2766-2758-daemon-json-logging/ISSUE.md
 branch: "2766-daemon-json-logging"
 related-pr: null
-last-updated-utc: "2026-11-26 19:20"
+last-updated-utc: "2026-11-27 11:20"
 semantic-links:
   skill-links:
     - create-issue
@@ -89,7 +89,7 @@ D1, D2, D4, D6 and D8 become one ADR (task T2).
 
 ### In Scope
 
-- **Logging setup (D2, D3).** A public install function in `torrust_tracker_lib` that `main` calls before argument parsing; a level and a log-record style that are set after the configuration is loaded; `initialize_global_services` sets them and does nothing when no subscriber is installed. Remove `setup` and `tracing_init` from `v3_0_0/logging.rs` and `v2_0_0/logging.rs`, delete `packages/configuration/src/logging.rs`, and remove `tracing-subscriber` from `packages/configuration/Cargo.toml`. The tests of `udp-server`, `axum-http-server` and `axum-rest-api-server` that called the removed function use `torrust_tracker_test_helpers::logging::setup()`; the `testing` environment of `axum-rest-api-server` stops installing logging.
+- **Logging setup (D2, D3).** A public install function in `torrust_tracker_lib` that `main` calls before argument parsing; a level and a log-record style that are set after the configuration is loaded; `initialize_global_services` sets them and does nothing when no subscriber is installed. Remove `setup` and `tracing_init` from `v3_0_0/logging.rs` and `v2_0_0/logging.rs`, delete `packages/configuration/src/logging.rs`, and remove `tracing-subscriber` from `packages/configuration/Cargo.toml`. The tests of `udp-server`, `axum-http-server` and `axum-rest-api-server` that called the removed function no longer call it, and neither does the `testing` environment of `axum-rest-api-server`: all of them used a configuration with `trace_filter = "off"`, for which the function did nothing, so replacing the call with `torrust_tracker_test_helpers::logging::setup()` (which would install a global subscriber) would have changed what these tests do. `setup` and the initialization of the global services are not `#[instrument]`ed any more: with the logging installed before them, their spans would be recorded, the span of the initialization would record the whole configuration (with the API access tokens), and the span names would prefix every record written inside them.
 - **Formatter (D4, D8, D9).** A JSON formatter in its own module, depending only on `tracing`, `tracing-subscriber` and `serde_json`, with the reserved-key rule and one place to add a per-record field. All output on stderr, no ANSI codes in any style.
 - **Default (D1).** `trace_style` defaults to `json`. The default configs under `share/default/config/` and the config that `tests/common/native_tracker/command.rs` writes do not set a text style.
 - **Startup failure (D5).** One `startup_failure` record instead of the two reports of today, with the `exit_code` it returns. The `startup_failure`, `usage_error`, `help` and `panic` records are built by the formatter code and written to stderr directly, so `trace_filter` never hides them (D1). `exit_code()` on `app::Error` and `bootstrap::app::Error`, one unit test per variant.
@@ -98,7 +98,7 @@ D1, D2, D4, D6 and D8 become one ADR (task T2).
 - **The other entry points.** `packages/hung-component-tracker/src/main.rs` and `src/console/profiling.rs` use the same install function and failure report, and stop using `eprintln!`.
 - **Readers.** `src/console/ci/e2e/logs_parser.rs` and its tests parse JSON records (`target`, `level`, `message`); `Docker::logs` in `src/console/ci/e2e/docker.rs` returns the container's stderr (or both streams) and its tests follow. `tests/common/native_tracker/health.rs` reads `target` and `message` from the JSON record for both the HTTP and the UDP reader. `tests/lifecycle/shutdown_policy.rs` reads the `timeout_seconds` key (four assertions). `packages/hung-component-tracker/tests/common/mod.rs` and the other lifecycle tests are checked and changed only if they fail.
 - **Root tests that pin today's behavior.** `tests/configuration/cli_configuration/invalid_sources.rs` (lines 60, 76, 92, 109, 127) asserts exit `1` through `STARTUP_FAILURE_EXIT_CODE` (`tests/common/native_tracker/failed_start.rs:21`) and becomes exit `2` for configuration failures; its usage-error cases (lines 28, 44) keep exit `2` and assert the JSON record.
-- **Test helpers.** `packages/test-helpers/src/logging.rs` keeps working and keeps its plain-text captures; `setup` stops importing `TraceStyle`.
+- **Test helpers.** `packages/test-helpers/src/logging.rs` keeps working and keeps its plain-text captures; `setup` no longer takes the trace style it never changed.
 - **Docs (D7).** `docs/logging.md`, the review of the documents listed in `decisions.md` (D7), the rustdoc of the configuration and of `logs_parser.rs`, `docs/index.md`, and the ADR.
 - **Follow-ups filed as issues by this issue (T10).** Move `tracker_client` to the D4 record shape and create the shared crate.
 
@@ -156,9 +156,9 @@ The issue is delivered as several pull requests of this one issue: the tasks are
 | --- | ------ | ---- | -- | ----------------------- |
 | T0 | DONE | Refresh this spec against `develop` | spec | Dependencies, Background, Scope and file references corrected (2026-11-26). |
 | T1 | DONE | Agree the migration detail with the maintainer | spec | `decisions.md` (D1 to D9), summary in section Decisions. |
-| T2 | TODO | Write the ADR | 1 | ADR created with `create-adr`. The binary table of the contract ADR is not edited here (EPIC issue 11, #2770, updates the daemon's row). |
-| T3 | TODO | Record the real-artifact reproduction of a normal run and a bind failure | 1 | `manual-verification-evidence.md` R0 completed (it has only the configuration and argument cases). |
-| T4 | TODO | Move the logging setup to the application and install it first (D2, D3) | 1 | Tests first. Same text output and stream as today; "Loading … configuration" records now visible; configuration crate without `tracing-subscriber`; the other entry points and the package tests follow. |
+| T2 | DONE | Write the ADR | 1 | ADR created with `create-adr`. The binary table of the contract ADR is not edited here (EPIC issue 11, #2770, updates the daemon's row). |
+| T3 | DONE | Record the real-artifact reproduction of a normal run and a bind failure | 1 | `manual-verification-evidence.md` R0 completed (it has only the configuration and argument cases). |
+| T4 | DONE | Move the logging setup to the application and install it first (D2, D3) | 1 | Tests first. Same text output and stream as today; "Loading … configuration" records now visible; configuration crate without `tracing-subscriber`; the other entry points and the package tests follow. |
 | T5 | TODO | JSON formatter, stderr, no colour codes, `json` default (D1, D4, D8, D9), with the readers | 2 | Tests first. `logs_parser.rs`, `Docker::logs`, `health.rs`, `shutdown_policy.rs` and the default configs change in the same pull request. |
 | T6 | TODO | Startup-failure record and exit codes (D5) | 3 | Tests first. One record, `exit_code()` mapping, `invalid_sources.rs` to exit `2`. |
 | T7 | TODO | Argument errors and help as JSON; panic hook (D6) | 3 | Tests first. |
@@ -214,6 +214,7 @@ For the test-producing tasks (T4 to T7), use the `write-unit-test` skill and wor
 - 2026-11-24 13:23 UTC - Claude Code (Claude Opus 5.5) - Recorded the maintainer's decision of 2026-11-24: this issue waits only for SI-1 of EPIC #2387, and moves today's log readers to JSON (section Dependencies, task T0).
 - 2026-11-26 17:09 UTC - Claude Code (Claude Opus 5.5, then Fable 5.2) - T0 and T1: refreshed the spec against `develop` (#3004 closed, #2387 SI-1 merged, references corrected, new readers and callers added) and recorded the maintainer's decisions D1 to D9 in `decisions.md`; the plan is now four pull requests.
 - 2026-11-26 19:20 UTC - Claude Code (Fable 5.2) - Addressed the first review round on PR 3081 (CodeRabbit and da2ce7, twelve findings, audit in `docs/pr-reviews/pr-3081-review/PR-REVIEW.md`): a panic that unwinds out of `main` exits `1`; the records that are not log records ignore `trace_filter`; the collision rule of the formatter is complete; the binary table of the contract ADR is left to issue #2770; three example records corrected.
+- 2026-11-27 06:46 UTC - Claude Code (Sonnet 5.5) - First pull request of the issue (tasks T2 to T4): the ADR, the reproduction of a normal run and a bind failure, and the move of the logging setup to the tracker application, which installs it first. The output of the `full` style (the default) is unchanged, except that the records of the configuration loading are now written and that `Logging initialized` has the target of its new module; in the other styles those first records are written in the `full` style until the second pull request (the wording "the output of every style is unchanged" of the first version of this entry was wrong, as the review of the pull request showed). The evidence is in `manual-verification-evidence.md` (R0b, R0c, R1, R1b).
 
 ## Acceptance Criteria
 

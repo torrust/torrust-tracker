@@ -5009,6 +5009,7 @@ dependencies = [
  "base64 0.23.1",
  "chrono",
  "clap",
+ "log",
  "nix",
  "pbkdf2",
  "rand 0.10.4",
@@ -5048,6 +5049,7 @@ dependencies = [
  "torrust-tracker-udp-protocol",
  "torrust-tracker-udp-server",
  "tracing",
+ "tracing-log",
  "tracing-subscriber",
  "url",
 ]
@@ -5259,7 +5261,6 @@ dependencies = [
  "toml 1.2.3+spec-1.1.0",
  "torrust-tracker-primitives",
  "tracing",
- "tracing-subscriber",
  "url",
 ]
 

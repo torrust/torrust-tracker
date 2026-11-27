@@ -1,16 +1,12 @@
-//! Logging configuration and setup for `v3_0_0`.
+//! Logging configuration for `v3_0_0`.
 //!
 //! Contains the `Logging` configuration struct, the `Threshold` level enum,
-//! the `TraceStyle` enum, and the `setup()` / `tracing_init()` helpers.
+//! and the `TraceStyle` enum. This module only describes the logging configuration: the tracker
+//! application installs the logging and applies the configuration (`torrust_tracker_lib::bootstrap::logging`).
 //!
 //! **Field type convention**: use typed newtypes for fields with domain constraints —
 //! not `String` or other unvalidated primitives. See [`crate::v3_0_0::public_url`].
-use std::sync::Once;
-
 use serde::{Deserialize, Serialize};
-use tracing::level_filters::LevelFilter;
-
-static INIT: Once = Once::new();
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 #[serde(deny_unknown_fields)]
@@ -61,46 +57,6 @@ pub enum Threshold {
     Trace,
 }
 
-/// Redirects log output to stdout using the configured filter and style.
-pub fn setup(cfg: &Logging) {
-    let tracing_level = map_to_tracing_level_filter(&cfg.trace_filter);
-
-    if tracing_level == LevelFilter::OFF {
-        return;
-    }
-
-    INIT.call_once(|| {
-        tracing_init(tracing_level, &cfg.trace_style);
-    });
-}
-
-const fn map_to_tracing_level_filter(trace_filter: &Threshold) -> LevelFilter {
-    match trace_filter {
-        Threshold::Off => LevelFilter::OFF,
-        Threshold::Error => LevelFilter::ERROR,
-        Threshold::Warn => LevelFilter::WARN,
-        Threshold::Info => LevelFilter::INFO,
-        Threshold::Debug => LevelFilter::DEBUG,
-        Threshold::Trace => LevelFilter::TRACE,
-    }
-}
-
-fn tracing_init(filter: LevelFilter, style: &TraceStyle) {
-    let builder = tracing_subscriber::fmt()
-        .with_max_level(filter)
-        .with_ansi(true)
-        .with_test_writer();
-
-    let () = match style {
-        TraceStyle::Full => builder.init(),
-        TraceStyle::Pretty => builder.pretty().with_file(false).init(),
-        TraceStyle::Compact => builder.compact().init(),
-        TraceStyle::Json => builder.json().init(),
-    };
-
-    tracing::info!("Logging initialized");
-}
-
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 #[serde(rename_all = "lowercase")]
 pub enum TraceStyle {
@@ -129,9 +85,7 @@ impl std::fmt::Display for TraceStyle {
 
 #[cfg(test)]
 mod tests {
-    use tracing::level_filters::LevelFilter;
-
-    use super::{Logging, Threshold, TraceStyle, map_to_tracing_level_filter};
+    use super::{Logging, Threshold, TraceStyle};
 
     #[test]
     fn it_should_use_info_and_full_as_the_default_logging_configuration() {
@@ -188,17 +142,5 @@ mod tests {
 
         // Assert
         assert!(result.is_err());
-    }
-
-    #[test]
-    fn it_should_map_the_trace_filter_to_the_corresponding_tracing_level() {
-        // Arrange
-        let trace_filter = Threshold::Warn;
-
-        // Act
-        let tracing_level = map_to_tracing_level_filter(&trace_filter);
-
-        // Assert
-        assert_eq!(tracing_level, LevelFilter::WARN);
     }
 }

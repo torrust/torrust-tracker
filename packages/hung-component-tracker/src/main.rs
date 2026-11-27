@@ -15,6 +15,7 @@ use std::process::ExitCode;
 use clap::Parser;
 use torrust_tracker_lib::app;
 use torrust_tracker_lib::bootstrap::jobs::manager::ComponentResult;
+use torrust_tracker_lib::bootstrap::logging;
 
 /// The name the supervisor logs for the component that never stops.
 const HUNG_COMPONENT: &str = "hung_component";
@@ -31,6 +32,8 @@ struct Cli {
 
 #[tokio::main]
 async fn main() -> ExitCode {
+    logging::install();
+
     let cli = Cli::parse();
 
     match app::start_with_explicit_config_toml_path(cli.config_toml_path).await {

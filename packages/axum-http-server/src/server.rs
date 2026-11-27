@@ -358,8 +358,8 @@ mod tests {
     };
     use torrust_tracker_axum_server::signals::GracefulShutdownOutcome;
     use torrust_tracker_axum_server::tls::make_rust_tls;
+    use torrust_tracker_configuration::v3_0_0::Configuration;
     use torrust_tracker_configuration::v3_0_0::shutdown::Shutdown;
-    use torrust_tracker_configuration::v3_0_0::{Configuration, logging};
     use torrust_tracker_core::container::TrackerCoreContainer;
     use torrust_tracker_http_core::container::HttpTrackerCoreContainer;
     use torrust_tracker_http_core::event::bus::EventBus;
@@ -481,11 +481,6 @@ mod tests {
         }
     }
 
-    fn initialize_global_services(configuration: &Configuration) {
-        initialize_static();
-        logging::setup(&configuration.logging);
-    }
-
     fn initialize_static() {
         torrust_clock::initialize_static();
     }
@@ -556,7 +551,7 @@ mod tests {
         }
 
         async fn container(&self) -> Arc<HttpTrackerCoreContainer> {
-            initialize_global_services(&self.configuration);
+            initialize_static();
             Arc::new(initialize_container(&self.configuration).await)
         }
 
@@ -610,7 +605,7 @@ mod tests {
         }
 
         async fn container(&self) -> Arc<HttpTrackerCoreContainer> {
-            initialize_global_services(&self.configuration);
+            initialize_static();
             Arc::new(initialize_container(&self.configuration).await)
         }
 

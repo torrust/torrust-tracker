@@ -1,0 +1,667 @@
+//! Installs the logging of the tracker process and applies its configuration.
+//!
+//! The logging is installed first thing in `main`, before the arguments are parsed and the
+//! configuration is loaded, so that every record of the process has one writer, including the
+//! records of the configuration loading. When the configuration is loaded, [`configure`] sets the
+//! level (`trace_filter`) and the style (`trace_style`) of the records.
+//!
+//! The decision is recorded in
+//! `docs/adrs/20261127063102_write_the_daemon_logs_as_json_on_stderr_by_default.md`.
+//!
+//! # How a style change stays safe
+//!
+//! `tracing-subscriber` stores the fields of every span in the span itself, in a form that depends on
+//! the formatter, and the `pretty` and `json` formatters panic when a span that is still open was
+//! created without it. The configuration is applied inside the spans of the application setup, so
+//! replacing the formatter at that point would panic for those two styles. Instead, one layer
+//! (`StyleLayers`) holds a formatter for every style. Until the style is applied it tells all of
+//! them about every span and writes the events in the `full` style; from then on it tells only the
+//! formatter of the applied style, which already knows the spans that are open, so a span is
+//! formatted once, as with a single formatter. Each formatter has its own field formatter, so the
+//! fields of a span are neither missing nor repeated. The style is applied once.
+use std::sync::atomic::{AtomicU8, Ordering};
+use std::sync::{Arc, OnceLock};
+
+use torrust_tracker_configuration::v3_0_0::logging::{Logging, Threshold, TraceStyle};
+use tracing::level_filters::LevelFilter;
+use tracing::span::{Attributes, Id, Record};
+use tracing::{Event, Subscriber};
+use tracing_subscriber::field::RecordFields;
+use tracing_subscriber::fmt::format::{DefaultFields, FormatFields, Writer};
+use tracing_subscriber::fmt::writer::BoxMakeWriter;
+use tracing_subscriber::fmt::{self, TestWriter};
+use tracing_subscriber::layer::{Context, SubscriberExt as _};
+use tracing_subscriber::registry::LookupSpan;
+use tracing_subscriber::util::SubscriberInitExt as _;
+use tracing_subscriber::{Layer, Registry, reload};
+
+/// The position of every style in [`StyleLayers`].
+const FULL: u8 = 0;
+const PRETTY: u8 = 1;
+const COMPACT: u8 = 2;
+const JSON: u8 = 3;
+/// The style is not applied yet: the records are written in the `full` style.
+const STYLE_NOT_APPLIED: u8 = u8::MAX;
+
+const fn style_position(trace_style: &TraceStyle) -> u8 {
+    match trace_style {
+        TraceStyle::Full => FULL,
+        TraceStyle::Pretty => PRETTY,
+        TraceStyle::Compact => COMPACT,
+        TraceStyle::Json => JSON,
+    }
+}
+
+/// Formats the fields of a span for the `compact` style.
+///
+/// It formats like [`DefaultFields`], which the `full` style uses too, but it is another type, so
+/// the fields of a span are stored once for each of the two styles instead of being shared and
+/// appended twice when a span records a value.
+#[derive(Default)]
+struct CompactFields(DefaultFields);
+
+impl<'writer> FormatFields<'writer> for CompactFields {
+    fn format_fields<R: RecordFields>(&self, writer: Writer<'writer>, fields: R) -> std::fmt::Result {
+        self.0.format_fields(writer, fields)
+    }
+}
+
+type BoxedLayer<S> = Box<dyn Layer<S> + Send + Sync + 'static>;
+
+/// A layer with a formatter for every style that writes each event in the active style.
+struct StyleLayers<S> {
+    layers: [BoxedLayer<S>; 4],
+    active: Arc<AtomicU8>,
+}
+
+impl<S> StyleLayers<S>
+where
+    S: Subscriber + for<'span> LookupSpan<'span>,
+{
+    fn new(make_writer: &impl Fn() -> BoxMakeWriter, active: Arc<AtomicU8>) -> Self {
+        let full = fmt::layer().with_ansi(true).with_writer(make_writer()).boxed();
+        let pretty = fmt::layer()
+            .with_ansi(true)
+            .with_writer(make_writer())
+            .pretty()
+            .with_file(false)
+            .boxed();
+        let compact = fmt::layer()
+            .fmt_fields(CompactFields::default())
+            .with_ansi(true)
+            .with_writer(make_writer())
+            .compact()
+            .boxed();
+        let json = fmt::layer().with_ansi(true).with_writer(make_writer()).json().boxed();
+
+        Self::from_layers([full, pretty, compact, json], active)
+    }
+
+    fn from_layers(layers: [BoxedLayer<S>; 4], active: Arc<AtomicU8>) -> Self {
+        Self { layers, active }
+    }
+}
+
+impl<S> StyleLayers<S> {
+    /// The layers that are told about spans: all of them until the style is applied, so that the
+    /// style that is applied later knows the spans that are open at that moment, and only the
+    /// active one afterwards, so that a span is formatted once, as with a single formatter.
+    fn span_layers(&self) -> &[BoxedLayer<S>] {
+        match self.active.load(Ordering::Relaxed) {
+            STYLE_NOT_APPLIED => &self.layers,
+            active => self.layers.get(usize::from(active)).map_or(&[], std::slice::from_ref),
+        }
+    }
+
+    /// The layer that writes the events: the `full` style until the style is applied.
+    fn event_layer(&self) -> Option<&BoxedLayer<S>> {
+        let position = match self.active.load(Ordering::Relaxed) {
+            STYLE_NOT_APPLIED => FULL,
+            active => active,
+        };
+
+        self.layers.get(usize::from(position))
+    }
+}
+
+impl<S> Layer<S> for StyleLayers<S>
+where
+    S: Subscriber + for<'span> LookupSpan<'span>,
+{
+    fn on_new_span(&self, attributes: &Attributes<'_>, id: &Id, context: Context<'_, S>) {
+        for layer in self.span_layers() {
+            layer.on_new_span(attributes, id, context.clone());
+        }
+    }
+
+    fn on_record(&self, id: &Id, values: &Record<'_>, context: Context<'_, S>) {
+        for layer in self.span_layers() {
+            layer.on_record(id, values, context.clone());
+        }
+    }
+
+    fn on_enter(&self, id: &Id, context: Context<'_, S>) {
+        for layer in self.span_layers() {
+            layer.on_enter(id, context.clone());
+        }
+    }
+
+    fn on_exit(&self, id: &Id, context: Context<'_, S>) {
+        for layer in self.span_layers() {
+            layer.on_exit(id, context.clone());
+        }
+    }
+
+    fn on_close(&self, id: Id, context: Context<'_, S>) {
+        for layer in self.span_layers() {
+            layer.on_close(id.clone(), context.clone());
+        }
+    }
+
+    fn on_event(&self, event: &Event<'_>, context: Context<'_, S>) {
+        if let Some(layer) = self.event_layer() {
+            layer.on_event(event, context);
+        }
+    }
+}
+
+/// The handles that change the logging of the installed subscriber.
+struct Controls {
+    level: reload::Handle<LevelFilter, Registry>,
+    style: Arc<AtomicU8>,
+}
+
+impl Controls {
+    /// Sets the level and the style of the records from the configuration.
+    ///
+    /// The style is applied once: after that, only its formatter knows the spans, so another style
+    /// could not format the spans that are open. A later call changes the level only.
+    fn apply(&self, logging: &Logging) {
+        let style = style_position(&logging.trace_style);
+        let applied = match self
+            .style
+            .compare_exchange(STYLE_NOT_APPLIED, style, Ordering::Relaxed, Ordering::Relaxed)
+        {
+            Ok(_not_applied) => style,
+            Err(applied) => applied,
+        };
+
+        if let Err(error) = self.level.reload(map_to_tracing_level_filter(&logging.trace_filter)) {
+            tracing::warn!(%error, "Could not change the trace filter");
+        }
+
+        if applied != style {
+            tracing::warn!(
+                trace_style = %logging.trace_style,
+                "The trace style was already applied and cannot change while the process runs"
+            );
+        }
+
+        tracing::info!("Logging initialized");
+    }
+}
+
+/// Builds the subscriber of the tracker process and the controls that change it.
+///
+/// It starts at level `info`, in the `full` style. `make_writer` is called once for every style,
+/// and every record is written to the writer of its style.
+fn build(make_writer: impl Fn() -> BoxMakeWriter) -> (impl Subscriber + Send + Sync + 'static, Controls) {
+    let (level_layer, level) = reload::Layer::new(LevelFilter::INFO);
+    let style = Arc::new(AtomicU8::new(STYLE_NOT_APPLIED));
+    let style_layers = StyleLayers::new(&make_writer, Arc::clone(&style));
+
+    let subscriber = tracing_subscriber::registry().with(level_layer).with(style_layers);
+
+    (subscriber, Controls { level, style })
+}
+
+static INSTALLED: OnceLock<Controls> = OnceLock::new();
+
+/// Installs the logging of the process, writing to the same stream as the tracker always has
+/// (standard output). It does nothing when a subscriber is already installed.
+pub fn install() {
+    let (subscriber, controls) = build(|| BoxMakeWriter::new(TestWriter::default));
+
+    // `try_init` also sends the records of the `log` crate, which some dependencies use, to the
+    // subscriber, with the level of this moment (`info`) as their maximum. Changing the level later
+    // raises or lowers that maximum too: `reload::Handle::reload` sets it after every reload.
+    if subscriber.try_init().is_ok() {
+        drop(INSTALLED.set(controls));
+    }
+}
+
+/// Applies the logging configuration. It does nothing when [`install`] did not install the logging,
+/// as in the tests that start the application in the same process.
+pub fn configure(logging: &Logging) {
+    if let Some(controls) = INSTALLED.get() {
+        controls.apply(logging);
+    }
+}
+
+const fn map_to_tracing_level_filter(trace_filter: &Threshold) -> LevelFilter {
+    match trace_filter {
+        Threshold::Off => LevelFilter::OFF,
+        Threshold::Error => LevelFilter::ERROR,
+        Threshold::Warn => LevelFilter::WARN,
+        Threshold::Info => LevelFilter::INFO,
+        Threshold::Debug => LevelFilter::DEBUG,
+        Threshold::Trace => LevelFilter::TRACE,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::io;
+    use std::sync::atomic::{AtomicU8, AtomicUsize, Ordering};
+    use std::sync::{Arc, Mutex};
+
+    use torrust_tracker_configuration::v3_0_0::logging::{Logging, Threshold, TraceStyle};
+    use tracing::Subscriber;
+    use tracing::level_filters::LevelFilter;
+    use tracing::span::{Attributes, Id};
+    use tracing_subscriber::Layer;
+    use tracing_subscriber::fmt::writer::BoxMakeWriter;
+    use tracing_subscriber::layer::{Context, SubscriberExt as _};
+
+    use super::{COMPACT, Controls, FULL, STYLE_NOT_APPLIED, StyleLayers, build, configure, map_to_tracing_level_filter};
+
+    /// The bytes that the subscriber of a test writes.
+    #[derive(Clone, Default)]
+    struct Captured(Arc<Mutex<Vec<u8>>>);
+
+    impl io::Write for Captured {
+        fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+            self.0.lock().expect("the capture is not poisoned").extend_from_slice(buf);
+            Ok(buf.len())
+        }
+
+        fn flush(&mut self) -> io::Result<()> {
+            Ok(())
+        }
+    }
+
+    impl Captured {
+        fn make_writer(&self) -> BoxMakeWriter {
+            let sink = self.clone();
+            BoxMakeWriter::new(move || sink.clone())
+        }
+
+        /// The text written, without the ANSI colour codes that the text styles add.
+        fn text(&self) -> String {
+            let written =
+                String::from_utf8(self.0.lock().expect("the capture is not poisoned").clone()).expect("the capture is UTF-8");
+
+            let mut text = String::new();
+            let mut characters = written.chars();
+            while let Some(character) = characters.next() {
+                if character == '\u{1b}' {
+                    // An escape sequence ends with the letter that follows `ESC [` and its parameters.
+                    for escaped in characters.by_ref() {
+                        if escaped.is_ascii_alphabetic() {
+                            break;
+                        }
+                    }
+                } else {
+                    text.push(character);
+                }
+            }
+            text
+        }
+
+        fn lines(&self) -> Vec<String> {
+            self.text().lines().map(str::to_owned).collect()
+        }
+    }
+
+    fn logging(trace_filter: Threshold, trace_style: TraceStyle) -> Logging {
+        Logging {
+            trace_filter,
+            trace_style,
+        }
+    }
+
+    /// Runs `scenario` with a fresh subscriber of the tracker and returns what it wrote.
+    fn written_by(scenario: impl FnOnce(&Controls)) -> Captured {
+        let captured = Captured::default();
+        let (subscriber, controls) = build(|| captured.make_writer());
+
+        tracing::subscriber::with_default(subscriber, || scenario(&controls));
+
+        captured
+    }
+
+    #[test]
+    fn it_should_write_the_info_records_before_the_configuration_is_applied() {
+        // Arrange: nothing applied yet
+        // Act
+        let captured = written_by(|_controls| tracing::info!("a record before the configuration"));
+
+        // Assert
+        assert!(
+            captured.text().contains("a record before the configuration"),
+            "written: {}",
+            captured.text()
+        );
+    }
+
+    #[test]
+    fn it_should_not_write_the_debug_records_before_the_configuration_is_applied() {
+        // Arrange: nothing applied yet
+        // Act
+        let captured = written_by(|_controls| tracing::debug!("a debug record before the configuration"));
+
+        // Assert
+        assert!(captured.text().is_empty(), "written: {}", captured.text());
+    }
+
+    #[test]
+    fn it_should_apply_the_trace_filter_of_the_configuration() {
+        // Arrange
+        let configuration = logging(Threshold::Error, TraceStyle::Full);
+
+        // Act
+        let captured = written_by(|controls| {
+            controls.apply(&configuration);
+            tracing::info!("an info record");
+            tracing::error!("an error record");
+        });
+
+        // Assert
+        let text = captured.text();
+        assert!(text.contains("an error record"), "written: {text}");
+        assert!(!text.contains("an info record"), "written: {text}");
+    }
+
+    #[test]
+    fn it_should_write_the_debug_records_when_the_configuration_asks_for_them() {
+        // Arrange
+        let configuration = logging(Threshold::Debug, TraceStyle::Full);
+
+        // Act
+        let captured = written_by(|controls| {
+            controls.apply(&configuration);
+            tracing::debug!("a debug record");
+        });
+
+        // Assert
+        assert!(captured.text().contains("a debug record"), "written: {}", captured.text());
+    }
+
+    #[test]
+    fn it_should_write_nothing_when_the_trace_filter_is_off() {
+        // Arrange
+        let configuration = logging(Threshold::Off, TraceStyle::Full);
+
+        // Act
+        let captured = written_by(|controls| {
+            controls.apply(&configuration);
+            tracing::error!("an error record");
+        });
+
+        // Assert
+        assert!(captured.text().is_empty(), "written: {}", captured.text());
+    }
+
+    #[test]
+    fn it_should_write_the_span_and_its_fields_before_the_message_in_the_full_style() {
+        // Arrange
+        let configuration = logging(Threshold::Info, TraceStyle::Full);
+
+        // Act
+        let captured = written_by(|controls| {
+            controls.apply(&configuration);
+            let span = tracing::info_span!("outer", answer = 42);
+            let _entered = span.enter();
+            tracing::info!("a text record");
+        });
+
+        // Assert: only the `full` style writes `span{field=value}:` before the target and the message
+        let lines = captured.lines();
+        let line = lines
+            .iter()
+            .find(|line| line.contains("a text record"))
+            .expect("the record is written");
+        assert!(line.contains("outer{answer=42}: "), "written: {line}");
+    }
+
+    #[test]
+    fn it_should_pass_the_debug_records_of_the_log_crate_when_the_configuration_asks_for_them() {
+        // Arrange: the bridge of the `log` crate as `install` leaves it, with `info` as its maximum
+        drop(tracing_log::LogTracer::init_with_filter(log::LevelFilter::Info));
+        let configuration = logging(Threshold::Debug, TraceStyle::Full);
+
+        // Act
+        let captured = written_by(|controls| {
+            controls.apply(&configuration);
+            log::debug!("a debug record of the log crate");
+        });
+
+        // Assert
+        assert!(
+            captured.text().contains("a debug record of the log crate"),
+            "written: {}",
+            captured.text()
+        );
+    }
+
+    #[test]
+    fn it_should_not_warn_when_the_style_is_applied_for_the_first_time() {
+        // Arrange
+        let configuration = logging(Threshold::Info, TraceStyle::Compact);
+
+        // Act
+        let captured = written_by(|controls| controls.apply(&configuration));
+
+        // Assert
+        assert!(!captured.text().contains("WARN"), "written: {}", captured.text());
+    }
+
+    #[test]
+    fn it_should_warn_when_a_second_configuration_asks_for_another_style() {
+        // Arrange
+        let first = logging(Threshold::Info, TraceStyle::Full);
+        let second = logging(Threshold::Info, TraceStyle::Compact);
+
+        // Act
+        let captured = written_by(|controls| {
+            controls.apply(&first);
+            controls.apply(&second);
+        });
+
+        // Assert
+        assert!(
+            captured.text().contains("The trace style was already applied"),
+            "written: {}",
+            captured.text()
+        );
+    }
+
+    #[test]
+    fn it_should_keep_the_first_style_when_a_second_configuration_asks_for_another() {
+        // Arrange
+        let first = logging(Threshold::Info, TraceStyle::Full);
+        let second = logging(Threshold::Info, TraceStyle::Json);
+
+        // Act
+        let captured = written_by(|controls| {
+            controls.apply(&first);
+            controls.apply(&second);
+            tracing::info!("a record after the second configuration");
+        });
+
+        // Assert
+        let lines = captured.lines();
+        let line = lines
+            .iter()
+            .find(|line| line.contains("a record after the second configuration"))
+            .expect("the record is written");
+        assert!(!line.starts_with('{'), "written: {line}");
+    }
+
+    /// Counts the spans a layer is told about.
+    struct CountingLayer(Arc<AtomicUsize>);
+
+    impl<S: Subscriber> Layer<S> for CountingLayer {
+        fn on_new_span(&self, _attributes: &Attributes<'_>, _id: &Id, _context: Context<'_, S>) {
+            self.0.fetch_add(1, Ordering::Relaxed);
+        }
+    }
+
+    /// The number of layers of the four styles that are told about one new span.
+    fn layers_told_about_a_new_span(active: u8) -> usize {
+        let told = Arc::new(AtomicUsize::new(0));
+        let layers = [(); 4].map(|()| CountingLayer(Arc::clone(&told)).boxed());
+        let style_layers = StyleLayers::from_layers(layers, Arc::new(AtomicU8::new(active)));
+        let subscriber = tracing_subscriber::registry().with(style_layers);
+
+        tracing::subscriber::with_default(subscriber, || drop(tracing::info_span!("a span")));
+
+        told.load(Ordering::Relaxed)
+    }
+
+    #[test]
+    fn it_should_tell_every_style_about_a_span_created_before_the_style_is_known() {
+        // Arrange, Act
+        let told = layers_told_about_a_new_span(STYLE_NOT_APPLIED);
+
+        // Assert
+        assert_eq!(told, 4);
+    }
+
+    #[test]
+    fn it_should_tell_only_the_active_style_about_a_span_created_after_the_style_is_applied() {
+        for active in [FULL, COMPACT] {
+            // Act
+            let told = layers_told_about_a_new_span(active);
+
+            // Assert
+            assert_eq!(told, 1, "active style {active}");
+        }
+    }
+
+    #[test]
+    fn it_should_write_json_records_when_the_configuration_asks_for_the_json_style() {
+        // Arrange
+        let configuration = logging(Threshold::Info, TraceStyle::Json);
+
+        // Act
+        let captured = written_by(|controls| {
+            controls.apply(&configuration);
+            tracing::info!("a json record");
+        });
+
+        // Assert
+        let lines = captured.lines();
+        let line = lines
+            .iter()
+            .find(|line| line.contains("a json record"))
+            .expect("the record is written");
+        let record: serde_json::Value = serde_json::from_str(line).expect("the record is a JSON object");
+        assert_eq!(record["fields"]["message"], "a json record");
+    }
+
+    /// The style changes while a span that was created before the change is open.
+    fn written_when_the_style_changes_inside_an_open_span(trace_style: TraceStyle) -> Captured {
+        let configuration = logging(Threshold::Info, trace_style);
+
+        written_by(|controls| {
+            let span = tracing::info_span!("outer");
+            let _entered = span.enter();
+
+            controls.apply(&configuration);
+            tracing::info!("a record inside the span");
+        })
+    }
+
+    #[test]
+    fn it_should_keep_writing_when_the_style_changes_to_pretty_inside_an_open_span() {
+        // Arrange and Act
+        let captured = written_when_the_style_changes_inside_an_open_span(TraceStyle::Pretty);
+
+        // Assert
+        assert!(
+            captured.text().contains("a record inside the span"),
+            "written: {}",
+            captured.text()
+        );
+    }
+
+    #[test]
+    fn it_should_keep_writing_when_the_style_changes_to_json_inside_an_open_span() {
+        // Arrange and Act
+        let captured = written_when_the_style_changes_inside_an_open_span(TraceStyle::Json);
+
+        // Assert
+        assert!(
+            captured.text().contains("a record inside the span"),
+            "written: {}",
+            captured.text()
+        );
+    }
+
+    #[test]
+    fn it_should_keep_writing_when_the_style_changes_to_compact_inside_an_open_span() {
+        // Arrange and Act
+        let captured = written_when_the_style_changes_inside_an_open_span(TraceStyle::Compact);
+
+        // Assert
+        assert!(
+            captured.text().contains("a record inside the span"),
+            "written: {}",
+            captured.text()
+        );
+    }
+
+    #[test]
+    fn it_should_write_the_fields_that_a_span_recorded_after_its_creation_once() {
+        // Arrange
+        let configuration = logging(Threshold::Info, TraceStyle::Compact);
+
+        // Act
+        let captured = written_by(|controls| {
+            controls.apply(&configuration);
+            let span = tracing::info_span!("outer", answer = tracing::field::Empty);
+            span.record("answer", 42);
+            let _entered = span.enter();
+            tracing::info!("a record inside the span");
+        });
+
+        // Assert
+        let lines = captured.lines();
+        let line = lines
+            .iter()
+            .find(|line| line.contains("a record inside the span"))
+            .expect("the record is written");
+        assert_eq!(line.matches("answer=42").count(), 1, "written: {line}");
+    }
+
+    #[test]
+    fn it_should_map_every_threshold_to_its_tracing_level() {
+        // Arrange
+        let expected = [
+            (Threshold::Off, LevelFilter::OFF),
+            (Threshold::Error, LevelFilter::ERROR),
+            (Threshold::Warn, LevelFilter::WARN),
+            (Threshold::Info, LevelFilter::INFO),
+            (Threshold::Debug, LevelFilter::DEBUG),
+            (Threshold::Trace, LevelFilter::TRACE),
+        ];
+
+        for (threshold, level) in expected {
+            // Act
+            let mapped = map_to_tracing_level_filter(&threshold);
+
+            // Assert
+            assert_eq!(mapped, level, "threshold {threshold:?}");
+        }
+    }
+
+    #[test]
+    fn it_should_ignore_the_configuration_when_the_logging_was_not_installed() {
+        // Arrange: the unit tests never install the global subscriber
+        let configuration = logging(Threshold::Trace, TraceStyle::Json);
+
+        // Act and Assert: nothing to change, and no panic
+        configure(&configuration);
+    }
+}
