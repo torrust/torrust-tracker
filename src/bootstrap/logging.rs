@@ -222,6 +222,9 @@ static INSTALLED: OnceLock<Controls> = OnceLock::new();
 pub fn install() {
     let (subscriber, controls) = build(|| BoxMakeWriter::new(TestWriter::default));
 
+    // `try_init` also sends the records of the `log` crate, which some dependencies use, to the
+    // subscriber, with the level of this moment (`info`) as their maximum. Changing the level later
+    // raises or lowers that maximum too: `reload::Handle::reload` sets it after every reload.
     if subscriber.try_init().is_ok() {
         drop(INSTALLED.set(controls));
     }
@@ -419,6 +422,26 @@ mod tests {
             .find(|line| line.contains("a text record"))
             .expect("the record is written");
         assert!(line.contains("outer{answer=42}: "), "written: {line}");
+    }
+
+    #[test]
+    fn it_should_pass_the_debug_records_of_the_log_crate_when_the_configuration_asks_for_them() {
+        // Arrange: the bridge of the `log` crate as `install` leaves it, with `info` as its maximum
+        drop(tracing_log::LogTracer::init_with_filter(log::LevelFilter::Info));
+        let configuration = logging(Threshold::Debug, TraceStyle::Full);
+
+        // Act
+        let captured = written_by(|controls| {
+            controls.apply(&configuration);
+            log::debug!("a debug record of the log crate");
+        });
+
+        // Assert
+        assert!(
+            captured.text().contains("a debug record of the log crate"),
+            "written: {}",
+            captured.text()
+        );
     }
 
     #[test]

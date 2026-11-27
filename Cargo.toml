@@ -129,6 +129,7 @@ tracing = "0"
 tracing-subscriber = { version = "0", features = [ "json" ] }
 
 [dev-dependencies]
+log = "0.4"
 tokio = { version = "1", features = [ "test-util" ] }
 torrust-info-hash = "=0.2.0"
 torrust-net-primitives = "0.1.0"
@@ -138,6 +139,7 @@ torrust-tracker-http-protocol = { version = "0.1.0", path = "packages/http-proto
 torrust-tracker-primitives = { version = "3.0.0", path = "packages/primitives", features = [ "testing" ] }
 torrust-tracker-test-helpers = { version = "3.0.0", path = "packages/test-helpers" }
 torrust-tracker-udp-protocol = { version = "0.1.0", path = "packages/udp-protocol" }
+tracing-log = "0.2"
 url = { version = "2", features = [ "serde" ] }
 
 [target.'cfg(unix)'.dev-dependencies]
