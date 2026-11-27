@@ -49,6 +49,7 @@ Review 6084545579 (`claude[bot]`) has no finding: it only says that automated re
 | F1 | review-finding:pr-3083-f1 | coderabbitai[bot] | Minor | link-integrity | ORIGINAL | FIXED | RESOLVED |
 | F2 | review-finding:pr-3083-f2 | coderabbitai[bot] | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-3083-f3 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F4 | review-finding:pr-3083-f4 | coderabbitai[bot] | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -91,6 +92,19 @@ Review 6084545579 (`claude[bot]`) has no finding: it only says that automated re
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3083#discussion_r4716571879
 
+### F4 - The commands that start and stop the tracker in the reproduction setup are wrong
+
+- PR number: 3083
+- Source review ID: 6084598281
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3083#discussion_r4716532334
+- Concern: Raised in a reply on the thread of F2 (comment 4716605638, review 6084688285), so the source is the thread and the review that opened it. In `cd ok && $B … & P=$!` the `&` applies to the whole list, so `$!` is the shell and `kill` stops it and leaves the tracker running; the reviewer asks for `exec` or a separate `cd`, an absolute path for the binary, and a readiness check for the listener of R0c. The comment has no severity; `Minor` is inferred from the reviewer's other comments on the setup.
+- Solution: The setup changes the directory in its own command and starts the tracker with `$B -c tracker.toml > out 2> err & P=$!`, with `B` absolute; this is the form the recheck of R1 used, and the text explains why the other form is wrong and that the first run of R0b hit it. The pause that the runs used for the listener stays, marked as not a readiness check, and a loop that waits until the listener accepts a connection is added.
+- Current-tree verification: `grep -n "cd ok && " docs/issues/open/2766-2758-daemon-json-logging/manual-verification-evidence.md` finds only the sentence that explains the wrong form; `grep -c "until python3"` on the same file finds the readiness loop.
+- Resolution reference: docs(issues): [#2766] correct the commands that start and stop the tracker in the reproduction setup
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3083#discussion_r4716647035
+
 ## Processing Log
 
 - 2026-11-27 06:53 UTC - Review 6084545579 (`claude[bot]`) arrived; it has no finding.
@@ -99,6 +113,11 @@ Review 6084545579 (`claude[bot]`) has no finding: it only says that automated re
 - 2026-11-27 07:06 UTC - Replied on the three threads of F1 to F3.
 - 2026-11-27 07:07 UTC - A GraphQL listing showed the three threads resolved, each with my reply as its last comment.
 - 2026-11-27 07:07 UTC - Created this record from the template. It was started after the replies were posted, not before the first reply as `process-pr-review` requires; the late start is logged here.
+- 2026-11-27 07:09 UTC - CodeRabbit's review 6084666893 arrived: a reply on the thread of F1 that confirms the ADR fix and asks for nothing more (no row).
+- 2026-11-27 07:12 UTC - CodeRabbit's review 6084688285 arrived: a reply on the thread of F2 with F4.
+- 2026-11-27 07:15 UTC - Committed the fix for F4.
+- 2026-11-27 07:18 UTC - Pushed it and replied on the thread of F2; a GraphQL listing then showed the thread resolved with my reply as its last comment, and the three threads of this pull request resolved.
+- 2026-11-27 07:19 UTC - Added F4 to this record.
 
 ## Completion Rules
 
