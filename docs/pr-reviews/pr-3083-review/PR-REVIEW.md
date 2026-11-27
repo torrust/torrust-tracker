@@ -53,6 +53,15 @@ Review 6084545579 (`claude[bot]`) has no finding: it only says that automated re
 | F5 | review-finding:pr-3083-f5 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-3083-f6 | coderabbitai[bot] | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F7 | review-finding:pr-3083-f7 | coderabbitai[bot] | Minor (inferred) | correctness | RE_RAISE_OF:F6 | FIXED | RESOLVED |
+| F8 | review-finding:pr-3083-f8 | da2ce7 | Major | documentation | ORIGINAL | FIXED | RESOLVED |
+| F9 | review-finding:pr-3083-f9 | da2ce7 | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-3083-f10 | da2ce7 | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-3083-f11 | da2ce7 | Minor | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-3083-f12 | da2ce7 | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F13 | review-finding:pr-3083-f13 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-3083-f14 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-3083-f15 | da2ce7 | Nit | testing | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-3083-f16 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -141,11 +150,128 @@ Review 6084545579 (`claude[bot]`) has no finding: it only says that automated re
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3083#discussion_r4716667173
 - Concern: Raised in a reply on the thread of F5 (comment 4716742352, review 6084854408), about the head of the F5 fix, so the source is the thread and the review that opened it: the loop prints nothing on success or on timeout, and the 60-second listener can expire before a manually entered tracker command runs; the reviewer asks to report readiness or timeout and to keep the listener alive until the tracker attempt finishes. The comment has no severity; `Minor` is inferred. It requests what F6 requested (an explicit report of a failed wait) and adds the listener lifetime, which the fix for F6 also removes.
-- Solution: Fixed by the change of F6, which was already pushed when the comment was read: the loop and the 60-second listener are replaced by one script that holds the port while it runs the tracker and prints the exit code.
+- Solution: Fixed by the change of F6, which was already pushed when the comment was read: the loop and the 60-second listener are replaced by one script that holds the port while it runs the tracker and prints the exit code. The reply opens with the `Superseded by F6` form because no change was made for this comment; the row is `FIXED` because the concern is fixed in the tree, by F6 (F12).
 - Current-tree verification: Same as F6: `grep -c "seq 50" docs/issues/open/2766-2758-daemon-json-logging/manual-verification-evidence.md` prints 0 and `grep -c "subprocess.run"` on the same file prints 1.
 - Resolution reference: docs(issues): [#2766] replace the readiness wait of the reproduction setup with one script that holds the port
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3083#discussion_r4716817327
+
+### F8 - The generated summary block of the description claims behavior this head does not ship
+
+- PR number: 3083
+- Source review ID: 6087228439
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3083#discussion_r4718633051
+- Concern: The block "Summary by CodeRabbit" at the end of the description lists JSON on stderr and JSON failure records as new features; this head ships neither, and the merge tool copies the description into the merge commit.
+- Solution: The block, which CodeRabbit appended, is removed from the description, and the description ends with a paragraph saying what this pull request does not change. The fix is outside the tree. CodeRabbit may append the block again, so the description is checked before every hand-over, and the maintainer is told, because the setting and the merge tool are his.
+- Current-tree verification: `gh pr view 3083 --json body` after the edit: `grep -c "Summary by CodeRabbit"` on the body prints 0.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3083#discussion_r4718795006
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3083#discussion_r4718795006
+
+### F9 - The log crate maximum is said to stay at info after the configuration is applied
+
+- PR number: 3083
+- Source review ID: 6087228439
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3083#discussion_r4718633062
+- Concern: `try_init` installs the bridge of the `log` crate with the level of that moment (`info`), and `Controls::apply` was said never to raise it, so `trace_filter = "debug"` would drop the `log` records of dependencies; no test could catch it.
+- Solution: The behavior was already right: `reload::Handle::reload` sets the maximum of the `log` crate after every reload (`tracing-subscriber` 0.3.23, `reload.rs`, function `modify`). Checked by running: `log::max_level()` reads `Debug` after `debug` is applied over a bridge installed at `info`. No production code changed except a comment at `try_init`. The test the reviewer suggested is added and pins the dependency behavior; `log` and `tracing-log` are development dependencies.
+- Current-tree verification: `cargo test --lib bootstrap::logging` passes 19 tests, among them `it_should_pass_the_debug_records_of_the_log_crate_when_the_configuration_asks_for_them`.
+- Resolution reference: test(bootstrap): [#2766] pin that a level change also reaches the records of the log crate
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3083#discussion_r4718795360
+
+### F10 - The claim that the lines of every style are unchanged does not hold
+
+- PR number: 3083
+- Source review ID: 6087228439
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3083#discussion_r4718633069
+- Concern: The records written before the configuration is applied use the `full` formatter whatever `trace_style` says, so a `json` stream now opens with a text line and `pretty` and `compact` gain a line in another layout; `Logging initialized` has a new target; the recheck ran `full` only. The claim is in the evidence, the description, the progress log of `ISSUE.md` and a commit body.
+- Solution: The evidence limits the comparison to `full`, names the new target, and has a section R1b with a run of the four styles. The progress-log entry and the description are corrected. The commit body stays, because history is kept; this record says it was wrong.
+- Current-tree verification: `grep -n "R1b" docs/issues/open/2766-2758-daemon-json-logging/manual-verification-evidence.md` finds the section; `grep -c "The lines are those of R0b and R0c"` on the same file prints 0.
+- Resolution reference: docs(issues): [#2766] record the four styles after the logging is installed first and correct the claim of unchanged output
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3083#discussion_r4718795708
+
+### F11 - Every span is formatted by four formatters, also on the request path, without a measurement
+
+- PR number: 3083
+- Source review ID: 6087228439
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3083#discussion_r4718633081
+- Concern: All four layers were told about every span for the whole life of the process, so each span stored its fields four times; the UDP request path opens several `info` spans per request and the benchmark configuration would not show the cost.
+- Solution: The reviewer's second option: until the style is applied every formatter is told; from then on only the applied one. The style is applied once, and a later, different style is refused with a warning. Tests cover both phases, the kept first style, and that the first application does not warn (a run of the real binary showed the first version warned on every start).
+- Current-tree verification: `cargo test --lib bootstrap::logging` passes the tests `it_should_tell_every_style_about_a_span_created_before_the_style_is_known` and `it_should_tell_only_the_active_style_about_a_span_created_after_the_style_is_applied`; the four-style run of R1b has no warning record.
+- Resolution reference: perf(bootstrap): [#2766] tell only the applied style about the spans created after it is applied
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3083#discussion_r4718796075
+
+### F12 - The row of F7 and the reply it cites disagree on the disposition
+
+- PR number: 3083
+- Source review ID: 6087228439
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3083#discussion_r4718633087
+- Concern: The row of F7 is `FIXED` / `RESOLVED` while its reply opens with the `Superseded by` form that the skill pairs with `NO_ACTION` / `SUPERSEDED`.
+- Solution: The row keeps `FIXED` / `RESOLVED` as a re-raise of F6, and its detail entry now says why the reply uses the other form.
+- Current-tree verification: The detail entry of F7 in this file ends its Solution with the sentence that explains the reply form.
+- Resolution reference: docs(pr-reviews): [#2766] record the review of da2ce7 on pull request 3083
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3083#discussion_r4718796424
+
+### F13 - Two live specs still cite the logging setup that this change deletes
+
+- PR number: 3083
+- Source review ID: 6087228439
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3083#discussion_r4718633096
+- Concern: `docs/issues/open/2993-secrets-and-client-error-text/EPIC.md` and `docs/issues/drafts/2387-si-22-run-id-on-every-record/ISSUE.md` cite `packages/configuration/src/logging.rs` and the crate's `setup`.
+- Solution: Each has a sentence, next to the old text, saying the setup moved to `src/bootstrap/logging.rs` and the file is deleted.
+- Current-tree verification: `grep -c "src/bootstrap/logging.rs"` prints 1 for each of the two files.
+- Resolution reference: docs(issues): [#2766] note in two live specs that the logging setup moved to the tracker application
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3083#discussion_r4718796760
+
+### F14 - The bootstrap docs still say the setup initializes the logging
+
+- PR number: 3083
+- Source review ID: 6087228439
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3083#discussion_r4718633100
+- Concern: The module doc of `src/bootstrap/app.rs` ("3. Initialize logging.") and the Bootstrap Flow of `src/AGENTS.md` describe the old order.
+- Solution: The module doc says step 3 applies the logging configuration; `src/AGENTS.md` shows `bootstrap::logging::install()` first under `main()`, the new role of `initialize_global_services()`, and a file-map row for `bootstrap/logging.rs`.
+- Current-tree verification: `grep -n "logging::install" src/AGENTS.md` finds the line of the flow; `grep -c "3. Initialize logging" src/bootstrap/app.rs` prints 0.
+- Resolution reference: docs(bootstrap): [#2766] show in the bootstrap docs that the entry point installs the logging
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3083#discussion_r4718797103
+
+### F15 - The test named for the full style only checks that the line is not JSON
+
+- PR number: 3083
+- Source review ID: 6087228439
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3083#discussion_r4718633105
+- Concern: `!line.starts_with('{')` also holds for `compact` and `pretty`.
+- Solution: The test writes the record inside a span with a field and asserts `outer{answer=42}:` before the message, which only `full` writes.
+- Current-tree verification: `grep -n "it_should_write_the_span_and_its_fields_before_the_message_in_the_full_style" src/bootstrap/logging.rs` finds the test.
+- Resolution reference: test(bootstrap): [#2766] assert the layout that only the full style writes
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3083#discussion_r4718797410
+
+### F16 - The quoted red output is not what the committed tests print
+
+- PR number: 3083
+- Source review ID: 6087228439
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3083#discussion_r4718633110
+- Concern: The evidence quoted the messages of an earlier wording of the two instrumentation tests.
+- Solution: The block quotes the current output, taken by restoring the instrumentation, and a sentence gives the earlier wording.
+- Current-tree verification: `grep -c "a span records the configuration" docs/issues/open/2766-2758-daemon-json-logging/manual-verification-evidence.md` prints 1.
+- Resolution reference: docs(issues): [#2766] record the four styles after the logging is installed first and correct the claim of unchanged output
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3083#discussion_r4718797878
 
 ## Processing Log
 
@@ -172,6 +298,16 @@ Review 6084545579 (`claude[bot]`) has no finding: it only says that automated re
 - 2026-11-27 07:38 UTC - Added F6 to this record and resolved its thread, whose last comment was my reply. A GraphQL listing shows no unresolved thread.
 - 2026-11-27 07:43 UTC - Read CodeRabbit's reply on the thread of F5 (comment 4716742352, review 6084854408), posted at 07:32 about the head of the F5 fix, after the F6 fix was pushed. Replied on the thread of F5 that the loop and the listener it is about no longer exist (F7, a re-raise of F6). The thread stayed resolved.
 - 2026-11-27 07:44 UTC - Added F7 to this record.
+- 2026-11-27 07:44 UTC - The maintainer commented `ACK` on the head before the F7 row.
+- 2026-11-27 08:42 UTC - Pushed the F7 row, after the maintainer chose that over merging without it.
+- 2026-11-27 11:08 UTC - da2ce7's review 6087228439 arrived (changes requested) with F8 to F16.
+- 2026-11-27 11:18 UTC - Committed the code fixes for F11, F15 and F9, after a first attempt that the pre-commit hook refused for the nightly import formatting.
+- 2026-11-27 11:21 UTC - Edited the pull request description (F8, F10).
+- 2026-11-27 11:22 UTC - Committed the documentation fixes for F14, F13, F10 and F16.
+- 2026-11-27 11:25 UTC - Pushed the six fix commits.
+- 2026-11-27 11:26 UTC - Replied on the nine threads of F8 to F16.
+- 2026-11-27 11:27 UTC - Added F8 to F16 to this record.
+- 2026-11-27 11:28 UTC - Resolved the nine threads of F8 to F16, each with my reply as its last comment. A GraphQL listing shows no unresolved thread.
 
 ## Completion Rules
 
