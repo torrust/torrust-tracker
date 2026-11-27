@@ -14,9 +14,11 @@
 //! the formatter, and the `pretty` and `json` formatters panic when a span that is still open was
 //! created without it. The configuration is applied inside the spans of the application setup, so
 //! replacing the formatter at that point would panic for those two styles. Instead, one layer
-//! (`StyleLayers`) holds a formatter for every style, tells all of them about every span, and sends
-//! each event to the formatter of the active style. Each formatter has its own field formatter, so
-//! the fields of a span are neither missing nor repeated.
+//! (`StyleLayers`) holds a formatter for every style. Until the style is applied it tells all of
+//! them about every span and writes the events in the `full` style; from then on it tells only the
+//! formatter of the applied style, which already knows the spans that are open, so a span is
+//! formatted once, as with a single formatter. Each formatter has its own field formatter, so the
+//! fields of a span are neither missing nor repeated. The style is applied once.
 use std::sync::atomic::{AtomicU8, Ordering};
 use std::sync::{Arc, OnceLock};
 
@@ -38,6 +40,8 @@ const FULL: u8 = 0;
 const PRETTY: u8 = 1;
 const COMPACT: u8 = 2;
 const JSON: u8 = 3;
+/// The style is not applied yet: the records are written in the `full` style.
+const STYLE_NOT_APPLIED: u8 = u8::MAX;
 
 const fn style_position(trace_style: &TraceStyle) -> u8 {
     match trace_style {
@@ -90,10 +94,33 @@ where
             .boxed();
         let json = fmt::layer().with_ansi(true).with_writer(make_writer()).json().boxed();
 
-        Self {
-            layers: [full, pretty, compact, json],
-            active,
+        Self::from_layers([full, pretty, compact, json], active)
+    }
+
+    fn from_layers(layers: [BoxedLayer<S>; 4], active: Arc<AtomicU8>) -> Self {
+        Self { layers, active }
+    }
+}
+
+impl<S> StyleLayers<S> {
+    /// The layers that are told about spans: all of them until the style is applied, so that the
+    /// style that is applied later knows the spans that are open at that moment, and only the
+    /// active one afterwards, so that a span is formatted once, as with a single formatter.
+    fn span_layers(&self) -> &[BoxedLayer<S>] {
+        match self.active.load(Ordering::Relaxed) {
+            STYLE_NOT_APPLIED => &self.layers,
+            active => self.layers.get(usize::from(active)).map_or(&[], std::slice::from_ref),
         }
+    }
+
+    /// The layer that writes the events: the `full` style until the style is applied.
+    fn event_layer(&self) -> Option<&BoxedLayer<S>> {
+        let position = match self.active.load(Ordering::Relaxed) {
+            STYLE_NOT_APPLIED => FULL,
+            active => active,
+        };
+
+        self.layers.get(usize::from(position))
     }
 }
 
@@ -102,37 +129,37 @@ where
     S: Subscriber + for<'span> LookupSpan<'span>,
 {
     fn on_new_span(&self, attributes: &Attributes<'_>, id: &Id, context: Context<'_, S>) {
-        for layer in &self.layers {
+        for layer in self.span_layers() {
             layer.on_new_span(attributes, id, context.clone());
         }
     }
 
     fn on_record(&self, id: &Id, values: &Record<'_>, context: Context<'_, S>) {
-        for layer in &self.layers {
+        for layer in self.span_layers() {
             layer.on_record(id, values, context.clone());
         }
     }
 
     fn on_enter(&self, id: &Id, context: Context<'_, S>) {
-        for layer in &self.layers {
+        for layer in self.span_layers() {
             layer.on_enter(id, context.clone());
         }
     }
 
     fn on_exit(&self, id: &Id, context: Context<'_, S>) {
-        for layer in &self.layers {
+        for layer in self.span_layers() {
             layer.on_exit(id, context.clone());
         }
     }
 
     fn on_close(&self, id: Id, context: Context<'_, S>) {
-        for layer in &self.layers {
+        for layer in self.span_layers() {
             layer.on_close(id.clone(), context.clone());
         }
     }
 
     fn on_event(&self, event: &Event<'_>, context: Context<'_, S>) {
-        if let Some(layer) = self.layers.get(usize::from(self.active.load(Ordering::Relaxed))) {
+        if let Some(layer) = self.event_layer() {
             layer.on_event(event, context);
         }
     }
@@ -146,11 +173,28 @@ struct Controls {
 
 impl Controls {
     /// Sets the level and the style of the records from the configuration.
+    ///
+    /// The style is applied once: after that, only its formatter knows the spans, so another style
+    /// could not format the spans that are open. A later call changes the level only.
     fn apply(&self, logging: &Logging) {
-        self.style.store(style_position(&logging.trace_style), Ordering::Relaxed);
+        let style = style_position(&logging.trace_style);
+        let applied = match self
+            .style
+            .compare_exchange(STYLE_NOT_APPLIED, style, Ordering::Relaxed, Ordering::Relaxed)
+        {
+            Ok(_not_applied) => style,
+            Err(applied) => applied,
+        };
 
         if let Err(error) = self.level.reload(map_to_tracing_level_filter(&logging.trace_filter)) {
             tracing::warn!(%error, "Could not change the trace filter");
+        }
+
+        if applied != style {
+            tracing::warn!(
+                trace_style = %logging.trace_style,
+                "The trace style was already applied and cannot change while the process runs"
+            );
         }
 
         tracing::info!("Logging initialized");
@@ -163,7 +207,7 @@ impl Controls {
 /// and every record is written to the writer of its style.
 fn build(make_writer: impl Fn() -> BoxMakeWriter) -> (impl Subscriber + Send + Sync + 'static, Controls) {
     let (level_layer, level) = reload::Layer::new(LevelFilter::INFO);
-    let style = Arc::new(AtomicU8::new(FULL));
+    let style = Arc::new(AtomicU8::new(STYLE_NOT_APPLIED));
     let style_layers = StyleLayers::new(&make_writer, Arc::clone(&style));
 
     let subscriber = tracing_subscriber::registry().with(level_layer).with(style_layers);
@@ -205,13 +249,18 @@ const fn map_to_tracing_level_filter(trace_filter: &Threshold) -> LevelFilter {
 #[cfg(test)]
 mod tests {
     use std::io;
+    use std::sync::atomic::{AtomicU8, AtomicUsize, Ordering};
     use std::sync::{Arc, Mutex};
 
     use torrust_tracker_configuration::v3_0_0::logging::{Logging, Threshold, TraceStyle};
+    use tracing::Subscriber;
     use tracing::level_filters::LevelFilter;
+    use tracing::span::{Attributes, Id};
+    use tracing_subscriber::Layer;
     use tracing_subscriber::fmt::writer::BoxMakeWriter;
+    use tracing_subscriber::layer::{Context, SubscriberExt as _};
 
-    use super::{Controls, build, configure, map_to_tracing_level_filter};
+    use super::{COMPACT, Controls, FULL, STYLE_NOT_APPLIED, StyleLayers, build, configure, map_to_tracing_level_filter};
 
     /// The bytes that the subscriber of a test writes.
     #[derive(Clone, Default)]
@@ -368,6 +417,101 @@ mod tests {
             .find(|line| line.contains("a text record"))
             .expect("the record is written");
         assert!(!line.starts_with('{'), "written: {line}");
+    }
+
+    #[test]
+    fn it_should_not_warn_when_the_style_is_applied_for_the_first_time() {
+        // Arrange
+        let configuration = logging(Threshold::Info, TraceStyle::Compact);
+
+        // Act
+        let captured = written_by(|controls| controls.apply(&configuration));
+
+        // Assert
+        assert!(!captured.text().contains("WARN"), "written: {}", captured.text());
+    }
+
+    #[test]
+    fn it_should_warn_when_a_second_configuration_asks_for_another_style() {
+        // Arrange
+        let first = logging(Threshold::Info, TraceStyle::Full);
+        let second = logging(Threshold::Info, TraceStyle::Compact);
+
+        // Act
+        let captured = written_by(|controls| {
+            controls.apply(&first);
+            controls.apply(&second);
+        });
+
+        // Assert
+        assert!(
+            captured.text().contains("The trace style was already applied"),
+            "written: {}",
+            captured.text()
+        );
+    }
+
+    #[test]
+    fn it_should_keep_the_first_style_when_a_second_configuration_asks_for_another() {
+        // Arrange
+        let first = logging(Threshold::Info, TraceStyle::Full);
+        let second = logging(Threshold::Info, TraceStyle::Json);
+
+        // Act
+        let captured = written_by(|controls| {
+            controls.apply(&first);
+            controls.apply(&second);
+            tracing::info!("a record after the second configuration");
+        });
+
+        // Assert
+        let lines = captured.lines();
+        let line = lines
+            .iter()
+            .find(|line| line.contains("a record after the second configuration"))
+            .expect("the record is written");
+        assert!(!line.starts_with('{'), "written: {line}");
+    }
+
+    /// Counts the spans a layer is told about.
+    struct CountingLayer(Arc<AtomicUsize>);
+
+    impl<S: Subscriber> Layer<S> for CountingLayer {
+        fn on_new_span(&self, _attributes: &Attributes<'_>, _id: &Id, _context: Context<'_, S>) {
+            self.0.fetch_add(1, Ordering::Relaxed);
+        }
+    }
+
+    /// The number of layers of the four styles that are told about one new span.
+    fn layers_told_about_a_new_span(active: u8) -> usize {
+        let told = Arc::new(AtomicUsize::new(0));
+        let layers = [(); 4].map(|()| CountingLayer(Arc::clone(&told)).boxed());
+        let style_layers = StyleLayers::from_layers(layers, Arc::new(AtomicU8::new(active)));
+        let subscriber = tracing_subscriber::registry().with(style_layers);
+
+        tracing::subscriber::with_default(subscriber, || drop(tracing::info_span!("a span")));
+
+        told.load(Ordering::Relaxed)
+    }
+
+    #[test]
+    fn it_should_tell_every_style_about_a_span_created_before_the_style_is_known() {
+        // Arrange, Act
+        let told = layers_told_about_a_new_span(STYLE_NOT_APPLIED);
+
+        // Assert
+        assert_eq!(told, 4);
+    }
+
+    #[test]
+    fn it_should_tell_only_the_active_style_about_a_span_created_after_the_style_is_applied() {
+        for active in [FULL, COMPACT] {
+            // Act
+            let told = layers_told_about_a_new_span(active);
+
+            // Assert
+            assert_eq!(told, 1, "active style {active}");
+        }
     }
 
     #[test]
