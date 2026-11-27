@@ -61,7 +61,7 @@ SI-16 puts `run_id` on the start line. To find the lines of a run an operator st
 
 The EPIC coordinator compared this draft with the code at `develop` `6a058dd4d` on 2026-11-24. Nothing changed since the draft was written; these are cases the draft did not name. The session that completes the draft checks each one and decides how its specification uses it.
 
-- The `run_id` is generated in the root crate (SI-16), and the formatter lives in `packages/configuration`, so its `setup(&Logging)` needs an API change. Two more setups exist: `packages/configuration/src/logging.rs` (v2) and `packages/test-helpers/src/logging.rs:19-36`.
+- The `run_id` is generated in the root crate (SI-16), and the formatter lives in `packages/configuration`, so its `setup(&Logging)` needs an API change. Two more setups exist: `packages/configuration/src/logging.rs` (v2) and `packages/test-helpers/src/logging.rs:19-36`. Since the first pull request of issue #2766 this is no longer so: the formatter and its setup live in the root crate (`src/bootstrap/logging.rs`), the configuration crate has no `setup`, and `packages/configuration/src/logging.rs` is deleted.
 - #2766's specification reserves a per-record field hook for this issue.
 
 ## Architectural Decisions
