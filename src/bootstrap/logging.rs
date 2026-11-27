@@ -14,7 +14,7 @@
 //! the formatter, and the `pretty` and `json` formatters panic when a span that is still open was
 //! created without it. The configuration is applied inside the spans of the application setup, so
 //! replacing the formatter at that point would panic for those two styles. Instead, one layer
-//! ([`StyleLayers`]) holds a formatter for every style, tells all of them about every span, and sends
+//! (`StyleLayers`) holds a formatter for every style, tells all of them about every span, and sends
 //! each event to the formatter of the active style. Each formatter has its own field formatter, so
 //! the fields of a span are neither missing nor repeated.
 use std::sync::atomic::{AtomicU8, Ordering};
