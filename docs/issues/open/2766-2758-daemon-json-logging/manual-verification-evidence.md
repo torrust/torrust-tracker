@@ -58,13 +58,16 @@ $ sleep 1                                          # what the runs used to let t
 $ timeout 20 $B -c tracker.toml > out 2> err; echo "exit=$?"
 ```
 
-The one-second pause is not a readiness check. To repeat R0c without relying on it, wait until the listener accepts a connection before starting the tracker:
+The one-second pause is not a readiness check, and the 8-second listener of the recorded runs can end before a reader who types the commands one by one starts the tracker. To repeat R0c that way, start a listener that outlives the attempt and wait for it with a limit:
 
 ```text
-until python3 -c 'import socket; socket.create_connection(("127.0.0.1",17071),1)' 2>/dev/null; do sleep 0.2; done
+python3 -c 'import socket,time; s=socket.socket(); s.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1); s.bind(("127.0.0.1",17071)); s.listen(); time.sleep(60)' &
+for _ in $(seq 50); do python3 -c 'import socket; socket.create_connection(("127.0.0.1",17071),1)' 2>/dev/null && break; sleep 0.2; done
 ```
 
-Nothing needs to be cleaned up: the listener ends by itself after 8 seconds and the tracker of R0b and R1 is stopped by the `SIGTERM`.
+The loop tries for at most ten seconds. If the listener is not accepting after that, stop and look at it instead of starting the tracker. This variant was not the one the recorded runs used.
+
+Nothing needs to be cleaned up: the listener ends by itself (after 8 seconds, or 60 in the variant above) and the tracker of R0b and R1 is stopped by the `SIGTERM`.
 
 ## Verification Processes
 
