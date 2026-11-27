@@ -9,7 +9,7 @@ github-issue: 2766
 spec-path: docs/issues/open/2766-2758-daemon-json-logging/ISSUE.md
 branch: "2766-daemon-json-logging"
 related-pr: null
-last-updated-utc: "2026-11-27 06:46"
+last-updated-utc: "2026-11-27 11:20"
 semantic-links:
   skill-links:
     - create-issue
@@ -214,7 +214,7 @@ For the test-producing tasks (T4 to T7), use the `write-unit-test` skill and wor
 - 2026-11-24 13:23 UTC - Claude Code (Claude Opus 5.5) - Recorded the maintainer's decision of 2026-11-24: this issue waits only for SI-1 of EPIC #2387, and moves today's log readers to JSON (section Dependencies, task T0).
 - 2026-11-26 17:09 UTC - Claude Code (Claude Opus 5.5, then Fable 5.2) - T0 and T1: refreshed the spec against `develop` (#3004 closed, #2387 SI-1 merged, references corrected, new readers and callers added) and recorded the maintainer's decisions D1 to D9 in `decisions.md`; the plan is now four pull requests.
 - 2026-11-26 19:20 UTC - Claude Code (Fable 5.2) - Addressed the first review round on PR 3081 (CodeRabbit and da2ce7, twelve findings, audit in `docs/pr-reviews/pr-3081-review/PR-REVIEW.md`): a panic that unwinds out of `main` exits `1`; the records that are not log records ignore `trace_filter`; the collision rule of the formatter is complete; the binary table of the contract ADR is left to issue #2770; three example records corrected.
-- 2026-11-27 06:46 UTC - Claude Code (Sonnet 5.5) - First pull request of the issue (tasks T2 to T4): the ADR, the reproduction of a normal run and a bind failure, and the move of the logging setup to the tracker application, which installs it first. The output of every style is unchanged, except that the records of the configuration loading are now written. The evidence is in `manual-verification-evidence.md` (R0b, R0c, R1).
+- 2026-11-27 06:46 UTC - Claude Code (Sonnet 5.5) - First pull request of the issue (tasks T2 to T4): the ADR, the reproduction of a normal run and a bind failure, and the move of the logging setup to the tracker application, which installs it first. The output of the `full` style (the default) is unchanged, except that the records of the configuration loading are now written and that `Logging initialized` has the target of its new module; in the other styles those first records are written in the `full` style until the second pull request (the wording "the output of every style is unchanged" of the first version of this entry was wrong, as the review of the pull request showed). The evidence is in `manual-verification-evidence.md` (R0b, R0c, R1, R1b).
 
 ## Acceptance Criteria
 

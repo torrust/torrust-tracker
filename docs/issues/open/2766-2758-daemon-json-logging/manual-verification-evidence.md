@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2766-2758-daemon-json-logging/ISSUE.md
-last-updated-utc: "2026-11-27 06:47"
+last-updated-utc: "2026-11-27 11:20"
 ---
 
 # Manual Verification Evidence
@@ -200,10 +200,12 @@ The four that passed are the ones that expect nothing to be written (no debug re
 The two tests that guard the instrumentation, with the instrumentation as it was (`cargo test --lib bootstrap::app::tests`):
 
 ```text
-the span records the fields ["configuration"]
-the span records the fields ["explicit_config_toml_path"]
-test result: FAILED. 2 passed; 2 failed; 0 ignored; 0 measured; 191 filtered out
+a span records the configuration: [("initialize_global_services", ["configuration"]), ("initialize_static", []), ("initialize_static", [])]
+a span records the path: [("setup", ["explicit_config_toml_path"])]
+test result: FAILED. 2 passed; 2 failed; 0 ignored; 0 measured; 197 filtered out
 ```
+
+This is what the committed tests print, taken on 2026-11-27 by putting `#[tracing::instrument(skip())]` back on the two functions. The first red run of these tests, before their assertions were reworded, printed `the span records the fields ["configuration"]` and `the span records the fields ["explicit_config_toml_path"]`.
 
 The configuration appeared as a span field because the logging, now installed first, records the span of `initialize_global_services`: a real run showed the record `Logging initialized` prefixed with `setup{explicit_config_toml_path=Some("tracker.toml")}:initialize_global_services{configuration=Configuration { metadata: …`, the `Debug` form of the whole configuration, which holds the API access tokens.
 
@@ -248,4 +250,39 @@ exit=0, stdout 190 bytes, stderr 0 bytes
 
 #### Observed Result
 
-The lines are those of R0b and R0c: same stream (stdout), same `full` style, no span prefix on the records written during the setup (`Logging initialized`, `Configuration:`), the same exit code for the bind failure (`1` in R0c and in the recheck) and the same double report of the failure. The exit code of the normal run was not recorded in R0b, so this comparison does not cover it; the recheck records `0` after `SIGTERM`, and the lifecycle test `lifecycle-signals`, which asserts exit code `0` after `SIGTERM` and passes on the final tree, covers the same behavior. The difference is the first record, `Loading base configuration from explicit configuration file`, which was lost before. With `trace_filter = "off"` that one record is still written, because the level is `info` until the configuration is applied (decision D2); before this change the tracker wrote nothing in that case. Nothing of the configuration, secrets included, appears in a span.
+In the `full` style the lines are those of R0b and R0c, with two differences (the first record, described below, and the target of `Logging initialized`, which is now `torrust_tracker_lib::bootstrap::logging` instead of `torrust_tracker_configuration::v3_0_0::logging`): same stream (stdout), no span prefix on the records written during the setup (`Logging initialized`, `Configuration:`), the same exit code for the bind failure (`1` in R0c and in the recheck) and the same double report of the failure. The exit code of the normal run was not recorded in R0b, so this comparison does not cover it; the recheck records `0` after `SIGTERM`, and the lifecycle test `lifecycle-signals`, which asserts exit code `0` after `SIGTERM` and passes on the final tree, covers the same behavior. The difference is the first record, `Loading base configuration from explicit configuration file`, which was lost before. With `trace_filter = "off"` that one record is still written, because the level is `info` until the configuration is applied (decision D2); before this change the tracker wrote nothing in that case. Nothing of the configuration, secrets included, appears in a span.
+
+The other styles were not rechecked in this first run, and the claim did not hold for them as it was first written ("the lines of every style are the same"); section R1b below records them.
+
+### R1b - The four styles after the review of the first pull request
+
+- Goal: record what each `trace_style` writes with the logging installed first, which the recheck of R1 covered for `full` only.
+- Status: `DONE`
+
+#### Steps Performed
+
+The setup of R0b with one more line in `[logging]`, `trace_style = "<style>"`, for each of the four styles, with the binary built from the tree that has the review fixes (runs of 2026-11-27 11:14 UTC, as the timestamps of the lines show; started with `& P=$!`, stopped with `SIGTERM` after three seconds). The first two lines of each run, with the colour codes removed:
+
+```text
+full: exit=0, stdout 25599 bytes, stderr 0 bytes
+2026-11-27T11:14:46.476739Z  INFO torrust_tracker_configuration: Loading base configuration from explicit configuration file path="full.toml"
+2026-11-27T11:14:46.476976Z  INFO torrust_tracker_lib::bootstrap::logging: Logging initialized
+
+json: exit=0, stdout 27147 bytes, stderr 0 bytes
+2026-11-27T11:14:49.498550Z  INFO torrust_tracker_configuration: Loading base configuration from explicit configuration file path="json.toml"
+{"timestamp":"2026-11-27T11:14:49.498748Z","level":"INFO","fields":{"message":"Logging initialized"},"target":"torrust_tracker_lib::bootstrap::logging"}
+
+pretty: exit=0, stdout 29362 bytes, stderr 0 bytes
+2026-11-27T11:14:52.520160Z  INFO torrust_tracker_configuration: Loading base configuration from explicit configuration file path="pretty.toml"
+  2026-11-27T11:14:52.520365Z  INFO torrust_tracker_lib::bootstrap::logging:200: Logging initialized
+
+compact: exit=0, stdout 25062 bytes, stderr 0 bytes
+2026-11-27T11:14:55.544933Z  INFO torrust_tracker_configuration: Loading base configuration from explicit configuration file path="compact.toml"
+2026-11-27T11:14:55.545160Z  INFO torrust_tracker_lib::bootstrap::logging: Logging initialized
+```
+
+#### Observed Result
+
+The records written before the configuration is applied are in the `full` style, with colour codes, whatever `trace_style` says, because the style is not known yet. So a `json` stream, which was JSON only before this pull request, now opens with one text line, and the `pretty` and `compact` streams open with one line in the `full` layout. From `Logging initialized` on, each run is in its own style. This lasts until the second pull request of the issue, which writes these first records as JSON in every style (decision D1). No reader in the repository reads a JSON-only stream of the tracker today: the default style is `full`, and the end-to-end parser and the test harness read text.
+
+A run of the same four configurations less than a minute earlier, with the binary before the correction, showed a defect of the review fixes: a `WARN` record "The trace style was already applied and cannot change while the process runs" on every start. The comparison that detects a second, different style treated the first application as one. It was corrected before any commit, a unit test now fails on the wrong comparison, and the runs above have no such record (`grep -c "already applied"` on each stdout prints 0).
