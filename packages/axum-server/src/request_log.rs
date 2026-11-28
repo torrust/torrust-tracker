@@ -279,7 +279,6 @@ mod tests {
         let request_id = "test-request-id-0001";
         let request = Request::builder()
             .uri("/health_check")
-            .header("x-request-id", request_id)
             .body(())
             .expect("the test request should be valid");
         let capture = capture_logs_in_scope();

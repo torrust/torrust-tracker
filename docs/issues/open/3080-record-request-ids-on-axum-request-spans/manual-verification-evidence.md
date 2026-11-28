@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/3080-record-request-ids-on-axum-request-spans/ISSUE.md
-last-updated-utc: "2026-11-27 12:00"
+last-updated-utc: "2026-11-28 03:17"
 ---
 
 # Manual Verification Evidence
@@ -132,8 +132,8 @@ cat "$LOG_CLEAN"
 
 ## Environment and Prerequisites
 
-- Date and time (UTC): 2026-11-27 11:46 to 11:57 UTC.
-- Artifact under test: `upstream/develop` (`786b46f`, already on `develop`: `Merge torrust/torrust-tracker#3081: docs(issues): refresh the daemon JSON logging spec and record its decisions`), plus uncommitted changes on branch `3080-record-request-ids-on-axum-request-spans` corresponding to planned commits `test(axum-server): [#3080] add regression test for request_id on request span` and `fix(axum-server): [#3080] declare empty request_id field on RedactedMakeSpan`.
+- Date and time (UTC): 2026-11-27 11:46 to 11:57 UTC (initial reproduction, 4-package run, and after-fix binary recheck); 2026-11-28 03:13 to 03:15 UTC (PR #3084 review test cleanup, mutate-then-restore red run, and `torrust-tracker-axum-server` checks).
+- Artifact under test: `upstream/develop` (`786b46f`, already on `develop`: `Merge torrust/torrust-tracker#3081: docs(issues): refresh the daemon JSON logging spec and record its decisions`), commit `fix(axum-server): [#3080] declare request_id field on request spans` on branch `3080-record-request-ids-on-axum-request-spans` (the original T3 and V2 runs executed on the uncommitted working tree whose production diff matches that commit), and follow-up commit `fix(axum-server): [#3080] address PR #3084 review findings`.
 - Operating system / environment: Docker container `rust:1-bookworm` on Windows 11 host (Docker Engine 29.9.3), `rustc 1.100.0 (0ef1bc386 2026-11-09)`, `cargo 1.100.0 (3acc79c0c 2026-11-05)`, stable Rust toolchain.
 - Prerequisites and setup performed: Docker volumes `torrust-cargo-registry`, `torrust-cargo-git`, and `torrust-target` (`CARGO_TARGET_DIR=/tmp/target`); temporary config `.tmp/repro-3080.toml` and script `.tmp/run-repro.sh`.
 
@@ -151,7 +151,7 @@ cat "$LOG_CLEAN"
 1. Executed inside `rust:1-bookworm`:
 
    ```bash
-   docker run --rm -v "d:/meowluckly/torrust-tracker:/workspace" -w /workspace \
+   docker run --rm -v "<checkout>:/workspace" -w /workspace \
      -v torrust-cargo-registry:/usr/local/cargo/registry \
      -v torrust-cargo-git:/usr/local/cargo/git \
      -v torrust-target:/tmp/target -e CARGO_TARGET_DIR=/tmp/target \
@@ -198,29 +198,29 @@ All three Axum servers returned the supplied `x-request-id` header, yet every `r
 
 ### T2 - Regression Test Red Run (Before Fix)
 
-- Goal: Prove the new maintained regression test `it_should_record_the_request_id_in_the_span_of_a_request` fails on the unfixed `RedactedMakeSpan`.
-- Artifact under test: `upstream/develop` (`786b46f`) plus `it_should_record_the_request_id_in_the_span_of_a_request` in `packages/axum-server/src/request_log.rs`; production code unchanged. Stable Rust toolchain (`rustc 1.100.0`).
+- Goal: Prove the final maintained regression test `it_should_record_the_request_id_in_the_span_of_a_request` fails without the `RedactedMakeSpan` field declaration.
+- Artifact under test: Final `it_should_record_the_request_id_in_the_span_of_a_request` in `packages/axum-server/src/request_log.rs` on commit `fix(axum-server): [#3080] declare request_id field on request spans` + PR #3084 test cleanup (removing the unused `x-request-id` header for `fix(axum-server): [#3080] address PR #3084 review findings`), with the production fix (`use tracing::field::Empty;` and `request_id = Empty,`) temporarily removed via the `write-unit-test` mutate-then-restore method. Stable Rust toolchain (`rustc 1.100.0`).
 - Status: `DONE`
 
 #### Steps Performed
 
-1. Added `it_should_record_the_request_id_in_the_span_of_a_request` using `capture_logs_in_scope()` in `packages/axum-server/src/request_log.rs`.
-2. Ran `cargo test -p torrust-tracker-axum-server --lib request_log::tests` inside `rust:1-bookworm` (`2026-11-27T11:50:16.313Z` to `2026-11-27T11:50:58.684Z`).
+1. Updated `it_should_record_the_request_id_in_the_span_of_a_request` in `packages/axum-server/src/request_log.rs` to remove the unused `.header("x-request-id", request_id)` call and temporarily removed `use tracing::field::Empty;` and `request_id = Empty,` (mutate-then-restore).
+2. Ran `cargo test -p torrust-tracker-axum-server --lib request_log::tests` inside `rust:1-bookworm` (`2026-11-28T03:13:52Z` to `2026-11-28T03:13:59Z`).
 
 #### Observed Result
 
 ```text
 running 39 tests
 ...
-test request_log::tests::it_should_record_the_request_id_in_the_span_of_a_request ... FAILED
 test request_log::tests::it_should_record_the_redacted_uri_and_not_the_raw_one_in_the_span_of_a_request ... ok
+test request_log::tests::it_should_record_the_request_id_in_the_span_of_a_request ... FAILED
 ...
 failures:
 
 ---- request_log::tests::it_should_record_the_request_id_in_the_span_of_a_request stdout ----
 
-thread 'request_log::tests::it_should_record_the_request_id_in_the_span_of_a_request' (2867) panicked at packages/axum-server/src/request_log.rs:304:9:
-expected the request span to contain request_id="test-request-id-0001", got span fields `method=GET uri=/health_check version=HTTP/1.1` in line: 2026-11-27T11:50:58.669275Z  INFO request{method=GET uri=/health_check version=HTTP/1.1}: torrust_tracker_axum_server::request_log::tests: an event inside the request span
+thread 'request_log::tests::it_should_record_the_request_id_in_the_span_of_a_request' (276) panicked at packages/axum-server/src/request_log.rs:302:9:
+expected the request span to contain request_id="test-request-id-0001", got span fields `method=GET uri=/health_check version=HTTP/1.1` in line: 2026-11-28T03:13:59.036946Z  INFO request{method=GET uri=/health_check version=HTTP/1.1}: torrust_tracker_axum_server::request_log::tests: an event inside the request span
 
 failures:
     request_log::tests::it_should_record_the_request_id_in_the_span_of_a_request
@@ -230,22 +230,28 @@ test result: FAILED. 38 passed; 1 failed; 0 ignored; 0 measured; 9 filtered out;
 
 #### Conclusion
 
-The test compiled cleanly and failed specifically because `request{method=GET uri=/health_check version=HTTP/1.1}` did not contain `request_id="test-request-id-0001"`.
+The final regression test compiled cleanly and failed specifically because `request{method=GET uri=/health_check version=HTTP/1.1}` did not contain `request_id="test-request-id-0001"` (panicking at `packages/axum-server/src/request_log.rs:302:9` during mutate-then-restore, which corresponds to `assert!` at line `304:9` once the two production-fix lines are restored).
 
 ### T3 - Green Tests and Linting (After Fix)
 
-- Goal: Verify all Axum server tests, Clippy lints, and formatting pass after declaring `request_id = Empty` in `RedactedMakeSpan::make_span` (including a `let ... else` cleanup in the regression test to satisfy `clippy::map-unwrap-or`).
-- Artifact under test: `upstream/develop` (`786b46f`) plus the changes corresponding to `test(axum-server): [#3080] add regression test for request_id on request span` and `fix(axum-server): [#3080] declare empty request_id field on RedactedMakeSpan`. Stable Rust toolchain (`rustc 1.100.0`) with `clippy` and `rustfmt` components installed in container.
+- Goal: Verify all Axum server tests, Clippy lints, and formatting pass with `request_id = Empty` declared in `RedactedMakeSpan::make_span`.
+- Artifact under test: Commit `fix(axum-server): [#3080] declare request_id field on request spans` (the full four-package run below executed on the uncommitted working tree whose production diff matches that commit), followed by restoring the fix after mutate-then-restore and re-running `torrust-tracker-axum-server` tests, Clippy, and formatting for commit `fix(axum-server): [#3080] address PR #3084 review findings`. Stable Rust toolchain (`rustc 1.100.0`) with `clippy` and `rustfmt` components installed in container.
 - Status: `DONE`
 
 #### Steps Performed
 
-Executed sequentially in `rust:1-bookworm` (`2026-11-27T11:54:54.020Z` to `2026-11-27T11:56:15.165Z`):
+Executed sequentially in `rust:1-bookworm` (`2026-11-27T11:54:54.020Z` to `2026-11-27T11:56:15.165Z`) against the production fix matching `fix(axum-server): [#3080] declare request_id field on request spans`:
 
 1. `cargo test -p torrust-tracker-axum-server` (`11:54:56.138Z`)
 2. `cargo test -p torrust-tracker-axum-http-server -p torrust-tracker-axum-rest-api-server -p torrust-tracker-axum-health-check-api-server` (`11:55:00.563Z` approx.)
 3. `cargo clippy -p torrust-tracker-axum-server --all-targets --all-features -- -D warnings` (`11:55:49.497Z`)
 4. `cargo fmt --all -- --check` (`11:55:52.354Z` to `11:56:15.165Z`)
+
+After PR #3084 review cleanup in `packages/axum-server/src/request_log.rs` (`2026-11-28T03:14:25Z` to `2026-11-28T03:15:04Z`, for commit `fix(axum-server): [#3080] address PR #3084 review findings`), restored the fix and re-ran:
+
+1. `cargo test -p torrust-tracker-axum-server` (`48` unit + `9` integration tests passed; `0` failed)
+2. `cargo clippy -p torrust-tracker-axum-server --all-targets --all-features -- -D warnings` (exit `0`)
+3. `cargo fmt --all -- --check` (exit `0` on stable `rustfmt 1.100.0`)
 
 #### Observed Result
 
@@ -278,12 +284,12 @@ cargo fmt --all -- --check (stable rustfmt 1.100.0):
 
 #### Conclusion
 
-All 448 executed tests across the four Axum packages passed, Clippy passed with `-D warnings`, and `cargo fmt --all -- --check` exited 0 on stable `rustfmt`.
+All 449 executed tests (`48 + 9 + 13 + 13 + 1 + 53 + 77 + 1 + 170 + 63 + 1`) across the four Axum packages passed, Clippy passed with `-D warnings`, and `cargo fmt --all -- --check` exited `0` on stable `rustfmt`. After removing the unused header from the test for `fix(axum-server): [#3080] address PR #3084 review findings`, `cargo test -p torrust-tracker-axum-server` (`57` tests), Clippy, and `cargo fmt --all -- --check` all passed again cleanly.
 
 ### V2 - Final Like-for-Like Real-Artifact Recheck (After Fix)
 
 - Goal: Repeat V1 identically against the rebuilt `torrust-tracker` binary containing the final `RedactedMakeSpan` fix.
-- Artifact under test: Rebuilt `/tmp/target/debug/torrust-tracker` from the final working-tree state (`upstream/develop` `786b46f` + `fix(axum-server): [#3080] declare empty request_id field on RedactedMakeSpan`). Stable Rust toolchain (`rustc 1.100.0`).
+- Artifact under test: Rebuilt `/tmp/target/debug/torrust-tracker` from the uncommitted working-tree state whose production diff matches commit `fix(axum-server): [#3080] declare request_id field on request spans` (V2 did not require re-running after `fix(axum-server): [#3080] address PR #3084 review findings` because only unit-test arrangement and docs changed). Stable Rust toolchain (`rustc 1.100.0`).
 - Status: `DONE`
 
 #### Steps Performed
@@ -329,8 +335,8 @@ Met. Every request span across REST API, HTTP Tracker, and Health Check API now 
 
 ### Prose-first Arrange-Act-Assert Record
 
-- **Arrange (prose):** A request carrying `x-request-id` for `/health_check`, and scoped thread-local log capture.
-  **Code:** `Request::builder().uri("/health_check").header("x-request-id", request_id)` and `capture_logs_in_scope()`.
+- **Arrange (prose):** A request for `/health_check` carrying only causal state (no extra headers), a test `request_id` string, and scoped thread-local log capture.
+  **Code:** `Request::builder().uri("/health_check").body(())` and `capture_logs_in_scope()`.
 - **Act (prose):** Create the request span with `RedactedMakeSpan`, enter it, record `request_id` on the span, and emit an event inside the span.
   **Code:** `RedactedMakeSpan.make_span(&request)`, `span.enter()`, `span.record("request_id", request_id)`, and `tracing::info!("an event inside the request span")`.
 - **Assert (prose):** The captured line for the inner event carries a `request{...}` span whose fields include `request_id="..."`.
@@ -339,4 +345,5 @@ Met. Every request span across REST API, HTTP Tracker, and Health Check API now 
 ## Failures and Follow-up
 
 - During T3, an initial Clippy run flagged `clippy::map-unwrap-or` in `it_should_record_the_request_id_in_the_span_of_a_request`; replaced `.map(...).unwrap_or_else(...)` with `let ... else` and re-ran all T3 test, Clippy, and formatting checks before running V2.
-- Both `on_request` and `on_response` across the three Axum servers still call `span.record("request_id", request_id)`, which causes `tracing_subscriber::fmt` to print `request_id="..."` twice on `response` and `on_eos` lines; left untouched to keep the fix scoped to `RedactedMakeSpan`.
+- Following `@da2ce7`'s review on PR #3084 (`fix(axum-server): [#3080] address PR #3084 review findings`), removed the unused `.header("x-request-id", request_id)` call from `it_should_record_the_request_id_in_the_span_of_a_request`, re-recorded the T2 mutate-then-restore red run (`request_log.rs:302:9`), re-ran `torrust-tracker-axum-server` tests/Clippy/`rustfmt`, replaced the local checkout path with `<checkout>`, corrected the 4-package test sum (`449`), synced branch commit subjects and `ISSUE.md` metadata/checkpoints, and added `docs/pr-reviews/pr-3084-review/PR-REVIEW.md`.
+- Both `on_request` and `on_response` across the three Axum servers still call `span.record("request_id", request_id)`, which causes `tracing_subscriber::fmt` to print `request_id="..."` twice on `response` and `on_eos` lines; left untouched to keep the fix scoped to `RedactedMakeSpan`, and tracked as follow-up work under `review-finding:pr-3084-f10`.

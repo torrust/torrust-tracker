@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: in-progress
+status: in-review
 priority: p2
 epic: null
 github-issue: 3080
 spec-path: docs/issues/open/3080-record-request-ids-on-axum-request-spans/ISSUE.md
 branch: "3080-record-request-ids-on-axum-request-spans"
-related-pr: null
-last-updated-utc: "2026-11-27 12:25"
+related-pr: 3084
+last-updated-utc: "2026-11-28 03:17"
 semantic-links:
   skill-links:
     - create-issue
@@ -84,17 +84,16 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task                                                                                    | Notes / Expected Output                                                                                                                                                                                                                                   |
 | --- | ------ | --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T1  | DONE   | Reproduce the missing `request_id` on real `torrust-tracker`                            | Recorded in `manual-verification-evidence.md` section V1 (before)                                                                                                                                                                                         |
-| T2  | DONE   | Add `request_log` regression test (`write-unit-test` skill) and verify red run          | `it_should_record_the_request_id_in_the_span_of_a_request` failed on unfixed code; after focused validation, perform and record the `write-unit-test` prose-first Arrange-Act-Assert design review (checking causal initial-state difference, fixture ownership of incidental mechanics only, and visible production Act + independently specified expected result) before starting the next increment, and stop for maintainer review after the final increment before final verification, commit, or PR |
+| T2  | DONE   | Add `request_log` regression test (`write-unit-test` skill) and verify red run          | Added `it_should_record_the_request_id_in_the_span_of_a_request` following `write-unit-test` (causal initial state without unused headers), observed the red run fail on unfixed `RedactedMakeSpan` (re-recorded via mutate-then-restore after PR #3084 review cleanup), and recorded the prose-first Arrange-Act-Assert design review in `manual-verification-evidence.md` (causal-state, fixture-ownership, and visible Act/expected-result checks); pending maintainer review stays open under Workflow Checkpoints |
 | T3  | DONE   | Declare `request_id = Empty` in `RedactedMakeSpan::make_span`                           | Regression test and all Axum server tests pass                                                                                                                                                                                                            |
 | T4  | DONE   | Repeat real-artifact reproduction like-for-like and run checks                          | Recorded in `manual-verification-evidence.md` section V2 (after)                                                                                                                                                                                          |
 
 ## Commit Points
 
-| Task | Coherent change set                               | Commit policy                                                                                                                                              |
-| ---- | ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T2   | Regression test in `request_log.rs` + red evidence | Complete `write-unit-test` design review after focused validation and maintainer review after final increment before final verification, commit, or PR.    |
-| T3   | Minimal production fix in `RedactedMakeSpan`      | Commit with GPG signature after pre-commit checks.                                                                                                         |
-| T4   | Issue specification and verification evidence     | Commit with GPG signature after validator checks.                                                                                                          |
+| Commit / Stage  | Coherent change set                                                                                       | Commit policy                                                                                                                       |
+| --------------- | --------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Initial PR      | `fix(axum-server): [#3080] declare request_id field on request spans` (T1–T4 code, test, and issue docs)  | Signed commit on PR #3084; evidence and audit metadata synced in the follow-up commit below.                                        |
+| PR #3084 review | `fix(axum-server): [#3080] address PR #3084 review findings` (test cleanup, docs fixes, and `PR-REVIEW.md`) | Commit with GPG signature after `write-unit-test`, validator, and pre-commit checks; maintainer review remains pending on PR #3084. |
 
 ## Progress Tracking
 
@@ -115,6 +114,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 ### Progress Log
 
 - 2026-11-27 12:00 UTC - Antigravity (Gemini 4 Hydrogen) - Reproduced missing `request_id` on Axum request spans, observed regression test red on unfixed code, implemented `request_id = Empty` in `RedactedMakeSpan::make_span`, verified Axum server tests/Clippy/fmt, and completed like-for-like real-artifact recheck - `manual-verification-evidence.md`
+- 2026-11-28 03:17 UTC - Antigravity - Addressed PR #3084 review findings: dropped unused `x-request-id` header from regression test Arrange, re-recorded mutate-then-restore red run and green `torrust-tracker-axum-server` checks, updated spec metadata/commit references, and added `docs/pr-reviews/pr-3084-review/PR-REVIEW.md` - `manual-verification-evidence.md`
 
 ## Acceptance Criteria
 
@@ -146,7 +146,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ## Risks and Trade-offs
 
-- Keeping both existing `span.record("request_id", ...)` calls (`on_request` and `on_response`) in the three Axum servers means `tracing_subscriber::fmt` appends `request_id="..."` a second time on `on_response` / `on_eos` lines; leaving those server files untouched keeps the change strictly scoped to `RedactedMakeSpan`.
+- Keeping both existing `span.record("request_id", ...)` calls (`on_request` and `on_response`) in the three Axum servers means `tracing_subscriber::fmt` appends `request_id="..."` a second time on `on_response` / `on_eos` lines; leaving those server files untouched keeps the change strictly scoped to `RedactedMakeSpan`, and removing the redundant `on_response` records is tracked as follow-up work (`review-finding:pr-3084-f10`).
 
 ## Implementation Completion Review
 
