@@ -51,7 +51,7 @@ socket2 = "0.6.4"
 thiserror = "2.0.12"
 
 [dev-dependencies]
-rand = "0.9"
+rand = "0.10"
 serde_bencode = "0"
 serde_bytes = "0"
 rustls = { version = "0.23", default-features = false, features = [ "ring" ] }
