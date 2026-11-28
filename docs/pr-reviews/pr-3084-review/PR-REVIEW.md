@@ -42,11 +42,11 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Review 6087950878 (`claude[bot]`) has no finding: it notes that automated review is disabled for a pull request from a fork. Issue comment 7217996387 (`coderabbitai[bot]`) is a walkthrough and pre-merge check summary with no new finding. PR conversation comment 7233148375 (by the PR author) summarized the follow-up commit and did not replace per-thread replies (addressed in `F11`). Review 6096915465 (`coderabbitai[bot]`) posted a reply (`discussion_r4726346283`) on the `F1` thread asking for explicit T2 gate ordering; that follow-up reply is logged below and awaits maintainer disposition.
+Review 6087950878 (`claude[bot]`) has no finding: it notes that automated review is disabled for a pull request from a fork. Issue comment 7217996387 (`coderabbitai[bot]`) is a walkthrough and pre-merge check summary with no new finding. PR conversation comment 7233148375 (by the PR author) summarized the review-fix commit and did not replace per-thread replies (addressed in `F11`). Review 6097228746 (`coderabbitai[bot]`, comment 4726564426 on the `F1` thread) acknowledged the PR author's `NO_ACTION` decision on `F16` without making a further change request.
 
 | Finding ID | Review finding reference | Reviewer | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | -------- | -------- | -------- | ------------ | ----------- | ------------ |
-| F1 | review-finding:pr-3084-f1 | coderabbitai[bot] | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F1 | review-finding:pr-3084-f1 | coderabbitai[bot] | Minor | testing | ORIGINAL | FIXED | OPEN |
 | F2 | review-finding:pr-3084-f2 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | OPEN |
 | F3 | review-finding:pr-3084-f3 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | OPEN |
 | F4 | review-finding:pr-3084-f4 | da2ce7 | Minor | testing | ORIGINAL | FIXED | OPEN |
@@ -61,6 +61,11 @@ Review 6087950878 (`claude[bot]`) has no finding: it notes that automated review
 | F13 | review-finding:pr-3084-f13 | da2ce7 | Nit | other | ORIGINAL | FIXED | OPEN |
 | F14 | review-finding:pr-3084-f14 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | OPEN |
 | F15 | review-finding:pr-3084-f15 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | OPEN |
+| F16 | review-finding:pr-3084-f16 | coderabbitai[bot] | Minor (inferred) | testing | RE_RAISE_OF:F1 | NO_ACTION | OPEN |
+| F17 | review-finding:pr-3084-f17 | da2ce7 | Minor | documentation | ORIGINAL | FIXED | OPEN |
+| F18 | review-finding:pr-3084-f18 | da2ce7 | Minor | link-integrity | ORIGINAL | FIXED | OPEN |
+| F19 | review-finding:pr-3084-f19 | da2ce7 | Nit | documentation | ORIGINAL | FIXED | OPEN |
+| F20 | review-finding:pr-3084-f20 | da2ce7 | Nit | other | ORIGINAL | FIXED | OPEN |
 
 ## Finding Details
 
@@ -71,8 +76,8 @@ Review 6087950878 (`claude[bot]`) has no finding: it notes that automated review
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3084#discussion_r4719271659
 - Concern: T2 in `ISSUE.md` defined the regression test and red run but did not state the required `write-unit-test` loop: focused validation followed by the design review (causal-state, fixture-ownership, and visible Act/expected-result checks) and stopping for maintainer review after the final increment before final verification, commit, or PR.
-- Solution: Added the `write-unit-test` design review notes to T2 in `ISSUE.md` in `fix(axum-server): [#3080] declare request_id field on request spans`, refined T2 and `Commit Points` in `fix(axum-server): [#3080] address PR #3084 review findings` so the completed T2 row states what ran while keeping the maintainer review pending in `Workflow Checkpoints` and `Commit Points` (also addressing F5), and replied directly on the thread. Note: CodeRabbit later replied (`discussion_r4726346283`, review `6096915465`) asking to state the gate order explicitly in T2.
-- Current-tree verification: `docs/issues/open/3080-record-request-ids-on-axum-request-spans/ISSUE.md` lists the `write-unit-test` design review checks on T2 and the pending maintainer-review checkpoint in `Workflow Checkpoints` and `Commit Points`; `frontmatter-validator` validates `ISSUE.md`.
+- Solution: Added the `write-unit-test` design review notes to T2 in `ISSUE.md` in `fix(axum-server): [#3080] declare request_id field on request spans`, refined T2 and `Commit Points` in `fix(axum-server): [#3080] address PR #3084 review findings` so the completed T2 row states what ran while keeping the maintainer review pending in `Workflow Checkpoints` and `Commit Points` (also addressing F5), and replied directly on the thread. CodeRabbit later replied (`discussion_r4726346283`, review `6096915465`), leaving the GitHub thread unresolved (`F16` tracks that follow-up request and sets this row's `Thread state` to `OPEN`).
+- Current-tree verification: `docs/issues/open/3080-record-request-ids-on-axum-request-spans/ISSUE.md` lists the `write-unit-test` design review checks on T2 and the pending maintainer-review checkpoint in `Workflow Checkpoints` and `Commit Points`; `frontmatter-validator` validates `ISSUE.md`, and `Thread state` matches GitHub (`OPEN`).
 - Resolution reference: fix(axum-server): [#3080] declare request_id field on request spans; fix(axum-server): [#3080] address PR #3084 review findings
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3084#discussion_r4726342364
@@ -84,9 +89,9 @@ Review 6087950878 (`claude[bot]`) has no finding: it notes that automated review
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3084#discussion_r4722394419
 - Concern: The CodeRabbit thread on `ISSUE.md:87` (F1) was resolved without creating `docs/pr-reviews/pr-3084-review/PR-REVIEW.md` as required by `process-pr-review`.
-- Solution: Created `docs/pr-reviews/pr-3084-review/PR-REVIEW.md` from `docs/templates/PR-REVIEW-TEMPLATE.md` covering `F1` to `F10` in `fix(axum-server): [#3080] address PR #3084 review findings`, then updated it in `docs(pr-3084): [#3080] record review replies and follow-up issue` with actual GitHub `Reply URL` links, issue `#3087`, and second-round findings `F11` to `F15`, and replied directly on the thread.
-- Current-tree verification: `docs/pr-reviews/pr-3084-review/PR-REVIEW.md` exists with all 15 rows (`F1` to `F15`), passes `frontmatter-validator`, and passes all `validate-audit-record.py` row, detail, log-order, comment-matching, `Reply URL`, and `Resolution reference` checks against the captured PR #3084 GitHub REST data once `docs(pr-3084): [#3080] record review replies and follow-up issue` is committed.
-- Resolution reference: fix(axum-server): [#3080] address PR #3084 review findings; docs(pr-3084): [#3080] record review replies and follow-up issue
+- Solution: Created `docs/pr-reviews/pr-3084-review/PR-REVIEW.md` from `docs/templates/PR-REVIEW-TEMPLATE.md` covering `F1` to `F10` in `fix(axum-server): [#3080] address PR #3084 review findings`, updated it in `docs(pr-3084): [#3080] record review replies and follow-up issue` with GitHub `Reply URL` links, issue `#3087`, and `F11` to `F15`, finalized it with `F16` to `F20` in `docs(pr-reviews): [#3080] finalize PR #3084 audit record and replies`, and replied directly on the thread.
+- Current-tree verification: `docs/pr-reviews/pr-3084-review/PR-REVIEW.md` exists with all 20 rows (`F1` to `F20`), passes `frontmatter-validator`, and passes all `validate-audit-record.py` row, detail, log-order, comment-matching, `Reply URL`, and `Resolution reference` checks against the captured PR #3084 GitHub REST data once `docs(pr-reviews): [#3080] finalize PR #3084 audit record and replies` is committed (the earlier revision from `fix(axum-server): [#3080] address PR #3084 review findings` had pending `Reply URL` fields and an `N/A` `F10` resolution reference).
+- Resolution reference: fix(axum-server): [#3080] address PR #3084 review findings; docs(pr-3084): [#3080] record review replies and follow-up issue; docs(pr-reviews): [#3080] finalize PR #3084 audit record and replies
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3084#discussion_r4726344459
 
@@ -200,9 +205,9 @@ Review 6087950878 (`claude[bot]`) has no finding: it notes that automated review
 - Source review ID: 6096846531
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3084#discussion_r4726283405
-- Concern: None of the nine threads from review `6091805883` nor the earlier resolved CodeRabbit thread (`discussion_r4719271659`) had a per-thread reply, all ten `Reply URL` fields in `PR-REVIEW.md` stayed pending (`N/A (pending ...)`), and PR conversation comment `7233148375` did not name review IDs or per-finding dispositions (`validate-audit-record.py` failed with `expected exactly one discussion Reply URL, found 0`).
-- Solution: Replied directly on every review thread (`F1` to `F15`) on GitHub with its disposition, verification, and resolution reference, replaced every pending `Reply URL` in `PR-REVIEW.md` with its actual GitHub comment `html_url`, and replied on this thread.
-- Current-tree verification: Every finding `F1` to `F15` in `PR-REVIEW.md` holds its verified GitHub `Reply URL` (`https://github.com/torrust/torrust-tracker/pull/3084#discussion_r...`) matching the PR #3084 REST review comments.
+- Concern: None of the nine threads from review `6091805883` nor the earlier CodeRabbit thread (`discussion_r4719271659`) had a per-thread reply, all ten `Reply URL` fields in `PR-REVIEW.md` stayed pending (`N/A (pending ...)`), and PR conversation comment `7233148375` did not name review IDs or per-finding dispositions (`validate-audit-record.py` failed with `expected exactly one discussion Reply URL, found 0`).
+- Solution: Replied directly on every review thread (`F1` to `F20`) on GitHub with its disposition, verification, and resolution reference, replaced every pending `Reply URL` in `PR-REVIEW.md` with its actual GitHub comment `html_url`, and replied on this thread.
+- Current-tree verification: Every finding `F1` to `F20` in `PR-REVIEW.md` holds its verified GitHub `Reply URL` (`https://github.com/torrust/torrust-tracker/pull/3084#discussion_r...`) matching the PR #3084 REST review comments.
 - Resolution reference: docs(pr-3084): [#3080] record review replies and follow-up issue
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3084#discussion_r4726357730
@@ -214,8 +219,8 @@ Review 6087950878 (`claude[bot]`) has no finding: it notes that automated review
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3084#discussion_r4726283409
 - Concern: `F10` (`FOLLOW_UP`) had `Resolution reference: N/A` instead of a durable reply URL (`process-pr-review` `SKILL.md:282-283`), the linked follow-up issue did not yet exist on GitHub, and line 83 of `PR-REVIEW.md` inaccurately claimed the prior revision passed offline structural checks matching `validate-audit-record.py`.
-- Solution: Opened follow-up issue `#3087` (https://github.com/torrust/torrust-tracker/issues/3087), replied on the `F10` thread with the issue URL, set `F10`'s `Resolution reference` to that durable reply URL (`https://github.com/torrust/torrust-tracker/pull/3084#discussion_r4726356941`), removed the inaccurate offline-validation claim about the earlier `8c3a40e` revision from line 83 (`F2` `Current-tree verification`), and replied on this thread.
-- Current-tree verification: Issue `#3087` exists on GitHub, `F10` records `https://github.com/torrust/torrust-tracker/pull/3084#discussion_r4726356941` as `Resolution reference`, `ISSUE.md` links `#3087`, and line 83 reflects only the updated audit state.
+- Solution: Opened follow-up issue `#3087` (https://github.com/torrust/torrust-tracker/issues/3087), replied on the `F10` thread with the issue URL, set `F10`'s `Resolution reference` to that durable reply URL (`https://github.com/torrust/torrust-tracker/pull/3084#discussion_r4726356941`), removed the inaccurate offline-validation claim about the earlier `fix(axum-server): [#3080] address PR #3084 review findings` revision from `F2`'s verification field, and replied on this thread.
+- Current-tree verification: Issue `#3087` exists on GitHub, `F10` records `https://github.com/torrust/torrust-tracker/pull/3084#discussion_r4726356941` as `Resolution reference`, `ISSUE.md` links `#3087`, and `F2` (`Current-tree verification`) accurately states the audit validation status.
 - Resolution reference: docs(pr-3084): [#3080] record review replies and follow-up issue
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3084#discussion_r4726358031
@@ -226,12 +231,12 @@ Review 6087950878 (`claude[bot]`) has no finding: it notes that automated review
 - Source review ID: 6096846531
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3084#discussion_r4726283412
-- Concern: Commit `8c3a40e` changed documents and one test line with no production change yet used the `fix` type without a commit body; the reviewer noted `8c3a40e` did not need rewriting and advised using `docs(...)` or `test(...)` with an explanatory body for the next such commit.
-- Solution: Kept `8c3a40e` untouched on the branch as advised, specified the subsequent follow-up commit as `docs(pr-3084): [#3080] record review replies and follow-up issue` with a descriptive commit body in `ISSUE.md` (`Commit Points`), and replied on the thread.
-- Current-tree verification: `ISSUE.md` (`Commit Points`) records `docs(pr-3084): [#3080] record review replies and follow-up issue` as the follow-up docs/audit commit.
-- Resolution reference: docs(pr-3084): [#3080] record review replies and follow-up issue
+- Concern: Commit `fix(axum-server): [#3080] address PR #3084 review findings` changed documents and one test line with no production change yet used the `fix` type without a commit body; the reviewer noted that commit did not need rewriting and advised using `docs(...)` or `test(...)` with an explanatory body for the next such commit.
+- Solution: Kept `fix(axum-server): [#3080] address PR #3084 review findings` untouched on the branch as advised, used type `docs` with a descriptive commit body on `docs(pr-3084): [#3080] record review replies and follow-up issue` and `docs(pr-reviews): [#3080] finalize PR #3084 audit record and replies` in `ISSUE.md` (`Commit Points`), posted the initial reply (`comment 4726358820`), and posted the clarifying reply (`https://github.com/torrust/torrust-tracker/pull/3084#discussion_r4726565150`) stating `Disposition: FIXED` (addressing `F19`).
+- Current-tree verification: `ISSUE.md` (`Commit Points`) records `docs`-typed commits with descriptive bodies, and the clarifying thread reply states `Disposition: FIXED` matching this row.
+- Resolution reference: docs(pr-3084): [#3080] record review replies and follow-up issue; docs(pr-reviews): [#3080] finalize PR #3084 audit record and replies
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/3084#discussion_r4726358820
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3084#discussion_r4726565150
 
 ### F14 - List PR-REVIEW.md and review commits in the PR #3084 description
 
@@ -240,8 +245,8 @@ Review 6087950878 (`claude[bot]`) has no finding: it notes that automated review
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3084#discussion_r4726283416
 - Concern: The `Changes` section of PR #3084's description omitted `docs/pr-reviews/pr-3084-review/PR-REVIEW.md` and the review-fix commit, even though the merge commit copies the full PR description.
-- Solution: Updated the PR #3084 description (`Changes` section) on GitHub to include `docs/pr-reviews/pr-3084-review/PR-REVIEW.md`, follow-up issue `#3087`, and the review-fix commits, tracked the update in `PR-REVIEW.md`, and replied on the thread.
-- Current-tree verification: `https://api.github.com/repos/torrust/torrust-tracker/pulls/3084` confirms the PR description's `Changes` section lists `docs/pr-reviews/pr-3084-review/PR-REVIEW.md`, issue `#3087`, and `docs(pr-3084): [#3080] record review replies and follow-up issue`.
+- Solution: Updated the PR #3084 description (`Changes` section) on GitHub to include `docs/pr-reviews/pr-3084-review/PR-REVIEW.md`, follow-up issue `#3087`, and the review-fix commits by subject, tracked the update in `PR-REVIEW.md`, and replied on the thread.
+- Current-tree verification: `https://api.github.com/repos/torrust/torrust-tracker/pulls/3084` confirms the PR description's `Changes` section lists `docs/pr-reviews/pr-3084-review/PR-REVIEW.md`, issue `#3087`, and the branch's Conventional Commit subjects.
 - Resolution reference: https://github.com/torrust/torrust-tracker/pull/3084#discussion_r4726359144; docs(pr-3084): [#3080] record review replies and follow-up issue
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3084#discussion_r4726359144
@@ -253,11 +258,76 @@ Review 6087950878 (`claude[bot]`) has no finding: it notes that automated review
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/3084#discussion_r4726283417
 - Concern: The `2026-11-28 03:17 UTC` Progress Log entry in `ISSUE.md` named `Antigravity` without its model, contrary to `docs/templates/ISSUE.md:152-154`.
-- Solution: Updated the `2026-11-28 03:17 UTC` Progress Log entry in `ISSUE.md` to `Antigravity (Gemini 4 Hydrogen)`, used the same format on the new `2026-11-28 09:24 UTC` Progress Log entry, and replied on the thread.
-- Current-tree verification: Both `2026-11-28` Progress Log entries in `ISSUE.md` read `Antigravity (Gemini 4 Hydrogen)`.
+- Solution: Updated the `2026-11-28 03:17 UTC` Progress Log entry in `ISSUE.md` to `Antigravity (Gemini 4 Hydrogen)`, used the same format on all subsequent `2026-11-28` Progress Log entries, and replied on the thread.
+- Current-tree verification: All `2026-11-28` Progress Log entries in `ISSUE.md` read `Antigravity (Gemini 4 Hydrogen)`.
 - Resolution reference: docs(pr-3084): [#3080] record review replies and follow-up issue
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/3084#discussion_r4726359769
+
+### F16 - Keep T2 limited to completed work and preserve NO_ACTION rationale on gate-order reply
+
+- PR number: 3084
+- Source review ID: 6088001515
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3084#discussion_r4719271659
+- Concern: Raised in CodeRabbit reply comment `4726346283` (review `6096915465`) on the thread of `F1` (`Source URL` points to root thread `discussion_r4719271659` and `Source review ID` is the opening review `6088001515`), asking for `T2` in `ISSUE.md` to state explicitly that design review follows focused validation and that maintainer review precedes final verification, commit, or PR without implying the pending review occurred earlier.
+- Solution: Kept `T2` in `ISSUE.md` scoped strictly to completed work per `F5` while keeping the maintainer review pending in `Workflow Checkpoints` and `Commit Points` and recording the prose-first AAA review in `manual-verification-evidence.md`; decided `NO_ACTION` and replied on the `F1` thread explaining that rationale (which CodeRabbit acknowledged in review `6097228746`, comment `4726564426`).
+- Current-tree verification: `ISSUE.md` keeps `Spec reviewed and approved by user/maintainer` unchecked under `Workflow Checkpoints`, `T2` lists only completed steps, `manual-verification-evidence.md` records the prose-first AAA design review, and reply `4726561811` states the `NO_ACTION` disposition on the `F1` thread (`Thread state=OPEN`).
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3084#discussion_r4726561811
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3084#discussion_r4726561811
+
+### F17 - Track CodeRabbit follow-up reply in F16 and set F1 Thread state to OPEN
+
+- PR number: 3084
+- Source review ID: 6097152781
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3084#discussion_r4726494201
+- Concern: CodeRabbit reply `4726346283` (review `6096915465`) on `discussion_r4719271659` left the `F1` thread unresolved and asked for a change, yet `PR-REVIEW.md` lacked a tracking row for that request and still recorded `F1` as `Thread state=RESOLVED`.
+- Solution: Added row `F16` (`Relationship=RE_RAISE_OF:F1`, `Disposition=NO_ACTION`, `Thread state=OPEN`), updated `F1`'s `Thread state` to `OPEN` to match GitHub, replied on the `F1` thread (`https://github.com/torrust/torrust-tracker/pull/3084#discussion_r4726561811`), and replied on this thread.
+- Current-tree verification: `PR-REVIEW.md` records `F1` with `Thread state=OPEN` and includes `F16` (`RE_RAISE_OF:F1`, `NO_ACTION`, `OPEN`) citing reply `https://github.com/torrust/torrust-tracker/pull/3084#discussion_r4726561811`.
+- Resolution reference: docs(pr-reviews): [#3080] finalize PR #3084 audit record and replies
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3084#discussion_r4726566150
+
+### F18 - Remove branch commit IDs from PR #3084 description and PR-REVIEW.md
+
+- PR number: 3084
+- Source review ID: 6097152781
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3084#discussion_r4726494206
+- Concern: Branch commit IDs appeared in `PR-REVIEW.md` (`F2`, `F12`, and `F13`) and in the PR #3084 description, violating `open-pull-request` (`SKILL.md:74-93`) which bans PR-branch commit hashes from durable repository artifacts and PR descriptions because rebases rewrite commit IDs.
+- Solution: Replaced all branch commit IDs in `PR-REVIEW.md` with their Conventional Commit subjects (`fix(axum-server): [#3080] declare request_id field on request spans`, `fix(axum-server): [#3080] address PR #3084 review findings`, and `docs(pr-3084): [#3080] record review replies and follow-up issue`), cleaned all branch commit IDs out of the PR #3084 description on GitHub (`https://github.com/torrust/torrust-tracker/pull/3084`), and replied on the thread.
+- Current-tree verification: Running the `open-pull-request` branch commit-id check across `PR-REVIEW.md`, `ISSUE.md`, and `manual-verification-evidence.md` finds 0 PR-branch commit IDs (only `786b46f` on `develop` remains), and `https://api.github.com/repos/torrust/torrust-tracker/pulls/3084` confirms no branch commit SHA remains in the PR body.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3084#discussion_r4726567927; docs(pr-reviews): [#3080] finalize PR #3084 audit record and replies
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3084#discussion_r4726567927
+
+### F19 - Align F13 thread reply wording with process-pr-review FIXED disposition
+
+- PR number: 3084
+- Source review ID: 6097152781
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3084#discussion_r4726494208
+- Concern: Reply `4726358820` on `F13` stated `Disposition: ACKNOWLEDGED / FIXED for subsequent commits`, whereas `PR-REVIEW.md` records `FIXED` and `process-pr-review` (`SKILL.md:95`) allows only `FIXED`, `NO_ACTION`, `SUPERSEDED`, or `FOLLOW_UP`.
+- Solution: Posted clarifying follow-up reply `https://github.com/torrust/torrust-tracker/pull/3084#discussion_r4726565150` on the `F13` thread stating `Disposition: FIXED`, updated `F13`'s `Reply URL` and `Solution` in `PR-REVIEW.md`, and replied on this thread.
+- Current-tree verification: The clarifying reply on `F13` states `Disposition: FIXED`, matching `F13`'s `Disposition=FIXED` row and updated `Reply URL` (`https://github.com/torrust/torrust-tracker/pull/3084#discussion_r4726565150`).
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/3084#discussion_r4726568595; docs(pr-reviews): [#3080] finalize PR #3084 audit record and replies
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3084#discussion_r4726568595
+
+### F20 - Use repository-standard docs(pr-reviews) scope on the follow-up audit commit
+
+- PR number: 3084
+- Source review ID: 6097152781
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/3084#discussion_r4726494213
+- Concern: Commit `docs(pr-3084): [#3080] record review replies and follow-up issue` used custom scope `pr-3084` instead of the repository-standard audit scope `docs(pr-reviews)` (`commit-changes` `SKILL.md:41`); the reviewer noted that commit need not be rewritten and asked to use `docs(pr-reviews)` for the next audit commit.
+- Solution: Kept `docs(pr-3084): [#3080] record review replies and follow-up issue` unchanged on the branch as advised, specified the follow-up audit commit as `docs(pr-reviews): [#3080] finalize PR #3084 audit record and replies` in `ISSUE.md` (`Commit Points`), and replied on the thread.
+- Current-tree verification: `ISSUE.md` (`Commit Points`) specifies `docs(pr-reviews): [#3080] finalize PR #3084 audit record and replies` using the `docs(pr-reviews)` scope.
+- Resolution reference: docs(pr-reviews): [#3080] finalize PR #3084 audit record and replies
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/3084#discussion_r4726569132
 
 ## Processing Log
 
@@ -273,6 +343,10 @@ Review 6087950878 (`claude[bot]`) has no finding: it notes that automated review
 - 2026-11-28 09:09 UTC - Follow-up issue #3087 (`https://github.com/torrust/torrust-tracker/issues/3087`) opened for duplicated `on_response` `request_id` recording (`F10`, `F12`), and PR #3084 description updated (`F14`).
 - 2026-11-28 09:16 UTC - PR author finished posting direct per-thread replies on all 15 review threads (`F1` at `09:11 UTC`, `F2`–`F10` at `09:12`–`09:15 UTC`, `F11`–`F15` at `09:16 UTC`); `F8` thread marked `RESOLVED` on GitHub. In the same window (`09:13 UTC`), CodeRabbit review 6096915465 (`discussion_r4726346283`) replied on the `F1` thread requesting explicit T2 gate order wording.
 - 2026-11-28 09:24 UTC - Recorded actual `Reply URL` values across `F1` to `F10`, `F8` resolved state, durable reply `Resolution reference` for `F10` with issue `#3087`, corrected `F2` verification text, and added `F11` to `F15` for commit `docs(pr-3084): [#3080] record review replies and follow-up issue`; updated `ISSUE.md` Progress Log model names, `#3087` link, and `Commit Points`.
+- 2026-11-28 09:48 UTC - Committed `docs(pr-3084): [#3080] record review replies and follow-up issue` on branch `3080-record-request-ids-on-axum-request-spans`.
+- 2026-11-28 09:59 UTC - Review 6097152781 (`da2ce7`) arrived on `docs(pr-3084): [#3080] record review replies and follow-up issue` with four inline threads (`F17` to `F20`).
+- 2026-11-28 10:25 UTC - PR author cleaned all branch commit SHAs from the PR #3084 description (`F18`) and posted all six GitHub replies: `NO_ACTION` reply on `F1` thread for `F16` (`10:22 UTC`, acknowledged by CodeRabbit review `6097228746` at `10:23 UTC`), `FIXED` clarification on `F13` (`10:23 UTC` for `F19`), and replies on `F17` to `F20` (`10:24`–`10:25 UTC`).
+- 2026-11-28 10:28 UTC - Finalized `PR-REVIEW.md` (`F1` thread state set to `OPEN`, `F13` updated with clarifying `Reply URL`, removed all remaining branch commit IDs from `F2`, `F12`, and `F13`, added `F16` to `F20`) and updated `ISSUE.md` (`Commit Points` and `Progress Log`) for `docs(pr-reviews): [#3080] finalize PR #3084 audit record and replies`.
 
 ## Completion Rules
 

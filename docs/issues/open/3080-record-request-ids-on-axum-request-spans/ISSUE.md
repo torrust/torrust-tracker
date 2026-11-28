@@ -9,7 +9,7 @@ github-issue: 3080
 spec-path: docs/issues/open/3080-record-request-ids-on-axum-request-spans/ISSUE.md
 branch: "3080-record-request-ids-on-axum-request-spans"
 related-pr: 3084
-last-updated-utc: "2026-11-28 09:24"
+last-updated-utc: "2026-11-28 10:28"
 semantic-links:
   skill-links:
     - create-issue
@@ -90,11 +90,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ## Commit Points
 
-| Commit / Stage             | Coherent change set                                                                                                                    | Commit policy                                                                                                                |
-| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| Initial PR                 | `fix(axum-server): [#3080] declare request_id field on request spans` (T1–T4 code, test, and issue docs)                               | Signed commit on PR #3084; evidence and audit metadata synced in the follow-up commits below.                                |
-| PR #3084 review            | `fix(axum-server): [#3080] address PR #3084 review findings` (test cleanup, docs fixes, and `PR-REVIEW.md`)                            | Signed commit on PR #3084 after `write-unit-test`, validator, and pre-commit checks.                                         |
-| PR #3084 replies & audit   | `docs(pr-3084): [#3080] record review replies and follow-up issue` (per-thread reply URLs, `#3087`, and `F11`–`F15` audit + spec sync)   | Commit with GPG signature after `validate-audit-record.py` rules and `frontmatter-validator` pass; maintainer review pending. |
+| Commit / Stage             | Coherent change set                                                                                                                     | Commit policy                                                                                                                                    |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Initial PR                 | `fix(axum-server): [#3080] declare request_id field on request spans` (T1–T4 code, test, and issue docs)                                | Signed commit on PR #3084; evidence and audit metadata synced in the follow-up commits below.                                                    |
+| PR #3084 review            | `fix(axum-server): [#3080] address PR #3084 review findings` (test cleanup, docs fixes, and `PR-REVIEW.md`)                             | Signed commit on PR #3084 after `write-unit-test`, validator, and pre-commit checks.                                                             |
+| PR #3084 replies & audit   | `docs(pr-3084): [#3080] record review replies and follow-up issue` (per-thread reply URLs, `#3087`, and `F11`–`F15` audit + spec sync)    | Signed commit on PR #3084 recording first- and second-round reply URLs and `#3087`.                                                              |
+| PR #3084 final audit       | `docs(pr-reviews): [#3080] finalize PR #3084 audit record and replies` (`F1` open state, `F13` clarification, `F16`–`F20`, no branch SHAs) | Commit with GPG signature using `docs(pr-reviews)` scope after `validate-audit-record.py`, branch commit-id, and `frontmatter-validator` pass; maintainer review pending. |
 
 ## Progress Tracking
 
@@ -117,6 +118,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-27 12:00 UTC - Antigravity (Gemini 4 Hydrogen) - Reproduced missing `request_id` on Axum request spans, observed regression test red on unfixed code, implemented `request_id = Empty` in `RedactedMakeSpan::make_span`, verified Axum server tests/Clippy/fmt, and completed like-for-like real-artifact recheck - `manual-verification-evidence.md`
 - 2026-11-28 03:17 UTC - Antigravity (Gemini 4 Hydrogen) - Addressed PR #3084 review findings: dropped unused `x-request-id` header from regression test Arrange, re-recorded mutate-then-restore red run and green `torrust-tracker-axum-server` checks, updated spec metadata/commit references, and added `docs/pr-reviews/pr-3084-review/PR-REVIEW.md` - `manual-verification-evidence.md`
 - 2026-11-28 09:24 UTC - Antigravity (Gemini 4 Hydrogen) - Recorded all PR #3084 per-thread `Reply URL` links, `F8` resolved state, and second-round findings `F11` to `F15` in `PR-REVIEW.md`, linked follow-up issue [#3087](https://github.com/torrust/torrust-tracker/issues/3087) in `Risks and Trade-offs`, and added `docs(pr-3084): [#3080] record review replies and follow-up issue` in `Commit Points` - `docs/pr-reviews/pr-3084-review/PR-REVIEW.md`
+- 2026-11-28 10:28 UTC - Antigravity (Gemini 4 Hydrogen) - Updated `PR-REVIEW.md` for `F1` open state, `F13` clarifying reply, `F16` (`RE_RAISE_OF:F1`, `NO_ACTION`), and review `6097152781` findings `F17` to `F20`, removed all branch commit IDs in favor of Conventional Commit subjects, and added commit point `docs(pr-reviews): [#3080] finalize PR #3084 audit record and replies` - `docs/pr-reviews/pr-3084-review/PR-REVIEW.md`
 
 ## Acceptance Criteria
 
